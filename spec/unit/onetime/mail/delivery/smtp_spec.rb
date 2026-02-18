@@ -37,7 +37,7 @@ RSpec.describe Onetime::Mail::Delivery::SMTP do
             .to raise_error(Onetime::Mail::DeliveryError) do |err|
               expect(err.transient?).to be true
               expect(err.original_error).to be_a(error_class)
-              expect(err.message).to include('Transient SMTP error')
+              expect(err.message).to include('SMTP delivery error')
             end
         end
       end
@@ -54,9 +54,9 @@ RSpec.describe Onetime::Mail::Delivery::SMTP do
     end
 
     context 'when a fatal error occurs' do
-      # Net::SMTPAuthenticationError is handled specially in #deliver:
+      # Net::SMTPAuthenticationError is handled specially in perform_delivery:
       # it triggers handle_auth_failure (retry without auth) before reaching
-      # the outer FATAL_ERRORS rescue. Test it separately below.
+      # Base's error handler. Test it separately below.
       fatal_errors_without_auth = described_class::FATAL_ERRORS - [Net::SMTPAuthenticationError]
 
       fatal_errors_without_auth.each do |error_class|
@@ -68,7 +68,7 @@ RSpec.describe Onetime::Mail::Delivery::SMTP do
             .to raise_error(Onetime::Mail::DeliveryError) do |err|
               expect(err.transient?).to be false
               expect(err.original_error).to be_a(error_class)
-              expect(err.message).to include('Fatal SMTP error')
+              expect(err.message).to include('SMTP delivery error')
             end
         end
       end
@@ -83,20 +83,43 @@ RSpec.describe Onetime::Mail::Delivery::SMTP do
           end
       end
 
-      it 'retries without auth on Net::SMTPAuthenticationError then wraps fallback failure' do
-        # deliver_with_settings raises auth error (triggers handle_auth_failure),
-        # which calls mail.deliver! directly. Stub at the Mail::Message level
-        # to simulate the fallback also failing.
+      it 'raises auth error as non-transient DeliveryError without fallback flag' do
         allow(smtp).to receive(:deliver_with_settings)
           .and_raise(Net::SMTPAuthenticationError, '535 bad credentials')
-        allow(smtp).to receive(:handle_auth_failure)
-          .and_raise(Net::SMTPFatalError, '550 rejected on retry')
 
         expect { smtp.deliver(email) }
           .to raise_error(Onetime::Mail::DeliveryError) do |err|
             expect(err.transient?).to be false
-            expect(err.original_error).to be_a(Net::SMTPFatalError)
+            expect(err.original_error).to be_a(Net::SMTPAuthenticationError)
           end
+      end
+
+      context 'with allow_unauthenticated_fallback enabled' do
+        let(:config) { { host: 'localhost', port: 2525, allow_unauthenticated_fallback: true } }
+
+        it 'succeeds when auth fails but no-auth retry works' do
+          call_count = 0
+          allow(smtp).to receive(:deliver_with_settings) do
+            call_count += 1
+            raise Net::SMTPAuthenticationError, '535 bad credentials' if call_count == 1
+          end
+          allow(smtp).to receive(:handle_auth_failure).and_return(true)
+
+          expect { smtp.deliver(email) }.not_to raise_error
+        end
+
+        it 'wraps fallback failure as non-transient DeliveryError' do
+          allow(smtp).to receive(:deliver_with_settings)
+            .and_raise(Net::SMTPAuthenticationError, '535 bad credentials')
+          allow(smtp).to receive(:handle_auth_failure)
+            .and_raise(Net::SMTPFatalError, '550 rejected on retry')
+
+          expect { smtp.deliver(email) }
+            .to raise_error(Onetime::Mail::DeliveryError) do |err|
+              expect(err.transient?).to be false
+              expect(err.original_error).to be_a(Net::SMTPFatalError)
+            end
+        end
       end
     end
 

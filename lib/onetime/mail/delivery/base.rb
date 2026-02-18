@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'openssl'
+
 module Onetime
   module Mail
     module Delivery
@@ -21,16 +23,66 @@ module Onetime
       class Base
         attr_reader :config
 
+        # Network errors common across all providers
+        NETWORK_ERRORS = [
+          Errno::ECONNREFUSED,
+          Errno::ECONNRESET,
+          Errno::ETIMEDOUT,
+          Net::OpenTimeout,
+          Net::ReadTimeout,
+          IOError,
+          SocketError,
+          OpenSSL::SSL::SSLError,
+        ].freeze
+
         def initialize(config = {})
           @config = config
           validate_config!
         end
 
-        # Deliver an email message
+        # Deliver an email message with unified error handling.
+        # Subclasses implement perform_delivery and classify_error.
         # @param email [Hash] Email parameters (to, from, subject, text_body, html_body)
         # @return [Object] Provider-specific response or nil
         def deliver(email)
-          raise NotImplementedError, "#{self.class} must implement #deliver"
+          email  = normalize_email(email)
+          result = perform_delivery(email)
+          log_delivery(email, delivery_log_status)
+          result
+        rescue Onetime::Mail::DeliveryError
+          raise # pass-through, no double-wrap
+        rescue StandardError => ex
+          log_error(email, ex)
+          transient = classify_error(ex) == :transient
+          raise Onetime::Mail::DeliveryError.new(
+            "#{provider_name} delivery error: #{ex.message}",
+            original_error: ex,
+            transient: transient,
+          )
+        end
+
+        # Subclass hook: provider-specific send logic
+        # @param email [Hash] Normalized email parameters
+        # @return [Object] Provider-specific response
+        def perform_delivery(email)
+          raise NotImplementedError, "#{self.class} must implement #perform_delivery"
+        end
+
+        # Subclass hook: classify provider-specific errors.
+        # Returns :transient, :fatal, or :unknown.
+        # :unknown defaults to non-transient (fail fast).
+        # @param error [StandardError] The error to classify
+        # @return [Symbol] :transient, :fatal, or :unknown
+        def classify_error(error)
+          return :transient if NETWORK_ERRORS.any? { |klass| error.is_a?(klass) }
+
+          :unknown
+        end
+
+        # Override in subclasses to change the log status label
+        # @return [String]
+        def delivery_log_status
+          'sent'
         end
 
         # Provider name for logging

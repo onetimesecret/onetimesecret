@@ -70,8 +70,8 @@ module Onetime
 
           log_debug "Processing email: #{data[:template]} (metadata: #{message_metadata})"
 
-          # Only retry transient delivery errors (connection timeouts, server busy, etc.)
-          # Non-transient errors (auth failure, permanent rejection) go straight to DLQ
+          # Only skip retries for non-transient DeliveryErrors (auth failure, permanent rejection).
+          # Plain StandardErrors and transient DeliveryErrors are retriable.
           retriable = ->(ex) { !ex.is_a?(Onetime::Mail::DeliveryError) || ex.transient? }
 
           with_retry(max_retries: 3, base_delay: 2.0, retriable: retriable) do

@@ -21,25 +21,42 @@ module Onetime
       class SendGrid < Base
         API_ENDPOINT = 'https://api.sendgrid.com/v3/mail/send'
 
-        def deliver(email)
-          email = normalize_email(email)
+        # Structured error for SendGrid API failures, carrying HTTP status
+        class APIError < StandardError
+          attr_reader :status_code, :response_body
 
+          def initialize(message, status_code:, response_body: nil)
+            super(message)
+            @status_code   = status_code
+            @response_body = response_body
+          end
+        end
+
+        def perform_delivery(email)
           OT.ld "[sendgrid] Delivering to #{OT::Utils.obscure_email(email[:to])}"
 
           payload  = build_payload(email)
           response = send_request(payload)
 
           # SendGrid returns 202 Accepted for successful sends
-          unless response.code.to_i >= 200 && response.code.to_i < 300
-            error_body = response.body.to_s[0, 500]
-            raise "SendGrid API error: #{response.code} #{error_body}"
+          unless response.code.to_i.between?(200, 299)
+            raise APIError.new(
+              "SendGrid API error: #{response.code} #{response.body.to_s[0, 500]}",
+              status_code: response.code.to_i,
+              response_body: response.body.to_s[0, 500],
+            )
           end
 
-          log_delivery(email)
           response
-        rescue StandardError => ex
-          log_error(email, ex)
-          raise
+        end
+
+        def classify_error(error)
+          if error.is_a?(APIError)
+            return :transient if error.status_code == 429 || error.status_code >= 500
+            return :fatal if error.status_code >= 400
+          end
+
+          super
         end
 
         protected
@@ -87,9 +104,11 @@ module Onetime
         end
 
         def send_request(payload)
-          uri          = URI(API_ENDPOINT)
-          http         = Net::HTTP.new(uri.host, uri.port)
-          http.use_ssl = true
+          uri               = URI(API_ENDPOINT)
+          http              = Net::HTTP.new(uri.host, uri.port)
+          http.use_ssl      = true
+          http.open_timeout = 15
+          http.read_timeout = 30
 
           request                  = Net::HTTP::Post.new(uri)
           request['Authorization'] = "Bearer #{api_key}"
