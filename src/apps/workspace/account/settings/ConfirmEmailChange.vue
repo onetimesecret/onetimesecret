@@ -113,7 +113,7 @@
             dark:hover:text-brand-300"
           @click.prevent="redirectToSignin">
           {{
-            t('web.COMMON.sign_in')
+            t('web.COMMON.header_sign_in')
           }}
         </router-link>
       </div>
