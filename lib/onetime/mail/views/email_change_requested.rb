@@ -1,4 +1,4 @@
-# lib/onetime/mail/views/email_changed.rb
+# lib/onetime/mail/views/email_change_requested.rb
 #
 # frozen_string_literal: true
 
@@ -7,22 +7,22 @@ require_relative 'base'
 module Onetime
   module Mail
     module Templates
-      # Security notification sent to OLD email after an email change is confirmed.
-      # This is a confirmation-time notification (the email HAS been changed).
+      # Security notification sent to OLD email when an email change is requested.
+      # This is a request-time notification (the email has NOT changed yet).
       #
       # The full new email address is shown (not obfuscated) because the
       # recipient is the legitimate account owner who needs to see exactly
       # what address the change targets to assess whether it is legitimate.
       #
       # Required data:
-      #   old_email:  Previous email address (recipient)
+      #   old_email:  Current email address (recipient)
       #   new_email:  Full new email address
       #
       # Optional data:
-      #   changed_at: ISO8601 timestamp of the confirmed change
-      #   baseuri:    Override site base URI
+      #   requested_at: ISO8601 timestamp of the request
+      #   baseuri:      Override site base URI
       #
-      class EmailChanged < Base
+      class EmailChangeRequested < Base
         protected
 
         def validate_data!
@@ -34,7 +34,7 @@ module Onetime
 
         def subject
           EmailTranslations.translate(
-            'email.email_changed.subject',
+            'email.email_change_requested.subject',
             locale: locale,
             display_domain: display_domain,
           )
@@ -52,15 +52,15 @@ module Onetime
           data[:new_email]
         end
 
-        def changed_at
-          data[:changed_at] || Time.now.utc.iso8601
+        def requested_at
+          data[:requested_at] || Time.now.utc.iso8601
         end
 
-        def changed_at_formatted
-          time = Time.parse(changed_at.to_s)
+        def requested_at_formatted
+          time = Time.parse(requested_at.to_s)
           time.strftime('%B %d, %Y at %H:%M UTC')
         rescue ArgumentError
-          changed_at.to_s
+          requested_at.to_s
         end
 
         def support_path
@@ -77,8 +77,8 @@ module Onetime
           computed_data = data.merge(
             old_email: old_email,
             new_email: new_email,
-            changed_at: changed_at,
-            changed_at_formatted: changed_at_formatted,
+            requested_at: requested_at,
+            requested_at_formatted: requested_at_formatted,
             support_path: support_path,
             baseuri: baseuri,
           )

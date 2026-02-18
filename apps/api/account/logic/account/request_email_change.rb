@@ -2,6 +2,48 @@
 #
 # frozen_string_literal: true
 
+# ## Security Analysis: Email Change Notification Timing
+#
+# The request-time notification is the more important of the two because
+# it provides the only window for user intervention before account
+# takeover is complete.
+#
+# When an attacker has obtained the user's password (credential stuffing,
+# phishing, database breach) or hijacked an active session, the only
+# remaining defense is the legitimate user's awareness. Notifying at
+# request time gives the user up to 24 hours (the token TTL) to take
+# action before the change is finalized. If notification is deferred to
+# confirmation time, the user learns about the change only after:
+#
+# - Their email has been swapped
+# - All sessions have been invalidated
+# - They can no longer log in with their old email
+#
+# At that point, the user's only recourse is to contact support. The
+# attacker has already completed the takeover.
+#
+# Password re-authentication is necessary but not sufficient. The flow
+# correctly requires the current password, which means a pure session
+# hijack without the password cannot initiate the change. However,
+# password compromise is the more dangerous scenario, and it is exactly
+# the scenario where early notification matters most. The legitimate user
+# seeing "someone requested an email change on your account" can
+# immediately change their password and revoke the pending change.
+#
+# The correct approach is to notify the old email at both stages:
+# 1. At request time: alert about pending change with intervention guidance
+# 2. At confirmation time: definitive notice that the change went through
+#
+# This matches Google, GitHub, and AWS patterns and satisfies NIST
+# 800-63B (Section 6.1.2.1) guidance on pre-change notification for
+# authenticator binding changes. OWASP Authentication Cheat Sheet
+# recommends notifying when security-sensitive operations occur at
+# the existing (old) email address.
+#
+# From a compliance perspective (SOC 2 CC6.1, CC7.2; NIST 800-53
+# AC-2(4), AU-12), credential changes should generate audit events at
+# both the initiation and completion of the change.
+
 require_relative '../base'
 require_relative '../../../../../lib/onetime/jobs/publisher'
 
@@ -77,13 +119,13 @@ module AccountAPI::Logic
           OT.le "[request-email-change] Failed to send confirmation email: #{ex.message}"
         end
 
-        # Send notification email to the OLD address
+        # Send notification email to the OLD address (request-time, present tense)
         begin
           Onetime::Jobs::Publisher.enqueue_email(
-            :email_changed,
+            :email_change_requested,
             {
               old_email: cust.email,
-              new_email_masked: mask_email(@new_email),
+              new_email: @new_email,
               locale: locale || cust.locale || OT.default_locale,
             },
             fallback: :async_thread,

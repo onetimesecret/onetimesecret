@@ -18,6 +18,7 @@ require_relative 'views/expiration_warning'
 require_relative 'views/organization_invitation'
 require_relative 'views/magic_link'
 require_relative 'views/email_change_confirmation'
+require_relative 'views/email_change_requested'
 require_relative 'views/email_changed'
 
 module Onetime
@@ -139,6 +140,8 @@ module Onetime
             Templates::OrganizationInvitation
           when :email_change_confirmation
             Templates::EmailChangeConfirmation
+          when :email_change_requested
+            Templates::EmailChangeRequested
           when :email_changed
             Templates::EmailChanged
           else

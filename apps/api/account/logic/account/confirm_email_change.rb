@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative '../../../../../lib/onetime/jobs/publisher'
 
 module AccountAPI::Logic
   module Account
@@ -70,6 +71,21 @@ module AccountAPI::Logic
 
         # Invalidate all sessions for this customer
         invalidate_sessions(@owner)
+
+        # Send confirmation notification to the OLD email (the email has now changed)
+        begin
+          Onetime::Jobs::Publisher.enqueue_email(
+            :email_changed,
+            {
+              old_email: old_email,
+              new_email: new_email,
+              locale: locale || @owner.locale || OT.default_locale,
+            },
+            fallback: :async_thread,
+          )
+        rescue StandardError => ex
+          OT.le "[confirm-email-change] Failed to send email-changed notification: #{ex.message}"
+        end
 
         OT.info "[confirm-email-change] Email change confirmed cid/#{@owner.objid} new/#{OT::Utils.obscure_email(new_email)}"
 
