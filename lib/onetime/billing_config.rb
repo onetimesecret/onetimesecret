@@ -95,6 +95,18 @@ module Onetime
       config['stripe_metadata_schema'] || {}
     end
 
+    # Region / jurisdiction for catalog isolation
+    #
+    # When set (e.g. 'NZ', 'CA'), only Stripe products whose region metadata
+    # matches this value will be imported. Returns nil when unset, which means
+    # all regions are accepted (backward-compatible pass-through).
+    def region
+      val = config['region']
+      return nil if val.nil? || val.to_s.strip.empty?
+
+      val.to_s.strip
+    end
+
     # Payment links configuration
     def payment_links
       config['payment_links'] || {}

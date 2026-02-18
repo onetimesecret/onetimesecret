@@ -217,6 +217,21 @@ module Billing
         missing.empty?
       end
 
+      # Check whether a Stripe product belongs to the configured region
+      #
+      # Returns true when no region is configured (backward-compatible pass-through).
+      # When a region is configured, the product's region metadata must match exactly.
+      # Called by both collect_stripe_plans (refresh path) and the webhook handler.
+      #
+      # @param product [Stripe::Product] The Stripe product
+      # @return [Boolean] true if the product matches the configured region (or no region set)
+      def correct_region?(product)
+        configured_region = Onetime.billing_config.region
+        return true if configured_region.nil?
+
+        product.metadata[Metadata::FIELD_REGION] == configured_region
+      end
+
       # Refresh plan cache from Stripe API
       #
       # Fetches all active products and prices from Stripe, filters by app metadata,
@@ -408,6 +423,18 @@ module Billing
                 product_id: product.id,
                 product_name: product.name,
                 app: product.metadata[Metadata::FIELD_APP],
+              }
+            next
+          end
+
+          # Skip products from a different region when regional isolation is configured
+          unless correct_region?(product)
+            OT.ld '[Plan.collect_stripe_plans] Skipping product from wrong region',
+              {
+                product_id: product.id,
+                product_name: product.name,
+                product_region: product.metadata[Metadata::FIELD_REGION],
+                configured_region: Onetime.billing_config.region,
               }
             next
           end
