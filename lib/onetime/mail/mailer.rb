@@ -240,7 +240,7 @@ module Onetime
         end
 
         def emailer_config
-          return {} unless defined?(OT) && OT.respond_to?(:conf)
+          return {} unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
 
           OT.conf['emailer'] || OT.conf[:emailer] || {}
         end
