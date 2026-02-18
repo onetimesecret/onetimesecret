@@ -1,0 +1,96 @@
+##
+# DOCKER COMPOSE - ONETIME SECRET (SIMPLE)
+#
+# Minimal two-service deployment: App + Valkey (Redis-compatible).
+# No reverse proxy, no message queue, no workers.
+#
+# For the full production stack with Caddy TLS proxy, RabbitMQ,
+# background workers, and scheduler, use docker-compose.yml instead.
+#
+# Origin: This file was migrated from the onetimesecret/docker-compose
+# repository, which is now archived. All Docker configuration is
+# maintained here in the main repository.
+#
+# Usage:
+#
+#     $ cp --preserve --no-clobber .env.example .env
+#     # Edit .env with your settings (SECRET, HOST, etc.)
+#
+#     $ docker compose -f docker-compose.simple.yml up -d redis
+#     $ docker compose -f docker-compose.simple.yml up --build app
+#
+#         - or simply -
+#
+#     $ docker compose -f docker-compose.simple.yml up
+#
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: onetime-app
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - RACK_ENV=${RACK_ENV:-production}
+      - REDIS_URL=redis://redis:6379/0
+      - VALKEY_URL=redis://redis:6379/0
+      - SECRET=${SECRET:?SECRET must be set in .env}
+      - SESSION_SECRET=${SESSION_SECRET:-${SECRET}}
+      - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-simple}
+      - ONETIME_HOME=/app
+    entrypoint: ['./bin/entrypoint.sh']
+    stdin_open: true
+    tty: true
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '60m'
+        max-file: '3'
+    ports:
+      - '3000:3000'
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+      - ./etc:/app/etc
+
+  redis:
+    image: valkey/valkey:8.0-bookworm@sha256:3fb1247c0ae098a109f49e86a00bbae330044d610a608228a8350c0287c1e4f1
+    container_name: onetime-redis
+    command: >
+      valkey-server
+      --appendonly yes
+      --appendfilename onetime.aof
+      --appendfsync everysec
+      --dbfilename onetime.rdb
+      --save 157680000 1
+      --bind 0.0.0.0
+      --port 6379
+      --databases 16
+      --timeout 30
+      --loglevel notice
+      --rdbcompression yes
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '60m'
+        max-file: '3'
+    ports:
+      - '6379:6379'
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'valkey-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  redis-data:
+    name: onetime_maindb_data

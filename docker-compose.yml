@@ -1,5 +1,11 @@
 ##
-# DOCKER COMPOSE - ONETIME SECRET
+# DOCKER COMPOSE - ONETIME SECRET (FULL STACK)
+#
+# Full production deployment: Caddy TLS proxy, App, Valkey, RabbitMQ,
+# background workers, and scheduler.
+#
+# For a minimal two-service setup (App + Valkey only), use
+# docker-compose.simple.yml instead.
 #
 # See docker/README.md for complete setup and usage documentation.
 

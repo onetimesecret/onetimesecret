@@ -1,8 +1,17 @@
-# Docker Deployment (Updated: 2025-11-09)
+# Docker Deployment (Updated: 2026-02-18)
 
-Three-tier stack: Caddy (TLS + proxy) → App (Puma) → Valkey (sessions,accounts,secrets).
+All Docker Compose configuration is maintained in this repository.
+The separate [onetimesecret/docker-compose](https://github.com/onetimesecret/docker-compose)
+repository is archived as of v0.24.
 
-## Architecture
+## Compose Files
+
+| File | Services | Use Case |
+|------|----------|----------|
+| `docker-compose.yml` | Caddy + App + Valkey + RabbitMQ + Worker + Scheduler | Full production deployment |
+| `docker-compose.simple.yml` | App + Valkey | Development, testing, or minimal deployments |
+
+## Architecture (Full Stack)
 
 ```
 Internet → Caddy (80/443) → App (3000) → Redis (6379)
@@ -32,6 +41,19 @@ docker-compose up
 ```
 
 Access: http://localhost
+
+## Simple Deployment
+
+For a minimal setup without the reverse proxy, message queue, or background workers:
+
+```bash
+cp --preserve --no-clobber .env.example .env
+echo "SECRET=$(openssl rand -hex 32)" >> .env
+
+docker compose -f docker-compose.simple.yml up
+```
+
+Access: http://localhost:3000
 
 ## Production
 
