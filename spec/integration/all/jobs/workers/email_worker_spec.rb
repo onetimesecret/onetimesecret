@@ -265,15 +265,15 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
         expect(Onetime::Mail).to have_received(:deliver).exactly(4).times # initial + 3 retries
       end
 
-      it 'calls reject! after exhausting retries when Mail.deliver raises DeliveryError' do
+      it 'calls reject! without retrying when Mail.deliver raises non-transient DeliveryError' do
         error = Onetime::Mail::DeliveryError.new('SMTP error', transient: false)
         allow(Onetime::Mail).to receive(:deliver).and_raise(error)
 
         worker.work_with_params(message, delivery_info, metadata)
 
-        # with_retry raises after max retries, outer rescue catches and calls reject!
+        # Non-transient DeliveryError skips retries and goes straight to DLQ
         expect(worker.rejected?).to be true
-        expect(Onetime::Mail).to have_received(:deliver).exactly(4).times # initial + 3 retries
+        expect(Onetime::Mail).to have_received(:deliver).exactly(1).times
       end
 
       it 'keeps idempotency key even when delivery fails after retries' do
