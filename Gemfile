@@ -114,6 +114,7 @@ gem 'rufus-scheduler', '~> 3.9'  # Cron-style job scheduling
 # ====================================
 
 gem 'aws-sdk-sesv2', '~> 1.74', require: false
+gem 'lettermint', git: 'https://github.com/onetimesecret/lettermint-ruby.git', require: false
 gem 'sendgrid-ruby', require: false
 gem 'sentry-ruby', require: false
 gem 'stackprof', require: false

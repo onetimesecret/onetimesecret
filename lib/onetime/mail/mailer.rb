@@ -7,6 +7,7 @@ require_relative 'delivery/logger'
 require_relative 'delivery/smtp'
 require_relative 'delivery/ses'
 require_relative 'delivery/sendgrid'
+require_relative 'delivery/lettermint'
 require_relative 'views/base'
 require_relative 'views/secret_link'
 require_relative 'views/welcome'
@@ -162,6 +163,8 @@ module Onetime
             Delivery::SES.new(config)
           when 'sendgrid'
             Delivery::SendGrid.new(config)
+          when 'lettermint'
+            Delivery::Lettermint.new(config)
           when 'logger'
             Delivery::Logger.new(config)
           else
@@ -201,6 +204,8 @@ module Onetime
             'ses' # AWS SES uses region + AWS credentials
           elsif conf['sendgrid_api_key']
             'sendgrid'
+          elsif conf['lettermint_api_token']
+            'lettermint'
           elsif conf['host']
             'smtp'
           else
@@ -231,6 +236,12 @@ module Onetime
             {
               api_key: conf['sendgrid_api_key'] || conf['pass'] || ENV.fetch('SENDGRID_API_KEY', nil),
             }
+          when 'lettermint'
+            {
+              api_token: conf['lettermint_api_token'] || conf['pass'] || ENV.fetch('LETTERMINT_API_TOKEN', nil),
+              base_url: conf['lettermint_base_url'] || ENV.fetch('LETTERMINT_BASE_URL', nil),
+              timeout: conf['lettermint_timeout'],
+            }.compact
           else
             {}
           end
