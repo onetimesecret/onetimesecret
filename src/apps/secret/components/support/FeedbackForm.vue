@@ -6,7 +6,7 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useCsrfStore } from '@/shared/stores/csrfStore';
   import { storeToRefs } from 'pinia';
-  import { onMounted, ref } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
 
   const { t } = useI18n();
 
@@ -15,11 +15,23 @@
   export interface Props {
     enabled?: boolean;
     showRedButton: boolean | null;
+    reason?: string;
   }
 
-  withDefaults(defineProps<Props>(), {
+  const props = withDefaults(defineProps<Props>(), {
     enabled: true,
     showRedButton: false,
+    reason: '',
+  });
+
+  const REASON_I18N_KEYS: Record<string, string> = {
+    email_change_unauthorized:
+      'web.feedback.reason_email_change_unauthorized',
+  };
+
+  const reasonMessage = computed(() => {
+    const key = REASON_I18N_KEYS[props.reason];
+    return key ? t(key) : '';
   });
 
   const userTimezone = ref('');
@@ -75,6 +87,24 @@
             type="hidden"
             name="shrimp"
             :value="csrfStore.shrimp" />
+          <input
+            v-if="reason"
+            type="hidden"
+            name="reason"
+            :value="reason" />
+
+          <!-- Reason-specific context banner -->
+          <div
+            v-if="reasonMessage"
+            class="rounded-lg border border-amber-200 bg-amber-50
+              p-4 dark:border-amber-800 dark:bg-amber-900/20"
+            role="status">
+            <p
+              class="text-sm text-amber-800
+                dark:text-amber-300">
+              {{ reasonMessage }}
+            </p>
+          </div>
 
           <div class="flex flex-col gap-4">
             <div class="grow">

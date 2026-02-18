@@ -135,7 +135,7 @@
           class="mt-6 text-2xl font-bold text-gray-900
             dark:text-white">
           {{
-            t('web.settings.profile.confirm_email_change_title')
+            t('web.settings.profile.email_confirm_error_title')
           }}
         </h1>
         <p

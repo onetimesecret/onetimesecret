@@ -2,24 +2,39 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  // import { useAccount } from '@/shared/composables/useAccount';
+  import { useAccount } from '@/shared/composables/useAccount';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import LanguageToggle from '@/shared/components/ui/LanguageToggle.vue';
-  import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
-  import ThemeToggle from '@/shared/components/ui/ThemeToggle.vue';
-  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import LanguageToggle
+    from '@/shared/components/ui/LanguageToggle.vue';
+  import SettingsLayout
+    from '@/apps/workspace/layouts/SettingsLayout.vue';
+  import ThemeToggle
+    from '@/shared/components/ui/ThemeToggle.vue';
+  import {
+    useBootstrapStore,
+  } from '@/shared/stores/bootstrapStore';
   import { storeToRefs } from 'pinia';
-  import { ref, onMounted } from 'vue';
+  import { computed, ref, onMounted } from 'vue';
 
   const { t } = useI18n();
-  // const { accountInfo, fetchAccountInfo } = useAccount();
+  const { accountInfo, fetchAccountInfo } = useAccount();
 
   const bootstrapStore = useBootstrapStore();
   const { i18n_enabled } = storeToRefs(bootstrapStore);
 
+  const currentEmail = computed(
+    () => bootstrapStore.email
+  );
+
+  const emailVerified = computed(
+    () => accountInfo.value?.email_verified ?? false
+  );
+
   const isLoading = ref(false);
 
-  const handleThemeChange = async (isDark: boolean) => {
+  const handleThemeChange = async (
+    isDark: boolean
+  ) => {
     isLoading.value = true;
     try {
       console.log('Theme changed:', isDark);
@@ -31,24 +46,113 @@
   };
 
   onMounted(async () => {
-    // await fetchAccountInfo();
+    await fetchAccountInfo();
   });
 </script>
 
 <template>
   <SettingsLayout>
     <div class="space-y-8">
+      <!-- Email Address -->
+      <section
+        class="rounded-lg border border-gray-200
+          bg-white dark:border-gray-700
+          dark:bg-gray-800">
+        <div
+          class="border-b border-gray-200 px-6 py-4
+            dark:border-gray-700">
+          <div class="flex items-center gap-3">
+            <OIcon
+              collection="heroicons"
+              name="envelope"
+              class="size-5 text-gray-500
+                dark:text-gray-400"
+              aria-hidden="true" />
+            <h2
+              class="text-lg font-semibold
+                text-gray-900 dark:text-white">
+              {{ t('web.auth.account.email') }}
+            </h2>
+          </div>
+        </div>
+
+        <div class="px-6 py-4">
+          <div
+            class="flex items-center
+              justify-between">
+            <div class="flex items-center gap-3">
+              <div>
+                <p
+                  class="font-medium text-gray-900
+                    dark:text-white">
+                  {{ currentEmail }}
+                </p>
+                <div
+                  class="mt-1 flex items-center
+                    gap-1.5">
+                  <OIcon
+                    v-if="emailVerified"
+                    collection="heroicons"
+                    name="check-circle-solid"
+                    class="size-4 text-green-600
+                      dark:text-green-400"
+                    aria-hidden="true" />
+                  <span
+                    :class="[
+                      'text-sm',
+                      emailVerified
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-gray-500 dark:text-gray-400',
+                    ]">
+                    {{
+                      emailVerified
+                        ? t('web.auth.account.verified')
+                        : t(
+                          'web.auth.account.not_verified'
+                        )
+                    }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <router-link
+              to="/account/settings/profile/email"
+              class="inline-flex items-center gap-2
+                text-sm font-medium text-brand-600
+                hover:text-brand-700
+                dark:text-brand-400
+                dark:hover:text-brand-300">
+              {{
+                t('web.settings.profile.change_email')
+              }}
+              <OIcon
+                collection="heroicons"
+                name="arrow-right-solid"
+                class="size-4"
+                aria-hidden="true" />
+            </router-link>
+          </div>
+        </div>
+      </section>
+
       <!-- Preferences -->
       <section
-        class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+        class="rounded-lg border border-gray-200
+          bg-white dark:border-gray-700
+          dark:bg-gray-800">
+        <div
+          class="border-b border-gray-200 px-6 py-4
+            dark:border-gray-700">
           <div class="flex items-center gap-3">
             <OIcon
               collection="heroicons"
               name="adjustments-horizontal-solid"
-              class="size-5 text-gray-500 dark:text-gray-400"
+              class="size-5 text-gray-500
+                dark:text-gray-400"
               aria-hidden="true" />
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            <h2
+              class="text-lg font-semibold
+                text-gray-900 dark:text-white">
               {{ t('web.settings.preferences') }}
             </h2>
           </div>
