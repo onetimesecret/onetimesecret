@@ -149,7 +149,7 @@ RSpec.describe Onetime::Mail::Mailer::SMTPMailer do
           mailer.instance_variable_set(:@fromname, nil)
 
           # Now set the proper expectation
-          expect(OT).to receive(:le).with("> [send-exception] No from address (check FROM_EMAIL or FROM_NAME env var) [to: r***@example.com]")
+          expect(OT).to receive(:le).with("> [send-exception] No from address [to: r***@example.com] (check FROM_EMAIL or FROM_NAME env var)")
 
           # We need to use `allow` instead of `expect` with `not_to receive`
           # because the method logic might actually try to call this

@@ -36,12 +36,10 @@ module Onetime
       raw_recipients.each do |recipient|
         OT.info "[IncomingSecrets] Processing recipient config: #{recipient}"
 
-        next if recipient.nil? || recipient.empty?
+        next if recipient.nil? || recipient.empty? || recipient.first.to_s.strip.empty?
 
-        email = recipient.first&.strip
-        name = recipient[1]&.strip || email&.split('@')&.first
-
-        next if email.nil? || email.empty?
+        email = recipient.first.strip
+        name = recipient[1]&.strip || email.split('@').first
 
         # Generate a stable hash for this email using site secret as salt
         hash_key = Digest::SHA256.hexdigest("#{email}:#{site_secret}")[0..15]
