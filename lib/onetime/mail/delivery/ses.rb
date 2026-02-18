@@ -22,6 +22,7 @@ module Onetime
           LimitExceededException
           RequestThrottled
           ThrottlingException
+          ServiceUnavailableException
         ].freeze
 
         # AWS error codes indicating permanent/configuration issues
@@ -31,6 +32,7 @@ module Onetime
           MailFromDomainNotVerifiedException
           ConfigurationSetDoesNotExist
           InvalidParameterValue
+          BadRequestException
         ].freeze
 
         def perform_delivery(email)

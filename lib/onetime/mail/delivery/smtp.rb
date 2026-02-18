@@ -50,7 +50,8 @@ module Onetime
           begin
             deliver_with_settings(mail_message, settings)
           rescue Net::SMTPAuthenticationError => ex
-            # Retry without auth for dev servers like Mailpit
+            raise unless config[:allow_unauthenticated_fallback]
+
             handle_auth_failure(mail_message, settings, ex)
           end
 

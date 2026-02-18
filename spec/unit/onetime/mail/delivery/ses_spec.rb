@@ -5,6 +5,7 @@
 require 'spec_helper'
 require 'onetime/mail'
 require 'onetime/mail/delivery/ses'
+require 'aws-sdk-core'
 
 RSpec.describe Onetime::Mail::Delivery::SES do
   let(:config) do
@@ -41,9 +42,12 @@ RSpec.describe Onetime::Mail::Delivery::SES do
   end
 
   describe '#deliver error classification' do
-    # Helper to create AWS-style errors with .code and .http_status_code
+    # Build a realistic AWS SDK error with .code and .http_status_code
     def aws_error(code, http_status, message = 'AWS error')
-      error = StandardError.new(message)
+      context = Seahorse::Client::RequestContext.new
+      response = Seahorse::Client::Response.new(context: context)
+      response.error = Aws::Errors::ServiceError.new(context, message)
+      error = Aws::Errors::ServiceError.new(context, message)
       error.define_singleton_method(:code) { code }
       error.define_singleton_method(:http_status_code) { http_status }
       error

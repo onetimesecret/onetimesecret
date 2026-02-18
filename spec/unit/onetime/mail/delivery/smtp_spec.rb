@@ -83,20 +83,43 @@ RSpec.describe Onetime::Mail::Delivery::SMTP do
           end
       end
 
-      it 'retries without auth on Net::SMTPAuthenticationError then wraps fallback failure' do
-        # deliver_with_settings raises auth error (triggers handle_auth_failure),
-        # which calls mail.deliver! directly. Stub at the Mail::Message level
-        # to simulate the fallback also failing.
+      it 'raises auth error as non-transient DeliveryError without fallback flag' do
         allow(smtp).to receive(:deliver_with_settings)
           .and_raise(Net::SMTPAuthenticationError, '535 bad credentials')
-        allow(smtp).to receive(:handle_auth_failure)
-          .and_raise(Net::SMTPFatalError, '550 rejected on retry')
 
         expect { smtp.deliver(email) }
           .to raise_error(Onetime::Mail::DeliveryError) do |err|
             expect(err.transient?).to be false
-            expect(err.original_error).to be_a(Net::SMTPFatalError)
+            expect(err.original_error).to be_a(Net::SMTPAuthenticationError)
           end
+      end
+
+      context 'with allow_unauthenticated_fallback enabled' do
+        let(:config) { { host: 'localhost', port: 2525, allow_unauthenticated_fallback: true } }
+
+        it 'succeeds when auth fails but no-auth retry works' do
+          call_count = 0
+          allow(smtp).to receive(:deliver_with_settings) do
+            call_count += 1
+            raise Net::SMTPAuthenticationError, '535 bad credentials' if call_count == 1
+          end
+          allow(smtp).to receive(:handle_auth_failure).and_return(true)
+
+          expect { smtp.deliver(email) }.not_to raise_error
+        end
+
+        it 'wraps fallback failure as non-transient DeliveryError' do
+          allow(smtp).to receive(:deliver_with_settings)
+            .and_raise(Net::SMTPAuthenticationError, '535 bad credentials')
+          allow(smtp).to receive(:handle_auth_failure)
+            .and_raise(Net::SMTPFatalError, '550 rejected on retry')
+
+          expect { smtp.deliver(email) }
+            .to raise_error(Onetime::Mail::DeliveryError) do |err|
+              expect(err.transient?).to be false
+              expect(err.original_error).to be_a(Net::SMTPFatalError)
+            end
+        end
       end
     end
 

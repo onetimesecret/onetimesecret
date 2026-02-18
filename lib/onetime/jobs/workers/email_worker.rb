@@ -72,7 +72,7 @@ module Onetime
 
           # Only retry transient delivery errors (connection timeouts, server busy, etc.)
           # Non-transient errors (auth failure, permanent rejection) go straight to DLQ
-          retriable = ->(ex) { !ex.is_a?(Onetime::Mail::DeliveryError) || ex.transient? }
+          retriable = ->(ex) { ex.is_a?(Onetime::Mail::DeliveryError) && ex.transient? }
 
           with_retry(max_retries: 3, base_delay: 2.0, retriable: retriable) do
             deliver_email(data)

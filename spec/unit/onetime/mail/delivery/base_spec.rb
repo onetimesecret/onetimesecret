@@ -112,6 +112,26 @@ RSpec.describe Onetime::Mail::Delivery::Base do
     end
   end
 
+  describe '#normalize_email' do
+    it 'handles nil optional fields (reply_to, html_body)' do
+      minimal = { to: 'a@b.com', from: 'c@d.com', subject: 'Hi', text_body: 'body' }
+      normalized = backend.send(:normalize_email, minimal)
+      expect(normalized[:reply_to]).to be_nil
+      expect(normalized[:html_body]).to be_nil
+      expect(normalized[:to]).to eq('a@b.com')
+    end
+
+    it 'coerces all fields to strings when present' do
+      full = {
+        to: 'a@b.com', from: 'c@d.com', reply_to: 'e@f.com',
+        subject: 'Hi', text_body: 'body', html_body: '<p>body</p>',
+      }
+      normalized = backend.send(:normalize_email, full)
+      expect(normalized[:reply_to]).to eq('e@f.com')
+      expect(normalized[:html_body]).to eq('<p>body</p>')
+    end
+  end
+
   describe 'NETWORK_ERRORS' do
     it 'is a frozen array' do
       expect(described_class::NETWORK_ERRORS).to be_frozen

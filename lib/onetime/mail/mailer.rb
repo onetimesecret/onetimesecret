@@ -168,9 +168,6 @@ module Onetime
             log_error "[mail] Unknown provider '#{provider}', falling back to logger"
             Delivery::Logger.new(config)
           end
-        rescue ArgumentError => ex
-          log_error "[mail] Configuration error: #{ex.message}, falling back to logger"
-          Delivery::Logger.new({})
         end
 
         # Logging helpers that work with or without OT defined

@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'openssl'
+
 module Onetime
   module Mail
     module Delivery
@@ -30,6 +32,7 @@ module Onetime
           Net::ReadTimeout,
           IOError,
           SocketError,
+          OpenSSL::SSL::SSLError,
         ].freeze
 
         def initialize(config = {})

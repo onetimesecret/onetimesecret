@@ -104,9 +104,11 @@ module Onetime
         end
 
         def send_request(payload)
-          uri          = URI(API_ENDPOINT)
-          http         = Net::HTTP.new(uri.host, uri.port)
-          http.use_ssl = true
+          uri               = URI(API_ENDPOINT)
+          http              = Net::HTTP.new(uri.host, uri.port)
+          http.use_ssl      = true
+          http.open_timeout = 15
+          http.read_timeout = 30
 
           request                  = Net::HTTP::Post.new(uri)
           request['Authorization'] = "Bearer #{api_key}"

@@ -18,7 +18,12 @@ RSpec.describe Onetime::Mail::Delivery::SendGrid do
     }
   end
 
-  def mock_response(code, body = '')
+  def mock_response(code, body = nil)
+    body ||= if code.to_i >= 400
+               '{"errors":[{"message":"error","field":null,"help":null}]}'
+             else
+               ''
+             end
     response = instance_double('Net::HTTPResponse')
     allow(response).to receive(:code).and_return(code.to_s)
     allow(response).to receive(:body).and_return(body)
@@ -42,7 +47,7 @@ RSpec.describe Onetime::Mail::Delivery::SendGrid do
     context 'when API returns 429 (rate limited)' do
       it 'raises transient DeliveryError' do
         allow(sendgrid).to receive(:send_request)
-          .and_return(mock_response(429, 'rate limited'))
+          .and_return(mock_response(429, '{"errors":[{"message":"rate limited","field":null,"help":null}]}'))
 
         expect { sendgrid.deliver(email) }
           .to raise_error(Onetime::Mail::DeliveryError) do |err|
@@ -57,7 +62,7 @@ RSpec.describe Onetime::Mail::Delivery::SendGrid do
       [500, 502, 503].each do |code|
         it "raises transient DeliveryError for #{code}" do
           allow(sendgrid).to receive(:send_request)
-            .and_return(mock_response(code, 'server error'))
+            .and_return(mock_response(code))
 
           expect { sendgrid.deliver(email) }
             .to raise_error(Onetime::Mail::DeliveryError) do |err|
@@ -71,7 +76,7 @@ RSpec.describe Onetime::Mail::Delivery::SendGrid do
       [400, 401, 403].each do |code|
         it "raises fatal DeliveryError for #{code}" do
           allow(sendgrid).to receive(:send_request)
-            .and_return(mock_response(code, 'client error'))
+            .and_return(mock_response(code))
 
           expect { sendgrid.deliver(email) }
             .to raise_error(Onetime::Mail::DeliveryError) do |err|
@@ -134,13 +139,14 @@ RSpec.describe Onetime::Mail::Delivery::SendGrid do
 
   describe 'APIError' do
     it 'carries status_code and response_body' do
+      body = '{"errors":[{"message":"rate limited","field":null,"help":null}]}'
       error = described_class::APIError.new(
         'test error',
         status_code: 429,
-        response_body: '{"errors": ["rate limited"]}',
+        response_body: body,
       )
       expect(error.status_code).to eq(429)
-      expect(error.response_body).to eq('{"errors": ["rate limited"]}')
+      expect(error.response_body).to eq(body)
       expect(error.message).to eq('test error')
     end
   end
