@@ -273,6 +273,13 @@ module Onetime
 
           # API version
           billing_config_rows << ['API Version', config.stripe_api_version] if config.stripe_api_version
+
+          # Region isolation status
+          billing_config_rows << if config.region
+            ['Region Isolation', "enabled (jurisdiction=#{config.region})"]
+          else
+            ['Region Isolation', 'disabled (all jurisdictions synced)']
+                                 end
         rescue StandardError => ex
           billing_config_rows << ['Error', "Error rendering billing config: #{ex.message}"]
         end

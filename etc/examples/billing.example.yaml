@@ -46,15 +46,18 @@ stripe_api_version: "2025-12-15.clover"
 
 # Product Matching Configuration
 #
-# match_fields: Fields used to build composite key for Stripe product identification.
-#   Default: ['plan_id'] - matches by plan_id metadata only
-#   Regional: ['plan_id', 'region'] - composite matching for regional isolation
+# region: When set, only Stripe products whose region metadata matches this value
+#   will be imported into the plan cache. This enables regional catalog isolation
+#   so NZ and CA deployments sharing the same Stripe account do not overwrite each
+#   other's plans in Redis (the "last writer wins" collision).
 #
-# region: When set, only Stripe products with matching region metadata are visible.
-#   This enables regional catalog isolation (e.g., EU catalog only sees EU products).
-#   Set via JURISDICTION env var; leave unset for global catalogs.
+#   Set via JURISDICTION env var; leave unset (or empty) for global/single-region
+#   deployments where all products are visible.
 #
-# Plans can also specify stripe_product_id to override matching entirely (escape hatch).
+#   Example: JURISDICTION=NZ → only products with metadata region=NZ are loaded.
+#
+# match_fields: Reserved for future composite-key matching. Not read at runtime;
+#   regional isolation is driven solely by the region field above.
 region: <%= ENV['JURISDICTION'] || nil %>
 match_fields:
   - plan_id
