@@ -36,6 +36,14 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       expect(described_class.currency_conflict?(error)).to be true
     end
 
+    it 'returns true for new format (active objects, currency at end)' do
+      error = Stripe::InvalidRequestError.new(
+        'You cannot combine currencies on a single customer. This customer has an active subscription, subscription schedule, discount, quote, invoice item or active subscription mode checkout session with currency usd.',
+        'currency'
+      )
+      expect(described_class.currency_conflict?(error)).to be true
+    end
+
     it 'returns false for non-currency Stripe errors' do
       error = Stripe::InvalidRequestError.new(
         'No such price: price_abc123',
@@ -72,6 +80,30 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       )
 
       result = described_class.parse_currency_conflict(error)
+
+      expect(result[:existing_currency]).to eq('eur')
+      expect(result[:requested_currency]).to eq('usd')
+    end
+
+    it 'extracts existing currency from new format and returns nil requested without hint' do
+      error = Stripe::InvalidRequestError.new(
+        'You cannot combine currencies on a single customer. This customer has an active subscription, subscription schedule, discount, quote, invoice item or active subscription mode checkout session with currency eur.',
+        'currency'
+      )
+
+      result = described_class.parse_currency_conflict(error)
+
+      expect(result[:existing_currency]).to eq('eur')
+      expect(result[:requested_currency]).to be_nil
+    end
+
+    it 'uses requested_currency_hint for new format that omits requested currency' do
+      error = Stripe::InvalidRequestError.new(
+        'You cannot combine currencies on a single customer. This customer has an active subscription, subscription schedule, discount, quote, invoice item or active subscription mode checkout session with currency eur.',
+        'currency'
+      )
+
+      result = described_class.parse_currency_conflict(error, requested_currency_hint: 'USD')
 
       expect(result[:existing_currency]).to eq('eur')
       expect(result[:requested_currency]).to eq('usd')
