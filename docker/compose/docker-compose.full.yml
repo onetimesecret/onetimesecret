@@ -52,12 +52,11 @@ services:
       - RACK_ENV=${RACK_ENV:-production}
       - REDIS_URL=redis://maindb:6379/0
       - AUTH_DATABASE_URL=sqlite://data/auth.db
-      - SECRET=${SECRET:?SECRET must be set in .env}
-      - SESSION_SECRET=${SESSION_SECRET:?SESSION_SECRET must be set in .env}
+      - SECRET=${SECRET:?SECRET must be set — run bin/ots-init}
+      - SESSION_SECRET=${SESSION_SECRET:-}
       - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-full}
-      - HMAC_SECRET=${HMAC_SECRET:?HMAC_SECRET must be set in .env}
-      - VERIFIABLE_ID_HMAC_SECRET=${VERIFIABLE_ID_HMAC_SECRET:?VERIFIABLE_ID_HMAC_SECRET must be set in .env}
-      - FEDERATION_HMAC_SECRET=${FEDERATION_HMAC_SECRET:?FEDERATION_HMAC_SECRET must be set in .env}
+      - ARGON2_SECRET=${ARGON2_SECRET:-}
+      - FEDERATION_HMAC_SECRET=${FEDERATION_HMAC_SECRET:-}
       - ONETIME_HOME=/app
       - PUBLIC_DIR=/var/www/public
     entrypoint: ['./bin/entrypoint.sh']

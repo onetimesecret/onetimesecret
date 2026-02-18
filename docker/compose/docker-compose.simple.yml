@@ -24,11 +24,9 @@ services:
       - RACK_ENV=${RACK_ENV:-production}
       - REDIS_URL=redis://maindb:6379/0
       - VALKEY_URL=redis://maindb:6379/0
-      - SECRET=${SECRET:?SECRET must be set in .env}
-      - SESSION_SECRET=${SESSION_SECRET:-${SECRET}}
+      - SECRET=${SECRET:?SECRET must be set — run bin/ots-init}
+      - SESSION_SECRET=${SESSION_SECRET:-}
       - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-simple}
-      - HMAC_SECRET=${HMAC_SECRET:-}
-      - VERIFIABLE_ID_HMAC_SECRET=${VERIFIABLE_ID_HMAC_SECRET:-}
       - FEDERATION_HMAC_SECRET=${FEDERATION_HMAC_SECRET:-}
       - ONETIME_HOME=/app
     entrypoint: ['./bin/entrypoint.sh']

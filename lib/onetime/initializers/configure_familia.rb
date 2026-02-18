@@ -53,19 +53,22 @@ module Onetime
         # during legacy data detection and other pre-connection operations
         Familia.uri = uri
 
-        # Set encryption key with version to allow for future key rotation.
-        # Without this config, familia's encrypted fields will raise an error
-        # when trying to set or reveal a value.
+        # Encryption keys with versioning for key rotation.
         #
-        # Familia expects a base64-encoded 32-byte key. We derive this from
-        # the site secret using SHA-256 to ensure consistent key length.
-        derived_key = Digest::SHA256.digest(secret_key)
-        encoded_key = Base64.strict_encode64(derived_key)
+        # v1: Legacy SHA-256 derivation (reads existing encrypted data)
+        # v2: HKDF derivation (RFC 5869, used for new writes)
+        #
+        # Familia expects base64-encoded 32-byte keys.
+        require 'onetime/key_derivation'
 
-        Familia.config.encryption_keys     = {
-          v1: encoded_key,
+        v1_key = Base64.strict_encode64(Digest::SHA256.digest(secret_key))
+        v2_key = Onetime::KeyDerivation.derive_base64(secret_key, :familia_enc)
+
+        Familia.config.encryption_keys = {
+          v1: v1_key,
+          v2: v2_key,
         }
-        Familia.config.current_key_version = :v1
+        Familia.config.current_key_version = :v2
 
         OT.boot_logger.debug "[init] Configure Familia URI: #{uri}"
       end
