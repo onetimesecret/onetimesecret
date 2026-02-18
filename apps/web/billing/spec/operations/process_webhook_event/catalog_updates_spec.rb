@@ -161,6 +161,34 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
         expect(Billing::Plan).not_to have_received(:upsert_from_stripe_data)
       end
     end
+
+    describe 'product from wrong region is skipped' do
+      # Product is a valid OTS product but belongs to a different region (CA)
+      # while the deployment is configured for NZ.
+      let(:ca_product) do
+        build_stripe_product(
+          id: 'prod_ca_999',
+          name: 'Identity Plus CA',
+          metadata: { 'app' => 'onetimesecret', 'tier' => 'identity_plus', 'region' => 'CA' }
+        )
+      end
+      let(:event) { build_stripe_event(type: 'product.updated', data_object: ca_product) }
+      let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
+
+      before do
+        allow(Stripe::Product).to receive(:retrieve).with('prod_ca_999').and_return(ca_product)
+        allow(Billing::Plan).to receive(:upsert_from_stripe_data)
+        # Configure the deployment to be isolated to NZ
+        allow(Onetime.billing_config).to receive(:region).and_return('NZ')
+      end
+
+      include_examples 'handles event successfully'
+
+      it 'does not upsert a product from a different region' do
+        operation.call
+        expect(Billing::Plan).not_to have_received(:upsert_from_stripe_data)
+      end
+    end
   end
 
   describe 'price events (incremental sync)' do
@@ -218,6 +246,47 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
       include_examples 'handles event successfully'
 
       it 'does not upsert one-time prices' do
+        operation.call
+        expect(Billing::Plan).not_to have_received(:upsert_from_stripe_data)
+      end
+    end
+
+    describe 'price for product from wrong region is skipped' do
+      # Price belongs to a CA product; deployment is configured for NZ.
+      let(:ca_product) do
+        build_stripe_product(
+          id: 'prod_ca_999',
+          name: 'Identity Plus CA',
+          metadata: { 'app' => 'onetimesecret', 'tier' => 'identity_plus', 'region' => 'CA' }
+        )
+      end
+      let(:ca_price) do
+        Stripe::Price.construct_from({
+          id: 'price_ca_monthly',
+          object: 'price',
+          product: 'prod_ca_999',
+          type: 'recurring',
+          active: true,
+          unit_amount: 1900,
+          currency: 'cad',
+          billing_scheme: 'per_unit',
+          recurring: { interval: 'month', interval_count: 1, usage_type: 'licensed' },
+        })
+      end
+      let(:event) { build_stripe_event(type: 'price.created', data_object: ca_price) }
+      let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
+
+      before do
+        allow(Stripe::Price).to receive(:retrieve).with('price_ca_monthly').and_return(ca_price)
+        allow(Stripe::Product).to receive(:retrieve).with('prod_ca_999').and_return(ca_product)
+        allow(Billing::Plan).to receive(:upsert_from_stripe_data)
+        # Configure the deployment to be isolated to NZ
+        allow(Onetime.billing_config).to receive(:region).and_return('NZ')
+      end
+
+      include_examples 'handles event successfully'
+
+      it 'does not upsert a price whose product belongs to a different region' do
         operation.call
         expect(Billing::Plan).not_to have_received(:upsert_from_stripe_data)
       end

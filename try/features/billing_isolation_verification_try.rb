@@ -166,3 +166,78 @@ Onetime::BillingConfig.instance.enabled?
 # No test plans should persist
 Billing::Plan.all.empty?
 #=> true
+
+# ---------------------------------------------------------------------------
+# Regional isolation tests (Issue #2228 follow-up)
+#
+# correct_region? guards both the refresh_from_stripe (collect_stripe_plans)
+# and the webhook handler paths. Each testcase builds its own stub objects
+# inline so there is no cross-testcase state dependency.
+# ---------------------------------------------------------------------------
+
+## correct_region? returns true when no region is configured (pass-through)
+# With no region configured the filter is disabled (backward-compatible).
+Onetime::BillingConfig.instance.config['region'] = nil
+_nz = Struct.new(:id, :name, :metadata).new('prod_nz', 'Identity Plus (NZ)',
+  { 'app' => 'onetimesecret', 'region' => 'NZ', 'plan_id' => 'identity_plus_v1',
+    'tier' => 'single_account', 'tenancy' => 'multi' })
+Billing::Plan.correct_region?(_nz)
+#=> true
+
+## correct_region? accepts NZ product when region configured as 'NZ'
+Onetime::BillingConfig.instance.config['region'] = 'NZ'
+_nz = Struct.new(:id, :name, :metadata).new('prod_nz', 'Identity Plus (NZ)',
+  { 'app' => 'onetimesecret', 'region' => 'NZ', 'plan_id' => 'identity_plus_v1',
+    'tier' => 'single_account', 'tenancy' => 'multi' })
+Billing::Plan.correct_region?(_nz)
+#=> true
+
+## correct_region? rejects CA product when region configured as 'NZ'
+Onetime::BillingConfig.instance.config['region'] = 'NZ'
+_ca = Struct.new(:id, :name, :metadata).new('prod_ca', 'Identity Plus (CA)',
+  { 'app' => 'onetimesecret', 'region' => 'CA', 'plan_id' => 'identity_plus_v1',
+    'tier' => 'single_account', 'tenancy' => 'multi' })
+Billing::Plan.correct_region?(_ca)
+#=> false
+
+## correct_region? accepts CA product when region configured as 'CA'
+Onetime::BillingConfig.instance.config['region'] = 'CA'
+_ca = Struct.new(:id, :name, :metadata).new('prod_ca', 'Identity Plus (CA)',
+  { 'app' => 'onetimesecret', 'region' => 'CA', 'plan_id' => 'identity_plus_v1',
+    'tier' => 'single_account', 'tenancy' => 'multi' })
+Billing::Plan.correct_region?(_ca)
+#=> true
+
+## correct_region? rejects NZ product when region configured as 'CA'
+Onetime::BillingConfig.instance.config['region'] = 'CA'
+_nz = Struct.new(:id, :name, :metadata).new('prod_nz', 'Identity Plus (NZ)',
+  { 'app' => 'onetimesecret', 'region' => 'NZ', 'plan_id' => 'identity_plus_v1',
+    'tier' => 'single_account', 'tenancy' => 'multi' })
+Billing::Plan.correct_region?(_nz)
+#=> false
+
+## correct_region? treats blank string config as no region (pass-through)
+Onetime::BillingConfig.instance.config['region'] = '   '
+_nz = Struct.new(:id, :name, :metadata).new('prod_nz', 'Identity Plus (NZ)',
+  { 'app' => 'onetimesecret', 'region' => 'NZ', 'plan_id' => 'identity_plus_v1',
+    'tier' => 'single_account', 'tenancy' => 'multi' })
+Billing::Plan.correct_region?(_nz)
+#=> true
+
+## Regional filter: only NZ product accepted when region is 'NZ'
+# Two products share the same plan_id metadata — the bug scenario.
+# With NZ configured only the NZ product passes the guard.
+Onetime::BillingConfig.instance.config['region'] = 'NZ'
+_nz_p = Struct.new(:id, :name, :metadata).new('prod_nz', 'Identity Plus (NZ)',
+  { 'app' => 'onetimesecret', 'region' => 'NZ', 'plan_id' => 'identity_plus_v1',
+    'tier' => 'single_account', 'tenancy' => 'multi' })
+_ca_p = Struct.new(:id, :name, :metadata).new('prod_ca', 'Identity Plus (CA)',
+  { 'app' => 'onetimesecret', 'region' => 'CA', 'plan_id' => 'identity_plus_v1',
+    'tier' => 'single_account', 'tenancy' => 'multi' })
+[_nz_p, _ca_p].select { |p| Billing::Plan.correct_region?(p) }.map { |p| p.metadata['region'] }
+#=> ['NZ']
+
+## Cleanup: reset region config to nil after regional isolation tests
+Onetime::BillingConfig.instance.config['region'] = nil
+Onetime::BillingConfig.instance.region.nil?
+#=> true
