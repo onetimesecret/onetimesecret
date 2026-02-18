@@ -69,7 +69,7 @@ module V2::Logic
         create_and_encrypt_secret
 
         @greenlighted = metadata.valid? && secret.valid?
-        return raise_form_error "Could not store your secret" unless greenlighted
+        raise_form_error "Could not store your secret" unless greenlighted
 
         # Update stats
         update_customer_stats

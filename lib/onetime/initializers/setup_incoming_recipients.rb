@@ -41,6 +41,8 @@ module Onetime
         email = recipient.first&.strip
         name = recipient[1]&.strip || email&.split('@')&.first
 
+        next if email.nil? || email.empty?
+
         # Generate a stable hash for this email using site secret as salt
         hash_key = Digest::SHA256.hexdigest("#{email}:#{site_secret}")[0..15]
 

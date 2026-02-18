@@ -87,7 +87,7 @@ RSpec.describe Onetime::Mail::Mailer::SendGridMailer do
       let(:from_email) { '' }
 
       it 'logs an error and returns nil' do
-        expect(OT).to receive(:le).with("> [send-exception] No from address [to: r********@example.com]")
+        expect(OT).to receive(:le).with("> [send-exception] No from address (check FROM_EMAIL or FROM_NAME env var) [to: r********@example.com]")
 
         result = sendgrid_mailer.send_email(to_address, subject, html_content, text_content, false)
         expect(result).to be_nil

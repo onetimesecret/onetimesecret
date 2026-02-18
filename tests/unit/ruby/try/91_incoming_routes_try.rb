@@ -77,12 +77,12 @@ response = @mock_request.post('/api/v2/incoming/secret',
 [response.status, response.status < 500]
 #=> [200, true]
 
-## POST /api/v2/incoming/secret returns metadata key in response
+## POST /api/v2/incoming/secret returns metadata and secret keys in response
 response = @mock_request.post('/api/v2/incoming/secret',
   input: "secret[secret]=another+secret&secret[memo]=Another+memo&secret[recipient]=#{@support_hash}",
   'CONTENT_TYPE' => 'application/x-www-form-urlencoded')
 content = JSON.parse(response.body)
-content.key?('metadata_key') || content.key?('secret_key')
+content['record']['metadata'].key?('key') && content['record']['secret'].key?('key')
 #=> true
 
 # Teardown
