@@ -62,6 +62,9 @@ module OTSInit
       output << "#{key}=#{updates[key]}"
     end
 
+    # NOTE: CRLF line endings are normalized to LF here. readlines(chomp: true)
+    # strips both \n and \r\n, and we rejoin with "\n". This is intentional —
+    # .env files should use LF — but be aware if round-tripping matters.
     File.write(path, output.join("\n") + "\n")
   end
 end
@@ -88,7 +91,10 @@ namespace :ots do
     end
   end
 
-  desc 'Generate SECRET and derive child keys into .env (idempotent)'
+  desc <<~DESC.strip
+    Generate SECRET and derive child keys into .env (idempotent).
+    Env vars: ENV_FILE=path (default: .env), DERIVE=1 (re-derive child keys only), FORCE=1 (regenerate SECRET)
+  DESC
   task secrets: 'ots:env:setup' do
     derive   = %w[1 true].include?(ENV.fetch('DERIVE', nil))
     force    = %w[1 true].include?(ENV.fetch('FORCE', nil))
@@ -151,6 +157,7 @@ namespace :ots do
       puts "    #{suggested}"
       puts
       puts '  This must be identical across all instances in a federation group.'
+      puts '  (Not written to .env — must be set manually on every instance before starting)'
       puts '  Copy this value to FEDERATION_SECRET in .env on every instance,'
       puts '  or generate your own with:'
       puts '    bundle exec ruby -e "require \'passforge/wordlist\'; require \'passforge/passphrase\'; puts PassForge::Passphrase.generate(words: 5, separator: \'-\', capitalize: false)"'
