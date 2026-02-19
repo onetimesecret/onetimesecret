@@ -82,6 +82,10 @@ install_node() {
   [[ -f package.json ]] && warn "No lockfile, skipping node packages"
 }
 
+is_initialized() {
+  bundle exec bin/ots install check 2>/dev/null
+}
+
 auth_mode() {
   # Read from env or .env file, defaulting to simple
   local mode="${AUTHENTICATION_MODE:-}"
@@ -91,36 +95,52 @@ auth_mode() {
   echo "${mode:-simple}"
 }
 
+cmd_reconcile() {
+  info "Reconciling environment..."
+
+  install_gems
+  install_node
+
+  info "Re-deriving child keys from existing SECRET..."
+  DERIVE=1 bundle exec rake ots:secrets
+
+  local mode
+  mode=$(auth_mode)
+
+  if [[ "$mode" == "full" ]]; then
+    info "Re-applying RabbitMQ policies and queue declarations..."
+    bin/ots queue init --force
+  fi
+
+  info "Done"
+}
+
 cmd_init() {
   info "Initializing..."
 
   check_version "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"'
   check_version_major "Node" node .nvmrc 'node -v'
 
-  install_gems
-  install_node
-
-  info "Running rake ots:secrets..."
-  bundle exec rake ots:secrets
+  bundle exec rake ots:env:setup
 
   local mode
   mode=$(auth_mode)
 
   if [[ "$mode" == "full" ]]; then
     warn ""
-    warn "AUTHENTICATION_MODE=full detected. Additional setup may be required:"
-    warn ""
-    warn "  RabbitMQ (if using background jobs):"
-    warn "    bin/ots queue init"
+    warn "AUTHENTICATION_MODE=full detected. Additional manual setup required before first boot:"
     warn ""
     warn "  PostgreSQL (if using PostgreSQL as auth database):"
     warn "    Run apps/web/auth/migrations/schemas/postgres/initialize_auth_db.sql"
-    warn "    as a PostgreSQL superuser before first boot."
+    warn "    as a PostgreSQL superuser."
     warn "    (Not required for SQLite.)"
     warn ""
   fi
 
-  info "Done"
+  cmd_reconcile
+
+  bundle exec bin/ots install mark > /dev/null
+  info "Environment initialized (onetime:install:init_count incremented)"
 }
 
 cmd_console() {
@@ -162,18 +182,31 @@ cmd_doctor() {
 
 cmd_help() {
   cat <<EOF
-Usage: install.sh <command>
+Usage: install.sh [command]
+
+With no command, auto-detects: init for new environments, reconcile for existing ones.
 
 Commands:
-  init      Install dependencies, generate secrets, prepare environment
-  console   Interactive Ruby console with app loaded
-  doctor    Check environment for common issues
-  help      Show this message
+  init        Install dependencies, generate secrets, prepare environment
+  reconcile   Re-derive child keys and re-apply RabbitMQ policies (idempotent)
+  console     Interactive Ruby console with app loaded
+  doctor      Check environment for common issues
+  help        Show this message
 EOF
 }
 
-case "${1:-help}" in
+case "${1:-auto}" in
+  auto)
+    if is_initialized; then
+      info "Existing environment detected (SECRET set) — running reconcile"
+      cmd_reconcile
+    else
+      info "No existing environment detected — running init"
+      cmd_init
+    fi
+    ;;
   init)             cmd_init ;;
+  reconcile)        cmd_reconcile ;;
   console)          cmd_console ;;
   doctor)           cmd_doctor ;;
   help|-h|--help)   cmd_help ;;
