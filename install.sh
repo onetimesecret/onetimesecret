@@ -131,7 +131,7 @@ cmd_init() {
     warn "AUTHENTICATION_MODE=full detected. Additional manual setup required before first boot:"
     echo ""
     warn "  PostgreSQL (if using PostgreSQL as auth database):"
-    warn "    Run apps/web/auth/migrations/schemas/postgres/initialize_auth_db.sql"
+    warn "    Run psql -U postgres -f apps/web/auth/migrations/schemas/postgres/initialize_auth_db.sql"
     warn "    as a PostgreSQL superuser."
     warn "    (Not required for SQLite.)"
     echo ""
