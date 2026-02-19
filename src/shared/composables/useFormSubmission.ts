@@ -67,9 +67,17 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRF-Token': csrfStore.shrimp,
         },
         body: urlSearchParams.toString(),
       });
+
+      // Refresh CSRF token from response header first; the JSON body's shrimp
+      // field takes precedence below as the primary CSRF token path.
+      const responseShrimp = response.headers.get('x-csrf-token');
+      if (responseShrimp && responseShrimp.length > 0) {
+        csrfStore.updateShrimp(responseShrimp);
+      }
 
       let jsonData: z.infer<ResponseSchema>;
       try {

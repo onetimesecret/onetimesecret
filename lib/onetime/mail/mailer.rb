@@ -7,6 +7,7 @@ require_relative 'delivery/logger'
 require_relative 'delivery/smtp'
 require_relative 'delivery/ses'
 require_relative 'delivery/sendgrid'
+require_relative 'delivery/lettermint'
 require_relative 'views/base'
 require_relative 'views/secret_link'
 require_relative 'views/welcome'
@@ -17,6 +18,9 @@ require_relative 'views/secret_revealed'
 require_relative 'views/expiration_warning'
 require_relative 'views/organization_invitation'
 require_relative 'views/magic_link'
+require_relative 'views/email_change_confirmation'
+require_relative 'views/email_change_requested'
+require_relative 'views/email_changed'
 
 module Onetime
   module Mail
@@ -135,6 +139,12 @@ module Onetime
             Templates::ExpirationWarning
           when :organization_invitation
             Templates::OrganizationInvitation
+          when :email_change_confirmation
+            Templates::EmailChangeConfirmation
+          when :email_change_requested
+            Templates::EmailChangeRequested
+          when :email_changed
+            Templates::EmailChanged
           else
             raise ArgumentError, "Unknown template: #{name}"
           end
@@ -153,15 +163,14 @@ module Onetime
             Delivery::SES.new(config)
           when 'sendgrid'
             Delivery::SendGrid.new(config)
+          when 'lettermint'
+            Delivery::Lettermint.new(config)
           when 'logger'
             Delivery::Logger.new(config)
           else
             log_error "[mail] Unknown provider '#{provider}', falling back to logger"
             Delivery::Logger.new(config)
           end
-        rescue ArgumentError => ex
-          log_error "[mail] Configuration error: #{ex.message}, falling back to logger"
-          Delivery::Logger.new({})
         end
 
         # Logging helpers that work with or without OT defined
@@ -190,11 +199,18 @@ module Onetime
           # Test environment always uses logger
           return 'logger' if ENV['RACK_ENV'] == 'test'
 
-          # Auto-detect based on configuration
+          # Auto-detect provider from config keys (first match wins):
+          #   region + user        -> ses (AWS SES credentials)
+          #   sendgrid_api_key     -> sendgrid
+          #   lettermint_api_token -> lettermint
+          #   host                 -> smtp (generic SMTP)
+          #   (none)               -> logger (safe fallback)
           if conf['region'] && conf['user']
             'ses' # AWS SES uses region + AWS credentials
           elsif conf['sendgrid_api_key']
             'sendgrid'
+          elsif conf['lettermint_api_token']
+            'lettermint'
           elsif conf['host']
             'smtp'
           else
@@ -225,13 +241,19 @@ module Onetime
             {
               api_key: conf['sendgrid_api_key'] || conf['pass'] || ENV.fetch('SENDGRID_API_KEY', nil),
             }
+          when 'lettermint'
+            {
+              api_token: conf['lettermint_api_token'] || conf['pass'] || ENV.fetch('LETTERMINT_API_TOKEN', nil),
+              base_url: conf['lettermint_base_url'] || ENV.fetch('LETTERMINT_BASE_URL', nil),
+              timeout: conf['lettermint_timeout'],
+            }.compact
           else
             {}
           end
         end
 
         def emailer_config
-          return {} unless defined?(OT) && OT.respond_to?(:conf)
+          return {} unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
 
           OT.conf['emailer'] || OT.conf[:emailer] || {}
         end

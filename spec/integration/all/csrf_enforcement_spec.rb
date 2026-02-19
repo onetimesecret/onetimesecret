@@ -405,6 +405,32 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
     end
   end
 
+  describe 'CsrfResponseHeader middleware positioning' do
+    it 'returns X-CSRF-Token header on CSRF-rejected 403 responses' do
+      # Establish a session first
+      get_response = @mock_request.get('/signin')
+      cookie = get_response.headers['set-cookie']
+      session_cookie = cookie.split(';').first if cookie
+
+      # POST without CSRF token — should be rejected with 403
+      post_response = @mock_request.post('/signin', {
+        'HTTP_COOKIE' => session_cookie,
+        params: { login: 'test@example.com', pass: 'password123' }
+      })
+
+      expect(post_response.status).to eq(403)
+      # CsrfResponseHeader wraps Security, so even a 403 gets the header
+      expect(post_response.headers['X-CSRF-Token']).not_to be_nil,
+        'Expected X-CSRF-Token header on 403 response so frontend can recover'
+    end
+
+    it 'returns X-CSRF-Token header on successful GET responses' do
+      response = @mock_request.get('/signin')
+      expect(response.status).to eq(200)
+      expect(response.headers['X-CSRF-Token']).not_to be_nil
+    end
+  end
+
   describe 'CSRF round-trip: page-rendered token accepted on POST' do
     # Validates the invariant that tokens generated from rack.session
     # during page render are accepted by Rack::Protection on subsequent

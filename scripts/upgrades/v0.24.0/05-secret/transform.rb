@@ -9,6 +9,7 @@
 # - Linking to org_id (organization objid) and domain_id (if share_domain set)
 # - Transforming state values: 'viewed' -> 'previewed', 'received' -> 'revealed'
 # - Renaming viewed -> previewed, received -> revealed (keeping originals for compat)
+# - Renaming metadata_key -> receipt_identifier (symmetric to receipt's secret_key rename)
 # - Moving original_size -> v1_original_size
 # - Creating new Redis DUMPs for transformed objects
 # - Outputting a new JSONL file with V2 records
@@ -76,7 +77,7 @@ class SecretTransformer
     'v1_original_size' => :integer,
     'migration_status' => :string,
     'migrated_at' => :timestamp,
-    '_original_record' => :string,  # jsonkey - already JSON-serialized
+    # _original_record removed: v1 data now stored as _original_object hashkey via RESTORE
     # Relationship fields (added during transformation)
     'org_id' => :string,
     'domain_id' => :string,
@@ -95,8 +96,8 @@ class SecretTransformer
   # CRITICAL: ciphertext, value, value_encryption, passphrase, passphrase_encryption
   # are included here and must be preserved exactly as-is (no re-encryption)
   DIRECT_COPY_FIELDS = %w[
-    objid lifespan receipt_identifier receipt_shortid created updated
-    share_domain verification truncated secret_key metadata_key
+    objid lifespan created updated
+    share_domain verification truncated secret_key
     ciphertext value value_encryption passphrase passphrase_encryption
   ].freeze
 
@@ -349,6 +350,19 @@ class SecretTransformer
       v2_fields['received'] = v1_fields['received']  # Keep for backward compat
     end
 
+    # Rename V1 metadata_key -> V2 receipt_identifier
+    # (symmetric to receipt transform's secret_key -> secret_identifier)
+    if v1_fields.key?('metadata_key') && !v2_fields.key?('receipt_identifier')
+      v2_fields['receipt_identifier'] = v1_fields['metadata_key']
+    end
+
+    # Derive receipt_shortid from receipt_identifier (first 8 chars)
+    # V1 has no metadata_shortkey equivalent, but V2 Secret model declares this field.
+    # (symmetric to receipt transform's secret_shortkey -> secret_shortid)
+    if v2_fields.key?('receipt_identifier') && !v2_fields.key?('receipt_shortid')
+      v2_fields['receipt_shortid'] = v2_fields['receipt_identifier'][0, 8]
+    end
+
     # Handle original_size -> v1_original_size (spec says move and delete original)
     if v1_fields.key?('original_size')
       v2_fields['v1_original_size']      = v1_fields['original_size']
@@ -357,7 +371,7 @@ class SecretTransformer
     end
 
     # Add migration tracking fields
-    # NOTE: _original_record is added by enrich_with_original_record.rb
+    # NOTE: v1 original data is restored as _original_object hashkey by enrich_with_original_record.rb
     v2_fields['v1_key']           = v1_record[:key]
     v2_fields['v1_identifier']    = v1_record[:key]
     v2_fields['migration_status'] = 'completed'
@@ -575,6 +589,7 @@ def parse_args(args)
           - share_domain (fqdn) -> domain_id (customdomain objid)
           - State: 'viewed' -> 'previewed', 'received' -> 'revealed'
           - Renames viewed->previewed, received->revealed (keeps originals)
+          - metadata_key -> receipt_identifier (symmetric to receipt's secret_key rename)
           - original_size -> v1_original_size (original removed)
           - Preserves v1_custid for rollback
 

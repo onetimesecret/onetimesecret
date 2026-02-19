@@ -33,7 +33,8 @@ module Onetime
     field :secret_ttl
     field :lifespan
     field :share_domain
-    field :passphrase
+    field :has_passphrase
+    field :kind
 
     # Organization and domain tracking for scoped receipt queries
     field :org_id      # Organization objid (current context when created)
@@ -149,7 +150,7 @@ module Onetime
     end
 
     def has_passphrase?
-      !passphrase.to_s.empty?
+      !has_passphrase.nil? && has_passphrase
     end
 
     def load_owner
@@ -201,7 +202,7 @@ module Onetime
       #
       # See: apps/api/v2/logic/secrets/base_secret_action.rb for validation.
       #
-      def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil)
+      def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil)
         secret  = Onetime::Secret.new(owner_id: owner_id)
         receipt = Onetime::Receipt.new(owner_id: owner_id)
 
@@ -223,7 +224,10 @@ module Onetime
         # Set the passphrase via the special update method that ensures it
         # is encrypted before its saved. We could override the field setter,
         # but prefer to be explicit about it.
-        secret.update_passphrase passphrase unless passphrase.nil?
+        unless passphrase.nil?
+          secret.update_passphrase passphrase
+          receipt.has_passphrase = true
+        end
 
         secret.save
 
@@ -231,7 +235,7 @@ module Onetime
         receipt.secret_ttl     = lifespan
         receipt.lifespan       = lifespan
         receipt.share_domain   = domain
-        receipt.passphrase     = passphrase if passphrase
+        receipt.kind           = kind
         receipt.save
 
         # Register for expiration warnings if feature is enabled and TTL is long enough

@@ -106,6 +106,7 @@ export const receiptBaseSchema = createModelSchema({
   is_expired: transforms.fromString.boolean,
   is_orphaned: transforms.fromString.boolean,
   memo: z.string().nullable().optional(),
+  kind: z.enum(['generate', 'conceal']).or(z.literal('')).nullable().optional(),
 });
 
 // Receipt shape in single record view

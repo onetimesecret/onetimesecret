@@ -33,6 +33,7 @@ module Onetime
           EmailTranslations.translate(
             'email.email_change_confirmation.subject',
             locale: locale,
+            display_domain: display_domain,
           )
         end
 

@@ -68,14 +68,14 @@
         <!-- prettier-ignore-attribute class -->
         <div
           v-if="notReceived && notReceived.length > 0"
-          class="relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm
-            dark:border-gray-700 dark:bg-slate-900">
+          class="relative overflow-hidden rounded-lg border border-gray-200/60 bg-white/60 shadow-sm
+            backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <caption class="sr-only">
                 {{ t('web.dashboard.title_not_received') }}
               </caption>
-              <thead class="bg-gray-50 dark:bg-slate-800">
+              <thead class="bg-gray-50/80 dark:bg-slate-800/80">
                 <tr>
                   <!-- prettier-ignore-attribute class -->
                   <th
@@ -217,8 +217,8 @@
         <!-- prettier-ignore-attribute class -->
         <div
           v-else
-          class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center
-            dark:border-gray-700 dark:bg-slate-800/30">
+          class="rounded-xl border border-gray-200 bg-gray-50/50 p-6 text-center
+            dark:border-gray-700/50 dark:bg-slate-800/20">
           <div class="flex flex-col items-center justify-center">
             <OIcon
               collection="heroicons"
@@ -251,14 +251,14 @@
         <!-- prettier-ignore-attribute class -->
         <div
           v-if="received && received.length > 0"
-          class="relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm
-            dark:border-gray-700 dark:bg-slate-900">
+          class="relative overflow-hidden rounded-lg border border-gray-200/60 bg-white/60 shadow-sm
+            backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <caption class="sr-only">
                 {{ t('web.dashboard.title_received') }}
               </caption>
-              <thead class="bg-gray-50 dark:bg-slate-800">
+              <thead class="bg-gray-50/80 dark:bg-slate-800/80">
                 <tr>
                   <!-- prettier-ignore-attribute class -->
                   <th
@@ -341,8 +341,8 @@
         <!-- prettier-ignore-attribute class -->
         <div
           v-else
-          class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center
-            dark:border-gray-700 dark:bg-slate-800/30">
+          class="rounded-xl border border-gray-200 bg-gray-50/50 p-6 text-center
+            dark:border-gray-700/50 dark:bg-slate-800/20">
           <div class="flex flex-col items-center justify-center">
             <OIcon
               collection="heroicons"

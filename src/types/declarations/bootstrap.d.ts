@@ -134,6 +134,7 @@ export interface BootstrapPayload {
   shrimp: string;
 
   site_host: string;
+  support_host: string;
   stripe_customer?: Stripe.Customer;
   stripe_subscriptions?: Stripe.Subscriptions[];
   authentication: AuthenticationSettings; // TODO: May need to offer default values
@@ -183,6 +184,10 @@ export interface BootstrapPayload {
 
   features: {
     markdown: boolean;
+    /** Account lockout after failed login attempts */
+    lockout?: boolean;
+    /** Password complexity requirements enforcement */
+    password_requirements?: boolean;
     /** Email-based authentication (magic links) */
     email_auth?: boolean;
     /** WebAuthn/passkey authentication */

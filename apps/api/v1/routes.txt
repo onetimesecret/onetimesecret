@@ -10,16 +10,16 @@ POST   /create                               V1::Controllers::Index#create
 
 POST   /secret/:key                          V1::Controllers::Index#show_secret
 
-GET    /private/recent                       V1::Controllers::Index#show_metadata_recent
-GET    /metadata/recent                      V1::Controllers::Index#show_metadata_recent
-GET    /receipt/recent                       V1::Controllers::Index#show_metadata_recent
+GET    /private/recent                       V1::Controllers::Index#show_receipt_recent
+GET    /metadata/recent                      V1::Controllers::Index#show_receipt_recent
+GET    /receipt/recent                       V1::Controllers::Index#show_receipt_recent
 
-GET    /private/:key                         V1::Controllers::Index#show_metadata
-POST   /private/:key                         V1::Controllers::Index#show_metadata
-GET    /metadata/:key                        V1::Controllers::Index#show_metadata
-POST   /metadata/:key                        V1::Controllers::Index#show_metadata
-GET    /receipt/:key                         V1::Controllers::Index#show_metadata
-POST   /receipt/:key                         V1::Controllers::Index#show_metadata
+GET    /private/:key                         V1::Controllers::Index#show_receipt
+POST   /private/:key                         V1::Controllers::Index#show_receipt
+GET    /metadata/:key                        V1::Controllers::Index#show_receipt
+POST   /metadata/:key                        V1::Controllers::Index#show_receipt
+GET    /receipt/:key                         V1::Controllers::Index#show_receipt
+POST   /receipt/:key                         V1::Controllers::Index#show_receipt
 
 POST   /private/:key/burn                    V1::Controllers::Index#burn_secret
 POST   /metadata/:key/burn                   V1::Controllers::Index#burn_secret

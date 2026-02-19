@@ -20,8 +20,11 @@ module AccountAPI::Logic
       end
 
       def raise_concerns
-        raise_form_error 'Not a valid email address', field: 'email', error_type: 'invalid' unless valid_email?(@login_or_email)
-        raise_form_error 'No account found', field: 'email', error_type: 'not_found' unless Onetime::Customer.exists?(@login_or_email)
+        return if valid_email?(@login_or_email) && Onetime::Customer.exists?(@login_or_email)
+
+        # A generic error is raised for either an invalid email format or a non-existent
+        # account. This is to prevent attackers from enumerating valid accounts.
+        raise_form_error 'Invalid email address', field: 'email', error_type: 'invalid'
       end
 
       def process

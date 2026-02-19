@@ -39,9 +39,6 @@ module V1
     # V1-specific middleware (universal middleware in MiddlewareStack)
     use Rack::JSONBodyParser
 
-    # CSRF Response Header
-    use Onetime::Middleware::CsrfResponseHeader
-
     warmup do
     end
 

@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'securerandom'
-require_relative 'queue_config'
+require_relative 'queues/config'
 
 module Onetime
   module Jobs

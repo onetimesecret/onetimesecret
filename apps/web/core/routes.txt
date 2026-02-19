@@ -52,6 +52,9 @@ GET   /l                                         Core::Controllers::Page#index a
 GET   /incoming                                  Core::Controllers::Page#index auth=noauth
 GET   /incoming/*                                Core::Controllers::Page#index auth=noauth
 
+# Email change confirmation - token-authenticated (no session required)
+GET   /account/email/confirm/:token              Core::Controllers::Page#index auth=noauth
+
 # Authenticated routes - require valid session
 GET   /dashboard                                 Core::Controllers::Page#index auth=sessionauth
 GET   /recent                                    Core::Controllers::Page#index auth=sessionauth

@@ -20,8 +20,27 @@ module Onetime
       #   domain:   HELO domain (ENV: SMTP_DOMAIN)
       #
       class SMTP < Base
-        def deliver(email)
-          email    = normalize_email(email)
+        # Transient errors: network/connection issues that may resolve on retry
+        TRANSIENT_ERRORS = [
+          Errno::ECONNREFUSED,
+          Errno::ECONNRESET,
+          Errno::ETIMEDOUT,
+          Net::OpenTimeout,
+          Net::ReadTimeout,
+          Net::SMTPServerBusy,       # 4xx: temporary server issue
+          IOError,
+          SocketError,
+        ].freeze
+
+        # Fatal errors: configuration or policy issues that won't resolve on retry
+        FATAL_ERRORS = [
+          Net::SMTPAuthenticationError,  # 535: bad credentials
+          Net::SMTPFatalError,           # 5xx: permanent rejection
+          Net::SMTPSyntaxError,          # 500: malformed command
+          Net::SMTPUnknownError,         # unexpected response
+        ].freeze
+
+        def perform_delivery(email)
           settings = smtp_settings
 
           OT.ld "[smtp] Delivering to #{OT::Utils.obscure_email(email[:to])} via #{settings[:address]}:#{settings[:port]}"
@@ -31,15 +50,19 @@ module Onetime
           begin
             deliver_with_settings(mail_message, settings)
           rescue Net::SMTPAuthenticationError => ex
-            # Retry without auth for dev servers like Mailpit
+            raise unless config[:allow_unauthenticated_fallback]
+
             handle_auth_failure(mail_message, settings, ex)
           end
 
-          log_delivery(email)
           mail_message
-        rescue StandardError => ex
-          log_error(email, ex)
-          raise
+        end
+
+        def classify_error(error)
+          return :transient if TRANSIENT_ERRORS.any? { |klass| error.is_a?(klass) }
+          return :fatal if FATAL_ERRORS.any? { |klass| error.is_a?(klass) }
+
+          super # Base's network error check + :unknown fallback
         end
 
         protected

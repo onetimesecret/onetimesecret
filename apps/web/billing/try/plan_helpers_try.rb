@@ -81,7 +81,7 @@ Billing::Plan.clear_cache
 @multi_plan.entitlements.add('manage_members')
 @multi_plan.entitlements.add('custom_domains')
 @multi_plan.entitlements.add('custom_branding')
-@multi_plan.entitlements.add('branded_homepage')
+@multi_plan.entitlements.add('homepage_secrets')
 @multi_plan.entitlements.add('incoming_secrets')
 @multi_plan.entitlements.add('custom_mail_defaults')
 @multi_plan.entitlements.add('audit_logs')
@@ -204,8 +204,8 @@ Billing::Plan.clear_cache
 @multi_org.can?('audit_logs')
 #=> true
 
-## Test: Multi-Team has branded homepage
-@multi_org.can?('branded_homepage')
+## Test: Multi-Team has homepage secrets
+@multi_org.can?('homepage_secrets')
 #=> true
 
 ## Test: Legacy plan can manage teams

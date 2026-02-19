@@ -13,7 +13,6 @@ module Onetime
     #
     Security = Data.define(
       :global_secret,      # Main encryption secret for the application
-      :rotated_secrets,    # Array of previously used secrets for decryption
     ) do
       # Factory method for default state
       #
@@ -22,7 +21,6 @@ module Onetime
       def self.default
         new(
           global_secret: nil,
-          rotated_secrets: [],
         )
       end
 
@@ -32,14 +30,6 @@ module Onetime
       #
       def configured?
         !global_secret.nil? && !global_secret.empty?
-      end
-
-      # Get all secrets (current + rotated) for decryption attempts
-      #
-      # @return [Array<String>] All available secrets
-      #
-      def all_secrets
-        [global_secret, *rotated_secrets].compact
       end
     end
   end

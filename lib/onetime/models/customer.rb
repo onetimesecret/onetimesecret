@@ -90,6 +90,13 @@ module Onetime
     # Used to track the current and most recently created password reset secret.
     string :reset_secret, default_expiration: 24.hours
 
+    # Used to track a pending email change verification secret.
+    string :pending_email_change, default_expiration: 24.hours
+
+    # Tracks delivery status of the pending email change confirmation email.
+    # Values: queued, sent, failed. Expires with the pending change.
+    string :pending_email_delivery_status, default_expiration: 24.hours
+
     identifier_field :objid
 
     # Global email index

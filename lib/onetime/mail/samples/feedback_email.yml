@@ -1,0 +1,5 @@
+recipient_email: "admin@example.com"
+email_address: "user@example.com"
+message: "This is sample feedback for preview purposes."
+display_domain: "example.com"
+domain_strategy: "default"

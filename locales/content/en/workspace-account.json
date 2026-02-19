@@ -328,8 +328,8 @@
     "sha256": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Email updated successfully. Please check your inbox to verify your new email address.",
-    "sha256": "58de2536"
+    "text": "Verification email sent. Please check your new inbox and click the confirmation link to complete the change.",
+    "sha256": ""
   },
   "web.settings.profile.email_change_error": {
     "text": "Failed to update email. Please try again.",
@@ -634,5 +634,53 @@
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "This action cannot be undone",
     "sha256": "02ccc074"
+  },
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "Email Address Updated",
+    "sha256": ""
+  },
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Your email has been updated successfully. Please sign in with your new email address.",
+    "sha256": "e5f6a7b8"
+  },
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Verifying your new email address...",
+    "sha256": "c9d0e1f2"
+  },
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "Email Change Failed",
+    "sha256": ""
+  },
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "This verification link is invalid or has expired.",
+    "sha256": "a3b4c5d6"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Back to Account Settings",
+    "sha256": "e7f8a9b0"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Redirecting to sign in...",
+    "sha256": "c1d2e3f4"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Resend confirmation email",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "Confirmation email resent successfully.",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Sending...",
+    "sha256": ""
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "A verification email has been sent. Check your inbox and click the confirmation link.",
+    "sha256": ""
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "Didn't receive the email?",
+    "sha256": ""
   }
 }

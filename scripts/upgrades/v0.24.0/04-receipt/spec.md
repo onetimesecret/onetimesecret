@@ -22,9 +22,9 @@ Change: Prefix change (metadata -> receipt)
 FIELD TRANSFORMS
 
 Direct Copy (no transform)
-  objid, secret_identifier, secret_shortid, secret_ttl, lifespan,
-  share_domain, passphrase, recipients, memo, created, updated, burned,
-  shared, truncate, secret_key, key
+  objid, secret_ttl, lifespan,
+  share_domain, recipients, memo, created, updated, burned,
+  shared, truncate, key
 
 Transforms
   custid (email) -> owner_id (customer objid)     Lookup: email_to_objid[custid]
@@ -34,6 +34,8 @@ Transforms
   state: 'received' -> state: 'revealed' Value transform
   viewed -> previewed                    Rename (keep original for compat)
   received -> revealed                 Rename (keep original for compat)
+  secret_key -> secret_identifier      Rename (V1 name differs from V2)
+  secret_shortkey -> secret_shortid    Rename (V1 name differs from V2)
 
 New Fields (migration-only)
   org_id              String    Inferred Organization objid
@@ -83,6 +85,7 @@ transform(v1_record, mappings):
   # Field renames (keeping original for backward compatibility)
   v2.previewed = v1_record.viewed
   v2.revealed = v1_record.received
+  v2.secret_shortid = v1_record.secret_shortkey  # if not already set by direct copy
 
   # State transform
   v2.state = transform_state(v1_record.state) # 'viewed'->'previewed', etc.
@@ -150,3 +153,4 @@ CRITICAL: Do not re-encrypt ciphertext or passphrase fields. Preserve exactly.
 
 NOTE: Anonymous records use custid='anon', set owner_id='anon' (no lookup).
 NOTE: Field `viewed` is renamed to `previewed`, and `received` to `revealed`. The original fields are kept for backward compatibility during the transition.
+NOTE: Some V1 field names differ from V2 and require renames during transform (not just direct copy). Examples: `secret_shortkey` (V1) -> `secret_shortid` (V2). Always check the FIELD_TYPES hash in transform.rb for the authoritative field mapping.

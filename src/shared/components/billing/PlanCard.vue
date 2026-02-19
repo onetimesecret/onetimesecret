@@ -26,6 +26,8 @@
     buttonLabel: string;
     /** Whether the action button should be disabled */
     buttonDisabled?: boolean;
+    /** Tooltip/hint text when button is disabled for a specific reason */
+    disabledReason?: string;
     /** Whether the component is in a loading/processing state */
     isProcessing?: boolean;
   }>();
@@ -204,6 +206,11 @@
           </span>
         </button>
       </slot>
+      <p
+        v-if="buttonDisabled && disabledReason"
+        class="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
+        {{ disabledReason }}
+      </p>
     </div>
   </div>
 </template>

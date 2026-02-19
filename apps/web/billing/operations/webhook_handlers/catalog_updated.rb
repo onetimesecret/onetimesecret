@@ -172,6 +172,9 @@ module Billing
           # Only sync OTS products (filter by app metadata)
           return unless product.metadata['app'] == 'onetimesecret'
 
+          # Skip products from a different region when regional isolation is configured
+          return unless Billing::Plan.correct_region?(product)
+
           # Get all active prices for this product
           prices       = fetch_with_retry { Stripe::Price.list(product: product_id, active: true) }
           synced_count = 0
@@ -208,6 +211,9 @@ module Billing
 
           # Only sync OTS products
           return unless product.metadata['app'] == 'onetimesecret'
+
+          # Skip products from a different region when regional isolation is configured
+          return unless Billing::Plan.correct_region?(product)
 
           # Skip non-recurring prices
           return unless price.type == 'recurring'

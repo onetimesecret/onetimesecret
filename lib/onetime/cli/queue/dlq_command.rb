@@ -14,7 +14,7 @@
 
 require 'bunny'
 require 'json'
-require_relative '../../jobs/queue_config'
+require_relative '../../jobs/queues/config'
 
 module Onetime
   module CLI

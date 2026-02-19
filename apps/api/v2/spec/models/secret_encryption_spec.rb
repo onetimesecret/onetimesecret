@@ -12,9 +12,8 @@ RSpec.describe Onetime::Secret, allow_redis: false do
 
     before do
       allow(OT).to receive_messages(global_secret: 'global-test-secret', conf: {
-        experimental: {
-          allow_nil_global_secret: false,
-          rotated_secrets: [],
+        'development' => {
+          'allow_nil_global_secret' => false,
         },
       }
       )

@@ -260,8 +260,8 @@ for (const route of v3Routes.routes) {
       }
     });
   }
-  // GET /private/recent - List recent private secrets (must check before parameterized route)
-  else if (route.method === 'GET' && route.path === '/private/recent') {
+  // GET /receipt/recent - List recent private secrets (must check before parameterized route)
+  else if (route.method === 'GET' && route.path === '/receipt/recent') {
     registry.registerPath({
       method: 'get',
       path: '/api/v3' + openApiPath,
@@ -284,8 +284,8 @@ for (const route of v3Routes.routes) {
       }
     });
   }
-  // GET /receipt/:identifier or /private/:identifier - Get metadata by ID
-  else if (route.method === 'GET' && (route.path.startsWith('/receipt/') || route.path.startsWith('/private/')) && !route.path.includes('/burn')) {
+  // GET /receipt/:identifier or /receipt/:identifier - Get metadata by ID
+  else if (route.method === 'GET' && route.path.startsWith('/receipt/') && !route.path.includes('/burn')) {
     registry.registerPath({
       method: 'get',
       path: '/api/v3' + openApiPath,

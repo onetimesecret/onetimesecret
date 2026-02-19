@@ -25,11 +25,11 @@ RSpec.describe 'ProcessWebhookEvent: error handling', :integration, :process_web
 
   # Disable federation for these tests (federation has its own dedicated spec file)
   around do |example|
-    original_secret = ENV['FEDERATION_HMAC_SECRET']
-    ENV.delete('FEDERATION_HMAC_SECRET')
+    original_secret = ENV['FEDERATION_SECRET']
+    ENV.delete('FEDERATION_SECRET')
     example.run
   ensure
-    ENV['FEDERATION_HMAC_SECRET'] = original_secret if original_secret
+    ENV['FEDERATION_SECRET'] = original_secret if original_secret
   end
 
   after do

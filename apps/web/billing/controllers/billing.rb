@@ -8,6 +8,7 @@ require 'stripe'
 
 require_relative 'base'
 require_relative '../lib/stripe_client'
+require_relative '../lib/currency_migration_service'
 
 module Billing
   module Controllers
@@ -103,12 +104,8 @@ module Billing
         end
 
         # Build checkout session parameters
-        site_host = Onetime.conf['site']['host']
-        is_secure = Onetime.conf['site']['ssl']
-        protocol  = is_secure ? 'https' : 'http'
-
-        success_url = "#{protocol}://#{site_host}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
-        cancel_url  = "#{protocol}://#{site_host}/billing/#{org.extid}/plans"
+        success_url = "#{billing_base_url}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
+        cancel_url  = "#{billing_base_url}/billing/#{org.extid}/plans"
 
         session_params = {
           mode: 'subscription',
@@ -194,6 +191,59 @@ module Billing
         )
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
+      rescue Stripe::InvalidRequestError => ex
+        if Billing::CurrencyMigrationService.currency_conflict?(ex)
+          currencies = Billing::CurrencyMigrationService.parse_currency_conflict(
+            ex,
+            requested_currency_hint: plan.currency,
+          )
+
+          billing_logger.info 'Currency conflict detected during checkout',
+            {
+              extid: req.params['extid'],
+              existing_currency: currencies[:existing_currency],
+              requested_currency: currencies[:requested_currency],
+            }
+
+          # Build detailed assessment for the frontend migration prompt.
+          # Wrap in rescue since assess_migration makes Stripe API calls
+          # that could raise inside this outer rescue block.
+          begin
+            assessment = Billing::CurrencyMigrationService.assess_migration(
+              org,
+              currencies[:existing_currency],
+              currencies[:requested_currency],
+              plan.stripe_price_id,
+            )
+          rescue Stripe::StripeError => assess_ex
+            billing_logger.error 'Failed to assess migration during currency conflict',
+              { exception: assess_ex, extid: req.params['extid'] }
+            assessment = { current_plan: nil, requested_plan: nil, warnings: {} }
+          end
+
+          json_response(
+            {
+              error: true,
+              code: 'currency_conflict',
+              details: {
+                existing_currency: currencies[:existing_currency],
+                requested_currency: currencies[:requested_currency],
+                current_plan: assessment[:current_plan],
+                requested_plan: assessment[:requested_plan],
+                warnings: assessment[:warnings],
+              },
+            },
+            status: 409,
+          )
+        else
+          billing_logger.error 'Stripe checkout session creation failed',
+            {
+              error_class: ex.class.name,
+              error: ex.message,
+              extid: req.params['extid'],
+            }
+          json_error('Unable to start checkout. Please contact support if this continues.', status: 400)
+        end
       rescue Stripe::StripeError => ex
         billing_logger.error 'Stripe checkout session creation failed',
           {
@@ -293,6 +343,7 @@ module Billing
               interval: plan.interval,
               amount: plan.amount,
               currency: plan.currency,
+              region: plan.region,
               features: plan.features.to_a,
               limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
               entitlements: plan.entitlements.to_a,
@@ -327,12 +378,14 @@ module Billing
         org = load_organization(req.params['extid'])
 
         unless org.active_subscription?
-          return json_response(
-            {
-              has_active_subscription: false,
-              current_plan: org.planid,
-            },
-          )
+          data = {
+            has_active_subscription: false,
+            current_plan: org.planid,
+          }
+
+          enrich_with_pending_migration!(data, org)
+
+          return json_response(data)
         end
 
         # Validate Stripe API key is configured before making API calls
@@ -344,18 +397,21 @@ module Billing
         subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
         current_item = subscription.items.data.first
 
-        json_response(
-          {
-            has_active_subscription: true,
-            current_plan: org.planid,
-            current_price_id: current_item.price.id,
-            subscription_item_id: current_item.id,
-            subscription_status: subscription.status,
-            current_period_end: current_item.current_period_end,
-            cancel_at_period_end: subscription.cancel_at_period_end,
-            cancel_at: subscription.cancel_at,
-          },
-        )
+        data = {
+          has_active_subscription: true,
+          current_plan: org.planid,
+          current_price_id: current_item.price.id,
+          current_currency: subscription.currency,
+          subscription_item_id: current_item.id,
+          subscription_status: subscription.status,
+          current_period_end: current_item.current_period_end,
+          cancel_at_period_end: subscription.cancel_at_period_end,
+          cancel_at: subscription.cancel_at,
+        }
+
+        enrich_with_pending_migration!(data, org)
+
+        json_response(data)
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue Stripe::StripeError => ex
@@ -388,6 +444,10 @@ module Billing
         if stripe_api_key_missing?('preview_plan_change')
           return json_error('Billing service temporarily unavailable', status: 503)
         end
+
+        # Check for currency mismatch before calling Stripe
+        conflict_response = check_currency_conflict(org, new_price_id)
+        return conflict_response if conflict_response
 
         # Fetch current subscription
         subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
@@ -507,6 +567,10 @@ module Billing
         if stripe_api_key_missing?('change_plan')
           return json_error('Billing service temporarily unavailable', status: 503)
         end
+
+        # Check for currency mismatch before calling Stripe
+        conflict_response = check_currency_conflict(org, new_price_id)
+        return conflict_response if conflict_response
 
         # Fetch current subscription
         subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
@@ -743,8 +807,243 @@ module Billing
         json_error('Failed to cancel subscription', status: 500)
       end
 
+      # Pre-check for currency mismatch
+      #
+      # Detects currency mismatch between current subscription and target plan
+      # *before* hitting Stripe. This avoids relying on the Stripe error as the
+      # primary detection mechanism.
+      #
+      # POST /billing/api/org/:extid/check-currency-migration
+      #
+      # @param [String] target_price_id Stripe price ID to check against
+      #
+      # @return [Hash] Mismatch details or confirmation that currencies match
+      def check_currency_migration
+        org = load_organization(req.params['extid'])
+
+        target_price_id = req.params['target_price_id']
+        unless target_price_id
+          return json_error('Missing target_price_id', status: 400)
+        end
+
+        unless org.stripe_customer_id
+          return json_error('No Stripe customer linked to this organization', status: 400)
+        end
+
+        if stripe_api_key_missing?('check_currency_migration')
+          return json_error('Billing service temporarily unavailable', status: 503)
+        end
+
+        mismatch = Billing::CurrencyMigrationService.check_currency_mismatch(org, target_price_id)
+
+        if mismatch
+          # Currency mismatch found — return full assessment
+          assessment = Billing::CurrencyMigrationService.assess_migration(
+            org,
+            mismatch[:existing_currency],
+            mismatch[:requested_currency],
+            target_price_id,
+          )
+
+          billing_logger.info 'Currency mismatch detected (pre-check)',
+            {
+              extid: org.extid,
+              existing_currency: mismatch[:existing_currency],
+              requested_currency: mismatch[:requested_currency],
+            }
+
+          json_response(
+            {
+              currency_mismatch: true,
+              details: {
+                existing_currency: mismatch[:existing_currency],
+                requested_currency: mismatch[:requested_currency],
+                current_plan: assessment[:current_plan],
+                requested_plan: assessment[:requested_plan],
+                warnings: assessment[:warnings],
+                can_migrate: assessment[:can_migrate],
+                blockers: assessment[:blockers],
+              },
+            },
+          )
+        else
+          json_response({ currency_mismatch: false })
+        end
+      rescue OT::Problem => ex
+        json_error(ex.message, status: 403)
+      rescue Stripe::StripeError => ex
+        billing_logger.error 'Currency migration check failed',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
+        json_error('Failed to check currency migration', status: 500)
+      end
+
+      # Execute currency migration
+      #
+      # Performs the actual currency migration using either the graceful
+      # or immediate path.
+      #
+      # POST /billing/api/org/:extid/migrate-currency
+      #
+      # @param [String] new_price_id Stripe price ID for the target plan
+      # @param [String] mode 'graceful' or 'immediate'
+      #
+      # @return [Hash] Migration result
+      def migrate_currency
+        org = load_organization(req.params['extid'], require_owner: true)
+
+        new_price_id = req.params['new_price_id']
+        mode         = req.params['mode']
+
+        unless new_price_id && mode
+          return json_error('Missing new_price_id or mode', status: 400)
+        end
+
+        unless %w[graceful immediate].include?(mode)
+          return json_error('mode must be "graceful" or "immediate"', status: 400)
+        end
+
+        unless org.stripe_customer_id
+          return json_error('No Stripe customer linked to this organization', status: 400)
+        end
+
+        # Validate target plan exists in catalog
+        target_plan = ::Billing::Plan.find_by_stripe_price_id(new_price_id)
+        unless target_plan
+          return json_error('Invalid price ID — plan not found in catalog', status: 400)
+        end
+
+        if stripe_api_key_missing?('migrate_currency')
+          return json_error('Billing service temporarily unavailable', status: 503)
+        end
+
+        # Check for past_due subscription (blocker for all migration types)
+        if org.past_due?
+          return json_response(
+            {
+              error: true,
+              code: 'migration_blocked',
+              message: 'Your subscription has an overdue payment. Please resolve the payment before migrating currencies.',
+            },
+            status: 409,
+          )
+        end
+
+        result = case mode
+        when 'graceful'
+          unless org.stripe_subscription_id
+            return json_error('No active subscription for graceful migration', status: 400)
+          end
+
+          Billing::CurrencyMigrationService.execute_graceful_migration(org, new_price_id)
+        when 'immediate'
+          success_url = "#{billing_base_url}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
+          cancel_url  = "#{billing_base_url}/billing/#{org.extid}/plans"
+
+          Billing::CurrencyMigrationService.execute_immediate_migration(
+            org,
+            new_price_id,
+            success_url: success_url,
+            cancel_url: cancel_url,
+          )
+        end
+
+        billing_logger.info 'Currency migration executed',
+          {
+            extid: org.extid,
+            mode: mode,
+            new_price_id: new_price_id,
+            success: result[:success],
+          }
+
+        json_response(result)
+      rescue OT::Problem => ex
+        json_error(ex.message, status: 403)
+      rescue Stripe::InvalidRequestError => ex
+        billing_logger.warn 'Currency migration request failed',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+            mode: mode,
+          }
+        json_error(ex.message, status: 400)
+      rescue Stripe::StripeError => ex
+        billing_logger.error 'Currency migration execution failed',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
+        json_error('Failed to execute currency migration', status: 500)
+      end
+
       module PrivateMethods
         private
+
+        # Build the base URL (protocol + host) from site configuration
+        #
+        # @return [String] Base URL, e.g. "https://example.com"
+        def billing_base_url
+          site_host = Onetime.conf['site']['host']
+          is_secure = Onetime.conf['site']['ssl']
+          protocol  = is_secure ? 'https' : 'http'
+          "#{protocol}://#{site_host}"
+        end
+
+        # Check for currency mismatch and return a 409 response if found.
+        #
+        # @param org [Onetime::Organization] Organization to check
+        # @param new_price_id [String] Target Stripe Price ID
+        # @return [Object, nil] JSON error response if conflict, nil otherwise
+        def check_currency_conflict(org, new_price_id)
+          mismatch = Billing::CurrencyMigrationService.check_currency_mismatch(org, new_price_id)
+          return nil unless mismatch
+
+          json_response(
+            {
+              error: true,
+              code: 'currency_conflict',
+              existing_currency: mismatch[:existing_currency],
+              requested_currency: mismatch[:requested_currency],
+            },
+            status: 409,
+          )
+        end
+
+        # Build pending migration data hash for subscription_status response
+        #
+        # Resolves plan name and currency from the stored target_price_id so
+        # the frontend PendingMigrationBanner has all the data it needs.
+        #
+        # @param org [Onetime::Organization] Organization with pending migration
+        # @return [Hash] Migration data matching pendingMigrationSchema
+        # Enrich response data with pending currency migration info if present
+        #
+        # Checks whether the organization has a pending currency migration and,
+        # if so, adds the migration details to the response hash in-place.
+        #
+        # @param data [Hash] Response hash to enrich
+        # @param org [Onetime::Organization] Organization to check
+        # @return [void]
+        def enrich_with_pending_migration!(data, org)
+          return unless org.pending_currency_migration?
+
+          data[:pending_currency_migration] = pending_migration_data(org)
+        end
+
+        def pending_migration_data(org)
+          price_id = org.migration_target_price_id
+          plan     = ::Billing::Plan.find_by_stripe_price_id(price_id)
+
+          {
+            target_price_id: price_id,
+            target_plan_name: plan&.name || 'Unknown',
+            target_currency: plan&.currency || 'unknown',
+            target_plan_id: plan&.plan_id,
+            effective_after: org.migration_effective_after.to_i,
+          }
+        end
 
         # Check if invoice line item is a proration
         #

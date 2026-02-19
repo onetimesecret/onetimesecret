@@ -44,7 +44,7 @@ module V1::Logic
           if verification
             if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
               owner.verified! "true"
-              sess.destroy!
+              sess.clear
               secret.revealed!
             else
               raise_form_error "You can't verify an account when you're already logged in."

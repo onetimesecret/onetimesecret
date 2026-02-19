@@ -30,6 +30,7 @@ on:
       - main
       - develop
       - 'rel/*'
+      - 'fix/*'
       - 'feature/*'
     types:
       - opened

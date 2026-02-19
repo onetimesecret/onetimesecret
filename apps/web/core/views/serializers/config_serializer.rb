@@ -30,6 +30,7 @@ module Core
         output['homepage_mode']  = view_vars['homepage_mode']
         output['secret_options'] = site['secret_options']
         output['site_host']      = site['host']
+        output['support_host']   = site.dig('support', 'host')
         regions                  = features.fetch('regions', {})
         domains                  = features.fetch('domains', {})
 
@@ -89,6 +90,7 @@ module Core
             'regions_enabled' => nil,
             'secret_options' => nil,
             'site_host' => nil,
+            'support_host' => nil,
             'ui' => nil,
           }
         end
@@ -102,7 +104,8 @@ module Core
         # @return [Hash] Feature flags for frontend consumption
         def build_feature_flags
           {
-            'hardening' => Onetime.auth_config.hardening_enabled?,
+            'lockout' => Onetime.auth_config.lockout_enabled?,
+            'password_requirements' => Onetime.auth_config.password_requirements_enabled?,
             'active_sessions' => Onetime.auth_config.active_sessions_enabled?,
             'remember_me' => Onetime.auth_config.remember_me_enabled?,
             'mfa' => Onetime.auth_config.mfa_enabled?,

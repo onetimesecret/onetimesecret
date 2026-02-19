@@ -341,7 +341,7 @@ RSpec.describe 'Authentication Security Attack Vectors', type: :integration do
         reset_request_logic = AccountAPI::Logic::Authentication::ResetPasswordRequest.new(strategy_result, params)
         allow(reset_request_logic).to receive(:valid_email?).and_return(false)
 
-        expect { reset_request_logic.raise_concerns }.to raise_error(OT::FormError, /Not a valid email address/)
+        expect { reset_request_logic.raise_concerns }.to raise_error(OT::FormError, /Invalid email address/)
       end
 
       it 'protects against email enumeration through error messages' do
@@ -350,7 +350,8 @@ RSpec.describe 'Authentication Security Attack Vectors', type: :integration do
         allow(reset_request_logic).to receive(:valid_email?).and_return(true)
         allow(Onetime::Customer).to receive(:exists?).and_return(false)
 
-        expect { reset_request_logic.raise_concerns }.to raise_error(OT::FormError, /No account found/)
+        # Uses the same generic error for non-existent accounts to prevent enumeration
+        expect { reset_request_logic.raise_concerns }.to raise_error(OT::FormError, /Invalid email address/)
       end
     end
   end

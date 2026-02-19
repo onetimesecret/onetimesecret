@@ -10,8 +10,8 @@ require_relative '../../support/test_helpers'
 require 'onetime/utils/email_hash'
 
 # Setup: Set a test secret for HMAC computation
-@original_secret = ENV['FEDERATION_HMAC_SECRET']
-ENV['FEDERATION_HMAC_SECRET'] = 'test-secret-for-email-hash-federation-12345'
+@original_secret = ENV['FEDERATION_SECRET']
+ENV['FEDERATION_SECRET'] = 'test-secret-for-email-hash-federation-12345'
 
 ## Compute returns nil for empty email
 Onetime::Utils::EmailHash.compute('')
@@ -75,26 +75,26 @@ Onetime::Utils::EmailHash.same_hash?(nil, nil)
 #=> false
 
 ## Compute raises error when secret is not configured
-original = ENV['FEDERATION_HMAC_SECRET']
-ENV['FEDERATION_HMAC_SECRET'] = nil
+original = ENV['FEDERATION_SECRET']
+ENV['FEDERATION_SECRET'] = nil
 begin
   Onetime::Utils::EmailHash.compute('test@example.com')
   :no_error
 rescue Onetime::Problem => e
-  e.message.include?('FEDERATION_HMAC_SECRET')
+  e.message.include?('FEDERATION_SECRET')
 ensure
-  ENV['FEDERATION_HMAC_SECRET'] = original
+  ENV['FEDERATION_SECRET'] = original
 end
 #=> true
 
 ## Hash is different with different secrets
-ENV['FEDERATION_HMAC_SECRET'] = 'secret-one'
+ENV['FEDERATION_SECRET'] = 'secret-one'
 hash1 = Onetime::Utils::EmailHash.compute('test@example.com')
-ENV['FEDERATION_HMAC_SECRET'] = 'secret-two'
+ENV['FEDERATION_SECRET'] = 'secret-two'
 hash2 = Onetime::Utils::EmailHash.compute('test@example.com')
-ENV['FEDERATION_HMAC_SECRET'] = @original_secret || 'test-secret-for-email-hash-federation-12345'
+ENV['FEDERATION_SECRET'] = @original_secret || 'test-secret-for-email-hash-federation-12345'
 hash1 != hash2
 #=> true
 
 # Teardown: Restore original secret
-ENV['FEDERATION_HMAC_SECRET'] = @original_secret
+ENV['FEDERATION_SECRET'] = @original_secret

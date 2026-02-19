@@ -11,10 +11,20 @@ module Onetime::Customer::Features
 
       base.include InstanceMethods
 
-      base.field :secrets_created # regular hashkey string field
-      base.field :secrets_burned
-      base.field :secrets_shared
-      base.field :emails_sent
+      # Store counters for each customer as separate keys. This allows for simple
+      # math operations for aggregation and integrity checks, and avoids the need
+      # for complex Lua scripts or loading entire hashkeys to manage hashkey fields.
+      #
+      # NOTE: Due to a limitation in Familia v2.1 declaring a field group for
+      # related fields (i.e. separate db keys) does not work as expected. The
+      # named group is empty. No runtime issues though so leaving it so it'll
+      # just start working properly when the fix makes it in upstream.
+      base.field_group :counters do
+        base.counter :secrets_created
+        base.counter :secrets_burned
+        base.counter :secrets_shared
+        base.counter :emails_sent
+      end
 
       base.class_counter :secrets_created
       base.class_counter :secrets_shared

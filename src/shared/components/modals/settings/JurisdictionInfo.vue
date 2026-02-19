@@ -37,23 +37,6 @@ defineProps<{
       <p class="m-0 text-center text-gray-600 dark:text-gray-300 sm:text-left">
         {{ t('web.regions.each_jurisdiction_maintains_separate_legal_compl') }}
       </p>
-
-      <p class="m-0 text-center text-gray-600 dark:text-gray-300 sm:text-left">
-        {{ t('web.regions.to_understand_the_specific_regulations_and_prote') }}
-        <RouterLink
-          to="/docs"
-          class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300"
-          target="_blank"
-          rel="noopener noreferrer">
-          {{ t('web.regions.review_our_documentation') }}
-        </RouterLink>
-        or
-        <RouterLink
-          to="/feedback"
-          class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-          {{ t('web.regions.contact_our_compliance_team') }}
-        </RouterLink>.
-      </p>
     </div>
   </div>
 </template>

@@ -40,55 +40,18 @@ module V2::Logic
         @verification       = secret.verification.to_s == 'true'
         @secret_identifier  = @secret.identifier
 
-        owner = secret.load_owner
-
         if show_secret
-          # If we can't decrypt that's great! We just set secret_value to
-          # the encrypted string.
-          @secret_value = secret.ciphertext.reveal { it }
+          @secret_value = secret.decrypted_secret_value(passphrase_input: passphrase)
+          owner         = secret.load_owner
 
           if verification
-            if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
-              owner.verified    = true
-              owner.verified_by = 'email'  # Track email verification method
-              owner.save
-              sess.destroy!
-              secret.received!
-            else
-              raise_form_error "You can't verify an account when you're already logged in."
-            end
+            verify_owner(owner)
           else
-
-            owner.increment_field :secrets_shared unless owner.anonymous?
-            Onetime::Customer.secrets_shared.increment
-
-            # Immediately mark the secret as viewed, so that it
-            # can't be shown again. If there's a network failure
-            # that prevents the client from receiving the response,
-            # we're not able to show it again. This is a feature
-            # not a bug.
-            #
-            # NOTE: This destructive action is called before the
-            # response is returned or even fully generated (which
-            # happens in success_data). This is a feature, not a
-            # bug but it means that all return values need to be
-            # pluck out of the secret object before this is called.
-            secret.revealed!
-
+            reveal_secret(owner)
           end
-
-        elsif continue && secret.has_passphrase? && !correct_passphrase
-          # Invalid passphrase - no action needed, secret remains in current state
-          nil
         end
 
-        domain = if domains_enabled && !secret.share_domain.to_s.empty?
-                   secret.share_domain
-                 else
-                   site_host # via LogicHlpers#site_host
-                 end
-
-        @share_domain   = [base_scheme, domain].join
+        resolve_share_domain
         @has_passphrase = secret.has_passphrase?
         @display_lines  = calculate_display_lines
         @is_owner       = secret.owner?(cust)
@@ -120,16 +83,57 @@ module V2::Logic
         ret
       end
 
-      def calculate_display_lines
-        v   = secret_value.to_s
-        ret = ((80 + v.size) / 80) + v.scan("\n").size + 3
-        ret > 30 ? 30 : ret
-      end
-
       def one_liner
         return if secret_value.to_s.empty? # return nil when the value is empty
 
         secret_value.to_s.scan("\n").empty?
+      end
+
+      private
+
+      def verify_owner(owner)
+        if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
+          owner.verified    = true
+          owner.verified_by = 'email'
+          owner.save
+          sess.clear
+          secret.received!
+        else
+          raise_form_error "You can't verify an account when you're already logged in."
+        end
+      end
+
+      # Immediately mark the secret as viewed, so that it
+      # can't be shown again. If there's a network failure
+      # that prevents the client from receiving the response,
+      # we're not able to show it again. This is a feature
+      # not a bug.
+      #
+      # NOTE: This destructive action is called before the
+      # response is returned or even fully generated (which
+      # happens in success_data). This is a feature, not a
+      # bug but it means that all return values need to be
+      # plucked out of the secret object before this is called.
+      def reveal_secret(owner)
+        owner&.increment_field :secrets_shared unless owner&.anonymous?
+        Onetime::Customer.secrets_shared.increment
+        secret.revealed!
+      end
+
+      def resolve_share_domain
+        domain = if domains_enabled && !secret.share_domain.to_s.empty?
+                   secret.share_domain
+                 else
+                   site_host
+                 end
+
+        @share_domain = [base_scheme, domain].join
+      end
+
+      def calculate_display_lines
+        v   = secret_value.to_s
+        ret = ((80 + v.size) / 80) + v.scan("\n").size + 3
+        ret > 30 ? 30 : ret
       end
     end
   end

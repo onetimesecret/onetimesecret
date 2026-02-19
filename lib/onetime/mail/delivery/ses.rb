@@ -16,19 +16,44 @@ module Onetime
       #   secret_access_key: AWS secret key (ENV: AWS_SECRET_ACCESS_KEY)
       #
       class SES < Base
-        def deliver(email)
-          email = normalize_email(email)
+        # AWS error codes indicating transient/throttling issues
+        TRANSIENT_ERROR_CODES = %w[
+          TooManyRequestsException
+          LimitExceededException
+          RequestThrottled
+          ThrottlingException
+          ServiceUnavailableException
+        ].freeze
 
+        # AWS error codes indicating permanent/configuration issues
+        FATAL_ERROR_CODES = %w[
+          MessageRejected
+          AccountSendingPausedException
+          MailFromDomainNotVerifiedException
+          ConfigurationSetDoesNotExist
+          InvalidParameterValue
+          BadRequestException
+        ].freeze
+
+        def perform_delivery(email)
           OT.ld "[ses] Delivering to #{OT::Utils.obscure_email(email[:to])}"
 
           email_params = build_email_params(email)
-          response     = ses_client.send_email(email_params)
+          ses_client.send_email(email_params)
+        end
 
-          log_delivery(email)
-          response
-        rescue Aws::SESV2::Errors::ServiceError, StandardError => ex
-          log_error(email, ex)
-          raise
+        def classify_error(error)
+          if error.respond_to?(:code)
+            return :transient if TRANSIENT_ERROR_CODES.include?(error.code)
+            return :fatal if FATAL_ERROR_CODES.include?(error.code)
+          end
+
+          if error.respond_to?(:http_status_code)
+            return :transient if error.http_status_code == 429 || error.http_status_code >= 500
+            return :fatal if error.http_status_code >= 400
+          end
+
+          super
         end
 
         protected

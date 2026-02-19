@@ -436,17 +436,17 @@ describe('useRecentSecrets', () => {
       expect(workspaceMode.value).toBe(true);
     });
 
-    it('workspaceMode is always false in API mode', async () => {
+    it('workspaceMode reads from local store in API mode', async () => {
       vi.mocked(useAuthStore).mockReturnValue({
         isFullyAuthenticated: true,
       } as any);
 
-      mockWorkspaceMode.value = true; // This shouldn't matter in API mode
+      mockWorkspaceMode.value = true;
 
       const { workspaceMode } = useRecentSecrets();
       await nextTick();
 
-      expect(workspaceMode.value).toBe(false);
+      expect(workspaceMode.value).toBe(true);
     });
   });
 

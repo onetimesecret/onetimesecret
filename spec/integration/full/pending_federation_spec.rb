@@ -27,11 +27,11 @@ RSpec.describe 'Pending Federation: Account Claim Flow', :full_auth_mode, type: 
 
   # Enable federation for all tests
   around do |example|
-    original_secret = ENV['FEDERATION_HMAC_SECRET']
-    ENV['FEDERATION_HMAC_SECRET'] = 'test_federation_secret_32chars!'
+    original_secret = ENV['FEDERATION_SECRET']
+    ENV['FEDERATION_SECRET'] = 'test_federation_secret_32chars!'
     example.run
   ensure
-    ENV['FEDERATION_HMAC_SECRET'] = original_secret
+    ENV['FEDERATION_SECRET'] = original_secret
   end
 
   # Helper: compute email hash (same algorithm as production)

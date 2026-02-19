@@ -55,6 +55,12 @@ module Onetime
       full['database_url_migrations']
     end
 
+    # Argon2 secret key (pepper) for password hashing defense-in-depth.
+    # Returns nil when unset — argon2id works fine without a pepper.
+    def argon2_secret
+      full['argon2_secret']
+    end
+
     # Whether full mode is enabled (Rodauth-based)
     def full_enabled?
       mode == 'full'
@@ -70,10 +76,16 @@ module Onetime
       full['features'] || {}
     end
 
-    # Whether hardening features are enabled (lockout, password requirements)
+    # Whether brute force lockout protection is enabled
     # Default: true (when full mode is enabled)
-    def hardening_enabled?
-      feature_enabled?('hardening', default: true)
+    def lockout_enabled?
+      feature_enabled?('lockout', default: true)
+    end
+
+    # Whether password strength requirements are enabled
+    # Default: true (when full mode is enabled)
+    def password_requirements_enabled?
+      feature_enabled?('password_requirements', default: true)
     end
 
     # Whether active sessions tracking is enabled
@@ -140,11 +152,6 @@ module Onetime
       return nil unless omniauth_enabled?
 
       ENV.fetch('OIDC_ROUTE_NAME', 'oidc')
-    end
-
-    # DEPRECATED: Use hardening_enabled?, active_sessions_enabled?, remember_me_enabled?
-    def security_features_enabled?
-      hardening_enabled? && active_sessions_enabled? && remember_me_enabled?
     end
 
     # DEPRECATED: Use email_auth_enabled?

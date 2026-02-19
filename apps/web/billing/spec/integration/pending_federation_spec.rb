@@ -31,11 +31,11 @@ RSpec.describe 'PendingFederation: Webhook Storage', :integration, :process_webh
 
   # Enable federation for all tests
   around do |example|
-    original_secret = ENV['FEDERATION_HMAC_SECRET']
-    ENV['FEDERATION_HMAC_SECRET'] = 'test_federation_secret_32chars!'
+    original_secret = ENV['FEDERATION_SECRET']
+    ENV['FEDERATION_SECRET'] = 'test_federation_secret_32chars!'
     example.run
   ensure
-    ENV['FEDERATION_HMAC_SECRET'] = original_secret
+    ENV['FEDERATION_SECRET'] = original_secret
   end
 
   before do
@@ -297,11 +297,11 @@ RSpec.describe 'PendingFederatedSubscription Model', :unit do
   let(:created_pending_records) { [] }
 
   around do |example|
-    original_secret = ENV['FEDERATION_HMAC_SECRET']
-    ENV['FEDERATION_HMAC_SECRET'] = 'test_federation_secret_32chars!'
+    original_secret = ENV['FEDERATION_SECRET']
+    ENV['FEDERATION_SECRET'] = 'test_federation_secret_32chars!'
     example.run
   ensure
-    ENV['FEDERATION_HMAC_SECRET'] = original_secret
+    ENV['FEDERATION_SECRET'] = original_secret
   end
 
   after do

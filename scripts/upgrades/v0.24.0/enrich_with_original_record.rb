@@ -1,101 +1,110 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Enriches transformed JSONL files with _original_record field for rollback/audit.
+# Restores original v1 records as _original_* Redis keys for rollback/audit.
 #
-# Reads transformed files (output of transform.rb scripts) and adds _original_record
-# to :object records. This centralizes original record capture that was previously
-# scattered across individual transform.rb scripts.
+# Uses Redis RESTORE to place v1 dump binaries directly as sibling keys
+# alongside v2 records, with a 30-day TTL for automatic cleanup.
 #
-# The script:
-# 1. Loads the original dump file to build a lookup of v1 fields by key
-# 2. Reads the transformed file
-# 3. For each :object record, looks up v1 fields using v1_identifier
-# 4. Adds _original_record to the v2 hash and re-dumps
-# 5. Writes the enriched transformed file
+# Two-phase approach:
+#   Phase A — Build v1→v2 objid mapping from transformed JSONL
+#   Phase B — Stream v1 dump JSONL and RESTORE each record to its target key
+#
+# Target key pattern:
+#   {v2_prefix}:{objid}:_original_{suffix}
+#
+# Examples:
+#   customer:abc-def-123:_original_object        (from customer:email@example.com:object)
+#   custom_domain:abc-def-123:_original_object    (from customdomain:example.com:object)
+#   custom_domain:abc-def-123:_original_brand     (from customdomain:example.com:brand)
+#   receipt:abc-def-123:_original_object          (from metadata:xv4z6nh...:object)
+#   secret:abc-def-123:_original_object           (from secret:abc123...:object)
 #
 # Usage:
 #   ruby scripts/upgrades/v0.24.0/enrich_with_original_record.rb [OPTIONS]
 #
 # Options:
 #   --input-dir=DIR    Input directory with dump/transformed files (default: data/upgrades/v0.24.0)
-#   --output-dir=DIR   Output directory (default: results, overwrites in place)
-#   --dry-run          Show what would be generated without writing
+#   --redis-url=URL    Redis URL for RESTORE operations (env: VALKEY_URL or REDIS_URL)
+#   --target-db=N      Target database number (default: 0)
+#   --dry-run          Preview without writing to Redis
+#   --help             Show this help
 #
 # Input:
-#   data/upgrades/v0.24.0/{model}/{model}_dump.jsonl        (original v1 dump - source of v1_fields)
-#   data/upgrades/v0.24.0/{model}/{model}_transformed.jsonl (transformed v2 records - to be enriched)
+#   data/upgrades/v0.24.0/{model}/{model}_dump.jsonl        (v1 dump — source of RESTORE binaries)
+#   data/upgrades/v0.24.0/{model}/{model}_transformed.jsonl (v2 records — source of v1→v2 mapping)
 #
 # Output:
-#   data/upgrades/v0.24.0/{model}/{model}_transformed.jsonl (enriched with _original_record in dump)
+#   Redis keys with 30-day TTL: {v2_prefix}:{objid}:_original_{suffix}
 #
-# For :object records, adds _original_record hash field with structure:
-#   {
-#     "object": { ...original hash fields from v1... },
-#     "data_types": {},  # Reserved for related hashkeys/lists
-#     "key": "original:redis:key",
-#     "db": 6,
-#     "exported_at": "2026-01-26T12:00:00Z"
-#   }
-#
-# Binary Handling (for secret model):
-#   Fields with invalid UTF-8 encoding are base64-encoded as {"_binary": "..."}
-#   to preserve exact byte values for encrypted content.
-#
-# Note: This script runs AFTER transform.rb scripts. Transform scripts should
-# NOT add _original_record since it's handled here.
+# This script runs AFTER transform.rb scripts and load_keys.rb.
 
 require 'json'
 require 'base64'
-require 'fileutils'
 require 'securerandom'
 require 'redis'
 require 'familia'
 require 'uri'
 
-# Assumes script is run from project root: ruby scripts/upgrades/v0.24.0/enrich_with_original_record.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.0'
 
-class OriginalRecordEnricher
-  TEMP_KEY_PREFIX = '_enrich_tmp_'
+class OriginalRecordRestorer
+  TEMP_KEY_PREFIX = '_restore_mapping_tmp_'
+  THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000 # 2_592_000_000
 
   # Model configurations
-  # model_name => { dump_file: input, transformed_file: input/output, v1_key_field: lookup }
+  #
+  # v1_prefix:        Redis key prefix in v1 dump files
+  # v2_prefix:        Redis key prefix in v2 (target for _original_* keys)
+  # related_suffixes: Key suffixes to preserve from v1 dump
+  # dir:              Subdirectory in data/upgrades/v0.24.0/
+  # dump_file:        V1 dump JSONL filename
+  # transformed_file: V2 transformed JSONL filename
   MODEL_CONFIG = {
     'customer' => {
+      v1_prefix: 'customer',
+      v2_prefix: 'customer',
+      related_suffixes: %w[object],
+      dir: 'customer',
       dump_file: 'customer_dump.jsonl',
       transformed_file: 'customer_transformed.jsonl',
-      binary_safe: false,
     },
     'customdomain' => {
+      v1_prefix: 'customdomain',
+      v2_prefix: 'custom_domain',
+      related_suffixes: %w[object brand logo icon],
+      dir: 'customdomain',
       dump_file: 'customdomain_dump.jsonl',
       transformed_file: 'customdomain_transformed.jsonl',
-      binary_safe: false,
     },
     'metadata' => {
-      # NOTE: metadata becomes receipt, but dump file is still metadata
-      # The transformed file lives in data/upgrades/v0.24.0/metadata/ with plural name
+      v1_prefix: 'metadata',
+      v2_prefix: 'receipt',
+      related_suffixes: %w[object],
+      dir: 'metadata',
       dump_file: 'metadata_dump.jsonl',
       transformed_file: 'receipt_transformed.jsonl',
-      binary_safe: false,
     },
     'secret' => {
+      v1_prefix: 'secret',
+      v2_prefix: 'secret',
+      related_suffixes: %w[object],
+      dir: 'secret',
       dump_file: 'secret_dump.jsonl',
       transformed_file: 'secret_transformed.jsonl',
-      binary_safe: true,
     },
   }.freeze
 
-  def initialize(input_dir:, output_dir:, redis_url:, temp_db:, dry_run: false)
+  def initialize(input_dir:, redis_url:, target_db:, dry_run: false)
     @input_dir  = input_dir
-    @output_dir = output_dir
     @redis_url  = redis_url
-    @temp_db    = temp_db
+    @target_db  = target_db
     @dry_run    = dry_run
     @redis      = nil
-    @timestamp  = Time.now.utc.iso8601
 
-    @stats = Hash.new { |h, k| h[k] = { total: 0, enriched: 0, related: 0, not_found: 0, errors: [] } }
+    @stats = Hash.new do |h, k|
+      h[k] = { mapped: 0, restored: 0, skipped: 0, not_found: 0, errors: [] }
+    end
   end
 
   def run
@@ -115,22 +124,18 @@ class OriginalRecordEnricher
 
   def connect_redis
     uri      = URI.parse(@redis_url)
-    uri.path = "/#{@temp_db}"
+    uri.path = "/#{@target_db}"
     @redis   = Redis.new(url: uri.to_s)
     @redis.ping
   rescue Redis::CannotConnectError => ex
     warn "Failed to connect to Redis: #{ex.message}"
-    warn 'Redis is required for restore/dump operations.'
+    warn 'Redis is required for RESTORE operations.'
     exit 1
   end
 
   def process_model(model, config)
-    # Both dump and transformed files live in the same subdirectory
-    # (metadata/ for metadata->receipts, secret/ for secrets, etc.)
-    subdir = model
-
-    dump_file        = File.join(@input_dir, subdir, config[:dump_file])
-    transformed_file = File.join(@input_dir, subdir, config[:transformed_file])
+    dump_file        = File.join(@input_dir, config[:dir], config[:dump_file])
+    transformed_file = File.join(@input_dir, config[:dir], config[:transformed_file])
 
     unless File.exist?(dump_file)
       puts "Skipping #{model}: #{dump_file} not found"
@@ -145,213 +150,215 @@ class OriginalRecordEnricher
     puts "Processing #{model}..."
 
     if @dry_run
-      dry_run_model(model, dump_file, transformed_file)
+      dry_run_model(model, config, dump_file, transformed_file)
     else
-      enrich_model(model, config, dump_file, transformed_file, subdir)
+      restore_model(model, config, dump_file, transformed_file)
     end
   end
 
-  def dry_run_model(model, dump_file, transformed_file)
+  # ── Dry Run ──────────────────────────────────────────────
+
+  def dry_run_model(model, config, dump_file, transformed_file)
     stats = @stats[model]
 
-    # Count v1 object records
-    v1_count = 0
-    File.foreach(dump_file) do |line|
-      record    = JSON.parse(line.chomp, symbolize_names: true)
-      v1_count += 1 if record[:key]&.end_with?(':object')
+    # Count transformed :object records (potential mapping entries)
+    File.foreach(transformed_file) do |line|
+      record = JSON.parse(line.chomp, symbolize_names: true)
+      stats[:mapped] += 1 if record[:key]&.end_with?(':object')
     rescue JSON::ParserError
       # Skip malformed lines
     end
 
-    # Count v2 object records
-    File.foreach(transformed_file) do |line|
-      stats[:total] += 1
-      record         = JSON.parse(line.chomp, symbolize_names: true)
+    # Count v1 dump records by suffix
+    suffix_counts = Hash.new(0)
+    File.foreach(dump_file) do |line|
+      record = JSON.parse(line.chomp, symbolize_names: true)
+      next unless record[:key]
 
-      if record[:key]&.end_with?(':object')
-        stats[:enriched] += 1
+      suffix = extract_suffix(record[:key])
+      if config[:related_suffixes].include?(suffix)
+        suffix_counts[suffix] += 1
       else
-        stats[:related] += 1
+        stats[:skipped] += 1
       end
-    rescue JSON::ParserError => ex
-      stats[:errors] << { line: stats[:total], error: ex.message }
+    rescue JSON::ParserError
+      # Skip malformed lines
     end
 
-    puts "  V1 object records: #{v1_count}"
-    puts "  Would enrich #{stats[:enriched]} :object records (#{stats[:related]} related records unchanged)"
+    puts "  Mapping entries (transformed :object records): #{stats[:mapped]}"
+    suffix_counts.each do |suffix, count|
+      puts "  Would restore #{count} :#{suffix} records → _original_#{suffix}"
+    end
+    puts "  Skipped (unrecognized suffix): #{stats[:skipped]}" if stats[:skipped] > 0
   end
 
-  def enrich_model(model, config, dump_file, transformed_file, transformed_subdir)
-    stats       = @stats[model]
-    binary_safe = config[:binary_safe]
+  # ── Phase A: Build v1→v2 Mapping ────────────────────────
 
-    # Step 1: Load v1 dump into memory, keyed by original key
-    v1_lookup = load_v1_dump(dump_file, binary_safe)
-    puts "  Loaded #{v1_lookup.size} v1 object records"
-
-    # Step 2: Process transformed file
-    output_file = File.join(@output_dir, transformed_subdir, config[:transformed_file])
-    temp_file   = "#{output_file}.tmp"
-
-    FileUtils.mkdir_p(File.dirname(output_file))
-
-    File.open(temp_file, 'w') do |out|
-      File.foreach(transformed_file) do |line|
-        stats[:total] += 1
-        record         = JSON.parse(line.chomp, symbolize_names: true)
-
-        if record[:key]&.end_with?(':object')
-          enriched = enrich_record(record, v1_lookup, binary_safe, stats)
-          out.puts(JSON.generate(enriched))
-        else
-          # Related records (lists, sets, etc.) pass through unchanged
-          stats[:related] += 1
-          out.puts(line.chomp)
-        end
-      rescue JSON::ParserError => ex
-        stats[:errors] << { line: stats[:total], error: ex.message }
-        out.puts(line.chomp) # Preserve malformed lines
-      end
+  def build_v1_to_v2_mapping(model, config, dump_file, transformed_file)
+    # Try the enriched dump file first (customer/customdomain have objid at top-level)
+    mapping = build_mapping_from_dump(dump_file)
+    if mapping.any?
+      puts "  Phase A: Built #{mapping.size} mappings from enriched dump"
+      return mapping
     end
 
-    # Atomic replace
-    FileUtils.mv(temp_file, output_file)
-    puts "  Enriched #{stats[:enriched]} :object records (#{stats[:related]} related records unchanged)"
-    puts "  Output: #{output_file}"
-    puts "  Not found in v1: #{stats[:not_found]}" if stats[:not_found] > 0
+    # Fallback: extract v1_identifier from transformed JSONL via temp RESTORE
+    mapping = build_mapping_from_transformed(config, transformed_file)
+    puts "  Phase A: Built #{mapping.size} mappings from transformed JSONL"
+    mapping
   end
 
-  def load_v1_dump(dump_file, binary_safe)
-    lookup = {}
+  # Build mapping from enriched dump file (customer/customdomain have objid)
+  def build_mapping_from_dump(dump_file)
+    mapping = {}
 
     File.foreach(dump_file) do |line|
       record = JSON.parse(line.chomp, symbolize_names: true)
-      next unless record[:key]&.end_with?(':object')
+      next unless record[:key]&.end_with?(':object') && record[:objid]
 
-      # Restore dump and read v1 fields
-      v1_fields = restore_and_read_hash(record)
-      next unless v1_fields
-
-      # Store with structure for _original_record
-      lookup[record[:key]] = {
-        'object' => binary_safe ? safe_encode_hash(v1_fields) : v1_fields,
-        'data_types' => {},
-        'key' => record[:key],
-        'db' => record[:db],
-        'exported_at' => @timestamp,
-      }
+      v1_prefix = strip_suffix(record[:key])
+      mapping[v1_prefix] = record[:objid]
     rescue JSON::ParserError
       # Skip malformed lines
     end
 
-    lookup
+    mapping
   end
 
-  def enrich_record(record, v1_lookup, _binary_safe, stats)
-    # Get v1_identifier from the transformed hash to find original record
-    v2_fields = restore_and_read_hash(record)
+  # Build mapping by RESTOREing transformed dumps to read v1_identifier
+  def build_mapping_from_transformed(config, transformed_file)
+    mapping = {}
 
-    unless v2_fields
-      stats[:errors] << { key: record[:key], error: 'Failed to restore v2 dump' }
-      return record
+    File.foreach(transformed_file) do |line|
+      record = JSON.parse(line.chomp, symbolize_names: true)
+      next unless record[:key]&.end_with?(':object')
+
+      objid = record[:objid]
+      next unless objid
+
+      # RESTORE dump temporarily to read v1_identifier field
+      v1_identifier = read_field_from_dump(record[:dump], 'v1_identifier')
+      next unless v1_identifier
+
+      # Deserialize JSON-encoded value from Familia v2 serialization
+      v1_key = deserialize_v2_value(v1_identifier)
+      next unless v1_key
+
+      v1_prefix = strip_suffix(v1_key)
+      mapping[v1_prefix] = objid
+    rescue JSON::ParserError
+      # Skip malformed lines
     end
 
-    # Deserialize v1_identifier - transform scripts write v2 JSON-serialized values
-    # e.g., "customer:email@example.com:object" is stored as "\"customer:email@example.com:object\""
-    v1_key = deserialize_v2_value(v2_fields['v1_identifier'])
-
-    unless v1_key
-      stats[:not_found] += 1
-      return record
-    end
-
-    original_record_data = v1_lookup[v1_key]
-
-    unless original_record_data
-      stats[:not_found] += 1
-      return record
-    end
-
-    # Add _original_record to v2_fields
-    v2_fields['_original_record'] = JSON.generate(original_record_data)
-
-    # Re-create the dump with the new field
-    new_dump = create_dump_from_hash(v2_fields)
-
-    stats[:enriched] += 1
-
-    # Return updated record
-    record.merge(dump: new_dump)
+    mapping
   end
 
-  def restore_and_read_hash(record)
+  # ── Phase B: RESTORE v1 Dumps ───────────────────────────
+
+  def restore_model(model, config, dump_file, transformed_file)
+    stats = @stats[model]
+
+    # Phase A: Build v1_prefix → v2_objid mapping
+    mapping = build_v1_to_v2_mapping(model, config, dump_file, transformed_file)
+    stats[:mapped] = mapping.size
+
+    # Phase B: Stream v1 dump and RESTORE each record
+    File.foreach(dump_file) do |line|
+      record = JSON.parse(line.chomp, symbolize_names: true)
+      next unless record[:key] && record[:dump]
+
+      suffix = extract_suffix(record[:key])
+      unless config[:related_suffixes].include?(suffix)
+        stats[:skipped] += 1
+        next
+      end
+
+      v1_prefix = strip_suffix(record[:key])
+      objid     = mapping[v1_prefix]
+
+      unless objid
+        stats[:not_found] += 1
+        next
+      end
+
+      # Compute v2 target key: {v2_prefix}:{objid}:_original_{suffix}
+      target_key = "#{config[:v2_prefix]}:#{objid}:_original_#{suffix}"
+
+      # Decode and RESTORE with 30-day TTL
+      restore_to_target(target_key, record[:dump], stats)
+    rescue JSON::ParserError => ex
+      stats[:errors] << { error: ex.message }
+    end
+
+    puts "  Phase B: Restored #{stats[:restored]} keys (#{stats[:not_found]} not mapped, #{stats[:skipped]} skipped)"
+    puts "  Errors: #{stats[:errors].size}" if stats[:errors].any?
+  end
+
+  def restore_to_target(target_key, dump_b64, stats)
+    dump_data = Base64.strict_decode64(dump_b64)
+    @redis.restore(target_key, THIRTY_DAYS_MS, dump_data, replace: true)
+    stats[:restored] += 1
+  rescue Redis::CommandError => ex
+    stats[:errors] << { key: target_key, error: ex.message }
+    warn "  Warning: Failed to restore #{target_key}: #{ex.message}"
+  end
+
+  # ── Helpers ─────────────────────────────────────────────
+
+  # Read a single field from a dump binary via temp RESTORE + HGET
+  def read_field_from_dump(dump_b64, field_name)
     temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
-    dump_data = Base64.strict_decode64(record[:dump])
+    dump_data = Base64.strict_decode64(dump_b64)
 
     @redis.restore(temp_key, 0, dump_data)
-    @redis.hgetall(temp_key)
-  rescue Redis::CommandError => ex
-    warn "  Warning: Failed to restore #{record[:key]}: #{ex.message}"
+    @redis.hget(temp_key, field_name)
+  rescue Redis::CommandError
     nil
   ensure
     @redis&.del(temp_key)
   end
 
-  # Deserialize a single v2 JSON-encoded value back to Ruby type
-  # Transform scripts write JSON-serialized values (e.g., "value" -> "\"value\"")
+  # Deserialize a Familia v2 JSON-encoded value back to Ruby
   def deserialize_v2_value(raw_value)
     return nil if raw_value.nil? || raw_value == 'null'
     return raw_value if raw_value.empty?
 
     Familia::JsonSerializer.parse(raw_value)
   rescue Familia::SerializerError
-    raw_value # Fallback for non-JSON values
+    raw_value
   end
 
-  def create_dump_from_hash(fields)
-    temp_key = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
+  # Extract the suffix (last colon-separated segment) from a Redis key
+  def extract_suffix(key)
+    last_colon = key.rindex(':')
+    return key unless last_colon
 
-    # Filter nil values - Redis doesn't accept them
-    clean_fields = fields.compact
-
-    @redis.hmset(temp_key, clean_fields.to_a.flatten)
-    dump_data = @redis.dump(temp_key)
-    Base64.strict_encode64(dump_data)
-  ensure
-    @redis&.del(temp_key)
+    key[(last_colon + 1)..]
   end
 
-  # Encode hash values safely for JSON, handling binary data
-  def safe_encode_hash(hash)
-    hash.transform_values do |value|
-      if value.is_a?(String) && !value.valid_encoding?
-        { '_binary' => Base64.strict_encode64(value) }
-      elsif value.is_a?(String)
-        begin
-          value.encode('UTF-8')
-        rescue Encoding::UndefinedConversionError
-          { '_binary' => Base64.strict_encode64(value) }
-        end
-      else
-        value
-      end
-    end
+  # Strip the suffix from a Redis key, returning the prefix
+  def strip_suffix(key)
+    last_colon = key.rindex(':')
+    return key unless last_colon
+
+    key[0...last_colon]
   end
+
+  # ── Summary ─────────────────────────────────────────────
 
   def print_summary
-    puts "\n=== Original Record Enrichment Summary ==="
+    puts "\n=== Original Record Restoration Summary ==="
     @stats.each do |model, stats|
       puts "#{model}:"
-      puts "  Total records:    #{stats[:total]}"
-      puts "  :object enriched: #{stats[:enriched]}"
-      puts "  Related records:  #{stats[:related]} (lists, sets - unchanged)"
-      puts "  V1 not found:     #{stats[:not_found]}" if stats[:not_found] > 0
+      puts "  Mapping entries:  #{stats[:mapped]}"
+      puts "  Keys restored:    #{stats[:restored]}"
+      puts "  Not mapped:       #{stats[:not_found]}" if stats[:not_found] > 0
+      puts "  Skipped:          #{stats[:skipped]}" if stats[:skipped] > 0
       next unless stats[:errors].any?
 
       puts "  Errors:           #{stats[:errors].size}"
       stats[:errors].first(5).each do |err|
-        msg = err[:line] ? "Line #{err[:line]}" : err[:key]
-        puts "    #{msg}: #{err[:error]}"
+        puts "    #{err[:key] || 'unknown'}: #{err[:error]}"
       end
     end
   end
@@ -360,9 +367,8 @@ end
 def parse_args(args)
   options = {
     input_dir: DEFAULT_DATA_DIR,
-    output_dir: DEFAULT_DATA_DIR,
     redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
-    temp_db: 15,
+    target_db: 0,
     dry_run: false,
   }
 
@@ -370,44 +376,43 @@ def parse_args(args)
     case arg
     when /^--input-dir=(.+)$/
       options[:input_dir] = Regexp.last_match(1)
-    when /^--output-dir=(.+)$/
-      options[:output_dir] = Regexp.last_match(1)
     when /^--redis-url=(.+)$/
       options[:redis_url] = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/
-      options[:temp_db] = Regexp.last_match(1).to_i
+    when /^--target-db=(\d+)$/
+      options[:target_db] = Regexp.last_match(1).to_i
     when '--dry-run'
       options[:dry_run] = true
     when '--help', '-h'
       puts <<~HELP
         Usage: ruby scripts/upgrades/v0.24.0/enrich_with_original_record.rb [OPTIONS]
 
-        Enriches transformed JSONL files with _original_record for rollback/audit.
+        Restores original v1 records as _original_* Redis keys with 30-day TTL.
 
         Options:
           --input-dir=DIR    Input directory (default: data/upgrades/v0.24.0)
-          --output-dir=DIR   Output directory (default: data/upgrades/v0.24.0)
-          --redis-url=URL    Redis URL for temp operations (env: VALKEY_URL or REDIS_URL)
-          --temp-db=N        Temp database number (default: 15)
-          --dry-run          Preview without writing
+          --redis-url=URL    Redis URL for RESTORE (env: VALKEY_URL or REDIS_URL)
+          --target-db=N      Target database number (default: 0)
+          --dry-run          Preview without writing to Redis
           --help             Show this help
 
         Input files:
-          data/upgrades/v0.24.0/{model}/{model}_dump.jsonl        (v1 source)
-          data/upgrades/v0.24.0/{model}/{model}_transformed.jsonl (to be enriched)
+          data/upgrades/v0.24.0/{model}/{model}_dump.jsonl        (v1 source binaries)
+          data/upgrades/v0.24.0/{model}/{model}_transformed.jsonl (v2 mapping source)
 
         Output:
-          data/upgrades/v0.24.0/{model}/{model}_transformed.jsonl (with _original_record)
+          Redis keys: {v2_prefix}:{objid}:_original_{suffix}
+          TTL: 30 days (2,592,000,000 ms)
 
-        For each :object record, adds _original_record hash field with:
-          - object: Original v1 hash fields (binary-safe for secret)
-          - data_types: {} (reserved for related data)
-          - key: Original Redis key
-          - db: Source database number
-          - exported_at: Enrichment timestamp
+        Key mapping:
+          customer:email@...:object      → customer:{objid}:_original_object
+          customdomain:dom:object        → custom_domain:{objid}:_original_object
+          customdomain:dom:brand         → custom_domain:{objid}:_original_brand
+          customdomain:dom:logo          → custom_domain:{objid}:_original_logo
+          customdomain:dom:icon          → custom_domain:{objid}:_original_icon
+          metadata:key:object            → receipt:{objid}:_original_object
+          secret:key:object              → secret:{objid}:_original_object
 
-        This script runs AFTER transform.rb scripts.
-        Transform scripts should NOT add _original_record.
+        This script runs AFTER transform.rb scripts and load_keys.rb.
       HELP
       exit 0
     else
@@ -422,13 +427,12 @@ end
 if __FILE__ == $PROGRAM_NAME
   options = parse_args(ARGV)
 
-  enricher = OriginalRecordEnricher.new(
+  restorer = OriginalRecordRestorer.new(
     input_dir: options[:input_dir],
-    output_dir: options[:output_dir],
     redis_url: options[:redis_url],
-    temp_db: options[:temp_db],
+    target_db: options[:target_db],
     dry_run: options[:dry_run],
   )
 
-  enricher.run
+  restorer.run
 end

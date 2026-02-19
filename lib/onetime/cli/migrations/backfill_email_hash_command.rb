@@ -73,8 +73,8 @@ module Onetime
         true
       rescue Onetime::Problem => ex
         puts "\nConfiguration Error: #{ex.message}"
-        puts "\nTo configure, set FEDERATION_HMAC_SECRET in your environment"
-        puts 'or add site.federation_hmac_secret to your config file.'
+        puts "\nTo configure, set FEDERATION_SECRET in your environment"
+        puts 'or add site.federation_secret to your config file.'
         false
       end
 
@@ -221,7 +221,7 @@ module Onetime
             - Command is idempotent (safe to run multiple times)
             - Skips organizations without billing_email
             - Skips organizations that already have email_hash set
-            - Requires FEDERATION_HMAC_SECRET to be configured
+            - Requires FEDERATION_SECRET to be configured
 
         USAGE
         true

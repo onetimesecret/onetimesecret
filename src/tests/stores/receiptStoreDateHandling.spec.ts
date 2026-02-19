@@ -39,12 +39,12 @@ describe('Receipt Date Handling', () => {
   };
 
   /**
-   * Creates a mock metadata record for API responses with correct date formats.
+   * Creates a mock receipt record for API responses with correct date formats.
    * Schema expects:
    * - created, updated, expiration: Unix timestamps in SECONDS (number)
    * - burned, received, shared, viewed: ISO strings or null (dateNullable transform)
    */
-  const createMockMetadataResponse = (
+  const createMockReceiptResponse = (
     overrides: Partial<{
       key: string;
       created: number;
@@ -97,7 +97,7 @@ describe('Receipt Date Handling', () => {
   };
 
   const createBurnedMockResponse = (overrides: Record<string, unknown> = {}) => {
-    const base = createMockMetadataResponse({
+    const base = createMockReceiptResponse({
       key: 'burnedkey',
       state: 'burned',
       is_burned: true,
@@ -129,7 +129,7 @@ describe('Receipt Date Handling', () => {
   describe('Record Creation & Update Dates', () => {
     it('properly validates created and updated dates from Unix timestamps', async () => {
       const testKey = 'testkey123';
-      const mockResponse = createMockMetadataResponse({
+      const mockResponse = createMockReceiptResponse({
         created: TEST_TIMESTAMPS.now,
         updated: TEST_TIMESTAMPS.now,
         expiration: TEST_TIMESTAMPS.expiration,
@@ -146,7 +146,7 @@ describe('Receipt Date Handling', () => {
 
     it('properly validates expiration date from Unix timestamp', async () => {
       const testKey = 'testkey123';
-      const mockResponse = createMockMetadataResponse({
+      const mockResponse = createMockReceiptResponse({
         expiration: TEST_TIMESTAMPS.expiration,
       });
 
@@ -160,7 +160,7 @@ describe('Receipt Date Handling', () => {
     it('handles different Unix timestamps correctly', async () => {
       const testKey = 'testkey123';
       // Use a different timestamp for created vs updated
-      const mockResponse = createMockMetadataResponse({
+      const mockResponse = createMockReceiptResponse({
         created: TEST_TIMESTAMPS.now,
         updated: TEST_TIMESTAMPS.future,
         expiration: TEST_TIMESTAMPS.expiration,
@@ -175,9 +175,9 @@ describe('Receipt Date Handling', () => {
     });
   });
 
-  it('handles dates correctly when fetching metadata', async () => {
+  it('handles dates correctly when fetching receipt', async () => {
     const testKey = mockReceiptRecord.key;
-    const mockResponse = createMockMetadataResponse({
+    const mockResponse = createMockReceiptResponse({
       key: testKey,
       created: TEST_TIMESTAMPS.now,
       updated: TEST_TIMESTAMPS.now,
@@ -193,7 +193,7 @@ describe('Receipt Date Handling', () => {
     expect(store.record?.expiration).toEqual(TEST_DATES.expiration);
   });
 
-  it('handles dates correctly when burning metadata', async () => {
+  it('handles dates correctly when burning receipt', async () => {
     const testKey = mockReceiptRecord.key; // 'testkey123'
     const mockResponse = createBurnedMockResponse({
       key: testKey,
@@ -216,7 +216,7 @@ describe('Receipt Date Handling', () => {
   });
 
   describe('State Change Dates', () => {
-    it('properly validates burned date when burning metadata (strict headers)', async () => {
+    it('properly validates burned date when burning receipt (strict headers)', async () => {
       const testKey = 'testkey123';
       const mockResponse = createBurnedMockResponse({
         key: testKey,
@@ -240,7 +240,7 @@ describe('Receipt Date Handling', () => {
       expect(store.record?.burned).toEqual(TEST_DATES.now);
     });
 
-    it('properly validates burned date when burning metadata (flexible)', async () => {
+    it('properly validates burned date when burning receipt (flexible)', async () => {
       const testKey = 'testkey123';
       const mockResponse = createBurnedMockResponse({
         key: testKey,
@@ -264,9 +264,9 @@ describe('Receipt Date Handling', () => {
       expect(store.record?.burned).toEqual(TEST_DATES.now);
     });
 
-    it('properly fails burning metadata if it has not been requested yet', async () => {
+    it('properly fails burning receipt if it has not been requested yet', async () => {
       const testKey = 'burnedkey';
-      const mockResponse = createMockMetadataResponse({
+      const mockResponse = createMockReceiptResponse({
         key: testKey,
         burned: TEST_DATES.now.toISOString(),
       });
@@ -291,9 +291,9 @@ describe('Receipt Date Handling', () => {
       expect(store.record).toBeNull();
     });
 
-    it('properly validates received date when receiving metadata', async () => {
+    it('properly validates received date when receiving receipt', async () => {
       const testKey = 'testkey123';
-      const mockResponse = createMockMetadataResponse({
+      const mockResponse = createMockReceiptResponse({
         received: TEST_DATES.now.toISOString(),
         state: 'received',
       });
@@ -308,7 +308,7 @@ describe('Receipt Date Handling', () => {
 
     it('handles null dates for optional date fields', async () => {
       const testKey = 'testkey123';
-      const mockResponse = createMockMetadataResponse({
+      const mockResponse = createMockReceiptResponse({
         burned: null,
         received: null,
       });
@@ -326,7 +326,7 @@ describe('Receipt Date Handling', () => {
     it('converts Unix timestamps to Date objects', async () => {
       const testKey = 'testkey123';
       // Schema expects Unix timestamps in seconds, not milliseconds
-      const mockResponse = createMockMetadataResponse({
+      const mockResponse = createMockReceiptResponse({
         created: TEST_TIMESTAMPS.now,
       });
 
@@ -339,7 +339,7 @@ describe('Receipt Date Handling', () => {
 
     it('handles invalid date formats gracefully for nullable fields', async () => {
       const testKey = 'testkey123';
-      const mockResponse = createMockMetadataResponse({
+      const mockResponse = createMockReceiptResponse({
         burned: 'invalid-date', // burned transforms to dateNullable - should become null
         received: null, // received transforms to dateNullable as well
       });
@@ -365,9 +365,9 @@ describe('Receipt Date Handling', () => {
           expiration_in_seconds: 86400,
           share_path: '/share/abc123',
           burn_path: '/burn/abc123',
-          metadata_path: '/metadata/abc123',
+          receipt_path: '/receipt/abc123',
           share_url: 'https://example.com/share/abc123',
-          metadata_url: 'https://example.com/metadata/abc123',
+          receipt_url: 'https://example.com/receipt/abc123',
           burn_url: 'https://example.com/burn/abc123',
           identifier: 'test-identifier',
           is_viewed: false,

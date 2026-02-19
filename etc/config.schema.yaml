@@ -22,7 +22,6 @@ internationalization: include('internationalization')
 diagnostics: include('diagnostics')
 logging: include('logging', required=False)
 development: include('development')
-experimental: include('experimental')
 
 ---
 site:
@@ -172,8 +171,7 @@ development:
   debug: any()
   frontend_host: str()
   domain_context_enabled: any(bool(), str(), required=False)
-
-experimental: map(required=False)
+  allow_nil_global_secret: any(bool(), str(), required=False)
 
 ---
 

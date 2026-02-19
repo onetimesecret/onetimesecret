@@ -6,9 +6,35 @@
 # Copy to etc/billing.yaml and customize for your deployment.
 #
 # Schema Version: 1.0
+#
+# Recommended Workflow:
+#
+# ```bash
+#     # 1. Edit catalog
+#     vim etc/billing.yaml
+#
+#     # 2. Validate structure
+#     bin/ots billing catalog validate --catalog-only
+#
+#     # 3. Preview changes
+#     bin/ots billing catalog push --dry-run
+#
+#     # 4. Push to Stripe
+#     bin/ots billing catalog push
+#
+#     # 5. Sync to Redis
+#     bin/ots billing catalog pull
+#
+#     # 6. Validate consistency
+#     bin/ots billing catalog validate
+#
+#     # 7. Commit changes
+#     git add etc/billing.yaml
+#     git commit -m "Update billing configuration"
+# ```
 
 schema_version: "1.0"
-app_identifier: "onetimesecret"  # Used in Stripe metadata['app'] matching
+app_identifier: "exampleapplication"  # Used in Stripe metadata['app'] matching
 
 # It doesn't make sense to have an enabled flag for turning the billing functionality
 # on. If the billing.yaml config file exists, we assume it is enabled. Ah, but what if
@@ -16,103 +42,96 @@ app_identifier: "onetimesecret"  # Used in Stripe metadata['app'] matching
 enabled: <%= ENV['BILLING_ENABLED'] != 'false' %>
 stripe_key: <%= ENV['STRIPE_API_KEY'] || 'nostripekey' %>
 webhook_signing_secret: <%= ENV['STRIPE_WEBHOOK_SIGNING_SECRET'] || 'nosigningsecret' %>
-stripe_api_version: "2025-11-17.clover"
+stripe_api_version: "2025-12-15.clover"
+
+# Product Matching Configuration
+#
+# region: When set, only Stripe products whose region metadata matches this value
+#   will be imported into the plan cache. This enables regional catalog isolation
+#   so NZ and CA deployments sharing the same Stripe account do not overwrite each
+#   other's plans in Redis (the "last writer wins" collision).
+#
+#   Set via JURISDICTION env var; leave unset (or empty) for global/single-region
+#   deployments where all products are visible.
+#
+#   Example: JURISDICTION=NZ → only products with metadata region=NZ are loaded.
+#
+# match_fields: Reserved for future composite-key matching. Not read at runtime;
+#   regional isolation is driven solely by the region field above.
+region: <%= ENV['JURISDICTION'] || nil %>
+match_fields:
+  - plan_id
+  - region
 
 # Entitlement Definitions
 # Defines what features/permissions exist in the billing system.
 # Plans reference these entitlements by ID.
-#
-# Each entitlement has:
-# - category: Logical grouping (core, collaboration, infrastructure, branding, advanced, support)
-# - description: Developer-facing description of the entitlement
-# - display_name: i18n key reference for frontend labels (see src/locales/en/account-billing.json)
 #
 # Categories: core, collaboration, infrastructure, branding, advanced, support
 entitlements:
   create_secrets:
     category: core
     description: Can create basic secrets
-    display_name: web.billing.overview.entitlements.create_secrets
 
   view_receipt:
     category: core
     description: Can view secret metadata
-    display_name: web.billing.overview.entitlements.view_receipt
 
   api_access:
     category: infrastructure
     description: Can use REST API endpoints
-    display_name: web.billing.overview.entitlements.api_access
 
   custom_domains:
     category: infrastructure
     description: Can configure custom domains
-    display_name: web.billing.overview.entitlements.custom_domains
-
-  extended_default_expiration:
-    category: core
-    description: Extended secret expiration (30 days default)
-    display_name: web.billing.overview.entitlements.extended_default_expiration
 
   custom_branding:
     category: branding
     description: Custom branding and styling
-    display_name: web.billing.overview.entitlements.custom_branding
 
-  branded_homepage:
-    category: branding
-    description: Branded homepage for custom domains
-    display_name: web.billing.overview.entitlements.branded_homepage
-
-  manage_teams:
-    category: collaboration
-    description: Can create and manage teams
-    display_name: web.billing.overview.entitlements.manage_teams
-
-  manage_members:
-    category: collaboration
-    description: Can add and manage team members
-    display_name: web.billing.overview.entitlements.manage_members
-
-  custom_privacy_defaults:
-    category: advanced
-    description: Custom privacy default settings
-    display_name: web.billing.overview.entitlements.custom_privacy_defaults
+  homepage_secrets:
+    category: core
+    description: Receive secrets via branded homepage (public/private/disabled)
 
   incoming_secrets:
     category: core
-    description: Can receive secrets from others
-    display_name: web.billing.overview.entitlements.incoming_secrets
+    description: Receive secrets via direct requests (public/private/disabled)
 
-  custom_mail_defaults:
-    category: infrastructure
-    description: Custom mail and DKIM settings
-    display_name: web.billing.overview.entitlements.custom_mail_defaults
+  notifications:
+    category: core
+    description: Email notifications for secret activity
+
+  custom_privacy_defaults:
+    category: core
+    description: Custom privacy defaults for secrets
 
   manage_orgs:
     category: collaboration
     description: Can create and manage organizations
-    display_name: web.billing.overview.entitlements.manage_orgs
+
+  manage_teams:
+    category: collaboration
+    description: Can create and manage teams
+
+  manage_members:
+    category: collaboration
+    description: Can create and manage organization members
+
+  workspace_branding:
+    category: branding
+    description: Full workspace branding (login pages, email templates)
+
+  ip_access_rules:
+    category: advanced
+    description: IP-based access restrictions
 
   audit_logs:
     category: advanced
     description: Access to audit log features
-    display_name: web.billing.overview.entitlements.audit_logs
 
   sso:
     category: advanced
     description: Single sign-on integration
-    display_name: web.billing.overview.entitlements.sso
-
-  priority_support:
-    category: support
-    description: Priority customer support
-    display_name: web.billing.overview.entitlements.priority_support
-
-  sla:
-    category: support
-    description: Service level agreement
-    display_name: web.billing.overview.entitlements.sla
 
 # Plan Definitions
 #
@@ -129,7 +148,7 @@ plans:
     name: "Free"
     tier: free
     tenancy: multi
-    region: global
+    region: <%= ENV['JURISDICTION'] || nil %>
     display_order: 0
     show_on_plans_page: true
     description: "Default tier for all users without subscription"
@@ -137,47 +156,162 @@ plans:
     entitlements:
       - create_secrets
       - view_receipt
+      - custom_domains
       - api_access
 
+    # Features for UI display (i18n locale keys)
+    features:
+      - web.billing.features.custom_domains
+      - web.billing.features.create_secrets
+      - web.billing.features.api_access
+
     limits:
-      teams: 0
-      organizations: 5
+      organizations: 1
       members_per_team: 1
-      custom_domains: 0
+      custom_domains: 1
       secret_lifetime: 604800  # 7 days in seconds
-      secrets_per_day: null
+      secrets_per_day: null    # TBD - not yet enforced
 
     prices: []  # Free tier has no prices
 
-  # Example Paid Tier
-  pro_v1:
-    name: "Pro"
-    tier: single_account
+  # Legacy Plan - Grandfathered customers only
+  # No longer offered but remains active for existing subscriptions.
+  # Set show_on_plans_page: false to hide from the public plans UI.
+  legacy_plan_v1:
+    name: "Legacy Plan (Legacy)"
+    tier: single_team
     tenancy: multi
-    region: global
+    region: <%= ENV['JURISDICTION'] || nil %>
+    display_order: null
+    show_on_plans_page: false
+    legacy: true
+    # stripe_product_id: prod_XXXXXXXXXXXX  # Bind directly when auto-matching fails
+    grandfathered_until: "2028-01-31"  # Auto-downgraded after this date
+    description: "Original plan, grandfathered for existing customers"
+
+    entitlements:
+      - create_secrets
+      - view_receipt
+      - custom_domains
+      - custom_branding
+      - homepage_secrets
+      - api_access
+
+    features:
+      - web.billing.features.custom_branding
+      - web.billing.features.homepage_secrets
+      - web.billing.features.api_access
+
+    limits:
+      organizations: 1
+      members_per_team: 5
+      custom_domains: -1       # unlimited
+      secret_lifetime: 2592000 # 30 days in seconds
+      secrets_per_day: -1      # unlimited
+
+    prices: []  # Preserved in Stripe; no new subscriptions
+
+  # Example Paid Tier - Individual account
+  identity_plus_v1:
+    name: "Identity Plus"
+    tier: single_account
+    plan_name_label: web.billing.plans.individual_account
+    tenancy: multi
+    region: <%= ENV['JURISDICTION'] || nil %>
     display_order: 10
     show_on_plans_page: true
-    description: "For individuals needing more features"
+    # stripe_product_id:  # Leave blank to use match_fields composite matching
+    description: "For individuals needing custom domains and extended retention"
 
     entitlements:
       - create_secrets
       - view_receipt
       - api_access
       - custom_domains
-      - extended_default_expiration
+      - custom_branding
+      - homepage_secrets
+
+    features:
+      - web.billing.features.custom_domains
+      - web.billing.features.custom_branding
+      - web.billing.features.extended_retention
+      - web.billing.features.homepage_secrets
+      - web.billing.features.api_access
 
     limits:
-      teams: 0
-      organizations: 10
+      organizations: 1
       members_per_team: 1
-      custom_domains: 1
-      secret_lifetime: 2592000  # 30 days in seconds
-      secrets_per_day: -1  # unlimited
+      custom_domains: -1       # unlimited
+      secret_lifetime: 1209600 # 14 days in seconds
+      secrets_per_day: -1      # unlimited
 
     prices:
       - interval: month
-        amount: 900  # $9.00 USD
+        amount: 900   # $9.00 USD
         currency: usd
       - interval: year
         amount: 9000  # $90.00 USD
         currency: usd
+
+  # # Team Plan - Uncomment to enable team subscriptions
+  # team_plus_v1:
+  #   name: "Team Plus"
+  #   tier: single_team
+  #   plan_name_label: web.billing.plans.team_account
+  #   tenancy: multi
+  #   region: <%= ENV['JURISDICTION'] || nil %>
+  #   display_order: 30
+  #   show_on_plans_page: false
+  #   includes_plan: identity_plus_v1
+  #   description: "For teams needing collaboration features"
+  #
+  #   entitlements:
+  #     - create_secrets
+  #     - view_receipt
+  #     - api_access
+  #     - custom_domains
+  #     - custom_branding
+  #     - homepage_secrets
+  #     - incoming_secrets
+  #     - manage_teams
+  #     - manage_members
+  #
+  #   features:
+  #     - web.billing.features.team_members_5
+  #     - web.billing.features.centralized_billing
+  #
+  #   limits:
+  #     organizations: 1
+  #     members_per_team: 5
+  #     custom_domains: -1       # unlimited
+  #     secret_lifetime: 2592000 # 30 days in seconds
+  #     secrets_per_day: -1      # unlimited
+  #
+  #   prices:
+  #     - interval: month
+  #       amount: 8500  # $85.00 USD
+  #       currency: usd
+  #     - interval: year
+  #       amount: 85000 # $850.00 USD
+  #       currency: usd
+
+# Metadata Schema for Stripe Products
+# Documents required and optional fields that must be present in Stripe product metadata.
+# This is informational — used by catalog push/validate commands for consistency checks.
+stripe_metadata_schema:
+  required:
+    - app: "onetimesecret"  # Must be exactly this value
+    - tier: "Tier identifier (single_account, single_team, multi_team, etc.)"
+    - tenancy: "Tenancy type (multi, dedicated)"
+
+  optional:
+    - plan_id: "Unique plan identifier (auto-generated if not provided)"
+    - region: "Regional scope (e.g., EU, US, CA); omit for global plans"
+    - display_order: "Sort order on plans page (lower = earlier, default: 0)"
+    - show_on_plans_page: "Visibility on plans page (true/false, default: true)"
+    - entitlements: "Comma-separated entitlement list"
+    - created: "ISO 8601 creation timestamp"
+    - limit_members_per_team: "Max members per team (-1 for unlimited)"
+    - limit_custom_domains: "Max custom domains (-1 for unlimited)"
+    - limit_secret_lifetime: "Max secret lifetime in seconds (-1 for unlimited)"
+    - limit_secrets_per_day: "Daily secret creation limit (-1 for unlimited)"

@@ -2,10 +2,16 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import FeedbackForm from '@/apps/secret/components/support/FeedbackForm.vue';
+  import { useRoute } from 'vue-router';
+  import { computed } from 'vue';
+  import FeedbackForm from '@/apps/secret/components/support/FeedbackForm.vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
+  const route = useRoute();
 
+  const reason = computed(
+    () => (route.query.reason as string) || ''
+  );
 </script>
 
 <template>
@@ -17,7 +23,7 @@ const { t } = useI18n();
       {{ t('web.feedback.share_your_feedback') }}
     </h1>
 
-    <FeedbackForm :show-red-button="true" />
+    <FeedbackForm :show-red-button="true" :reason="reason" />
 
     <!-- Founder's Message -->
     <div
