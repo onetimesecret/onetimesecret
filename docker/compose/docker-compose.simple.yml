@@ -23,7 +23,7 @@ services:
     environment:
       - RACK_ENV=${RACK_ENV:-production}
       - VALKEY_URL=redis://maindb:6379/0
-      - SECRET=${SECRET:?SECRET must be set — run rake ots:secrets}
+      - SECRET=${SECRET:?SECRET must be set — run ./install.sh}
       - SESSION_SECRET=${SESSION_SECRET:-}
       - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-simple}
       - ARGON2_SECRET=${ARGON2_SECRET:-}

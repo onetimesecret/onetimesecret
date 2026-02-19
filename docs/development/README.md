@@ -11,6 +11,10 @@ export ONETIME_DEBUG=true
 bundle exec thin -R config.ru -p 3000 start
 ```
 
+## Initial Setup
+
+Run `./install.sh init` from the project root to install dependencies, generate secrets, and prepare the `.env` file. Use `./install.sh doctor` to verify your environment.
+
 ## Frontend Development
 
 For frontend development with live reloading, you should run the application in frontend development mode. This involves running two processes in separate terminals:
