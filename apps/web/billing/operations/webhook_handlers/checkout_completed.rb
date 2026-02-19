@@ -108,6 +108,7 @@ module Billing
 
           # Ensure organization has email_hash computed from billing_email
           ensure_org_email_hash!(org)
+          warn_if_email_hash_divergence(org, stripe_hash)
 
           if stripe_hash && org.email_hash.to_s.length.positive? && stripe_hash != org.email_hash
             billing_logger.warn 'Email hash divergence: Stripe and org hashes differ — federation matching will fail',
@@ -216,6 +217,30 @@ module Billing
               }
             nil
           end
+        end
+
+        # Warn if the email hash stored in Stripe customer metadata diverges
+        # from the organization's locally computed hash. A mismatch means
+        # cross-region federated matching will silently fail for this org.
+        #
+        # @param org [Onetime::Organization] Organization to check
+        # @param stripe_customer_id [String] Stripe customer ID
+        # @return [void]
+        #
+        def warn_if_email_hash_divergence(org, stripe_hash)
+          return if org.email_hash.to_s.empty?
+          return if stripe_hash.to_s.empty?
+
+          return if stripe_hash == org.email_hash
+
+          billing_logger.warn 'Email hash divergence: Stripe customer and org hashes differ (federation will not match)',
+            {
+              orgid: org.extid,
+              org_hash_prefix: org.email_hash[0..7],
+              stripe_hash_prefix: stripe_hash[0..7],
+            }
+        rescue Stripe::StripeError => ex
+          billing_logger.warn 'Could not verify email hash consistency', { error: ex.message }
         end
 
         # Ensure organization has computed email_hash
