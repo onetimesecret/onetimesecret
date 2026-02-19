@@ -344,6 +344,53 @@ logic.process
 logic.receipt.recipients == @test_recipient_email
 #=> true
 
+## CreateIncomingSecret greenlighted is true after successful process
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+  'secret' => {
+    'memo' => 'Greenlighted check',
+    'secret' => 'Valid secret for greenlighted test',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+logic.greenlighted
+#=> true
+
+## CreateIncomingSecret raises FormError when spawn_pair produces invalid objects
+# Verify the greenlighted guard fires before stats/notification by simulating
+# a failed spawn via temporary monkey-patching.
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+@_spawn_pair_original = Onetime::Receipt.method(:spawn_pair)
+begin
+  # Replace spawn_pair with one that returns unsaved (invalid) objects
+  Onetime::Receipt.define_singleton_method(:spawn_pair) do |*_args, **_kwargs|
+    [Onetime::Receipt.new, Onetime::Secret.new]
+  end
+  logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+    'secret' => {
+      'memo' => 'Guard test',
+      'secret' => 'Secret for guard test',
+      'recipient' => @test_recipient_hash
+    }
+  })
+  logic.process_params
+  logic.raise_concerns
+  logic.process
+  false # should not reach here
+rescue OT::FormError => e
+  e.message.include?('Failed to create secret')
+ensure
+  # Restore original spawn_pair
+  spawn_pair_backup = @_spawn_pair_original
+  Onetime::Receipt.define_singleton_method(:spawn_pair) do |*args, **kwargs|
+    spawn_pair_backup.call(*args, **kwargs)
+  end
+end
+#=> true
+
 ## Cleanup test data
 disable_incoming_feature(@original_conf)
 @cust.destroy! if @cust

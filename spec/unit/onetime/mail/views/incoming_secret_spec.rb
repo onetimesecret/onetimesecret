@@ -244,4 +244,54 @@ RSpec.describe Onetime::Mail::Templates::IncomingSecret do
       expect(template.recipient_email).to eq('recipient@example.com')
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # ERB template rendering — passphrase conditional block
+  #
+  # These tests render actual ERB templates from disk and verify that the
+  # passphrase notice block appears or is absent based on has_passphrase.
+  # I18n.t is stubbed to return the translation key so we can match on it
+  # without loading locale files.
+  # ---------------------------------------------------------------------------
+
+  describe 'ERB rendering — passphrase notice' do
+    before do
+      # Stub I18n.t to echo the key so template rendering doesn't require
+      # locale files. The returned value is the key itself, which lets us
+      # assert on key presence/absence in the rendered output.
+      allow(I18n).to receive(:t) { |key, **_opts| key.to_s }
+    end
+
+    context 'when has_passphrase is false' do
+      let(:valid_data) { super().merge(has_passphrase: false) }
+
+      it 'does not render the passphrase notice block in plain text' do
+        text = template.render_text
+        expect(text).not_to include('email.incoming_secret.passphrase_label')
+        expect(text).not_to include('email.incoming_secret.passphrase_required')
+      end
+
+      it 'does not render the passphrase notice block in HTML' do
+        html = template.render_html
+        expect(html).not_to include('email.incoming_secret.passphrase_label')
+        expect(html).not_to include('email.incoming_secret.passphrase_required')
+      end
+    end
+
+    context 'when has_passphrase is true' do
+      let(:valid_data) { super().merge(has_passphrase: true) }
+
+      it 'renders the passphrase notice block in plain text' do
+        text = template.render_text
+        expect(text).to include('email.incoming_secret.passphrase_label')
+        expect(text).to include('email.incoming_secret.passphrase_required')
+      end
+
+      it 'renders the passphrase notice block in HTML' do
+        html = template.render_html
+        expect(html).to include('email.incoming_secret.passphrase_label')
+        expect(html).to include('email.incoming_secret.passphrase_required')
+      end
+    end
+  end
 end
