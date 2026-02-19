@@ -192,9 +192,12 @@ module AccountAPI::Logic
 
       def increment_request_count
         key = request_count_key
-        Familia.dbclient.incr(key)
-        # Set TTL only on the first increment (ttl == -1 means no expiry set yet)
-        Familia.dbclient.expire(key, 24 * 60 * 60) if Familia.dbclient.ttl(key) == -1
+        # Use MULTI/EXEC to atomically increment and set TTL, preventing a
+        # permanent-block if the process crashes between incr and expire.
+        Familia.dbclient.multi do |transaction|
+          transaction.incr(key)
+          transaction.expire(key, 24 * 60 * 60)
+        end
       end
 
       # Mask email: "user@example.com" → "u***@example.com"
