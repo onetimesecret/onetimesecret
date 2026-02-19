@@ -6,7 +6,7 @@
  * Maps to the `experimental:` section in config.defaults.yaml
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 
 /**
  * Experimental features configuration

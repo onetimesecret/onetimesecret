@@ -11,7 +11,7 @@
  * distinguished in onetime/plan.rb).
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 
 const ValidKeys = z.enum(['anonymous', 'authenticated', 'standard', 'enhanced']);
 
