@@ -165,10 +165,41 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(dead_letter_config['dlx.billing.event'][:queue]).to eq('dlq.billing.event')
     end
 
-    it 'includes x-message-ttl in every entry matching DLQ_MESSAGE_TTL' do
+    it 'has empty arguments (TTL managed via DLQ_POLICIES)' do
       dead_letter_config.each_value do |config|
-        expect(config[:arguments]).to have_key('x-message-ttl')
-        expect(config[:arguments]['x-message-ttl']).to eq(described_class::DLQ_MESSAGE_TTL)
+        expect(config[:arguments]).to eq({})
+      end
+    end
+  end
+
+  describe 'DLQ_POLICIES' do
+    subject(:policies) { described_class::DLQ_POLICIES }
+
+    it 'is a frozen array' do
+      expect(policies).to be_frozen
+    end
+
+    it 'has at least one policy' do
+      expect(policies).not_to be_empty
+    end
+
+    describe 'dlq-ttl policy' do
+      subject(:policy) { policies.first }
+
+      it "has name 'dlq-ttl'" do
+        expect(policy[:name]).to eq('dlq-ttl')
+      end
+
+      it "matches DLQ queues with pattern '^dlq\\.'" do
+        expect(policy[:pattern]).to eq('^dlq\.')
+      end
+
+      it 'defines message-ttl equal to DLQ_MESSAGE_TTL' do
+        expect(policy[:definition]['message-ttl']).to eq(described_class::DLQ_MESSAGE_TTL)
+      end
+
+      it "applies to 'queues'" do
+        expect(policy[:apply_to]).to eq('queues')
       end
     end
   end
