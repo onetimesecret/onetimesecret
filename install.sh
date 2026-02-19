@@ -27,7 +27,7 @@ check_version() {
 
   has "$cmd" || die "$name not found (need $required)"
 
-  actual=$($extractor)
+  actual=$(eval "$extractor")
   [[ "$actual" == "$required" ]] || die "$name version mismatch: have $actual, need $required"
 
   info "$name $actual"
@@ -42,10 +42,10 @@ check_version_major() {
 
   has "$cmd" || die "$name not found (need $required+)"
 
-  actual=$($extractor | sed 's/^v//' | cut -d. -f1)
+  actual=$(eval "$extractor" | sed 's/^v//' | cut -d. -f1)
   [[ "$actual" -ge "$required" ]] || die "$name too old: have $actual, need $required+"
 
-  info "$name $($extractor)"
+  info "$name $(eval "$extractor")"
 }
 
 install_gems() {
@@ -79,7 +79,7 @@ auth_mode() {
   # Read from env or .env file, defaulting to simple
   local mode="${AUTHENTICATION_MODE:-}"
   if [[ -z "$mode" && -f .env ]]; then
-    mode=$(grep -E '^AUTHENTICATION_MODE=' .env 2>/dev/null | cut -d= -f2 | trim || echo "")
+    mode=$(grep -E '^AUTHENTICATION_MODE=' .env 2>/dev/null | cut -d= -f2- | trim || echo "")
   fi
   echo "${mode:-simple}"
 }

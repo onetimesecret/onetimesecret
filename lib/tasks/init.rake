@@ -10,7 +10,9 @@ require_relative '../onetime/key_derivation'
 module OTSInit
   # Independent secrets (ADR-008 Category 2): generated with SecureRandom,
   # NOT derived from SECRET. Must be backed up individually.
-  INDEPENDENT_SECRETS = %w[AUTH_SECRET ARGON2_SECRET].freeze
+  INDEPENDENT_SECRETS      = %w[AUTH_SECRET ARGON2_SECRET].freeze
+  # 32 bytes = 256 bits of entropy for independent secrets
+  INDEPENDENT_SECRET_BYTES = 32
 
   def self.read_env(path)
     return {} unless File.exist?(path)
@@ -127,7 +129,7 @@ namespace :ots do
       if existing[env_var] && !existing[env_var].empty? && existing[env_var] != 'CHANGEME'
         puts "  #{env_var} already set (keeping existing value)"
       else
-        updates[env_var] = SecureRandom.hex(32)
+        updates[env_var] = SecureRandom.hex(INDEPENDENT_SECRET_BYTES)
         puts "  #{env_var} ← SecureRandom.hex(32) [independent]"
       end
     end
