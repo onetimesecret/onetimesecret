@@ -11,10 +11,8 @@
 require_relative '../../support/test_models'
 OT.boot! :test, false
 
-# Load the lib-level setup_incoming_recipients initializer so OT gains the
-# setup_incoming_recipients module method (it is not auto-required by the core
-# initializers.rb — the v3 app auto-discovers it separately).
-require 'onetime/initializers/setup_incoming_recipients'
+# Onetime::Initializers::SetupIncomingRecipients is auto-discovered and required
+# by lib/onetime/initializers.rb during OT.boot! above. No explicit require needed.
 
 # Test recipient configuration from DEFAULTS
 # Note: In actual deployment, recipients would be configured in config.yaml
@@ -64,7 +62,7 @@ begin
   conf_copy['features']['incoming']['enabled'] = true
   conf_copy['site'].delete('secret')
   OT.send(:conf=, conf_copy)
-  OT.setup_incoming_recipients
+  Onetime::Initializers::SetupIncomingRecipients.new.execute(nil)
   false
 rescue OT::Problem => e
   e.message.include?('site.secret')
@@ -82,7 +80,7 @@ begin
   conf_copy['features']['incoming']['enabled'] = true
   conf_copy['site']['secret'] = '   '
   OT.send(:conf=, conf_copy)
-  OT.setup_incoming_recipients
+  Onetime::Initializers::SetupIncomingRecipients.new.execute(nil)
   false
 rescue OT::Problem => e
   e.message.include?('site.secret')
@@ -105,7 +103,7 @@ begin
     { 'email' => '  alice@example.com  ', 'name' => 'Alice' }
   ]
   OT.send(:conf=, conf_copy)
-  OT.setup_incoming_recipients
+  Onetime::Initializers::SetupIncomingRecipients.new.execute(nil)
   # The lookup should use the trimmed email, not the padded one
   OT.incoming_recipient_lookup.values.first
 ensure
@@ -125,7 +123,7 @@ begin
     { 'email' => 'valid@example.com', 'name' => 'Valid' }
   ]
   OT.send(:conf=, conf_copy)
-  OT.setup_incoming_recipients
+  Onetime::Initializers::SetupIncomingRecipients.new.execute(nil)
   # Only the valid recipient should be in the lookup
   OT.incoming_recipient_lookup.size
 ensure
@@ -144,8 +142,8 @@ begin
     { 'email' => 'bob@example.com', 'name' => '  Bob Smith  ' }
   ]
   OT.send(:conf=, conf_copy)
-  OT.setup_incoming_recipients
-  OT.incoming_public_recipients.first[:name]
+  Onetime::Initializers::SetupIncomingRecipients.new.execute(nil)
+  OT.incoming_public_recipients.first['name']
 ensure
   OT.send(:conf=, @_saved_conf_name_ws) rescue nil
   OT.instance_variable_set(:@incoming_recipient_lookup, {}.freeze)
