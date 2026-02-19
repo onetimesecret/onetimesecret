@@ -57,11 +57,11 @@ module Onetime
             name  = recipient[1]&.strip || email.split('@').first
           else
             # Handle both symbol and string keys (config may use either)
-            email = recipient[:email] || recipient['email']
-            name  = recipient[:name] || recipient['name'] || email.to_s.split('@').first
+            email = (recipient[:email] || recipient['email']).to_s.strip
+            name  = (recipient[:name] || recipient['name'])&.strip || email.split('@').first
           end
 
-          next if email.to_s.empty?
+          next if email.empty?
 
           # Generate a hash for this email
           # Use site secret as salt for consistency within process lifetime
