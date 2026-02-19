@@ -58,8 +58,8 @@ RSpec.describe Onetime::CLI::Queue::StatusCommand do
 
       before { allow(http_instance).to receive(:request).and_return(response) }
 
-      it 'returns empty array' do
-        expect(command.send(:check_dlq_policies)).to eq([])
+      it 'returns nil' do
+        expect(command.send(:check_dlq_policies)).to be_nil
       end
     end
 

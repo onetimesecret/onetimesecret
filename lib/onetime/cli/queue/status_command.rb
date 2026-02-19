@@ -220,10 +220,10 @@ module Onetime
 
           response = http.request(request)
 
-          return [] unless response.code.to_i == 200
+          return nil unless response.code.to_i == 200
 
           policies = JSON.parse(response.body)
-          policies.select { |p| p['pattern']&.include?('dlq') }
+          policies.select { |p| p['pattern']&.start_with?('dlq', '^dlq') }
         rescue StandardError
           # Management API unavailable or error — not critical for status
           nil
