@@ -70,11 +70,11 @@ install_gems() {
 install_node() {
   local pkg mgr flags
 
-  for pkg in "pnpm-lock.yaml:pnpm:--frozen-lockfile" "package-lock.json:npm:ci" "yarn.lock:yarn:--frozen-lockfile"; do
+  for pkg in "pnpm-lock.yaml:pnpm:install --frozen-lockfile" "package-lock.json:npm:ci" "yarn.lock:yarn:install --frozen-lockfile"; do
     IFS=: read -r lockfile mgr flags <<< "$pkg"
     if [[ -f "$lockfile" ]]; then
       info "Installing node packages ($mgr)..."
-      $mgr install $flags
+      $mgr $flags
       return
     fi
   done
@@ -127,14 +127,14 @@ cmd_init() {
   mode=$(auth_mode)
 
   if [[ "$mode" == "full" ]]; then
-    warn ""
+    echo ""
     warn "AUTHENTICATION_MODE=full detected. Additional manual setup required before first boot:"
-    warn ""
+    echo ""
     warn "  PostgreSQL (if using PostgreSQL as auth database):"
     warn "    Run apps/web/auth/migrations/schemas/postgres/initialize_auth_db.sql"
     warn "    as a PostgreSQL superuser."
     warn "    (Not required for SQLite.)"
-    warn ""
+    echo ""
   fi
 
   cmd_reconcile

@@ -136,7 +136,7 @@ namespace :ots do
         puts "  #{env_var} already set (keeping existing value)"
       else
         updates[env_var] = SecureRandom.hex(INDEPENDENT_SECRET_BYTES)
-        puts "  #{env_var} ← SecureRandom.hex(32) [independent]"
+        puts "  #{env_var} ← SecureRandom.hex(#{INDEPENDENT_SECRET_BYTES}) [independent]"
       end
     end
 
