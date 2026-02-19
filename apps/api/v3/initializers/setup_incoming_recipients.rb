@@ -35,6 +35,14 @@ module Onetime
         recipient_lookup  = {}
         public_recipients = []
 
+        # Validate site secret before processing recipients.
+        # A missing secret would cause all recipient hashes to be computed with
+        # a predictable fallback, allowing offline enumeration of recipient hashes.
+        site_secret = OT.conf.dig('site', 'secret')
+        if site_secret.nil? || site_secret.to_s.strip.empty?
+          raise OT::Problem, '[IncomingSecrets] site.secret must be configured before enabling incoming secrets'
+        end
+
         raw_recipients.each do |recipient|
           # Skip nil entries (from unset env vars)
           next if recipient.nil?
@@ -49,16 +57,15 @@ module Onetime
             name  = recipient[1]&.strip || email.split('@').first
           else
             # Handle both symbol and string keys (config may use either)
-            email = recipient[:email] || recipient['email']
-            name  = recipient[:name] || recipient['name'] || email.to_s.split('@').first
+            email = (recipient[:email] || recipient['email']).to_s.strip
+            name  = (recipient[:name] || recipient['name'])&.strip || email.split('@').first
           end
 
-          next if email.to_s.empty?
+          next if email.empty?
 
           # Generate a hash for this email
           # Use site secret as salt for consistency within process lifetime
-          site_secret = OT.conf.dig('site', 'secret') || 'default-secret'
-          hash_key    = Digest::SHA256.hexdigest("#{email}:#{site_secret}")
+          hash_key = Digest::SHA256.hexdigest("#{email}:#{site_secret}")
 
           # Store for backend lookup
           recipient_lookup[hash_key] = email

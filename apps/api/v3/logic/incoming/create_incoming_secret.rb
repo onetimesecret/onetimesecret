@@ -91,13 +91,16 @@ module V3
           # Create and encrypt secret
           create_and_encrypt_secret
 
+          # Validate that spawn_pair produced valid objects before recording
+          # stats or enqueuing notifications for a potentially invalid secret.
+          @greenlighted = receipt.valid? && secret.valid?
+          raise_form_error 'Failed to create secret' unless @greenlighted
+
           # Update stats
           update_customer_stats
 
           # Send notification email
           send_recipient_notification
-
-          @greenlighted = receipt.valid? && secret.valid?
 
           success_data
         end
@@ -162,6 +165,7 @@ module V3
               share_domain: secret.share_domain,
               recipient: recipient_email,
               memo: memo,
+              has_passphrase: !passphrase.to_s.empty?,
               locale: locale || OT.default_locale,
             },
           )

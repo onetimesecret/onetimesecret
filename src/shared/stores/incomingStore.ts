@@ -8,6 +8,7 @@ import {
   incomingConfigSchema,
   incomingSecretResponseSchema,
 } from '@/schemas/api/incoming';
+import { responseSchemas, ReceiptResponse } from '@/schemas/api/v3/responses';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
@@ -36,6 +37,7 @@ export type IncomingStore = {
   init: () => { isInitialized: boolean };
   loadConfig: () => Promise<IncomingConfig | undefined>;
   createIncomingSecret: (payload: IncomingSecretPayload) => Promise<IncomingSecretResponse>;
+  getReceipt: (key: string) => Promise<ReceiptResponse>;
   clear: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
@@ -104,6 +106,20 @@ export const useIncomingStore = defineStore('incoming', () => {
     return validated;
   }
 
+  /**
+   * Fetches a receipt by key from the public guest endpoint.
+   * Used to check the status of an incoming secret after creation.
+   *
+   * @param key - Receipt identifier (extid)
+   * @throws {ZodError} When response fails schema validation
+   * @throws {AxiosError} When request fails (including 404 for unknown keys)
+   * @returns Validated receipt response
+   */
+  async function getReceipt(key: string): Promise<ReceiptResponse> {
+    const response = await $api.get(`/api/v3/guest/receipt/${key}`);
+    return responseSchemas.receipt.parse(response.data);
+  }
+
   function clear() {
     config.value = null;
     configError.value = null;
@@ -138,6 +154,7 @@ export const useIncomingStore = defineStore('incoming', () => {
     init,
     loadConfig,
     createIncomingSecret,
+    getReceipt,
     clear,
     $reset,
   };

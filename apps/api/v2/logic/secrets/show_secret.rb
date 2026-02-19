@@ -96,6 +96,9 @@ module V2::Logic
           owner.verified    = true
           owner.verified_by = 'email'
           owner.save
+          # sess.clear wipes session data for this request. sess.destroy! does
+          # not exist here — OT::Session wraps Rack::Session::Abstract::PersistedSecure,
+          # which exposes no public destroy method. clear is the correct call.
           sess.clear
           secret.received!
         else
