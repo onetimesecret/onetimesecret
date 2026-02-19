@@ -56,6 +56,7 @@ const jobsSchema = z.object({
   scheduler: jobsSchedulerSchema.optional(),
   plan_cache_refresh_enabled: z.boolean().default(false),
   catalog_retry_enabled: z.boolean().default(false),
+  dlq_consumer_enabled: z.boolean().default(true),
   expiration_warnings: jobsExpirationWarningsSchema.optional(),
 });
 
