@@ -9,6 +9,10 @@ import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { setupTestPinia } from '../setup';
+import {
+  mockReceiptRecordRaw,
+  mockReceiptDetailsRaw,
+} from '../fixtures/receipt.fixture';
 
 describe('incomingStore', () => {
   let axiosMock: AxiosMockAdapter;
@@ -580,6 +584,55 @@ describe('incomingStore', () => {
       await store.loadConfig();
 
       expect(store.defaultTtl).toBeUndefined();
+    });
+  });
+
+  describe('getReceipt()', () => {
+    const receiptKey = 'testkey123';
+    const mockReceiptApiResponse = {
+      record: mockReceiptRecordRaw,
+      details: mockReceiptDetailsRaw,
+    };
+
+    it('fetches receipt data for a valid key', async () => {
+      axiosMock
+        .onGet(`/api/v3/guest/receipt/${receiptKey}`)
+        .reply(200, mockReceiptApiResponse);
+
+      const result = await store.getReceipt(receiptKey);
+
+      expect(result).toBeDefined();
+      expect(result.record).toBeDefined();
+      expect(result.record.identifier).toBe(mockReceiptRecordRaw.identifier);
+    });
+
+    it('calls the correct API endpoint with the key', async () => {
+      axiosMock
+        .onGet(`/api/v3/guest/receipt/${receiptKey}`)
+        .reply(200, mockReceiptApiResponse);
+
+      await store.getReceipt(receiptKey);
+
+      expect(axiosMock.history.get).toHaveLength(1);
+      expect(axiosMock.history.get[0].url).toBe(
+        `/api/v3/guest/receipt/${receiptKey}`
+      );
+    });
+
+    it('throws on 404 server error', async () => {
+      axiosMock
+        .onGet(`/api/v3/guest/receipt/${receiptKey}`)
+        .reply(404, { message: 'Receipt not found' });
+
+      await expect(store.getReceipt(receiptKey)).rejects.toThrow();
+    });
+
+    it('throws on network error', async () => {
+      axiosMock
+        .onGet(`/api/v3/guest/receipt/${receiptKey}`)
+        .networkError();
+
+      await expect(store.getReceipt(receiptKey)).rejects.toThrow();
     });
   });
 
