@@ -14,7 +14,7 @@
  * when parsing backend responses that may have coerced values.
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 
 import { siteSchema, siteAuthenticationSchema, passphraseSchema, passwordGenerationSchema } from './section/site';
 import { storageSchema, redisSchema } from './section/storage';

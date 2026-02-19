@@ -6,18 +6,18 @@ permissions:
   pull-requests: write
 
 on:
-  # push:
-  #   branches:
-  #     - 'main'
-  #     - 'fix/*'
-  #     - 'feature/*'
-  #     - 'rel/*'
+  push:
+    branches:
+      - 'main'
+      - 'fix/*'
+      - 'feature/*'
+      - 'rel/*'
 
-  # pull_request:
-  #   branches:
-  #     - main
-  #     - develop
-  #     - feature/*
+  pull_request:
+    branches:
+      - main
+      - develop
+      - feature/*
 
   # Manual trigger option for debugging
   workflow_dispatch:
@@ -53,7 +53,7 @@ jobs:
         run: pnpm install
 
       - name: Generate JSON schemas
-        run: pnpm run schema:generate
+        run: pnpm run schemas:generate
 
       - name: Validate example config
         run: pnpm run config:validate
@@ -62,10 +62,13 @@ jobs:
         run: pnpm run config
 
       - name: Show config types
-        run: pnpm run config --types
+        run: pnpm run config:types
+
+      - name: Validate billing config
+        run: RACK_ENV=test SECRET=ci-validation-only bundle exec bin/ots billing catalog validate
 
       - name: Validate test config
         continue-on-error: true
         run: |
           echo "Validating test configuration (may have intentional errors)..."
-          bin/ots validate tests/unit/ruby/config.test.yaml || true
+          bundle exec bin/ots config validate tests/unit/ruby/config.test.yaml || true

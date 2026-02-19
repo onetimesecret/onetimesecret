@@ -6,7 +6,7 @@
  * Maps to the `development:` section in config.defaults.yaml
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 
 /**
  * Development mode configuration

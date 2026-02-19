@@ -6,7 +6,7 @@
  * Maps to the `redis:` section in config.defaults.yaml
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 
 /**
  * Redis database mapping
