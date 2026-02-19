@@ -21,7 +21,7 @@
     <template #trigger>
       <button
         type="button"
-        class="inline-flex items-center justify-center rounded-md bg-white p-1.5 text-gray-500 shadow-sm transition-all hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:hover:text-gray-100 dark:focus:ring-blue-400"
+        class="inline-flex items-center justify-center rounded-md bg-white p-1.5 text-gray-500 shadow-sm transition-all hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:hover:text-gray-100 dark:focus:ring-brand-400"
         title="Actions">
         <OIcon
           collection="heroicons"
@@ -46,7 +46,7 @@
                 name="document-text-solid"
                 class="mr-2 size-4 text-blue-500 dark:text-blue-400"
                 aria-hidden="true" />
-              {{ t('web.private.view_receipt') }}
+              {{ t('web.receipt.view_receipt') }}
             </router-link>
           </MenuItem>
           <MenuItem v-slot="{ active }">
@@ -64,7 +64,7 @@
                 name="link-20-solid"
                 class="mr-2 size-4 text-emerald-500 dark:text-emerald-400"
                 aria-hidden="true" />
-              {{ t('web.private.open_link') }}
+              {{ t('web.receipt.open_link') }}
             </router-link>
           </MenuItem>
         </div>

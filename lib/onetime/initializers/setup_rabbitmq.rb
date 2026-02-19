@@ -4,8 +4,8 @@
 
 require 'bunny'
 require 'connection_pool'
-require_relative '../jobs/queue_config'
-require_relative '../jobs/queue_declarator'
+require_relative '../jobs/queues/config'
+require_relative '../jobs/queues/declarator'
 
 module Onetime
   module Initializers
@@ -143,7 +143,7 @@ module Onetime
         OT.log_box(
           [
             '✅ RABBITMQ: Connected to message broker',
-            "   #{url}",
+            "   #{sanitize_url(url)}",
             "   Pool size: #{pool_size} channels",
             "   Exchanges: #{Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.size} declared",
           ],
@@ -167,9 +167,11 @@ module Onetime
       end
 
       def declare_exchanges_and_queues
-        $rmq_channel_pool.with do |channel|
-          Onetime::Jobs::QueueDeclarator.declare_all(channel)
-        end
+        Onetime::Jobs::QueueDeclarator.declare_all($rmq_conn)
+      rescue Onetime::Jobs::QueueDeclarator::InfrastructureError => ex
+        Onetime.bunny_logger.error "[init] Setup RabbitMQ: #{ex.message}"
+        Onetime.bunny_logger.error '[init] Setup RabbitMQ: Jobs will fall back to synchronous execution'
+        # Don't raise - allow app to start with degraded functionality
       end
 
       def verify_connection

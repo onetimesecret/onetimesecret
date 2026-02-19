@@ -84,6 +84,7 @@ gem 'uri-valkey', '~> 1.4.0'
 gem 'argon2', '~> 2.3'
 gem 'bcrypt', '~> 3.1'
 gem 'encryptor', '= 1.1.3'
+gem 'passforge', '~> 1.1'
 gem 'rotp', '~> 6.2'
 gem 'rqrcode', '~> 3.1'
 gem 'webauthn', '~> 3.0'
@@ -114,6 +115,7 @@ gem 'rufus-scheduler', '~> 3.9'  # Cron-style job scheduling
 # ====================================
 
 gem 'aws-sdk-sesv2', '~> 1.74', require: false
+gem 'lettermint', '~> 0.1.0', require: false
 gem 'sendgrid-ruby', require: false
 gem 'sentry-ruby', require: false
 gem 'stackprof', require: false
@@ -137,6 +139,7 @@ group :development do
   gem 'rerun', '~> 0.14'
 
   # Code quality and language server
+  gem 'kanayago', '~> 0.7', require: false
   gem 'rubocop', '~> 1.81.7', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
@@ -164,13 +167,4 @@ group :test do
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
     gem lib, git: 'https://github.com/rspec/rspec', glob: "#{lib}/#{lib}.gemspec"
   end
-end
-
-# ====================================
-# Optional Dependencies
-# ====================================
-
-# Optional alternate server - install with: bundle install --with optional
-group :optional do
-  gem 'thin'
 end

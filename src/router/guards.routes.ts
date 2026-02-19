@@ -13,6 +13,38 @@ export async function setupRouterGuards(router: Router): Promise<void> {
   const { setTitle } = usePageTitle();
   let currentTitle: string | null = null;
 
+  // Apply custom domain layout defaults for ALL routes.
+  // Prevents the canonical OTS logo/branding from leaking on custom domain
+  // pages that lack explicit beforeEnter guards. Runs before per-route
+  // beforeEnter guards, so route-specific overrides still take precedence.
+  router.beforeEach((to: RouteLocationNormalized) => {
+    const bootstrapStore = useBootstrapStore();
+    if (bootstrapStore.domain_strategy !== 'custom') return true;
+
+    const hasDomainLogo = !!bootstrapStore.domain_logo;
+    const existing = (to.meta.layoutProps ?? {}) as Record<string, unknown>;
+
+    // Guard overrides win over route-defined static defaults.
+    // Per-route beforeEnter guards run AFTER beforeEach and can
+    // still override these values for route-specific needs.
+    to.meta.layoutProps = {
+      ...existing,
+      displayMasthead: hasDomainLogo,
+      displayNavigation: false,
+      displayFooterLinks: false,
+      displayFeedback: false,
+    };
+
+    return true;
+  });
+
+  // Block access to routes for disabled auth features (e.g. signup, signin).
+  // Runs as a separate guard to keep complexity per-function within limits.
+  router.beforeEach((to: RouteLocationNormalized) => {
+    const redirect = handleDisabledAuthFeature(to);
+    return redirect ?? true;
+  });
+
   router.beforeEach(async (to: RouteLocationNormalized) => {
     const authStore = useAuthStore();
     const languageStore = useLanguageStore();
@@ -126,6 +158,32 @@ function handleMfaAccess(
       reason: 'not awaiting MFA',
     });
     return redirect;
+  }
+
+  return null;
+}
+
+/**
+ * Block access to routes that require a disabled auth feature.
+ *
+ * Routes can declare `meta.requiresFeature: 'signup' | 'signin'` to
+ * indicate they need a specific authentication feature to be enabled.
+ * When the feature is disabled (via AUTH_SIGNUP, AUTH_SIGNIN, or the
+ * master AUTH_ENABLED toggle), the user is redirected to '/'.
+ */
+function handleDisabledAuthFeature(to: RouteLocationNormalized) {
+  const feature = to.meta.requiresFeature;
+  if (!feature) return null;
+
+  const bootstrapStore = useBootstrapStore();
+  const { authentication } = bootstrapStore;
+
+  if (!authentication.enabled || !authentication[feature]) {
+    loggingService.debug(
+      '[RouterGuard] Redirecting - auth feature disabled:',
+      { feature, path: to.path }
+    );
+    return { path: '/' };
   }
 
   return null;

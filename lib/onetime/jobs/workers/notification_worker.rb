@@ -3,8 +3,8 @@
 # frozen_string_literal: true
 
 require_relative 'base_worker'
-require_relative '../queue_config'
-require_relative '../queue_declarator'
+require_relative '../queues/config'
+require_relative '../queues/declarator'
 require_relative '../../operations/dispatch_notification'
 
 #

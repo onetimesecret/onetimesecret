@@ -107,6 +107,14 @@
     "text": "Company",
     "content_hash": "de4743c8"
   },
+  "web.footer.product": {
+    "text": "Product",
+    "sha256": "7f5540e9"
+  },
+  "web.footer.source_code_purveyor": {
+    "text": "Source Code",
+    "sha256": "29c5c68f"
+  },
   "web.navigation.billing": {
     "text": "Billing",
     "content_hash": "3ac8bbca"

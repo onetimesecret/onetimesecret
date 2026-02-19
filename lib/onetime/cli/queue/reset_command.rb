@@ -18,8 +18,8 @@
 #
 
 require 'bunny'
-require_relative '../../jobs/queue_config'
-require_relative '../../jobs/queue_declarator'
+require_relative '../../jobs/queues/config'
+require_relative '../../jobs/queues/declarator'
 
 module Onetime
   module CLI
@@ -44,7 +44,9 @@ module Onetime
         def call(queue: nil, force: false, dry_run: false, **)
           boot_application!
 
-          queues_to_reset = queue ? [queue] : Onetime::Jobs::QueueDeclarator.queue_names
+          all_queues      = Onetime::Jobs::QueueDeclarator.queue_names +
+                            Onetime::Jobs::QueueDeclarator.dlq_names
+          queues_to_reset = queue ? [queue] : all_queues
 
           # Validate queue names via QueueDeclarator
           queues_to_reset.each do |q|
@@ -98,9 +100,15 @@ module Onetime
             end
 
             # Recreate with correct configuration via QueueDeclarator
-            opts = Onetime::Jobs::QueueDeclarator.queue_options_for(queue_name)
-            Onetime::Jobs::QueueDeclarator.declare_queue(channel, queue_name)
-            puts "Created: #{queue_name} (durable: #{opts[:durable]}, auto_delete: #{opts[:auto_delete]}, arguments: #{opts[:arguments]})"
+            dlq_names = Onetime::Jobs::QueueDeclarator.dlq_names
+            if dlq_names.include?(queue_name)
+              opts = Onetime::Jobs::QueueDeclarator.dlq_options_for(queue_name)
+              channel.queue(queue_name, **opts)
+            else
+              opts = Onetime::Jobs::QueueDeclarator.queue_options_for(queue_name)
+              Onetime::Jobs::QueueDeclarator.declare_queue(channel, queue_name)
+            end
+            puts "Created: #{queue_name} (durable: #{opts[:durable]}, arguments: #{opts[:arguments]})"
           end
 
           conn.close

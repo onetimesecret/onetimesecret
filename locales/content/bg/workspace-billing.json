@@ -154,7 +154,7 @@
     "text": "Персонализирано брандиране",
     "source_hash": "237dabec"
   },
-  "web.billing.overview.entitlements.branded_homepage": {
+  "web.billing.overview.entitlements.homepage_secrets": {
     "text": "Брандирана начална страница",
     "source_hash": "e355a396"
   },
@@ -214,7 +214,7 @@
     "text": "Персонализирано брандиране",
     "source_hash": "237dabec"
   },
-  "web.billing.features.branded_homepage": {
+  "web.billing.features.homepage_secrets": {
     "text": "Брандирана начална страница",
     "source_hash": "e355a396"
   },

@@ -35,6 +35,26 @@ export function isWebAuthnEnabled(): boolean {
 }
 
 /**
+ * Checks if account lockout (after failed login attempts) is enabled
+ */
+export function isLockoutEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  return features?.lockout === true;
+}
+
+/**
+ * Checks if password complexity requirements are enabled
+ */
+export function isPasswordRequirementsEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  return features?.password_requirements === true;
+}
+
+/**
  * Checks if OmniAuth/SSO authentication is enabled
  */
 export function isOmniAuthEnabled(): boolean {
@@ -45,6 +65,18 @@ export function isOmniAuthEnabled(): boolean {
   const omniauth = features?.omniauth;
   if (typeof omniauth === 'boolean') return omniauth;
   return omniauth?.enabled === true;
+}
+
+/**
+ * Checks if authentication mode is 'full' (Rodauth with SQL db).
+ * When mode is 'simple' (or undefined), security features like
+ * password change, MFA, sessions, and passkeys are not available.
+ */
+export function isFullAuthMode(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const authentication = getBootstrapValue('authentication');
+  return authentication?.mode === 'full';
 }
 
 /**

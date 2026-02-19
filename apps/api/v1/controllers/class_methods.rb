@@ -16,14 +16,14 @@ module V1
 
   module Controllers
     module ClassMethods
-      # Transforms metadata into a structured hash with enhanced information.
+      # Transforms a receipt into a structured hash with enhanced information.
       #
-      # This method processes a metadata object and optional parameters to create
+      # This method processes a receipt object and optional parameters to create
       # a comprehensive hash representation. It includes derived and calculated
-      # values, providing a rich snapshot of the metadata and associated secret
+      # values, providing a rich snapshot of the receipt and associated secret
       # state.
       #
-      # @param md [Metadata] The metadata object to process
+      # @param md [Receipt] The receipt object to process
       # @param opts [Hash] Optional parameters to influence the output
       # @option opts [Integer, nil] :secret_ttl The actual TTL of the associated
       #   secret, if available
@@ -35,12 +35,12 @@ module V1
       #   key access.
       #
       # @example Basic usage
-      #   metadata = Metadata.new(key: 'abc123', custid: 'user@example.com')
-      #   result = API.receipt_hsh(metadata)
+      #   receipt = Receipt.new(key: 'abc123', custid: 'user@example.com')
+      #   result = API.receipt_hsh(receipt)
       #   puts result[:custid] # => "user@example.com"
       #
       # @example With secret TTL provided
-      #   result = API.receipt_hsh(metadata, secret_ttl: 3600)
+      #   result = API.receipt_hsh(receipt, secret_ttl: 3600)
       #   puts result[:secret_ttl] # => 3600
       #
       def receipt_hsh md, opts={}

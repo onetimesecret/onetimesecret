@@ -12,8 +12,11 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useBranding } from '@/shared/composables/useBranding';
   import { useDomain } from '@/shared/composables/useDomain';
+  import { useEntitlements } from '@/shared/composables/useEntitlements';
   import { createError } from '@/schemas/errors';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { ENTITLEMENTS } from '@/types/organization';
   import { storeToRefs } from 'pinia';
   import { detectPlatform } from '@/utils';
   import { computed, onMounted, ref, watch } from 'vue';
@@ -54,6 +57,14 @@
 
   const bootstrapStore = useBootstrapStore();
   const { i18n_enabled } = storeToRefs(bootstrapStore);
+
+  const organizationStore = useOrganizationStore();
+  const { organizations } = storeToRefs(organizationStore);
+  const organization = computed(() =>
+    organizations.value.find((o) => o.extid === props.orgid) ?? null
+  );
+  const { can } = useEntitlements(organization);
+  const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
 
   // Instructions fields configuration for the modal
   const instructionFields = computed(() => [
@@ -121,6 +132,7 @@
           :orgid="props.orgid" />
 
         <BrandSettingsBar
+          v-if="canBrand"
           v-model="brandSettings"
           :preview-i18n="previewI18n"
           :is-loading="isLoading"
@@ -145,8 +157,36 @@
         </BrandSettingsBar>
       </div>
 
+      <!-- Upgrade banner when custom_branding entitlement is missing -->
+      <div
+        v-if="!canBrand"
+        class="mx-auto mt-8 max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center gap-3 rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
+          <OIcon
+            collection="heroicons"
+            name="information-circle"
+            class="size-5 flex-shrink-0 text-amber-500 dark:text-amber-400"
+            aria-hidden="true" />
+          <p class="flex-1 text-sm text-amber-700 dark:text-amber-300">
+            {{ t('web.branding.upgrade_to_customize') }}
+          </p>
+          <RouterLink
+            :to="`/billing/${props.orgid}/plans`"
+            class="inline-flex items-center gap-1 text-sm font-medium text-amber-700 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200">
+            {{ t('web.billing.overview.view_plans_action') }}
+            <OIcon
+              collection="heroicons"
+              name="arrow-right"
+              class="size-4"
+              aria-hidden="true" />
+          </RouterLink>
+        </div>
+      </div>
+
       <!-- Main Content -->
-      <div class="mx-auto max-w-7xl p-4 sm:px-6 sm:py-8 lg:px-8">
+      <div
+        v-if="canBrand"
+        class="mx-auto max-w-7xl p-4 sm:px-6 sm:py-8 lg:px-8">
         <!-- Preview Section -->
         <div class="relative mb-6 sm:mb-12">
           <h2

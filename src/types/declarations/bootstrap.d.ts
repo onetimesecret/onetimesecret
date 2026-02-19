@@ -134,6 +134,7 @@ export interface BootstrapPayload {
   shrimp: string;
 
   site_host: string;
+  support_host: string;
 
   /** Brand primary color from server config (hex string, e.g. '#dc4a22') */
   brand_primary_color?: string;
@@ -152,6 +153,7 @@ export interface BootstrapPayload {
 
   /** Documentation site host from server config (e.g. 'docs.onetimesecret.com') */
   docs_host?: string;
+
 
   stripe_customer?: Stripe.Customer;
   stripe_subscriptions?: Stripe.Subscriptions[];
@@ -202,6 +204,10 @@ export interface BootstrapPayload {
 
   features: {
     markdown: boolean;
+    /** Account lockout after failed login attempts */
+    lockout?: boolean;
+    /** Password complexity requirements enforcement */
+    password_requirements?: boolean;
     /** Email-based authentication (magic links) */
     email_auth?: boolean;
     /** WebAuthn/passkey authentication */

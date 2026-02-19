@@ -26,11 +26,6 @@ module Auth
     # Auth app specific middleware (common middleware is in MiddlewareStack)
     use Rack::JSONBodyParser  # Parse JSON request bodies for Rodauth
 
-    # CSRF Response Header
-    # Note: CSRF validation is handled by common Security middleware with
-    # allow_if to skip JSON requests. Rodauth json feature disables CSRF internally.
-    use Onetime::Middleware::CsrfResponseHeader
-
     Onetime.development? do
       # Development configuration if needed
     end

@@ -107,7 +107,6 @@ GEM
       rexml
     crass (1.0.6)
     csv (3.3.5)
-    daemons (1.4.1)
     database_cleaner-core (2.0.1)
     database_cleaner-sequel (2.0.2)
       database_cleaner-core (~> 2.0.0)
@@ -127,7 +126,6 @@ GEM
     erb (6.0.1)
     et-orbi (1.4.0)
       tzinfo
-    eventmachine (1.2.7)
     facets (3.1.0)
     faker (3.5.3)
       i18n (>= 1.8.11, < 2)
@@ -140,7 +138,7 @@ GEM
       redis (>= 4.8.1, < 6.0)
       stringio (~> 3.1.1)
       uri-valkey (~> 1.4)
-    faraday (2.14.0)
+    faraday (2.14.1)
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
@@ -182,7 +180,7 @@ GEM
       reline (>= 0.4.2)
     jaro_winkler (1.6.1)
     jmespath (1.6.2)
-    json (2.18.0)
+    json (2.18.1)
     json-jwt (1.17.0)
       activesupport (>= 4.2)
       aes_key_wrap
@@ -197,6 +195,8 @@ GEM
       simpleidn (~> 0.2)
     jwt (3.1.2)
       base64
+    kanayago (0.7.0)
+      language_server-protocol (~> 3.17.0)
     kicks (3.2.0)
       bunny (~> 2.19)
       concurrent-ruby (~> 1.0)
@@ -208,6 +208,8 @@ GEM
     kramdown-parser-gfm (1.1.0)
       kramdown (~> 2.0)
     language_server-protocol (3.17.0.5)
+    lettermint (0.1.0)
+      faraday (~> 2.0)
     lint_roller (1.1.0)
     listen (3.9.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
@@ -298,6 +300,8 @@ GEM
     parser (3.3.10.0)
       ast (~> 2.4.1)
       racc
+    passforge (1.1.2)
+      securerandom (~> 0.3)
     pastel (0.8.0)
       tty-color (~> 0.5)
     pg (1.6.3)
@@ -320,7 +324,7 @@ GEM
       nio4r (~> 2.0)
     raabro (1.4.0)
     racc (1.8.1)
-    rack (3.2.4)
+    rack (3.2.5)
     rack-contrib (2.5.0)
       rack (< 4)
     rack-oauth2 (2.3.0)
@@ -500,11 +504,6 @@ GEM
       faraday-follow_redirects
     syntax_tree (6.3.0)
       prettier_print (>= 1.2.0)
-    thin (2.0.1)
-      daemons (~> 1.0, >= 1.0.9)
-      eventmachine (~> 1.0, >= 1.0.4)
-      logger
-      rack (>= 1, < 4)
     thor (1.5.0)
     tilt (2.7.0)
     timecop (0.9.10)
@@ -595,12 +594,15 @@ DEPENDENCIES
   i18n (~> 1.14)
   irb
   json_schemer
+  kanayago (~> 0.7)
   kicks (~> 3.0)
+  lettermint (~> 0.1.0)
   logger
   mail
   mustache
   omniauth_openid_connect (~> 0.8)
   otto (~> 2.0.0.pre10)
+  passforge (~> 1.1)
   pg (~> 1.6)
   psych (~> 5.2.3)
   public_suffix
@@ -648,7 +650,6 @@ DEPENDENCIES
   stringio (~> 3.1.6)
   stripe
   syntax_tree
-  thin
   tilt
   timecop (~> 0.9)
   truemail

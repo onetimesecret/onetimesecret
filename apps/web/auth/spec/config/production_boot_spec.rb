@@ -46,17 +46,31 @@ RSpec.describe 'Auth module structure smoke tests' do
       require_relative '../../config/features'
     end
 
-    describe 'Hardening module' do
+    describe 'Lockout module' do
       it 'is defined' do
-        expect(defined?(Auth::Config::Features::Hardening)).to eq('constant')
+        expect(defined?(Auth::Config::Features::Lockout)).to eq('constant')
       end
 
       it 'has configure class method' do
-        expect(Auth::Config::Features::Hardening).to respond_to(:configure)
+        expect(Auth::Config::Features::Lockout).to respond_to(:configure)
       end
 
       it 'configure accepts one argument' do
-        expect(Auth::Config::Features::Hardening.method(:configure).arity).to eq(1)
+        expect(Auth::Config::Features::Lockout.method(:configure).arity).to eq(1)
+      end
+    end
+
+    describe 'PasswordRequirements module' do
+      it 'is defined' do
+        expect(defined?(Auth::Config::Features::PasswordRequirements)).to eq('constant')
+      end
+
+      it 'has configure class method' do
+        expect(Auth::Config::Features::PasswordRequirements).to respond_to(:configure)
+      end
+
+      it 'configure accepts one argument' do
+        expect(Auth::Config::Features::PasswordRequirements.method(:configure).arity).to eq(1)
       end
     end
 

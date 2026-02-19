@@ -1,0 +1,12 @@
+<%= t('email.email_change_confirmation.request_notice', product_name: product_name, new_email: new_email) %>
+
+<%= confirmation_uri %>
+
+<%= t('email.email_change_confirmation.expires_notice', hours: expires_in_hours) %>
+
+<%= t('email.email_change_confirmation.ignore_notice') %>
+
+<%= t('email.email_change_confirmation.signature') %>
+<%= baseuri %>
+
+<%= t('email.email_change_confirmation.postscript', email_address: new_email) %>

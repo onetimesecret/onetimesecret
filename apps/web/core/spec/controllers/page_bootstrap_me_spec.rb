@@ -384,10 +384,16 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
   end
 
   describe 'feature flags in features hash' do
-    it 'includes hardening feature flag' do
+    it 'includes lockout feature flag' do
       get '/bootstrap/me'
       data = JSON.parse(last_response.body)
-      expect(data['features']).to have_key('hardening')
+      expect(data['features']).to have_key('lockout')
+    end
+
+    it 'includes password_requirements feature flag' do
+      get '/bootstrap/me'
+      data = JSON.parse(last_response.body)
+      expect(data['features']).to have_key('password_requirements')
     end
 
     it 'includes active_sessions feature flag' do

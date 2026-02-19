@@ -45,23 +45,20 @@ module Onetime
           base.field :migration_status   # pending, migrating, completed, failed, skipped
           base.field :migrated_at        # Timestamp of migration completion
 
-          # Complete original record storage for rollback/audit
-          # Stores both the main object hash and any related data_types
-          # (hashkeys, strings, lists, etc.) that were migrated.
+          # Original v1 record stored as a separate Redis hash via RESTORE.
+          # The v1 dump binary is restored directly to a sibling key:
+          #   {prefix}:{objid}:_original_object
           #
-          # Structure:
-          # {
-          #   "object": { ...original hash fields... },
-          #   "data_types": {
-          #     "brand": { ...hashkey data... },
-          #     "logo": "string value",
-          #     "sessions": ["list", "items"]
-          #   },
-          #   "key": "original:redis:key",
-          #   "db": 6,
-          #   "exported_at": "2026-01-25T01:24:40Z"
-          # }
-          base.jsonkey :_original_record
+          # Access via Familia hashkey: record._original_object.hgetall
+          #
+          # Model-specific related data types (e.g., CustomDomain's brand,
+          # logo, icon) are declared in model-specific migration features
+          # and stored at sibling keys like:
+          #   {prefix}:{objid}:_original_brand
+          #
+          # All _original_* keys are set with a 30-day TTL during migration
+          # and self-clean after expiry.
+          base.hashkey :_original_object
         end
 
         module ClassMethods
@@ -154,55 +151,46 @@ module Onetime
             data&.dig('migration', key.to_s)
           end
 
-          # Store the complete original v1 record for rollback/audit
+          # Retrieve the original v1 object hash fields
           #
-          # Captures both the main object hash and any related data_types
-          # (hashkeys, strings, lists, sets, etc.) from the Familia model.
+          # Reads from the _original_object hashkey, which was populated
+          # by RESTORE during migration enrichment.
           #
-          # @param object_data [Hash] The main object hash fields
-          # @param data_types_data [Hash] Related data_type values keyed by name
-          # @param key [String] Original Redis key
-          # @param db [Integer] Source database number
-          # @param exported_at [String, Time] Export timestamp
-          # @return [void]
-          def store_original_record(object_data, data_types_data: {}, key: nil, db: nil, exported_at: nil)
-            record                 = {
-              'object' => object_data,
-              'data_types' => data_types_data,
-              'key' => key,
-              'db' => db,
-              'exported_at' => exported_at&.to_s || Time.now.utc.iso8601,
-            }
-            _original_record.value = record
-          end
-
-          # Retrieve the original v1 record
-          #
-          # @return [Hash, nil] The stored original record or nil
+          # @return [Hash, nil] The original v1 hash fields or nil if not stored
           def original_record
-            _original_record.value
+            result = _original_object.hgetall
+            result.empty? ? nil : result
           end
 
-          # Retrieve original object fields
+          # Retrieve original object fields (alias for original_record)
           #
-          # @return [Hash, nil] The original object hash or nil
+          # @return [Hash, nil] The original v1 object hash or nil
           def original_object
-            original_record&.dig('object')
+            original_record
           end
 
-          # Retrieve original data_type values
+          # Retrieve original data_type values by name
+          #
+          # Looks up a model-specific _original_{name} hashkey.
+          # Only works for data types declared as hashkeys in the
+          # model's migration feature (e.g., CustomDomain declares
+          # _original_brand, _original_logo, _original_icon).
           #
           # @param name [String, Symbol] Data type name (e.g., :brand, :logo)
-          # @return [Object, nil] The original data type value or nil
+          # @return [Hash, nil] The original data type hash or nil
           def original_data_type(name)
-            original_record&.dig('data_types', name.to_s)
+            accessor = "_original_#{name}"
+            return nil unless respond_to?(accessor)
+
+            result = send(accessor).hgetall
+            result.empty? ? nil : result
           end
 
           # Check if original record is stored
           #
           # @return [Boolean]
           def original_record?
-            !_original_record.value.nil?
+            _original_object.exists?
           end
 
           # Build data_types snapshot from current model class definition

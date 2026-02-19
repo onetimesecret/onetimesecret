@@ -46,9 +46,9 @@ module V2::Logic
 
         if greenlighted
           @secret = potential_secret
-          owner   = secret.load_owner
           secret.burned!
-          owner.increment_field :secrets_burned unless owner.anonymous?
+          owner   = secret.load_owner
+          owner&.increment_field :secrets_burned unless owner&.anonymous?
           Onetime::Customer.secrets_burned.increment
 
           secret_logger.info 'Secret burned successfully',
@@ -83,6 +83,15 @@ module V2::Logic
         # Get base receipt attributes
         attributes = receipt.safe_dump
 
+        # Resolve the domain for URL generation: use the custom domain
+        # the secret was created on when available, otherwise canonical.
+        domain     = if domains_enabled && !receipt.share_domain.to_s.empty?
+                   receipt.share_domain
+                 else
+                   site_host
+                 end
+        domain_uri = [base_scheme, domain].join
+
         # Add required URL fields
         attributes.merge!(
           {
@@ -91,13 +100,13 @@ module V2::Logic
             expiration: (receipt.default_expiration.to_i + receipt.created.to_i),
             expiration_in_seconds: receipt.default_expiration.to_i,
             share_path: build_path(:secret, receipt.secret_identifier),
-            burn_path: build_path(:private, receipt.identifier, 'burn'),
-            receipt_path: build_path(:private, receipt.identifier),
-            metadata_path: build_path(:private, receipt.identifier), # maintain public API
-            share_url: build_url(baseuri, build_path(:secret, receipt.secret_identifier)),
-            receipt_url: build_url(baseuri, build_path(:private, receipt.identifier)),
-            metadata_url: build_url(baseuri, build_path(:private, receipt.identifier)), # maintain public API
-            burn_url: build_url(baseuri, build_path(:private, receipt.identifier, 'burn')),
+            burn_path: build_path(:receipt, receipt.identifier, 'burn'),
+            receipt_path: build_path(:receipt, receipt.identifier),
+            metadata_path: build_path(:receipt, receipt.identifier), # maintain public API
+            share_url: build_url(domain_uri, build_path(:secret, receipt.secret_identifier)),
+            receipt_url: build_url(domain_uri, build_path(:receipt, receipt.identifier)),
+            metadata_url: build_url(domain_uri, build_path(:receipt, receipt.identifier)), # maintain public API
+            burn_url: build_url(domain_uri, build_path(:receipt, receipt.identifier, 'burn')),
           },
         )
 
@@ -115,8 +124,8 @@ module V2::Logic
             can_decrypt: false,
             show_secret: false,
             show_secret_link: false,
-            show_metadata_link: false, # maintain public API
-            show_metadata: true, # maintain public API
+            show_receipt_link: false, # maintain public API
+            show_receipt: true, # maintain public API
             show_recipients: !receipt.recipients.to_s.empty?,
             is_orphaned: false,
           },

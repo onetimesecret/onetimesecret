@@ -440,6 +440,10 @@
     "text": "e.g. {example}",
     "content_hash": "cc921aaa"
   },
+  "web.COMMON.about": {
+    "text": "About",
+    "sha256": "d833339d"
+  },
   "web.COMMON.status": {
     "text": "Status",
     "content_hash": "920e413c"
@@ -1216,6 +1220,10 @@
   "web.TITLES.change_email": {
     "text": "Change Email",
     "content_hash": "18c3f2d5"
+  },
+  "web.TITLES.confirm_email_change": {
+    "text": "Confirm Email Change",
+    "sha256": "a1b2c3d4"
   },
   "web.TITLES.security_overview": {
     "text": "Security",

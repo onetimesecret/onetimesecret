@@ -6,7 +6,7 @@ import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
 import { SCOPE_PRESETS } from '@/types/router';
 
 /**
- * Type guard that validates a metadata key.
+ * Type guard that validates a secret key.
  * @param key - The key to validate
  * @returns true if key is a string matching /^[a-zA-Z0-9]+$/
  */
@@ -14,7 +14,7 @@ const validateSecretKey = (key: string | string[]): key is string =>
   typeof key === 'string' && /^[a-zA-Z0-9]+$/.test(key);
 
 /**
- * Shared route configuration for metadata-related routes.
+ * Shared route configuration for secret-related routes.
  * Handles validation and type safety for the secretIdentifier parameter.
  *
  * - Validates secretIdentifier format in beforeEnter guard

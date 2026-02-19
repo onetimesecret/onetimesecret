@@ -4,25 +4,22 @@
   Organization Context Bar Component
 
   A contextual navigation bar that displays workspace scope information.
-  Shows organization and domain switchers on the same horizontal line.
+  Shows the domain switcher for the current workspace context.
 
   Layout:
   ┌────────────────────────────────────────────────────────────────┐
-  │ Workspace ▼  |  dev.onetime.dev ▼                              │
+  │ dev.onetime.dev ▼                                              │
   └────────────────────────────────────────────────────────────────┘
 -->
 
 <script setup lang="ts">
 import DomainContextSwitcher from '@/shared/components/navigation/DomainContextSwitcher.vue';
-import OrganizationScopeSwitcher from '@/apps/workspace/components/navigation/OrganizationScopeSwitcher.vue';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
 import { computed, onMounted, ref } from 'vue';
 import axios from 'axios';
 const organizationStore = useOrganizationStore();
 const {
-  showOrgSwitcher,
-  lockOrgSwitcher,
   showDomainSwitcher,
   lockDomainSwitcher,
 } = useScopeSwitcherVisibility();
@@ -59,35 +56,19 @@ onMounted(async () => {
 
 /**
  * Show context bar when user has any organizations (including default)
- * AND at least one switcher is visible based on route meta.
+ * AND the domain switcher is visible based on route meta.
  * Wait for initial load to avoid flash of content.
  */
 const shouldShow = computed(() =>
   isLoaded.value &&
   organizationStore.hasOrganizations &&
-  (showOrgSwitcher.value || showDomainSwitcher.value)
+  showDomainSwitcher.value
 );
-
-/**
- * Show separator only when both switchers are visible
- */
-const showSeparator = computed(() => showOrgSwitcher.value && showDomainSwitcher.value);
 </script>
 
 <template>
   <!-- Inline context switchers (wrapper styling provided by parent slot) -->
   <template v-if="shouldShow">
-    <!-- Organization Switcher -->
-    <OrganizationScopeSwitcher
-      v-if="showOrgSwitcher"
-      :locked="lockOrgSwitcher" />
-
-    <!-- Separator (only when both visible) -->
-    <span
-      v-if="showSeparator"
-      class="text-gray-300 dark:text-gray-600"
-      aria-hidden="true">|</span>
-
     <!-- Domain Switcher -->
     <DomainContextSwitcher
       v-if="showDomainSwitcher"

@@ -17,45 +17,87 @@ require_relative '../spec_helper'
 require 'climate_control'
 
 RSpec.describe 'Auth::Config ENV Conditional Logic' do
-  describe 'AUTH_HARDENING_ENABLED pattern (!= false, enabled by default)' do
-    # Pattern: ENV['AUTH_HARDENING_ENABLED'] != 'false'
+  describe 'AUTH_LOCKOUT_ENABLED pattern (!= false, enabled by default)' do
+    # Pattern: ENV['AUTH_LOCKOUT_ENABLED'] != 'false'
     # This means: enabled unless explicitly set to 'false'
-    # Same pattern used by: AUTH_ACTIVE_SESSIONS_ENABLED, AUTH_REMEMBER_ME_ENABLED, AUTH_VERIFY_ACCOUNT_ENABLED
+    # Same pattern used by: AUTH_PASSWORD_REQUIREMENTS_ENABLED, AUTH_ACTIVE_SESSIONS_ENABLED, AUTH_REMEMBER_ME_ENABLED
 
     it 'is enabled when ENV is not set (nil)' do
-      ClimateControl.modify('AUTH_HARDENING_ENABLED' => nil) do
-        expect(ENV['AUTH_HARDENING_ENABLED'] != 'false').to be true
+      ClimateControl.modify('AUTH_LOCKOUT_ENABLED' => nil) do
+        expect(ENV['AUTH_LOCKOUT_ENABLED'] != 'false').to be true
       end
     end
 
     it 'is enabled when ENV is empty string' do
-      ClimateControl.modify('AUTH_HARDENING_ENABLED' => '') do
-        expect(ENV['AUTH_HARDENING_ENABLED'] != 'false').to be true
+      ClimateControl.modify('AUTH_LOCKOUT_ENABLED' => '') do
+        expect(ENV['AUTH_LOCKOUT_ENABLED'] != 'false').to be true
       end
     end
 
     it 'is enabled when ENV is "true"' do
-      ClimateControl.modify('AUTH_HARDENING_ENABLED' => 'true') do
-        expect(ENV['AUTH_HARDENING_ENABLED'] != 'false').to be true
+      ClimateControl.modify('AUTH_LOCKOUT_ENABLED' => 'true') do
+        expect(ENV['AUTH_LOCKOUT_ENABLED'] != 'false').to be true
       end
     end
 
     it 'is enabled when ENV is any other value' do
-      ClimateControl.modify('AUTH_HARDENING_ENABLED' => 'yes') do
-        expect(ENV['AUTH_HARDENING_ENABLED'] != 'false').to be true
+      ClimateControl.modify('AUTH_LOCKOUT_ENABLED' => 'yes') do
+        expect(ENV['AUTH_LOCKOUT_ENABLED'] != 'false').to be true
       end
     end
 
     it 'is DISABLED only when ENV is exactly "false"' do
-      ClimateControl.modify('AUTH_HARDENING_ENABLED' => 'false') do
-        expect(ENV['AUTH_HARDENING_ENABLED'] != 'false').to be false
+      ClimateControl.modify('AUTH_LOCKOUT_ENABLED' => 'false') do
+        expect(ENV['AUTH_LOCKOUT_ENABLED'] != 'false').to be false
       end
     end
 
     it 'is enabled when ENV is "False" (case sensitive)' do
-      ClimateControl.modify('AUTH_HARDENING_ENABLED' => 'False') do
+      ClimateControl.modify('AUTH_LOCKOUT_ENABLED' => 'False') do
         # NOTE: This is enabled because comparison is case-sensitive
-        expect(ENV['AUTH_HARDENING_ENABLED'] != 'false').to be true
+        expect(ENV['AUTH_LOCKOUT_ENABLED'] != 'false').to be true
+      end
+    end
+  end
+
+  describe 'AUTH_PASSWORD_REQUIREMENTS_ENABLED pattern (!= false, enabled by default)' do
+    # Pattern: ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false'
+    # This means: enabled unless explicitly set to 'false'
+
+    it 'is enabled when ENV is not set (nil)' do
+      ClimateControl.modify('AUTH_PASSWORD_REQUIREMENTS_ENABLED' => nil) do
+        expect(ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false').to be true
+      end
+    end
+
+    it 'is enabled when ENV is empty string' do
+      ClimateControl.modify('AUTH_PASSWORD_REQUIREMENTS_ENABLED' => '') do
+        expect(ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false').to be true
+      end
+    end
+
+    it 'is enabled when ENV is "true"' do
+      ClimateControl.modify('AUTH_PASSWORD_REQUIREMENTS_ENABLED' => 'true') do
+        expect(ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false').to be true
+      end
+    end
+
+    it 'is enabled when ENV is any other value' do
+      ClimateControl.modify('AUTH_PASSWORD_REQUIREMENTS_ENABLED' => 'yes') do
+        expect(ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false').to be true
+      end
+    end
+
+    it 'is DISABLED only when ENV is exactly "false"' do
+      ClimateControl.modify('AUTH_PASSWORD_REQUIREMENTS_ENABLED' => 'false') do
+        expect(ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false').to be false
+      end
+    end
+
+    it 'is enabled when ENV is "False" (case sensitive)' do
+      ClimateControl.modify('AUTH_PASSWORD_REQUIREMENTS_ENABLED' => 'False') do
+        # NOTE: This is enabled because comparison is case-sensitive
+        expect(ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false').to be true
       end
     end
   end

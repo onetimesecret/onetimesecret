@@ -35,6 +35,7 @@ on:
       - main
       - develop
       - 'rel/*'
+      - 'fix/*'
       - 'feature/*'
   workflow_dispatch:
     inputs:
@@ -171,7 +172,7 @@ jobs:
     steps:
       - *checkout-step
 
-      - uses: ruby/setup-ruby@8d27f39a5e7ad39aebbcbd1324f7af020229645c
+      - uses: ruby/setup-ruby@7f562e2882f42fe3ccc6f67a86ec4d551fdfcaf1
         with:
           ruby-version: '3.4.8'
           bundler-cache: true
@@ -480,7 +481,7 @@ jobs:
     services:
       redis: *valkey-service
       postgres:
-        image: postgres:17@sha256:7352e0c4d62bbac8aa69d95e40220a60967c4a19f9c4f65b4d118175f7ce9e3b
+        image: postgres:17@sha256:2006493727bd5277eece187319af1ef82b4cf82cf4fc1ed00da0775b646ac2a4
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -668,7 +669,10 @@ jobs:
           redis-url: 'redis://host.docker.internal:2121/0'
           environment-vars: |
             SESSION_SECRET=${{ env.SESSION_SECRET }}
-            HMAC_SECRET=${{ env.HMAC_SECRET }}
+            AUTH_SECRET=${{ env.AUTH_SECRET }}
+            ARGON2_SECRET=${{ env.ARGON2_SECRET }}
+            FEDERATION_SECRET=${{ env.FEDERATION_SECRET }}
+            IDENTIFIER_SECRET=${{ env.IDENTIFIER_SECRET }}
             SECRET=${{ env.SECRET }}
           test-endpoints: |
             /

@@ -56,7 +56,11 @@ module Onetime::Receipt::Features
       base.safe_dump_field :custid
       base.safe_dump_field :owner_id
       base.safe_dump_field :state
-      base.safe_dump_field :secret_shortid
+      base.safe_dump_field :secret_shortid,
+        ->(m) {
+                val = m.secret_shortid.to_s
+                val.empty? ? m.secret_identifier.to_s.slice(0, 8) : val
+        }
       base.safe_dump_field :secret_identifier
       base.safe_dump_field :secret_ttl, ->(m) { m.secret_ttl || -1 }
       base.safe_dump_field :metadata_ttl, ->(m) { m.lifespan }
@@ -102,6 +106,7 @@ module Onetime::Receipt::Features
       # We use the hash syntax here since `:truncated?` is not a valid symbol.
       # base.safe_dump_field :is_truncated, ->(m) { m.truncated? }
       base.safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
+      base.safe_dump_field :kind
     end
   end
 end

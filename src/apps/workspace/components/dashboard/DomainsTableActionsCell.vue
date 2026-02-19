@@ -12,9 +12,12 @@ const { t } = useI18n();
   interface Props {
     domain: CustomDomain;
     orgid: string;
+    canBrand?: boolean;
   }
 
-  const props = defineProps<Props>();
+  const props = withDefaults(defineProps<Props>(), {
+    canBrand: false,
+  });
 
   const emit = defineEmits<{
     (e: 'delete', domain: string): void
@@ -30,7 +33,7 @@ const { t } = useI18n();
   <MinimalDropdownMenu>
     <template #menu-items>
       <div class="py-1">
-        <MenuItem v-slot="{ active }">
+        <MenuItem v-if="canBrand" v-slot="{ active }">
           <router-link
             :to="{
               name: 'DomainBrand',

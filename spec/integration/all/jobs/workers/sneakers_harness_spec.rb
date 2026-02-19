@@ -21,7 +21,7 @@ require 'sneakers'
 require 'onetime/jobs/workers/email_worker'
 require 'onetime/jobs/workers/notification_worker'
 require 'onetime/jobs/workers/billing_worker'
-require 'onetime/jobs/queue_config'
+require 'onetime/jobs/queues/config'
 
 RSpec.describe 'Sneakers Worker Harness', type: :integration do
   # All available workers (constant for use in describe blocks)

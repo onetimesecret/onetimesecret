@@ -26,7 +26,7 @@ const createMockRecord = (id: string): RecentSecretRecord => {
   const message = createMockLocalReceipt(id);
   return {
     id,
-    extid: `metadata-${id}`,
+    extid: `receipt-${id}`,
     shortid: `short-${id}`,
     secretExtid: `secret-${id}`,
     hasPassphrase: false,
@@ -267,7 +267,7 @@ describe('RecentSecretsTable', () => {
 
       const heading = wrapper.find('h2');
       expect(heading.exists()).toBe(true);
-      expect(heading.text()).toContain('web.COMMON.recent');
+      expect(heading.text()).toContain('web.LABELS.receipts');
     });
 
     it('shows items count when records exist', async () => {
@@ -278,7 +278,8 @@ describe('RecentSecretsTable', () => {
       expect(html).toContain('web.LABELS.items_count');
     });
 
-    it('renders dismiss button', async () => {
+    it('renders dismiss button when not authenticated', async () => {
+      mockIsAuthenticated.value = false;
       const wrapper = await mountComponent();
       await flushPromises();
 
@@ -286,7 +287,17 @@ describe('RecentSecretsTable', () => {
       expect(dismissButton.exists()).toBe(true);
     });
 
+    it('hides dismiss button when authenticated', async () => {
+      mockIsAuthenticated.value = true;
+      const wrapper = await mountComponent();
+      await flushPromises();
+
+      const dismissButton = wrapper.find('button[type="button"]');
+      expect(dismissButton.exists()).toBe(false);
+    });
+
     it('calls clear when dismiss button is clicked', async () => {
+      mockIsAuthenticated.value = false;
       const wrapper = await mountComponent();
       await flushPromises();
 
@@ -343,7 +354,7 @@ describe('RecentSecretsTable', () => {
       // Add API source record
       const apiRecord: RecentSecretRecord = {
         id: 'api-1',
-        extid: 'api-metadata-1',
+        extid: 'api-receipt-1',
         shortid: 'api-short-1',
         secretExtid: 'api-secret-1',
         hasPassphrase: true,
@@ -356,7 +367,7 @@ describe('RecentSecretsTable', () => {
         isExpired: false,
         isDestroyed: false,
         source: 'api',
-        originalRecord: {} as LocalReceipt, // API records have MetadataRecords
+        originalRecord: {} as LocalReceipt, // API records have receipt data
       };
 
       mockRecords.value = [createMockRecord('local-1'), apiRecord];

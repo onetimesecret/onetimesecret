@@ -55,6 +55,15 @@ module V1::Logic
         # Get base receipt attributes
         attributes = receipt.safe_dump
 
+        # Resolve the domain for URL generation: use the custom domain
+        # the secret was created on when available, otherwise canonical.
+        domain = if domains_enabled && !receipt.share_domain.to_s.empty?
+                   receipt.share_domain
+                 else
+                   site_host
+                 end
+        domain_uri = [base_scheme, domain].join
+
         # Add required URL fields
         attributes.merge!({
           # secret_state: 'burned',
@@ -62,11 +71,11 @@ module V1::Logic
           expiration: (receipt.default_expiration.to_i + receipt.created.to_i),
           expiration_in_seconds: (receipt.default_expiration.to_i),
           share_path: build_path(:secret, receipt.secret_key),
-          burn_path: build_path(:private, receipt.key, 'burn'),
-          metadata_path: build_path(:private, receipt.key), # maintain public API
-          share_url: build_url(baseuri, build_path(:secret, receipt.secret_key)),
-          metadata_url: build_url(baseuri, build_path(:private, receipt.key)), # maintain public API
-          burn_url: build_url(baseuri, build_path(:private, receipt.key, 'burn')),
+          burn_path: build_path(:receipt, receipt.key, 'burn'),
+          metadata_path: build_path(:receipt, receipt.key), # maintain public API
+          share_url: build_url(domain_uri, build_path(:secret, receipt.secret_key)),
+          metadata_url: build_url(domain_uri, build_path(:receipt, receipt.key)), # maintain public API
+          burn_url: build_url(domain_uri, build_path(:receipt, receipt.key, 'burn')),
         })
 
         {
@@ -84,7 +93,8 @@ module V1::Logic
             is_truncated: false,
             show_secret: false,
             show_secret_link: false,
-            show_metadata_link: false, # maintain public API
+            show_receipt_link: false, # maintain public API
+            show_receipt: true,
             show_metadata: true, # maintain public API
             show_recipients: !receipt.recipients.to_s.empty?,
             is_orphaned: false,

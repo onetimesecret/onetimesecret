@@ -10,8 +10,8 @@ require_relative '../../support/test_helpers'
 require 'onetime/models'
 
 # Setup: Configure test secret and create test data
-@original_secret = ENV['FEDERATION_HMAC_SECRET']
-ENV['FEDERATION_HMAC_SECRET'] = 'test-secret-for-org-federation-12345'
+@original_secret = ENV['FEDERATION_SECRET']
+ENV['FEDERATION_SECRET'] = 'test-secret-for-org-federation-12345'
 
 # Create a test customer to own organizations
 @test_email = generate_unique_test_email('org_fed')
@@ -125,4 +125,4 @@ hash.nil?
 # Teardown: Clean up test data
 @org.destroy! if @org&.exists?
 @customer.destroy! if @customer&.exists?
-ENV['FEDERATION_HMAC_SECRET'] = @original_secret
+ENV['FEDERATION_SECRET'] = @original_secret

@@ -5,6 +5,8 @@ import {
   isMagicLinksEnabled,
   isWebAuthnEnabled,
   isOmniAuthEnabled,
+  isLockoutEnabled,
+  isPasswordRequirementsEnabled,
   hasPasswordlessMethods,
   getAuthFeatures,
 } from '@/utils/features';
@@ -136,6 +138,92 @@ describe('features utility', () => {
       const result = isMagicLinksEnabled();
 
       expect(result).toBe(true);
+    });
+  });
+
+  describe('isLockoutEnabled', () => {
+    it('returns true when lockout feature is enabled', () => {
+      getBootstrapValueMock.mockReturnValue({ lockout: true });
+
+      const result = isLockoutEnabled();
+
+      expect(result).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when lockout feature is disabled', () => {
+      getBootstrapValueMock.mockReturnValue({ lockout: false });
+
+      const result = isLockoutEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when lockout feature is undefined', () => {
+      getBootstrapValueMock.mockReturnValue({});
+
+      const result = isLockoutEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when features object is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      const result = isLockoutEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when lockout is truthy but not exactly true', () => {
+      getBootstrapValueMock.mockReturnValue({ lockout: 'yes' });
+
+      const result = isLockoutEnabled();
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isPasswordRequirementsEnabled', () => {
+    it('returns true when password_requirements feature is enabled', () => {
+      getBootstrapValueMock.mockReturnValue({ password_requirements: true });
+
+      const result = isPasswordRequirementsEnabled();
+
+      expect(result).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when password_requirements feature is disabled', () => {
+      getBootstrapValueMock.mockReturnValue({ password_requirements: false });
+
+      const result = isPasswordRequirementsEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when password_requirements feature is undefined', () => {
+      getBootstrapValueMock.mockReturnValue({});
+
+      const result = isPasswordRequirementsEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when features object is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      const result = isPasswordRequirementsEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when password_requirements is truthy but not exactly true', () => {
+      getBootstrapValueMock.mockReturnValue({ password_requirements: 'yes' });
+
+      const result = isPasswordRequirementsEnabled();
+
+      expect(result).toBe(false);
     });
   });
 
@@ -422,6 +510,16 @@ describe('features utility', () => {
 
     it('isMagicLinksEnabled returns false when window is undefined', () => {
       const result = isMagicLinksEnabled();
+      expect(result).toBe(false);
+    });
+
+    it('isLockoutEnabled returns false when window is undefined', () => {
+      const result = isLockoutEnabled();
+      expect(result).toBe(false);
+    });
+
+    it('isPasswordRequirementsEnabled returns false when window is undefined', () => {
+      const result = isPasswordRequirementsEnabled();
       expect(result).toBe(false);
     });
 

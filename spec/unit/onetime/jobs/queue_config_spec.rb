@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'onetime/jobs/queue_config'
+require 'onetime/jobs/queues/config'
 
 RSpec.describe Onetime::Jobs::QueueConfig do
   describe 'QUEUES' do
@@ -163,6 +163,55 @@ RSpec.describe Onetime::Jobs::QueueConfig do
     it "contains 'dlx.billing.event' with queue 'dlq.billing.event'" do
       expect(dead_letter_config).to have_key('dlx.billing.event')
       expect(dead_letter_config['dlx.billing.event'][:queue]).to eq('dlq.billing.event')
+    end
+
+    it 'has empty arguments (TTL managed via DLQ_POLICIES)' do
+      dead_letter_config.each_value do |config|
+        expect(config[:arguments]).to eq({})
+      end
+    end
+  end
+
+  describe 'DLQ_POLICIES' do
+    subject(:policies) { described_class::DLQ_POLICIES }
+
+    it 'is a frozen array' do
+      expect(policies).to be_frozen
+    end
+
+    it 'has at least one policy' do
+      expect(policies).not_to be_empty
+    end
+
+    describe 'dlq-ttl policy' do
+      subject(:policy) { policies.first }
+
+      it "has name 'dlq-ttl'" do
+        expect(policy[:name]).to eq('dlq-ttl')
+      end
+
+      it "matches DLQ queues with pattern '^dlq\\.'" do
+        expect(policy[:pattern]).to eq('^dlq\.')
+      end
+
+      it 'defines message-ttl equal to DLQ_MESSAGE_TTL' do
+        expect(policy[:definition]['message-ttl']).to eq(described_class::DLQ_MESSAGE_TTL)
+      end
+
+      it "applies to 'queues'" do
+        expect(policy[:apply_to]).to eq('queues')
+      end
+    end
+  end
+
+  describe 'DLQ_MESSAGE_TTL' do
+    it 'equals 604800000 (7 days in milliseconds)' do
+      expect(described_class::DLQ_MESSAGE_TTL).to eq(604_800_000)
+    end
+
+    it 'equals exactly 7 days in milliseconds' do
+      seven_days_ms = 7 * 24 * 60 * 60 * 1000
+      expect(described_class::DLQ_MESSAGE_TTL).to eq(seven_days_ms)
     end
   end
 

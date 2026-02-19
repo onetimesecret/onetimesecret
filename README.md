@@ -146,11 +146,13 @@ docker build -t onetimesecret .
 ```bash
 git clone https://github.com/onetimesecret/onetimesecret.git
 cd onetimesecret
-bundle install
+./install.sh init    # Install deps, generate secrets, prepare .env
 cp ./etc/config.example.yaml ./etc/config.yaml
 # Edit config.yaml as needed
 RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
 ```
+
+> **Tip**: Run `./install.sh doctor` to check your environment for common issues.
 
 > **For detailed installation instructions**, including system setup, troubleshooting, and advanced configuration, see [INSTALL.md](./INSTALL.md).
 

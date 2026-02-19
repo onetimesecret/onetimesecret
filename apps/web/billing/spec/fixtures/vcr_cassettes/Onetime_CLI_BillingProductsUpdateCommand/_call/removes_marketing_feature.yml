@@ -781,115 +781,6 @@ http_interactions:
         }
   recorded_at: Thu, 25 Dec 2025 14:46:21 GMT
 - request:
-    method: post
-    uri: https://api.stripe.com/v1/products
-    body:
-      encoding: UTF-8
-      string: name=Remove+Marketing+Feature+Test&marketing_features[0][name]=Old+Feature&metadata[app]=onetimesecret
-    headers:
-      User-Agent:
-      - Stripe/v1 RubyBindings/17.2.0
-      Authorization:
-      - "<STRIPE_API_KEY>"
-      X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_PJ8AinipZZaEDj","request_duration_ms":386}}'
-      Idempotency-Key:
-      - 1766985739-0ef1f61e-aa18-4418-b130-927d38ebe8fe
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-      X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
-        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
-        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
-      Content-Type:
-      - application/x-www-form-urlencoded
-      Accept-Encoding:
-      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
-      Accept:
-      - "*/*"
-  response:
-    status:
-      code: 200
-      message: OK
-    headers:
-      Server:
-      - nginx
-      Date:
-      - Mon, 29 Dec 2025 05:22:20 GMT
-      Content-Type:
-      - application/json
-      Content-Length:
-      - '552'
-      Connection:
-      - keep-alive
-      Access-Control-Allow-Credentials:
-      - 'true'
-      Access-Control-Allow-Methods:
-      - GET, HEAD, PUT, PATCH, POST, DELETE
-      Access-Control-Allow-Origin:
-      - "*"
-      Access-Control-Expose-Headers:
-      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
-        X-Stripe-Privileged-Session-Required
-      Access-Control-Max-Age:
-      - '300'
-      Cache-Control:
-      - no-cache, no-store
-      Content-Security-Policy:
-      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
-        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=E11nHZYEgA7S3_0s4MtEYUZOXZqplNk_hMdXt48FWDqboaDkfrfFOYefDvzJ0G1KkKEUndzQZXQgsD5R
-      Idempotency-Key:
-      - 1766985739-0ef1f61e-aa18-4418-b130-927d38ebe8fe
-      Original-Request:
-      - req_a12mVvDAyIRnVw
-      Stripe-Should-Retry:
-      - 'false'
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-      Vary:
-      - Origin
-      X-Stripe-Priority-Routing-Enabled:
-      - 'true'
-      X-Stripe-Routing-Context-Priority-Tier:
-      - api-testmode
-      X-Wc:
-      - ABGHIJ
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains; preload
-    body:
-      encoding: UTF-8
-      string: |-
-        {
-          "id": "prod_TgwoADEVUFsTSn",
-          "object": "product",
-          "active": true,
-          "attributes": [],
-          "created": 1766985740,
-          "default_price": null,
-          "description": null,
-          "images": [],
-          "livemode": false,
-          "marketing_features": [
-            {
-              "name": "Old Feature"
-            }
-          ],
-          "metadata": {
-            "app": "onetimesecret"
-          },
-          "name": "Remove Marketing Feature Test",
-          "package_dimensions": null,
-          "shippable": null,
-          "statement_descriptor": null,
-          "tax_code": null,
-          "type": "service",
-          "unit_label": null,
-          "updated": 1766985740,
-          "url": null
-        }
-  recorded_at: Mon, 29 Dec 2025 05:22:20 GMT
-- request:
     method: get
     uri: https://api.stripe.com/v1/products/prod_TgwoADEVUFsTSn
     body:
@@ -1098,4 +989,322 @@ http_interactions:
           "url": null
         }
   recorded_at: Mon, 29 Dec 2025 05:22:21 GMT
-recorded_with: VCR 6.3.1
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/products
+    body:
+      encoding: UTF-8
+      string: name=Remove+Marketing+Feature+Test&marketing_features[0][name]=Old+Feature&metadata[app]=onetimesecret
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/18.1.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_Gxoc8K3EtAvjEQ","request_duration_ms":180}}'
+      Idempotency-Key:
+      - 1771243942-9a6ee68c-f5b1-42c4-b3c9-29f60a2706c7
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"18.1.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Wed Jan 28 20:53:05 PST
+        2026; root:xnu-12377.81.4~5/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Mon, 16 Feb 2026 12:12:23 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '552'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=Np-TS7SMj5ppXvBMrb_c1UzDhjUhsa2b9xQ3PbMthBBjQtrovb7t5QpEaUDDhrOCRT_qqoKwTOoocM1I
+      Idempotency-Key:
+      - 1771243942-9a6ee68c-f5b1-42c4-b3c9-29f60a2706c7
+      Original-Request:
+      - req_YbnNJj1HDaKNq5
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "prod_TzPUHUjiG6D6HV",
+          "object": "product",
+          "active": true,
+          "attributes": [],
+          "created": 1771243943,
+          "default_price": null,
+          "description": null,
+          "images": [],
+          "livemode": false,
+          "marketing_features": [
+            {
+              "name": "Old Feature"
+            }
+          ],
+          "metadata": {
+            "app": "onetimesecret"
+          },
+          "name": "Remove Marketing Feature Test",
+          "package_dimensions": null,
+          "shippable": null,
+          "statement_descriptor": null,
+          "tax_code": null,
+          "type": "service",
+          "unit_label": null,
+          "updated": 1771243943,
+          "url": null
+        }
+  recorded_at: Mon, 16 Feb 2026 12:12:23 GMT
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/products/prod_TzPUHUjiG6D6HV
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/18.1.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_YbnNJj1HDaKNq5","request_duration_ms":250}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"18.1.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Wed Jan 28 20:53:05 PST
+        2026; root:xnu-12377.81.4~5/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Mon, 16 Feb 2026 12:12:23 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '552'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=Np-TS7SMj5ppXvBMrb_c1UzDhjUhsa2b9xQ3PbMthBBjQtrovb7t5QpEaUDDhrOCRT_qqoKwTOoocM1I
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "prod_TzPUHUjiG6D6HV",
+          "object": "product",
+          "active": true,
+          "attributes": [],
+          "created": 1771243943,
+          "default_price": null,
+          "description": null,
+          "images": [],
+          "livemode": false,
+          "marketing_features": [
+            {
+              "name": "Old Feature"
+            }
+          ],
+          "metadata": {
+            "app": "onetimesecret"
+          },
+          "name": "Remove Marketing Feature Test",
+          "package_dimensions": null,
+          "shippable": null,
+          "statement_descriptor": null,
+          "tax_code": null,
+          "type": "service",
+          "unit_label": null,
+          "updated": 1771243943,
+          "url": null
+        }
+  recorded_at: Mon, 16 Feb 2026 12:12:23 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/products/prod_TzPUHUjiG6D6HV
+    body:
+      encoding: UTF-8
+      string: metadata[app]=onetimesecret&metadata[created]=2026-02-16T12%3A12%3A23Z&metadata[display_order]=100&metadata[show_on_plans_page]=true
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/18.1.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_p77bBuumyl7WP9","request_duration_ms":140}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"18.1.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Wed Jan 28 20:53:05 PST
+        2026; root:xnu-12377.81.4~5/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Mon, 16 Feb 2026 12:12:23 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '653'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=Np-TS7SMj5ppXvBMrb_c1UzDhjUhsa2b9xQ3PbMthBBjQtrovb7t5QpEaUDDhrOCRT_qqoKwTOoocM1I
+      Idempotency-Key:
+      - a4bbfa4e-0e4e-472b-9645-507ed3d99552
+      Original-Request:
+      - req_VsZS9iSeQX7ZnF
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "prod_TzPUHUjiG6D6HV",
+          "object": "product",
+          "active": true,
+          "attributes": [],
+          "created": 1771243943,
+          "default_price": null,
+          "description": null,
+          "images": [],
+          "livemode": false,
+          "marketing_features": [
+            {
+              "name": "Old Feature"
+            }
+          ],
+          "metadata": {
+            "app": "onetimesecret",
+            "created": "2026-02-16T12:12:23Z",
+            "display_order": "100",
+            "show_on_plans_page": "true"
+          },
+          "name": "Remove Marketing Feature Test",
+          "package_dimensions": null,
+          "shippable": null,
+          "statement_descriptor": null,
+          "tax_code": null,
+          "type": "service",
+          "unit_label": null,
+          "updated": 1771243943,
+          "url": null
+        }
+  recorded_at: Mon, 16 Feb 2026 12:12:23 GMT
+recorded_with: VCR 6.4.0

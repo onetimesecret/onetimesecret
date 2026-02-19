@@ -11,9 +11,8 @@ RSpec.describe Onetime::Secret, 'security hardening' do
 
   before do
     allow(OT).to receive_messages(global_secret: 'global-test-secret', conf: {
-      'experimental' => {
+      'development' => {
         'allow_nil_global_secret' => false,
-        'rotated_secrets' => [],
       },
     }
     )

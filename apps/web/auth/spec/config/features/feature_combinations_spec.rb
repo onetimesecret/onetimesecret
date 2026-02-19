@@ -19,7 +19,8 @@ RSpec.describe 'Rodauth Feature Combinations' do
 
   describe 'all features enabled simultaneously' do
     # Simulates all features enabled:
-    # ENV['AUTH_HARDENING_ENABLED'] != 'false' (default ON)
+    # ENV['AUTH_LOCKOUT_ENABLED'] != 'false' (default ON)
+    # ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false' (default ON)
     # ENV['AUTH_ACTIVE_SESSIONS_ENABLED'] != 'false' (default ON)
     # ENV['AUTH_REMEMBER_ME_ENABLED'] != 'false' (default ON)
     # ENV['AUTH_MFA_ENABLED'] = 'true'
@@ -99,8 +100,8 @@ RSpec.describe 'Rodauth Feature Combinations' do
     end
   end
 
-  describe 'MFA without hardening features' do
-    # Simulates ENV['AUTH_HARDENING_ENABLED'] = 'false'
+  describe 'MFA without lockout' do
+    # Simulates ENV['AUTH_LOCKOUT_ENABLED'] = 'false'
     # plus ENV['AUTH_MFA_ENABLED'] = 'true'
     let(:app) do
       create_rodauth_app(
@@ -126,6 +127,77 @@ RSpec.describe 'Rodauth Feature Combinations' do
 
     it 'does not have active sessions feature' do
       expect(rodauth_responds_to?(app, :session_inactivity_deadline)).to be false
+    end
+  end
+
+  describe 'lockout without password requirements' do
+    # Simulates ENV['AUTH_LOCKOUT_ENABLED'] != 'false' (default ON)
+    # plus ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] = 'false'
+    let(:app) do
+      create_rodauth_app(
+        db: db,
+        features: [
+          :base, :login, :logout,
+          :lockout
+        ],
+      ) do
+        max_invalid_logins 5
+      end
+    end
+
+    it 'has lockout feature' do
+      expect(rodauth_responds_to?(app, :max_invalid_logins)).to be true
+    end
+
+    it 'does not have password requirements feature' do
+      expect(rodauth_responds_to?(app, :password_meets_requirements?)).to be false
+    end
+  end
+
+  describe 'password requirements without lockout' do
+    # Simulates ENV['AUTH_LOCKOUT_ENABLED'] = 'false'
+    # plus ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false' (default ON)
+    let(:app) do
+      create_rodauth_app(
+        db: db,
+        features: [
+          :base, :login, :logout,
+          :login_password_requirements_base
+        ],
+      )
+    end
+
+    it 'has password requirements feature' do
+      expect(rodauth_responds_to?(app, :password_meets_requirements?)).to be true
+    end
+
+    it 'does not have lockout feature' do
+      expect(rodauth_responds_to?(app, :max_invalid_logins)).to be false
+    end
+  end
+
+  describe 'MFA without password requirements' do
+    # Simulates ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] = 'false'
+    # plus ENV['AUTH_MFA_ENABLED'] = 'true'
+    let(:app) do
+      create_rodauth_app(
+        db: db,
+        features: [
+          :base, :login, :logout,
+          :two_factor_base, :otp, :recovery_codes
+        ],
+      ) do
+        otp_issuer 'OneTimeSecret'
+        otp_auth_failures_limit MFA_OTP_AUTH_FAILURES_LIMIT
+      end
+    end
+
+    it 'has MFA features' do
+      expect(rodauth_responds_to?(app, :otp_setup_route)).to be true
+    end
+
+    it 'does not have password requirements feature' do
+      expect(rodauth_responds_to?(app, :password_meets_requirements?)).to be false
     end
   end
 
@@ -190,7 +262,8 @@ RSpec.describe 'Rodauth Feature Combinations' do
 
   describe 'minimal configuration (all optional features disabled)' do
     # Simulates all features disabled:
-    # ENV['AUTH_HARDENING_ENABLED'] = 'false'
+    # ENV['AUTH_LOCKOUT_ENABLED'] = 'false'
+    # ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] = 'false'
     # ENV['AUTH_ACTIVE_SESSIONS_ENABLED'] = 'false'
     # ENV['AUTH_REMEMBER_ME_ENABLED'] = 'false'
     # with no other optional features enabled

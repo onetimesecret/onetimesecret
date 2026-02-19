@@ -3,6 +3,18 @@
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import type { RouteRecordRaw } from 'vue-router';
 import { SCOPE_PRESETS } from '@/types/router';
+import { isFullAuthMode } from '@/utils/features';
+
+/**
+ * Route guard: redirects to Account profile when auth mode is not 'full'.
+ * Security features (password, MFA, sessions, passkeys) require full auth.
+ */
+function checkFullAuthMode() {
+  if (!isFullAuthMode()) {
+    return { name: 'Account' };
+  }
+  return true;
+}
 
 const standardLayoutProps = {
   displayMasthead: true,
@@ -132,8 +144,23 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    path: '/account/email/confirm/:token',
+    name: 'Confirm Email Change',
+    component: () => import(
+      '@/apps/workspace/account/settings/ConfirmEmailChange.vue'
+    ),
+    meta: {
+      title: 'web.TITLES.confirm_email_change',
+      requiresAuth: false,
+      layout: WorkspaceLayout,
+      layoutProps: standardLayoutProps,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+    },
+  },
+  {
     path: '/account/settings/security',
     name: 'Security Overview',
+    beforeEnter: checkFullAuthMode,
     component: () => import('@/apps/workspace/account/settings/SecurityOverview.vue'),
     meta: {
       title: 'web.TITLES.security_overview',
@@ -146,6 +173,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/settings/security/password',
     name: 'Change Password',
+    beforeEnter: checkFullAuthMode,
     component: () => import('@/apps/workspace/account/ChangePassword.vue'),
     meta: {
       title: 'web.TITLES.change_password',
@@ -158,6 +186,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/settings/security/mfa',
     name: 'Multi-Factor Authentication',
+    beforeEnter: checkFullAuthMode,
     component: () => import('@/apps/workspace/account/MfaSettings.vue'),
     meta: {
       title: 'web.TITLES.mfa_settings',
@@ -170,6 +199,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/settings/security/sessions',
     name: 'Active Sessions',
+    beforeEnter: checkFullAuthMode,
     component: () => import('@/apps/workspace/account/ActiveSessions.vue'),
     meta: {
       title: 'web.TITLES.active_sessions',
@@ -182,6 +212,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/settings/security/recovery-codes',
     name: 'Recovery Codes',
+    beforeEnter: checkFullAuthMode,
     component: () => import('@/apps/workspace/account/RecoveryCodes.vue'),
     meta: {
       title: 'web.TITLES.recovery_codes',
@@ -194,6 +225,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/settings/security/passkeys',
     name: 'Passkeys',
+    beforeEnter: checkFullAuthMode,
     component: () => import('@/apps/workspace/account/PasskeySettings.vue'),
     meta: {
       title: 'web.TITLES.passkeys',

@@ -2,9 +2,10 @@
 #
 # frozen_string_literal: true
 
-# Tests for security features (hardening, active_sessions, remember_me).
+# Tests for security features (lockout, password_requirements, active_sessions, remember_me).
 # These are controlled by granular ENV variables:
-#   - AUTH_HARDENING_ENABLED (lockout, password requirements)
+#   - AUTH_LOCKOUT_ENABLED (brute force protection)
+#   - AUTH_PASSWORD_REQUIREMENTS_ENABLED (password strength)
 #   - AUTH_ACTIVE_SESSIONS_ENABLED (session tracking)
 #   - AUTH_REMEMBER_ME_ENABLED (persistent sessions)
 #
@@ -58,9 +59,13 @@ RSpec.describe 'Security Features Toggle', type: :integration do
   end
 
   describe 'default configuration (security enabled)' do
-    it 'has hardening features enabled by default' do
-      # ENV['AUTH_HARDENING_ENABLED'] != 'false' means enabled
-      expect(ENV['AUTH_HARDENING_ENABLED']).not_to eq('false')
+    it 'has lockout features enabled by default' do
+      # ENV['AUTH_LOCKOUT_ENABLED'] != 'false' means enabled
+      expect(ENV['AUTH_LOCKOUT_ENABLED']).not_to eq('false')
+    end
+
+    it 'has password requirements enabled by default' do
+      expect(ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED']).not_to eq('false')
     end
 
     it 'has active sessions enabled by default' do

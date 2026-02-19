@@ -189,6 +189,14 @@
     "renderer": "erb",
     "content_hash": "fecaf0a1"
   },
+  "email.incoming_secret.passphrase_required": {
+    "text": "This secret is protected with a passphrase. The sender should provide it to you separately.",
+    "sha256": ""
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "Passphrase required:",
+    "sha256": ""
+  },
   "email.incoming_secret.sent_via": {
     "text": "Sent via",
     "renderer": "erb",
@@ -390,17 +398,17 @@
     "content_hash": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "Your email address was changed (%{display_domain})",
+    "text": "Your email address has been changed (%{display_domain})",
     "renderer": "erb",
     "content_hash": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "Your Email Address Was Changed",
+    "text": "Your Email Address Has Been Changed",
     "renderer": "erb",
     "content_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "The email address for your %{product_name} account was changed to %{new_email_masked} on %{date}.",
+    "text": "The email address for your %{product_name} account has been changed to %{new_email_masked}.",
     "renderer": "erb",
     "content_hash": "6f3419d1"
   },
@@ -409,10 +417,78 @@
     "renderer": "erb",
     "content_hash": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "The email address on your %{product_name} account has been changed.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "New email:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "Changed at:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "If you made this change, no further action is required.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "If you did not make this change, your account may be compromised.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "Contact Support",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "renderer": "erb",
     "content_hash": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "P.S. This email was sent to %{email_address} to notify you of an email address change.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "Email change requested (%{display_domain})",
+    "sha256": ""
+  },
+  "email.email_change_requested.title": {
+    "text": "Email Change Requested",
+    "sha256": ""
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "A request was made to change the email address on your %{product_name} account.",
+    "sha256": ""
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "Requested new email:",
+    "sha256": ""
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "Requested at:",
+    "sha256": ""
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "If you made this request, check your new email for a confirmation link. No changes have been made yet.",
+    "sha256": ""
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "If you did not make this request, you can safely ignore this email. Your account has not been changed.",
+    "sha256": ""
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "Contact Support",
+    "sha256": ""
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": ""
+  },
+  "email.email_change_requested.postscript": {
+    "text": "P.S. This email was sent to %{email_address} because an email change was requested for your account.",
+    "sha256": ""
   },
   "email.email_change_confirmation.subject": {
     "text": "Verify your new email address (%{display_domain})",
@@ -434,15 +510,35 @@
     "renderer": "erb",
     "content_hash": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "A request was made to change the email address on your %{product_name} account to %{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "Confirm Email Change",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Or copy and paste this link:",
     "renderer": "erb",
     "content_hash": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "This link will expire in %{hours} hours.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "If you did not request this change, you can safely ignore this email. Your email address will not be changed.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "renderer": "erb",
     "content_hash": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "P.S. This email was sent to %{email_address} to confirm an email address change.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "Two-factor authentication enabled (%{display_domain})",

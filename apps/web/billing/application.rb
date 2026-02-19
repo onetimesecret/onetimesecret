@@ -44,11 +44,6 @@ module Billing
       !Onetime.billing_config.enabled?
     end
 
-    # CSRF Response Header
-    # Note: CSRF validation is handled by common Security middleware with
-    # allow_if to skip webhook endpoints. This just adds the response header.
-    use Onetime::Middleware::CsrfResponseHeader
-
     warmup do
       # Warmup is for preloading and preparing the router
       # Actual initialization logic is in initializers/

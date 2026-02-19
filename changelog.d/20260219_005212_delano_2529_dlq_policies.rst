@@ -1,0 +1,38 @@
+.. A new scriv changelog fragment.
+
+Changed
+-------
+
+- DLQ message TTL is now managed via a RabbitMQ policy (``dlq-ttl``) rather
+  than queue arguments. Policies are mutable at runtime; queue arguments are
+  not, and caused ``PRECONDITION_FAILED`` errors on worker startup when TTL
+  config changed. PR #2529
+
+- ``bin/ots queue init`` now applies the ``dlq-ttl`` policy as step 4 via the
+  Management API. ``bin/ots queue status`` reports active DLQ policies.
+
+**Upgrading existing installs** (environments with DLQ queues declared before
+this release):
+
+.. code-block:: bash
+
+   # Check DLQ message counts — any messages are failed jobs already dead-lettered
+   bin/ots queue status
+
+   # Stop workers, then delete and recreate all queues (destroys DLQ messages)
+   bin/ots queue reset --force
+
+   # Recreate infrastructure and apply the dlq-ttl policy
+   bin/ots queue init
+
+   # Restart workers and verify
+   bin/ots queue status
+
+If DLQ messages must be preserved, drain them before resetting (requeue or
+archive via the Management UI), then proceed with the reset.
+
+AI Assistance
+-------------
+
+- Claude assisted with debugging CI test failures in the DLQ policy filter
+  and nil/empty-array return value semantics for the Management API client.

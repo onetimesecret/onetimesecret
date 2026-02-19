@@ -121,6 +121,14 @@ module V2::Logic
         # Convert to integer, now that we know it has a value
         @ttl = ttl.to_i
 
+        # Entitlement gate: requests beyond free tier TTL require extended_default_expiration.
+        # This runs before clamping so the user gets a clear error with upgrade path
+        # instead of a silent clamp.
+        free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
+        if ttl > free_ttl && org && !org.can?('extended_default_expiration')
+          require_entitlement!('extended_default_expiration')
+        end
+
         # Apply a global maximum
         @ttl = 30.days if ttl && ttl >= 30.days
 
@@ -267,7 +275,7 @@ module V2::Logic
 
       def create_secret_pair
         @receipt, @secret = Onetime::Receipt.spawn_pair(
-          cust&.objid, ttl, secret_value, passphrase: passphrase, domain: share_domain
+          cust&.objid, ttl, secret_value, passphrase: passphrase, domain: share_domain, kind: kind
         )
 
         @greenlighted = receipt.valid? && secret.valid?

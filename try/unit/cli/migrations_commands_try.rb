@@ -46,3 +46,19 @@ cmd.is_a?(Dry::CLI::Command)
 cmd = Onetime::CLI::BackfillStripeEmailHashCommand.new
 cmd.is_a?(Dry::CLI::Command)
 #=> true
+
+## BackfillStripeEmailHashCommand has MAX_RATE_LIMIT_RETRIES constant
+Onetime::CLI::BackfillStripeEmailHashCommand::MAX_RATE_LIMIT_RETRIES
+#=> 3
+
+## rate_limit_retries is initialized outside begin block (scoping fix #2471)
+# Verify via source inspection: rate_limit_retries = 0 is at method level,
+# begin block starts after it, so retry does not re-initialize the counter.
+source_file = File.join(ENV['ONETIME_HOME'], 'lib/onetime/cli/migrations/backfill_stripe_email_hash_command.rb')
+source = File.read(source_file)
+method_match = source[/def process_stripe_customer.*?^      end/m]
+lines = method_match.lines.map(&:strip)
+init_idx = lines.index { |l| l.start_with?('rate_limit_retries = 0') }
+begin_idx = lines.index { |l| l == 'begin' }
+init_idx < begin_idx
+#=> true

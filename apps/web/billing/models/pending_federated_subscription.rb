@@ -96,7 +96,7 @@ module Billing
       pending                         = new(email_hash)  # Sets identifier (email_hash) automatically
       pending.subscription_status     = subscription.status
       pending.planid                  = extract_plan_id(subscription)
-      pending.subscription_period_end = subscription.current_period_end.to_s
+      pending.subscription_period_end = subscription.items.data.first&.current_period_end.to_s
       pending.home_region             = home_region
       pending.received_at             = Time.now.to_i.to_s
       pending.save

@@ -233,6 +233,12 @@ module Onetime
                 plan_def: plan_def,
               }
             end
+          elsif plan_def['legacy']
+            # Legacy plans are never created — they only exist for grandfathered
+            # customers. If the product wasn't found (e.g., filtered by region
+            # or stripe_product_id mismatch), skip entirely.
+            puts "  ⏭ #{plan_id}: skipping (legacy plan, product not found)"
+            next
           else
             # New product
             changes[:products_to_create] << {

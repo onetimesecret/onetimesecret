@@ -56,7 +56,7 @@ module Onetime
 
         module InstanceMethods
           def encryption_key
-            Onetime::Secret.encryption_key OT.global_secret, objid
+            Onetime::Secret.encryption_key OT.global_secret, identifier
           end
 
           def encrypt_value(original_value, opts = {})
@@ -116,15 +116,12 @@ module Onetime
               v_decrypted.dup.force_encoding('utf-8') # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
             rescue OpenSSL::Cipher::CipherError => ex
               OT.le "[decrypted_value] r:#{receipt_identifier} s:#{identifier} CipherError #{ex.message}"
-              # Try fallback global secrets for mode 2 (current encryption)
-              if encryption_mode == 2 && has_fallback_secrets?
-                fallback_result = try_fallback_secrets(v_encrypted, opts)
-                return fallback_result if fallback_result
-              end
 
-              # If all secrets fail, try nil secret if allowed
-              allow_nil = OT.conf['experimental'].fetch('allow_nil_global_secret', false)
-              if allow_nil
+              # Try nil secret if allowed (development mode only) and current global
+              # secret is nil. When global_secret is non-nil, a CipherError means
+              # the passphrase is wrong — not a nil-secret migration scenario.
+              allow_nil = OT.conf['development'].fetch('allow_nil_global_secret', false)
+              if allow_nil && OT.global_secret.nil?
                 OT.li "[decrypted_value] r:#{receipt_identifier} s:#{identifier} Trying nil global secret"
                 decryption_options = opts.merge(key: encryption_key_v2_with_nil)
                 return v_encrypted.decrypt(decryption_options)
@@ -133,33 +130,6 @@ module Onetime
               # If nothing works, raise the original error
               raise ex
             end
-          end
-
-          # Check if there are additional global secrets configured beyond the primary one
-          def has_fallback_secrets?
-            rotated_secrets = OT.conf['experimental'].fetch('rotated_secrets', [])
-            rotated_secrets.is_a?(Array) && rotated_secrets.length > 1
-          end
-
-          # Try to decrypt using each fallback secret
-          def try_fallback_secrets(encrypted_value, opts)
-            return nil unless has_fallback_secrets?
-
-            rotated_secrets = OT.conf['experimental'].fetch('rotated_secrets', [])
-            OT.ld "[try_fallback_secrets] r:#{receipt_identifier} s:#{identifier} Trying rotated secrets (#{rotated_secrets.length})"
-            rotated_secrets.each_with_index do |fallback_secret, index|
-              # Generate key using the fallback secret
-              encryption_key = Onetime::Secret.encryption_key(fallback_secret, identifier, passphrase_temp)
-              result         = encrypted_value.decrypt(opts.merge(key: encryption_key))
-              result         = result.dup.force_encoding('utf-8')
-              OT.li "[try_fallback_secrets] r:#{receipt_identifier} s:#{identifier} Success (index #{index})"
-              return result
-            rescue OpenSSL::Cipher::CipherError
-              # Continue to next secret if this one fails
-              OT.ld "[try_fallback_secrets] r:#{receipt_identifier} s:#{identifier} Failed (index #{index})"
-              next
-            end
-            nil # Return nil if all fallback secrets fail
           end
 
           def can_decrypt?
@@ -187,7 +157,7 @@ module Onetime
             Onetime::Secret.encryption_key OT.global_secret, identifier, passphrase_temp
           end
 
-          # Used as a failover key when experimental.allow_nil_global_secret is true.
+          # Used as a failover key when development.allow_nil_global_secret is true.
           def encryption_key_v2_with_nil
             Onetime::Secret.encryption_key nil, identifier, passphrase_temp
           end

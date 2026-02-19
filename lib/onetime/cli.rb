@@ -18,6 +18,11 @@ module Onetime
       def boot_application!
         # Make sure all the models are loaded before calling boot
         OT.boot! :cli
+
+        # boot! swallows exceptions in CLI mode (for console debugging).
+        # Commands that depend on a fully-booted app should fail fast
+        # with a clear message instead of hitting nil errors later.
+        warn 'Boot failed: OT.conf is nil' unless OT.conf
       end
 
       protected
@@ -84,6 +89,17 @@ require_relative 'cli/totp_command'
 # Load worker and scheduler commands (top-level)
 require_relative 'cli/worker_command'
 require_relative 'cli/scheduler_command'
+
+# Load email CLI commands
+require_relative 'cli/email'
+require_relative 'cli/email/send_command'
+require_relative 'cli/email/test_command'
+require_relative 'cli/email/templates_command'
+require_relative 'cli/email/preview_command'
+require_relative 'cli/email/config_command'
+
+# Load install CLI commands
+require_relative 'cli/install_command'
 
 # Load queue CLI commands
 require_relative 'cli/queue/init_command'

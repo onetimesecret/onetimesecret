@@ -398,34 +398,8 @@
                 </div>
               </div>
 
-              <!-- Submit Area with Stay on Page toggle (always right-aligned) -->
+              <!-- Submit Area (always right-aligned) -->
               <div class="ml-auto flex items-center gap-2.5">
-                <!-- Stay on Page Toggle (refined, compact) -->
-                <!-- Disabled when generating password since user must see the receipt to view the generated password -->
-                <button
-                  type="button"
-                  :disabled="isSubmitting || selectedAction === 'generate-password'"
-                  @click="localReceiptStore.toggleWorkspaceMode()"
-                  :title="selectedAction === 'generate-password'
-                    ? t('web.secrets.workspace_mode_disabled_for_generate')
-                    : t('web.secrets.workspace_mode_description')"
-                  class="inline-flex items-center gap-1 rounded px-2 py-1.5 text-xs
-                    font-medium ring-1 ring-inset transition-all
-                    focus:outline-none focus:ring-2 focus:ring-brand-500/50
-                    disabled:opacity-50 disabled:cursor-not-allowed"
-                  :class="
-                    localReceiptStore.workspaceMode && selectedAction !== 'generate-password'
-                      ? 'bg-brand-50/80 text-brand-600 ring-brand-500/25 hover:bg-brand-100/80 dark:bg-brand-900/20 dark:text-brand-400 dark:ring-brand-400/20 dark:hover:bg-brand-900/30'
-                      : 'bg-gray-50/80 text-gray-500 ring-gray-400/20 hover:bg-gray-100/80 hover:text-gray-600 dark:bg-gray-800/50 dark:text-gray-400 dark:ring-gray-600/20 dark:hover:bg-gray-700/50'
-                  ">
-                  <OIcon
-                    collection="mdi"
-                    :name="localReceiptStore.workspaceMode && selectedAction !== 'generate-password' ? 'pin' : 'pin-off'"
-                    class="size-3.5"
-                    aria-hidden="true" />
-                  <span>{{ t('web.secrets.workspace_mode') }}</span>
-                </button>
-
                 <!-- Submit Button -->
                 <SplitButton
                   :with-generate="true"

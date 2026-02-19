@@ -11,9 +11,7 @@ module Onetime
       # Outputs email content to logs instead of sending.
       #
       class Logger < Base
-        def deliver(email)
-          email = normalize_email(email)
-
+        def perform_delivery(email)
           output = <<~EMAIL
             === EMAIL (Logger) ===
             To: #{email[:to]}
@@ -31,10 +29,13 @@ module Onetime
           # logger. This avoids confusing scenarios where nothing appears in
           # the logs b/c the log level was set incorrectly.
           puts output
-          log_delivery(email, 'logged')
 
           # Return a simple success indicator
           { status: 'logged', to: email[:to] }
+        end
+
+        def delivery_log_status
+          'logged'
         end
       end
     end

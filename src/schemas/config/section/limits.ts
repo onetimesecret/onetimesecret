@@ -21,7 +21,7 @@ const RATE_LIMIT_KEYS = [
   // Secret operations
   'create_secret',
   'show_secret',
-  'show_metadata',
+  'show_receipt',
   'burn_secret',
   'attempt_secret_access',
   'failed_passphrase',

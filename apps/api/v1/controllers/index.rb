@@ -70,7 +70,7 @@ module V1
         end
       end
 
-      def show_metadata
+      def show_receipt
         authorized(true) do
           logic = V1::Logic::Secrets::ShowReceipt.new sess, cust, req.params, locale
           logic.raise_concerns
@@ -122,7 +122,7 @@ module V1
         end
       end
 
-      # curl -X POST -u 'EMAIL:APITOKEN' http://LOCALHOSTNAME:3000/api/v1/private/:key/burn
+      # curl -X POST -u 'EMAIL:APITOKEN' http://LOCALHOSTNAME:3000/api/v1/receipt/:key/burn
       def burn_secret
         authorized(true) do
           req.params['continue'] = 'true'

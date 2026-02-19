@@ -308,8 +308,8 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
     end
 
     before do
-      # Stub FEDERATION_HMAC_SECRET for email hash computation
-      ENV['FEDERATION_HMAC_SECRET'] ||= 'test-hmac-secret-for-federation'
+      # Stub FEDERATION_SECRET for email hash computation
+      ENV['FEDERATION_SECRET'] ||= 'test-hmac-secret-for-federation'
 
       allow(Stripe::Subscription).to receive(:retrieve)
         .with(stripe_subscription_id)
@@ -450,6 +450,214 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
         operation.call
         existing_org.refresh!
         expect(existing_org.email_hash).to eq('existing_org_hash_value_1234567')
+      end
+    end
+
+    # ============================================================================
+    # warn_if_email_hash_divergence Tests
+    # ============================================================================
+    #
+    # Tests for the divergence check added in commit 0043c6745.
+    # warn_if_email_hash_divergence compares the org's locally computed
+    # email_hash against what's stored in Stripe customer metadata.
+    # A mismatch means cross-region federated matching will silently fail.
+
+    describe 'warn_if_email_hash_divergence' do
+      let(:org_hash) { Onetime::Utils::EmailHash.compute(stripe_customer_email) }
+      let(:diverged_hash) { 'aabbccdd11223344aabbccdd11223344' }
+
+      # Stripe customer with a hash that matches the org's computed hash
+      let(:stripe_customer_matching_hash) do
+        build_customer(
+          'id' => stripe_customer_id,
+          'email' => stripe_customer_email,
+          'metadata' => { 'email_hash' => org_hash },
+        )
+      end
+
+      # Stripe customer with a hash that differs from the org's computed hash
+      let(:stripe_customer_diverged_hash) do
+        build_customer(
+          'id' => stripe_customer_id,
+          'email' => stripe_customer_email,
+          'metadata' => { 'email_hash' => diverged_hash },
+        )
+      end
+
+      # Org pre-seeded with a known email_hash so divergence check runs
+      let!(:existing_org) do
+        org = create_test_organization(customer: customer, default: true)
+        org.billing_email = stripe_customer_email
+        org.email_hash = org_hash
+        org.save
+        org
+      end
+
+      # Mock the Billing SemanticLogger to capture warn calls
+      let(:mock_billing_logger) do
+        instance_double(SemanticLogger::Logger, info: nil, debug: nil, error: nil, warn: nil)
+      end
+
+      before do
+        allow(Stripe::Customer).to receive(:update).and_return(stripe_customer_matching_hash)
+        # billing_logger is defined on Onetime::LoggerMethods (included by BaseHandler),
+        # not directly on CheckoutCompleted — stub via the module to satisfy verify_partial_doubles.
+        allow_any_instance_of(Onetime::LoggerMethods)
+          .to receive(:billing_logger).and_return(mock_billing_logger)
+      end
+
+      context 'when org has no email_hash' do
+        # warn_if_email_hash_divergence returns early (line: return if org.email_hash.to_s.empty?)
+        before do
+          existing_org.email_hash = nil
+          existing_org.save
+          allow(Stripe::Customer).to receive(:retrieve)
+            .with(stripe_customer_id)
+            .and_return(stripe_customer_matching_hash)
+        end
+
+        it 'skips divergence check and returns :success' do
+          expect(operation.call).to eq(:success)
+        end
+
+        it 'does not log a divergence warning' do
+          expect(mock_billing_logger).not_to receive(:warn).with(
+            a_string_including('Email hash divergence'),
+            anything,
+          )
+          operation.call
+        end
+      end
+
+      context 'when Stripe customer metadata has no email_hash (hash not set due to error)' do
+        # set_stripe_customer_email_hash raises on update; no hash ends up in Stripe metadata.
+        # warn_if_email_hash_divergence returns early (line: return if stripe_hash.empty?)
+        let(:stripe_customer_no_hash) do
+          build_customer(
+            'id' => stripe_customer_id,
+            'email' => stripe_customer_email,
+            'metadata' => {},
+          )
+        end
+
+        before do
+          allow(Stripe::Customer).to receive(:retrieve)
+            .with(stripe_customer_id)
+            .and_return(stripe_customer_no_hash)
+          allow(Stripe::Customer).to receive(:update)
+            .and_raise(Stripe::APIConnectionError.new('Connection refused'))
+        end
+
+        it 'skips divergence check and returns :success' do
+          expect(operation.call).to eq(:success)
+        end
+
+        it 'does not log a divergence warning' do
+          expect(mock_billing_logger).not_to receive(:warn).with(
+            a_string_including('Email hash divergence'),
+            anything,
+          )
+          operation.call
+        end
+      end
+
+      context 'when Stripe customer metadata email_hash matches org email_hash' do
+        # warn_if_email_hash_divergence returns early (line: return if stripe_hash == org.email_hash)
+        before do
+          allow(Stripe::Customer).to receive(:retrieve)
+            .with(stripe_customer_id)
+            .and_return(stripe_customer_matching_hash)
+        end
+
+        it 'does not log a divergence warning' do
+          expect(mock_billing_logger).not_to receive(:warn).with(
+            a_string_including('Email hash divergence'),
+            anything,
+          )
+          operation.call
+        end
+
+        it 'returns :success' do
+          expect(operation.call).to eq(:success)
+        end
+      end
+
+      context 'when Stripe customer metadata email_hash differs from org email_hash' do
+        before do
+          allow(Stripe::Customer).to receive(:retrieve)
+            .with(stripe_customer_id)
+            .and_return(stripe_customer_diverged_hash)
+          allow(Stripe::Customer).to receive(:update)
+            .and_return(stripe_customer_diverged_hash)
+        end
+
+        it 'logs a divergence warning with hash prefixes and orgid' do
+          expect(mock_billing_logger).to receive(:warn).with(
+            a_string_including('Email hash divergence'),
+            hash_including(
+              orgid: existing_org.extid,
+              org_hash_prefix: org_hash[0..7],
+              stripe_hash_prefix: diverged_hash[0..7],
+            ),
+          )
+          operation.call
+        end
+
+        it 'still returns :success (divergence is advisory, not fatal)' do
+          expect(operation.call).to eq(:success)
+        end
+      end
+
+      context 'Stripe::Customer.retrieve call count' do
+        # set_stripe_customer_email_hash retrieves the customer once to check/set the hash.
+        # warn_if_email_hash_divergence currently makes a second retrieve call.
+        # When the redundancy is eliminated, this test will verify exactly one call.
+        before do
+          allow(Stripe::Customer).to receive(:retrieve)
+            .with(stripe_customer_id)
+            .and_return(stripe_customer_matching_hash)
+        end
+
+        it 'calls Stripe::Customer.retrieve exactly once per checkout' do
+          expect(Stripe::Customer).to receive(:retrieve)
+            .with(stripe_customer_id)
+            .once
+            .and_return(stripe_customer_matching_hash)
+          operation.call
+        end
+      end
+
+      context 'when a Stripe::StripeError is raised inside warn_if_email_hash_divergence' do
+        # Simulates the rescue Stripe::StripeError path introduced in task 1.
+        # Setup: org and Stripe hashes diverge (triggering billing_logger.warn), and then
+        # billing_logger.warn raises Stripe::StripeError on that first call. The rescue block
+        # catches it and logs 'Could not verify email hash consistency'.
+        before do
+          allow(Stripe::Customer).to receive(:retrieve)
+            .with(stripe_customer_id)
+            .and_return(stripe_customer_diverged_hash)
+          allow(Stripe::Customer).to receive(:update).and_return(stripe_customer_diverged_hash)
+
+          # First warn call (Email hash divergence) raises Stripe::StripeError.
+          # The rescue catches it and makes a second warn call.
+          warn_call_count = 0
+          allow(mock_billing_logger).to receive(:warn) do |msg, _ctx|
+            warn_call_count += 1
+            if warn_call_count == 1 && msg.include?('Email hash divergence')
+              raise Stripe::StripeError.new('simulated Stripe error in divergence check')
+            end
+          end
+        end
+
+        it 'logs a warning with "Could not verify email hash consistency"' do
+          expect(mock_billing_logger).to receive(:warn)
+            .with(a_string_including('Could not verify email hash consistency'), anything)
+          operation.call
+        end
+
+        it 'still returns :success (divergence check failure is non-fatal)' do
+          expect(operation.call).to eq(:success)
+        end
       end
     end
   end

@@ -31,11 +31,6 @@ module V2
     # V2-specific middleware (universal middleware in MiddlewareStack)
     use Rack::JSONBodyParser # TODO: Remove since we pass: builder.use Rack::Parser, parsers: @parsers
 
-    # CSRF Response Header
-    # Note: CSRF validation is handled by common Security middleware with
-    # allow_if to skip /api/* routes. This just adds the response header.
-    use Onetime::Middleware::CsrfResponseHeader
-
     # Warmup block placeholder for future initialization
     warmup { nil }
 

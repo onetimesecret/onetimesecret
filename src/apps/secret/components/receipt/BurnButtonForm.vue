@@ -7,7 +7,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useReceipt } from '@/shared/composables/useReceipt';
   import type { Receipt, ReceiptDetails } from '@/schemas/models';
-  import { ref } from 'vue';
+  import { ref, onMounted, onUnmounted } from 'vue';
 
   const { t } = useI18n();
 
@@ -31,8 +31,16 @@
     }, 1000);
   };
 
-  // Trigger bounce animation periodically
-  setInterval(startBounce, 5000);
+  // Trigger bounce animation periodically (with cleanup)
+  let bounceInterval: ReturnType<typeof setInterval> | undefined;
+
+  onMounted(() => {
+    bounceInterval = setInterval(startBounce, 5000);
+  });
+
+  onUnmounted(() => {
+    if (bounceInterval) clearInterval(bounceInterval);
+  });
 </script>
 
 <template>
@@ -49,10 +57,10 @@
         type="button"
         @click="showConfirmation = true"
         class="group flex w-full items-center justify-center gap-3 rounded-lg bg-gradient-to-b
-        from-yellow-300 to-yellow-500 px-6 py-3 text-base
+        from-amber-300 to-amber-500 px-6 py-3 text-base
         font-medium text-gray-900 shadow-sm transition-all duration-200
-        hover:from-yellow-400 hover:to-yellow-500 hover:shadow
-        focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2
+        hover:from-amber-400 hover:to-amber-500 hover:shadow
+        focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2
         disabled:opacity-70 dark:focus:ring-offset-gray-900"
         :disabled="isLoading"
         :aria-label="t('web.COMMON.burn_this_secret_aria')"
@@ -73,8 +81,12 @@
         role="alertdialog"
         aria-labelledby="burn-dialog-title"
         aria-describedby="burn-dialog-desc"
-        class="rounded-xl border border-gray-200
-          bg-white p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+        class="rounded-xl border border-gray-200/60
+          bg-gradient-to-br from-white to-gray-50/30
+          p-6 shadow-[0_4px_16px_rgb(0,0,0,0.08),0_1px_4px_rgb(0,0,0,0.06)]
+          backdrop-blur-sm
+          dark:border-gray-700/60 dark:from-slate-900 dark:to-slate-800/30
+          dark:shadow-[0_4px_16px_rgb(0,0,0,0.3),0_1px_4px_rgb(0,0,0,0.2)]">
         <div class="space-y-4 text-center">
           <div class="relative mx-auto size-16">
             <OIcon
@@ -86,7 +98,7 @@
           </div>
           <h3
             id="burn-dialog-title"
-            class="text-xl font-bold text-gray-900 dark:text-white">
+            class="text-base font-medium text-gray-900 dark:text-white">
             {{ t('web.COMMON.burn_confirmation_title') }}
           </h3>
           <p
@@ -109,8 +121,8 @@
               autocomplete="current-password"
               :placeholder="t('web.COMMON.enter_passphrase_here')"
               class="w-full rounded-lg border border-gray-300
-                bg-white p-4 py-2.5 text-gray-900 shadow-sm
-                focus:border-transparent focus:ring-2 focus:ring-yellow-400
+                bg-white px-4 py-2.5 text-gray-900 shadow-sm
+                focus:border-transparent focus:ring-2 focus:ring-amber-400
                 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
           </div>
         </div>
@@ -120,10 +132,10 @@
           <button
             type="button"
             @click="showConfirmation = false"
-            class="over:bg-gray-50 ark:border-gray-600 rounded-lg border border-gray-300 bg-white
+            class="rounded-lg border border-gray-300 bg-white
               px-4 py-2.5 text-base font-medium text-gray-900
-              transition-colors duration-200 focus:outline-none focus:ring-2
-              focus:ring-yellow-400 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+              transition-colors duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2
+              focus:ring-amber-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
             {{ t('web.LABELS.cancel') }}
           </button>
           <!-- prettier-ignore-attribute class -->
@@ -132,10 +144,10 @@
             @click="burn"
             :disabled="isLoading"
             class="group flex items-center gap-2 rounded-lg
-              bg-gradient-to-r from-yellow-400 to-yellow-500 px-4 py-2.5
+              bg-gradient-to-r from-amber-400 to-amber-500 px-4 py-2.5
               text-base font-medium text-gray-900 shadow-sm transition-all duration-200
-              hover:from-yellow-400 hover:to-yellow-500 hover:shadow
-              focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:opacity-50">
+              hover:from-amber-400 hover:to-amber-500 hover:shadow
+              focus:outline-none focus:ring-2 focus:ring-amber-400 disabled:opacity-50">
             <OIcon
               collection="material-symbols"
               name="local-fire-department-rounded"

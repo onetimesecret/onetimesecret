@@ -447,7 +447,7 @@ module Onetime
       end
 
       def check_queue_depths(conn)
-        require_relative '../jobs/queue_config'
+        require_relative '../jobs/queues/config'
 
         channel = conn.create_channel
         queues  = {}

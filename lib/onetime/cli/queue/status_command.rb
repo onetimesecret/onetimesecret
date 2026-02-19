@@ -15,13 +15,18 @@
 
 require 'bunny'
 require 'json'
-require_relative '../../jobs/queue_config'
+require 'net/http'
+require 'uri'
+require_relative '../../jobs/queues/config'
+require_relative 'rabbitmq_helpers'
 
 module Onetime
   module CLI
     module Queue
       class StatusCommand < Command
         desc 'Show job system status'
+
+        include Onetime::CLI::Queue::RabbitMQHelpers
 
         option :format,
           type: :string,
@@ -73,6 +78,7 @@ module Onetime
             rabbitmq: check_rabbitmq_connection,
             exchanges: {},
             queues: {},
+            dlq_policies: check_dlq_policies,
             scheduler: check_scheduler,
           }
 
@@ -196,18 +202,42 @@ module Onetime
           { error: ex.message }
         end
 
-        # Mask credentials in AMQP URL using URI parsing for robustness
-        # Handles passwords containing special characters like : or @
-        def mask_amqp_credentials(url)
-          uri = URI.parse(url)
-          return url unless uri.userinfo
+        def check_dlq_policies
+          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+          parsed   = parse_amqp_url(amqp_url)
+          vhost    = URI.encode_www_form_component(parsed[:vhost])
 
-          masked_uri          = uri.dup
-          masked_uri.userinfo = '***:***'
-          masked_uri.to_s
-        rescue URI::InvalidURIError
-          # Fallback for malformed URLs
-          url.gsub(%r{//[^@]*@}, '//***:***@')
+          uri      = URI.parse("#{management_url}/api/policies/#{vhost}")
+          user, pw = management_credentials
+
+          http              = Net::HTTP.new(uri.host, uri.port)
+          http.use_ssl      = uri.scheme == 'https'
+          http.open_timeout = 3
+          http.read_timeout = 5
+
+          request = Net::HTTP::Get.new(uri.request_uri)
+          request.basic_auth(user, pw)
+
+          response = http.request(request)
+
+          return nil unless response.code.to_i == 200
+
+          policies = JSON.parse(response.body)
+          policies.select { |p| p['pattern']&.start_with?('dlq', '^dlq') }
+        rescue StandardError
+          # Management API unavailable or error — not critical for status
+          nil
+        end
+
+        def format_ttl(ms)
+          seconds = ms / 1000
+          if seconds >= 86_400
+            format('%dms (%dd)', ms, seconds / 86_400)
+          elsif seconds >= 3600
+            format('%dms (%dh)', ms, seconds / 3600)
+          else
+            format('%dms', ms)
+          end
         end
 
         # rubocop:disable Metrics/PerceivedComplexity -- Display method with inherent branching
@@ -270,6 +300,26 @@ module Onetime
                   info[:consumers],
                 )
               end
+            end
+          end
+          puts
+
+          # DLQ Policies
+          puts 'DLQ Policies:'
+          if status[:dlq_policies].nil?
+            puts '  Management API unavailable'
+          elsif status[:dlq_policies].empty?
+            puts '  none'
+          else
+            status[:dlq_policies].each do |policy|
+              ttl_ms      = policy.dig('definition', 'message-ttl')
+              ttl_display = ttl_ms ? format_ttl(ttl_ms) : 'n/a'
+              puts format(
+                '  %s  pattern=%s  message-ttl=%s',
+                policy['name'],
+                policy['pattern'],
+                ttl_display,
+              )
             end
           end
           puts

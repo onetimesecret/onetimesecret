@@ -520,7 +520,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
       context 'when global secret is invalid (via raise_concerns)' do
         it 'raises OT::ConfigError if global secret is nil and not allowed' do
           config['site']['secret'] = nil
-          config['experimental']['allow_nil_global_secret'] = false # Explicitly ensure it's not allowed
+          config['development']['allow_nil_global_secret'] = false # Explicitly ensure it's not allowed
 
           expect {
             Onetime::Config.after_load(config)
@@ -529,7 +529,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
 
         it 'raises OT::ConfigError if global secret is "CHANGEME" and not allowed' do
           config['site']['secret'] = 'CHANGEME' # Test the specific "CHANGEME" string
-          config['experimental']['allow_nil_global_secret'] = false
+          config['development']['allow_nil_global_secret'] = false
 
           expect {
             Onetime::Config.after_load(config)
@@ -538,7 +538,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
 
         it 'raises OT::ConfigError if global secret is whitespace "CHANGEME  " and not allowed' do
           config['site']['secret'] = 'CHANGEME  ' # Test with trailing whitespace
-          config['experimental']['allow_nil_global_secret'] = false
+          config['development']['allow_nil_global_secret'] = false
 
           expect {
             Onetime::Config.after_load(config)
@@ -588,7 +588,8 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
 
         it 'does not raise ConfigError for nil global secret when explicitly allowed' do
           config['site']['secret'] = nil
-          config['experimental']['allow_nil_global_secret'] = true
+          config['development']['enabled'] = true
+          config['development']['allow_nil_global_secret'] = true
 
           allow(OT).to receive(:li)
 
@@ -596,18 +597,31 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
           expect { Onetime::Config.after_load(config) }.not_to raise_error
 
           # GOOD: Test the negative case to ensure our test is meaningful
-          config['experimental']['allow_nil_global_secret'] = false
+          config['development']['allow_nil_global_secret'] = false
           expect { Onetime::Config.after_load(config) }.to raise_error(OT::ConfigError, /Global secret cannot be nil/)
         end
 
         it 'does not raise for nil global secret when explicitly allowed' do
           config['site']['secret'] = nil
-          config['experimental']['allow_nil_global_secret'] = true
+          config['development']['enabled'] = true
+          config['development']['allow_nil_global_secret'] = true
 
           allow(OT).to receive(:li)
 
           # GOOD: Simple, safe pattern
           expect { Onetime::Config.after_load(config) }.not_to raise_error
+        end
+
+        it 'normalizes allow_nil_global_secret to false when development.enabled is false' do
+          config['site']['secret'] = nil
+          config['development']['enabled'] = false
+          config['development']['allow_nil_global_secret'] = true
+
+          # The normalization should force allow_nil to false, then raise ConfigError
+          # because nil secret is not allowed
+          expect {
+            Onetime::Config.after_load(config)
+          }.to raise_error(OT::ConfigError, /Global secret cannot be nil/)
         end
       end
 
@@ -623,7 +637,8 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
 
         it 'raises OT::ConfigError for missing truemail even if nil global secret is allowed' do
           config['site']['secret'] = nil # Set global secret to nil
-          config['experimental']['allow_nil_global_secret'] = true # Allow nil global secret
+          config['development']['enabled'] = true # Required for allow_nil to take effect
+          config['development']['allow_nil_global_secret'] = true # Allow nil global secret
 
           config['mail'].delete('truemail') # Remove truemail configuration
 
