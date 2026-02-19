@@ -108,7 +108,7 @@ module Billing
 
           # Ensure organization has email_hash computed from billing_email
           ensure_org_email_hash!(org)
-          warn_if_email_hash_divergence(org, stripe_customer_id)
+          warn_if_email_hash_divergence(org, stripe_hash)
 
           if stripe_hash && org.email_hash.to_s.length.positive? && stripe_hash != org.email_hash
             billing_logger.warn 'Email hash divergence: Stripe and org hashes differ — federation matching will fail',
@@ -227,13 +227,9 @@ module Billing
         # @param stripe_customer_id [String] Stripe customer ID
         # @return [void]
         #
-        def warn_if_email_hash_divergence(org, stripe_customer_id)
+        def warn_if_email_hash_divergence(org, stripe_hash)
           return if org.email_hash.to_s.empty?
-          return if stripe_customer_id.to_s.empty?
-
-          stripe_customer = Stripe::Customer.retrieve(stripe_customer_id)
-          stripe_hash     = stripe_customer.metadata['email_hash'].to_s
-          return if stripe_hash.empty?
+          return if stripe_hash.to_s.empty?
 
           return if stripe_hash == org.email_hash
 
