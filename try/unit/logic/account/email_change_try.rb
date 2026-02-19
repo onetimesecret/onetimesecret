@@ -20,6 +20,65 @@ require_relative '../../../support/test_logic'
 # Load the app
 OT.boot! :test, false
 
+require 'sequel'
+require 'apps/web/auth/database'
+
+# Build a minimal in-memory SQLite DB that matches the schema used by
+# update_auth_database and invalidate_sessions in ConfirmEmailChange.
+def build_test_sqlite_db
+  db = Sequel.sqlite  # in-memory
+
+  db.create_table(:account_statuses) do
+    Integer :id, primary_key: true
+    String :name, null: false
+  end
+  db.from(:account_statuses).import([:id, :name], [[1, 'Unverified'], [2, 'Verified'], [3, 'Closed']])
+
+  db.create_table(:accounts) do
+    primary_key :id
+    Integer :status_id, null: false, default: 2
+    String :email, null: false
+    String :external_id, unique: true
+    DateTime :created_at, default: Sequel::CURRENT_TIMESTAMP
+    DateTime :updated_at, default: Sequel::CURRENT_TIMESTAMP
+  end
+
+  db.create_table(:account_active_session_keys) do
+    Integer :account_id, null: false
+    String :session_id
+    Time :created_at, default: Sequel::CURRENT_TIMESTAMP
+    Time :last_use, default: Sequel::CURRENT_TIMESTAMP
+    primary_key [:account_id, :session_id]
+  end
+
+  db
+end
+
+# Temporarily set auth mode to 'full' and stub Auth::Database.connection.
+# Yields the in-memory Sequel DB to the block, then restores original state.
+def with_rodauth_mode(test_db)
+  auth_cfg = Onetime.auth_config
+
+  # Save original cached connection on Auth::Database module
+  original_connection = Auth::Database.instance_variable_get(:@connection)
+
+  # Inject the in-memory SQLite DB as the cached connection directly.
+  # Sequel::Database responds to [:table] so it satisfies the interface
+  # used by find_auth_account without going through LazyConnection.
+  Auth::Database.instance_variable_set(:@connection, test_db)
+
+  # Switch mode to 'full' on the singleton config
+  auth_cfg.instance_variable_get(:@config)['mode'] = 'full'
+
+  yield test_db
+ensure
+  # Restore mode to 'simple'
+  auth_cfg.instance_variable_get(:@config)['mode'] = 'simple'
+
+  # Restore original connection state (nil in simple mode)
+  Auth::Database.instance_variable_set(:@connection, original_connection)
+end
+
 # Setup common variables
 @password = 'testpass123'
 @session = {}
@@ -179,6 +238,68 @@ masked = obj.send(:mask_email, 'user@example.com')
 masked != 'user@example.com' && masked.include?('@')
 #=> true
 
+# --- RequestEmailChange: Rate Limiting ---
+
+## request_count_key is scoped to customer objid
+params = { 'password' => @password, 'new_email' => 'new@example.com' }
+obj = AccountAPI::Logic::Account::RequestEmailChange.new @strategy_result, params
+obj.send(:request_count_key)
+#=> "email_change_request:#{@cust.objid}"
+
+## request_count returns 0 when no counter exists
+Familia.dbclient.del("email_change_request:#{@cust.objid}")
+params = { 'password' => @password, 'new_email' => 'new@example.com' }
+obj = AccountAPI::Logic::Account::RequestEmailChange.new @strategy_result, params
+obj.send(:request_count)
+#=> 0
+
+## Raises rate_limited error when MAX_REQUESTS reached
+Familia.dbclient.del("email_change_request:#{@cust.objid}")
+key = "email_change_request:#{@cust.objid}"
+Familia.dbclient.set(key, AccountAPI::Logic::Account::RequestEmailChange::MAX_REQUESTS.to_s, ex: 3600)
+params = { 'password' => @password, 'new_email' => generate_unique_test_email('rl-blocked') }
+obj = AccountAPI::Logic::Account::RequestEmailChange.new @strategy_result, params
+begin
+  obj.raise_concerns
+rescue => e
+  [e.class, e.message]
+end
+#=> [Onetime::FormError, "Maximum email change attempts (5) reached. Try again in 24 hours."]
+
+## Failed validation (wrong password) does not increment the counter
+Familia.dbclient.del("email_change_request:#{@cust.objid}")
+params = { 'password' => 'wrongpass', 'new_email' => generate_unique_test_email('rl-fail') }
+obj = AccountAPI::Logic::Account::RequestEmailChange.new @strategy_result, params
+begin
+  obj.raise_concerns
+rescue Onetime::FormError
+  nil
+end
+obj.send(:request_count)
+#=> 0
+
+## Successful process increments the counter to 1
+Familia.dbclient.del("email_change_request:#{@cust.objid}")
+rl_email = generate_unique_test_email('rl-incr')
+params = { 'password' => @password, 'new_email' => rl_email }
+obj = AccountAPI::Logic::Account::RequestEmailChange.new @strategy_result, params
+obj.raise_concerns
+obj.process
+obj.send(:request_count)
+#=> 1
+
+## Counter TTL is set to 24 hours after first increment
+ttl = Familia.dbclient.ttl("email_change_request:#{@cust.objid}")
+ttl > 86_000 && ttl <= 86_400
+#=> true
+
+## MAX_REQUESTS constant is 5
+AccountAPI::Logic::Account::RequestEmailChange::MAX_REQUESTS
+#=> 5
+
+# Cleanup rate limit counter after these tests
+Familia.dbclient.del("email_change_request:#{@cust.objid}")
+
 # --- ConfirmEmailChange: Token Lookup ---
 
 ## Raises MissingSecret when token is empty
@@ -321,8 +442,160 @@ confirm.process
 @inv_session.empty?
 #=> true
 
+# --- ConfirmEmailChange: Rodauth full-mode (SQLite accounts.email update) ---
+#
+# These tests exercise the update_auth_database and invalidate_sessions
+# code paths that are guarded by Onetime.auth_config.full_enabled?.
+# Helpers build_test_sqlite_db and with_rodauth_mode are defined in the
+# setup section above (before # TRYOUTS).
+
+## full_enabled? returns true when mode is temporarily set to 'full'
+auth_cfg = Onetime.auth_config
+auth_cfg.instance_variable_get(:@config)['mode'] = 'full'
+result = auth_cfg.full_enabled?
+auth_cfg.instance_variable_get(:@config)['mode'] = 'simple'
+result
+#=> true
+
+## update_auth_database updates accounts.email in SQLite
+# RequestEmailChange runs in simple mode (avoids Rodauth internal_request).
+# ConfirmEmailChange runs with full mode stubbed to verify SQLite update.
+@rod_test_db = build_test_sqlite_db
+@rod_old_email = generate_unique_test_email('rod-old')
+@rod_new_email = generate_unique_test_email('rod-new')
+@rod_cust = Onetime::Customer.new email: @rod_old_email
+@rod_cust.update_passphrase @password
+@rod_cust.save
+
+# Insert a matching row in the accounts table
+@rod_account_id = @rod_test_db[:accounts].insert(
+  email: @rod_old_email,
+  external_id: @rod_cust.extid,
+  status_id: 2,
+  created_at: Time.now,
+  updated_at: Time.now
+)
+
+@rod_strategy = MockStrategyResult.new(session: {}, user: @rod_cust)
+
+# Step 1: request phase in simple mode (no Rodauth dependency)
+req_params = { 'password' => @password, 'new_email' => @rod_new_email }
+req = AccountAPI::Logic::Account::RequestEmailChange.new @rod_strategy, req_params
+req.raise_concerns
+req.process
+@rod_token = @rod_cust.pending_email_change.to_s
+
+# Step 2: confirm phase with full mode + stubbed SQLite DB
+with_rodauth_mode(@rod_test_db) do |_db|
+  confirm = AccountAPI::Logic::Account::ConfirmEmailChange.new @rod_strategy, { 'token' => @rod_token }
+  confirm.raise_concerns
+  @rod_confirm_result = confirm.process
+end
+
+# Verify accounts.email was updated in the SQLite DB
+updated_row = @rod_test_db[:accounts].where(id: @rod_account_id).first
+updated_row[:email]
+#=> @rod_new_email
+
+## ConfirmEmailChange returns confirmed: true in full mode
+@rod_confirm_result[:confirmed]
+#=> true
+
+## ConfirmEmailChange returns redirect to /signin in full mode
+@rod_confirm_result[:redirect]
+#=> '/signin'
+
+## Redis customer email is also updated in full mode
+reloaded = Onetime::Customer.load @rod_cust.objid
+reloaded.email
+#=> @rod_new_email
+
+## invalidate_sessions deletes account_active_session_keys rows in full mode
+@rod_sess_test_db = build_test_sqlite_db
+@rod_sess_email_old = generate_unique_test_email('rod-sess-old')
+@rod_sess_email_new = generate_unique_test_email('rod-sess-new')
+@rod_sess_cust = Onetime::Customer.new email: @rod_sess_email_old
+@rod_sess_cust.update_passphrase @password
+@rod_sess_cust.save
+
+sess_account_id = @rod_sess_test_db[:accounts].insert(
+  email: @rod_sess_email_old,
+  external_id: @rod_sess_cust.extid,
+  status_id: 2,
+  created_at: Time.now,
+  updated_at: Time.now
+)
+
+# Insert a session row to verify it gets deleted during email confirmation
+@rod_sess_test_db[:account_active_session_keys].insert(
+  account_id: sess_account_id,
+  session_id: 'test-session-abc',
+  created_at: Time.now,
+  last_use: Time.now
+)
+
+before_count = @rod_sess_test_db[:account_active_session_keys]
+  .where(account_id: sess_account_id)
+  .count
+
+@rod_sess_strategy = MockStrategyResult.new(session: { 'sid' => 'test' }, user: @rod_sess_cust)
+
+# Request in simple mode, confirm in full mode
+req_params = { 'password' => @password, 'new_email' => @rod_sess_email_new }
+req = AccountAPI::Logic::Account::RequestEmailChange.new @rod_sess_strategy, req_params
+req.raise_concerns
+req.process
+rod_sess_token = @rod_sess_cust.pending_email_change.to_s
+
+with_rodauth_mode(@rod_sess_test_db) do |_db|
+  confirm = AccountAPI::Logic::Account::ConfirmEmailChange.new @rod_sess_strategy, { 'token' => rod_sess_token }
+  confirm.raise_concerns
+  confirm.process
+end
+
+after_count = @rod_sess_test_db[:account_active_session_keys]
+  .where(account_id: sess_account_id)
+  .count
+
+[before_count, after_count]
+#=> [1, 0]
+
+## update_auth_database is skipped gracefully when account not found in SQLite
+@rod_noacct_db = build_test_sqlite_db
+@rod_noacct_email_old = generate_unique_test_email('rod-noacct-old')
+@rod_noacct_email_new = generate_unique_test_email('rod-noacct-new')
+@rod_noacct_cust = Onetime::Customer.new email: @rod_noacct_email_old
+@rod_noacct_cust.update_passphrase @password
+@rod_noacct_cust.save
+
+# No accounts row inserted — simulates a customer not yet synced to auth DB
+@rod_noacct_strategy = MockStrategyResult.new(session: {}, user: @rod_noacct_cust)
+
+# Request in simple mode
+req_params = { 'password' => @password, 'new_email' => @rod_noacct_email_new }
+req = AccountAPI::Logic::Account::RequestEmailChange.new @rod_noacct_strategy, req_params
+req.raise_concerns
+req.process
+rod_noacct_token = @rod_noacct_cust.pending_email_change.to_s
+
+# Confirm in full mode — no matching accounts row so update_auth_database returns early
+noacct_result = nil
+with_rodauth_mode(@rod_noacct_db) do |_db|
+  confirm = AccountAPI::Logic::Account::ConfirmEmailChange.new @rod_noacct_strategy, { 'token' => rod_noacct_token }
+  confirm.raise_concerns
+  noacct_result = confirm.process
+end
+
+# Process completes successfully even without auth DB row (update_auth_database
+# returns early when find_auth_account yields nil account)
+noacct_result[:confirmed]
+#=> true
+
 # Cleanup
 @bare_cust.delete! if defined?(@bare_cust) && @bare_cust
 @inv_cust.delete! if defined?(@inv_cust) && @inv_cust
+@rod_cust.delete! if defined?(@rod_cust) && @rod_cust
+@rod_sess_cust.delete! if defined?(@rod_sess_cust) && @rod_sess_cust
+@rod_noacct_cust.delete! if defined?(@rod_noacct_cust) && @rod_noacct_cust
 @cust.delete!
 @e2e_cust.delete!
