@@ -54,6 +54,11 @@ module AccountAPI::Logic
     class RequestEmailChange < UpdateAccountField
       include Onetime::LoggerMethods
 
+      # Per-customer rate limit: at most MAX_REQUESTS email change requests
+      # within a 24-hour rolling window. Prevents billing API exhaustion via
+      # automated abuse of this authenticated endpoint.
+      MAX_REQUESTS = 5
+
       attr_reader :new_email
 
       def process_params
@@ -75,6 +80,14 @@ module AccountAPI::Logic
         raise_form_error 'Password is required', field: 'password', error_type: 'required' if @password.empty?
         raise_form_error 'New email is required', field: 'new_email', error_type: 'required' if @new_email.empty?
 
+        # Rate-limit check (before password verification to avoid timing oracle)
+        if request_count >= MAX_REQUESTS
+          raise_form_error(
+            "Maximum email change attempts (#{MAX_REQUESTS}) reached. Try again in 24 hours.",
+            error_type: :rate_limited,
+          )
+        end
+
         unless verify_password(@password)
           raise_form_error 'Current password is incorrect', field: 'password', error_type: 'incorrect'
         end
@@ -91,6 +104,11 @@ module AccountAPI::Logic
       end
 
       def perform_update
+        # Increment the per-customer request counter before touching external APIs.
+        # Counter is checked in field_specific_concerns; incrementing here (inside
+        # the happy-path write path) means failed validations don't burn the quota.
+        increment_request_count
+
         # Create a verification secret with 24h TTL following ResetPasswordRequest pattern
         secret                    = Onetime::Secret.create!(owner_id: cust.objid)
         secret.default_expiration = 24.hours
@@ -159,6 +177,24 @@ module AccountAPI::Logic
       rescue StandardError => ex
         OT.le "[request-email-change] Password verification error: #{ex.message}"
         false
+      end
+
+      # Redis key for per-customer email change request rate limiting.
+      # TTL of 24 hours aligns with the verification secret TTL so that
+      # the window resets naturally when secrets expire.
+      def request_count_key
+        "email_change_request:#{cust.objid}"
+      end
+
+      def request_count
+        Familia.dbclient.get(request_count_key).to_i
+      end
+
+      def increment_request_count
+        key = request_count_key
+        Familia.dbclient.incr(key)
+        # Set TTL only on the first increment (ttl == -1 means no expiry set yet)
+        Familia.dbclient.expire(key, 24 * 60 * 60) if Familia.dbclient.ttl(key) == -1
       end
 
       # Mask email: "user@example.com" → "u***@example.com"
