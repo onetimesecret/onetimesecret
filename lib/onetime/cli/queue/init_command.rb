@@ -27,12 +27,15 @@ require 'json'
 require 'uri'
 require_relative '../../jobs/queues/config'
 require_relative '../../jobs/queues/declarator'
+require_relative 'rabbitmq_helpers'
 
 module Onetime
   module CLI
     module Queue
       class InitCommand < Command
         desc 'Initialize RabbitMQ vhost, exchanges, and queues'
+
+        include Onetime::CLI::Queue::RabbitMQHelpers
 
         option :force,
           type: :boolean,
@@ -93,45 +96,6 @@ module Onetime
         end
 
         private
-
-        # Mask credentials in AMQP URL using URI parsing for robustness
-        # Handles passwords containing special characters like : or @
-        def mask_amqp_credentials(url)
-          uri = URI.parse(url)
-          return url unless uri.userinfo
-
-          masked_uri          = uri.dup
-          masked_uri.userinfo = '***:***'
-          masked_uri.to_s
-        rescue URI::InvalidURIError
-          # Fallback for malformed URLs
-          url.gsub(%r{//[^@]*@}, '//***:***@')
-        end
-
-        def parse_amqp_url(url)
-          uri      = URI.parse(url)
-          raw_path = uri.path&.sub(%r{^/}, '')
-          vhost    = raw_path.nil? || raw_path.empty? ? '/' : raw_path
-          {
-            host: uri.host || 'localhost',
-            port: uri.port || 5672,
-            user: uri.user || 'guest',
-            password: uri.password || 'guest',
-            vhost: vhost,
-            scheme: uri.scheme || 'amqp',
-          }
-        end
-
-        def management_url
-          ENV.fetch('RABBITMQ_MANAGEMENT_URL', 'http://localhost:15672')
-        end
-
-        def management_credentials
-          # Try to get from RABBITMQ_URL first, fall back to defaults
-          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
-          parsed   = parse_amqp_url(amqp_url)
-          [parsed[:user], parsed[:password]]
-        end
 
         def create_vhost(parsed)
           vhost = parsed[:vhost]
@@ -249,20 +213,21 @@ module Onetime
 
           puts 'Applying DLQ policies via Management API...'
 
+          encoded_vhost = URI.encode_www_form_component(vhost)
+          user, pw      = management_credentials
+          base_uri      = URI.parse(management_url)
+
+          http              = Net::HTTP.new(base_uri.host, base_uri.port)
+          http.use_ssl      = base_uri.scheme == 'https'
+          http.open_timeout = 5
+          http.read_timeout = 10
+
           Onetime::Jobs::QueueConfig::DLQ_POLICIES.each do |policy|
-            policy_name   = policy[:name]
-            encoded_vhost = URI.encode_www_form_component(vhost)
-            encoded_name  = URI.encode_www_form_component(policy_name)
+            policy_name  = policy[:name]
+            encoded_name = URI.encode_www_form_component(policy_name)
+            path         = "/api/policies/#{encoded_vhost}/#{encoded_name}"
 
-            uri      = URI.parse("#{management_url}/api/policies/#{encoded_vhost}/#{encoded_name}")
-            user, pw = management_credentials
-
-            http              = Net::HTTP.new(uri.host, uri.port)
-            http.use_ssl      = uri.scheme == 'https'
-            http.open_timeout = 5
-            http.read_timeout = 10
-
-            request                 = Net::HTTP::Put.new(uri.path)
+            request                 = Net::HTTP::Put.new(path)
             request.basic_auth(user, pw)
             request['Content-Type'] = 'application/json'
             request.body            = JSON.generate(

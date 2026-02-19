@@ -18,12 +18,15 @@ require 'json'
 require 'net/http'
 require 'uri'
 require_relative '../../jobs/queues/config'
+require_relative 'rabbitmq_helpers'
 
 module Onetime
   module CLI
     module Queue
       class StatusCommand < Command
         desc 'Show job system status'
+
+        include Onetime::CLI::Queue::RabbitMQHelpers
 
         option :format,
           type: :string,
@@ -199,43 +202,6 @@ module Onetime
           { error: ex.message }
         end
 
-        # Mask credentials in AMQP URL using URI parsing for robustness
-        # Handles passwords containing special characters like : or @
-        def mask_amqp_credentials(url)
-          uri = URI.parse(url)
-          return url unless uri.userinfo
-
-          masked_uri          = uri.dup
-          masked_uri.userinfo = '***:***'
-          masked_uri.to_s
-        rescue URI::InvalidURIError
-          # Fallback for malformed URLs
-          url.gsub(%r{//[^@]*@}, '//***:***@')
-        end
-
-        def parse_amqp_url(url)
-          uri      = URI.parse(url)
-          raw_path = uri.path&.sub(%r{^/}, '')
-          vhost    = raw_path.nil? || raw_path.empty? ? '/' : raw_path
-          {
-            host: uri.host || 'localhost',
-            port: uri.port || 5672,
-            user: uri.user || 'guest',
-            password: uri.password || 'guest',
-            vhost: vhost,
-          }
-        end
-
-        def management_url
-          ENV.fetch('RABBITMQ_MANAGEMENT_URL', 'http://localhost:15672')
-        end
-
-        def management_credentials
-          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
-          parsed   = parse_amqp_url(amqp_url)
-          [parsed[:user], parsed[:password]]
-        end
-
         def check_dlq_policies
           amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
           parsed   = parse_amqp_url(amqp_url)
@@ -254,10 +220,10 @@ module Onetime
 
           response = http.request(request)
 
-          return [] unless response.code.to_i == 200
+          return nil unless response.code.to_i == 200
 
           policies = JSON.parse(response.body)
-          policies.select { |p| p['pattern']&.match?(/dlq/) }
+          policies.select { |p| p['pattern']&.match?(/^dlq\./) }
         rescue StandardError
           # Management API unavailable or error — not critical for status
           nil
