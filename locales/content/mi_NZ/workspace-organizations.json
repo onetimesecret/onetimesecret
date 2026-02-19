@@ -1,578 +1,578 @@
 {
   "web.organizations.title": {
     "text": "Ngā Whakahaere",
-    "sha256": "2730183d"
+    "source_hash": "2730183d"
   },
   "web.organizations.organization": {
     "text": "Whakahaere",
-    "sha256": "d764d425"
+    "source_hash": "d764d425"
   },
   "web.organizations.organization_plural": {
     "text": "Ngā Whakahaere",
-    "sha256": "2730183d"
+    "source_hash": "2730183d"
   },
   "web.organizations.organizations_description": {
     "text": "Whakahaere i ō whakahaere",
-    "sha256": "dbaa4f92"
+    "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
     "text": "Ngā Whakahaere",
-    "sha256": "2730183d"
+    "source_hash": "2730183d"
   },
   "web.organizations.manage_organizations": {
     "text": "Whakahaere ngā Whakahaere",
-    "sha256": "be0fe4c3"
+    "source_hash": "be0fe4c3"
   },
   "web.organizations.new_organization": {
     "text": "Whakahaere Hou",
-    "sha256": "4876e647"
+    "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
     "text": "Kāore anō he whakahaere",
-    "sha256": "5b7a7cbd"
+    "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
     "text": "He pire me te whakahaere kotahi e whakaratohia ana e ngā whakahaere. Tīmata mā te waihanga i tō whakahaere tuatahi.",
-    "sha256": "deab4304"
+    "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
     "text": "Kāore he whakamārama i whakaratohia",
-    "sha256": "41183d01"
+    "source_hash": "41183d01"
   },
   "web.organizations.default": {
     "text": "Taunoa",
-    "sha256": "21b111cb"
+    "source_hash": "21b111cb"
   },
   "web.organizations.create_organization": {
     "text": "Waihanga Whakahaere",
-    "sha256": "e27f4540"
+    "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
     "text": "Waihanga Whakahaere Tuatahi",
-    "sha256": "27bae486"
+    "source_hash": "27bae486"
   },
   "web.organizations.create_organization_description": {
     "text": "Waihanga whakahaere hou",
-    "sha256": "67cd5950"
+    "source_hash": "67cd5950"
   },
   "web.organizations.create": {
     "text": "Waihanga",
-    "sha256": "4759498a"
+    "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
     "text": "I rahua te waihanga i te whakahaere",
-    "sha256": "f2204373"
+    "source_hash": "f2204373"
   },
   "web.organizations.organization_name": {
     "text": "Ingoa Whakahaere",
-    "sha256": "4cbd9073"
+    "source_hash": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
     "text": "hei tauira, Acme Corporation",
-    "sha256": "ac1c804b"
+    "source_hash": "ac1c804b"
   },
   "web.organizations.display_name": {
     "text": "Ingoa Whakahaere",
-    "sha256": "4cbd9073"
+    "source_hash": "4cbd9073"
   },
   "web.organizations.description": {
     "text": "Whakamārama",
-    "sha256": "526e0087"
+    "source_hash": "526e0087"
   },
   "web.organizations.description_placeholder": {
     "text": "Mō te aha tēnei whakahaere?",
-    "sha256": "27d7edae"
+    "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
     "text": "Īmēra Pire",
-    "sha256": "513332d3"
+    "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
     "text": "Whakapā matua mō ngā whakamōhio pire me te whakahaere",
-    "sha256": "ee81c03d"
+    "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
     "text": "Kōwhiria he whakahaere",
-    "sha256": "48326f52"
+    "source_hash": "48326f52"
   },
   "web.organizations.switcher_locked": {
     "text": "Kāore e wātea ana te huri whakahaere i tēnei whārangi",
-    "sha256": "da0cf810"
+    "source_hash": "da0cf810"
   },
   "web.organizations.not_found": {
     "text": "Kāore i kitea te whakahaere",
-    "sha256": "00c50f7a"
+    "source_hash": "00c50f7a"
   },
   "web.organizations.load_error": {
     "text": "I rahua te uta i te whakahaere",
-    "sha256": "6b5fa342"
+    "source_hash": "6b5fa342"
   },
   "web.organizations.fetch_organization_error": {
     "text": "I rahua te uta i te whakahaere",
-    "sha256": "6b5fa342"
+    "source_hash": "6b5fa342"
   },
   "web.organizations.fetch_organizations_error": {
     "text": "I rahua te uta i ngā whakahaere",
-    "sha256": "03b30208"
+    "source_hash": "03b30208"
   },
   "web.organizations.organization_information": {
     "text": "Kōrero Whakahaere",
-    "sha256": "85274cee"
+    "source_hash": "85274cee"
   },
   "web.organizations.created": {
     "text": "I Hangaia",
-    "sha256": "d70b9e24"
+    "source_hash": "d70b9e24"
   },
   "web.organizations.last_updated": {
     "text": "Whakahōu Whakamutunga",
-    "sha256": "048c7f2e"
+    "source_hash": "048c7f2e"
   },
   "web.organizations.organization_settings": {
     "text": "Tautuhinga Whakahaere",
-    "sha256": "cc1d9e61"
+    "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
     "text": "Whakahōu te ingoa me te whakamārama o tō whakahaere",
-    "sha256": "2d8b5b2b"
+    "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
     "text": "Tautuhinga Whānui",
-    "sha256": "de322f87"
+    "source_hash": "de322f87"
   },
   "web.organizations.billing_settings": {
     "text": "Pire & Ohaurunga",
-    "sha256": "896913f0"
+    "source_hash": "896913f0"
   },
   "web.organizations.save_changes": {
     "text": "Tiaki ngā Huringa",
-    "sha256": "35322b5b"
+    "source_hash": "35322b5b"
   },
   "web.organizations.update_success": {
     "text": "Kua whakahōu te whakahaere",
-    "sha256": "af39d0f3"
+    "source_hash": "af39d0f3"
   },
   "web.organizations.update_error": {
     "text": "I rahua te whakahōu i te whakahaere",
-    "sha256": "bc2b59b8"
+    "source_hash": "bc2b59b8"
   },
   "web.organizations.billing_coming_soon": {
     "text": "E Haere Mai Ana te Whakahononga Pire",
-    "sha256": "d3e0ec75"
+    "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
     "text": "Ka wātea te whakahaere pire me ohaurunga kotahi i tētahi putanga ā muri.",
-    "sha256": "8836108f"
+    "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
     "text": "Mō ngā Whakahaere",
-    "sha256": "2f3e2ad8"
+    "source_hash": "2f3e2ad8"
   },
   "web.organizations.about_description": {
     "text": "He pire me te whakahaere kotahi e whakaratohia ana e ngā whakahaere mō te whakahaere whakapū.",
-    "sha256": "910f97a8"
+    "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
     "text": "Whakahaere i Tō Whakahaere",
-    "sha256": "810a6c86"
+    "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
     "text": "Whakahōu te ingoa o tō kamupene me ngā taipitopito whakahaere ki konei. Ka āwhina ēnei kōrero ki te whakamotuhake i tō pūkete ka taea te whakamahi mō ngā āhuatanga waitohu ā muri.",
-    "sha256": "96b2e4b5"
+    "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
     "text": "Te Tīmata ki ngā Whakahaere",
-    "sha256": "2871e738"
+    "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
     "text": "Waihanga tō whakahaere tuatahi hei whakahaere i ngā kōrero o tō kamupene me te whakarite mō ngā āhuatanga waitohu ā muri.",
-    "sha256": "0487f33a"
+    "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
     "text": "Whakahaere i ō whakahaere me ngā mema rōpū",
-    "sha256": "2d026be4"
+    "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
     "text": "Tautuhinga",
-    "sha256": "74a883a0"
+    "source_hash": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
     "text": "Waitohu Kamupene",
-    "sha256": "7ecc5d35"
+    "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
     "text": "Rōpū",
-    "sha256": "5985039f"
+    "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
     "text": "Pire",
-    "sha256": "3ac8bbca"
+    "source_hash": "3ac8bbca"
   },
   "web.organizations.danger_zone": {
     "text": "Wāhi Mōrearea",
-    "sha256": "3c1c01b4"
+    "source_hash": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
     "text": "Muku Whakahaere",
-    "sha256": "54b2edc7"
+    "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
     "text": "Ka muku pūmautia tēnei i te whakahaere. Kāore e taea te whakakore i tēnei mahi.",
-    "sha256": "ab2d2c05"
+    "source_hash": "ab2d2c05"
   },
   "web.organizations.delete": {
     "text": "Muku",
-    "sha256": "e2d0a549"
+    "source_hash": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
     "text": "Muku Whakahaere",
-    "sha256": "54b2edc7"
+    "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
     "text": "Kei te tino hiahia koe ki te muku i a {name}? Kāore e taea te whakakore i tēnei mahi.",
-    "sha256": "db7e1f9d"
+    "source_hash": "db7e1f9d"
   },
   "web.organizations.delete_error": {
     "text": "I rahua te muku i te whakahaere",
-    "sha256": "a8e5bb28"
+    "source_hash": "a8e5bb28"
   },
   "web.organizations.members.title": {
     "text": "Ngā Mema",
-    "sha256": "1044a4c0"
+    "source_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
     "text": "Whakahaere i ngā mema whakahaere me ō rātou tūranga",
-    "sha256": "1353774c"
+    "source_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
     "text": "Ngā Mema o Nāianei",
-    "sha256": "cfc156ae"
+    "source_hash": "cfc156ae"
   },
   "web.organizations.members.member": {
     "text": "Mema",
-    "sha256": "7c968fb7"
+    "source_hash": "7c968fb7"
   },
   "web.organizations.members.member_singular": {
     "text": "mema",
-    "sha256": "e31ab643"
+    "source_hash": "e31ab643"
   },
   "web.organizations.members.member_plural": {
     "text": "ngā mema",
-    "sha256": "17373ca1"
+    "source_hash": "17373ca1"
   },
   "web.organizations.members.name": {
     "text": "Ingoa",
-    "sha256": "dcd1d522"
+    "source_hash": "dcd1d522"
   },
   "web.organizations.members.email": {
     "text": "Īmēra",
-    "sha256": "969ccbd3"
+    "source_hash": "969ccbd3"
   },
   "web.organizations.members.role": {
     "text": "Tūranga",
-    "sha256": "14736a2e"
+    "source_hash": "14736a2e"
   },
   "web.organizations.members.joined": {
     "text": "I Hono",
-    "sha256": "69318b0c"
+    "source_hash": "69318b0c"
   },
   "web.organizations.members.actions": {
     "text": "Ngā Mahi",
-    "sha256": "ff8059dc"
+    "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
     "text": "Kāore anō he mema. Pōhiria ngā mema rōpū hei tīmata.",
-    "sha256": "6cbc5271"
+    "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
     "text": "Kāore anō he mema i tēnei whakahaere.",
-    "sha256": "61dd2085"
+    "source_hash": "61dd2085"
   },
   "web.organizations.members.role_updated": {
     "text": "Kua whakahōu te tūranga mema",
-    "sha256": "d0d332c6"
+    "source_hash": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
     "text": "I rahua te whakahōu i te tūranga mema",
-    "sha256": "17d5ca66"
+    "source_hash": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
     "text": "Kua tangohia te mema mai i te whakahaere",
-    "sha256": "210a187b"
+    "source_hash": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
     "text": "I rahua te tango mema",
-    "sha256": "1cff79b7"
+    "source_hash": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
     "text": "Tango Mema",
-    "sha256": "2b98b194"
+    "source_hash": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
     "text": "Kei te tino hiahia koe ki te tango i a {name} mai i tēnei whakahaere?",
-    "sha256": "36695d98"
+    "source_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
     "text": "Kāore e taea e koe te huri i tō ake tūranga",
-    "sha256": "0d874f75"
+    "source_hash": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
     "text": "Kāore e taea e koe te tango i a koe ake mai i te whakahaere",
-    "sha256": "ab358307"
+    "source_hash": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
     "text": "Kāore e taea e koe te tango i te rangatira whakahaere",
-    "sha256": "c92ed0f4"
+    "source_hash": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
     "text": "Kāore ō mana ki te whakahaere mema",
-    "sha256": "d6239f33"
+    "source_hash": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
     "text": "Rangatira",
-    "sha256": "4b1b8aa3"
+    "source_hash": "4b1b8aa3"
   },
   "web.organizations.members.roles.admin": {
     "text": "Kaiwhakahaere",
-    "sha256": "c1c224b0"
+    "source_hash": "c1c224b0"
   },
   "web.organizations.members.roles.member": {
     "text": "Mema",
-    "sha256": "7c968fb7"
+    "source_hash": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
     "text": "Urunga katoa ki ngā tautuhinga whakahaere me ngā mema katoa",
-    "sha256": "d49381bf"
+    "source_hash": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
     "text": "Ka taea te whakahaere mema me te nuinga o ngā tautuhinga whakahaere",
-    "sha256": "3d7ade92"
+    "source_hash": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
     "text": "Urunga taketake ki ngā rauemi whakahaere",
-    "sha256": "0ddca91a"
+    "source_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
     "text": "Ngā Pōhiri Whakahaere",
-    "sha256": "0289d92d"
+    "source_hash": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
     "text": "Pōhiri Mema",
-    "sha256": "8e8a0b88"
+    "source_hash": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
     "text": "Pōhiri Mema Hou",
-    "sha256": "0bfb50ed"
+    "source_hash": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
     "text": "Ngā Pōhiri e Tatari Ana",
-    "sha256": "b327e8a8"
+    "source_hash": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
     "text": "Kāore he pōhiri e tatari ana",
-    "sha256": "275814da"
+    "source_hash": "275814da"
   },
   "web.organizations.invitations.email_address": {
     "text": "Wāhitau Īmēra",
-    "sha256": "09bf25ef"
+    "source_hash": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
     "text": "mema{'@'}tauira.com",
-    "sha256": "7fd425f7"
+    "source_hash": "7fd425f7"
   },
   "web.organizations.invitations.role": {
     "text": "Tūranga",
-    "sha256": "14736a2e"
+    "source_hash": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
     "text": "Tuku Pōhiri",
-    "sha256": "d076aa0f"
+    "source_hash": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
     "text": "Kua tukuna te pōhiri",
-    "sha256": "81facbe6"
+    "source_hash": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
     "text": "I rahua te tuku pōhiri",
-    "sha256": "cedbf507"
+    "source_hash": "cedbf507"
   },
   "web.organizations.invitations.resend": {
     "text": "Tuku Anō",
-    "sha256": "1f948437"
+    "source_hash": "1f948437"
   },
   "web.organizations.invitations.revoke": {
     "text": "Whakakore",
-    "sha256": "87e6d00b"
+    "source_hash": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
     "text": "Kua tuku anō te pōhiri",
-    "sha256": "099eb255"
+    "source_hash": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
     "text": "I rahua te tuku anō i te pōhiri",
-    "sha256": "82750487"
+    "source_hash": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
     "text": "Kua whakakorea te pōhiri",
-    "sha256": "4ce1262c"
+    "source_hash": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
     "text": "I rahua te whakakore i te pōhiri",
-    "sha256": "9dbd2a60"
+    "source_hash": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
     "text": "I pōhiritia e",
-    "sha256": "c7a6f156"
+    "source_hash": "c7a6f156"
   },
   "web.organizations.invitations.invited_at": {
     "text": "I Pōhiritia",
-    "sha256": "63b17bec"
+    "source_hash": "63b17bec"
   },
   "web.organizations.invitations.expires_at": {
     "text": "Ka Pau",
-    "sha256": "f6725f3a"
+    "source_hash": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
     "text": "I tuku anō {count} wā",
-    "sha256": "e71d1c6d"
+    "source_hash": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
     "text": "I tuku anō {count} ngā wā",
-    "sha256": "e58d803d"
+    "source_hash": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
     "text": "E Tatari Ana",
-    "sha256": "331551b0"
+    "source_hash": "331551b0"
   },
   "web.organizations.invitations.status.accepted": {
     "text": "Kua Whakaae",
-    "sha256": "a00fb0c5"
+    "source_hash": "a00fb0c5"
   },
   "web.organizations.invitations.status.declined": {
     "text": "Kua Whakakāhoretia",
-    "sha256": "dce083a2"
+    "source_hash": "dce083a2"
   },
   "web.organizations.invitations.status.expired": {
     "text": "Kua Pau",
-    "sha256": "424a2551"
+    "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
     "text": "Mema",
-    "sha256": "7c968fb7"
+    "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "Kaiwhakahaere",
-    "sha256": "c1c224b0"
+    "source_hash": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
     "text": "Whakaae ki te Pōhiri",
-    "sha256": "ce7cfeaf"
+    "source_hash": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
     "text": "Whakakāhore i te Pōhiri",
-    "sha256": "f6e06ada"
+    "source_hash": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
     "text": "Taipitopito Pōhiri",
-    "sha256": "59936259"
+    "source_hash": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
     "text": "Kua pōhiritia koe ki te hono ki",
-    "sha256": "60e635c6"
+    "source_hash": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
     "text": "Kua pōhiritia koe hei",
-    "sha256": "f9809eae"
+    "source_hash": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
     "text": "Kua whakaae ki te pōhiri",
-    "sha256": "7eb6b234"
+    "source_hash": "7eb6b234"
   },
   "web.organizations.invitations.accept_error": {
     "text": "I rahua te whakaae ki te pōhiri",
-    "sha256": "3ecc8b0f"
+    "source_hash": "3ecc8b0f"
   },
   "web.organizations.invitations.decline_success": {
     "text": "Kua whakakāhoretia te pōhiri",
-    "sha256": "31bffdcb"
+    "source_hash": "31bffdcb"
   },
   "web.organizations.invitations.decline_error": {
     "text": "I rahua te whakakāhore i te pōhiri",
-    "sha256": "2bccbd56"
+    "source_hash": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
     "text": "Kua pau tēnei pōhiri",
-    "sha256": "b72770d7"
+    "source_hash": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
     "text": "He pōhiri muhu, kua pau rānei",
-    "sha256": "6c0fc3de"
+    "source_hash": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
     "text": "Tēnā takiuru hei whakaae ki tēnei pōhiri",
-    "sha256": "469fc705"
+    "source_hash": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
     "text": "E uta ana i ngā taipitopito pōhiri",
-    "sha256": "58884885"
+    "source_hash": "58884885"
   },
   "web.organizations.billing_email_updated": {
     "text": "Kua whakahōu te īmēra pire",
-    "sha256": "080a7f11"
+    "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
     "text": "Ka taea te huri i te īmēra pire i te whārangi Tirohanga Pire",
-    "sha256": "8a131415"
+    "source_hash": "8a131415"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
-    "sha256": "957b0b87"
+    "source_hash": "957b0b87"
   },
   "web.organizations.member_count": {
     "text": "{count} mema | {count} mema",
-    "sha256": "f652af0c"
+    "source_hash": "f652af0c"
   },
   "web.organizations.domain_count": {
     "text": "{count} rohe | {count} rohe",
-    "sha256": "09f52efa"
+    "source_hash": "09f52efa"
   },
   "web.organizations.invitations.upgrade_to_invite": {
     "text": "Whakapiki tō mahere hei pōhiri mema rōpū",
-    "sha256": "5e3f8df8"
+    "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
     "text": "Me whai mahere me te whakahaere rōpū mō ngā pōhiri mema rōpū. Whakapiki hei tāpiri kaihonohono ki tō whakahaere.",
-    "sha256": "cf10d623"
+    "source_hash": "cf10d623"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Pūkete Hē",
-    "sha256": "80c8ffa7"
+    "source_hash": "80c8ffa7"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "I tukuna tēnei pōhiri ki {invitedEmail}, engari kua takiuru koe hei {currentEmail}.",
-    "sha256": "937e08e7"
+    "source_hash": "937e08e7"
   },
   "web.organizations.invitations.switch_account": {
     "text": "Takiuru mā Pūkete Kē",
-    "sha256": "71b2bdf3"
+    "source_hash": "71b2bdf3"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}r e toe ana",
-    "sha256": "50ff6f2b"
+    "source_hash": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
     "text": "{hours}h e toe ana",
-    "sha256": "ff56d105"
+    "source_hash": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
     "text": "Ka pau tata",
-    "sha256": "a5dcfef9"
+    "source_hash": "a5dcfef9"
   },
   "web.organizations.tabs.subscription": {
     "text": "Ohaurunga",
-    "sha256": "4999c6c6"
+    "source_hash": "4999c6c6"
   },
   "web.organizations.tabs.domains": {
     "text": "Ngā Rohe",
-    "sha256": "ced67718"
+    "source_hash": "ced67718"
   }
 }

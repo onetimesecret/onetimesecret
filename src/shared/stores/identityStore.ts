@@ -1,14 +1,23 @@
 // src/shared/stores/identityStore.ts
 
 import { brandSettingschema, type BrandSettings } from '@/schemas/models/domain/brand';
+import {
+  DEFAULT_BUTTON_TEXT_LIGHT,
+  DEFAULT_CORNER_CLASS,
+  NEUTRAL_BRAND_DEFAULTS,
+} from '@/shared/constants/brand';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, toRefs, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useBootstrapStore } from './bootstrapStore';
 
-export const DEFAULT_PRIMARY_COLOR = '#dc4a22';
-export const DEFAULT_CORNER_CLASS = 'rounded-lg';
-export const DEFAULT_BUTTON_TEXT_LIGHT = true; // light text for default colour
+// Re-export for backwards compatibility
+/** @deprecated Use NEUTRAL_BRAND_DEFAULTS.primary_color instead */
+export {
+  DEFAULT_BUTTON_TEXT_LIGHT,
+  DEFAULT_CORNER_CLASS,
+  DEFAULT_BRAND_HEX as DEFAULT_PRIMARY_COLOR,
+} from '@/shared/constants/brand';
 
 /**
  * Represents the product's identity state for a given domain context
@@ -35,8 +44,11 @@ interface IdentityState {
 }
 
 /**
- * Zod validator for primary color field
- * Ensures color values conform to brand schema requirements
+ * Zod validator extracted from the brand schema's primary_color field.
+ * Used to validate (not default) the color value before entering the
+ * fallback chain. Returns the validated hex string, or null/undefined
+ * when the field is absent — which lets ?? fall through to the next
+ * source in the chain.
  */
 const primaryColorValidator = brandSettingschema.shape.primary_color;
 
@@ -70,11 +82,32 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   function getInitialState(): IdentityState {
     const brand = brandSettingschema.parse(domain_branding.value ?? {});
 
-    // Parse with fallback values
+    // 3-step fallback chain for primary color resolution:
+    //   1. domain_branding      - Per-domain color from Redis (custom domain branding)
+    //   2. brand_primary_color  - Site-wide default from backend (OT.conf via BrandSettingsConstants)
+    //   3. NEUTRAL_BRAND_DEFAULTS - Generic neutral theme when bootstrap completely fails
+    //
+    // Philosophy: Step 3 should NEVER show OTS branding. If bootstrap fails to provide
+    // brand data, the UI degrades to neutral blue (#3B82F6), not accidentally advertising
+    // OTS. This supports private-label / private-label deployments.
+    //
+    // Step 2 inherits from backend BrandSettingsConstants.defaults which reads
+    // OT.conf['brand']['primary_color'] at runtime. This ensures frontend brand
+    // values come from backend config, not hardcoded frontend constants.
+    //
+    // The brand schema uses .nullish() instead of .default() so absent domain
+    // colors fall through to steps 2 and 3.
     const primaryColor =
-      primaryColorValidator.parse(brand.primary_color) ?? DEFAULT_PRIMARY_COLOR;
+      primaryColorValidator.parse(brand.primary_color) ??
+      bootstrapStore.brand_primary_color ??
+      NEUTRAL_BRAND_DEFAULTS.primary_color;
     const buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
-    const allowPublicHomepage = brand.allow_public_homepage ?? false;
+    // 3-step fallback chain for allow_public_homepage:
+    //   1. Per-domain setting from Redis (custom domain branding)
+    //   2. Per-installation setting from config (brand.allow_public_homepage)
+    //   3. Hardcoded default (true — public homepage enabled by default)
+    const allowPublicHomepage =
+      brand.allow_public_homepage ?? bootstrapStore.brand_allow_public_homepage ?? true;
 
     return {
       domainStrategy: domain_strategy.value,
@@ -92,14 +125,17 @@ export const useProductIdentity = defineStore('productIdentity', () => {
 
   const state = reactive<IdentityState>(getInitialState());
 
-  // Watch for domain branding changes to update derived state
+  // Watch for domain branding changes — re-evaluate the fallback chain
   watch(domain_branding, (newBranding) => {
     const brand = brandSettingschema.parse(newBranding ?? {});
     state.brand = brand;
     state.primaryColor =
-      primaryColorValidator.parse(brand.primary_color) ?? DEFAULT_PRIMARY_COLOR;
+      primaryColorValidator.parse(brand.primary_color) ??
+      bootstrapStore.brand_primary_color ??
+      NEUTRAL_BRAND_DEFAULTS.primary_color;
     state.buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
-    state.allowPublicHomepage = brand.allow_public_homepage ?? false;
+    state.allowPublicHomepage =
+      brand.allow_public_homepage ?? bootstrapStore.brand_allow_public_homepage ?? true;
   });
 
   // Watch for domain config changes (consolidated for reduced reactive overhead)
@@ -128,12 +164,13 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   const displayName = computed(() => state.brand?.description || state.displayDomain);
 
   /** Logo URL for custom domain, pre-computed by backend with correct extid */
-  const logoUri = computed(() =>
-    // Backend provides the correct logo URL using extid (external ID).
-    // Returns null if no logo is uploaded for this custom domain.
-    // Note: Client-side URL generation is not possible since we only have
-    // the internal domainId, not the public extid needed for the /imagine route.
-    domain_logo.value
+  const logoUri = computed(
+    () =>
+      // Backend provides the correct logo URL using extid (external ID).
+      // Returns null if no logo is uploaded for this custom domain.
+      // Note: Client-side URL generation is not possible since we only have
+      // the internal domainId, not the public extid needed for the /imagine route.
+      domain_logo.value
   );
 
   const cornerClass = computed(() => {

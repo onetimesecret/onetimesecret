@@ -338,14 +338,18 @@ console.log(`✅ Registered ${accountRoutes.routes.length} paths\n`);
 // Generate OpenAPI document
 console.log('📝 Generating OpenAPI document...');
 
+// Read brand configuration from environment variables
+const PRODUCT_NAME = process.env.BRAND_PRODUCT_NAME || 'OTS';
+const PRODUCT_DOMAIN = process.env.BRAND_PRODUCT_DOMAIN || 'onetimesecret.com';
+
 const generator = new OpenApiGeneratorV3(registry.definitions);
 const document = generator.generateDocument({
   openapi: '3.0.3',
   info: {
-    title: 'Onetime Secret Account API',
+    title: `${PRODUCT_NAME} Account API`,
     version: '1.0.0',
     description: `
-Account management API for Onetime Secret.
+Account management API for ${PRODUCT_NAME}.
 
 **Base URL**: \`/api/account\`
 
@@ -360,9 +364,9 @@ This API handles user account operations including:
 Some endpoints are restricted to users with the colonel (administrator) role.
     `.trim(),
     contact: {
-      name: 'Onetime Secret Support',
-      url: 'https://onetimesecret.com',
-      email: 'support@onetimesecret.com',
+      name: `${PRODUCT_NAME} Support`,
+      url: `https://${PRODUCT_DOMAIN}`,
+      email: `support@${PRODUCT_DOMAIN}`,
     },
     license: {
       name: 'MIT',
@@ -371,12 +375,8 @@ Some endpoints are restricted to users with the colonel (administrator) role.
   },
   servers: [
     {
-      url: 'https://onetimesecret.com',
+      url: `https://${PRODUCT_DOMAIN}`,
       description: 'Production server',
-    },
-    {
-      url: 'https://test.onetimesecret.com',
-      description: 'Test server',
     },
     {
       url: 'http://localhost:3000',

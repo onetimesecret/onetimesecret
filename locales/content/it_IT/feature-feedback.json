@@ -1,38 +1,39 @@
 {
   "web.feedback.your_feedback": {
     "text": "Il tuo feedback",
-    "sha256": "cdb1c0a5"
+    "source_hash": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
     "text": "Ogni feedback è benvenuto",
-    "sha256": "c57d3006"
+    "source_hash": "c57d3006"
   },
   "web.feedback.help_us_improve": {
     "text": "Aiutaci a migliorare",
-    "sha256": "f35439c4"
+    "source_hash": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
     "text": "Chiudi finestra feedback",
-    "sha256": "41689bb4"
+    "source_hash": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
     "text": "Condividi il tuo feedback",
-    "sha256": "6d62dfbd"
+    "source_hash": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
     "text": "Delano Mandelbaum",
-    "sha256": "6da0b72b"
+    "source_hash": "6da0b72b"
   },
   "web.feedback.delano": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "source_hash": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
     "text": "Il contenuto della guida va qui.",
-    "sha256": "796979ea"
+    "source_hash": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Grazie per aver aiutato Onetime Secret a migliorare. Significa molto"
+    "text": "Grazie per aver aiutato {product_name} a migliorare. Significa molto",
+    "source_hash": "73f2aa15"
   },
   "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
     "text": "Abbiamo costruito questo strumento per aiutarvi a condividere informazioni sensibili in modo sicuro e le vostre esperienze reali sono fondamentali per concentrare i nostri sforzi. Ci aiutano a capire su cosa lavorare e come migliorare il servizio per tutti"
@@ -41,26 +42,27 @@
     "text": "Ehilà, grazie per esserti fermato sulla nostra pagina di feedback. Il tuo contributo non è solo gradito, è fondamentale"
   },
   "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Una nota di Delano, fondatore di Onetime Secret"
+    "text": "Una nota di Delano, fondatore di {product_name}",
+    "source_hash": "eabcbbb0"
   },
   "web.feedback.open_feedback_form": {
     "text": "Apri modulo feedback",
-    "sha256": "acd8409b"
+    "source_hash": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
     "text": "Inserisci il tuo feedback",
-    "sha256": "1bb310f4"
+    "source_hash": "1bb310f4"
   },
   "web.feedback.send_feedback": {
     "text": "Invia feedback",
-    "sha256": "8235980b"
+    "source_hash": "8235980b"
   },
   "web.feedback.founder_note_line1": {
     "text": "Leggo ogni feedback che arriva qui. È così che capisco su cosa vale la pena lavorare.",
-    "sha256": "8b430d93"
+    "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
     "text": "Se qualcosa non va, o hai idee su come dovrebbe funzionare, questo è il posto giusto.",
-    "sha256": "d4b8f073"
+    "source_hash": "d4b8f073"
   }
 }

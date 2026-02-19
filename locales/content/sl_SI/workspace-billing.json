@@ -1,833 +1,833 @@
 {
   "web.billing.upgrade.required": {
     "text": "Potrebna nadgradnja",
-    "sha256": "16487236"
+    "source_hash": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
     "text": "Ogled paketov",
-    "sha256": "a865d424"
+    "source_hash": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
     "text": "Upravljanje ekip zahteva Identity Plus ali višji paket",
-    "sha256": "95bdda65"
+    "source_hash": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
     "text": "Lastne domene zahtevajo Identity Plus ali višji paket",
-    "sha256": "e8af8484"
+    "source_hash": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
     "text": "Dostop do API-ja zahteva Identity Plus ali višji paket",
-    "sha256": "ab8be865"
+    "source_hash": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
     "text": "Revizijski dnevniki zahtevajo paket Več ekip ali višji",
-    "sha256": "91df96b0"
+    "source_hash": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
     "text": "Upravljajte svojo naročnino, organizacije in nastavitve obračunavanja",
-    "sha256": "3995095c"
+    "source_hash": "3995095c"
   },
   "web.billing.overview.title": {
     "text": "Pregled obračunavanja",
-    "sha256": "479a3c4c"
+    "source_hash": "479a3c4c"
   },
   "web.billing.overview.description": {
     "text": "Oglejte si in upravljajte naročnino ter podatke o plačilu",
-    "sha256": "60e5a00e"
+    "source_hash": "60e5a00e"
   },
   "web.billing.overview.organization_selector": {
     "text": "Izberite organizacijo"
   },
   "web.billing.overview.current_plan": {
     "text": "Trenutni paket",
-    "sha256": "5d856320"
+    "source_hash": "5d856320"
   },
   "web.billing.overview.plan_features": {
     "text": "Funkcije paketa",
-    "sha256": "fbab9086"
+    "source_hash": "fbab9086"
   },
   "web.billing.overview.payment_method": {
     "text": "Način plačila",
-    "sha256": "f89a4e17"
+    "source_hash": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
     "text": "Naslednji datum obračuna",
-    "sha256": "3d1df54e"
+    "source_hash": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
     "text": "Hitra dejanja",
-    "sha256": "2cc2b6f7"
+    "source_hash": "2cc2b6f7"
   },
   "web.billing.overview.manage_billing": {
     "text": "Upravljaj obračunavanje",
-    "sha256": "6d3a16f5"
+    "source_hash": "6d3a16f5"
   },
   "web.billing.overview.view_invoices": {
     "text": "Ogled računov",
-    "sha256": "cfc0404e"
+    "source_hash": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
     "text": "Nadgradi paket",
-    "sha256": "17787ab7"
+    "source_hash": "17787ab7"
   },
   "web.billing.overview.change_plan": {
     "text": "Spremeni paket",
-    "sha256": "2d0b195b"
+    "source_hash": "2d0b195b"
   },
   "web.billing.overview.no_payment_method": {
     "text": "Ni shranjenega načina plačila",
-    "sha256": "77f71037"
+    "source_hash": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
     "text": "Ni prihajajočih obračunov",
-    "sha256": "746314de"
+    "source_hash": "746314de"
   },
   "web.billing.overview.days_remaining": {
     "text": "preostalih dni",
-    "sha256": "385438a3"
+    "source_hash": "385438a3"
   },
   "web.billing.overview.billing_on": {
     "text": "Obračun {date}",
-    "sha256": "40dcb7cf"
+    "source_hash": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
     "text": "Ogled paketov",
-    "sha256": "a865d424"
+    "source_hash": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
     "text": "Primerjajte in nadgradite",
-    "sha256": "40e02bff"
+    "source_hash": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
     "text": "Ogled računov",
-    "sha256": "cfc0404e"
+    "source_hash": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
     "text": "Prenos zgodovine",
-    "sha256": "b8ff5cac"
+    "source_hash": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
     "text": "Upravljaj obračunavanje",
-    "sha256": "6d3a16f5"
+    "source_hash": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
     "text": "Posodobite podatke o plačilu",
-    "sha256": "1f981aaf"
+    "source_hash": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
     "text": "Ni organizacij",
-    "sha256": "12420110"
+    "source_hash": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
     "text": "Ustvarite organizacijo za upravljanje obračunavanja in naročnine",
-    "sha256": "41e922d2"
+    "source_hash": "41e922d2"
   },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "Ustvarjanje skrivnosti",
-    "sha256": "0320541d"
+    "source_hash": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
     "text": "Ogled računov",
-    "sha256": "6c664c31"
+    "source_hash": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
     "text": "Dostop do API-ja",
-    "sha256": "5f31cc2f"
+    "source_hash": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
     "text": "Lastne domene",
-    "sha256": "6170ab94"
+    "source_hash": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
     "text": "Privzete nastavitve zasebnosti po meri",
-    "sha256": "e677e27d"
+    "source_hash": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
     "text": "Podaljšan privzeti rok poteka",
-    "sha256": "19b19637"
+    "source_hash": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_defaults": {
     "text": "Privzete nastavitve e-pošte po meri",
-    "sha256": "95aebfb9"
+    "source_hash": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
     "text": "Lastna blagovna znamka",
-    "sha256": "237dabec"
+    "source_hash": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
     "text": "Domača stran z blagovno znamko",
-    "sha256": "e355a396"
+    "source_hash": "e355a396"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "Dohodne skrivnosti",
-    "sha256": "883dbca9"
+    "source_hash": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_orgs": {
     "text": "Upravljanje organizacij",
-    "sha256": "be0fe4c3"
+    "source_hash": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
     "text": "Upravljanje ekip",
-    "sha256": "2a52d5b4"
+    "source_hash": "2a52d5b4"
   },
   "web.billing.overview.entitlements.manage_members": {
     "text": "Upravljanje članov",
-    "sha256": "af812b01"
+    "source_hash": "af812b01"
   },
   "web.billing.overview.entitlements.audit_logs": {
     "text": "Revizijski dnevniki",
-    "sha256": "5428d7fe"
+    "source_hash": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
     "text": "Enotna prijava",
-    "sha256": "cf7cd744"
+    "source_hash": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
     "text": "Prednostna podpora",
-    "sha256": "ed8a65c8"
+    "source_hash": "ed8a65c8"
   },
   "web.billing.overview.entitlements.sla": {
     "text": "Sporazum o ravni storitve",
-    "sha256": "436f2550"
+    "source_hash": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
     "text": "Ni bilo mogoče naložiti podrobnosti funkcij",
-    "sha256": "c350973c"
+    "source_hash": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
     "text": "Ni razpoložljivih funkcij",
-    "sha256": "03d195e8"
+    "source_hash": "03d195e8"
   },
   "web.billing.plans.title": {
     "text": "Izberite paket",
-    "sha256": "79506c82"
+    "source_hash": "79506c82"
   },
   "web.billing.plans.choose_plan": {
     "text": "Izberite paket, ki ustreza vašim potrebam",
-    "sha256": "5f039cb9"
+    "source_hash": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
     "text": "Izberite popoln paket za vašo organizacijo",
-    "sha256": "308076f2"
+    "source_hash": "308076f2"
   },
   "web.billing.plans.current": {
     "text": "Trenutni paket",
-    "sha256": "5d856320"
+    "source_hash": "5d856320"
   },
   "web.billing.plans.current_badge": {
     "text": "Trenutni",
-    "sha256": "e0d1b682"
+    "source_hash": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
     "text": "Nadgradi",
-    "sha256": "7ec0261b"
+    "source_hash": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
     "text": "Znižaj",
-    "sha256": "d955b7e8"
+    "source_hash": "d955b7e8"
   },
   "web.billing.plans.monthly": {
     "text": "Mesečno",
-    "sha256": "9b11f6b7"
+    "source_hash": "9b11f6b7"
   },
   "web.billing.plans.yearly": {
     "text": "Letno",
-    "sha256": "6e69b59e"
+    "source_hash": "6e69b59e"
   },
   "web.billing.plans.per_month": {
     "text": "/mesec",
-    "sha256": "eec5d08b"
+    "source_hash": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
     "text": "Prihranite {percent}% z letnim obračunavanjem",
-    "sha256": "88c451f2"
+    "source_hash": "88c451f2"
   },
   "web.billing.plans.free_plan": {
     "text": "Brezplačno",
-    "sha256": "f411a1fb"
+    "source_hash": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
     "text": "Ena ekipa",
-    "sha256": "267ad4cf"
+    "source_hash": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
     "text": "Več ekip",
-    "sha256": "ffc73d2c"
+    "source_hash": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
     "text": "Osebni račun",
-    "sha256": "324221e2"
+    "source_hash": "324221e2"
   },
   "web.billing.plans.team_account": {
     "text": "Ekipni račun",
-    "sha256": "44e90aad"
+    "source_hash": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
     "text": "Račun organizacije",
-    "sha256": "86e3a165"
+    "source_hash": "86e3a165"
   },
   "web.billing.plans.features": {
     "text": "Funkcije",
-    "sha256": "5697d03d"
+    "source_hash": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
     "text": "Neomejeno skrivnosti",
-    "sha256": "0f077568"
+    "source_hash": "0f077568"
   },
   "web.billing.plans.api_access": {
     "text": "Dostop do API-ja",
-    "sha256": "923fd434"
+    "source_hash": "923fd434"
   },
   "web.billing.plans.priority_support": {
     "text": "Prednostna podpora",
-    "sha256": "acea4b40"
+    "source_hash": "acea4b40"
   },
   "web.billing.plans.select_plan": {
     "text": "Izberi paket",
-    "sha256": "8709f894"
+    "source_hash": "8709f894"
   },
   "web.billing.plans.contact_sales": {
     "text": "Kontaktirajte prodajo",
-    "sha256": "484aa053"
+    "source_hash": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
     "text": "Imate vprašanja ali potrebujete kaj po meri?",
-    "sha256": "2f68484c"
+    "source_hash": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
     "text": "Z veseljem vas slišimo. Sporočite nam, kaj iščete.",
-    "sha256": "a6b7f407"
+    "source_hash": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
     "text": "{count} ekipa | {count} ekipi | {count} ekipe | {count} ekip",
-    "sha256": "a83641bc"
+    "source_hash": "a83641bc"
   },
   "web.billing.plans.members_limit": {
     "text": "{count} član na ekipo | {count} člana na ekipo | {count} člani na ekipo | {count} članov na ekipo",
-    "sha256": "54fb2b4b"
+    "source_hash": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
     "text": "Neomejeno ekip",
-    "sha256": "6d9fde65"
+    "source_hash": "6d9fde65"
   },
   "web.billing.plans.unlimited_members": {
     "text": "Neomejeno članov na ekipo",
-    "sha256": "728ecef0"
+    "source_hash": "728ecef0"
   },
   "web.billing.plans.most_popular": {
     "text": "Najbolj priljubljeno",
-    "sha256": "9e1006a4"
+    "source_hash": "9e1006a4"
   },
   "web.billing.plans.suggested": {
     "text": "Priporočeno",
-    "sha256": "93b63bab"
+    "source_hash": "93b63bab"
   },
   "web.billing.plans.everything_in": {
     "text": "Vključuje vse iz {plan}",
-    "sha256": "1c73c298"
+    "source_hash": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
     "text": "Trenutno ni na voljo nobenih paketov {interval}.",
-    "sha256": "d8454436"
+    "source_hash": "d8454436"
   },
   "web.billing.plans.change_immediate": {
     "text": "Vaš paket se bo spremenil takoj.",
-    "sha256": "889d13be"
+    "source_hash": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
     "text": "Trenutni paket:",
-    "sha256": "648a0ab2"
+    "source_hash": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
     "text": "Nov paket:",
-    "sha256": "edb868c4"
+    "source_hash": "edb868c4"
   },
   "web.billing.plans.credit_label": {
     "text": "Dobropis za neuporabljen čas:",
-    "sha256": "001e4901"
+    "source_hash": "001e4901"
   },
   "web.billing.plans.next_invoice": {
     "text": "Naslednji račun",
-    "sha256": "5670e027"
+    "source_hash": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
     "text": "Omejitve funkcij se bodo posodobile takoj po spremembi paketa.",
-    "sha256": "9cb09f73"
+    "source_hash": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
     "text": "Sprememba paketa ni uspela. Poskusite znova.",
-    "sha256": "a4e86372"
+    "source_hash": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
     "text": "Potrdi nadgradnjo",
-    "sha256": "71a4ab02"
+    "source_hash": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
     "text": "Potrdi znižanje",
-    "sha256": "deaf8189"
+    "source_hash": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
     "text": "Nadgraditi na {plan}?",
-    "sha256": "b1e4e88c"
+    "source_hash": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
     "text": "Znižati na {plan}?",
-    "sha256": "8eb8ea81"
+    "source_hash": "8eb8ea81"
   },
   "web.billing.invoices.title": {
     "text": "Zgodovina obračunavanja",
-    "sha256": "5ade0861"
+    "source_hash": "5ade0861"
   },
   "web.billing.invoices.view_history": {
     "text": "Oglejte si zgodovino obračunavanja in prenesite račune",
-    "sha256": "eb72573c"
+    "source_hash": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
     "text": "Datum",
-    "sha256": "99c40ab4"
+    "source_hash": "99c40ab4"
   },
   "web.billing.invoices.invoice_amount": {
     "text": "Znesek",
-    "sha256": "49e96d7c"
+    "source_hash": "49e96d7c"
   },
   "web.billing.invoices.invoice_status": {
     "text": "Stanje",
-    "sha256": "920e413c"
+    "source_hash": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
     "text": "Prenesi",
-    "sha256": "d6eafe82"
+    "source_hash": "d6eafe82"
   },
   "web.billing.invoices.no_invoices": {
     "text": "Še ni računov",
-    "sha256": "92d2d0ce"
+    "source_hash": "92d2d0ce"
   },
   "web.billing.invoices.paid": {
     "text": "Plačano",
-    "sha256": "fb81b961"
+    "source_hash": "fb81b961"
   },
   "web.billing.invoices.pending": {
     "text": "V čakanju",
-    "sha256": "331551b0"
+    "source_hash": "331551b0"
   },
   "web.billing.invoices.failed": {
     "text": "Neuspelo",
-    "sha256": "031a8f0f"
+    "source_hash": "031a8f0f"
   },
   "web.billing.invoices.draft": {
     "text": "Osnutek",
-    "sha256": "d2e16e61"
+    "source_hash": "d2e16e61"
   },
   "web.billing.invoices.load_error": {
     "text": "Nalaganje računov ni uspelo",
-    "sha256": "0b0cb3f7"
+    "source_hash": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
     "text": "Obračunavanje upravlja {orgName}",
-    "sha256": "6cfe0fb4"
+    "source_hash": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
     "text": "Ogled obračunavanja organizacije",
-    "sha256": "2ae16262"
+    "source_hash": "2ae16262"
   },
   "web.billing.limits.members_reached": {
     "text": "Dosegli ste omejitev članov za to ekipo",
-    "sha256": "ce8f2a24"
+    "source_hash": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
     "text": "Nadgradite za dodajanje več članov",
-    "sha256": "602bdef4"
+    "source_hash": "602bdef4"
   },
   "web.billing.subscription.title": {
     "text": "Naročnina",
-    "sha256": "4999c6c6"
+    "source_hash": "4999c6c6"
   },
   "web.billing.subscription.status": {
     "text": "Stanje naročnine",
-    "sha256": "c7a08e1d"
+    "source_hash": "c7a08e1d"
   },
   "web.billing.subscription.active": {
     "text": "Aktivno",
-    "sha256": "92340695"
+    "source_hash": "92340695"
   },
   "web.billing.subscription.inactive": {
     "text": "Neaktivno",
-    "sha256": "ac7c949f"
+    "source_hash": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
     "text": "Zapadlo",
-    "sha256": "2bda1c7b"
+    "source_hash": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
     "text": "Preklicano",
-    "sha256": "13ca2ee2"
+    "source_hash": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
     "text": "Paket",
-    "sha256": "fa8ed0bd"
+    "source_hash": "fa8ed0bd"
   },
   "web.billing.portal.title": {
     "text": "Portal za obračunavanje",
-    "sha256": "9baaf69e"
+    "source_hash": "9baaf69e"
   },
   "web.billing.portal.description": {
     "text": "Upravljajte naročnino, načine plačila in zgodovino obračunavanja",
-    "sha256": "1a8f3c19"
+    "source_hash": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
     "text": "Odpri portal za obračunavanje",
-    "sha256": "23fbfa2b"
+    "source_hash": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
     "text": "Preusmerjanje na portal za obračunavanje ...",
-    "sha256": "b6f47df3"
+    "source_hash": "b6f47df3"
   },
   "web.billing.start_today": {
     "text": "Začnite danes",
-    "sha256": "80e73fc7"
+    "source_hash": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
     "text": "Začnite danes z Identity Plus",
-    "sha256": "cce4c7d7"
+    "source_hash": "cce4c7d7"
   },
   "web.billing.per_month": {
     "text": "na mesec",
-    "sha256": "88b1d1a6"
+    "source_hash": "88b1d1a6"
   },
   "web.billing.full_api_access": {
     "text": "Popoln dostop do API-ja",
-    "sha256": "f5bedf1c"
+    "source_hash": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
     "text": "Zasebnost na prvem mestu",
-    "sha256": "587d738c"
+    "source_hash": "587d738c"
   },
   "web.billing.identity_plus": {
     "text": "Identity Plus",
-    "sha256": "bb273516"
+    "source_hash": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
     "text": "Kliknite to strelo za nadgradnjo za domene po meri",
-    "sha256": "84cb4258"
+    "source_hash": "84cb4258"
   },
   "web.billing.maybe_later": {
     "text": "Morda pozneje",
-    "sha256": "166b26ab"
+    "source_hash": "166b26ab"
   },
   "web.billing.upgrade_account": {
     "text": "Nadgradi račun",
-    "sha256": "4799b02e"
+    "source_hash": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
     "text": "Nadgradite na Identity Plus",
-    "sha256": "272d3c80"
+    "source_hash": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
     "text": "Nadgradnja za ekipe",
-    "sha256": "90dfb533"
+    "source_hash": "90dfb533"
   },
   "web.billing.benefits_of": {
     "text": "Prednosti",
-    "sha256": "75403743"
+    "source_hash": "75403743"
   },
   "web.billing.t_benefits_of_identity_plus": {
     "text": "{0}: Identity Plus",
-    "sha256": "f13e5f3e"
+    "source_hash": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
     "text": "Nadgradite na",
-    "sha256": "2ecdd437"
+    "source_hash": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
     "text": "Nadgradnja za secrets.vasadomena.si",
-    "sha256": "8e4d766a"
+    "source_hash": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
     "text": "Vsi načrti vključujejo funkcije zasebnosti in neomejeno zmogljivost deljenja",
-    "sha256": "e728e4e1"
+    "source_hash": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
     "text": "Vsi paketi vključujejo izbiro lokacije podatkov: {0} regij",
-    "sha256": "22a60b49"
+    "source_hash": "22a60b49"
   },
   "web.billing.get_started": {
     "text": "Začnite",
-    "sha256": "61e8d44a"
+    "source_hash": "61e8d44a"
   },
   "web.billing.frequency_value_annually_annual_monthly_subscrip": {
     "text": "{0} naročnina",
-    "sha256": "eaf5e2ef"
+    "source_hash": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
     "text": "Povzdignite svoje varno deljenje z domenami po meri, neomejeno zmogljivostjo in funkcijami poslovnega razreda.",
-    "sha256": "db458d30"
+    "source_hash": "db458d30"
   },
   "web.billing.payment_frequency": {
     "text": "Pogostost plačevanja",
-    "sha256": "b2c87e39"
+    "source_hash": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
     "text": "Zavarujte svojo blagovno znamko in zgradite zaupanje strank s povezavami iz vaše domene. Popolno za podjetja, ki cenijo zasebnost in profesionalnost.",
-    "sha256": "c07cd25c"
+    "source_hash": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
     "text": "Varne povezave, močnejše povezanosti",
-    "sha256": "dd8dae5d"
+    "source_hash": "dd8dae5d"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
     "text": "Stopnja identitete ni bila najdena v stopnjah produkta",
-    "sha256": "d0204fc4"
+    "source_hash": "d0204fc4"
   },
   "web.billing.cancel.link_text": {
     "text": "Prekliči naročnino",
-    "sha256": "3f85967f"
+    "source_hash": "3f85967f"
   },
   "web.billing.cancel.title": {
     "text": "Prekliči naročnino",
-    "sha256": "882e0c83"
+    "source_hash": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
     "text": "Ali ste prepričani, da želite preklicati naročnino {plan}?",
-    "sha256": "f4d1b6ee"
+    "source_hash": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
     "text": "Kaj se zgodi, ko prekličete:",
-    "sha256": "4d8f5751"
+    "source_hash": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
     "text": "Ohranili boste dostop do vseh funkcij do {date}",
-    "sha256": "eab1efe3"
+    "source_hash": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
     "text": "Dostop boste ohranili do konca tekočega obračunskega obdobja",
-    "sha256": "1b07a54a"
+    "source_hash": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
     "text": "Ne boste več zaračunani",
-    "sha256": "a01cdc16"
+    "source_hash": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
     "text": "Vaš račun se bo vrnil na brezplačni paket",
-    "sha256": "e01b3fc3"
+    "source_hash": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
     "text": "Obdrži naročnino",
-    "sha256": "31e80c41"
+    "source_hash": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
     "text": "Prekliči naročnino",
-    "sha256": "882e0c83"
+    "source_hash": "882e0c83"
   },
   "web.billing.cancel.success": {
     "text": "Vaša naročnina je bila preklicana. Dostop boste ohranili do konca obračunskega obdobja.",
-    "sha256": "e18fd9d5"
+    "source_hash": "e18fd9d5"
   },
   "web.billing.cancel.error": {
     "text": "Preklica naročnine ni uspel. Poskusite znova.",
-    "sha256": "68e8bdde"
+    "source_hash": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
     "text": "Preklic naročnine načrtovan",
-    "sha256": "1427d139"
+    "source_hash": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
     "text": "Vaša naročnina bo ostala aktivna do {date}. Do takrat boste imeli popoln dostop do vseh funkcij.",
-    "sha256": "aab4b1dc"
+    "source_hash": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
     "text": "Ste si premislili? Naročnino lahko kadarkoli ponovno aktivirate pred datumom preklica.",
-    "sha256": "c94d5527"
+    "source_hash": "c94d5527"
   },
   "web.billing.features.create_secrets": {
     "text": "Ustvarjanje in deljenje skrivnosti",
-    "sha256": "303f9386"
+    "source_hash": "303f9386"
   },
   "web.billing.features.api_access": {
     "text": "Dostop do API-ja",
-    "sha256": "5f31cc2f"
+    "source_hash": "5f31cc2f"
   },
   "web.billing.features.custom_domains": {
     "text": "Lastne domene",
-    "sha256": "6170ab94"
+    "source_hash": "6170ab94"
   },
   "web.billing.features.custom_domain": {
     "text": "1 lastna domena",
-    "sha256": "6a6be744"
+    "source_hash": "6a6be744"
   },
   "web.billing.features.unlimited_custom_domains": {
     "text": "Neomejeno lastnih domen",
-    "sha256": "53eb7521"
+    "source_hash": "53eb7521"
   },
   "web.billing.features.custom_branding": {
     "text": "Lastna blagovna znamka",
-    "sha256": "237dabec"
+    "source_hash": "237dabec"
   },
   "web.billing.features.homepage_secrets": {
     "text": "Domača stran z blagovno znamko",
-    "sha256": "e355a396"
+    "source_hash": "e355a396"
   },
   "web.billing.features.manage_teams": {
     "text": "Upravljanje ekip",
-    "sha256": "6bcbac8f"
+    "source_hash": "6bcbac8f"
   },
   "web.billing.features.manage_members": {
     "text": "Upravljanje članov",
-    "sha256": "b38b89db"
+    "source_hash": "b38b89db"
   },
   "web.billing.features.audit_logs": {
     "text": "Revizijski dnevniki",
-    "sha256": "5428d7fe"
+    "source_hash": "5428d7fe"
   },
   "web.billing.features.sso": {
     "text": "Enotna prijava (SSO)",
-    "sha256": "5db5c812"
+    "source_hash": "5db5c812"
   },
   "web.billing.features.priority_support": {
     "text": "Prednostna podpora",
-    "sha256": "ed8a65c8"
+    "source_hash": "ed8a65c8"
   },
   "web.billing.features.sla": {
     "text": "Sporazum o ravni storitve",
-    "sha256": "436f2550"
+    "source_hash": "436f2550"
   },
   "web.billing.features.centralized_billing": {
     "text": "Centralizirano obračunavanje",
-    "sha256": "62042d3b"
+    "source_hash": "62042d3b"
   },
   "web.billing.features.audit_trail": {
     "text": "Revizijska sled",
-    "sha256": "d52b4039"
+    "source_hash": "d52b4039"
   },
   "web.billing.features.activity_stream": {
     "text": "Tok dejavnosti",
-    "sha256": "b9c6cba7"
+    "source_hash": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
     "text": "Delovni tokovi predaje",
-    "sha256": "07202af3"
+    "source_hash": "07202af3"
   },
   "web.billing.features.extended_retention": {
     "text": "30-dnevno hranjenje skrivnosti",
-    "sha256": "21d6d514"
+    "source_hash": "21d6d514"
   },
   "web.billing.features.homepage_secrets": {
     "text": "Skrivnosti na domači strani",
-    "sha256": "6360f7ec"
+    "source_hash": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
     "text": "Dohodne skrivnosti",
-    "sha256": "883dbca9"
+    "source_hash": "883dbca9"
   },
   "web.billing.features.team_members_5": {
     "text": "Do 5 članov ekipe",
-    "sha256": "e7518d07"
+    "source_hash": "e7518d07"
   },
   "web.billing.features.team_members_10": {
     "text": "Do 10 članov ekipe",
-    "sha256": "0c64c064"
+    "source_hash": "0c64c064"
   },
   "web.billing.features.team_members_25": {
     "text": "Do 25 članov ekipe",
-    "sha256": "bf3b84c8"
+    "source_hash": "bf3b84c8"
   },
   "web.billing.features.team_members_50": {
     "text": "Do 50 članov ekipe",
-    "sha256": "3c2d9a14"
+    "source_hash": "3c2d9a14"
   },
   "web.billing.features.unlimited_members": {
     "text": "Neomejeno članov ekipe",
-    "sha256": "b7491ee9"
+    "source_hash": "b7491ee9"
   },
   "web.billing.features.notifications": {
     "text": "E-poštna obvestila",
-    "sha256": "04e0f1e9"
+    "source_hash": "04e0f1e9"
   },
   "web.billing.features.ip_access_rules": {
     "text": "Pravila dostopa IP",
-    "sha256": "db966d47"
+    "source_hash": "db966d47"
   },
   "web.billing.features.workspace_branding": {
     "text": "Blagovna znamka delovnega prostora",
-    "sha256": "e7acbf6f"
+    "source_hash": "e7acbf6f"
   },
   "web.billing.features.dedicated_infrastructure": {
     "text": "Namenska infrastruktura",
-    "sha256": "0c10aea7"
+    "source_hash": "0c10aea7"
   },
   "web.billing.features.shared_workflows": {
     "text": "Deljeni delovni tokovi",
-    "sha256": "158f558e"
+    "source_hash": "158f558e"
   },
   "web.billing.overview.billing_for_organization": {
     "text": "Obračunavanje za to organizacijo",
-    "sha256": "21806992"
+    "source_hash": "21806992"
   },
   "web.billing.overview.upgrade_success": {
     "text": "Vaš paket je bil uspešno nadgrajen",
-    "sha256": "00ac43f8"
+    "source_hash": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
     "text": "Vaš novi paket je zdaj aktiven. Hvala za nakup.",
-    "sha256": "fd1caeb1"
+    "source_hash": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
     "text": "Kontakt za obračunavanje",
-    "sha256": "8f782ad8"
+    "source_hash": "8f782ad8"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
     "text": "Skrivnosti na domači strani",
-    "sha256": "6360f7ec"
+    "source_hash": "6360f7ec"
   },
   "web.billing.overview.entitlements.notifications": {
     "text": "E-poštna obvestila",
-    "sha256": "04e0f1e9"
+    "source_hash": "04e0f1e9"
   },
   "web.billing.overview.entitlements.ip_access_rules": {
     "text": "Pravila dostopa IP",
-    "sha256": "db966d47"
+    "source_hash": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
     "text": "Blagovna znamka delovnega prostora",
-    "sha256": "e7acbf6f"
+    "source_hash": "e7acbf6f"
   },
   "web.billing.plans.due_today": {
     "text": "Zapadlo danes:",
-    "sha256": "e370e3aa"
+    "source_hash": "e370e3aa"
   },
   "web.billing.plans.next_billing": {
     "text": "Naslednji obračun ({date}):",
-    "sha256": "a6846a85"
+    "source_hash": "a6846a85"
   },
   "web.billing.plans.credit_applies_heading": {
     "text": "Kako se upošteva vaš dobropis:",
-    "sha256": "a0943c3b"
+    "source_hash": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
     "text": "Znesek naslednjega računa:",
-    "sha256": "526ad28f"
+    "source_hash": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
     "text": "Upoštevani dobropis:",
-    "sha256": "e5f2e81a"
+    "source_hash": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
     "text": "Znesek ob naslednjem obračunu:",
-    "sha256": "22ee868a"
+    "source_hash": "22ee868a"
   },
   "web.billing.plans.remaining_account_credit": {
     "text": "Preostali dobropis računa:",
-    "sha256": "eedd0c0a"
+    "source_hash": "eedd0c0a"
   },
   "web.billing.plans.credit_future_note": {
     "text": "Upoštevano pri prihodnjih računih",
-    "sha256": "5007add6"
+    "source_hash": "5007add6"
   },
   "web.billing.subscription.team_usage": {
     "text": "Uporaba ekip",
-    "sha256": "f9989642"
+    "source_hash": "f9989642"
   },
   "web.billing.subscription.teams_used": {
     "text": "{used} od {limit} ekip",
-    "sha256": "1db6b53c"
+    "source_hash": "1db6b53c"
   }
 }

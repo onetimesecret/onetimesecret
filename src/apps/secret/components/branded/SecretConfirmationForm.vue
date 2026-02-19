@@ -3,12 +3,6 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import { Secret, SecretDetails, brandSettingschema } from '@/schemas/models';
-  import {
-    CornerStyle,
-    FontFamily,
-    cornerStyleClasses,
-    fontFamilyClasses,
-  } from '@/schemas/models/domain/brand';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { ref, computed } from 'vue';
 
@@ -29,7 +23,6 @@
   const { t } = i18n;
 
   const emit = defineEmits(['user-confirmed']);
-  // const useSecret = useSecret();
   const passphrase = ref('');
 
   const submitForm = async () => {
@@ -38,20 +31,11 @@
 
   const productIdentity = useProductIdentity();
   const brandSettings = productIdentity.brand; // Not reactive
+  const { cornerClass, fontFamilyClass } = productIdentity;
   const defaultBranding = brandSettingschema.parse({});
   const safeBrandSettings = computed(() =>
     brandSettings ? brandSettingschema.parse(brandSettings) : defaultBranding
   );
-
-  const cornerClass = computed(() => {
-    const style = safeBrandSettings.value?.corner_style as CornerStyle | undefined;
-    return cornerStyleClasses[style ?? CornerStyle.ROUNDED];
-  });
-
-  const fontFamilyClass = computed(() => {
-    const font = safeBrandSettings.value?.font_family as FontFamily | undefined;
-    return fontFamilyClasses[font ?? FontFamily.SANS];
-  });
 
   const hasImageError = ref(false);
 
@@ -190,13 +174,10 @@
           :class="[
             cornerClass,
             fontFamilyClass,
+            brandSettings?.button_text_light ?? true ? 'text-white' : 'text-gray-900',
             'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg',
           ]"
-          :style="{
-            backgroundColor: brandSettings?.primary_color ?? '#dc4a22',
-            color: brandSettings?.button_text_light ?? true ? '#ffffff' : '#222222',
-          }"
-          class="focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+          class="bg-brand-500 hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
           aria-live="polite">
           <span class="sr-only">{{ buttonText }}</span>
           {{ isSubmitting ? t('web.COMMON.submitting') : t('web.COMMON.click_to_continue') }}

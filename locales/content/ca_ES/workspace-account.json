@@ -1,638 +1,638 @@
 {
   "web.account.settings": {
     "text": "Configuració",
-    "sha256": "74a883a0"
+    "source_hash": "74a883a0"
   },
   "web.account.change_password": {
     "text": "Canviar la contrasenya",
-    "sha256": "a949f462"
+    "source_hash": "a949f462"
   },
   "web.account.close_account": {
     "text": "Tancar el compte",
-    "sha256": "e1513814"
+    "source_hash": "e1513814"
   },
   "web.account.verify_account": {
     "text": "Verificar el compte",
-    "sha256": "2f3ea760"
+    "source_hash": "2f3ea760"
   },
   "web.account.subscription_title": {
     "text": "Subscripció",
-    "sha256": "4999c6c6"
+    "source_hash": "4999c6c6"
   },
   "web.account.manage_subscription": {
     "text": "Gestionar la subscripció",
-    "sha256": "cbc4ef92"
+    "source_hash": "cbc4ef92"
   },
   "web.account.customer_information": {
     "text": "Informació del client",
-    "sha256": "8258db6d"
+    "source_hash": "8258db6d"
   },
   "web.account.customer_since": {
     "text": "Client des de:",
-    "sha256": "0b37cff3"
+    "source_hash": "0b37cff3"
   },
   "web.account.email": {
     "text": "Correu electrònic:",
-    "sha256": "17507dcf"
+    "source_hash": "17507dcf"
   },
   "web.account.region": {
     "text": "Regió",
-    "sha256": "d3a008ef"
+    "source_hash": "d3a008ef"
   },
   "web.account.account_balance": {
     "text": "Saldo:",
-    "sha256": "e0351221"
+    "source_hash": "e0351221"
   },
   "web.account.default_payment_method": {
     "text": "Mètode de pagament predeterminat",
-    "sha256": "c60f014b"
+    "source_hash": "c60f014b"
   },
   "web.account.card_ending": {
     "text": "acabada en",
-    "sha256": "0195bccf"
+    "source_hash": "0195bccf"
   },
   "web.account.subscriptions_title": {
     "text": "Subscripcions",
-    "sha256": "a151f2e9"
+    "source_hash": "a151f2e9"
   },
   "web.account.quantity": {
     "text": "Quantitat:",
-    "sha256": "d4b2cb96"
+    "source_hash": "d4b2cb96"
   },
   "web.account.next_billing_date": {
     "text": "Pròxima data de facturació:",
-    "sha256": "8e6f9cfe"
+    "source_hash": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
     "text": "Nom d'usuari",
-    "sha256": "e3b89e9d"
+    "source_hash": "e3b89e9d"
   },
   "web.account.changePassword.currentPassword": {
     "text": "Contrasenya actual",
-    "sha256": "8ac76099"
+    "source_hash": "8ac76099"
   },
   "web.account.changePassword.newPassword": {
     "text": "Contrasenya nova",
-    "sha256": "7c451e0f"
+    "source_hash": "7c451e0f"
   },
   "web.account.changePassword.confirmPassword": {
     "text": "Confirmar",
-    "sha256": "eebdd24a"
+    "source_hash": "eebdd24a"
   },
   "web.account.changePassword.updatePassword": {
     "text": "Actualitzar la contrasenya",
-    "sha256": "557be0da"
+    "source_hash": "557be0da"
   },
   "web.account.changePassword.updating": {
     "text": "Actualitzant...",
-    "sha256": "0a4e0b71"
+    "source_hash": "0a4e0b71"
   },
   "web.account.timezone": {
     "text": "Fus horari",
-    "sha256": "4ceca1d5"
+    "source_hash": "4ceca1d5"
   },
   "web.account.customer_id": {
     "text": "ID del client",
-    "sha256": "62566c64"
+    "source_hash": "62566c64"
   },
   "web.account.account_id_customerid": {
     "text": "ID del compte",
-    "sha256": "919bb4cb"
+    "source_hash": "919bb4cb"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
     "text": "Creat {0} secrets des de {1}.",
-    "sha256": "8cb99810"
+    "source_hash": "8cb99810"
   },
   "web.account.delete_account": {
     "text": "Eliminar el compte",
-    "sha256": "c031bf99"
+    "source_hash": "c031bf99"
   },
   "web.account.api_key": {
     "text": "Clau API",
-    "sha256": "23189d55"
+    "source_hash": "23189d55"
   },
   "web.account.account_type_windowprops_plan_options_name": {
     "text": "Tipus de compte: {0}",
-    "sha256": "617bfe67"
+    "source_hash": "617bfe67"
   },
   "web.account.your_account": {
     "text": "El teu compte",
-    "sha256": "89e60bfb"
+    "source_hash": "89e60bfb"
   },
   "web.account.support_details": {
     "text": "Detalls del suport",
-    "sha256": "cbad8751"
+    "source_hash": "cbad8751"
   },
   "web.account.back_to_details": {
     "text": "Tornar als detalls",
-    "sha256": "f6f841b9"
+    "source_hash": "f6f841b9"
   },
   "web.account.customer_id_cust_custid": {
     "text": "ID del client: {0}",
-    "sha256": "7e2d4201"
+    "source_hash": "7e2d4201"
   },
   "web.account.token_generated": {
     "text": "Token generat.",
-    "sha256": "05986d95"
+    "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
     "text": "🔐 Mantén aquest token segur! Proporciona accés complet al teu compte.",
-    "sha256": "8839aa4d"
+    "source_hash": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
     "text": "Confirma amb la teva contrasenya",
-    "sha256": "ff2147fd"
+    "source_hash": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
     "text": "Estàs segur que vols suprimir permanentment el teu compte? Aquesta acció no es pot desfer.",
-    "sha256": "4fa3e4b8"
+    "source_hash": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
     "text": "Confirmar l'eliminació del compte",
-    "sha256": "bb3fc7e5"
+    "source_hash": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
     "text": "Eliminant {0}",
-    "sha256": "81d21828"
+    "source_hash": "81d21828"
   },
   "web.account.permanently_delete_account": {
     "text": "Eliminar el compte permanentment",
-    "sha256": "f894e42c"
+    "source_hash": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
     "text": "permanent i irreversible.",
-    "sha256": "6121225e"
+    "source_hash": "6121225e"
   },
   "web.account.deleting_your_account_is": {
     "text": "L'eliminació del teu compte és",
-    "sha256": "ec31577b"
+    "source_hash": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
     "text": "destrueix-los abans de continuar",
-    "sha256": "f89a5794"
+    "source_hash": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
     "text": "Qualsevol secret que vulguis eliminar,",
-    "sha256": "b45e2dd5"
+    "source_hash": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
     "text": "Els secrets romandran actius fins que caduquin.",
-    "sha256": "ddb4e2b5"
+    "source_hash": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
     "text": "Tingues en compte:",
-    "sha256": "086020fd"
+    "source_hash": "086020fd"
   },
   "web.account.account_deleted_successfully": {
     "text": "El compte s'ha eliminat correctament.",
-    "sha256": "afcfdd58"
+    "source_hash": "afcfdd58"
   },
   "web.account.deactivate": {
     "text": "Desactivar",
-    "sha256": "fb1e6fa5"
+    "source_hash": "fb1e6fa5"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
     "text": "Estàs segur que vols desactivar el teu compte? Totes les teves dades s'eliminaran permanentment dels nostres servidors per sempre. Aquesta acció no es pot desfer.",
-    "sha256": "4940e20a"
+    "source_hash": "4940e20a"
   },
   "web.account.deactivate_account": {
     "text": "Desactivar el compte",
-    "sha256": "5e31b73d"
+    "source_hash": "5e31b73d"
   },
   "web.settings.title": {
     "text": "Configuració",
-    "sha256": "74a883a0"
+    "source_hash": "74a883a0"
   },
   "web.settings.description": {
     "text": "Gestiona la configuració i les preferències del teu compte",
-    "sha256": "2ff0853c"
+    "source_hash": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Gestiona la configuració i preferències del teu compte",
-    "sha256": "2ff0853c"
+    "source_hash": "2ff0853c"
   },
   "web.settings.general": {
     "text": "General",
-    "sha256": "c910d474"
+    "source_hash": "c910d474"
   },
   "web.settings.preferences": {
     "text": "Preferències",
-    "sha256": "66962f72"
+    "source_hash": "66962f72"
   },
   "web.settings.appearance": {
     "text": "Aparença",
-    "sha256": "3907fa7f"
+    "source_hash": "3907fa7f"
   },
   "web.settings.theme.title": {
     "text": "Tema",
-    "sha256": "efb52e71"
+    "source_hash": "efb52e71"
   },
   "web.settings.theme.description": {
     "text": "Tria el tema clar o fosc",
-    "sha256": "ff0ae84f"
+    "source_hash": "ff0ae84f"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
     "text": "Tria el tema clar o fosc",
-    "sha256": "ff0ae84f"
+    "source_hash": "ff0ae84f"
   },
   "web.settings.language.title": {
     "text": "Idioma",
-    "sha256": "a4fe6526"
+    "source_hash": "a4fe6526"
   },
   "web.settings.language.description": {
     "text": "Selecciona el teu idioma preferit",
-    "sha256": "475bba7a"
+    "source_hash": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
     "text": "Selecciona el teu idioma preferit",
-    "sha256": "475bba7a"
+    "source_hash": "475bba7a"
   },
   "web.settings.security_settings_description": {
     "text": "Gestiona l'autenticació i la seguretat del compte",
-    "sha256": "945109d1"
+    "source_hash": "945109d1"
   },
   "web.settings.profile_settings_description": {
     "text": "Gestiona la informació del teu compte",
-    "sha256": "4a23a29f"
+    "source_hash": "4a23a29f"
   },
   "web.settings.profile.title": {
     "text": "Perfil",
-    "sha256": "d696a35b"
+    "source_hash": "d696a35b"
   },
   "web.settings.profile.change_email": {
     "text": "Canviar el correu electrònic",
-    "sha256": "18c3f2d5"
+    "source_hash": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
     "text": "Correu electrònic actual",
-    "sha256": "5f1cab64"
+    "source_hash": "5f1cab64"
   },
   "web.settings.profile.current_password": {
     "text": "Contrasenya actual",
-    "sha256": "8ac76099"
+    "source_hash": "8ac76099"
   },
   "web.settings.profile.new_email": {
     "text": "Correu electrònic nou",
-    "sha256": "5bafb4be"
+    "source_hash": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
     "text": "Introdueix la teva contrasenya actual",
-    "sha256": "27814c03"
+    "source_hash": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
     "text": "Es requereix la teva contrasenya per motius de seguretat",
-    "sha256": "d18f62f2"
+    "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
     "text": "S'enviarà un correu de verificació a la nova adreça",
-    "sha256": "575082a1"
+    "source_hash": "575082a1"
   },
   "web.settings.profile.update_email": {
     "text": "Actualitzar el correu electrònic",
-    "sha256": "6ec61b2e"
+    "source_hash": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
     "text": "Actualitza l'adreça de correu electrònic associada al teu compte",
-    "sha256": "636abb16"
+    "source_hash": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
     "text": "Tots els camps són obligatoris",
-    "sha256": "04814271"
+    "source_hash": "04814271"
   },
   "web.settings.profile.invalid_email": {
     "text": "Introdueix una adreça de correu electrònic vàlida",
-    "sha256": "b00f7e3a"
+    "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
     "text": "El correu electrònic nou ha de ser diferent del correu electrònic actual",
-    "sha256": "f7cfed6e"
+    "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
     "text": "El correu electrònic s'ha actualitzat correctament. Comprova la teva bústia d'entrada per verificar la teva nova adreça de correu electrònic.",
-    "sha256": "58de2536"
+    "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
     "text": "No s'ha pogut actualitzar el correu electrònic. Torna-ho a provar.",
-    "sha256": "aeba6591"
+    "source_hash": "aeba6591"
   },
   "web.settings.sessions.title": {
     "text": "Sessions actives",
-    "sha256": "b58fa4e0"
+    "source_hash": "b58fa4e0"
   },
   "web.settings.sessions.description": {
     "text": "Gestiona les teves sessions actives",
-    "sha256": "e5646da4"
+    "source_hash": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
     "text": "Gestiona les teves sessions actives",
-    "sha256": "e5646da4"
+    "source_hash": "e5646da4"
   },
   "web.settings.password.title": {
     "text": "Contrasenya",
-    "sha256": "e7cf3ef4"
+    "source_hash": "e7cf3ef4"
   },
   "web.settings.password.description": {
     "text": "Actualitza la contrasenya del teu compte",
-    "sha256": "cb3ae40b"
+    "source_hash": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
     "text": "Actualitza la contrasenya del teu compte",
-    "sha256": "cb3ae40b"
+    "source_hash": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
     "text": "Eliminar el compte",
-    "sha256": "c031bf99"
+    "source_hash": "c031bf99"
   },
   "web.settings.delete_account.description": {
     "text": "Elimina permanentment el teu compte i totes les dades",
-    "sha256": "7a3a6da2"
+    "source_hash": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
     "text": "Elimina permanentment el teu compte i totes les dades",
-    "sha256": "7a3a6da2"
+    "source_hash": "7a3a6da2"
   },
   "web.settings.security.security_score": {
     "text": "Puntuació de seguretat",
-    "sha256": "02d2f374"
+    "source_hash": "02d2f374"
   },
   "web.settings.security.score_description": {
     "text": "La salut general de la seguretat del teu compte",
-    "sha256": "cf20935e"
+    "source_hash": "cf20935e"
   },
   "web.settings.security.excellent": {
     "text": "Excel·lent",
-    "sha256": "0dc8ee55"
+    "source_hash": "0dc8ee55"
   },
   "web.settings.security.good": {
     "text": "Bo",
-    "sha256": "c939327c"
+    "source_hash": "c939327c"
   },
   "web.settings.security.fair": {
     "text": "Acceptable",
-    "sha256": "f7b19afc"
+    "source_hash": "f7b19afc"
   },
   "web.settings.security.weak": {
     "text": "Feble",
-    "sha256": "8d6cea25"
+    "source_hash": "8d6cea25"
   },
   "web.settings.security.improve_security": {
     "text": "Millora la teva seguretat",
-    "sha256": "c38bcbf5"
+    "source_hash": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
     "text": "Activa l'autenticació de dos factors per a una protecció més forta",
-    "sha256": "6beda528"
+    "source_hash": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
     "text": "Genera codis de recuperació com a còpia de seguretat",
-    "sha256": "eb5f3ebd"
+    "source_hash": "eb5f3ebd"
   },
   "web.settings.security.configured": {
     "text": "Configurat",
-    "sha256": "84aebc69"
+    "source_hash": "84aebc69"
   },
   "web.settings.security.change": {
     "text": "Canviar",
-    "sha256": "c0bf75bd"
+    "source_hash": "c0bf75bd"
   },
   "web.settings.security.manage": {
     "text": "Gestionar",
-    "sha256": "5a234448"
+    "source_hash": "5a234448"
   },
   "web.settings.security.enable": {
     "text": "Activar",
-    "sha256": "5342e09f"
+    "source_hash": "5342e09f"
   },
   "web.settings.security.codes_available": {
     "text": "{0} codis disponibles",
-    "sha256": "76d6236d"
+    "source_hash": "76d6236d"
   },
   "web.settings.security.no_codes": {
     "text": "Cap codi generat",
-    "sha256": "3b2eae20"
+    "source_hash": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
     "text": "{0} sessió activa | {0} sessions actives",
-    "sha256": "30737484"
+    "source_hash": "30737484"
   },
   "web.settings.security.best_practices": {
     "text": "Bones pràctiques de seguretat",
-    "sha256": "fd71b2da"
+    "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
     "text": "Utilitza una contrasenya forta i única per al teu compte",
-    "sha256": "5fc8cbf4"
+    "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
     "text": "Activa l'autenticació de dos factors per a una protecció addicional",
-    "sha256": "107e4898"
+    "source_hash": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
     "text": "Guarda els codis de recuperació en un lloc segur",
-    "sha256": "605513fc"
+    "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
     "text": "Revisa i revoca les sessions no utilitzades regularment",
-    "sha256": "efe59445"
+    "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
     "text": "Veure detalls",
-    "sha256": "d1bf045b"
+    "source_hash": "d1bf045b"
   },
   "web.settings.api.title": {
     "text": "API i integracions",
-    "sha256": "21fc84f3"
+    "source_hash": "21fc84f3"
   },
   "web.settings.api.description": {
     "text": "Gestiona les claus API i les integracions",
-    "sha256": "70976099"
+    "source_hash": "70976099"
   },
   "web.settings.api.manage_api_keys": {
     "text": "Gestiona les claus API i les integracions",
-    "sha256": "70976099"
+    "source_hash": "70976099"
   },
   "web.settings.api.documentation": {
     "text": "Documentació de l'API",
-    "sha256": "1cc77e60"
+    "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Aprèn a integrar Onetime Secret a les teves aplicacions",
-    "sha256": "6e8f910f"
+    "text": "Aprèn a integrar {product_name} a les teves aplicacions",
+    "source_hash": "dfec859d"
   },
   "web.settings.api.rest_api_reference": {
     "text": "Referència de l'API REST",
-    "sha256": "26a5af61"
+    "source_hash": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
     "text": "Documentació completa de l'API i els endpoints",
-    "sha256": "c1c87ad8"
+    "source_hash": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
     "text": "Exemples de codi",
-    "sha256": "216d28e4"
+    "source_hash": "216d28e4"
   },
   "web.settings.api.example_code_and_libraries": {
     "text": "Codi d'exemple i biblioteques de client",
-    "sha256": "61c5956f"
+    "source_hash": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
     "text": "Bones pràctiques de seguretat",
-    "sha256": "fd71b2da"
+    "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
     "text": "No facis mai commit de les claus API al control de versions",
-    "sha256": "cc8c327e"
+    "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
     "text": "Utilitza variables d'entorn per emmagatzemar les claus API",
-    "sha256": "c05e8802"
+    "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
     "text": "Rota les claus API regularment per seguretat",
-    "sha256": "eda6a5db"
+    "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
     "text": "Utilitza sempre HTTPS quan facis peticions a l'API",
-    "sha256": "b3f405ef"
+    "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
     "text": "Supervisa l'ús de l'API i configura alertes",
-    "sha256": "abb08beb"
+    "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
     "text": "Avís important",
-    "sha256": "03d3ba93"
+    "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
     "text": "Regenerar la teva clau API invalidarà la clau actual. Actualitza totes les aplicacions que utilitzen la clau antiga.",
-    "sha256": "ab168f83"
+    "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
     "text": "Configuració de privadesa",
-    "sha256": "eefad6ba"
+    "source_hash": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
     "text": "Gestiona les teves preferències de privadesa",
-    "sha256": "add087da"
+    "source_hash": "add087da"
   },
   "web.settings.privacy.your_privacy": {
     "text": "La teva privadesa",
-    "sha256": "cad972db"
+    "source_hash": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
     "text": "Innegociable",
-    "sha256": "ad090a29"
+    "source_hash": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
     "text": "No és una configuració",
-    "sha256": "41278ece"
+    "source_hash": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
     "text": "Sense analítiques. Sense rastreig. Punt.",
-    "sha256": "3e154b1c"
+    "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
     "text": "Això no és una configuració perquè no hi ha res a activar o desactivar. La teva privadesa està integrada en la manera com operem.",
-    "sha256": "ed943792"
+    "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
     "text": "Configuració de notificacions",
-    "sha256": "07a063ca"
+    "source_hash": "07a063ca"
   },
   "web.settings.notifications.description": {
     "text": "Gestiona com reps les notificacions",
-    "sha256": "148c5ff6"
+    "source_hash": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
     "text": "No s'ha pogut actualitzar la preferència de notificació. Torna-ho a provar.",
-    "sha256": "c08abc04"
+    "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
     "text": "Notificacions de visualització de secrets",
-    "sha256": "c0fb2e25"
+    "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
     "text": "Rep un correu electrònic quan algú visualitza el teu secret",
-    "sha256": "a3a67095"
+    "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
     "text": "Se't notificarà cada vegada que un destinatari visualitzi un dels teus secrets",
-    "sha256": "ba93106d"
+    "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
     "text": "Els correus de notificació només inclouen la marca de temps i l'ID del secret. La informació del visualitzador no s'inclou mai.",
-    "sha256": "7aac282f"
+    "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
     "text": "Zona de consideració acurada",
-    "sha256": "fe27a3a8"
+    "source_hash": "fe27a3a8"
   },
   "web.settings.caution.description": {
     "text": "Configuració avançada i gestió de dades",
-    "sha256": "223ee55d"
+    "source_hash": "223ee55d"
   },
   "web.settings.caution.data_export": {
     "text": "Exportació de dades",
-    "sha256": "bdcea052"
+    "source_hash": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
     "text": "Exporta les dades del teu compte",
-    "sha256": "dc5ffcb0"
+    "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
     "text": "Sol·licita una còpia completa de les dades del teu compte en format llegible per màquina",
-    "sha256": "369c3391"
+    "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
     "text": "Sol·licitar exportació de dades",
-    "sha256": "902394be"
+    "source_hash": "902394be"
   },
   "web.settings.caution.export_info": {
     "text": "Temps de processament de l'exportació",
-    "sha256": "2ebb2d44"
+    "source_hash": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
     "text": "Les exportacions es processen en 24 hores i s'envien a la teva adreça de correu electrònic",
-    "sha256": "a2f81e3b"
+    "source_hash": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
     "text": "Eliminar el teu compte farà:",
-    "sha256": "17a8a676"
+    "source_hash": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
     "text": "Eliminar permanentment tots els teus secrets",
-    "sha256": "974ccdb9"
+    "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
     "text": "Eliminar totes les metadades i l'historial dels secrets",
-    "sha256": "ec4ee372"
+    "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
     "text": "Invalidar totes les claus API",
-    "sha256": "7581333b"
+    "source_hash": "7581333b"
   },
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "Aquesta acció no es pot desfer",
-    "sha256": "02ccc074"
+    "source_hash": "02ccc074"
   },
   "web.account.deleting_ellipsis": {
     "text": "Eliminant...",
-    "sha256": "685ecb98"
+    "source_hash": "685ecb98"
   },
   "web.settings.back_to_dashboard": {
     "text": "Tornar al tauler de control",
-    "sha256": "97ba1d39"
+    "source_hash": "97ba1d39"
   },
   "web.settings.sections.account": {
     "text": "Compte",
-    "sha256": "7e1b0d56"
+    "source_hash": "7e1b0d56"
   },
   "web.settings.sections.billing": {
     "text": "Facturació",
-    "sha256": "3ac8bbca"
+    "source_hash": "3ac8bbca"
   },
   "web.settings.sections.advanced": {
     "text": "Avançat",
-    "sha256": "9f088dbe"
+    "source_hash": "9f088dbe"
   }
 }

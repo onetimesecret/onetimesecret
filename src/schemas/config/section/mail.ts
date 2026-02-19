@@ -6,7 +6,7 @@
  * Maps to the `emailer:` and `mail:` sections in config.defaults.yaml
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 import { nullableString } from '../shared/primitives';
 
 /**
@@ -77,7 +77,7 @@ const mailConnectionSchema = z.object({
   auth: z.string().default('login'),
   region: z.string().optional(),
   from: z.string().default('noreply@example.com'),
-  fromname: z.string().default('OneTimeSecret'),
+  fromname: z.string().default('OTS'),
   host: z.string().optional(),
   port: z.number().optional(),
   user: nullableString,
@@ -107,17 +107,13 @@ const mailValidationSchema = z.object({
   smtp_fail_fast: z.boolean().optional(),
   smtp_safe_check: z.boolean().optional(),
   not_rfc_mx_lookup_flow: z.boolean().optional(),
-  logger: z.object({
-    tracking_event: z.string().default('all'),
-    stdout: z.boolean().default(true),
-    log_absolute_path: z.string().optional(),
-  }).optional(),
+  logger: z
+    .object({
+      tracking_event: z.string().default('all'),
+      stdout: z.boolean().default(true),
+      log_absolute_path: z.string().optional(),
+    })
+    .optional(),
 });
 
-export {
-  emailerSchema,
-  mailSchema,
-  truemailSchema,
-  mailConnectionSchema,
-  mailValidationSchema,
-};
+export { emailerSchema, mailConnectionSchema, mailSchema, mailValidationSchema, truemailSchema };

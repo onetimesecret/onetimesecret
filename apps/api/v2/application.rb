@@ -61,8 +61,9 @@ module V2
 
       # Default error responses
       headers             = { 'content-type' => 'application/json' }
-      router.not_found    = [404, headers, [{ error: 'Not Found' }.to_json]]
-      router.server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
+      product_name        = OT.conf.dig('brand', 'product_name') || Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
+      router.not_found    = [404, headers, [{ error: 'Not Found', service: product_name }.to_json]]
+      router.server_error = [500, headers, [{ error: 'Internal Server Error', service: product_name }.to_json]]
 
       router
     end

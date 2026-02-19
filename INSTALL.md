@@ -285,6 +285,29 @@ dd if=/dev/urandom bs=32 count=1 2>/dev/null | xxd -p -c 32
 - Configure proper firewall rules
 - Use strong Redis authentication if exposed
 
+### Brand Customization
+
+Customize your installation's appearance with environment variables:
+
+**Quick start (minimum configuration):**
+```bash
+# Add to .env or .env.local
+BRAND_PRIMARY_COLOR='#2563eb'
+BRAND_PRODUCT_NAME='YourBrand'
+BRAND_SUPPORT_EMAIL='help@yourdomain.com'
+```
+
+**Complete branding:**
+- Logo configuration (PNG/SVG or Vue component)
+- Typography (sans, serif, mono)
+- Corner style (rounded, square)
+- Email sender identity
+- TOTP issuer name for authenticator apps
+
+**See:** [Self-Hosting Brand Customization Guide](docs/product/brand/SELF-HOSTING-GUIDE.md) for complete reference, logo options, and troubleshooting.
+
+**Note:** `SITE_NAME` is deprecated as of v0.24. Use `BRAND_PRODUCT_NAME` instead.
+
 ## Development Tools
 
 ### Debug Mode

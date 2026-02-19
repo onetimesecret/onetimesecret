@@ -195,7 +195,7 @@ module Billing
             merged_metadata   = existing_metadata.merge(
               'email_hash' => email_hash,
               'email_hash_created_at' => Time.now.to_i.to_s,
-              'home_region' => OT.conf.dig(:site, :region) || 'default',
+              'home_region' => OT.conf.dig('features', 'regions', 'current_jurisdiction') || 'default',
             )
 
             Stripe::Customer.update(stripe_customer_id, metadata: merged_metadata)

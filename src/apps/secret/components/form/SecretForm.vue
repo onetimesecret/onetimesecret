@@ -13,7 +13,6 @@
   import {
     DEFAULT_BUTTON_TEXT_LIGHT,
     DEFAULT_CORNER_CLASS,
-    DEFAULT_PRIMARY_COLOR,
   } from '@/shared/stores/identityStore';
   import { type LocalReceipt } from '@/types/ui/local-receipt';
   import { nanoid } from 'nanoid';
@@ -33,7 +32,6 @@
     withGenerate?: boolean;
     withExpiry?: boolean;
     cornerClass?: string;
-    primaryColor?: string;
     buttonTextLight?: boolean;
     /** When true, form stays on page after creation instead of navigating to receipt */
     workspaceMode?: boolean;
@@ -46,7 +44,6 @@
     withGenerate: false,
     withExpiry: true,
     cornerClass: DEFAULT_CORNER_CLASS,
-    primaryColor: DEFAULT_PRIMARY_COLOR,
     buttonTextLight: DEFAULT_BUTTON_TEXT_LIGHT,
     workspaceMode: false,
   });
@@ -512,7 +509,6 @@
                   <SplitButton
                     :with-generate="props.withGenerate"
                     :corner-class="cornerClass"
-                    :primary-color="primaryColor"
                     :button-text-light="buttonTextLight"
                     :disabled="selectedAction === 'create-link' && !hasContent"
                     :disable-generate="selectedAction === 'create-link' && hasContent"

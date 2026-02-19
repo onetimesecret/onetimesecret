@@ -3,56 +3,52 @@
 # frozen_string_literal: true
 
 module Onetime
-  class ConfigCommand < Onetime::CLI
-    def config
-      # Determine path - from args, discovered, or nil for auto-discovery
-      path = argv.first
+  module CLI
+    class ConfigCommand < DelayBootCommand
+      desc 'Load and display processed configuration'
 
-      # Check for custom schema path from options
-      schema_path = option.schema
+      argument :path, required: false, desc: 'Path to configuration file'
 
-      begin
-        # Create config instance with optional paths
-        config = OT::Configurator.new(config_path: path, schema_path: schema_path)
+      option :schema, type: :string, desc: 'Path to JSON schema file'
+      option :types, type: :boolean, default: false, desc: 'Show type structure instead of values'
+      option :verbose, type: :boolean, default: false, aliases: ['v'], desc: 'Show detailed output'
 
-        OT.li "#{config.config_path}..." if verbose_mode?
-        OT.ld "Schema: #{config.schema_path}"
+      def call(path: nil, schema: nil, types: false, verbose: false, **)
+        config = OT::Configurator.new(
+          config_path: path,
+          schema_path: schema,
+        )
 
-        # Load and validate - this automatically validates against schema
+        puts "Loading #{config.config_path}..." if verbose
+
         config.load!
 
-        # Show processed content if extra verbose
-        if verbose_mode?
-          OT.li 'YAML Template:'
-          template_lines = config.rendered_yaml.split("\n")
-          template_lines.each_with_index do |line, index|
-            OT.li "Line #{index + 1}: #{line}"
+        if verbose && config.rendered_template
+          puts 'YAML Template:'
+          config.rendered_template.split("\n").each_with_index do |line, index|
+            puts "Line #{index + 1}: #{line}"
           end
         end
 
-        if option.types
-          puts Familia::JsonSerializer.pretty_generate(OT::Utils.type_structure(config.configuration))
+        if types
+          puts JSON.pretty_generate(OT::Utils.type_structure(config.configuration))
         else
-          puts Familia::JsonSerializer.pretty_generate(config.configuration)
+          puts JSON.pretty_generate(config.configuration)
         end
       rescue OT::ConfigError => ex
-        OT.le "❌ Configuration error: #{ex.message}"
-        exit 2 # Config error exit code
+        warn "Configuration error: #{ex.message}"
+        exit 2
       rescue ArgumentError => ex
-        # Handle file not found errors
-        OT.le "❌ #{ex.message}"
-        exit 3 # File not found exit code
+        warn ex.message
+        exit 3
       rescue StandardError => ex
-        OT.le "❌ Unexpected error: #{ex.message}"
-        OT.ld ex.backtrace.join("\n") if verbose_mode?
-        exit 4 # Unexpected error exit code
+        warn "Unexpected error: #{ex.message}"
+        warn ex.backtrace.join("\n") if verbose
+        exit 4
       end
     end
 
-    private
-
-    def verbose_mode?
-      global.verbose && global.verbose > 0
-    end
+    register 'config', ConfigCommand
+    register 'config show', ConfigCommand
   end
 end

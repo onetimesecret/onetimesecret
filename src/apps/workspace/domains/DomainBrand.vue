@@ -48,7 +48,7 @@
 
   const displayDomain = computed(() => customDomainRecord.value?.display_domain);
 
-  const color = computed(() => primaryColor.value);
+  const color = computed(() => primaryColor.value ?? undefined);
   const browserType = ref<'safari' | 'edge'>(detectPlatform());
 
   const toggleBrowser = () => {

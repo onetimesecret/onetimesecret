@@ -9,6 +9,7 @@ import type {
   SecretOptions,
 } from '@/schemas/models';
 import { getBootstrapSnapshot } from '@/services/bootstrap.service';
+import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import type {
   BootstrapPayload,
   FooterLinksConfig,
@@ -28,6 +29,11 @@ import type { FallbackLocale } from 'vue-i18n';
  *
  * Type-safe defaults ensure the store always has valid values even before
  * server data is hydrated.
+ *
+ * Brand values (brand_primary_color, brand_product_name) are populated from
+ * backend bootstrap, which inherits from BrandSettingsConstants.defaults.
+ * The hardcoded values here use NEUTRAL_BRAND_DEFAULTS (blue, "My App") to
+ * provide a generic private-label appearance if bootstrap completely fails.
  */
 const DEFAULTS: BootstrapPayload = {
   // Authentication state
@@ -58,6 +64,18 @@ const DEFAULTS: BootstrapPayload = {
   ot_version_long: '',
   ruby_version: '',
   shrimp: '',
+
+  // Branding - neutral defaults for private-label deployments
+  brand_primary_color: NEUTRAL_BRAND_DEFAULTS.primary_color,
+  brand_product_name: NEUTRAL_BRAND_DEFAULTS.product_name,
+  brand_corner_style: NEUTRAL_BRAND_DEFAULTS.corner_style,
+  brand_font_family: NEUTRAL_BRAND_DEFAULTS.font_family,
+  brand_button_text_light: NEUTRAL_BRAND_DEFAULTS.button_text_light,
+  brand_allow_public_homepage: NEUTRAL_BRAND_DEFAULTS.allow_public_homepage,
+  brand_allow_public_api: NEUTRAL_BRAND_DEFAULTS.allow_public_api,
+
+  // Documentation / support
+  docs_host: 'docs.onetimesecret.com',
 
   // Feature flags
   billing_enabled: false,
@@ -240,6 +258,16 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   const ruby_version = ref<string>(DEFAULTS.ruby_version);
   const shrimp = ref<string>(DEFAULTS.shrimp);
 
+  // Branding
+  const brand_primary_color = ref<string>(DEFAULTS.brand_primary_color!);
+  const brand_product_name = ref<string>(DEFAULTS.brand_product_name!);
+  const brand_corner_style = ref<string>(DEFAULTS.brand_corner_style!);
+  const brand_font_family = ref<string>(DEFAULTS.brand_font_family!);
+  const brand_button_text_light = ref<boolean>(DEFAULTS.brand_button_text_light!);
+  const brand_allow_public_homepage = ref<boolean>(DEFAULTS.brand_allow_public_homepage!);
+  const brand_allow_public_api = ref<boolean>(DEFAULTS.brand_allow_public_api!);
+  const docs_host = ref<string>(DEFAULTS.docs_host!);
+
   // Feature flags
   const billing_enabled = ref<boolean | undefined>(DEFAULTS.billing_enabled);
   const regions_enabled = ref<boolean>(DEFAULTS.regions_enabled);
@@ -254,7 +282,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   const display_domain = ref<string>(DEFAULTS.display_domain);
   const domain_branding = ref<BrandSettings>(DEFAULTS.domain_branding);
   const domain_logo = ref<string | null>(DEFAULTS.domain_logo);
-  const domain_context = ref<string | null>(DEFAULTS.domain_context ?? null as string | null);
+  const domain_context = ref<string | null>(DEFAULTS.domain_context ?? (null as string | null));
   const custom_domains = ref<string[] | undefined>(DEFAULTS.custom_domains);
 
   // Regions configuration
@@ -357,6 +385,14 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     updateIfDefined(ot_version_long, data.ot_version_long);
     updateIfDefined(ruby_version, data.ruby_version);
     updateIfDefined(shrimp, data.shrimp);
+    updateIfDefined(brand_primary_color, data.brand_primary_color);
+    updateIfDefined(brand_product_name, data.brand_product_name);
+    updateIfDefined(brand_corner_style, data.brand_corner_style);
+    updateIfDefined(brand_font_family, data.brand_font_family);
+    updateIfDefined(brand_button_text_light, data.brand_button_text_light);
+    updateIfDefined(brand_allow_public_homepage, data.brand_allow_public_homepage);
+    updateIfDefined(brand_allow_public_api, data.brand_allow_public_api);
+    updateIfDefined(docs_host, data.docs_host);
   }
 
   function hydrateFeatureFlags(data: Partial<BootstrapPayload>): void {
@@ -450,6 +486,14 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     ot_version_long.value = DEFAULTS.ot_version_long;
     ruby_version.value = DEFAULTS.ruby_version;
     shrimp.value = DEFAULTS.shrimp;
+    brand_primary_color.value = DEFAULTS.brand_primary_color!;
+    brand_product_name.value = DEFAULTS.brand_product_name!;
+    brand_corner_style.value = DEFAULTS.brand_corner_style!;
+    brand_font_family.value = DEFAULTS.brand_font_family!;
+    brand_button_text_light.value = DEFAULTS.brand_button_text_light!;
+    brand_allow_public_homepage.value = DEFAULTS.brand_allow_public_homepage!;
+    brand_allow_public_api.value = DEFAULTS.brand_allow_public_api!;
+    docs_host.value = DEFAULTS.docs_host!;
   }
 
   function resetFeatureFlags(): void {
@@ -624,6 +668,16 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     ot_version_long,
     ruby_version,
     shrimp,
+
+    // State - Branding
+    brand_primary_color,
+    brand_product_name,
+    brand_corner_style,
+    brand_font_family,
+    brand_button_text_light,
+    brand_allow_public_homepage,
+    brand_allow_public_api,
+    docs_host,
 
     // State - Feature flags
     billing_enabled,

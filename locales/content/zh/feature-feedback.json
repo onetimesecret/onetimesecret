@@ -1,38 +1,39 @@
 {
   "web.feedback.your_feedback": {
     "text": "您的反馈",
-    "sha256": "cdb1c0a5"
+    "source_hash": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
     "text": "欢迎各种反馈",
-    "sha256": "c57d3006"
+    "source_hash": "c57d3006"
   },
   "web.feedback.help_us_improve": {
     "text": "帮助我们改进",
-    "sha256": "f35439c4"
+    "source_hash": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
     "text": "关闭反馈窗口",
-    "sha256": "41689bb4"
+    "source_hash": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
     "text": "分享您的反馈",
-    "sha256": "6d62dfbd"
+    "source_hash": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
     "text": "Delano Mandelbaum",
-    "sha256": "6da0b72b"
+    "source_hash": "6da0b72b"
   },
   "web.feedback.delano": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "source_hash": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
     "text": "帮助内容在此处。",
-    "sha256": "796979ea"
+    "source_hash": "796979ea"
   },
   "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "感谢您帮助 Onetime Secret 改进。这意义重大。"
+    "text": "感谢您帮助 {product_name} 改进。这意义重大。",
+    "source_hash": "8a94cbdd"
   },
   "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
     "text": "我们构建了这个工具来帮助您安全地分享敏感信息，您的实际使用体验对于我们集中精力至关重要。它帮助我们确定下一步要做什么以及如何为每个人改进服务。"
@@ -41,26 +42,27 @@
     "text": "嘿，感谢您访问我们的反馈页面。您的意见不仅受欢迎，而且至关重要。"
   },
   "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "来自 Onetime Secret 创始人 Delano 的一封信"
+    "text": "来自 {product_name} 创始人 Delano 的一封信",
+    "source_hash": "f9258ee6"
   },
   "web.feedback.open_feedback_form": {
     "text": "打开反馈表单",
-    "sha256": "acd8409b"
+    "source_hash": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
     "text": "输入您的反馈",
-    "sha256": "1bb310f4"
+    "source_hash": "1bb310f4"
   },
   "web.feedback.send_feedback": {
     "text": "发送反馈",
-    "sha256": "8235980b"
+    "source_hash": "8235980b"
   },
   "web.feedback.founder_note_line1": {
     "text": "我会阅读这里收到的每一条反馈。这是我决定把时间花在哪里的方式。",
-    "sha256": "8b430d93"
+    "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
     "text": "如果有什么不对，或者您有关于它应该如何工作的想法，这里是正确的地方。",
-    "sha256": "d4b8f073"
+    "source_hash": "d4b8f073"
   }
 }

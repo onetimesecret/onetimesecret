@@ -84,8 +84,9 @@ site:
             alt: <%= ENV['LOGO_ALT'] || 'Share a Secret One-Time' %>
             # Where the logo links to when clicked
             href: <%= ENV['LOGO_LINK'] || '/' %>
-          # Company name override (falls back to i18n if not set)
-          site_name: <%= ENV['SITE_NAME'] || 'One-Time Secret' %>
+          # DEPRECATED: site_name is deprecated in favor of brand.product_name
+          # Use brand.product_name instead (configured in branding section above)
+          # site_name: <%= ENV['SITE_NAME'] || 'OTS' %>
         # Navigation configuration
         navigation:
           # Enable/disable header navigation entirely
@@ -97,40 +98,54 @@ site:
         enabled: <%= ENV['FOOTER_LINKS'] == 'true' || false %>
         # Organized groups of links
         groups:
-          - name: legal
-            i18n_key: web.footer.legals
+
+          - name: product
+            i18n_key: web.footer.product
             links:
-              - text: Terms of Service
-                i18n_key: web.layout.terms_of_service
-                # Replace with your own terms URL or use relative path like /terms
-                url: <%= ENV['TERMS_URL']  %>
-                external: <%= ENV['TERMS_EXTERNAL'] || false %>
-              - text: Privacy Policy
-                i18n_key: web.layout.privacy_policy
-                # Replace with your own privacy URL or use relative path like /privacy
-                url: <%= ENV['PRIVACY_URL']  %>
-                external: <%= ENV['PRIVACY_EXTERNAL'] || false %>
-          - name: resources
-            i18n_key: web.footer.resources
-            links:
-              - text: Status
-                i18n_key: web.COMMON.status
-                # Replace with your status page URL if you have one
-                url: <%= ENV['STATUS_URL'] %>
-                external: <%= ENV['STATUS_EXTERNAL'] || true %>
-                icon: signal
-              - text: About
-                i18n_key: web.COMMON.about
-                # Replace with your about page URL
-                url: <%= ENV['ABOUT_URL'] %>
-                external: <%= ENV['ABOUT_EXTERNAL'] || false %>
+              - text: Pricing
+                i18n_key: web.TITLES.pricing
+                url: <%= ENV['PRICING_URL'] || 'https://onetimesecret.com/pricing' %>
+                external: true
+              - text: Source
+                i18n_key: web.footer.source_code_purveyor
+                url: <%= ENV['SOURCE_URL'] || 'https://github.com/onetimesecret/onetimesecret' %>
+                external: true
+              - text: Security
+                i18n_key: web.footer.security
+                url: <%= ENV['SECURITY_URL'] || '/security' %>
+                external: true
+
           - name: support
             i18n_key: web.footer.support
             links:
+              - text: Docs
+                i18n_key: web.footer.docs
+                url: <%= ENV['DOCS_URL'] || 'https://docs.onetimesecret.com/' %>
+                external: true
               - text: Contact
                 i18n_key: web.footer.contact
                 url: <%= ENV['CONTACT_URL'] %>
                 external: false
+              - text: Status
+                i18n_key: web.COMMON.status
+                url: <%= ENV['STATUS_URL'] %>
+                external: true
+
+          - name: company
+            i18n_key: web.footer.company
+            links:
+              - text: About
+                i18n_key: web.COMMON.about
+                url: <%= ENV['ABOUT_URL'] %>
+                external: <%= ENV['ABOUT_EXTERNAL'] || false %>
+              - text: Privacy Policy
+                i18n_key: web.layout.privacy_policy
+                url: <%= ENV['PRIVACY_URL'] %>
+                external: <%= ENV['PRIVACY_EXTERNAL'] || false %>
+              - text: Terms of Service
+                i18n_key: web.layout.terms_of_service
+                url: <%= ENV['TERMS_URL'] %>
+                external: <%= ENV['TERMS_EXTERNAL'] || false %>
     # Controls whether the API endpoints are available. When disabled, the API
     # is completely disabled. Requests to /api/* will return 404.
     api:
@@ -299,10 +314,31 @@ site:
     csp:
       enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>
 
+brand:
+  primary_color: <%= ENV['BRAND_PRIMARY_COLOR'] ? %Q("#{ENV['BRAND_PRIMARY_COLOR']}") : nil %>
+  product_name: <%= ENV['BRAND_PRODUCT_NAME'] || nil %>
+  product_domain: <%= ENV['BRAND_PRODUCT_DOMAIN'] || nil %>
+  support_email: <%= ENV['BRAND_SUPPORT_EMAIL'] || nil %>
+  corner_style: <%= ENV['BRAND_CORNER_STYLE'] || 'rounded' %>
+  font_family: <%= ENV['BRAND_FONT_FAMILY'] || 'sans' %>
+  button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT'] != 'false' %>
+  allow_public_homepage: <%= ENV['BRAND_ALLOW_PUBLIC_HOMEPAGE'] != 'false' %>
+  allow_public_api: <%= ENV['BRAND_ALLOW_PUBLIC_API'] != 'false' %>
+  # Logo URL for email templates. When set, overrides the default logo path.
+  # Must be an absolute URL (e.g. https://example.com/logo.png).
+  # ENV: BRAND_LOGO_URL (default: nil, falls back to baseuri + /img/onetime-logo-v3-xl.svg)
+  logo_url: <%= ENV['BRAND_LOGO_URL'] || nil %>
+  # TOTP issuer name shown in authenticator apps (e.g. Google Authenticator).
+  # Changing this after users have enrolled is cosmetic only—existing codes
+  # still work, but the label shown in their authenticator is frozen at
+  # enrollment time.
+  totp_issuer: <%= ENV['BRAND_TOTP_ISSUER'] || nil %>
+
 features:
   regions:
     enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
     current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>
+    federation_hmac_secret: <%= ENV['FEDERATION_HMAC_SECRET'] || nil %>
   # Incoming Secrets Feature
   # Allows anonymous users to send encrypted secrets to pre-configured recipients
   # via a dedicated web form at /incoming. Recipients receive email notifications.
@@ -498,7 +534,7 @@ mail:
     # write access to the log file. The log file will be created if it
     # does not exist. Log file rotation is not handled by the app.
     logger:
-      # One of: :error (default), :unrecognized_error, :recognized_error, :all.
+      # One of: error (default), unrecognized_error, recognized_error, all.
       tracking_event: 'error'
       stdout: true
       # log_absolute_path: '/home/app/log/truemail.log'

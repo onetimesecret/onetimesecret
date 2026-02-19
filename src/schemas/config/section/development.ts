@@ -6,7 +6,7 @@
  * Maps to the `development:` section in config.defaults.yaml
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 
 /**
  * Development mode configuration
@@ -20,6 +20,7 @@ const developmentSchema = z.object({
   debug: z.boolean().default(false),
   frontend_host: z.string().default('http://localhost:5173'),
   allow_nil_global_secret: z.boolean().default(false),
+  domain_context_enabled: z.boolean().default(false),
 });
 
 export { developmentSchema };

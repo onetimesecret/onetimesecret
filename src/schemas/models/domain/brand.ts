@@ -1,8 +1,31 @@
 // src/schemas/models/domain/brand.ts
 
-import { localeSchema } from '@/schemas/i18n/locale';
+import { localeCodeSchema } from '@/schemas/i18n/locale';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
+
+/**
+ * Strips HTML tags from a string for XSS prevention at the schema boundary.
+ * Defense-in-depth: primary sanitization happens server-side in Ruby (Sanitize gem).
+ * This regex approach is adequate because these fields only receive API response
+ * data that the backend already sanitized. If these fields ever accept direct
+ * user input on the frontend (bypassing the API), replace this with DOMPurify
+ * or the browser's native DOMParser.
+ * @param val - The string value to sanitize, or null/undefined
+ * @returns The sanitized string with HTML tags removed, or null/undefined
+ */
+function stripHtmlTags(val: string | null | undefined): string | null | undefined {
+  if (val == null) return val;
+  // Loop until stable to handle nested tags like <scr<script>ipt>
+  let result = val;
+  let prev: string;
+  do {
+    prev = result;
+    result = result.replace(/<[^>]*>/g, '');
+  } while (result !== prev);
+  // Strip stray angle brackets left by split-tag attacks
+  return result.replace(/[<>]/g, '').trim();
+}
 
 /**
  * @fileoverview Brand settings schema for API transformation boundaries
@@ -14,6 +37,23 @@ import { z } from 'zod';
  * 3. It allows direct imports of Brand-specific logic where needed
  * 4. It keeps Domain model focused on core domain logic
  *
+ * Default Value Strategy:
+ * This schema intentionally avoids Zod .default() for primary_color.
+ * The schema's job is validation (is this a valid hex color?), not
+ * defaulting. Default resolution is handled by identityStore's
+ * 3-step fallback chain:
+ *
+ *   1. domain_branding.primary_color  (per-domain, from Redis)
+ *   2. bootstrapStore.brand_primary_color  (per-installation, from config)
+ *   3. NEUTRAL_BRAND_DEFAULTS.primary_color  (hardcoded fallback)
+ *
+ * If the schema eagerly fills in a default via .default(), the nullish
+ * coalescing (??) in the fallback chain never reaches step 2, making
+ * the global brand config ineffective. This matters for:
+ *   - Multi-tenant: domains without a color fall through to the
+ *     installation default (step 2) or the hardcoded default (step 3)
+ *   - Single-tenant elite: the installation sets its brand color in
+ *     config (step 2), and the schema must not mask it
  */
 
 // 1. Base enums
@@ -71,28 +111,46 @@ const cornerStyleIconMap: Record<CornerStyle, string> = {
   [CornerStyle.SQUARE]: 'tabler-border-corner-square',
 };
 
-export const brandSettingschema = z
+export const brandSettingSchema = z
   .object({
     primary_color: z
       .string()
-      .regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color')
-      .default('#dc4a22'), // Default to Onetime Secret brand colour
+      .regex(/^#(?:[0-9A-F]{6}|[0-9A-F]{3})$/i, 'Invalid hex color')
+      .transform((val) => {
+        // Normalize 3-digit hex to 6-digit (e.g. #F00 -> #FF0000)
+        if (val && /^#[0-9A-F]{3}$/i.test(val)) {
+          const [, r, g, b] = val.split('');
+          return `#${r}${r}${g}${g}${b}${b}`.toUpperCase();
+        }
+        return val;
+      })
+      .nullish(), // No default here — identityStore fallback chain handles defaults
     colour: z.string().optional(),
-    instructions_pre_reveal: z.string().nullish(),
-    instructions_reveal: z.string().nullish(),
-    instructions_post_reveal: z.string().nullish(),
-    description: z.string().optional(),
-    button_text_light: transforms.fromString.boolean.default(false),
-    allow_public_homepage: transforms.fromString.boolean.default(false),
-    allow_public_api: transforms.fromString.boolean.default(false),
+    product_name: z.string().transform(stripHtmlTags).nullish(),
+    product_domain: z.string().nullish(),
+    support_email: z.string().email().nullish(),
+    footer_text: z.string().transform(stripHtmlTags).nullish(),
+    logo_url: z.string().url().nullish(),
+    logo_dark_url: z.string().url().nullish(),
+    favicon_url: z.string().url().nullish(),
+    instructions_pre_reveal: z.string().transform(stripHtmlTags).nullish(),
+    instructions_reveal: z.string().transform(stripHtmlTags).nullish(),
+    instructions_post_reveal: z.string().transform(stripHtmlTags).nullish(),
+    description: z.string().transform(stripHtmlTags).optional(),
+    button_text_light: transforms.fromString.boolean.default(true),
+    allow_public_homepage: transforms.fromString.boolean.nullish(), // No default — identityStore fallback chain handles defaults
+    allow_public_api: transforms.fromString.boolean.nullish(), // No default — identityStore fallback chain handles defaults
     font_family: z.enum(fontOptions).default(FontFamily.SANS),
     corner_style: z.enum(cornerStyleOptions).default(CornerStyle.ROUNDED),
-    locale: localeSchema.default('en'),
+    locale: localeCodeSchema.default('en'),
     default_ttl: transforms.fromString.number.nullish(),
     passphrase_required: transforms.fromString.boolean.default(false),
     notify_enabled: transforms.fromString.boolean.default(false),
   })
   .partial(); // Makes all fields optional;
+
+/** @deprecated Use brandSettingSchema instead */
+export const brandSettingschema = brandSettingSchema;
 
 export const imagePropsSchema = z
   .object({
@@ -106,7 +164,7 @@ export const imagePropsSchema = z
   })
   .partial(); // Makes all fields optional
 
-export type BrandSettings = z.infer<typeof brandSettingschema>;
+export type BrandSettings = z.infer<typeof brandSettingSchema>;
 export type ImageProps = z.infer<typeof imagePropsSchema>;
 
 export {
