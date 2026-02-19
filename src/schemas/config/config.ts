@@ -14,7 +14,7 @@
  * when parsing backend responses that may have coerced values.
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 
 import { siteSchema, siteAuthenticationSchema, passphraseSchema, passwordGenerationSchema } from './section/site';
 import { storageSchema, redisSchema } from './section/storage';
@@ -29,6 +29,7 @@ import { limitsSchema } from './section/limits';
 import { secretOptionsSchema } from './section/secret_options';
 import { brandSchema } from './section/brand';
 import { jobsSchema } from './section/jobs';
+import { BillingConfigSchema } from './billing';
 
 // ============================================================================
 // Flexible Type Helpers (for API response parsing)
@@ -372,6 +373,7 @@ export const staticConfigSchema = z.object({
   development: developmentSchema.optional(),
   brand: brandSchema.optional(),
   jobs: jobsSchema.optional(),
+  billing: BillingConfigSchema.optional(),
 });
 
 /**

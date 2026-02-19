@@ -6,7 +6,7 @@
  * Maps to the `site.interface:` section in config.defaults.yaml
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 import { nullableString } from '../shared/primitives';
 
 /**
