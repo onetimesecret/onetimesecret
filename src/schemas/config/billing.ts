@@ -105,10 +105,11 @@ export type CurrencyCode = z.infer<typeof CurrencyCodeSchema>;
 
 /**
  * Limit Value
- * Resource limits (-1 = unlimited, null = TBD, positive integer = specific limit)
+ * Resource limits (-1 = unlimited, 0 = disabled/none, null = TBD, positive integer = specific limit)
  */
 export const LimitValueSchema = z.union([
   z.literal(-1).describe('Unlimited'),
+  z.literal(0).describe('Disabled/none'),
   z.number().int().positive().describe('Specific limit'),
   z.null().describe('To be determined'),
 ]);
@@ -120,6 +121,7 @@ export type LimitValue = z.infer<typeof LimitValueSchema>;
  * Resource constraints for a billing plan
  */
 export const PlanLimitsSchema = z.object({
+  teams: LimitValueSchema.optional().describe('Maximum number of teams'),
   organizations: LimitValueSchema.describe('Maximum number of organizations'),
   members_per_team: LimitValueSchema.describe('Maximum members per team'),
   custom_domains: LimitValueSchema.describe('Maximum custom domains'),
@@ -134,6 +136,7 @@ export type PlanLimits = z.infer<typeof PlanLimitsSchema>;
  * Stripe price configuration for a billing interval
  */
 export const PlanPriceSchema = z.object({
+  price_id: z.string().optional().describe('Stripe price ID (e.g., price_xxx)'),
   interval: BillingIntervalSchema,
   amount: z.number().int().nonnegative().describe('Amount in cents (e.g., 2900 = $29.00)'),
   currency: CurrencyCodeSchema,
