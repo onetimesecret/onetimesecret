@@ -104,7 +104,7 @@ RSpec.describe Onetime::Mail::Templates::IncomingSecret do
       end
 
       it 'starts with a scheme' do
-        expect(template.display_domain).to match(%r{\Ahttps?://secrets\.example\.com})
+        expect(template.display_domain).to match(%r{\Ahttps?://secrets\.example\.com\z})
       end
     end
 
