@@ -17,6 +17,7 @@ features: include('features')
 redis: include('redis')
 emailer: include('emailer')
 mail: include('mail')
+jobs: include('jobs', required=False)
 billing: include('billing')
 internationalization: include('internationalization')
 diagnostics: include('diagnostics')
@@ -135,6 +136,18 @@ mail:
     email_pattern: str(required=False)
     smtp_error_body_pattern: str(required=False)
     logger: map()
+
+jobs:
+  enabled: any(bool(), str())
+  rabbitmq_url: str(required=False)
+  channel_pool_size: any(str(), int(), required=False)
+  fallback_to_sync: any(bool(), str(), required=False)
+  workers: map(required=False)
+  scheduler: map(required=False)
+  plan_cache_refresh_enabled: any(bool(), str(), required=False)
+  catalog_retry_enabled: any(bool(), str(), required=False)
+  dlq_consumer_enabled: any(bool(), str(), required=False)
+  expiration_warnings: map(required=False)
 
 billing:
   enabled: any()
