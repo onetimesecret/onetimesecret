@@ -5,7 +5,7 @@ import { useIncomingStore } from '@/shared/stores/incomingStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { Router, useRouter } from 'vue-router';
 import { createPinia, setActivePinia } from 'pinia';
-import { beforeEach, describe, expect, it, vi, type MockedFunction } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
