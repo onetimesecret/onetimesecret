@@ -178,7 +178,7 @@ module Onetime
             results[:errors] += 1
           rescue StandardError => ex
             scheduler_logger.error "[DlqEmailConsumerJob] Error processing message: #{ex.message}"
-            channel.nack(delivery_info.delivery_tag, false, true)
+            channel.nack(delivery_info.delivery_tag, false, false)
             results[:errors] += 1
           end
 
@@ -195,7 +195,7 @@ module Onetime
               row = dataset.select(config[:deadline_column]).first
               return true unless row
 
-              row[config[:deadline_column]] <= Time.now
+              row[config[:deadline_column]] <= Time.now.utc
             else
               # No deadline column (verify_account): row presence = still valid
               dataset.none?

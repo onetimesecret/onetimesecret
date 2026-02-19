@@ -294,6 +294,18 @@ call_private(:process_message, ch, di, props, payload, results)
 results[:errors]
 #=> 1
 
+## process_message nacks with requeue=false when original queue not found in x-death headers
+ch = MockChannel.new
+di = MockDeliveryInfo.new(delivery_tag: 'tag-no-xdeath-nack')
+msg_id = "no-xdeath-nack-#{SecureRandom.hex(4)}"
+track_key("dlq:replayed:#{msg_id}")
+props = MockProperties.new(message_id: msg_id, headers: nil)
+payload = JSON.generate({ 'raw' => true, 'email' => { 'to' => 'u@e.com' } })
+results = fresh_results
+call_private(:process_message, ch, di, props, payload, results)
+ch.nacks.first[:requeue]
+#=> false
+
 ## process_message strips x-death headers from replayed message
 ch = MockChannel.new
 di = MockDeliveryInfo.new(delivery_tag: 'tag-strip')
