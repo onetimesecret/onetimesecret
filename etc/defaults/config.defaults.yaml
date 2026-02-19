@@ -560,6 +560,12 @@ jobs:
   # Runs every 2 minutes when enabled; skips if circuit is still open.
   catalog_retry_enabled: <%= ENV['JOBS_CATALOG_RETRY_ENABLED'] == 'true' || false %>
 
+  # DLQ Email Consumer Job
+  # Processes failed email messages from the dead-letter queue.
+  # Runs on a schedule to inspect DLQ messages and re-publish recoverable
+  # failures or log permanent failures for investigation.
+  dlq_consumer_enabled: <%= ENV['JOBS_DLQ_CONSUMER_ENABLED'] == 'true' || false %>
+
   # Expiration warning emails
   # Send email notifications before secrets expire to warn recipients
   expiration_warnings:
