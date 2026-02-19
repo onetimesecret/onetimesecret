@@ -62,7 +62,7 @@ jobs:
         run: pnpm run config
 
       - name: Show config types
-        run: pnpm run config --types
+        run: pnpm run config:types
 
       - name: Validate test config
         continue-on-error: true
