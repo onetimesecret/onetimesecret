@@ -121,6 +121,7 @@ module Onetime
         # This service handles all validation and execution logic for email changes
         require_relative '../services/change_email'
         require_relative '../../../../apps/web/auth/operations/change_email'
+        require_relative '../session_utils'
         service = Onetime::Services::ChangeEmail.new(old_email, new_email, realm, domains)
 
         # Validate all inputs and domain relationships before executing changes
@@ -159,6 +160,16 @@ module Onetime
                     puts "  WARNING: Auth DB update failed: #{auth_result[:error]}"
                     puts '  Customer can still log in with old email until manually corrected.'
                   end
+                end
+
+                # Invalidate all Redis sessions for this customer so active browser
+                # sessions are terminated immediately rather than at TTL expiry.
+                begin
+                  Onetime::SessionUtils.delete_redis_sessions(customer, log_prefix: '[change-email-command]')
+                  puts '  Redis sessions invalidated.'
+                rescue StandardError => ex
+                  puts "  WARNING: Redis session invalidation failed: #{ex.message}"
+                  OT.le "[change-email-command] Redis session invalidation failed for cid/#{extid}: #{ex.message}"
                 end
 
                 # Verify the change was successful by checking relevant records
