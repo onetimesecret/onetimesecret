@@ -38,7 +38,7 @@ check_version() {
 
 check_version_major() {
   local name="$1" cmd="$2" file="$3" extractor="$4"
-  local required actual
+  local required actual_full actual
 
   required=$(version_from "$file" | sed 's/^v//' | cut -d. -f1)
   if [[ -z "$required" ]]; then
@@ -48,10 +48,11 @@ check_version_major() {
 
   has "$cmd" || die "$name not found (need $required+)"
 
-  actual=$(eval "$extractor" | sed 's/^v//' | cut -d. -f1)
+  actual_full=$(eval "$extractor" | sed 's/^v//')
+  actual=$(echo "$actual_full" | cut -d. -f1)
   [[ "$actual" -ge "$required" ]] || die "$name too old: have $actual, need $required+"
 
-  info "$name $(eval "$extractor")"
+  info "$name $actual_full"
 }
 
 install_gems() {
@@ -85,7 +86,7 @@ auth_mode() {
   # Read from env or .env file, defaulting to simple
   local mode="${AUTHENTICATION_MODE:-}"
   if [[ -z "$mode" && -f .env ]]; then
-    mode=$(grep -E '^AUTHENTICATION_MODE=' .env 2>/dev/null | cut -d= -f2- | sed "s/^[\"']//;s/[\"']$//" | trim || echo "")
+    mode=$(sed -n -E "s/^[[:space:]]*AUTHENTICATION_MODE[[:space:]]*=[[:space:]]*[\"']?([^\"'#[:space:]]*)[\"']?[[:space:]]*(#.*)?$/\1/p" .env 2>/dev/null | head -1)
   fi
   echo "${mode:-simple}"
 }
@@ -123,7 +124,7 @@ cmd_init() {
 }
 
 cmd_console() {
-  exec bundle exec irb -r ./lib/onetime
+  exec bundle exec irb -r "./lib/onetime"
 }
 
 cmd_doctor() {
@@ -176,5 +177,5 @@ case "${1:-help}" in
   console)          cmd_console ;;
   doctor)           cmd_doctor ;;
   help|-h|--help)   cmd_help ;;
-  *)                die "Unknown command: $1" ;;
+  *)                cmd_help >&2; die "Unknown command: $1" ;;
 esac
