@@ -23,7 +23,10 @@ check_version() {
   local required actual
 
   required=$(version_from "$file")
-  [[ -z "$required" ]] && return 0
+  if [[ -z "$required" ]]; then
+    warn "$name version check skipped ($(basename "$file") not found)"
+    return 0
+  fi
 
   has "$cmd" || die "$name not found (need $required)"
 
@@ -38,7 +41,10 @@ check_version_major() {
   local required actual
 
   required=$(version_from "$file" | cut -d. -f1 | sed 's/^v//')
-  [[ -z "$required" ]] && return 0
+  if [[ -z "$required" ]]; then
+    warn "$name version check skipped ($(basename "$file") not found)"
+    return 0
+  fi
 
   has "$cmd" || die "$name not found (need $required+)"
 
@@ -63,7 +69,7 @@ install_gems() {
 install_node() {
   local pkg mgr flags
 
-  for pkg in "pnpm-lock.yaml:pnpm:" "package-lock.json:npm:ci" "yarn.lock:yarn:--frozen-lockfile"; do
+  for pkg in "pnpm-lock.yaml:pnpm:--frozen-lockfile" "package-lock.json:npm:ci" "yarn.lock:yarn:--frozen-lockfile"; do
     IFS=: read -r lockfile mgr flags <<< "$pkg"
     if [[ -f "$lockfile" ]]; then
       info "Installing node packages ($mgr)..."
@@ -79,7 +85,7 @@ auth_mode() {
   # Read from env or .env file, defaulting to simple
   local mode="${AUTHENTICATION_MODE:-}"
   if [[ -z "$mode" && -f .env ]]; then
-    mode=$(grep -E '^AUTHENTICATION_MODE=' .env 2>/dev/null | cut -d= -f2- | trim || echo "")
+    mode=$(grep -E '^AUTHENTICATION_MODE=' .env 2>/dev/null | cut -d= -f2- | sed "s/^[\"']//;s/[\"']$//" | trim || echo "")
   fi
   echo "${mode:-simple}"
 }
@@ -143,6 +149,12 @@ cmd_doctor() {
       info "psql found"
     else
       warn "psql not found (required for full auth mode with PostgreSQL)"
+    fi
+
+    if has rabbitmqctl; then
+      info "rabbitmqctl found"
+    else
+      warn "rabbitmqctl not found (required for background jobs in full auth mode)"
     fi
   fi
 }
