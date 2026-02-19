@@ -64,6 +64,9 @@ jobs:
       - name: Show config types
         run: pnpm run config:types
 
+      - name: Validate billing config
+        run: RACK_ENV=test SECRET=ci-validation-only bundle exec bin/ots billing catalog validate
+
       - name: Validate test config
         continue-on-error: true
         run: |
