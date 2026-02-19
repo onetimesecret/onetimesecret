@@ -80,8 +80,16 @@ runs:
         echo "SECRET=${SECRET}"
         echo ""
 
-        # Verify all secrets are different (spot-check key pairs)
-        if [ "$SESSION_SECRET" != "$AUTH_SECRET" ] && [ "$SESSION_SECRET" != "$SECRET" ] && [ "$AUTH_SECRET" != "$SECRET" ]; then
+        # Verify all secrets are unique
+        all_secrets=(
+          "$SESSION_SECRET"
+          "$AUTH_SECRET"
+          "$ARGON2_SECRET"
+          "$FEDERATION_SECRET"
+          "$IDENTIFIER_SECRET"
+          "$SECRET"
+        )
+        if [ "$(printf '%s\n' "${all_secrets[@]}" | sort -u | wc -l)" -eq "${#all_secrets[@]}" ]; then
           echo "All secrets are unique"
         else
           echo "ERROR: Secrets are not unique!"
