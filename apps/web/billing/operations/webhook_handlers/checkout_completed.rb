@@ -239,8 +239,8 @@ module Billing
               org_hash_prefix: org.email_hash[0..7],
               stripe_hash_prefix: stripe_hash[0..7],
             }
-        rescue StandardError => ex
-          billing_logger.debug 'Could not verify email hash consistency', { error: ex.message }
+        rescue Stripe::StripeError => ex
+          billing_logger.warn 'Could not verify email hash consistency', { error: ex.message }
         end
 
         # Ensure organization has computed email_hash
