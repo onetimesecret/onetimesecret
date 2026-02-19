@@ -59,7 +59,6 @@ services:
       - ARGON2_SECRET=${ARGON2_SECRET:-}
       - FEDERATION_SECRET=${FEDERATION_SECRET:-}
       - IDENTIFIER_SECRET=${IDENTIFIER_SECRET:-}
-      - ONETIME_HOME=/app
       - PUBLIC_DIR=/var/www/public
     entrypoint: ['./bin/entrypoint.sh']
     stdin_open: true
@@ -76,7 +75,6 @@ services:
     restart: unless-stopped
     volumes:
       - ../../data:/app/data
-      - ../../etc:/app/etc
 
   maindb:
     image: valkey/valkey:8.0-bookworm@sha256:3fb1247c0ae098a109f49e86a00bbae330044d610a608228a8350c0287c1e4f1
@@ -181,7 +179,6 @@ services:
     restart: unless-stopped
     volumes:
       - ../..:/app
-      - ../../etc:/app/etc
 
   scheduler:
     build:
@@ -212,7 +209,6 @@ services:
     restart: unless-stopped
     volumes:
       - ../..:/app
-      - ../../etc:/app/etc
 
 networks:
   onetime-network:
