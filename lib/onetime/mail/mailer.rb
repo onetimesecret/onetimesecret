@@ -104,7 +104,7 @@ module Onetime
         # @return [String]
         def from_address
           conf = emailer_config
-          conf['from'] || ENV['EMAIL_FROM'] || 'noreply@example.com'
+          conf['from'] || ENV['FROM_EMAIL'] || 'noreply@example.com'
         end
 
         # Get the configured from name

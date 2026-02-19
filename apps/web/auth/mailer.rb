@@ -373,7 +373,7 @@ module Auth
       end
 
       def determine_from_address
-        ENV['EMAIL_FROM'] || 'noreply@onetimesecret.com'
+        ENV['FROM_EMAIL'] || 'noreply@onetimesecret.com'
       end
 
       def determine_subject_prefix
