@@ -40,7 +40,7 @@ check_version_major() {
   local name="$1" cmd="$2" file="$3" extractor="$4"
   local required actual
 
-  required=$(version_from "$file" | cut -d. -f1 | sed 's/^v//')
+  required=$(version_from "$file" | sed 's/^v//' | cut -d. -f1)
   if [[ -z "$required" ]]; then
     warn "$name version check skipped ($(basename "$file") not found)"
     return 0
