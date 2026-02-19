@@ -500,7 +500,9 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
 
       before do
         allow(Stripe::Customer).to receive(:update).and_return(stripe_customer_matching_hash)
-        allow_any_instance_of(Billing::Operations::WebhookHandlers::CheckoutCompleted)
+        # billing_logger is defined on Onetime::LoggerMethods (included by BaseHandler),
+        # not directly on CheckoutCompleted — stub via the module to satisfy verify_partial_doubles.
+        allow_any_instance_of(Onetime::LoggerMethods)
           .to receive(:billing_logger).and_return(mock_billing_logger)
       end
 
@@ -622,6 +624,39 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
             .once
             .and_return(stripe_customer_matching_hash)
           operation.call
+        end
+      end
+
+      context 'when a Stripe::StripeError is raised inside warn_if_email_hash_divergence' do
+        # Simulates the rescue Stripe::StripeError path introduced in task 1.
+        # Setup: org and Stripe hashes diverge (triggering billing_logger.warn), and then
+        # billing_logger.warn raises Stripe::StripeError on that first call. The rescue block
+        # catches it and logs 'Could not verify email hash consistency'.
+        before do
+          allow(Stripe::Customer).to receive(:retrieve)
+            .with(stripe_customer_id)
+            .and_return(stripe_customer_diverged_hash)
+          allow(Stripe::Customer).to receive(:update).and_return(stripe_customer_diverged_hash)
+
+          # First warn call (Email hash divergence) raises Stripe::StripeError.
+          # The rescue catches it and makes a second warn call.
+          warn_call_count = 0
+          allow(mock_billing_logger).to receive(:warn) do |msg, _ctx|
+            warn_call_count += 1
+            if warn_call_count == 1 && msg.include?('Email hash divergence')
+              raise Stripe::StripeError.new('simulated Stripe error in divergence check')
+            end
+          end
+        end
+
+        it 'logs a warning with "Could not verify email hash consistency"' do
+          expect(mock_billing_logger).to receive(:warn)
+            .with(a_string_including('Could not verify email hash consistency'), anything)
+          operation.call
+        end
+
+        it 'still returns :success (divergence check failure is non-fatal)' do
+          expect(operation.call).to eq(:success)
         end
       end
     end
