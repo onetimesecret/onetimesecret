@@ -94,6 +94,9 @@ require_relative 'cli/email/templates_command'
 require_relative 'cli/email/preview_command'
 require_relative 'cli/email/config_command'
 
+# Load install CLI commands
+require_relative 'cli/install_command'
+
 # Load queue CLI commands
 require_relative 'cli/queue/init_command'
 require_relative 'cli/queue/status_command'

@@ -52,7 +52,7 @@ services:
       - RACK_ENV=${RACK_ENV:-production}
       - REDIS_URL=redis://maindb:6379/0
       - AUTH_DATABASE_URL=sqlite://data/auth.db
-      - SECRET=${SECRET:?SECRET must be set — run rake ots:init}
+      - SECRET=${SECRET:?SECRET must be set — run rake ots:secrets}
       - SESSION_SECRET=${SESSION_SECRET:-}
       - AUTH_SECRET=${AUTH_SECRET:-}
       - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-full}
