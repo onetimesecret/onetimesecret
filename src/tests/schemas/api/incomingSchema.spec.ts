@@ -2,7 +2,11 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { incomingSecretResponseSchema } from '@/schemas/api/incoming';
+import {
+  incomingConfigSchema,
+  incomingSecretPayloadSchema,
+  incomingSecretResponseSchema,
+} from '@/schemas/api/incoming';
 
 /** Base receipt fields matching a realistic safe_dump output. */
 const baseReceipt = {
@@ -212,6 +216,210 @@ describe('incomingSecretResponseSchema', () => {
       expect(parsed.success).toBe(true);
       expect(parsed.record.receipt.identifier).toBe('veri:receipt-abc123def456');
       expect(parsed.record.secret.identifier).toBe('veri:secret-xyz789uvw012');
+    });
+  });
+});
+
+describe('incomingSecretPayloadSchema', () => {
+  describe('memo field', () => {
+    it('accepts payload without memo (optional field)', () => {
+      const payload = { secret: 'my secret', recipient: 'abc123hash' };
+      expect(() => incomingSecretPayloadSchema.parse(payload)).not.toThrow();
+    });
+
+    it('accepts payload with empty memo string', () => {
+      const payload = { memo: '', secret: 'my secret', recipient: 'abc123hash' };
+      expect(() => incomingSecretPayloadSchema.parse(payload)).not.toThrow();
+    });
+
+    it('accepts payload with a non-empty memo', () => {
+      const payload = { memo: 'Password reset', secret: 'my secret', recipient: 'abc123hash' };
+      expect(() => incomingSecretPayloadSchema.parse(payload)).not.toThrow();
+    });
+
+    it('defaults memo to empty string when omitted', () => {
+      const payload = { secret: 'my secret', recipient: 'abc123hash' };
+      const parsed = incomingSecretPayloadSchema.parse(payload);
+      expect(parsed.memo).toBe('');
+    });
+
+    // XSS note: The schema intentionally passes through raw HTML/script content.
+    // Escaping/sanitization is the renderer's responsibility, not the schema's.
+    it('accepts memo containing HTML — schema does not sanitize (renderer responsibility)', () => {
+      const payload = {
+        memo: '<script>alert("xss")</script>',
+        secret: 'my secret',
+        recipient: 'abc123hash',
+      };
+      const parsed = incomingSecretPayloadSchema.parse(payload);
+      expect(parsed.memo).toBe('<script>alert("xss")</script>');
+    });
+  });
+
+  describe('secret field', () => {
+    it('accepts a valid secret string', () => {
+      const payload = { secret: 'actual secret content', recipient: 'abc123hash' };
+      expect(() => incomingSecretPayloadSchema.parse(payload)).not.toThrow();
+    });
+
+    it('rejects payload with empty secret', () => {
+      const payload = { secret: '', recipient: 'abc123hash' };
+      expect(() => incomingSecretPayloadSchema.parse(payload)).toThrow();
+    });
+
+    it('rejects payload missing secret entirely', () => {
+      const payload = { recipient: 'abc123hash' };
+      expect(() => incomingSecretPayloadSchema.parse(payload)).toThrow();
+    });
+
+    // XSS note: The schema intentionally passes through raw HTML/script content.
+    // Escaping/sanitization is the renderer's responsibility, not the schema's.
+    it('accepts secret containing HTML — schema does not sanitize (renderer responsibility)', () => {
+      const payload = {
+        secret: '<img src=x onerror=alert(1)>',
+        recipient: 'abc123hash',
+      };
+      const parsed = incomingSecretPayloadSchema.parse(payload);
+      expect(parsed.secret).toBe('<img src=x onerror=alert(1)>');
+    });
+  });
+
+  describe('recipient field', () => {
+    it('accepts a valid recipient hash', () => {
+      const payload = { secret: 'my secret', recipient: 'abc123def456' };
+      expect(() => incomingSecretPayloadSchema.parse(payload)).not.toThrow();
+    });
+
+    it('rejects payload with empty recipient', () => {
+      const payload = { secret: 'my secret', recipient: '' };
+      expect(() => incomingSecretPayloadSchema.parse(payload)).toThrow();
+    });
+
+    it('rejects payload missing recipient entirely', () => {
+      const payload = { secret: 'my secret' };
+      expect(() => incomingSecretPayloadSchema.parse(payload)).toThrow();
+    });
+  });
+
+  describe('full payload validation', () => {
+    it('accepts a complete valid payload', () => {
+      const payload = {
+        memo: 'Password reset creds',
+        secret: 'hunter2',
+        recipient: 'abc123def456789a',
+      };
+      const parsed = incomingSecretPayloadSchema.parse(payload);
+      expect(parsed.memo).toBe('Password reset creds');
+      expect(parsed.secret).toBe('hunter2');
+      expect(parsed.recipient).toBe('abc123def456789a');
+    });
+  });
+});
+
+describe('incomingConfigSchema', () => {
+  describe('enabled field', () => {
+    it('accepts config with enabled: true', () => {
+      const config = { enabled: true, memo_max_length: 50, recipients: [] };
+      expect(() => incomingConfigSchema.parse(config)).not.toThrow();
+    });
+
+    it('accepts config with enabled: false', () => {
+      const config = { enabled: false, memo_max_length: 50, recipients: [] };
+      expect(() => incomingConfigSchema.parse(config)).not.toThrow();
+    });
+
+    it('rejects config with non-boolean enabled', () => {
+      const config = { enabled: 'yes', memo_max_length: 50, recipients: [] };
+      expect(() => incomingConfigSchema.parse(config)).toThrow();
+    });
+
+    it('rejects config missing enabled', () => {
+      const config = { memo_max_length: 50, recipients: [] };
+      expect(() => incomingConfigSchema.parse(config)).toThrow();
+    });
+  });
+
+  describe('memo_max_length field', () => {
+    it('accepts a positive integer for memo_max_length', () => {
+      const config = { enabled: true, memo_max_length: 100, recipients: [] };
+      expect(() => incomingConfigSchema.parse(config)).not.toThrow();
+    });
+
+    it('defaults memo_max_length to 50 when omitted', () => {
+      const config = { enabled: true, recipients: [] };
+      const parsed = incomingConfigSchema.parse(config);
+      expect(parsed.memo_max_length).toBe(50);
+    });
+
+    it('rejects zero for memo_max_length', () => {
+      const config = { enabled: true, memo_max_length: 0, recipients: [] };
+      expect(() => incomingConfigSchema.parse(config)).toThrow();
+    });
+
+    it('rejects negative values for memo_max_length', () => {
+      const config = { enabled: true, memo_max_length: -1, recipients: [] };
+      expect(() => incomingConfigSchema.parse(config)).toThrow();
+    });
+  });
+
+  describe('recipients array', () => {
+    it('accepts an empty recipients array', () => {
+      const config = { enabled: true, memo_max_length: 50, recipients: [] };
+      const parsed = incomingConfigSchema.parse(config);
+      expect(parsed.recipients).toEqual([]);
+    });
+
+    it('defaults recipients to empty array when omitted', () => {
+      const config = { enabled: true, memo_max_length: 50 };
+      const parsed = incomingConfigSchema.parse(config);
+      expect(parsed.recipients).toEqual([]);
+    });
+
+    it('accepts recipients with hash and name', () => {
+      const config = {
+        enabled: true,
+        memo_max_length: 50,
+        recipients: [
+          { hash: 'abc123def456', name: 'Alice' },
+          { hash: 'xyz789uvw012', name: 'Bob' },
+        ],
+      };
+      const parsed = incomingConfigSchema.parse(config);
+      expect(parsed.recipients).toHaveLength(2);
+      expect(parsed.recipients[0].hash).toBe('abc123def456');
+      expect(parsed.recipients[0].name).toBe('Alice');
+    });
+
+    it('rejects recipient with empty hash', () => {
+      const config = {
+        enabled: true,
+        memo_max_length: 50,
+        recipients: [{ hash: '', name: 'Alice' }],
+      };
+      expect(() => incomingConfigSchema.parse(config)).toThrow();
+    });
+
+    it('rejects recipient missing hash', () => {
+      const config = {
+        enabled: true,
+        memo_max_length: 50,
+        recipients: [{ name: 'Alice' }],
+      };
+      expect(() => incomingConfigSchema.parse(config)).toThrow();
+    });
+  });
+
+  describe('default_ttl field', () => {
+    it('accepts config without default_ttl (optional)', () => {
+      const config = { enabled: true, memo_max_length: 50, recipients: [] };
+      const parsed = incomingConfigSchema.parse(config);
+      expect(parsed.default_ttl).toBeUndefined();
+    });
+
+    it('accepts config with default_ttl', () => {
+      const config = { enabled: true, memo_max_length: 50, recipients: [], default_ttl: 604800 };
+      const parsed = incomingConfigSchema.parse(config);
+      expect(parsed.default_ttl).toBe(604800);
     });
   });
 });

@@ -68,16 +68,13 @@ defined?(V3::Logic::Incoming::ValidateRecipient)
 defined?(V3::Logic::Incoming::CreateIncomingSecret)
 #=> 'constant'
 
-## GetConfig raises error when feature is disabled
-begin
-  logic = V3::Logic::Incoming::GetConfig.new(@strategy_result, {})
-  logic.process_params
-  logic.raise_concerns
-  false
-rescue OT::FormError => e
-  e.message.include?('not enabled')
-end
-#=> true
+## GetConfig returns config with enabled:false when feature is disabled (no error raised)
+logic = V3::Logic::Incoming::GetConfig.new(@strategy_result, {})
+logic.process_params
+logic.raise_concerns
+result = logic.process
+result[:config][:enabled]
+#=> false
 
 ## ValidateRecipient raises error when feature is disabled
 begin

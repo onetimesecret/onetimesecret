@@ -35,11 +35,9 @@ module V3
         end
 
         def raise_concerns
-          # Check if feature is enabled
-          incoming_config = OT.conf.dig('features', 'incoming') || {}
-          unless incoming_config['enabled']
-            raise_form_error 'Incoming secrets feature is not enabled'
-          end
+          # No concerns to raise. The feature may be disabled; the frontend
+          # renders a "feature disabled" state when config.enabled is false.
+          # Raising FormError here would show the error state instead.
         end
 
         def process

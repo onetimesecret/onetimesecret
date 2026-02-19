@@ -151,6 +151,14 @@
     "text": "This link will only work once. After viewing, the secret will be permanently deleted.",
     "sha256": "fecaf0a1"
   },
+  "email.incoming_secret.passphrase_required": {
+    "text": "This secret is protected with a passphrase. The sender should provide it to you separately.",
+    "sha256": ""
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "Passphrase required:",
+    "sha256": ""
+  },
   "email.incoming_secret.sent_via": {
     "text": "Sent via",
     "sha256": "d01479b3"
