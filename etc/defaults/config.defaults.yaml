@@ -564,7 +564,7 @@ jobs:
   # Processes failed email messages from the dead-letter queue.
   # Runs on a schedule to inspect DLQ messages and re-publish recoverable
   # failures or log permanent failures for investigation.
-  dlq_consumer_enabled: <%= ENV['JOBS_DLQ_CONSUMER_ENABLED'] == 'true' || false %>
+  dlq_consumer_enabled: <%= ENV['JOBS_DLQ_CONSUMER_ENABLED'] != 'false' %>
 
   # Expiration warning emails
   # Send email notifications before secrets expire to warn recipients
