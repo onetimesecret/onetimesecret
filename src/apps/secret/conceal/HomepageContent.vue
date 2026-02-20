@@ -23,7 +23,7 @@
     <SecretForm
       v-if="ui?.enabled !== false"
       class="mb-10"
-      :with-recipient="true"
+      :with-recipient="false"
       :with-asterisk="true"
       :with-generate="true"
       :workspace-mode="localReceiptStore.workspaceMode" />
