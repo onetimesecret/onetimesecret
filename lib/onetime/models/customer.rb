@@ -208,6 +208,10 @@ module Onetime
       super
     end
 
+    def apitoken?(value)
+      apitoken == value
+    end
+
     class << self
       attr_reader :values, :dummy
 
