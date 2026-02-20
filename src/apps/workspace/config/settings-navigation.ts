@@ -1,7 +1,7 @@
 // src/apps/workspace/config/settings-navigation.ts
 
-import type { ComposerTranslation } from 'vue-i18n';
 import { isFullAuthMode, isWebAuthnEnabled } from '@/utils/features';
+import type { ComposerTranslation } from 'vue-i18n';
 
 /**
  * Icon configuration for navigation items
@@ -178,7 +178,7 @@ export function getSettingsNavigationSections(t: ComposerTranslation): SettingsN
           label: t('web.account.api_key'),
           description: t('web.settings.api.manage_api_keys'),
           // Hidden until API key functionality is complete for launch
-          visible: () => false,
+          visible: () => true,
         },
       ],
     },
