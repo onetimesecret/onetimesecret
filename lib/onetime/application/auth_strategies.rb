@@ -270,7 +270,7 @@ module Onetime
           username, apikey = decoded.split(':', 2)
           return nil unless username && apikey
 
-          cust        = Onetime::Customer.load(username)
+          cust        = Onetime::Customer.load_by_extid_or_email(username)
           target_cust = cust || Onetime::Customer.dummy
 
           # Always perform BCrypt comparison (constant-time, mitigates timing attacks)
@@ -315,7 +315,7 @@ module Onetime
           return failure('[CREDENTIALS_FORMAT_INVALID] Invalid credentials format') unless username && apikey
 
           # Load customer by custid (may be nil)
-          cust = Onetime::Customer.load(username)
+          cust = Onetime::Customer.load_by_extid_or_email(username)
 
           # Timing attack mitigation:
           # To prevent username enumeration via timing analysis, we ensure that
