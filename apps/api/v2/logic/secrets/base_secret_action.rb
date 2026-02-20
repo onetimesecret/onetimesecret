@@ -42,7 +42,6 @@ module V2::Logic
       end
 
       def raise_concerns
-        require_entitlement!('api_access')
         raise_form_error 'Unknown type of secret' if kind.nil?
 
         validate_recipient
