@@ -29,9 +29,6 @@ module V2
       # Public routes - always available (anonymous or authenticated)
       otto.add_auth_strategy('noauth', Onetime::Application::AuthStrategies::NoAuthStrategy.new)
 
-      # Optional auth - anonymous by default, but upgrades to authenticated if credentials provided
-      otto.add_auth_strategy('optionalauth', Onetime::Application::AuthStrategies::OptionalAuthStrategy.new)
-
       # Check if authentication is enabled at initialization time
       unless Onetime::Application::AuthStrategies.authentication_enabled?
         OT.le '[V2::AuthStrategies] Authentication disabled in config - skipping session strategies'

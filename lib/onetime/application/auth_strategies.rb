@@ -94,7 +94,9 @@ module Onetime
         def authenticate(env, _requirement)
           session = env['rack.session']
 
-          # Load customer from session or use anonymous
+          # Try session first, then Basic auth, then fall back to anonymous.
+          # This allows API key callers to use features that require identity
+          # (e.g. recipient emails) on routes that also permit anonymous access.
           cust = load_user_from_session(session) || Onetime::Customer.anonymous
 
           # Load organization context if user is authenticated
@@ -138,7 +140,7 @@ module Onetime
           end
 
           # Load customer
-          cust = Onetime::Customer.find_by_extid(external_id)
+          cust = Onetime::Customer.load_by_extid_or_email(external_id)
           return failure('[CUSTOMER_NOT_FOUND] Customer not found') unless cust
 
           # Perform additional checks (role, permissions, etc.)
@@ -213,76 +215,6 @@ module Onetime
         end
       end
 
-      # Optional auth strategy - authenticates if credentials provided, otherwise allows anonymous
-      #
-      # Routes: auth=optionalauth
-      # Access: Everyone (anonymous, session-authenticated, or BasicAuth)
-      # User: Customer.anonymous, session customer, or API key customer
-      #
-      # Use for endpoints that support both anonymous and authenticated access,
-      # where authenticated users get additional capabilities (e.g. sending recipient emails).
-      # Attempts BasicAuth first if an Authorization header is present, then falls back
-      # to session auth, then anonymous. Never returns a failure.
-      #
-      # Security: BasicAuth path preserves timing attack mitigation from BasicAuthStrategy.
-      class OptionalAuthStrategy < Otto::Security::AuthStrategy
-        include Helpers
-        include Onetime::Application::OrganizationLoader
-
-        @auth_method_name = 'optionalauth'
-
-        def authenticate(env, _requirement)
-          session = env['rack.session']
-
-          # Attempt BasicAuth if credentials are present, then fall back to session or anonymous
-          cust         = try_basic_auth(env)
-          via_basic    = !cust.nil?
-          cust       ||= load_user_from_session(session) || Onetime::Customer.anonymous
-
-          org_context = if cust && !cust.anonymous?
-                          effective_session = via_basic ? {} : session
-                          load_organization_context(cust, effective_session, env)
-                        else
-                          {}
-                        end
-
-          success(
-            session: session,
-            user: cust.anonymous? ? nil : cust,
-            auth_method: 'optionalauth',
-            **build_metadata(env, { organization_context: org_context }),
-          )
-        end
-
-        private
-
-        # Attempts HTTP Basic Auth from the Authorization header.
-        # Preserves constant-time comparison to mitigate timing attacks.
-        #
-        # @param env [Hash] Rack environment
-        # @return [Onetime::Customer, nil] Authenticated customer, or nil to fall through
-        def try_basic_auth(env)
-          auth_header = env['HTTP_AUTHORIZATION']
-          return nil unless auth_header&.start_with?('Basic ')
-
-          encoded          = auth_header.sub('Basic ', '')
-          decoded          = Base64.decode64(encoded)
-          username, apikey = decoded.split(':', 2)
-          return nil unless username && apikey
-
-          cust        = Onetime::Customer.load_by_extid_or_email(username)
-          target_cust = cust || Onetime::Customer.dummy
-
-          # Always perform BCrypt comparison (constant-time, mitigates timing attacks)
-          valid_credentials = target_cust.passphrase?(apikey)
-
-          if cust && valid_credentials
-            OT.ld "[optionalauth] Authenticated '#{cust.objid}' via API key"
-            cust
-          end
-        end
-      end
-
       # Basic auth strategy - HTTP Basic Authentication
       #
       # Routes: auth=basicauth
@@ -333,7 +265,7 @@ module Onetime
 
           # Always validate credentials using BCrypt (constant-time comparison)
           # Note: This uses passphrase? for API key authentication (API key stored as passphrase)
-          valid_credentials = target_cust.passphrase?(apikey)
+          valid_credentials = target_cust.apitoken?(apikey)
 
           # Only succeed if we have a real customer AND valid credentials
           if cust && valid_credentials
@@ -350,7 +282,7 @@ module Onetime
             )
 
             success(
-              session: {},  # No session for Basic auth (stateless)
+              session: nil,  # No session for Basic auth (stateless)
               user: cust,
               auth_method: 'basic_auth',
               **metadata_hash,
