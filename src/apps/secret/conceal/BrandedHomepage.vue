@@ -52,7 +52,7 @@
       :primary-color="primaryColor"
       :button-text-light="buttonTextLight"
       :corner-class="cornerClass"
-      :with-recipient="false"
+      :with-recipient="true"
       :with-asterisk="false"
       :with-generate="false" />
 
