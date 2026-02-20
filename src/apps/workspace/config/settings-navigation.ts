@@ -177,7 +177,6 @@ export function getSettingsNavigationSections(t: ComposerTranslation): SettingsN
           icon: { collection: 'heroicons', name: 'code-bracket' },
           label: t('web.account.api_key'),
           description: t('web.settings.api.manage_api_keys'),
-          // Hidden until API key functionality is complete for launch
           visible: () => true,
         },
       ],

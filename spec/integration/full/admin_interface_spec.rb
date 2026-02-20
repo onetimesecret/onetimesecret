@@ -292,7 +292,7 @@ RSpec.describe 'Admin Interface', type: :integration do
         expect(last_response.status).to eq(200)
 
         body = JSON.parse(last_response.body)
-        expect(body['record']['user_id']).to eq(test_user.objid)
+        expect(body['record']['extid']).to eq(test_user.extid)
       end
 
       it 'includes user secrets' do
