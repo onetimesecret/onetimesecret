@@ -209,7 +209,9 @@ module Onetime
     end
 
     def apitoken?(value)
-      apitoken == value
+      return false if apitoken.to_s.empty? || value.to_s.empty?
+
+      Rack::Utils.secure_compare(apitoken, value)
     end
 
     class << self

@@ -263,8 +263,7 @@ module Onetime
           # non-existing users, making timing analysis ineffective.
           target_cust = cust || Onetime::Customer.dummy
 
-          # Always validate credentials using BCrypt (constant-time comparison)
-          # Note: This uses passphrase? for API key authentication (API key stored as passphrase)
+          # Validate API key using constant-time comparison (apitoken?)
           valid_credentials = target_cust.apitoken?(apikey)
 
           # Only succeed if we have a real customer AND valid credentials
