@@ -118,7 +118,7 @@ module ColonelAPI
         def success_data
           {
             record: {
-              user_id: user.objid,
+              user_id: user.extid,
               extid: user.extid,
               email: user.obscure_email,
               role: user.role,
