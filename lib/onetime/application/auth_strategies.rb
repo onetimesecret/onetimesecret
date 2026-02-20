@@ -94,7 +94,9 @@ module Onetime
         def authenticate(env, _requirement)
           session = env['rack.session']
 
-          # Load customer from session or use anonymous
+          # Try session first, then Basic auth, then fall back to anonymous.
+          # This allows API key callers to use features that require identity
+          # (e.g. recipient emails) on routes that also permit anonymous access.
           cust = load_user_from_session(session) || Onetime::Customer.anonymous
 
           # Load organization context if user is authenticated
@@ -138,7 +140,7 @@ module Onetime
           end
 
           # Load customer
-          cust = Onetime::Customer.find_by_extid(external_id)
+          cust = Onetime::Customer.load_by_extid_or_email(external_id)
           return failure('[CUSTOMER_NOT_FOUND] Customer not found') unless cust
 
           # Perform additional checks (role, permissions, etc.)
@@ -245,7 +247,7 @@ module Onetime
           return failure('[CREDENTIALS_FORMAT_INVALID] Invalid credentials format') unless username && apikey
 
           # Load customer by custid (may be nil)
-          cust = Onetime::Customer.load(username)
+          cust = Onetime::Customer.load_by_extid_or_email(username)
 
           # Timing attack mitigation:
           # To prevent username enumeration via timing analysis, we ensure that
@@ -261,9 +263,8 @@ module Onetime
           # non-existing users, making timing analysis ineffective.
           target_cust = cust || Onetime::Customer.dummy
 
-          # Always validate credentials using BCrypt (constant-time comparison)
-          # Note: This uses passphrase? for API key authentication (API key stored as passphrase)
-          valid_credentials = target_cust.passphrase?(apikey)
+          # Validate API key using constant-time comparison (apitoken?)
+          valid_credentials = target_cust.apitoken?(apikey)
 
           # Only succeed if we have a real customer AND valid credentials
           if cust && valid_credentials
@@ -280,7 +281,7 @@ module Onetime
             )
 
             success(
-              session: {},  # No session for Basic auth (stateless)
+              session: nil,  # No session for Basic auth (stateless)
               user: cust,
               auth_method: 'basic_auth',
               **metadata_hash,
