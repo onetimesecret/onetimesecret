@@ -248,6 +248,10 @@ module Onetime
         cust
       end
 
+      def load_by_extid_or_email(extid_or_email)
+        find_by_extid(extid_or_email) || find_by_email(extid_or_email)
+      end
+
       def email_exists?(email)
         Customer.email_index.key?(email)
       end

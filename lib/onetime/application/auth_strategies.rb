@@ -245,7 +245,7 @@ module Onetime
           return failure('[CREDENTIALS_FORMAT_INVALID] Invalid credentials format') unless username && apikey
 
           # Load customer by custid (may be nil)
-          cust = Onetime::Customer.load(username)
+          cust = Onetime::Customer.load_by_extid_or_email(username)
 
           # Timing attack mitigation:
           # To prevent username enumeration via timing analysis, we ensure that
