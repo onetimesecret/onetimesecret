@@ -170,6 +170,8 @@ docker logs redis-onetime
 ```
 This re-installs dependencies and re-derives child keys from the existing SECRET. Safe to run repeatedly.
 
+> **Migrating from rake?** Previous versions used `rake ots:secrets` for setup. That task has been replaced by `./install.sh init` (first run) and `./install.sh reconcile` (updates).
+
 ### Running Modes
 
 #### Production Mode
