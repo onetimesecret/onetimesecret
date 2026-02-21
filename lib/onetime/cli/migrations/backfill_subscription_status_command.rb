@@ -82,9 +82,8 @@ module Onetime
 
       def find_orgs_with_subscription
         all_org_ids = Onetime::Organization.instances.all
-        orgs        = all_org_ids.filter_map do |objid|
-          org = Onetime::Organization.load(objid)
-          org if org && !org.stripe_subscription_id.to_s.empty?
+        orgs        = Onetime::Organization.load_multi(all_org_ids).compact.reject do |org|
+          org.stripe_subscription_id.to_s.empty?
         end
 
         if orgs.empty?

@@ -185,6 +185,8 @@ runs:
       id: registries
       shell: bash
       run: |
+        # Strip trailing whitespace/newlines from secrets (common copy-paste artifact)
+        CUSTOM_HOST="$(echo -n "$CUSTOM_HOST" | tr -d '\n\r')"
         if [ "$REGISTRY_MODE" = "custom" ] && [ -n "$CUSTOM_HOST" ]; then
           echo "images=${CUSTOM_HOST}/${GITHUB_REPOSITORY}${IMAGE_SUFFIX}" >> "$GITHUB_OUTPUT"
         else
