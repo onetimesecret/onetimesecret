@@ -14,7 +14,7 @@ POST   /change-password                     AccountAPI::Logic::Account::UpdatePa
 POST   /update-domain-context               AccountAPI::Logic::Account::UpdateDomainContext response=json auth=sessionauth,basicauth
 POST   /update-locale                       AccountAPI::Logic::Account::UpdateLocale response=json auth=noauth
 POST   /update-notification-preference      AccountAPI::Logic::Account::UpdateNotificationPreference response=json auth=sessionauth,basicauth
-POST   /apitoken                            AccountAPI::Logic::Account::GenerateAPIToken response=json auth=sessionauth,basicauth csrf=exempt
+POST   /apitoken                            AccountAPI::Logic::Account::GenerateAPIToken response=json auth=sessionauth csrf=exempt
 POST   /change-email                        AccountAPI::Logic::Account::RequestEmailChange response=json auth=sessionauth,basicauth
 POST   /confirm-email-change                AccountAPI::Logic::Account::ConfirmEmailChange response=json auth=noauth
 POST   /resend-email-change-confirmation    AccountAPI::Logic::Account::ResendEmailChangeConfirmation response=json auth=sessionauth,basicauth
