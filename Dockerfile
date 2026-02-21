@@ -261,6 +261,7 @@ COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser install.sh ./
 COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
@@ -363,6 +364,7 @@ COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser install.sh ./
 COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./

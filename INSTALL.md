@@ -152,26 +152,23 @@ docker logs redis-onetime
    cd onetimesecret
    ```
 
-2. **Install dependencies:**
+2. **Initialize the application:**
    ```bash
-   # Ruby dependencies
-   bundle install
-
-   # Node.js dependencies (for development)
-   pnpm install
+   ./install.sh init
    ```
+   This installs Ruby and Node dependencies, generates configuration files, and derives secret keys.
 
-3. **Initialize configuration:**
-   ```bash
-   git rev-parse --short HEAD > .commit_hash.txt
-   cp ./etc/config.example.yaml ./etc/config.yaml
-   ```
-
-4. **Edit configuration:**
+3. **Edit configuration:**
    ```bash
    # Edit config.yaml with your settings
    nano ./etc/config.yaml
    ```
+
+**Updating an existing install:**
+```bash
+./install.sh reconcile
+```
+This re-installs dependencies and re-derives child keys from the existing SECRET. Safe to run repeatedly.
 
 ### Running Modes
 
@@ -221,17 +218,15 @@ For active frontend development with live reloading:
    pnpm run dev
    ```
 
-### Dependency Verification
+### Environment Verification
 
-Verify required versions are installed:
+Check that your environment is correctly set up:
 
 ```bash
-ruby --version       # Should be 3.1+
-bundler --version    # Should be 2.5.x
-node --version       # Should be 22+
-pnpm --version       # Should be 9.0+
-redis-server -v      # Should be 5+
+./install.sh doctor
 ```
+
+This verifies Ruby and Node versions, Redis connectivity, and environment configuration.
 
 ## Advanced Configuration
 
