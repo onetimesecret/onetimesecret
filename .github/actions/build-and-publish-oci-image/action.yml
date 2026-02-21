@@ -28,7 +28,7 @@
 
 name: Build and Publish OCI Image
 description: |
-  Builds and publishes OCI images to Docker Hub and GHCR.
+  Builds and publishes OCI images to Docker Hub, GHCR, or a custom registry.
   Supports multi-platform builds (amd64/arm64) and automatic tagging.
 
 inputs:
@@ -56,16 +56,37 @@ inputs:
     description: 'Whether to push the image after building'
     required: false
     default: 'true'
+  # Registry selection
+  registry-mode:
+    description: 'Target registry: "public" (Docker Hub + GHCR) or "custom" (private registry)'
+    required: false
+    default: 'public'
   # Registry credentials (must be passed from secrets)
   dockerhub-username:
     description: 'Docker Hub username'
-    required: true
+    required: false
+    default: ''
   dockerhub-token:
     description: 'Docker Hub token'
-    required: true
+    required: false
+    default: ''
   github-token:
     description: 'GitHub token for GHCR'
-    required: true
+    required: false
+    default: ''
+  # Custom registry credentials
+  custom-registry-host:
+    description: 'Custom registry hostname (kept as secret to avoid log exposure)'
+    required: false
+    default: ''
+  custom-registry-username:
+    description: 'Custom registry username'
+    required: false
+    default: ''
+  custom-registry-password:
+    description: 'Custom registry password or token'
+    required: false
+    default: ''
 
 outputs:
   image-digest:
@@ -133,24 +154,52 @@ runs:
         platforms: ${{ inputs.platforms }}
 
     - name: Login to Docker Hub
-      if: inputs.push == 'true'
+      if: inputs.push == 'true' && inputs.registry-mode != 'custom'
       uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
       with:
         username: ${{ inputs.dockerhub-username }}
         password: ${{ inputs.dockerhub-token }}
 
     - name: Log into GitHub Container Registry
-      if: inputs.push == 'true'
+      if: inputs.push == 'true' && inputs.registry-mode != 'custom'
       uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ inputs.github-token }}
 
+    - name: Log into custom registry
+      if: inputs.push == 'true' && inputs.registry-mode == 'custom'
+      uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+      with:
+        registry: ${{ inputs.custom-registry-host }}
+        username: ${{ inputs.custom-registry-username }}
+        password: ${{ inputs.custom-registry-password }}
+
     - name: Get Version
       id: package_version
       shell: bash
       run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+    - name: Determine target registries
+      id: registries
+      shell: bash
+      run: |
+        if [ "$REGISTRY_MODE" = "custom" ] && [ -n "$CUSTOM_HOST" ]; then
+          echo "images=${CUSTOM_HOST}/${GITHUB_REPOSITORY}${IMAGE_SUFFIX}" >> "$GITHUB_OUTPUT"
+        else
+          {
+            echo "images<<IMAGES_EOF"
+            echo "ghcr.io/${GITHUB_REPOSITORY}${IMAGE_SUFFIX}"
+            echo "${GITHUB_REPOSITORY}${IMAGE_SUFFIX}"
+            echo "IMAGES_EOF"
+          } >> "$GITHUB_OUTPUT"
+        fi
+      env:
+        REGISTRY_MODE: ${{ inputs.registry-mode }}
+        CUSTOM_HOST: ${{ inputs.custom-registry-host }}
+        IMAGE_SUFFIX: ${{ inputs.image-suffix }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
 
     - name: Extract Docker metadata
       id: meta
@@ -161,9 +210,7 @@ runs:
         github-token: ${{ inputs.github-token }}
         tags: |
           ${{ inputs.image-tags != '' && inputs.image-tags || 'type=ref,event=branch' }}
-        images: |
-          ghcr.io/${{ github.repository }}${{ inputs.image-suffix }}
-          ${{ github.repository }}${{ inputs.image-suffix }}
+        images: ${{ steps.registries.outputs.images }}
         flavor: |
           latest=${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-rc') }}
         labels: |

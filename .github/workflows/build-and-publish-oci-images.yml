@@ -50,6 +50,14 @@ on:
         description: 'Version tag for the image (e.g., "0.18.0-beta.1"). Does NOT create a git tag.'
         required: false
         default: ''
+      registry_target:
+        type: choice
+        description: 'Target registry for built images'
+        required: false
+        default: 'custom'
+        options:
+          - 'custom'
+          - 'public'
       debug_enabled:
         type: boolean
         description: 'Enable debug mode for build troubleshooting'
@@ -90,6 +98,7 @@ jobs:
           dockerfile: 'Dockerfile'
           platforms: ${{ inputs.platforms || 'linux/amd64' }}
           push: ${{ github.event_name != 'pull_request' }}
+          registry-mode: ${{ inputs.registry_target || 'public' }}
           image-tags: |
             type=ref,event=branch
             type=ref,event=tag
@@ -101,6 +110,9 @@ jobs:
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          custom-registry-host: ${{ secrets.CUSTOM_REGISTRY_HOST }}
+          custom-registry-username: ${{ secrets.CUSTOM_REGISTRY_USERNAME }}
+          custom-registry-password: ${{ secrets.CUSTOM_REGISTRY_PASSWORD }}
 
   build-and-publish-lite:
     name: Build Lite Image
@@ -121,6 +133,7 @@ jobs:
           dockerfile: 'docker/variants/lite.dockerfile'
           platforms: ${{ inputs.platforms || 'linux/amd64' }}
           push: ${{ github.event_name != 'pull_request' }}
+          registry-mode: ${{ inputs.registry_target || 'public' }}
           image-tags: |
             type=ref,event=branch
             type=ref,event=tag
@@ -132,6 +145,9 @@ jobs:
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          custom-registry-host: ${{ secrets.CUSTOM_REGISTRY_HOST }}
+          custom-registry-username: ${{ secrets.CUSTOM_REGISTRY_USERNAME }}
+          custom-registry-password: ${{ secrets.CUSTOM_REGISTRY_PASSWORD }}
 
   build-and-publish-s6:
     name: Build S6 Multi-Process Image
@@ -153,6 +169,7 @@ jobs:
           build-target: 'final-s6'
           platforms: ${{ inputs.platforms || 'linux/amd64' }}
           push: ${{ github.event_name != 'pull_request' }}
+          registry-mode: ${{ inputs.registry_target || 'public' }}
           image-tags: |
             type=ref,event=branch
             type=ref,event=tag
@@ -164,3 +181,6 @@ jobs:
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          custom-registry-host: ${{ secrets.CUSTOM_REGISTRY_HOST }}
+          custom-registry-username: ${{ secrets.CUSTOM_REGISTRY_USERNAME }}
+          custom-registry-password: ${{ secrets.CUSTOM_REGISTRY_PASSWORD }}
