@@ -208,6 +208,12 @@ module Onetime
       super
     end
 
+    def apitoken?(value)
+      return false if apitoken.to_s.empty? || value.to_s.empty?
+
+      Rack::Utils.secure_compare(apitoken, value)
+    end
+
     class << self
       attr_reader :values, :dummy
 
