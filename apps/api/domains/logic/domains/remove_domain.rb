@@ -45,8 +45,7 @@ module DomainsAPI::Logic
         @custom_domain.destroy!
 
         # Clear the session's domain context if it matches the removed domain.
-        # Under BasicAuth sess is {}, so sess['domain_context'] is nil and
-        # this branch is safely skipped — no session state to clean up.
+        # Route is sessionauth-only, so sess is always a real Rack session.
         if sess && sess['domain_context'] == @display_domain
           sess['domain_context'] = nil
         end
