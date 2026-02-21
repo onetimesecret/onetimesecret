@@ -99,7 +99,8 @@ module V2::Logic
           # sess.clear wipes session data for this request. sess.destroy! does
           # not exist here — OT::Session wraps Rack::Session::Abstract::PersistedSecure,
           # which exposes no public destroy method. clear is the correct call.
-          sess.clear
+          # Skip for stateless auth (BasicAuth provides empty session)
+          sess.clear unless sess.empty?
           secret.received!
         else
           raise_form_error "You can't verify an account when you're already logged in."
