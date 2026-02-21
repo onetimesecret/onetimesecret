@@ -149,7 +149,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         Stripe::Subscription.construct_from({
           id: 'sub_123', object: 'subscription', customer: customer_id,
           status: 'active', currency: 'eur',
-          cancel_at_period_end: false, discount: nil,
+          cancel_at_period_end: false, discounts: [],
           items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
           metadata: {},
         })
@@ -191,7 +191,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         Stripe::Subscription.construct_from({
           id: 'sub_123', object: 'subscription', customer: customer_id,
           status: 'past_due', currency: 'eur',
-          cancel_at_period_end: false, discount: nil,
+          cancel_at_period_end: false, discounts: [],
           items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
           metadata: {},
         })
@@ -216,7 +216,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         Stripe::Subscription.construct_from({
           id: 'sub_123', object: 'subscription', customer: customer_id,
           status: 'active', currency: 'eur',
-          cancel_at_period_end: false, discount: nil,
+          cancel_at_period_end: false, discounts: [],
           items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
           metadata: {},
         })
@@ -242,7 +242,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         Stripe::Subscription.construct_from({
           id: 'sub_123', object: 'subscription', customer: customer_id,
           status: 'active', currency: 'eur',
-          cancel_at_period_end: false, discount: nil,
+          cancel_at_period_end: false, discounts: [],
           items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
           metadata: {},
         })
@@ -271,7 +271,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         Stripe::Subscription.construct_from({
           id: 'sub_123', object: 'subscription', customer: customer_id,
           status: 'active', currency: 'eur',
-          cancel_at_period_end: false, discount: { coupon: { id: 'coupon_10_eur', amount_off: 1000, currency: 'eur', name: '10 EUR off' } },
+          cancel_at_period_end: false,
+          discounts: [{ coupon: { id: 'coupon_10_eur', amount_off: 1000, currency: 'eur', name: '10 EUR off' } }],
           items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
           metadata: {},
         })
@@ -287,6 +288,83 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         result = described_class.assess_migration(org, 'eur', 'usd', target_price_id)
 
         expect(result[:warnings][:has_incompatible_coupons]).to be true
+      end
+    end
+
+    # Regression: Stripe API returns `discounts` (array) not `discount` (singular).
+    # Prior to fix, accessing sub.discount on newer API versions raised NoMethodError.
+    context 'with discounts array containing amount-off coupon (Stripe API regression)' do
+      let(:subscription) do
+        Stripe::Subscription.construct_from({
+          id: 'sub_123', object: 'subscription', customer: customer_id,
+          status: 'active', currency: 'eur',
+          cancel_at_period_end: false,
+          discounts: [{ coupon: { id: 'coupon_10_eur', amount_off: 1000, currency: 'eur', name: '10 EUR off' } }],
+          items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
+          metadata: {},
+        })
+      end
+
+      before do
+        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
+        allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
+      end
+
+      it 'detects incompatible coupon from discounts array' do
+        result = described_class.assess_migration(org, 'eur', 'usd', target_price_id)
+
+        expect(result[:warnings][:has_incompatible_coupons]).to be true
+      end
+    end
+
+    context 'with empty discounts array (Stripe API regression)' do
+      let(:subscription) do
+        Stripe::Subscription.construct_from({
+          id: 'sub_123', object: 'subscription', customer: customer_id,
+          status: 'active', currency: 'eur',
+          cancel_at_period_end: false,
+          discounts: [],
+          items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
+          metadata: {},
+        })
+      end
+
+      before do
+        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
+        allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
+      end
+
+      it 'does not warn about incompatible coupons' do
+        result = described_class.assess_migration(org, 'eur', 'usd', target_price_id)
+
+        expect(result[:warnings][:has_incompatible_coupons]).to be false
+      end
+    end
+
+    context 'with percentage coupon in discounts array (Stripe API regression)' do
+      let(:subscription) do
+        Stripe::Subscription.construct_from({
+          id: 'sub_123', object: 'subscription', customer: customer_id,
+          status: 'active', currency: 'eur',
+          cancel_at_period_end: false,
+          discounts: [{ coupon: { id: 'coupon_20pct', percent_off: 20, amount_off: nil, currency: nil, name: '20% off' } }],
+          items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
+          metadata: {},
+        })
+      end
+
+      before do
+        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
+        allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
+      end
+
+      it 'does not warn about percentage coupons' do
+        result = described_class.assess_migration(org, 'eur', 'usd', target_price_id)
+
+        expect(result[:warnings][:has_incompatible_coupons]).to be false
       end
     end
   end

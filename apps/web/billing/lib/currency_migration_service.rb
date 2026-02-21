@@ -354,7 +354,7 @@ module Billing
       if subscription_id
         begin
           sub      = Stripe::Subscription.retrieve(subscription_id)
-          discount = sub.discount
+          discount = sub.discounts&.first
           if discount&.coupon&.amount_off && discount.coupon.currency == existing_currency
             warnings[:has_incompatible_coupons] = true
           end
