@@ -194,6 +194,7 @@ plans:
       - view_receipt
       - custom_domains
       - custom_branding
+      - custom_privacy_defaults
       - homepage_secrets
       - api_access
 
@@ -228,6 +229,7 @@ plans:
       - view_receipt
       - api_access
       - custom_domains
+      - custom_privacy_defaults
       - custom_branding
       - homepage_secrets
 
