@@ -50,7 +50,7 @@ services:
       - ../../.env
     environment:
       - RACK_ENV=${RACK_ENV:-production}
-      - REDIS_URL=redis://maindb:6379/0
+      - VALKEY_URL=redis://maindb:6379/0
       - AUTH_DATABASE_URL=sqlite://data/auth.db
       - SECRET=${SECRET:?SECRET must be set — run ./install.sh}
       - SESSION_SECRET=${SESSION_SECRET:-}
@@ -154,9 +154,8 @@ services:
       - ../../.env
     environment:
       - RACK_ENV=${RACK_ENV:-production}
-      - REDIS_URL=redis://maindb:6379/0
+      - VALKEY_URL=redis://maindb:6379/0
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
-      - ONETIME_HOME=/app
     command:
       [
         './bin/ots',
@@ -194,10 +193,8 @@ services:
       - ../../.env
     environment:
       - RACK_ENV=${RACK_ENV:-production}
-      - REDIS_URL=redis://maindb:6379/0
       - VALKEY_URL=redis://maindb:6379/0
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
-      - ONETIME_HOME=/app
     command: ['./bin/ots', 'jobs', 'scheduler', '--environment', 'production']
     logging:
       driver: 'json-file'
