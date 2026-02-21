@@ -36,11 +36,8 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
         expect(result.user.custid).to eq(test_customer.custid)
       end
 
-      it 'sets auth_method to SessionAuthStrategy' do
-        # @auth_method_name is a class instance variable, not an instance variable,
-        # so the attr_reader returns nil and Otto's success() falls back to
-        # self.class.name.split('::').last => "SessionAuthStrategy"
-        expect(result.auth_method).to eq('SessionAuthStrategy')
+      it 'sets auth_method to sessionauth' do
+        expect(result.auth_method).to eq('sessionauth')
       end
 
       # Session contract — session must not be nil, must support bracket access
