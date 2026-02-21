@@ -13,10 +13,10 @@ POST   /destroy                             AccountAPI::Logic::Account::DestroyA
 POST   /change-password                     AccountAPI::Logic::Account::UpdatePassword response=json auth=sessionauth
 POST   /update-domain-context               AccountAPI::Logic::Account::UpdateDomainContext response=json auth=sessionauth
 POST   /update-locale                       AccountAPI::Logic::Account::UpdateLocale response=json auth=noauth
-POST   /update-notification-preference      AccountAPI::Logic::Account::UpdateNotificationPreference response=json auth=sessionauth,basicauth
+POST   /update-notification-preference      AccountAPI::Logic::Account::UpdateNotificationPreference response=json auth=sessionauth
 POST   /apitoken                            AccountAPI::Logic::Account::GenerateAPIToken response=json auth=sessionauth csrf=exempt
-POST   /change-email                        AccountAPI::Logic::Account::RequestEmailChange response=json auth=sessionauth,basicauth
+POST   /change-email                        AccountAPI::Logic::Account::RequestEmailChange response=json auth=sessionauth
 POST   /confirm-email-change                AccountAPI::Logic::Account::ConfirmEmailChange response=json auth=noauth
-POST   /resend-email-change-confirmation    AccountAPI::Logic::Account::ResendEmailChangeConfirmation response=json auth=sessionauth,basicauth
+POST   /resend-email-change-confirmation    AccountAPI::Logic::Account::ResendEmailChangeConfirmation response=json auth=sessionauth
 GET    /                                    AccountAPI::Logic::Account::GetAccount response=json auth=sessionauth,basicauth
 GET    /entitlements                        AccountAPI::Logic::Account::GetEntitlements response=json auth=sessionauth,basicauth
