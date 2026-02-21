@@ -40,6 +40,7 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
 
   let(:session) do
     {
+      'authenticated' => true,
       'csrf' => 'test-csrf-token',
       'domain_context' => nil,
     }
@@ -268,6 +269,7 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
     context 'when session already has a domain_context' do
       let(:session) do
         {
+          'authenticated' => true,
           'csrf' => 'test-csrf-token',
           'domain_context' => 'old-domain.com',
         }

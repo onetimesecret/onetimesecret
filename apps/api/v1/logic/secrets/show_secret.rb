@@ -44,7 +44,8 @@ module V1::Logic
           if verification
             if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
               owner.verified! "true"
-              sess.clear
+              # Skip for stateless auth (BasicAuth provides empty session)
+              sess.clear unless sess.empty?
               secret.revealed!
             else
               raise_form_error "You can't verify an account when you're already logged in."
