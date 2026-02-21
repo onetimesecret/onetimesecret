@@ -22,6 +22,14 @@
 #
 # Note: For use with docker-compose.full.yml, add mailpit to
 # onetime-network so it can communicate with the app service.
+# Uncomment the networks block below:
+#
+#    networks:
+#      - onetime-network
+#
+# networks:
+#   onetime-network:
+#     external: true
 
 services:
   mailpit:

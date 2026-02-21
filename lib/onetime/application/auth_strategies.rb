@@ -94,9 +94,9 @@ module Onetime
         def authenticate(env, _requirement)
           session = env['rack.session']
 
-          # Try session first, then Basic auth, then fall back to anonymous.
-          # This allows API key callers to use features that require identity
-          # (e.g. recipient emails) on routes that also permit anonymous access.
+          # Try session first, then fall back to anonymous. Basic auth is
+          # handled by a separate strategy in the route chain (routes.txt),
+          # not here — this strategy only checks session state.
           cust = load_user_from_session(session) || Onetime::Customer.anonymous
 
           # Load organization context if user is authenticated
@@ -281,7 +281,9 @@ module Onetime
             )
 
             success(
-              session: nil,  # No session for Basic auth (stateless)
+              session: {},  # Empty hash, not nil: downstream consumers
+              # (Logic::Base, RequestHelpers) index into
+              # session with [] and would raise on nil.
               user: cust,
               auth_method: 'basic_auth',
               **metadata_hash,

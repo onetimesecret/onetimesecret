@@ -76,6 +76,7 @@ require_relative 'cli/customers_command'
 # Load migration CLI commands
 require_relative 'cli/migrations/backfill_email_hash_command'
 require_relative 'cli/migrations/backfill_stripe_email_hash_command'
+require_relative 'cli/migrations/backfill_subscription_status_command'
 require_relative 'cli/passwords_command'
 require_relative 'cli/test_data_command'
 require_relative 'cli/change_email_command'
