@@ -82,7 +82,8 @@ permissions:
 jobs:
   build-and-publish-main:
     name: Build Main Image
-    runs-on: ubuntu-24.04
+    # runs-on: ubuntu-24.04
+    runs-on: self-hosted
     if: github.repository == 'onetimesecret/onetimesecret'
 
     steps:
@@ -116,7 +117,8 @@ jobs:
 
   build-and-publish-lite:
     name: Build Lite Image
-    runs-on: ubuntu-24.04
+    # runs-on: ubuntu-24.04
+    runs-on: self-hosted
     needs: [build-and-publish-main]
     if: github.repository == 'onetimesecret/onetimesecret'
 
@@ -151,7 +153,8 @@ jobs:
 
   build-and-publish-s6:
     name: Build S6 Multi-Process Image
-    runs-on: ubuntu-24.04
+    # runs-on: ubuntu-24.04
+    runs-on: self-hosted
     needs: [build-and-publish-main]
     if: github.repository == 'onetimesecret/onetimesecret'
 
