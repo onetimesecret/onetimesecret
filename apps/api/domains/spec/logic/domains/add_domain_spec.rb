@@ -40,6 +40,7 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
 
   let(:session) do
     {
+      'authenticated' => true,
       'csrf' => 'test-csrf-token',
       'domain_context' => nil,
     }
@@ -265,9 +266,28 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
       expect(session['domain_context']).to eq(custom_domain.display_domain)
     end
 
+    context 'when session is stateless (BasicAuth)' do
+      let(:session) { {} }
+
+      it 'skips session write without error' do
+        expect { logic.send(:process) }.not_to raise_error
+      end
+
+      it 'does not set domain_context in session' do
+        logic.send(:process)
+        expect(session).not_to have_key('domain_context')
+      end
+
+      it 'still includes domain_context in success_data response' do
+        result_data = logic.send(:process)
+        expect(result_data[:domain_context]).to eq('example.com')
+      end
+    end
+
     context 'when session already has a domain_context' do
       let(:session) do
         {
+          'authenticated' => true,
           'csrf' => 'test-csrf-token',
           'domain_context' => 'old-domain.com',
         }

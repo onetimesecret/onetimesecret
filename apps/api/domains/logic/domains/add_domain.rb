@@ -85,8 +85,12 @@ module DomainsAPI::Logic
 
         @custom_domain = Onetime::CustomDomain.create!(@display_domain, target_organization.objid)
 
-        # After creating the domain, make it the active context in the session
-        sess['domain_context'] = @display_domain
+        # After creating the domain, make it the active context in the session.
+        # Under BasicAuth, sess is {} (stateless), so this write is a no-op.
+        # That's fine -- API callers get domain_context in the response body.
+        if sess && sess['authenticated']
+          sess['domain_context'] = @display_domain
+        end
 
         begin
           # Request certificate using the configured strategy
