@@ -153,12 +153,12 @@ describe('settings-navigation config', () => {
   });
 
   describe('API section visibility', () => {
-    it('API section is hidden (visible returns false)', () => {
+    it('API section is visible', () => {
       const sections = getSettingsNavigationSections(t);
       const accountSection = sections.find((s) => s.id === 'account');
       const apiItem = accountSection?.items.find((i) => i.id === 'api');
 
-      expect(apiItem?.visible?.()).toBe(false);
+      expect(apiItem?.visible?.()).toBe(true);
     });
   });
 });
