@@ -9,9 +9,9 @@
 #
 # For more detailed documentation, see docker/variants/README.md.
 #
-# BUILDING:
+# BUILDING (via Bake — resolves the main image dependency automatically):
 #
-#     $ docker build -t onetimesecret-lite -f docker/variants/lite.dockerfile .
+#     $ docker buildx bake -f docker/bake.hcl lite
 #
 # RUNNING:
 #
@@ -20,7 +20,9 @@
 # The application will be available at http://localhost:7143.
 #
 
-FROM ghcr.io/onetimesecret/onetimesecret@sha256:4b9ea5f55386e8919f93b0f594f811e0f64777ea2953ac260ea31c1d3fcebfef
+# The "main" context is provided by docker/bake.hcl via:
+#   contexts = { main = "target:main" }
+FROM main
 ARG VERSION=0.0.0
 
 LABEL Name=onetimesecret-lite Version=$VERSION
