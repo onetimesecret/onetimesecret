@@ -130,7 +130,10 @@ module Onetime
           else
             org.subscription_status     = status
             org.subscription_period_end = period_end.to_s if period_end
-            org.save
+
+            updated_fields = [:subscription_status]
+            updated_fields << :subscription_period_end if period_end
+            org.save_fields(*updated_fields)
             sleep(BATCH_DELAY_SECONDS)
             puts "  [#{idx + 1}/#{total_orgs}] Updated: #{org.extid} -> status=#{status}" if verbose
           end
