@@ -128,7 +128,22 @@ RUN VERSION=$(node -p "require('./package.json').version") \
 FROM docker.io/library/ruby:${RUBY_IMAGE_TAG} AS final
 ARG APP_DIR
 ARG VERSION
-LABEL org.opencontainers.image.version=$VERSION
+
+LABEL org.opencontainers.image.version=${VERSION} \
+      org.opencontainers.image.title="Onetime Secret" \
+      org.opencontainers.image.description="Keep passwords out of your inboxes and chat logs with links that work only one time." \
+      org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret"
+
+# Install runtime dependencies for native gem extensions
+RUN set -eux && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libsqlite3-0 \
+        libpq5 \
+        curl \
+        ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 WORKDIR ${APP_DIR}
 
@@ -136,47 +151,45 @@ WORKDIR ${APP_DIR}
 RUN groupadd -g 1001 appuser && \
     useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
 
-## Copy only necessary files from previous stages
+# Copy runtime essentials from build stages
 COPY --from=dependencies /usr/local/bin/yq /usr/local/bin/yq
 COPY --from=build /usr/local/bundle /usr/local/bundle
-COPY --from=build ${APP_DIR}/public ${APP_DIR}/public
-COPY --from=build ${APP_DIR}/templates ${APP_DIR}/templates
-COPY --from=build ${APP_DIR}/src ${APP_DIR}/src
-COPY bin ${APP_DIR}/bin
-COPY apps ${APP_DIR}/apps
-COPY etc ${APP_DIR}/etc
-COPY lib ${APP_DIR}/lib
-COPY docker/entrypoints/entrypoint.sh ./bin/
-COPY docker/entrypoints/check-migration-status.sh ./bin/
-COPY scripts/update-version.sh ./bin/
-COPY migrations ${APP_DIR}/migrations
-COPY package.json config.ru Gemfile Gemfile.lock ${APP_DIR}/
 
-# Copy build stage metadata files
-COPY --from=build /tmp/build-meta/commit_hash.txt ${APP_DIR}/.commit_hash.txt
+# Copy built assets from build stage
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/public ./public
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/templates ./templates
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/src ./src
+COPY --chown=appuser:appuser --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
 
-# See: https://fly.io/docs/rails/cookbooks/deploy/
-ENV RUBY_YJIT_ENABLE=1
+# Copy runtime files
+COPY --chown=appuser:appuser bin ./bin
+COPY --chown=appuser:appuser apps ./apps
+COPY --chown=appuser:appuser etc/ ./etc/
+COPY --chown=appuser:appuser lib ./lib
+COPY --chown=appuser:appuser migrations ./migrations
+COPY --chown=appuser:appuser --chmod=755 docker/entrypoints/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser --chmod=755 docker/entrypoints/check-migration-status.sh ./bin/
+COPY --chown=appuser:appuser --chmod=755 scripts/update-version.sh ./bin/
+COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
 
-# Explicitly setting the Rack environment to production directs
-# the application to use the pre-built JS/CSS assets in the
-# "public/web/dist" directory. In dev mode, the application
-# expects a vite server to be running on port 5173.
-ENV RACK_ENV=production
+# Set production environment
+ENV RACK_ENV=production \
+    ONETIME_HOME=${APP_DIR} \
+    RUBY_YJIT_ENABLE=1 \
+    BUNDLE_WITHOUT="development:test" \
+    PATH=${APP_DIR}/bin:$PATH
 
-ENV ONETIME_HOME=${APP_DIR}
-
-# Copy the default config file into place if it doesn't
-# already exist. If it does exist, nothing happens.
-# The "--no-clobber" argument prevents changes from being overwritten.
+# Ensure config files exist (preserve existing if mounted)
 RUN set -eux && \
     cp --preserve --no-clobber etc/defaults/config.defaults.yaml etc/config.yaml && \
     chmod +x bin/entrypoint.sh bin/check-migration-status.sh
 
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://127.0.0.1:3000/api/v1/status || exit 1
+
 # Run as non-root user
 USER appuser
-
-# Rack app
-EXPOSE 3000
 
 CMD ["bin/entrypoint.sh"]
