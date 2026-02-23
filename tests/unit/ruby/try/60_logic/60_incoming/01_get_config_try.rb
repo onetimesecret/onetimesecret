@@ -27,16 +27,13 @@ incoming_config = OT.conf.dig(:features, :incoming)
 incoming_config[:enabled]
 #=> false
 
-## GetConfig raises error when feature is disabled
-begin
-  logic = V2::Logic::Incoming::GetConfig.new @sess, @cust, {}
-  logic.raise_concerns
-  logic.process
-  false
-rescue OT::FormError => e
-  e.message
-end
-#=> "Incoming secrets feature is not enabled"
+## GetConfig returns enabled:false when feature is disabled
+logic = V2::Logic::Incoming::GetConfig.new @sess, @cust, {}
+logic.raise_concerns
+logic.process
+data = logic.success_data
+[logic.greenlighted, data[:config][:enabled]]
+#=> [true, false]
 
 # Reload with feature enabled
 ENV['INCOMING_ENABLED'] = 'true'
@@ -98,6 +95,40 @@ data = logic.success_data
 recipients = data[:config][:recipients]
 recipients.all? { |r| r[:name].is_a?(String) && !r[:name].empty? }
 #=> true
+
+# Rate limiting tests for get_page
+@orig_page_limit = RateLimit.event_limit(:get_page)
+RateLimit.register_event 'get_page', 2
+
+# Clear any accumulated counts from earlier tests
+@eid = @sess.external_identifier
+RateLimit.clear! @eid, :get_page
+
+## GetConfig raise_concerns increments get_page rate limit counter
+logic = V2::Logic::Incoming::GetConfig.new @sess, @cust, {}
+logic.raise_concerns
+@sess.event_get(:get_page)
+#=> 1
+
+## get_page counter increments on subsequent calls
+logic = V2::Logic::Incoming::GetConfig.new @sess, @cust, {}
+logic.raise_concerns
+@sess.event_get(:get_page)
+#=> 2
+
+## Exceeding get_page rate limit raises LimitExceeded
+begin
+  logic = V2::Logic::Incoming::GetConfig.new @sess, @cust, {}
+  logic.raise_concerns
+  false
+rescue OT::LimitExceeded
+  true
+end
+#=> true
+
+# Restore original limit and clean up
+RateLimit.register_event 'get_page', @orig_page_limit
+RateLimit.clear! @eid, :get_page
 
 # Teardown: Clean up test data
 @cust.destroy!

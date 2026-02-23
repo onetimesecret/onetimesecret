@@ -170,7 +170,7 @@ module V2
       eaddrs.each do |email_address|
         view = template.new cust, locale, secret, email_address
         view.ticketno = ticketno if (ticketno)
-        view.emailer.reply_to = cust.email
+        view.emailer.reply_to = cust.email unless cust.email.to_s.empty?
         view.deliver_email self.token  # pass the token from spawn_pair through
         break # force just a single recipient
       end

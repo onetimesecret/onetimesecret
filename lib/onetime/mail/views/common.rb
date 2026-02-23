@@ -65,6 +65,7 @@ module Onetime
         # Load metadata to access memo field
         metadata = V2::Metadata.load(secret.metadata_key) if secret.metadata_key
         self[:memo] = metadata&.memo
+        self[:has_passphrase] = metadata&.has_passphrase?
       end
 
       def subject

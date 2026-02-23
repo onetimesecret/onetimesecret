@@ -198,6 +198,50 @@ describe('incomingStore', () => {
     });
   });
 
+  describe('getReceipt', () => {
+    const mockReceiptData = {
+      success: true,
+      record: {
+        metadata_key: 'metadata123',
+        created: '2024-01-01T00:00:00Z',
+        recipient: 'hash123abc',
+      },
+    };
+
+    it('fetches receipt data for a valid key', async () => {
+      axiosMock?.onGet('/api/v2/guest/receipt/metadata123').reply(200, mockReceiptData);
+
+      const result = await store.getReceipt('metadata123');
+
+      expect(result).toEqual(mockReceiptData);
+      expect(result.success).toBe(true);
+      expect(result.record.metadata_key).toBe('metadata123');
+    });
+
+    it('calls correct API endpoint with the key', async () => {
+      const testKey = 'test-receipt-key-456';
+      axiosMock?.onGet(`/api/v2/guest/receipt/${testKey}`).reply(200, mockReceiptData);
+
+      await store.getReceipt(testKey);
+
+      expect(axiosMock?.history.get?.some(
+        req => req.url === `/api/v2/guest/receipt/${testKey}`
+      )).toBe(true);
+    });
+
+    it('throws on server error', async () => {
+      axiosMock?.onGet('/api/v2/guest/receipt/badkey').reply(404, { message: 'Not found' });
+
+      await expect(store.getReceipt('badkey')).rejects.toThrow();
+    });
+
+    it('throws on network error', async () => {
+      axiosMock?.onGet('/api/v2/guest/receipt/netfail').networkError();
+
+      await expect(store.getReceipt('netfail')).rejects.toThrow();
+    });
+  });
+
   describe('clear', () => {
     it('clears all state', async () => {
       axiosMock?.onGet('/api/v2/incoming/config').reply(200, mockIncomingConfig);

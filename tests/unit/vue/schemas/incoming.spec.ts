@@ -157,6 +157,44 @@ describe('incomingSecretPayloadSchema', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  describe('XSS content in memo field', () => {
+    it('accepts HTML/script content in memo (stored as-is, escaping is renderer responsibility)', () => {
+      const xssMemo = '<script>alert("XSS")</script>';
+      const result = incomingSecretPayloadSchema.safeParse({
+        memo: xssMemo,
+        secret: 'test secret',
+        recipient: 'hash123',
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        // Zod schema preserves the raw string — no sanitization at schema level
+        expect(result.data.memo).toBe(xssMemo);
+      }
+    });
+
+    it('preserves HTML entities in memo without transformation', () => {
+      const htmlMemo = 'Bug: &lt;div onclick="steal()"&gt;Click&lt;/div&gt;';
+      const result = incomingSecretPayloadSchema.safeParse({
+        memo: htmlMemo,
+        secret: 'test secret',
+        recipient: 'hash123',
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.memo).toBe(htmlMemo);
+      }
+    });
+
+    it('accepts event handler attributes in memo', () => {
+      const result = incomingSecretPayloadSchema.safeParse({
+        memo: '<img src=x onerror="alert(1)">',
+        secret: 'test secret',
+        recipient: 'hash123',
+      });
+      expect(result.success).toBe(true);
+    });
+  });
 });
 
 describe('incomingSecretResponseSchema', () => {
@@ -267,6 +305,19 @@ describe('incomingSecretResponseSchema', () => {
       (response as any).success = 'true';
       const result = incomingSecretResponseSchema.safeParse(response);
       expect(result.success).toBe(false);
+    });
+  });
+
+  describe('XSS content in response metadata memo', () => {
+    it('accepts and preserves script tags in metadata memo (escaping is renderer responsibility)', () => {
+      const response = structuredClone(validResponse);
+      response.record.metadata.memo = '<script>alert("XSS")</script>';
+      response.details!.memo = '<script>alert("XSS")</script>';
+      const result = incomingSecretResponseSchema.safeParse(response);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.record.metadata.memo).toBe('<script>alert("XSS")</script>');
+      }
     });
   });
 
