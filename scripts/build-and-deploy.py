@@ -80,6 +80,18 @@ log = logging.getLogger("post-receive")
 # ─── Configuration ───────────────────────────────────────────────────────────
 
 
+def _gitolite_option(repo: Repo, key: str) -> str | None:
+    """Read a gitolite per-repo option from git config.
+
+    Gitolite stores 'option X = Y' as 'gitolite-options.X = Y'
+    in the repo's git config.
+    """
+    try:
+        return repo.git.config(f"gitolite-options.{key}").strip()
+    except Exception:
+        return None
+
+
 @dataclass
 class BuildConfig:
     """Build configuration, loaded from build.json or derived from repo path."""
@@ -99,6 +111,10 @@ class BuildConfig:
         Returns None if the file doesn't exist (repo has no builds configured).
         Uses git-show to read the file directly from the object store —
         no checkout needed to decide whether to build.
+
+        Gitolite per-repo options (oci.registry, oci.image-name) override
+        values from .oci-build.json when present, keeping private
+        infrastructure details out of the application repository.
         """
         repo_name = Path(repo.common_dir).name.removesuffix(".git")
 
@@ -109,9 +125,19 @@ class BuildConfig:
 
         log.info("Found .oci-build.json in %s (%s)", repo_name, rev[:7])
         raw = json.loads(raw_json)
+
+        # Gitolite options override .oci-build.json values
+        registry = (
+            _gitolite_option(repo, "oci.registry") or raw["registry"]
+        )
+        image_name = (
+            _gitolite_option(repo, "oci.image-name")
+            or raw.get("image_name", repo_name)
+        )
+
         return cls(
-            registry=raw["registry"],
-            image_name=raw.get("image_name", repo_name),
+            registry=registry,
+            image_name=image_name,
             platforms=raw.get("platforms", ["linux/amd64"]),
             work_dir=Path(
                 raw.get("work_dir", f"/opt/builds/{repo_name}-checkout")

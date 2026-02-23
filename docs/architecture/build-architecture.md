@@ -66,6 +66,8 @@ git push build main
   → post-receive hook
     → build-and-deploy.py
       → reads .oci-build.json from pushed revision (git show, no checkout yet)
+      → reads gitolite-options.oci.registry and oci.image-name from git config
+      → overrides .oci-build.json registry/image_name when gitolite options present
       → git archive → tar export to /opt/builds/
       → if "base" key present:
           podman build -f docker/base.dockerfile → ots-base:{sha} (local only)
@@ -169,6 +171,36 @@ repo onetimesecret
 ```
 
 When present, these override the corresponding `.oci-build.json` fields. When absent, `.oci-build.json` values are used as-is.
+
+### build-and-deploy.py changes
+
+The hook needs a helper to read gitolite options from the bare repo's git config:
+
+```python
+def _gitolite_option(repo: Repo, key: str) -> str | None:
+    """Read a gitolite per-repo option from git config.
+
+    Gitolite stores 'option X = Y' as 'gitolite-options.X = Y'
+    in the repo's git config.
+    """
+    try:
+        return repo.git.config(f"gitolite-options.{key}").strip()
+    except Exception:
+        return None
+```
+
+In `BuildConfig.load()`, the gitolite options override `.oci-build.json` after parsing:
+
+```python
+# Gitolite options override .oci-build.json values
+registry = _gitolite_option(repo, "oci.registry") or raw["registry"]
+image_name = (
+    _gitolite_option(repo, "oci.image-name")
+    or raw.get("image_name", repo_name)
+)
+```
+
+The rest of `BuildConfig.load()` is unchanged — `platforms`, `variants`, `base`, and `work_dir` still come from `.oci-build.json` only.
 
 ### Precedence table
 
