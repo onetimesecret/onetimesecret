@@ -58,27 +58,29 @@ variable "PLATFORMS" {
 
 function "tags" {
   params = [suffix]
-  result = concat(
-    # Always tag with version
-    equal(REGISTRY_MODE, "custom") && notequal(CUSTOM_REGISTRY, "") ? [
-      "${CUSTOM_REGISTRY}/onetimesecret/onetimesecret${suffix}:${VERSION}",
-    ] : [
-      "${REGISTRY}/onetimesecret${suffix}:${VERSION}",
-      "${DOCKERHUB_REPO}${suffix}:${VERSION}",
-    ],
-    # Extra tags (latest, edge, nightly, etc.) — applied to all registries
-    equal(REGISTRY_MODE, "custom") && notequal(CUSTOM_REGISTRY, "") ? [
-      for t in compact(split(",", EXTRA_TAGS)) :
+  result = equal(REGISTRY_MODE, "custom") && notequal(CUSTOM_REGISTRY, "") ?
+    # Custom registry: includes org/image namespace (e.g. registry.example.com/onetimesecret/onetimesecret)
+    concat(
+      ["${CUSTOM_REGISTRY}/onetimesecret/onetimesecret${suffix}:${VERSION}"],
+      [for t in compact(split(",", EXTRA_TAGS)) :
         "${CUSTOM_REGISTRY}/onetimesecret/onetimesecret${suffix}:${trimspace(t)}"
-    ] : flatten([
-      [for t in compact(split(",", EXTRA_TAGS)) :
-        "${REGISTRY}/onetimesecret${suffix}:${trimspace(t)}"
+      ]
+    ) :
+    # Public registries: GHCR + DockerHub, all tags
+    concat(
+      [
+        "${REGISTRY}/onetimesecret${suffix}:${VERSION}",
+        "${DOCKERHUB_REPO}${suffix}:${VERSION}",
       ],
-      [for t in compact(split(",", EXTRA_TAGS)) :
-        "${DOCKERHUB_REPO}${suffix}:${trimspace(t)}"
-      ],
-    ])
-  )
+      flatten([
+        [for t in compact(split(",", EXTRA_TAGS)) :
+          "${REGISTRY}/onetimesecret${suffix}:${trimspace(t)}"
+        ],
+        [for t in compact(split(",", EXTRA_TAGS)) :
+          "${DOCKERHUB_REPO}${suffix}:${trimspace(t)}"
+        ],
+      ])
+    )
 }
 
 # ---------------------------------------------------------------------------

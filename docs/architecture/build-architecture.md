@@ -238,6 +238,28 @@ REGISTRY_MODE="custom" CUSTOM_REGISTRY="registry.example.com" \
   docker buildx bake -f docker/bake.hcl main
 ```
 
+## Verification
+
+```bash
+# Docker Bake (CI path)
+docker buildx bake -f docker/bake.hcl --print          # all targets resolve without error
+docker buildx bake -f docker/bake.hcl main              # main image builds successfully
+docker run --rm <image>:<tag> ruby --version             # Ruby present in final image
+
+# Podman (Gitolite path) — run on the build server
+podman build -f docker/base.dockerfile --tag ots-base:test .
+podman build -f Dockerfile --target final \
+  --build-context base=container-image://ots-base:test \
+  --tag ots-main:test .
+podman build -f docker/variants/lite.dockerfile \
+  --build-context main=container-image://ots-main:test \
+  --tag ots-lite:test .
+podman rmi ots-base:test ots-main:test ots-lite:test     # cleanup
+
+# Post-receive hook (end-to-end)
+git push build main                                      # triggers hook, check remote: output
+```
+
 ## Decisions
 
 **No standalone `docker build` fallback.** `FROM base` in the Dockerfile resolves only when Bake (or Podman with `--build-context`) injects it. Could keep inline base stages that Bake overrides, but then base is maintained in two places. Chose single source of truth over convenience.

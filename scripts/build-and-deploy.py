@@ -67,6 +67,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from git import Repo
+from git.exc import GitCommandError
 
 # ─── Logging ─────────────────────────────────────────────────────────────────
 
@@ -88,7 +89,7 @@ def _gitolite_option(repo: Repo, key: str) -> str | None:
     """
     try:
         return repo.git.config(f"gitolite-options.{key}").strip()
-    except Exception:
+    except GitCommandError:
         return None
 
 
@@ -120,7 +121,7 @@ class BuildConfig:
 
         try:
             raw_json = repo.git.show(f"{rev}:.oci-build.json")
-        except Exception:
+        except GitCommandError:
             return None  # file doesn't exist in this revision
 
         log.info("Found .oci-build.json in %s (%s)", repo_name, rev[:7])
@@ -510,55 +511,56 @@ def main() -> None:
 
         # Build shared base image if configured (local only, not pushed)
         base_image: str | None = None
-        if config.has_base:
-            try:
-                base_image = build_base(config, config.work_dir, ref.short_sha)
-                log.info("  Base image: %s", base_image)
-            except subprocess.CalledProcessError as exc:
-                log.error("Base build failed: %s", exc)
-                results.append(
-                    BuildResult(variant="base", tags=[], success=False, error=str(exc))
-                )
-                sys.exit(1)
-
-        # Track built images by suffix for inter-variant context resolution
-        built_images: dict[str, str] = {}
-
-        for variant in config.variants:
-            try:
-                build_contexts = resolve_contexts(
-                    variant, base_image, built_images
-                )
-                result = build_variant(
-                    config, ref, config.work_dir, variant,
-                    build_contexts=build_contexts,
-                )
-                results.append(result)
-
-                # Record first tag for this suffix so dependents can reference it
-                suffix = variant["suffix"]
-                built_images[suffix] = result.tags[0]
-
-                log.info("  Pushed: %s", ", ".join(result.tags))
-            except subprocess.CalledProcessError as exc:
-                label = variant["suffix"] or "main"
-                log.error("Build failed for %s: %s", label, exc)
-                results.append(
-                    BuildResult(
-                        variant=label,
-                        tags=[],
-                        success=False,
-                        error=str(exc),
+        try:
+            if config.has_base:
+                try:
+                    base_image = build_base(config, config.work_dir, ref.short_sha)
+                    log.info("  Base image: %s", base_image)
+                except subprocess.CalledProcessError as exc:
+                    log.error("Base build failed: %s", exc)
+                    results.append(
+                        BuildResult(variant="base", tags=[], success=False, error=str(exc))
                     )
-                )
-                sys.exit(1)
+                    sys.exit(1)
 
-        # Clean up local base image
-        if base_image:
-            try:
-                podman("rmi", base_image)
-            except subprocess.CalledProcessError:
-                pass  # non-fatal
+            # Track built images by suffix for inter-variant context resolution
+            built_images: dict[str, str] = {}
+
+            for variant in config.variants:
+                try:
+                    build_contexts = resolve_contexts(
+                        variant, base_image, built_images
+                    )
+                    result = build_variant(
+                        config, ref, config.work_dir, variant,
+                        build_contexts=build_contexts,
+                    )
+                    results.append(result)
+
+                    # Record first tag for this suffix so dependents can reference it
+                    suffix = variant["suffix"]
+                    built_images[suffix] = result.tags[0]
+
+                    log.info("  Pushed: %s", ", ".join(result.tags))
+                except subprocess.CalledProcessError as exc:
+                    label = variant["suffix"] or "main"
+                    log.error("Build failed for %s: %s", label, exc)
+                    results.append(
+                        BuildResult(
+                            variant=label,
+                            tags=[],
+                            success=False,
+                            error=str(exc),
+                        )
+                    )
+                    sys.exit(1)
+        finally:
+            # Clean up local base image
+            if base_image:
+                try:
+                    podman("rmi", base_image)
+                except subprocess.CalledProcessError:
+                    log.warning("Failed to remove base image: %s", base_image)
 
     if results:
         log.info("─" * 50)
