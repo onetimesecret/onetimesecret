@@ -224,7 +224,7 @@
     "prettier-plugin-tailwindcss": "^0.7.2",
     "prettier-plugin-vue": "^1.1.6",
     "rimraf": "^6.1.2",
-    "rollup": "^4.56.0",
+    "rollup": "^4.59.0",
     "rollup-plugin-visualizer": "^6.0.5",
     "tailwindcss": "^4.1.18",
     "ts-morph": "^27.0.2",
