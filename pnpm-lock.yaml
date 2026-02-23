@@ -145,7 +145,7 @@ importers:
         specifier: ^3.1.0
         version: 3.1.0
       '@sentry/vite-plugin':
-        specifier: ^4.8.0
+        specifier: ^4.9.0
         version: 4.9.0
       '@tailwindcss/forms':
         specifier: ^0.5.11
