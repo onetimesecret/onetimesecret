@@ -227,7 +227,8 @@ class CustomDomainIndexCreator
       created_ts = created.to_i
       created_ts = Time.now.to_i if created_ts.zero?
 
-      # Instance index entry (if not using existing index)
+      # Instance index entry (raw identifier for Familia SortedSet compatibility,
+      # not JSON-encoded — unlike HashKey values which use JSON encoding).
       if @stats[:instance_index_source] != 'existing'
         commands << {
           command: 'ZADD',
@@ -279,7 +280,7 @@ class CustomDomainIndexCreator
         }
         @stats[:owner_mappings] += 1
 
-        # Organization participation
+        # Organization participation (raw identifier for Familia SortedSet compatibility)
         commands << {
           command: 'ZADD',
           key: "organization:#{org_id}:domains",
