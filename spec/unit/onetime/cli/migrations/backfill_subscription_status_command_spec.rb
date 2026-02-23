@@ -6,7 +6,7 @@
 #
 # Covers:
 # - Dry-run mode (no mutations, correct preview output)
-# - Run mode (org fields updated, org.save called)
+# - Run mode (org fields updated, org.save_fields called)
 # - Idempotent skip (org already has subscription_status)
 # - Deleted subscription handling (Stripe::InvalidRequestError with resource_missing)
 # - Non-resource_missing InvalidRequestError (falls through to error recording)
@@ -33,7 +33,7 @@ RSpec.describe Onetime::CLI::BackfillSubscriptionStatusCommand do
       subscription_status: nil,
       :subscription_status= => nil,
       :subscription_period_end= => nil,
-      save: true,
+      save_fields: true,
     )
   end
 
@@ -89,8 +89,8 @@ RSpec.describe Onetime::CLI::BackfillSubscriptionStatusCommand do
       command.send(:process_org, org, 0, 1, stats, false, false)
     end
 
-    it 'calls org.save' do
-      expect(org).to receive(:save)
+    it 'calls org.save_fields with updated fields' do
+      expect(org).to receive(:save_fields).with(:subscription_status, :subscription_period_end)
 
       command.send(:process_org, org, 0, 1, stats, false, false)
     end
@@ -118,8 +118,8 @@ RSpec.describe Onetime::CLI::BackfillSubscriptionStatusCommand do
       command.send(:process_org, org, 0, 1, stats, true, false)
     end
 
-    it 'does not call org.save' do
-      expect(org).not_to receive(:save)
+    it 'does not call org.save_fields' do
+      expect(org).not_to receive(:save_fields)
 
       command.send(:process_org, org, 0, 1, stats, true, false)
     end
@@ -212,8 +212,8 @@ RSpec.describe Onetime::CLI::BackfillSubscriptionStatusCommand do
       expect(stats[:errors]).to be_empty
     end
 
-    it 'does not call org.save' do
-      expect(org).not_to receive(:save)
+    it 'does not call org.save_fields' do
+      expect(org).not_to receive(:save_fields)
 
       command.send(:process_org, org, 0, 1, stats, false, false)
     end
