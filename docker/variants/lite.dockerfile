@@ -9,9 +9,9 @@
 #
 # For more detailed documentation, see docker/variants/README.md.
 #
-# BUILDING:
+# BUILDING (via Bake — resolves the main image dependency automatically):
 #
-#     $ docker build -t onetimesecret-lite -f docker/variants/lite.dockerfile .
+#     $ docker buildx bake -f docker/bake.hcl lite
 #
 # RUNNING:
 #
@@ -20,12 +20,17 @@
 # The application will be available at http://localhost:7143.
 #
 
-FROM ghcr.io/onetimesecret/onetimesecret@sha256:4b9ea5f55386e8919f93b0f594f811e0f64777ea2953ac260ea31c1d3fcebfef
+# The "main" context is provided by docker/bake.hcl via:
+#   contexts = { main = "target:main" }
+FROM main
 ARG VERSION=0.0.0
 
 LABEL Name=onetimesecret-lite Version=$VERSION
 LABEL maintainer="Onetime Secret <docker-maint@onetimesecret.com>"
 LABEL org.opencontainers.image.description="Onetime Secret (Lite) is a web application for sharing sensitive information via one-time use links. This image contains both the Onetime Secret application and Redis, making it a self-contained solution for quick deployment and testing. Warning: Not recommended for production use."
+
+# The main image sets USER appuser — switch to root for package installation
+USER root
 
 # Install Redis and other dependencies
 RUN apt-get update && apt-get install -y \
@@ -100,4 +105,6 @@ ENV AUTH_ENABLED=false
 
 EXPOSE 3000
 
+# Lite stays as root: redis-server needs write access to /var/lib/redis
+# and this variant is ephemeral/dev-only (not for production)
 CMD ["/onetime.sh"]
