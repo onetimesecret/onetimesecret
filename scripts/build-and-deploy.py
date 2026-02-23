@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
 
-# /var/lib/gitolite3/local/scripts/build-and-deploy.py
-
 """
 Git post-receive hook: Build and push OCI images with Podman.
 
-Runs as a common Gitolite hook. Derives image name from the repo.
+Runs as a Gitolite hook. Derives image name from the repo.
 
 Install:
-    pip install GitPython                   # as gitolite3 user
-    podman login <registry>                 # as gitolite3 user
-    mkdir -p /opt/builds && chown gitolite3:gitolite3 /opt/builds
-    cp post-receive /var/lib/gitolite3/.gitolite/hooks/common/post-receive
+    pip install GitPython
+    podman login <registry>
+    mkdir -p /opt/builds && chown <hook-user>:<hook-user> /opt/builds
 
 Config:
     Repos that contain a .oci-build.json at their root get built on push.
@@ -19,8 +16,8 @@ Config:
 
     Legacy .oci-build.json (plain podman build per variant):
     {
-        "registry": "container-registry.infra.onetime.co",
-        "image_name": "customerid/onetimesecret",
+        "registry": "registry.example.com",
+        "image_name": "myorg/myapp",
         "platforms": ["linux/amd64"],
         "variants": [
             {"suffix": "", "dockerfile": "Dockerfile", "target": ""},
@@ -31,8 +28,8 @@ Config:
 
     Bake-aware .oci-build.json (shared base + build contexts):
     {
-        "registry": "container-registry.infra.onetime.co",
-        "image_name": "customerid/onetimesecret",
+        "registry": "registry.example.com",
+        "image_name": "myorg/myapp",
         "platforms": ["linux/amd64"],
         "base": {"dockerfile": "docker/base.dockerfile"},
         "variants": [
@@ -51,8 +48,11 @@ Config:
       - Variants are built in array order; declare dependencies before
         dependents
 
+    Gitolite per-repo options (oci.registry, oci.image-name) override
+    .oci-build.json values when present.
+
 Usage:
-    git remote add build git@host:onetimesecret
+    git remote add build git@buildhost:myapp
     git push build main
     git push build v1.0.0
 """
