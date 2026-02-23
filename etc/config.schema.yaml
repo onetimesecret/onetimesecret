@@ -266,7 +266,7 @@ incoming:
   memo_max_length: any(int(), str())
   default_passphrase: any(str(), required=False)
   default_ttl: any(int(), str())
-  recipients: list(include('incoming_recipient'))
+  recipients: list(any(include('incoming_recipient'), str()))
 
 incoming_recipient:
   email: str()
