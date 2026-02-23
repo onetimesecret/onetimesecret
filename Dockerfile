@@ -2,19 +2,20 @@
 # check=error=true
 
 ##
-# ONETIME SECRET - DOCKER IMAGE (2025-11-27)
+# ONETIME SECRET - DOCKER IMAGE
 #
 # Multi-stage build optimized for production deployment.
 # See docs/docker.md for detailed usage instructions.
 #
-# For general project information, see README.md.
+# IMPORTANT: This Dockerfile requires Docker Bake or --build-context for building.
+# The "base" build context is injected by docker/bake.hcl — it is
+# NOT a stage defined in this file.
 #
+#   $ docker buildx bake -f docker/bake.hcl main       # main image
+#   $ docker buildx bake -f docker/bake.hcl --print    # dry-run
 #
-# BUILDING:
-#
-# Build the Docker image:
-#
-#     $ docker build -t onetimesecret .
+# Or with Podman:
+#   $ podman build --build-context base=docker-image://... -t onetimesecret .
 #
 # RUNNING:
 #
@@ -55,81 +56,30 @@
 #     $ docker logs onetime-app
 
 
-##
-# BUILDER LAYER
-#
-# Installs system packages, updates RubyGems, and prepares the
-# application's package management dependencies using a Debian
-# Ruby 3 base image.
-#
-ARG CODE_ROOT=/app
-ARG ONETIME_HOME=/opt/onetime
+ARG APP_DIR=/app
 ARG VERSION
-
-FROM docker.io/library/ruby:3.4-slim-bookworm@sha256:fdadeae7d74a179b236dc991a43958c5f09545569d0d8df89051d14f9ee40c15 AS base
-
-# Limit to packages needed for the system itself
-ARG PACKAGES="build-essential rsync netcat-openbsd libffi-dev libyaml-dev git curl"
-
-# Fast fail on errors while installing system packages
-RUN set -eux \
-  && apt-get update \
-  && apt-get install -y $PACKAGES \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
-
-# Install yq (optimized for multi-arch)
-# Used for migrating config from symbol keys to string keys (v0.22 to v0.23+)
-RUN set -eux && \
-    ARCH=$(dpkg --print-architecture) && \
-    case "$ARCH" in \
-        amd64) YQ_ARCH="amd64" ;; \
-        arm64) YQ_ARCH="arm64" ;; \
-        *) YQ_ARCH="amd64" ;; \
-    esac && \
-    curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${YQ_ARCH}" \
-        -o /usr/local/bin/yq && \
-    chmod +x /usr/local/bin/yq && \
-    yq --version
-
-# Copy Node.js and npm from the official image
-COPY --from=docker.io/library/node:22@sha256:8739e532180cfe09e03bbb4545fc725b044c921280532d7c9c1480ba2396837e /usr/local/bin/node /usr/local/bin/
-COPY --from=docker.io/library/node:22@sha256:8739e532180cfe09e03bbb4545fc725b044c921280532d7c9c1480ba2396837e /usr/local/lib/node_modules /usr/local/lib/node_modules
-
-# Create necessary symlinks
-RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
-  && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
-
-# Verify Node.js and npm installation
-RUN node --version && npm --version
-
-# Install necessary tools
-RUN set -eux \
-  && gem install bundler \
-  && npm install -g pnpm
+ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:bbc49173621b513e33c4add027747db0c41d540c86492cca66e90814a7518c84
 
 ##
-# DEPENDENCIES LAYER
+# DEPENDENCIES: Install application dependencies
 #
-# Sets up the necessary directories, installs additional
-# system packages for userland, and installs the application's
-# dependencies using the Base Layer as a starting point.
+# The "base" context is provided by docker/bake.hcl via:
+#   contexts = { base = "target:base" }
 #
-FROM base AS app_deps
-ARG CODE_ROOT
-ARG ONETIME_HOME
-ARG VERSION
+# It contains: Ruby 3.4, Node 22, build toolchain, yq, pnpm, appuser.
+# See docker/base.dockerfile for details.
+#
+FROM base AS dependencies
+ARG APP_DIR
 
-# Create the directories that we need in the following image
 RUN set -eux \
-  && echo "Creating directories" \
-  && mkdir -p $CODE_ROOT $ONETIME_HOME/{log,tmp}
+  && mkdir -p ${APP_DIR}/{log,tmp}
 
-WORKDIR $CODE_ROOT
+WORKDIR ${APP_DIR}
 
-ENV NODE_PATH=$CODE_ROOT/node_modules
+ENV NODE_PATH=${APP_DIR}/node_modules
 
-# Install the dependencies into the environment image
+# Install the dependencies
 COPY Gemfile Gemfile.lock ./
 COPY package.json pnpm-lock.yaml ./
 
@@ -138,23 +88,23 @@ RUN set -eux \
   && bundle update --bundler \
   && bundle install
 
-# Put the npm depdenencies in a separate layer to avoid
+# Put the npm dependencies in a separate layer to avoid
 # rebuilding the gems when the package.json is updated.
 RUN set -eux \
   && pnpm install --frozen-lockfile
 
 ##
-# BUILD LAYER
+# BUILD: Compile and prepare application assets
 #
-FROM app_deps AS build
-ARG CODE_ROOT
+FROM dependencies AS build
+ARG APP_DIR
 ARG VERSION
 
-WORKDIR $CODE_ROOT
+WORKDIR ${APP_DIR}
 
-COPY public $CODE_ROOT/public
-COPY templates $CODE_ROOT/templates
-COPY src $CODE_ROOT/src
+COPY public ${APP_DIR}/public
+COPY templates ${APP_DIR}/templates
+COPY src ${APP_DIR}/src
 COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs tailwind.config.ts eslint.config.ts ./
 
 # Remove pnpm after use
@@ -173,33 +123,37 @@ RUN VERSION=$(node -p "require('./package.json').version") \
     fi
 
 ##
-# APPLICATION LAYER (FINAL)
+# FINAL: Production-ready application image
 #
-FROM ruby:3.4-slim-bookworm@sha256:fdadeae7d74a179b236dc991a43958c5f09545569d0d8df89051d14f9ee40c15 AS final
-ARG CODE_ROOT
+FROM docker.io/library/ruby:${RUBY_IMAGE_TAG} AS final
+ARG APP_DIR
 ARG VERSION
 LABEL org.opencontainers.image.version=$VERSION
 
-WORKDIR $CODE_ROOT
+WORKDIR ${APP_DIR}
+
+# Create non-root user
+RUN groupadd -g 1001 appuser && \
+    useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
 
 ## Copy only necessary files from previous stages
-COPY --from=base /usr/local/bin/yq /usr/local/bin/yq
+COPY --from=dependencies /usr/local/bin/yq /usr/local/bin/yq
 COPY --from=build /usr/local/bundle /usr/local/bundle
-COPY --from=build $CODE_ROOT/public $CODE_ROOT/public
-COPY --from=build $CODE_ROOT/templates $CODE_ROOT/templates
-COPY --from=build $CODE_ROOT/src $CODE_ROOT/src
-COPY bin $CODE_ROOT/bin
-COPY apps $CODE_ROOT/apps
-COPY etc $CODE_ROOT/etc
-COPY lib $CODE_ROOT/lib
-COPY scripts/entrypoint.sh ./bin/
-COPY scripts/check-migration-status.sh ./bin/
+COPY --from=build ${APP_DIR}/public ${APP_DIR}/public
+COPY --from=build ${APP_DIR}/templates ${APP_DIR}/templates
+COPY --from=build ${APP_DIR}/src ${APP_DIR}/src
+COPY bin ${APP_DIR}/bin
+COPY apps ${APP_DIR}/apps
+COPY etc ${APP_DIR}/etc
+COPY lib ${APP_DIR}/lib
+COPY docker/entrypoints/entrypoint.sh ./bin/
+COPY docker/entrypoints/check-migration-status.sh ./bin/
 COPY scripts/update-version.sh ./bin/
-COPY migrations $CODE_ROOT/migrations
-COPY package.json config.ru Gemfile Gemfile.lock $CODE_ROOT/
+COPY migrations ${APP_DIR}/migrations
+COPY package.json config.ru Gemfile Gemfile.lock ${APP_DIR}/
 
 # Copy build stage metadata files
-COPY --from=build /tmp/build-meta/commit_hash.txt $CODE_ROOT/.commit_hash.txt
+COPY --from=build /tmp/build-meta/commit_hash.txt ${APP_DIR}/.commit_hash.txt
 
 # See: https://fly.io/docs/rails/cookbooks/deploy/
 ENV RUBY_YJIT_ENABLE=1
@@ -207,41 +161,20 @@ ENV RUBY_YJIT_ENABLE=1
 # Explicitly setting the Rack environment to production directs
 # the application to use the pre-built JS/CSS assets in the
 # "public/web/dist" directory. In dev mode, the application
-# expects a vite server to be running on port 5173 and will
-# attempt to connect to that server for each request.
-#
-#   $ pnpm run dev
-#   VITE v5.3.4  ready in 38 ms
-#
-#   ➜  Local:   http://localhost:5173/dist/
-#   ➜  Network: use --host to expose
-#   ➜  press h + enter to show help
-#
+# expects a vite server to be running on port 5173.
 ENV RACK_ENV=production
 
-WORKDIR $CODE_ROOT
+ENV ONETIME_HOME=${APP_DIR}
 
 # Copy the default config file into place if it doesn't
-# already exist. If it does exist, nothing happens. For
-# example, if the config file has been previously copied
-# (and modified) the "--no-clobber" argument prevents
-# those changes from being overwritten.
+# already exist. If it does exist, nothing happens.
+# The "--no-clobber" argument prevents changes from being overwritten.
 RUN set -eux && \
     cp --preserve --no-clobber etc/defaults/config.defaults.yaml etc/config.yaml && \
     chmod +x bin/entrypoint.sh bin/check-migration-status.sh
 
-# About the interplay between the Dockerfile CMD, ENTRYPOINT,
-# and the Docker Compose command settings:
-#
-# 1. The CMD instruction in the Dockerfile sets the default command to
-# be executed when the container is started.
-#
-# 2. The command setting in the Docker Compose configuration overrides
-# the CMD instruction in the Dockerfile.
-#
-# 3. Using the CMD instruction in the Dockerfile provides a fallback
-# command, which can be useful if no specific command is set in the
-# Docker Compose configuration.
+# Run as non-root user
+USER appuser
 
 # Rack app
 EXPOSE 3000

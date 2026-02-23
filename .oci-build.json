@@ -1,0 +1,14 @@
+{
+  "registry": "ghcr.io",
+  "image_name": "onetimesecret/onetimesecret",
+  "platforms": ["linux/amd64"],
+  "base": { "dockerfile": "docker/base.dockerfile" },
+  "variants": [
+    { "suffix": "", "dockerfile": "Dockerfile", "target": "final" },
+    {
+      "suffix": "-lite",
+      "dockerfile": "docker/variants/lite.dockerfile",
+      "contexts": { "main": "" }
+    }
+  ]
+}
