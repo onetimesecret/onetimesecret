@@ -654,8 +654,17 @@ jobs:
         if: steps.download-assets.outcome == 'failure'
         run: pnpm run build
 
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
       - name: Build Container image
-        run: docker build -t onetime-test .
+        uses: docker/bake-action@76cc2e0e1ed2cd9c13d23f01a12e3e0e053d4c5d # v6.5.0
+        with:
+          files: docker/bake.hcl
+          targets: main
+          load: true
+          set: |
+            main.tags=onetime-test
 
       - name: Generate random secrets for container
         uses: ./.github/actions/generate-test-secrets
