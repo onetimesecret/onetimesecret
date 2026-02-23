@@ -6,12 +6,6 @@ name: Debug OCI Image
 # This can be deleted once the main ci.yml is fixed
 
 on:
-  pull_request:
-    branches:
-      - feature/*
-      - rel/*
-      - develop
-      - main
   workflow_dispatch:
     inputs:
       debug_enabled:
