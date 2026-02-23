@@ -130,8 +130,8 @@ The Gitolite post-receive hook does not use bakah — it uses native `podman bui
 
 ```jsonc
 {
-  "registry": "container-registry.infra.onetime.co",
-  "image_name": "customerid/onetimesecret",
+  "registry": "ghcr.io",
+  "image_name": "onetimesecret/onetimesecret",
   "platforms": ["linux/amd64"],
 
   // Optional. When present, enables bake-aware mode.
@@ -152,6 +152,36 @@ The Gitolite post-receive hook does not use bakah — it uses native `podman bui
   ]
 }
 ```
+
+## Registry Configuration
+
+Registry and image name follow a layered precedence: **Gitolite options > .oci-build.json > repo name fallback**. This keeps private infrastructure details out of the application repository while preserving self-documenting defaults in `.oci-build.json`.
+
+### Gitolite per-repo options (build server)
+
+The post-receive hook reads `gitolite-options.*` from the bare repo's git config. Gitolite populates these from `option` lines in `gitolite.conf`:
+
+```
+# In gitolite-admin/conf/gitolite.conf
+repo onetimesecret
+    option oci.registry = registry.example.com
+    option oci.image-name = myorg/onetimesecret
+```
+
+When present, these override the corresponding `.oci-build.json` fields. When absent, `.oci-build.json` values are used as-is.
+
+### Precedence table
+
+```
+Field         Gitolite option       .oci-build.json    Fallback
+────────────  ────────────────────  ─────────────────  ──────────────
+registry      oci.registry          "registry"         (required)
+image_name    oci.image-name        "image_name"       repo directory name
+```
+
+### CI path (GitHub Actions)
+
+CI does not use `.oci-build.json` or gitolite options. Registry routing is controlled by `REGISTRY_MODE` and `CUSTOM_REGISTRY` environment variables in the workflow, applied via the `tags()` function in `bake.hcl`.
 
 ## Commands
 
@@ -192,6 +222,8 @@ REGISTRY_MODE="custom" CUSTOM_REGISTRY="registry.example.com" \
 
 **Variant array order is the build order.** The post-receive hook builds variants sequentially in the order declared in `.oci-build.json`. A variant's `"contexts"` can only reference suffixes that appear earlier in the array. This is enforced at runtime with a clear error message.
 
+**Registry URL lives in gitolite config, not the repo.** `.oci-build.json` carries public defaults (GHCR). The post-receive hook reads `gitolite-options.oci.registry` and `gitolite-options.oci.image-name` from the bare repo's git config, overriding `.oci-build.json` when present. Private registry URLs never appear in application commits. CI uses its own env vars (`REGISTRY_MODE`, `CUSTOM_REGISTRY`) via `bake.hcl`.
+
 ## What's Next
 
-Phase 5 (v0.23 backport on `feature/docker-backport`): copy `base.dockerfile` and `bake.hcl`, create a v0.23-specific Dockerfile (Thin server, `/api/v1/status` health check, v0.22→v0.23 config migration), restructure file layout to match v0.24. Not started.
+Phase 5 (v0.23 backport) is complete on `feature/docker-backport`. The v0.23 branch shares `base.dockerfile` with v0.24 and uses a v0.23-specific Dockerfile (Thin server, v0.22→v0.23 config migration, appuser). Bake targets: main + lite (no S6). Merges cleanly into `rel/0.23`.

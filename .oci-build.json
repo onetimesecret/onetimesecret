@@ -1,6 +1,6 @@
 {
-  "registry": "container-registry.infra.onetime.co",
-  "image_name": "customerid/onetimesecret",
+  "registry": "ghcr.io",
+  "image_name": "onetimesecret/onetimesecret",
   "platforms": ["linux/amd64"],
   "base": { "dockerfile": "docker/base.dockerfile" },
   "variants": [
