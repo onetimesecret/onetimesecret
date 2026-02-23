@@ -63,8 +63,10 @@ module Onetime
 
         stats = { total: 0, updated: 0, skipped_has_status: 0, skipped_deleted: 0, errors: [] }
 
+        progress_interval = [total_orgs / 10, 1].max
+
         orgs.each_with_index do |org, idx|
-          process_org(org, idx, total_orgs, stats, dry_run, verbose)
+          process_org(org, idx, total_orgs, stats, dry_run, verbose, progress_interval)
         end
 
         print_results(stats, dry_run, verbose)
@@ -105,7 +107,7 @@ module Onetime
         end
       end
 
-      def process_org(org, idx, total_orgs, stats, dry_run, verbose)
+      def process_org(org, idx, total_orgs, stats, dry_run, verbose, progress_interval = 1)
         stats[:total]     += 1
         rate_limit_retries = 0
 
@@ -113,7 +115,7 @@ module Onetime
         unless org.subscription_status.to_s.empty?
           stats[:skipped_has_status] += 1
           puts "  [#{idx + 1}/#{total_orgs}] Skipping (has status '#{org.subscription_status}'): #{org.extid}" if verbose
-          print_progress(stats[:total], total_orgs, verbose, 10)
+          print_progress(stats[:total], total_orgs, verbose, progress_interval)
           return
         end
 
@@ -134,7 +136,7 @@ module Onetime
           end
 
           stats[:updated] += 1
-          print_progress(stats[:total], total_orgs, verbose, 10)
+          print_progress(stats[:total], total_orgs, verbose, progress_interval)
         rescue Stripe::InvalidRequestError => ex
           if ex.code == 'resource_missing'
             stats[:skipped_deleted] += 1
@@ -176,7 +178,7 @@ module Onetime
 
       def print_progress(current, total, verbose, interval)
         return if verbose
-        return unless (current % interval).zero?
+        return unless (current % interval).zero? || current == total
 
         print "\r  Progress: #{current}/#{total} organizations processed"
       end
