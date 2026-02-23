@@ -21,9 +21,13 @@
 #
 # @see https://github.com/onetimesecret/onetimesecret/issues/XXXX
 
+require_relative 'deduplication_helper'
+
 module Onetime
   module CLI
     class DedupeRelationshipsCommand < Command
+      include DeduplicationHelper
+
       desc 'Remove JSON-quoted duplicates from per-instance relationship sorted sets'
 
       option :run,
@@ -81,7 +85,7 @@ module Onetime
 
         puts "\n  Pattern: #{pattern}"
 
-        redis.scan_each(match: pattern) do |key|
+        redis.scan_each(match: pattern, count: 100) do |key|
           keys_found           += 1
           stats[:keys_scanned] += 1
 
@@ -90,11 +94,16 @@ module Onetime
         end
 
         puts "    #{keys_found} keys scanned, #{pattern_dupes} total duplicates"
+      rescue Redis::BaseError => ex
+        OT.le "[DedupeRelationships] Redis error scanning pattern #{pattern}: #{ex.message}"
+        raise
       end
 
       def dedupe_sorted_set_key(key, redis, stats, dry_run, verbose)
         raw_members = redis.zrange(key, 0, -1)
-        duplicates  = find_json_quoted_duplicates(raw_members)
+        return 0 if raw_members.empty?
+
+        duplicates = find_json_quoted_duplicates(raw_members)
 
         return 0 if duplicates.empty?
 
@@ -116,36 +125,6 @@ module Onetime
         puts "    Error scanning #{key}: #{ex.message}"
         OT.le "[DedupeRelationships] Error for #{key}: #{ex.message}"
         0
-      end
-
-      def find_json_quoted_duplicates(members)
-        raw_lookup = members.to_set
-        members.select do |m|
-          m.start_with?('"') && m.end_with?('"') && m.length > 2 &&
-            raw_lookup.include?(m[1..-2])
-        end
-      end
-
-      def print_mode_banner(dry_run)
-        return unless dry_run
-
-        puts "\nDRY RUN MODE - No changes will be made"
-        puts "To execute removal, run with --run flag\n"
-      end
-
-      def print_results(stats, dry_run)
-        puts "\n" + ('=' * 60)
-        puts "Deduplication #{dry_run ? 'Preview' : 'Complete'}"
-        puts '=' * 60
-        puts "\nStatistics:"
-        puts "  Keys scanned:          #{stats[:keys_scanned]}"
-        puts "  Keys with duplicates:  #{stats[:keys_with_duplicates]}"
-        puts "  Duplicates #{dry_run ? 'found' : 'removed'}:     #{stats[:duplicates_removed]}"
-
-        return unless stats[:errors].any?
-
-        puts "\n  Errors: #{stats[:errors].size}"
-        stats[:errors].each { |err| puts "    - #{err}" }
       end
 
       def print_next_steps(dry_run, dup_count)
