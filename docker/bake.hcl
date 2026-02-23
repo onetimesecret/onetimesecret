@@ -58,16 +58,14 @@ variable "PLATFORMS" {
 
 function "tags" {
   params = [suffix]
-  result = equal(REGISTRY_MODE, "custom") && notequal(CUSTOM_REGISTRY, "") ?
-    # Custom registry: includes org/image namespace (e.g. registry.example.com/onetimesecret/onetimesecret)
-    concat(
+  # Custom registry: org/image namespace — Public: GHCR + DockerHub
+  result = (
+    equal(REGISTRY_MODE, "custom") && notequal(CUSTOM_REGISTRY, "") ? concat(
       ["${CUSTOM_REGISTRY}/onetimesecret/onetimesecret${suffix}:${VERSION}"],
       [for t in compact(split(",", EXTRA_TAGS)) :
         "${CUSTOM_REGISTRY}/onetimesecret/onetimesecret${suffix}:${trimspace(t)}"
       ]
-    ) :
-    # Public registries: GHCR + DockerHub, all tags
-    concat(
+    ) : concat(
       [
         "${REGISTRY}/onetimesecret${suffix}:${VERSION}",
         "${DOCKERHUB_REPO}${suffix}:${VERSION}",
@@ -81,6 +79,7 @@ function "tags" {
         ],
       ])
     )
+  )
 }
 
 # ---------------------------------------------------------------------------
