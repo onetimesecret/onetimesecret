@@ -188,7 +188,7 @@ jobs:
           password: ${{ secrets.CUSTOM_REGISTRY_PASSWORD }}
 
       - name: Build and push with Bake
-        uses: docker/bake-action@76cc2e0e1ed2cd9c13d23f01a12e3e0e053d4c5d # v6.5.0
+        uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
         env:
           VERSION: ${{ steps.version.outputs.version }}
           COMMIT_HASH: ${{ steps.commit.outputs.short_sha }}
