@@ -2,16 +2,10 @@
 
 name: Debug OCI Image
 
-# Temporary workflow for fast debugging of check-oci-image job
-# This can be deleted once the main ci.yml is fixed
+# Manual-only debug workflow for container troubleshooting.
+# Container validation is handled by the main build workflow.
 
 on:
-  pull_request:
-    branches:
-      - feature/*
-      - rel/*
-      - develop
-      - main
   workflow_dispatch:
     inputs:
       debug_enabled:
@@ -54,24 +48,17 @@ jobs:
         with:
           detached: true
 
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - name: Build OCI image
+        uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
         with:
-          node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@1e1c8eafbd745f64b1ef30a7d7ed7965034c486c
-        with:
-          version: latest
-
-      - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build assets
-        run: pnpm run build
-
-      - name: Build Docker image
-        run: docker build -t onetime-test .
+          files: docker/bake.hcl
+          targets: main
+          load: true
+          set: |
+            main.tags=onetime-test
 
       - name: Generate random secrets for container
         uses: ./.github/actions/generate-test-secrets
@@ -133,7 +120,7 @@ jobs:
 
             # Check if container is still running
             if ! docker ps --filter "name=onetime-test-container" --filter "status=running" -q | grep -q .; then
-              echo "❌ Container has stopped running!"
+              echo "Container has stopped running!"
               docker ps -a | grep onetime-test-container || true
               echo ""
               echo "Container logs:"
@@ -142,7 +129,7 @@ jobs:
             fi
 
             if curl -f -s -o /dev/null http://localhost:3000/; then
-              echo "✅ Service is ready!"
+              echo "Service is ready!"
               exit 0
             fi
 
@@ -170,7 +157,7 @@ jobs:
           done
 
           echo ""
-          echo "❌ Service failed to start within $((max_attempts * 2)) seconds"
+          echo "Service failed to start within $((max_attempts * 2)) seconds"
           echo ""
           echo "=== Final diagnostics ==="
           docker ps -a | grep onetime-test-container || true
@@ -191,7 +178,7 @@ jobs:
             docker logs onetime-test-container
             exit 1
           fi
-          echo "✅ Homepage loaded successfully with HTTP status: $response"
+          echo "Homepage loaded successfully with HTTP status: $response"
 
       - name: Cleanup
         if: always()

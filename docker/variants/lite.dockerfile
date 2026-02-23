@@ -1,29 +1,34 @@
-# Dockerfile-lite: Onetime Secret All-in-One Container
 #
-# This Dockerfile creates a single container image with both Onetime Secret and Redis.
+# ONETIME SECRET - LITE IMAGE
 #
-# Benefits:
-# 1. Simplicity: Start entire app with one command
-# 2. Ephemeral: Aligns with temporary nature of one-time secrets
-# 3. Self-contained: All components included and configured
-# 4. Data privacy: Container removal deletes all secrets
+# This Dockerfile creates a self-contained, all-in-one container with both
+# the Onetime Secret application and a Redis server.
 #
-# Usage:
+# It is ephemeral by design: all data is lost when the container stops.
+# This is a security feature, not a bug.
 #
-#     $ docker build -t localhost/onetimesecret-lite:latest -f Dockerfile-lite .
+# BUILDING (via Bake — resolves the main image dependency automatically):
 #
-#     $ docker run --rm -p 7143:3000 --name onetimesecret-lite localhost/onetimesecret-lite:latest
+#     $ docker buildx bake -f docker/bake.hcl lite
 #
-# Note: Ideal for quick deployment and testing. For production with specific
-# security or scalability needs, use separate containers for app and database.
+# RUNNING:
+#
+#     $ docker run --rm -p 7143:3000 --name onetimesecret-lite onetimesecret-lite
+#
+# The application will be available at http://localhost:7143.
 #
 
-FROM ghcr.io/onetimesecret/onetimesecret@sha256:4b9ea5f55386e8919f93b0f594f811e0f64777ea2953ac260ea31c1d3fcebfef
+# The "main" context is provided by docker/bake.hcl via:
+#   contexts = { main = "target:main" }
+FROM main
 ARG VERSION=0.0.0
 
 LABEL Name=onetimesecret-lite Version=$VERSION
 LABEL maintainer="Onetime Secret <docker-maint@onetimesecret.com>"
 LABEL org.opencontainers.image.description="Onetime Secret (Lite) is a web application for sharing sensitive information via one-time use links. This image contains both the Onetime Secret application and Redis, making it a self-contained solution for quick deployment and testing. Warning: Not recommended for production use."
+
+# The main image sets USER appuser — switch to root for package installation
+USER root
 
 # Install Redis and other dependencies
 RUN apt-get update && apt-get install -y \
@@ -94,4 +99,6 @@ ENV AUTH_ENABLED=false
 
 EXPOSE 3000
 
+# Lite stays as root: redis-server needs write access to /var/lib/redis
+# and this variant is ephemeral/dev-only (not for production)
 CMD ["/onetime.sh"]
