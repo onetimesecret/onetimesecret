@@ -169,7 +169,6 @@ COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser --chmod=755 docker/entrypoints/entrypoint.sh ./bin/
 COPY --chown=appuser:appuser --chmod=755 docker/entrypoints/check-migration-status.sh ./bin/
-COPY --chown=appuser:appuser --chmod=755 scripts/update-version.sh ./bin/
 COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
 
 # Set production environment

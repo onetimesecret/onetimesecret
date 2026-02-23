@@ -152,6 +152,6 @@ target "lite" {
   platforms = split(",", PLATFORMS)
   labels = {
     "org.opencontainers.image.title"       = "Onetime Secret (Lite)"
-    "org.opencontainers.image.description"  = "Self-contained Onetime Secret with embedded Redis. Ephemeral by design."
+    "org.opencontainers.image.description"  = "Self-contained Onetime Secret with embedded Redis for quick deployment and testing. Ephemeral by design — all data is lost when the container stops. Not recommended for production use."
   }
 }
