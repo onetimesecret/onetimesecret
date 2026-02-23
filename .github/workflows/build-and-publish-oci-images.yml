@@ -9,8 +9,7 @@ name: Build and Publish OCI Images
 # Release candidates (v1.0.0-rc1): {version}, next
 # Branches (feature/x):         {branch-name}
 #
-# This ensures stable releases are tagged as 'latest' while release candidates
-# are tagged as 'next' for early testing. Branch builds get descriptive tags.
+# Tags are computed by bake.hcl from VERSION and EXTRA_TAGS variables.
 #
 
 on:
@@ -45,29 +44,15 @@ permissions:
   packages: write
 
 jobs:
-  build-and-publish-main:
+  build-and-publish:
     uses: ./.github/workflows/.build-and-publish-oci-images-reusable.yml
     with:
-      image-suffix: ''
-      dockerfile: 'Dockerfile'
-      image_tags: |
-        type=ref,event=branch
-        type=ref,event=tag
-        type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
-      debug_enabled: ${{ inputs.debug_enabled || false }}
-      platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
-    secrets: inherit
-
-  build-and-publish-lite:
-    needs: [build-and-publish-main]
-    uses: ./.github/workflows/.build-and-publish-oci-images-reusable.yml
-    with:
-      image-suffix: '-lite'
-      dockerfile: 'Dockerfile-lite'
-      image_tags: |
-        type=ref,event=branch
-        type=ref,event=tag
-        type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
+      bake_group: ci
+      image_tags: >-
+        ${{ contains(github.ref, '-rc') && 'next' ||
+            contains(github.ref, 'develop') && 'next' ||
+            startsWith(github.ref, 'refs/tags/v') && 'latest' ||
+            '' }}
       debug_enabled: ${{ inputs.debug_enabled || false }}
       platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
     secrets: inherit

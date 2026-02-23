@@ -5,18 +5,16 @@ name: OCI Build and Publish (Reusable)
 on:
   workflow_call:
     inputs:
-      image-suffix:
+      bake_group:
         required: false
         type: string
-        default: ''
-      dockerfile:
-        required: false
-        type: string
-        default: 'Dockerfile'
+        default: 'ci'
+        description: 'Docker Bake group or target to build (e.g. ci, main, all)'
       image_tags:
         required: false
         type: string
         default: ''
+        description: 'Comma-separated extra tags to apply via EXTRA_TAGS (e.g. latest,next)'
       debug_enabled:
         required: false
         type: boolean
@@ -28,7 +26,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  RACK_ENV: production
 
 jobs:
   build:
@@ -90,39 +87,14 @@ jobs:
         id: package_version
         run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+      - name: Build and push OCI images
+        uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
         env:
-          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
+          VERSION: ${{ steps.package_version.outputs.version }}
+          COMMIT_HASH: ${{ github.sha }}
+          EXTRA_TAGS: ${{ inputs.image_tags }}
+          PLATFORMS: ${{ inputs.platforms }}
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          tags: |
-            ${{ inputs.image_tags != '' && inputs.image_tags || format('type=ref,event=branch') }}
-          images: |
-            ${{ env.REGISTRY }}/${{ github.repository }}${{ inputs.image-suffix }}
-            ${{ github.repository }}${{ inputs.image-suffix }}
-          flavor: |
-            latest=${{ !contains(github.ref, '-rc') }}
-          labels: |
-            org.opencontainers.image.title=Onetime Secret
-            org.opencontainers.image.description=Onetime Secret is a web application to share sensitive information securely and temporarily.
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.licenses=MIT
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.version=${{ steps.package_version.outputs.version }}
-
-      - name: Build and push Docker image
-        id: build-and-push
-        uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1 # v6.16.0
-        with:
-          context: .
-          file: ${{ inputs.dockerfile }}
+          files: docker/bake.hcl
+          targets: ${{ inputs.bake_group }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          annotations: ${{ steps.meta.outputs.annotations }}
-          platforms: ${{ inputs.platforms }}
-          build-args: |
-            VERSION=${{ steps.package_version.outputs.version }}
-            GITHUB_SHA=${{ github.sha }}
