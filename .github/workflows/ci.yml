@@ -223,7 +223,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Run variable audit
         run: |
@@ -296,7 +296,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Setup Node.js for locale sync
         uses: actions/setup-node@v4
@@ -335,7 +335,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Generate locale files
         run: pnpm run locales:sync
@@ -376,7 +376,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Generate locale files
         run: pnpm run locales:sync
@@ -411,7 +411,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Setup Node.js for locale sync
         uses: actions/setup-node@v4
@@ -450,7 +450,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Setup Node.js for locale sync
         uses: actions/setup-node@v4
@@ -503,7 +503,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Setup Node.js for locale sync
         uses: actions/setup-node@v4
@@ -587,7 +587,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Setup Node.js for locale sync
         uses: actions/setup-node@v4
