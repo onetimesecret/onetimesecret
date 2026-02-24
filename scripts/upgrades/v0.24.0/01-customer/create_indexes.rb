@@ -216,6 +216,9 @@ class CustomerIndexCreator
           next
         end
 
+        # Raw identifier (not JSON-encoded) for Familia SortedSet compatibility.
+        # SortedSet members are object references stored unquoted, unlike
+        # HashKey values which use JSON encoding for type preservation.
         commands << {
           command: 'ZADD',
           key: 'customer:instances',
@@ -249,6 +252,7 @@ class CustomerIndexCreator
       created_ts = @objid_to_created[objid] || Time.now.to_i
       created_ts = Time.now.to_i if created_ts.zero?
 
+      # Raw identifier for Familia SortedSet compatibility (not JSON-encoded)
       commands << {
         command: 'ZADD',
         key: 'customer:instances',
@@ -328,7 +332,8 @@ class CustomerIndexCreator
   def build_customer_index_commands(commands, record, fields, objid, extid)
     created = record[:created] || fields['created']
 
-    # Instance index entry (if not using existing index)
+    # Instance index entry (if not using existing index).
+    # Raw identifier for Familia SortedSet compatibility (not JSON-encoded).
     if @stats[:instance_index_source] != 'existing'
       created_ts = created.to_i
       created_ts = Time.now.to_i if created_ts.zero?
@@ -356,8 +361,8 @@ class CustomerIndexCreator
     commands << { command: 'HSET', key: 'customer:objid_lookup', args: [objid, objid.to_json] }
     @stats[:objid_lookups] += 1
 
-    # Role index
-    # Track customers without valid roles for data quality reporting
+    # Role index (raw identifier for Familia Set compatibility, not JSON-encoded).
+    # Track customers without valid roles for data quality reporting.
     role = fields['role']
     if role.nil? || role.empty?
       @stats[:missing_roles] += 1
