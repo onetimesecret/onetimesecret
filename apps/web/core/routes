@@ -40,6 +40,8 @@ GET   /account/*                                 Core::Controllers::Page#custome
 GET   /account                                   Core::Controllers::Page#customers_only
 GET   /account/billing_portal                    Core::Controllers::Account#customer_portal_redirect
 
+GET   /health                                    V2::Controllers::Meta#status
+
 GET   /colonel                                   Core::Controllers::Page#colonels_only
 GET   /colonel/*                                 Core::Controllers::Page#colonels_only
 
