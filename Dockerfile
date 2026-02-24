@@ -140,6 +140,7 @@ RUN set -eux && \
     apt-get install -y --no-install-recommends \
         libsqlite3-0 \
         libpq5 \
+        less \
         curl \
         ca-certificates && \
     apt-get clean && \
