@@ -49,10 +49,12 @@ config_is_writable() {
 # Any other exit code is an unexpected error and should halt startup.
 needs_migration() {
   local migration="$1"
+  local output
   local rc=0
-  bundle exec ruby "$migration" --check >/dev/null 2>&1 || rc=$?
+  output=$(bundle exec ruby "$migration" --check 2>&1) || rc=$?
   if [ $rc -gt 1 ]; then
     >&2 echo "ERROR: Migration check failed (exit $rc): $migration"
+    >&2 echo "$output"
     exit 1
   fi
   [ $rc -eq 1 ]
