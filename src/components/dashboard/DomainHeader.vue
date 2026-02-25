@@ -14,7 +14,7 @@
 </script>
 
 <template>
-  <div class="border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+  <div class="border-b border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-900">
     <div class="mx-auto max-w-7xl p-4 sm:px-6 lg:px-8">
       <!-- Back button section -->
       <div class="flex items-center space-x-4">

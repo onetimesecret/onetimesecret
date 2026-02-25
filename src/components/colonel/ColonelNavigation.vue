@@ -8,7 +8,7 @@
 </script>
 
 <template>
-  <div class="mx-auto min-w-[320px] max-w-2xl bg-white shadow-sm dark:bg-gray-800">
+  <div class="mx-auto min-w-[320px] max-w-2xl bg-gray-100 shadow-sm dark:bg-gray-900">
     <nav class="flex overflow-x-auto">
       <a
         v-for="tab in navTabs"
