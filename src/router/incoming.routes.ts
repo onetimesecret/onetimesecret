@@ -1,7 +1,8 @@
 // src/router/incoming.routes.ts
 
-import QuietFooter from '@/components/layout/QuietFooter.vue';
+import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import QuietHeader from '@/components/layout/QuietHeader.vue';
+import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import type { RouteRecordRaw } from 'vue-router';
 
 const incomingRoutes: RouteRecordRaw[] = [
@@ -11,16 +12,17 @@ const incomingRoutes: RouteRecordRaw[] = [
     components: {
       default: () => import('@/views/incoming/IncomingSecretForm.vue'),
       header: QuietHeader,
-      footer: QuietFooter,
+      footer: DefaultFooter,
     },
     meta: {
       requiresAuth: false,
       title: 'Send a Secret',
+      layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: false,
         displayPoweredBy: false,
-        displayVersion: false,
+        displayVersion: true,
         displayToggles: true,
       },
     },
@@ -31,16 +33,17 @@ const incomingRoutes: RouteRecordRaw[] = [
     components: {
       default: () => import('@/views/incoming/IncomingSuccessView.vue'),
       header: QuietHeader,
-      footer: QuietFooter,
+      footer: DefaultFooter,
     },
     meta: {
       requiresAuth: false,
       title: 'Secret Sent Successfully',
+      layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: false,
         displayPoweredBy: false,
-        displayVersion: false,
+        displayVersion: true,
         displayToggles: true,
       },
     },

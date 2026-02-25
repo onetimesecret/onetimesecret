@@ -11,11 +11,13 @@ import colonelRoutes from './colonel.routes';
 import dashboardRoutes from './dashboard.routes';
 import incomingRoutes from './incoming.routes';
 import metadataRoutes from './metadata.routes';
+import previewRoutes from './preview.routes';
 import publicRoutes from './public.routes';
 import secretRoutes from './secret.routes';
 
 const routes: RouteRecordRaw[] = [
   ...publicRoutes,
+  ...previewRoutes,
   ...metadataRoutes,
   ...secretRoutes,
   ...authRoutes,
