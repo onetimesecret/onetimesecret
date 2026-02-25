@@ -72,6 +72,9 @@ export default defineConfig({
   // - Static assets should be placed in ./src/public
   // - Index.html should be in ./src
   root: './src',
+  // Since root is ./src, Vite looks for .env files there by default.
+  // Point envDir back to the project root so VITE_* vars in .env are loaded.
+  envDir: resolve(process.cwd(), '.'),
   // If root is NOT set:
   // - Project root will be the directory with vite.config.ts
   // - Static assets go in ./public
