@@ -77,7 +77,7 @@
       class="
         block w-full resize-none
         rounded-lg border border-gray-200 p-4
-        font-mono text-base leading-relaxed
+        font-system text-base leading-relaxed
         text-gray-900 transition-all
         duration-200 placeholder:text-gray-400 focus:border-blue-500
         focus:ring-2 focus:ring-blue-500

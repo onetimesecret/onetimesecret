@@ -83,6 +83,7 @@ export default {
       /* In CSS: font-family: theme('fontFamily.brand'); */
       brand: ['Zilla Slab', ...defaultTheme.fontFamily.serif],
       mono: defaultTheme.fontFamily.mono,
+      system: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif'],
     },
     extend: {
       colors: {
@@ -169,6 +170,23 @@ export default {
   plugins: [
     forms(),
     typography(),
+
+    function ({ addComponents }: { addComponents: (config: any) => void }) {
+      addComponents({
+        '.input-neutral': {
+          appearance: 'none',
+          minHeight: '2.75rem',
+          borderWidth: '1px',
+          borderColor: 'theme(colors.gray.200)',
+          padding: '0.625rem 1.25rem',
+          '&:focus': {
+            boxShadow: '0 0 0 2px theme(colors.blue.500)',
+            borderColor: 'theme(colors.blue.500)',
+            outline: 'none',
+          },
+        },
+      });
+    },
 
     function ({ addBase }: { addBase: (config: any) => void }) {
       addBase({

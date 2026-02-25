@@ -91,7 +91,7 @@
         :class="[
           statusColor,
           'flex w-full items-center justify-between rounded-lg border px-4 py-3',
-          'text-left text-base transition-all duration-200',
+          'font-system text-left text-base transition-all duration-200',
           'disabled:bg-gray-50 disabled:text-gray-500',
           'dark:bg-slate-800 dark:text-white',
           selectedRecipient ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500',
