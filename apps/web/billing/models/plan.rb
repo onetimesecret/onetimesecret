@@ -758,8 +758,11 @@ module Billing
       #
       # @return [Array<Plan>] All cached plans
       def list_plans
-        # Filter out nil entries from expired plans (instances entry exists but hash expired)
-        load_multi(instances.to_a).compact
+        # Filter out expired plans whose Redis hashes have been evicted
+        # but whose instances sorted set membership persists (TTL asymmetry).
+        # NOTE: load_multi returns Horreum shells (not nil) for expired keys,
+        # so .compact alone is insufficient. See github.com/delano/familia/issues/219
+        load_multi(instances.to_a).select { |plan| plan&.exists? }
       end
 
       # Find plan by Stripe price ID
