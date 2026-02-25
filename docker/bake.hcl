@@ -1,17 +1,29 @@
 ##
 # DOCKER BAKE - OTS BUILD ORCHESTRATION
 #
-# Usage:
+# Usage (Docker):
 #   docker buildx bake -f docker/bake.hcl              # builds default (main)
 #   docker buildx bake -f docker/bake.hcl all           # builds all targets
 #   docker buildx bake -f docker/bake.hcl ci            # builds CI targets
 #   docker buildx bake -f docker/bake.hcl --print       # dry-run, inspect config
 #
-# Override variables:
+# Override variables (env vars take precedence over defaults):
+#   VERSION=v0.23.4 docker buildx bake -f docker/bake.hcl main
+#
 #   docker buildx bake -f docker/bake.hcl \
 #     --set '*.args.VERSION=1.0.0' \
 #     --set '*.args.COMMIT_HASH=abc1234' \
 #     ci
+#
+# Podman (no bake support — build the two stages manually):
+#
+#   # 1. Build the shared base image
+#   podman build -f docker/base.dockerfile -t ots-base .
+#
+#   # 2. Build the main image, injecting base via --build-context
+#   podman build -f Dockerfile --target final \
+#     --build-context base=docker-image://localhost/ots-base \
+#     -t onetimesecret:dev .
 #
 
 # ---------------------------------------------------------------------------
@@ -91,11 +103,11 @@ group "default" {
 }
 
 group "all" {
-  targets = ["main", "lite"]
+  targets = ["main"]
 }
 
 group "ci" {
-  targets = ["main", "lite"]
+  targets = ["main"]
 }
 
 # ---------------------------------------------------------------------------
@@ -137,21 +149,5 @@ target "main" {
   labels = {
     "org.opencontainers.image.title"       = "Onetime Secret"
     "org.opencontainers.image.description"  = "Keep passwords out of your inboxes and chat logs with links that work only one time."
-  }
-}
-
-# Lite all-in-one image (app + Redis, ephemeral)
-target "lite" {
-  inherits   = ["_common"]
-  dockerfile = "docker/variants/lite.dockerfile"
-  context    = "."
-  contexts   = {
-    main = "target:main"
-  }
-  tags      = tags("-lite")
-  platforms = split(",", PLATFORMS)
-  labels = {
-    "org.opencontainers.image.title"       = "Onetime Secret (Lite)"
-    "org.opencontainers.image.description"  = "Self-contained Onetime Secret with embedded Redis for quick deployment and testing. Ephemeral by design — all data is lost when the container stops. Not recommended for production use."
   }
 }

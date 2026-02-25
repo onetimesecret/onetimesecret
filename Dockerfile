@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.15@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
+# syntax=docker/dockerfile:1.21@sha256:27f9262d43452075f3c410287a2c43f5ef1bf7ec2bb06e8c9eeb1b8d453087bc
 # check=error=true
 
 ##
@@ -55,7 +55,6 @@
 #     # View application logs
 #     $ docker logs onetime-app
 
-
 ARG APP_DIR=/app
 ARG VERSION
 ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:bbc49173621b513e33c4add027747db0c41d540c86492cca66e90814a7518c84
@@ -85,8 +84,7 @@ COPY package.json pnpm-lock.yaml ./
 
 RUN set -eux \
   && bundle config set --local without 'development test' \
-  && bundle update --bundler \
-  && bundle install
+  && bundle install --jobs "$(nproc)" --retry=3
 
 # Put the npm dependencies in a separate layer to avoid
 # rebuilding the gems when the package.json is updated.
@@ -148,7 +146,9 @@ RUN set -eux && \
 
 WORKDIR ${APP_DIR}
 
-# Create non-root user
+# Create non-root user (UID/GID 1001)
+# Keep in sync with the identical definition in docker/base.dockerfile.
+# Both must match so that files copied --from=build have correct ownership.
 RUN groupadd -g 1001 appuser && \
     useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
 
@@ -168,8 +168,8 @@ COPY --chown=appuser:appuser apps ./apps
 COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
-COPY --chown=appuser:appuser --chmod=755 docker/entrypoints/entrypoint.sh ./bin/
-COPY --chown=appuser:appuser --chmod=755 docker/entrypoints/check-migration-status.sh ./bin/
+COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser docker/entrypoints/check-migration-status.sh ./bin/
 COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
 
 # Set production environment

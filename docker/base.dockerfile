@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.16@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
+# syntax=docker/dockerfile:1.21@sha256:27f9262d43452075f3c410287a2c43f5ef1bf7ec2bb06e8c9eeb1b8d453087bc
 # check=error=true
 
 ##
@@ -57,6 +57,8 @@ RUN set -eux && \
 
 # Install yq (optimized for multi-arch)
 # Used for migrating config from v0.22 to v0.23+.
+# Pinned to specific version for reproducible builds.
+ARG YQ_VERSION=v4.52.4
 RUN set -eux && \
     ARCH=$(dpkg --print-architecture) && \
     case "$ARCH" in \
@@ -64,7 +66,7 @@ RUN set -eux && \
         arm64) YQ_ARCH="arm64" ;; \
         *) YQ_ARCH="amd64" ;; \
     esac && \
-    curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${YQ_ARCH}" \
+    curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${YQ_ARCH}" \
         -o /usr/local/bin/yq && \
     chmod +x /usr/local/bin/yq && \
     yq --version
@@ -83,10 +85,12 @@ RUN set -eux && \
     ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
     ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx && \
     node --version && npm --version && \
-    npm install -g pnpm@9 && \
+    npm install -g pnpm@9.15.9 && \
     pnpm --version
 
-# Create non-root user
+# Create non-root user (UID/GID 1001)
+# Keep in sync with the identical definition in the Dockerfile final stage.
+# Both must match so that files copied --from=build have correct ownership.
 RUN groupadd -g 1001 appuser && \
     useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
 

@@ -45,11 +45,17 @@ config_is_writable() {
 }
 
 # Check if a specific migration is needed
-# Returns 0 (true) if migration is needed, 1 (false) if not
+# Exit codes from migration --check: 0 = already applied, 1 = needed
+# Any other exit code is an unexpected error and should halt startup.
 needs_migration() {
   local migration="$1"
-  bundle exec ruby "$migration" --check >/dev/null 2>&1
-  [ $? -eq 1 ]
+  local rc=0
+  bundle exec ruby "$migration" --check >/dev/null 2>&1 || rc=$?
+  if [ $rc -gt 1 ]; then
+    >&2 echo "ERROR: Migration check failed (exit $rc): $migration"
+    exit 1
+  fi
+  [ $rc -eq 1 ]
 }
 
 # Check if any migration is needed

@@ -20,7 +20,9 @@ pnpm-debug.log*
 .claude
 .continue/
 .devcontainer
+generated
 .history
+locales
 .pnpm/
 .pnpm-store/
 .prompts/
