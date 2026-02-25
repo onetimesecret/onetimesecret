@@ -91,11 +91,11 @@ group "default" {
 }
 
 group "all" {
-  targets = ["main", "lite"]
+  targets = ["main"]
 }
 
 group "ci" {
-  targets = ["main", "lite"]
+  targets = ["main"]
 }
 
 # ---------------------------------------------------------------------------
@@ -137,21 +137,5 @@ target "main" {
   labels = {
     "org.opencontainers.image.title"       = "Onetime Secret"
     "org.opencontainers.image.description"  = "Keep passwords out of your inboxes and chat logs with links that work only one time."
-  }
-}
-
-# Lite all-in-one image (app + Redis, ephemeral)
-target "lite" {
-  inherits   = ["_common"]
-  dockerfile = "docker/variants/lite.dockerfile"
-  context    = "."
-  contexts   = {
-    main = "target:main"
-  }
-  tags      = tags("-lite")
-  platforms = split(",", PLATFORMS)
-  labels = {
-    "org.opencontainers.image.title"       = "Onetime Secret (Lite)"
-    "org.opencontainers.image.description"  = "Self-contained Onetime Secret with embedded Redis for quick deployment and testing. Ephemeral by design — all data is lost when the container stops. Not recommended for production use."
   }
 }
