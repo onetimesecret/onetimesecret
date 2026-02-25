@@ -26,7 +26,7 @@
       class="mb-12"
       :with-recipient="false"
       :with-asterisk="true"
-      :with-generate="true" />
+      :with-generate="false" />
 
     <!-- Space divider -->
     <div class="mb-6 "></div>
