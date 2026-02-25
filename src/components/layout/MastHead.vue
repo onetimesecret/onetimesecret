@@ -124,7 +124,7 @@ import { shallowRef } from 'vue';
             <img
               id="logo"
               :src="logoConfig.url"
-              class="size-12 transition-transform"
+              class="size-12 transition-transform dark:[filter:invert(1)_hue-rotate(180deg)]"
               :height="logoConfig.size"
               :width="logoConfig.size"
               :alt="logoConfig.alt" />

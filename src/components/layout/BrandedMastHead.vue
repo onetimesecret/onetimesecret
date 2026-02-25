@@ -43,7 +43,7 @@
                 v-if="productIdentity.logoUri && !imageError"
                 :src="productIdentity.logoUri"
                 alt="$t('company-logo')"
-                class="size-16 object-contain"
+                class="size-16 object-contain dark:[filter:invert(1)_hue-rotate(180deg)]"
                 :class="productIdentity.cornerClass"
                 @error="handleImageError" />
               <!-- Updated placeholder icon to match SecretPreview -->
