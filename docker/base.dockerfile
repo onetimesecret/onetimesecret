@@ -85,7 +85,7 @@ RUN set -eux && \
     ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
     ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx && \
     node --version && npm --version && \
-    npm install -g pnpm@9 && \
+    npm install -g pnpm@9.15.9 && \
     pnpm --version
 
 # Create non-root user (UID/GID 1001)
