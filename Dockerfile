@@ -187,7 +187,7 @@ RUN set -eux && \
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://127.0.0.1:3000/api/v1/status || exit 1
+    CMD curl -f http://127.0.0.1:3000/health || exit 1
 
 # Run as non-root user
 USER appuser
