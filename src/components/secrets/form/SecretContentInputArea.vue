@@ -79,11 +79,11 @@
         rounded-lg border border-gray-200 p-4
         font-system text-base leading-relaxed
         text-gray-900 transition-all
-        duration-200 placeholder:text-gray-400 focus:border-blue-500
-        focus:ring-2 focus:ring-blue-500
+        duration-200 placeholder:text-gray-400 focus:border-brandcomp-500
+        focus:ring-2 focus:ring-brandcomp-500
         disabled:bg-gray-50 disabled:text-gray-500 dark:border-gray-700 dark:bg-slate-800
         dark:text-white dark:placeholder:text-gray-500
-        dark:focus:border-blue-400 dark:focus:ring-blue-400
+        dark:focus:border-brandcomp-400 dark:focus:ring-brandcomp-400
       "
       :placeholder="$t('web.COMMON.secret_placeholder')"
       :aria-label="$t('enter-the-secret-content-here')">

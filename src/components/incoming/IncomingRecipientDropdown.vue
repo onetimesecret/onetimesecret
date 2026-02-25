@@ -43,7 +43,7 @@
 
   const statusColor = computed(() => {
     if (props.error) return 'border-red-500 focus:border-red-500 focus:ring-red-500';
-    return 'border-gray-200 focus:border-blue-500 focus:ring-blue-500';
+    return 'border-gray-200 focus:border-brandcomp-500 focus:ring-brandcomp-500';
   });
 
   const toggleDropdown = () => {
@@ -74,7 +74,7 @@
     class="w-full">
     <label
       for="incoming-recipient"
-      class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+      class="mb-2 block font-brand text-sm uppercase text-gray-600 dark:text-gray-300">
       {{ t('incoming.recipient_label') }}
       <span
         v-if="error"
@@ -135,7 +135,7 @@
             :class="[
               'cursor-pointer px-4 py-2 transition-colors duration-150',
               modelValue === recipient.hash
-                ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                ? 'bg-brandcomp-50 text-brandcomp-700 dark:bg-brandcomp-900/30 dark:text-brandcomp-300'
                 : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-slate-700',
             ]"
             @click="selectRecipient(recipient.hash)">
@@ -143,7 +143,7 @@
               <span class="font-medium">{{ recipient.name }}</span>
               <svg
                 v-if="modelValue === recipient.hash"
-                class="size-5 text-blue-600 dark:text-blue-400"
+                class="size-5 text-brandcomp-600 dark:text-brandcomp-400"
                 fill="currentColor"
                 viewBox="0 0 20 20">
                 <path

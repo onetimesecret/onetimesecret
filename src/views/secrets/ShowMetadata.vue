@@ -110,7 +110,7 @@
         <!-- Main Card with Enhanced Styling -->
         <!-- prettier-ignore-attribute class -->
         <div
-          class="overflow-hidden rounded-xl border border-gray-200/50
+          class="overflow-hidden rounded-brand border border-gray-200/50
           bg-gradient-to-b from-gray-50 to-gray-100 shadow-md
           dark:border-gray-800/50 dark:from-gray-900 dark:to-gray-950 dark:shadow-gray-900/30">
           <!-- Secret Link Header -->
@@ -150,10 +150,10 @@
               :value="details.secret_value"
               :rows="details.display_lines || 3"
               class="w-full resize-none whitespace-pre
-              rounded-lg border-2 border-gray-200 bg-white px-4 py-3
+              rounded-xl border border-gray-200 bg-white px-4 py-3
               font-mono text-base leading-tight tracking-wide text-gray-900 shadow-sm transition-colors
-              focus:border-brand-500 focus:ring-2 focus:ring-brand-500
-              dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:focus:border-brand-400"></textarea>
+              focus:border-brandcomp-500 focus:ring-2 focus:ring-brandcomp-500
+              dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:focus:border-brandcomp-400"></textarea>
             <div class="mt-3 flex w-full items-center justify-between">
               <p
                 ref="warningMessage"
@@ -252,7 +252,7 @@
         <section
           v-if="isAvailable"
           aria-labelledby="section-help"
-          class="relative mt-6 rounded-xl border border-gray-200/80
+          class="relative mt-6 rounded-brand border border-gray-200/80
           bg-white p-5 shadow-sm
           dark:border-gray-700/50 dark:bg-gray-800/30">
           <NeedHelpModal>

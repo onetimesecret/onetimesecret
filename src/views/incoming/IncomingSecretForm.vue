@@ -175,7 +175,7 @@
             <button
               type="submit"
               :disabled="isSubmitting || !isFormValid"
-              class="order-1 flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-base font-semibold text-white shadow-md transition-all duration-300 sm:order-2"
+              class="order-1 flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-base font-semibold uppercase text-white shadow-md transition-all duration-300 sm:order-2"
               :class="isFormValid && !isSubmitting
                 ? 'bg-brand-500 hover:bg-brand-600 hover:shadow-xl text-white hover:scale-105 active:scale-100'
                 : 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-60'">
