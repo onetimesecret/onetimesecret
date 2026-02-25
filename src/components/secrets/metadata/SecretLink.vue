@@ -42,8 +42,8 @@
 
     <!-- prettier-ignore-attribute class -->
     <div
-      class="group relative overflow-hidden rounded-lg
-        border-gray-200 bg-white shadow-md
+      class="group relative overflow-hidden
+        bg-white
         dark:border-gray-700 dark:bg-gray-800">
       <!-- Momentum Indicator - Enhanced Animation -->
       <div class="absolute left-0 top-0 h-1.5 w-full overflow-hidden">
@@ -97,10 +97,10 @@
             ref="linkInput"
             readonly
             :value="record.share_url"
-            class="w-full resize-none rounded-md
-              border-0 bg-slate-50 px-3 py-2.5 font-mono text-sm text-gray-900
+            class="w-full resize-none rounded-xl
+              border border-gray-200 bg-gray-50 px-3 py-2.5 font-mono text-sm text-gray-900
               focus:ring-1 focus:ring-green-500
-              dark:bg-slate-900 dark:text-gray-100 sm:text-base"
+              dark:bg-gray-900 dark:text-gray-100 sm:text-base"
             :aria-label="$t('secret-link')"></textarea>
         </div>
 

@@ -265,7 +265,7 @@
                   :aria-errormessage="getError('passphrase') ? passphraseErrorId : undefined"
                   :class="[cornerClass, getError('passphrase') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '']"
                   class="w-full border border-gray-200 bg-white py-2.5 pl-5 pr-10
-                    text-sm text-gray-900 transition-shadow duration-200 placeholder:text-gray-400
+                    font-system text-sm text-gray-900 transition-shadow duration-200 placeholder:text-gray-400
                     focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
                     dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
                   :placeholder="$t('web.secrets.enterPassphrase')"
@@ -310,7 +310,7 @@
                   :aria-describedby="getError('ttl') ? lifetimeErrorId : undefined"
                   :class="[cornerClass, getError('ttl') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '']"
                   class="w-full appearance-none border border-gray-200
-                    bg-white py-2.5 pl-5 pr-10 text-sm text-gray-600 transition-shadow duration-200
+                    bg-white py-2.5 pl-5 pr-10 font-system text-sm text-gray-600 transition-shadow duration-200
                     focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
                     dark:border-gray-700 dark:bg-slate-800 dark:text-white"
                   @change="(e) => updateTtl(Number((e.target as HTMLSelectElement).value))">
@@ -368,7 +368,7 @@
                 :aria-errormessage="getError('recipient') ? recipientErrorId : undefined"
                 :class="[cornerClass, getError('recipient') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '']"
                 class="w-full border border-gray-200
-                  bg-white px-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400
+                  bg-white px-10 py-2.5 font-system text-sm text-gray-900 placeholder:text-gray-400
                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500
                   dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
                 @input="(e) => updateRecipient((e.target as HTMLInputElement).value)" />
@@ -379,12 +379,12 @@
         <!-- Pro tip Section -->
         <div
           v-if="showProTip"
-          class="flex items-start gap-3 bg-brandcomp-50 p-4 dark:bg-brandcomp-900/20">
+          class="flex items-start gap-3 bg-amber-50 p-4 dark:bg-brandcomp-900/20">
           <OIcon
             collection="heroicons"
-            name="information-circle"
+            name="exclamation-triangle"
             class="mt-0.5 size-5 shrink-0 text-brandcomp-600 dark:text-brandcomp-500" />
-          <p class="text-sm text-brandcomp-700 dark:text-brandcomp-300">
+          <p class="text-sm text-amber-700 dark:text-brandcomp-300">
             {{ $t('web.homepage.protip1') }}
           </p>
         </div>

@@ -41,7 +41,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       requiresAuth: false,
       layoutProps: {
-        displayMasthead: false,
+        displayMasthead: true,
         displayNavigation: false,
         displayPoweredBy: false,
         displayVersion: false,

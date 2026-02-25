@@ -61,7 +61,7 @@
     :secret-key="secretKey"
     :branded="false"
     :site-host="siteHost"
-    class="container mx-auto mt-24 px-4">
+    class="container mx-auto mt-4 px-4">
     <!-- Loading slot -->
     <template #loading="{}">
       <div class="flex justify-center">

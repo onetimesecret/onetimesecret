@@ -1,11 +1,15 @@
 <!-- src/components/layout/SecretFooterAttribution.vue -->
 
 <script setup lang="ts">
+  import { useProductIdentity } from '@/stores/identityStore';
+
   defineProps<{
     siteHost: string;
     showNav?: boolean;
     showTerms?: boolean;
   }>();
+
+  const productIdentity = useProductIdentity();
 </script>
 
 <template>
@@ -17,6 +21,7 @@
       class="flex flex-wrap justify-center gap-2 space-x-2"
       :aria-label="$t('footer-navigation')">
       <a
+        v-if="productIdentity.isCanonical"
         :href="`https://${siteHost}`"
         class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
         rel="noopener noreferrer"
@@ -53,6 +58,7 @@
       v-else
       class="text-center">
       <a
+        v-if="productIdentity.isCanonical"
         :href="`https://${siteHost}`"
         class="inline-block px-2 py-1 text-[0.7rem] text-gray-400 transition-colors duration-200
           hover:text-gray-500 hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500

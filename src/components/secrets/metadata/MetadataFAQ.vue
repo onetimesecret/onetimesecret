@@ -2,9 +2,6 @@
 
 <script setup lang="ts">
   import { Metadata, MetadataDetails } from '@/schemas/models';
-  import { WindowService } from '@/services/window.service';
-
-  const windowProps = WindowService.getMultiple(['support_host']);
 
   interface Props {
     record: Metadata;
@@ -115,22 +112,6 @@
         }}</h5>
         <p>{{ $t('web.private.the-burn-feature-lets-you-permanently-delete-a-s') }}</p>
       </div>
-    </div>
-    <div class="mt-6 text-xs">
-      <p
-        >{{ $t('web.private.have-more-questions-visit-our') }}
-        <a
-          :href="`${windowProps.support_host}/docs`"
-          class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
-          >documentation</a
-        >
-        or
-        <a
-          href="/feedback"
-          class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
-          >{{ $t('web.private.send-feedback') }}</a
-        >.
-      </p>
     </div>
   </div>
 </template>

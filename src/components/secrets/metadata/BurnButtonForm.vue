@@ -115,7 +115,7 @@
           <button
             type="button"
             @click="showConfirmation = false"
-            class="over:bg-gray-50 ark:border-gray-600 rounded-lg border border-gray-300 bg-white
+            class="hover:bg-gray-50 dark:border-gray-600 rounded-lg border border-gray-300 bg-white
               px-4 py-2.5 text-base font-medium text-gray-900
               transition-colors duration-200 focus:outline-none focus:ring-2
               focus:ring-yellow-400 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
