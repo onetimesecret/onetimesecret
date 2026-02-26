@@ -25,7 +25,8 @@ module Billing
   #   Billing::RegionNormalizer.normalize("")       # => nil
   #
   #   Billing::RegionNormalizer.match?("eu", "EU")  # => true
-  #   Billing::RegionNormalizer.match?(nil, "US")   # => true  (pass-through)
+  #   Billing::RegionNormalizer.match?(nil, "US")   # => false (fail-closed)
+  #   Billing::RegionNormalizer.match?("US", nil)   # => true  (no region configured)
   #
   module RegionNormalizer
     # Normalize a region string: nil/blank -> nil, otherwise stripped + upcased
@@ -44,31 +45,30 @@ module Billing
       val.upcase
     end
 
-    # Compare two region values with normalization
+    # Compare two region values with normalization (fail-closed)
     #
-    # Returns true if both normalize to the same non-nil value,
-    # or if either is nil (pass-through mode). The nil pass-through
-    # matches existing behavior: when no region is configured, all
-    # products are accepted regardless of their region metadata.
+    # When a deployment region is configured (b is non-nil), products
+    # or plans must have an explicit matching region to be accepted.
+    # Products with nil/blank region are rejected — there are no
+    # cross-region products, and any future ones will carry an
+    # explicit region value.
     #
-    # ## Security Note
+    # When no deployment region is configured (b is nil), all
+    # products are accepted regardless of their region metadata
+    # (pre-regionalization pass-through).
     #
-    # The nil-pass-through means a Stripe product with blank/missing
-    # region metadata will match ANY configured region. This is an
-    # intentional fail-open for backward compatibility with products
-    # that predate regionalization. If region isolation becomes a
-    # security boundary (not just operational routing), this method
-    # should be replaced with a fail-closed variant that rejects
-    # nil regions when a deployment region is configured. The current
-    # approach is safe when Stripe API key access is trusted.
+    # This matches the semantics of the existing correct_region?
+    # method, where nil.to_s.upcase produces "" which never matches
+    # a configured region string.
     #
-    # @param a [String, nil] First region value
-    # @param b [String, nil] Second region value
-    # @return [Boolean] true if regions match or either is nil
+    # @param a [String, nil] Product/plan region value
+    # @param b [String, nil] Deployment's configured region
+    # @return [Boolean] true if regions match or no region configured
     def self.match?(a, b)
       na = normalize(a)
       nb = normalize(b)
-      return true if na.nil? || nb.nil?
+      return true if nb.nil?
+      return false if na.nil?
 
       na == nb
     end

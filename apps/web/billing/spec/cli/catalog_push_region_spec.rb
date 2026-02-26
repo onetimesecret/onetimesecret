@@ -111,6 +111,7 @@ RSpec.describe 'CatalogPushCommand#fetch_existing_products region filtering',
   let(:nz_product) { mock_stripe_product(id: 'prod_nz', plan_id: 'identity_nz_v1', region: 'NZ') }
   let(:nz_lower_product) { mock_stripe_product(id: 'prod_nz2', plan_id: 'starter_v1', region: 'nz') }
   let(:eu_product) { mock_stripe_product(id: 'prod_eu', plan_id: 'identity_eu_v1', region: 'EU') }
+  let(:no_region_product) { mock_stripe_product(id: 'prod_none', plan_id: 'legacy_v1', region: nil) }
 
   before do
     product_list = double('ProductList')
@@ -118,6 +119,7 @@ RSpec.describe 'CatalogPushCommand#fetch_existing_products region filtering',
       .and_yield(nz_product)
       .and_yield(nz_lower_product)
       .and_yield(eu_product)
+      .and_yield(no_region_product)
     allow(Stripe::Product).to receive(:list).and_return(product_list)
     allow(command).to receive(:with_stripe_retry).and_yield
   end
@@ -153,5 +155,17 @@ RSpec.describe 'CatalogPushCommand#fetch_existing_products region filtering',
     product_ids = result.values.map(&:id)
     expect(product_ids).to include('prod_nz')
     expect(product_ids).not_to include('prod_eu')
+  end
+
+  it 'excludes products with nil region when filter is set (fail-closed)' do
+    result = command.send(:fetch_existing_products, 'onetimesecret', match_fields, 'NZ')
+    product_ids = result.values.map(&:id)
+    expect(product_ids).not_to include('prod_none')
+  end
+
+  it 'includes products with nil region when filter is nil (pass-through)' do
+    result = command.send(:fetch_existing_products, 'onetimesecret', match_fields, nil)
+    product_ids = result.values.map(&:id)
+    expect(product_ids).to include('prod_none')
   end
 end

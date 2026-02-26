@@ -62,20 +62,20 @@ RSpec.describe Billing::RegionNormalizer, type: :billing do
       expect(described_class.match?('NZ', 'NZ')).to be true
     end
 
-    it 'passes through when first arg is nil' do
-      expect(described_class.match?(nil, 'NZ')).to be true
+    it 'rejects nil product region when deployment region is configured (fail-closed)' do
+      expect(described_class.match?(nil, 'NZ')).to be false
     end
 
-    it 'passes through when second arg is nil' do
+    it 'rejects blank product region when deployment region is configured (fail-closed)' do
+      expect(described_class.match?('', 'NZ')).to be false
+    end
+
+    it 'accepts any product region when no deployment region configured (pass-through)' do
       expect(described_class.match?('NZ', nil)).to be true
     end
 
-    it 'passes through when both args are nil' do
+    it 'accepts when both args are nil (no region configured)' do
       expect(described_class.match?(nil, nil)).to be true
-    end
-
-    it 'passes through when first arg is blank' do
-      expect(described_class.match?('', 'NZ')).to be true
     end
 
     it 'rejects different regions' do

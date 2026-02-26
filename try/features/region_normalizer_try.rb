@@ -86,27 +86,31 @@ Billing::RegionNormalizer.match?(" nz ", "NZ")
 #=> true
 
 # ---------------------------------------------------------------------------
-# .match? — nil pass-through (backward compatibility)
+# .match? — fail-closed when deployment region is configured
 # ---------------------------------------------------------------------------
 
-## match?(nil, "NZ") returns true (nil first arg = pass-through)
+## match?(nil, "NZ") returns false (nil product region rejected when deployment has region)
 Billing::RegionNormalizer.match?(nil, "NZ")
-#=> true
+#=> false
 
-## match?("NZ", nil) returns true (nil second arg = pass-through)
+## match?("", "NZ") returns false (blank product region rejected when deployment has region)
+Billing::RegionNormalizer.match?("", "NZ")
+#=> false
+
+## match?("  ", "NZ") returns false (whitespace product region rejected when deployment has region)
+Billing::RegionNormalizer.match?("  ", "NZ")
+#=> false
+
+# ---------------------------------------------------------------------------
+# .match? — pass-through when no deployment region configured
+# ---------------------------------------------------------------------------
+
+## match?("NZ", nil) returns true (no deployment region = accept all)
 Billing::RegionNormalizer.match?("NZ", nil)
 #=> true
 
-## match?(nil, nil) returns true (both nil = pass-through)
+## match?(nil, nil) returns true (no deployment region = accept all)
 Billing::RegionNormalizer.match?(nil, nil)
-#=> true
-
-## match?("", "NZ") returns true (blank normalizes to nil = pass-through)
-Billing::RegionNormalizer.match?("", "NZ")
-#=> true
-
-## match?("  ", "NZ") returns true (whitespace normalizes to nil = pass-through)
-Billing::RegionNormalizer.match?("  ", "NZ")
 #=> true
 
 # ---------------------------------------------------------------------------
