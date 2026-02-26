@@ -904,14 +904,12 @@ end
 #   sorted set survived clearing. Fix: clear_cache now SCANs for
 #   billing_plan:*:object keys and destroys any remaining orphaned hashes.
 #
-# Bug 2 (OPEN): upsert_from_stripe_data has a stale update check that compares
-#   stripe_updated_at timestamps. When an orphaned hash (not in instances)
-#   has a newer timestamp than the incoming sync data, the upsert skips
-#   the save — so the plan never gets added to instances.
-#
-# With the Bug 1 fix, clear_cache removes orphans, breaking the cycle.
-# Bug 2 tests remain to document the stale-check behavior that still exists
-# when orphaned hashes are created outside of the clear_cache flow.
+# Bug 2 (FIXED): upsert_from_stripe_data had a stale update check that compared
+#   stripe_updated_at timestamps without considering product identity. When an
+#   orphaned hash (not in instances) had a newer timestamp than the incoming sync
+#   data, the upsert skipped the save — so the plan never got added to instances.
+#   Fix: Added a stripe_product_id gate so the stale check only applies when the
+#   Stripe product is the same. Cross-product replacements always overwrite.
 RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billing do
   include PlanUpsertTestHelpers
 
@@ -961,27 +959,29 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billin
   # Bug 2: Stale update check blocks cross-region overwrite
   # --------------------------------------------------------------------------
 
-  describe 'upsert_from_stripe_data skips save when orphaned hash has newer timestamp' do
+  describe 'upsert_from_stripe_data bypasses stale check for cross-product update' do
     let(:plan_id) { 'region_conflict_monthly' }
     let(:uk_data) { build_plan_data(plan_id: plan_id, region: 'UK') }
     let(:ca_data) { build_plan_data(plan_id: plan_id, region: 'CA', stripe_updated_at: '1000') }
 
     before do
-      # Create UK plan with newer timestamp, then orphan it
+      # Create UK plan with newer timestamp, then orphan it.
+      # Because build_plan_data generates distinct stripe_product_id values,
+      # the stale check is bypassed (different product = always overwrite).
       create_orphaned_plan(uk_data, stripe_updated_at: 2000)
     end
 
-    it 'does not add plan to instances' do
+    it 'adds plan to instances despite older timestamp' do
       Billing::Plan.upsert_from_stripe_data(ca_data)
 
-      expect(Billing::Plan.instances.member?(plan_id)).to be false
+      expect(Billing::Plan.instances.member?(plan_id)).to be true
     end
 
-    it 'preserves the UK region data on the hash' do
+    it 'overwrites with CA region data' do
       Billing::Plan.upsert_from_stripe_data(ca_data)
 
       loaded = Billing::Plan.load(plan_id)
-      expect(loaded.region).to eq('UK')
+      expect(loaded.region).to eq('CA')
     end
   end
 
@@ -1037,17 +1037,19 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billin
 
   describe 'upsert_from_stripe_data overwrites when incoming timestamp is newer' do
     let(:plan_id) { 'newer_overwrite_monthly' }
-    let(:uk_data) { build_plan_data(plan_id: plan_id, region: 'UK') }
+    let(:product_id) { "prod_shared_#{SecureRandom.hex(8)}" }
+    let(:uk_data) { build_plan_data(plan_id: plan_id, region: 'UK', stripe_product_id: product_id) }
     let(:ca_data) do
       build_plan_data(
         plan_id: plan_id,
         region: 'CA',
+        stripe_product_id: product_id,
         stripe_updated_at: '2000'
       )
     end
 
     before do
-      # UK plan with older timestamp (registered normally, not orphaned)
+      # UK plan with older timestamp, same product — registered normally
       plan = create_test_plan(uk_data)
       plan.stripe_updated_at = '1000'
       plan.save
@@ -1085,6 +1087,189 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billin
       Billing::Plan.upsert_from_stripe_data(incoming_data)
 
       expect(Billing::Plan.instances.member?(plan_id)).to be false
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Regression: same-product stale check still applies
+  # --------------------------------------------------------------------------
+
+  describe 'stale check still applies for same-product updates' do
+    let(:plan_id) { 'same_product_stale_monthly' }
+    let(:product_id) { "prod_shared_#{SecureRandom.hex(8)}" }
+    let(:plan_data) do
+      build_plan_data(
+        plan_id: plan_id,
+        region: 'US',
+        stripe_product_id: product_id
+      )
+    end
+
+    before do
+      # Create plan with shared product ID and newer timestamp, then orphan it
+      create_orphaned_plan(
+        plan_data.merge(stripe_product_id: product_id),
+        stripe_updated_at: 2000
+      )
+    end
+
+    it 'skips save when same product has newer timestamp' do
+      incoming = plan_data.merge(
+        stripe_product_id: product_id,
+        stripe_updated_at: '1000'
+      )
+      Billing::Plan.upsert_from_stripe_data(incoming)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be false
+    end
+
+    it 'allows save when same product has newer incoming timestamp' do
+      incoming = plan_data.merge(
+        stripe_product_id: product_id,
+        stripe_updated_at: '3000'
+      )
+      Billing::Plan.upsert_from_stripe_data(incoming)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be true
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # P1: nil vs non-nil product ID bypasses stale check
+  # --------------------------------------------------------------------------
+
+  describe 'stale check bypassed when product IDs differ (nil vs non-nil)' do
+    let(:plan_id) { 'nil_vs_real_product_monthly' }
+    let(:config_plan_data) do
+      build_plan_data(
+        plan_id: plan_id,
+        region: 'US',
+        stripe_product_id: nil
+      )
+    end
+
+    before do
+      # Simulate a config-only plan (no stripe_product_id) with a newer timestamp,
+      # then orphan it. This mimics a plan created via upsert_config_only_plans.
+      create_orphaned_plan(config_plan_data, stripe_updated_at: 2000)
+    end
+
+    it 'overwrites nil-product plan with real product despite older timestamp' do
+      incoming = build_plan_data(
+        plan_id: plan_id,
+        region: 'EU',
+        stripe_product_id: 'prod_real_123',
+        stripe_updated_at: '1000'
+      )
+      Billing::Plan.upsert_from_stripe_data(incoming)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be true
+      loaded = Billing::Plan.load(plan_id)
+      expect(loaded.stripe_product_id).to eq('prod_real_123')
+      expect(loaded.region).to eq('EU')
+    end
+
+    it 'overwrites real-product plan with nil product despite older timestamp' do
+      # First, create a plan WITH a product ID
+      real_product_data = build_plan_data(
+        plan_id: plan_id,
+        region: 'US',
+        stripe_product_id: 'prod_real_456'
+      )
+      # Clear the orphan first, then set up the real-product plan
+      Billing::Plan.clear_cache
+      create_orphaned_plan(real_product_data, stripe_updated_at: 2000)
+
+      incoming = build_plan_data(
+        plan_id: plan_id,
+        region: 'CA',
+        stripe_product_id: nil,
+        stripe_updated_at: '1000'
+      )
+      Billing::Plan.upsert_from_stripe_data(incoming)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be true
+      loaded = Billing::Plan.load(plan_id)
+      expect(loaded.region).to eq('CA')
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # P1: nil == nil product ID applies stale check
+  # --------------------------------------------------------------------------
+
+  describe 'stale check applies when both product IDs are nil' do
+    let(:plan_id) { 'both_nil_product_monthly' }
+    let(:plan_data) do
+      build_plan_data(
+        plan_id: plan_id,
+        region: 'US',
+        stripe_product_id: nil
+      )
+    end
+
+    before do
+      # Both plans have nil stripe_product_id (config-only plans).
+      # nil == nil is true, so same_product = true and stale check applies.
+      create_orphaned_plan(plan_data, stripe_updated_at: 2000)
+    end
+
+    it 'skips save when both have nil product ID and incoming is older' do
+      incoming = plan_data.merge(stripe_updated_at: '1000')
+      Billing::Plan.upsert_from_stripe_data(incoming)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be false
+    end
+
+    it 'allows save when both have nil product ID and incoming is newer' do
+      incoming = plan_data.merge(stripe_updated_at: '3000')
+      Billing::Plan.upsert_from_stripe_data(incoming)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be true
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # P2: Missing stripe_updated_at bypasses stale check entirely
+  # --------------------------------------------------------------------------
+
+  describe 'stale check bypassed when incoming data has no stripe_updated_at' do
+    let(:plan_id) { 'no_timestamp_monthly' }
+    let(:product_id) { "prod_shared_#{SecureRandom.hex(8)}" }
+    let(:plan_data) do
+      build_plan_data(
+        plan_id: plan_id,
+        region: 'US',
+        stripe_product_id: product_id
+      )
+    end
+
+    before do
+      # Create plan with same product ID and a timestamp, then orphan it
+      create_orphaned_plan(
+        plan_data.merge(stripe_product_id: product_id),
+        stripe_updated_at: 2000
+      )
+    end
+
+    it 'proceeds with upsert when stripe_updated_at is absent from incoming data' do
+      # Remove stripe_updated_at entirely — should bypass the stale check guard
+      incoming = plan_data.merge(stripe_product_id: product_id)
+      incoming.delete(:stripe_updated_at)
+
+      Billing::Plan.upsert_from_stripe_data(incoming)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be true
+    end
+
+    it 'proceeds with upsert when stripe_updated_at is explicitly nil' do
+      incoming = plan_data.merge(
+        stripe_product_id: product_id,
+        stripe_updated_at: nil
+      )
+      Billing::Plan.upsert_from_stripe_data(incoming)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be true
     end
   end
 end

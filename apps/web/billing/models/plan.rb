@@ -277,21 +277,23 @@ module Billing
         # PHASE 2: Upsert all plans (NO clear_cache!)
         # Each plan is created or updated individually, ensuring the catalog
         # is never empty during sync
-        upserted_ids = []
-        failed_ids   = []
+        upserted_ids    = []
+        not_persisted   = []
         plan_data_list.each do |plan_data|
           plan = upsert_from_stripe_data(plan_data)
           upserted_ids << plan.plan_id
 
-          # Verify save succeeded by checking instances membership.
+          # Plans not in instances were either skipped by the stale check
+          # or failed to save. Both cases are logged inside upsert_from_stripe_data
+          # with appropriate severity (ld for skips, le for failures).
           # O(log n) per call but catalog is small (~20 plans max).
-          failed_ids << plan.plan_id unless instances.member?(plan.plan_id)
+          not_persisted << plan.plan_id unless instances.member?(plan.plan_id)
         end
 
-        saved_count = upserted_ids.size - failed_ids.size
+        saved_count = upserted_ids.size - not_persisted.size
 
-        if failed_ids.any?
-          OT.le "[Plan.refresh_from_stripe] #{failed_ids.size} plan(s) failed to save: #{failed_ids.join(', ')}",
+        if not_persisted.any?
+          OT.lw "[Plan.refresh_from_stripe] #{not_persisted.size} plan(s) not persisted: #{not_persisted.join(', ')}",
             {
               region: Onetime.billing_config.region,
             }
@@ -308,7 +310,7 @@ module Billing
         update_catalog_sync_timestamp
 
         OT.li "[Plan.refresh_from_stripe] Synced #{saved_count}/#{upserted_ids.size} plans " \
-              "(#{failed_ids.size} failed), pruned #{pruned_count}"
+              "(#{not_persisted.size} not persisted), pruned #{pruned_count}"
         saved_count
       end
 
@@ -631,14 +633,22 @@ module Billing
         end
 
         # Check for stale update (out-of-order webhook delivery)
-        # Only skip if BOTH timestamps are valid (> 0)
+        # Only skip if BOTH timestamps are valid (> 0) AND the Stripe product
+        # is the same. When stripe_product_id differs (cross-region replacement),
+        # bypass the stale check so the new product always wins.
+        # NOTE: nil == nil is true in Ruby — plans without a stripe_product_id
+        # (e.g., config-only plans created before this field existed) are treated
+        # as "same product", so the stale check still applies. This is the correct
+        # safe default, avoiding accidental overwrites when product provenance is
+        # unknown.
         if existing && plan_data[:stripe_updated_at]
+          same_product     = existing.stripe_product_id == plan_data[:stripe_product_id]
           incoming_updated = plan_data[:stripe_updated_at].to_i
           existing_updated = existing.stripe_updated_at.to_i
 
-          if incoming_updated > 0 && existing_updated > 0 && incoming_updated <= existing_updated
+          if same_product && incoming_updated > 0 && existing_updated > 0 && incoming_updated <= existing_updated
             OT.ld "[Plan.upsert_from_stripe_data] Skipping stale update for #{plan_id} " \
-                  "(incoming: #{incoming_updated}, existing: #{existing_updated})"
+                  "(same_product: #{same_product}, incoming: #{incoming_updated}, existing: #{existing_updated})"
             return existing
           end
         end
