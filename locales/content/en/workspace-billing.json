@@ -579,6 +579,18 @@
     "text": "Draft",
     "sha256": "ebf12ef4"
   },
+  "web.billing.invoices.open": {
+    "text": "Open",
+    "sha256": "a2b3c4d5"
+  },
+  "web.billing.invoices.uncollectible": {
+    "text": "Uncollectible",
+    "sha256": "b3c4d5e6"
+  },
+  "web.billing.invoices.void": {
+    "text": "Void",
+    "sha256": "c4d5e6f7"
+  },
   "web.billing.invoices.load_error": {
     "text": "Failed to load invoices",
     "sha256": "0b0cb3f7"

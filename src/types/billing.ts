@@ -151,7 +151,11 @@ export function getSubscriptionStatusLabel(status: SubscriptionStatus): string {
 
 export function getInvoiceStatusLabel(status: InvoiceStatus): string {
   const labels: Record<InvoiceStatus, string> = {
+    draft: 'Draft',
+    open: 'Open',
     paid: 'Paid',
+    uncollectible: 'Uncollectible',
+    void: 'Void',
     pending: 'Pending',
     failed: 'Failed',
   };

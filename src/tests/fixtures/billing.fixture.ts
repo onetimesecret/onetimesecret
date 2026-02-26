@@ -435,7 +435,7 @@ export function createMockOverviewResponse(
       features: ['web.billing.features.feature1', 'web.billing.features.feature2'],
       limits: { teams: 1 },
     },
-    usage: { teams: 1, members: 3 },
+    usage: { members: 3, domains: 1 },
     ...overrides,
   };
 }
