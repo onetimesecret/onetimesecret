@@ -74,21 +74,21 @@ module Onetime
       # Class-level sorted sets: instances for each model
       def sorted_set_collections
         [
-          ['Customer.instances',              Onetime::Customer.instances.rediskey],
-          ['Organization.instances',          Onetime::Organization.instances.rediskey],
-          ['CustomDomain.instances',          Onetime::CustomDomain.instances.rediskey],
-          ['Receipt.instances',               Onetime::Receipt.instances.rediskey],
-          ['Secret.instances',                Onetime::Secret.instances.rediskey],
-          ['Feedback.instances',              Onetime::Feedback.instances.rediskey],
-          ['OrganizationMembership.instances', Onetime::OrganizationMembership.instances.rediskey],
-          ['Receipt.expiration_timeline', Onetime::Receipt.expiration_timeline.rediskey],
+          ['Customer.instances',              Onetime::Customer.instances.dbkey],
+          ['Organization.instances',          Onetime::Organization.instances.dbkey],
+          ['CustomDomain.instances',          Onetime::CustomDomain.instances.dbkey],
+          ['Receipt.instances',               Onetime::Receipt.instances.dbkey],
+          ['Secret.instances',                Onetime::Secret.instances.dbkey],
+          ['Feedback.instances',              Onetime::Feedback.instances.dbkey],
+          ['OrganizationMembership.instances', Onetime::OrganizationMembership.instances.dbkey],
+          ['Receipt.expiration_timeline', Onetime::Receipt.expiration_timeline.dbkey],
         ]
       end
 
       # Class-level sets (SADD-based)
       def set_collections
         [
-          ['Receipt.warnings_sent', Onetime::Receipt.warnings_sent.rediskey],
+          ['Receipt.warnings_sent', Onetime::Receipt.warnings_sent.dbkey],
         ]
       end
 

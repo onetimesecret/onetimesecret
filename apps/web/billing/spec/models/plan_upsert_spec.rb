@@ -466,11 +466,11 @@ RSpec.describe 'Billing::Plan.prune_stale_plans', type: :billing do
   end
 
   # --------------------------------------------------------------------------
-  # Handling expired entries (orphan cleanup)
+  # Handling orphaned entries (missing plan hash cleanup)
   # --------------------------------------------------------------------------
 
-  describe 'handling expired entries' do
-    it 'removes instances entry when plan hash expired' do
+  describe 'handling orphaned entries' do
+    it 'removes instances entry when plan hash is missing' do
       # Setup: Create orphan entry in instances set (no corresponding plan data)
       Billing::Plan.instances.add('orphan_plan_monthly')
 
@@ -679,17 +679,20 @@ RSpec.describe 'Billing::Plan upsert field behaviors', type: :billing do
 end
 
 # ==============================================================================
-# SECTION 5: TTL Expiration Scenarios (P0 Tests - Issue #2354)
+# SECTION 5: Missing Plan Hash Scenarios (P0 Tests - Issue #2354)
 # ==============================================================================
 #
-# These tests verify correct behavior when Plan Redis keys expire via TTL
-# but the instances sorted set entries persist (the root cause of
-# Familia::NoIdentifier errors in the original clear+rebuild pattern).
+# These tests verify correct behavior when Plan Redis hashes are missing
+# (e.g., after explicit destroy!, clear_cache, or manual deletion) but the
+# instances sorted set entries persist. This was originally caused by a
+# 12-hour TTL asymmetry (CATALOG_TTL) which has since been removed — plans
+# now persist until explicitly deleted. The scenarios remain valid because
+# plan hashes can still go missing via destroy! or clear_cache.
 #
 # The upsert pattern handles this gracefully, but we need to verify that
 # lookup methods return appropriate values (nil/empty) rather than raising.
 
-RSpec.describe 'Expired catalog handling', type: :billing do
+RSpec.describe 'Missing plan hash handling', type: :billing do
   include PlanUpsertTestHelpers
 
   before do
@@ -703,17 +706,18 @@ RSpec.describe 'Expired catalog handling', type: :billing do
   end
 
   # --------------------------------------------------------------------------
-  # find_by_stripe_price_id with expired plans
+  # find_by_stripe_price_id with missing plan hashes
   # --------------------------------------------------------------------------
 
   describe 'find_by_stripe_price_id' do
-    context 'when plan hash has expired but instances entry persists' do
+    context 'when plan hash is missing but instances entry persists' do
       let(:price_id) { 'price_expired_test_123' }
       let(:plan_id) { 'expired_plan_monthly' }
 
       before do
-        # Simulate expired state: instances entry exists, but plan hash is gone
-        # This is the exact state that caused Familia::NoIdentifier errors
+        # Simulate missing hash state: instances entry exists, but plan hash is gone.
+        # This can happen after explicit destroy! or clear_cache. Previously this
+        # also occurred via Redis TTL expiration (CATALOG_TTL), now removed.
         Billing::Plan.instances.add(plan_id)
 
         # Rebuild cache to pick up the orphan entry
@@ -721,9 +725,9 @@ RSpec.describe 'Expired catalog handling', type: :billing do
         Billing::Plan.rebuild_stripe_price_id_cache
       end
 
-      it 'returns nil for expired plan' do
+      it 'returns nil for missing plan' do
         # The cache should not contain a mapping for a price_id
-        # that belonged to an expired plan
+        # that belonged to a destroyed plan
         result = Billing::Plan.find_by_stripe_price_id(price_id)
         expect(result).to be_nil
       end
@@ -750,7 +754,7 @@ RSpec.describe 'Expired catalog handling', type: :billing do
       end
     end
 
-    context 'when cache is rebuilt after expiration' do
+    context 'when cache is rebuilt after plan destruction' do
       let(:plan_data) { build_plan_data(stripe_price_id: 'price_will_expire_456') }
 
       before do
@@ -758,15 +762,15 @@ RSpec.describe 'Expired catalog handling', type: :billing do
         plan = create_test_plan(plan_data)
         Billing::Plan.rebuild_stripe_price_id_cache
 
-        # Simulate expiration: delete plan hash but keep instances entry
-        # This mimics Redis TTL expiration of individual keys
+        # Simulate missing hash: delete plan hash but keep instances entry.
+        # This mimics explicit deletion (destroy!, clear_cache, or admin action).
         plan.destroy!
 
         # Force cache rebuild to test it handles missing plans
         Billing::Plan.instance_variable_set(:@stripe_price_id_cache, nil)
       end
 
-      it 'returns nil after plan expires and cache rebuilds' do
+      it 'returns nil after plan is destroyed and cache rebuilds' do
         result = Billing::Plan.find_by_stripe_price_id('price_will_expire_456')
         expect(result).to be_nil
       end
@@ -774,18 +778,18 @@ RSpec.describe 'Expired catalog handling', type: :billing do
   end
 
   # --------------------------------------------------------------------------
-  # list_plans with expired plans
+  # list_plans with missing plan hashes
   # --------------------------------------------------------------------------
 
   describe 'list_plans' do
-    context 'when all plan hashes have expired' do
+    context 'when all plan hashes are missing' do
       before do
-        # Add orphan entries to instances (simulating TTL expiration)
+        # Add orphan entries to instances (simulating deleted plan hashes)
         Billing::Plan.instances.add('orphan_plan_1_monthly')
         Billing::Plan.instances.add('orphan_plan_2_monthly')
       end
 
-      it 'returns empty array when all plans expired' do
+      it 'returns empty array when all plan hashes are missing' do
         # load_multi should handle missing plans gracefully
         result = Billing::Plan.list_plans
         expect(result).to eq([])
@@ -798,14 +802,14 @@ RSpec.describe 'Expired catalog handling', type: :billing do
       end
     end
 
-    context 'when some plans have expired' do
+    context 'when some plan hashes are missing' do
       let(:valid_plan_data) { build_plan_data(plan_id: 'valid_plan_monthly') }
 
       before do
         # Create one valid plan
         create_test_plan(valid_plan_data)
 
-        # Add orphan entry (simulating one expired plan)
+        # Add orphan entry (simulating one deleted plan hash)
         Billing::Plan.instances.add('orphan_plan_monthly')
       end
 
@@ -817,7 +821,7 @@ RSpec.describe 'Expired catalog handling', type: :billing do
         expect(plan_ids).not_to include('orphan_plan_monthly')
       end
 
-      it 'filters out expired plans without raising' do
+      it 'filters out missing plans without raising' do
         expect {
           result = Billing::Plan.list_plans
           expect(result.size).to eq(1)
@@ -834,15 +838,15 @@ RSpec.describe 'Expired catalog handling', type: :billing do
   end
 
   # --------------------------------------------------------------------------
-  # Catalog state after TTL expiration
+  # Catalog state after plan hash deletion
   # --------------------------------------------------------------------------
 
   describe 'catalog state consistency' do
-    context 'after plan TTL expiration' do
+    context 'after plan hash is explicitly destroyed' do
       let(:plan_data) do
         build_plan_data(
-          plan_id: 'ttl_test_plan_monthly',
-          stripe_price_id: 'price_ttl_test_789'
+          plan_id: 'deleted_plan_monthly',
+          stripe_price_id: 'price_deleted_test_789'
         )
       end
 
@@ -851,10 +855,10 @@ RSpec.describe 'Expired catalog handling', type: :billing do
         plan = create_test_plan(plan_data)
         Billing::Plan.rebuild_stripe_price_id_cache
 
-        expect(Billing::Plan.find_by_stripe_price_id('price_ttl_test_789')).not_to be_nil
-        expect(Billing::Plan.list_plans.map(&:plan_id)).to include('ttl_test_plan_monthly')
+        expect(Billing::Plan.find_by_stripe_price_id('price_deleted_test_789')).not_to be_nil
+        expect(Billing::Plan.list_plans.map(&:plan_id)).to include('deleted_plan_monthly')
 
-        # Simulate TTL expiration: destroy plan hash
+        # Simulate explicit deletion (e.g., destroy! or admin cleanup)
         plan.destroy!
 
         # Reset cache to force rebuild
@@ -862,18 +866,18 @@ RSpec.describe 'Expired catalog handling', type: :billing do
       end
 
       it 'find_by_stripe_price_id returns nil' do
-        expect(Billing::Plan.find_by_stripe_price_id('price_ttl_test_789')).to be_nil
+        expect(Billing::Plan.find_by_stripe_price_id('price_deleted_test_789')).to be_nil
       end
 
-      it 'list_plans excludes expired plan' do
-        expect(Billing::Plan.list_plans.map(&:plan_id)).not_to include('ttl_test_plan_monthly')
+      it 'list_plans excludes destroyed plan' do
+        expect(Billing::Plan.list_plans.map(&:plan_id)).not_to include('deleted_plan_monthly')
       end
 
       it 'upsert_from_stripe_data can recreate the plan' do
         # The upsert pattern should handle re-creation gracefully
         new_plan = Billing::Plan.upsert_from_stripe_data(plan_data)
 
-        expect(new_plan.plan_id).to eq('ttl_test_plan_monthly')
+        expect(new_plan.plan_id).to eq('deleted_plan_monthly')
         expect(new_plan.exists?).to be true
       end
 
@@ -881,9 +885,206 @@ RSpec.describe 'Expired catalog handling', type: :billing do
         Billing::Plan.upsert_from_stripe_data(plan_data)
         Billing::Plan.rebuild_stripe_price_id_cache
 
-        expect(Billing::Plan.find_by_stripe_price_id('price_ttl_test_789')).not_to be_nil
-        expect(Billing::Plan.list_plans.map(&:plan_id)).to include('ttl_test_plan_monthly')
+        expect(Billing::Plan.find_by_stripe_price_id('price_deleted_test_789')).not_to be_nil
+        expect(Billing::Plan.list_plans.map(&:plan_id)).to include('deleted_plan_monthly')
       end
+    end
+  end
+end
+
+# ==============================================================================
+# SECTION 6: Orphaned Plan Hash Regression Tests (Cross-Region Bug)
+# ==============================================================================
+#
+# Regression tests for a production bug where paid plans became invisible
+# after regional catalog sync. Two interacting bugs created an orphan cycle:
+#
+# Bug 1 (FIXED): clear_cache only iterated instances.to_a to find plans to
+#   destroy. Plan hashes that existed in Redis but weren't in the instances
+#   sorted set survived clearing. Fix: clear_cache now SCANs for
+#   billing_plan:*:object keys and destroys any remaining orphaned hashes.
+#
+# Bug 2 (OPEN): upsert_from_stripe_data has a stale update check that compares
+#   stripe_updated_at timestamps. When an orphaned hash (not in instances)
+#   has a newer timestamp than the incoming sync data, the upsert skips
+#   the save — so the plan never gets added to instances.
+#
+# With the Bug 1 fix, clear_cache removes orphans, breaking the cycle.
+# Bug 2 tests remain to document the stale-check behavior that still exists
+# when orphaned hashes are created outside of the clear_cache flow.
+RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billing do
+  include PlanUpsertTestHelpers
+
+  before do
+    Billing::Plan.clear_cache
+  end
+
+  after do
+    Billing::Plan.clear_cache
+  end
+
+  # Helper: create a plan and then orphan it (remove from instances but
+  # leave the Redis hash intact).
+  def create_orphaned_plan(plan_data, stripe_updated_at:)
+    plan = create_test_plan(plan_data)
+    plan.stripe_updated_at = stripe_updated_at.to_s
+    plan.save
+    Billing::Plan.instances.remove(plan_data[:plan_id])
+    plan
+  end
+
+  # --------------------------------------------------------------------------
+  # Bug 1 (FIXED): clear_cache removes orphaned plan hashes via SCAN
+  # --------------------------------------------------------------------------
+
+  describe 'clear_cache removes orphaned plan hashes' do
+    let(:plan_data) { build_plan_data(plan_id: 'orphan_survive_monthly', region: 'UK') }
+
+    it 'removes orphaned plan hashes not tracked in instances' do
+      # Create a plan, then remove it from instances (orphan it)
+      plan = create_test_plan(plan_data)
+      Billing::Plan.instances.remove('orphan_survive_monthly')
+
+      # Verify orphan state: hash exists, not in instances
+      expect(Billing::Plan.load('orphan_survive_monthly')&.exists?).to be true
+      expect(Billing::Plan.instances.member?('orphan_survive_monthly')).to be false
+
+      # clear_cache now SCANs for billing_plan:*:object keys — orphan is removed
+      Billing::Plan.clear_cache
+
+      loaded = Billing::Plan.load('orphan_survive_monthly')
+      expect(loaded&.exists?).to be_falsey
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Bug 2: Stale update check blocks cross-region overwrite
+  # --------------------------------------------------------------------------
+
+  describe 'upsert_from_stripe_data skips save when orphaned hash has newer timestamp' do
+    let(:plan_id) { 'region_conflict_monthly' }
+    let(:uk_data) { build_plan_data(plan_id: plan_id, region: 'UK') }
+    let(:ca_data) { build_plan_data(plan_id: plan_id, region: 'CA', stripe_updated_at: '1000') }
+
+    before do
+      # Create UK plan with newer timestamp, then orphan it
+      create_orphaned_plan(uk_data, stripe_updated_at: 2000)
+    end
+
+    it 'does not add plan to instances' do
+      Billing::Plan.upsert_from_stripe_data(ca_data)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be false
+    end
+
+    it 'preserves the UK region data on the hash' do
+      Billing::Plan.upsert_from_stripe_data(ca_data)
+
+      loaded = Billing::Plan.load(plan_id)
+      expect(loaded.region).to eq('UK')
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Full reproduction: clear_cache removes orphan, allowing correct upsert
+  # --------------------------------------------------------------------------
+
+  describe 'clear_cache removes orphan, allowing correct region upsert' do
+    let(:plan_id) { 'cross_region_bug_monthly' }
+    let(:uk_data) { build_plan_data(plan_id: plan_id, region: 'UK', name: 'UK Plan') }
+    let(:ca_data) do
+      build_plan_data(
+        plan_id: plan_id,
+        region: 'CA',
+        name: 'CA Plan',
+        stripe_updated_at: '1000'
+      )
+    end
+
+    before do
+      # Step 1: UK plan exists with newer timestamp, orphaned from instances
+      create_orphaned_plan(uk_data, stripe_updated_at: 2000)
+
+      # Step 2: clear_cache runs — orphaned UK hash is now destroyed
+      Billing::Plan.clear_cache
+    end
+
+    it 'clear_cache removes the orphaned UK hash' do
+      loaded = Billing::Plan.load(plan_id)
+      expect(loaded&.exists?).to be_falsey
+    end
+
+    it 'CA upsert registers plan in instances' do
+      Billing::Plan.upsert_from_stripe_data(ca_data)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be true
+    end
+
+    it 'plan is visible in list_plans with CA data' do
+      Billing::Plan.upsert_from_stripe_data(ca_data)
+
+      plan_ids = Billing::Plan.list_plans.map(&:plan_id)
+      expect(plan_ids).to include(plan_id)
+
+      loaded = Billing::Plan.load(plan_id)
+      expect(loaded.region).to eq('CA')
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Positive case: newer incoming timestamp overwrites and registers
+  # --------------------------------------------------------------------------
+
+  describe 'upsert_from_stripe_data overwrites when incoming timestamp is newer' do
+    let(:plan_id) { 'newer_overwrite_monthly' }
+    let(:uk_data) { build_plan_data(plan_id: plan_id, region: 'UK') }
+    let(:ca_data) do
+      build_plan_data(
+        plan_id: plan_id,
+        region: 'CA',
+        stripe_updated_at: '2000'
+      )
+    end
+
+    before do
+      # UK plan with older timestamp (registered normally, not orphaned)
+      plan = create_test_plan(uk_data)
+      plan.stripe_updated_at = '1000'
+      plan.save
+    end
+
+    it 'updates region to CA' do
+      Billing::Plan.upsert_from_stripe_data(ca_data)
+
+      loaded = Billing::Plan.load(plan_id)
+      expect(loaded.region).to eq('CA')
+    end
+
+    it 'plan remains in instances' do
+      Billing::Plan.upsert_from_stripe_data(ca_data)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be true
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Equal timestamps also trigger skip (the <= check)
+  # --------------------------------------------------------------------------
+
+  describe 'stale update check with equal timestamps skips save' do
+    let(:plan_id) { 'equal_timestamp_monthly' }
+    let(:plan_data) { build_plan_data(plan_id: plan_id, region: 'US') }
+
+    before do
+      # Create plan with timestamp 1000, then orphan it
+      create_orphaned_plan(plan_data, stripe_updated_at: 1000)
+    end
+
+    it 'does not add orphaned plan back to instances' do
+      incoming_data = plan_data.merge(stripe_updated_at: '1000')
+      Billing::Plan.upsert_from_stripe_data(incoming_data)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be false
     end
   end
 end

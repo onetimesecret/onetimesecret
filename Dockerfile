@@ -182,6 +182,9 @@ RUN set -eux && \
 WORKDIR ${APP_DIR}
 
 # Create non-root user
+# IMPORTANT: UID/GID 1001 must match docker/base.dockerfile and the "final" stage below.
+# This stage starts from a fresh ruby:slim image (not base), so appuser is recreated.
+# Keep all three definitions in sync to avoid permission mismatches on shared volumes.
 RUN groupadd -g 1001 appuser && \
     useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
 
@@ -285,6 +288,9 @@ WORKDIR ${APP_DIR}
 # Create non-root user for security
 # Note: nologin shell blocks SSH/su, but docker exec still works for debugging:
 #   docker exec -it container /bin/sh
+# IMPORTANT: UID/GID 1001 must match docker/base.dockerfile and the "final-s6" stage above.
+# This stage starts from a fresh ruby:slim image (not base), so appuser is recreated.
+# Keep all three definitions in sync to avoid permission mismatches on shared volumes.
 RUN groupadd -g 1001 appuser && \
     useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
 

@@ -9,13 +9,15 @@ require_relative '../../../lib/onetime/utils/config_resolver'
 module Billing
   # Billing configuration and catalog management
   module Config
-    # Time-to-live for cached plan catalog data.
+    # Staleness threshold for the plan catalog.
     # Used for:
-    # - Plan model default expiration (Redis TTL)
-    # - stripe_data_snapshot expiration
+    # - catalog_synced_at expiration (triggers re-sync on boot)
     # - Catalog staleness checks in BillingCatalog initializer
     #
-    # @return [Integer] TTL in seconds (12 hours)
+    # Plan hashes themselves have no TTL; they persist until explicitly
+    # removed by clear_cache, prune_stale_plans, or destroy!.
+    #
+    # @return [Integer] Threshold in seconds (12 hours)
     CATALOG_TTL = 12 * 60 * 60
     # Get path to billing configuration file
     #
