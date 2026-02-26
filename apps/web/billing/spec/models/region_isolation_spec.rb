@@ -232,7 +232,7 @@ RSpec.describe 'Billing::Plan.upsert_config_only_plans region normalization', ty
       expect(plan.region).to be_nil
     end
 
-    it 'uses explicit region when present and valid' do
+    it 'skips config-only plan when its region does not match deployment region' do
       plans_hash = {
         'free_test' => {
           'name' => 'Free Test',
@@ -254,9 +254,36 @@ RSpec.describe 'Billing::Plan.upsert_config_only_plans region normalization', ty
 
       Billing::Plan.upsert_config_only_plans
 
+      # US plan filtered out by EU deployment — not persisted
+      plan = Billing::Plan.load('free_test')
+      expect(plan).to be_nil
+    end
+
+    it 'uses explicit plan region when it matches the deployment region' do
+      plans_hash = {
+        'free_test' => {
+          'name' => 'Free Test',
+          'tier' => 'free',
+          'tenancy' => 'multi',
+          'region' => 'us',
+          'display_order' => 0,
+          'show_on_plans_page' => true,
+          'description' => 'Test plan',
+          'entitlements' => [],
+          'limits' => {},
+          'features' => [],
+          'prices' => [],
+        },
+      }
+
+      allow(OT.billing_config).to receive(:plans).and_return(plans_hash)
+      allow(OT.billing_config).to receive(:region).and_return('US')
+
+      Billing::Plan.upsert_config_only_plans
+
       plan = Billing::Plan.load('free_test')
       expect(plan).not_to be_nil
-      # Explicit 'US' takes precedence over billing_config.region 'EU'
+      # Explicit 'us' normalized to 'US', matches deployment
       expect(plan.region).to eq('US')
     end
   end

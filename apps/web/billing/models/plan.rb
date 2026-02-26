@@ -342,9 +342,13 @@ module Billing
           # Skip if not configured to show on plans page
           next unless plan_def['show_on_plans_page'] == true
 
-          # Skip config-only plans not matching the configured region
+          # Resolve effective region: explicit plan region, or inherit from deployment
+          # Config-only plans (free tier) typically don't specify a region in YAML
+          # because they're universal — they inherit the deployment's region.
           configured_region = OT.billing_config.region
-          plan_region       = Billing::RegionNormalizer.normalize(plan_def['region'])
+          plan_region       = Billing::RegionNormalizer.normalize(plan_def['region']) || configured_region
+
+          # Skip plans whose effective region doesn't match deployment
           unless Billing::RegionNormalizer.match?(plan_region, configured_region)
             OT.ld "[Plan.upsert_config_only_plans] Skipping config-only plan for region #{plan_region}: #{plan_key}"
             next
