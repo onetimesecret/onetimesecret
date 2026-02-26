@@ -9,6 +9,9 @@ require 'fileutils'
 # We stub ConfigResolver to return a non-existent path
 @original_resolve = Onetime::Utils::ConfigResolver.method(:resolve)
 
+# Clear env vars that stripe_key reads before checking config
+@original_stripe_api_key = ENV.delete('STRIPE_API_KEY')
+
 # Stub resolve to return nil for 'billing', forcing empty config
 Onetime::Utils::ConfigResolver.define_singleton_method(:resolve) do |name|
   return nil if name == 'billing'
@@ -80,3 +83,6 @@ Onetime::Utils::ConfigResolver.define_singleton_method(:resolve, @original_resol
 Onetime::BillingConfig.instance_variable_set(:@singleton__instance__, nil)
 result
 #=> nil
+
+# Restore env var cleared in setup
+ENV['STRIPE_API_KEY'] = @original_stripe_api_key if @original_stripe_api_key
