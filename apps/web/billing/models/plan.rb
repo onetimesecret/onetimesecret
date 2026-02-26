@@ -278,9 +278,19 @@ module Billing
         # Each plan is created or updated individually, ensuring the catalog
         # is never empty during sync
         upserted_ids = []
+        failed_ids   = []
         plan_data_list.each do |plan_data|
           plan = upsert_from_stripe_data(plan_data)
           upserted_ids << plan.plan_id
+
+          # Verify save succeeded by checking instances membership
+          failed_ids << plan.plan_id unless instances.member?(plan.plan_id)
+        end
+
+        saved_count = upserted_ids.size - failed_ids.size
+
+        if failed_ids.any?
+          OT.le "[Plan.refresh_from_stripe] #{failed_ids.size} plan(s) failed to save: #{failed_ids.join(', ')}"
         end
 
         # PHASE 3: Prune stale plans not in current Stripe catalog
@@ -293,8 +303,9 @@ module Billing
         # PHASE 5: Update global sync timestamp for O(1) freshness checks
         update_catalog_sync_timestamp
 
-        OT.li "[Plan.refresh_from_stripe] Synced #{upserted_ids.size} plans, pruned #{pruned_count}"
-        upserted_ids.size
+        OT.li "[Plan.refresh_from_stripe] Synced #{saved_count}/#{upserted_ids.size} plans " \
+              "(#{failed_ids.size} failed), pruned #{pruned_count}"
+        saved_count
       end
 
       # Upsert config-only plans (free tier, etc.) that have no Stripe prices
@@ -371,7 +382,10 @@ module Billing
           plan.limits.clear
           limits_hash.each { |key, val| plan.limits[key] = val }
 
-          plan.save
+          unless plan.save
+            OT.le "[Plan.upsert_config_only_plans] Save FAILED for config-only plan: #{plan_id}"
+            next
+          end
           upserted_count += 1
 
           OT.li "[Plan.upsert_config_only_plans] Upserted config-only plan: #{plan_id}"
@@ -671,7 +685,15 @@ module Billing
           plan.stripe_data_snapshot.value = plan_data[:stripe_snapshot].to_json
         end
 
-        plan.save
+        unless plan.save
+          OT.le "[Plan.upsert_from_stripe_data] Save FAILED for plan: #{plan_id}",
+            {
+              existing: !existing.nil?,
+              region: plan_data[:region],
+              stripe_product_id: plan_data[:stripe_product_id],
+            }
+          return plan
+        end
 
         action = existing ? 'Updated' : 'Created'
         OT.ld "[Plan.upsert_from_stripe_data] #{action} plan: #{plan_id}"
@@ -698,7 +720,9 @@ module Billing
             # Plan exists in Redis - soft-delete by marking inactive
             plan.active         = 'false'
             plan.last_synced_at = Time.now.to_i.to_s
-            plan.save
+            unless plan.save
+              OT.le "[Plan.prune_stale_plans] Save FAILED for stale plan: #{plan_id}"
+            end
             OT.li "[Plan.prune_stale_plans] Marked stale: #{plan_id}"
             pruned_count       += 1
           else
@@ -854,10 +878,30 @@ module Billing
 
       # Clear all cached plans (for testing or forced refresh)
       def clear_cache
+        # Phase 1: Destroy plans tracked in instances (cleans up associated data types)
         instances.to_a.each do |plan_id|
           plan = load(plan_id)
           plan&.destroy!
         end
+
+        # Phase 2: Scan for orphaned plan hashes not tracked in instances.
+        # These survive Phase 1 due to TTL asymmetry between plan hashes
+        # (12h TTL) and the instances sorted set (no TTL).
+        scan_pattern = "#{prefix}:*:object"
+        Familia.dbclient.scan_each(match: scan_pattern).each do |key|
+          plan_id = key.split(':')[1]
+          next if plan_id.nil? || plan_id.empty?
+
+          OT.ld "[Plan.clear_cache] Removing orphaned plan hash: #{plan_id}"
+          begin
+            plan = load(plan_id)
+            plan&.destroy!
+          rescue StandardError
+            # Fall back to direct key deletion if load fails
+            Familia.dbclient.del(key)
+          end
+        end
+
         instances.clear
         @stripe_price_id_cache = nil
         catalog_synced_at.delete!

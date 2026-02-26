@@ -896,25 +896,23 @@ end
 # SECTION 6: Orphaned Plan Hash Regression Tests (Cross-Region Bug)
 # ==============================================================================
 #
-# Regression tests for a production bug where paid plans become invisible
-# after regional catalog sync. Two interacting bugs create an orphan cycle:
+# Regression tests for a production bug where paid plans became invisible
+# after regional catalog sync. Two interacting bugs created an orphan cycle:
 #
-# Bug 1: clear_cache only iterates instances.to_a to find plans to destroy.
-#   Plan hashes that exist in Redis but aren't in the instances sorted set
-#   survive clearing.
+# Bug 1 (FIXED): clear_cache only iterated instances.to_a to find plans to
+#   destroy. Plan hashes that existed in Redis but weren't in the instances
+#   sorted set survived clearing. Fix: clear_cache now SCANs for
+#   billing_plan:*:object keys and destroys any remaining orphaned hashes.
 #
-# Bug 2: upsert_from_stripe_data has a stale update check that compares
+# Bug 2 (OPEN): upsert_from_stripe_data has a stale update check that compares
 #   stripe_updated_at timestamps. When an orphaned hash (not in instances)
 #   has a newer timestamp than the incoming sync data, the upsert skips
 #   the save — so the plan never gets added to instances.
 #
-# The combination means: orphaned UK plan hash survives clear_cache, then
-# blocks CA sync via stale check, leaving the plan invisible to list_plans.
-#
-# THESE TESTS HAVE BEEN WRITTEN TO REPLICATE AND PROVE THE EXISTANCE OF
-# THE BUGS. THEY WERE WRITTEN TO PASS. THEY SHOULD FAIL WHEN THE CODE
-# IS FIXED. THAT WILL BE OUR SIGNAL TO UPDATE TO REGRESSION TESTS.
-RSpec.describe 'Orphaned plan hash regression (cross-region bug -- if these pass, the bugs still exist)', type: :billing do
+# With the Bug 1 fix, clear_cache removes orphans, breaking the cycle.
+# Bug 2 tests remain to document the stale-check behavior that still exists
+# when orphaned hashes are created outside of the clear_cache flow.
+RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billing do
   include PlanUpsertTestHelpers
 
   before do
@@ -936,13 +934,13 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug -- if these pass
   end
 
   # --------------------------------------------------------------------------
-  # Bug 1: clear_cache does not remove orphaned hashes
+  # Bug 1 (FIXED): clear_cache removes orphaned plan hashes via SCAN
   # --------------------------------------------------------------------------
 
-  describe 'clear_cache does not remove plan hashes outside instances' do
+  describe 'clear_cache removes orphaned plan hashes' do
     let(:plan_data) { build_plan_data(plan_id: 'orphan_survive_monthly', region: 'UK') }
 
-    it 'leaves orphaned hash intact after clear_cache' do
+    it 'removes orphaned plan hashes not tracked in instances' do
       # Create a plan, then remove it from instances (orphan it)
       plan = create_test_plan(plan_data)
       Billing::Plan.instances.remove('orphan_survive_monthly')
@@ -951,11 +949,11 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug -- if these pass
       expect(Billing::Plan.load('orphan_survive_monthly')&.exists?).to be true
       expect(Billing::Plan.instances.member?('orphan_survive_monthly')).to be false
 
-      # clear_cache only iterates instances.to_a — orphaned hash survives
+      # clear_cache now SCANs for billing_plan:*:object keys — orphan is removed
       Billing::Plan.clear_cache
 
       loaded = Billing::Plan.load('orphan_survive_monthly')
-      expect(loaded&.exists?).to be true
+      expect(loaded&.exists?).to be_falsey
     end
   end
 
@@ -988,10 +986,10 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug -- if these pass
   end
 
   # --------------------------------------------------------------------------
-  # Full reproduction: orphan survives clear_cache, then blocks upsert
+  # Full reproduction: clear_cache removes orphan, allowing correct upsert
   # --------------------------------------------------------------------------
 
-  describe 'orphaned hash blocks instances registration after clear_cache + upsert' do
+  describe 'clear_cache removes orphan, allowing correct region upsert' do
     let(:plan_id) { 'cross_region_bug_monthly' }
     let(:uk_data) { build_plan_data(plan_id: plan_id, region: 'UK', name: 'UK Plan') }
     let(:ca_data) do
@@ -1007,26 +1005,29 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug -- if these pass
       # Step 1: UK plan exists with newer timestamp, orphaned from instances
       create_orphaned_plan(uk_data, stripe_updated_at: 2000)
 
-      # Step 2: clear_cache runs — orphaned UK hash survives
+      # Step 2: clear_cache runs — orphaned UK hash is now destroyed
       Billing::Plan.clear_cache
     end
 
-    it 'orphaned UK hash survives clear_cache' do
+    it 'clear_cache removes the orphaned UK hash' do
       loaded = Billing::Plan.load(plan_id)
-      expect(loaded&.exists?).to be true
+      expect(loaded&.exists?).to be_falsey
     end
 
-    it 'CA upsert does not register plan in instances' do
+    it 'CA upsert registers plan in instances' do
       Billing::Plan.upsert_from_stripe_data(ca_data)
 
-      expect(Billing::Plan.instances.member?(plan_id)).to be false
+      expect(Billing::Plan.instances.member?(plan_id)).to be true
     end
 
-    it 'plan is invisible to list_plans' do
+    it 'plan is visible in list_plans with CA data' do
       Billing::Plan.upsert_from_stripe_data(ca_data)
 
       plan_ids = Billing::Plan.list_plans.map(&:plan_id)
-      expect(plan_ids).not_to include(plan_id)
+      expect(plan_ids).to include(plan_id)
+
+      loaded = Billing::Plan.load(plan_id)
+      expect(loaded.region).to eq('CA')
     end
   end
 
