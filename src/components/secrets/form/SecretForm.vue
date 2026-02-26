@@ -9,6 +9,7 @@
   import { useSecretConcealer } from '@/composables/useSecretConcealer';
   import { WindowService } from '@/services/window.service';
   import { useConcealedMetadataStore } from '@/stores/concealedMetadataStore';
+  import { type ConcealDataResponse } from '@/schemas/api/responses';
   import {
     DEFAULT_BUTTON_TEXT_LIGHT,
     DEFAULT_CORNER_CLASS,
@@ -32,6 +33,8 @@
     cornerClass?: string;
     primaryColor?: string;
     buttonTextLight?: boolean;
+    createLinkLabel?: string;
+    onSecretCreated?: (response: ConcealDataResponse) => void;
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -43,6 +46,7 @@
     cornerClass: DEFAULT_CORNER_CLASS,
     primaryColor: DEFAULT_PRIMARY_COLOR,
     buttonTextLight: DEFAULT_BUTTON_TEXT_LIGHT,
+    createLinkLabel: '',
   });
 
   const router = useRouter();
@@ -89,8 +93,12 @@
       operations.reset();
       secretContentInput.value?.clearTextarea(); // Clear textarea
 
-      // Navigate to the metadata view page
-      router.push(`/receipt/${response.record.metadata.key}`);
+      // Either invoke the callback or navigate to the receipt page
+      if (props.onSecretCreated) {
+        props.onSecretCreated(response);
+      } else {
+        router.push(`/receipt/${response.record.metadata.key}`);
+      }
     },
   });
 
@@ -265,8 +273,8 @@
                   :aria-errormessage="getError('passphrase') ? passphraseErrorId : undefined"
                   :class="[cornerClass, getError('passphrase') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '']"
                   class="w-full border border-gray-200 bg-white py-2.5 pl-5 pr-10
-                    text-sm text-gray-900 transition-shadow duration-200 placeholder:text-gray-400
-                    focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
+                    font-system text-sm text-gray-900 transition-shadow duration-200 placeholder:text-gray-400
+                    focus:border-brandcomp-500 focus:outline-none focus:ring-2 focus:ring-brandcomp-500
                     dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
                   :placeholder="$t('web.secrets.enterPassphrase')"
                   @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)" />
@@ -277,7 +285,7 @@
                   :aria-label="state.passphraseVisibility ? 'Hide passphrase' : 'Show passphrase'"
                   :aria-pressed="state.passphraseVisibility"
                   class="absolute inset-y-0 right-3 flex items-center
-                    focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    focus:outline-none focus:ring-2 focus:ring-brandcomp-500">
                   <OIcon
                     collection="heroicons"
                     :name="state.passphraseVisibility ? 'solid-eye' : 'outline-eye-off'"
@@ -310,8 +318,8 @@
                   :aria-describedby="getError('ttl') ? lifetimeErrorId : undefined"
                   :class="[cornerClass, getError('ttl') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '']"
                   class="w-full appearance-none border border-gray-200
-                    bg-white py-2.5 pl-5 pr-10 text-sm text-gray-600 transition-shadow duration-200
-                    focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
+                    bg-white py-2.5 pl-5 pr-10 font-system text-sm text-gray-600 transition-shadow duration-200
+                    focus:border-brandcomp-500 focus:outline-none focus:ring-2 focus:ring-brandcomp-500
                     dark:border-gray-700 dark:bg-slate-800 dark:text-white"
                   @change="(e) => updateTtl(Number((e.target as HTMLSelectElement).value))">
                   <option
@@ -368,8 +376,8 @@
                 :aria-errormessage="getError('recipient') ? recipientErrorId : undefined"
                 :class="[cornerClass, getError('recipient') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '']"
                 class="w-full border border-gray-200
-                  bg-white px-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400
-                  focus:border-blue-500 focus:ring-2 focus:ring-blue-500
+                  bg-white px-10 py-2.5 font-system text-sm text-gray-900 placeholder:text-gray-400
+                  focus:border-brandcomp-500 focus:ring-2 focus:ring-brandcomp-500
                   dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
                 @input="(e) => updateRecipient((e.target as HTMLInputElement).value)" />
             </div>
@@ -379,12 +387,12 @@
         <!-- Pro tip Section -->
         <div
           v-if="showProTip"
-          class="flex items-start gap-3 bg-brandcomp-50 p-4 dark:bg-brandcomp-900/20">
+          class="flex items-start gap-3 bg-amber-50 p-4 dark:bg-brandcomp-900/20">
           <OIcon
             collection="heroicons"
-            name="information-circle"
+            name="exclamation-triangle"
             class="mt-0.5 size-5 shrink-0 text-brandcomp-600 dark:text-brandcomp-500" />
-          <p class="text-sm text-brandcomp-700 dark:text-brandcomp-300">
+          <p class="text-sm text-amber-700 dark:text-brandcomp-300">
             {{ $t('web.homepage.protip1') }}
           </p>
         </div>
@@ -411,6 +419,7 @@
                     :corner-class="cornerClass"
                     :primary-color="primaryColor"
                     :button-text-light="buttonTextLight"
+                    :create-link-label="props.createLinkLabel"
                     :disabled="selectedAction === 'create-link' && !hasContent"
                     :disable-generate="selectedAction === 'create-link' && hasContent"
                     :aria-label="

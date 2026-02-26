@@ -131,10 +131,10 @@
         corners.leftCorner,
         textColorClass,
         leftButtonFocusClass,
-        'flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold transition-colors',
+        'flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold transition-colors hover:brightness-110',
         'focus:z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
         {
-          'cursor-not-allowed opacity-60 disabled:hover:opacity-70 dark:opacity-60': isMainButtonDisabled,
+          'cursor-not-allowed brightness-75 saturate-75': isMainButtonDisabled,
         },
       ]"
       :style="{

@@ -110,9 +110,9 @@
         <!-- Main Card with Enhanced Styling -->
         <!-- prettier-ignore-attribute class -->
         <div
-          class="overflow-hidden rounded-xl border border-slate-200/50
-          bg-gradient-to-b from-slate-50 to-slate-100 shadow-md
-          dark:border-slate-800/50 dark:from-slate-900 dark:to-slate-950 dark:shadow-slate-900/30">
+          class="overflow-hidden rounded-brand border border-gray-200/50
+          bg-gradient-to-b from-gray-50 to-gray-100 shadow-md
+          dark:border-gray-800/50 dark:from-gray-900 dark:to-gray-950 dark:shadow-gray-900/30">
           <!-- Secret Link Header -->
           <section
             class="relative transition-transform duration-300 hover:scale-[1.01]"
@@ -128,8 +128,8 @@
           <!-- Recipients Section -->
           <div
             v-if="details.show_recipients"
-            class="border-t border-slate-200 px-6 py-5 dark:border-slate-800">
-            <h3 class="flex items-center text-lg font-semibold text-slate-800 dark:text-slate-200">
+            class="border-t border-gray-200 px-6 py-5 dark:border-gray-800">
+            <h3 class="flex items-center text-lg font-semibold text-gray-800 dark:text-gray-200">
               <OIcon
                 collection="material-symbols"
                 name="mail-outline"
@@ -142,18 +142,18 @@
           <!-- prettier-ignore-attribute class -->
           <section
             v-if="details.show_secret"
-            class="border-y border-slate-200 bg-slate-50 px-6 py-5
-            dark:border-slate-700/50 dark:bg-slate-800/60">
+            class="border-y border-gray-200 bg-gray-50 px-6 py-5
+            dark:border-gray-700/50 dark:bg-gray-800/60">
             <!-- prettier-ignore-attribute class -->
             <textarea
               readonly
               :value="details.secret_value"
               :rows="details.display_lines || 3"
               class="w-full resize-none whitespace-pre
-              rounded-lg border-2 border-slate-200 bg-white px-4 py-3
-              font-mono text-base leading-tight tracking-wide text-slate-900 shadow-sm transition-colors
-              focus:border-brand-500 focus:ring-2 focus:ring-brand-500
-              dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-brand-400"></textarea>
+              rounded-xl border border-gray-200 bg-white px-4 py-3
+              font-mono text-base leading-tight tracking-wide text-gray-900 shadow-sm transition-colors
+              focus:border-brandcomp-500 focus:ring-2 focus:ring-brandcomp-500
+              dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:focus:border-brandcomp-400"></textarea>
             <div class="mt-3 flex w-full items-center justify-between">
               <p
                 ref="warningMessage"
@@ -179,12 +179,12 @@
           <!-- prettier-ignore-attribute class -->
           <section
             v-if="!details.show_secret && !record.is_destroyed"
-            class="border-y border-slate-200 bg-gradient-to-r from-slate-200 to-slate-100 px-6 py-5
-            dark:border-slate-700/50 dark:from-slate-800/80 dark:to-slate-800/30">
+            class="border-y border-gray-200 bg-gradient-to-r from-gray-200 to-gray-100 px-6 py-5
+            dark:border-gray-700/50 dark:from-gray-800/80 dark:to-gray-800/30">
             <!-- prettier-ignore-attribute class -->
             <div
               class="flex items-center justify-between py-2 font-mono
-              text-slate-400 dark:text-slate-500">
+              text-gray-400 dark:text-gray-500">
               <div class="flex flex-1 items-center">
                 <span class="inline-block w-full overflow-hidden">
                   <span class="select-none blur-sm">•••••••••••••••••••••••••••••••••••••••</span>
@@ -192,12 +192,12 @@
                 <OIcon
                   collection="material-symbols"
                   name="lock-outline"
-                  class="ml-2 size-4 shrink-0 text-slate-400" />
+                  class="ml-2 size-4 shrink-0 text-gray-400" />
               </div>
               <!-- prettier-ignore-attribute class -->
               <span
-                class="rounded-full bg-slate-300/50 px-2 py-1
-                text-xs font-medium dark:bg-slate-700/50">
+                class="rounded-full bg-gray-300/50 px-2 py-1
+                text-xs font-medium dark:bg-gray-700/50">
                 {{ $t('web.LABELS.encrypted') }}
               </span>
             </div>
@@ -210,7 +210,7 @@
             <div class="mb-3 flex items-center justify-between">
               <h2
                 id="section-status"
-                class="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
                 <OIcon
                   collection="material-symbols"
                   name="history"
@@ -232,8 +232,8 @@
           <!-- prettier-ignore-attribute class -->
           <section
             v-if="isAvailable"
-            class="border-t border-slate-200 bg-slate-50 px-6 py-5
-            dark:border-slate-700/50 dark:bg-slate-800/30"
+            class="border-t border-gray-200 bg-gray-50 px-6 py-5
+            dark:border-gray-700/50 dark:bg-gray-800/30"
             aria-labelledby="section-actions">
             <h2
               id="section-actions"
@@ -252,9 +252,9 @@
         <section
           v-if="isAvailable"
           aria-labelledby="section-help"
-          class="relative mt-6 rounded-xl border border-slate-200/80
+          class="relative mt-6 rounded-brand border border-gray-200/80
           bg-white p-5 shadow-sm
-          dark:border-slate-700/50 dark:bg-slate-800/30">
+          dark:border-gray-700/50 dark:bg-gray-800/30">
           <NeedHelpModal>
             <template #content>
               <MetadataFAQ

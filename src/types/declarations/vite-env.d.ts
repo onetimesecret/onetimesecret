@@ -35,6 +35,12 @@ import type { Plugin } from 'rollup';
 
 /// <reference types="vite/client" />
 
+declare global {
+  interface ImportMetaEnv {
+    readonly VITE_POPUP_MODE?: 'none' | 'dialog';
+  }
+}
+
 /**
  * This part tells TypeScript how to understand .vue files.
  * It's like teaching TypeScript a new language (Vue).

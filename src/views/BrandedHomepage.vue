@@ -1,10 +1,23 @@
 <!-- src/views/BrandedHomepage.vue -->
 
 <script setup lang="ts">
+  import SecretLinkCopyFirstModal from '@/components/modals/SecretLinkCopyFirstModal.vue';
   import SecretForm from '@/components/secrets/form/SecretForm.vue';
+  import { useSecretLinkPopup } from '@/composables/useSecretLinkPopup';
   import { useProductIdentity } from '@/stores/identityStore';
+  import { getPopupMode } from '@/utils/popupMode';
 
   const { allowPublicHomepage, primaryColor, cornerClass, buttonTextLight } = useProductIdentity();
+
+  const popupMode = getPopupMode();
+  const usePopupWorkflow = popupMode !== 'none';
+
+  const {
+    showModal,
+    modalData,
+    handleSecretCreated,
+    handleCloseModal,
+  } = useSecretLinkPopup();
 </script>
 
 <template>
@@ -19,7 +32,19 @@
       :with-recipient="false"
       :with-asterisk="false"
       :with-generate="false"
+      :create-link-label="$t('web.LABELS.create-link-next')"
+      :on-secret-created="usePopupWorkflow ? handleSecretCreated : undefined"
     />
+
+    <SecretLinkCopyFirstModal
+      v-if="usePopupWorkflow && modalData"
+      :show="showModal"
+      :share-url="modalData.shareUrl"
+      :natural-expiration="modalData.naturalExpiration"
+      :has-passphrase="modalData.hasPassphrase"
+      :metadata-key="modalData.metadataKey"
+      :secret-shortkey="modalData.secretShortkey"
+      @close="handleCloseModal" />
 
     <!--
       BrandedHomepage.vue

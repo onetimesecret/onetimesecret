@@ -64,7 +64,7 @@ RUN set -eux && \
     case "$ARCH" in \
         amd64) YQ_ARCH="amd64" ;; \
         arm64) YQ_ARCH="arm64" ;; \
-        *) YQ_ARCH="amd64" ;; \
+        *) echo "Unsupported architecture for yq install: $ARCH" >&2; exit 1 ;; \
     esac && \
     curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${YQ_ARCH}" \
         -o /usr/local/bin/yq && \

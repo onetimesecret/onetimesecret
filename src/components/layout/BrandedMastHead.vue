@@ -25,7 +25,7 @@
 </script>
 
 <template>
-  <div class="bg-white py-8 transition-colors duration-200 dark:bg-gray-900">
+  <div class="bg-gray-100 py-8 transition-colors duration-200 dark:bg-gray-900">
     <div class="container mx-auto max-w-2xl px-4">
       <div class="flex flex-col items-center gap-8">
         <!-- Logo Section -->
@@ -43,7 +43,7 @@
                 v-if="productIdentity.logoUri && !imageError"
                 :src="productIdentity.logoUri"
                 alt="$t('company-logo')"
-                class="size-16 object-contain"
+                class="size-16 object-contain dark:[filter:invert(1)_hue-rotate(180deg)]"
                 :class="productIdentity.cornerClass"
                 @error="handleImageError" />
               <!-- Updated placeholder icon to match SecretPreview -->

@@ -31,7 +31,10 @@ module Core
         return error_script(nonce, "Main entry not found in Vite manifest") unless main_entry
 
         assets = []
-        assets << build_script_tag(main_entry['file'], nonce)
+
+        # Font preloads first so the browser can start fetching fonts
+        # before it encounters them in the stylesheets that follow.
+        assets.concat(build_font_preloads(@manifest_cache, nonce))
 
         # Handle CSS from main entry
         if main_entry['css']&.any?
@@ -45,7 +48,7 @@ module Core
           assets << build_css_tag(style_entry['file'], nonce)
         end
 
-        assets.concat(build_font_preloads(@manifest_cache, nonce))
+        assets << build_script_tag(main_entry['file'], nonce)
         assets.join("\n")
       end
 

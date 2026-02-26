@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { WindowService } from '@/services/window.service';
   import type { FooterLinksConfig } from '@/types/declarations/window';
+  import OIcon from '@/components/icons/OIcon.vue';
   import { computed } from 'vue';
 
   const windowProps = WindowService.getMultiple(['ui']);
@@ -23,33 +24,23 @@
 <template>
   <div
     v-if="isEnabled"
-    class="w-full border-t border-gray-200 pt-8 dark:border-gray-700 flex justify-center">
-    <!-- prettier-ignore-attribute class -->
+    class="flex w-full justify-center border-t border-gray-200 pt-8 dark:border-gray-700">
     <div
-      class="
-      grid gap-x-12 gap-y-8
-      grid-cols-1 justify-items-start
-      [@media(min-width:640px)]:grid-cols-[repeat(auto-fit,minmax(140px,1fr))] [@media(min-width:640px)]:justify-items-center
-      [@media(min-width:768px)]:grid-cols-[repeat(auto-fit,minmax(160px,1fr))]
-      [@media(min-width:1024px)]:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]
-      max-w-6xl px-4">
+      class="grid max-w-6xl grid-cols-1 justify-items-start gap-x-12 gap-y-8 px-4 sm:grid-cols-[repeat(auto-fit,minmax(140px,1fr))] sm:items-start sm:justify-items-start md:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
       <div
         v-for="(group, groupIndex) in linkGroups"
         :key="group.name || `group-${groupIndex}`"
         class="space-y-3">
-        <!-- Group title - modify font size here (text-sm) -->
         <h3
           v-if="group.i18n_key"
           class="text-sm font-semibold text-gray-900 dark:text-gray-100">
           {{ $t(group.i18n_key) }}
         </h3>
 
-        <!-- Links list -->
         <ul class="space-y-2">
           <li
             v-for="(link, linkIndex) in group.links || []"
             :key="link.url || `link-${linkIndex}`">
-            <!-- prettier-ignore-attribute class -->
             <a
               v-if="link.url && link.url.trim()"
               :href="link.url"
@@ -62,27 +53,20 @@
                  hover:text-gray-900
                  dark:text-gray-400
                  dark:hover:text-gray-100">
-              <!-- Content wrapper for consistent spacing -->
-              <span class="inline-flex items-center gap-2">
-                <!-- Optional icon - modify icon size here (text-xs) -->
-                <i
+              <span class="inline-flex items-center gap-1.5">
+                <span>{{ link.i18n_key ? $t(link.i18n_key) : link.text }}</span>
+                <OIcon
                   v-if="link.icon"
-                  :class="`icon-${link.icon}`"
-                  class="text-xs flex-shrink-0"
-                  :aria-hidden="true"></i>
-
-                <!-- Link text - modify link font size here (text-sm) -->
-                <span class="flex-1">{{ link.i18n_key ? $t(link.i18n_key) : link.text }}</span>
-
-                <!-- External link indicator -->
-                <i
+                  collection="heroicons"
+                  :name="link.icon"
+                  class="size-3.5 shrink-0 opacity-60" />
+                <OIcon
                   v-if="link.external"
-                  class="icon-external-link text-xs opacity-60 flex-shrink-0"
-                  :aria-label="$t('web.COMMON.external_link')"
-                  :aria-hidden="true"></i>
+                  collection="heroicons"
+                  name="arrow-top-right-on-square"
+                  class="size-3 shrink-0 opacity-50" />
               </span>
             </a>
-            <!-- Fallback for missing/empty URLs -->
             <span
               v-else
               class="

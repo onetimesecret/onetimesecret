@@ -55,7 +55,7 @@
     :aria-label="$t('secret-viewing-page')">
     <header
       v-if="$slots.header"
-      class="w-full bg-white dark:bg-gray-900">
+      class="w-full bg-gray-100 dark:bg-gray-900">
       <div class="mx-auto w-full max-w-4xl px-4">
         <slot
           name="header"
@@ -130,7 +130,7 @@
     <!-- Footer wrapper -->
     <footer
       v-if="$slots.footer"
-      class="w-full bg-white dark:bg-gray-900">
+      class="w-full bg-gray-100 dark:bg-gray-900">
       <div class="mx-auto w-full max-w-4xl px-4">
         <slot
           name="footer"

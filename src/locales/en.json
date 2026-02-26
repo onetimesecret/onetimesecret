@@ -48,7 +48,7 @@
       "secret_passphrase": "Passphrase",
       "secret_passphrase_hint": "A word or phrase that's difficult to guess",
       "secret_recipient_address": "Recipient Address",
-      "secret_placeholder": "Secret content goes here...",
+      "secret_placeholder": "",
       "header_create_account": "Create Account",
       "header_about": "About",
       "header_sign_in": "Sign In",
@@ -149,9 +149,14 @@
       "reload": "Reload",
       "caption_recent_secrets": "Secrets links created in this session",
       "create-link-short": "Create Link",
+      "create-link-next": "Next",
       "create-link": "Create Secret Link",
       "create-request-short": "Create Request",
-      "create-request": "Create Request Link"
+      "create-request": "Create Request Link",
+      "view_details": "View full details",
+      "show_details": "Show details",
+      "hide_details": "Hide details",
+      "expires_in": "Expires in {time}"
     },
     "STATUS": {
       "new": "New",

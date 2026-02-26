@@ -32,7 +32,7 @@
   const statusColor = computed(() => {
     if (props.error) return 'border-red-500 focus:border-red-500 focus:ring-red-500';
     if (isAtLimit.value) return 'border-amber-500 focus:border-amber-500 focus:ring-amber-500';
-    return 'border-gray-200 focus:border-blue-500 focus:ring-blue-500';
+    return 'border-gray-200 focus:border-brandcomp-500 focus:ring-brandcomp-500';
   });
 
   const counterColor = computed(() => {
@@ -55,7 +55,7 @@
   <div class="w-full">
     <label
       for="incoming-memo"
-      class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+      class="mb-2 block font-brand text-sm uppercase text-gray-600 dark:text-gray-300">
       {{ t('incoming.memo_label') }}
       <span
         v-if="error"
@@ -74,12 +74,12 @@
         :placeholder="placeholderText"
         :class="[
           statusColor,
-          'block w-full rounded-lg border px-4 py-3 text-base text-gray-900',
+          'block w-full rounded-lg border px-4 py-3 font-system text-base text-gray-900',
           'transition-all duration-200',
           'placeholder:text-gray-400',
           'disabled:bg-gray-50 disabled:text-gray-500',
           'dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500',
-          'dark:focus:ring-blue-400',
+          'dark:focus:ring-brandcomp-400',
         ]"
         :aria-label="t('incoming.memo_placeholder')"
         :aria-invalid="!!error"

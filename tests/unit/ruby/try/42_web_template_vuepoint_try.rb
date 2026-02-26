@@ -65,7 +65,7 @@ view = Core::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
 ## Correctly sets basic properties
 view = Core::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
 [view[:page_title], view[:frontend_host], view[:frontend_development], view[:no_cache]]
-#=> ["Onetime Secret", "http://localhost:5173", false, false]
+#=> ["One-Time Secret", "http://localhost:5173", false, false]
 
 ## Sets authentication status correctly
 view = Core::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)

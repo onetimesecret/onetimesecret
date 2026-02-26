@@ -92,14 +92,12 @@ module Core
         # although a serializer could still choose to include any of them).
         description = i18n_instance[:COMMON][:description]
         keywords = i18n_instance[:COMMON][:keywords]
-        page_title = "Onetime Secret" # TODO: Implement as config setting
+        page_title = site_config.dig(:interface, :ui, :header, :branding, :site_name) || "Onetime Secret"
         no_cache = false
         frontend_host = development[:frontend_host]
         frontend_development = development[:enabled]
         script_element_id = 'onetime-state'
 
-        # Social metadata (OG/Twitter) should not be shown for custom domains
-        show_social_metadata = domain_strategy === :canonical
         # Return all view variables as a hash
         {
           authenticated: authenticated,
@@ -119,7 +117,6 @@ module Core
           nonce: nonce,
           page_title: page_title,
           script_element_id: script_element_id,
-          show_social_metadata: show_social_metadata,
           shrimp: shrimp,
           site: safe_site,
         }

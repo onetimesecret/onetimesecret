@@ -1,3 +1,4 @@
+import QuietHeader from '@/components/layout/QuietHeader.vue';
 import ShowSecretContainer from '@/views/secrets/ShowSecretContainer.vue';
 import { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
 
@@ -17,6 +18,10 @@ const validateSecretKey = (key: string | string[]): key is string =>
  * - Redirects to Not Found for invalid keys
  * - Provides typed secretKey prop to components
  */
+const secretKeyProps = (route: RouteLocationNormalized) => ({
+  secretKey: route.params.secretKey as string,
+});
+
 const withValidatedSecretKey = {
   beforeEnter: (to: RouteLocationNormalized) => {
     const isValid = validateSecretKey(to.params.secretKey);
@@ -25,23 +30,21 @@ const withValidatedSecretKey = {
       return { name: 'Not Found' };
     }
   },
-  props: (route: RouteLocationNormalized) => ({
-    secretKey: route.params.secretKey as string,
-  }),
+  props: { default: secretKeyProps },
 } as const;
 
 /**
  * Routes
  */
-const routes: Array<RouteRecordRaw> = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/secret/:secretKey',
     name: 'Secret link',
-    component: ShowSecretContainer,
+    components: { default: ShowSecretContainer, header: QuietHeader },
     meta: {
       requiresAuth: false,
       layoutProps: {
-        displayMasthead: false,
+        displayMasthead: true,
         displayNavigation: false,
         displayPoweredBy: false,
         displayVersion: false,

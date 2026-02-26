@@ -61,7 +61,7 @@
   <!-- See all Web Component options in the README here: https://github.com/altcha-org/altcha-->
   <!-- https://altcha.org/docs/floating-ui/ -->
   <!-- https://altcha.org/docs/website-integration/ -->
-  <div class="flex bg-white dark:bg-gray-900">
+  <div class="flex bg-gray-100 dark:bg-gray-900">
     <altcha-widget
       ref="altchaWidget"
       challengeurl="/api/v2/altcha/challenge"
