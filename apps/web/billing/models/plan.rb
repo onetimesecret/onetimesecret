@@ -283,7 +283,8 @@ module Billing
           plan = upsert_from_stripe_data(plan_data)
           upserted_ids << plan.plan_id
 
-          # Verify save succeeded by checking instances membership
+          # Verify save succeeded by checking instances membership.
+          # O(log n) per call but catalog is small (~20 plans max).
           failed_ids << plan.plan_id unless instances.member?(plan.plan_id)
         end
 
@@ -383,7 +384,11 @@ module Billing
           limits_hash.each { |key, val| plan.limits[key] = val }
 
           unless plan.save
-            OT.le "[Plan.upsert_config_only_plans] Save FAILED for config-only plan: #{plan_id}"
+            OT.le "[Plan.upsert_config_only_plans] Save FAILED for config-only plan: #{plan_id}",
+              {
+                tier: tier,
+                tenancy: tenancy,
+              }
             next
           end
           upserted_count += 1
@@ -721,7 +726,11 @@ module Billing
             plan.active         = 'false'
             plan.last_synced_at = Time.now.to_i.to_s
             unless plan.save
-              OT.le "[Plan.prune_stale_plans] Save FAILED for stale plan: #{plan_id}"
+              OT.le "[Plan.prune_stale_plans] Save FAILED for stale plan: #{plan_id}",
+                {
+                  active: plan.active,
+                  last_synced_at: plan.last_synced_at,
+                }
             end
             OT.li "[Plan.prune_stale_plans] Marked stale: #{plan_id}"
             pruned_count       += 1
@@ -885,10 +894,11 @@ module Billing
         end
 
         # Phase 2: Scan for orphaned plan hashes not tracked in instances.
-        # These survive Phase 1 due to TTL asymmetry between plan hashes
-        # (12h TTL) and the instances sorted set (no TTL).
+        # These can exist if a previous sync partially failed or if
+        # instances was cleared without destroying the corresponding hashes.
         scan_pattern = "#{prefix}:*:object"
         Familia.dbclient.scan_each(match: scan_pattern).each do |key|
+          # Plan IDs are generated from Stripe metadata (no colons).
           plan_id = key.split(':')[1]
           next if plan_id.nil? || plan_id.empty?
 
