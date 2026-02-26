@@ -85,6 +85,28 @@ RSpec.describe Billing::RegionNormalizer, type: :billing do
     it 'rejects different regions case-insensitively' do
       expect(described_class.match?('nz', 'us')).to be false
     end
+
+    it 'treats blank deployment region as pass-through (match?("NZ", ""))' do
+      expect(described_class.match?('NZ', '')).to be true
+    end
+
+    it 'treats whitespace deployment region as pass-through (match?("NZ", "  "))' do
+      expect(described_class.match?('NZ', '  ')).to be true
+    end
+
+    it 'treats both blank as pass-through (match?("", ""))' do
+      expect(described_class.match?('', '')).to be true
+    end
+  end
+
+  describe '.normalize with non-String input' do
+    it 'handles Symbol from YAML loader (:nz)' do
+      expect(described_class.normalize(:nz)).to eq('NZ')
+    end
+
+    it 'handles uppercase Symbol (:EU)' do
+      expect(described_class.normalize(:EU)).to eq('EU')
+    end
   end
 end
 
@@ -181,6 +203,33 @@ RSpec.describe 'Billing::Plan.upsert_config_only_plans region normalization', ty
       plan = Billing::Plan.load('free_test')
       expect(plan).not_to be_nil
       expect(plan.region).to eq('CA')
+    end
+
+    it 'sets region to nil when both plan_def and billing_config have no region (double-nil fallback)' do
+      plans_hash = {
+        'free_test' => {
+          'name' => 'Free Test',
+          'tier' => 'free',
+          'tenancy' => 'multi',
+          'region' => nil,
+          'display_order' => 0,
+          'show_on_plans_page' => true,
+          'description' => 'Test plan',
+          'entitlements' => ['create_secrets'],
+          'limits' => {},
+          'features' => [],
+          'prices' => [],
+        },
+      }
+
+      allow(OT.billing_config).to receive(:plans).and_return(plans_hash)
+      allow(OT.billing_config).to receive(:region).and_return(nil)
+
+      Billing::Plan.upsert_config_only_plans
+
+      plan = Billing::Plan.load('free_test')
+      expect(plan).not_to be_nil
+      expect(plan.region).to be_nil
     end
 
     it 'uses explicit region when present and valid' do

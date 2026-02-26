@@ -132,3 +132,39 @@ Billing::RegionNormalizer.match?("nz", "us")
 ## match?(" CA ", " NZ ") returns false (stripped, still different)
 Billing::RegionNormalizer.match?(" CA ", " NZ ")
 #=> false
+
+# ---------------------------------------------------------------------------
+# .match? — symmetric blank-second-arg (deployment side)
+# ---------------------------------------------------------------------------
+
+## match?("NZ", "") returns true (blank deployment region = pass-through)
+Billing::RegionNormalizer.match?("NZ", "")
+#=> true
+
+## match?("NZ", "  ") returns true (whitespace deployment region = pass-through)
+Billing::RegionNormalizer.match?("NZ", "  ")
+#=> true
+
+# ---------------------------------------------------------------------------
+# .normalize — non-String input (Symbol from YAML loader)
+# ---------------------------------------------------------------------------
+
+## normalize(:nz) handles Symbol input via to_s
+Billing::RegionNormalizer.normalize(:nz)
+#=> "NZ"
+
+## normalize(:EU) handles uppercase Symbol
+Billing::RegionNormalizer.normalize(:EU)
+#=> "EU"
+
+# ---------------------------------------------------------------------------
+# .match? — double-nil fallback (no region anywhere)
+# ---------------------------------------------------------------------------
+
+## match?("", nil) returns true (blank product, no deployment region)
+Billing::RegionNormalizer.match?("", nil)
+#=> true
+
+## match?("", "") returns true (both blank = both normalize to nil)
+Billing::RegionNormalizer.match?("", "")
+#=> true
