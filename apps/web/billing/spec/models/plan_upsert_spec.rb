@@ -887,3 +887,199 @@ RSpec.describe 'Expired catalog handling', type: :billing do
     end
   end
 end
+
+# ==============================================================================
+# SECTION 6: Orphaned Plan Hash Regression Tests (Cross-Region Bug)
+# ==============================================================================
+#
+# Regression tests for a production bug where paid plans become invisible
+# after regional catalog sync. Two interacting bugs create an orphan cycle:
+#
+# Bug 1: clear_cache only iterates instances.to_a to find plans to destroy.
+#   Plan hashes that exist in Redis but aren't in the instances sorted set
+#   survive clearing.
+#
+# Bug 2: upsert_from_stripe_data has a stale update check that compares
+#   stripe_updated_at timestamps. When an orphaned hash (not in instances)
+#   has a newer timestamp than the incoming sync data, the upsert skips
+#   the save — so the plan never gets added to instances.
+#
+# The combination means: orphaned UK plan hash survives clear_cache, then
+# blocks CA sync via stale check, leaving the plan invisible to list_plans.
+#
+# THESE TESTS HAVE BEEN WRITTEN TO REPLICATE AND PROVE THE EXISTANCE OF
+# THE BUGS. THEY WERE WRITTEN TO PASS. THEY SHOULD FAIL WHEN THE CODE
+# IS FIXED. THAT WILL BE OUR SIGNAL TO UPDATE TO REGRESSION TESTS.
+RSpec.describe 'Orphaned plan hash regression (cross-region bug -- if these pass, the bugs still exist)', type: :billing do
+  include PlanUpsertTestHelpers
+
+  before do
+    Billing::Plan.clear_cache
+  end
+
+  after do
+    Billing::Plan.clear_cache
+  end
+
+  # Helper: create a plan and then orphan it (remove from instances but
+  # leave the Redis hash intact).
+  def create_orphaned_plan(plan_data, stripe_updated_at:)
+    plan = create_test_plan(plan_data)
+    plan.stripe_updated_at = stripe_updated_at.to_s
+    plan.save
+    Billing::Plan.instances.remove(plan_data[:plan_id])
+    plan
+  end
+
+  # --------------------------------------------------------------------------
+  # Bug 1: clear_cache does not remove orphaned hashes
+  # --------------------------------------------------------------------------
+
+  describe 'clear_cache does not remove plan hashes outside instances' do
+    let(:plan_data) { build_plan_data(plan_id: 'orphan_survive_monthly', region: 'UK') }
+
+    it 'leaves orphaned hash intact after clear_cache' do
+      # Create a plan, then remove it from instances (orphan it)
+      plan = create_test_plan(plan_data)
+      Billing::Plan.instances.remove('orphan_survive_monthly')
+
+      # Verify orphan state: hash exists, not in instances
+      expect(Billing::Plan.load('orphan_survive_monthly')&.exists?).to be true
+      expect(Billing::Plan.instances.member?('orphan_survive_monthly')).to be false
+
+      # clear_cache only iterates instances.to_a — orphaned hash survives
+      Billing::Plan.clear_cache
+
+      loaded = Billing::Plan.load('orphan_survive_monthly')
+      expect(loaded&.exists?).to be true
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Bug 2: Stale update check blocks cross-region overwrite
+  # --------------------------------------------------------------------------
+
+  describe 'upsert_from_stripe_data skips save when orphaned hash has newer timestamp' do
+    let(:plan_id) { 'region_conflict_monthly' }
+    let(:uk_data) { build_plan_data(plan_id: plan_id, region: 'UK') }
+    let(:ca_data) { build_plan_data(plan_id: plan_id, region: 'CA', stripe_updated_at: '1000') }
+
+    before do
+      # Create UK plan with newer timestamp, then orphan it
+      create_orphaned_plan(uk_data, stripe_updated_at: 2000)
+    end
+
+    it 'does not add plan to instances' do
+      Billing::Plan.upsert_from_stripe_data(ca_data)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be false
+    end
+
+    it 'preserves the UK region data on the hash' do
+      Billing::Plan.upsert_from_stripe_data(ca_data)
+
+      loaded = Billing::Plan.load(plan_id)
+      expect(loaded.region).to eq('UK')
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Full reproduction: orphan survives clear_cache, then blocks upsert
+  # --------------------------------------------------------------------------
+
+  describe 'orphaned hash blocks instances registration after clear_cache + upsert' do
+    let(:plan_id) { 'cross_region_bug_monthly' }
+    let(:uk_data) { build_plan_data(plan_id: plan_id, region: 'UK', name: 'UK Plan') }
+    let(:ca_data) do
+      build_plan_data(
+        plan_id: plan_id,
+        region: 'CA',
+        name: 'CA Plan',
+        stripe_updated_at: '1000'
+      )
+    end
+
+    before do
+      # Step 1: UK plan exists with newer timestamp, orphaned from instances
+      create_orphaned_plan(uk_data, stripe_updated_at: 2000)
+
+      # Step 2: clear_cache runs — orphaned UK hash survives
+      Billing::Plan.clear_cache
+    end
+
+    it 'orphaned UK hash survives clear_cache' do
+      loaded = Billing::Plan.load(plan_id)
+      expect(loaded&.exists?).to be true
+    end
+
+    it 'CA upsert does not register plan in instances' do
+      Billing::Plan.upsert_from_stripe_data(ca_data)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be false
+    end
+
+    it 'plan is invisible to list_plans' do
+      Billing::Plan.upsert_from_stripe_data(ca_data)
+
+      plan_ids = Billing::Plan.list_plans.map(&:plan_id)
+      expect(plan_ids).not_to include(plan_id)
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Positive case: newer incoming timestamp overwrites and registers
+  # --------------------------------------------------------------------------
+
+  describe 'upsert_from_stripe_data overwrites when incoming timestamp is newer' do
+    let(:plan_id) { 'newer_overwrite_monthly' }
+    let(:uk_data) { build_plan_data(plan_id: plan_id, region: 'UK') }
+    let(:ca_data) do
+      build_plan_data(
+        plan_id: plan_id,
+        region: 'CA',
+        stripe_updated_at: '2000'
+      )
+    end
+
+    before do
+      # UK plan with older timestamp (registered normally, not orphaned)
+      plan = create_test_plan(uk_data)
+      plan.stripe_updated_at = '1000'
+      plan.save
+    end
+
+    it 'updates region to CA' do
+      Billing::Plan.upsert_from_stripe_data(ca_data)
+
+      loaded = Billing::Plan.load(plan_id)
+      expect(loaded.region).to eq('CA')
+    end
+
+    it 'plan remains in instances' do
+      Billing::Plan.upsert_from_stripe_data(ca_data)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be true
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Equal timestamps also trigger skip (the <= check)
+  # --------------------------------------------------------------------------
+
+  describe 'stale update check with equal timestamps skips save' do
+    let(:plan_id) { 'equal_timestamp_monthly' }
+    let(:plan_data) { build_plan_data(plan_id: plan_id, region: 'US') }
+
+    before do
+      # Create plan with timestamp 1000, then orphan it
+      create_orphaned_plan(plan_data, stripe_updated_at: 1000)
+    end
+
+    it 'does not add orphaned plan back to instances' do
+      incoming_data = plan_data.merge(stripe_updated_at: '1000')
+      Billing::Plan.upsert_from_stripe_data(incoming_data)
+
+      expect(Billing::Plan.instances.member?(plan_id)).to be false
+    end
+  end
+end
