@@ -147,6 +147,10 @@
     "text": "Create an organization to manage your billing and subscription",
     "sha256": "41e922d2"
   },
+  "web.billing.overview.load_error": {
+    "text": "Failed to load billing information",
+    "sha256": "d4e5f6a7"
+  },
   "web.billing.overview.upgrade_success": {
     "text": "Your plan has been upgraded successfully",
     "sha256": "00ac43f8"
@@ -439,6 +443,10 @@
     "text": "No {interval} plans available at this time.",
     "sha256": "d8454436"
   },
+  "web.billing.plans.load_error": {
+    "text": "Failed to load plans",
+    "sha256": "e5f6a7b8"
+  },
   "web.billing.plans.change_immediate": {
     "text": "Your plan will change immediately.",
     "sha256": "889d13be"
@@ -539,9 +547,21 @@
     "text": "Download",
     "sha256": "d6eafe82"
   },
+  "web.billing.invoices.invoice_number": {
+    "text": "Invoice #",
+    "sha256": "a1c2d3e4"
+  },
   "web.billing.invoices.no_invoices": {
     "text": "No invoices yet",
     "sha256": "92d2d0ce"
+  },
+  "web.billing.invoices.no_invoices_description": {
+    "text": "Your invoices will appear here once you upgrade to a paid plan",
+    "sha256": "b2c3d4e5"
+  },
+  "web.billing.invoices.view_plans": {
+    "text": "View Plans",
+    "sha256": "c3d4e5f6"
   },
   "web.billing.invoices.paid": {
     "text": "Paid",
@@ -558,6 +578,18 @@
   "web.billing.invoices.draft": {
     "text": "Draft",
     "sha256": "ebf12ef4"
+  },
+  "web.billing.invoices.open": {
+    "text": "Open",
+    "sha256": "a2b3c4d5"
+  },
+  "web.billing.invoices.uncollectible": {
+    "text": "Uncollectible",
+    "sha256": "b3c4d5e6"
+  },
+  "web.billing.invoices.void": {
+    "text": "Void",
+    "sha256": "c4d5e6f7"
   },
   "web.billing.invoices.load_error": {
     "text": "Failed to load invoices",
