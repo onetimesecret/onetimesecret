@@ -582,6 +582,46 @@ jobs:
     # Prevents queue overflow; remaining secrets processed in next run
     batch_size: <%= ENV['JOBS_EXPIRATION_BATCH_SIZE']&.to_i || 100 %>
 
+  # Data maintenance jobs
+  # Scheduled jobs for Redis data consistency checks and repairs.
+  # All jobs ship with auto_repair: false — enable only after
+  # reviewing audit reports over multiple cycles.
+  maintenance:
+    # Master toggle — disables all maintenance jobs when false
+    enabled: <%= ENV['JOBS_MAINTENANCE_ENABLED'] == 'true' || false %>
+
+    # Phase 1: Remove phantom members from sorted sets (hourly)
+    phantom_cleanup:
+      enabled: <%= ENV['JOBS_PHANTOM_CLEANUP_ENABLED'] == 'true' || false %>
+      interval: <%= ENV['JOBS_PHANTOM_CLEANUP_INTERVAL'] || '1h' %>
+      batch_size: <%= ENV['JOBS_PHANTOM_CLEANUP_BATCH_SIZE']&.to_i || 500 %>
+      auto_repair: <%= ENV['JOBS_PHANTOM_CLEANUP_AUTO_REPAIR'] == 'true' || false %>
+
+    # Phase 2: Read-only data consistency audit (every 6h)
+    data_audit:
+      enabled: <%= ENV['JOBS_DATA_AUDIT_ENABLED'] == 'true' || false %>
+      interval: <%= ENV['JOBS_DATA_AUDIT_INTERVAL'] || '6h' %>
+      sample_size: <%= ENV['JOBS_DATA_AUDIT_SAMPLE_SIZE']&.to_i || 100 %>
+
+    # Phase 3: GC stale participation sorted set members (daily 5 AM)
+    participation_gc:
+      enabled: <%= ENV['JOBS_PARTICIPATION_GC_ENABLED'] == 'true' || false %>
+      cron: <%= ENV['JOBS_PARTICIPATION_GC_CRON'] || '0 5 * * *' %>
+      batch_size: <%= ENV['JOBS_PARTICIPATION_GC_BATCH_SIZE']&.to_i || 500 %>
+      auto_repair: <%= ENV['JOBS_PARTICIPATION_GC_AUTO_REPAIR'] == 'true' || false %>
+
+    # Phase 4: Reconcile unique indexes (daily 4 AM)
+    index_rebuild:
+      enabled: <%= ENV['JOBS_INDEX_REBUILD_ENABLED'] == 'true' || false %>
+      cron: <%= ENV['JOBS_INDEX_REBUILD_CRON'] || '0 4 * * *' %>
+      auto_repair: <%= ENV['JOBS_INDEX_REBUILD_AUTO_REPAIR'] == 'true' || false %>
+
+    # Phase 5: Rebuild instances sorted sets (weekly Sunday 3 AM)
+    instances_rebuild:
+      enabled: <%= ENV['JOBS_INSTANCES_REBUILD_ENABLED'] == 'true' || false %>
+      cron: <%= ENV['JOBS_INSTANCES_REBUILD_CRON'] || '0 3 * * 0' %>
+      auto_repair: <%= ENV['JOBS_INSTANCES_REBUILD_AUTO_REPAIR'] == 'true' || false %>
+
 internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
   default_locale: <%= ENV['I18N_DEFAULT_LOCALE'] || 'en' %>
