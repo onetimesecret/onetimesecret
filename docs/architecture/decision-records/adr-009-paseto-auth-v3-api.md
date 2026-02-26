@@ -1,4 +1,10 @@
-# ADR: PASETO Authentication for v3 API
+---
+id: "009"
+status: proposed
+title: "ADR-009: PASETO Authentication for v3 API"
+---
+
+# ADR-009: PASETO Authentication for v3 API
 
 **Status:** Proposed (pending maintainer decisions)
 **Issue:** [#2427](https://github.com/onetimesecret/onetimesecret/issues/2427)
