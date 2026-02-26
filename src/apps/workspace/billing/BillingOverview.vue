@@ -102,7 +102,7 @@ const loadOrganizationData = async (extid: string) => {
     }
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.message || 'Failed to load billing information';
+    error.value = classified.message || t('web.billing.overview.load_error');
     console.error('[BillingOverview] Error loading organization:', err);
   } finally {
     isLoading.value = false;
@@ -111,7 +111,7 @@ const loadOrganizationData = async (extid: string) => {
 
 const _formatCardBrand = (brand: string): string => brand.charAt(0).toUpperCase() + brand.slice(1);
 
-const formatNextBillingDate = (date: Date): string => new Intl.DateTimeFormat('en-US', {
+const formatNextBillingDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
@@ -193,7 +193,7 @@ onMounted(async () => {
     }
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.message || 'Failed to load billing information';
+    error.value = classified.message || t('web.billing.overview.load_error');
     console.error('[BillingOverview] Error loading billing data:', err);
   }
 });

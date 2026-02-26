@@ -8,9 +8,10 @@
  */
 
 import { createApi } from '@/api';
-import type { Invoice, PaymentMethod } from '@/types/billing';
+import type { PaymentMethod } from '@/types/billing';
 import type {
   CurrencyConflictError,
+  InvoiceStatus,
   MigrateCurrencyRequest,
   MigrateCurrencyResponse,
 } from '@/schemas/models/billing';
@@ -54,8 +55,8 @@ export interface BillingOverviewResponse {
     limits: Record<string, number>;
   } | null;
   usage: {
-    teams: number;
     members: number;
+    domains: number;
   };
   payment_method?: PaymentMethod;
   /** Federation notification for cross-region subscription sync */
@@ -71,10 +72,30 @@ export interface CheckoutSessionResponse {
 }
 
 /**
+ * Invoice data as returned by the billing API.
+ *
+ * Matches the shape from GET /billing/api/org/:extid/invoices.
+ * Note: This differs from the Zod `Invoice` schema in schemas/models/billing.ts
+ * which defines an idealized shape. This interface matches the actual API response.
+ */
+export interface StripeInvoice {
+  id: string;
+  number: string | null;
+  amount: number;
+  currency: string;
+  status: InvoiceStatus;
+  created: number;
+  due_date: number | null;
+  paid_at: number | null;
+  invoice_pdf: string | null;
+  hosted_invoice_url: string | null;
+}
+
+/**
  * Invoices list response
  */
 export interface InvoicesResponse {
-  invoices: Invoice[];
+  invoices: StripeInvoice[];
   has_more: boolean;
 }
 

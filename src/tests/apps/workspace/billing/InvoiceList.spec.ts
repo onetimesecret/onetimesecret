@@ -323,7 +323,8 @@ describe('InvoiceList', () => {
 
       expect(windowOpenSpy).toHaveBeenCalledWith(
         'https://stripe.com/invoices/inv_123.pdf',
-        '_blank'
+        '_blank',
+        'noopener,noreferrer'
       );
 
       windowOpenSpy.mockRestore();
