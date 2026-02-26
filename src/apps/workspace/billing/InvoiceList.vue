@@ -62,7 +62,7 @@ const handleDownload = async (invoice: StripeInvoice) => {
 
   try {
     // Open download URL in new window
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
   } catch (err) {
     console.error('[InvoiceList] Error downloading invoice:', err);
   }
