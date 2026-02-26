@@ -223,10 +223,10 @@ module Billing
       # @param product [Stripe::Product] The Stripe product
       # @return [Boolean] true if the product matches the configured region (or no region set)
       def correct_region?(product)
-        configured_region = Onetime.billing_config.region
-        return true if configured_region.nil?
-
-        product.metadata[Metadata::FIELD_REGION].to_s.upcase == configured_region
+        Billing::RegionNormalizer.match?(
+          product.metadata[Metadata::FIELD_REGION],
+          Onetime.billing_config.region,
+        )
       end
 
       # Refresh plan cache from Stripe API
@@ -341,6 +341,14 @@ module Billing
 
           # Skip if not configured to show on plans page
           next unless plan_def['show_on_plans_page'] == true
+
+          # Skip config-only plans not matching the configured region
+          configured_region = OT.billing_config.region
+          plan_region       = Billing::RegionNormalizer.normalize(plan_def['region'])
+          unless Billing::RegionNormalizer.match?(plan_region, configured_region)
+            OT.ld "[Plan.upsert_config_only_plans] Skipping config-only plan for region #{plan_region}: #{plan_key}"
+            next
+          end
 
           # Extract plan attributes from config
           tier               = plan_def['tier']
@@ -998,7 +1006,7 @@ module Billing
 
             # Extract plan attributes
             tier               = plan_def['tier']
-            region             = plan_def['region'] || 'global'
+            region             = Billing::RegionNormalizer.normalize(plan_def['region']) || OT.billing_config.region
             tenancy            = plan_def['tenancy'] || 'multi'
             display_order      = plan_def['display_order'] || 0
             show_on_plans_page = plan_def['show_on_plans_page'] == true

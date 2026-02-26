@@ -567,6 +567,8 @@ module Onetime
                          value.join(',')
                        when Billing::Metadata::FIELD_IS_POPULAR
                          value == true ? 'true' : nil
+                       when Billing::Metadata::FIELD_REGION
+                         Billing::RegionNormalizer.normalize(value)
                        else
                          value.to_s
                        end
