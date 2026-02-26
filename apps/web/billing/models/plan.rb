@@ -278,13 +278,22 @@ module Billing
         # Each plan is created or updated individually, ensuring the catalog
         # is never empty during sync
         upserted_ids = []
+        skipped_ids  = []
         failed_ids   = []
         plan_data_list.each do |plan_data|
           plan = upsert_from_stripe_data(plan_data)
           upserted_ids << plan.plan_id
 
-          # Verify save succeeded by checking instances membership
-          failed_ids << plan.plan_id unless instances.member?(plan.plan_id)
+          unless instances.member?(plan.plan_id)
+            # Distinguish stale-check skips from actual save failures.
+            # A plan skipped by the stale check will have a stripe_updated_at
+            # that matches or predates the existing value (it was not overwritten).
+            if plan.stripe_updated_at.to_i >= (plan_data[:stripe_updated_at] || 0).to_i
+              skipped_ids << plan.plan_id
+            else
+              failed_ids << plan.plan_id
+            end
+          end
         end
 
         saved_count = upserted_ids.size - failed_ids.size
@@ -304,7 +313,7 @@ module Billing
         update_catalog_sync_timestamp
 
         OT.li "[Plan.refresh_from_stripe] Synced #{saved_count}/#{upserted_ids.size} plans " \
-              "(#{failed_ids.size} failed), pruned #{pruned_count}"
+              "(#{skipped_ids.size} skipped, #{failed_ids.size} failed), pruned #{pruned_count}"
         saved_count
       end
 
@@ -623,12 +632,20 @@ module Billing
         end
 
         # Check for stale update (out-of-order webhook delivery)
-        # Only skip if BOTH timestamps are valid (> 0)
+        # Only skip if BOTH timestamps are valid (> 0) AND the Stripe product
+        # is the same. When stripe_product_id differs (cross-region replacement),
+        # bypass the stale check so the new product always wins.
+        # NOTE: nil == nil is true in Ruby — plans without a stripe_product_id
+        # (e.g., config-only plans created before this field existed) are treated
+        # as "same product", so the stale check still applies. This is the correct
+        # safe default, avoiding accidental overwrites when product provenance is
+        # unknown.
         if existing && plan_data[:stripe_updated_at]
+          same_product     = existing.stripe_product_id == plan_data[:stripe_product_id]
           incoming_updated = plan_data[:stripe_updated_at].to_i
           existing_updated = existing.stripe_updated_at.to_i
 
-          if incoming_updated > 0 && existing_updated > 0 && incoming_updated <= existing_updated
+          if same_product && incoming_updated > 0 && existing_updated > 0 && incoming_updated <= existing_updated
             OT.ld "[Plan.upsert_from_stripe_data] Skipping stale update for #{plan_id} " \
                   "(incoming: #{incoming_updated}, existing: #{existing_updated})"
             return existing
