@@ -48,7 +48,7 @@ module Billing
   # - `set :entitlements` - O(1) membership checks (create_secrets, custom_domains, etc.)
   # - `set :features` - Marketing features (unique, unordered)
   # - `hashkey :limits` - Resource quotas with flattened keys
-  # - `stringkey :stripe_data_snapshot` - Cached Stripe Product+Price JSON (12hr TTL)
+  # - `stringkey :stripe_data_snapshot` - Cached Stripe Product+Price JSON
   #
   # Limits use flattened keys to support future expansion:
   #   - "teams.max" => "1" (allows adding "teams.min", "teams.default" later)
@@ -61,9 +61,6 @@ module Billing
     prefix :billing_plan
 
     feature :safe_dump
-    feature :expiration
-
-    default_expiration Billing::Config::CATALOG_TTL  # Auto-expire after 12 hours
 
     identifier_field :plan_id    # Computed: product_interval
 
@@ -106,7 +103,7 @@ module Billing
     set :entitlements
     set :features
     hashkey :limits
-    stringkey :stripe_data_snapshot, default_expiration: Billing::Config::CATALOG_TTL  # Cached Stripe Product+Price JSON for recovery
+    stringkey :stripe_data_snapshot  # Cached Stripe Product+Price JSON for recovery
 
     def init
       super
@@ -602,12 +599,12 @@ module Billing
       def upsert_from_stripe_data(plan_data)
         plan_id = plan_data[:plan_id]
 
-        # Load existing or create new - handle expired entries gracefully
+        # Load existing or create new - handle missing entries gracefully
         existing = begin
           loaded = load(plan_id)
           loaded if loaded&.exists?
         rescue Familia::NoIdentifier
-          # Plan key expired but instances entry persisted - treat as new
+          # Plan hash missing but instances entry persisted - treat as new
           nil
         end
 
@@ -685,7 +682,7 @@ module Billing
       # Remove plans not in current Stripe catalog
       #
       # Uses soft-delete pattern - marks plans as inactive rather than destroying.
-      # Handles expired entries gracefully by removing orphaned instances entries.
+      # Handles missing entries gracefully by removing orphaned instances entries.
       #
       # @param current_plan_ids [Array<String>] Plan IDs currently in Stripe catalog
       # @return [Integer] Number of plans marked stale or cleaned up
@@ -705,13 +702,13 @@ module Billing
             OT.li "[Plan.prune_stale_plans] Marked stale: #{plan_id}"
             pruned_count       += 1
           else
-            # Plan key expired - just remove orphaned instances entry
+            # Plan hash missing - just remove orphaned instances entry
             instances.remove(plan_id)
-            OT.ld "[Plan.prune_stale_plans] Removed expired entry: #{plan_id}"
+            OT.ld "[Plan.prune_stale_plans] Removed orphaned entry: #{plan_id}"
             pruned_count += 1
           end
         rescue Familia::NoIdentifier => _ex
-          # Object expired but load returned something invalid - clean up instances
+          # Object missing but load returned something invalid - clean up instances
           instances.remove(plan_id)
           OT.ld "[Plan.prune_stale_plans] Cleaned orphan entry: #{plan_id}"
           pruned_count += 1
@@ -758,9 +755,9 @@ module Billing
       #
       # @return [Array<Plan>] All cached plans
       def list_plans
-        # Filter out expired plans whose Redis hashes have been evicted
-        # but whose instances sorted set membership persists (TTL asymmetry).
-        # NOTE: load_multi returns Horreum shells (not nil) for expired keys,
+        # Filter out plans whose Redis hashes are missing (e.g., after destroy!
+        # or clear_cache) but whose instances sorted set entries persist.
+        # NOTE: load_multi returns Horreum shells (not nil) for missing keys,
         # so .compact alone is insufficient. See github.com/delano/familia/issues/219
         load_multi(instances.to_a).select { |plan| plan&.exists? }
       end
@@ -881,7 +878,8 @@ module Billing
       #
       # Called after successful Stripe sync to record when the catalog
       # was last refreshed. Stores Familia.now (Float) with JSON serialization
-      # to preserve type. TTL set via default_expiration.
+      # to preserve type. TTL matches CATALOG_TTL so the staleness check
+      # in BillingCatalog initializer automatically triggers re-sync.
       #
       def update_catalog_sync_timestamp
         catalog_synced_at.value = Familia.now
