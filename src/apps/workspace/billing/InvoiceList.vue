@@ -69,15 +69,8 @@ const handleDownload = async (invoice: StripeInvoice) => {
 };
 
 onMounted(async () => {
-  try {
-    // Load invoices using extid from URL
-    if (orgExtid.value) {
-      await loadInvoices(orgExtid.value);
-    }
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.billing.invoices.load_error');
-    console.error('[InvoiceList] Error loading invoices:', err);
+  if (orgExtid.value) {
+    await loadInvoices(orgExtid.value);
   }
 });
 </script>
