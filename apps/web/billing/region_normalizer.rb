@@ -51,6 +51,17 @@ module Billing
     # matches existing behavior: when no region is configured, all
     # products are accepted regardless of their region metadata.
     #
+    # ## Security Note
+    #
+    # The nil-pass-through means a Stripe product with blank/missing
+    # region metadata will match ANY configured region. This is an
+    # intentional fail-open for backward compatibility with products
+    # that predate regionalization. If region isolation becomes a
+    # security boundary (not just operational routing), this method
+    # should be replaced with a fail-closed variant that rejects
+    # nil regions when a deployment region is configured. The current
+    # approach is safe when Stripe API key access is trusted.
+    #
     # @param a [String, nil] First region value
     # @param b [String, nil] Second region value
     # @return [Boolean] true if regions match or either is nil
