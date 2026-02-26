@@ -340,19 +340,18 @@ module Onetime
           value = plan_def[yaml_key]
 
           # Special handling for certain field types
-          metadata_fields[field_name] = case field_name
-                                        when Billing::Metadata::FIELD_ENTITLEMENTS
-                                          (value || []).join(',')
-                                        when Billing::Metadata::FIELD_IS_POPULAR
-                                          (value == true).to_s
-                                        when Billing::Metadata::FIELD_REGION
-                                          normalized = Billing::RegionNormalizer.normalize(value)
-                                          next if normalized.nil?
+          serialized = case field_name
+                       when Billing::Metadata::FIELD_ENTITLEMENTS
+                         (value || []).join(',')
+                       when Billing::Metadata::FIELD_IS_POPULAR
+                         (value == true).to_s
+                       when Billing::Metadata::FIELD_REGION
+                         Billing::RegionNormalizer.normalize(value)
+                       else
+                         value.to_s
+                       end
 
-                                          normalized
-                                        else
-                                          value.to_s
-                                        end
+          metadata_fields[field_name] = serialized if serialized
         end
 
         # Add all limit fields from registry (always include for update detection)

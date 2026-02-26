@@ -37,8 +37,6 @@ module Billing
     # @param region [String, nil] Raw region value
     # @return [String, nil] Normalized region or nil
     def self.normalize(region)
-      return nil if region.nil?
-
       val = region.to_s.strip
       return nil if val.empty?
 
@@ -49,9 +47,8 @@ module Billing
     #
     # When a deployment region is configured (b is non-nil), products
     # or plans must have an explicit matching region to be accepted.
-    # Products with nil/blank region are rejected — there are no
-    # cross-region products, and any future ones will carry an
-    # explicit region value.
+    # Products with nil/blank region are rejected — this prevents
+    # cross-region data leakage and ensures explicit region assignment.
     #
     # When no deployment region is configured (b is nil), all
     # products are accepted regardless of their region metadata
