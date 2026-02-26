@@ -10,9 +10,19 @@ import {
 } from '@/schemas/api/incoming';
 import { responseSchemas, ReceiptResponse } from '@/schemas/api/v3/responses';
 import { loggingService } from '@/services/logging.service';
-import { AxiosInstance } from 'axios';
+import { AxiosError, AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';
+
+/**
+ * Shape of an EntitlementRequired 403 response from the backend.
+ */
+export interface EntitlementError {
+  error: string;
+  entitlement: string;
+  current_plan: string | null;
+  upgrade_to: string | null;
+}
 
 interface StoreOptions extends PiniaPluginOptions {}
 
@@ -24,11 +34,13 @@ export type IncomingStore = {
   config: IncomingConfig | null;
   isLoading: boolean;
   configError: string | null;
+  entitlementError: EntitlementError | null;
   _initialized: boolean;
 
   // Getters
   isInitialized: boolean;
   isFeatureEnabled: boolean;
+  isEntitlementBlocked: boolean;
   memoMaxLength: number;
   recipients: IncomingConfig['recipients'];
   defaultTtl: number | undefined;
@@ -53,11 +65,13 @@ export const useIncomingStore = defineStore('incoming', () => {
   const config = ref<IncomingConfig | null>(null);
   const isLoading = ref(false);
   const configError = ref<string | null>(null);
+  const entitlementError = ref<EntitlementError | null>(null);
   const _initialized = ref(false);
 
   // Getters
   const isInitialized = computed(() => _initialized.value);
   const isFeatureEnabled = computed(() => config.value?.enabled ?? false);
+  const isEntitlementBlocked = computed(() => entitlementError.value !== null);
   const memoMaxLength = computed(() => config.value?.memo_max_length ?? 50);
   const recipients = computed(() => config.value?.recipients ?? []);
   const defaultTtl = computed(() => config.value?.default_ttl);
@@ -74,15 +88,34 @@ export const useIncomingStore = defineStore('incoming', () => {
   }
 
   /**
-   * Loads incoming secrets configuration from API
+   * Loads incoming secrets configuration from API.
+   *
+   * On custom domains, the backend may return 403 if the owning
+   * organization lacks the `incoming_secrets` entitlement. This
+   * is captured in `entitlementError` for the UI to render an
+   * upgrade prompt instead of the form.
+   *
    * @returns Validated incoming config response or undefined on error
    */
   const loadConfig = async () => {
     configError.value = null;
-    const response = await $api.get('/api/v3/incoming/config');
-    const validated = incomingConfigSchema.parse(response.data.config);
-    config.value = validated;
-    return validated;
+    entitlementError.value = null;
+    try {
+      const response = await $api.get('/api/v3/incoming/config');
+      const validated = incomingConfigSchema.parse(response.data.config);
+      config.value = validated;
+      return validated;
+    } catch (error: unknown) {
+      if (
+        error instanceof AxiosError &&
+        error.response?.status === 403 &&
+        error.response.data?.entitlement === 'incoming_secrets'
+      ) {
+        entitlementError.value = error.response.data as EntitlementError;
+        return undefined;
+      }
+      throw error;
+    }
   };
 
   /**
@@ -123,6 +156,7 @@ export const useIncomingStore = defineStore('incoming', () => {
   function clear() {
     config.value = null;
     configError.value = null;
+    entitlementError.value = null;
     isLoading.value = false;
   }
 
@@ -132,6 +166,7 @@ export const useIncomingStore = defineStore('incoming', () => {
   function $reset() {
     config.value = null;
     configError.value = null;
+    entitlementError.value = null;
     isLoading.value = false;
     _initialized.value = false;
   }
@@ -141,11 +176,13 @@ export const useIncomingStore = defineStore('incoming', () => {
     config,
     isLoading,
     configError,
+    entitlementError,
     _initialized,
 
     // Getters
     isInitialized,
     isFeatureEnabled,
+    isEntitlementBlocked,
     memoMaxLength,
     recipients,
     defaultTtl,
