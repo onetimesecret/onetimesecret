@@ -169,15 +169,15 @@ module Onetime
 
       def format_plan_row(plan)
         amount             = format_amount(plan.amount, plan.currency)
-        entitlements_count = plan.entitlements.size
+        entitlements_count = plan.entitlements&.size || 0
 
         format(
           '%-20s %-18s %-10s %-10s %-12s %d',
-          plan.plan_id.to_s[0..19],
-          plan.tier.to_s[0..17],
-          plan.interval.to_s[0..9],
+          (plan.plan_id || 'N/A')[0..19],
+          (plan.tier || 'N/A')[0..17],
+          (plan.interval || 'N/A')[0..9],
           amount[0..9],
-          plan.region.to_s[0..11],
+          (plan.region || 'N/A')[0..11],
           entitlements_count,
         )
       end

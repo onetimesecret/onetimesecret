@@ -286,13 +286,17 @@ module Billing
           # Plans not in instances were either skipped by the stale check
           # or failed to save. Both cases are logged inside upsert_from_stripe_data
           # with appropriate severity (ld for skips, le for failures).
+          # O(log n) per call but catalog is small (~20 plans max).
           not_persisted << plan.plan_id unless instances.member?(plan.plan_id)
         end
 
         saved_count = upserted_ids.size - not_persisted.size
 
         if not_persisted.any?
-          OT.lw "[Plan.refresh_from_stripe] #{not_persisted.size} plan(s) not persisted: #{not_persisted.join(', ')}"
+          OT.lw "[Plan.refresh_from_stripe] #{not_persisted.size} plan(s) not persisted: #{not_persisted.join(', ')}",
+            {
+              region: Onetime.billing_config.region,
+            }
         end
 
         # PHASE 3: Prune stale plans not in current Stripe catalog
@@ -385,7 +389,11 @@ module Billing
           limits_hash.each { |key, val| plan.limits[key] = val }
 
           unless plan.save
-            OT.le "[Plan.upsert_config_only_plans] Save FAILED for config-only plan: #{plan_id}"
+            OT.le "[Plan.upsert_config_only_plans] Save FAILED for config-only plan: #{plan_id}",
+              {
+                tier: tier,
+                tenancy: tenancy,
+              }
             next
           end
           upserted_count += 1
@@ -731,7 +739,13 @@ module Billing
             plan.active         = 'false'
             plan.last_synced_at = Time.now.to_i.to_s
             unless plan.save
-              OT.le "[Plan.prune_stale_plans] Save FAILED for stale plan: #{plan_id}"
+              OT.le "[Plan.prune_stale_plans] Save FAILED for stale plan: #{plan_id}",
+                {
+                  active: plan.active,
+                  last_synced_at: plan.last_synced_at,
+                  region: plan.region,
+                  stripe_product_id: plan.stripe_product_id,
+                }
             end
             OT.li "[Plan.prune_stale_plans] Marked stale: #{plan_id}"
             pruned_count       += 1
@@ -895,11 +909,12 @@ module Billing
         end
 
         # Phase 2: Scan for orphaned plan hashes not tracked in instances.
-        # These survive Phase 1 due to TTL asymmetry between plan hashes
-        # (12h TTL) and the instances sorted set (no TTL).
+        # These can exist if a previous sync partially failed or if
+        # instances was cleared without destroying the corresponding hashes.
         scan_pattern = "#{prefix}:*:object"
         Familia.dbclient.scan_each(match: scan_pattern).each do |key|
-          plan_id = key.split(':')[1]
+          # Extract plan_id using prefix/suffix removal (more robust than split)
+          plan_id = key.delete_prefix("#{prefix}:").delete_suffix(':object')
           next if plan_id.nil? || plan_id.empty?
 
           OT.ld "[Plan.clear_cache] Removing orphaned plan hash: #{plan_id}"
