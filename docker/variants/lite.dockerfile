@@ -98,8 +98,9 @@ ENV STDOUT_SYNC=true
 ENV SSL=false
 # SECRET is generated at runtime by /onetime.sh (openssl rand -hex 32).
 # This placeholder ensures the variable exists if the script is bypassed,
-# but it must never be used as an actual secret.
-ENV SECRET=MUST_BE_GENERATED_AT_RUNTIME
+# but it must never be used as an actual secret. The value "CHANGEME" is
+# specifically handled by OT::Config.raise_concerns to trigger a fast fail.
+ENV SECRET=CHANGEME
 ENV REDIS_URL=redis://localhost:6379/0
 ENV RACK_ENV=production
 ENV AUTH_ENABLED=false
