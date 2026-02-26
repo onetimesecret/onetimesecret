@@ -277,29 +277,22 @@ module Billing
         # PHASE 2: Upsert all plans (NO clear_cache!)
         # Each plan is created or updated individually, ensuring the catalog
         # is never empty during sync
-        upserted_ids = []
-        skipped_ids  = []
-        failed_ids   = []
+        upserted_ids    = []
+        not_persisted   = []
         plan_data_list.each do |plan_data|
           plan = upsert_from_stripe_data(plan_data)
           upserted_ids << plan.plan_id
 
-          unless instances.member?(plan.plan_id)
-            # Distinguish stale-check skips from actual save failures.
-            # A plan skipped by the stale check will have a stripe_updated_at
-            # that matches or predates the existing value (it was not overwritten).
-            if plan.stripe_updated_at.to_i >= (plan_data[:stripe_updated_at] || 0).to_i
-              skipped_ids << plan.plan_id
-            else
-              failed_ids << plan.plan_id
-            end
-          end
+          # Plans not in instances were either skipped by the stale check
+          # or failed to save. Both cases are logged inside upsert_from_stripe_data
+          # with appropriate severity (ld for skips, le for failures).
+          not_persisted << plan.plan_id unless instances.member?(plan.plan_id)
         end
 
-        saved_count = upserted_ids.size - failed_ids.size
+        saved_count = upserted_ids.size - not_persisted.size
 
-        if failed_ids.any?
-          OT.le "[Plan.refresh_from_stripe] #{failed_ids.size} plan(s) failed to save: #{failed_ids.join(', ')}"
+        if not_persisted.any?
+          OT.lw "[Plan.refresh_from_stripe] #{not_persisted.size} plan(s) not persisted: #{not_persisted.join(', ')}"
         end
 
         # PHASE 3: Prune stale plans not in current Stripe catalog
@@ -313,7 +306,7 @@ module Billing
         update_catalog_sync_timestamp
 
         OT.li "[Plan.refresh_from_stripe] Synced #{saved_count}/#{upserted_ids.size} plans " \
-              "(#{skipped_ids.size} skipped, #{failed_ids.size} failed), pruned #{pruned_count}"
+              "(#{not_persisted.size} not persisted), pruned #{pruned_count}"
         saved_count
       end
 
@@ -647,7 +640,7 @@ module Billing
 
           if same_product && incoming_updated > 0 && existing_updated > 0 && incoming_updated <= existing_updated
             OT.ld "[Plan.upsert_from_stripe_data] Skipping stale update for #{plan_id} " \
-                  "(incoming: #{incoming_updated}, existing: #{existing_updated})"
+                  "(same_product: #{same_product}, incoming: #{incoming_updated}, existing: #{existing_updated})"
             return existing
           end
         end
