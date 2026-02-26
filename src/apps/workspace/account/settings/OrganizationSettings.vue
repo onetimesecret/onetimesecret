@@ -253,7 +253,7 @@ const loadBilling = async () => {
           plan_type: overview.plan.tier as any,
           status: overview.subscription.status as any,
           teams_limit: overview.plan.limits.teams || 0,
-          teams_used: overview.usage.domains || 0,
+          teams_used: 0, // Teams removed from usage data for 0.24; will be re-added
           members_per_team_limit: overview.plan.limits.members_per_team || 0,
           billing_interval: overview.plan.interval as any,
           current_period_start: new Date(overview.subscription.period_end * 1000), // Placeholder
