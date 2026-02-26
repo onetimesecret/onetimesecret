@@ -159,7 +159,7 @@ export function getInvoiceStatusLabel(status: InvoiceStatus): string {
 }
 
 export function formatCurrency(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat(undefined, {
     style: 'currency',
     currency,
   }).format(amount / 100); // Assuming amount is in cents
