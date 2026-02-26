@@ -1335,5 +1335,9 @@
   "web.pricing.free_tier_description": {
     "text": "Waihanga me te tohatoha karere huna me ngā āhuatanga taketake. Kāore he kāri nama e hiahiatia ana.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "Hononga ā-waho",
+    "sha256": "a1b2c3d5"
   }
 }

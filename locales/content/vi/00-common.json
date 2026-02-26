@@ -1335,5 +1335,9 @@
   "web.pricing.free_tier_description": {
     "text": "Tạo và chia sẻ bí mật với các tính năng cơ bản. Không cần thẻ tín dụng.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "Liên kết ngoài",
+    "sha256": "a1b2c3d5"
   }
 }

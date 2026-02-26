@@ -1335,5 +1335,9 @@
   "web.pricing.free_tier_description": {
     "text": "צור ושתף סודות עם תכונות בסיסיות. לא נדרש כרטיס אשראי.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "קישור חיצוני",
+    "sha256": "a1b2c3d5"
   }
 }

@@ -1335,5 +1335,9 @@
   "web.pricing.free_tier_description": {
     "text": "基本機能でシークレットを作成・共有。クレジットカード不要。",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "外部リンク",
+    "sha256": "a1b2c3d5"
   }
 }

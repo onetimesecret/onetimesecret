@@ -660,6 +660,10 @@
     "text": "Press the copy button below.",
     "sha256": "77fcf6fb"
   },
+  "web.COMMON.external_link": {
+    "text": "External link",
+    "sha256": "a1b2c3d5"
+  },
   "web.LABELS.view_toggle.show": {
     "text": "Show",
     "sha256": "0df6f1ca"

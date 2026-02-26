@@ -1335,5 +1335,9 @@
   "web.pricing.free_tier_description": {
     "text": "أنشئ وشارك الأسرار بالميزات الأساسية. لا حاجة لبطاقة ائتمان.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "رابط خارجي",
+    "sha256": "a1b2c3d5"
   }
 }

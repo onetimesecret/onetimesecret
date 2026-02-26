@@ -1365,5 +1365,9 @@
   "web.pricing.free_tier_description": {
     "text": "Cria e partilha mensagens confidenciais com funcionalidades básicas. Não é necessário cartão de crédito.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "Ligação externa",
+    "sha256": "a1b2c3d5"
   }
 }
