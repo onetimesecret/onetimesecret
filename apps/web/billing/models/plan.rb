@@ -291,7 +291,10 @@ module Billing
         saved_count = upserted_ids.size - failed_ids.size
 
         if failed_ids.any?
-          OT.le "[Plan.refresh_from_stripe] #{failed_ids.size} plan(s) failed to save: #{failed_ids.join(', ')}"
+          OT.le "[Plan.refresh_from_stripe] #{failed_ids.size} plan(s) failed to save: #{failed_ids.join(', ')}",
+            {
+              region: Onetime.billing_config.region,
+            }
         end
 
         # PHASE 3: Prune stale plans not in current Stripe catalog
@@ -730,6 +733,8 @@ module Billing
                 {
                   active: plan.active,
                   last_synced_at: plan.last_synced_at,
+                  region: plan.region,
+                  stripe_product_id: plan.stripe_product_id,
                 }
             end
             OT.li "[Plan.prune_stale_plans] Marked stale: #{plan_id}"
@@ -898,8 +903,8 @@ module Billing
         # instances was cleared without destroying the corresponding hashes.
         scan_pattern = "#{prefix}:*:object"
         Familia.dbclient.scan_each(match: scan_pattern).each do |key|
-          # Plan IDs are generated from Stripe metadata (no colons).
-          plan_id = key.split(':')[1]
+          # Extract plan_id using prefix/suffix removal (more robust than split)
+          plan_id = key.delete_prefix("#{prefix}:").delete_suffix(':object')
           next if plan_id.nil? || plan_id.empty?
 
           OT.ld "[Plan.clear_cache] Removing orphaned plan hash: #{plan_id}"
