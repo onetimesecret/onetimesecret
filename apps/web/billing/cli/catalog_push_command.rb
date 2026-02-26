@@ -144,7 +144,7 @@ module Onetime
             next unless product.metadata['app'] == app_identifier
 
             # Region filtering: skip products not matching our region context
-            if region_filter && product.metadata['region'] != region_filter
+            if region_filter && !Billing::RegionNormalizer.match?(product.metadata['region'], region_filter)
               next
             end
 
@@ -345,6 +345,11 @@ module Onetime
                                           (value || []).join(',')
                                         when Billing::Metadata::FIELD_IS_POPULAR
                                           (value == true).to_s
+                                        when Billing::Metadata::FIELD_REGION
+                                          normalized = Billing::RegionNormalizer.normalize(value)
+                                          next if normalized.nil?
+
+                                          normalized
                                         else
                                           value.to_s
                                         end

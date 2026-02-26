@@ -374,6 +374,7 @@ module Billing
           plan.plan_name_label    = plan_def['plan_name_label']
           plan.includes_plan      = plan_def['includes_plan']
           plan.is_popular         = (plan_def['is_popular'] == true).to_s
+          plan.region             = Billing::RegionNormalizer.normalize(plan_def['region']) || OT.billing_config.region
           plan.last_synced_at     = Time.now.to_i.to_s
 
           # Set entitlements
@@ -974,6 +975,14 @@ module Billing
         plans_count = 0
 
         plans_hash.each do |plan_key, plan_def|
+          # Skip plans not matching the configured region
+          configured_region = OT.billing_config.region
+          plan_region       = Billing::RegionNormalizer.normalize(plan_def['region'])
+          unless Billing::RegionNormalizer.match?(plan_region, configured_region)
+            OT.ld "[Plan.load_all_from_config] Skipping plan for region #{plan_region}: #{plan_key}"
+            next
+          end
+
           prices = plan_def['prices'] || []
 
           # Skip plans without prices (e.g., free tier)
