@@ -66,9 +66,11 @@ echo "
 🎭  Happy secret sharing, you magnificent nerdlinger! 🎭
 "
 
-# Generate a unique secret
+# Generate a unique secret for this container session.
+# This overrides the ENV SECRET placeholder from the Dockerfile so the app
+# never runs with a static, well-known value.
 echo "Generating a unique secret..."
-export UNIQUE_SECRET=`openssl rand -hex 32`
+export SECRET=$(openssl rand -hex 32)
 
 # Start Redis server
 echo "Starting Redis..."
@@ -80,10 +82,6 @@ until redis-cli ping; do
   sleep 1
 done
 echo "Redis is ready!"
-
-# Generate JSON schemas
-echo "Generating JSON schemas..."
-cd /app && pnpm run schema:generate
 
 # Start Onetime Secret
 echo "Starting Onetime Secret..."
@@ -98,7 +96,11 @@ ENV HOST=127.0.0.1:3000
 ENV PORT=3000
 ENV STDOUT_SYNC=true
 ENV SSL=false
-ENV SECRET=UNIQUE_SECRET
+# SECRET is generated at runtime by /onetime.sh (openssl rand -hex 32).
+# This placeholder ensures the variable exists if the script is bypassed,
+# but it must never be used as an actual secret. The value "CHANGEME" is
+# specifically handled by OT::Config.raise_concerns to trigger a fast fail.
+ENV SECRET=CHANGEME
 ENV REDIS_URL=redis://localhost:6379/0
 ENV RACK_ENV=production
 ENV AUTH_ENABLED=false

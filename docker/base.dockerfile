@@ -57,6 +57,8 @@ RUN set -eux && \
 
 # Install yq (optimized for multi-arch)
 # Used for migrating config from v0.22 to v0.23+.
+# Pinned to a specific version to prevent breaking changes from upstream.
+ARG YQ_VERSION=v4.52.4
 RUN set -eux && \
     ARCH=$(dpkg --print-architecture) && \
     case "$ARCH" in \
@@ -64,7 +66,7 @@ RUN set -eux && \
         arm64) YQ_ARCH="arm64" ;; \
         *) YQ_ARCH="amd64" ;; \
     esac && \
-    curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${YQ_ARCH}" \
+    curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${YQ_ARCH}" \
         -o /usr/local/bin/yq && \
     chmod +x /usr/local/bin/yq && \
     yq --version
@@ -87,6 +89,9 @@ RUN set -eux && \
     pnpm --version
 
 # Create non-root user
+# IMPORTANT: UID/GID 1001 is also defined in Dockerfile (final and final-s6 stages).
+# Those stages start from a fresh ruby:slim image, so they recreate appuser independently.
+# Keep all three definitions in sync to avoid permission mismatches on shared volumes.
 RUN groupadd -g 1001 appuser && \
     useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
 
