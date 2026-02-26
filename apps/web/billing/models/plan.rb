@@ -7,6 +7,7 @@
 require 'stripe'
 require_relative '../metadata'
 require_relative '../config'
+require_relative '../region_normalizer'
 require_relative '../lib/stripe_circuit_breaker'
 
 module Billing
