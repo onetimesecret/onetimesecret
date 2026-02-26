@@ -58,6 +58,11 @@ module Onetime
       # Default pipeline batch size for Redis EXISTS checks
       PIPELINE_BATCH = 50
 
+      # Hint for Redis SCAN/ZSCAN/HSCAN cursor iteration. Controls
+      # roughly how many entries Redis returns per round-trip. Higher
+      # values mean fewer round-trips but longer per-call blocking.
+      SCAN_COUNT = 100
+
       class << self
         private
 
@@ -133,7 +138,7 @@ module Onetime
         end
 
         # Yield each member of a sorted set using ZSCAN (non-blocking).
-        def zscan_each(redis, key, count: 100, &block)
+        def zscan_each(redis, key, count: SCAN_COUNT, &block)
           cursor = '0'
           loop do
             cursor, members = redis.zscan(key, cursor, count: count)

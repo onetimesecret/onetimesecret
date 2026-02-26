@@ -66,7 +66,7 @@ module Onetime
             def reconcile_model(redis, instances_key, prefix, repair)
               # Step 1: Collect all existing hash keys for this prefix
               scanned_ids = Set.new
-              redis.scan_each(match: "#{prefix}:*", count: 100) do |key|
+              redis.scan_each(match: "#{prefix}:*", count: SCAN_COUNT) do |key|
                 next unless redis.type(key) == 'hash'
                 identifier = key.sub("#{prefix}:", '')
                 # Skip sub-keys (e.g., "customer:email_index")

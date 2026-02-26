@@ -134,7 +134,7 @@ module Onetime
               # Determine the prefix for members based on the pattern suffix
               member_prefix = participation_member_prefix(pattern)
 
-              redis.scan_each(match: pattern, count: 100) do |key|
+              redis.scan_each(match: pattern, count: SCAN_COUNT) do |key|
                 keys_scanned += 1
                 phantoms = []
 

@@ -67,7 +67,7 @@ module Onetime
               total_removed = 0
               keys_scanned = 0
 
-              redis.scan_each(match: pattern, count: 100) do |key|
+              redis.scan_each(match: pattern, count: SCAN_COUNT) do |key|
                 keys_scanned += 1
                 stale_members = []
 
@@ -95,7 +95,7 @@ module Onetime
               removed = 0
               keys_scanned = 0
 
-              redis.scan_each(match: INVITATION_PATTERN, count: 100) do |key|
+              redis.scan_each(match: INVITATION_PATTERN, count: SCAN_COUNT) do |key|
                 keys_scanned += 1
                 stale_members = []
 

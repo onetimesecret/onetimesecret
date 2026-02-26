@@ -79,7 +79,7 @@ module Onetime
               entries_checked = 0
 
               # Forward check: scan index entries
-              redis.hscan_each(index_key, count: 100) do |field, value|
+              redis.hscan_each(index_key, count: SCAN_COUNT) do |field, value|
                 entries_checked += 1
                 target_key = "#{prefix}:#{value}"
 
@@ -101,7 +101,7 @@ module Onetime
 
               # Reverse check: scan objects and verify index entry exists
               objects_checked = 0
-              redis.scan_each(match: "#{prefix}:*", count: 100) do |key|
+              redis.scan_each(match: "#{prefix}:*", count: SCAN_COUNT) do |key|
                 next unless redis.type(key) == 'hash'
 
                 objects_checked += 1

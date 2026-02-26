@@ -66,7 +66,7 @@ module Onetime
 
               # Count actual keys matching the prefix pattern
               scan_count = 0
-              redis.scan_each(match: "#{prefix}:*", count: 100) do |key|
+              redis.scan_each(match: "#{prefix}:*", count: SCAN_COUNT) do |key|
                 # Only count hash keys (the model objects), not sub-structures
                 scan_count += 1 if redis.type(key) == 'hash'
               end
@@ -112,7 +112,7 @@ module Onetime
               PARTICIPATION_PATTERNS.each do |pattern|
                 member_prefix = participation_member_prefix(pattern)
 
-                redis.scan_each(match: pattern, count: 100) do |key|
+                redis.scan_each(match: pattern, count: SCAN_COUNT) do |key|
                   sets_checked += 1
                   members = redis.zrandmember(key, [samples, 10].min) || []
                   members = [members] if members.is_a?(String)
