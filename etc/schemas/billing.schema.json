@@ -30,6 +30,10 @@
       "type": "string",
       "description": "Region filter for this catalog instance. When set, only Stripe products with matching region metadata are visible"
     },
+    "currency": {
+      "$ref": "#/definitions/CurrencyCode",
+      "description": "Default currency for all products and prices. Per-price currency overrides this. Defaults to 'usd' when not set."
+    },
     "entitlements": {
       "type": "object",
       "description": "System-wide entitlement definitions",
@@ -139,7 +143,7 @@
     },
     "PlanPrice": {
       "type": "object",
-      "required": ["interval", "amount", "currency"],
+      "required": ["interval", "amount"],
       "properties": {
         "interval": {
           "$ref": "#/definitions/BillingInterval"
@@ -150,7 +154,8 @@
           "description": "Amount in cents (e.g., 2900 = $29.00)"
         },
         "currency": {
-          "$ref": "#/definitions/CurrencyCode"
+          "$ref": "#/definitions/CurrencyCode",
+          "description": "Per-price currency override. Inherits from top-level currency when omitted."
         }
       }
     },

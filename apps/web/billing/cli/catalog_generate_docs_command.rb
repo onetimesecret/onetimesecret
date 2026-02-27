@@ -204,7 +204,7 @@ module Onetime
           parts << '**Pricing:**'
           plan_data['prices'].each do |price|
             amount_dollars = (price['amount'] / 100.0).round(2)
-            currency_upper = price['currency'].upcase
+            currency_upper = (price['currency'] || catalog['currency'] || 'usd').upcase
             interval_label = price['interval'] == 'month' ? 'Monthly' : 'Annual'
 
             parts << "- #{interval_label}: $#{amount_dollars} #{currency_upper}"
