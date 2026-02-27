@@ -111,6 +111,17 @@ module Onetime
       val.to_s.strip.upcase
     end
 
+    # Default currency for all plans in this catalog (e.g. 'cad', 'usd')
+    #
+    # Used as fallback when per-price currency is not specified.
+    # Returns nil when unset.
+    def currency
+      val = config['currency']
+      return nil if val.to_s.strip.empty?
+
+      val.to_s.strip.downcase
+    end
+
     # Payment links configuration
     def payment_links
       config['payment_links'] || {}

@@ -1026,6 +1026,9 @@ module Billing
             end
 
             # Create Plan instance
+            # Currency: per-price overrides top-level config default
+            plan_currency = price['currency'] || OT.billing_config.currency
+
             plan = new(
               plan_id: plan_id,
               stripe_price_id: price.key?('price_id') ? price['price_id'] : nil,
@@ -1034,7 +1037,7 @@ module Billing
               tier: tier,
               interval: interval,
               amount: price['amount'].to_s,
-              currency: price['currency'],
+              currency: plan_currency,
               region: region,
               tenancy: tenancy,
               display_order: display_order.to_s,
@@ -1079,7 +1082,7 @@ module Billing
                 tier: tier,
                 interval: interval,
                 amount: price['amount'],
-                currency: price['currency'],
+                currency: plan_currency,
               }
 
             plans_count += 1
