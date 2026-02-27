@@ -100,6 +100,10 @@ module Onetime
     # When set (e.g. 'NZ', 'CA'), only Stripe products whose region metadata
     # matches this value will be imported. Returns nil when unset, which means
     # all regions are accepted (backward-compatible pass-through).
+    #
+    # There is intentionally no "global" default. A deployment either operates
+    # in a specific region or regionalization is not applicable (nil).
+    # See Billing::RegionNormalizer for the authoritative normalization rules.
     def region
       val = config['region']
       return nil if val.to_s.strip.empty?

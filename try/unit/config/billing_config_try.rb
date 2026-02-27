@@ -85,4 +85,4 @@ result
 #=> nil
 
 # Restore env var cleared in setup
-ENV['STRIPE_API_KEY'] = @original_stripe_api_key if @original_stripe_api_key
+ENV['STRIPE_API_KEY'] = @original_stripe_api_key unless @original_stripe_api_key.nil?

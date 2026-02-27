@@ -325,9 +325,10 @@ module Onetime
       # Build metadata fields for update detection from plan definition.
       # Uses Billing::Metadata::SYNCABLE_FIELDS and LIMIT_FIELDS registries.
       #
-      # All fields are always included (even if empty) so that:
-      # - Adding a field value is detected as a change
-      # - Removing a field value is detected as a change
+      # Most fields are always included (even if empty) so that adding or
+      # removing a value is detected as a change. The exception is region:
+      # nil/blank region is intentionally omitted (not written as "") to
+      # avoid erasing existing Stripe metadata. See RegionNormalizer.
       #
       # @param plan_def [Hash] Plan definition from catalog
       # @return [Hash<String, String>] Metadata fields for comparison
@@ -339,7 +340,9 @@ module Onetime
         Billing::Metadata::SYNCABLE_FIELDS.each do |field_name, yaml_key|
           value = plan_def[yaml_key]
 
-          # Special handling for certain field types
+          # Special handling for certain field types. Region returns nil
+          # for blank/missing values; the `if serialized` guard below
+          # ensures nil regions are omitted rather than written as "".
           serialized = case field_name
                        when Billing::Metadata::FIELD_ENTITLEMENTS
                          (value || []).join(',')

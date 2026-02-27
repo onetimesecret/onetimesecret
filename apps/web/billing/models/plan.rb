@@ -799,7 +799,8 @@ module Billing
       #
       # @param tier [String] Entitlement tier (e.g., 'single_team', 'single_identity')
       # @param interval [String] Billing interval ('monthly' or 'yearly')
-      # @param region [String] Region code (e.g., 'EU', 'global')
+      # @param region [String, nil] Region code (e.g., 'EU', 'NZ') or nil when
+      #   regionalization is not applicable. There is no "global" region.
       # @return [Plan, nil] Cached plan or nil if not found
       def get_plan(tier, interval, region = nil)
         # Normalize interval to singular form (monthly -> month)
@@ -1009,7 +1010,8 @@ module Billing
             interval = price['interval'] # 'month' or 'year'
             plan_id  = "#{plan_key}_#{interval}ly"
 
-            # Extract plan attributes
+            # Extract plan attributes. Region is either a specific code
+            # (e.g. 'EU') or nil — there is no "global" default.
             tier               = plan_def['tier']
             region             = Billing::RegionNormalizer.normalize(plan_def['region']) || OT.billing_config.region
             tenancy            = plan_def['tenancy'] || 'multi'

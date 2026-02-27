@@ -10,13 +10,25 @@ module Billing
   # commands. All region comparisons in the billing system should go
   # through this module to prevent nil/blank/case mismatches.
   #
+  # ## Design: No "global" Region
+  #
+  # There is intentionally no concept of a "global" region. A deployment
+  # is either configured for a specific region (e.g. 'EU', 'US', 'NZ')
+  # or region is nil, meaning regionalization is not relevant for that
+  # deployment. The nil case provides backward-compatible pass-through
+  # where all products are accepted regardless of their region metadata.
+  #
+  # This avoids a class of bugs where code compares against a magic
+  # "global" string that doesn't correspond to any real jurisdiction
+  # and can silently pass region checks it shouldn't.
+  #
   # ## Normalization Rules
   #
-  #   nil       => nil
-  #   ""        => nil
-  #   "  "      => nil
-  #   "us"      => "US"
-  #   " Eu  "   => "EU"
+  #   nil       => nil    (no region configured)
+  #   ""        => nil    (treated as unconfigured)
+  #   "  "      => nil    (whitespace-only treated as unconfigured)
+  #   "us"      => "US"   (specific region)
+  #   " Eu  "   => "EU"   (normalized to uppercase)
   #
   # ## Usage
   #
