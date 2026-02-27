@@ -108,6 +108,27 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
       expect(last_response.body).to include('Access denied')
     end
 
+    context 'when owner is missing from members sorted set' do
+      before do
+        # Simulate the bug: owner exists in org hash (owner_id) but is
+        # absent from the members sorted set. This happens in fresh regions
+        # where add_members_instance failed silently during org creation
+        # and no migration script pre-populated the set.
+        organization.remove_members_instance(customer)
+        expect(organization.member?(customer)).to be(false), 'precondition: owner should not be in members set'
+        expect(organization.owner?(customer)).to be(true), 'precondition: owner? should still return true'
+      end
+
+      it 'grants access to the owner and self-heals membership' do
+        get "/billing/api/org/#{organization.extid}"
+
+        expect(last_response.status).to eq(200)
+
+        # Verify the self-healing re-added the owner to the members set
+        expect(organization.member?(customer)).to be(true)
+      end
+    end
+
     it 'returns 403 when organization does not exist' do
       get '/billing/api/org/nonexistent_org_id'
 
