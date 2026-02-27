@@ -344,7 +344,7 @@ module Onetime
         product_groups = {}
 
         products.each do |product|
-          region                = product.metadata[Billing::Metadata::FIELD_REGION] || 'global'
+          region                = Billing::RegionNormalizer.normalize(product.metadata[Billing::Metadata::FIELD_REGION])
           key                   = "#{product.name}|#{region}"
           product_groups[key] ||= []
           product_groups[key] << product

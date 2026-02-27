@@ -7,6 +7,7 @@
 require 'stripe'
 require_relative '../metadata'
 require_relative '../config'
+require_relative '../region_normalizer'
 require_relative '../lib/stripe_circuit_breaker'
 
 module Billing
@@ -223,10 +224,10 @@ module Billing
       # @param product [Stripe::Product] The Stripe product
       # @return [Boolean] true if the product matches the configured region (or no region set)
       def correct_region?(product)
-        configured_region = Onetime.billing_config.region
-        return true if configured_region.nil?
-
-        product.metadata[Metadata::FIELD_REGION].to_s.upcase == configured_region
+        Billing::RegionNormalizer.match?(
+          product.metadata[Metadata::FIELD_REGION],
+          Onetime.billing_config.region,
+        )
       end
 
       # Refresh plan cache from Stripe API
@@ -342,6 +343,18 @@ module Billing
           # Skip if not configured to show on plans page
           next unless plan_def['show_on_plans_page'] == true
 
+          # Resolve effective region: explicit plan region, or inherit from deployment
+          # Config-only plans (free tier) typically don't specify a region in YAML
+          # because they're universal — they inherit the deployment's region.
+          configured_region = OT.billing_config.region
+          plan_region       = Billing::RegionNormalizer.normalize(plan_def['region']) || configured_region
+
+          # Skip plans whose effective region doesn't match deployment
+          unless Billing::RegionNormalizer.match?(plan_region, configured_region)
+            OT.ld "[Plan.upsert_config_only_plans] Skipping config-only plan for region #{plan_region}: #{plan_key}"
+            next
+          end
+
           # Extract plan attributes from config
           tier               = plan_def['tier']
           tenancy            = plan_def['tenancy'] || 'multi'
@@ -374,6 +387,7 @@ module Billing
           plan.plan_name_label    = plan_def['plan_name_label']
           plan.includes_plan      = plan_def['includes_plan']
           plan.is_popular         = (plan_def['is_popular'] == true).to_s
+          plan.region             = Billing::RegionNormalizer.normalize(plan_def['region']) || OT.billing_config.region
           plan.last_synced_at     = Time.now.to_i.to_s
 
           # Set entitlements
@@ -785,7 +799,8 @@ module Billing
       #
       # @param tier [String] Entitlement tier (e.g., 'single_team', 'single_identity')
       # @param interval [String] Billing interval ('monthly' or 'yearly')
-      # @param region [String] Region code (e.g., 'EU', 'global')
+      # @param region [String, nil] Region code (e.g., 'EU', 'NZ') or nil when
+      #   regionalization is not applicable. There is no "global" region.
       # @return [Plan, nil] Cached plan or nil if not found
       def get_plan(tier, interval, region = nil)
         # Normalize interval to singular form (monthly -> month)
@@ -974,6 +989,14 @@ module Billing
         plans_count = 0
 
         plans_hash.each do |plan_key, plan_def|
+          # Skip plans not matching the configured region
+          configured_region = OT.billing_config.region
+          plan_region       = Billing::RegionNormalizer.normalize(plan_def['region'])
+          unless Billing::RegionNormalizer.match?(plan_region, configured_region)
+            OT.ld "[Plan.load_all_from_config] Skipping plan for region #{plan_region}: #{plan_key}"
+            next
+          end
+
           prices = plan_def['prices'] || []
 
           # Skip plans without prices (e.g., free tier)
@@ -987,9 +1010,10 @@ module Billing
             interval = price['interval'] # 'month' or 'year'
             plan_id  = "#{plan_key}_#{interval}ly"
 
-            # Extract plan attributes
+            # Extract plan attributes. Region is either a specific code
+            # (e.g. 'EU') or nil — there is no "global" default.
             tier               = plan_def['tier']
-            region             = plan_def['region'] || 'global'
+            region             = Billing::RegionNormalizer.normalize(plan_def['region']) || OT.billing_config.region
             tenancy            = plan_def['tenancy'] || 'multi'
             display_order      = plan_def['display_order'] || 0
             show_on_plans_page = plan_def['show_on_plans_page'] == true

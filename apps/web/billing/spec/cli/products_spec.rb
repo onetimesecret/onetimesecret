@@ -144,14 +144,17 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr
         expect(output).to include('region: EU')
       end
 
-      it 'defaults region to global if not specified', :vcr do
+      it 'defaults region to empty when not specified', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
           command.call(name: 'Test Product')
         end
 
-        expect(output).to include('region: global')
+        # There is no "global" region — region is either a specific code
+        # (e.g. 'EU') or empty when regionalization is not applicable.
+        # See Billing::RegionNormalizer for the design rationale.
+        expect(output).to match(/region:\s*$/)
       end
 
       it 'accepts tenancy option', :vcr do

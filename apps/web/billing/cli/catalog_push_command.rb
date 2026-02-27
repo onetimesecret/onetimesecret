@@ -144,7 +144,7 @@ module Onetime
             next unless product.metadata['app'] == app_identifier
 
             # Region filtering: skip products not matching our region context
-            if region_filter && product.metadata['region'] != region_filter
+            if region_filter && !Billing::RegionNormalizer.match?(product.metadata['region'], region_filter)
               next
             end
 
@@ -325,9 +325,10 @@ module Onetime
       # Build metadata fields for update detection from plan definition.
       # Uses Billing::Metadata::SYNCABLE_FIELDS and LIMIT_FIELDS registries.
       #
-      # All fields are always included (even if empty) so that:
-      # - Adding a field value is detected as a change
-      # - Removing a field value is detected as a change
+      # Most fields are always included (even if empty) so that adding or
+      # removing a value is detected as a change. The exception is region:
+      # nil/blank region is intentionally omitted (not written as "") to
+      # avoid erasing existing Stripe metadata. See RegionNormalizer.
       #
       # @param plan_def [Hash] Plan definition from catalog
       # @return [Hash<String, String>] Metadata fields for comparison
@@ -339,15 +340,21 @@ module Onetime
         Billing::Metadata::SYNCABLE_FIELDS.each do |field_name, yaml_key|
           value = plan_def[yaml_key]
 
-          # Special handling for certain field types
-          metadata_fields[field_name] = case field_name
-                                        when Billing::Metadata::FIELD_ENTITLEMENTS
-                                          (value || []).join(',')
-                                        when Billing::Metadata::FIELD_IS_POPULAR
-                                          (value == true).to_s
-                                        else
-                                          value.to_s
-                                        end
+          # Special handling for certain field types. Region returns nil
+          # for blank/missing values; the `if serialized` guard below
+          # ensures nil regions are omitted rather than written as "".
+          serialized = case field_name
+                       when Billing::Metadata::FIELD_ENTITLEMENTS
+                         (value || []).join(',')
+                       when Billing::Metadata::FIELD_IS_POPULAR
+                         (value == true).to_s
+                       when Billing::Metadata::FIELD_REGION
+                         Billing::RegionNormalizer.normalize(value)
+                       else
+                         value.to_s
+                       end
+
+          metadata_fields[field_name] = serialized if serialized
         end
 
         # Add all limit fields from registry (always include for update detection)
@@ -562,6 +569,8 @@ module Onetime
                          value.join(',')
                        when Billing::Metadata::FIELD_IS_POPULAR
                          value == true ? 'true' : nil
+                       when Billing::Metadata::FIELD_REGION
+                         Billing::RegionNormalizer.normalize(value)
                        else
                          value.to_s
                        end

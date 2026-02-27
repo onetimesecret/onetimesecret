@@ -241,6 +241,10 @@ module Onetime
         return unless region
 
         currency            = price.currency
+        # NOTE: This table maps Stripe metadata region values to expected
+        # currencies for validation. There is no "global" region in the app's
+        # own model (see RegionNormalizer), but legacy Stripe products may
+        # still carry 'global' in their metadata — we validate those too.
         expected_currencies = {
           'EU' => %w[eur],
           'CA' => %w[cad],

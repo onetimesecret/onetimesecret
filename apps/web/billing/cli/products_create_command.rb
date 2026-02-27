@@ -77,7 +77,7 @@ module Onetime
             'app' => 'onetimesecret',
             'plan_id' => options[:plan_id] || '',
             'tier' => options[:tier] || '',
-            'region' => options[:region] || 'global',
+            'region' => Billing::RegionNormalizer.normalize(options[:region]) || '',
             'tenancy' => options[:tenancy] || '',
             'entitlements' => options[:entitlements] || '',
             'created' => Time.now.utc.iso8601,
