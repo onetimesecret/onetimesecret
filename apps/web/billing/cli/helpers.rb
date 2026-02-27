@@ -87,13 +87,8 @@ module Onetime
       end
 
       def stripe_configured?
-        unless OT.billing_config.enabled?
-          puts 'Error: Billing not enabled in etc/billing.yaml'
-          return false
-        end
-
         stripe_key = OT.billing_config.stripe_key
-        if stripe_key.to_s.strip.empty? || stripe_key == 'nostripekey'
+        if stripe_key.to_s.strip.empty? || stripe_key == 'nostripekey' || OT.billing_config.enabled?
           puts 'Error: STRIPE_API_KEY environment variable not set or billing.yaml has no valid key'
           return false
         end
