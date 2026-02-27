@@ -54,7 +54,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
         'plan_id' => 'identity_plus_v1',
         'tier' => 'plus',
         'tenancy' => 'shared',
-        'region' => 'global',
+        'region' => 'GLOBAL',
         'display_order' => '2',
         'show_on_plans_page' => 'true',
         'entitlements' => 'custom_branding,api_access,support_priority',
@@ -214,7 +214,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
       expect(result['plan_id']).to eq('identity_plus_v1')
       expect(result['tier']).to eq('plus')
       expect(result['tenancy']).to eq('shared')
-      expect(result['region']).to eq('global')
+      expect(result['region']).to eq('GLOBAL')
     end
 
     it 'joins entitlements array with comma' do
