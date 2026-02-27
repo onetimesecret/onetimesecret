@@ -75,7 +75,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
     it 'handles uppercase currencies in message' do
       error = Stripe::InvalidRequestError.new(
-        'This customer has had a subscription or payment in EUR, but you are trying to pay in USD.',
+        'This customer has had a subscription or payment in EUR, but you are trying to pay in CAD.',
         'currency'
       )
 
@@ -103,7 +103,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         'currency'
       )
 
-      result = described_class.parse_currency_conflict(error, requested_currency_hint: 'USD')
+      result = described_class.parse_currency_conflict(error, requested_currency_hint: 'CAD')
 
       expect(result[:existing_currency]).to eq('eur')
       expect(result[:requested_currency]).to eq('cad')

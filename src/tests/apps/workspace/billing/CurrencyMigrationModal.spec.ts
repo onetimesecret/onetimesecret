@@ -174,7 +174,7 @@ describe('CurrencyMigrationModal', () => {
     it('displays currency names from conflict', async () => {
       wrapper = await mountComponent();
       expect(wrapper.text()).toContain('EUR');
-      expect(wrapper.text()).toContain('USD');
+      expect(wrapper.text()).toContain('CAD');
     });
 
     it('displays current and new plan names with formatted prices', async () => {
