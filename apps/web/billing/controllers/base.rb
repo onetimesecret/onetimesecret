@@ -231,6 +231,7 @@ module Billing
                 extid: extid,
                 user: cust.extid,
                 error: ex.message,
+                backtrace: ex.backtrace&.first(5),
               }
           end
         end
