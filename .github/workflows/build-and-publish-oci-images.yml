@@ -5,11 +5,14 @@ name: Build and Publish OCI Images
 #
 # OCI image tagging strategy:
 #
-# Release tags (v1.0.0):          {version}, latest
-# Release candidates (v1.0.0-rc1): {version}, next
+# Release tags (v1.0.0):          v{version}, latest
+# Release candidates (v1.0.0-rc1): v{version}, next
 # Branch push:                    {branch-name}, edge
-# Manual dispatch:                {branch-name}, dev (or version_tag if provided)
+# Manual dispatch:                dev (or version_tag if provided)
 # Scheduled (nightly):            nightly
+#
+# IMAGE_TAG carries the v-prefixed version for release builds;
+# empty for non-release builds (only EXTRA_TAGS apply).
 #
 # Architecture:
 #   Uses docker/bake-action with docker/bake.hcl to build all image
@@ -150,8 +153,17 @@ jobs:
             EXTRA_TAGS="${EXTRA_TAGS:+${EXTRA_TAGS},}nightly"
           fi
 
+          # Docker image tag: v-prefixed for tag builds, empty for non-tag builds
+          if [[ "$GITHUB_REF" =~ ^refs/tags/v ]]; then
+            IMAGE_TAG="v${VERSION}"
+          else
+            IMAGE_TAG=""
+          fi
+
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
           echo "extra_tags=${EXTRA_TAGS}" >> $GITHUB_OUTPUT
           echo "Version: ${VERSION}"
+          echo "Image tag: ${IMAGE_TAG}"
           echo "Extra tags: ${EXTRA_TAGS}"
 
       - name: Set up QEMU
@@ -191,6 +203,7 @@ jobs:
         uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
         env:
           VERSION: ${{ steps.version.outputs.version }}
+          IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
           COMMIT_HASH: ${{ steps.commit.outputs.short_sha }}
           EXTRA_TAGS: ${{ steps.version.outputs.extra_tags }}
           PLATFORMS: ${{ inputs.platforms || 'linux/amd64' }}
@@ -208,6 +221,7 @@ jobs:
         env:
           BUILD_PLATFORMS: ${{ inputs.platforms || 'linux/amd64' }}
           BUILD_VERSION: ${{ steps.version.outputs.version }}
+          BUILD_IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
           BUILD_COMMIT: ${{ steps.commit.outputs.short_sha }}
           BUILD_EXTRA_TAGS: ${{ steps.version.outputs.extra_tags }}
         run: |
@@ -218,6 +232,7 @@ jobs:
             echo "**Targets:** ci (main, s6, lite)"
             echo "**Platforms:** ${BUILD_PLATFORMS}"
             echo "**Version:** ${BUILD_VERSION}"
+            echo "**Image tag:** ${BUILD_IMAGE_TAG:-*(none — non-tag build)*}"
             echo "**Commit:** ${BUILD_COMMIT}"
             echo "**Extra tags:** ${BUILD_EXTRA_TAGS}"
           } >> "$GITHUB_STEP_SUMMARY"

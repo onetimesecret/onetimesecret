@@ -116,13 +116,12 @@ RUN set -eux && \
     rm -rf node_modules ~/.npm ~/.pnpm-store && \
     npm uninstall -g pnpm
 
-# Generate build metadata
+# Generate build metadata from the VERSION build arg (authoritative source).
 # COMMIT_HASH is passed as a build arg from CI (GitHub Actions).
-# For local builds without the arg, falls back to "dev".
+# For local builds without args, falls back to defaults.
 RUN set -eux && \
-    VERSION=$(node -p "require('./package.json').version") && \
     mkdir -p /tmp/build-meta && \
-    echo "VERSION=${VERSION}" > /tmp/build-meta/version_env && \
+    echo "VERSION=${VERSION:-0.0.0-rc0}" > /tmp/build-meta/version_env && \
     echo "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> /tmp/build-meta/version_env && \
     echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt
 
