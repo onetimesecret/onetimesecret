@@ -86,7 +86,7 @@ module Onetime
         puts "  Name: #{customer.name}" if customer.name
         puts "  Created: #{format_timestamp(customer.created)}"
         puts "  Currency: #{customer.currency}" if customer.currency
-        puts "  Balance: #{format_amount(customer.balance, customer.currency || 'usd')}"
+        puts "  Balance: #{format_amount(customer.balance, customer.currency || 'cad')}"
         puts
       end
     end

@@ -74,7 +74,7 @@ module Billing
     field :tier                     # e.g., 'single_team', 'multi_team'
     field :interval                 # 'month' or 'year'
     field :amount                   # Price in cents
-    field :currency                 # 'usd', 'eur', etc.
+    field :currency                 # 'cad', 'eur', etc.
     field :region                   # EU, CA, US, NZ, etc
     field :tenancy                  # One of: multitenant, dedicated
     field :display_order            # Display ordering (higher = earlier)

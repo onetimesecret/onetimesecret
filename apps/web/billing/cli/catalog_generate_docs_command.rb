@@ -139,12 +139,13 @@ module Onetime
       end
 
       def generate_plan_details(catalog, entitlements)
-        plans = catalog['plans'] || {}
+        plans            = catalog['plans'] || {}
+        default_currency = catalog['currency'] || 'cad'
 
         sections = ['## Plan Details', '']
 
         plans.each do |plan_id, plan_data|
-          sections << generate_plan_section(plan_id, plan_data, entitlements)
+          sections << generate_plan_section(plan_id, plan_data, entitlements, default_currency)
           sections << ''
           sections << '---'
           sections << ''
@@ -153,7 +154,7 @@ module Onetime
         sections.join("\n")
       end
 
-      def generate_plan_section(plan_id, plan_data, _entitlements)
+      def generate_plan_section(plan_id, plan_data, _entitlements, default_currency)
         parts = []
 
         # Header with legacy badge
@@ -204,7 +205,7 @@ module Onetime
           parts << '**Pricing:**'
           plan_data['prices'].each do |price|
             amount_dollars = (price['amount'] / 100.0).round(2)
-            currency_upper = (price['currency'] || catalog['currency'] || 'usd').upcase
+            currency_upper = (price['currency'] || default_currency).upcase
             interval_label = price['interval'] == 'month' ? 'Monthly' : 'Annual'
 
             parts << "- #{interval_label}: $#{amount_dollars} #{currency_upper}"

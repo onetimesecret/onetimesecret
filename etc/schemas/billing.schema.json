@@ -32,7 +32,7 @@
     },
     "currency": {
       "$ref": "#/definitions/CurrencyCode",
-      "description": "Default currency for all products and prices. Per-price currency overrides this. Defaults to 'usd' when not set."
+      "description": "Default currency for all products and prices. Per-price currency overrides this. Defaults to 'cad' when not set."
     },
     "entitlements": {
       "type": "object",
@@ -106,7 +106,7 @@
     },
     "CurrencyCode": {
       "type": "string",
-      "enum": ["usd", "eur", "cad", "nzd"],
+      "enum": ["cad", "eur", "cad", "nzd"],
       "description": "ISO 4217 currency code"
     },
     "LimitValue": {

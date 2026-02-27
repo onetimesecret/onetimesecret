@@ -30,7 +30,8 @@ match_fields:
 # Region filter for this catalog instance
 # When set, only Stripe products with matching region metadata are visible
 region: EU
-currency: usd
+# Default currency for all prices in this test catalog
+currency: cad
 
 # Test entitlements (minimal set)
 entitlements:

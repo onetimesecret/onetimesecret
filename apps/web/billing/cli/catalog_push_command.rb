@@ -55,7 +55,7 @@ module Onetime
         plans            = catalog['plans'] || {}
         match_fields     = catalog['match_fields'] || ['plan_id']
         region_filter    = catalog['region']
-        catalog_currency = (catalog['currency'] || 'usd').to_s.strip.downcase
+        catalog_currency = (catalog['currency'] || 'cad').to_s.strip.downcase
 
         if plans.empty?
           puts 'No plans found in catalog'
@@ -208,7 +208,7 @@ module Onetime
         prices
       end
 
-      def analyze_changes(plans, existing_products, existing_prices, skip_prices, match_fields, catalog_currency = 'usd')
+      def analyze_changes(plans, existing_products, existing_prices, skip_prices, match_fields, catalog_currency = 'cad')
         changes = {
           products_to_create: [],
           products_to_update: [],
@@ -296,7 +296,7 @@ module Onetime
         existing_products[match_key]
       end
 
-      def detect_product_updates(existing, plan_def, catalog_currency = 'usd')
+      def detect_product_updates(existing, plan_def, catalog_currency = 'cad')
         updates = {}
 
         # Check name
@@ -334,7 +334,7 @@ module Onetime
       #
       # @param plan_def [Hash] Plan definition from catalog
       # @return [Hash<String, String>] Metadata fields for comparison
-      def build_syncable_metadata(plan_def, catalog_currency = 'usd')
+      def build_syncable_metadata(plan_def, catalog_currency = 'cad')
         metadata_fields = {}
         limits          = plan_def['limits'] || {}
 
@@ -370,7 +370,7 @@ module Onetime
         metadata_fields
       end
 
-      def analyze_price_changes(plan_id, plan_def, existing_product, existing_prices, catalog_currency = 'usd')
+      def analyze_price_changes(plan_id, plan_def, existing_product, existing_prices, catalog_currency = 'cad')
         changes        = []
         catalog_prices = plan_def['prices'] || []
 

@@ -98,10 +98,10 @@ module Onetime
     # Currency for billing catalog
     #
     # All products and prices in this billing configuration use this currency.
-    # Defaults to 'usd' when not set.
+    # Defaults to 'cad' when not set.
     def currency
       val = config['currency']
-      return 'usd' if val.to_s.strip.empty?
+      return 'cad' if val.to_s.strip.empty?
 
       val.to_s.strip.downcase
     end

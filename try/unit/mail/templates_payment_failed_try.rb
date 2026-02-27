@@ -20,7 +20,7 @@ require 'onetime/mail/views/payment_failed'
 @valid_data = {
   email_address: 'customer@example.com',
   amount: 1999,
-  currency: 'usd',
+  currency: 'cad',
   plan_name: 'Pro Plan',
   failure_reason: 'Card declined'
 }
@@ -31,7 +31,7 @@ require 'onetime/mail/views/payment_failed'
 begin
   Onetime::Mail::Templates::PaymentFailed.new({
     amount: 1999,
-    currency: 'usd',
+    currency: 'cad',
     plan_name: 'Pro Plan',
     failure_reason: 'Card declined'
   })
@@ -44,7 +44,7 @@ end
 begin
   Onetime::Mail::Templates::PaymentFailed.new({
     email_address: 'customer@example.com',
-    currency: 'usd',
+    currency: 'cad',
     plan_name: 'Pro Plan',
     failure_reason: 'Card declined'
   })
@@ -71,7 +71,7 @@ begin
   Onetime::Mail::Templates::PaymentFailed.new({
     email_address: 'customer@example.com',
     amount: 1999,
-    currency: 'usd',
+    currency: 'cad',
     failure_reason: 'Card declined'
   })
 rescue ArgumentError => e
@@ -84,7 +84,7 @@ begin
   Onetime::Mail::Templates::PaymentFailed.new({
     email_address: 'customer@example.com',
     amount: 1999,
-    currency: 'usd',
+    currency: 'cad',
     plan_name: 'Pro Plan'
   })
 rescue ArgumentError => e

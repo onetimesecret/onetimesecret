@@ -248,9 +248,9 @@ module Onetime
         expected_currencies = {
           'EU' => %w[eur],
           'CA' => %w[cad],
-          'US' => %w[usd],
+          'US' => %w[cad],
           'NZ' => %w[nzd],
-          'global' => %w[usd eur],
+          'global' => %w[cad eur],
         }
 
         expected = expected_currencies[region]

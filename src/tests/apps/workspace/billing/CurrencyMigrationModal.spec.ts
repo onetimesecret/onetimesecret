@@ -69,7 +69,7 @@ const mockConflict = {
   message: 'Your account has an active subscription in EUR.',
   details: {
     existing_currency: 'eur',
-    requested_currency: 'usd',
+    requested_currency: 'cad',
     current_plan: {
       name: 'Identity Plus',
       price_formatted: '€14.00/mo',
@@ -78,7 +78,7 @@ const mockConflict = {
     requested_plan: {
       name: 'Team Plus',
       price_formatted: '$25.00/mo',
-      price_id: 'price_usd_team_plus',
+      price_id: 'price_cad_team_plus',
     },
     warnings: {
       has_credit_balance: false,
@@ -251,7 +251,7 @@ describe('CurrencyMigrationModal', () => {
       await nextTick();
 
       expect(mockMigrateCurrency).toHaveBeenCalledWith('org_123', {
-        new_price_id: 'price_usd_team_plus',
+        new_price_id: 'price_cad_team_plus',
         mode: 'graceful',
       });
     });
@@ -279,7 +279,7 @@ describe('CurrencyMigrationModal', () => {
       await nextTick();
 
       expect(mockMigrateCurrency).toHaveBeenCalledWith('org_123', {
-        new_price_id: 'price_usd_team_plus',
+        new_price_id: 'price_cad_team_plus',
         mode: 'immediate',
       });
     });

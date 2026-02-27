@@ -122,7 +122,7 @@ module Onetime
 
           plan_data['prices'].each do |price|
             amount         = price['amount']
-            currency       = price['currency'] || plans_data['currency'] || 'usd'
+            currency       = price['currency'] || plans_data['currency'] || 'cad'
             interval       = price['interval']
             interval_count = price['interval_count'] || 1
 

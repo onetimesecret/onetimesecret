@@ -83,7 +83,7 @@ const mockInvoices = [
     number: 'INV-001',
     created: 1704067200, // Jan 1, 2024
     amount: 2900,
-    currency: 'usd',
+    currency: 'cad',
     status: 'paid',
     invoice_pdf: 'https://stripe.com/invoices/inv_123.pdf',
     hosted_invoice_url: 'https://invoice.stripe.com/inv_123',
@@ -93,7 +93,7 @@ const mockInvoices = [
     number: 'INV-002',
     created: 1706745600, // Feb 1, 2024
     amount: 9900,
-    currency: 'usd',
+    currency: 'cad',
     status: 'pending',
     invoice_pdf: null,
     hosted_invoice_url: 'https://invoice.stripe.com/inv_456',
@@ -103,7 +103,7 @@ const mockInvoices = [
     number: 'INV-003',
     created: 1709251200, // Mar 1, 2024
     amount: 5000,
-    currency: 'usd',
+    currency: 'cad',
     status: 'failed',
     invoice_pdf: null,
     hosted_invoice_url: null,

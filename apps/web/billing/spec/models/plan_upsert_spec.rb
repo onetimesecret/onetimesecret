@@ -34,7 +34,7 @@ module PlanUpsertTestHelpers
       tier: 'basic',
       interval: 'month',
       amount: '999',
-      currency: 'usd',
+      currency: 'cad',
       region: 'US',
       tenancy: 'multi',
       display_order: '100',

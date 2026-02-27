@@ -59,7 +59,7 @@ stripe_api_version: "2025-12-15.clover"
 # match_fields: Reserved for future composite-key matching. Not read at runtime;
 #   regional isolation is driven solely by the region field above.
 region: <%= ENV['JURISDICTION'] || nil %>
-currency: <%= ENV['BILLING_CURRENCY'] || 'usd' %>
+currency: <%= ENV['BILLING_CURRENCY'] || 'cad' %>
 match_fields:
   - plan_id
   - region
