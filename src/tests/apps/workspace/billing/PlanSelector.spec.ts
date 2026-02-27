@@ -143,7 +143,7 @@ const createMockPlan = (overrides: Partial<BillingPlan> = {}): BillingPlan => ({
   tier: 'single_team',
   interval: 'month',
   amount: 1499, // $14.99 in cents
-  currency: 'usd',
+  currency: 'cad',
   region: 'US',
   display_order: 100,
   features: ['Feature 1', 'Feature 2'],

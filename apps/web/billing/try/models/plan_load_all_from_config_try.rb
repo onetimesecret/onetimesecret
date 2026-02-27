@@ -71,7 +71,7 @@ Billing::Plan.instances.size
 
 ## Verify currency
 @monthly.currency
-#=> 'usd'
+#=> 'cad'
 
 ## Verify entitlements were loaded
 @monthly.entitlements.size

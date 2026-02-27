@@ -247,7 +247,7 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
         # Stub Stripe::Checkout::Session.create to raise currency conflict
         allow(Stripe::Checkout::Session).to receive(:create).and_raise(
           Stripe::InvalidRequestError.new(
-            'You cannot combine currencies on a single customer. This customer has had a subscription or payment in eur, but you are trying to pay in usd.',
+            'You cannot combine currencies on a single customer. This customer has had a subscription or payment in eur, but you are trying to pay in cad.',
             'currency'
           )
         )
@@ -269,7 +269,7 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
         expect(data['error']).to be true
         expect(data['code']).to eq('currency_conflict')
         expect(data['details']['existing_currency']).to eq('eur')
-        expect(data['details']['requested_currency']).to eq('usd')
+        expect(data['details']['requested_currency']).to eq('cad')
         # Fallback assessment: nil plan data, safe default warnings
         expect(data['details']['current_plan']).to be_nil
         expect(data['details']['requested_plan']).to be_nil

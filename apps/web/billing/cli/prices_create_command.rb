@@ -15,7 +15,7 @@ module Onetime
       argument :product_id, required: false, desc: 'Product ID (e.g., prod_xxx)'
 
       option :amount, type: :integer, desc: 'Amount in cents (e.g., 900 for $9.00)'
-      option :currency, type: :string, default: 'usd', desc: 'Currency code'
+      option :currency, type: :string, default: 'cad', desc: 'Currency code'
       option :interval,
         type: :string,
         default: 'month',
@@ -25,7 +25,7 @@ module Onetime
         default: 1,
         desc: 'Number of intervals between billings'
 
-      def call(product_id: nil, amount: nil, currency: 'usd', interval: 'month', interval_count: 1, **)
+      def call(product_id: nil, amount: nil, currency: 'cad', interval: 'month', interval_count: 1, **)
         boot_application!
 
         return unless stripe_configured?

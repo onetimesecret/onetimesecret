@@ -351,7 +351,7 @@ RSpec.describe 'Billing::Plan.load_all_from_config region filtering', type: :bil
       'limits' => { 'teams' => 1 },
       'features' => [],
       'prices' => [
-        { 'interval' => 'month', 'amount' => 1000, 'currency' => 'usd' },
+        { 'interval' => 'month', 'amount' => 1000, 'currency' => 'cad' },
       ],
     }
   end

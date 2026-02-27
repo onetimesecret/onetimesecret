@@ -186,7 +186,7 @@ module Onetime
         return 'N/A' unless amount_cents
 
         dollars = amount_cents.to_f / 100
-        "#{currency&.upcase || 'USD'} #{format('%.2f', dollars)}"
+        "#{currency&.upcase || 'CAD'} #{format('%.2f', dollars)}"
       end
 
       def validate_product_metadata(product)

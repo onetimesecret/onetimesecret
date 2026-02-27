@@ -149,7 +149,7 @@ export interface SubscriptionStatusResponse {
   subscription_item_id?: string;
   subscription_status?: string;
   current_period_end?: number;
-  /** Currency of the current subscription (e.g., 'usd', 'eur') */
+  /** Currency of the current subscription (e.g., 'cad', 'eur') */
   current_currency?: string;
   /** True if subscription is scheduled for cancellation at period end */
   cancel_at_period_end?: boolean;

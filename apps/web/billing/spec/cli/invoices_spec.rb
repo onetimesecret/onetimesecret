@@ -34,7 +34,7 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :code_smell, :inte
 
     price = stripe_client.create(Stripe::Price, {
       unit_amount: 5000,
-      currency: 'usd',
+      currency: 'cad',
       product: product.id,
     }
     )
@@ -117,7 +117,7 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :code_smell, :inte
 
           price = stripe_client.create(Stripe::Price, {
             unit_amount: 2000,
-            currency: 'usd',
+            currency: 'cad',
             recurring: { interval: 'month' },
             product: product.id,
           }

@@ -96,7 +96,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
           command.call(
             product_id: product.id,
             amount: 900,
-            currency: 'usd',
+            currency: 'cad',
             interval: 'month',
             interval_count: 1,
           )
@@ -111,7 +111,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
         # Note: No cleanup - products with prices can't be deleted in Stripe
       end
 
-      it 'uses default currency of usd', :vcr do
+      it 'uses default currency of cad', :vcr do
         product = create_price_test_product('Default Currency Test')
         allow($stdin).to receive(:gets).and_return("y\n")
 
