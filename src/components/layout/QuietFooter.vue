@@ -11,7 +11,13 @@
 
   const productIdentity = useProductIdentity();
 
-  withDefaults(defineProps<LayoutProps>(), {});
+  withDefaults(defineProps<LayoutProps>(), {
+    displayFeedback: true,
+    displayFooterLinks: true,
+    displayVersion: true,
+    displayToggles: true,
+    displayPoweredBy: true,
+  });
 
   const windowProps = WindowService.getMultiple([
     'regions_enabled',
@@ -35,7 +41,7 @@
           class="flex w-full flex-wrap items-center justify-center gap-4 text-center text-sm text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
             v-if="displayVersion"
-            :title="`${$t('onetime-secret-literal')} Version`">
+            :title="`${$t('onetime-secret-literal')} ${$t('version')}`">
             <a :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${windowProps.ot_version}`">v{{ windowProps.ot_version }}</a>
           </span>
         </div>
