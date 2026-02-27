@@ -13,6 +13,11 @@
 #     --set '*.args.COMMIT_HASH=abc1234' \
 #     ci
 #
+# Tagging:
+#   VERSION    → clean semver for build args and OCI labels (never a Docker tag)
+#   IMAGE_TAG  → v-prefixed Docker tag for releases; empty skips version tag
+#   EXTRA_TAGS → comma-separated additional tags (latest, next, nightly, etc.)
+#
 
 # ---------------------------------------------------------------------------
 # Variables

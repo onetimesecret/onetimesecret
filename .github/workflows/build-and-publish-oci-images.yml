@@ -5,11 +5,14 @@ name: Build and Publish OCI Images
 #
 # OCI image tagging strategy:
 #
-# Release tags (v1.0.0):          {version}, latest
-# Release candidates (v1.0.0-rc1): {version}, next
+# Release tags (v1.0.0):          v{version}, latest
+# Release candidates (v1.0.0-rc1): v{version}, next
 # Branch push:                    {branch-name}, edge
-# Manual dispatch:                {branch-name}, dev (or version_tag if provided)
+# Manual dispatch:                dev (or version_tag if provided)
 # Scheduled (nightly):            nightly
+#
+# IMAGE_TAG carries the v-prefixed version for release builds;
+# empty for non-release builds (only EXTRA_TAGS apply).
 #
 # Architecture:
 #   Uses docker/bake-action with docker/bake.hcl to build all image
