@@ -257,7 +257,7 @@ RSpec.describe 'Billing Customers CLI Commands', :billing_cli, :integration, :vc
         price = stripe_client.create(Stripe::Price, {
           product: product.id,
           unit_amount: 1000,
-          currency: 'usd',
+          currency: 'cad',
           recurring: { interval: 'month' },
         }
         )

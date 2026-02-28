@@ -74,7 +74,7 @@ module Billing
     field :tier                     # e.g., 'single_team', 'multi_team'
     field :interval                 # 'month' or 'year'
     field :amount                   # Price in cents
-    field :currency                 # 'usd', 'eur', etc.
+    field :currency                 # 'cad', 'eur', etc.
     field :region                   # EU, CA, US, NZ, etc
     field :tenancy                  # One of: multitenant, dedicated
     field :display_order            # Display ordering (higher = earlier)
@@ -375,7 +375,7 @@ module Billing
           plan.tier               = tier
           plan.interval           = nil  # Free plans have no interval
           plan.amount             = '0'
-          plan.currency           = 'usd'
+          plan.currency           = OT.billing_config.currency
           plan.tenancy            = tenancy
           plan.display_order      = display_order.to_s
           plan.show_on_plans_page = 'true'
@@ -581,6 +581,7 @@ module Billing
           product: {
             id: product.id,
             name: product.name,
+            currency: product.metadata[Metadata::FIELD_CURRENCY],
             metadata: product.metadata.to_h,
             marketing_features: product.marketing_features&.map(&:name) || [],
           },

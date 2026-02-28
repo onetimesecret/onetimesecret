@@ -22,7 +22,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
         tier: 'single_team',
         interval: 'month',
         amount: '2900',
-        currency: 'usd',
+        currency: 'cad',
         region: 'US',
         entitlements: '["api_access","manage_teams"]',
       )
@@ -171,7 +171,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
             tier: 'test',
             interval: 'month',
             amount: '1000',
-            currency: 'usd',
+            currency: 'cad',
             region: 'US',
             entitlements: '[]',
           )
@@ -200,7 +200,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
             tier: 'basic',
             interval: 'month',
             amount: '0',
-            currency: 'usd',
+            currency: 'cad',
             region: 'US',
             entitlements: '[]',
           )

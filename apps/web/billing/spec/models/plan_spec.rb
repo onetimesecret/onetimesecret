@@ -37,7 +37,7 @@ RSpec.describe Billing::Plan, type: :billing do
         tier: 'single_team',
         interval: 'month',
         amount: '1499',
-        currency: 'usd',
+        currency: 'cad',
         region: 'US',
         tenancy: 'multi',
         display_order: '100',
@@ -76,7 +76,7 @@ RSpec.describe Billing::Plan, type: :billing do
         tier: 'single_team',
         interval: 'month',
         amount: '1499',
-        currency: 'usd',
+        currency: 'cad',
       )
       plan.save
       plan.limits['teams.max'] = '5'
@@ -125,7 +125,7 @@ RSpec.describe Billing::Plan, type: :billing do
         tier: 'single_team',
         interval: 'month',
         amount: '1499',
-        currency: 'usd',
+        currency: 'cad',
       )
       plan.save
       plan.entitlements.add('create_secrets')
@@ -279,7 +279,7 @@ RSpec.describe Billing::Plan, type: :billing do
         tier: 'multi_team',
         interval: 'year',
         amount: '14388', # $143.88/year
-        currency: 'usd',
+        currency: 'cad',
         region: 'US',
         tenancy: 'multi',
         display_order: '200',
@@ -339,7 +339,7 @@ RSpec.describe Billing::Plan, type: :billing do
         tier: 'single_team',
         interval: 'year',
         amount: '14388', # $143.88/year
-        currency: 'usd',
+        currency: 'cad',
       )
       plan.save
       plan

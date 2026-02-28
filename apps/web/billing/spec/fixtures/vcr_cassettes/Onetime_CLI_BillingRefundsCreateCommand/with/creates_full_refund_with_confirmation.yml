@@ -5,7 +5,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/charges
     body:
       encoding: UTF-8
-      string: amount=5000&currency=usd&customer=cus_TfaNPVnhVtQKqu
+      string: amount=5000&currency=cad&customer=cus_TfaNPVnhVtQKqu
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -107,7 +107,7 @@ http_interactions:
           "calculated_statement_descriptor": "ONETIME.DEV LINKS",
           "captured": true,
           "created": 1766671647,
-          "currency": "usd",
+          "currency": "cad",
           "customer": "cus_TfaNPVnhVtQKqu",
           "description": null,
           "destination": null,
@@ -318,7 +318,7 @@ http_interactions:
           "calculated_statement_descriptor": "ONETIME.DEV LINKS",
           "captured": true,
           "created": 1766671647,
-          "currency": "usd",
+          "currency": "cad",
           "customer": "cus_TfaNPVnhVtQKqu",
           "description": null,
           "destination": null,
@@ -517,7 +517,7 @@ http_interactions:
           "balance_transaction": "txn_3SiFCNH54PcLeqtY0uvZVTub",
           "charge": "ch_3SiFCNH54PcLeqtY01I4MIXm",
           "created": 1766671648,
-          "currency": "usd",
+          "currency": "cad",
           "destination_details": {
             "card": {
               "reference_status": "pending",
@@ -727,7 +727,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/charges
     body:
       encoding: UTF-8
-      string: amount=5000&currency=usd&customer=cus_TgwoUcSF5qJavv
+      string: amount=5000&currency=cad&customer=cus_TgwoUcSF5qJavv
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -829,7 +829,7 @@ http_interactions:
           "calculated_statement_descriptor": "ONETIME.DEV LINKS",
           "captured": true,
           "created": 1766985761,
-          "currency": "usd",
+          "currency": "cad",
           "customer": "cus_TgwoUcSF5qJavv",
           "description": null,
           "destination": null,
@@ -1040,7 +1040,7 @@ http_interactions:
           "calculated_statement_descriptor": "ONETIME.DEV LINKS",
           "captured": true,
           "created": 1766985761,
-          "currency": "usd",
+          "currency": "cad",
           "customer": "cus_TgwoUcSF5qJavv",
           "description": null,
           "destination": null,
@@ -1239,7 +1239,7 @@ http_interactions:
           "balance_transaction": "txn_3SjYujH54PcLeqtY10AFF2ve",
           "charge": "ch_3SjYujH54PcLeqtY1TYCPnOh",
           "created": 1766985762,
-          "currency": "usd",
+          "currency": "cad",
           "destination_details": {
             "card": {
               "reference_status": "pending",

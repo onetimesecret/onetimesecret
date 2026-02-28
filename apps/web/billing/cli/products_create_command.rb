@@ -248,7 +248,7 @@ module Onetime
         end
 
         puts "\nNext steps:"
-        puts "  bin/ots billing prices create #{product.id} --amount=2900 --currency=usd --interval=month"
+        puts "  bin/ots billing prices create #{product.id} --amount=2900 --currency=cad --interval=month"
 
         product
       rescue Stripe::StripeError => ex

@@ -41,7 +41,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
 
           charge = stripe_client.create(Stripe::Charge, {
             amount: 5000,
-            currency: 'usd',
+            currency: 'cad',
             customer: customer.id,
             # Uses customer's attached payment source
           }
@@ -70,7 +70,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
                        id: 're_test123',
                        charge: 'ch_test_filter',
                        amount: 5000,
-                       currency: 'usd',
+                       currency: 'cad',
                        status: 'succeeded',
                        created: Time.now.to_i,
                      ),
@@ -177,7 +177,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
 
           charge = stripe_client.create(Stripe::Charge, {
             amount: 5000,  # $50.00
-            currency: 'usd',
+            currency: 'cad',
             customer: customer.id,
             # Uses customer's attached payment source
           }
@@ -208,7 +208,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
 
           charge = stripe_client.create(Stripe::Charge, {
             amount: 10_000,
-            currency: 'usd',
+            currency: 'cad',
             customer: customer.id,
             # Uses customer's attached payment source
           }
@@ -236,7 +236,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
 
           charge = stripe_client.create(Stripe::Charge, {
             amount: 3000,
-            currency: 'usd',
+            currency: 'cad',
             customer: customer.id,
             # Uses customer's attached payment source
           }
@@ -264,7 +264,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
 
           charge = stripe_client.create(Stripe::Charge, {
             amount: 2000,
-            currency: 'usd',
+            currency: 'cad',
             customer: customer.id,
             # Uses customer's attached payment source
           }
@@ -292,7 +292,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
 
           charge = stripe_client.create(Stripe::Charge, {
             amount: 1000,
-            currency: 'usd',
+            currency: 'cad',
             customer: customer.id,
             # Uses customer's attached payment source
           }
@@ -329,7 +329,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
             double(
               id: 'ch_already_refunded',
               amount: 1000,
-              currency: 'usd',
+              currency: 'cad',
               customer: 'cus_test',
             ),
           )
