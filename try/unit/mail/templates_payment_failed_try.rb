@@ -102,10 +102,10 @@ template = Onetime::Mail::Templates::PaymentFailed.new(@valid_data)
 template.recipient_email
 #=> 'customer@example.com'
 
-## PaymentFailed formatted_amount converts cents to dollars with USD symbol
+## PaymentFailed formatted_amount converts cents to dollars with CAD symbol
 template = Onetime::Mail::Templates::PaymentFailed.new(@valid_data)
 template.formatted_amount
-#=> '$19.99'
+#=> 'CA$19.99'
 
 ## PaymentFailed failure_reason returns data value
 template = Onetime::Mail::Templates::PaymentFailed.new(@valid_data)

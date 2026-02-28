@@ -122,10 +122,10 @@ template = Onetime::Mail::Templates::PaymentReceipt.new(@valid_data)
 template.recipient_email
 #=> 'customer@example.com'
 
-## PaymentReceipt formatted_amount converts cents to dollars with USD symbol
+## PaymentReceipt formatted_amount converts cents to dollars with CAD symbol
 template = Onetime::Mail::Templates::PaymentReceipt.new(@valid_data)
 template.formatted_amount
-#=> '$19.99'
+#=> 'CA$19.99'
 
 ## PaymentReceipt formatted_amount handles EUR currency
 data = @valid_data.merge(currency: 'eur')
