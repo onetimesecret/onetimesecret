@@ -173,7 +173,7 @@ module Onetime
           'email_hash' => email_hash,
           'email_hash_created_at' => Time.now.to_i.to_s,
           'email_hash_migrated' => 'true',
-          'home_region' => region,
+          'region' => region,
         )
 
         if dry_run
@@ -270,7 +270,7 @@ module Onetime
             - email_hash:            HMAC-SHA256 hash of billing_email (32 chars)
             - email_hash_created_at: Unix timestamp when hash was added
             - email_hash_migrated:   'true' flag indicating backfill (vs. creation-time)
-            - home_region:           Region where org was created
+            - region:                Region where org was created
 
           Notes:
             - Command is idempotent (safe to run multiple times)

@@ -79,7 +79,7 @@ RSpec.describe 'PendingFederation: Webhook Storage', :integration, :process_webh
       stripe_customer = build_stripe_customer(
         id: stripe_customer_id,
         email: unknown_email,
-        metadata: { 'email_hash' => email_hash, 'home_region' => 'EU' },
+        metadata: { 'email_hash' => email_hash, 'region' => 'EU' },
       )
       allow(Stripe::Customer).to receive(:retrieve)
         .with(stripe_customer_id)
@@ -108,10 +108,10 @@ RSpec.describe 'PendingFederation: Webhook Storage', :integration, :process_webh
       expect(pending.subscription_status).to eq('active')
     end
 
-    it 'stores home region from metadata' do
+    it 'stores region from metadata' do
       operation.call
       pending = track_pending(Billing::PendingFederatedSubscription.find_by_email_hash(email_hash))
-      expect(pending.home_region).to eq('EU')
+      expect(pending.region).to eq('EU')
     end
 
     it 'stores received_at timestamp' do
