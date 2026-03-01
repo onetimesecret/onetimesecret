@@ -134,7 +134,6 @@
           :orgid="props.orgid" />
 
         <BrandSettingsBar
-          v-if="canBrand"
           v-model="brandSettings"
           :preview-i18n="previewI18n"
           :is-loading="isLoading"
@@ -203,7 +202,6 @@
 
       <!-- Main Content -->
       <div
-        v-if="canBrand"
         class="mx-auto max-w-7xl p-4 sm:px-6 sm:py-8 lg:px-8">
         <!-- Preview Section -->
         <div class="relative mb-6 sm:mb-12">

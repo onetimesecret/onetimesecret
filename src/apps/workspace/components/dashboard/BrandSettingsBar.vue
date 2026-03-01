@@ -72,7 +72,7 @@
           <!-- Left section - wrap in flex container -->
           <div
             class="flex min-w-0 shrink items-center gap-4"
-            :class="{ 'pointer-events-none opacity-60': props.disabled }">
+            :class="props.disabled && 'pointer-events-none opacity-60'">
             <!-- Color Picker -->
             <div class="flex min-w-0 shrink items-center gap-2">
               <ColorPicker
