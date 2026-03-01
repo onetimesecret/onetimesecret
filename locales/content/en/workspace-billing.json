@@ -149,7 +149,7 @@
   },
   "web.billing.overview.load_error": {
     "text": "Failed to load billing information",
-    "sha256": "d4e5f6a7"
+    "content_hash": "d4e5f6a7"
   },
   "web.billing.overview.upgrade_success": {
     "text": "Your plan has been upgraded successfully",
@@ -445,7 +445,7 @@
   },
   "web.billing.plans.load_error": {
     "text": "Failed to load plans",
-    "sha256": "e5f6a7b8"
+    "content_hash": "e5f6a7b8"
   },
   "web.billing.plans.change_immediate": {
     "text": "Your plan will change immediately.",
@@ -549,7 +549,7 @@
   },
   "web.billing.invoices.invoice_number": {
     "text": "Invoice #",
-    "sha256": "a1c2d3e4"
+    "content_hash": "a1c2d3e4"
   },
   "web.billing.invoices.no_invoices": {
     "text": "No invoices yet",
@@ -557,11 +557,11 @@
   },
   "web.billing.invoices.no_invoices_description": {
     "text": "Your invoices will appear here once you upgrade to a paid plan",
-    "sha256": "b2c3d4e5"
+    "content_hash": "b2c3d4e5"
   },
   "web.billing.invoices.view_plans": {
     "text": "View Plans",
-    "sha256": "c3d4e5f6"
+    "content_hash": "c3d4e5f6"
   },
   "web.billing.invoices.paid": {
     "text": "Paid",
@@ -581,15 +581,15 @@
   },
   "web.billing.invoices.open": {
     "text": "Open",
-    "sha256": "a2b3c4d5"
+    "content_hash": "a2b3c4d5"
   },
   "web.billing.invoices.uncollectible": {
     "text": "Uncollectible",
-    "sha256": "b3c4d5e6"
+    "content_hash": "b3c4d5e6"
   },
   "web.billing.invoices.void": {
     "text": "Void",
-    "sha256": "c4d5e6f7"
+    "content_hash": "c4d5e6f7"
   },
   "web.billing.invoices.load_error": {
     "text": "Failed to load invoices",
@@ -892,7 +892,7 @@
   },
   "web.billing.features.shared_workflows": {
     "text": "Shared Workflows",
-    "sha256": "158f558e"
+    "content_hash": "158f558e"
   },
   "web.billing.currency_migration.title": {
     "text": "Currency Change Required",

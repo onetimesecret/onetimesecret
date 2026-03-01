@@ -167,6 +167,10 @@
     "text": "Switch to Safari preview",
     "content_hash": "f24ac447"
   },
+  "web.branding.upgrade_to_customize": {
+    "text": "Upgrade your plan to customize branding for this domain.",
+    "content_hash": "placeholder"
+  },
   "web.branding.low_contrast_warning": {
     "text": "Low contrast ({0}:1) — text on this color may be hard to read",
     "content_hash": "00000000"
@@ -174,9 +178,5 @@
   "web.branding.contrast_ratio_label": {
     "text": "Contrast ratio: {0}:1",
     "content_hash": "00000000"
-  },
-  "web.branding.upgrade_to_customize": {
-    "text": "Upgrade your plan to customize branding for this domain.",
-    "content_hash": "placeholder"
   }
 }

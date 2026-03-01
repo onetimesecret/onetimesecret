@@ -157,7 +157,7 @@ export const PlanDefinitionSchema = z.object({
   name: z.string().min(1).describe('Display name for the plan'),
   tier: BillingTierSchema.optional().describe('Billing tier (optional for draft plans)'),
   tenancy: TenancyTypeSchema.optional().describe('Tenancy type (optional for draft plans)'),
-  region: z.string().optional().nullable().describe('Region identifier for composite matching (e.g., EU, US, CA)'),
+  region: z.string().nullable().optional().describe('Region identifier for composite matching (e.g., EU, US, CA)'),
   stripe_product_id: z
     .string()
     .regex(/^prod_/)

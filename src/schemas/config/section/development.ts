@@ -21,6 +21,7 @@ const developmentSchema = z.object({
   frontend_host: z.string().default('http://localhost:5173'),
   domain_context_enabled: z.boolean().default(false),
   allow_nil_global_secret: z.boolean().default(false),
+  domain_context_enabled: z.boolean().default(false),
 });
 
 export { developmentSchema };
