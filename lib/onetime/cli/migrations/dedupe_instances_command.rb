@@ -197,11 +197,18 @@ module Onetime
 
         return if dry_run
 
-        to_normalize.each do |quoted|
-          unquoted = quoted[1..-2]
-          score    = redis.zscore(redis_key, quoted)
-          redis.zrem(redis_key, quoted)
-          redis.zadd(redis_key, score, unquoted)
+        # Phase 1: collect scores in a single pipeline round-trip
+        scores = redis.pipelined do |pipe|
+          to_normalize.each { |quoted| pipe.zscore(redis_key, quoted) }
+        end
+
+        # Phase 2: batch all mutations in a single pipeline round-trip
+        redis.pipelined do |pipe|
+          to_normalize.each_with_index do |quoted, idx|
+            unquoted = quoted[1..-2]
+            pipe.zrem(redis_key, quoted)
+            pipe.zadd(redis_key, scores[idx], unquoted)
+          end
         end
       rescue StandardError => ex
         stats[:errors] << "#{label} (normalize): #{ex.message}"
@@ -231,10 +238,12 @@ module Onetime
 
         return if dry_run
 
-        to_normalize.each do |quoted|
-          unquoted = quoted[1..-2]
-          redis.srem(redis_key, quoted)
-          redis.sadd(redis_key, unquoted)
+        redis.pipelined do |pipe|
+          to_normalize.each do |quoted|
+            unquoted = quoted[1..-2]
+            pipe.srem(redis_key, quoted)
+            pipe.sadd(redis_key, unquoted)
+          end
         end
       rescue StandardError => ex
         stats[:errors] << "#{label} (normalize): #{ex.message}"
