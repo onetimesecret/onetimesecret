@@ -142,6 +142,10 @@ module Onetime
       # to verify the domain.
     end
 
+    def custid
+      objid
+    end
+
     # Alias domainid to objid for API compatibility
     # The object_identifier feature provides objid automatically
     def domainid
@@ -387,7 +391,7 @@ module Onetime
     #
     # @return [Boolean] true if the domain is an apex domain, false otherwise
     def apex?
-      subdomain.empty?
+      subdomain.to_s.empty?
     end
 
     # Overrides Familia::Horreum#exists? to handle connection pool issues

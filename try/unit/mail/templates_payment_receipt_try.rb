@@ -20,7 +20,7 @@ require 'onetime/mail/views/payment_receipt'
 @valid_data = {
   email_address: 'customer@example.com',
   amount: 1999,
-  currency: 'usd',
+  currency: 'cad',
   plan_name: 'Pro Plan',
   invoice_id: 'inv_abc123',
   paid_at: '2024-01-15T10:30:00Z'
@@ -32,7 +32,7 @@ require 'onetime/mail/views/payment_receipt'
 begin
   Onetime::Mail::Templates::PaymentReceipt.new({
     amount: 1999,
-    currency: 'usd',
+    currency: 'cad',
     plan_name: 'Pro Plan',
     invoice_id: 'inv_abc123',
     paid_at: '2024-01-15T10:30:00Z'
@@ -46,7 +46,7 @@ end
 begin
   Onetime::Mail::Templates::PaymentReceipt.new({
     email_address: 'customer@example.com',
-    currency: 'usd',
+    currency: 'cad',
     plan_name: 'Pro Plan',
     invoice_id: 'inv_abc123',
     paid_at: '2024-01-15T10:30:00Z'
@@ -75,7 +75,7 @@ begin
   Onetime::Mail::Templates::PaymentReceipt.new({
     email_address: 'customer@example.com',
     amount: 1999,
-    currency: 'usd',
+    currency: 'cad',
     invoice_id: 'inv_abc123',
     paid_at: '2024-01-15T10:30:00Z'
   })
@@ -89,7 +89,7 @@ begin
   Onetime::Mail::Templates::PaymentReceipt.new({
     email_address: 'customer@example.com',
     amount: 1999,
-    currency: 'usd',
+    currency: 'cad',
     plan_name: 'Pro Plan',
     paid_at: '2024-01-15T10:30:00Z'
   })
@@ -103,7 +103,7 @@ begin
   Onetime::Mail::Templates::PaymentReceipt.new({
     email_address: 'customer@example.com',
     amount: 1999,
-    currency: 'usd',
+    currency: 'cad',
     plan_name: 'Pro Plan',
     invoice_id: 'inv_abc123'
   })
@@ -122,10 +122,10 @@ template = Onetime::Mail::Templates::PaymentReceipt.new(@valid_data)
 template.recipient_email
 #=> 'customer@example.com'
 
-## PaymentReceipt formatted_amount converts cents to dollars with USD symbol
+## PaymentReceipt formatted_amount converts cents to dollars with CAD symbol
 template = Onetime::Mail::Templates::PaymentReceipt.new(@valid_data)
 template.formatted_amount
-#=> '$19.99'
+#=> 'CA$19.99'
 
 ## PaymentReceipt formatted_amount handles EUR currency
 data = @valid_data.merge(currency: 'eur')

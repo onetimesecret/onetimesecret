@@ -42,6 +42,9 @@ function createBillingRedirect(targetPage: string) {
     }
 
     const org = organizationStore.currentOrganization || organizationStore.organizations[0];
+    if (!org) {
+      return { name: 'Dashboard' };
+    }
     return { path: `/billing/${org.extid}/${targetPage}` };
   };
 }

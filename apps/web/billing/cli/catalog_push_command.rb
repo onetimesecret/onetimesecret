@@ -51,10 +51,11 @@ module Onetime
         catalog = load_catalog
         return unless catalog
 
-        app_identifier = catalog['app_identifier'] || Billing::Metadata::APP_NAME
-        plans          = catalog['plans'] || {}
-        match_fields   = catalog['match_fields'] || ['plan_id']
-        region_filter  = catalog['region']
+        app_identifier   = catalog['app_identifier'] || Billing::Metadata::APP_NAME
+        plans            = catalog['plans'] || {}
+        match_fields     = catalog['match_fields'] || ['plan_id']
+        region_filter    = catalog['region']
+        catalog_currency = (catalog['currency'] || 'cad').to_s.strip.downcase
 
         if plans.empty?
           puts 'No plans found in catalog'
@@ -75,6 +76,7 @@ module Onetime
         puts '=' * 50
         puts "App identifier: #{app_identifier}"
         puts "Match fields: #{match_fields.join(', ')}"
+        puts "Catalog currency: #{catalog_currency}"
         puts "Region filter: #{region_filter || '(none)'}"
         puts "Plans to process: #{plans.keys.join(', ')}"
         puts
@@ -84,7 +86,7 @@ module Onetime
         existing_prices   = fetch_existing_prices(existing_products)
 
         # Analyze changes
-        changes = analyze_changes(plans, existing_products, existing_prices, skip_prices, match_fields)
+        changes = analyze_changes(plans, existing_products, existing_prices, skip_prices, match_fields, catalog_currency)
 
         if changes[:products_to_create].empty? &&
            changes[:products_to_update].empty? &&
@@ -144,7 +146,7 @@ module Onetime
             next unless product.metadata['app'] == app_identifier
 
             # Region filtering: skip products not matching our region context
-            if region_filter && product.metadata['region'] != region_filter
+            if region_filter && !Billing::RegionNormalizer.match?(product.metadata['region'], region_filter)
               next
             end
 
@@ -206,7 +208,7 @@ module Onetime
         prices
       end
 
-      def analyze_changes(plans, existing_products, existing_prices, skip_prices, match_fields)
+      def analyze_changes(plans, existing_products, existing_prices, skip_prices, match_fields, catalog_currency = 'cad')
         changes = {
           products_to_create: [],
           products_to_update: [],
@@ -224,7 +226,7 @@ module Onetime
 
           if existing
             # Check if product needs update
-            updates = detect_product_updates(existing, plan_def)
+            updates = detect_product_updates(existing, plan_def, catalog_currency)
             unless updates.empty?
               changes[:products_to_update] << {
                 plan_id: plan_id,
@@ -251,7 +253,7 @@ module Onetime
           next if skip_prices
 
           price_changes = analyze_price_changes(
-            plan_id, plan_def, existing, existing_prices[match_key] || []
+            plan_id, plan_def, existing, existing_prices[match_key] || [], catalog_currency
           )
           changes[:prices_to_create].concat(price_changes)
         end
@@ -294,7 +296,7 @@ module Onetime
         existing_products[match_key]
       end
 
-      def detect_product_updates(existing, plan_def)
+      def detect_product_updates(existing, plan_def, catalog_currency = 'cad')
         updates = {}
 
         # Check name
@@ -310,7 +312,7 @@ module Onetime
         end
 
         # Check metadata fields using registry from Billing::Metadata
-        metadata_fields = build_syncable_metadata(plan_def)
+        metadata_fields = build_syncable_metadata(plan_def, catalog_currency)
 
         metadata_fields.each do |field, expected|
           current = existing.metadata[field]
@@ -325,13 +327,14 @@ module Onetime
       # Build metadata fields for update detection from plan definition.
       # Uses Billing::Metadata::SYNCABLE_FIELDS and LIMIT_FIELDS registries.
       #
-      # All fields are always included (even if empty) so that:
-      # - Adding a field value is detected as a change
-      # - Removing a field value is detected as a change
+      # Most fields are always included (even if empty) so that adding or
+      # removing a value is detected as a change. The exception is region:
+      # nil/blank region is intentionally omitted (not written as "") to
+      # avoid erasing existing Stripe metadata. See RegionNormalizer.
       #
       # @param plan_def [Hash] Plan definition from catalog
       # @return [Hash<String, String>] Metadata fields for comparison
-      def build_syncable_metadata(plan_def)
+      def build_syncable_metadata(plan_def, catalog_currency = 'cad')
         metadata_fields = {}
         limits          = plan_def['limits'] || {}
 
@@ -339,16 +342,25 @@ module Onetime
         Billing::Metadata::SYNCABLE_FIELDS.each do |field_name, yaml_key|
           value = plan_def[yaml_key]
 
-          # Special handling for certain field types
-          metadata_fields[field_name] = case field_name
-                                        when Billing::Metadata::FIELD_ENTITLEMENTS
-                                          (value || []).join(',')
-                                        when Billing::Metadata::FIELD_IS_POPULAR
-                                          (value == true).to_s
-                                        else
-                                          value.to_s
-                                        end
+          # Special handling for certain field types. Region returns nil
+          # for blank/missing values; the `if serialized` guard below
+          # ensures nil regions are omitted rather than written as "".
+          serialized = case field_name
+                       when Billing::Metadata::FIELD_ENTITLEMENTS
+                         (value || []).join(',')
+                       when Billing::Metadata::FIELD_IS_POPULAR
+                         (value == true).to_s
+                       when Billing::Metadata::FIELD_REGION
+                         Billing::RegionNormalizer.normalize(value)
+                       else
+                         value.to_s
+                       end
+
+          metadata_fields[field_name] = serialized if serialized
         end
+
+        # Currency is top-level config, not per-plan — add explicitly
+        metadata_fields[Billing::Metadata::FIELD_CURRENCY] = catalog_currency
 
         # Add all limit fields from registry (always include for update detection)
         Billing::Metadata::LIMIT_FIELDS.each do |field_name, yaml_key|
@@ -358,7 +370,7 @@ module Onetime
         metadata_fields
       end
 
-      def analyze_price_changes(plan_id, plan_def, existing_product, existing_prices)
+      def analyze_price_changes(plan_id, plan_def, existing_product, existing_prices, catalog_currency = 'cad')
         changes        = []
         catalog_prices = plan_def['prices'] || []
 
@@ -370,10 +382,12 @@ module Onetime
         product_id = existing_product&.id
 
         catalog_prices.each_with_index do |price_def, idx|
+          # Currency inherited from top-level config if not per-price
+          resolved_currency = (price_def['currency'] || catalog_currency).to_s.strip.downcase
+
           # Validate all required fields are present
           missing = []
           missing << 'amount' unless price_def['amount']
-          missing << 'currency' unless price_def['currency']
           missing << 'interval' unless price_def['interval']
 
           unless missing.empty?
@@ -385,7 +399,7 @@ module Onetime
           if existing_product
             matching = existing_prices.find do |p|
               p.unit_amount == price_def['amount'] &&
-                p.currency == price_def['currency'].downcase &&
+                p.currency == resolved_currency &&
                 p.recurring&.interval == price_def['interval']
             end
             next if matching # Price already exists
@@ -395,7 +409,7 @@ module Onetime
             plan_id: plan_id,
             product_id: product_id, # Can be nil for new products
             amount: price_def['amount'],
-            currency: price_def['currency'],
+            currency: resolved_currency,
             interval: price_def['interval'],
           }
         end
@@ -562,12 +576,17 @@ module Onetime
                          value.join(',')
                        when Billing::Metadata::FIELD_IS_POPULAR
                          value == true ? 'true' : nil
+                       when Billing::Metadata::FIELD_REGION
+                         Billing::RegionNormalizer.normalize(value)
                        else
                          value.to_s
                        end
 
           metadata[field_name] = serialized if serialized
         end
+
+        # Currency is top-level config, not per-plan — add from catalog
+        metadata[Billing::Metadata::FIELD_CURRENCY] = OT.billing_config.currency
 
         # Add limit fields from registry (only if value present)
         Billing::Metadata::LIMIT_FIELDS.each do |field_name, yaml_key|

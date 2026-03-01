@@ -5,18 +5,19 @@ name: Build and Publish OCI Images
 #
 # OCI image tagging strategy:
 #
-# Release tags (v1.0.0):        {version}, latest
-# Release candidates (v1.0.0-rc1): {version}, next
-# Branch push:                  {branch-name}, edge
-# Manual dispatch:              {branch-name}, dev (or version_tag if provided)
-# Scheduled (nightly):          nightly
+# Release tags (v1.0.0):          v{version}, latest
+# Release candidates (v1.0.0-rc1): v{version}, next
+# Branch push:                    {branch-name}, edge
+# Manual dispatch:                dev (or version_tag if provided)
+# Scheduled (nightly):            nightly
 #
-# This ensures stable releases are tagged as 'latest' while release candidates
-# are tagged as 'next' for early testing. Branch builds get descriptive tags.
+# IMAGE_TAG carries the v-prefixed version for release builds;
+# empty for non-release builds (only EXTRA_TAGS apply).
 #
 # Architecture:
-#   Uses composite action .github/actions/build-and-publish-oci-image
-#   to align with the pattern established in ci.yml
+#   Uses docker/bake-action with docker/bake.hcl to build all image
+#   variants in a single job. Bake resolves the dependency graph
+#   (base → dependencies → build → final) automatically.
 #
 # Debug Logging (Repository Variables):
 #   ACTIONS_STEP_DEBUG=true    Enable purple debug output for all steps
@@ -80,10 +81,9 @@ permissions:
   packages: write
 
 jobs:
-  build-and-publish-main:
-    name: Build Main Image
-    # runs-on: ubuntu-24.04
-    runs-on: self-hosted
+  build-and-publish:
+    name: Build OCI Images
+    runs-on: ubuntu-24.04
     if: github.repository == 'onetimesecret/onetimesecret'
 
     steps:
@@ -92,98 +92,147 @@ jobs:
         with:
           ref: ${{ inputs.source_branch || github.ref }}
 
-      - name: Build and publish OCI image
-        uses: ./.github/actions/build-and-publish-oci-image
+      - name: Generate commit hash
+        id: commit
+        run: |
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          echo "${SHORT_SHA}" > .commit_hash.txt
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "Commit hash recorded: ${SHORT_SHA}"
+
+      - name: Update package.json version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: ./.github/scripts/update-version.sh
+
+      - name: Compute version and tags
+        id: version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION_TAG: ${{ inputs.version_tag }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+          # Build comma-separated list of extra tags based on event context
+          EXTRA_TAGS=""
+
+          # Release tag (v1.0.0 → latest; v1.0.0-rc1 → next)
+          if [[ "$GITHUB_REF" =~ ^refs/tags/v ]]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+            if [[ "$TAG_NAME" == *"-rc"* ]]; then
+              EXTRA_TAGS="next"
+            else
+              EXTRA_TAGS="latest"
+            fi
+          fi
+
+          # Branch push → edge
+          if [[ "$EVENT_NAME" == "push" ]] && [[ ! "$GITHUB_REF" =~ ^refs/tags/ ]]; then
+            BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+            # Sanitize branch name for Docker tag (replace / with -)
+            BRANCH_TAG=$(echo "$BRANCH_NAME" | sed 's|/|-|g')
+            EXTRA_TAGS="${EXTRA_TAGS:+${EXTRA_TAGS},}${BRANCH_TAG},edge"
+          fi
+
+          # develop branch → next
+          if [[ "$GITHUB_REF" == "refs/heads/develop" ]]; then
+            EXTRA_TAGS="${EXTRA_TAGS:+${EXTRA_TAGS},}next"
+          fi
+
+          # Manual dispatch
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            if [[ -n "$INPUT_VERSION_TAG" ]]; then
+              EXTRA_TAGS="${EXTRA_TAGS:+${EXTRA_TAGS},}${INPUT_VERSION_TAG}"
+            else
+              EXTRA_TAGS="${EXTRA_TAGS:+${EXTRA_TAGS},}dev"
+            fi
+          fi
+
+          # Nightly schedule
+          if [[ "$EVENT_NAME" == "schedule" ]]; then
+            EXTRA_TAGS="${EXTRA_TAGS:+${EXTRA_TAGS},}nightly"
+          fi
+
+          # Docker image tag: v-prefixed for tag builds, empty for non-tag builds
+          if [[ "$GITHUB_REF" =~ ^refs/tags/v ]]; then
+            IMAGE_TAG="v${VERSION}"
+          else
+            IMAGE_TAG=""
+          fi
+
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "extra_tags=${EXTRA_TAGS}" >> $GITHUB_OUTPUT
+          echo "Version: ${VERSION}"
+          echo "Image tag: ${IMAGE_TAG}"
+          echo "Extra tags: ${EXTRA_TAGS}"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
         with:
-          image-suffix: ''
-          dockerfile: 'Dockerfile'
+          platforms: arm64
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+        with:
           platforms: ${{ inputs.platforms || 'linux/amd64' }}
+
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request' && (inputs.registry_target || 'public') != 'custom'
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log into GitHub Container Registry
+        if: github.event_name != 'pull_request' && (inputs.registry_target || 'public') != 'custom'
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log into custom registry
+        if: github.event_name != 'pull_request' && (inputs.registry_target || 'public') == 'custom'
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ${{ secrets.CUSTOM_REGISTRY_HOST }}
+          username: ${{ secrets.CUSTOM_REGISTRY_USERNAME }}
+          password: ${{ secrets.CUSTOM_REGISTRY_PASSWORD }}
+
+      - name: Build and push with Bake
+        uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
+          COMMIT_HASH: ${{ steps.commit.outputs.short_sha }}
+          EXTRA_TAGS: ${{ steps.version.outputs.extra_tags }}
+          PLATFORMS: ${{ inputs.platforms || 'linux/amd64' }}
+          REGISTRY_MODE: ${{ inputs.registry_target || 'public' }}
+          CUSTOM_REGISTRY: ${{ secrets.CUSTOM_REGISTRY_HOST }}
+        with:
+          files: docker/bake.hcl
+          targets: ci
           push: ${{ github.event_name != 'pull_request' }}
-          registry-mode: ${{ inputs.registry_target || 'public' }}
-          image-tags: |
-            type=ref,event=branch
-            type=ref,event=tag
-            type=raw,value=${{ inputs.version_tag }},enable=${{ inputs.version_tag != '' }}
-            type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
-            type=raw,value=edge,enable=${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
-            type=raw,value=dev,enable=${{ github.event_name == 'workflow_dispatch' && inputs.version_tag == '' }}
-            type=raw,value=nightly,enable=${{ github.event_name == 'schedule' }}
-          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          custom-registry-host: ${{ secrets.CUSTOM_REGISTRY_HOST }}
-          custom-registry-username: ${{ secrets.CUSTOM_REGISTRY_USERNAME }}
-          custom-registry-password: ${{ secrets.CUSTOM_REGISTRY_PASSWORD }}
+          set: |
+            *.args.VERSION=${{ steps.version.outputs.version }}
+            *.args.COMMIT_HASH=${{ steps.commit.outputs.short_sha }}
 
-  build-and-publish-lite:
-    name: Build Lite Image
-    # runs-on: ubuntu-24.04
-    runs-on: self-hosted
-    needs: [build-and-publish-main]
-    if: github.repository == 'onetimesecret/onetimesecret'
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-        with:
-          ref: ${{ inputs.source_branch || github.ref }}
-
-      - name: Build and publish OCI image
-        uses: ./.github/actions/build-and-publish-oci-image
-        with:
-          image-suffix: '-lite'
-          dockerfile: 'docker/variants/lite.dockerfile'
-          platforms: ${{ inputs.platforms || 'linux/amd64' }}
-          push: ${{ github.event_name != 'pull_request' }}
-          registry-mode: ${{ inputs.registry_target || 'public' }}
-          image-tags: |
-            type=ref,event=branch
-            type=ref,event=tag
-            type=raw,value=${{ inputs.version_tag }},enable=${{ inputs.version_tag != '' }}
-            type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
-            type=raw,value=edge,enable=${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
-            type=raw,value=dev,enable=${{ github.event_name == 'workflow_dispatch' && inputs.version_tag == '' }}
-            type=raw,value=nightly,enable=${{ github.event_name == 'schedule' }}
-          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          custom-registry-host: ${{ secrets.CUSTOM_REGISTRY_HOST }}
-          custom-registry-username: ${{ secrets.CUSTOM_REGISTRY_USERNAME }}
-          custom-registry-password: ${{ secrets.CUSTOM_REGISTRY_PASSWORD }}
-
-  build-and-publish-s6:
-    name: Build S6 Multi-Process Image
-    # runs-on: ubuntu-24.04
-    runs-on: self-hosted
-    needs: [build-and-publish-main]
-    if: github.repository == 'onetimesecret/onetimesecret'
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-        with:
-          ref: ${{ inputs.source_branch || github.ref }}
-
-      - name: Build and publish OCI image
-        uses: ./.github/actions/build-and-publish-oci-image
-        with:
-          image-suffix: '-s6'
-          dockerfile: 'Dockerfile'
-          build-target: 'final-s6'
-          platforms: ${{ inputs.platforms || 'linux/amd64' }}
-          push: ${{ github.event_name != 'pull_request' }}
-          registry-mode: ${{ inputs.registry_target || 'public' }}
-          image-tags: |
-            type=ref,event=branch
-            type=ref,event=tag
-            type=raw,value=${{ inputs.version_tag }},enable=${{ inputs.version_tag != '' }}
-            type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
-            type=raw,value=edge,enable=${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
-            type=raw,value=dev,enable=${{ github.event_name == 'workflow_dispatch' && inputs.version_tag == '' }}
-            type=raw,value=nightly,enable=${{ github.event_name == 'schedule' }}
-          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          custom-registry-host: ${{ secrets.CUSTOM_REGISTRY_HOST }}
-          custom-registry-username: ${{ secrets.CUSTOM_REGISTRY_USERNAME }}
-          custom-registry-password: ${{ secrets.CUSTOM_REGISTRY_PASSWORD }}
+      - name: Output build summary
+        env:
+          BUILD_PLATFORMS: ${{ inputs.platforms || 'linux/amd64' }}
+          BUILD_VERSION: ${{ steps.version.outputs.version }}
+          BUILD_IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
+          BUILD_COMMIT: ${{ steps.commit.outputs.short_sha }}
+          BUILD_EXTRA_TAGS: ${{ steps.version.outputs.extra_tags }}
+        run: |
+          {
+            echo "## OCI Image Build Complete"
+            echo ""
+            echo "**Bake file:** docker/bake.hcl"
+            echo "**Targets:** ci (main, s6, lite)"
+            echo "**Platforms:** ${BUILD_PLATFORMS}"
+            echo "**Version:** ${BUILD_VERSION}"
+            echo "**Image tag:** ${BUILD_IMAGE_TAG:-*(none — non-tag build)*}"
+            echo "**Commit:** ${BUILD_COMMIT}"
+            echo "**Extra tags:** ${BUILD_EXTRA_TAGS}"
+          } >> "$GITHUB_STEP_SUMMARY"

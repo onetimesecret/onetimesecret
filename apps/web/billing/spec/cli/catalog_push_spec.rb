@@ -37,8 +37,8 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
         'secrets_per_day' => 100,
       },
       'prices' => [
-        { 'amount' => 1999, 'currency' => 'USD', 'interval' => 'month' },
-        { 'amount' => 19990, 'currency' => 'USD', 'interval' => 'year' },
+        { 'amount' => 1999, 'currency' => 'CAD', 'interval' => 'month' },
+        { 'amount' => 19990, 'currency' => 'CAD', 'interval' => 'year' },
       ],
     }
   end
@@ -54,7 +54,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
         'plan_id' => 'identity_plus_v1',
         'tier' => 'plus',
         'tenancy' => 'shared',
-        'region' => 'global',
+        'region' => 'GLOBAL',
         'display_order' => '2',
         'show_on_plans_page' => 'true',
         'entitlements' => 'custom_branding,api_access,support_priority',
@@ -63,6 +63,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
         'limit_custom_domains' => '2',
         'limit_secret_lifetime' => '604800',
         'limit_secrets_per_day' => '100',
+        'currency' => 'cad',
         'ots_includes_plan' => '',
         'ots_is_popular' => 'false',
       },
@@ -156,40 +157,41 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
     end
 
     it 'skips incomplete price definitions missing amount' do
-      incomplete_plan = plan_def.merge('prices' => [{ 'currency' => 'USD', 'interval' => 'month' }])
+      incomplete_plan = plan_def.merge('prices' => [{ 'currency' => 'CAD', 'interval' => 'month' }])
       result = command.send(:analyze_price_changes, 'identity_plus_v1', incomplete_plan, existing_product, [])
       expect(result).to eq([])
     end
 
-    it 'skips incomplete price definitions missing currency' do
-      incomplete_plan = plan_def.merge('prices' => [{ 'amount' => 1999, 'interval' => 'month' }])
-      result = command.send(:analyze_price_changes, 'identity_plus_v1', incomplete_plan, existing_product, [])
-      expect(result).to eq([])
+    it 'inherits catalog currency when price omits currency' do
+      no_currency_plan = plan_def.merge('prices' => [{ 'amount' => 1999, 'interval' => 'month' }])
+      result = command.send(:analyze_price_changes, 'identity_plus_v1', no_currency_plan, existing_product, [], 'cad')
+      expect(result.length).to eq(1)
+      expect(result.first[:currency]).to eq('cad')
     end
 
     it 'skips incomplete price definitions missing interval' do
-      incomplete_plan = plan_def.merge('prices' => [{ 'amount' => 1999, 'currency' => 'USD' }])
+      incomplete_plan = plan_def.merge('prices' => [{ 'amount' => 1999, 'currency' => 'CAD' }])
       result = command.send(:analyze_price_changes, 'identity_plus_v1', incomplete_plan, existing_product, [])
       expect(result).to eq([])
     end
 
     it 'returns empty when matching price already exists' do
-      existing_prices = [mock_price(amount: 1999, currency: 'usd', interval: 'month')]
-      single_price_plan = plan_def.merge('prices' => [{ 'amount' => 1999, 'currency' => 'USD', 'interval' => 'month' }])
+      existing_prices = [mock_price(amount: 1999, currency: 'cad', interval: 'month')]
+      single_price_plan = plan_def.merge('prices' => [{ 'amount' => 1999, 'currency' => 'CAD', 'interval' => 'month' }])
 
       result = command.send(:analyze_price_changes, 'identity_plus_v1', single_price_plan, existing_product, existing_prices)
       expect(result).to eq([])
     end
 
     it 'returns new price when no match found' do
-      existing_prices = [mock_price(amount: 999, currency: 'usd', interval: 'month')]
-      single_price_plan = plan_def.merge('prices' => [{ 'amount' => 1999, 'currency' => 'USD', 'interval' => 'month' }])
+      existing_prices = [mock_price(amount: 999, currency: 'cad', interval: 'month')]
+      single_price_plan = plan_def.merge('prices' => [{ 'amount' => 1999, 'currency' => 'CAD', 'interval' => 'month' }])
 
       result = command.send(:analyze_price_changes, 'identity_plus_v1', single_price_plan, existing_product, existing_prices)
 
       expect(result.length).to eq(1)
       expect(result.first[:amount]).to eq(1999)
-      expect(result.first[:currency]).to eq('USD')
+      expect(result.first[:currency]).to eq('cad')  # Resolved to lowercase
       expect(result.first[:interval]).to eq('month')
       expect(result.first[:plan_id]).to eq('identity_plus_v1')
     end
@@ -214,7 +216,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
       expect(result['plan_id']).to eq('identity_plus_v1')
       expect(result['tier']).to eq('plus')
       expect(result['tenancy']).to eq('shared')
-      expect(result['region']).to eq('global')
+      expect(result['region']).to eq('GLOBAL')
     end
 
     it 'joins entitlements array with comma' do
@@ -398,8 +400,8 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
         allow(command).to receive(:fetch_existing_products).and_return({ 'identity_plus_v1' => mock_product })
         allow(command).to receive(:fetch_existing_prices).and_return({
           'identity_plus_v1' => [
-            mock_price(amount: 1999, currency: 'usd', interval: 'month'),
-            mock_price(amount: 19990, currency: 'usd', interval: 'year'),
+            mock_price(amount: 1999, currency: 'cad', interval: 'month'),
+            mock_price(amount: 19990, currency: 'cad', interval: 'year'),
           ],
         })
       end

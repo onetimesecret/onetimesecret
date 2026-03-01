@@ -39,13 +39,13 @@ describe('Currency migration service methods', () => {
       mockPost.mockResolvedValueOnce(mockResponse);
 
       const result = await BillingService.migrateCurrency('org_abc', {
-        new_price_id: 'price_usd_123',
+        new_price_id: 'price_cad_123',
         mode: 'graceful',
       });
 
       expect(mockPost).toHaveBeenCalledWith(
         '/billing/api/org/org_abc/migrate-currency',
-        { new_price_id: 'price_usd_123', mode: 'graceful' }
+        { new_price_id: 'price_cad_123', mode: 'graceful' }
       );
       expect(result.success).toBe(true);
       expect(result.migration.mode).toBe('graceful');
@@ -102,13 +102,13 @@ describe('Currency migration service methods', () => {
         error: 'currency_conflict',
         message: 'A currency change is required.',
         current_currency: 'eur',
-        requested_currency: 'usd',
+        requested_currency: 'cad',
         current_plan_name: 'Identity Plus',
         current_period_end: 1704067200,
         new_plan_name: 'Team Plus',
         new_plan_amount: 9900,
         new_plan_interval: 'month',
-        new_price_id: 'price_usd_456',
+        new_price_id: 'price_cad_456',
       };
 
       // Simulate axios-shaped error with response property
@@ -123,8 +123,8 @@ describe('Currency migration service methods', () => {
 
       expect(result).not.toBeNull();
       expect(result?.current_currency).toBe('eur');
-      expect(result?.requested_currency).toBe('usd');
-      expect(result?.new_price_id).toBe('price_usd_456');
+      expect(result?.requested_currency).toBe('cad');
+      expect(result?.new_price_id).toBe('price_cad_456');
     });
 
     it('returns null for non-409 errors', () => {

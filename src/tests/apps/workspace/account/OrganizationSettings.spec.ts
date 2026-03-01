@@ -62,7 +62,7 @@ vi.mock('@/services/billing.service', () => ({
     getOverview: vi.fn().mockResolvedValue({
       subscription: null,
       plan: null,
-      usage: { teams: 0 },
+      usage: { members: 0, domains: 0 },
     }),
   },
 }));
