@@ -22,7 +22,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
   describe '.currency_conflict?' do
     it 'returns true for Stripe currency conflict error' do
       error = Stripe::InvalidRequestError.new(
-        'You cannot combine currencies on a single customer. This customer has had a subscription or payment in eur, but you are trying to pay in usd.',
+        'You cannot combine currencies on a single customer. This customer has had a subscription or payment in eur, but you are trying to pay in cad.',
         'currency'
       )
       expect(described_class.currency_conflict?(error)).to be true
@@ -30,7 +30,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
     it 'returns true for payment variant wording' do
       error = Stripe::InvalidRequestError.new(
-        'You cannot combine currencies on a single customer. This customer has had a payment in gbp, but you are trying to charge in usd.',
+        'You cannot combine currencies on a single customer. This customer has had a payment in gbp, but you are trying to charge in cad.',
         'currency'
       )
       expect(described_class.currency_conflict?(error)).to be true
@@ -38,7 +38,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
     it 'returns true for new format (active objects, currency at end)' do
       error = Stripe::InvalidRequestError.new(
-        'You cannot combine currencies on a single customer. This customer has an active subscription, subscription schedule, discount, quote, invoice item or active subscription mode checkout session with currency usd.',
+        'You cannot combine currencies on a single customer. This customer has an active subscription, subscription schedule, discount, quote, invoice item or active subscription mode checkout session with currency cad.',
         'currency'
       )
       expect(described_class.currency_conflict?(error)).to be true
@@ -61,7 +61,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
   describe '.parse_currency_conflict' do
     it 'extracts currency pair from error message' do
       error = Stripe::InvalidRequestError.new(
-        'You cannot combine currencies on a single customer. This customer has had a subscription or payment in eur, but you are trying to pay in usd.',
+        'You cannot combine currencies on a single customer. This customer has had a subscription or payment in eur, but you are trying to pay in cad.',
         'currency'
       )
 
@@ -69,20 +69,20 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
       expect(result).to eq(
         existing_currency: 'eur',
-        requested_currency: 'usd'
+        requested_currency: 'cad'
       )
     end
 
     it 'handles uppercase currencies in message' do
       error = Stripe::InvalidRequestError.new(
-        'This customer has had a subscription or payment in EUR, but you are trying to pay in USD.',
+        'This customer has had a subscription or payment in EUR, but you are trying to pay in CAD.',
         'currency'
       )
 
       result = described_class.parse_currency_conflict(error)
 
       expect(result[:existing_currency]).to eq('eur')
-      expect(result[:requested_currency]).to eq('usd')
+      expect(result[:requested_currency]).to eq('cad')
     end
 
     it 'extracts existing currency from new format and returns nil requested without hint' do
@@ -103,10 +103,10 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         'currency'
       )
 
-      result = described_class.parse_currency_conflict(error, requested_currency_hint: 'USD')
+      result = described_class.parse_currency_conflict(error, requested_currency_hint: 'CAD')
 
       expect(result[:existing_currency]).to eq('eur')
-      expect(result[:requested_currency]).to eq('usd')
+      expect(result[:requested_currency]).to eq('cad')
     end
 
     it 'returns nil for non-matching error' do
@@ -133,7 +133,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         balance: 0,
       })
     end
-    let(:target_price_id) { 'price_usd_456' }
+    let(:target_price_id) { 'price_cad_456' }
     let(:target_plan) { double(name: 'Plus Monthly (USD)', amount: '2900', interval: 'month') }
 
     let(:current_plan) { double(name: 'Plus Monthly (EUR)') }
@@ -149,7 +149,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         Stripe::Subscription.construct_from({
           id: 'sub_123', object: 'subscription', customer: customer_id,
           status: 'active', currency: 'eur',
-          cancel_at_period_end: false, discount: nil,
+          cancel_at_period_end: false, discounts: [],
           items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
           metadata: {},
         })
@@ -162,24 +162,24 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       it 'returns can_migrate true with no blockers' do
-        result = described_class.assess_migration(org, 'eur', 'usd', target_price_id)
+        result = described_class.assess_migration(org, 'eur', 'cad', target_price_id)
 
         expect(result[:can_migrate]).to be true
         expect(result[:blockers]).to be_empty
         expect(result[:current_plan]).not_to be_nil
         expect(result[:existing_currency]).to eq('eur')
-        expect(result[:requested_currency]).to eq('usd')
+        expect(result[:requested_currency]).to eq('cad')
       end
 
       it 'builds current_plan from subscription' do
-        result = described_class.assess_migration(org, 'eur', 'usd', target_price_id)
+        result = described_class.assess_migration(org, 'eur', 'cad', target_price_id)
 
         expect(result[:current_plan][:current_period_end]).to be_a(Integer)
         expect(result[:current_plan][:cancel_at_period_end]).to be false
       end
 
       it 'builds requested_plan from catalog' do
-        result = described_class.assess_migration(org, 'eur', 'usd', target_price_id)
+        result = described_class.assess_migration(org, 'eur', 'cad', target_price_id)
 
         expect(result[:requested_plan][:name]).to eq('Plus Monthly (USD)')
         expect(result[:requested_plan][:price_id]).to eq(target_price_id)
@@ -191,7 +191,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         Stripe::Subscription.construct_from({
           id: 'sub_123', object: 'subscription', customer: customer_id,
           status: 'past_due', currency: 'eur',
-          cancel_at_period_end: false, discount: nil,
+          cancel_at_period_end: false, discounts: [],
           items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
           metadata: {},
         })
@@ -204,7 +204,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       it 'blocks migration' do
-        result = described_class.assess_migration(org, 'eur', 'usd', target_price_id)
+        result = described_class.assess_migration(org, 'eur', 'cad', target_price_id)
 
         expect(result[:can_migrate]).to be false
         expect(result[:blockers]).to include(/past_due/)
@@ -216,7 +216,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         Stripe::Subscription.construct_from({
           id: 'sub_123', object: 'subscription', customer: customer_id,
           status: 'active', currency: 'eur',
-          cancel_at_period_end: false, discount: nil,
+          cancel_at_period_end: false, discounts: [],
           items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
           metadata: {},
         })
@@ -230,7 +230,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       it 'warns about credit balance' do
-        result = described_class.assess_migration(org, 'eur', 'usd', target_price_id)
+        result = described_class.assess_migration(org, 'eur', 'cad', target_price_id)
 
         expect(result[:warnings][:has_credit_balance]).to be true
         expect(result[:warnings][:credit_balance_amount]).to eq(-5000)
@@ -242,7 +242,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         Stripe::Subscription.construct_from({
           id: 'sub_123', object: 'subscription', customer: customer_id,
           status: 'active', currency: 'eur',
-          cancel_at_period_end: false, discount: nil,
+          cancel_at_period_end: false, discounts: [],
           items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
           metadata: {},
         })
@@ -260,7 +260,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       it 'warns about pending items' do
-        result = described_class.assess_migration(org, 'eur', 'usd', target_price_id)
+        result = described_class.assess_migration(org, 'eur', 'cad', target_price_id)
 
         expect(result[:warnings][:has_pending_invoice_items]).to be true
       end
@@ -271,7 +271,8 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
         Stripe::Subscription.construct_from({
           id: 'sub_123', object: 'subscription', customer: customer_id,
           status: 'active', currency: 'eur',
-          cancel_at_period_end: false, discount: { coupon: { id: 'coupon_10_eur', amount_off: 1000, currency: 'eur', name: '10 EUR off' } },
+          cancel_at_period_end: false,
+          discounts: [{ coupon: { id: 'coupon_10_eur', amount_off: 1000, currency: 'eur', name: '10 EUR off' } }],
           items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
           metadata: {},
         })
@@ -284,9 +285,86 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       end
 
       it 'warns about incompatible coupon' do
-        result = described_class.assess_migration(org, 'eur', 'usd', target_price_id)
+        result = described_class.assess_migration(org, 'eur', 'cad', target_price_id)
 
         expect(result[:warnings][:has_incompatible_coupons]).to be true
+      end
+    end
+
+    # Regression: Stripe API returns `discounts` (array) not `discount` (singular).
+    # Prior to fix, accessing sub.discount on newer API versions raised NoMethodError.
+    context 'with discounts array containing amount-off coupon (Stripe API regression)' do
+      let(:subscription) do
+        Stripe::Subscription.construct_from({
+          id: 'sub_123', object: 'subscription', customer: customer_id,
+          status: 'active', currency: 'eur',
+          cancel_at_period_end: false,
+          discounts: [{ coupon: { id: 'coupon_10_eur', amount_off: 1000, currency: 'eur', name: '10 EUR off' } }],
+          items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
+          metadata: {},
+        })
+      end
+
+      before do
+        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
+        allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
+      end
+
+      it 'detects incompatible coupon from discounts array' do
+        result = described_class.assess_migration(org, 'eur', 'cad', target_price_id)
+
+        expect(result[:warnings][:has_incompatible_coupons]).to be true
+      end
+    end
+
+    context 'with empty discounts array (Stripe API regression)' do
+      let(:subscription) do
+        Stripe::Subscription.construct_from({
+          id: 'sub_123', object: 'subscription', customer: customer_id,
+          status: 'active', currency: 'eur',
+          cancel_at_period_end: false,
+          discounts: [],
+          items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
+          metadata: {},
+        })
+      end
+
+      before do
+        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
+        allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
+      end
+
+      it 'does not warn about incompatible coupons' do
+        result = described_class.assess_migration(org, 'eur', 'cad', target_price_id)
+
+        expect(result[:warnings][:has_incompatible_coupons]).to be false
+      end
+    end
+
+    context 'with percentage coupon in discounts array (Stripe API regression)' do
+      let(:subscription) do
+        Stripe::Subscription.construct_from({
+          id: 'sub_123', object: 'subscription', customer: customer_id,
+          status: 'active', currency: 'eur',
+          cancel_at_period_end: false,
+          discounts: [{ coupon: { id: 'coupon_20pct', percent_off: 20, amount_off: nil, currency: nil, name: '20% off' } }],
+          items: { data: [{ price: { id: 'price_eur', unit_amount: 2900, recurring: { interval: 'month' } }, current_period_end: (Time.now + 30 * 86400).to_i }] },
+          metadata: {},
+        })
+      end
+
+      before do
+        allow(Stripe::Subscription).to receive(:retrieve).with('sub_123').and_return(subscription)
+        allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: []))
+        allow(Stripe::InvoiceItem).to receive(:list).and_return(double(data: []))
+      end
+
+      it 'does not warn about percentage coupons' do
+        result = described_class.assess_migration(org, 'eur', 'cad', target_price_id)
+
+        expect(result[:warnings][:has_incompatible_coupons]).to be false
       end
     end
   end
@@ -326,13 +404,13 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
     end
 
     it 'cancels at period end and stores migration intent' do
-      result = described_class.execute_graceful_migration(org, 'price_usd_456')
+      result = described_class.execute_graceful_migration(org, 'price_cad_456')
 
       expect(Stripe::Subscription).to have_received(:update).with(
         'sub_123',
         hash_including(cancel_at_period_end: true)
       )
-      expect(org).to have_received(:set_currency_migration_intent!).with('price_usd_456', period_end)
+      expect(org).to have_received(:set_currency_migration_intent!).with('price_cad_456', period_end)
       expect(result[:success]).to be true
       expect(result[:migration][:mode]).to eq('graceful')
       expect(result[:migration][:cancel_at]).to eq(period_end)
@@ -343,7 +421,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       allow(Stripe::Checkout::Session).to receive(:list).and_return(double(data: [orphaned]))
       allow(Stripe::Checkout::Session).to receive(:expire)
 
-      described_class.execute_graceful_migration(org, 'price_usd_456')
+      described_class.execute_graceful_migration(org, 'price_cad_456')
 
       expect(Stripe::Checkout::Session).to have_received(:expire).with('cs_orphaned')
     end
@@ -401,7 +479,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
     it 'cancels subscription and creates new checkout' do
       result = described_class.execute_immediate_migration(
-        org, 'price_usd_456',
+        org, 'price_cad_456',
         success_url: 'https://example.com/success',
         cancel_url: 'https://example.com/cancel',
       )
@@ -419,7 +497,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
 
     it 'clears migration intent after completion' do
       described_class.execute_immediate_migration(
-        org, 'price_usd_456',
+        org, 'price_cad_456',
         success_url: 'https://example.com/success',
         cancel_url: 'https://example.com/cancel',
       )
@@ -431,7 +509,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       allow(org).to receive(:stripe_subscription_id).and_return(nil)
 
       result = described_class.execute_immediate_migration(
-        org, 'price_usd_456',
+        org, 'price_cad_456',
         success_url: 'https://example.com/success',
         cancel_url: 'https://example.com/cancel',
       )
@@ -447,7 +525,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       allow(Stripe::Refund).to receive(:create).and_return(double(id: 're_123'))
 
       result = described_class.execute_immediate_migration(
-        org, 'price_usd_456',
+        org, 'price_cad_456',
         success_url: 'https://example.com/success',
         cancel_url: 'https://example.com/cancel',
       )
@@ -476,7 +554,7 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       allow(OT).to receive(:ld)
 
       result = described_class.execute_immediate_migration(
-        org, 'price_usd_456',
+        org, 'price_cad_456',
         success_url: 'https://example.com/success',
         cancel_url: 'https://example.com/cancel',
       )

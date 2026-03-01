@@ -215,10 +215,19 @@ module Billing
               currencies[:requested_currency],
               plan.stripe_price_id,
             )
-          rescue Stripe::StripeError => assess_ex
+          rescue StandardError => assess_ex
             billing_logger.error 'Failed to assess migration during currency conflict',
               { exception: assess_ex, extid: req.params['extid'] }
-            assessment = { current_plan: nil, requested_plan: nil, warnings: {} }
+            assessment = {
+              current_plan: nil,
+              requested_plan: nil,
+              warnings: {
+                has_credit_balance: false,
+                credit_balance_amount: 0,
+                has_pending_invoice_items: false,
+                has_incompatible_coupons: false,
+              },
+            }
           end
 
           json_response(
@@ -341,7 +350,7 @@ module Billing
               name: plan.name,
               tier: plan.tier,
               interval: plan.interval,
-              amount: plan.amount,
+              amount: plan.amount.to_i,
               currency: plan.currency,
               region: plan.region,
               features: plan.features.to_a,

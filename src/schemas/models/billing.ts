@@ -34,7 +34,11 @@ export type SubscriptionStatus = z.infer<typeof subscriptionStatusSchema>;
 /**
  * Invoice status schema
  */
-export const invoiceStatusSchema = z.enum(['paid', 'pending', 'failed']);
+export const invoiceStatusSchema = z.enum([
+  'draft', 'open', 'paid', 'uncollectible', 'void',
+  // Legacy/mapped statuses used in UI
+  'pending', 'failed',
+]);
 
 export type InvoiceStatus = z.infer<typeof invoiceStatusSchema>;
 

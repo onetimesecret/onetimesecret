@@ -34,7 +34,7 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :code_smell, :inte
 
     price = stripe_client.create(Stripe::Price, {
       unit_amount: 5000,
-      currency: 'usd',
+      currency: 'cad',
       product: product.id,
     }
     )
@@ -117,7 +117,7 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :code_smell, :inte
 
           price = stripe_client.create(Stripe::Price, {
             unit_amount: 2000,
-            currency: 'usd',
+            currency: 'cad',
             recurring: { interval: 'month' },
             product: product.id,
           }
@@ -159,7 +159,7 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :code_smell, :inte
 
           # Verify table headers and currency (IDs are truncated in display)
           expect(output).to match(/ID.*CUSTOMER.*AMOUNT.*STATUS.*CREATED/)
-          expect(output).to match(/USD/)
+          expect(output).to match(/CAD/)
           expect(output).to match(/Total:/)
 
           # Cleanup
@@ -317,7 +317,7 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :code_smell, :inte
           end
 
           # Should display formatted currency amount
-          expect(output).to match(/USD \d+\.\d{2}/)
+          expect(output).to match(/CAD \d+\.\d{2}/)
 
           # Cleanup
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)

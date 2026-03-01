@@ -9,8 +9,8 @@
 
 # Domain Management
 GET    /dns-widget/token                  DomainsAPI::Logic::Domains::GetDnsWidgetToken response=json auth=sessionauth,basicauth
-POST   /add                               DomainsAPI::Logic::Domains::AddDomain response=json auth=sessionauth,basicauth
-POST   /:extid/remove                     DomainsAPI::Logic::Domains::RemoveDomain response=json auth=sessionauth,basicauth
+POST   /add                               DomainsAPI::Logic::Domains::AddDomain response=json auth=sessionauth
+POST   /:extid/remove                     DomainsAPI::Logic::Domains::RemoveDomain response=json auth=sessionauth
 GET    /:extid                            DomainsAPI::Logic::Domains::GetDomain response=json auth=sessionauth,basicauth
 POST   /:extid/verify                     DomainsAPI::Logic::Domains::VerifyDomain response=json auth=sessionauth,basicauth
 PUT    /:extid/brand                      DomainsAPI::Logic::Domains::UpdateDomainBrand response=json auth=sessionauth,basicauth

@@ -267,7 +267,7 @@ Create a new recurring price for a product.
 
 **Options:**
 - `--amount INTEGER` - Amount in cents (e.g., 900 for $9.00)
-- `--currency STRING` - Currency code (default: usd)
+- `--currency STRING` - Currency code (default: cad)
 - `--interval STRING` - Billing interval: month, year, week, day (default: month)
 - `--interval-count INTEGER` - Number of intervals (default: 1)
 
@@ -1035,7 +1035,7 @@ Customer Details:
   Email: user@example.com
   Name: John Doe
   Created: 2024-11-19 14:00:00 UTC
-  Currency: usd
+  Currency: cad
   Balance: USD 0.00
 
 Payment Methods:

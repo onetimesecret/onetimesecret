@@ -43,7 +43,13 @@ Pull requests target `main` for releases, `develop` for ongoing work. Branch fro
 ### Frontend Structure (Interaction Modes Architecture)
 - **`src/apps/`**: Domain-specific Vue applications
   - `src/apps/secret/`: Transactional flows (conceal, reveal, support)
+    - **Homepage form** (unauthenticated + authenticated on `/`): `src/apps/secret/conceal/HomepageContent.vue` → `SecretForm.vue`
+    - **Branded homepage**: `src/apps/secret/conceal/BrandedHomepage.vue` → `SecretForm.vue`
+    - Form component: `src/apps/secret/components/form/SecretForm.vue` (inline passphrase, TTL, recipient fields)
   - `src/apps/workspace/`: Management (dashboard, account, billing, teams, domains)
+    - **Dashboard form** (authenticated users at `/dashboard`): `DashboardMain` → `DashboardIndex` → `WorkspaceSecretForm.vue`
+    - Dashboard form: `src/apps/workspace/components/forms/WorkspaceSecretForm.vue` — **distinct from SecretForm**; privacy options (TTL, passphrase) are controlled externally via `PrivacyOptionsBar` chips
+    - `DashboardBasic.vue` / `DashboardEmpty.vue` use `SecretForm` but are **not in the active rendering path** (DashboardIndex is used instead)
   - `src/apps/session/`: Authentication (login, signup, MFA)
   - `src/apps/colonel/`: Admin (colonel)
 - **`src/shared/`**: Cross-app shared resources

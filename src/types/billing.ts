@@ -73,6 +73,7 @@ export function getLegacyPlanInfo(
  * Display helpers
  */
 import type { InvoiceStatus, PlanType, SubscriptionStatus } from '@/schemas/models/billing';
+import type { ComposerTranslation } from 'vue-i18n';
 
 export function getPlanLabel(planType: PlanType | string): string {
   const labels: Record<string, string> = {
@@ -139,27 +140,22 @@ export function getPlanDisplayName(planId: string): string {
   return baseName || planId;
 }
 
-export function getSubscriptionStatusLabel(status: SubscriptionStatus): string {
-  const labels: Record<SubscriptionStatus, string> = {
-    active: 'Active',
-    inactive: 'Inactive',
-    past_due: 'Past Due',
-    canceled: 'Canceled',
-  };
-  return labels[status];
+export function getSubscriptionStatusLabel(
+  status: SubscriptionStatus,
+  t: ComposerTranslation,
+): string {
+  return t(`web.billing.subscription.${status}`);
 }
 
-export function getInvoiceStatusLabel(status: InvoiceStatus): string {
-  const labels: Record<InvoiceStatus, string> = {
-    paid: 'Paid',
-    pending: 'Pending',
-    failed: 'Failed',
-  };
-  return labels[status];
+export function getInvoiceStatusLabel(
+  status: InvoiceStatus,
+  t: ComposerTranslation,
+): string {
+  return t(`web.billing.invoices.${status}`);
 }
 
 export function formatCurrency(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat(undefined, {
     style: 'currency',
     currency,
   }).format(amount / 100); // Assuming amount is in cents

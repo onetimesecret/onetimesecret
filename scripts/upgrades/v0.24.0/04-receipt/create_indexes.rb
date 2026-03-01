@@ -219,7 +219,8 @@ class ReceiptIndexCreator
   def generate_index_commands(objid, fields, created)
     commands = []
 
-    # 1. Instance Index: receipt:instances
+    # 1. Instance Index: receipt:instances (raw identifier for Familia SortedSet
+    #    compatibility — not JSON-encoded unlike HashKey values)
     commands << {
       command: 'ZADD',
       key: 'receipt:instances',
@@ -227,7 +228,7 @@ class ReceiptIndexCreator
     }
     @stats[:instance_indexes] += 1
 
-    # 2. Expiration Timeline: receipt:expiration_timeline
+    # 2. Expiration Timeline: receipt:expiration_timeline (raw identifier)
     secret_ttl = fields['secret_ttl']&.to_i
     if secret_ttl && secret_ttl > 0 && created
       expires_at                   = created + secret_ttl
@@ -251,7 +252,8 @@ class ReceiptIndexCreator
     custid   = fields['custid']
     owner_id = resolve_owner_id(custid)
 
-    # Customer receipts (if not anonymous)
+    # Customer receipts (if not anonymous).
+    # Raw identifiers for Familia SortedSet/Set compatibility (not JSON-encoded).
     if owner_id && owner_id != 'anon'
       commands << {
         command: 'ZADD',
@@ -271,6 +273,7 @@ class ReceiptIndexCreator
         @stats[:org_indexes] += 1
 
         # Reverse participation index for Familia v2 destroy! cleanup
+        # (raw key reference for Familia Set compatibility)
         commands << {
           command: 'SADD',
           key: "receipt:#{objid}:participations",
@@ -282,7 +285,8 @@ class ReceiptIndexCreator
       @stats[:anonymous_receipts] += 1
     end
 
-    # 5. Domain participation (if share_domain set)
+    # 5. Domain participation (if share_domain set).
+    #    Raw identifiers for Familia SortedSet/Set compatibility (not JSON-encoded).
     share_domain = fields['share_domain']
     if share_domain && !share_domain.empty?
       domain_id = resolve_domain_id(share_domain)
@@ -295,6 +299,7 @@ class ReceiptIndexCreator
         @stats[:domain_indexes] += 1
 
         # Reverse participation index for Familia v2 destroy! cleanup
+        # (raw key reference for Familia Set compatibility)
         commands << {
           command: 'SADD',
           key: "receipt:#{objid}:participations",

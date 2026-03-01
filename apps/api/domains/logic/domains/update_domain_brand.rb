@@ -32,7 +32,9 @@ module DomainsAPI::Logic
 
         validate_brand_values
         validate_homepage_entitlement
-        validate_privacy_defaults_entitlement
+
+        # Disabled while we figure out whether we want this entitlement at all
+        # validate_privacy_defaults_entitlement
       end
 
       def process

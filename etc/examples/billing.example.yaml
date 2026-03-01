@@ -59,6 +59,7 @@ stripe_api_version: "2025-12-15.clover"
 # match_fields: Reserved for future composite-key matching. Not read at runtime;
 #   regional isolation is driven solely by the region field above.
 region: <%= ENV['JURISDICTION'] || nil %>
+currency: <%= ENV['BILLING_CURRENCY'] || 'cad' %>
 match_fields:
   - plan_id
   - region
@@ -194,6 +195,7 @@ plans:
       - view_receipt
       - custom_domains
       - custom_branding
+      - custom_privacy_defaults
       - homepage_secrets
       - api_access
 
@@ -228,6 +230,7 @@ plans:
       - view_receipt
       - api_access
       - custom_domains
+      - custom_privacy_defaults
       - custom_branding
       - homepage_secrets
 
@@ -247,11 +250,9 @@ plans:
 
     prices:
       - interval: month
-        amount: 900   # $9.00 USD
-        currency: usd
+        amount: 900   # $9.00
       - interval: year
-        amount: 9000  # $90.00 USD
-        currency: usd
+        amount: 9000  # $90.00
 
   # # Team Plan - Uncomment to enable team subscriptions
   # team_plus_v1:
@@ -289,11 +290,9 @@ plans:
   #
   #   prices:
   #     - interval: month
-  #       amount: 8500  # $85.00 USD
-  #       currency: usd
+  #       amount: 8500  # $85.00
   #     - interval: year
-  #       amount: 85000 # $850.00 USD
-  #       currency: usd
+  #       amount: 85000 # $850.00
 
 # Metadata Schema for Stripe Products
 # Documents required and optional fields that must be present in Stripe product metadata.

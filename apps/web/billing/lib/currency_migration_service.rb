@@ -29,13 +29,13 @@ module Billing
     #
     # Old format (past payment/subscription):
     #   "...This customer has had a subscription or payment in eur, but you are
-    #    trying to pay in usd."
+    #    trying to pay in cad."
     #   → captures existing in group 1, requested in group 2
     #
     # New format (active objects — checkout sessions, subscriptions, etc.):
     #   "You cannot combine currencies on a single customer. This customer has
     #    an active subscription, subscription schedule, discount, quote, invoice
-    #    item or active subscription mode checkout session with currency usd."
+    #    item or active subscription mode checkout session with currency cad."
     #   → captures existing in group 3; requested currency is NOT in the message
     #     and must be supplied via requested_currency_hint in parse_currency_conflict
     CURRENCY_CONFLICT_PATTERN = /
@@ -67,7 +67,7 @@ module Billing
     # @param error [Stripe::InvalidRequestError] The Stripe error
     # @param requested_currency_hint [String, nil] Fallback for the requested currency
     #   when the new Stripe error format omits it (pass plan.currency from the call site)
-    # @return [Hash, nil] { existing_currency: 'eur', requested_currency: 'usd' } or nil
+    # @return [Hash, nil] { existing_currency: 'eur', requested_currency: 'cad' } or nil
     def parse_currency_conflict(error, requested_currency_hint: nil)
       match = error.message.match(CURRENCY_CONFLICT_PATTERN)
       return nil unless match
@@ -125,7 +125,7 @@ module Billing
     #
     # @param org [Onetime::Organization] Organization
     # @param existing_currency [String] Current currency (e.g., 'eur')
-    # @param requested_currency [String] Target currency (e.g., 'usd')
+    # @param requested_currency [String] Target currency (e.g., 'cad')
     # @param requested_price_id [String] Stripe price ID for the target plan
     # @return [Hash] Assessment for frontend display
     def assess_migration(org, existing_currency, requested_currency, requested_price_id)
@@ -308,7 +308,7 @@ module Billing
           mode: 'immediate',
           checkout_url: checkout_session.url,
           refund_amount: prorated_credit,
-          refund_formatted: format_amount(prorated_credit, subscription&.currency || 'usd'),
+          refund_formatted: format_amount(prorated_credit, subscription&.currency || 'cad'),
         },
       }
     end
@@ -354,7 +354,7 @@ module Billing
       if subscription_id
         begin
           sub      = Stripe::Subscription.retrieve(subscription_id)
-          discount = sub.discount
+          discount = sub.discounts&.first
           if discount&.coupon&.amount_off && discount.coupon.currency == existing_currency
             warnings[:has_incompatible_coupons] = true
           end
@@ -569,11 +569,10 @@ module Billing
     # @return [String] Currency symbol
     def currency_symbol(currency)
       case currency.to_s.downcase
-      when 'usd' then '$'
+      when 'cad' then 'CA$'
       when 'eur' then "\u20AC"
       when 'gbp' then "\u00A3"
       when 'jpy' then "\u00A5"
-      when 'cad' then 'CA$'
       when 'aud' then 'A$'
       when 'chf' then 'CHF '
       else "#{currency.to_s.upcase} "

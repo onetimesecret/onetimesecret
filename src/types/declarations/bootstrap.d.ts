@@ -154,7 +154,6 @@ export interface BootstrapPayload {
   /** Documentation site host from server config (e.g. 'docs.onetimesecret.com') */
   docs_host?: string;
 
-
   stripe_customer?: Stripe.Customer;
   stripe_subscriptions?: Stripe.Subscriptions[];
   authentication: AuthenticationSettings; // TODO: May need to offer default values

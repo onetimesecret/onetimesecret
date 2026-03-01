@@ -68,19 +68,18 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm exec playwright install --with-deps
 
-      - name: Build OCI image
-        run: |
-          echo "🔨 Building production OCI image..."
-          docker build \
-            --tag ${{ env.OCI_IMAGE_NAME }} \
-            --build-arg VERSION=ci-test \
-            .
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
 
-          if [ "${{ env.DEBUG_ENABLED }}" == "true" ]; then
-            echo "📊 OCI image info:"
-            docker images ${{ env.OCI_IMAGE_NAME }}
-            docker history ${{ env.OCI_IMAGE_NAME }} --no-trunc
-          fi
+      - name: Build OCI image
+        uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
+        with:
+          files: docker/bake.hcl
+          targets: main
+          load: true
+          set: |
+            main.tags=${{ env.OCI_IMAGE_NAME }}
+            main.args.VERSION=ci-test
 
       - name: Start Redis service
         run: |

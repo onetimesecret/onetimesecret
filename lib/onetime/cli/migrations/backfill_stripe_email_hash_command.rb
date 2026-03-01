@@ -77,7 +77,7 @@ module Onetime
       def verify_stripe_configured!
         return true if defined?(Stripe) && !Stripe.api_key.to_s.empty?
 
-        puts "\nStripe API not configured. Please set STRIPE_SECRET_KEY."
+        puts "\nStripe API not configured. Please set STRIPE_API_KEY."
         false
       end
 
@@ -277,7 +277,7 @@ module Onetime
             - Skips customers that already have email_hash metadata
             - Skips organizations without billing_email
             - Rate limited to ~10 requests/second for safety
-            - Requires STRIPE_SECRET_KEY and FEDERATION_SECRET
+            - Requires STRIPE_API_KEY and FEDERATION_SECRET
 
         USAGE
         true

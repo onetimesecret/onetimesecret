@@ -241,11 +241,16 @@ module Onetime
         return unless region
 
         currency            = price.currency
+        # NOTE: This table maps Stripe metadata region values to expected
+        # currencies for validation. There is no "global" region in the app's
+        # own model (see RegionNormalizer), but legacy Stripe products may
+        # still carry 'global' in their metadata — we validate those too.
         expected_currencies = {
           'EU' => %w[eur],
           'CA' => %w[cad],
-          'US' => %w[usd],
-          'global' => %w[usd eur],
+          'US' => %w[cad],
+          'NZ' => %w[nzd],
+          'global' => %w[cad eur],
         }
 
         expected = expected_currencies[region]
@@ -257,6 +262,18 @@ module Onetime
           message: "Currency '#{currency}' unusual for region '#{region}'",
           details: "Expected: #{expected.join(' or ')}",
           resolution: ['Verify currency matches target market'],
+        }
+
+        # Also validate product-level currency metadata if present
+        product_currency = product.metadata[Billing::Metadata::FIELD_CURRENCY]
+        return unless product_currency && !expected.include?(product_currency)
+
+        warnings << {
+          price_id: price.id,
+          type: :product_currency_region_mismatch,
+          message: "Product metadata currency '#{product_currency}' unusual for region '#{region}'",
+          details: "Expected: #{expected.join(' or ')}",
+          resolution: ['Update product metadata currency or verify region'],
         }
       end
 

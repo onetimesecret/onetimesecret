@@ -123,7 +123,8 @@ module V2::Logic
               owner.verified_by = 'email'  # Track email verification method
               owner.save
               owner.reset_secret.delete!
-              sess.clear
+              # Skip for stateless auth (BasicAuth provides empty session)
+              sess.clear unless sess.empty?
               secret.revealed!
 
             else

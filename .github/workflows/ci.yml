@@ -172,7 +172,7 @@ jobs:
     steps:
       - *checkout-step
 
-      - uses: ruby/setup-ruby@7f562e2882f42fe3ccc6f67a86ec4d551fdfcaf1
+      - uses: ruby/setup-ruby@0fa965176eabbb494a5778ac04477b260840ef45
         with:
           ruby-version: '3.4.8'
           bundler-cache: true
@@ -223,7 +223,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Run variable audit
         run: |
@@ -296,7 +296,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Setup Node.js for locale sync
         uses: actions/setup-node@v4
@@ -335,7 +335,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Generate locale files
         run: pnpm run locales:sync
@@ -376,7 +376,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Generate locale files
         run: pnpm run locales:sync
@@ -411,7 +411,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Setup Node.js for locale sync
         uses: actions/setup-node@v4
@@ -450,7 +450,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Setup Node.js for locale sync
         uses: actions/setup-node@v4
@@ -481,7 +481,7 @@ jobs:
     services:
       redis: *valkey-service
       postgres:
-        image: postgres:17@sha256:2006493727bd5277eece187319af1ef82b4cf82cf4fc1ed00da0775b646ac2a4
+        image: postgres:17@sha256:1eada89ec2521ae0f61125f6bdaf83bbbf88a43fecda48d112a83bb92df75c36
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -503,7 +503,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Setup Node.js for locale sync
         uses: actions/setup-node@v4
@@ -587,7 +587,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Setup Node.js for locale sync
         uses: actions/setup-node@v4
@@ -654,8 +654,17 @@ jobs:
         if: steps.download-assets.outcome == 'failure'
         run: pnpm run build
 
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
       - name: Build Container image
-        run: docker build -t onetime-test .
+        uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
+        with:
+          files: docker/bake.hcl
+          targets: main
+          load: true
+          set: |
+            main.tags=onetime-test
 
       - name: Generate random secrets for container
         uses: ./.github/actions/generate-test-secrets

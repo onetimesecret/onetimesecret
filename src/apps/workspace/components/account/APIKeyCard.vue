@@ -37,34 +37,23 @@ const handleCopy = () => {
 <template>
   <div
     v-if="apitoken"
-    class="mb-4 rounded-lg bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 p-4 shadow-lg">
-    <div class="font-mono text-lg text-white">
-      <div class="relative flex items-center overflow-x-auto rounded bg-black/20 p-3">
+    class="mb-4 rounded-lg border border-gray-200/60 bg-white/60 p-4 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+    <div class="font-mono text-sm text-gray-800 dark:text-gray-200">
+      <div class="relative flex items-center overflow-x-auto rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-900/50">
         <span class="break-all pr-10">{{ apitoken }}</span>
         <button
           @click.stop="handleCopy"
           type="button"
-          class="absolute right-2 top-1/2 -translate-y-1/2 text-white transition-colors duration-200 hover:text-gray-200">
+          class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 transition-colors duration-200 hover:text-brand-600 dark:text-gray-500 dark:hover:text-brand-400">
           <OIcon
             collection="heroicons"
             :name="copied ? 'check' : 'clipboard'"
-            class="size-6" />
+            class="size-5" />
         </button>
       </div>
     </div>
-    <p class="mt-2 text-sm font-semibold text-white">
+    <p class="mt-2 text-xs font-medium text-gray-500 dark:text-gray-400">
       {{ t('web.account.keep_this_token_secure_it_provides_full_access_t') }}
     </p>
   </div>
 </template>
-
-<style scoped>
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.api-token-container {
-  animation: fadeIn 0.5s ease-out;
-}
-</style>

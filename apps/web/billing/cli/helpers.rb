@@ -169,15 +169,15 @@ module Onetime
 
       def format_plan_row(plan)
         amount             = format_amount(plan.amount, plan.currency)
-        entitlements_count = plan.entitlements.size
+        entitlements_count = plan.entitlements&.size || 0
 
         format(
           '%-20s %-18s %-10s %-10s %-12s %d',
-          plan.plan_id[0..19],
-          plan.tier[0..17],
-          plan.interval[0..9],
+          (plan.plan_id || 'N/A')[0..19],
+          (plan.tier || 'N/A')[0..17],
+          (plan.interval || 'N/A')[0..9],
           amount[0..9],
-          plan.region[0..11],
+          (plan.region || 'N/A')[0..11],
           entitlements_count,
         )
       end
@@ -186,7 +186,7 @@ module Onetime
         return 'N/A' unless amount_cents
 
         dollars = amount_cents.to_f / 100
-        "#{currency&.upcase || 'USD'} #{format('%.2f', dollars)}"
+        "#{currency&.upcase || 'CAD'} #{format('%.2f', dollars)}"
       end
 
       def validate_product_metadata(product)
@@ -344,7 +344,7 @@ module Onetime
         product_groups = {}
 
         products.each do |product|
-          region                = product.metadata[Billing::Metadata::FIELD_REGION] || 'global'
+          region                = Billing::RegionNormalizer.normalize(product.metadata[Billing::Metadata::FIELD_REGION])
           key                   = "#{product.name}|#{region}"
           product_groups[key] ||= []
           product_groups[key] << product

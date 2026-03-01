@@ -37,7 +37,7 @@ RSpec.describe Billing::Plan, type: :billing do
         tier: 'single_team',
         interval: 'month',
         amount: '1499',
-        currency: 'usd',
+        currency: 'cad',
         region: 'US',
         tenancy: 'multi',
         display_order: '100',
@@ -76,7 +76,7 @@ RSpec.describe Billing::Plan, type: :billing do
         tier: 'single_team',
         interval: 'month',
         amount: '1499',
-        currency: 'usd',
+        currency: 'cad',
       )
       plan.save
       plan.limits['teams.max'] = '5'
@@ -125,7 +125,7 @@ RSpec.describe Billing::Plan, type: :billing do
         tier: 'single_team',
         interval: 'month',
         amount: '1499',
-        currency: 'usd',
+        currency: 'cad',
       )
       plan.save
       plan.entitlements.add('create_secrets')
@@ -246,20 +246,17 @@ RSpec.describe Billing::Plan, type: :billing do
     end
 
     it 'finds plan by tier, interval, and region' do
-      # Test config uses 'global' as the default region when not specified
-      plan = Billing::Plan.get_plan('single_team', 'monthly', 'global')
-      if plan.nil?
-        # Some configs may use EU region
-        plan = Billing::Plan.get_plan('single_team', 'monthly', 'EU')
-      end
+      # Region is either a specific code or nil (no "global" default).
+      # Try configured region first, then nil for non-regionalized deployments.
+      plan = Billing::Plan.get_plan('single_team', 'monthly', 'EU')
+      plan ||= Billing::Plan.get_plan('single_team', 'monthly', nil)
       expect(plan).not_to be_nil
       expect(plan.tier).to eq('single_team')
     end
 
     it 'normalizes interval suffix (monthly -> month)' do
-      # Try both global and EU regions
-      plan = Billing::Plan.get_plan('single_team', 'monthly', 'global')
-      plan ||= Billing::Plan.get_plan('single_team', 'monthly', 'EU')
+      plan = Billing::Plan.get_plan('single_team', 'monthly', 'EU')
+      plan ||= Billing::Plan.get_plan('single_team', 'monthly', nil)
       expect(plan&.interval).to eq('month')
     end
 
@@ -282,7 +279,7 @@ RSpec.describe Billing::Plan, type: :billing do
         tier: 'multi_team',
         interval: 'year',
         amount: '14388', # $143.88/year
-        currency: 'usd',
+        currency: 'cad',
         region: 'US',
         tenancy: 'multi',
         display_order: '200',
@@ -342,7 +339,7 @@ RSpec.describe Billing::Plan, type: :billing do
         tier: 'single_team',
         interval: 'year',
         amount: '14388', # $143.88/year
-        currency: 'usd',
+        currency: 'cad',
       )
       plan.save
       plan

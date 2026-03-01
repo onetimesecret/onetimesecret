@@ -128,12 +128,12 @@ plans:
       - price_id: price_test_monthly
         interval: month
         amount: 1200 # $12.00 in cents
-        currency: usd
+        currency: cad
 
       - price_id: price_test_yearly
         interval: year
         amount: 12000 # $120.00 in cents
-        currency: usd
+        currency: cad
 
   # Legacy plan for testing legacy plan detection
   # Tests verify that plans with legacy: true are detected correctly

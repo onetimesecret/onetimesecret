@@ -22,7 +22,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
         tier: 'single_team',
         interval: 'month',
         amount: '2900',
-        currency: 'usd',
+        currency: 'cad',
         region: 'US',
         entitlements: '["api_access","manage_teams"]',
       )
@@ -64,7 +64,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
         # Interval should be displayed
         expect(output).to include('month')
         # Amount should be formatted
-        expect(output).to match(/USD 29\.00/)
+        expect(output).to match(/CAD 29\.00/)
       end
 
       it 'displays plan count' do
@@ -171,7 +171,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
             tier: 'test',
             interval: 'month',
             amount: '1000',
-            currency: 'usd',
+            currency: 'cad',
             region: 'US',
             entitlements: '[]',
           )
@@ -183,9 +183,9 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
           expect(output).not_to match(/#{long_plan.plan_id}/)
         end
 
-        it 'formats USD amounts correctly' do
+        it 'formats CAD amounts correctly' do
           output = capture_stdout { command.call }
-          expect(output).to match(/USD 29\.00/)
+          expect(output).to match(/CAD 29\.00/)
         end
 
         it 'formats EUR amounts correctly' do
@@ -200,7 +200,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
             tier: 'basic',
             interval: 'month',
             amount: '0',
-            currency: 'usd',
+            currency: 'cad',
             region: 'US',
             entitlements: '[]',
           )
@@ -208,7 +208,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
 
           output = capture_stdout { command.call }
           # Amount column shows 0.00, CAPS column shows entitlement count
-          expect(output).to match(/USD 0\.00/)
+          expect(output).to match(/CAD 0\.00/)
           expect(output).to include('basic_monthly_us')
         end
       end

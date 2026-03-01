@@ -398,17 +398,17 @@
     "content_hash": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "Your email address has been changed (%{display_domain})",
+    "text": "Your email address was changed (%{display_domain})",
     "renderer": "erb",
     "content_hash": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "Your Email Address Has Been Changed",
+    "text": "Your Email Address Was Changed",
     "renderer": "erb",
     "content_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "The email address for your %{product_name} account has been changed to %{new_email_masked}.",
+    "text": "The email address for your %{product_name} account was changed to %{new_email_masked} on %{date}.",
     "renderer": "erb",
     "content_hash": "6f3419d1"
   },

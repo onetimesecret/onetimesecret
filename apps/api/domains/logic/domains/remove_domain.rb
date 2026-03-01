@@ -44,7 +44,8 @@ module DomainsAPI::Logic
         # vhost record.
         @custom_domain.destroy!
 
-        # Clear the session's domain context if it matches the removed domain
+        # Clear the session's domain context if it matches the removed domain.
+        # Route is sessionauth-only, so sess is always a real Rack session.
         if sess && sess['domain_context'] == @display_domain
           sess['domain_context'] = nil
         end

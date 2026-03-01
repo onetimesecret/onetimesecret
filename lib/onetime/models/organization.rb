@@ -200,6 +200,10 @@ module Onetime
       receipts.member?(dummy_receipt)
     end
 
+    def get_customer
+      Onetime::Customer.find_by_objid(owner_id)
+    end
+
     # Authorization helpers
     def can_modify?(current_user)
       owner?(current_user)

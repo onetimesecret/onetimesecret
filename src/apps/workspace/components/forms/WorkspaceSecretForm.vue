@@ -295,6 +295,36 @@
             </div>
           </div>
 
+          <!-- Recipient Field (create-link mode only) -->
+          <div
+            v-if="selectedAction === 'create-link'"
+            class="mt-4">
+            <label
+              for="workspace-recipient"
+              class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
+              {{ t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
+            </label>
+            <div class="relative">
+              <input
+                id="workspace-recipient"
+                :value="form.recipient"
+                type="email"
+                name="recipient[]"
+                autocomplete="email"
+                :placeholder="t('web.COMMON.email_placeholder')"
+                :class="[cornerClass]"
+                class="w-full border border-gray-200/60 bg-white/80 backdrop-blur-sm
+                  py-2.5 pl-4 pr-4 text-sm text-gray-900 placeholder:text-gray-400
+                  transition-colors duration-200
+                  hover:border-gray-300/80 hover:bg-white/90
+                  focus:border-blue-500/80 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/20
+                  dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-gray-500
+                  dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
+                  dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
+                @input="(e) => operations.updateField('recipient', (e.target as HTMLInputElement).value)" />
+            </div>
+          </div>
+
           <!-- Generate Password display for Generate mode -->
           <div
             v-show="selectedAction === 'generate-password'"
@@ -366,9 +396,6 @@
               <div
                 v-if="isContextActive"
                 class="hidden items-center gap-2 text-base font-brand sm:flex">
-                <span class="text-gray-600 dark:text-gray-400">
-                  {{ t('web.LABELS.creating_links_for') }}
-                </span>
                 <div
                   class="inline-flex items-center gap-1.5 rounded-full px-3
                     py-1.5 text-base font-medium transition-all duration-150"

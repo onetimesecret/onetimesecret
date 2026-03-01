@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.16@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
+# syntax=docker/dockerfile:1.21@sha256:27f9262d43452075f3c410287a2c43f5ef1bf7ec2bb06e8c9eeb1b8d453087bc
 # check=error=true
 
 ##
@@ -9,12 +9,14 @@
 #
 # For general project information, see README.md.
 #
+# IMPORTANT: This Dockerfile requires Docker Bake for building.
+# The "base" build context is injected by docker/bake.hcl — it is
+# NOT a stage defined in this file.
 #
-# BUILDING:
-#
-# Build the Docker image:
-#
-#     $ docker build -t onetimesecret .
+#   $ docker buildx bake -f docker/bake.hcl main       # main image
+#   $ docker buildx bake -f docker/bake.hcl s6         # S6 variant
+#   $ docker buildx bake -f docker/bake.hcl all        # all variants
+#   $ docker buildx bake -f docker/bake.hcl --print    # dry-run
 #
 # RUNNING:
 #
@@ -58,76 +60,15 @@ ARG APP_DIR=/app
 ARG PUBLIC_DIR=/app/public
 ARG VERSION
 ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:bbc49173621b513e33c4add027747db0c41d540c86492cca66e90814a7518c84
-ARG NODE_IMAGE_TAG=22@sha256:379c51ac7bbf9bffe16769cfda3eb027d59d9c66ac314383da3fcf71b46d026c
-
-##
-# NODE: Node.js source for copying binaries
-#
-FROM docker.io/library/node:${NODE_IMAGE_TAG} AS node
-
-##
-# BASE: System dependencies and tools
-#
-# Installs system packages, updates RubyGems, and prepares the
-# application's package management dependencies using a Debian
-# Ruby 3.4 base image.
-#
-FROM docker.io/library/ruby:${RUBY_IMAGE_TAG} AS base
-
-# Install system packages in a single layer
-RUN set -eux && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        build-essential \
-        libssl-dev \
-        libffi-dev \
-        libyaml-dev \
-        libsqlite3-dev \
-        libpq-dev \
-        pkg-config \
-        git \
-        curl \
-        python3 && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /var/cache/apt/*
-
-# Install yq (optimized for multi-arch)
-# We use this for migrating config from v0.22 to v0.23.
-RUN set -eux && \
-    ARCH=$(dpkg --print-architecture) && \
-    case "$ARCH" in \
-        amd64) YQ_ARCH="amd64" ;; \
-        arm64) YQ_ARCH="arm64" ;; \
-        *) YQ_ARCH="amd64" ;; \
-    esac && \
-    curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${YQ_ARCH}" \
-        -o /usr/local/bin/yq && \
-    chmod +x /usr/local/bin/yq && \
-    yq --version
-
-# Copy Node.js binaries (more efficient than full copy)
-COPY --from=node \
-    /usr/local/bin/node \
-    /usr/local/bin/
-
-COPY --from=node \
-    /usr/local/lib/node_modules/npm \
-    /usr/local/lib/node_modules/npm
-
-# Create symlinks and install package managers
-RUN set -eux && \
-    ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
-    ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx && \
-    node --version && npm --version && \
-    npm install -g pnpm && \
-    pnpm --version
 
 ##
 # DEPENDENCIES: Install application dependencies
 #
-# Sets up the necessary directories, installs additional
-# system packages for userland, and installs the application's
-# dependencies using the Base Layer as a starting point.
+# The "base" context is provided by docker/bake.hcl via:
+#   contexts = { base = "target:base" }
+#
+# It contains: Ruby 3.4, Node 22, build toolchain, yq, pnpm, appuser.
+# See docker/base.dockerfile for details.
 #
 FROM base AS dependencies
 ARG APP_DIR
@@ -175,20 +116,19 @@ RUN set -eux && \
     rm -rf node_modules ~/.npm ~/.pnpm-store && \
     npm uninstall -g pnpm
 
-# Generate build metadata
+# Generate build metadata from the VERSION build arg (authoritative source).
 # COMMIT_HASH is passed as a build arg from CI (GitHub Actions).
-# For local builds without the arg, falls back to "dev".
+# For local builds without args, falls back to defaults.
 RUN set -eux && \
-    VERSION=$(node -p "require('./package.json').version") && \
     mkdir -p /tmp/build-meta && \
-    echo "VERSION=${VERSION}" > /tmp/build-meta/version_env && \
+    echo "VERSION=${VERSION:-0.0.0-rc0}" > /tmp/build-meta/version_env && \
     echo "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> /tmp/build-meta/version_env && \
     echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt
 
 ##
 # FINAL-S6: Production image with S6 overlay for multi-process supervision
 #
-# Build with: docker build --target final-s6 -t onetimesecret:s6 .
+# Build with: docker buildx bake -f docker/bake.hcl s6
 #
 # This stage provides:
 # - S6 overlay v3.2.0.2 for process supervision
@@ -241,6 +181,9 @@ RUN set -eux && \
 WORKDIR ${APP_DIR}
 
 # Create non-root user
+# IMPORTANT: UID/GID 1001 must match docker/base.dockerfile and the "final" stage below.
+# This stage starts from a fresh ruby:slim image (not base), so appuser is recreated.
+# Keep all three definitions in sync to avoid permission mismatches on shared volumes.
 RUN groupadd -g 1001 appuser && \
     useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
 
@@ -261,6 +204,7 @@ COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser install.sh ./
 COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
@@ -316,7 +260,7 @@ CMD []
 # FINAL: Production-ready application image (DEFAULT)
 #
 # This is the default build target when no --target is specified.
-# For S6 multi-process supervision, use: docker build --target final-s6
+# For S6 multi-process supervision, use: docker buildx bake -f docker/bake.hcl s6
 #
 FROM docker.io/library/ruby:${RUBY_IMAGE_TAG} AS final
 ARG APP_DIR
@@ -343,6 +287,9 @@ WORKDIR ${APP_DIR}
 # Create non-root user for security
 # Note: nologin shell blocks SSH/su, but docker exec still works for debugging:
 #   docker exec -it container /bin/sh
+# IMPORTANT: UID/GID 1001 must match docker/base.dockerfile and the "final-s6" stage above.
+# This stage starts from a fresh ruby:slim image (not base), so appuser is recreated.
+# Keep all three definitions in sync to avoid permission mismatches on shared volumes.
 RUN groupadd -g 1001 appuser && \
     useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
 
@@ -363,6 +310,7 @@ COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser install.sh ./
 COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
