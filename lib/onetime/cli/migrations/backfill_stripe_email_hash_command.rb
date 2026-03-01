@@ -168,7 +168,7 @@ module Onetime
       end
 
       def update_stripe_customer(org, customer, email_hash, idx, total_orgs, dry_run, verbose)
-        region          = OT.conf.dig(:site, :region) || 'default'
+        region          = OT.conf.dig('site', 'region') || 'default'
         merged_metadata = customer.metadata.to_h.merge(
           'email_hash' => email_hash,
           'email_hash_created_at' => Time.now.to_i.to_s,
