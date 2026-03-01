@@ -2,19 +2,22 @@
 #
 # frozen_string_literal: true
 
-# Remove JSON-quoted duplicate members from class-level sorted sets
-# and sets (`:instances`, `:expiration_timeline`, `:warnings_sent`).
+# Deduplicate and normalize JSON-quoted members in class-level sorted
+# sets and sets (`:instances`, `:expiration_timeline`, `:warnings_sent`).
 #
 # Familia v2's serialize_value JSON-encodes plain strings, so identifiers
 # written by application code become "\"abc\"" while migration scripts
 # wrote them raw as "abc". Redis sorted sets deduplicate by exact byte
-# value, so both forms coexist. This command removes the JSON-quoted
-# form when the raw counterpart is present.
+# value, so both forms can coexist.
+#
+# This command handles two cases:
+#   1. Deduplication: Both quoted and raw forms exist → remove quoted
+#   2. Normalization: Only the quoted form exists → replace with raw
 #
 # Usage:
 #   bin/ots migrations dedupe-instances           # Dry run (default)
-#   bin/ots migrations dedupe-instances --run     # Execute removal
-#   bin/ots migrations dedupe-instances --verbose # Show each duplicate
+#   bin/ots migrations dedupe-instances --run     # Execute changes
+#   bin/ots migrations dedupe-instances --verbose # Show each entry
 #
 # @see https://github.com/onetimesecret/onetimesecret/issues/XXXX
 
@@ -25,18 +28,18 @@ module Onetime
     class DedupeInstancesCommand < Command
       include DeduplicationHelper
 
-      desc 'Remove JSON-quoted duplicates from class-level instance collections'
+      desc 'Deduplicate and normalize JSON-quoted members in class-level instance collections'
 
       option :run,
         type: :boolean,
         default: false,
-        desc: 'Execute removal (default is dry-run)'
+        desc: 'Execute changes (default is dry-run)'
 
       option :verbose,
         type: :boolean,
         default: false,
         aliases: ['v'],
-        desc: 'Show each duplicate found'
+        desc: 'Show each duplicate and normalized entry'
 
       option :help,
         type: :boolean,
@@ -49,24 +52,32 @@ module Onetime
 
         boot_application!
 
-        puts "\nDeduplicate Class-Level Instance Collections"
+        puts "\nDeduplicate & Normalize Class-Level Instance Collections"
         puts '=' * 60
 
         dry_run = !run
         print_mode_banner(dry_run)
 
-        stats = { keys_scanned: 0, keys_with_duplicates: 0, duplicates_removed: 0, errors: [] }
+        stats = {
+          keys_scanned: 0,
+          keys_with_duplicates: 0,
+          duplicates_removed: 0,
+          members_normalized: 0,
+          errors: [],
+        }
 
         sorted_set_collections.each do |label, redis_key|
           dedupe_sorted_set(label, redis_key, stats, dry_run, verbose)
+          normalize_sorted_set(label, redis_key, stats, dry_run, verbose)
         end
 
         set_collections.each do |label, redis_key|
           dedupe_set(label, redis_key, stats, dry_run, verbose)
+          normalize_set(label, redis_key, stats, dry_run, verbose)
         end
 
         print_results(stats, dry_run)
-        print_next_steps(dry_run, stats[:duplicates_removed])
+        print_next_steps(dry_run, stats[:duplicates_removed] + stats[:members_normalized])
       end
 
       private
@@ -162,12 +173,81 @@ module Onetime
         OT.le "[DedupeInstances] Error for #{redis_key}: #{ex.message}"
       end
 
-      def print_next_steps(dry_run, dup_count)
-        return unless dry_run && dup_count > 0
+      # Normalize quoted-only members in a sorted set: remove the
+      # quoted form and add the unquoted form with the same score.
+      # Only acts on members where the unquoted form does NOT already
+      # exist (those cases are handled by dedupe_sorted_set).
+      def normalize_sorted_set(label, redis_key, stats, dry_run, verbose)
+        redis = Familia.dbclient
+
+        # Re-read members to reflect any deduplication already applied
+        raw_members = redis.zrange(redis_key, 0, -1)
+        return if raw_members.empty?
+
+        to_normalize = find_normalize_only_members(raw_members)
+        return if to_normalize.empty?
+
+        stats[:members_normalized] += to_normalize.size
+
+        puts "  Normalizing #{label}... #{to_normalize.size} quoted-only members"
+
+        if verbose
+          to_normalize.each { |m| puts "    ~ #{m} -> #{m[1..-2]}" }
+        end
+
+        return if dry_run
+
+        to_normalize.each do |quoted|
+          unquoted = quoted[1..-2]
+          score    = redis.zscore(redis_key, quoted)
+          redis.zrem(redis_key, quoted)
+          redis.zadd(redis_key, score, unquoted)
+        end
+      rescue StandardError => ex
+        stats[:errors] << "#{label} (normalize): #{ex.message}"
+        puts "  Error normalizing #{label}: #{ex.message}"
+        OT.le "[DedupeInstances] Normalize error for #{redis_key}: #{ex.message}"
+      end
+
+      # Normalize quoted-only members in a set: remove the quoted
+      # form and add the unquoted form. Only acts on members where
+      # the unquoted form does NOT already exist.
+      def normalize_set(label, redis_key, stats, dry_run, verbose)
+        redis = Familia.dbclient
+
+        raw_members = redis.smembers(redis_key)
+        return if raw_members.empty?
+
+        to_normalize = find_normalize_only_members(raw_members)
+        return if to_normalize.empty?
+
+        stats[:members_normalized] += to_normalize.size
+
+        puts "  Normalizing #{label}... #{to_normalize.size} quoted-only members"
+
+        if verbose
+          to_normalize.each { |m| puts "    ~ #{m} -> #{m[1..-2]}" }
+        end
+
+        return if dry_run
+
+        to_normalize.each do |quoted|
+          unquoted = quoted[1..-2]
+          redis.srem(redis_key, quoted)
+          redis.sadd(redis_key, unquoted)
+        end
+      rescue StandardError => ex
+        stats[:errors] << "#{label} (normalize): #{ex.message}"
+        puts "  Error normalizing #{label}: #{ex.message}"
+        OT.le "[DedupeInstances] Normalize error for #{redis_key}: #{ex.message}"
+      end
+
+      def print_next_steps(dry_run, action_count)
+        return unless dry_run && action_count > 0
 
         puts <<~MESSAGE
 
-          To execute removal, run:
+          To execute changes, run:
             bin/ots migrations dedupe-instances --run
 
         MESSAGE
@@ -176,18 +256,23 @@ module Onetime
       def show_usage_help
         puts <<~USAGE
 
-          Deduplicate Class-Level Instance Collections
+          Deduplicate & Normalize Class-Level Instance Collections
 
           Usage:
             bin/ots migrations dedupe-instances [options]
 
           Description:
-            Removes JSON-quoted duplicate members from class-level sorted
-            sets and sets (:instances, :expiration_timeline, :warnings_sent).
+            Cleans up JSON-quoted members in class-level sorted sets and
+            sets (:instances, :expiration_timeline, :warnings_sent).
 
-            Familia v2's serialize_value JSON-encodes identifiers, creating
-            duplicates when both raw and quoted forms exist. This command
-            removes the quoted form when the raw counterpart is present.
+            Familia v2's serialize_value JSON-encodes identifiers. This
+            command handles two cases:
+
+            1. Deduplication: When both quoted ("abc") and raw (abc) forms
+               exist, the quoted form is removed.
+            2. Normalization: When only the quoted form exists (the raw
+               form was never written), it is replaced with the raw form,
+               preserving the original score for sorted sets.
 
           Models scanned:
             Customer, Organization, CustomDomain, Receipt, Secret,
@@ -195,15 +280,15 @@ module Onetime
             Receipt (expiration_timeline sorted set, warnings_sent set)
 
           Options:
-            --run                 Execute removal (default is dry-run)
-            --verbose, -v         Show each duplicate found
+            --run                 Execute changes (default is dry-run)
+            --verbose, -v         Show each duplicate and normalized entry
             --help, -h            Show this help message
 
           Examples:
             # Preview (dry run)
             bin/ots migrations dedupe-instances
 
-            # Execute removal
+            # Execute changes
             bin/ots migrations dedupe-instances --run
 
             # Execute with verbose output
@@ -211,8 +296,10 @@ module Onetime
 
           Notes:
             - Command is idempotent (safe to run multiple times)
-            - Only removes a quoted member when its raw counterpart exists
-            - No data loss: the raw identifier remains intact
+            - Deduplication removes quoted members when raw form exists
+            - Normalization replaces quoted-only members with raw form
+            - Sorted set scores are preserved during normalization
+            - No data loss in either operation
 
         USAGE
         true
