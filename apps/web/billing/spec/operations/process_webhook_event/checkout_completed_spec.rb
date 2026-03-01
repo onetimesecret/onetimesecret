@@ -332,7 +332,7 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
             metadata: hash_including(
               'email_hash' => a_string_matching(/\A[0-9a-f]{32}\z/),
               'email_hash_created_at' => a_string_matching(/\A\d+\z/),
-              'home_region' => anything,
+              'region' => anything,
             ),
           ),
         )

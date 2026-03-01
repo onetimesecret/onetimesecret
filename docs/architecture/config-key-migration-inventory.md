@@ -22,76 +22,73 @@
 ##### Production Files (23):
 ```
 lib/onetime/helpers/homepage_mode_helpers.rb:39
-  OT.conf.dig(:site, :interface, :ui)
+  OT.conf.dig('site', 'interface', 'ui')
 
 lib/onetime/initializers/print_log_banner.rb:17
-  OT.conf.dig(:site, :secret_options)
+  OT.conf.dig('site', 'secret_options')
 
 lib/onetime/initializers/connect_databases.rb:8
   OT.conf.dig(:redis, :dbs)
+  apps/web/core/controllers/account.rb:45
+    OT.conf.dig('site', 'plans')
 
-apps/web/core/controllers/account.rb:45
-  OT.conf.dig(:site, :plans)
+  apps/web/core/controllers/account.rb:67
+    OT.conf.dig('site', 'authentication')
 
-apps/web/core/controllers/account.rb:67
-  OT.conf.dig(:site, :authentication)
-
-apps/web/core/controllers/helpers.rb:89
+  apps/web/core/controllers/helpers.rb:89
   OT.conf.dig(:experimental, :csp, :enabled)
 
 apps/web/core/controllers/helpers.rb:123
   OT.conf.dig(:development, :enabled)
+  apps/web/core/application.rb:25
+    OT.conf.dig('site', 'interface', 'ui', 'enabled')
 
-apps/web/core/application.rb:25
-  OT.conf.dig(:site, :interface, :ui, :enabled)
+  apps/api/v1/logic/authentication/authenticate_session.rb:15
+    OT.conf.dig('site', 'authentication', 'colonels')
 
-apps/api/v1/logic/authentication/authenticate_session.rb:15
-  OT.conf.dig(:site, :authentication, :colonels)
+  apps/api/v1/logic/secrets/base_secret_action.rb:23
+    OT.conf.dig('site', 'secret_options', 'passphrase')
 
-apps/api/v1/logic/secrets/base_secret_action.rb:23
-  OT.conf.dig(:site, :secret_options, :passphrase)
+  apps/api/v1/logic/secrets/generate_secret.rb:18
+    OT.conf.dig('site', 'secret_options', 'password_generation')
 
-apps/api/v1/logic/secrets/generate_secret.rb:18
-  OT.conf.dig(:site, :secret_options, :password_generation)
+  apps/api/v1/models/custom_domain.rb:45
+    OT.conf.dig('site', 'host')
 
-apps/api/v1/models/custom_domain.rb:45
-  OT.conf.dig(:site, :host)
-
-apps/api/v1/controllers/helpers.rb:63
+  apps/api/v1/controllers/helpers.rb:63
   OT.conf.dig(:experimental, :csp, :enabled)
 
 apps/api/v1/controllers/helpers.rb:97
   OT.conf.dig(:development, :enabled)
+  apps/api/v2/logic/account/create_account.rb:78
+    OT.conf.dig('site', 'authentication', 'colonels')
 
-apps/api/v2/logic/account/create_account.rb:78
-  OT.conf.dig(:site, :authentication, :colonels)
+  apps/api/v2/logic/account/create_account.rb:79
+    OT.conf.dig('site', 'authentication', 'allowed_signup_domains')
 
-apps/api/v2/logic/account/create_account.rb:79
-  OT.conf.dig(:site, :authentication, :allowed_signup_domains)
+  apps/api/v2/logic/authentication/authenticate_session.rb:15
+    OT.conf.dig('site', 'authentication', 'colonels')
 
-apps/api/v2/logic/authentication/authenticate_session.rb:15
-  OT.conf.dig(:site, :authentication, :colonels)
+  apps/api/v2/logic/secrets/base_secret_action.rb:23
+    OT.conf.dig('site', 'secret_options', 'passphrase')
 
-apps/api/v2/logic/secrets/base_secret_action.rb:23
-  OT.conf.dig(:site, :secret_options, :passphrase)
+  apps/api/v2/logic/secrets/generate_secret.rb:18
+    OT.conf.dig('site', 'secret_options', 'password_generation')
 
-apps/api/v2/logic/secrets/generate_secret.rb:18
-  OT.conf.dig(:site, :secret_options, :password_generation)
+  apps/api/v2/logic/welcome.rb:45
+    OT.conf.dig('site', 'plans', 'webook_signing_secret')
 
-apps/api/v2/logic/welcome.rb:45
-  OT.conf.dig(:site, :plans, :webook_signing_secret)
+  apps/api/v2/logic/feedback.rb:34
+    OT.conf.dig('site', 'authentication', 'colonels')
 
-apps/api/v2/logic/feedback.rb:34
-  OT.conf.dig(:site, :authentication, :colonels)
+  apps/api/v2/logic/feedback.rb:67
+    OT.conf.dig('site', 'authenticity', 'secret_key')
 
-apps/api/v2/logic/feedback.rb:67
-  OT.conf.dig(:site, :authenticity, :secret_key)
+  apps/api/v2/models/custom_domain.rb:45
+    OT.conf.dig('site', 'host')
 
-apps/api/v2/models/custom_domain.rb:45
-  OT.conf.dig(:site, :host)
-
-apps/api/v2/controllers/challenges.rb:23
-  OT.conf.dig(:site, :authenticity, :secret_key)
+  apps/api/v2/controllers/challenges.rb:23
+    OT.conf.dig('site', 'authenticity', 'secret_key')
 
 apps/api/v2/controllers/helpers.rb:63
   OT.conf.dig(:experimental, :csp, :enabled)
