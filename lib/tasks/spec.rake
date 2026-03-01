@@ -76,14 +76,16 @@ namespace :spec do
   end
 
   # App-specific specs (co-located with their applications)
-  # NOTE: Excludes :postgres_database tagged tests by default since those require
-  # a PostgreSQL service. Use spec:integration:full:postgres for those tests.
+  # NOTE: Excludes integration tests by both directory (integration/) and tag (:integration).
+  # Integration tests run via spec:integration tasks with the correct AUTHENTICATION_MODE
+  # and database setup. Also excludes :postgres_database tagged tests.
   namespace :apps do
     APP_SPECS.each do |name, path|
       desc "Run specs for #{name}"
       RSpec::Core::RakeTask.new(name.tr(':', '_')) do |t|
-        t.pattern    = "#{path}/**/*_spec.rb"
-        t.rspec_opts = "#{rspec_format_options} --tag ~postgres_database"
+        t.pattern         = "#{path}/**/*_spec.rb"
+        t.exclude_pattern = "#{path}/integration/**/*_spec.rb"
+        t.rspec_opts      = "#{rspec_format_options} --tag ~postgres_database --tag ~integration"
       end
     end
 

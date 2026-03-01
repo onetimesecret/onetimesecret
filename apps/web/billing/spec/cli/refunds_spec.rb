@@ -106,7 +106,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
           # Verify data formatting (stripe-mock returns consistent test data)
           expect(output).to match(/re_\w+/)  # Refund ID format
           expect(output).to match(/ch_\w+/)  # Charge ID format
-          expect(output).to match(/USD \d+\.\d{2}/)  # Currency format
+          expect(output).to match(/CAD \d+\.\d{2}/)  # Currency format
           expect(output).to match(/succeeded/)  # Status
           expect(output).to match(/\d{4}-\d{2}-\d{2}/)  # Date format
         end
@@ -191,8 +191,8 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
           end
 
           expect(output).to match(/Charge: #{charge.id}/)
-          expect(output).to match(/Amount: USD 50\.00/)  # Real API returns actual amount
-          expect(output).to match(/Refund amount: USD 50\.00/)
+          expect(output).to match(/Amount: CAD 50\.00/)  # Real API returns actual amount
+          expect(output).to match(/Refund amount: CAD 50\.00/)
           expect(output).to match(/Refund created successfully/)
 
           # Cleanup
@@ -220,7 +220,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
             command.call(charge: charge.id, amount: 5000)
           end
 
-          expect(output).to match(/Refund amount: USD 50\.00/)
+          expect(output).to match(/Refund amount: CAD 50\.00/)
           expect(output).to match(/Refund created successfully/)
 
           # Cleanup

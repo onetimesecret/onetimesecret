@@ -222,7 +222,7 @@
         :is-apex="domain?.is_apex"
         :txt-validation-host="domain?.txt_validation_host"
         :txt-validation-value="domain?.txt_validation_value"
-        :trd="domain?.trd"
+        :trd="domain?.trd ?? undefined"
         @records-verified="handleDnsRecordsVerified" />
 
       <!-- Manual verification button and error display -->
