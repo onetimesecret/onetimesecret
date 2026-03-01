@@ -37,6 +37,7 @@ export const customDomainSchema = createModelSchema({
   display_domain: z.string(),
   base_domain: z.string(),
   subdomain: z.string().nullable(),
+  trd: z.string().nullable(),
   tld: z.string(),
   sld: z.string(),
 
