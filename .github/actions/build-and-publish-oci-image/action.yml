@@ -102,8 +102,9 @@ runs:
     # Validate platforms input early to fail fast
     - name: Validate platforms input
       shell: bash
+      env:
+        PLATFORMS: ${{ inputs.platforms }}
       run: |
-        PLATFORMS="${{ inputs.platforms }}"
         VALID_PLATFORMS="linux/amd64 linux/arm64"
 
         echo "::group::Platform Validation"
@@ -186,7 +187,7 @@ runs:
       shell: bash
       run: |
         # Strip trailing whitespace/newlines from secrets (common copy-paste artifact)
-        CUSTOM_HOST="$(echo -n "$CUSTOM_HOST" | tr -d '\n\r')"
+        CUSTOM_HOST="${CUSTOM_HOST//[$'\r\n']/}"
         if [ "$REGISTRY_MODE" = "custom" ] && [ -n "$CUSTOM_HOST" ]; then
           echo "images=${CUSTOM_HOST}/${GITHUB_REPOSITORY}${IMAGE_SUFFIX}" >> "$GITHUB_OUTPUT"
         else
@@ -243,14 +244,19 @@ runs:
 
     - name: Output image info
       shell: bash
+      env:
+        BUILD_DOCKERFILE: ${{ inputs.dockerfile }}
+        BUILD_PLATFORMS: ${{ inputs.platforms }}
+        BUILD_VERSION: ${{ steps.package_version.outputs.version }}
+        BUILD_TAGS: ${{ steps.meta.outputs.tags }}
       run: |
         echo "## OCI Image Build Complete" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Dockerfile:** ${{ inputs.dockerfile }}" >> $GITHUB_STEP_SUMMARY
-        echo "**Platforms:** ${{ inputs.platforms }}" >> $GITHUB_STEP_SUMMARY
-        echo "**Version:** ${{ steps.package_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Dockerfile:** $BUILD_DOCKERFILE" >> $GITHUB_STEP_SUMMARY
+        echo "**Platforms:** $BUILD_PLATFORMS" >> $GITHUB_STEP_SUMMARY
+        echo "**Version:** $BUILD_VERSION" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Tags" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
-        echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+        echo "$BUILD_TAGS" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
