@@ -5,7 +5,7 @@
 # Detects whether this container is running as a web server, worker,
 # or scheduler and applies the appropriate health check:
 #
-#   - Web (puma): HTTP check against /api/v2/status
+#   - Web (puma): HTTP check against /health or /health/advanced
 #   - Worker/Scheduler: TCP connectivity to RabbitMQ
 #
 # This avoids false "unhealthy" status on worker/scheduler containers
@@ -33,8 +33,12 @@ parse_amqp_addr() {
 }
 
 # Web server: puma listens on $PORT (default 3000)
+# Try /health/advanced first (verifies Redis + RabbitMQ + auth DB),
+# fall back to /health (lightweight status-only check).
 if pgrep -f 'puma' > /dev/null 2>&1; then
-  exec curl -sf "http://127.0.0.1:${PORT:-3000}/api/v2/status"
+  base="http://127.0.0.1:${PORT:-3000}"
+  curl -sf "${base}/health/advanced" | grep -q '"status":"ok"' && exit 0
+  exec curl -sf "${base}/health"
 fi
 
 # Worker or scheduler: verify TCP connectivity to RabbitMQ.
