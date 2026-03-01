@@ -43,31 +43,31 @@ module Onetime
             private
 
             def gc_participations(report)
-              redis = Familia.dbclient
+              redis  = Familia.dbclient
               repair = auto_repair?(JOB_KEY)
-              limit = batch_size(JOB_KEY)
+              limit  = batch_size(JOB_KEY)
 
               participation_report = {}
 
-              PARTICIPATION_PATTERNS.each do |pattern|
+              MaintenanceJob::PARTICIPATION_PATTERNS.each do |pattern|
                 participation_report[pattern] = gc_pattern(redis, pattern, repair, limit)
               end
 
               invitation_report = gc_pending_invitations(redis, repair, limit)
 
               report[:participation] = participation_report
-              report[:invitations] = invitation_report
-              report[:auto_repair] = repair
+              report[:invitations]   = invitation_report
+              report[:auto_repair]   = repair
             end
 
             # GC stale members from sorted sets matching a glob pattern
             def gc_pattern(redis, pattern, repair, limit)
               member_prefix = participation_member_prefix(pattern)
-              total_stale = 0
+              total_stale   = 0
               total_removed = 0
-              keys_scanned = 0
+              keys_scanned  = 0
 
-              redis.scan_each(match: pattern, count: SCAN_COUNT) do |key|
+              redis.scan_each(match: pattern, count: MaintenanceJob::SCAN_COUNT) do |key|
                 keys_scanned += 1
                 stale_members = []
 
@@ -90,12 +90,12 @@ module Onetime
 
             # GC expired or orphaned pending invitations
             def gc_pending_invitations(redis, repair, limit)
-              expired = 0
-              orphaned = 0
-              removed = 0
+              expired      = 0
+              orphaned     = 0
+              removed      = 0
               keys_scanned = 0
 
-              redis.scan_each(match: INVITATION_PATTERN, count: SCAN_COUNT) do |key|
+              redis.scan_each(match: INVITATION_PATTERN, count: MaintenanceJob::SCAN_COUNT) do |key|
                 keys_scanned += 1
                 stale_members = []
 
@@ -125,22 +125,13 @@ module Onetime
 
                 if repair && stale_members.any?
                   # Remove orphaned entries (expired ones already cleaned up via destroy_with_index_cleanup!)
-                  orphaned_members = stale_members.select { |m| !redis.exists?("org_membership:#{m}") }
+                  orphaned_members = stale_members.reject { |m| redis.exists?("org_membership:#{m}") }
                   redis.zrem(key, orphaned_members) if orphaned_members.any?
-                  removed += stale_members.size
+                  removed         += stale_members.size
                 end
               end
 
               { keys_scanned: keys_scanned, expired: expired, orphaned: orphaned, removed: removed }
-            end
-
-            def participation_member_prefix(pattern)
-              case pattern
-              when /members$/   then 'customer'
-              when /domains$/   then 'custom_domain'
-              when /receipts$/  then 'receipt'
-              else 'unknown'
-              end
             end
           end
         end

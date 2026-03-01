@@ -44,18 +44,18 @@ module Onetime
             private
 
             def cleanup_phantoms(report)
-              redis = Familia.dbclient
+              redis  = Familia.dbclient
               repair = auto_repair?(JOB_KEY)
-              limit = batch_size(JOB_KEY)
+              limit  = batch_size(JOB_KEY)
 
-              models_report = {}
+              models_report  = {}
               total_phantoms = 0
-              total_removed = 0
+              total_removed  = 0
 
-              INSTANCE_MODELS.each do |label, class_name, prefix|
+              MaintenanceJob::INSTANCE_MODELS.each do |label, class_name, prefix|
                 model_class = resolve_model(class_name)
-                dbkey = model_class.instances.dbkey
-                phantoms = scan_phantoms_in_sorted_set(redis, dbkey, prefix, limit)
+                dbkey       = model_class.instances.dbkey
+                phantoms    = scan_phantoms_in_sorted_set(redis, dbkey, prefix, limit)
 
                 removed = 0
                 if repair && phantoms.any?
@@ -64,7 +64,7 @@ module Onetime
                 end
 
                 total_phantoms += phantoms.size
-                total_removed += removed
+                total_removed  += removed
 
                 models_report[label] = {
                   phantoms_found: phantoms.size,
@@ -73,30 +73,30 @@ module Onetime
               end
 
               participation_report = {}
-              PARTICIPATION_PATTERNS.each do |pattern|
-                result = scan_participation_phantoms(redis, pattern, repair, limit)
+              MaintenanceJob::PARTICIPATION_PATTERNS.each do |pattern|
+                result                        = scan_participation_phantoms(redis, pattern, repair, limit)
                 participation_report[pattern] = result
-                total_phantoms += result[:phantoms_found]
-                total_removed += result[:removed]
+                total_phantoms               += result[:phantoms_found]
+                total_removed                += result[:removed]
               end
 
-              report[:models] = models_report
-              report[:participation] = participation_report
+              report[:models]         = models_report
+              report[:participation]  = participation_report
               report[:total_phantoms] = total_phantoms
-              report[:total_removed] = total_removed
-              report[:auto_repair] = repair
+              report[:total_removed]  = total_removed
+              report[:auto_repair]    = repair
             end
 
             # Scan a sorted set for members whose backing hash key
             # does not exist. Returns an array of phantom member IDs.
             def scan_phantoms_in_sorted_set(redis, sorted_set_key, prefix, limit)
               phantoms = []
-              batch = []
+              batch    = []
 
               zscan_each(redis, sorted_set_key) do |member|
                 batch << member
 
-                if batch.size >= PIPELINE_BATCH
+                if batch.size >= MaintenanceJob::PIPELINE_BATCH
                   phantoms.concat(check_batch(redis, batch, prefix))
                   batch = []
                   break if phantoms.size >= limit
@@ -114,7 +114,7 @@ module Onetime
             # Check a batch of members against their backing hash keys.
             # Returns members whose keys do not exist.
             def check_batch(redis, members, prefix)
-              keys = members.map { |m| "#{prefix}:#{m}" }
+              keys    = members.map { |m| "#{prefix}:#{m}" }
               results = pipeline_exists(redis, keys)
 
               phantoms = []
@@ -126,25 +126,24 @@ module Onetime
 
             # Scan participation sorted sets matching a glob pattern
             # and check each member for a valid backing key.
+            # Uses pipelined EXISTS checks and enforces a global limit
+            # across all keys matching the pattern.
             def scan_participation_phantoms(redis, pattern, repair, limit)
               total_phantoms = 0
-              total_removed = 0
-              keys_scanned = 0
+              total_removed  = 0
+              keys_scanned   = 0
 
-              # Determine the prefix for members based on the pattern suffix
               member_prefix = participation_member_prefix(pattern)
+              remaining     = limit
 
-              redis.scan_each(match: pattern, count: SCAN_COUNT) do |key|
+              redis.scan_each(match: pattern, count: MaintenanceJob::SCAN_COUNT) do |key|
+                break if remaining <= 0
+
                 keys_scanned += 1
-                phantoms = []
-
-                zscan_each(redis, key) do |member|
-                  redis_key = "#{member_prefix}:#{member}"
-                  phantoms << member unless redis.exists?(redis_key)
-                  break if phantoms.size >= limit
-                end
+                phantoms      = scan_phantoms_in_sorted_set(redis, key, member_prefix, remaining)
 
                 total_phantoms += phantoms.size
+                remaining      -= phantoms.size
 
                 if repair && phantoms.any?
                   redis.zrem(key, phantoms)
@@ -153,17 +152,6 @@ module Onetime
               end
 
               { keys_scanned: keys_scanned, phantoms_found: total_phantoms, removed: total_removed }
-            end
-
-            # Map participation pattern suffix to the member's Redis prefix.
-            # e.g., organization:*:members → customer, organization:*:domains → custom_domain
-            def participation_member_prefix(pattern)
-              case pattern
-              when /members$/   then 'customer'
-              when /domains$/   then 'custom_domain'
-              when /receipts$/  then 'receipt'
-              else 'unknown'
-              end
             end
           end
         end

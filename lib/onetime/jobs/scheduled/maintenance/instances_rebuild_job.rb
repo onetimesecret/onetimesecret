@@ -32,6 +32,15 @@ module Onetime
           # exceeds this fraction, abort the rebuild as a safety check.
           DRIFT_THRESHOLD = 0.20
 
+          # Known hash-typed sub-structure suffixes to exclude when scanning
+          # for model instance keys. These are indexes and metadata hashes
+          # that share the model prefix but are not model instances.
+          SUB_STRUCTURE_SUFFIXES = %w[
+            email_index
+            contact_email_index
+            display_domain_index
+          ].freeze
+
           class << self
             def schedule(scheduler)
               return unless job_enabled?(JOB_KEY)
@@ -49,28 +58,32 @@ module Onetime
             private
 
             def rebuild_instances(report)
-              redis = Familia.dbclient
-              repair = auto_repair?(JOB_KEY)
+              redis         = Familia.dbclient
+              repair        = auto_repair?(JOB_KEY)
               models_report = {}
 
-              INSTANCE_MODELS.each do |label, class_name, prefix|
-                model_class = resolve_model(class_name)
-                dbkey = model_class.instances.dbkey
+              MaintenanceJob::INSTANCE_MODELS.each do |label, class_name, prefix|
+                model_class          = resolve_model(class_name)
+                dbkey                = model_class.instances.dbkey
                 models_report[label] = reconcile_model(redis, dbkey, prefix, repair)
               end
 
-              report[:models] = models_report
+              report[:models]      = models_report
               report[:auto_repair] = repair
             end
 
             def reconcile_model(redis, instances_key, prefix, repair)
-              # Step 1: Collect all existing hash keys for this prefix
+              # Step 1: Collect all existing hash keys for this prefix.
+              # In-memory Sets are acceptable here — model counts are bounded
+              # (tens of thousands max) and diff computation requires both sets.
               scanned_ids = Set.new
-              redis.scan_each(match: "#{prefix}:*", count: SCAN_COUNT) do |key|
+              redis.scan_each(match: "#{prefix}:*", count: MaintenanceJob::SCAN_COUNT) do |key|
                 next unless redis.type(key) == 'hash'
+
                 identifier = key.sub("#{prefix}:", '')
-                # Skip sub-keys (e.g., "customer:email_index")
-                next if identifier.include?(':')
+                # Skip known sub-structure keys (e.g., "customer:email_index")
+                next if SUB_STRUCTURE_SUFFIXES.include?(identifier)
+
                 scanned_ids << identifier
               end
 
@@ -82,9 +95,9 @@ module Onetime
 
               # Step 3: Compute diff
               missing_from_instances = scanned_ids - current_ids
-              phantom_in_instances = current_ids - scanned_ids
+              phantom_in_instances   = current_ids - scanned_ids
 
-              total = [scanned_ids.size, current_ids.size].max
+              total      = [scanned_ids.size, current_ids.size].max
               diff_count = missing_from_instances.size + phantom_in_instances.size
 
               result = {
@@ -99,8 +112,8 @@ module Onetime
               # Safety check: abort if drift is too large
               if total > 0 && diff_count.to_f / total > DRIFT_THRESHOLD
                 scheduler_logger.error "[InstancesRebuildJob] Drift too large for #{prefix}: " \
-                  "#{diff_count}/#{total} (#{(diff_count.to_f / total * 100).round(1)}%) exceeds " \
-                  "#{(DRIFT_THRESHOLD * 100).round}% threshold — aborting"
+                                       "#{diff_count}/#{total} (#{(diff_count.to_f / total * 100).round(1)}%) exceeds " \
+                                       "#{(DRIFT_THRESHOLD * 100).round}% threshold — aborting"
                 result[:aborted] = true
                 return result
               end

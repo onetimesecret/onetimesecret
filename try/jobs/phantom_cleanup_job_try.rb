@@ -10,7 +10,8 @@
 #   - Does not remove phantoms when auto_repair is false
 #   - Removes phantoms when auto_repair is true (simulated via direct call)
 #   - Handles empty sorted sets gracefully
-#   - participation_member_prefix mapping
+#   - participation_member_prefix mapping (inherited from base class)
+#   - scan_participation_phantoms pipelined approach with global limit
 
 require_relative '../support/test_helpers'
 
@@ -94,6 +95,52 @@ call_private(:participation_member_prefix, 'organization:*:receipts')
 ## JOB_KEY is phantom_cleanup
 @job::JOB_KEY
 #=> 'phantom_cleanup'
+
+## scan_participation_phantoms detects phantoms in participation sets
+# Create a participation-style sorted set with a specific key that matches a pattern
+@part_org_id = "parttest_#{SecureRandom.hex(4)}"
+@part_key = "customer:#{@part_org_id}:receipts"
+@cleanup_keys << @part_key
+
+# Valid member: has backing receipt key
+@part_valid = "rv_#{SecureRandom.hex(4)}"
+@part_valid_key = "receipt:#{@part_valid}"
+@cleanup_keys << @part_valid_key
+@redis.hset(@part_valid_key, 'objid', @part_valid)
+@redis.zadd(@part_key, 1.0, @part_valid)
+
+# Phantom members: no backing receipt key
+@part_phantom1 = "rp1_#{SecureRandom.hex(4)}"
+@part_phantom2 = "rp2_#{SecureRandom.hex(4)}"
+@redis.zadd(@part_key, [[2.0, @part_phantom1], [3.0, @part_phantom2]])
+
+result = call_private(:scan_participation_phantoms, @redis, @part_key, false, 500)
+result[:phantoms_found]
+#=> 2
+
+## scan_participation_phantoms reports keys_scanned
+result = call_private(:scan_participation_phantoms, @redis, @part_key, false, 500)
+result[:keys_scanned]
+#=> 1
+
+## scan_participation_phantoms does not remove when repair=false
+call_private(:scan_participation_phantoms, @redis, @part_key, false, 500)
+@redis.zscore(@part_key, @part_phantom1).nil?
+#=> false
+
+## scan_participation_phantoms respects global limit
+result = call_private(:scan_participation_phantoms, @redis, @part_key, false, 1)
+result[:phantoms_found]
+#=> 1
+
+## scan_participation_phantoms removes phantoms when repair=true
+@repair_part_key = "customer:rptest_#{SecureRandom.hex(4)}:receipts"
+@cleanup_keys << @repair_part_key
+@repair_part_phantom = "rpp_#{SecureRandom.hex(4)}"
+@redis.zadd(@repair_part_key, 1.0, @repair_part_phantom)
+call_private(:scan_participation_phantoms, @redis, @repair_part_key, true, 500)
+@redis.zscore(@repair_part_key, @repair_part_phantom).nil?
+#=> true
 
 # TEARDOWN
 

@@ -59,6 +59,29 @@ end
 @job::DRIFT_THRESHOLD
 #=> 0.20
 
+## SUB_STRUCTURE_SUFFIXES includes email_index
+@job::SUB_STRUCTURE_SUFFIXES.include?('email_index')
+#=> true
+
+## SUB_STRUCTURE_SUFFIXES includes contact_email_index
+@job::SUB_STRUCTURE_SUFFIXES.include?('contact_email_index')
+#=> true
+
+## SUB_STRUCTURE_SUFFIXES includes display_domain_index
+@job::SUB_STRUCTURE_SUFFIXES.include?('display_domain_index')
+#=> true
+
+## reconcile_model skips sub-structure keys (e.g. email_index)
+# Add a hash key that looks like a sub-structure index
+@sub_key = "#{@prefix}:email_index"
+@cleanup_keys << @sub_key
+@redis.hset(@sub_key, 'field', 'value')
+result = call_private(:reconcile_model, @redis, @instances_key, @prefix, false)
+# scanned_keys should NOT include the sub-structure key
+# Only the 2 real model keys (@consistent_key, @missing_key) should be scanned
+result[:scanned_keys]
+#=> 2
+
 ## reconcile_model detects missing members
 result = call_private(:reconcile_model, @redis, @instances_key, @prefix, false)
 result[:missing_from_instances]
@@ -85,38 +108,41 @@ call_private(:reconcile_model, @redis, @instances_key, @prefix, false)
 #=> false
 
 ## reconcile_model repairs when repair=true
-# Use separate test data for repair
-repair_prefix = "rebuild_repair_#{SecureRandom.hex(4)}"
-repair_instances = "#{repair_prefix}:instances"
-@cleanup_keys << repair_instances
+# Use separate test data for repair. Need enough consistent members
+# to keep drift below DRIFT_THRESHOLD (20%). With 2 diffs, need total >= 10.
+@repair_prefix = "rebuild_repair_#{SecureRandom.hex(4)}"
+@repair_instances = "#{@repair_prefix}:instances"
+@cleanup_keys << @repair_instances
 
-# Add consistent member
-r_con_id = "rcon_#{SecureRandom.hex(4)}"
-r_con_key = "#{repair_prefix}:#{r_con_id}"
-@cleanup_keys << r_con_key
-@redis.hset(r_con_key, 'objid', r_con_id)
-@redis.zadd(repair_instances, 1.0, r_con_id)
+# Add 9 consistent members (in both scan and instances)
+9.times do |i|
+  cid = "rcon#{i}_#{SecureRandom.hex(4)}"
+  ckey = "#{@repair_prefix}:#{cid}"
+  @cleanup_keys << ckey
+  @redis.hset(ckey, 'objid', cid)
+  @redis.zadd(@repair_instances, i.to_f, cid)
+end
 
 # Add missing key (not in instances)
-r_miss_id = "rmiss_#{SecureRandom.hex(4)}"
-r_miss_key = "#{repair_prefix}:#{r_miss_id}"
+@r_miss_id = "rmiss_#{SecureRandom.hex(4)}"
+r_miss_key = "#{@repair_prefix}:#{@r_miss_id}"
 @cleanup_keys << r_miss_key
-@redis.hset(r_miss_key, 'objid', r_miss_id)
+@redis.hset(r_miss_key, 'objid', @r_miss_id)
 
 # Add phantom (in instances, no key)
-r_phant_id = "rphant_#{SecureRandom.hex(4)}"
-@redis.zadd(repair_instances, 2.0, r_phant_id)
+@r_phant_id = "rphant_#{SecureRandom.hex(4)}"
+@redis.zadd(@repair_instances, 99.0, @r_phant_id)
 
-result = call_private(:reconcile_model, @redis, repair_instances, repair_prefix, true)
+result = call_private(:reconcile_model, @redis, @repair_instances, @repair_prefix, true)
 result[:repaired]
 #=> true
 
 ## After repair, missing member is added to instances
-@redis.zscore(repair_instances, r_miss_id).nil?
+@redis.zscore(@repair_instances, @r_miss_id).nil?
 #=> false
 
 ## After repair, phantom member is removed from instances
-@redis.zscore(repair_instances, r_phant_id).nil?
+@redis.zscore(@repair_instances, @r_phant_id).nil?
 #=> true
 
 ## reconcile_model handles empty data gracefully

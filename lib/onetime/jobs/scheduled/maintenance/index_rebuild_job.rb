@@ -54,8 +54,8 @@ module Onetime
             private
 
             def reconcile_indexes(report)
-              redis = Familia.dbclient
-              repair = auto_repair?(JOB_KEY)
+              redis          = Familia.dbclient
+              repair         = auto_repair?(JOB_KEY)
               indexes_report = {}
 
               INDEXES.each do |label, index_key, prefix, field_name|
@@ -64,24 +64,24 @@ module Onetime
                 )
               end
 
-              report[:indexes] = indexes_report
+              report[:indexes]     = indexes_report
               report[:auto_repair] = repair
             end
 
             # Forward check: verify each index entry points to a valid object
             # Reverse check: verify each object has an index entry
             def reconcile_index(redis, index_key, prefix, field_name, repair)
-              stale_entries = 0
+              stale_entries      = 0
               mismatched_entries = 0
-              missing_entries = 0
-              repaired_stale = 0
-              repaired_missing = 0
-              entries_checked = 0
+              missing_entries    = 0
+              repaired_stale     = 0
+              repaired_missing   = 0
+              entries_checked    = 0
 
               # Forward check: scan index entries
-              redis.hscan_each(index_key, count: SCAN_COUNT) do |field, value|
+              redis.hscan_each(index_key, count: MaintenanceJob::SCAN_COUNT) do |field, value|
                 entries_checked += 1
-                target_key = "#{prefix}:#{value}"
+                target_key       = "#{prefix}:#{value}"
 
                 unless redis.exists?(target_key)
                   stale_entries += 1
@@ -101,15 +101,15 @@ module Onetime
 
               # Reverse check: scan objects and verify index entry exists
               objects_checked = 0
-              redis.scan_each(match: "#{prefix}:*", count: SCAN_COUNT) do |key|
+              redis.scan_each(match: "#{prefix}:*", count: MaintenanceJob::SCAN_COUNT) do |key|
                 next unless redis.type(key) == 'hash'
 
                 objects_checked += 1
-                field_value = redis.hget(key, field_name)
+                field_value      = redis.hget(key, field_name)
                 next unless field_value && !field_value.empty?
 
                 # Extract the identifier from the key
-                identifier = key.sub("#{prefix}:", '')
+                identifier    = key.sub("#{prefix}:", '')
                 indexed_value = redis.hget(index_key, field_value)
 
                 if indexed_value.nil?

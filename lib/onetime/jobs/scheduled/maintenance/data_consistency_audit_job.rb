@@ -44,42 +44,40 @@ module Onetime
             private
 
             def run_audit(report)
-              redis = Familia.dbclient
+              redis   = Familia.dbclient
               samples = sample_size(JOB_KEY)
 
               models_report = {}
 
-              INSTANCE_MODELS.each do |label, class_name, prefix|
-                model_class = resolve_model(class_name)
+              MaintenanceJob::INSTANCE_MODELS.each do |label, class_name, prefix|
+                model_class          = resolve_model(class_name)
                 models_report[label] = audit_model(redis, model_class, prefix, samples)
               end
 
-              report[:models] = models_report
+              report[:models]        = models_report
               report[:participation] = audit_participation(redis, samples)
-              report[:indexes] = audit_indexes(redis, samples)
+              report[:indexes]       = audit_indexes(redis, samples)
             end
 
             # Audit a single model's instances sorted set
             def audit_model(redis, model_class, prefix, samples)
-              dbkey = model_class.instances.dbkey
+              dbkey           = model_class.instances.dbkey
               instances_count = redis.zcard(dbkey)
 
               # Count actual keys matching the prefix pattern
               scan_count = 0
-              redis.scan_each(match: "#{prefix}:*", count: SCAN_COUNT) do |key|
+              redis.scan_each(match: "#{prefix}:*", count: MaintenanceJob::SCAN_COUNT) do |key|
                 # Only count hash keys (the model objects), not sub-structures
                 scan_count += 1 if redis.type(key) == 'hash'
               end
 
               # Sample random members from the sorted set
-              phantoms_found = 0
+              phantoms_found   = 0
               objid_mismatches = 0
-              sampled = 0
+              sampled          = 0
 
-              members = redis.zrandmember(dbkey, samples) || []
-              members = [members] if members.is_a?(String)
-              members.compact.uniq.each do |member|
-                sampled += 1
+              Array(redis.zrandmember(dbkey, samples)).compact.uniq.each do |member|
+                sampled  += 1
                 redis_key = "#{prefix}:#{member}"
 
                 unless redis.exists?(redis_key)
@@ -106,19 +104,16 @@ module Onetime
 
             # Audit participation sorted sets for stale references
             def audit_participation(redis, samples)
-              stale_refs = 0
+              stale_refs   = 0
               sets_checked = 0
 
-              PARTICIPATION_PATTERNS.each do |pattern|
+              MaintenanceJob::PARTICIPATION_PATTERNS.each do |pattern|
                 member_prefix = participation_member_prefix(pattern)
 
-                redis.scan_each(match: pattern, count: SCAN_COUNT) do |key|
+                redis.scan_each(match: pattern, count: MaintenanceJob::SCAN_COUNT) do |key|
                   sets_checked += 1
-                  members = redis.zrandmember(key, [samples, 10].min) || []
-                  members = [members] if members.is_a?(String)
-
-                  members.compact.uniq.each do |member|
-                    redis_key = "#{member_prefix}:#{member}"
+                  Array(redis.zrandmember(key, [samples, 10].min)).compact.uniq.each do |member|
+                    redis_key   = "#{member_prefix}:#{member}"
                     stale_refs += 1 unless redis.exists?(redis_key)
                   end
                 end
@@ -155,31 +150,22 @@ module Onetime
               total_entries = redis.hlen(index_key)
               return { total: 0, sampled: 0, stale: 0 } if total_entries == 0
 
-              stale = 0
+              stale   = 0
               sampled = 0
-              cursor = '0'
+              cursor  = '0'
 
               loop do
                 cursor, entries = redis.hscan(index_key, cursor, count: samples)
                 entries.each do |_field, value|
-                  sampled += 1
+                  sampled   += 1
                   target_key = "#{target_prefix}:#{value}"
-                  stale += 1 unless redis.exists?(target_key)
+                  stale     += 1 unless redis.exists?(target_key)
                   break if sampled >= samples
                 end
                 break if cursor == '0' || sampled >= samples
               end
 
               { total: total_entries, sampled: sampled, stale: stale }
-            end
-
-            def participation_member_prefix(pattern)
-              case pattern
-              when /members$/   then 'customer'
-              when /domains$/   then 'custom_domain'
-              when /receipts$/  then 'receipt'
-              else 'unknown'
-              end
             end
           end
         end

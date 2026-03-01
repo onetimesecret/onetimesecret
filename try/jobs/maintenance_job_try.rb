@@ -12,6 +12,7 @@
 #   - with_stats wraps execution with timing
 #   - pipeline_exists returns boolean results
 #   - zscan_each iterates sorted set members
+#   - participation_member_prefix mapping (extracted to base class)
 
 require_relative '../support/test_helpers'
 
@@ -93,9 +94,9 @@ results
 ## zscan_each yields members of a sorted set
 zset_key = "maint_test_zset:#{SecureRandom.hex(4)}"
 @cleanup_keys << zset_key
-redis.zadd(zset_key, [[1.0, 'alpha'], [2.0, 'beta']])
+Familia.dbclient.zadd(zset_key, [[1.0, 'alpha'], [2.0, 'beta']])
 collected = []
-call_private(:zscan_each, redis, zset_key) { |m| collected << m }
+call_private(:zscan_each, Familia.dbclient, zset_key) { |m| collected << m }
 collected.sort
 #=> ['alpha', 'beta']
 
@@ -103,9 +104,25 @@ collected.sort
 empty_key = "maint_test_empty:#{SecureRandom.hex(4)}"
 @cleanup_keys << empty_key
 empty_collected = []
-call_private(:zscan_each, redis, empty_key) { |m| empty_collected << m }
+call_private(:zscan_each, Familia.dbclient, empty_key) { |m| empty_collected << m }
 empty_collected
 #=> []
+
+## participation_member_prefix maps members to customer
+call_private(:participation_member_prefix, 'organization:*:members')
+#=> 'customer'
+
+## participation_member_prefix maps domains to custom_domain
+call_private(:participation_member_prefix, 'organization:*:domains')
+#=> 'custom_domain'
+
+## participation_member_prefix maps receipts to receipt
+call_private(:participation_member_prefix, 'custom_domain:*:receipts')
+#=> 'receipt'
+
+## participation_member_prefix returns unknown for unrecognized pattern
+call_private(:participation_member_prefix, 'organization:*:something_else')
+#=> 'unknown'
 
 # TEARDOWN
 

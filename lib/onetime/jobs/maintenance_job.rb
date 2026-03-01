@@ -73,7 +73,7 @@ module Onetime
 
         # Per-job config hash (e.g., 'phantom_cleanup')
         def job_config(job_key)
-          maintenance_config.dig(job_key) || {}
+          maintenance_config[job_key] || {}
         end
 
         # Master + job-level enabled check
@@ -112,11 +112,11 @@ module Onetime
         # Wrap job execution with timing and structured logging
         def with_stats(job_name)
           start_time = Time.now
-          report = { job: job_name, started_at: start_time.utc.iso8601 }
+          report     = { job: job_name, started_at: start_time.utc.iso8601 }
 
           yield(report)
 
-          report[:duration_ms] = ((Time.now - start_time) * 1000).round
+          report[:duration_ms]  = ((Time.now - start_time) * 1000).round
           report[:completed_at] = Time.now.utc.iso8601
           log_report(report)
           report
@@ -131,18 +131,28 @@ module Onetime
         def pipeline_exists(redis, keys)
           return [] if keys.empty?
 
-          results = redis.pipelined do |pipe|
+          redis.pipelined do |pipe|
             keys.each { |k| pipe.exists?(k) }
           end
-          results
+        end
+
+        # Map participation pattern suffix to the member's Redis prefix.
+        # e.g., organization:*:members → customer, organization:*:domains → custom_domain
+        def participation_member_prefix(pattern)
+          case pattern
+          when /members$/   then 'customer'
+          when /domains$/   then 'custom_domain'
+          when /receipts$/  then 'receipt'
+          else 'unknown'
+          end
         end
 
         # Yield each member of a sorted set using ZSCAN (non-blocking).
-        def zscan_each(redis, key, count: SCAN_COUNT, &block)
+        def zscan_each(redis, key, count: SCAN_COUNT)
           cursor = '0'
           loop do
             cursor, members = redis.zscan(key, cursor, count: count)
-            members.each { |member, _score| block.call(member) }
+            members.each { |member, _score| yield(member) }
             break if cursor == '0'
           end
         end
