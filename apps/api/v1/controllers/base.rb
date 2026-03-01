@@ -63,7 +63,8 @@ module V1
           return disabled_response(req.path) unless authentication_enabled?
 
           OT.ld "[authorized] Attempt for '#{custid}' via #{req.client_ipaddress} (basic auth)"
-          possible = Onetime::Customer.load custid
+          possible = Onetime::Customer.load_by_extid_or_email(custid)
+
           @cust = possible if possible&.apitoken?(apitoken)
           raise OT::Unauthorized, 'Invalid credentials' if cust.nil?
 

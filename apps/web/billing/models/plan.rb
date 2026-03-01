@@ -8,6 +8,7 @@ require 'stripe'
 require 'json_schemer'
 require_relative '../metadata'
 require_relative '../config'
+require_relative '../region_normalizer'
 require_relative '../lib/stripe_circuit_breaker'
 
 module Billing
@@ -49,7 +50,7 @@ module Billing
   # - `set :entitlements` - O(1) membership checks (create_secrets, custom_domains, etc.)
   # - `set :features` - Marketing features (unique, unordered)
   # - `hashkey :limits` - Resource quotas with flattened keys
-  # - `stringkey :stripe_data_snapshot` - Cached Stripe Product+Price JSON (12hr TTL)
+  # - `stringkey :stripe_data_snapshot` - Cached Stripe Product+Price JSON
   #
   # Limits use flattened keys to support future expansion:
   #   - "teams.max" => "1" (allows adding "teams.min", "teams.default" later)
@@ -62,9 +63,6 @@ module Billing
     prefix :billing_plan
 
     feature :safe_dump
-    feature :expiration
-
-    default_expiration Billing::Config::CATALOG_TTL  # Auto-expire after 12 hours
 
     identifier_field :plan_id    # Computed: product_interval
 
@@ -77,7 +75,7 @@ module Billing
     field :tier                     # e.g., 'single_team', 'multi_team'
     field :interval                 # 'month' or 'year'
     field :amount                   # Price in cents
-    field :currency                 # 'usd', 'eur', etc.
+    field :currency                 # 'cad', 'eur', etc.
     field :region                   # EU, CA, US, NZ, etc
     field :tenancy                  # One of: multitenant, dedicated
     field :display_order            # Display ordering (higher = earlier)
@@ -107,7 +105,7 @@ module Billing
     set :entitlements
     set :features
     hashkey :limits
-    stringkey :stripe_data_snapshot, default_expiration: Billing::Config::CATALOG_TTL  # Cached Stripe Product+Price JSON for recovery
+    stringkey :stripe_data_snapshot  # Cached Stripe Product+Price JSON for recovery
 
     def init
       super
@@ -195,11 +193,12 @@ module Billing
         missing  = REQUIRED_PRODUCT_METADATA - metadata.keys.map(&:to_s)
 
         if missing.any?
-          OT.lw '[Plan.validate_product_metadata] Product missing required metadata',
+          OT.lw '[Plan.validate_product_metadata] Stripe product not managed by catalog',
             {
               product_id: product.id,
               product_name: product.name,
               missing_keys: missing.join(', '),
+              hint: 'Add metadata via Stripe Dashboard or `bin/ots billing products update',
             }
         end
 
@@ -215,6 +214,21 @@ module Billing
 
         missing = validate_product_metadata(product)
         missing.empty?
+      end
+
+      # Check whether a Stripe product belongs to the configured region
+      #
+      # Returns true when no region is configured (backward-compatible pass-through).
+      # When a region is configured, the product's region metadata must match case-insensitively.
+      # Called by both collect_stripe_plans (refresh path) and the webhook handler.
+      #
+      # @param product [Stripe::Product] The Stripe product
+      # @return [Boolean] true if the product matches the configured region (or no region set)
+      def correct_region?(product)
+        Billing::RegionNormalizer.match?(
+          product.metadata[Metadata::FIELD_REGION],
+          Onetime.billing_config.region,
+        )
       end
 
       # Refresh plan cache from Stripe API
@@ -265,10 +279,26 @@ module Billing
         # PHASE 2: Upsert all plans (NO clear_cache!)
         # Each plan is created or updated individually, ensuring the catalog
         # is never empty during sync
-        upserted_ids = []
+        upserted_ids    = []
+        not_persisted   = []
         plan_data_list.each do |plan_data|
           plan = upsert_from_stripe_data(plan_data)
           upserted_ids << plan.plan_id
+
+          # Plans not in instances were either skipped by the stale check
+          # or failed to save. Both cases are logged inside upsert_from_stripe_data
+          # with appropriate severity (ld for skips, le for failures).
+          # O(log n) per call but catalog is small (~20 plans max).
+          not_persisted << plan.plan_id unless instances.member?(plan.plan_id)
+        end
+
+        saved_count = upserted_ids.size - not_persisted.size
+
+        if not_persisted.any?
+          OT.lw "[Plan.refresh_from_stripe] #{not_persisted.size} plan(s) not persisted: #{not_persisted.join(', ')}",
+            {
+              region: Onetime.billing_config.region,
+            }
         end
 
         # PHASE 3: Prune stale plans not in current Stripe catalog
@@ -281,8 +311,9 @@ module Billing
         # PHASE 5: Update global sync timestamp for O(1) freshness checks
         update_catalog_sync_timestamp
 
-        OT.li "[Plan.refresh_from_stripe] Synced #{upserted_ids.size} plans, pruned #{pruned_count}"
-        upserted_ids.size
+        OT.li "[Plan.refresh_from_stripe] Synced #{saved_count}/#{upserted_ids.size} plans " \
+              "(#{not_persisted.size} not persisted), pruned #{pruned_count}"
+        saved_count
       end
 
       # Upsert config-only plans (free tier, etc.) that have no Stripe prices
@@ -313,6 +344,18 @@ module Billing
           # Skip if not configured to show on plans page
           next unless plan_def['show_on_plans_page'] == true
 
+          # Resolve effective region: explicit plan region, or inherit from deployment
+          # Config-only plans (free tier) typically don't specify a region in YAML
+          # because they're universal — they inherit the deployment's region.
+          configured_region = OT.billing_config.region
+          plan_region       = Billing::RegionNormalizer.normalize(plan_def['region']) || configured_region
+
+          # Skip plans whose effective region doesn't match deployment
+          unless Billing::RegionNormalizer.match?(plan_region, configured_region)
+            OT.ld "[Plan.upsert_config_only_plans] Skipping config-only plan for region #{plan_region}: #{plan_key}"
+            next
+          end
+
           # Extract plan attributes from config
           tier               = plan_def['tier']
           tenancy            = plan_def['tenancy'] || 'multi'
@@ -333,7 +376,7 @@ module Billing
           plan.tier               = tier
           plan.interval           = nil  # Free plans have no interval
           plan.amount             = '0'
-          plan.currency           = 'usd'
+          plan.currency           = OT.billing_config.currency
           plan.tenancy            = tenancy
           plan.display_order      = display_order.to_s
           plan.show_on_plans_page = 'true'
@@ -345,6 +388,7 @@ module Billing
           plan.plan_name_label    = plan_def['plan_name_label']
           plan.includes_plan      = plan_def['includes_plan']
           plan.is_popular         = (plan_def['is_popular'] == true).to_s
+          plan.region             = Billing::RegionNormalizer.normalize(plan_def['region']) || OT.billing_config.region
           plan.last_synced_at     = Time.now.to_i.to_s
 
           # Set entitlements
@@ -359,7 +403,14 @@ module Billing
           plan.limits.clear
           limits_hash.each { |key, val| plan.limits[key] = val }
 
-          plan.save
+          unless plan.save
+            OT.le "[Plan.upsert_config_only_plans] Save FAILED for config-only plan: #{plan_id}",
+              {
+                tier: tier,
+                tenancy: tenancy,
+              }
+            next
+          end
           upserted_count += 1
 
           OT.li "[Plan.upsert_config_only_plans] Upserted config-only plan: #{plan_id}"
@@ -408,6 +459,18 @@ module Billing
                 product_id: product.id,
                 product_name: product.name,
                 app: product.metadata[Metadata::FIELD_APP],
+              }
+            next
+          end
+
+          # Skip products from a different region when regional isolation is configured
+          unless correct_region?(product)
+            OT.ld '[Plan.collect_stripe_plans] Skipping product from wrong region',
+              {
+                product_id: product.id,
+                product_name: product.name,
+                product_region: product.metadata[Metadata::FIELD_REGION],
+                configured_region: Onetime.billing_config.region,
               }
             next
           end
@@ -519,6 +582,7 @@ module Billing
           product: {
             id: product.id,
             name: product.name,
+            currency: product.metadata[Metadata::FIELD_CURRENCY],
             metadata: product.metadata.to_h,
             marketing_features: product.marketing_features&.map(&:name) || [],
           },
@@ -575,24 +639,32 @@ module Billing
       def upsert_from_stripe_data(plan_data)
         plan_id = plan_data[:plan_id]
 
-        # Load existing or create new - handle expired entries gracefully
+        # Load existing or create new - handle missing entries gracefully
         existing = begin
           loaded = load(plan_id)
           loaded if loaded&.exists?
         rescue Familia::NoIdentifier
-          # Plan key expired but instances entry persisted - treat as new
+          # Plan hash missing but instances entry persisted - treat as new
           nil
         end
 
         # Check for stale update (out-of-order webhook delivery)
-        # Only skip if BOTH timestamps are valid (> 0)
+        # Only skip if BOTH timestamps are valid (> 0) AND the Stripe product
+        # is the same. When stripe_product_id differs (cross-region replacement),
+        # bypass the stale check so the new product always wins.
+        # NOTE: nil == nil is true in Ruby — plans without a stripe_product_id
+        # (e.g., config-only plans created before this field existed) are treated
+        # as "same product", so the stale check still applies. This is the correct
+        # safe default, avoiding accidental overwrites when product provenance is
+        # unknown.
         if existing && plan_data[:stripe_updated_at]
+          same_product     = existing.stripe_product_id == plan_data[:stripe_product_id]
           incoming_updated = plan_data[:stripe_updated_at].to_i
           existing_updated = existing.stripe_updated_at.to_i
 
-          if incoming_updated > 0 && existing_updated > 0 && incoming_updated <= existing_updated
+          if same_product && incoming_updated > 0 && existing_updated > 0 && incoming_updated <= existing_updated
             OT.ld "[Plan.upsert_from_stripe_data] Skipping stale update for #{plan_id} " \
-                  "(incoming: #{incoming_updated}, existing: #{existing_updated})"
+                  "(same_product: #{same_product}, incoming: #{incoming_updated}, existing: #{existing_updated})"
             return existing
           end
         end
@@ -647,7 +719,15 @@ module Billing
           plan.stripe_data_snapshot.value = plan_data[:stripe_snapshot].to_json
         end
 
-        plan.save
+        unless plan.save
+          OT.le "[Plan.upsert_from_stripe_data] Save FAILED for plan: #{plan_id}",
+            {
+              existing: !existing.nil?,
+              region: plan_data[:region],
+              stripe_product_id: plan_data[:stripe_product_id],
+            }
+          return plan
+        end
 
         action = existing ? 'Updated' : 'Created'
         OT.ld "[Plan.upsert_from_stripe_data] #{action} plan: #{plan_id}"
@@ -658,7 +738,7 @@ module Billing
       # Remove plans not in current Stripe catalog
       #
       # Uses soft-delete pattern - marks plans as inactive rather than destroying.
-      # Handles expired entries gracefully by removing orphaned instances entries.
+      # Handles missing entries gracefully by removing orphaned instances entries.
       #
       # @param current_plan_ids [Array<String>] Plan IDs currently in Stripe catalog
       # @return [Integer] Number of plans marked stale or cleaned up
@@ -674,17 +754,25 @@ module Billing
             # Plan exists in Redis - soft-delete by marking inactive
             plan.active         = 'false'
             plan.last_synced_at = Time.now.to_i.to_s
-            plan.save
+            unless plan.save
+              OT.le "[Plan.prune_stale_plans] Save FAILED for stale plan: #{plan_id}",
+                {
+                  active: plan.active,
+                  last_synced_at: plan.last_synced_at,
+                  region: plan.region,
+                  stripe_product_id: plan.stripe_product_id,
+                }
+            end
             OT.li "[Plan.prune_stale_plans] Marked stale: #{plan_id}"
             pruned_count       += 1
           else
-            # Plan key expired - just remove orphaned instances entry
+            # Plan hash missing - just remove orphaned instances entry
             instances.remove(plan_id)
-            OT.ld "[Plan.prune_stale_plans] Removed expired entry: #{plan_id}"
+            OT.ld "[Plan.prune_stale_plans] Removed orphaned entry: #{plan_id}"
             pruned_count += 1
           end
         rescue Familia::NoIdentifier => _ex
-          # Object expired but load returned something invalid - clean up instances
+          # Object missing but load returned something invalid - clean up instances
           instances.remove(plan_id)
           OT.ld "[Plan.prune_stale_plans] Cleaned orphan entry: #{plan_id}"
           pruned_count += 1
@@ -713,7 +801,8 @@ module Billing
       #
       # @param tier [String] Entitlement tier (e.g., 'single_team', 'single_identity')
       # @param interval [String] Billing interval ('monthly' or 'yearly')
-      # @param region [String] Region code (e.g., 'EU', 'global')
+      # @param region [String, nil] Region code (e.g., 'EU', 'NZ') or nil when
+      #   regionalization is not applicable. There is no "global" region.
       # @return [Plan, nil] Cached plan or nil if not found
       def get_plan(tier, interval, region = nil)
         # Normalize interval to singular form (monthly -> month)
@@ -731,8 +820,11 @@ module Billing
       #
       # @return [Array<Plan>] All cached plans
       def list_plans
-        # Filter out nil entries from expired plans (instances entry exists but hash expired)
-        load_multi(instances.to_a).compact
+        # Filter out plans whose Redis hashes are missing (e.g., after destroy!
+        # or clear_cache) but whose instances sorted set entries persist.
+        # NOTE: load_multi returns Horreum shells (not nil) for missing keys,
+        # so .compact alone is insufficient. See github.com/delano/familia/issues/219
+        load_multi(instances.to_a).select { |plan| plan&.exists? }
       end
 
       # Find plan by Stripe price ID
@@ -827,10 +919,31 @@ module Billing
 
       # Clear all cached plans (for testing or forced refresh)
       def clear_cache
+        # Phase 1: Destroy plans tracked in instances (cleans up associated data types)
         instances.to_a.each do |plan_id|
           plan = load(plan_id)
           plan&.destroy!
         end
+
+        # Phase 2: Scan for orphaned plan hashes not tracked in instances.
+        # These can exist if a previous sync partially failed or if
+        # instances was cleared without destroying the corresponding hashes.
+        scan_pattern = "#{prefix}:*:object"
+        Familia.dbclient.scan_each(match: scan_pattern).each do |key|
+          # Extract plan_id using prefix/suffix removal (more robust than split)
+          plan_id = key.delete_prefix("#{prefix}:").delete_suffix(':object')
+          next if plan_id.nil? || plan_id.empty?
+
+          OT.ld "[Plan.clear_cache] Removing orphaned plan hash: #{plan_id}"
+          begin
+            plan = load(plan_id)
+            plan&.destroy!
+          rescue StandardError
+            # Fall back to direct key deletion if load fails
+            Familia.dbclient.del(key)
+          end
+        end
+
         instances.clear
         @stripe_price_id_cache = nil
         catalog_synced_at.delete!
@@ -851,7 +964,8 @@ module Billing
       #
       # Called after successful Stripe sync to record when the catalog
       # was last refreshed. Stores Familia.now (Float) with JSON serialization
-      # to preserve type. TTL set via default_expiration.
+      # to preserve type. TTL matches CATALOG_TTL so the staleness check
+      # in BillingCatalog initializer automatically triggers re-sync.
       #
       def update_catalog_sync_timestamp
         catalog_synced_at.value = Familia.now
@@ -877,6 +991,14 @@ module Billing
         plans_count = 0
 
         plans_hash.each do |plan_key, plan_def|
+          # Skip plans not matching the configured region
+          configured_region = OT.billing_config.region
+          plan_region       = Billing::RegionNormalizer.normalize(plan_def['region'])
+          unless Billing::RegionNormalizer.match?(plan_region, configured_region)
+            OT.ld "[Plan.load_all_from_config] Skipping plan for region #{plan_region}: #{plan_key}"
+            next
+          end
+
           prices = plan_def['prices'] || []
 
           # Skip plans without prices (e.g., free tier)
@@ -890,9 +1012,10 @@ module Billing
             interval = price['interval'] # 'month' or 'year'
             plan_id  = "#{plan_key}_#{interval}ly"
 
-            # Extract plan attributes
+            # Extract plan attributes. Region is either a specific code
+            # (e.g. 'EU') or nil — there is no "global" default.
             tier               = plan_def['tier']
-            region             = plan_def['region'] || 'global'
+            region             = Billing::RegionNormalizer.normalize(plan_def['region']) || OT.billing_config.region
             tenancy            = plan_def['tenancy'] || 'multi'
             display_order      = plan_def['display_order'] || 0
             show_on_plans_page = plan_def['show_on_plans_page'] == true
@@ -905,6 +1028,9 @@ module Billing
             end
 
             # Create Plan instance
+            # Currency: per-price overrides top-level config default
+            plan_currency = price['currency'] || OT.billing_config.currency
+
             plan = new(
               plan_id: plan_id,
               stripe_price_id: price.key?('price_id') ? price['price_id'] : nil,
@@ -913,7 +1039,7 @@ module Billing
               tier: tier,
               interval: interval,
               amount: price['amount'].to_s,
-              currency: price['currency'],
+              currency: plan_currency,
               region: region,
               tenancy: tenancy,
               display_order: display_order.to_s,
@@ -958,7 +1084,7 @@ module Billing
                 tier: tier,
                 interval: interval,
                 amount: price['amount'],
-                currency: price['currency'],
+                currency: plan_currency,
               }
 
             plans_count += 1

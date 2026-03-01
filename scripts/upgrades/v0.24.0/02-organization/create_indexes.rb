@@ -110,6 +110,9 @@ class OrganizationIndexCreator
 
       next unless record[:key]&.end_with?(':object')
 
+      # Skip GLOBAL singleton records (should not be indexed as organizations)
+      next if record[:key]&.include?(':GLOBAL:') || record[:key]&.include?(':GLOBAL_STATS:')
+
       @stats[:object_records] += 1
 
       process_organization_record(record)
@@ -148,7 +151,8 @@ class OrganizationIndexCreator
 
     created = created || org_fields['created']&.to_i || Time.now.to_i
 
-    # Instance index: organization:instances (sorted set)
+    # Instance index: organization:instances (sorted set, raw identifier for
+    # Familia SortedSet compatibility — not JSON-encoded unlike HashKey values)
     add_command('ZADD', 'organization:instances', [created.to_i, org_objid])
 
     # Lookup indexes (Hash type, JSON-quoted values for Familia compatibility)
@@ -193,14 +197,16 @@ class OrganizationIndexCreator
     end
 
     # Members relationship: organization:{org_objid}:members
-    # Owner is first member, score = created timestamp
+    # Owner is first member, score = created timestamp.
+    # Raw identifier for Familia SortedSet compatibility (not JSON-encoded).
     return unless owner_id && !owner_id.empty?
 
     add_command('ZADD', "organization:#{org_objid}:members", [created.to_i, owner_id])
     @stats[:member_entries] += 1
 
     # Customer participation: customer:{owner_id}:participations
-    # Tracks which org member sets this customer belongs to
+    # Tracks which org member sets this customer belongs to.
+    # Raw key reference for Familia Set compatibility (not JSON-encoded).
     add_command(
       'SADD',
       "customer:#{owner_id}:participations",

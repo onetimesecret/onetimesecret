@@ -35,11 +35,11 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
 
   # Enable federation for all tests in this file
   around do |example|
-    original_secret = ENV['FEDERATION_HMAC_SECRET']
-    ENV['FEDERATION_HMAC_SECRET'] = 'test_federation_secret_32chars!'
+    original_secret = ENV['FEDERATION_SECRET']
+    ENV['FEDERATION_SECRET'] = 'test_federation_secret_32chars!'
     example.run
   ensure
-    ENV['FEDERATION_HMAC_SECRET'] = original_secret
+    ENV['FEDERATION_SECRET'] = original_secret
   end
 
   # Build a mock Stripe::Customer for testing

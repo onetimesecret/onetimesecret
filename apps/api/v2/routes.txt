@@ -5,23 +5,23 @@
 #
 # V2 API returns string values for all fields.
 
-# Secrets - Private (Authenticated)
-GET    /receipt/recent                            V2::Logic::Secrets::ListReceipts response=json auth=noauth
-POST   /receipt/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=noauth
-GET    /receipt/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=noauth
-PATCH  /receipt/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=noauth
-GET    /private/recent                            V2::Logic::Secrets::ListReceipts response=json auth=noauth
-POST   /private/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=noauth
-GET    /private/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=noauth
-PATCH  /private/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=noauth
+# Receipts (creator-facing secret metadata)
+GET    /receipt/recent                            V2::Logic::Secrets::ListReceipts response=json auth=basicauth,noauth
+POST   /receipt/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=basicauth,noauth
+GET    /receipt/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=basicauth,noauth
+PATCH  /receipt/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=basicauth,noauth
+GET    /private/recent                            V2::Logic::Secrets::ListReceipts response=json auth=basicauth,noauth
+POST   /private/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=basicauth,noauth
+GET    /private/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=basicauth,noauth
+PATCH  /private/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=basicauth,noauth
 
 # Secrets - Public (Anonymous allowed)
-GET    /secret/:identifier                        V2::Logic::Secrets::ShowSecret response=json auth=noauth
-GET    /secret/:identifier/status                 V2::Logic::Secrets::ShowSecretStatus response=json auth=noauth
-POST   /secret/status                             V2::Logic::Secrets::ListSecretStatus response=json auth=noauth
-POST   /secret/:identifier/reveal                 V2::Logic::Secrets::RevealSecret response=json auth=noauth
-POST   /secret/generate                           V2::Logic::Secrets::GenerateSecret response=json auth=noauth
-POST   /secret/conceal                            V2::Logic::Secrets::ConcealSecret response=json auth=noauth
+GET    /secret/:identifier                        V2::Logic::Secrets::ShowSecret response=json auth=basicauth,noauth
+GET    /secret/:identifier/status                 V2::Logic::Secrets::ShowSecretStatus response=json auth=basicauth,noauth
+POST   /secret/status                             V2::Logic::Secrets::ListSecretStatus response=json auth=basicauth,noauth
+POST   /secret/:identifier/reveal                 V2::Logic::Secrets::RevealSecret response=json auth=basicauth,noauth
+POST   /secret/generate                           V2::Logic::Secrets::GenerateSecret response=json auth=basicauth,noauth
+POST   /secret/conceal                            V2::Logic::Secrets::ConcealSecret response=json auth=basicauth,noauth
 
 # OPTIONS preflight for CORS (public)
 OPTIONS /secret/generate                          V2::Logic::Secrets::GenerateSecret response=json
@@ -68,7 +68,7 @@ GET    /version                                   V2::Logic::Meta.system_version
 # Combine any parameters with spaces:
 #
 # GET  /api/admin    App#admin auth=role:admin response=json
-# POST /api/secure   App#secure auth=noauth response=json
+# POST /api/secure   App#secure auth=basicauth,noauth response=json
 #
 # NAMESPACED CLASSES
 # ------------------

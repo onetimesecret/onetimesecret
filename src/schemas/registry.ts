@@ -53,6 +53,7 @@ import { responseSchemas } from './api/v3/responses';
 // Billing Schemas
 // =============================================================================
 import {
+  BillingConfigSchema,
   BillingCatalogSchema,
   PlanDefinitionSchema,
   EntitlementDefinitionSchema,
@@ -99,9 +100,12 @@ export const apiV3Schemas = {
 } as const;
 
 /**
- * Billing schemas - catalog and component definitions
+ * Billing schemas.
+ * - billing/config: full schema including credentials (stripe_key, webhook_signing_secret)
+ * - billing/catalog: sanitized public subset without credentials or operational fields
  */
 export const billingSchemas = {
+  'billing/config': BillingConfigSchema,
   'billing/catalog': BillingCatalogSchema,
   'billing/plan-definition': PlanDefinitionSchema,
   'billing/entitlement-definition': EntitlementDefinitionSchema,

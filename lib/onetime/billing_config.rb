@@ -95,6 +95,33 @@ module Onetime
       config['stripe_metadata_schema'] || {}
     end
 
+    # Currency for billing catalog
+    #
+    # All products and prices in this billing configuration use this currency.
+    # Defaults to 'cad' when not set.
+    def currency
+      val = config['currency']
+      return 'cad' if val.to_s.strip.empty?
+
+      val.to_s.strip.downcase
+    end
+
+    # Region / jurisdiction for catalog isolation
+    #
+    # When set (e.g. 'NZ', 'CA'), only Stripe products whose region metadata
+    # matches this value will be imported. Returns nil when unset, which means
+    # all regions are accepted (backward-compatible pass-through).
+    #
+    # There is intentionally no "global" default. A deployment either operates
+    # in a specific region or regionalization is not applicable (nil).
+    # See Billing::RegionNormalizer for the authoritative normalization rules.
+    def region
+      val = config['region']
+      return nil if val.to_s.strip.empty?
+
+      val.to_s.strip.upcase
+    end
+
     # Payment links configuration
     def payment_links
       config['payment_links'] || {}

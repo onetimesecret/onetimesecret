@@ -84,50 +84,25 @@ const closePlanTestModal = () => {
   isPlanTestModalOpen.value = false;
 };
 
-// Define menu items
 const menuItems = computed<MenuItem[]>(() => [
-  // MFA Verification (when awaiting)
-  {
-    id: 'mfa-verify',
-    to: '/mfa-verify',
-    label: t('web.auth.complete_mfa_verification'),
+  { id: 'mfa-verify', to: '/mfa-verify', label: t('web.auth.complete_mfa_verification'),
     icon: { collection: 'heroicons', name: 'shield-check-solid' },
-    variant: 'caution' as const,
-    condition: () => props.awaitingMfa,
-  },
-  // Dashboard
-  {
-    id: 'dashboard',
-    to: '/dashboard',
-    label: t('web.TITLES.dashboard'),
+    variant: 'caution' as const, condition: () => props.awaitingMfa },
+  { id: 'dashboard', to: '/dashboard', label: t('web.TITLES.dashboard'),
     icon: { collection: 'heroicons', name: 'shield-check-solid' },
-    condition: () => !props.awaitingMfa,
-  },
-  // Billing (conditional - only show if billing enabled)
-  {
-    id: 'billing',
-    to: '/billing',
-    label: t('web.navigation.billing'),
+    condition: () => !props.awaitingMfa },
+  { id: 'recent', to: '/recent', label: t('web.TITLES.recent'),
+    icon: { collection: 'heroicons', name: 'clock' },
+    condition: () => !props.awaitingMfa },
+  { id: 'billing', to: '/billing', label: t('web.navigation.billing'),
     icon: { collection: 'heroicons', name: 'credit-card' },
-    condition: () => !props.awaitingMfa && !!billing_enabled.value,
-  },
-  // Account Settings
-  {
-    id: 'account',
-    to: '/account',
-    label: t('web.TITLES.account'),
+    condition: () => !props.awaitingMfa && !!billing_enabled.value },
+  { id: 'account', to: '/account', label: t('web.TITLES.account'),
     icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
-    condition: () => !props.awaitingMfa,
-  },
-  // Colonel (conditional)
-  {
-    id: 'colonel',
-    to: '/colonel',
-    label: t('web.colonel.admin'),
+    condition: () => !props.awaitingMfa },
+  { id: 'colonel', to: '/colonel', label: t('web.colonel.admin'),
     icon: { collection: 'mdi', name: 'star' },
-    condition: () => !props.awaitingMfa && props.colonel,
-  },
-  // Test Plan Mode (colonel only)
+    condition: () => !props.awaitingMfa && props.colonel },
   {
     id: 'test-plan',
     label: t('web.colonel.testPlanMode'),
@@ -136,7 +111,6 @@ const menuItems = computed<MenuItem[]>(() => [
     condition: () => !props.awaitingMfa && props.colonel,
     onClick: openPlanTestModal,
   },
-  // Help
   {
     id: 'help',
     href: `https://${docs_host.value}`,
@@ -144,7 +118,6 @@ const menuItems = computed<MenuItem[]>(() => [
     icon: { collection: 'heroicons', name: 'question-mark-circle' },
     condition: () => !props.awaitingMfa,
   },
-  // Feedback
   {
     id: 'feedback',
     to: '/feedback',
@@ -152,7 +125,6 @@ const menuItems = computed<MenuItem[]>(() => [
     icon: { collection: 'heroicons', name: 'chat-bubble-bottom-center-text' },
     condition: () => !props.awaitingMfa,
   },
-  // Logout (always show)
   {
     id: 'logout',
     label: t('web.COMMON.header_logout'),

@@ -24,7 +24,7 @@ module Onetime
         boot_application!
 
         catalog_path = Billing::Config.config_path
-        schema_path  = File.join(Onetime::HOME, 'generated', 'schemas', 'billing', 'catalog.schema.json')
+        schema_path  = File.join(Onetime::HOME, 'generated', 'schemas', 'billing', 'config.schema.json')
 
         unless File.exist?(catalog_path)
           puts "❌ Error: Catalog file not found: #{catalog_path}"

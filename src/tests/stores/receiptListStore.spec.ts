@@ -1,7 +1,7 @@
 // src/tests/stores/receiptListStore.spec.ts
 
-import { useReceiptListStore } from '@/shared/stores/receiptListStore';
 import { createApi } from '@/api';
+import { useReceiptListStore } from '@/shared/stores/receiptListStore';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
@@ -36,7 +36,7 @@ describe('receiptListStore', () => {
   });
 
   describe('fetchList', () => {
-    it('should fetch and store list of metadata records', async () => {
+    it('should fetch and store list of receipt records', async () => {
       const mockResponse = {
         custid: 'user-123',
         count: 2,
@@ -59,7 +59,7 @@ describe('receiptListStore', () => {
       // Remove isLoading check as store doesn't expose this property
     });
 
-    it('should handle empty metadata list', async () => {
+    it('should handle empty receipt list', async () => {
       const mockResponse = {
         custid: 'user-123',
         count: 0,
@@ -160,7 +160,7 @@ describe('receiptListStore', () => {
     });
 
     it('handles validation errors correctly', async () => {
-      axiosMock.onGet('/api/v3/private/recent').reply(200, {
+      axiosMock.onGet('/api/v3/receipt/recent').reply(200, {
         records: [{ invalid: 'data' }],
       });
 
@@ -207,7 +207,7 @@ describe('receiptListStore', () => {
     });
   });
 
-  describe('metadataStore error handling and loading states', () => {
+  describe('receiptStore error handling and loading states', () => {
     // Note: Uses same setup as main describe block above
     describe('error propagation and classification', () => {
       it('propagates human-facing errors to UI', async () => {

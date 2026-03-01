@@ -18,8 +18,8 @@
 
 require 'sneakers'
 require 'sneakers/runner'
-require_relative '../jobs/queue_config'
-require_relative '../jobs/queue_declarator'
+require_relative '../jobs/queues/config'
+require_relative '../jobs/queues/declarator'
 
 module Onetime
   module CLI
@@ -84,7 +84,12 @@ module Onetime
           # Start heartbeat thread for liveness logging
           start_heartbeat_thread(worker_classes)
 
-          # Start the workers
+          # Flush pending log messages before Sneakers forks worker processes.
+          # SemanticLogger's async Processor thread can deadlock after fork if
+          # its internal Queue mutex is in an inconsistent state at fork time.
+          SemanticLogger.flush
+
+          # Start the workers (forks based on workers: N config)
           runner = Sneakers::Runner.new(worker_classes)
           runner.run
         end
@@ -100,17 +105,15 @@ module Onetime
           }
           bunny_config.merge!(Onetime::Jobs::QueueConfig.tls_options(amqp_url))
 
-          conn    = Bunny.new(amqp_url, **bunny_config)
+          conn = Bunny.new(amqp_url, **bunny_config)
           conn.start
-          channel = conn.create_channel
 
-          # Declare all exchanges and queues via QueueDeclarator (single source of truth)
-          Onetime::Jobs::QueueDeclarator.declare_all(channel)
+          # Declare all exchanges and queues via QueueDeclarator (single source of truth).
+          # This raises InfrastructureError if any queues are missing after declaration,
+          # preventing the worker from starting in a broken state.
+          Onetime::Jobs::QueueDeclarator.declare_all(conn)
 
-          channel.close
           conn.close
-        rescue StandardError => ex
-          Onetime.bunny_logger.error "[Worker] Failed to initialize infrastructure: #{ex.message}"
         end
 
         # Periodic heartbeat logging for observability
@@ -218,11 +221,10 @@ module Onetime
             # Hooks to configure logging in forked worker processes
             hooks: {
               after_fork: -> {
-                # Clear and re-add stdout appender in forked worker so SemanticLogger outputs are visible
-                # Parent process appenders don't work after fork, so we must reconfigure
-                SemanticLogger.appenders.each(&:close)
-                SemanticLogger.clear_appenders!
-                SemanticLogger.add_appender(io: $stdout, formatter: :color)
+                # Reopen restarts SemanticLogger's Processor thread and reopens
+                # all appenders. Threads don't survive fork, so the child's
+                # Processor is dead — reopen brings it back to life.
+                SemanticLogger.reopen
               },
             },
           }

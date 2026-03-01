@@ -41,11 +41,6 @@ class BaseJSONAPI < Onetime::Application::Base
   # Common middleware for all JSON APIs
   use Rack::JSONBodyParser
 
-  # CSRF Response Header
-  # Note: CSRF validation is handled by common Security middleware with
-  # allow_if to skip /api/* routes. This just adds the response header.
-  use Onetime::Middleware::CsrfResponseHeader
-
   # Warmup block placeholder for future initialization
   warmup { nil }
 

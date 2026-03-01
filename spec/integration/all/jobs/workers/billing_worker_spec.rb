@@ -35,7 +35,7 @@ require 'integration/integration_spec_helper'
 require 'sneakers'
 require 'stripe'
 require 'onetime/jobs/workers/billing_worker'
-require 'onetime/jobs/queue_config'
+require 'onetime/jobs/queues/config'
 
 RSpec.describe Onetime::Jobs::Workers::BillingWorker, type: :integration do
   # Create test worker class with accessible delivery_info

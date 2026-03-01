@@ -142,6 +142,10 @@ module Onetime
       # to verify the domain.
     end
 
+    def custid
+      objid
+    end
+
     # Alias domainid to objid for API compatibility
     # The object_identifier feature provides objid automatically
     def domainid
@@ -154,6 +158,72 @@ module Onetime
       raise Onetime::Problem, 'Display domain required' if display_domain.to_s.empty?
 
       super
+    end
+
+    # Update the display_domain field while maintaining both index systems.
+    #
+    # When display_domain changes, two indexes must be updated:
+    #   1. display_domains (manual class_hashkey) - FQDN -> domain identifier
+    #   2. display_domain_index (auto unique_index) - FQDN -> identifier
+    #
+    # A plain save() only adds the NEW value to display_domain_index via
+    # auto_update_class_indexes, and never touches display_domains. This
+    # method properly cleans up old entries in both indexes.
+    #
+    # @param new_domain [String] The new display domain FQDN
+    # @return [void]
+    # @raise [Onetime::Problem] if new_domain is already taken
+    def update_display_domain(new_domain)
+      new_domain = new_domain.to_s.downcase
+      old_domain = display_domain.to_s.downcase
+
+      return if new_domain == old_domain
+
+      # Verify the new domain is not already taken in either index
+      existing = self.class.display_domains.get(new_domain)
+      if existing && existing != identifier
+        raise Onetime::Problem, 'Domain already registered'
+      end
+
+      # Remove old entries from both indexes while field still has old value
+      self.class.display_domains.remove(old_domain)
+      remove_from_class_display_domain_index
+
+      # Update field and re-parse derived domain parts (base_domain, trd,
+      # sld, tld) so that generate_txt_validation_record produces correct
+      # values for the new domain.
+      self.display_domain = new_domain
+      self.updated        = OT.now.to_i
+
+      # Re-parse derived fields from the new display_domain
+      ps_domain    = PublicSuffix.parse(new_domain, default_rule: nil)
+      @base_domain = ps_domain.domain.to_s
+      @subdomain   = ps_domain.subdomain.to_s
+      @trd         = ps_domain.trd.to_s
+      @tld         = ps_domain.tld.to_s
+      @sld         = ps_domain.sld.to_s
+
+      begin
+        save
+        self.class.display_domains.put(new_domain, identifier)
+      rescue StandardError => ex
+        # Rollback: restore field, derived parts, and re-add old entries
+        self.display_domain = old_domain
+        old_ps              = PublicSuffix.parse(old_domain, default_rule: nil)
+        @base_domain        = old_ps.domain.to_s
+        @subdomain          = old_ps.subdomain.to_s
+        @trd                = old_ps.trd.to_s
+        @tld                = old_ps.tld.to_s
+        @sld                = old_ps.sld.to_s
+        self.class.display_domains.put(old_domain, identifier)
+        # Best-effort save to restore old auto-index entry
+        begin
+          save
+        rescue StandardError => rollback_ex
+          OT.le "[CustomDomain.update_display_domain] Rollback save failed: #{rollback_ex.message}"
+        end
+        raise ex
+      end
     end
 
     # Generate a unique identifier for this customer's custom domain.
@@ -291,6 +361,8 @@ module Onetime
     # - The main database key for the custom domain (`self.dbkey`)
     # - database keys of all related objects specified in `self.class.data_types`
     # - Familia v2 participations in organization.domains collections
+    # - Manual class indexes: instances, display_domains, owners
+    # - Auto unique_index: display_domain_index
     #
     # @return [void]
     def destroy!
@@ -298,6 +370,10 @@ module Onetime
       organization_instances.each do |o|
         remove_from_organization_domains(o)
       end
+
+      # Remove from all class indexes (instances sorted set,
+      # display_domains hash, owners hash, display_domain_index unique_index)
+      self.class.rem(self)
 
       # Call Familia's built-in destroy which handles:
       # - Main object key deletion
@@ -315,7 +391,7 @@ module Onetime
     #
     # @return [Boolean] true if the domain is an apex domain, false otherwise
     def apex?
-      subdomain.empty?
+      subdomain.to_s.empty?
     end
 
     # Overrides Familia::Horreum#exists? to handle connection pool issues
@@ -560,8 +636,11 @@ module Onetime
           instances.add obj.to_s
           owners.put obj.to_s, obj.org_id
         rescue StandardError => ex
-          # Rollback the display_domains entry on failure
+          # Rollback all indexes on failure to prevent stale entries
           display_domains.remove(normalized_domain)
+          obj.remove_from_class_display_domain_index
+          instances.remove(obj.to_s)
+          owners.remove(obj.to_s)
           raise ex
         end
 
@@ -600,14 +679,22 @@ module Onetime
 
           end
 
+          # Load org BEFORE multi — reads inside MULTI return QUEUED
+          org = Onetime::Organization.load(org_id)
+          unless org
+            dbclient.unwatch
+            raise Onetime::Problem, "Organization #{org_id} not found"
+          end
+
           dbclient.multi do |_multi|
             existing.org_id  = org_id
             existing.updated = OT.now.to_i
             existing.save
 
-            # Add to organization_domains collection
-            org = Onetime::Organization.load(org_id)
             existing.add_to_organization_domains(org) if org
+
+            # Update owners hash (Location E) to reflect new org ownership
+            owners.put existing.to_s, org_id
           end
         end
 
@@ -763,6 +850,7 @@ module Onetime
         instances.remove fobj.to_s
         display_domains.remove fobj.display_domain
         owners.remove fobj.to_s
+        fobj.remove_from_all_indexes
       end
 
       def all

@@ -15,24 +15,12 @@ vi.mock('@/shared/components/navigation/DomainContextSwitcher.vue', () => ({
   },
 }));
 
-vi.mock('@/apps/workspace/components/navigation/OrganizationScopeSwitcher.vue', () => ({
-  default: {
-    name: 'OrganizationScopeSwitcher',
-    template: '<div class="org-switcher" :data-locked="locked">Org Switcher</div>',
-    props: ['locked'],
-  },
-}));
-
 // Mock useScopeSwitcherVisibility composable
-const mockShowOrgSwitcher = ref(true);
-const mockLockOrgSwitcher = ref(false);
 const mockShowDomainSwitcher = ref(true);
 const mockLockDomainSwitcher = ref(false);
 
 vi.mock('@/shared/composables/useScopeSwitcherVisibility', () => ({
   useScopeSwitcherVisibility: () => ({
-    showOrgSwitcher: mockShowOrgSwitcher,
-    lockOrgSwitcher: mockLockOrgSwitcher,
     showDomainSwitcher: mockShowDomainSwitcher,
     lockDomainSwitcher: mockLockDomainSwitcher,
   }),
@@ -58,8 +46,6 @@ describe('OrganizationContextBar', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset composable mocks to defaults
-    mockShowOrgSwitcher.value = true;
-    mockLockOrgSwitcher.value = false;
     mockShowDomainSwitcher.value = true;
     mockLockDomainSwitcher.value = false;
   });
@@ -91,9 +77,8 @@ describe('OrganizationContextBar', () => {
   };
 
   describe('Visibility Conditions', () => {
-    it('renders when loaded, hasOrganizations, and at least one switcher visible', async () => {
-      mockShowOrgSwitcher.value = true;
-      mockShowDomainSwitcher.value = false;
+    it('renders when loaded, hasOrganizations, and domain switcher visible', async () => {
+      mockShowDomainSwitcher.value = true;
 
       wrapper = mountComponent({
         organizations: [mockOrganization],
@@ -102,8 +87,8 @@ describe('OrganizationContextBar', () => {
 
       await flushPromises();
 
-      const orgSwitcher = wrapper.find('.org-switcher');
-      expect(orgSwitcher.exists()).toBe(true);
+      const domainSwitcher = wrapper.find('.domain-switcher');
+      expect(domainSwitcher.exists()).toBe(true);
     });
 
     it('does not render when hasOrganizations is false', async () => {
@@ -114,14 +99,11 @@ describe('OrganizationContextBar', () => {
 
       await flushPromises();
 
-      const orgSwitcher = wrapper.find('.org-switcher');
       const domainSwitcher = wrapper.find('.domain-switcher');
-      expect(orgSwitcher.exists()).toBe(false);
       expect(domainSwitcher.exists()).toBe(false);
     });
 
-    it('does not render when both switchers are hidden', async () => {
-      mockShowOrgSwitcher.value = false;
+    it('does not render when domain switcher is hidden', async () => {
       mockShowDomainSwitcher.value = false;
 
       wrapper = mountComponent({
@@ -131,114 +113,13 @@ describe('OrganizationContextBar', () => {
 
       await flushPromises();
 
-      const orgSwitcher = wrapper.find('.org-switcher');
       const domainSwitcher = wrapper.find('.domain-switcher');
-      expect(orgSwitcher.exists()).toBe(false);
       expect(domainSwitcher.exists()).toBe(false);
-    });
-
-    it('renders only org switcher when domain switcher is hidden', async () => {
-      mockShowOrgSwitcher.value = true;
-      mockShowDomainSwitcher.value = false;
-
-      wrapper = mountComponent({
-        organizations: [mockOrganization],
-        isListFetched: true,
-      });
-
-      await flushPromises();
-
-      const orgSwitcher = wrapper.find('.org-switcher');
-      const domainSwitcher = wrapper.find('.domain-switcher');
-      expect(orgSwitcher.exists()).toBe(true);
-      expect(domainSwitcher.exists()).toBe(false);
-    });
-
-    it('renders only domain switcher when org switcher is hidden', async () => {
-      mockShowOrgSwitcher.value = false;
-      mockShowDomainSwitcher.value = true;
-
-      wrapper = mountComponent({
-        organizations: [mockOrganization],
-        isListFetched: true,
-      });
-
-      await flushPromises();
-
-      const orgSwitcher = wrapper.find('.org-switcher');
-      const domainSwitcher = wrapper.find('.domain-switcher');
-      expect(orgSwitcher.exists()).toBe(false);
-      expect(domainSwitcher.exists()).toBe(true);
-    });
-  });
-
-  describe('Separator Logic', () => {
-    it('shows separator when both switchers are visible', async () => {
-      mockShowOrgSwitcher.value = true;
-      mockShowDomainSwitcher.value = true;
-
-      wrapper = mountComponent({
-        organizations: [mockOrganization],
-        isListFetched: true,
-      });
-
-      await flushPromises();
-
-      const separator = wrapper.find('span[aria-hidden="true"]');
-      expect(separator.exists()).toBe(true);
-      expect(separator.text()).toBe('|');
-    });
-
-    it('hides separator when only org switcher is visible', async () => {
-      mockShowOrgSwitcher.value = true;
-      mockShowDomainSwitcher.value = false;
-
-      wrapper = mountComponent({
-        organizations: [mockOrganization],
-        isListFetched: true,
-      });
-
-      await flushPromises();
-
-      const separator = wrapper.find('span[aria-hidden="true"]');
-      expect(separator.exists()).toBe(false);
-    });
-
-    it('hides separator when only domain switcher is visible', async () => {
-      mockShowOrgSwitcher.value = false;
-      mockShowDomainSwitcher.value = true;
-
-      wrapper = mountComponent({
-        organizations: [mockOrganization],
-        isListFetched: true,
-      });
-
-      await flushPromises();
-
-      const separator = wrapper.find('span[aria-hidden="true"]');
-      expect(separator.exists()).toBe(false);
     });
   });
 
   describe('Locked State', () => {
-    it('passes locked prop to org switcher when lockOrgSwitcher is true', async () => {
-      mockShowOrgSwitcher.value = true;
-      mockLockOrgSwitcher.value = true;
-      mockShowDomainSwitcher.value = false;
-
-      wrapper = mountComponent({
-        organizations: [mockOrganization],
-        isListFetched: true,
-      });
-
-      await flushPromises();
-
-      const orgSwitcher = wrapper.find('.org-switcher');
-      expect(orgSwitcher.attributes('data-locked')).toBe('true');
-    });
-
     it('passes locked prop to domain switcher when lockDomainSwitcher is true', async () => {
-      mockShowOrgSwitcher.value = false;
       mockShowDomainSwitcher.value = true;
       mockLockDomainSwitcher.value = true;
 
@@ -269,25 +150,8 @@ describe('OrganizationContextBar', () => {
 
       await flushPromises();
 
-      const orgSwitcher = wrapper.find('.org-switcher');
-      expect(orgSwitcher.exists()).toBe(true);
-    });
-  });
-
-  describe('Accessibility', () => {
-    it('separator has aria-hidden="true"', async () => {
-      mockShowOrgSwitcher.value = true;
-      mockShowDomainSwitcher.value = true;
-
-      wrapper = mountComponent({
-        organizations: [mockOrganization],
-        isListFetched: true,
-      });
-
-      await flushPromises();
-
-      const separator = wrapper.find('span[aria-hidden="true"]');
-      expect(separator.exists()).toBe(true);
+      const domainSwitcher = wrapper.find('.domain-switcher');
+      expect(domainSwitcher.exists()).toBe(true);
     });
   });
 });

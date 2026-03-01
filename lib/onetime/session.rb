@@ -218,15 +218,18 @@ module Onetime
       result
     end
 
-    # Derives purpose-specific keys from the master secret
+    # Derives purpose-specific keys from the session master secret
+    # using HKDF (RFC 5869).
     #
-    # Input:  @secret = "your-master-secret"
-    # Output: SHA256 HMAC of "session-hmac" or "session-encryption"
+    # Input:  @secret = "your-session-secret"
+    # Output: HKDF-derived 32-byte key as hex for "session-hmac" or
+    #         "session-encryption"
     #
     # This allows one master secret to generate multiple cryptographically
     # independent keys for different purposes.
     def derive_key(purpose)
-      OpenSSL::HMAC.hexdigest('SHA256', @secret, "session-#{purpose}")
+      require 'onetime/key_derivation'
+      Onetime::KeyDerivation.derive_session_subkey(@secret, purpose)
     end
 
     # Computes HMAC signature for session data

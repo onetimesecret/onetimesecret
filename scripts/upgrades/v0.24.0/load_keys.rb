@@ -130,8 +130,11 @@ class KeyLoader
     model_dir  = File.join(@input_dir, dir_name)
 
     unless Dir.exist?(model_dir)
-      puts "  Skipping: directory not found (#{model_dir})"
-      @stats[model_name][:errors] << { error: "Directory not found: #{model_dir}" }
+      if @dry_run
+        puts "  No data directory yet: #{model_dir}"
+      else
+        raise "Directory not found: #{model_dir} — did Phase 2 complete?"
+      end
       return
     end
 
@@ -359,7 +362,7 @@ class KeyLoader
       puts '  Mode: dry-run (no data written to Redis)'
     end
     puts
-    puts '  To verify in Redis: valkey-cli -u $VALKEY_URL info keyspace'
+    puts '  To verify: scripts/upgrades/v0.24.0/info.sh --target'
     puts
   end
 

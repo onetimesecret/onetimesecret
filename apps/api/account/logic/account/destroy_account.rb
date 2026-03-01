@@ -2,8 +2,6 @@
 #
 # frozen_string_literal: true
 
-require 'argon2'
-
 module AccountAPI::Logic
   module Account
     class DestroyAccount < AccountAPI::Logic::Base
@@ -90,7 +88,7 @@ module AccountAPI::Logic
       end
 
       def success_data
-        { user_id: @cust.objid }
+        { user_id: @cust.extid }
       end
 
       private
@@ -112,29 +110,15 @@ module AccountAPI::Logic
       end
 
       # Verify password against Rodauth's auth database (full mode).
-      # Looks up the account by extid and verifies against the password hash.
+      # Uses Rodauth's internal_request feature which handles argon2 secret,
+      # password hash lookup, and verification internally.
       #
       # @param password [String] The plaintext password to verify
       # @return [Boolean] true if the password matches
       def verify_password_full_mode(password)
-        db = Auth::Database.connection
-        return false unless db
-
-        # Find the account by external_id (which maps to Customer#extid)
-        account = db[:accounts].where(external_id: cust.extid).first
-        return false unless account
-
-        # Get the password hash for this account
-        password_hash_row = db[:account_password_hashes].where(id: account[:id]).first
-        return false unless password_hash_row
-
-        stored_hash = password_hash_row[:password_hash]
-        return false if stored_hash.to_s.empty?
-
-        # Verify using Argon2 (same as Rodauth uses)
-        ::Argon2::Password.verify_password(password, stored_hash)
-      rescue ::Argon2::ArgonHashFail => ex
-        OT.le "[destroy-account] Argon2 verification failed: #{ex.message}"
+        Auth::Config.valid_login_and_password?(login: cust.email, password: password)
+      rescue Rodauth::InternalRequestError => ex
+        OT.le "[destroy-account] Rodauth verification failed: #{ex.message}"
         false
       rescue StandardError => ex
         OT.le "[destroy-account] Password verification error: #{ex.message}"

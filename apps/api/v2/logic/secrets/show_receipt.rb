@@ -11,7 +11,7 @@ module V2::Logic
       attr_reader :identifier, :receipt, :secret
       # Template variables
       attr_reader :receipt_identifier,
-        :metadata_shortid,
+        :receipt_shortid,
         :secret_identifier,
         :secret_state,
         :secret_shortid,
@@ -30,9 +30,9 @@ module V2::Logic
         :secret_value,
         :show_secret,
         :show_secret_link,
-        :show_metadata_link,
-        :metadata_attributes,
-        :show_metadata,
+        :show_receipt_link,
+        :receipt_attributes,
+        :show_receipt,
         :show_recipients,
         :share_domain,
         :is_orphaned,
@@ -60,10 +60,10 @@ module V2::Logic
       def process # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
         @secret = @receipt.load_secret
 
-        @receipt_identifier        = receipt.identifier
-        @metadata_short_identifier = receipt.shortid
-        @secret_identifier         = receipt.secret_identifier
-        @secret_shortid            = receipt.secret_shortid
+        @receipt_identifier = receipt.identifier
+        @receipt_shortid    = receipt.shortid
+        @secret_identifier  = receipt.secret_identifier
+        @secret_shortid     = receipt.secret_shortid
 
         # Default the recipients to an empty string. When a Familia::Horreum
         # object is loaded, the fields that have no values (or that don't
@@ -117,12 +117,17 @@ module V2::Logic
             # page one time. Particularly for generated passwords which are not
             # shown any other time.
             #
-            # TODO: There's a bug here. If the UI that created this secret+receipt
-            # records doesn't immediately load the receipt page the receipt
-            # record stays in state=new allowing the next request through.
+            # Only show the decrypted value for generated passwords, and only
+            # within 60 seconds of creation. Concealed (user-typed) secrets are
+            # never shown on the receipt page — the user already knows the value.
             if secret && receipt.state?(:new)
-              OT.ld "[show_receipt] m:#{receipt_identifier} s:#{secret_identifier} Decrypting for first and only creator viewing"
-              @secret_value = secret.ciphertext.reveal { it }
+              receipt_age  = Familia.now.to_i - receipt.created.to_i
+              is_generated = receipt.kind.to_s == 'generate'
+              display_ttl  = OT.conf.dig('site', 'secret_options', 'generated_value_display_ttl').to_i
+              if is_generated && display_ttl.positive? && receipt_age < display_ttl
+                OT.ld "[show_receipt] m:#{receipt_identifier} s:#{secret_identifier} Decrypting generated secret for creator viewing (age: #{receipt_age}s)"
+                @secret_value = secret.decrypted_secret_value
+              end
             end
           end
         end
@@ -155,7 +160,7 @@ module V2::Logic
         # A simple check to show the receipt link only for newly
         # created secrets.
         #
-        @show_metadata_link = receipt.state?(:new)
+        @show_receipt_link = receipt.state?(:new)
 
         # Allow the receipt to be shown if it hasn't been previewed/viewed yet OR
         # if the current user owns it (regardless of its previewed/viewed state).
@@ -164,16 +169,16 @@ module V2::Logic
         #   1. The receipt state is NOT 'previewed' or 'viewed', OR
         #   2. The current customer is the owner of the receipt
         #
-        @show_metadata = !(receipt.state?(:previewed) || receipt.state?(:viewed)) || receipt.owner?(cust)
+        @show_receipt = !(receipt.state?(:previewed) || receipt.state?(:viewed)) || receipt.owner?(cust)
 
         # Recipient information is only displayed when the receipt is
         # visible and there are actually recipients to show.
         #
         # It will be true if BOTH of these conditions are met:
-        #   1. The receipt should be shown (@show_metadata is true), AND
+        #   1. The receipt should be shown (@show_receipt is true), AND
         #   2. There are recipients specified (@recipients is not empty)
         #
-        @show_recipients = @show_metadata && !@recipients.empty?
+        @show_recipients = @show_receipt && !@recipients.empty?
 
         domain = if domains_enabled
                    if receipt.share_domain.to_s.empty?
@@ -190,7 +195,7 @@ module V2::Logic
         process_uris
 
         # Dump the receipt attributes before marking as previewed
-        @metadata_attributes = _metadata_attributes
+        @receipt_attributes = _receipt_attributes
 
         # We mark the receipt record previewed so that we can support showing the
         # secret link on the receipt page, just the one time.
@@ -207,14 +212,14 @@ module V2::Logic
 
       def success_data
         {
-          record: metadata_attributes,
+          record: receipt_attributes,
           details: ancillary_attributes,
         }
       end
 
       private
 
-      def _metadata_attributes
+      def _receipt_attributes
         # Start with safe receipt attributes
         attributes = receipt.safe_dump
 
@@ -254,21 +259,21 @@ module V2::Logic
           secret_value: secret_value,
           show_secret: show_secret,
           show_secret_link: show_secret_link,
-          show_metadata_link: show_metadata_link,
-          show_metadata: show_metadata,
+          show_receipt_link: show_receipt_link,
+          show_receipt: show_receipt,
           show_recipients: show_recipients,
         }
       end
 
       def process_uris
         @share_path    = build_path(:secret, secret_identifier)
-        @burn_path     = build_path(:private, receipt_identifier, 'burn')
-        @receipt_path  = build_path(:private, receipt_identifier)
+        @burn_path     = build_path(:receipt, receipt_identifier, 'burn')
+        @receipt_path  = build_path(:receipt, receipt_identifier)
         @metadata_path = @receipt_path # maintain public API
         @share_url     = build_url(share_domain, @share_path)
-        @receipt_url   = build_url(baseuri, @receipt_path)
+        @receipt_url   = build_url(share_domain, @receipt_path)
         @metadata_url  = @receipt_url # maintain public API
-        @burn_url      = build_url(baseuri, @burn_path)
+        @burn_url      = build_url(share_domain, @burn_path)
         @display_lines = calculate_display_lines
       end
 

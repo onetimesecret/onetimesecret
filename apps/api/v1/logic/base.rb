@@ -30,7 +30,7 @@ module V1
 
         if cust.is_a?(String)
           OT.li "[#{self.class}] Friendly reminder to pass in a Customer instance instead of a custid"
-          @cust = Onetime::Customer.load(cust)
+          @cust = Onetime::Customer.load_by_extid_or_email(cust)
         end
 
         # Won't run if params aren't passed in

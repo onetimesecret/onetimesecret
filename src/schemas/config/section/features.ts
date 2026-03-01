@@ -6,7 +6,7 @@
  * Maps to the `features:` section in config.defaults.yaml
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 import { nullableString } from '../shared/primitives';
 
 /**
@@ -49,7 +49,7 @@ const featuresRegionJurisdictionSchema = z.object({
 const featuresRegionsSchema = z.object({
   enabled: z.boolean().default(false),
   current_jurisdiction: nullableString,
-  federation_hmac_secret: nullableString,
+  federation_secret: nullableString,
   jurisdictions: z.array(featuresRegionJurisdictionSchema).optional(),
 });
 

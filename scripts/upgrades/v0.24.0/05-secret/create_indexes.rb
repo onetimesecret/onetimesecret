@@ -27,6 +27,8 @@ DEFAULT_DATA_DIR = 'data/upgrades/v0.24.0'
 
 class SecretIndexCreator
   # Pattern to extract objid from key: secret:<objid>:object
+  # NOTE: This strict pattern inherently excludes GLOBAL keys (e.g., customer:GLOBAL:object)
+  # since it requires the `secret:` prefix. No additional guard needed.
   KEY_PATTERN = /\Asecret:([^:]+):object\z/
 
   def initialize(input_file:, output_dir:, dry_run: false)
@@ -128,7 +130,8 @@ class SecretIndexCreator
         created                   = 0
       end
 
-      # Write instance index command (sorted set)
+      # Write instance index command (sorted set, raw identifier for Familia
+      # SortedSet compatibility — not JSON-encoded unlike HashKey values)
       # ZADD secret:instances <created> <objid>
       out.puts JSON.generate(
         {
@@ -138,7 +141,7 @@ class SecretIndexCreator
         },
       )
 
-      # Write objid lookup command (hash)
+      # Write objid lookup command (hash, JSON-encoded for Familia HashKey compatibility)
       # HSET secret:objid_lookup <objid> "<objid>" (JSON quoted)
       out.puts JSON.generate(
         {

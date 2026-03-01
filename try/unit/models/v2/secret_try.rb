@@ -52,7 +52,7 @@ unique_values.size
 [@receipt.nil?, @secret.nil?]
 #=> [false, false]
 
-## Private receipt key matches
+## Receipt key matches
 p [@secret.receipt_identifier, @receipt.identifier]
 [@secret.receipt_identifier.nil?, @secret.receipt_identifier == @receipt.identifier]
 #=> [false, true]
@@ -78,11 +78,12 @@ receipt.destroy!
 !receipt.exists?
 #=> true
 
-## Can set private secret to previewed state
+## Can set receipt to previewed state
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+now = Familia.now.to_i
 receipt.previewed!
-[receipt.previewed, receipt.state]
-#=> [Familia.now.to_i, 'previewed']
+[receipt.previewed.between?(now, now + 1), receipt.state]
+#=> [true, 'previewed']
 
 # NOTE: The received method has been removed from the Secret model.
 # The secret no longer keeps a reference to the receipt.

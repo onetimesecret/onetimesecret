@@ -295,6 +295,36 @@
             </div>
           </div>
 
+          <!-- Recipient Field (create-link mode only) -->
+          <div
+            v-if="selectedAction === 'create-link'"
+            class="mt-4">
+            <label
+              for="workspace-recipient"
+              class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
+              {{ t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
+            </label>
+            <div class="relative">
+              <input
+                id="workspace-recipient"
+                :value="form.recipient"
+                type="email"
+                name="recipient[]"
+                autocomplete="email"
+                :placeholder="t('web.COMMON.email_placeholder')"
+                :class="[cornerClass]"
+                class="w-full border border-gray-200/60 bg-white/80 backdrop-blur-sm
+                  py-2.5 pl-4 pr-4 text-sm text-gray-900 placeholder:text-gray-400
+                  transition-colors duration-200
+                  hover:border-gray-300/80 hover:bg-white/90
+                  focus:border-blue-500/80 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/20
+                  dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-gray-500
+                  dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
+                  dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
+                @input="(e) => operations.updateField('recipient', (e.target as HTMLInputElement).value)" />
+            </div>
+          </div>
+
           <!-- Generate Password display for Generate mode -->
           <div
             v-show="selectedAction === 'generate-password'"
@@ -366,9 +396,6 @@
               <div
                 v-if="isContextActive"
                 class="hidden items-center gap-2 text-base font-brand sm:flex">
-                <span class="text-gray-600 dark:text-gray-400">
-                  {{ t('web.LABELS.creating_links_for') }}
-                </span>
                 <div
                   class="inline-flex items-center gap-1.5 rounded-full px-3
                     py-1.5 text-base font-medium transition-all duration-150"
@@ -398,34 +425,8 @@
                 </div>
               </div>
 
-              <!-- Submit Area with Stay on Page toggle (always right-aligned) -->
+              <!-- Submit Area (always right-aligned) -->
               <div class="ml-auto flex items-center gap-2.5">
-                <!-- Stay on Page Toggle (refined, compact) -->
-                <!-- Disabled when generating password since user must see the receipt to view the generated password -->
-                <button
-                  type="button"
-                  :disabled="isSubmitting || selectedAction === 'generate-password'"
-                  @click="localReceiptStore.toggleWorkspaceMode()"
-                  :title="selectedAction === 'generate-password'
-                    ? t('web.secrets.workspace_mode_disabled_for_generate')
-                    : t('web.secrets.workspace_mode_description')"
-                  class="inline-flex items-center gap-1 rounded px-2 py-1.5 text-xs
-                    font-medium ring-1 ring-inset transition-all
-                    focus:outline-none focus:ring-2 focus:ring-brand-500/50
-                    disabled:opacity-50 disabled:cursor-not-allowed"
-                  :class="
-                    localReceiptStore.workspaceMode && selectedAction !== 'generate-password'
-                      ? 'bg-brand-50/80 text-brand-600 ring-brand-500/25 hover:bg-brand-100/80 dark:bg-brand-900/20 dark:text-brand-400 dark:ring-brand-400/20 dark:hover:bg-brand-900/30'
-                      : 'bg-gray-50/80 text-gray-500 ring-gray-400/20 hover:bg-gray-100/80 hover:text-gray-600 dark:bg-gray-800/50 dark:text-gray-400 dark:ring-gray-600/20 dark:hover:bg-gray-700/50'
-                  ">
-                  <OIcon
-                    collection="mdi"
-                    :name="localReceiptStore.workspaceMode && selectedAction !== 'generate-password' ? 'pin' : 'pin-off'"
-                    class="size-3.5"
-                    aria-hidden="true" />
-                  <span>{{ t('web.secrets.workspace_mode') }}</span>
-                </button>
-
                 <!-- Submit Button -->
                 <SplitButton
                   :with-generate="true"

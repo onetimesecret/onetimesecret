@@ -7,7 +7,7 @@
  * Unknown rate limits are automatically handled via catchall for backward compatibility.
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 
 const RATE_LIMIT_KEYS = [
   // Core authentication and account operations
@@ -21,7 +21,7 @@ const RATE_LIMIT_KEYS = [
   // Secret operations
   'create_secret',
   'show_secret',
-  'show_metadata',
+  'show_receipt',
   'burn_secret',
   'attempt_secret_access',
   'failed_passphrase',

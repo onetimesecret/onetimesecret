@@ -141,10 +141,6 @@ module V2::Logic
           cust.add_metadata metadata
           cust.increment_field :secrets_created
         end
-
-        # Update global stats
-        V2::Customer.global.increment_field :secrets_created
-        V2::Logic.stathat_count('Secrets', 1)
       end
 
       def send_recipient_notification

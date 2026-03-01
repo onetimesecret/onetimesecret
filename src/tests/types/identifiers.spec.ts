@@ -71,17 +71,11 @@ describe('Opaque Identifier Pattern', () => {
       expect(looksLikeExtId('ur999888')).toBe(true);
     });
 
-    it('recognizes secret ExtIds (se prefix)', () => {
-      expect(looksLikeExtId('se123abc')).toBe(true);
-    });
-
-    it('recognizes metadata ExtIds (md prefix)', () => {
-      expect(looksLikeExtId('md456def')).toBe(true);
-    });
-
     it('rejects strings without recognized prefix', () => {
       expect(looksLikeExtId('abc123')).toBe(false);
       expect(looksLikeExtId('xyz789')).toBe(false);
+      expect(looksLikeExtId('se123abc')).toBe(false);
+      expect(looksLikeExtId('md456def')).toBe(false);
     });
 
     it('rejects UUIDs (internal IDs)', () => {

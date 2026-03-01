@@ -70,7 +70,6 @@ export {
   capabilitiesSchema,
   i18nSchema,
   developmentSchema,
-  experimentalSchema,
   userInterfaceSchema,
   apiSchema,
   limitsSchema,

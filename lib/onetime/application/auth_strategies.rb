@@ -91,10 +91,16 @@ module Onetime
 
         @auth_method_name = 'noauth'
 
+        class << self
+          attr_reader :auth_method_name
+        end
+
         def authenticate(env, _requirement)
           session = env['rack.session']
 
-          # Load customer from session or use anonymous
+          # Try session first, then fall back to anonymous. Basic auth is
+          # handled by a separate strategy in the route chain (routes.txt),
+          # not here — this strategy only checks session state.
           cust = load_user_from_session(session) || Onetime::Customer.anonymous
 
           # Load organization context if user is authenticated
@@ -107,7 +113,7 @@ module Onetime
           success(
             session: session,
             user: cust.anonymous? ? nil : cust,  # Pass nil for anonymous users
-            auth_method: 'noauth',
+            auth_method: self.class.auth_method_name,
             **build_metadata(env, { organization_context: org_context }),
           )
         end
@@ -122,6 +128,10 @@ module Onetime
         include Onetime::Application::OrganizationLoader
 
         @auth_method_name = nil
+
+        class << self
+          attr_reader :auth_method_name
+        end
 
         def authenticate(env, _requirement)
           session = env['rack.session']
@@ -138,7 +148,7 @@ module Onetime
           end
 
           # Load customer
-          cust = Onetime::Customer.find_by_extid(external_id)
+          cust = Onetime::Customer.load_by_extid_or_email(external_id)
           return failure('[CUSTOMER_NOT_FOUND] Customer not found') unless cust
 
           # Perform additional checks (role, permissions, etc.)
@@ -158,7 +168,7 @@ module Onetime
           success(
             session: session,
             user: cust,
-            auth_method: auth_method_name,
+            auth_method: self.class.auth_method_name,
             **metadata_hash,
           )
         end
@@ -173,11 +183,6 @@ module Onetime
         def additional_checks(_cust, _env)
           nil
         end
-
-        # Override in subclasses to customize auth method name
-        #
-        # @return [String] Auth method name for StrategyResult
-        attr_reader :auth_method_name
 
         # Override in subclasses to add metadata
         #
@@ -225,7 +230,11 @@ module Onetime
         include Helpers
         include Onetime::Application::OrganizationLoader
 
-        @auth_method_name = 'basicauth'
+        @auth_method_name = 'basic_auth'
+
+        class << self
+          attr_reader :auth_method_name
+        end
 
         def authenticate(env, _requirement)
           # Extract credentials from Authorization header
@@ -245,7 +254,7 @@ module Onetime
           return failure('[CREDENTIALS_FORMAT_INVALID] Invalid credentials format') unless username && apikey
 
           # Load customer by custid (may be nil)
-          cust = Onetime::Customer.load(username)
+          cust = Onetime::Customer.load_by_extid_or_email(username)
 
           # Timing attack mitigation:
           # To prevent username enumeration via timing analysis, we ensure that
@@ -261,9 +270,8 @@ module Onetime
           # non-existing users, making timing analysis ineffective.
           target_cust = cust || Onetime::Customer.dummy
 
-          # Always validate credentials using BCrypt (constant-time comparison)
-          # Note: This uses passphrase? for API key authentication (API key stored as passphrase)
-          valid_credentials = target_cust.passphrase?(apikey)
+          # Validate API key using constant-time comparison (apitoken?)
+          valid_credentials = target_cust.apitoken?(apikey)
 
           # Only succeed if we have a real customer AND valid credentials
           if cust && valid_credentials
@@ -280,9 +288,11 @@ module Onetime
             )
 
             success(
-              session: {},  # No session for Basic auth (stateless)
+              session: {},  # Empty hash, not nil: downstream consumers
+              # (Logic::Base, RequestHelpers) index into
+              # session with [] and would raise on nil.
               user: cust,
-              auth_method: 'basic_auth',
+              auth_method: self.class.auth_method_name,
               **metadata_hash,
             )
           else

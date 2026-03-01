@@ -57,7 +57,7 @@ entitlements:
     category: branding
     description: Custom branding and styling
 
-  branded_homepage:
+  homepage_secrets:
     category: branding
     description: Branded homepage for custom domains
 
@@ -115,7 +115,7 @@ plans:
       - custom_domains
       - extended_default_expiration
       - custom_branding
-      - branded_homepage
+      - homepage_secrets
 
     limits:
       teams: 0
@@ -128,12 +128,12 @@ plans:
       - price_id: price_test_monthly
         interval: month
         amount: 1200 # $12.00 in cents
-        currency: usd
+        currency: cad
 
       - price_id: price_test_yearly
         interval: year
         amount: 12000 # $120.00 in cents
-        currency: usd
+        currency: cad
 
   # Legacy plan for testing legacy plan detection
   # Tests verify that plans with legacy: true are detected correctly

@@ -75,6 +75,8 @@ module DomainsAPI::Logic
       # Validate the input parameters
       # Sets error messages if any parameter is invalid
       def raise_concerns
+        require_entitlement!('custom_branding')
+
         raise_form_error 'Domain ID is required' if @extid.empty?
 
         # Get customer's organization for domain ownership

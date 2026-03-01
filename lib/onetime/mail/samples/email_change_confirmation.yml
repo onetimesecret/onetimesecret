@@ -1,0 +1,3 @@
+new_email: "newemail@example.com"
+confirmation_token: "confirm-token-sample-xyz"
+expires_in_hours: 24

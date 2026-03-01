@@ -46,7 +46,7 @@ Product created successfully:
   Name: Identity Plus
 
 Next steps:
-  bin/ots billing prices create prod_xxx --amount=2900 --currency=usd --interval=month
+  bin/ots billing prices create prod_xxx --amount=2900 --currency=cad --interval=month
 ```
 
 ### Second Run (Duplicate Detected)

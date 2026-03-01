@@ -36,7 +36,7 @@ module Onetime
       #
       # @param email [String] Email address to hash
       # @return [String, nil] 32-character hex hash, or nil if email is empty
-      # @raise [Onetime::Problem] If FEDERATION_HMAC_SECRET is not configured
+      # @raise [Onetime::Problem] If FEDERATION_SECRET is not configured
       #
       # @example
       #   EmailHash.compute('Alice@Example.com')  #=> "a1b2c3..."
@@ -84,7 +84,7 @@ module Onetime
 
       # Fetch the HMAC secret from configuration
       #
-      # Uses FEDERATION_HMAC_SECRET environment variable via config.
+      # Uses FEDERATION_SECRET environment variable via config.
       # This is separate from the main encryption secret for security isolation.
       #
       # @return [String] The HMAC secret
@@ -92,15 +92,15 @@ module Onetime
       #
       def fetch_secret
         # Try environment variable first (allows testing without full OT boot)
-        secret = ENV.fetch('FEDERATION_HMAC_SECRET', nil)
+        secret = ENV.fetch('FEDERATION_SECRET', nil)
 
         # Fall back to config if env var not set and OT.conf is available
         if secret.to_s.empty? && defined?(OT) && OT.respond_to?(:conf) && OT.conf
-          secret = OT.conf.dig('features', 'regions', 'federation_hmac_secret')
+          secret = OT.conf.dig('features', 'regions', 'federation_secret')
         end
 
         if secret.to_s.empty?
-          raise Onetime::Problem, 'FEDERATION_HMAC_SECRET not configured'
+          raise Onetime::Problem, 'FEDERATION_SECRET not configured'
         end
 
         secret

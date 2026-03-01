@@ -6,12 +6,6 @@ name: Debug OCI Image
 # This can be deleted once the main ci.yml is fixed
 
 on:
-  pull_request:
-    branches:
-      - feature/*
-      - rel/*
-      - develop
-      - main
   workflow_dispatch:
     inputs:
       debug_enabled:
@@ -54,22 +48,17 @@ jobs:
         with:
           detached: true
 
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@1e1c8eafbd745f64b1ef30a7d7ed7965034c486c
-
-      - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build assets
-        run: pnpm run build
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
 
       - name: Build Docker image
-        run: docker build -t onetime-test .
+        uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
+        with:
+          files: docker/bake.hcl
+          targets: main
+          load: true
+          set: |
+            main.tags=onetime-test
 
       - name: Generate random secrets for container
         uses: ./.github/actions/generate-test-secrets
@@ -78,7 +67,10 @@ jobs:
         run: |
           echo "Starting container with generated secrets..."
           echo "SESSION_SECRET length: ${#SESSION_SECRET}"
-          echo "HMAC_SECRET length: ${#HMAC_SECRET}"
+          echo "AUTH_SECRET length: ${#AUTH_SECRET}"
+          echo "ARGON2_SECRET length: ${#ARGON2_SECRET}"
+          echo "FEDERATION_SECRET length: ${#FEDERATION_SECRET}"
+          echo "IDENTIFIER_SECRET length: ${#IDENTIFIER_SECRET}"
           echo "SECRET length: ${#SECRET}"
 
           docker run -d \
@@ -88,7 +80,10 @@ jobs:
             -e REDIS_URL="redis://host.docker.internal:6379/0" \
             -e REDIS_DB="0" \
             -e SESSION_SECRET="${SESSION_SECRET}" \
-            -e HMAC_SECRET="${HMAC_SECRET}" \
+            -e AUTH_SECRET="${AUTH_SECRET}" \
+            -e ARGON2_SECRET="${ARGON2_SECRET}" \
+            -e FEDERATION_SECRET="${FEDERATION_SECRET}" \
+            -e IDENTIFIER_SECRET="${IDENTIFIER_SECRET}" \
             -e SECRET="${SECRET}" \
             -e ONETIME_DEBUG=1 \
             -e RUBY_UNBUFFERED=1 \

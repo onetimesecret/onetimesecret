@@ -167,7 +167,7 @@
     "text": "العلامة التجارية المخصصة",
     "source_hash": "237dabec"
   },
-  "web.billing.overview.entitlements.branded_homepage": {
+  "web.billing.overview.entitlements.homepage_secrets": {
     "text": "صفحة رئيسية بعلامتك التجارية",
     "source_hash": "e355a396"
   },
@@ -235,7 +235,7 @@
     "text": "العلامة التجارية المخصصة",
     "source_hash": "237dabec"
   },
-  "web.billing.features.branded_homepage": {
+  "web.billing.features.homepage_secrets": {
     "text": "صفحة رئيسية بعلامتك التجارية",
     "source_hash": "e355a396"
   },

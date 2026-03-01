@@ -11,7 +11,6 @@ Email delivery is configured via environment variables. The system will auto-det
 | Variable               | Description                                                     | Default                     |
 | ---------------------- | --------------------------------------------------------------- | --------------------------- |
 | `EMAILER_MODE`         | Force a specific provider (`smtp`, `sendgrid`, `ses`, `logger`) | Auto-detected               |
-| `EMAIL_FROM`           | Default sender email address                                    | `noreply@onetimesecret.com` |
 | `EMAIL_SUBJECT_PREFIX` | Prefix for all email subjects                                   | `[OneTimeSecret] `          |
 | `EMAIL_DELIVERY_MODE`  | Delivery mode (`sync`, `async`, `test`)                         | `sync`                      |
 
@@ -69,7 +68,6 @@ When `EMAILER_MODE` is not set, the system detects the provider in this order:
 ### Production with SendGrid
 
 ```bash
-EMAIL_FROM=support@yourcompany.com
 EMAIL_SUBJECT_PREFIX="[YourApp] "
 SENDGRID_API_KEY=SG.your_api_key_here
 ```

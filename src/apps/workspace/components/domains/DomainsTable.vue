@@ -15,9 +15,13 @@
 
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useBranding } from '@/shared/composables/useBranding';
+  import { useEntitlements } from '@/shared/composables/useEntitlements';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { ENTITLEMENTS } from '@/types/organization';
 
   import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
   import { computed } from 'vue';
+  import { storeToRefs } from 'pinia';
 
 const { t } = useI18n();
 
@@ -36,6 +40,14 @@ const { t } = useI18n();
   });
 
   const addDomainRoute = computed(() => `/org/${props.orgid}/domains/add`);
+
+  const organizationStore = useOrganizationStore();
+  const { organizations } = storeToRefs(organizationStore);
+  const organization = computed(() =>
+    organizations.value.find((o) => o.extid === props.orgid) ?? null
+  );
+  const { can } = useEntitlements(organization);
+  const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
 
   const emit = defineEmits<{
     (e: 'toggle-homepage', domain: CustomDomain): void;
@@ -142,7 +154,10 @@ const { t } = useI18n();
               class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800">
               <!-- Domain & Status -->
               <td class="px-6 py-4">
-                <DomainsTableDomainCell :domain="domain" :orgid="props.orgid" />
+                <DomainsTableDomainCell
+                  :domain="domain"
+                  :orgid="props.orgid"
+                  :can-brand="canBrand" />
               </td>
 
               <!-- Homepage Access -->
@@ -161,6 +176,7 @@ const { t } = useI18n();
                 <DomainsTableActionsCell
                   :domain="domain"
                   :orgid="props.orgid"
+                  :can-brand="canBrand"
                   @delete="handleDelete" />
               </td>
             </tr>

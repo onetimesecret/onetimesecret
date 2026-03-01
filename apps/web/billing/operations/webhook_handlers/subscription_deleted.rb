@@ -29,7 +29,7 @@ module Billing
         def process
           subscription = @data_object
 
-          # Check if federation is enabled (FEDERATION_HMAC_SECRET configured)
+          # Check if federation is enabled (FEDERATION_SECRET configured)
           # Fall back to standard processing if not
           unless federation_enabled?
             return process_without_federation(subscription)
@@ -89,11 +89,11 @@ module Billing
         # Check if federation is enabled
         def federation_enabled?
           # Check environment variable first
-          secret = ENV.fetch('FEDERATION_HMAC_SECRET', nil)
+          secret = ENV.fetch('FEDERATION_SECRET', nil)
 
           # Fall back to config if env var not set and OT.conf is available
           if secret.to_s.empty? && defined?(OT) && OT.respond_to?(:conf) && OT.conf
-            secret = OT.conf.dig('features', 'regions', 'federation_hmac_secret')
+            secret = OT.conf.dig('features', 'regions', 'federation_secret')
           end
 
           !secret.to_s.empty?

@@ -162,6 +162,9 @@ export function isAuthError(
     | VerifyAccountResponse
     | ChangePasswordResponse
     | CloseAccountResponse
+    | EmailChangeRequestResponse
+    | EmailChangeConfirmResponse
+    | EmailChangeResendResponse
 ): response is z.infer<typeof authErrorSchema> {
   return 'error' in response;
 }
@@ -316,3 +319,41 @@ export const mfaStatusResponseSchema = z.object({
   recovery_codes_limit: z.number(),
 });
 export type MfaStatusResponse = z.infer<typeof mfaStatusResponseSchema>;
+
+// Email change request response
+// Backend returns { sent: true } on success (not { success: string })
+const emailChangeRequestSuccessSchema = z.object({
+  sent: z.boolean(),
+});
+export const emailChangeRequestResponseSchema = z.union([
+  emailChangeRequestSuccessSchema,
+  authErrorSchema,
+]);
+export type EmailChangeRequestResponse =
+  z.infer<typeof emailChangeRequestResponseSchema>;
+
+// Email change confirmation response
+// Backend returns { confirmed: true, redirect: '/signin' } on success
+const emailChangeConfirmSuccessSchema = z.object({
+  confirmed: z.boolean(),
+  redirect: z.string(),
+});
+export const emailChangeConfirmResponseSchema = z.union([
+  emailChangeConfirmSuccessSchema,
+  authErrorSchema,
+]);
+export type EmailChangeConfirmResponse =
+  z.infer<typeof emailChangeConfirmResponseSchema>;
+
+// Email change resend confirmation response
+// Backend returns { sent: true, resend_count: number } on success
+const emailChangeResendSuccessSchema = z.object({
+  sent: z.boolean(),
+  resend_count: z.number(),
+});
+export const emailChangeResendResponseSchema = z.union([
+  emailChangeResendSuccessSchema,
+  authErrorSchema,
+]);
+export type EmailChangeResendResponse =
+  z.infer<typeof emailChangeResendResponseSchema>;

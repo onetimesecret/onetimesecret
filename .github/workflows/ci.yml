@@ -35,6 +35,7 @@ on:
       - main
       - develop
       - 'rel/*'
+      - 'fix/*'
       - 'feature/*'
   workflow_dispatch:
     inputs:
@@ -171,7 +172,7 @@ jobs:
     steps:
       - *checkout-step
 
-      - uses: ruby/setup-ruby@8d27f39a5e7ad39aebbcbd1324f7af020229645c
+      - uses: ruby/setup-ruby@0fa965176eabbb494a5778ac04477b260840ef45
         with:
           ruby-version: '3.4.8'
           bundler-cache: true
@@ -222,7 +223,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Run variable audit
         run: |
@@ -295,7 +296,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Setup Node.js for locale sync
         uses: actions/setup-node@v4
@@ -334,7 +335,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Generate locale files
         run: pnpm run locales:sync
@@ -375,7 +376,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Generate locale files
         run: pnpm run locales:sync
@@ -410,7 +411,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Setup Node.js for locale sync
         uses: actions/setup-node@v4
@@ -449,7 +450,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Setup Node.js for locale sync
         uses: actions/setup-node@v4
@@ -480,7 +481,7 @@ jobs:
     services:
       redis: *valkey-service
       postgres:
-        image: postgres:17@sha256:7352e0c4d62bbac8aa69d95e40220a60967c4a19f9c4f65b4d118175f7ce9e3b
+        image: postgres:17@sha256:1eada89ec2521ae0f61125f6bdaf83bbbf88a43fecda48d112a83bb92df75c36
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -502,7 +503,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Setup Node.js for locale sync
         uses: actions/setup-node@v4
@@ -586,7 +587,7 @@ jobs:
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Setup Node.js for locale sync
         uses: actions/setup-node@v4
@@ -653,8 +654,17 @@ jobs:
         if: steps.download-assets.outcome == 'failure'
         run: pnpm run build
 
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
       - name: Build Container image
-        run: docker build -t onetime-test .
+        uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
+        with:
+          files: docker/bake.hcl
+          targets: main
+          load: true
+          set: |
+            main.tags=onetime-test
 
       - name: Generate random secrets for container
         uses: ./.github/actions/generate-test-secrets
@@ -668,7 +678,10 @@ jobs:
           redis-url: 'redis://host.docker.internal:2121/0'
           environment-vars: |
             SESSION_SECRET=${{ env.SESSION_SECRET }}
-            HMAC_SECRET=${{ env.HMAC_SECRET }}
+            AUTH_SECRET=${{ env.AUTH_SECRET }}
+            ARGON2_SECRET=${{ env.ARGON2_SECRET }}
+            FEDERATION_SECRET=${{ env.FEDERATION_SECRET }}
+            IDENTIFIER_SECRET=${{ env.IDENTIFIER_SECRET }}
             SECRET=${{ env.SECRET }}
           test-endpoints: |
             /

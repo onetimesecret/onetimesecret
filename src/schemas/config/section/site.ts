@@ -112,6 +112,7 @@ const passwordGenerationSchema = z.object({
 const siteSecretOptionsSchema = z.object({
   default_ttl: z.number().int().positive().nullable().optional(),
   ttl_options: z.any().nullable().optional(),
+  generated_value_display_ttl: z.number().int().positive().optional(),
   passphrase: passphraseSchema,
   password_generation: passwordGenerationSchema,
 });

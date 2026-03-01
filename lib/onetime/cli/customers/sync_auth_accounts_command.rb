@@ -26,6 +26,8 @@
 module Onetime
   module CLI
     class SyncAuthAccountsCommand < Command
+      BATCH_SIZE = 1000
+
       desc 'Synchronize customer records from Redis to Auth SQL database'
 
       option :run,
@@ -115,6 +117,14 @@ module Onetime
           puts "To execute synchronization, run with --run flag\n"
         end
 
+        # Build skip set from already-synced accounts for resume capability
+        existing_extids = Set.new(
+          db[:accounts]
+            .where(Sequel.~(external_id: nil))
+            .select_map(:external_id),
+        )
+        puts "Found #{existing_extids.size} existing accounts (will skip)"
+
         # Track statistics
         stats = {
           total: 0,
@@ -129,103 +139,11 @@ module Onetime
         # Verbose level (0 = none, 1 = some, 2+ = all details)
         verbose_level = verbose ? 1 : 0
 
-        # Process each customer
+        # Process customers in batches
         # NOTE: instances.all returns objids (the identifier_field for Customer)
-        all_customer_ids.each_with_index do |objid, idx|
-          stats[:total] += 1
-
-          begin
-            customer = Onetime::Customer.load(objid)
-
-            # Skip anonymous customers (they shouldn't be in auth DB)
-            if customer.anonymous?
-              stats[:skipped_anonymous] += 1
-              if verbose_level > 0
-                puts "  [#{idx+1}/#{total_customers}] Skipping anonymous: #{customer.custid}"
-              end
-              next
-            end
-
-            # Skip system customers (GLOBAL, etc.) - check both custid and email
-            # because migrated data may have GLOBAL as the email value
-            if customer.global? || customer.email.to_s.upcase == 'GLOBAL'
-              stats[:skipped_system] += 1
-              if verbose_level > 0
-                puts "  [#{idx+1}/#{total_customers}] Skipping system: #{customer.custid}"
-              end
-              next
-            end
-
-            # Skip customers without valid email format
-            unless customer.email.to_s.include?('@')
-              stats[:skipped_system] += 1
-              if verbose_level > 0
-                puts "  [#{idx+1}/#{total_customers}] Skipping invalid email: #{customer.email}"
-              end
-              next
-            end
-
-            # Check if account already exists by email
-            existing_account = db[:accounts]
-              .where(email: customer.email)
-              .where(status_id: [1, 2])  # Only active accounts
-              .first
-
-            if existing_account
-              # Account exists - verify/update external_id link if needed
-              if existing_account[:external_id] == customer.extid
-                stats[:skipped_existing] += 1
-                if verbose_level > 1
-                  puts "  [#{idx+1}/#{total_customers}] ✓ Already synced: #{obscure_email(customer.email)} (#{existing_account[:id]})"
-                end
-              elsif dry_run
-                # Account exists but external_id needs updating
-                puts "  [#{idx+1}/#{total_customers}] Would link account #{existing_account[:id]} → extid #{customer.extid}"
-                stats[:linked] += 1
-                else
-                  db[:accounts]
-                    .where(id: existing_account[:id])
-                    .update(external_id: customer.extid, updated_at: Sequel::CURRENT_TIMESTAMP)
-                  stats[:linked] += 1
-                  if verbose_level > 0
-                    puts "  [#{idx+1}/#{total_customers}] ↔ Linked: #{obscure_email(customer.email)} → extid #{customer.extid}"
-                  end
-              end
-            elsif dry_run
-              # Account doesn't exist - create it
-              puts "  [#{idx+1}/#{total_customers}] Would create: #{obscure_email(customer.email)}"
-              stats[:created] += 1
-              else
-                # Determine status based on customer state
-                status_id = customer.verified? ? 2 : 1  # 2=Verified, 1=Unverified
-
-                # Create account using raw SQL to match Rodauth schema
-                account_id = db[:accounts].insert(
-                  email: customer.email,
-                  external_id: customer.extid,
-                  status_id: status_id,
-                  created_at: Sequel::CURRENT_TIMESTAMP,
-                  updated_at: Sequel::CURRENT_TIMESTAMP,
-                )
-
-                stats[:created] += 1
-                if verbose_level > 0
-                  puts "  [#{idx+1}/#{total_customers}] ✓ Created: #{obscure_email(customer.email)} (#{account_id})"
-                end
-            end
-
-            # Progress indicator for non-verbose mode
-            if verbose_level == 0 && (stats[:total] % 100 == 0)
-              print "\r  Progress: #{stats[:total]}/#{total_customers} customers processed"
-            end
-          rescue StandardError => ex
-            error_msg = "#{obscure_email(customer&.email || objid)}: #{ex.message}"
-            stats[:errors] << error_msg
-
-            puts "  [#{idx+1}/#{total_customers}] ❌ Error: #{error_msg}"
-            OT.le "Sync error for #{objid}: #{ex.message}"
-            OT.ld ex.backtrace.join("\n") if verbose_level > 1
-          end
+        all_customer_ids.each_slice(BATCH_SIZE).with_index do |batch_ids, batch_idx|
+          batch_start = batch_idx * BATCH_SIZE
+          process_batch(db, batch_ids, batch_start, existing_extids, stats, verbose_level, total_customers, dry_run)
         end
 
         # Clear progress line
@@ -274,6 +192,123 @@ module Onetime
       end
 
       private
+
+      def process_batch(db, batch_ids, batch_start, existing_extids, stats, verbose_level, total, dry_run)
+        batch_processed_extids = []
+
+        # Batch-load all customers in one pipelined Redis call
+        customers = Onetime::Customer.load_multi(batch_ids)
+
+        db.transaction do
+          customers.each_with_index do |customer, idx|
+            global_idx     = batch_start + idx
+            stats[:total] += 1
+
+            unless customer
+              stats[:skipped_system] += 1
+              next
+            end
+
+            # Skip anonymous customers (they shouldn't be in auth DB)
+            if customer.anonymous?
+              stats[:skipped_anonymous] += 1
+              puts "  [#{global_idx+1}/#{total}] Skipping anonymous: #{customer.custid}" if verbose_level > 0
+              next
+            end
+
+            # Skip system customers (GLOBAL, etc.) - check both custid and email
+            # because migrated data may have GLOBAL as the email value
+            if customer.global? || customer.email.to_s.upcase == 'GLOBAL'
+              stats[:skipped_system] += 1
+              puts "  [#{global_idx+1}/#{total}] Skipping system: #{customer.custid}" if verbose_level > 0
+              next
+            end
+
+            # Skip customers without valid email format
+            unless customer.email.to_s.include?('@')
+              stats[:skipped_system] += 1
+              puts "  [#{global_idx+1}/#{total}] Skipping invalid email: #{customer.email}" if verbose_level > 0
+              next
+            end
+
+            # Skip already-synced (resume support)
+            if existing_extids.include?(customer.extid)
+              stats[:skipped_existing] += 1
+              puts "  [#{global_idx+1}/#{total}] Already synced: #{obscure_email(customer.email)}" if verbose_level > 1
+              next
+            end
+
+            # Check if account already exists by email
+            existing_account = db[:accounts]
+              .where(email: customer.email)
+              .where(status_id: [1, 2])  # Only active accounts
+              .first
+
+            if existing_account
+              # Account exists - verify/update external_id link if needed
+              if existing_account[:external_id] == customer.extid
+                stats[:skipped_existing] += 1
+                if verbose_level > 1
+                  puts "  [#{global_idx+1}/#{total}] ✓ Already synced: #{obscure_email(customer.email)} (#{existing_account[:id]})"
+                end
+              elsif dry_run
+                puts "  [#{global_idx+1}/#{total}] Would link account #{existing_account[:id]} → extid #{customer.extid}"
+                stats[:linked] += 1
+              else
+                db[:accounts]
+                  .where(id: existing_account[:id])
+                  .update(external_id: customer.extid, updated_at: Sequel::CURRENT_TIMESTAMP)
+                stats[:linked] += 1
+                if verbose_level > 0
+                  puts "  [#{global_idx+1}/#{total}] ↔ Linked: #{obscure_email(customer.email)} → extid #{customer.extid}"
+                end
+                batch_processed_extids << customer.extid
+              end
+            elsif dry_run
+              puts "  [#{global_idx+1}/#{total}] Would create: #{obscure_email(customer.email)}"
+              stats[:created] += 1
+            else
+              # Determine status based on customer state
+              status_id = customer.verified? ? 2 : 1  # 2=Verified, 1=Unverified
+
+              # Create account using raw SQL to match Rodauth schema
+              account_id = db[:accounts].insert(
+                email: customer.email,
+                external_id: customer.extid,
+                status_id: status_id,
+                created_at: Sequel::CURRENT_TIMESTAMP,
+                updated_at: Sequel::CURRENT_TIMESTAMP,
+              )
+
+              stats[:created] += 1
+              if verbose_level > 0
+                puts "  [#{global_idx+1}/#{total}] ✓ Created: #{obscure_email(customer.email)} (#{account_id})"
+              end
+              batch_processed_extids << customer.extid
+            end
+
+            # Progress indicator for non-verbose mode
+            if verbose_level == 0 && (stats[:total] % 100 == 0)
+              print "\r  Progress: #{stats[:total]}/#{total} customers processed"
+            end
+          end
+        end
+
+        # Transaction succeeded — update skip set for subsequent batches
+        existing_extids.merge(batch_processed_extids)
+
+        # Batch progress
+        batch_num     = (batch_start / BATCH_SIZE) + 1
+        total_batches = (total.to_f / BATCH_SIZE).ceil
+        puts "  Batch #{batch_num}/#{total_batches} committed (#{batch_processed_extids.size} records)" if verbose_level > 0
+      rescue Sequel::Error => ex
+        batch_num = (batch_start / BATCH_SIZE) + 1
+        puts "\nBatch #{batch_num} failed at offset #{batch_start}:"
+        puts "  Error: #{ex.message}"
+        puts "  Last processed: #{batch_processed_extids&.last || 'none'}"
+        puts "\nTo resume, re-run the command. Already-synced records will be skipped."
+        raise
+      end
 
       def obscure_email(email)
         return 'anonymous' if email.to_s.empty?

@@ -50,5 +50,13 @@
   "web.feedback.send_feedback": {
     "text": "Send feedback",
     "content_hash": "8235980b"
+  },
+  "web.feedback.sending_ellipses": {
+    "text": "Sending...",
+    "content_hash": "a1b2c3d4"
+  },
+  "web.feedback.reason_email_change_unauthorized": {
+    "text": "It looks like you're reporting an unauthorized email change on your account. Please describe what happened and we'll investigate right away.",
+    "content_hash": "b2c3d4e5"
   }
 }

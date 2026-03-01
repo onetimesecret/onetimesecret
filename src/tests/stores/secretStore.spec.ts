@@ -99,7 +99,7 @@ describe('secretStore', () => {
     describe('endpoint selection', () => {
       const mockConcealResponse = {
         record: {
-          metadata: { key: 'meta-key', identifier: 'meta-id' },
+          receipt: { key: 'receipt-key', identifier: 'receipt-id' },
           secret: { key: 'secret-key', identifier: 'secret-id' },
         },
         details: { uri: '/secret/secret-id' },
@@ -643,7 +643,7 @@ describe('secretStore', () => {
 
         const mockConcealResponse = {
           record: {
-            metadata: { key: 'meta-key', identifier: 'meta-id' },
+            receipt: { key: 'receipt-key', identifier: 'receipt-id' },
             secret: { key: 'secret-key', identifier: 'secret-id' },
           },
           details: { uri: '/secret/secret-id' },

@@ -85,7 +85,8 @@ module DomainsAPI::Logic
 
         @custom_domain = Onetime::CustomDomain.create!(@display_domain, target_organization.objid)
 
-        # After creating the domain, make it the active context in the session
+        # After creating the domain, make it the active context in the session.
+        # Route is sessionauth-only, so sess is always a real Rack session here.
         sess['domain_context'] = @display_domain
 
         begin

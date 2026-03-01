@@ -55,6 +55,7 @@ class CustomerIndexCreator
     @stats = {
       records_read: 0,
       objects_processed: 0,
+      global_skipped: 0,
       instance_index_source: nil,  # 'existing' or 'generated'
       instance_index_source_records: 0,  # Count of onetime:customer records (should be 0 or 1)
       instance_entries: 0,
@@ -65,6 +66,8 @@ class CustomerIndexCreator
       missing_roles: 0,           # Customers with nil/empty role
       invalid_roles: Hash.new(0), # Customers with role not in VALID_ROLES
       counters: Hash.new(0),
+      global_counters: {},            # Counter values from GLOBAL_STATS record
+      externalized_counter_records: 0,
       skipped: 0,
       errors: [],
     }
@@ -81,10 +84,23 @@ class CustomerIndexCreator
     @objid_to_created         = {} # For backfilling missing instance entries
     @objids_in_instance_index = Set.new # Track which objids were added from existing index
 
+    externalized_counter_records = []
+
     # First pass: collect records and detect if onetime:customer exists
     File.foreach(@input_file) do |line|
       @stats[:records_read] += 1
       record                 = JSON.parse(line, symbolize_names: true)
+
+      # Skip GLOBAL singleton (renamed to onetime:GLOBAL_STATS:object by transform.rb)
+      if record[:key]&.include?(':GLOBAL:') || record[:key]&.include?(':GLOBAL_STATS:')
+        @stats[:global_skipped] += 1
+
+        # Decode GLOBAL_STATS counters for summary comparison
+        if record[:key] == 'onetime:GLOBAL_STATS:object' && !@dry_run
+          decode_global_counters(record)
+        end
+        next
+      end
 
       case record[:key]
       when 'onetime:customer'
@@ -95,6 +111,10 @@ class CustomerIndexCreator
       when /:object$/
         # Collect for processing
         customer_object_records << record
+      when /^customer:[^:]+:(secrets_created|secrets_burned|secrets_shared|emails_sent)$/
+        # Externalized counter records from transform.rb
+        externalized_counter_records << record
+        @stats[:externalized_counter_records] += 1
       else
         @stats[:skipped] += 1
       end
@@ -118,8 +138,11 @@ class CustomerIndexCreator
     end
     # When no instance index exists, entries were added during object processing
 
+    # Accumulate counters from externalized counter records (not hash fields)
+    accumulate_externalized_counters(externalized_counter_records)
+
     # Add counter commands (aggregate totals)
-    commands.concat(generate_counter_commands)
+    # commands.concat(generate_counter_commands)
 
     # Write output
     write_output(commands) unless @dry_run
@@ -193,6 +216,9 @@ class CustomerIndexCreator
           next
         end
 
+        # Raw identifier (not JSON-encoded) for Familia SortedSet compatibility.
+        # SortedSet members are object references stored unquoted, unlike
+        # HashKey values which use JSON encoding for type preservation.
         commands << {
           command: 'ZADD',
           key: 'customer:instances',
@@ -226,6 +252,7 @@ class CustomerIndexCreator
       created_ts = @objid_to_created[objid] || Time.now.to_i
       created_ts = Time.now.to_i if created_ts.zero?
 
+      # Raw identifier for Familia SortedSet compatibility (not JSON-encoded)
       commands << {
         command: 'ZADD',
         key: 'customer:instances',
@@ -277,7 +304,6 @@ class CustomerIndexCreator
       @objid_to_created[objid] = created.to_i if created
 
       build_customer_index_commands(commands, record, fields, objid, extid)
-      accumulate_counters(fields)
     rescue Redis::CommandError => ex
       @stats[:errors] << { key: record[:key], error: "Restore failed: #{ex.message}" }
     ensure
@@ -306,7 +332,8 @@ class CustomerIndexCreator
   def build_customer_index_commands(commands, record, fields, objid, extid)
     created = record[:created] || fields['created']
 
-    # Instance index entry (if not using existing index)
+    # Instance index entry (if not using existing index).
+    # Raw identifier for Familia SortedSet compatibility (not JSON-encoded).
     if @stats[:instance_index_source] != 'existing'
       created_ts = created.to_i
       created_ts = Time.now.to_i if created_ts.zero?
@@ -334,8 +361,8 @@ class CustomerIndexCreator
     commands << { command: 'HSET', key: 'customer:objid_lookup', args: [objid, objid.to_json] }
     @stats[:objid_lookups] += 1
 
-    # Role index
-    # Track customers without valid roles for data quality reporting
+    # Role index (raw identifier for Familia Set compatibility, not JSON-encoded).
+    # Track customers without valid roles for data quality reporting.
     role = fields['role']
     if role.nil? || role.empty?
       @stats[:missing_roles] += 1
@@ -347,29 +374,63 @@ class CustomerIndexCreator
     end
   end
 
-  def accumulate_counters(fields)
-    COUNTER_FIELDS.each do |field|
-      value                     = fields[field].to_i
+  # Accumulate counters from externalized counter records (standalone JSONL records
+  # written by transform.rb, not hash fields).
+  def accumulate_externalized_counters(records)
+    records.each do |record|
+      # Key format: customer:{objid}:{counter_field}
+      field = record[:key].split(':').last
+      next unless COUNTER_FIELDS.include?(field)
+
+      value                     = record[:value].to_i
       @stats[:counters][field] += value if value > 0
     end
   end
 
-  def generate_counter_commands
-    commands = []
+  # Decode the GLOBAL_STATS record to extract counter values for summary comparison
+  def decode_global_counters(record)
+    return unless record[:dump]
 
-    COUNTER_FIELDS.each do |field|
-      total = @stats[:counters][field]
-      next if total.zero?
+    temp_key  = "#{TEMP_KEY_PREFIX}global_stats"
+    dump_data = Base64.strict_decode64(record[:dump])
 
-      commands << {
-        command: 'INCRBY',
-        key: "customer:#{field}",
-        args: [total.to_s],
-      }
+    begin
+      @redis.restore(temp_key, 0, dump_data, replace: true)
+      fields = @redis.hgetall(temp_key)
+      COUNTER_FIELDS.each do |field|
+        @stats[:global_counters][field] = fields[field].to_i
+      end
+    rescue Redis::CommandError => ex
+      @stats[:errors] << { key: record[:key], error: "GLOBAL decode failed: #{ex.message}" }
+    ensure
+      begin
+        @redis.del(temp_key)
+      rescue StandardError
+        nil
+      end
     end
-
-    commands
   end
+
+  # NOTE: No longer needed b/c we simply rename the customer:GLOBAL:object key to
+  # an inert onetime:GLOBAL_STATS:object key that we can refer to later on after
+  # the upgrade.
+  #
+  # def generate_counter_commands
+  #   commands = []
+  #
+  #   COUNTER_FIELDS.each do |field|
+  #     total = @stats[:counters][field]
+  #     next if total.zero?
+  #
+  #     commands << {
+  #       command: 'INCRBY',
+  #       key: "customer:#{field}",
+  #       args: [total.to_s],
+  #     }
+  #   end
+  #
+  #   commands
+  # end
 
   def write_output(commands)
     FileUtils.mkdir_p(@output_dir)
@@ -398,8 +459,11 @@ class CustomerIndexCreator
     puts "Records read: #{@stats[:records_read]}"
     puts "  Customer objects: #{@stats[:objects_processed]}"
     puts "  Instance index source: #{@stats[:instance_index_source_records]}"
+    puts "  GLOBAL records skipped: #{@stats[:global_skipped]}"
+    puts "  Externalized counter records: #{@stats[:externalized_counter_records]}"
     puts "  Skipped: #{@stats[:skipped]}"
-    reconciled = @stats[:objects_processed] + @stats[:instance_index_source_records] + @stats[:skipped]
+    reconciled = @stats[:objects_processed] + @stats[:instance_index_source_records] +
+                 @stats[:global_skipped] + @stats[:externalized_counter_records] + @stats[:skipped]
     if reconciled == @stats[:records_read]
       puts "  (Reconciled: #{reconciled} = #{@stats[:records_read]} ✓)"
     else
@@ -435,9 +499,26 @@ class CustomerIndexCreator
     end
     puts
 
-    puts 'Class Counters:'
+    puts 'Class Counters (from externalized records):'
     COUNTER_FIELDS.each do |field|
       puts "  #{field}: #{@stats[:counters][field]}"
+    end
+    puts "  Externalized counter records read: #{@stats[:externalized_counter_records]}"
+    puts
+
+    # GLOBAL vs tallied counter comparison
+    if @stats[:global_counters].any?
+      puts 'GLOBAL vs Tallied Counter Comparison:'
+      COUNTER_FIELDS.each do |field|
+        global_val  = @stats[:global_counters][field] || 0
+        tallied_val = @stats[:counters][field] || 0
+        match       = global_val == tallied_val ? 'OK' : 'MISMATCH'
+        puts "  #{field}: GLOBAL=#{global_val}, Tallied=#{tallied_val} [#{match}]"
+      end
+    elsif @stats[:global_skipped] > 0
+      puts 'GLOBAL record: found but could not decode counters'
+    else
+      puts 'GLOBAL record: not found in input'
     end
     puts
 

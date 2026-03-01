@@ -39,6 +39,8 @@ validators:
   - path: 01-customer/validate_instance_index.rb
   - path: 02-organization/validate_instance_index.rb
   - path: 03-customdomain/validate_instance_index.rb
+  - path: 04-receipt/validate_instance_index.rb
+  - path: 05-secret/validate_instance_index.rb
 
 # Utility scripts
 utilities:
@@ -53,5 +55,8 @@ utilities:
   - path: load_keys.rb
     description: "Load transformed data back to Redis"
 
-# Run all transforms in order
-entrypoint: run_pipeline.sh
+# Full upgrade orchestrator (dump, transform, load, archive, sync)
+entrypoint: upgrade.sh
+
+# Transform-only pipeline (called by upgrade.sh as Phase 2)
+transform_pipeline: run_pipeline.sh

@@ -39,6 +39,10 @@ POST   /api/org/:extid/change-plan               Billing::Controllers::BillingCo
 POST   /api/org/:extid/cancel-subscription       Billing::Controllers::BillingController#cancel_subscription response=json auth=sessionauth
 POST   /api/org/:extid/dismiss-federation-notification Billing::Controllers::BillingController#dismiss_federation_notification response=json auth=sessionauth
 
+# Currency migration endpoints (authenticated subscribers)
+POST   /api/org/:extid/check-currency-migration        Billing::Controllers::BillingController#check_currency_migration response=json auth=sessionauth
+POST   /api/org/:extid/migrate-currency                Billing::Controllers::BillingController#migrate_currency response=json auth=sessionauth
+
 # Entitlement checking API endpoints (authenticated only)
 GET    /api/entitlements                         Billing::Controllers::Entitlements#list response=json auth=sessionauth
 GET    /api/entitlements/:extid                  Billing::Controllers::Entitlements#show response=json auth=sessionauth

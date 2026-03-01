@@ -23,6 +23,7 @@
 #
 # Output format (JSONL with Redis commands):
 #   {"command": "ZADD", "key": "receipt:instances", "args": ["1234567890", "objid123"]}
+#   {"command": "SADD", "key": "receipt:objid123:participations", "args": ["organization:orgid:receipts"]}
 
 require 'redis'
 require 'json'
@@ -68,6 +69,7 @@ class ReceiptIndexCreator
       customer_indexes: 0,
       org_indexes: 0,
       domain_indexes: 0,
+      participation_indexes: 0,
       errors: [],
       missing_customer_lookups: 0,
       missing_org_lookups: 0,
@@ -217,7 +219,8 @@ class ReceiptIndexCreator
   def generate_index_commands(objid, fields, created)
     commands = []
 
-    # 1. Instance Index: receipt:instances
+    # 1. Instance Index: receipt:instances (raw identifier for Familia SortedSet
+    #    compatibility — not JSON-encoded unlike HashKey values)
     commands << {
       command: 'ZADD',
       key: 'receipt:instances',
@@ -225,7 +228,7 @@ class ReceiptIndexCreator
     }
     @stats[:instance_indexes] += 1
 
-    # 2. Expiration Timeline: receipt:expiration_timeline
+    # 2. Expiration Timeline: receipt:expiration_timeline (raw identifier)
     secret_ttl = fields['secret_ttl']&.to_i
     if secret_ttl && secret_ttl > 0 && created
       expires_at                   = created + secret_ttl
@@ -249,7 +252,8 @@ class ReceiptIndexCreator
     custid   = fields['custid']
     owner_id = resolve_owner_id(custid)
 
-    # Customer receipts (if not anonymous)
+    # Customer receipts (if not anonymous).
+    # Raw identifiers for Familia SortedSet/Set compatibility (not JSON-encoded).
     if owner_id && owner_id != 'anon'
       commands << {
         command: 'ZADD',
@@ -267,12 +271,22 @@ class ReceiptIndexCreator
           args: [created.to_i, objid],
         }
         @stats[:org_indexes] += 1
+
+        # Reverse participation index for Familia v2 destroy! cleanup
+        # (raw key reference for Familia Set compatibility)
+        commands << {
+          command: 'SADD',
+          key: "receipt:#{objid}:participations",
+          args: ["organization:#{org_id}:receipts"],
+        }
+        @stats[:participation_indexes] += 1
       end
     else
       @stats[:anonymous_receipts] += 1
     end
 
-    # 5. Domain participation (if share_domain set)
+    # 5. Domain participation (if share_domain set).
+    #    Raw identifiers for Familia SortedSet/Set compatibility (not JSON-encoded).
     share_domain = fields['share_domain']
     if share_domain && !share_domain.empty?
       domain_id = resolve_domain_id(share_domain)
@@ -283,6 +297,15 @@ class ReceiptIndexCreator
           args: [created.to_i, objid],
         }
         @stats[:domain_indexes] += 1
+
+        # Reverse participation index for Familia v2 destroy! cleanup
+        # (raw key reference for Familia Set compatibility)
+        commands << {
+          command: 'SADD',
+          key: "receipt:#{objid}:participations",
+          args: ["custom_domain:#{domain_id}:receipts"],
+        }
+        @stats[:participation_indexes] += 1
       end
     end
 
@@ -344,6 +367,7 @@ class ReceiptIndexCreator
     puts "  Customer (customer:{id}:receipts):      #{@stats[:customer_indexes]}"
     puts "  Org (organization:{id}:receipts):       #{@stats[:org_indexes]}"
     puts "  Domain (custom_domain:{id}:receipts):   #{@stats[:domain_indexes]}"
+    puts "  Participation (receipt:{id}:participations): #{@stats[:participation_indexes]}"
     puts
     puts 'Ownership:'
     puts "  Anonymous receipts: #{@stats[:anonymous_receipts]}"
@@ -442,7 +466,7 @@ def parse_args(args)
           org-lookup:      {"customer_objid": "org_objid", ...}
           domain-lookup:   {"secrets.example.com": "01234567-89ab-...", ...}
 
-        Output: JSONL with Redis commands (ZADD, HSET)
+        Output: JSONL with Redis commands (ZADD, HSET, SADD)
 
         Indexes created:
           - receipt:instances (sorted set: score=created, member=objid)
@@ -451,6 +475,7 @@ def parse_args(args)
           - customer:{owner_id}:receipts (sorted set, if not anonymous)
           - organization:{org_id}:receipts (sorted set, if owner has org)
           - custom_domain:{domain_id}:receipts (sorted set, if share_domain set)
+          - receipt:{objid}:participations (set, reverse index for org/domain ZSET cleanup)
       HELP
       exit 0
     else

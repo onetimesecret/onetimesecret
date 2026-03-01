@@ -1,7 +1,7 @@
 // src/apps/workspace/config/settings-navigation.ts
 
+import { isFullAuthMode, isWebAuthnEnabled } from '@/utils/features';
 import type { ComposerTranslation } from 'vue-i18n';
-import { isWebAuthnEnabled } from '@/utils/features';
 
 /**
  * Icon configuration for navigation items
@@ -80,6 +80,7 @@ function getSecuritySection(t: ComposerTranslation): SettingsNavigationItem {
     icon: { collection: 'heroicons', name: 'shield-check-solid' },
     label: t('web.COMMON.security'),
     description: t('web.settings.security_settings_description'),
+    visible: () => isFullAuthMode(),
     children: [
       {
         id: 'password',
@@ -176,8 +177,7 @@ export function getSettingsNavigationSections(t: ComposerTranslation): SettingsN
           icon: { collection: 'heroicons', name: 'code-bracket' },
           label: t('web.account.api_key'),
           description: t('web.settings.api.manage_api_keys'),
-          // Hidden until API key functionality is complete for launch
-          visible: () => false,
+          visible: () => true,
         },
       ],
     },

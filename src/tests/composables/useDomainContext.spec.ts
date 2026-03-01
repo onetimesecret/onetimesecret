@@ -59,6 +59,8 @@ describe('useDomainContext', () => {
     domains_enabled?: boolean;
     site_host?: string;
     display_domain?: string;
+    custom_domains?: string[];
+    domain_strategy?: 'canonical' | 'subdomain' | 'custom' | 'invalid';
   }) {
     const pinia = createTestingPinia({
       createSpy: vi.fn,
@@ -70,6 +72,8 @@ describe('useDomainContext', () => {
     bootstrapStore.domains_enabled = config.domains_enabled ?? true;
     bootstrapStore.site_host = config.site_host ?? 'onetimesecret.com';
     bootstrapStore.display_domain = config.display_domain ?? config.site_host ?? 'onetimesecret.com';
+    bootstrapStore.custom_domains = config.custom_domains ?? [];
+    bootstrapStore.domain_strategy = config.domain_strategy ?? 'canonical';
 
     return { pinia, bootstrapStore };
   }
@@ -368,6 +372,7 @@ describe('useDomainContext', () => {
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
+        custom_domains: ['acme.example.com'],
       });
 
       setMockDomains(['acme.example.com']);
@@ -463,6 +468,7 @@ describe('useDomainContext', () => {
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
+        custom_domains: ['acme.example.com'],
       });
 
       setMockDomains(['acme.example.com']);
@@ -934,6 +940,370 @@ describe('useDomainContext', () => {
 
       // With no domains at all, should be empty
       expect(currentContext.value.domain).toBe('');
+    });
+  });
+
+  describe('setContext backend sync behavior', () => {
+    // These tests verify the fix for the 422 bug: selecting the canonical domain
+    // from the dropdown should NOT POST to /api/account/update-domain-context,
+    // since canonical is the default/neutral state.
+
+    let mockApiPost: ReturnType<typeof vi.fn>;
+    let mockApi: { post: ReturnType<typeof vi.fn> };
+
+    beforeEach(() => {
+      mockApiPost = vi.fn().mockResolvedValue({ data: {} });
+      mockApi = { post: mockApiPost };
+    });
+
+    /**
+     * Helper: import the composable with inject('api') returning our mock API.
+     * We re-mock 'vue' to intercept inject for the duration of these tests.
+     */
+    async function importWithMockApi() {
+      // Override inject to return our mock API
+      const vue = await import('vue');
+      const originalInject = vue.inject;
+      vi.spyOn(vue, 'inject').mockImplementation((key: any, ...args: any[]) => {
+        if (key === 'api') return mockApi;
+        // Fall through to original for other inject keys
+        return (originalInject as any)(key, ...args);
+      });
+
+      const mod = await import('@/shared/composables/useDomainContext');
+      return mod;
+    }
+
+    it('selecting a custom domain triggers POST to update-domain-context', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+        custom_domains: ['acme.example.com', 'widgets.example.com'],
+      });
+
+      setMockDomains(['acme.example.com', 'widgets.example.com']);
+
+      const { useDomainContext } = await importWithMockApi();
+      const { setContext } = useDomainContext();
+
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      await setContext('acme.example.com');
+
+      expect(mockApiPost).toHaveBeenCalledWith(
+        '/api/account/update-domain-context',
+        { domain: 'acme.example.com' }
+      );
+    });
+
+    it('selecting a custom domain stores value in sessionStorage', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+        custom_domains: ['acme.example.com'],
+      });
+
+      setMockDomains(['acme.example.com']);
+
+      const { useDomainContext } = await importWithMockApi();
+      const { setContext } = useDomainContext();
+
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      await setContext('acme.example.com');
+
+      expect(mockSessionStorage.getItem('domainContext')).toBe('acme.example.com');
+    });
+
+    // -------------------------------------------------------------------
+    // The following tests document EXPECTED behavior after the bug fix.
+    // They verify that canonical domain selection skips the backend POST
+    // and clears session storage instead of persisting.
+    // -------------------------------------------------------------------
+
+    it('selecting canonical domain should NOT trigger backend sync POST', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      setMockDomains(['acme.example.com']);
+
+      const { useDomainContext } = await importWithMockApi();
+      const { setContext } = useDomainContext();
+
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // Clear any calls from initialization
+      mockApiPost.mockClear();
+
+      await setContext('onetimesecret.com');
+
+      // No POST should have been made for canonical domain
+      expect(mockApiPost).not.toHaveBeenCalled();
+    });
+
+    it('selecting canonical domain should clear sessionStorage domainContext', async () => {
+      // Pre-populate sessionStorage as if a custom domain was previously selected
+      mockSessionStorage.setItem('domainContext', 'acme.example.com');
+
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      setMockDomains(['acme.example.com']);
+
+      const { useDomainContext } = await importWithMockApi();
+      const { setContext } = useDomainContext();
+
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      await setContext('onetimesecret.com');
+
+      // Canonical is the default state -- session storage should be cleared
+      expect(mockSessionStorage.getItem('domainContext')).toBeNull();
+    });
+
+    it('selecting canonical domain updates currentContext correctly', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      setMockDomains(['acme.example.com']);
+
+      const { useDomainContext } = await importWithMockApi();
+      const { setContext, currentContext } = useDomainContext();
+
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      await setContext('onetimesecret.com');
+
+      expect(currentContext.value.domain).toBe('onetimesecret.com');
+      expect(currentContext.value.isCanonical).toBe(true);
+      expect(currentContext.value.extid).toBeUndefined();
+    });
+
+    it('selecting canonical domain does not throw even if server would return 422', async () => {
+      // Simulate the server rejecting canonical domain POSTs
+      mockApiPost.mockRejectedValue({
+        response: { status: 422, data: { message: 'Invalid domain' } },
+      });
+
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      setMockDomains(['acme.example.com']);
+
+      const { useDomainContext } = await importWithMockApi();
+      const { setContext } = useDomainContext();
+
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // Should not throw -- either the sync is skipped (after fix)
+      // or the error is caught by syncDomainContextToServer (existing behavior)
+      await expect(setContext('onetimesecret.com')).resolves.toBeUndefined();
+    });
+
+    it('skipBackendSync=true prevents POST even for custom domains', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+        custom_domains: ['acme.example.com'],
+      });
+
+      setMockDomains(['acme.example.com']);
+
+      const { useDomainContext } = await importWithMockApi();
+      const { setContext } = useDomainContext();
+
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      mockApiPost.mockClear();
+
+      await setContext('acme.example.com', true);
+
+      expect(mockApiPost).not.toHaveBeenCalled();
+      // But sessionStorage should still be populated for custom domains
+      expect(mockSessionStorage.getItem('domainContext')).toBe('acme.example.com');
+    });
+  });
+
+  describe('setContext error handling (sync failures)', () => {
+    let mockApiPost: ReturnType<typeof vi.fn>;
+    let mockApi: { post: ReturnType<typeof vi.fn> };
+
+    beforeEach(() => {
+      mockApiPost = vi.fn().mockResolvedValue({ data: {} });
+      mockApi = { post: mockApiPost };
+    });
+
+    async function importWithMockApi() {
+      const vue = await import('vue');
+      const originalInject = vue.inject;
+      vi.spyOn(vue, 'inject').mockImplementation((key: any, ...args: any[]) => {
+        if (key === 'api') return mockApi;
+        return (originalInject as any)(key, ...args);
+      });
+      return import('@/shared/composables/useDomainContext');
+    }
+
+    it('catches network errors from syncDomainContextToServer without throwing', async () => {
+      mockApiPost.mockRejectedValue(new Error('Network Error'));
+
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+        custom_domains: ['acme.example.com'],
+      });
+
+      setMockDomains(['acme.example.com']);
+
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const { useDomainContext } = await importWithMockApi();
+      const { setContext } = useDomainContext();
+
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // Should not throw
+      await expect(setContext('acme.example.com')).resolves.toBeUndefined();
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[useDomainContext]'),
+        expect.anything()
+      );
+
+      warnSpy.mockRestore();
+    });
+
+    it('catches 422 responses gracefully and still updates local state', async () => {
+      mockApiPost.mockRejectedValue({
+        response: { status: 422, data: { message: 'Invalid domain' } },
+      });
+
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+        custom_domains: ['acme.example.com'],
+      });
+
+      setMockDomains(['acme.example.com']);
+
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const { useDomainContext } = await importWithMockApi();
+      const { setContext, currentContext } = useDomainContext();
+
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      await setContext('acme.example.com');
+
+      // Local state should reflect the selection even if the server rejected it
+      expect(currentContext.value.domain).toBe('acme.example.com');
+      expect(mockSessionStorage.getItem('domainContext')).toBe('acme.example.com');
+
+      warnSpy.mockRestore();
+    });
+
+    it('sync failure does not revert currentDomain', async () => {
+      mockApiPost.mockRejectedValue(new Error('500 Internal Server Error'));
+
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+        custom_domains: ['acme.example.com', 'widgets.example.com'],
+      });
+
+      setMockDomains(['acme.example.com', 'widgets.example.com']);
+
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const { useDomainContext } = await importWithMockApi();
+      const { setContext, currentContext } = useDomainContext();
+
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      await setContext('widgets.example.com');
+
+      // Domain should be set to the new value, not reverted
+      expect(currentContext.value.domain).toBe('widgets.example.com');
+
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe('ghost domain fallback', () => {
+    it('falls back to preferred domain when serverDomainContext is not in available domains', async () => {
+      const { bootstrapStore } = setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      // Server references a domain that was removed (ghost domain)
+      bootstrapStore.domain_context = 'deleted-domain.example.com';
+
+      // Only these domains are actually available
+      setMockDomains(['acme.example.com', 'widgets.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
+
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // Should skip the ghost domain and fall back to preferred (first custom)
+      expect(currentContext.value.domain).not.toBe('deleted-domain.example.com');
+      expect(currentContext.value.domain).toBe('acme.example.com');
+    });
+
+    it('falls back when both serverDomainContext and sessionStorage reference removed domain', async () => {
+      // Both persistence layers point to a domain that no longer exists
+      mockSessionStorage.setItem('domainContext', 'removed-domain.example.com');
+
+      const { bootstrapStore } = setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+      bootstrapStore.domain_context = 'removed-domain.example.com';
+
+      // The removed domain is not in the available list
+      setMockDomains(['surviving.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
+
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // Should fall back to first available custom domain
+      expect(currentContext.value.domain).toBe('surviving.example.com');
+      expect(currentContext.value.domain).not.toBe('removed-domain.example.com');
     });
   });
 });

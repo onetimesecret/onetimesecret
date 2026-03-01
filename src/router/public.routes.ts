@@ -80,7 +80,7 @@ function getLayoutPropsForMode(componentMode: string, domainStrategy: string) {
       ...layoutProps,
       displayMasthead: false, // Logo goes in page content for centered experience
       displayNavigation: false,
-      displayFooterLinks: true, // Keep Terms/Privacy links
+      displayFooterLinks: false,
       displayFeedback: false,
       displayVersion: false,
       displayPoweredBy: true, // Show "Powered by Onetime Secret"

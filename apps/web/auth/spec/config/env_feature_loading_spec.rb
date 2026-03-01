@@ -43,13 +43,13 @@ require_relative '../../config/features/mfa'
 RSpec.describe 'ENV-conditional feature loading' do
   let(:db) { create_test_database }
 
-  # Helper that mirrors config.rb conditional logic for hardening features
-  def build_hardening_features_app(db)
+  # Helper that mirrors config.rb conditional logic for lockout features
+  def build_lockout_app(db)
     features = [:base, :login, :logout]
 
     # Same pattern as config.rb: enabled unless explicitly 'false'
-    if ENV['AUTH_HARDENING_ENABLED'] != 'false'
-      features += [:lockout, :login_password_requirements_base]
+    if ENV['AUTH_LOCKOUT_ENABLED'] != 'false'
+      features += [:lockout]
     end
 
     create_rodauth_app(db: db, features: features) do
@@ -57,6 +57,18 @@ RSpec.describe 'ENV-conditional feature loading' do
         max_invalid_logins 5
       end
     end
+  end
+
+  # Helper that mirrors config.rb conditional logic for password requirements
+  def build_password_requirements_app(db)
+    features = [:base, :login, :logout]
+
+    # Same pattern as config.rb: enabled unless explicitly 'false'
+    if ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false'
+      features += [:login_password_requirements_base]
+    end
+
+    create_rodauth_app(db: db, features: features)
   end
 
   # Helper that mirrors config.rb conditional logic for active sessions
@@ -142,34 +154,34 @@ RSpec.describe 'ENV-conditional feature loading' do
     end
   end
 
-  describe 'AUTH_HARDENING_ENABLED' do
+  describe 'AUTH_LOCKOUT_ENABLED' do
     context 'when not set (default - enabled)' do
       around do |example|
-        ClimateControl.modify('AUTH_HARDENING_ENABLED' => nil) do
+        ClimateControl.modify('AUTH_LOCKOUT_ENABLED' => nil) do
           example.run
         end
       end
 
       it 'enables lockout feature' do
-        app = build_hardening_features_app(db)
+        app = build_lockout_app(db)
         expect(rodauth_responds_to?(app, :max_invalid_logins)).to be true
       end
     end
 
     context 'when set to "false" (disabled)' do
       around do |example|
-        ClimateControl.modify('AUTH_HARDENING_ENABLED' => 'false') do
+        ClimateControl.modify('AUTH_LOCKOUT_ENABLED' => 'false') do
           example.run
         end
       end
 
       it 'disables lockout feature' do
-        app = build_hardening_features_app(db)
+        app = build_lockout_app(db)
         expect(rodauth_responds_to?(app, :max_invalid_logins)).to be false
       end
 
       it 'still has core login/logout' do
-        app = build_hardening_features_app(db)
+        app = build_lockout_app(db)
         expect(rodauth_responds_to?(app, :login_route)).to be true
         expect(rodauth_responds_to?(app, :logout_route)).to be true
       end
@@ -177,14 +189,61 @@ RSpec.describe 'ENV-conditional feature loading' do
 
     context 'when set to "true" (explicitly enabled)' do
       around do |example|
-        ClimateControl.modify('AUTH_HARDENING_ENABLED' => 'true') do
+        ClimateControl.modify('AUTH_LOCKOUT_ENABLED' => 'true') do
           example.run
         end
       end
 
-      it 'enables hardening features (true != false)' do
-        app = build_hardening_features_app(db)
+      it 'enables lockout features (true != false)' do
+        app = build_lockout_app(db)
         expect(rodauth_responds_to?(app, :max_invalid_logins)).to be true
+      end
+    end
+  end
+
+  describe 'AUTH_PASSWORD_REQUIREMENTS_ENABLED' do
+    context 'when not set (default - enabled)' do
+      around do |example|
+        ClimateControl.modify('AUTH_PASSWORD_REQUIREMENTS_ENABLED' => nil) do
+          example.run
+        end
+      end
+
+      it 'enables password requirements feature' do
+        app = build_password_requirements_app(db)
+        expect(rodauth_responds_to?(app, :password_meets_requirements?)).to be true
+      end
+    end
+
+    context 'when set to "false" (disabled)' do
+      around do |example|
+        ClimateControl.modify('AUTH_PASSWORD_REQUIREMENTS_ENABLED' => 'false') do
+          example.run
+        end
+      end
+
+      it 'disables password requirements feature' do
+        app = build_password_requirements_app(db)
+        expect(rodauth_responds_to?(app, :password_meets_requirements?)).to be false
+      end
+
+      it 'still has core login/logout' do
+        app = build_password_requirements_app(db)
+        expect(rodauth_responds_to?(app, :login_route)).to be true
+        expect(rodauth_responds_to?(app, :logout_route)).to be true
+      end
+    end
+
+    context 'when set to "true" (explicitly enabled)' do
+      around do |example|
+        ClimateControl.modify('AUTH_PASSWORD_REQUIREMENTS_ENABLED' => 'true') do
+          example.run
+        end
+      end
+
+      it 'enables password requirements features (true != false)' do
+        app = build_password_requirements_app(db)
+        expect(rodauth_responds_to?(app, :password_meets_requirements?)).to be true
       end
     end
   end
@@ -376,7 +435,8 @@ RSpec.describe 'ENV-conditional feature loading' do
     context 'all features enabled' do
       around do |example|
         ClimateControl.modify(
-          'AUTH_HARDENING_ENABLED' => 'true',
+          'AUTH_LOCKOUT_ENABLED' => 'true',
+          'AUTH_PASSWORD_REQUIREMENTS_ENABLED' => 'true',
           'AUTH_ACTIVE_SESSIONS_ENABLED' => 'true',
           'AUTH_REMEMBER_ME_ENABLED' => 'true',
           'AUTH_MFA_ENABLED' => 'true',
@@ -406,24 +466,62 @@ RSpec.describe 'ENV-conditional feature loading' do
 
         # Verify all feature sets present
         expect(rodauth_responds_to?(app, :max_invalid_logins)).to be true
+        expect(rodauth_responds_to?(app, :password_meets_requirements?)).to be true
         expect(rodauth_responds_to?(app, :otp_setup_route)).to be true
         expect(rodauth_responds_to?(app, :email_auth_route)).to be true
         expect(rodauth_responds_to?(app, :webauthn_setup_route)).to be true
       end
     end
 
-    context 'hardening disabled but MFA enabled' do
+    context 'lockout enabled, password requirements disabled' do
       around do |example|
         ClimateControl.modify(
-          'AUTH_HARDENING_ENABLED' => 'false',
+          'AUTH_LOCKOUT_ENABLED' => 'true',
+          'AUTH_PASSWORD_REQUIREMENTS_ENABLED' => 'false',
+        ) do
+          example.run
+        end
+      end
+
+      it 'has lockout without password requirements' do
+        app = build_lockout_app(db)
+        expect(rodauth_responds_to?(app, :max_invalid_logins)).to be true
+
+        app2 = build_password_requirements_app(db)
+        expect(rodauth_responds_to?(app2, :password_meets_requirements?)).to be false
+      end
+    end
+
+    context 'lockout disabled, password requirements enabled' do
+      around do |example|
+        ClimateControl.modify(
+          'AUTH_LOCKOUT_ENABLED' => 'false',
+          'AUTH_PASSWORD_REQUIREMENTS_ENABLED' => 'true',
+        ) do
+          example.run
+        end
+      end
+
+      it 'has password requirements without lockout' do
+        app = build_lockout_app(db)
+        expect(rodauth_responds_to?(app, :max_invalid_logins)).to be false
+
+        app2 = build_password_requirements_app(db)
+        expect(rodauth_responds_to?(app2, :password_meets_requirements?)).to be true
+      end
+    end
+
+    context 'lockout disabled but MFA enabled' do
+      around do |example|
+        ClimateControl.modify(
+          'AUTH_LOCKOUT_ENABLED' => 'false',
           'AUTH_MFA_ENABLED' => 'true',
         ) do
           example.run
         end
       end
 
-      it 'has MFA without hardening features' do
-        # MFA without hardening
+      it 'has MFA without lockout features' do
         features = [:base, :login, :logout, :two_factor_base, :otp, :recovery_codes]
 
         app = create_rodauth_app(db: db, features: features) do
@@ -439,7 +537,8 @@ RSpec.describe 'ENV-conditional feature loading' do
     context 'minimal configuration (only core features)' do
       around do |example|
         ClimateControl.modify(
-          'AUTH_HARDENING_ENABLED' => 'false',
+          'AUTH_LOCKOUT_ENABLED' => 'false',
+          'AUTH_PASSWORD_REQUIREMENTS_ENABLED' => 'false',
           'AUTH_ACTIVE_SESSIONS_ENABLED' => 'false',
           'AUTH_REMEMBER_ME_ENABLED' => 'false',
           'AUTH_MFA_ENABLED' => 'false',
@@ -456,6 +555,7 @@ RSpec.describe 'ENV-conditional feature loading' do
         expect(rodauth_responds_to?(app, :login_route)).to be true
         expect(rodauth_responds_to?(app, :logout_route)).to be true
         expect(rodauth_responds_to?(app, :max_invalid_logins)).to be false
+        expect(rodauth_responds_to?(app, :password_meets_requirements?)).to be false
         expect(rodauth_responds_to?(app, :otp_setup_route)).to be false
         expect(rodauth_responds_to?(app, :email_auth_route)).to be false
         expect(rodauth_responds_to?(app, :webauthn_setup_route)).to be false

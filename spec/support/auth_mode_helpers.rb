@@ -25,7 +25,8 @@ module AuthModeHelpers
 
     def initialize(mode, **options)
       @mode = mode.to_s
-      @hardening_enabled = options.fetch(:hardening_enabled, true)
+      @lockout_enabled = options.fetch(:lockout_enabled, true)
+      @password_requirements_enabled = options.fetch(:password_requirements_enabled, true)
       @active_sessions_enabled = options.fetch(:active_sessions_enabled, true)
       @remember_me_enabled = options.fetch(:remember_me_enabled, true)
       @verify_account_enabled = options.fetch(:verify_account_enabled, false)  # Disabled in test by default
@@ -49,8 +50,12 @@ module AuthModeHelpers
     end
 
     # Predicate methods matching AuthConfig interface
-    def hardening_enabled?
-      @hardening_enabled
+    def lockout_enabled?
+      @lockout_enabled
+    end
+
+    def password_requirements_enabled?
+      @password_requirements_enabled
     end
 
     def active_sessions_enabled?
@@ -87,13 +92,33 @@ module AuthModeHelpers
       @omniauth_provider_name
     end
 
-    # DEPRECATED: Forwards to new methods for backward compatibility
-    def security_features_enabled?
-      hardening_enabled? && active_sessions_enabled? && remember_me_enabled?
-    end
-
     def magic_links_enabled?
       email_auth_enabled?
+    end
+
+    # Argon2 secret key (pepper) for password hashing defense-in-depth.
+    # Returns nil in tests (argon2id works fine without a pepper).
+    def argon2_secret
+      nil
+    end
+
+    # Feature flags hash (empty in tests; individual flags are set via options)
+    def features
+      {}
+    end
+
+    # SSO display name (nil unless omniauth is enabled and configured)
+    def sso_display_name
+      return nil unless omniauth_enabled?
+
+      @omniauth_provider_name
+    end
+
+    # OmniAuth route name for SSO callback URL
+    def omniauth_route_name
+      return nil unless omniauth_enabled?
+
+      'oidc'
     end
 
     def database_url

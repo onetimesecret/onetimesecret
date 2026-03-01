@@ -24,7 +24,7 @@ import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 export interface RecentSecretRecord {
   /** Unique identifier for the record */
   id: string;
-  /** External ID for URL routing (metadata identifier) */
+  /** External ID for URL routing (receipt identifier) */
   extid: string;
   /** Short ID for display (truncated version) */
   shortid: string;
@@ -226,7 +226,9 @@ function useApiRecentSecrets(
   wrapSilent: <T>(operation: () => Promise<T>) => Promise<T | undefined>
 ) {
   const store = useReceiptListStore();
+  const localStore = useLocalReceiptStore();
   const { records: storeRecords, currentScope, scopeLabel } = storeToRefs(store);
+  const { workspaceMode } = storeToRefs(localStore);
 
   // Transform API records to unified format
   // Filter out records with missing secret_shortid to prevent broken share links
@@ -236,9 +238,6 @@ function useApiRecentSecrets(
   });
 
   const hasRecords = computed(() => records.value.length > 0);
-
-  // Workspace mode is not applicable for API source
-  const workspaceMode = computed(() => false);
 
   const fetch = async (options: FetchListOptions = {}) => {
     const wrapper = options.silent ? wrapSilent : wrap;
@@ -252,7 +251,7 @@ function useApiRecentSecrets(
   };
 
   const toggleWorkspaceMode = () => {
-    // No-op for API mode - workspace mode is a local-only feature
+    localStore.toggleWorkspaceMode();
   };
 
   const updateMemo = async (id: string, memo: string) => {

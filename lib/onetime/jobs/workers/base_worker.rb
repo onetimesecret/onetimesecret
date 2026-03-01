@@ -135,15 +135,26 @@ module Onetime
           # Retry logic with exponential backoff
           # @param max_retries [Integer] Maximum retry attempts
           # @param base_delay [Float] Base delay in seconds
-          def with_retry(max_retries: 3, base_delay: 1.0)
+          # @param retriable [Proc, nil] Optional predicate to check if an error
+          #   should be retried. Receives the exception; returns true to retry,
+          #   false to re-raise immediately. Defaults to retrying all StandardError.
+          def with_retry(max_retries: 3, base_delay: 1.0, retriable: nil)
             retries = 0
             begin
               yield
             rescue StandardError => ex
+              # Skip retries if the caller says this error is not retriable
+              unless retriable.nil? || retriable.call(ex)
+                log_error "Non-retriable error, skipping retries: #{ex.message}"
+                raise
+              end
+
               retries += 1
               if retries <= max_retries
-                delay = base_delay * (2**(retries - 1))
-                log_info "Retry #{retries}/#{max_retries} after #{delay}s: #{ex.message}"
+                delay  = base_delay * (2**(retries - 1))
+                jitter = rand * delay * 0.3
+                delay += jitter
+                log_info "Retry #{retries}/#{max_retries} after #{format('%.2f', delay)}s: #{ex.message}"
                 sleep(delay)
                 retry
               else

@@ -108,6 +108,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
       id: 'sub_test123',
       status: 'active',
       customer: 'cus_test123',
+      currency: 'cad',
       current_period_start: Time.now.to_i,
       current_period_end: (Time.now + 30 * 24 * 60 * 60).to_i,
       items: subscription_items,
@@ -314,7 +315,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
         # Mock the plan catalog lookup
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(new_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team', currency: 'cad'))
       end
 
       context 'input validation' do
@@ -419,7 +420,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
 
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(new_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team', currency: 'cad'))
 
         # Stub update_from_stripe_subscription to avoid type validation on mock
         allow_any_instance_of(Onetime::Organization).to receive(:update_from_stripe_subscription)
@@ -626,7 +627,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
 
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(lower_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'single_team'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'single_team', currency: 'cad'))
       end
 
       it 'returns negative amount_due for downgrade with credit' do
@@ -671,7 +672,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
 
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(lower_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'single_team'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'single_team', currency: 'cad'))
 
         allow_any_instance_of(Onetime::Organization).to receive(:update_from_stripe_subscription)
           .and_return(true)
@@ -736,7 +737,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
 
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(new_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team', currency: 'cad'))
 
         allow_any_instance_of(Onetime::Organization).to receive(:update_from_stripe_subscription)
           .and_return(true)
@@ -930,7 +931,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
         allow(Stripe::Price).to receive(:retrieve).with(new_price_id).and_return(new_price)
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(new_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team', currency: 'cad'))
 
         post "/billing/api/org/#{organization.extid}/preview-plan-change",
              { new_price_id: new_price_id }
@@ -948,7 +949,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
         allow(Stripe::Subscription).to receive(:update).and_return(updated_subscription)
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(new_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team', currency: 'cad'))
         allow_any_instance_of(Onetime::Organization).to receive(:update_from_stripe_subscription)
           .and_return(true)
 
@@ -1051,7 +1052,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
         allow(Stripe::Subscription).to receive(:update).and_return(updated_subscription)
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(new_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team', currency: 'cad'))
         allow_any_instance_of(Onetime::Organization).to receive(:update_from_stripe_subscription)
           .and_return(true)
 
@@ -1124,7 +1125,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
 
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(lower_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'identity_plus'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'identity_plus', currency: 'cad'))
       end
 
       it 'returns ending_balance as negative (credit remaining)' do
@@ -1210,7 +1211,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
 
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(lower_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'identity_plus'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'identity_plus', currency: 'cad'))
       end
 
       it 'returns zero ending_balance when credit is fully applied' do
@@ -1272,7 +1273,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
 
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(higher_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'org_max_v1_monthly', tier: 'org_max'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'org_max_v1_monthly', tier: 'org_max', currency: 'cad'))
       end
 
       it 'returns zero or positive ending_balance for upgrades' do
@@ -1332,7 +1333,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
 
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(lower_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'identity_plus'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'identity_plus', currency: 'cad'))
       end
 
       it 'returns zero ending_balance when exactly balanced' do
@@ -1394,7 +1395,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
 
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(lower_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'identity_plus'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'identity_plus', currency: 'cad'))
       end
 
       it 'includes tax amount in response' do
@@ -1485,7 +1486,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
           allow(Stripe::Price).to receive(:retrieve).with(upgrade_price_id).and_return(upgrade_price)
           allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
             .with(upgrade_price_id)
-            .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team'))
+            .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team', currency: 'cad'))
         end
 
         it 'returns zero amount_due during trial period' do

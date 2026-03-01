@@ -8,7 +8,13 @@
  */
 
 import { createApi } from '@/api';
-import type { Invoice, PaymentMethod } from '@/types/billing';
+import type { PaymentMethod } from '@/types/billing';
+import type {
+  CurrencyConflictError,
+  InvoiceStatus,
+  MigrateCurrencyRequest,
+  MigrateCurrencyResponse,
+} from '@/schemas/models/billing';
 
 const $api = createApi();
 
@@ -49,8 +55,8 @@ export interface BillingOverviewResponse {
     limits: Record<string, number>;
   } | null;
   usage: {
-    teams: number;
     members: number;
+    domains: number;
   };
   payment_method?: PaymentMethod;
   /** Federation notification for cross-region subscription sync */
@@ -66,10 +72,30 @@ export interface CheckoutSessionResponse {
 }
 
 /**
+ * Invoice data as returned by the billing API.
+ *
+ * Matches the shape from GET /billing/api/org/:extid/invoices.
+ * Note: This differs from the Zod `Invoice` schema in schemas/models/billing.ts
+ * which defines an idealized shape. This interface matches the actual API response.
+ */
+export interface StripeInvoice {
+  id: string;
+  number: string | null;
+  amount: number;
+  currency: string;
+  status: InvoiceStatus;
+  created: number;
+  due_date: number | null;
+  paid_at: number | null;
+  invoice_pdf: string | null;
+  hosted_invoice_url: string | null;
+}
+
+/**
  * Invoices list response
  */
 export interface InvoicesResponse {
-  invoices: Invoice[];
+  invoices: StripeInvoice[];
   has_more: boolean;
 }
 
@@ -102,6 +128,8 @@ export interface Plan {
   includes_plan?: string;
   /** Human-readable name of included plan (resolved by backend) */
   includes_plan_name?: string;
+  /** Region identifier from Stripe product metadata */
+  region?: string;
 }
 
 /**
@@ -121,10 +149,20 @@ export interface SubscriptionStatusResponse {
   subscription_item_id?: string;
   subscription_status?: string;
   current_period_end?: number;
+  /** Currency of the current subscription (e.g., 'cad', 'eur') */
+  current_currency?: string;
   /** True if subscription is scheduled for cancellation at period end */
   cancel_at_period_end?: boolean;
   /** Unix timestamp when subscription will be cancelled (if scheduled) */
   cancel_at?: number | null;
+  /** Present when a currency migration is pending (graceful mode) */
+  pending_currency_migration?: {
+    target_price_id: string;
+    target_plan_name: string;
+    target_currency: string;
+    target_plan_id: string;
+    effective_after: number;
+  } | null;
 }
 
 /**
@@ -309,4 +347,57 @@ export const BillingService = {
     const response = await $api.post(`/billing/api/org/${orgExtId}/cancel-subscription`);
     return response.data;
   },
+
+  /**
+   * Migrate subscription to a new currency
+   *
+   * Handles the case where a customer's existing Stripe subscription uses
+   * a different currency than the target plan. Two modes:
+   * - 'graceful': Cancel at period end; user completes new checkout later
+   * - 'immediate': Cancel now with prorated refund; redirect to new checkout
+   *
+   * @param orgExtId - Organization external ID
+   * @param request - Migration parameters (price ID and mode)
+   * @returns Migration result (shape varies by mode)
+   */
+  async migrateCurrency(
+    orgExtId: string,
+    request: MigrateCurrencyRequest
+  ): Promise<MigrateCurrencyResponse> {
+    const response = await $api.post(
+      `/billing/api/org/${orgExtId}/migrate-currency`,
+      request
+    );
+    return response.data;
+  },
 };
+
+/**
+ * Check if an error response indicates a currency conflict.
+ *
+ * Currency conflicts occur when a customer tries to subscribe to a plan
+ * in a different currency than their existing Stripe subscription.
+ * The backend returns HTTP 409 with `code: 'currency_conflict'`.
+ *
+ * @param error - The caught error from an API call
+ * @returns The conflict details if this is a currency conflict, null otherwise
+ */
+export function extractCurrencyConflict(error: unknown): CurrencyConflictError | null {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'response' in error
+  ) {
+    const axiosError = error as { response?: { status?: number; data?: Record<string, unknown> } };
+    const data = axiosError.response?.data;
+
+    if (
+      axiosError.response?.status === 409 &&
+      data &&
+      data.code === 'currency_conflict'
+    ) {
+      return data as unknown as CurrencyConflictError;
+    }
+  }
+  return null;
+}

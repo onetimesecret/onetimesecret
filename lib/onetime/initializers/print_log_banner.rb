@@ -129,11 +129,11 @@ module Onetime
         system_rows
       end
 
-      # Builds development and experimental settings section rows
+      # Builds development settings section rows
       def build_dev_section
         dev_rows = []
 
-        %w[development experimental].each do |key|
+        %w[development].each do |key|
           next unless config_value = OT.conf.fetch(key, false)
 
           dev_rows << if is_feature_disabled?(config_value)
@@ -273,6 +273,13 @@ module Onetime
 
           # API version
           billing_config_rows << ['API Version', config.stripe_api_version] if config.stripe_api_version
+
+          # Region isolation status
+          billing_config_rows << if config.region
+            ['Region Isolation', "enabled (jurisdiction=#{config.region})"]
+          else
+            ['Region Isolation', 'disabled (all jurisdictions synced)']
+                                 end
         rescue StandardError => ex
           billing_config_rows << ['Error', "Error rendering billing config: #{ex.message}"]
         end

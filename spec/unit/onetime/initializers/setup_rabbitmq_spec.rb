@@ -13,7 +13,7 @@
 # Run with: pnpm run test:rspec spec/unit/onetime/initializers/setup_rabbitmq_spec.rb
 
 require 'spec_helper'
-require 'onetime/jobs/queue_config'
+require 'onetime/jobs/queues/config'
 
 # rubocop:disable RSpec/SpecFilePathFormat
 # File name matches implementation file setup_rabbitmq.rb
@@ -480,10 +480,13 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
         mock_pool = instance_double(ConnectionPool)
 
         allow(Bunny).to receive(:new).and_return(mock_conn)
+        allow(mock_conn).to receive(:create_channel).and_return(mock_channel)
         allow(ConnectionPool).to receive(:new).and_return(mock_pool)
         allow(mock_pool).to receive(:with).and_yield(mock_channel)
         allow(mock_channel).to receive(:fanout)
         allow(mock_channel).to receive(:queue).and_return(instance_double(Bunny::Queue, bind: true))
+        allow(mock_channel).to receive(:open?).and_return(true)
+        allow(mock_channel).to receive(:close)
 
         expect(Bunny).to receive(:new)
         instance.execute(nil)
@@ -528,9 +531,12 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
         mock_pool = instance_double(ConnectionPool)
 
         allow(Bunny).to receive(:new).and_return(mock_conn)
+        allow(mock_conn).to receive(:create_channel).and_return(mock_channel)
         allow(mock_pool).to receive(:with).and_yield(mock_channel)
         allow(mock_channel).to receive(:fanout)
         allow(mock_channel).to receive(:queue).and_return(instance_double(Bunny::Queue, bind: true))
+        allow(mock_channel).to receive(:open?).and_return(true)
+        allow(mock_channel).to receive(:close)
 
         expect(ConnectionPool).to receive(:new).with(hash_including(size: 10)).and_return(mock_pool)
         instance.execute(nil)
@@ -647,6 +653,10 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
       before do
         allow(Bunny).to receive(:new).and_return(mock_conn)
         allow(mock_conn).to receive(:start)
+        allow(mock_conn).to receive(:create_channel).and_return(mock_channel)
+        allow(mock_channel).to receive(:open?).and_return(true)
+        allow(mock_channel).to receive(:close)
+        allow(mock_channel).to receive(:queue).and_return(instance_double(Bunny::Queue, bind: true))
         allow(ConnectionPool).to receive(:new).and_return(mock_pool)
       end
 

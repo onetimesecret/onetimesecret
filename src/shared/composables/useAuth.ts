@@ -20,6 +20,9 @@ import {
   type VerifyAccountResponse,
   type ChangePasswordResponse,
   type CloseAccountResponse,
+  type EmailChangeRequestResponse,
+  type EmailChangeConfirmResponse,
+  type EmailChangeResendResponse,
   type BillingRedirect,
 } from '@/schemas/api/auth/endpoints/auth';
 import {
@@ -31,6 +34,9 @@ import {
   verifyAccountResponseSchema,
   changePasswordResponseSchema,
   closeAccountResponseSchema,
+  emailChangeRequestResponseSchema,
+  emailChangeConfirmResponseSchema,
+  emailChangeResendResponseSchema,
 } from '@/schemas/api/auth/endpoints/auth';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
@@ -500,12 +506,19 @@ export function useAuth() {
         throw createError(validated.error, 'human', 'error');
       }
 
-      // Success - clear auth state
-      await authStore.logout();
-
-      // Force page reload to fetch fresh unauthenticated state from backend
-      // Validate redirect URL to prevent open redirect attacks
+      // Force page reload to fetch fresh unauthenticated state from backend.
+      // Navigate BEFORE clearing reactive state to prevent a flash where
+      // brand-dependent components (logo, colors) briefly revert to defaults
+      // as Pinia stores reset. The hard navigation discards all in-memory
+      // state anyway, making the reset purely a cleanup for non-visual concerns.
       const safeRedirect = isValidRedirect(redirectTo) ? redirectTo : '/';
+
+      // Clear cookies and session storage before navigating so the server
+      // sees an unauthenticated request. Skip bootstrapStore.$reset() —
+      // it triggers reactive flushes that cause visual artifacts, and the
+      // full page reload will discard all Pinia state regardless.
+      await authStore.logoutMinimal();
+
       window.location.href = safeRedirect;
       return true;
     });
@@ -691,6 +704,109 @@ export function useAuth() {
     return result ?? false;
   }
 
+  /**
+   * Requests an email address change for the authenticated user.
+   * Sends a verification email to the new address.
+   *
+   * @param newEmail - Desired new email address
+   * @param password - Current password for confirmation
+   * @returns true if request was successful
+   */
+  async function requestEmailChange(
+    newEmail: string,
+    password: string
+  ): Promise<boolean> {
+    clearErrors();
+
+    const result = await wrap(async () => {
+      const response = await $api.post<EmailChangeRequestResponse>(
+        '/api/account/change-email',
+        {
+          new_email: newEmail,
+          password,
+          shrimp: csrfStore.shrimp,
+          locale: locale.value,
+        }
+      );
+
+      const validated =
+        emailChangeRequestResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        throw createError(validated.error, 'human', 'error', {
+          'field-error': validated['field-error'],
+        });
+      }
+
+      return true;
+    });
+
+    return result ?? false;
+  }
+
+  /**
+   * Confirms an email change using a verification token.
+   *
+   * @param token - Verification token from email link
+   * @returns true if confirmation was successful
+   */
+  async function confirmEmailChange(
+    token: string
+  ): Promise<boolean> {
+    clearErrors();
+
+    const result = await wrap(async () => {
+      const response = await $api.post<EmailChangeConfirmResponse>(
+        '/api/account/confirm-email-change',
+        { token, shrimp: csrfStore.shrimp }
+      );
+
+      const validated =
+        emailChangeConfirmResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        throw createError(validated.error, 'human', 'error');
+      }
+
+      return true;
+    });
+
+    return result ?? false;
+  }
+
+  /**
+   * Resends the email change confirmation email.
+   * Rate-limited to 3 resends per pending change.
+   *
+   * @returns true if resend was successful
+   */
+  async function resendEmailChangeConfirmation(): Promise<boolean> {
+    clearErrors();
+
+    const result = await wrap(async () => {
+      const response = await $api.post<EmailChangeResendResponse>(
+        '/api/account/resend-email-change-confirmation',
+        {
+          shrimp: csrfStore.shrimp,
+          locale: locale.value,
+        }
+      );
+
+      const validated =
+        emailChangeResendResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        throw createError(validated.error, 'human', 'error', {
+          'field-error': validated['field-error'],
+        });
+      }
+
+      return true;
+    });
+
+    return result ?? false;
+  }
+
   return {
     // State
     isLoading,
@@ -707,6 +823,9 @@ export function useAuth() {
     verifyAccount,
     changePassword,
     closeAccount,
+    requestEmailChange,
+    confirmEmailChange,
+    resendEmailChangeConfirmation,
     clearErrors,
   };
 }

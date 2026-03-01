@@ -18,7 +18,7 @@ module Auth
 
       # 2. Base configuration (database, HMAC, JSON, session)
       db Auth::Database.connection
-      hmac_secret ENV['HMAC_SECRET']
+      hmac_secret ENV['AUTH_SECRET']
       # ... base config
 
       # 3. Call modular configuration methods
@@ -105,7 +105,8 @@ module Auth
       enable :verify_account unless ENV['RACK_ENV'] == 'test'
       enable :otp, :recovery_codes
       # Granular security features (enabled by default)
-      enable :lockout, :login_password_requirements_base if ENV['AUTH_HARDENING_ENABLED'] != 'false'
+      enable :lockout if ENV['AUTH_LOCKOUT_ENABLED'] != 'false'
+      enable :login_password_requirements_base if ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false'
       enable :active_sessions if ENV['AUTH_ACTIVE_SESSIONS_ENABLED'] != 'false'
       enable :remember if ENV['AUTH_REMEMBER_ME_ENABLED'] != 'false'
       # Optional auth methods (disabled by default)
@@ -133,10 +134,10 @@ module Auth::Config::Base
     auth.db Auth::Database.connection
 
     # HMAC secret
-    hmac_value = ENV['HMAC_SECRET']
+    hmac_value = ENV['AUTH_SECRET']
     if hmac_value.nil? || hmac_value.empty?
       if Onetime.production?
-        raise 'HMAC_SECRET required in production'
+        raise 'AUTH_SECRET required in production'
       else
         hmac_value = 'dev-hmac-secret-change-in-prod'
       end

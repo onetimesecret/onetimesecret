@@ -108,6 +108,27 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
       expect(last_response.body).to include('Access denied')
     end
 
+    context 'when owner is missing from members sorted set' do
+      before do
+        # Simulate the bug: owner exists in org hash (owner_id) but is
+        # absent from the members sorted set. This happens in fresh regions
+        # where add_members_instance failed silently during org creation
+        # and no migration script pre-populated the set.
+        organization.remove_members_instance(customer)
+        expect(organization.member?(customer)).to be(false), 'precondition: owner should not be in members set'
+        expect(organization.owner?(customer)).to be(true), 'precondition: owner? should still return true'
+      end
+
+      it 'grants access to the owner and self-heals membership' do
+        get "/billing/api/org/#{organization.extid}"
+
+        expect(last_response.status).to eq(200)
+
+        # Verify the self-healing re-added the owner to the members set
+        expect(organization.member?(customer)).to be(true)
+      end
+    end
+
     it 'returns 403 when organization does not exist' do
       get '/billing/api/org/nonexistent_org_id'
 
@@ -233,6 +254,48 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(401)
+    end
+
+    # Regression: When Stripe raises a currency conflict and assess_migration
+    # also fails (e.g., NoMethodError from sub.discount on newer API), the
+    # controller should return 409 with a fallback assessment, not 500.
+    context 'when currency conflict and assess_migration raises' do
+      before do
+        # Organization needs a Stripe customer to reach the checkout code path
+        organization.stripe_customer_id = 'cus_currency_test'
+        organization.save
+
+        # Stub Stripe::Checkout::Session.create to raise currency conflict
+        allow(Stripe::Checkout::Session).to receive(:create).and_raise(
+          Stripe::InvalidRequestError.new(
+            'You cannot combine currencies on a single customer. This customer has had a subscription or payment in eur, but you are trying to pay in cad.',
+            'currency'
+          )
+        )
+
+        # Stub assess_migration to raise NoMethodError (the original bug)
+        allow(Billing::CurrencyMigrationService).to receive(:assess_migration)
+          .and_raise(NoMethodError.new("undefined method 'discount' for #<Stripe::Subscription>"))
+      end
+
+      it 'returns 409 with fallback assessment instead of 500' do
+        post "/billing/api/org/#{organization.extid}/checkout", {
+          product: product,
+          interval: interval,
+        }.to_json, { 'CONTENT_TYPE' => 'application/json' }
+
+        expect(last_response.status).to eq(409)
+
+        data = JSON.parse(last_response.body)
+        expect(data['error']).to be true
+        expect(data['code']).to eq('currency_conflict')
+        expect(data['details']['existing_currency']).to eq('eur')
+        expect(data['details']['requested_currency']).to eq('cad')
+        # Fallback assessment: nil plan data, safe default warnings
+        expect(data['details']['current_plan']).to be_nil
+        expect(data['details']['requested_plan']).to be_nil
+        expect(data['details']['warnings']['has_incompatible_coupons']).to be false
+      end
     end
   end
 

@@ -23,12 +23,18 @@ module DomainsAPI::Logic
       # Validate the input parameters
       # Sets error messages if any parameter is invalid
       def raise_concerns
+        require_entitlement!('custom_branding')
+
         OT.ld "[UpdateDomainBrand] Validating domain: #{@extid} with settings: #{@brand_settings.keys}"
 
         validate_domain
         validate_brand_settings
 
         validate_brand_values
+        validate_homepage_entitlement
+
+        # Disabled while we figure out whether we want this entitlement at all
+        # validate_privacy_defaults_entitlement
       end
 
       def process
@@ -191,6 +197,22 @@ module DomainsAPI::Logic
         raise_form_error "Invalid corner style - must be one of: #{Onetime::CustomDomain::BrandSettings::CORNERS.join(', ')}"
       end
 
+      def validate_privacy_defaults_entitlement
+        privacy_keys = %w[default_ttl passphrase_required notify_enabled]
+        return unless privacy_keys.any? { |k| @brand_settings.key?(k) }
+
+        require_entitlement!('custom_privacy_defaults')
+      end
+
+      def validate_homepage_entitlement
+        allow_homepage = Onetime::CustomDomain::BrandSettings.coerce_boolean(
+          @brand_settings['allow_public_homepage'],
+        )
+        return unless allow_homepage
+
+        require_entitlement!('homepage_secrets')
+      end
+
       def validate_default_ttl
         ttl = @brand_settings['default_ttl']
         return if ttl.nil?
@@ -209,6 +231,12 @@ module DomainsAPI::Logic
         unless ttl_value.is_a?(Integer) && ttl_value.positive?
           OT.ld "[UpdateDomainBrand] Error: Invalid default_ttl '#{ttl}'"
           raise_form_error 'Invalid default TTL - must be a positive integer (seconds)'
+        end
+
+        # Gate extended TTL values behind entitlement
+        free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
+        if ttl_value > free_ttl
+          require_entitlement!('extended_default_expiration')
         end
 
         # Update the brand_settings hash with the coerced value

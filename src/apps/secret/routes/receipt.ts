@@ -30,9 +30,12 @@ const withValidatedReceiptKey = {
     const domainStrategy = bootstrapStore.domain_strategy as string;
 
     if (domainStrategy === 'custom') {
+      // Only show masthead if the custom domain has its own logo;
+      // otherwise hide it to avoid displaying the canonical OTS logo.
+      const hasDomainLogo = !!bootstrapStore.domain_logo;
       to.meta.layoutProps = {
         ...to.meta.layoutProps,
-        displayMasthead: true,
+        displayMasthead: hasDomainLogo,
         displayNavigation: false,
         displayFooterLinks: false,
         displayFeedback: false,
@@ -53,11 +56,9 @@ const withValidatedReceiptKey = {
 } as const;
 
 /**
- * Routes for viewing and managing receipt/secrets:
- * - /private/:receiptIdentifier - View receipt and secret details
- * - /receipt/:receiptIdentifier - Alternative path for viewing receipt and secret details
- * - /private/:receiptIdentifier/burn - Permanently delete a secret
- * - /receipt/:receiptIdentifier/burn - Alternative path for permanently deleting a secret
+ * Routes for viewing and managing receipts:
+ * - /receipt/:receiptIdentifier - View receipt and secret details
+ * - /receipt/:receiptIdentifier/burn - Permanently delete a secret
  */
 const routes: Array<RouteRecordRaw> = [
   {
@@ -100,7 +101,7 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/private/:receiptIdentifier/burn',
+    path: '/receipt/:receiptIdentifier/burn',
     name: 'Burn secret',
     component: BurnSecret,
     ...withValidatedReceiptKey,

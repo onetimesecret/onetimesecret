@@ -18,12 +18,12 @@ RSpec.describe V2::Application do
       expect(middleware_classes).to include(Rack::JSONBodyParser)
     end
 
-    it 'includes CsrfResponseHeader middleware' do
+    it 'does not include CsrfResponseHeader (moved to shared MiddlewareStack)' do
       middleware_classes = described_class.middleware.map do |middleware_spec|
         middleware_spec.first
       end
 
-      expect(middleware_classes).to include(Onetime::Middleware::CsrfResponseHeader)
+      expect(middleware_classes).not_to include(Onetime::Middleware::CsrfResponseHeader)
     end
   end
 end

@@ -45,6 +45,30 @@ dumped = receipt.safe_dump
 dumped[:secret_identifier]
 #=> nil
 
+## secret_shortid fallback: when empty, falls back to secret_identifier.slice(0,8)
+receipt = Receipt.new
+receipt.secret_identifier = @test_secret_identifier
+receipt.secret_shortid = nil
+dumped = receipt.safe_dump
+dumped[:secret_shortid]
+#=> @test_secret_identifier.slice(0, 8)
+
+## secret_shortid fallback: empty string also triggers fallback
+receipt = Receipt.new
+receipt.secret_identifier = @test_secret_identifier
+receipt.secret_shortid = ''
+dumped = receipt.safe_dump
+dumped[:secret_shortid]
+#=> @test_secret_identifier.slice(0, 8)
+
+## secret_shortid: when set, uses actual value (no fallback)
+receipt = Receipt.new
+receipt.secret_identifier = @test_secret_identifier
+receipt.secret_shortid = @test_secret_shortid
+dumped = receipt.safe_dump
+dumped[:secret_shortid]
+#=> @test_secret_shortid
+
 ## Receipt safe_dump includes both identifier and secret_identifier
 receipt = Receipt.new
 receipt.secret_identifier = @test_secret_identifier
@@ -75,9 +99,9 @@ dumped = receipt.safe_dump
 dumped[:has_passphrase]
 #=> false
 
-## Receipt safe_dump returns has_passphrase correctly when passphrase is set
+## Receipt safe_dump returns has_passphrase correctly when has_passphrase is set
 receipt = Receipt.new
-receipt.passphrase = 'secret-passphrase'
+receipt.has_passphrase = true
 dumped = receipt.safe_dump
 dumped[:has_passphrase]
 #=> true
@@ -107,7 +131,7 @@ fields.include?(:passphrase)
 
 ## Receipt safe_dump output does NOT expose raw passphrase value
 receipt = Receipt.new
-receipt.passphrase = 'super-secret-passphrase'
+receipt.has_passphrase = true
 dumped = receipt.safe_dump
 dumped.key?(:passphrase)
 #=> false

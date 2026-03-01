@@ -44,9 +44,9 @@ module Auth::Config::RodauthOverrides
           level: :warn,
           email_hash: Digest::SHA256.hexdigest(param('login').to_s.downcase)[0..7],
           actual_error: actual_error,
-          generic_error: 'Unable to create account',
+          generic_error: 'Unable to authenticate account',
         )
-        'Unable to create account'
+        'Unable to authenticate account'
       end
     end
     # rubocop:enable Lint/NestedMethodDefinition

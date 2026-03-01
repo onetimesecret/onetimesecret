@@ -72,12 +72,17 @@ module Onetime
 
         private
 
+        def has_passphrase?
+          data[:has_passphrase] == true
+        end
+
         def template_binding
           computed_data = data.merge(
             display_domain: display_domain,
             uri_path: uri_path,
             memo: memo,
             has_memo: has_memo?,
+            has_passphrase: has_passphrase?,
             signature_link: signature_link,
             baseuri: baseuri,
           )
