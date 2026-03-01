@@ -415,7 +415,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr
         end
 
         # Verify price formatting includes amount and currency
-        expect(output).to match(/\$\d+\.\d{2}|USD/)
+        expect(output).to match(/CA\$\d+\.\d{2}|CAD/)
 
         # Note: No cleanup - VCR tests dont need product deletion
       end

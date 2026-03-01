@@ -37,8 +37,8 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
         'secrets_per_day' => 100,
       },
       'prices' => [
-        { 'amount' => 1999, 'currency' => 'USD', 'interval' => 'month' },
-        { 'amount' => 19990, 'currency' => 'USD', 'interval' => 'year' },
+        { 'amount' => 1999, 'currency' => 'CAD', 'interval' => 'month' },
+        { 'amount' => 19990, 'currency' => 'CAD', 'interval' => 'year' },
       ],
     }
   end
@@ -157,7 +157,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
     end
 
     it 'skips incomplete price definitions missing amount' do
-      incomplete_plan = plan_def.merge('prices' => [{ 'currency' => 'USD', 'interval' => 'month' }])
+      incomplete_plan = plan_def.merge('prices' => [{ 'currency' => 'CAD', 'interval' => 'month' }])
       result = command.send(:analyze_price_changes, 'identity_plus_v1', incomplete_plan, existing_product, [])
       expect(result).to eq([])
     end
@@ -170,14 +170,14 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
     end
 
     it 'skips incomplete price definitions missing interval' do
-      incomplete_plan = plan_def.merge('prices' => [{ 'amount' => 1999, 'currency' => 'USD' }])
+      incomplete_plan = plan_def.merge('prices' => [{ 'amount' => 1999, 'currency' => 'CAD' }])
       result = command.send(:analyze_price_changes, 'identity_plus_v1', incomplete_plan, existing_product, [])
       expect(result).to eq([])
     end
 
     it 'returns empty when matching price already exists' do
       existing_prices = [mock_price(amount: 1999, currency: 'cad', interval: 'month')]
-      single_price_plan = plan_def.merge('prices' => [{ 'amount' => 1999, 'currency' => 'USD', 'interval' => 'month' }])
+      single_price_plan = plan_def.merge('prices' => [{ 'amount' => 1999, 'currency' => 'CAD', 'interval' => 'month' }])
 
       result = command.send(:analyze_price_changes, 'identity_plus_v1', single_price_plan, existing_product, existing_prices)
       expect(result).to eq([])
@@ -185,7 +185,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
 
     it 'returns new price when no match found' do
       existing_prices = [mock_price(amount: 999, currency: 'cad', interval: 'month')]
-      single_price_plan = plan_def.merge('prices' => [{ 'amount' => 1999, 'currency' => 'USD', 'interval' => 'month' }])
+      single_price_plan = plan_def.merge('prices' => [{ 'amount' => 1999, 'currency' => 'CAD', 'interval' => 'month' }])
 
       result = command.send(:analyze_price_changes, 'identity_plus_v1', single_price_plan, existing_product, existing_prices)
 
