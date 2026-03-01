@@ -107,6 +107,41 @@ result = call_private(:reconcile_index, @redis, @index_key, @prefix, 'email', fa
 result[:objects_checked] >= 2
 #=> true
 
+## reconcile_index detects mismatched entries
+# Object's email field differs from the index key pointing to it
+@mismatch_index = "#{@prefix}:mismatch_index"
+@cleanup_keys << @mismatch_index
+@mismatch_id = "mismatch_#{SecureRandom.hex(4)}"
+@mismatch_key = "#{@prefix}:#{@mismatch_id}"
+@cleanup_keys << @mismatch_key
+@redis.hset(@mismatch_key, 'objid', @mismatch_id)
+@redis.hset(@mismatch_key, 'email', 'new@example.com')
+@redis.hset(@mismatch_index, 'old@example.com', @mismatch_id)
+result = call_private(:reconcile_index, @redis, @mismatch_index, @prefix, 'email', false)
+result[:mismatched_entries]
+#=> 1
+
+## reconcile_index does not repair mismatches when repair=false
+call_private(:reconcile_index, @redis, @mismatch_index, @prefix, 'email', false)
+@redis.hget(@mismatch_index, 'old@example.com')
+#=> @mismatch_id
+
+## reconcile_index repairs mismatched entries when repair=true
+@mismatch_repair_index = "#{@prefix}:mismatch_repair"
+@cleanup_keys << @mismatch_repair_index
+@redis.hset(@mismatch_repair_index, 'old@example.com', @mismatch_id)
+result = call_private(:reconcile_index, @redis, @mismatch_repair_index, @prefix, 'email', true)
+result[:repaired_mismatched]
+#=> 1
+
+## repaired mismatch removes old index key
+@redis.hget(@mismatch_repair_index, 'old@example.com').nil?
+#=> true
+
+## repaired mismatch adds correct index key
+@redis.hget(@mismatch_repair_index, 'new@example.com')
+#=> @mismatch_id
+
 # TEARDOWN
 
 @cleanup_keys.each do |key|

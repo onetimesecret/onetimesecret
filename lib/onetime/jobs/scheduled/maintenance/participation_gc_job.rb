@@ -26,6 +26,12 @@ module Onetime
 
           INVITATION_PATTERN = 'organization:*:pending_invitations'
 
+          # Maximum consecutive errors before aborting a key scan.
+          # Repeated failures likely indicate a systematic issue
+          # (e.g., schema change, Redis connectivity) rather than
+          # isolated bad records.
+          MAX_CONSECUTIVE_ERRORS = 5
+
           class << self
             def schedule(scheduler)
               return unless job_enabled?(JOB_KEY)
@@ -90,10 +96,12 @@ module Onetime
 
             # GC expired or orphaned pending invitations
             def gc_pending_invitations(redis, repair, limit)
-              expired      = 0
-              orphaned     = 0
-              removed      = 0
-              keys_scanned = 0
+              expired            = 0
+              orphaned           = 0
+              removed            = 0
+              keys_scanned       = 0
+              errors             = 0
+              consecutive_errors = 0
 
               redis.scan_each(match: INVITATION_PATTERN, count: MaintenanceJob::SCAN_COUNT) do |key|
                 keys_scanned += 1
@@ -103,21 +111,29 @@ module Onetime
                   membership_key = "org_membership:#{member}"
 
                   unless redis.exists?(membership_key)
-                    orphaned += 1
+                    orphaned          += 1
                     stale_members << member
+                    consecutive_errors = 0
                     next
                   end
 
                   # Check if the membership record is expired
                   begin
-                    membership = Onetime::OrganizationMembership.load(member)
+                    membership         = Onetime::OrganizationMembership.load(member)
                     if membership&.expired?
                       expired += 1
                       stale_members << member
                       membership.destroy_with_index_cleanup! if repair
                     end
+                    consecutive_errors = 0
                   rescue StandardError => ex
+                    errors             += 1
+                    consecutive_errors += 1
                     scheduler_logger.warn "[ParticipationGCJob] Error checking membership #{member}: #{ex.message}"
+                    if consecutive_errors >= MAX_CONSECUTIVE_ERRORS
+                      scheduler_logger.error "[ParticipationGCJob] #{consecutive_errors} consecutive errors — aborting key #{key}"
+                      break
+                    end
                   end
 
                   break if stale_members.size >= limit
@@ -131,7 +147,7 @@ module Onetime
                 end
               end
 
-              { keys_scanned: keys_scanned, expired: expired, orphaned: orphaned, removed: removed }
+              { keys_scanned: keys_scanned, expired: expired, orphaned: orphaned, removed: removed, errors: errors }
             end
           end
         end

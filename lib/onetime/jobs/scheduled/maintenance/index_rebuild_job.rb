@@ -71,12 +71,13 @@ module Onetime
             # Forward check: verify each index entry points to a valid object
             # Reverse check: verify each object has an index entry
             def reconcile_index(redis, index_key, prefix, field_name, repair)
-              stale_entries      = 0
-              mismatched_entries = 0
-              missing_entries    = 0
-              repaired_stale     = 0
-              repaired_missing   = 0
-              entries_checked    = 0
+              stale_entries         = 0
+              mismatched_entries    = 0
+              missing_entries       = 0
+              repaired_stale        = 0
+              repaired_missing      = 0
+              repaired_mismatched   = 0
+              entries_checked       = 0
 
               # Forward check: scan index entries
               redis.hscan_each(index_key, count: MaintenanceJob::SCAN_COUNT) do |field, value|
@@ -92,10 +93,18 @@ module Onetime
                   next
                 end
 
-                # Verify the field on the target matches the index key
+                # Verify the field on the target matches the index key.
+                # A mismatch means the object's field was updated but the
+                # old index entry wasn't cleaned up. Repair by removing
+                # the stale key and ensuring the current value is indexed.
                 stored_field = redis.hget(target_key, field_name)
                 if stored_field && stored_field != field
                   mismatched_entries += 1
+                  if repair
+                    redis.hdel(index_key, field)
+                    redis.hset(index_key, stored_field, value) unless redis.hexists(index_key, stored_field)
+                    repaired_mismatched += 1
+                  end
                 end
               end
 
@@ -129,6 +138,7 @@ module Onetime
                 missing_entries: missing_entries,
                 repaired_stale: repaired_stale,
                 repaired_missing: repaired_missing,
+                repaired_mismatched: repaired_mismatched,
               }
             end
           end

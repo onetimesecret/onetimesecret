@@ -84,6 +84,16 @@ call_private(:gc_pattern, @redis, "organization:#{repair_org_id}:members", true,
 call_private(:participation_member_prefix, 'organization:*:members')
 #=> 'customer'
 
+## MAX_CONSECUTIVE_ERRORS constant is defined
+@job::MAX_CONSECUTIVE_ERRORS
+#=> 5
+
+## gc_pending_invitations returns error count in report
+# With no invitation keys, errors should be 0
+result = call_private(:gc_pending_invitations, @redis, false, 500)
+result[:errors]
+#=> 0
+
 # TEARDOWN
 
 @cleanup_keys.each do |key|
