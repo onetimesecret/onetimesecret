@@ -33,9 +33,9 @@ end
 @zset_key = "#{@test_prefix}:instances"
 @cleanup_keys << @zset_key
 
-# Valid member: has a backing hash key
+# Valid member: has a backing hash key (Familia stores at prefix:id:object)
 @valid_id = "valid_#{SecureRandom.hex(4)}"
-@valid_key = "#{@test_prefix}:#{@valid_id}"
+@valid_key = "#{@test_prefix}:#{@valid_id}:object"
 @cleanup_keys << @valid_key
 @redis.hset(@valid_key, 'objid', @valid_id)
 @redis.zadd(@zset_key, 1.0, @valid_id)
@@ -102,9 +102,9 @@ call_private(:participation_member_prefix, 'organization:*:receipts')
 @part_key = "customer:#{@part_org_id}:receipts"
 @cleanup_keys << @part_key
 
-# Valid member: has backing receipt key
+# Valid member: has backing receipt key (Familia stores at prefix:id:object)
 @part_valid = "rv_#{SecureRandom.hex(4)}"
-@part_valid_key = "receipt:#{@part_valid}"
+@part_valid_key = "receipt:#{@part_valid}:object"
 @cleanup_keys << @part_valid_key
 @redis.hset(@part_valid_key, 'objid', @part_valid)
 @redis.zadd(@part_key, 1.0, @part_valid)

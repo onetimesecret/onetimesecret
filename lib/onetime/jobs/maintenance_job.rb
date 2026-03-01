@@ -63,6 +63,11 @@ module Onetime
       # values mean fewer round-trips but longer per-call blocking.
       SCAN_COUNT = 100
 
+      # Familia stores model hashes at "prefix:identifier:suffix"
+      # (e.g., "customer:abc123:object"). All key construction and
+      # SCAN patterns must include this suffix.
+      SUFFIX = Familia.default_suffix.to_s.freeze
+
       class << self
         private
 
@@ -124,6 +129,29 @@ module Onetime
 
         def log_report(report)
           scheduler_logger.info "[#{report[:job]}] #{JSON.generate(report)}"
+        end
+
+        # Construct the backing dbkey for a model instance.
+        # Familia stores model hashes at "prefix:identifier:object".
+        def backing_key(prefix, identifier)
+          "#{prefix}:#{identifier}:#{SUFFIX}"
+        end
+
+        # SCAN pattern matching only model instance dbkeys.
+        # e.g., "customer:*:object" — excludes indexes and sorted sets.
+        def model_scan_pattern(prefix)
+          "#{prefix}:*:#{SUFFIX}"
+        end
+
+        # Extract the identifier from a full dbkey by stripping
+        # the known prefix and suffix. Handles compound identifiers
+        # containing the delimiter (e.g., OrganizationMembership keys).
+        def extract_identifier(prefix, key)
+          pfx = "#{prefix}:"
+          sfx = ":#{SUFFIX}"
+          return nil unless key.start_with?(pfx) && key.end_with?(sfx)
+
+          key[pfx.length..-(sfx.length + 1)]
         end
 
         # Pipeline EXISTS checks for a batch of Redis keys.

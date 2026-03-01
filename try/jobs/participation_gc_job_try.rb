@@ -31,9 +31,9 @@ end
 @members_key = "organization:#{@test_org_id}:members"
 @cleanup_keys << @members_key
 
-# Valid member: has backing customer key
+# Valid member: has backing customer key (Familia stores at prefix:id:object)
 @valid_cust_id = "cust_#{SecureRandom.hex(4)}"
-@valid_cust_key = "customer:#{@valid_cust_id}"
+@valid_cust_key = "customer:#{@valid_cust_id}:object"
 @cleanup_keys << @valid_cust_key
 @redis.hset(@valid_cust_key, 'objid', @valid_cust_id)
 @redis.zadd(@members_key, 1.0, @valid_cust_id)

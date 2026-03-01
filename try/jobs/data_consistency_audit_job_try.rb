@@ -43,9 +43,9 @@ result[:total]
 @audit_target_prefix = "audit_test_obj_#{SecureRandom.hex(4)}"
 @cleanup_keys << @audit_index_key
 
-# Add valid entry: index points to an existing object
+# Add valid entry: index points to an existing object (Familia stores at prefix:id:object)
 valid_objid = "obj_#{SecureRandom.hex(4)}"
-valid_obj_key = "#{@audit_target_prefix}:#{valid_objid}"
+valid_obj_key = "#{@audit_target_prefix}:#{valid_objid}:object"
 @cleanup_keys << valid_obj_key
 @redis.hset(valid_obj_key, 'objid', valid_objid)
 @redis.hset(@audit_index_key, 'valid@example.com', valid_objid)

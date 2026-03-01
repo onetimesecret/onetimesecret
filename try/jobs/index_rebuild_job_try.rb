@@ -32,9 +32,9 @@ end
 @index_key = "#{@prefix}:email_index"
 @cleanup_keys << @index_key
 
-# Valid object with matching index
+# Valid object with matching index (Familia stores at prefix:id:object)
 @valid_id = "obj_#{SecureRandom.hex(4)}"
-@valid_key = "#{@prefix}:#{@valid_id}"
+@valid_key = "#{@prefix}:#{@valid_id}:object"
 @cleanup_keys << @valid_key
 @redis.hset(@valid_key, 'objid', @valid_id)
 @redis.hset(@valid_key, 'email', 'valid@example.com')
@@ -43,9 +43,9 @@ end
 # Stale index entry: points to non-existent object
 @redis.hset(@index_key, 'stale@example.com', 'nonexistent_objid')
 
-# Object with no index entry (missing)
+# Object with no index entry (missing) (Familia stores at prefix:id:object)
 @unindexed_id = "unidx_#{SecureRandom.hex(4)}"
-@unindexed_key = "#{@prefix}:#{@unindexed_id}"
+@unindexed_key = "#{@prefix}:#{@unindexed_id}:object"
 @cleanup_keys << @unindexed_key
 @redis.hset(@unindexed_key, 'objid', @unindexed_id)
 @redis.hset(@unindexed_key, 'email', 'missing@example.com')
@@ -112,7 +112,7 @@ result[:objects_checked] >= 2
 @mismatch_index = "#{@prefix}:mismatch_index"
 @cleanup_keys << @mismatch_index
 @mismatch_id = "mismatch_#{SecureRandom.hex(4)}"
-@mismatch_key = "#{@prefix}:#{@mismatch_id}"
+@mismatch_key = "#{@prefix}:#{@mismatch_id}:object"
 @cleanup_keys << @mismatch_key
 @redis.hset(@mismatch_key, 'objid', @mismatch_id)
 @redis.hset(@mismatch_key, 'email', 'new@example.com')

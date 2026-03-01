@@ -33,15 +33,16 @@ end
 @cleanup_keys << @instances_key
 
 # Object in both instances and as a key (consistent)
+# Familia stores model hashes at prefix:id:object
 @consistent_id = "con_#{SecureRandom.hex(4)}"
-@consistent_key = "#{@prefix}:#{@consistent_id}"
+@consistent_key = "#{@prefix}:#{@consistent_id}:object"
 @cleanup_keys << @consistent_key
 @redis.hset(@consistent_key, 'objid', @consistent_id)
 @redis.zadd(@instances_key, 1.0, @consistent_id)
 
 # Object exists as key but missing from instances
 @missing_id = "miss_#{SecureRandom.hex(4)}"
-@missing_key = "#{@prefix}:#{@missing_id}"
+@missing_key = "#{@prefix}:#{@missing_id}:object"
 @cleanup_keys << @missing_key
 @redis.hset(@missing_key, 'objid', @missing_id)
 
@@ -117,7 +118,7 @@ call_private(:reconcile_model, @redis, @instances_key, @prefix, false)
 # Add 9 consistent members (in both scan and instances)
 9.times do |i|
   cid = "rcon#{i}_#{SecureRandom.hex(4)}"
-  ckey = "#{@repair_prefix}:#{cid}"
+  ckey = "#{@repair_prefix}:#{cid}:object"
   @cleanup_keys << ckey
   @redis.hset(ckey, 'objid', cid)
   @redis.zadd(@repair_instances, i.to_f, cid)
@@ -125,7 +126,7 @@ end
 
 # Add missing key (not in instances)
 @r_miss_id = "rmiss_#{SecureRandom.hex(4)}"
-r_miss_key = "#{@repair_prefix}:#{@r_miss_id}"
+r_miss_key = "#{@repair_prefix}:#{@r_miss_id}:object"
 @cleanup_keys << r_miss_key
 @redis.hset(r_miss_key, 'objid', @r_miss_id)
 

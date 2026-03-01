@@ -74,15 +74,13 @@ module Onetime
 
             def reconcile_model(redis, instances_key, prefix, repair)
               # Step 1: Collect all existing hash keys for this prefix.
-              # In-memory Sets are acceptable here — model counts are bounded
-              # (tens of thousands max) and diff computation requires both sets.
+              # model_scan_pattern matches "prefix:*:object", which excludes
+              # indexes (email_index), sorted sets (instances), and other
+              # sub-structures — only actual model instance hashes match.
               scanned_ids = Set.new
-              redis.scan_each(match: "#{prefix}:*", count: MaintenanceJob::SCAN_COUNT) do |key|
-                next unless redis.type(key) == 'hash'
-
-                identifier = key.sub("#{prefix}:", '')
-                # Skip known sub-structure keys (e.g., "customer:email_index")
-                next if SUB_STRUCTURE_SUFFIXES.include?(identifier)
+              redis.scan_each(match: model_scan_pattern(prefix), count: MaintenanceJob::SCAN_COUNT) do |key|
+                identifier = extract_identifier(prefix, key)
+                next unless identifier
 
                 scanned_ids << identifier
               end

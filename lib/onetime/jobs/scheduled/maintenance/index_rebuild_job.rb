@@ -82,7 +82,7 @@ module Onetime
               # Forward check: scan index entries
               redis.hscan_each(index_key, count: MaintenanceJob::SCAN_COUNT) do |field, value|
                 entries_checked += 1
-                target_key       = "#{prefix}:#{value}"
+                target_key       = backing_key(prefix, value)
 
                 unless redis.exists?(target_key)
                   stale_entries += 1
@@ -110,15 +110,15 @@ module Onetime
 
               # Reverse check: scan objects and verify index entry exists
               objects_checked = 0
-              redis.scan_each(match: "#{prefix}:*", count: MaintenanceJob::SCAN_COUNT) do |key|
-                next unless redis.type(key) == 'hash'
-
+              redis.scan_each(match: model_scan_pattern(prefix), count: MaintenanceJob::SCAN_COUNT) do |key|
                 objects_checked += 1
                 field_value      = redis.hget(key, field_name)
                 next unless field_value && !field_value.empty?
 
-                # Extract the identifier from the key
-                identifier    = key.sub("#{prefix}:", '')
+                # Extract the identifier from the key (strips prefix and :object suffix)
+                identifier    = extract_identifier(prefix, key)
+                next unless identifier
+
                 indexed_value = redis.hget(index_key, field_value)
 
                 if indexed_value.nil?

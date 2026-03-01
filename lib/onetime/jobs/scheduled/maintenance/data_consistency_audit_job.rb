@@ -64,11 +64,10 @@ module Onetime
               dbkey           = model_class.instances.dbkey
               instances_count = redis.zcard(dbkey)
 
-              # Count actual keys matching the prefix pattern
+              # Count actual keys matching the model object pattern
               scan_count = 0
-              redis.scan_each(match: "#{prefix}:*", count: MaintenanceJob::SCAN_COUNT) do |key|
-                # Only count hash keys (the model objects), not sub-structures
-                scan_count += 1 if redis.type(key) == 'hash'
+              redis.scan_each(match: model_scan_pattern(prefix), count: MaintenanceJob::SCAN_COUNT) do |_key|
+                scan_count += 1
               end
 
               # Sample random members from the sorted set
@@ -78,7 +77,7 @@ module Onetime
 
               Array(redis.zrandmember(dbkey, samples)).compact.uniq.each do |member|
                 sampled  += 1
-                redis_key = "#{prefix}:#{member}"
+                redis_key = backing_key(prefix, member)
 
                 unless redis.exists?(redis_key)
                   phantoms_found += 1
@@ -113,7 +112,7 @@ module Onetime
                 redis.scan_each(match: pattern, count: MaintenanceJob::SCAN_COUNT) do |key|
                   sets_checked += 1
                   Array(redis.zrandmember(key, [samples, 10].min)).compact.uniq.each do |member|
-                    redis_key   = "#{member_prefix}:#{member}"
+                    redis_key   = backing_key(member_prefix, member)
                     stale_refs += 1 unless redis.exists?(redis_key)
                   end
                 end
@@ -158,7 +157,7 @@ module Onetime
                 cursor, entries = redis.hscan(index_key, cursor, count: samples)
                 entries.each do |_field, value|
                   sampled   += 1
-                  target_key = "#{target_prefix}:#{value}"
+                  target_key = backing_key(target_prefix, value)
                   stale     += 1 unless redis.exists?(target_key)
                   break if sampled >= samples
                 end

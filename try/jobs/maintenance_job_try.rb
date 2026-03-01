@@ -124,6 +124,30 @@ call_private(:participation_member_prefix, 'custom_domain:*:receipts')
 call_private(:participation_member_prefix, 'organization:*:something_else')
 #=> 'unknown'
 
+## SUFFIX matches Familia default suffix
+@job::SUFFIX
+#=> Familia.default_suffix.to_s
+
+## backing_key constructs prefix:id:object
+call_private(:backing_key, 'customer', 'abc123')
+#=> 'customer:abc123:object'
+
+## model_scan_pattern constructs prefix:*:object
+call_private(:model_scan_pattern, 'customer')
+#=> 'customer:*:object'
+
+## extract_identifier strips prefix and :object suffix
+call_private(:extract_identifier, 'customer', 'customer:abc123:object')
+#=> 'abc123'
+
+## extract_identifier handles compound identifiers with delimiters
+call_private(:extract_identifier, 'org_membership', 'org_membership:organization:org1:customer:c1:org_membership:object')
+#=> 'organization:org1:customer:c1:org_membership'
+
+## extract_identifier returns nil for non-matching keys
+call_private(:extract_identifier, 'customer', 'organization:abc123:object')
+#=> nil
+
 # TEARDOWN
 
 @cleanup_keys.each do |key|

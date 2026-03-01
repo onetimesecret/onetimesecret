@@ -78,7 +78,7 @@ module Onetime
                 stale_members = []
 
                 zscan_each(redis, key) do |member|
-                  redis_key = "#{member_prefix}:#{member}"
+                  redis_key = backing_key(member_prefix, member)
                   stale_members << member unless redis.exists?(redis_key)
                   break if stale_members.size >= limit
                 end
@@ -108,7 +108,7 @@ module Onetime
                 stale_members = []
 
                 zscan_each(redis, key) do |member|
-                  membership_key = "org_membership:#{member}"
+                  membership_key = backing_key('org_membership', member)
 
                   unless redis.exists?(membership_key)
                     orphaned          += 1
@@ -141,7 +141,7 @@ module Onetime
 
                 if repair && stale_members.any?
                   # Remove orphaned entries (expired ones already cleaned up via destroy_with_index_cleanup!)
-                  orphaned_members = stale_members.reject { |m| redis.exists?("org_membership:#{m}") }
+                  orphaned_members = stale_members.reject { |m| redis.exists?(backing_key('org_membership', m)) }
                   redis.zrem(key, orphaned_members) if orphaned_members.any?
                   removed         += stale_members.size
                 end

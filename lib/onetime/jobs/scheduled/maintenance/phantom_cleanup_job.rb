@@ -114,7 +114,7 @@ module Onetime
             # Check a batch of members against their backing hash keys.
             # Returns members whose keys do not exist.
             def check_batch(redis, members, prefix)
-              keys    = members.map { |m| "#{prefix}:#{m}" }
+              keys    = members.map { |m| backing_key(prefix, m) }
               results = pipeline_exists(redis, keys)
 
               phantoms = []
