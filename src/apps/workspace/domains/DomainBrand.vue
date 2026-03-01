@@ -55,6 +55,8 @@
     browserType.value = browserType.value === 'safari' ? 'edge' : 'safari';
   };
 
+  const upgradeBannerDismissed = ref(false);
+
   const bootstrapStore = useBootstrapStore();
   const { i18n_enabled } = storeToRefs(bootstrapStore);
 
@@ -132,14 +134,16 @@
           :orgid="props.orgid" />
 
         <BrandSettingsBar
-          v-if="canBrand"
           v-model="brandSettings"
           :preview-i18n="previewI18n"
           :is-loading="isLoading"
           :is-initialized="isInitialized"
           :has-unsaved-changes="hasUnsavedChanges"
+          :disabled="!canBrand"
           @submit="() => saveBranding(brandSettings)">
-          <template #instructions-buttons>
+          <template
+            v-if="canBrand"
+            #instructions-buttons>
             <InstructionsModal
               :instruction-fields="instructionFields"
               :preview-i18n="previewI18n"
@@ -147,7 +151,9 @@
               @save="() => saveBranding(brandSettings)" />
           </template>
 
-          <template #language-button>
+          <template
+            v-if="canBrand"
+            #language-button>
             <LanguageSelector
               v-if="i18n_enabled"
               v-model="brandSettings.locale"
@@ -159,7 +165,7 @@
 
       <!-- Upgrade banner when custom_branding entitlement is missing -->
       <div
-        v-if="!canBrand"
+        v-if="!canBrand && !upgradeBannerDismissed"
         class="mx-auto mt-8 max-w-3xl px-4 sm:px-6 lg:px-8">
         <div class="flex items-center gap-3 rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
           <OIcon
@@ -180,12 +186,22 @@
               class="size-4"
               aria-hidden="true" />
           </RouterLink>
+          <button
+            type="button"
+            class="ml-2 rounded p-1 text-amber-500 hover:bg-amber-100 hover:text-amber-700 dark:text-amber-400 dark:hover:bg-amber-900/40 dark:hover:text-amber-300"
+            :aria-label="t('web.LABELS.close')"
+            @click="upgradeBannerDismissed = true">
+            <OIcon
+              collection="heroicons"
+              name="x-mark"
+              class="size-4"
+              aria-hidden="true" />
+          </button>
         </div>
       </div>
 
       <!-- Main Content -->
       <div
-        v-if="canBrand"
         class="mx-auto max-w-7xl p-4 sm:px-6 sm:py-8 lg:px-8">
         <!-- Preview Section -->
         <div class="relative mb-6 sm:mb-12">
@@ -250,8 +266,8 @@
               :domain-branding="brandSettings"
               :logo-image="logoImage"
               :preview-i18n="previewI18n"
-              :on-logo-upload="handleLogoUpload"
-              :on-logo-remove="removeLogo"
+              :on-logo-upload="canBrand ? handleLogoUpload : undefined"
+              :on-logo-remove="canBrand ? removeLogo : undefined"
               secret-identifier="abcd"
               class="max-w-full transition-all duration-200 hover:scale-[1.02]" />
           </BrowserPreviewFrame>
