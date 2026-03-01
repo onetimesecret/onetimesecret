@@ -20,6 +20,8 @@ module Onetime
         #   - Stale index entries (target doesn't exist) are removed via HDEL
         #   - Missing index entries (object exists but no index) are re-added
         #
+        # Oneshot candidate: daily cron, no app-state coupling.
+        #
         # Configuration:
         #   jobs.maintenance.index_rebuild.enabled: true
         #   jobs.maintenance.index_rebuild.cron: '0 4 * * *'

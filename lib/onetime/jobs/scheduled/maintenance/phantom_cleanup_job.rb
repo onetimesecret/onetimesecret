@@ -18,6 +18,8 @@ module Onetime
         # Scans both class-level instances sorted sets (7 models)
         # and participation sorted sets (organization:*:members, etc.).
         #
+        # Oneshot candidate: hourly batch with no app-state coupling.
+        #
         # Configuration:
         #   jobs.maintenance.phantom_cleanup.enabled: true
         #   jobs.maintenance.phantom_cleanup.interval: '1h'

@@ -15,6 +15,8 @@ module Onetime
         # Also handles expired OrganizationMembership records in
         # organization:*:pending_invitations.
         #
+        # Oneshot candidate: daily cron, no app-state coupling.
+        #
         # Configuration:
         #   jobs.maintenance.participation_gc.enabled: true
         #   jobs.maintenance.participation_gc.cron: '0 5 * * *'

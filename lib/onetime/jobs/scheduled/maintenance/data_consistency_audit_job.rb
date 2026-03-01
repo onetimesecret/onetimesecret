@@ -19,6 +19,8 @@ module Onetime
         #
         # Output: structured JSON report logged at INFO level.
         #
+        # Oneshot candidate: read-only, 6h interval, no app-state coupling.
+        #
         # Configuration:
         #   jobs.maintenance.data_audit.enabled: true
         #   jobs.maintenance.data_audit.interval: '6h'

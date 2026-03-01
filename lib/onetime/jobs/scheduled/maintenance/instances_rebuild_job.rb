@@ -20,6 +20,8 @@ module Onetime
         #
         # This is the most invasive maintenance job — run weekly.
         #
+        # Oneshot candidate: weekly cron, no app-state coupling.
+        #
         # Configuration:
         #   jobs.maintenance.instances_rebuild.enabled: true
         #   jobs.maintenance.instances_rebuild.cron: '0 3 * * 0'

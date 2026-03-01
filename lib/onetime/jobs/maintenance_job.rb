@@ -14,6 +14,17 @@ module Onetime
     # with `auto_repair: false` by default — enable only after
     # reviewing audit reports.
     #
+    # Concurrency: rufus-scheduler does not prevent overlapping runs.
+    # If a job takes longer than its interval, the next invocation
+    # can start while the previous one is still scanning. The current
+    # jobs tolerate this (SCAN is cursor-isolated, ZREM is idempotent),
+    # but jobs with non-idempotent repair logic should add a Redis
+    # lock (SET NX EX) around the critical section.
+    #
+    # Migration path: these batch jobs are candidates for systemd
+    # timer + oneshot container execution. See ADR-002 and
+    # docs/0228-scheduler-systemd-migration.md in ops-tools.
+    #
     # Configuration (config.yaml):
     #   jobs:
     #     maintenance:
@@ -114,14 +125,17 @@ module Onetime
           class_name.split('::').reduce(Object) { |mod, name| mod.const_get(name) }
         end
 
-        # Wrap job execution with timing and structured logging
+        # Wrap job execution with timing and structured logging.
+        # Uses monotonic clock for elapsed time (immune to NTP adjustments).
         def with_stats(job_name)
+          mono_start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           start_time = Time.now
           report     = { job: job_name, started_at: start_time.utc.iso8601 }
 
           yield(report)
 
-          report[:duration_ms]  = ((Time.now - start_time) * 1000).round
+          elapsed               = Process.clock_gettime(Process::CLOCK_MONOTONIC) - mono_start
+          report[:duration_ms]  = (elapsed * 1000).round
           report[:completed_at] = Time.now.utc.iso8601
           log_report(report)
           report
