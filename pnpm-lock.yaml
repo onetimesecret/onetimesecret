@@ -229,7 +229,7 @@ importers:
         specifier: ^13.0.0
         version: 13.0.6
       globals:
-        specifier: ^17.0.0
+        specifier: ^17.3.0
         version: 17.3.0
       happy-dom:
         specifier: ^20.1.0
