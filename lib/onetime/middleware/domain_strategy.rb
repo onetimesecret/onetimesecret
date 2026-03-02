@@ -134,7 +134,9 @@ module Onetime
             strategy: domain_strategy,
           }
 
-        @app.call(env)
+        status, headers, body        = @app.call(env)
+        headers['O-Domain-Strategy'] = (domain_strategy || :invalid).to_s
+        [status, headers, body]
       end
 
       # Detects domain context override from environment or request header.
