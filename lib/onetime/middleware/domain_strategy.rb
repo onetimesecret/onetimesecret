@@ -125,17 +125,20 @@ module Onetime
           end
         end
 
+        resolved_domain_strategy = domain_strategy || :invalid # make sure never nil
+
         env['onetime.display_domain']  = display_domain
-        env['onetime.domain_strategy'] = domain_strategy || :invalid # make sure never nil
+        env['onetime.domain_strategy'] = resolved_domain_strategy
 
         http_logger.debug '[DomainStrategy] determined',
           {
             host: display_domain,
-            strategy: domain_strategy,
+            strategy: resolved_domain_strategy,
           }
 
         status, headers, body        = @app.call(env)
-        headers['O-Domain-Strategy'] = (domain_strategy || :invalid).to_s
+        headers['O-Domain-Strategy'] = resolved_domain_strategy.to_s
+        headers['O-Display-Domain']  = display_domain.to_s
         [status, headers, body]
       end
 
