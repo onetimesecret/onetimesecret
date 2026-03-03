@@ -204,6 +204,7 @@ COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
 COPY --chown=appuser:appuser install.sh ./
 COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
@@ -240,12 +241,12 @@ RUN set -eux && \
         fi; \
     done && \
     cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
-    chmod +x bin/entrypoint.sh
+    chmod +x bin/entrypoint.sh bin/healthcheck.sh
 
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD s6-svstat /run/service/web && curl -f http://127.0.0.1:3000/api/v2/status || exit 1
+    CMD bin/healthcheck.sh
 
 # Run as non-root user
 USER appuser
@@ -310,6 +311,7 @@ COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
 COPY --chown=appuser:appuser install.sh ./
 COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
@@ -339,12 +341,12 @@ RUN set -eux && \
         fi; \
     done && \
     cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
-    chmod +x bin/entrypoint.sh
+    chmod +x bin/entrypoint.sh bin/healthcheck.sh
 
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://127.0.0.1:3000/api/v2/status || exit 1
+    CMD bin/healthcheck.sh
 
 # Run as non-root user
 USER appuser
