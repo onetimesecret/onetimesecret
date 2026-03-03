@@ -127,6 +127,13 @@ module Onetime
 
         resolved_domain_strategy = domain_strategy || :invalid # make sure never nil
 
+        # Sanitize display_domain for use in response headers (defense in depth).
+        # Both code paths (DetectHost result and override header) should produce
+        # valid hostnames, but we guard here to prevent header injection.
+        unless Onetime::Utils::DomainParser.basically_valid?(display_domain)
+          display_domain = canonical_domain
+        end
+
         env['onetime.display_domain']  = display_domain
         env['onetime.domain_strategy'] = resolved_domain_strategy
 

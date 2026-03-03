@@ -28,21 +28,11 @@ def create_app
 end
 
 def enable_runtime_domains!
-  current_features = Onetime::Runtime.features
-  Onetime::Runtime.features = Onetime::Runtime::Features.new(
-    domains_enabled: true,
-    global_banner: current_features.global_banner,
-    fortunes: current_features.fortunes,
-  )
+  Onetime::Runtime.features = Onetime::Runtime.features.with(domains_enabled: true)
 end
 
 def disable_runtime_domains!
-  current_features = Onetime::Runtime.features
-  Onetime::Runtime.features = Onetime::Runtime::Features.new(
-    domains_enabled: false,
-    global_banner: current_features.global_banner,
-    fortunes: current_features.fortunes,
-  )
+  Onetime::Runtime.features = Onetime::Runtime.features.with(domains_enabled: false)
 end
 
 # Fully enable domains: class-level config + runtime feature flag.
