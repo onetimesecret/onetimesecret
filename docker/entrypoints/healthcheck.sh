@@ -19,16 +19,24 @@ parse_amqp_addr() {
   local clean="${url#amqp://}"
 
   # Strip auth credentials if present (user:pass@...)
-  local hostport
+  local authority
   if [[ "$clean" == *@* ]]; then
-    hostport="${clean#*@}"
+    authority="${clean#*@}"
   else
-    hostport="$clean"
+    authority="$clean"
   fi
 
-  AMQP_HOST="${hostport%%:*}"
-  AMQP_PORT="${hostport#*:}"
-  AMQP_PORT="${AMQP_PORT%%/*}"  # strip /vhost suffix
+  # Separate host:port from /vhost path before extracting components
+  local hostport="${authority%%/*}"
+
+  if [[ "$hostport" == *:* ]]; then
+    AMQP_HOST="${hostport%%:*}"
+    AMQP_PORT="${hostport#*:}"
+  else
+    AMQP_HOST="$hostport"
+    AMQP_PORT=""
+  fi
+
   AMQP_PORT="${AMQP_PORT:-5672}"
 }
 
@@ -37,14 +45,17 @@ parse_amqp_addr() {
 # fall back to /health (lightweight status-only check).
 if pgrep -f 'puma' > /dev/null 2>&1; then
   base="http://127.0.0.1:${PORT:-3000}"
-  curl -sf "${base}/health/advanced" | grep -q '"status":"ok"' && exit 0
+  response=$(curl -sf "${base}/health/advanced")
+  if [ $? -eq 0 ] && echo "$response" | grep -q '"status":"ok"'; then
+    exit 0
+  fi
   exec curl -sf "${base}/health"
 fi
 
 # Worker or scheduler: verify TCP connectivity to RabbitMQ.
 if pgrep -f 'bin/ots' > /dev/null 2>&1; then
   parse_amqp_addr
-  timeout 5 bash -c "echo > /dev/tcp/${AMQP_HOST}/${AMQP_PORT}" 2>/dev/null
+  timeout 5 bash -c 'echo > "/dev/tcp/$1/$2"' -- "${AMQP_HOST}" "${AMQP_PORT}" 2>/dev/null
   exit $?
 fi
 
