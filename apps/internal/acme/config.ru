@@ -21,8 +21,9 @@
 ENV['RACK_ENV']     ||= 'production'
 ENV['ONETIME_HOME'] ||= File.expand_path('../../..', __dir__).freeze
 
-$LOAD_PATH.unshift(File.join(ENV.fetch('ONETIME_HOME', nil), 'lib')) unless
-  $LOAD_PATH.include?(File.join(ENV.fetch('ONETIME_HOME', nil), 'lib'))
+onetime_home = ENV.fetch('ONETIME_HOME')
+lib_path     = File.join(onetime_home, 'lib')
+$LOAD_PATH.unshift(lib_path) unless $LOAD_PATH.include?(lib_path)
 
 require 'onetime'
 
@@ -30,13 +31,13 @@ Onetime.boot! :app
 
 # Load the ACME application directly (bypasses the registry which may
 # skip it when features.domains.acme.enabled is false).
-require File.join(ENV.fetch('ONETIME_HOME', nil), 'apps', 'internal', 'acme', 'application')
+require File.join(onetime_home, 'apps', 'internal', 'acme', 'application')
 
 # Set HOST and PORT from config so rackup binds accordingly.
 # CLI flags (-o, -p) and env vars still override these.
-ENV['HOST'] ||= OT.conf.dig('features', 'domains', 'acme', 'listen_address') || '127.0.0.1'
-ENV['PORT'] ||= (OT.conf.dig('features', 'domains', 'acme', 'port') || '12020').to_s
+host = ENV['HOST'] ||= OT.conf.dig('features', 'domains', 'acme', 'listen_address') || '127.0.0.1'
+port = ENV['PORT'] ||= (OT.conf.dig('features', 'domains', 'acme', 'port') || '12020').to_s
 
-Onetime.app_logger.info "Starting standalone ACME endpoint on #{ENV.fetch('HOST', nil)}:#{ENV.fetch('PORT', nil)}"
+Onetime.app_logger.info "Starting standalone ACME endpoint on #{host}:#{port}"
 
 run Internal::ACME::Application.new
