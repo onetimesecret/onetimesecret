@@ -5,6 +5,8 @@ Git post-receive hook: Build and push OCI images with Podman.
 
 Runs as a Gitolite hook. Derives image name from the repo.
 
+Updated: 2026-03-02
+
 Install:
     pip install GitPython
     podman login <registry>
@@ -397,9 +399,7 @@ def read_build_args(work_dir: Path, short_sha: str) -> dict[str, str]:
     return args
 
 
-def build_base(
-    config: BuildConfig, work_dir: Path, short_sha: str
-) -> str:
+def build_base(config: BuildConfig, work_dir: Path, short_sha: str) -> str:
     """
     Build the shared base image (local only, not pushed).
 
@@ -529,12 +529,19 @@ def main() -> None:
         try:
             if config.has_base:
                 try:
-                    base_image = build_base(config, config.work_dir, ref.short_sha)
+                    base_image = build_base(
+                        config, config.work_dir, ref.short_sha
+                    )
                     log.info("  Base image: %s", base_image)
                 except subprocess.CalledProcessError as exc:
                     log.error("Base build failed: %s", exc)
                     results.append(
-                        BuildResult(variant="base", tags=[], success=False, error=str(exc))
+                        BuildResult(
+                            variant="base",
+                            tags=[],
+                            success=False,
+                            error=str(exc),
+                        )
                     )
                     sys.exit(1)
 
@@ -547,7 +554,10 @@ def main() -> None:
                         variant, base_image, built_images
                     )
                     result = build_variant(
-                        config, ref, config.work_dir, variant,
+                        config,
+                        ref,
+                        config.work_dir,
+                        variant,
                         build_contexts=build_contexts,
                     )
                     results.append(result)
