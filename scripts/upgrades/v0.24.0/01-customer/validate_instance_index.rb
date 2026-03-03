@@ -186,10 +186,13 @@ class InstanceIndexValidator
     end
 
     if results[:missing_objects].any?
-      puts '=== Missing Objects (first 10) ==='
+      puts "=== Orphaned Index Entries: #{results[:missing_objects].size} (not migrated) ==="
+      puts '    (email exists in onetime:customer zset but no customer:*:object key found)'
       results[:missing_objects].first(10).each do |m|
-        puts "  #{m[:email]} (score: #{m[:score]})"
+        label = m[:email] == 'GLOBAL' ? ' (stats singleton)' : ' (deleted account)'
+        puts "  #{m[:email]}#{label} (score: #{m[:score]})"
       end
+      puts "  ... and #{results[:missing_objects].size - 10} more" if results[:missing_objects].size > 10
       puts
     end
 

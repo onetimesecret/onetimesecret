@@ -327,11 +327,8 @@ fi
 # blobs. They connect to Redis to RESTORE temporarily and read fields. This
 # must point at the SOURCE (which has v1 data), not the target (which is empty).
 #
-# NOTE: run_pipeline.sh also calls enrich_with_original_record.rb which writes
-# to Redis. That step belongs in Phase 4 (after load). If you have not yet
-# removed that call from run_pipeline.sh, Phase 2 will write _original_* keys
-# to the SOURCE Redis. Phase 4 will write them correctly to the TARGET.
-# See C1 in the QA review for details.
+# enrich_with_original_record.rb (which writes _original_* keys) is handled
+# separately in Phase 4, after the transformed data is loaded into the target.
 
 if [ "$START_PHASE" -le 2 ]; then
   CURRENT_PHASE=2

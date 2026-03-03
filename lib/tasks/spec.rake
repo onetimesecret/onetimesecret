@@ -85,7 +85,7 @@ namespace :spec do
       RSpec::Core::RakeTask.new(name.tr(':', '_')) do |t|
         t.pattern         = "#{path}/**/*_spec.rb"
         t.exclude_pattern = "#{path}/integration/**/*_spec.rb"
-        t.rspec_opts      = "#{rspec_format_options} --tag ~postgres_database --tag ~integration"
+        t.rspec_opts      = "#{rspec_format_options} --tag ~postgres_database --tag ~integration --tag ~acme_integration"
       end
     end
 

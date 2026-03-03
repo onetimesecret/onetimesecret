@@ -73,6 +73,11 @@ module Internal
     class Application < Onetime::Application::Base
       @uri_prefix = '/api/internal/acme'
 
+      # Only load when ACME endpoint is explicitly enabled in config
+      def self.should_skip_loading?
+        OT.conf&.dig('features', 'domains', 'acme', 'enabled').to_s != 'true'
+      end
+
       warmup do
         # Preload CustomDomain model for ACME validation
         # This prevents lazy loading during Caddy's on-demand TLS requests
