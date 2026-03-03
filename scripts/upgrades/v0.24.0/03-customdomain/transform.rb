@@ -577,6 +577,7 @@ class CustomDomainTransformer
     return '***' unless fqdn.is_a?(String) && fqdn.include?('.')
     parts = fqdn.split('.')
     parts[0] = '***'
+    parts[-2] = '***' if parts.size >= 2
     parts.join('.')
   end
 
