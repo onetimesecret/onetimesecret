@@ -61,27 +61,18 @@ on_demand_tls {
 
 ## Testing
 
-### RSpec (32 specs, all currently skipped)
+### RSpec (32 specs, excluded by default)
 
 The spec file at `spec/application_spec.rb` covers domain validation, error handling,
-`LocalhostOnly` middleware, and routing. All specs are unconditionally skipped via
-`before(:all) { skip }` because they require a full application boot environment.
+`LocalhostOnly` middleware, and routing. Specs are tagged `acme_integration: true` and
+excluded by default because they require a full application boot environment.
 
 ```bash
-# Via rake (auto-discovered, but all 32 specs will be pending)
-bundle exec rake spec:apps:internal_acme
+# Normal runs skip ACME specs automatically
+bundle exec rspec
 
-# Or via pnpm
-pnpm run test:rspec:apps:internal:acme
-```
-
-The smoke test suite (`rake smoke:rspec`) intentionally skips this app since it's 100% pending.
-
-To actually execute the specs, remove the `before(:all) { skip }` block (lines 12-14)
-and run with a live database:
-
-```bash
-RACK_ENV=test VALKEY_URL=redis://localhost:6379/15 \
+# Run ACME specs with a live database
+RUN_ACME_TESTS=true RACK_ENV=test VALKEY_URL=redis://localhost:6379/15 \
   bundle exec rspec apps/internal/acme/spec/application_spec.rb
 ```
 

@@ -6,12 +6,7 @@ require 'spec_helper'
 require 'rack/test'
 require_relative '../../../../apps/internal/acme/application'
 
-RSpec.describe Internal::ACME::Application, type: :request do
-  # These tests require full application boot with i18n, middleware, etc.
-  # They should be run as integration tests with VALKEY_URL set to test database.
-  before(:all) do
-    skip 'Requires full application boot - run as integration test with test database'
-  end
+RSpec.describe Internal::ACME::Application, type: :request, acme_integration: true do
 
   let(:app) { described_class.new }
 
