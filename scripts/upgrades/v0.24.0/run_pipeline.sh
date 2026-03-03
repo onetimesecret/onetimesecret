@@ -47,8 +47,13 @@ fi
 
 pipeline_start=$SECONDS
 
+# Redact passwords for display
+redact_url() {
+  echo "$1" | sed -E 's|(://[^:]*:)[^@]*(@)|\1***\2|'
+}
+
 echo "=== v0.24.0 Upgrade Scripts ============================================="
-echo "Redis: ${VALKEY_URL:-$REDIS_URL}"
+echo "Redis: $(redact_url "${VALKEY_URL:-$REDIS_URL}")"
 echo "Data:  data/upgrades/v0.24.0"
 echo ""
 

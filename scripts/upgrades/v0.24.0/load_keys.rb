@@ -76,7 +76,7 @@ class KeyLoader
     end
 
     puts "Loading #{models_to_load.join(', ')} from #{@input_dir}"
-    puts "Target: #{@valkey_url}"
+    puts "Target: #{@valkey_url.sub(/:[^:@]*@/, ':***@')}"
     puts "Mode: #{mode_description}"
     puts
 
@@ -352,10 +352,42 @@ class KeyLoader
     index_count  = @index_keys.size
     total_unique = (@record_keys | @index_keys).size
 
+    overlap     = @record_keys & @index_keys
+    overlap_count = overlap.size
+
     puts '  Keys tracked by this script:'
     puts "    Record keys (RESTORE):   #{record_count}"
     puts "    Index keys (commands):   #{index_count}"
     puts "    Total unique keys:       #{total_unique}"
+    puts "    Overlap (both):          #{overlap_count}"
+
+    if overlap_count > 0
+      puts
+      puts '  Overlap analysis:'
+
+      # Group overlapping keys by prefix pattern
+      patterns = Hash.new { |h, k| h[k] = [] }
+      overlap.each do |key|
+        # Classify by key structure: "model:{id}:suffix" -> "model:*:suffix"
+        pattern = key.gsub(/:[a-f0-9]{20,}:/, ':*:')
+                     .gsub(/:[a-f0-9-]{36}:/, ':*:')
+                     .gsub(/:\d+:/, ':*:')
+        patterns[pattern] << key
+      end
+
+      patterns.sort_by { |_p, keys| -keys.size }.each do |pattern, keys|
+        puts "    #{pattern}: #{keys.size} keys"
+        keys.first(3).each { |k| puts "      e.g. #{k}" }
+        puts "      ... and #{keys.size - 3} more" if keys.size > 3
+      end
+
+      puts
+      puts '  NOTE: Overlap occurs when a key is both RESTORE\'d from v1 dump'
+      puts '  and targeted by an index command (ZADD/HSET/SADD). This is safe'
+      puts '  if the index command is additive (ZADD to a sorted set) or if'
+      puts '  it intentionally overwrites (HSET fields). Verify the patterns'
+      puts '  above match expected cross-model relationships.'
+    end
 
     if @dry_run
       puts
