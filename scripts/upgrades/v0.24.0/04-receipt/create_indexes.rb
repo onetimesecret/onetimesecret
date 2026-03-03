@@ -77,6 +77,10 @@ class ReceiptIndexCreator
       missing_domains: Hash.new(0),  # Track FQDN -> count
       missing_custids: Hash.new(0),  # Track custid -> count for diagnostics
       anonymous_receipts: 0,
+      ttl_lifespan_fallbacks: 0,
+      ttl_lifespan_fallback_keys: [],  # Sample receipt keys that used fallback
+      ttl_missing_both: 0,
+      ttl_missing_both_keys: [],  # Sample receipt keys missing both fields
     }
   end
 
@@ -229,15 +233,31 @@ class ReceiptIndexCreator
     @stats[:instance_indexes] += 1
 
     # 2. Expiration Timeline: receipt:expiration_timeline (raw identifier)
+    #    Fall back to lifespan when secret_ttl is missing (173 v1 records lack secret_ttl)
     secret_ttl = fields['secret_ttl']&.to_i
-    if secret_ttl && secret_ttl > 0 && created
-      expires_at                   = created + secret_ttl
+    ttl_value = (secret_ttl && secret_ttl > 0) ? secret_ttl : nil
+
+    unless ttl_value
+      lifespan = fields['lifespan']&.to_i
+      if lifespan && lifespan > 0
+        ttl_value = lifespan
+        @stats[:ttl_lifespan_fallbacks] += 1
+        @stats[:ttl_lifespan_fallback_keys] << objid if @stats[:ttl_lifespan_fallback_keys].size < 10
+      end
+    end
+
+    if ttl_value && created
+      expires_at                   = created + ttl_value
       commands << {
         command: 'ZADD',
         key: 'receipt:expiration_timeline',
         args: [expires_at.to_i, objid],
       }
       @stats[:expiration_indexes] += 1
+    elsif created
+      # Both secret_ttl and lifespan are missing or zero
+      @stats[:ttl_missing_both] += 1
+      @stats[:ttl_missing_both_keys] << objid if @stats[:ttl_missing_both_keys].size < 10
     end
 
     # 3. Lookup Index: receipt:objid_lookup
@@ -397,6 +417,23 @@ class ReceiptIndexCreator
         puts
         puts '  NOTE: No customer lookup loaded. Use --customer-lookup=PATH to provide'
         puts '        a JSON file mapping custid (email) -> customer objid'
+      end
+    end
+
+    if @stats[:ttl_lifespan_fallbacks] > 0 || @stats[:ttl_missing_both] > 0
+      puts
+      puts 'TTL Fallback:'
+      puts "  Used lifespan fallback: #{@stats[:ttl_lifespan_fallbacks]}"
+      if @stats[:ttl_lifespan_fallback_keys].any?
+        puts '  Sample receipt keys (up to 10):'
+        @stats[:ttl_lifespan_fallback_keys].each { |key| puts "    #{key}" }
+      end
+      if @stats[:ttl_missing_both] > 0
+        puts "  WARNING: Missing both secret_ttl and lifespan: #{@stats[:ttl_missing_both]}"
+        if @stats[:ttl_missing_both_keys].any?
+          puts '  Sample receipt keys missing both (up to 10):'
+          @stats[:ttl_missing_both_keys].each { |key| puts "    #{key}" }
+        end
       end
     end
 

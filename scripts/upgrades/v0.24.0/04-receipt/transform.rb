@@ -172,6 +172,10 @@ class ReceiptTransformer
       failed_org_lookups: [],
       failed_domain_lookups: [],
       errors: [],
+      secret_ttl_derived_from_lifespan: 0,
+      secret_ttl_derived_keys: [],  # Sample receipt keys that used derivation
+      secret_ttl_missing_both: 0,
+      secret_ttl_missing_both_keys: [],  # Sample receipt keys missing both fields
     }
   end
 
@@ -319,6 +323,20 @@ class ReceiptTransformer
       if v1_fields.key?(field)
         v2_fields[field] = v1_fields[field]
         @stats[:direct_copy_field_hits][field] += 1
+      end
+    end
+
+    # Derive secret_ttl from lifespan when missing (173 v1 records lack secret_ttl)
+    secret_ttl_val = v2_fields['secret_ttl']
+    if secret_ttl_val.nil? || secret_ttl_val.to_s.empty? || secret_ttl_val.to_i <= 0
+      lifespan_val = v2_fields['lifespan']
+      if lifespan_val && !lifespan_val.to_s.empty? && lifespan_val.to_i > 0
+        v2_fields['secret_ttl'] = lifespan_val
+        @stats[:secret_ttl_derived_from_lifespan] += 1
+        @stats[:secret_ttl_derived_keys] << objid if @stats[:secret_ttl_derived_keys].size < 10
+      else
+        @stats[:secret_ttl_missing_both] += 1
+        @stats[:secret_ttl_missing_both_keys] << objid if @stats[:secret_ttl_missing_both_keys].size < 10
       end
     end
 
@@ -532,6 +550,23 @@ class ReceiptTransformer
       puts 'Direct Copy Field Warnings:'
       zero_hit_fields.each do |field|
         puts "  WARNING: DIRECT_COPY_FIELDS entry '#{field}' had zero hits across #{@stats[:receipts_processed]} records"
+      end
+      puts
+    end
+
+    if @stats[:secret_ttl_derived_from_lifespan] > 0 || @stats[:secret_ttl_missing_both] > 0
+      puts 'Field Derivation:'
+      puts "  secret_ttl derived from lifespan: #{@stats[:secret_ttl_derived_from_lifespan]}"
+      if @stats[:secret_ttl_derived_keys].any?
+        puts '  Sample receipt keys (up to 10):'
+        @stats[:secret_ttl_derived_keys].each { |key| puts "    #{key}" }
+      end
+      if @stats[:secret_ttl_missing_both] > 0
+        puts "  WARNING: Missing both secret_ttl and lifespan: #{@stats[:secret_ttl_missing_both]}"
+        if @stats[:secret_ttl_missing_both_keys].any?
+          puts '  Sample receipt keys missing both (up to 10):'
+          @stats[:secret_ttl_missing_both_keys].each { |key| puts "    #{key}" }
+        end
       end
       puts
     end

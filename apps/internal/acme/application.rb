@@ -69,16 +69,24 @@ module Internal
     # If middleware ordering changes, add a Caddy-level block as defense in depth
     # (see README Security section).
     class LocalhostOnly
-      LOCALHOST_IPS = ['127.0.0.1', '::1', '::ffff:127.0.0.1'].freeze
-
       def initialize(app)
         @app = app
+        # Lazy-load ipaddr as it's part of the standard library but not always needed.
+        require 'ipaddr' unless defined?(IPAddr)
       end
 
       def call(env)
         remote_addr = env['REMOTE_ADDR']
+        is_loopback = false
 
-        unless LOCALHOST_IPS.include?(remote_addr)
+        begin
+          # IPAddr.new will raise an error for nil or invalid IP strings.
+          is_loopback = remote_addr && IPAddr.new(remote_addr).loopback?
+        rescue IPAddr::InvalidAddressError
+          # is_loopback remains false, correctly denying the request.
+        end
+
+        unless is_loopback
           OT.le "[Internal::ACME] Unauthorized access attempt from #{remote_addr}"
           return [401, { 'content-type' => 'text/plain' }, ['Unauthorized - localhost only']]
         end
