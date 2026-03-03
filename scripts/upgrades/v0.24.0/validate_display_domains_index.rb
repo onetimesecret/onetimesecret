@@ -26,6 +26,13 @@ uri.path = '/0'
 redis = Redis.new(url: uri.to_s)
 redis.ping
 
+def redact_fqdn(fqdn)
+  return '***' unless fqdn.is_a?(String) && fqdn.include?('.')
+  parts = fqdn.split('.')
+  parts[0] = '***'
+  parts.join('.')
+end
+
 instances_key = 'custom_domain:instances'
 display_domains_key = 'custom_domain:display_domains'
 
@@ -85,7 +92,7 @@ else
     puts ""
     puts "Domains missing from display_domains index (#{missing_index.size}):"
     missing_index.each do |entry|
-      printf "  %-40s display_domain=%s\n", entry[:domainid], entry[:display_domain]
+      printf "  %-40s display_domain=%s\n", entry[:domainid], redact_fqdn(entry[:display_domain])
     end
   end
 
@@ -94,7 +101,7 @@ else
     puts "Domains with mismatched index entry (#{mismatched_index.size}):"
     mismatched_index.each do |entry|
       printf "  %-40s display_domain=%s indexed_as=%s\n",
-             entry[:domainid], entry[:display_domain], entry[:indexed_as]
+             entry[:domainid], redact_fqdn(entry[:display_domain]), entry[:indexed_as]
     end
   end
 

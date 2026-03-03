@@ -379,7 +379,7 @@ class ReceiptIndexCreator
       puts
       puts 'Missing domains (FQDN -> count):'
       @stats[:missing_domains].sort_by { |_, count| -count }.each do |fqdn, count|
-        puts "  #{fqdn}: #{count}"
+        puts "  #{redact_fqdn(fqdn)}: #{count}"
       end
     end
 
@@ -390,8 +390,7 @@ class ReceiptIndexCreator
       puts "Missing custid lookups: #{unique_count} unique custids (#{total_count} total occurrences)"
       puts 'Sample custids not found (top 10 by frequency):'
       @stats[:missing_custids].sort_by { |_, count| -count }.first(10).each do |custid, count|
-        # Truncate long emails for display
-        display = custid.length > 40 ? "#{custid[0, 37]}..." : custid
+        display = redact_email(custid)
         puts "  #{display}: #{count}"
       end
       if @customer_lookup.empty?
@@ -408,6 +407,19 @@ class ReceiptIndexCreator
     @stats[:errors].first(10).each do |err|
       puts "  #{err}"
     end
+  end
+
+  def redact_email(email)
+    return '***' unless email.is_a?(String) && email.include?('@')
+    local, domain = email.split('@', 2)
+    "#{local[0..2]}***@#{domain.sub(/\A[^.]+/, '***')}"
+  end
+
+  def redact_fqdn(fqdn)
+    return '***' unless fqdn.is_a?(String) && fqdn.include?('.')
+    parts = fqdn.split('.')
+    parts[0] = '***'
+    parts.join('.')
   end
 end
 
