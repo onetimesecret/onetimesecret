@@ -61,12 +61,44 @@ on_demand_tls {
 
 ## Testing
 
-```bash
-# Run specs (currently requires full boot with test database)
-VALKEY_URL=redis://localhost:6379/15 bundle exec rspec apps/internal/acme/spec/application_spec.rb
+### RSpec (32 specs, all currently skipped)
 
-# Manual curl tests (from localhost)
-curl "http://127.0.0.1:12020/api/internal/acme/ask?domain=example.com"
+The spec file at `spec/application_spec.rb` covers domain validation, error handling,
+`LocalhostOnly` middleware, and routing. All specs are unconditionally skipped via
+`before(:all) { skip }` because they require a full application boot environment.
+
+```bash
+# Via rake (auto-discovered, but all 32 specs will be pending)
+bundle exec rake spec:apps:internal_acme
+
+# Or via pnpm
+pnpm run test:rspec:apps:internal:acme
+```
+
+The smoke test suite (`rake smoke:rspec`) intentionally skips this app since it's 100% pending.
+
+To actually execute the specs, remove the `before(:all) { skip }` block (lines 12-14)
+and run with a live database:
+
+```bash
+RACK_ENV=test VALKEY_URL=redis://localhost:6379/15 \
+  bundle exec rspec apps/internal/acme/spec/application_spec.rb
+```
+
+The specs mock `Onetime::CustomDomain` but still need `spec_helper` to boot
+the OT environment (`OT.ld`, `OT.info`, `OT.le` logging).
+
+### Manual curl
+
+```bash
+# Verified domain → 200
+curl "http://127.0.0.1:3000/api/internal/acme/ask?domain=your-domain.com"
+
+# Missing param → 400
+curl "http://127.0.0.1:3000/api/internal/acme/ask"
+
+# Unknown domain → 403
+curl "http://127.0.0.1:3000/api/internal/acme/ask?domain=nonexistent.example.com"
 ```
 
 ## Architecture
@@ -82,4 +114,4 @@ Caddy TLS request
               → 200 OK / 403 Forbidden
 ```
 
-The app does not override `should_skip_loading?`, so it always loads with the main application. It uses `Rack::CommonLogger` in development (not the main app's `RequestLogger`) to stay self-contained.
+The app implements `should_skip_loading?` — it only loads when `features.domains.acme.enabled` is `true` in config. It uses `Rack::CommonLogger` in development (not the main app's `RequestLogger`) to stay self-contained.
