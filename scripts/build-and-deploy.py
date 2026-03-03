@@ -48,8 +48,12 @@ Config:
       - Variants are built in array order; declare dependencies before
         dependents
 
-    Gitolite per-repo options (oci.registry, oci.image-name) override
-    .oci-build.json values when present.
+    Gitolite per-repo config (oci.registry, oci.image) overrides
+    .oci-build.json values when present. Environment variables
+    (OCI_REGISTRY, OCI_IMAGE_NAME) take highest precedence.
+
+    Note: use 'config' (not 'option') in gitolite.conf — only
+    'config' lines are written to the repo's git config.
 
 Usage:
     git remote add build git@buildhost:myapp
@@ -61,6 +65,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -81,14 +86,16 @@ log = logging.getLogger("post-receive")
 # ─── Configuration ───────────────────────────────────────────────────────────
 
 
-def _gitolite_option(repo: Repo, key: str) -> str | None:
-    """Read a gitolite per-repo option from git config.
+def _repo_config(repo: Repo, key: str) -> str | None:
+    """Read a per-repo config value set by gitolite.
 
-    Gitolite stores 'option X = Y' as 'gitolite-options.X = Y'
-    in the repo's git config.
+    Gitolite writes 'config X = Y' lines from gitolite.conf
+    into the bare repo's git config (requires 'git-config' in
+    ENABLE). Note: 'option' lines are NOT written to git config;
+    they're only available via gitolite's internal API.
     """
     try:
-        return repo.git.config(f"gitolite-options.{key}").strip()
+        return repo.git.config(key).strip() or None
     except GitCommandError:
         return None
 
@@ -113,9 +120,14 @@ class BuildConfig:
         Uses git-show to read the file directly from the object store —
         no checkout needed to decide whether to build.
 
-        Gitolite per-repo options (oci.registry, oci.image-name) override
-        values from .oci-build.json when present, keeping private
-        infrastructure details out of the application repository.
+        Resolution order (highest wins):
+          1. Environment variables: OCI_REGISTRY, OCI_IMAGE_NAME
+          2. Repo git config: oci.registry, oci.image
+             (set via 'config' lines in gitolite.conf)
+          3. Values from .oci-build.json
+
+        This keeps private infrastructure details out of the
+        application repository.
         """
         repo_name = Path(repo.common_dir).name.removesuffix(".git")
 
@@ -127,12 +139,15 @@ class BuildConfig:
         log.info("Found .oci-build.json in %s (%s)", repo_name, rev[:7])
         raw = json.loads(raw_json)
 
-        # Gitolite options override .oci-build.json values
+        # Resolution order: env var → repo git config → .oci-build.json
         registry = (
-            _gitolite_option(repo, "oci.registry") or raw["registry"]
+            os.environ.get("OCI_REGISTRY")
+            or _repo_config(repo, "oci.registry")
+            or raw["registry"]
         )
         image_name = (
-            _gitolite_option(repo, "oci.image-name")
+            os.environ.get("OCI_IMAGE_NAME")
+            or _repo_config(repo, "oci.image")
             or raw.get("image_name", repo_name)
         )
 
