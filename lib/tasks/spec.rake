@@ -85,7 +85,7 @@ namespace :spec do
       RSpec::Core::RakeTask.new(name.tr(':', '_')) do |t|
         t.pattern         = "#{path}/**/*_spec.rb"
         t.exclude_pattern = "#{path}/integration/**/*_spec.rb"
-        t.rspec_opts      = "#{rspec_format_options} --tag ~postgres_database --tag ~integration --tag ~acme_integration"
+        t.rspec_opts      = "#{rspec_format_options} --tag ~postgres_database --tag ~integration"
       end
     end
 
@@ -101,6 +101,12 @@ namespace :spec do
 
     desc 'Run all app specs'
     task all: APP_SPECS.keys.map { |k| k.tr(':', '_') }
+  end
+
+  desc 'Run ACME internal app specs'
+  RSpec::Core::RakeTask.new(:acme) do |t|
+    t.pattern    = 'apps/internal/acme/spec/**/*_spec.rb'
+    t.rspec_opts = rspec_format_options
   end
 
   namespace :integration do
