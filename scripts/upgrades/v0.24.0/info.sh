@@ -108,7 +108,12 @@ keyspace_info() {
       end
     end
     puts ''
-    puts \"  server: #{r.info('server')['redis_version']}\"
+    server = r.info('server')
+    if server['valkey_version']
+      puts \"  server: valkey #{server['valkey_version']} (redis compat #{server['redis_version']})\"
+    else
+      puts \"  server: redis #{server['redis_version']}\"
+    end
     mem = r.info('memory')
     puts \"  used_memory_human: #{mem['used_memory_human']}\"
   " "$url" "$REDIS_TIMEOUT" 2>&1; then
