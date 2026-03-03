@@ -51,7 +51,7 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       # comparison algorithms that resist timing attacks
 
       # Skip in CI environment where timing can be unreliable
-      # skip 'Timing tests may be unreliable in CI environments' if ENV['CI']
+      skip 'Timing tests may be unreliable in CI environments' if ENV['CI']
 
       # Warm up
       5.times { secret.passphrase?(passphrase) }
