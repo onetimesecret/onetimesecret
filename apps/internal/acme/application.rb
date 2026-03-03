@@ -45,7 +45,7 @@ module Internal
         end
 
         unless check_verification
-          OT.le "[Internal::ACME] WARN: check_verification=false for domain: #{domain}"
+          OT.lw "[Internal::ACME] check_verification=false for domain: #{domain}"
         end
 
         allowed = Application.domain_allowed?(domain, check_verification: check_verification)

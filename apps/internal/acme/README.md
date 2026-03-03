@@ -90,23 +90,26 @@ The domain must still exist in the CustomDomain database; this only skips the DN
 
 ## Testing
 
-### RSpec (32 specs, excluded by default)
+### RSpec (50 specs)
 
 The spec file at `spec/application_spec.rb` covers domain validation, error handling,
 `LocalhostOnly` middleware, and routing. Specs are tagged `acme_integration: true` and
-excluded by default because they require a full application boot environment.
+run as part of the standard test suite (via `spec:apps:all` and the dedicated `spec:acme` task).
 
 ```bash
-# Normal runs skip ACME specs automatically
-bundle exec rspec
+# Run ACME specs directly
+bundle exec rspec apps/internal/acme/spec/application_spec.rb
 
-# Run ACME specs with a live database
-RUN_ACME_TESTS=true RACK_ENV=test VALKEY_URL=redis://localhost:6379/15 \
-  bundle exec rspec apps/internal/acme/spec/application_spec.rb
+# Run via dedicated rake task
+bundle exec rake spec:acme
+
+# Also included in the full app specs run
+bundle exec rake spec:apps:all
 ```
 
-The specs mock `Onetime::CustomDomain` but still need `spec_helper` to boot
-the OT environment (`OT.ld`, `OT.info`, `OT.le` logging).
+The specs mock `Onetime::CustomDomain` and stub `MiddlewareStack.configure`, so no
+live database is needed. They do require `spec_helper` for the OT logging environment
+(`OT.ld`, `OT.info`, `OT.le`).
 
 ### Manual curl
 
