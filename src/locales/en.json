@@ -24,6 +24,7 @@
     },
     "COMMON": {
       "broadcast": "",
+      "about": "About",
       "tagline": "Secure links that only work once",
       "powered_by": "Powered by",
       "website_url": "https://onetimesecret.com/en",
