@@ -24,6 +24,7 @@
     },
     "COMMON": {
       "broadcast": "Sändning",
+      "about": "Om",
       "tagline": "Säkra länkar som bara fungerar en gång",
       "powered_by": "Drivs av",
       "website_url": "https://onetimesecret.com/en",

@@ -24,6 +24,7 @@
     },
     "COMMON": {
       "broadcast": "",
+      "about": "소개",
       "tagline": "한 번만 작동하는 안전한 링크",
       "powered_by": "Powered by",
       "website_url": "https://onetimesecret.com/ko",

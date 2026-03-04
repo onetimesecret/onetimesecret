@@ -24,6 +24,7 @@
     },
     "COMMON": {
       "broadcast": "",
+      "about": "Про проєкт",
       "tagline": "Безпечні посилання, які працюють лише один раз",
       "powered_by": "Працює на",
       "website_url": "https://onetimesecret.com/uk",

@@ -24,6 +24,7 @@
     },
     "COMMON": {
       "broadcast": "ウェブ::COMMON::放送",
+      "about": "概要",
       "tagline": "一度だけ使える安全なリンク",
       "powered_by": "Powered by",
       "website_url": "https://onetimesecret.com/ja",

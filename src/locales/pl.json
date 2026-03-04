@@ -24,6 +24,7 @@
     },
     "COMMON": {
       "broadcast": "",
+      "about": "O projekcie",
       "tagline": "Bezpieczne linki, które działają tylko raz",
       "powered_by": "Obsługiwane przez",
       "website_url": "https://onetimesecret.com/pl",
