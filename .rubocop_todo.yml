@@ -73,7 +73,7 @@ Style/MultilineBlockChain:
 
 # Offense count: 125
 # This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: AllowHeredoc, AllowURI, AllowQualifiedName, URISchemes, IgnoreCopDirectives, AllowedPatterns, SplitStrings.
+# Configuration parameters: AllowHeredoc, AllowURI, AllowQualifiedName, URISchemes, AllowedPatterns, SplitStrings.
 # URISchemes: http, https
 Layout/LineLength:
   Max: 204
