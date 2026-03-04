@@ -6,11 +6,15 @@ require 'spec_helper'
 require 'rack/test'
 require_relative '../../../../apps/internal/acme/application'
 
-RSpec.describe Internal::ACME::Application, type: :request do
-  # These tests require full application boot with i18n, middleware, etc.
-  # They should be run as integration tests with VALKEY_URL set to test database.
-  before(:all) do
-    skip 'Requires full application boot - run as integration test with test database'
+RSpec.describe Internal::ACME::Application, type: :request, acme_integration: true do
+
+  # Bypass the universal middleware stack (locale, session, CSRF, etc.)
+  # which requires a fully booted app with locale data. The ACME spec
+  # only tests domain validation, LocalhostOnly, and routing — none of
+  # which depend on the universal stack. LocalhostOnly is added via the
+  # class-level `use` call, so it is still applied.
+  before do
+    allow(Onetime::Application::MiddlewareStack).to receive(:configure)
   end
 
   let(:app) { described_class.new }
@@ -35,11 +39,8 @@ RSpec.describe Internal::ACME::Application, type: :request do
              ready?: false)
     end
 
-    before do
-      # Mock localhost request by default
-      allow_any_instance_of(Rack::Request).to receive(:env)
-        .and_return({ 'REMOTE_ADDR' => '127.0.0.1' })
-    end
+    # Rack::Test defaults REMOTE_ADDR to 127.0.0.1, so LocalhostOnly
+    # allows requests through without additional setup.
 
     context 'with verified domain' do
       before do
@@ -234,70 +235,79 @@ RSpec.describe Internal::ACME::Application, type: :request do
         .and_return(verified_domain)
     end
 
+    # NOTE: REMOTE_ADDR is a CGI variable, not an HTTP header. Rack::Test's
+    # `header` method prefixes with HTTP_, so we pass REMOTE_ADDR via the
+    # env hash (third argument to get/post) to set it correctly.
+
     context 'with IPv4 localhost' do
       it 'allows request from 127.0.0.1' do
-        header 'REMOTE_ADDR', '127.0.0.1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '127.0.0.1'
         expect(last_response.status).to eq(200)
       end
     end
 
     context 'with IPv6 localhost' do
       it 'allows request from ::1' do
-        header 'REMOTE_ADDR', '::1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '::1'
         expect(last_response.status).to eq(200)
       end
     end
 
     context 'with IPv4-mapped IPv6 localhost' do
       it 'allows request from ::ffff:127.0.0.1' do
-        header 'REMOTE_ADDR', '::ffff:127.0.0.1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '::ffff:127.0.0.1'
         expect(last_response.status).to eq(200)
       end
     end
 
     context 'with external IPv4 address' do
       it 'returns 401 Unauthorized from 192.168.1.1' do
-        header 'REMOTE_ADDR', '192.168.1.1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '192.168.1.1'
         expect(last_response.status).to eq(401)
       end
 
       it 'returns descriptive error message' do
-        header 'REMOTE_ADDR', '192.168.1.1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '192.168.1.1'
         expect(last_response.body).to include('localhost only')
       end
 
       it 'logs unauthorized access attempt' do
         expect(OT).to receive(:le).with(/Unauthorized access attempt from 192\.168\.1\.1/)
-        header 'REMOTE_ADDR', '192.168.1.1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '192.168.1.1'
       end
     end
 
     context 'with external IPv6 address' do
       it 'returns 401 Unauthorized' do
-        header 'REMOTE_ADDR', '2001:0db8::1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '2001:0db8::1'
         expect(last_response.status).to eq(401)
       end
     end
 
     context 'with public IP address' do
       it 'returns 401 Unauthorized from 8.8.8.8' do
-        header 'REMOTE_ADDR', '8.8.8.8'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '8.8.8.8'
         expect(last_response.status).to eq(401)
       end
     end
 
     context 'with private network address' do
       it 'returns 401 Unauthorized from 10.0.0.1' do
-        header 'REMOTE_ADDR', '10.0.0.1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '10.0.0.1'
+        expect(last_response.status).to eq(401)
+      end
+    end
+
+    context 'with nil REMOTE_ADDR' do
+      it 'returns 401 Unauthorized' do
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => nil
+        expect(last_response.status).to eq(401)
+      end
+    end
+
+    context 'with empty REMOTE_ADDR' do
+      it 'returns 401 Unauthorized' do
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => ''
         expect(last_response.status).to eq(401)
       end
     end
