@@ -21,6 +21,7 @@ import tr from '@/locales/tr.json';
 import uk from '@/locales/uk.json';
 import { type Locale } from '@/schemas/i18n/locale';
 import { WindowService } from '@/services/window.service';
+import { resolveValue } from '@intlify/core-base';
 import { createI18n, type Composer } from 'vue-i18n';
 
 /**
@@ -70,6 +71,13 @@ export function createI18nInstance(initialLocale: string = defaultLocale) {
     globalInjection: true, // allows $t to be used globally.
     missingWarn: true, // these enable browser console logging
     fallbackWarn: true, // and are removed from prod builds.
+    // Treat empty strings ("") as missing so fallback locale is used.
+    // The harmonize pass left empty values across locale files; without
+    // this, Vue I18n accepts "" as a valid translation and shows blank text.
+    messageResolver: (obj, path) => {
+      const val = resolveValue(obj, path);
+      return val === '' ? null : val;
+    },
     messages: {
       bg,
       da_DK,
