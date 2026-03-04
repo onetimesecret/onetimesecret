@@ -9,8 +9,11 @@
   import ThemeToggle from '@/components/ThemeToggle.vue';
 
   import { WindowService } from '@/services/window.service';
+  import { useProductIdentity } from '@/stores/identityStore';
 
   import type { LayoutProps } from '@/types/ui/layouts';
+
+  const productIdentity = useProductIdentity();
 
   withDefaults(defineProps<LayoutProps>(), {
     displayFeedback: true,
@@ -81,7 +84,7 @@
           </span>
           <span
             v-if="displayPoweredBy"
-            :title="`${$t('onetime-secret-literal')} ${$t('version')}`">
+            :title="`${$t('web.COMMON.powered_by')} ${productIdentity.productName}`">
             <a
               :href="$t('web.COMMON.website_url')"
               target="_blank"
