@@ -40,8 +40,11 @@ locales
 .rspec
 .rspec_status
 appendonlydir/
-data/
+data
 doc/
+locales
+!src/locales
+generated
 node_modules/
 vendor/
 log/
@@ -69,6 +72,7 @@ bin/rubocop
 support/schemas/
 tsconfig.tsbuildinfo
 *.db
+Procfile*
 
 # Auto-generated files
 src/auto-imports.d.ts
