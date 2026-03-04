@@ -35,7 +35,11 @@
     () => !isLoading.value && incomingStore.isEntitlementBlocked
   );
   const showFeatureDisabled = computed(
-    () => !isLoading.value && !showEntitlementBlocked.value && !isFeatureEnabled.value
+    () =>
+      !isLoading.value &&
+      !showEntitlementBlocked.value &&
+      !incomingStore.configError &&
+      !isFeatureEnabled.value
   );
 
   onMounted(async () => {

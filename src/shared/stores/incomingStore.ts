@@ -2,9 +2,11 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import {
+  EntitlementError,
   IncomingConfig,
   IncomingSecretPayload,
   IncomingSecretResponse,
+  entitlementErrorSchema,
   incomingConfigSchema,
   incomingSecretResponseSchema,
 } from '@/schemas/api/incoming';
@@ -13,16 +15,6 @@ import { loggingService } from '@/services/logging.service';
 import { AxiosError, AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';
-
-/**
- * Shape of an EntitlementRequired 403 response from the backend.
- */
-export interface EntitlementError {
-  error: string;
-  entitlement: string;
-  current_plan: string | null;
-  upgrade_to: string | null;
-}
 
 interface StoreOptions extends PiniaPluginOptions {}
 
@@ -111,7 +103,7 @@ export const useIncomingStore = defineStore('incoming', () => {
         error.response?.status === 403 &&
         error.response.data?.entitlement === 'incoming_secrets'
       ) {
-        entitlementError.value = error.response.data as EntitlementError;
+        entitlementError.value = entitlementErrorSchema.parse(error.response.data);
         return undefined;
       }
       throw error;

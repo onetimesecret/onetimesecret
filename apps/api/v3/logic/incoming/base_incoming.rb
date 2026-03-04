@@ -24,9 +24,9 @@ module V3
         #
         # @return [Onetime::Organization, nil]
         def domain_owning_organization
-          return @domain_owning_org if defined?(@domain_owning_org)
+          return @domain_owning_organization if defined?(@domain_owning_organization)
 
-          @domain_owning_org = if custom_domain? && display_domain
+          @domain_owning_organization = if custom_domain? && display_domain
             domain_record = Onetime::CustomDomain.from_display_domain(display_domain)
             domain_record&.primary_organization
           end
@@ -46,13 +46,19 @@ module V3
         def require_incoming_entitlement!
           owning_org = domain_owning_organization
 
-          # Canonical domain: global config controls access (unchanged)
-          return true unless owning_org
+          if owning_org.nil?
+            # Canonical domain: global config controls access (unchanged)
+            return true unless custom_domain?
+
+            # Custom domain with no resolvable owning organization:
+            # fail closed rather than silently permitting access.
+            raise OT::Problem, 'Custom domain organization could not be resolved'
+          end
 
           return true if owning_org.can?('incoming_secrets')
 
           current_plan = owning_org.planid
-          upgrade_to = if defined?(Billing::PlanHelpers)
+          upgrade_to   = if defined?(Billing::PlanHelpers)
                          Billing::PlanHelpers.upgrade_path_for('incoming_secrets', current_plan)
                        end
 
