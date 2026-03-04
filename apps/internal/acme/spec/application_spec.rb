@@ -311,6 +311,7 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
         expect(last_response.status).to eq(401)
       end
     end
+
   end
 
   describe '#domain_allowed?' do
