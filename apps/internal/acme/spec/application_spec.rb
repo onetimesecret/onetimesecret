@@ -8,7 +8,23 @@ require_relative '../../../../apps/internal/acme/application'
 
 RSpec.describe Internal::ACME::Application, type: :request, acme_integration: true do
 
+  # Bypass the universal middleware stack (locale, session, CSRF, etc.)
+  # which requires a fully booted app with locale data. The ACME spec
+  # only tests domain validation, LocalhostOnly, and routing — none of
+  # which depend on the universal stack. LocalhostOnly is added via the
+  # class-level `use` call, so it is still applied.
+  before do
+    allow(Onetime::Application::MiddlewareStack).to receive(:configure)
+  end
+
   let(:app) { described_class.new }
+
+  describe 'middleware registration' do
+    it 'registers LocalhostOnly in the middleware stack' do
+      middleware_classes = described_class.middleware.map(&:first)
+      expect(middleware_classes).to include(Internal::ACME::LocalhostOnly)
+    end
+  end
 
   describe 'GET /ask' do
     let(:verified_domain) do
@@ -23,11 +39,8 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
              ready?: false)
     end
 
-    before do
-      # Mock localhost request by default
-      allow_any_instance_of(Rack::Request).to receive(:env)
-        .and_return({ 'REMOTE_ADDR' => '127.0.0.1' })
-    end
+    # Rack::Test defaults REMOTE_ADDR to 127.0.0.1, so LocalhostOnly
+    # allows requests through without additional setup.
 
     context 'with verified domain' do
       before do
@@ -55,6 +68,13 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
         expect(OT).to receive(:info).with(/Domain check: verified\.example\.com -> 200/)
         get '/ask', domain: 'verified.example.com'
       end
+
+      context 'with check_verification=false' do
+        it 'still returns 200 OK' do
+          get '/ask', domain: 'verified.example.com', check_verification: 'false'
+          expect(last_response.status).to eq(200)
+        end
+      end
     end
 
     context 'with unverified domain' do
@@ -78,6 +98,63 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
         expect(OT).to receive(:info).with(/Domain check: unverified\.example\.com -> 403/)
         get '/ask', domain: 'unverified.example.com'
       end
+
+      context 'with check_verification=false' do
+        it 'returns 200 OK (skips verification)' do
+          get '/ask', domain: 'unverified.example.com', check_verification: 'false'
+          expect(last_response.status).to eq(200)
+        end
+
+        it 'returns OK text' do
+          get '/ask', domain: 'unverified.example.com', check_verification: 'false'
+          expect(last_response.body).to eq('OK')
+        end
+      end
+
+      context 'with check_verification=true' do
+        it 'returns 403 Forbidden (verification enforced)' do
+          get '/ask', domain: 'unverified.example.com', check_verification: 'true'
+          expect(last_response.status).to eq(403)
+        end
+      end
+
+      context 'without check_verification parameter' do
+        it 'enforces verification by default (returns 403)' do
+          get '/ask', domain: 'unverified.example.com'
+          expect(last_response.status).to eq(403)
+        end
+      end
+
+      context 'with unexpected check_verification values' do
+        # Only the literal string "false" disables verification.
+        # All other values (including falsy-looking ones) should
+        # enforce verification because of: != 'false' parsing.
+
+        it 'enforces verification when check_verification=0' do
+          get '/ask', domain: 'unverified.example.com', check_verification: '0'
+          expect(last_response.status).to eq(403)
+        end
+
+        it 'enforces verification when check_verification=no' do
+          get '/ask', domain: 'unverified.example.com', check_verification: 'no'
+          expect(last_response.status).to eq(403)
+        end
+
+        it 'enforces verification when check_verification is empty string' do
+          get '/ask', domain: 'unverified.example.com', check_verification: ''
+          expect(last_response.status).to eq(403)
+        end
+
+        it 'enforces verification when check_verification=FALSE (case sensitive)' do
+          get '/ask', domain: 'unverified.example.com', check_verification: 'FALSE'
+          expect(last_response.status).to eq(403)
+        end
+
+        it 'enforces verification when check_verification=False (mixed case)' do
+          get '/ask', domain: 'unverified.example.com', check_verification: 'False'
+          expect(last_response.status).to eq(403)
+        end
+      end
     end
 
     context 'with non-existent domain' do
@@ -95,6 +172,13 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
       it 'returns Forbidden text' do
         get '/ask', domain: 'nonexistent.example.com'
         expect(last_response.body).to eq('Forbidden')
+      end
+
+      context 'with check_verification=false' do
+        it 'still returns 403 (domain must exist regardless)' do
+          get '/ask', domain: 'nonexistent.example.com', check_verification: 'false'
+          expect(last_response.status).to eq(403)
+        end
       end
     end
 
@@ -151,70 +235,79 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
         .and_return(verified_domain)
     end
 
+    # NOTE: REMOTE_ADDR is a CGI variable, not an HTTP header. Rack::Test's
+    # `header` method prefixes with HTTP_, so we pass REMOTE_ADDR via the
+    # env hash (third argument to get/post) to set it correctly.
+
     context 'with IPv4 localhost' do
       it 'allows request from 127.0.0.1' do
-        header 'REMOTE_ADDR', '127.0.0.1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '127.0.0.1'
         expect(last_response.status).to eq(200)
       end
     end
 
     context 'with IPv6 localhost' do
       it 'allows request from ::1' do
-        header 'REMOTE_ADDR', '::1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '::1'
         expect(last_response.status).to eq(200)
       end
     end
 
     context 'with IPv4-mapped IPv6 localhost' do
       it 'allows request from ::ffff:127.0.0.1' do
-        header 'REMOTE_ADDR', '::ffff:127.0.0.1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '::ffff:127.0.0.1'
         expect(last_response.status).to eq(200)
       end
     end
 
     context 'with external IPv4 address' do
       it 'returns 401 Unauthorized from 192.168.1.1' do
-        header 'REMOTE_ADDR', '192.168.1.1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '192.168.1.1'
         expect(last_response.status).to eq(401)
       end
 
       it 'returns descriptive error message' do
-        header 'REMOTE_ADDR', '192.168.1.1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '192.168.1.1'
         expect(last_response.body).to include('localhost only')
       end
 
       it 'logs unauthorized access attempt' do
         expect(OT).to receive(:le).with(/Unauthorized access attempt from 192\.168\.1\.1/)
-        header 'REMOTE_ADDR', '192.168.1.1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '192.168.1.1'
       end
     end
 
     context 'with external IPv6 address' do
       it 'returns 401 Unauthorized' do
-        header 'REMOTE_ADDR', '2001:0db8::1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '2001:0db8::1'
         expect(last_response.status).to eq(401)
       end
     end
 
     context 'with public IP address' do
       it 'returns 401 Unauthorized from 8.8.8.8' do
-        header 'REMOTE_ADDR', '8.8.8.8'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '8.8.8.8'
         expect(last_response.status).to eq(401)
       end
     end
 
     context 'with private network address' do
       it 'returns 401 Unauthorized from 10.0.0.1' do
-        header 'REMOTE_ADDR', '10.0.0.1'
-        get '/ask', domain: 'example.com'
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => '10.0.0.1'
+        expect(last_response.status).to eq(401)
+      end
+    end
+
+    context 'with nil REMOTE_ADDR' do
+      it 'returns 401 Unauthorized' do
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => nil
+        expect(last_response.status).to eq(401)
+      end
+    end
+
+    context 'with empty REMOTE_ADDR' do
+      it 'returns 401 Unauthorized' do
+        get '/ask', { domain: 'example.com' }, 'REMOTE_ADDR' => ''
         expect(last_response.status).to eq(401)
       end
     end
@@ -224,12 +317,19 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
     subject(:application) { described_class.new }
 
     context 'with nil domain' do
-      it 'returns false' do
+      before do
         allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
           .with('test.com')
           .and_return(nil)
+      end
 
-        result = application.send(:domain_allowed?, 'test.com')
+      it 'returns false' do
+        result = described_class.domain_allowed?('test.com')
+        expect(result).to be false
+      end
+
+      it 'returns false even with check_verification: false' do
+        result = described_class.domain_allowed?('test.com', check_verification: false)
         expect(result).to be false
       end
     end
@@ -237,11 +337,23 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
     context 'with domain that is not ready' do
       let(:domain) { double('CustomDomain', ready?: false) }
 
-      it 'returns false' do
+      before do
         allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
           .and_return(domain)
+      end
 
-        result = application.send(:domain_allowed?, 'test.com')
+      it 'returns false with default check_verification' do
+        result = described_class.domain_allowed?('test.com')
+        expect(result).to be false
+      end
+
+      it 'returns true with check_verification: false' do
+        result = described_class.domain_allowed?('test.com', check_verification: false)
+        expect(result).to be true
+      end
+
+      it 'returns false with check_verification: true' do
+        result = described_class.domain_allowed?('test.com', check_verification: true)
         expect(result).to be false
       end
     end
@@ -249,11 +361,18 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
     context 'with domain that is ready' do
       let(:domain) { double('CustomDomain', ready?: true) }
 
-      it 'returns true' do
+      before do
         allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
           .and_return(domain)
+      end
 
-        result = application.send(:domain_allowed?, 'test.com')
+      it 'returns true' do
+        result = described_class.domain_allowed?('test.com')
+        expect(result).to be true
+      end
+
+      it 'returns true with check_verification: false' do
+        result = described_class.domain_allowed?('test.com', check_verification: false)
         expect(result).to be true
       end
     end
@@ -264,7 +383,7 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
           .and_raise(StandardError, 'Test error')
 
         expect(OT).to receive(:le).with(/Error checking domain/)
-        result = application.send(:domain_allowed?, 'test.com')
+        result = described_class.domain_allowed?('test.com')
         expect(result).to be false
       end
     end

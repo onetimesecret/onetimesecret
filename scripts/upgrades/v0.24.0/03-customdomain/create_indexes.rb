@@ -314,6 +314,20 @@ class CustomDomainIndexCreator
     org_id
   end
 
+  def redact_email(email)
+    return '***' unless email.is_a?(String) && email.include?('@')
+    local, domain = email.split('@', 2)
+    "#{local[0..2]}***@#{domain.sub(/\A[^.]+/, '***')}"
+  end
+
+  def redact_fqdn(fqdn)
+    return '***' unless fqdn.is_a?(String) && fqdn.include?('.')
+    parts = fqdn.split('.')
+    parts[0] = '***'
+    parts[-2] = '***' if parts.size >= 2
+    parts.join('.')
+  end
+
   def write_output(commands)
     FileUtils.mkdir_p(@output_dir)
     output_file = File.join(@output_dir, 'customdomain_indexes.jsonl')
@@ -359,8 +373,8 @@ class CustomDomainIndexCreator
     if @stats[:missing_org_details].any?
       puts '=== Domains Missing Org Lookup ==='
       @stats[:missing_org_details].each do |detail|
-        puts "  #{detail[:display_domain] || detail[:domainid]}"
-        puts "    custid: #{detail[:custid]}"
+        puts "  #{detail[:display_domain] ? redact_fqdn(detail[:display_domain]) : detail[:domainid]}"
+        puts "    custid: #{redact_email(detail[:custid])}"
         puts "    domainid: #{detail[:domainid]}"
         puts "    extid: #{detail[:extid]}"
       end

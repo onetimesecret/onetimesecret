@@ -192,6 +192,8 @@ echo ""
 echo "=== Local filesystem cleanup ==="
 echo ""
 
+TOTAL_REMOVE=0
+
 if [ ! -d "$DATA_DIR" ]; then
   echo "  Data directory does not exist: $DATA_DIR"
   echo "  Nothing to clean locally."
@@ -199,8 +201,6 @@ else
   # Only dumps and logs need pre-counted (they have --keep-* flags)
   DUMP_COUNT=$(find "$DATA_DIR" -name '*_dump.jsonl' 2>/dev/null | wc -l | tr -d ' ')
   LOG_COUNT=$(find "$DATA_DIR" -path '*/logs/*' 2>/dev/null | wc -l | tr -d ' ')
-
-  TOTAL_REMOVE=0
 
   # Remove enriched, transform, and index files (always)
   for pattern_label in \
