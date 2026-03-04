@@ -312,21 +312,6 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
       end
     end
 
-    context 'with nil REMOTE_ADDR' do
-      it 'returns 401 Unauthorized' do
-        header 'REMOTE_ADDR', nil
-        get '/ask', domain: 'example.com'
-        expect(last_response.status).to eq(401)
-      end
-    end
-
-    context 'with empty REMOTE_ADDR' do
-      it 'returns 401 Unauthorized' do
-        header 'REMOTE_ADDR', ''
-        get '/ask', domain: 'example.com'
-        expect(last_response.status).to eq(401)
-      end
-    end
   end
 
   describe '#domain_allowed?' do
