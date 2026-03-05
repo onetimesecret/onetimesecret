@@ -95,6 +95,7 @@ jobs:
           EXTRA_TAGS: ${{ inputs.image_tags }}
           PLATFORMS: ${{ inputs.platforms }}
         with:
+          source: .
           files: docker/bake.hcl
           targets: ${{ inputs.bake_group }}
           push: ${{ github.event_name != 'pull_request' }}

@@ -9,7 +9,6 @@
   import ThemeToggle from '@/components/ThemeToggle.vue';
 
   import { WindowService } from '@/services/window.service';
-
   import type { LayoutProps } from '@/types/ui/layouts';
 
   withDefaults(defineProps<LayoutProps>(), {
@@ -67,7 +66,7 @@
           text-xs text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
             v-if="displayVersion"
-            :title="`${$t('onetime-secret-literal')} Version`">
+            :title="`${$t('onetime-secret-literal')} ${$t('version')}`">
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${windowProps.ot_version}`"
               :aria-label="$t('release-notes')">
@@ -81,7 +80,7 @@
           </span>
           <span
             v-if="displayPoweredBy"
-            :title="`${$t('onetime-secret-literal')} Version`">
+            :title="`${$t('web.COMMON.powered_by')} ${$t('onetime-secret-literal')}`">
             <a
               :href="$t('web.COMMON.website_url')"
               target="_blank"

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#
+# bin/frontend
+
+set -euo pipefail
+
+if [ -f .env.sh ]; then
+  source .env.sh
+fi
+
+pnpm run dev "$@"
