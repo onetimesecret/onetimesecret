@@ -36,7 +36,7 @@ module V1
           require_relative 'logic'
           require_relative 'models'
 
-          V1::RateLimit.register_events OT.conf[:limits]
+          V1::RateLimit.register_events OT.conf[:limits] || {}
 
           # Log warmup completion
           Onetime.li "V1 warmup completed"

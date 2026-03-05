@@ -187,6 +187,8 @@ module V1
       # @return [Hash] the updated events hash
       def register_events multiple_events
         OT.ld "[register_events] #{multiple_events.inspect}"
+        return events if multiple_events.nil? || multiple_events.empty?
+
         events.merge! multiple_events
       end
 
