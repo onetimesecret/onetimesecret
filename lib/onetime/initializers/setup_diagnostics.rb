@@ -44,28 +44,24 @@ module Onetime
         Kernel.require 'sentry-ruby'
         Kernel.require 'stackprof'
 
-        # re: "certificate verify failed (unable to get certificate CRL)"
-        #
-        # Fix for OpenSSL 3.6+ CRL verification failures on macOS
-        # OpenSSL 3.6 enables strict CRL checking by default, but macOS's
-        # OpenSSL build lacks a CRL bundle, causing valid certificates to fail.
-        # This disables CRL checking while maintaining certificate verification.
+        # Fix for OpenSSL 3.6+ CRL verification failures on macOS.
+        # OpenSSL 3.6 enforces CRL checking by default, but Ruby's
+        # Net::HTTP doesn't fetch CRLs so verification fails with
+        # "unable to get certificate CRL". Neither Net::HTTP nor
+        # SSLContext expose verify_flags= in Ruby 3.4, so the fix
+        # is to provide a custom X509::Store (with system CAs loaded
+        # but no CRL flags) via the Sentry transport's ssl config.
         #
         # See: https://github.com/rails/rails/issues/55886
-        #
-        OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_mode] = OpenSSL::SSL::VERIFY_PEER
-        #
-        # Now disabling :verify_flags even though it worked briefly and got rid of
-        # CRL error. There's some version voodoo going on since it now results in a
-        # separate error ("undefined method 'verify_flags=' in OpenSSL::SSL::SSLContext").
-        # ¯\_(ツ)_/¯
-        # OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_flags] &=
-        #   ~(OpenSSL::X509::V_FLAG_CRL_CHECK_ALL | OpenSSL::X509::V_FLAG_CRL_CHECK)
+        cert_store = OpenSSL::X509::Store.new
+        cert_store.set_default_paths
 
         Sentry.init do |config|
           config.dsn = dsn
           config.environment = "#{site_host} (#{OT.env})"
           config.release = OT::VERSION.inspect
+
+          config.transport.ssl = { cert_store: cert_store }
 
           # Configure breadcrumbs logger for detailed error tracking.
           # Uses sentry_logger to capture progression of events leading
