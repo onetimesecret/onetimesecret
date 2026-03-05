@@ -41,7 +41,7 @@ const { t } = useI18n();
           class="flex w-full flex-wrap items-center justify-center gap-4 text-center text-sm text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
             v-if="displayVersion"
-            :title="`${t('web.homepage.onetime_secret_literal')} Version`">
+            :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
             <a :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`">v{{ ot_version_long }}</a>
           </span>
         </div>

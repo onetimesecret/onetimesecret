@@ -1335,5 +1335,9 @@
   "web.pricing.free_tier_description": {
     "text": "Crea i comparteix secrets amb funcions bàsiques. No es requereix targeta de crèdit.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "Enllaç extern",
+    "sha256": "a1b2c3d5"
   }
 }
