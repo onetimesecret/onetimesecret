@@ -1335,5 +1335,9 @@
   "web.pricing.free_tier_description": {
     "text": "使用基本功能创建和分享内容。无需信用卡。",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "外部链接",
+    "sha256": "a1b2c3d5"
   }
 }

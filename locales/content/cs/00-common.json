@@ -1335,5 +1335,9 @@
   "web.pricing.free_tier_description": {
     "text": "Vytvářejte a sdílejte tajemství se základními funkcemi. Není vyžadována platební karta.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "Externí odkaz",
+    "sha256": "a1b2c3d5"
   }
 }

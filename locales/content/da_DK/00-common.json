@@ -1335,5 +1335,9 @@
   "web.pricing.free_tier_description": {
     "text": "Opret og del beskeder med grundlæggende funktioner. Intet kreditkort påkrævet.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "Eksternt link",
+    "sha256": "a1b2c3d5"
   }
 }

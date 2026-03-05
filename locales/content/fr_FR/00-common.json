@@ -1335,5 +1335,9 @@
   "web.pricing.free_tier_description": {
     "text": "Créez et partagez des secrets avec les fonctionnalités de base. Aucune carte bancaire requise.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "Lien externe",
+    "sha256": "a1b2c3d5"
   }
 }
