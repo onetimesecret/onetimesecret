@@ -12,100 +12,91 @@ module Core
     # backward compatibility. New billing functionality has been moved to
     # apps/web/billing/ (see Billing::Controllers::Plans, Billing::Controllers::Webhooks).
     #
-    # Routes being migrated:
-    # - GET /plans/:tier/:billing_cycle → /billing/plans/:tier/:billing_cycle
-    # - GET /welcome → /billing/welcome
-    # - POST /welcome/stripe/webhook → /billing/webhook
-    # - GET /account/billing/portal → /billing/portal
+    # Legacy routes handled here redirect to the billing app:
+    # - GET /plans/:tier/:billing_cycle -> /billing/plans/:product/:interval
+    # - GET /welcome -> /billing/welcome
+    # - GET /account/billing/portal -> /billing/portal
     #
     class Welcome
       include Controllers::Base
 
-      # Redirects users to the appropriate Stripe Payment Link based on selected plan
+      # Maps legacy tier names (v0.23) to current product IDs (v0.24).
+      # Add entries here when renaming tiers to maintain backward compatibility
+      # with existing external links (e.g., from the static pricing page).
+      LEGACY_TIER_MAP = {
+        'identity' => 'identity_plus_v1',
+        'dedicated' => 'identity_plus_v1',
+      }.freeze
+
+      # Maps short billing cycle names to the interval format expected
+      # by PlanResolver (which accepts 'monthly'/'yearly').
+      BILLING_CYCLE_MAP = {
+        'month' => 'monthly',
+        'monthly' => 'monthly',
+        'year' => 'yearly',
+        'yearly' => 'yearly',
+      }.freeze
+
+      # Redirects users to the billing checkout for the selected plan
       #
-      # This endpoint processes the user's plan selection from the pricing page and
-      # redirects them to the corresponding Stripe Payment Link. It handles plan tier
-      # and billing cycle selection, and includes relevant customer information in
-      # the redirect URL.
+      # This legacy endpoint handles plan selection URLs from the static pricing
+      # page and redirects to the v0.24 billing checkout flow. It maps old-style
+      # tier names (e.g., 'identity') to current product IDs (e.g., 'identity_plus_v1')
+      # and normalizes billing cycle names (e.g., 'month' to 'monthly').
       #
-      # GET /pricing/:tier/:billing_cycle
+      # GET /plans/:tier/:billing_cycle
       #
-      # @param [String] tier The selected plan tier (e.g., 'free', 'identity', 'dedicated')
-      # @param [String] billing_cycle The chosen billing frequency (e.g., 'month', 'year')
+      # @param [String] tier The selected plan tier (e.g., 'identity', 'dedicated')
+      # @param [String] billing_cycle The chosen billing frequency ('month' or 'year')
       #
-      # @return [HTTP 302] Redirects to the Stripe Payment Link for the selected plan
-      #                    or to '/signup' if the plan configuration is not found
+      # @return [HTTP 302] Redirects to /billing/plans/:product/:interval for checkout
+      #                    or to '/pricing' if the tier is not recognized
       #
-      # @note This endpoint is noauth accessible and handles both anonymous and
-      #       authenticated users. For authenticated users, it pre-fills the email
-      #       in the Stripe checkout process.
+      # @note This endpoint is noauth accessible. The billing checkout endpoint
+      #       handles customer identification and Stripe session creation.
       #
-      # @see OT.billing_config.payment_links For the configuration of Stripe Payment Links
-      #
-      # @see https://docs.stripe.com/api/payment-link/object For API reference
+      # @see Billing::Controllers::Plans#checkout_redirect For the checkout flow
       #
       def plan_redirect
-          # We take the tier and billing cycle from the URL path and try to
-          # get the preconfigured Stripe payment links using those values.
-          tierid        = req.params['tier'] ||= 'free'
-          billing_cycle = req.params['billing_cycle'] ||= 'month' # year or month
+        tierid        = req.params['tier'] ||= 'free'
+        billing_cycle = req.params['billing_cycle'] ||= 'month'
 
-          payment_links = OT.billing_config.payment_links
-          payment_link  = payment_links.dig(tierid, billing_cycle)
+        # Map legacy tier names to current product IDs. This allows old URLs
+        # from the static pricing page (e.g., /plans/identity/month) to route
+        # to the correct v0.24 checkout flow.
+        product = LEGACY_TIER_MAP[tierid]
 
-          http_logger.debug 'Plan redirect request',
-            {
-              tierid: tierid,
-              billing_cycle: billing_cycle,
-              payment_link: payment_link,
-            }
+        # Normalize billing cycle to the interval format expected by the
+        # billing checkout endpoint (month -> monthly, year -> yearly).
+        interval = BILLING_CYCLE_MAP[billing_cycle]
 
-          validated_url = validate_url(payment_link)
-
-          unless validated_url
-            http_logger.warn 'Unknown plan configuration - redirecting to signup',
-              {
-                tierid: tierid,
-                billing_cycle: billing_cycle,
-              }
-            raise OT::Redirect.new('/signup')
-          end
-
-          http_logger.info 'Plan clicked - redirecting to Stripe',
-            {
-              tierid: tierid,
-              billing_cycle: billing_cycle,
-              url: validated_url.to_s,
-            }
-
-          stripe_params = {
-            # rack.locale is a list, often with just a single locale (e.g. `[en]`).
-            # When calling `encode_www_form` the list gets expanded into N query
-            # parameters where N is the number of elements in the list. So a list
-            # with 2 items `[en, en-US]` becomes `locale=en&locale=en-US`.
-            locale: req.env['rack.locale'],
+        http_logger.debug 'Legacy plan redirect',
+          {
+            tierid: tierid,
+            billing_cycle: billing_cycle,
+            resolved_product: product,
+            resolved_interval: interval,
           }
 
-          # Adding the existing customer details streamlines the payment flow
-          # by prepolulating the email address.
-          #
-          # For testing Adaptive Pricing, pass a "location-formatted email" as
-          # the prefilled_email to simulate currency presentment for customers in
-          # different countries. e.g. `test+location_FR@example.com` where FR is
-          # a two-charactor ISO country code. https://www.iso.org/obp/ui/#search
-          #
-          unless cust.anonymous?
-            stripe_params[:prefilled_email]     = cust.custid
-            stripe_params[:client_reference_id] = ''
-          end
-
-          # Apply the query parameters back to the URI::HTTP object
-          validated_url.query = URI.encode_www_form(stripe_params)
-          http_logger.debug 'Updated Stripe URL with query parameters',
+        unless product && interval
+          http_logger.warn 'Unrecognized plan tier or billing cycle - redirecting to pricing',
             {
-              query: validated_url.query,
+              tierid: tierid,
+              billing_cycle: billing_cycle,
             }
-          res.redirect validated_url.to_s # convert URI::Generic to a string
+          res.redirect '/pricing'
+          return
+        end
+
+        http_logger.info 'Plan redirect to billing checkout',
+          {
+            tierid: tierid,
+            billing_cycle: billing_cycle,
+            product: product,
+            interval: interval,
+          }
+
+        res.redirect "/billing/plans/#{product}/#{interval}"
       end
 
       # Handles the redirect from Stripe Payment Links after a successful payment
