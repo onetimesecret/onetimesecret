@@ -20,8 +20,11 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_DIR="$(dirname "$SCRIPT_DIR")"
+
 BASE_URL="${1:?Usage: $0 <base_url> <output_dir> [username] [apitoken] [--form]}"
-OUTPUT_DIR="${2:?Usage: $0 <base_url> <output_dir> [username] [apitoken] [--form]}"
+OUTPUT_DIR="${2:-$BASE_DIR/captures}"
 USERNAME="${3:-}"
 APITOKEN="${4:-}"
 
@@ -271,10 +274,11 @@ capture "13-generate-params" POST "/generate" \
   -H "Content-Type: application/json" \
   -d '{"ttl":3600}'
 
-# Create (alias for share)
+# Create (alias for share) — Always form-encoded so both --form and JSON mode
+# send identical requests. Eliminates content-type mismatch in diff results.
 capture "14-create-alias" POST "/create" \
-  -H "Content-Type: application/json" \
-  -d '{"secret":"testing create alias","ttl":300}'
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d 'secret=testing+create+alias&ttl=300'
 
 # ── 3. Edge Cases: Creation ──
 
@@ -507,9 +511,11 @@ capture "90-form-encoded-share" POST "/share" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d 'secret=form+encoded+secret&ttl=300'
 
-# No content-type header
+# No content-type header — uses form-encoded body so both --form and
+# non-form runs send identical data. Tests whether the server handles
+# a POST with form data but no explicit Content-Type header.
 capture "91-no-content-type" POST "/share" \
-  --data-raw '{"secret":"no content type","ttl":300}'
+  -d 'secret=no+content+type&ttl=300'
 
 # ── Summary ──
 

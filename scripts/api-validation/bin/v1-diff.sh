@@ -18,9 +18,12 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_DIR="$(dirname "$SCRIPT_DIR")"
+
 BASELINE_DIR="${1:?Usage: $0 <baseline_dir> <candidate_dir> [output_file]}"
 CANDIDATE_DIR="${2:?Usage: $0 <baseline_dir> <candidate_dir> [output_file]}"
-OUTPUT_FILE="${3:-./diffs/v1-diff-report.json}"
+OUTPUT_FILE="${3:-$BASE_DIR/diffs/v1-diff-report.json}"
 
 mkdir -p "$(dirname "$OUTPUT_FILE")"
 
@@ -69,8 +72,11 @@ compare_bodies() {
         [prefix + "(value)"]
       end;
 
-    ($b | if type == "object" then keys else [] end) as $bkeys |
-    ($c | if type == "object" then keys else [] end) as $ckeys |
+    # Fields intentionally removed in v0.24 (not regressions)
+    ["shrimp"] as $ignored_fields |
+
+    ($b | if type == "object" then keys | map(select(. as $k | $ignored_fields | index($k) | not)) else [] end) as $bkeys |
+    ($c | if type == "object" then keys | map(select(. as $k | $ignored_fields | index($k) | not)) else [] end) as $ckeys |
 
     {
       fields_only_in_baseline: ($bkeys - $ckeys),
@@ -95,8 +101,18 @@ compare_bodies() {
             ($b[$k] | type) != "object" and
             ($b[$k] | type) != "array" and
             $b[$k] != $c[$k] and
-            # Skip dynamic fields that will always differ
-            (["updated","created","shrimp","secret_key","metadata_key","identifier","key","shortid","secret_shortid","secret_identifier"] | index($k) | not)
+            # Skip dynamic fields that will always differ between captures:
+            #   identifiers/keys: unique per secret creation
+            #   value/secret_value: random for /generate, consumed on reveal
+            #   received: timestamp set at reveal time
+            #   updated/created: timestamps
+            (["updated","created","shrimp","secret_key","metadata_key","identifier","key","shortid","secret_shortid","secret_identifier","value","secret_value","received"] | index($k) | not) and
+            # Numeric tolerance: skip near-equal numbers (timing drift between captures)
+            (if ($b[$k] | type) == "number" and ($c[$k] | type) == "number" then
+              (($b[$k] - $c[$k]) | if . < 0 then -. else . end) > 10
+            else
+              true
+            end)
           ) |
           {
             key: $k,

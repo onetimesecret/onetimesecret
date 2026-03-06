@@ -18,6 +18,12 @@ module Onetime
           'secret' => nil,
           'secret_options' => {
             'default_ttl' => 7.days,
+            # These DEFAULTS are the effective values when the YAML config
+            # sets ttl_options to nil (e.g. no TTL_OPTIONS env var). The
+            # deep_merge nil-preservation rule means nil in YAML keeps
+            # this array intact. The max here (30.days) becomes the global
+            # TTL ceiling — override via TTL_OPTIONS env var in production
+            # if a lower cap is needed.
             'ttl_options' => [
               60.seconds,     # 60 seconds (was missing from v0.20.5)
               5.minutes,      # 300 seconds
@@ -493,7 +499,18 @@ module Onetime
       OT.replace_config! new_config
     end
 
-    # Standard deep_merge implementation based on widely used patterns
+    # Deep merge with nil-preservation semantics.
+    #
+    # When YAML config resolves a key to nil (e.g. `ttl_options: <%= nil %>`),
+    # the DEFAULTS value is preserved — nil means "not specified", not "empty".
+    # This is the v2.nil? branch below: if the loaded config has nil for a key,
+    # the original (DEFAULTS) value wins.
+    #
+    # Consequence: DEFAULTS.ttl_options.max determines the effective TTL ceiling
+    # unless the deployment explicitly sets TTL_OPTIONS. An empty string would
+    # NOT trigger this preservation (it's truthy), so `ttl_options: ""` would
+    # replace the array with "" — use nil, not empty string, to inherit defaults.
+    #
     # @param original [Hash] Base hash with default values
     # @param other [Hash] Hash with values that override defaults
     # @return [Hash] A new hash containing the merged result
@@ -507,7 +524,7 @@ module Onetime
         if v1.is_a?(Hash) && v2.is_a?(Hash)
           v1.merge(v2, &merger)
         elsif v2.nil?
-          v1
+          v1 # nil in loaded config = "not specified" → keep default
         else
           v2
         end

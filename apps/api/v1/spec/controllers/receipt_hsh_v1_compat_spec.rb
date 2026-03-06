@@ -155,8 +155,8 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
         }
       end
 
-      it 'returns nil custid (no v1_custid or custid fallback)' do
-        expect(result['custid']).to be_nil
+      it 'returns "anon" custid (v0.23 never returned nil for custid)' do
+        expect(result['custid']).to eq('anon')
       end
     end
 

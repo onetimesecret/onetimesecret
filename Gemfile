@@ -72,7 +72,7 @@ gem 'truemail'
 # ORMs and database drivers
 # NOTE: We install both db drivers for the OCI images so that users can choose
 # which database to use at runtime via environment variable without rebuilding.
-gem 'familia', '2.3.0'
+gem 'familia', '2.3.1'
 gem 'pg', '~> 1.6'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'
@@ -144,7 +144,7 @@ group :development do
 
   # Code quality and language server
   gem 'kanayago', '~> 0.7', require: false
-  gem 'rubocop', '~> 1.85.0', require: false
+  gem 'rubocop', '~> 1.85.1', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-sequel', require: false
