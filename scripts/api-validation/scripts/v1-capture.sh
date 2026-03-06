@@ -48,9 +48,6 @@ capture() {
   local tmpfile
   tmpfile=$(mktemp)
 
-  local start_ms
-  start_ms=$(date +%s%N 2>/dev/null || python3 -c 'import time; print(int(time.time()*1e6))')
-
   # Capture full response: status, headers, body
   local http_code
   http_code=$(curl -s -w '%{http_code}' \
@@ -62,9 +59,6 @@ capture() {
     -o "${tmpfile}.body" \
     "${extra_args[@]}" \
     "$url" 2>/dev/null) || http_code="000"
-
-  local end_ms
-  end_ms=$(date +%s%N 2>/dev/null || python3 -c 'import time; print(int(time.time()*1e6))')
 
   # Parse response body as JSON (or capture raw if not JSON)
   local body_json

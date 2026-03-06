@@ -88,11 +88,11 @@ result = V1::Controllers::Index.receipt_hsh(@receipt)
 result['custid']
 #=> nil
 
-## Handling nil secret_identifier
+## Handling nil secret_identifier maps to nil secret_key in output
 @receipt.secret_identifier = nil
 @receipt.save
 result = V1::Controllers::Index.receipt_hsh(@receipt)
-result['secret_identifier']
+result['secret_key']
 #=> nil
 
 ## Handling nil state
