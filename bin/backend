@@ -8,12 +8,6 @@ if ! command -v overmind >/dev/null 2>&1; then
   exit 1
 fi
 
-if [ -f .env.sh ]; then
-  set -a
-  . .env.sh
-  set +a
-fi
-
 PORT="${PORT:-7143}"
 
 exec env PORT="$PORT" overmind start -f Procfile.dev -l backend
