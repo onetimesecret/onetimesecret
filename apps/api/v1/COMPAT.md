@@ -87,3 +87,10 @@ The `--form` flag sends POST data as `application/x-www-form-urlencoded`
 
 The diff report flags: status code changes, field additions/removals, type
 changes, header changes, and value changes in key fields.
+
+## Related Commits
+
+- `56bc83dfe` Document V1 compat policy decisions inline
+- `f9e4bd9e7` Map V1 state values to v0.23.x vocabulary
+- `789edff55` Restore V1 custid (email) and secret_shortkey fields
+- `50d5f4267` V1 API compat: match v0.23 contract; fix validation tooling (#2626)
