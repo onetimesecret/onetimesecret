@@ -118,7 +118,7 @@ redis:
 # When disabled, email delivery falls back to synchronous mode.
 jobs:
   enabled: false
-  rabbitmq_url: "<%= ENV['RABBITMQ_URL'] || 'amqp://guest:guest@localhost:5672/testing' %>"
+  rabbitmq_url: "<%= ENV['RABBITMQ_URL'] || '' %>"
   channel_pool_size: 1
   fallback_to_sync: true
 
