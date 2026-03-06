@@ -109,7 +109,9 @@ module V1
           'state' => v1_state_map.fetch(raw_state, raw_state),
           'updated' => hsh.fetch('updated', nil)&.to_i,
           'created' => hsh.fetch('created', nil)&.to_i,
-          'received' => hsh.fetch('received', nil).to_i, # empty fields become 0
+          # V1 compat: fall back to `revealed` timestamp if `received` is empty.
+          # In v0.24, revealed! sets `revealed` (not the deprecated `received` field).
+          'received' => (hsh.fetch('received', nil).to_s.empty? ? hsh.fetch('revealed', nil) : hsh.fetch('received', nil)).to_i,
           'recipient' => recipient.compact,
           'share_domain' => hsh.fetch('share_domain', nil) || '',
         }
