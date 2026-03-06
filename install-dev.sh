@@ -3,6 +3,7 @@
 # install-dev.sh
 #
 # Run this in any checkout/worktree to set up a local dev environment:
+#   - Copies Procfile.dev.example -> Procfile.dev (if not present)
 #   - Links shared dev resources from OTS_DEV_CONFIG
 #   - Installs Ruby gems (bundle install)
 #   - Installs Node packages (pnpm install)
@@ -20,8 +21,6 @@ declare -A LINKS=(
     ["etc/billing.yaml"]="billing.yaml"
     ["etc/logging.yaml"]="logging.yaml"
     ["data"]="data"
-    ["Procfile.dev"]="Procfile.dev"
-    ["Procfile.volatile"]="Procfile.volatile"
     [".env.test"]=".env.test"
     ["etc/puma.rb"]="puma.rb"
 )
@@ -30,6 +29,22 @@ declare -A LINKS=(
 if [[ -f "$OTS_DEV_CONFIG/.env" ]]; then
     LINKS[".env"]=".env"
 fi
+
+# Copy Procfile.dev.example -> Procfile.dev if not already present
+setup_procfile_dev() {
+    if [[ ! -f "Procfile.dev.example" ]]; then
+        echo "Skip: Procfile.dev.example does not exist"
+        return
+    fi
+
+    if [[ -f "Procfile.dev" ]]; then
+        echo "OK:   Procfile.dev (already exists)"
+        return
+    fi
+
+    cp -n "Procfile.dev.example" "Procfile.dev"
+    echo "Copy: Procfile.dev.example -> Procfile.dev"
+}
 
 # Repair .env.sh if it's a symlink (historical git issue)
 repair_env_sh() {
@@ -110,6 +125,9 @@ if [[ ! -f "Gemfile" ]]; then
     echo "Error: Run this from an OTS checkout root"
     exit 1
 fi
+
+# Copy Procfile.dev from example if not present
+setup_procfile_dev
 
 # Repair .env.sh before proceeding with other links
 repair_env_sh
