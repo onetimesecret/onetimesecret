@@ -51,6 +51,10 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --port|-p)
+      if [[ -z "$2" || "$2" == -* ]]; then
+        echo "Error: '$1' requires a port value." >&2
+        exit 1
+      fi
       PORT_OVERRIDE="$2"
       shift 2
       ;;
