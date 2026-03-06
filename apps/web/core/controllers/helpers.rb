@@ -545,11 +545,8 @@ module Core
       res.header['Pragma'] = "no-cache"
     end
 
-    def app_path *paths
-      paths = paths.flatten.compact
-      paths.unshift req.script_name
-      paths.join('/').gsub '//', '/'
-    end
+    # app_path is provided by Otto on its Rack request and response objects.
+    # Use req.app_path(...) or res.app_path(...) directly rather than defining it here.
 
   end
 end
