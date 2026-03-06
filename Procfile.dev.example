@@ -9,6 +9,8 @@
 
 #valkey: valkey-server --port 9111 --save "" --appendonly no
 
-backend: bundle exec puma -C etc/puma.rb
+backend: bundle exec puma -C etc/examples/puma.example.rb
 
 frontend: pnpm run dev
+
+#worker: bin/worker
