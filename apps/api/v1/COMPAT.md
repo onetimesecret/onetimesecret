@@ -39,10 +39,14 @@ the password is the API token. Session/cookie auth is rejected.
 
 Anonymous access is allowed on these endpoints:
 
+- `GET /status`
 - `POST /share`
 - `POST /generate`
 - `POST /create`
 - `POST /secret/:key`
+- `GET /private/:key` (aliases: `/metadata/:key`, `/receipt/:key`)
+- `POST /private/:key` (aliases: `/metadata/:key`, `/receipt/:key`)
+- `POST /private/:key/burn` (aliases: `/metadata/:key/burn`, `/receipt/:key/burn`)
 
 Anonymous secrets set `custid` to `"anon"`.
 

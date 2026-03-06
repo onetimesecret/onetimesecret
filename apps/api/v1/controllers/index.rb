@@ -20,8 +20,8 @@ module V1
     # truncated secret identifier, even though the model method is
     # secret_shortid (v0.24 name).
     #
-    # GET /private/:key was supported in v0.23.x but v0.24 only routes
-    # POST for receipt lookup. This is a known behavioral change.
+    # GET and POST /private/:key (and aliases /metadata/:key, /receipt/:key)
+    # are both routed in v0.24, matching v0.23.x behavior.
     #
     class Index
       include ControllerBase
