@@ -5,7 +5,7 @@
 # USAGE:
 #   $ bin/dev                       # Start with Procfile.dev
 #   $ bin/dev --volatile            # Start with Procfile.volatile (no persistent data)
-#   $ bin/dev --port=7144           # Start on a specific port (also: PORT=7144 bin/dev)
+#   $ bin/dev --port=7144           # Override port (also: -p 7144 or PORT=7144 bin/dev)
 #
 # WINDOW MODES:
 #   Main Window (bin/dev): Pure log stream. Bird's-eye view of all processes.
@@ -46,11 +46,11 @@ while [[ $# -gt 0 ]]; do
       PROCFILE="Procfile.volatile"
       shift
       ;;
-    --port=*)
-      PORT_OVERRIDE="${1#--port=}"
+    --port=*|-p=*)
+      PORT_OVERRIDE="${1#*=}"
       shift
       ;;
-    --port)
+    --port|-p)
       PORT_OVERRIDE="$2"
       shift 2
       ;;
