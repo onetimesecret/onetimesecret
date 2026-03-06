@@ -18,9 +18,12 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_DIR="$(dirname "$SCRIPT_DIR")"
+
 BASELINE_DIR="${1:?Usage: $0 <baseline_dir> <candidate_dir> [output_file]}"
 CANDIDATE_DIR="${2:?Usage: $0 <baseline_dir> <candidate_dir> [output_file]}"
-OUTPUT_FILE="${3:-./diffs/v1-diff-report.json}"
+OUTPUT_FILE="${3:-$BASE_DIR/diffs/v1-diff-report.json}"
 
 mkdir -p "$(dirname "$OUTPUT_FILE")"
 

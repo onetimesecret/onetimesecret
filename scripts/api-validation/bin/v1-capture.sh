@@ -20,8 +20,11 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_DIR="$(dirname "$SCRIPT_DIR")"
+
 BASE_URL="${1:?Usage: $0 <base_url> <output_dir> [username] [apitoken] [--form]}"
-OUTPUT_DIR="${2:?Usage: $0 <base_url> <output_dir> [username] [apitoken] [--form]}"
+OUTPUT_DIR="${2:-$BASE_DIR/captures}"
 USERNAME="${3:-}"
 APITOKEN="${4:-}"
 
