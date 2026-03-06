@@ -96,9 +96,10 @@ module V1
         # In v0.24, owner_id stores Customer objid (UUID). Legacy custid stored email.
         # Priority: opts[:custid] (caller-supplied email) > v1_custid (migrated) > custid (legacy).
         # Fallback: anonymous secrets return "anon" (not nil) to match v0.23 behavior.
+        # In v0.23, every receipt had a custid — unauthenticated ones used "anon".
         v1_custid = opts[:custid] || hsh.fetch('v1_custid', nil)
         v1_custid = hsh.fetch('custid', nil) if v1_custid.nil? || v1_custid.to_s.empty?
-        v1_custid = 'anon' if v1_custid.nil? && owner_id_val.to_s == 'anon'
+        v1_custid = 'anon' if v1_custid.nil? || v1_custid.to_s.empty?
 
         # Map v0.24.0 state values back to v0.23.x vocabulary for V1 compat.
         # Internally: previewed -> viewed, revealed -> received, shared -> new
@@ -108,7 +109,7 @@ module V1
         ret = {
           'custid' => v1_custid,
           'metadata_key' => md.identifier,
-          'secret_key' => (secret_id_val && !secret_id_val.empty? ? secret_id_val : hsh.fetch('secret_key', '')),
+          'secret_key' => (secret_id_val && !secret_id_val.empty? ? secret_id_val : hsh.fetch('secret_key', '')).to_s,
           'ttl' => receipt_ttl, # static value from database hash field
           'metadata_ttl' => receipt_realttl, # actual number of seconds left to live
           'secret_ttl' => secret_realttl, # ditto, actual number
