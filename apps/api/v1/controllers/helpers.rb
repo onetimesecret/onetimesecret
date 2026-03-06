@@ -315,12 +315,8 @@ module V1
       res.do_not_cache!
     end
 
-    def app_path *paths
-      paths = paths.flatten.compact
-      paths.unshift req.script_name
-      paths.join('/').gsub '//', '/'
-    end
-
+    # Note: app_path is not defined here. Otto provides it on both req and res,
+    # prepending script_name to support sub-path mounting. Use req.app_path(...).
 
     # Checks if authentication is enabled for the site.
     #

@@ -36,7 +36,7 @@ RSpec.describe Core::Controllers::Authentication do
     response = double('Response')
     allow(response).to receive(:do_not_cache!)
     allow(response).to receive(:redirect)
-    allow(response).to receive(:app_path) { |path| path }
+    allow(request).to receive(:app_path) { |path| path }
     allow(response).to receive(:status=)
     response
   end

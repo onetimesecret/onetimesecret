@@ -63,7 +63,7 @@ module Core
           json_success('You have been logged out')
         else
           session['success_message'] = 'You have been logged out'
-          res.redirect res.app_path('/')
+          res.redirect req.app_path('/')
         end
       end
 

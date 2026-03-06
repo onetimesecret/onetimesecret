@@ -140,7 +140,7 @@ RSpec.describe V1::Controllers::Index, type: :request do
       before do
         allow(request).to receive(:get?).and_return(true)
         allow(logic).to receive(:redirect_uri).and_return('/some/path')
-        allow(app).to receive(:app_path).and_return('/some/path')
+        allow(request).to receive(:app_path).and_return('/some/path')
       end
 
       it 'redirects to the specified path' do
@@ -210,7 +210,7 @@ RSpec.describe V1::Controllers::Index, type: :request do
       before do
         allow(request).to receive(:get?).and_return(true)
         allow(logic).to receive(:redirect_uri).and_return('/receipt/abc')
-        allow(app).to receive(:app_path).and_return('/receipt/abc')
+        allow(request).to receive(:app_path).and_return('/receipt/abc')
       end
 
       it 'redirects' do
@@ -266,7 +266,7 @@ RSpec.describe V1::Controllers::Index, type: :request do
       before do
         allow(request).to receive(:get?).and_return(true)
         allow(logic).to receive(:redirect_uri).and_return('/receipt/gen')
-        allow(app).to receive(:app_path).and_return('/receipt/gen')
+        allow(request).to receive(:app_path).and_return('/receipt/gen')
       end
 
       it 'redirects without calling previewed!' do
