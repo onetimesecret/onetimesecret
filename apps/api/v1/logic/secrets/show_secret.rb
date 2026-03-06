@@ -40,9 +40,15 @@ module V1::Logic
         owner = secret.load_owner
 
         if show_secret
-          # If we can't decrypt that's great! We just set secret_value to
-          # the encrypted string.
-          @secret_value = secret.can_decrypt? ? secret.decrypted_secret_value(passphrase_input: passphrase) : secret.value
+          # Call decrypted_secret_value directly instead of guarding with
+          # can_decrypt?. For passphrase-protected secrets, can_decrypt? checks
+          # passphrase_temp which isn't set until decrypted_secret_value runs —
+          # so can_decrypt? returns false and we fall through to secret.value
+          # (which is empty for v0.24 ciphertext-only secrets). Since we've
+          # already verified the passphrase is correct (line 35), we can safely
+          # call decrypted_secret_value which handles both ciphertext (v2) and
+          # legacy value paths.
+          @secret_value = secret.decrypted_secret_value(passphrase_input: passphrase)
           @is_truncated = secret.truncated?
           @original_size = secret.respond_to?(:original_size) ? secret.original_size : nil
 

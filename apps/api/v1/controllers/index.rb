@@ -91,19 +91,19 @@ module V1
           logic = V1::Logic::Secrets::ShowReceipt.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
-          secret = logic.receipt.load_secret
+          # Reuse data already loaded/decrypted in logic.process rather than
+          # re-loading the secret from Redis and re-decrypting (which can fail).
           if logic.show_secret
-            secret_value = secret.can_decrypt? ? secret.decrypted_secret_value : nil
             json self.class.receipt_hsh(logic.receipt,
                                 :custid => cust.email,
-                                :value => secret_value,
-                                :secret_ttl => secret.current_expiration,
-                                :passphrase_required => secret && secret.has_passphrase?)
+                                :value => logic.secret_value,
+                                :secret_ttl => logic.secret_realttl,
+                                :passphrase_required => logic.has_passphrase)
           else
             json self.class.receipt_hsh(logic.receipt,
                                 :custid => cust.email,
-                                :secret_ttl => secret ? secret.current_expiration : nil,
-                                :passphrase_required => secret && secret.has_passphrase?)
+                                :secret_ttl => logic.secret_realttl,
+                                :passphrase_required => logic.has_passphrase)
           end
           logic.receipt.previewed!
         end
