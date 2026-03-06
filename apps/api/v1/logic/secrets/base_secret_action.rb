@@ -83,10 +83,10 @@ module V1::Logic
         #
         # NOTE: These values differ from v2 slightly. Here the minimum is 30
         # minutes for historical reasons.
-        secret_options = OT.conf&.fetch('secret_options', {
+        secret_options = OT.conf.dig('site', 'secret_options') || {
           'default_ttl' => 7.days,
           'ttl_options' => [30.minutes, 2.hours, 1.day, 7.days],
-        })
+        }
         default_ttl = secret_options['default_ttl']
         ttl_options = secret_options['ttl_options']
 
