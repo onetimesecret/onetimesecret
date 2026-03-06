@@ -28,7 +28,7 @@ OT.boot! :test, false
 ## Basic receipt transformation (this doubles as a check for FlexibleHashAccess)
 result = V1::Controllers::Index.receipt_hsh(@receipt)
 [result['custid'], result['metadata_key'], result['secret_key']]
-#=> [@receipt.custid, @receipt.key, @receipt.secret_key]
+#=> [@receipt.owner_id, @receipt.identifier, @receipt.secret_identifier]
 
 ## TTL handling - metadata_ttl is set to the real TTL value
 result = V1::Controllers::Index.receipt_hsh(@receipt)
@@ -78,8 +78,8 @@ result = V1::Controllers::Index.receipt_hsh(@receipt, passphrase_required: false
 result['passphrase_required']
 #=> false
 
-## Handling nil custid
-@receipt.custid = nil
+## Handling nil custid (owner_id in v0.24)
+@receipt.owner_id = nil
 @receipt.save
 result = V1::Controllers::Index.receipt_hsh(@receipt)
 # As of familia-2.0.0-pre18, nils are are JSON serialized to "null" which
