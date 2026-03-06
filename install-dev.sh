@@ -2,7 +2,12 @@
 
 # install-dev.sh
 #
-# Run this in any checkout/worktree to set up a dev environment
+# Run this in any checkout/worktree to set up a local dev environment:
+#   - Links shared dev resources from OTS_DEV_CONFIG
+#   - Installs Ruby gems (bundle install)
+#   - Installs Node packages (pnpm install)
+#
+# Idempotent: safe to re-run at any time.
 
 set -euo pipefail
 
@@ -15,6 +20,8 @@ declare -A LINKS=(
     ["etc/billing.yaml"]="billing.yaml"
     ["etc/logging.yaml"]="logging.yaml"
     ["data"]="data"
+    ["Procfile.dev"]="Procfile.dev"
+    ["Procfile.volatile"]="Procfile.volatile"
     [".env.test"]=".env.test"
     ["etc/puma.rb"]="puma.rb"
 )
@@ -23,22 +30,6 @@ declare -A LINKS=(
 if [[ -f "$OTS_DEV_CONFIG/.env" ]]; then
     LINKS[".env"]=".env"
 fi
-
-# Copy Procfile.dev.example to Procfile.dev if not present
-setup_procfile_dev() {
-    if [[ -f "Procfile.dev" ]]; then
-        echo "OK:   Procfile.dev (already exists)"
-        return
-    fi
-
-    if [[ ! -f "Procfile.dev.example" ]]; then
-        echo "Skip: Procfile.dev.example does not exist"
-        return
-    fi
-
-    cp "Procfile.dev.example" "Procfile.dev"
-    echo "Copy: Procfile.dev.example -> Procfile.dev"
-}
 
 # Repair .env.sh if it's a symlink (historical git issue)
 repair_env_sh() {
@@ -123,9 +114,6 @@ fi
 # Repair .env.sh before proceeding with other links
 repair_env_sh
 
-# Copy Procfile.dev from example if not present
-setup_procfile_dev
-
 echo "Linking dev resources from $OTS_DEV_CONFIG"
 echo "---"
 
@@ -134,11 +122,11 @@ for local_path in "${!LINKS[@]}"; do
 done
 
 echo "---"
-echo "Installing Ruby dependencies..."
+echo "Installing Ruby gems..."
 bundle install
 
 echo "---"
-echo "Installing Node dependencies..."
+echo "Installing Node packages..."
 pnpm install
 
 echo "---"
