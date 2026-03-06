@@ -14,4 +14,6 @@ if [ -f .env.sh ]; then
   set +a
 fi
 
-exec overmind start -f Procfile.dev -l frontend
+PORT="${PORT:-7143}"
+
+exec env PORT="$PORT" overmind start -f Procfile.dev -l frontend

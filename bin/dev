@@ -4,7 +4,7 @@
 #
 # USAGE:
 #   $ bin/dev                       # Start with Procfile.dev
-#   $ bin/dev --port 3001           # Override port (also: -p 3001 or --port=3001)
+#   $ bin/dev --port=7144           # Override port (also: -p 7144 or PORT=7144 bin/dev)
 #   $ bin/dev --volatile            # Start with Procfile.volatile (no persistent data)
 #
 # WINDOW MODES:
@@ -69,7 +69,7 @@ if [ -f .env.sh ]; then
 fi
 
 # Ensure PORT is a valid integer (Overmind fails if empty or invalid)
-# --port flag takes precedence over .env.sh and the default
-export PORT="${PORT_OVERRIDE:-${PORT:-7143}}"
+# --port flag takes precedence over PORT env var, then falls back to 7143
+PORT="${PORT_OVERRIDE:-${PORT:-7143}}"
 
-exec overmind start -f "$PROCFILE" "${ARGS[@]}"
+exec env PORT="$PORT" overmind start -f "$PROCFILE" "${ARGS[@]}"
