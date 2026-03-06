@@ -82,18 +82,18 @@ result['passphrase_required']
 @receipt.owner_id = nil
 @receipt.save
 result = V1::Controllers::Index.receipt_hsh(@receipt)
-# As of familia-2.0.0-pre18, nils are are JSON serialized to "null" which
-# means they now deserialize back to nils. In previous versions, the
-# expectation here was an empty string.
+# V1 compat: v0.23 never returned nil for custid. Anonymous secrets
+# used "anon". After all fallbacks, empty/nil custid defaults to "anon".
 result['custid']
-#=> nil
+#=> 'anon'
 
-## Handling nil secret_identifier maps to nil secret_key in output
+## Handling nil secret_identifier maps to empty string secret_key (v0.23 compat)
 @receipt.secret_identifier = nil
 @receipt.save
 result = V1::Controllers::Index.receipt_hsh(@receipt)
+# V1 compat: v0.23 returned "" (not nil) for secret_key after burn
 result['secret_key']
-#=> nil
+#=>
 
 ## Handling nil state
 @receipt.state = nil

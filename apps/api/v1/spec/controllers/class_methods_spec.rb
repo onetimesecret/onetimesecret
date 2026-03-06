@@ -89,8 +89,8 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh' do
     end
 
     context 'when all three sources are nil' do
-      it 'returns nil for custid' do
-        expect(result['custid']).to be_nil
+      it 'returns "anon" for custid (v0.23 never returned nil)' do
+        expect(result['custid']).to eq('anon')
       end
     end
 
