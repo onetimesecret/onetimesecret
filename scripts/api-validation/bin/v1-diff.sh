@@ -98,8 +98,18 @@ compare_bodies() {
             ($b[$k] | type) != "object" and
             ($b[$k] | type) != "array" and
             $b[$k] != $c[$k] and
-            # Skip dynamic fields that will always differ
-            (["updated","created","shrimp","secret_key","metadata_key","identifier","key","shortid","secret_shortid","secret_identifier"] | index($k) | not)
+            # Skip dynamic fields that will always differ between captures:
+            #   identifiers/keys: unique per secret creation
+            #   value/secret_value: random for /generate, consumed on reveal
+            #   received: timestamp set at reveal time
+            #   updated/created: timestamps
+            (["updated","created","shrimp","secret_key","metadata_key","identifier","key","shortid","secret_shortid","secret_identifier","value","secret_value","received"] | index($k) | not) and
+            # Numeric tolerance: skip near-equal numbers (timing drift between captures)
+            (if ($b[$k] | type) == "number" and ($c[$k] | type) == "number" then
+              (($b[$k] - $c[$k]) | if . < 0 then -. else . end) > 10
+            else
+              true
+            end)
           ) |
           {
             key: $k,

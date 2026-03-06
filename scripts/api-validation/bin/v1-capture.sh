@@ -271,10 +271,11 @@ capture "13-generate-params" POST "/generate" \
   -H "Content-Type: application/json" \
   -d '{"ttl":3600}'
 
-# Create (alias for share)
+# Create (alias for share) — Always form-encoded so both --form and JSON mode
+# send identical requests. Eliminates content-type mismatch in diff results.
 capture "14-create-alias" POST "/create" \
-  -H "Content-Type: application/json" \
-  -d '{"secret":"testing create alias","ttl":300}'
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d 'secret=testing+create+alias&ttl=300'
 
 # ── 3. Edge Cases: Creation ──
 
