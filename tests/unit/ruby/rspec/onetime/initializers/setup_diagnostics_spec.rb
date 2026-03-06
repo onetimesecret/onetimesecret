@@ -33,7 +33,8 @@ RSpec.describe "Onetime::Initializers#setup_diagnostics" do
               breadcrumbs_logger: nil,
               traces_sample_rate: nil,
               profiles_sample_rate: nil,
-              before_send: nil
+              before_send: nil,
+              transport: OpenStruct.new(ssl: nil)
             )
             block.call(@last_config) if block_given?
             true
