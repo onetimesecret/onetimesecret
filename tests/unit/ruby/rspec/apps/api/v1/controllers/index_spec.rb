@@ -136,6 +136,7 @@ RSpec.describe V1::Controllers::Index, type: :request do
     context 'when request is GET' do
       before do
         allow(request).to receive(:get?).and_return(true)
+        allow(request).to receive(:app_path).with('/some/path').and_return('/some/path')
         allow(logic).to receive(:redirect_uri).and_return('/some/path')
       end
 
