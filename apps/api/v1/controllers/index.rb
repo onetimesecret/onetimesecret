@@ -46,6 +46,7 @@ module V1
           else
             secret = logic.secret
             json self.class.receipt_hsh(logic.receipt,
+                                :custid => cust.email,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end
@@ -62,6 +63,7 @@ module V1
           else
             secret = logic.secret
             json self.class.receipt_hsh(logic.receipt,
+                                :custid => cust.email,
                                 :value => logic.secret_value,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
@@ -79,11 +81,13 @@ module V1
           if logic.show_secret
             secret_value = secret.can_decrypt? ? secret.decrypted_secret_value : nil
             json self.class.receipt_hsh(logic.receipt,
+                                :custid => cust.email,
                                 :value => secret_value,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           else
             json self.class.receipt_hsh(logic.receipt,
+                                :custid => cust.email,
                                 :secret_ttl => secret ? secret.current_expiration : nil,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end
@@ -98,7 +102,7 @@ module V1
           logic.process
           recent_receipts = logic.receipts.collect { |md|
             next if md.nil?
-            hash = self.class.receipt_hsh(md)
+            hash = self.class.receipt_hsh(md, :custid => cust.email)
             hash.delete 'secret_key'  # Don't call md.delete, that will delete from the db
             hash
           }.compact
@@ -130,8 +134,8 @@ module V1
           logic.raise_concerns
           logic.process
           if logic.greenlighted
-            json :state           => self.class.receipt_hsh(logic.receipt),
-                :secret_shortid => logic.receipt.secret_shortid
+            json :state           => self.class.receipt_hsh(logic.receipt, :custid => cust.email),
+                :secret_shortkey => logic.receipt.secret_shortid
           else
             secret_not_found_response
           end
@@ -148,6 +152,7 @@ module V1
           else
             secret = logic.secret
             json self.class.receipt_hsh(logic.receipt,
+                                :custid => cust.email,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end

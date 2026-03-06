@@ -332,11 +332,11 @@ RSpec.describe V1::Controllers::Index, type: :request do
         })
       end
 
-      it 'returns state and secret_shortid as JSON' do
+      it 'returns state and secret_shortkey as JSON' do
         expect(app).to receive(:json).with(
           hash_including(
             :state => hash_including('metadata_key' => receipt_key),
-            :secret_shortid => 'shortid123',
+            :secret_shortkey => 'shortid123',
           ),
         )
         app.burn_secret

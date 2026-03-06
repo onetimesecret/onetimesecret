@@ -88,13 +88,19 @@ module V1
         owner_id_val = hsh.fetch('owner_id', nil)
         secret_id_val = hsh.fetch('secret_identifier', nil)
 
+        # V1 compat: resolve custid to email address.
+        # In v0.24, owner_id stores Customer objid (UUID). Legacy custid stored email.
+        # Priority: opts[:custid] (caller-supplied email) > v1_custid (migrated) > custid (legacy).
+        v1_custid = opts[:custid] || hsh.fetch('v1_custid', nil)
+        v1_custid = hsh.fetch('custid', nil) if v1_custid.nil? || v1_custid.to_s.empty?
+
         # Map v0.24.0 state values back to v0.23.x vocabulary for V1 compat.
         # Internally: previewed -> viewed, revealed -> received, shared -> new
         v1_state_map = { 'previewed' => 'viewed', 'revealed' => 'received', 'shared' => 'new' }.freeze
         raw_state = hsh.key?('state') ? hsh['state'] : 'new'
 
         ret = {
-          'custid' => (owner_id_val && !owner_id_val.empty? ? owner_id_val : hsh.fetch('custid', nil)),
+          'custid' => v1_custid,
           'metadata_key' => md.identifier,
           'secret_key' => (secret_id_val && !secret_id_val.empty? ? secret_id_val : hsh.fetch('secret_key', nil)),
           'ttl' => receipt_ttl, # static value from database hash field
