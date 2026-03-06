@@ -166,7 +166,7 @@ There are three ways to run the application for local development:
 
 ```bash
 brew install overmind          # macOS (one-time)
-bin/setup-dev-links            # Link shared config files (one-time per checkout)
+./install-dev.sh               # Link config files + install gems and packages (one-time per checkout)
 bin/dev                        # Start all processes
 ```
 

@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 
-# bin/setup-dev-links
+# install-dev.sh
 #
-# Run this in any checkout/worktree to link shared dev resources
+# Run this in any checkout/worktree to set up a local dev environment:
+#   - Links shared dev resources from OTS_DEV_CONFIG
+#   - Installs Ruby gems (bundle install)
+#   - Installs Node packages (pnpm install)
+#
+# Idempotent: safe to re-run at any time.
 
 set -euo pipefail
 
@@ -115,6 +120,14 @@ echo "---"
 for local_path in "${!LINKS[@]}"; do
     link_resource "$local_path" "${LINKS[$local_path]}"
 done
+
+echo "---"
+echo "Installing Ruby gems..."
+bundle install
+
+echo "---"
+echo "Installing Node packages..."
+pnpm install
 
 echo "---"
 echo "Done. Run 'bin/dev' to start."
