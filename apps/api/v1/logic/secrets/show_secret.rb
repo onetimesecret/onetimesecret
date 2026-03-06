@@ -37,9 +37,9 @@ module V1::Logic
         if show_secret
           # If we can't decrypt that's great! We just set secret_value to
           # the encrypted string.
-          @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
+          @secret_value = secret.can_decrypt? ? secret.decrypted_secret_value(passphrase_input: passphrase) : secret.value
           @is_truncated = secret.truncated?
-          @original_size = secret.original_size
+          @original_size = secret.respond_to?(:original_size) ? secret.original_size : nil
 
           if verification
             if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)

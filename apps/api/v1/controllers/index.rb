@@ -77,7 +77,7 @@ module V1
           logic.process
           secret = logic.receipt.load_secret
           if logic.show_secret
-            secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
+            secret_value = secret.can_decrypt? ? secret.decrypted_secret_value : nil
             json self.class.receipt_hsh(logic.receipt,
                                 :value => secret_value,
                                 :secret_ttl => secret.current_expiration,
