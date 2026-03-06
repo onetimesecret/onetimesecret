@@ -1,0 +1,14 @@
+# Procfile.dev.example
+#
+# Copy to Procfile.dev (or run install-dev.sh to symlink from OTS_DEV_CONFIG).
+#
+# Usage:
+#   bin/dev           # all services
+#   bin/backend       # backend only
+#   bin/frontend      # frontend only
+
+#valkey: valkey-server --port 9111 --save "" --appendonly no
+
+backend: bundle exec puma -C etc/puma.rb
+
+frontend: pnpm run dev

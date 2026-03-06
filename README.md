@@ -34,7 +34,7 @@ docker run -p 3000:3000 -d \
   -e SECRET="$(cat .ots_secret)" \
   -e HOST=localhost:3000 \
   -e SSL=false \ # ⚠️ WARNING: Set SSL=true for production deployments
-  onetimesecret/onetimesecret:latest
+  onetimesecret/onetimesecret:v0.23.6
 ```
 
 **3. Access:** http://localhost:3000
@@ -97,13 +97,13 @@ TTL_OPTIONS='1800 43200 86400 259200'  # 30m, 12h, 24h, 3d
 
 ```bash
 # GitHub Container Registry
-docker pull ghcr.io/onetimesecret/onetimesecret:latest
+docker pull ghcr.io/onetimesecret/onetimesecret:v0.23.6
 
 # Docker Hub
-docker pull onetimesecret/onetimesecret:latest
+docker pull onetimesecret/onetimesecret:v0.23.6
 
 # Lite version (smaller, optimized)
-docker pull ghcr.io/onetimesecret/onetimesecret-lite:latest
+docker pull ghcr.io/onetimesecret/onetimesecret-lite:v0.23.6
 ```
 
 **Build locally:**
