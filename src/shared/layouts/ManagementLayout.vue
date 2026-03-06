@@ -89,20 +89,20 @@
               <div v-if="showSidebar && sidebarPosition === 'right'" class="mt-8 md:hidden">
                 <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
                   <h3 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
-                    Quick Stats
+                    {{ $t('web.layout.quick_stats') }}
                   </h3>
                   <slot name="quick-stats">
                     <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                       <div class="flex justify-between">
-                        <span>Active Secrets</span>
+                        <span>{{ $t('web.layout.active_secrets') }}</span>
                         <span class="font-medium">--</span>
                       </div>
                       <div class="flex justify-between">
-                        <span>Total Shared</span>
+                        <span>{{ $t('web.layout.total_shared') }}</span>
                         <span class="font-medium">--</span>
                       </div>
                       <div class="flex justify-between">
-                        <span>Storage Used</span>
+                        <span>{{ $t('web.layout.storage_used') }}</span>
                         <span class="font-medium">--</span>
                       </div>
                     </div>
@@ -120,20 +120,20 @@
                   <!-- Quick Stats Card -->
                   <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
                     <h3 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
-                      Quick Stats
+                      {{ $t('web.layout.quick_stats') }}
                     </h3>
                     <slot name="quick-stats">
                       <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                         <div class="flex justify-between">
-                          <span>Active Secrets</span>
+                          <span>{{ $t('web.layout.active_secrets') }}</span>
                           <span class="font-medium">--</span>
                         </div>
                         <div class="flex justify-between">
-                          <span>Total Shared</span>
+                          <span>{{ $t('web.layout.total_shared') }}</span>
                           <span class="font-medium">--</span>
                         </div>
                         <div class="flex justify-between">
-                          <span>Storage Used</span>
+                          <span>{{ $t('web.layout.storage_used') }}</span>
                           <span class="font-medium">--</span>
                         </div>
                       </div>
@@ -152,14 +152,14 @@
                           class="block w-full rounded-lg bg-brand-500 px-3 py-2 text-center
                                  text-sm font-medium text-white
                                  transition-colors hover:bg-brand-600">
-                          Create New Secret
+                          {{ $t('web.layout.create_new_secret') }}
                         </router-link>
                         <router-link
                           to="/account/settings/api"
                           class="block w-full rounded-lg border border-gray-300 px-3 py-2
                                  text-center text-sm font-medium transition-colors
                                  hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-                          Generate API Key
+                          {{ $t('web.layout.generate_api_key') }}
                         </router-link>
                       </div>
                     </slot>
@@ -168,23 +168,23 @@
                   <!-- Help & Resources -->
                   <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
                     <h3 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
-                      Resources
+                      {{ $t('web.layout.resources') }}
                     </h3>
                     <slot name="resources">
                       <ul class="space-y-2 text-sm">
                         <li>
                           <a href="/docs" class="text-brand-600 hover:text-brand-700 dark:text-brand-400">
-                            Documentation
+                            {{ $t('web.layout.documentation') }}
                           </a>
                         </li>
                         <li>
                           <a href="/api" class="text-brand-600 hover:text-brand-700 dark:text-brand-400">
-                            API Reference
+                            {{ $t('web.layout.api_reference') }}
                           </a>
                         </li>
                         <li>
                           <a href="/support" class="text-brand-600 hover:text-brand-700 dark:text-brand-400">
-                            Get Support
+                            {{ $t('web.layout.get_support') }}
                           </a>
                         </li>
                       </ul>

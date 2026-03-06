@@ -45,7 +45,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
       items: double(data: [
                       double(
                         id: 'si_test',
-                        price: double(id: 'price_test', unit_amount: 2000, currency: 'usd'),
+                        price: double(id: 'price_test', unit_amount: 2000, currency: 'cad'),
                         quantity: 1,
                         current_period_end: period_end,
                         current_period_start: Time.now.to_i,
@@ -71,7 +71,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
 
     price = stripe_client.create(Stripe::Price, {
       unit_amount: 2000,
-      currency: 'usd',
+      currency: 'cad',
       recurring: { interval: 'month' },
       product: product.id,
     }
@@ -554,7 +554,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           # Create new price
           new_price = stripe_client.create(Stripe::Price, {
             unit_amount: 3000,
-            currency: 'usd',
+            currency: 'cad',
             recurring: { interval: 'month' },
             product: test_data[:product].id,
           }

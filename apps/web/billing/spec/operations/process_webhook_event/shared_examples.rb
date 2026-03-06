@@ -71,7 +71,7 @@ module ProcessWebhookEventHelpers
   end
 
   # Build a Stripe::Price for testing
-  def build_stripe_price(id:, product:, unit_amount: 1999, currency: 'usd')
+  def build_stripe_price(id:, product:, unit_amount: 1999, currency: 'cad')
     Stripe::Price.construct_from({
       id: id,
       object: 'price',

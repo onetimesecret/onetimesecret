@@ -1,377 +1,377 @@
 {
   "web.login.alternate_prefix": {
     "text": "Heb je een account nodig?",
-    "sha256": "8b827e19"
+    "source_hash": "8b827e19"
   },
   "web.login.need_an_account": {
     "text": "Aanmelden.",
-    "sha256": "10647723"
+    "source_hash": "10647723"
   },
   "web.login.forgot_your_password": {
     "text": "Wachtwoord vergeten?",
-    "sha256": "afd25fdf"
+    "source_hash": "afd25fdf"
   },
   "web.login.button_sign_in": {
     "text": "Inloggen",
-    "sha256": "bcc0bcc9"
+    "source_hash": "bcc0bcc9"
   },
   "web.login.enter_your_credentials": {
     "text": "Voer je inloggegevens in",
-    "sha256": "07e1c44e"
+    "source_hash": "07e1c44e"
   },
   "web.login.remember_me": {
     "text": "Onthoud mij",
-    "sha256": "f93267aa"
+    "source_hash": "f93267aa"
   },
   "web.signup.create_your_account": {
     "text": "Maak je account aan",
-    "sha256": "5f4c33d7"
+    "source_hash": "5f4c33d7"
   },
   "web.signup.alternate_prefix": {
     "text": "Heb je al een account?",
-    "sha256": "f5dcb5d5"
+    "source_hash": "f5dcb5d5"
   },
   "web.signup.have_an_account": {
     "text": "Inloggen.",
-    "sha256": "6c52846f"
+    "source_hash": "6c52846f"
   },
   "web.signup.error_title": {
     "text": "Fout bij account aanmaken",
-    "sha256": "e380a0b6"
+    "source_hash": "e380a0b6"
   },
   "web.signup.password_error": {
     "text": "Wachtwoord",
-    "sha256": "e7cf3ef4"
+    "source_hash": "e7cf3ef4"
   },
   "web.signup.email_error": {
     "text": "E-mail",
-    "sha256": "969ccbd3"
+    "source_hash": "969ccbd3"
   },
   "web.auth.verify.title": {
     "text": "Verifieer je account",
-    "sha256": "3e2303ab"
+    "source_hash": "3e2303ab"
   },
   "web.auth.verify.success": {
     "text": "Je account is succesvol geverifieerd",
-    "sha256": "902d0f47"
+    "source_hash": "902d0f47"
   },
   "web.auth.verify.invalid_key": {
     "text": "Ongeldige of verlopen verificatiesleutel",
-    "sha256": "70fe7dfe"
+    "source_hash": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
     "text": "Deze verificatielink is verlopen. Vraag een nieuwe aan.",
-    "sha256": "ee3ed5d2"
+    "source_hash": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
     "text": "Dit account is al geverifieerd. Je kunt nu inloggen.",
-    "sha256": "cec1312b"
+    "source_hash": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
     "text": "Kan account niet verifiëren. Probeer het opnieuw of neem contact op met de ondersteuning.",
-    "sha256": "c0df463f"
+    "source_hash": "c0df463f"
   },
   "web.auth.verify.check_email": {
     "text": "Controleer je e-mail voor een verificatielink",
-    "sha256": "79ffefd8"
+    "source_hash": "79ffefd8"
   },
   "web.auth.verify.error": {
     "text": "Accountverificatie mislukt. Controleer je verificatielink of vraag een nieuwe aan.",
-    "sha256": "7aac4a45"
+    "source_hash": "7aac4a45"
   },
   "web.auth.verify.error_title": {
     "text": "Verificatie mislukt",
-    "sha256": "cb3a722b"
+    "source_hash": "cb3a722b"
   },
   "web.auth.verify.what_to_do": {
     "text": "Wat moet ik doen?",
-    "sha256": "00eeea79"
+    "source_hash": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
     "text": "Controleer je e-mail voor de meest recente verificatielink",
-    "sha256": "1c4a5748"
+    "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
     "text": "Controleer je spam/ongewenste e-mail map als je de e-mail niet kunt vinden",
-    "sha256": "ae481e5e"
+    "source_hash": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
     "text": "Neem contact op met de ondersteuning als je problemen blijft ondervinden",
-    "sha256": "c0067275"
+    "source_hash": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
     "text": "Verificatielink vereist",
-    "sha256": "e0b448ac"
+    "source_hash": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
     "text": "Gebruik de verificatielink die naar je e-mailadres is verzonden om je account te verifiëren.",
-    "sha256": "b1a8cfc6"
+    "source_hash": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
     "text": "Nieuw account aanmaken",
-    "sha256": "0e24ec84"
+    "source_hash": "0e24ec84"
   },
   "web.auth.change_password.title": {
     "text": "Wachtwoord wijzigen",
-    "sha256": "a949f462"
+    "source_hash": "a949f462"
   },
   "web.auth.change_password.current_password": {
     "text": "Huidig wachtwoord",
-    "sha256": "8ac76099"
+    "source_hash": "8ac76099"
   },
   "web.auth.change_password.new_password": {
     "text": "Nieuw wachtwoord",
-    "sha256": "7c451e0f"
+    "source_hash": "7c451e0f"
   },
   "web.auth.change_password.confirm_password": {
     "text": "Nieuw wachtwoord bevestigen",
-    "sha256": "642776c0"
+    "source_hash": "642776c0"
   },
   "web.auth.change_password.success": {
     "text": "Je wachtwoord is succesvol gewijzigd",
-    "sha256": "01103d45"
+    "source_hash": "01103d45"
   },
   "web.auth.change_password.error": {
     "text": "Wachtwoord wijzigen mislukt. Controleer je huidige wachtwoord en probeer het opnieuw.",
-    "sha256": "1aa11b3f"
+    "source_hash": "1aa11b3f"
   },
   "web.auth.close_account.title": {
     "text": "Account sluiten",
-    "sha256": "e1513814"
+    "source_hash": "e1513814"
   },
   "web.auth.close_account.warning": {
     "text": "Deze actie kan niet ongedaan worden gemaakt. Al je berichten worden permanent verwijderd.",
-    "sha256": "f12de64e"
+    "source_hash": "f12de64e"
   },
   "web.auth.close_account.confirm": {
     "text": "Ik begrijp dat deze actie permanent is",
-    "sha256": "b44b1366"
+    "source_hash": "b44b1366"
   },
   "web.auth.close_account.password": {
     "text": "Voer je wachtwoord in om te bevestigen",
-    "sha256": "0aec03a6"
+    "source_hash": "0aec03a6"
   },
   "web.auth.close_account.button": {
     "text": "Account permanent sluiten",
-    "sha256": "0713c012"
+    "source_hash": "0713c012"
   },
   "web.auth.close_account.cancel": {
     "text": "Annuleren",
-    "sha256": "19766ed6"
+    "source_hash": "19766ed6"
   },
   "web.auth.password_reset_request.title": {
     "text": "Wachtwoordreset aanvragen",
-    "sha256": "456d421c"
+    "source_hash": "456d421c"
   },
   "web.auth.password_reset_request.description": {
     "text": "Voer hieronder je e-mailadres in en we sturen je een link om je wachtwoord te resetten",
-    "sha256": "31c5f80f"
+    "source_hash": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
     "text": "Resetlink verzenden",
-    "sha256": "7d5f16d4"
+    "source_hash": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
     "text": "Kies een nieuw wachtwoord",
-    "sha256": "3dfdf7c4"
+    "source_hash": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
     "text": "Voer hieronder je nieuwe wachtwoord in. Zorg ervoor dat het sterk en uniek is om je account te beschermen.",
-    "sha256": "5c789083"
+    "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
     "text": "Er is een e-mail naar je verzonden met een link om het wachtwoord van je account te resetten",
-    "sha256": "63a6af45"
+    "source_hash": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
     "text": "Ik ga akkoord met de",
-    "sha256": "26a58d00"
+    "source_hash": "26a58d00"
   },
   "web.auth.account.title": {
     "text": "Accountinformatie",
-    "sha256": "4e59b6c7"
+    "source_hash": "4e59b6c7"
   },
   "web.auth.account.email": {
     "text": "E-mailadres",
-    "sha256": "09bf25ef"
+    "source_hash": "09bf25ef"
   },
   "web.auth.account.created": {
     "text": "Account aangemaakt",
-    "sha256": "9966be40"
+    "source_hash": "9966be40"
   },
   "web.auth.account.verified": {
     "text": "E-mail geverifieerd",
-    "sha256": "bc512ab0"
+    "source_hash": "bc512ab0"
   },
   "web.auth.account.region": {
     "text": "Regio",
-    "sha256": "d3a008ef"
+    "source_hash": "d3a008ef"
   },
   "web.auth.account.not_verified": {
     "text": "E-mail niet geverifieerd",
-    "sha256": "53955e0e"
+    "source_hash": "53955e0e"
   },
   "web.auth.account.verify_email": {
     "text": "E-mailadres verifiëren",
-    "sha256": "d261b9df"
+    "source_hash": "d261b9df"
   },
   "web.auth.account.mfa_status": {
     "text": "Tweefactorauthenticatie",
-    "sha256": "bc074b60"
+    "source_hash": "bc074b60"
   },
   "web.auth.account.mfa_enabled": {
     "text": "Ingeschakeld",
-    "sha256": "92c1cdfd"
+    "source_hash": "92c1cdfd"
   },
   "web.auth.account.mfa_disabled": {
     "text": "Uitgeschakeld",
-    "sha256": "75081b59"
+    "source_hash": "75081b59"
   },
   "web.auth.account.active_sessions": {
     "text": "Actieve sessies",
-    "sha256": "b58fa4e0"
+    "source_hash": "b58fa4e0"
   },
   "web.auth.account.session_count": {
     "text": "{count} actieve sessie(s)",
-    "sha256": "7de8d92a"
+    "source_hash": "7de8d92a"
   },
   "web.auth.account.quick_actions": {
     "text": "Snelle acties",
-    "sha256": "2cc2b6f7"
+    "source_hash": "2cc2b6f7"
   },
   "web.auth.account.manage_mfa": {
     "text": "Tweefactorauthenticatie beheren",
-    "sha256": "06fc8f72"
+    "source_hash": "06fc8f72"
   },
   "web.auth.account.manage_sessions": {
     "text": "Actieve sessies beheren",
-    "sha256": "c5d54d87"
+    "source_hash": "c5d54d87"
   },
   "web.auth.account.change_password": {
     "text": "Wachtwoord wijzigen",
-    "sha256": "a949f462"
+    "source_hash": "a949f462"
   },
   "web.auth.account.close_account": {
     "text": "Account sluiten",
-    "sha256": "e1513814"
+    "source_hash": "e1513814"
   },
   "web.auth.verify._guidance.context": {
     "text": "E-mailverificatieproces na aanmelden"
   },
   "web.help.title": {
     "text": "Help en ondersteuning",
-    "sha256": "1f8ecc24"
+    "source_hash": "1f8ecc24"
   },
   "web.help.signin_troubleshooting": {
     "text": "Probleemoplossing bij inloggen",
-    "sha256": "a9a88a01"
+    "source_hash": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
     "text": "Magische link komt niet aan?",
-    "sha256": "6919ce70"
+    "source_hash": "6919ce70"
   },
   "web.help.check_spam_folder": {
     "text": "Controleer je spam- of ongewenste e-mailmap",
-    "sha256": "813fe2d8"
+    "source_hash": "813fe2d8"
   },
   "web.help.check_email_spelling": {
     "text": "Controleer of je je e-mailadres correct hebt ingevoerd",
-    "sha256": "5f319557"
+    "source_hash": "5f319557"
   },
   "web.help.wait_few_minutes": {
     "text": "Wacht een paar minuten - e-mails kunnen soms vertraagd zijn",
-    "sha256": "884fc272"
+    "source_hash": "884fc272"
   },
   "web.help.try_again": {
     "text": "Probeer een nieuwe link aan te vragen als het meer dan 10 minuten geleden is",
-    "sha256": "68109f96"
+    "source_hash": "68109f96"
   },
   "web.help.forgot_password": {
     "text": "Wachtwoord vergeten?",
-    "sha256": "afd25fdf"
+    "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
     "text": "Gebruik de optie Magische link om in te loggen zonder wachtwoord. Eenmaal ingelogd kun je je wachtwoord wijzigen in Accountinstellingen.",
-    "sha256": "2a058600"
+    "source_hash": "2a058600"
   },
   "web.help.account_locked": {
     "text": "Account tijdelijk vergrendeld?",
-    "sha256": "ef1251c1"
+    "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
     "text": "Na meerdere mislukte inlogpogingen worden accounts tijdelijk vergrendeld voor de veiligheid. Wacht 15 minuten en probeer het opnieuw, of gebruik Magische link om in te loggen.",
-    "sha256": "4b2cf891"
+    "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
     "text": "Nog steeds hulp nodig?",
-    "sha256": "5ff7d19e"
+    "source_hash": "5ff7d19e"
   },
   "web.help.contact_us_description": {
     "text": "Als je nog steeds problemen ondervindt, staan we klaar om te helpen. Stuur ons een bericht en we nemen zo snel mogelijk contact met je op.",
-    "sha256": "d97c90fe"
+    "source_hash": "d97c90fe"
   },
   "web.help.contact_support": {
     "text": "Contact ondersteuning",
-    "sha256": "f8d47b82"
+    "source_hash": "f8d47b82"
   },
   "web.login.send_sign_in_link": {
     "text": "Inloglink verzenden",
-    "sha256": "b1402b67"
+    "source_hash": "b1402b67"
   },
   "web.login.secure_link_helper": {
     "text": "Een beveiligde link wordt naar je e-mailinbox verzonden.",
-    "sha256": "d31d20cf"
+    "source_hash": "d31d20cf"
   },
   "web.login.or_divider": {
     "text": "of",
-    "sha256": "7175517a"
+    "source_hash": "7175517a"
   },
   "web.login.sign_in_with_password": {
     "text": "Inloggen met wachtwoord",
-    "sha256": "bedac809"
+    "source_hash": "bedac809"
   },
   "web.login.use_passwordless": {
     "text": "Wachtwoordloos inloggen",
-    "sha256": "dddc0097"
+    "source_hash": "dddc0097"
   },
   "web.login.create_account": {
     "text": "Account aanmaken",
-    "sha256": "798ca2ce"
+    "source_hash": "798ca2ce"
   },
   "web.login.return_home": {
     "text": "Terug naar home",
-    "sha256": "bbcc935e"
+    "source_hash": "bbcc935e"
   },
   "web.login.tab_password": {
     "text": "Wachtwoord",
-    "sha256": "e7cf3ef4"
+    "source_hash": "e7cf3ef4"
   },
   "web.login.tab_magic_link": {
     "text": "Magische link",
-    "sha256": "7a9ba11a"
+    "source_hash": "7a9ba11a"
   },
   "web.login.tab_passkey": {
     "text": "Passkey",
-    "sha256": ""
+    "source_hash": ""
   },
   "web.login.or_continue_with": {
     "text": "Of doorgaan met",
-    "sha256": ""
+    "source_hash": ""
   },
   "web.login.sign_in_with_sso": {
     "text": "Inloggen met SSO",
-    "sha256": ""
+    "source_hash": ""
   },
   "web.auth.sso.signing_in": {
     "text": "Doorverwijzen naar identiteitsprovider...",
-    "sha256": ""
+    "source_hash": ""
   },
   "web.auth.sso.error": {
     "text": "SSO-aanmelding mislukt. Probeer het opnieuw.",
-    "sha256": ""
+    "source_hash": ""
   },
   "web.login.need_help": {
     "text": "Hulp nodig?",
-    "sha256": "c225cdfb"
+    "source_hash": "c225cdfb"
   }
 }

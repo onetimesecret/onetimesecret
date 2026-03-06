@@ -5,7 +5,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/prices
     body:
       encoding: UTF-8
-      string: product=prod_TfaNRudDvu4ieI&unit_amount=1000&currency=usd&recurring[interval]=month
+      string: product=prod_TfaNRudDvu4ieI&unit_amount=1000&currency=cad&recurring[interval]=month
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -86,7 +86,7 @@ http_interactions:
           "active": true,
           "billing_scheme": "per_unit",
           "created": 1766671662,
-          "currency": "usd",
+          "currency": "cad",
           "custom_unit_amount": null,
           "livemode": false,
           "lookup_key": null,
@@ -280,7 +280,7 @@ http_interactions:
               "active": true,
               "billing_scheme": "per_unit",
               "created": 1766671662,
-              "currency": "usd",
+              "currency": "cad",
               "custom_unit_amount": null,
               "livemode": false,
               "lookup_key": null,
@@ -389,7 +389,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/prices
     body:
       encoding: UTF-8
-      string: product=prod_TgwnzSTA0JNwYi&unit_amount=1000&currency=usd&recurring[interval]=month
+      string: product=prod_TgwnzSTA0JNwYi&unit_amount=1000&currency=cad&recurring[interval]=month
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -470,7 +470,7 @@ http_interactions:
           "active": true,
           "billing_scheme": "per_unit",
           "created": 1766985718,
-          "currency": "usd",
+          "currency": "cad",
           "custom_unit_amount": null,
           "livemode": false,
           "lookup_key": null,
@@ -664,7 +664,7 @@ http_interactions:
               "active": true,
               "billing_scheme": "per_unit",
               "created": 1766985718,
-              "currency": "usd",
+              "currency": "cad",
               "custom_unit_amount": null,
               "livemode": false,
               "lookup_key": null,
@@ -798,7 +798,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/prices
     body:
       encoding: UTF-8
-      string: product=prod_TzPTXbJPJucNLA&unit_amount=1000&currency=usd&recurring[interval]=month
+      string: product=prod_TzPTXbJPJucNLA&unit_amount=1000&currency=cad&recurring[interval]=month
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/18.1.0
@@ -879,7 +879,7 @@ http_interactions:
           "active": true,
           "billing_scheme": "per_unit",
           "created": 1771243934,
-          "currency": "usd",
+          "currency": "cad",
           "custom_unit_amount": null,
           "livemode": false,
           "lookup_key": null,
@@ -1073,7 +1073,7 @@ http_interactions:
               "active": true,
               "billing_scheme": "per_unit",
               "created": 1771243934,
-              "currency": "usd",
+              "currency": "cad",
               "custom_unit_amount": null,
               "livemode": false,
               "lookup_key": null,

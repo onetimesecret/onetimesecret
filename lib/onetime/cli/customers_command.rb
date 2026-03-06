@@ -8,23 +8,17 @@
 #   bin/ots customers --list                           # List all customers
 #   bin/ots customers --create user@example.com        # Create customer with default role
 #   bin/ots customers --create user@example.com --role colonel  # Create admin
-#   bin/ots customers --check                          # Check for mismatches
 #
 
 module Onetime
   module CLI
     class CustomersCommand < Command
-      desc 'Manage customer records (create, list, check)'
+      desc 'Manage customer records (create, list)'
 
       option :list,
         type: :boolean,
         default: false,
         desc: 'List all customers grouped by domain'
-
-      option :check,
-        type: :boolean,
-        default: false,
-        desc: 'Check for customers with mismatched custid and email fields'
 
       option :check_email,
         type: :boolean,
@@ -54,22 +48,19 @@ module Onetime
       # Valid roles in hierarchy order
       VALID_ROLES = %w[colonel admin staff customer].freeze
 
-      def call(list: false, check: false, check_email: false, create: nil, role: 'customer', password: nil, verified: true, **)
+      def call(list: false, check_email: false, create: nil, role: 'customer', password: nil, verified: true, **)
         boot_application!
 
         if create
           create_customer(create, role, password, verified)
         elsif list
           list_customers(check_email)
-        elsif check
-          check_customers
         else
           puts format('%d customers', Onetime::Customer.instances.size)
           puts "\nUsage:"
           puts '  bin/ots customers --list                    # List all customers'
           puts '  bin/ots customers --create EMAIL            # Create new customer'
           puts '  bin/ots customers --create EMAIL --role colonel  # Create admin'
-          puts '  bin/ots customers --check                   # Check for mismatches'
         end
       end
 
@@ -228,35 +219,6 @@ module Onetime
         # Sort the grouped customers by domain
         grouped_customers.sort_by { |_, customers| customers.size }.each do |domain, customers|
           puts "#{domain} #{customers.size}"
-        end
-      end
-
-      def check_customers
-        puts format('%d customers', Onetime::Customer.instances.size)
-
-        all_customers = Onetime::Customer.instances.all.map do |custid|
-          Onetime::Customer.load(custid)
-        end
-
-        mismatched_customers = all_customers.select do |cust|
-          next if cust.nil?
-
-          custid_email = cust.custid.to_s
-          email_field  = cust.email.to_s
-          custid_email != email_field
-        end
-
-        if mismatched_customers.empty?
-          puts 'All customers have matching custid and email fields.'
-          return
-        end
-
-        mismatched_customers.each do |cust|
-          next if cust.nil?
-
-          obscured_custid = OT::Utils.obscure_email(cust.custid)
-          obscured_email  = OT::Utils.obscure_email(cust.email)
-          puts "CustID and email mismatch: CustID: #{obscured_custid}, Email: #{obscured_email}"
         end
       end
 

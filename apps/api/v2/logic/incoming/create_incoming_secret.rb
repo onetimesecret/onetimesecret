@@ -15,10 +15,10 @@ module V2::Logic
         @payload = params[:secret] || {}
         raise_form_error 'Incorrect payload format' if @payload.is_a?(String)
 
-        incoming_config = OT.conf.dig(:features, :incoming) || {}
+        incoming_config = OT.conf.dig('features', 'incoming') || {}
 
         # Extract and validate memo
-        memo_max = incoming_config[:memo_max_length] || 50
+        memo_max = incoming_config['memo_max_length'] || 50
         @memo    = @payload[:memo].to_s.strip[0...memo_max]
 
         # Extract secret value
@@ -33,16 +33,16 @@ module V2::Logic
         OT.ld "[IncomingSecret] Recipient hash: #{@recipient_hash} -> #{@recipient_email ? OT::Utils.obscure_email(@recipient_email) : 'not found'}"
 
         # Set TTL from config or use default
-        @ttl = incoming_config[:default_ttl] || 604_800 # 7 days
+        @ttl = incoming_config['default_ttl'] || 604_800 # 7 days
 
         # Set passphrase from config (can be nil)
-        @passphrase = incoming_config[:default_passphrase]
+        @passphrase = incoming_config['default_passphrase']
       end
 
       def raise_concerns
         # Check if feature is enabled
-        incoming_config = OT.conf.dig(:features, :incoming) || {}
-        unless incoming_config[:enabled]
+        incoming_config = OT.conf.dig('features', 'incoming') || {}
+        unless incoming_config['enabled']
           raise_form_error 'Incoming secrets feature is not enabled'
         end
 

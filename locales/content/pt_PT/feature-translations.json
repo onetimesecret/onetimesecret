@@ -1,94 +1,94 @@
 {
   "web.translations.welcomes_contributors_for_both_existing_and_new_": {
     "text": "acolhe contribuidores para idiomas existentes e novos.",
-    "sha256": "87abcdeb"
+    "source_hash": "87abcdeb"
   },
   "web.translations.our_github_project": {
     "text": "o nosso projeto GitHub",
-    "sha256": "dabd28e2"
+    "source_hash": "dabd28e2"
   },
   "web.translations.if_youre_interested_in_translation": {
     "text": "Se estás interessado em tradução,",
-    "sha256": "10056bff"
+    "source_hash": "10056bff"
   },
   "web.translations.whove_helped_with_translations_as_we_continue_to": {
     "text": "que ajudaram com as traduções enquanto continuamos a desenvolver novos recursos.",
-    "sha256": "d629cc71"
+    "source_hash": "d629cc71"
   },
   "web.translations.25_contributors": {
     "text": "25+ contribuidores",
-    "sha256": "080aa720"
+    "source_hash": "080aa720"
   },
   "web.translations.were_grateful_to_the": {
     "text": "Estamos gratos aos",
-    "sha256": "cf446287"
+    "source_hash": "cf446287"
   },
   "web.translations.as_we_add_new_features_our_translations_graduall": {
     "text": "À medida que adicionamos novos recursos, as nossas traduções gradualmente precisam de atualizações para se manterem atuais. Isso afeta tanto onetimesecret.com quanto milhares de instalações auto-hospedadas em todo o mundo.",
-    "sha256": "c6fb1cf5"
+    "source_hash": "c6fb1cf5"
   },
   "web.translations.remember_to_include_your_email_if_youre_not_logg": {
     "text": "- lembre-se de incluir o seu e-mail se não estiver autenticado. Toda tradução ajuda mais pessoas a comunicarem com segurança.",
-    "sha256": "1a8ccc7d"
+    "source_hash": "1a8ccc7d"
   },
   "web.translations.reach_out_to_us": {
     "text": "Contacta-nos",
-    "sha256": "fee7dd79"
+    "source_hash": "fee7dd79"
   },
   "web.translations.have_questions": {
     "text": "Tens perguntas?",
-    "sha256": "75e4b61a"
+    "source_hash": "75e4b61a"
   },
   "web.translations.send_translations_by_email_to": {
     "text": "Envia traduções por e-mail para",
-    "sha256": "f96a59a1"
+    "source_hash": "f96a59a1"
   },
   "web.translations.english_template": {
     "text": "Modelo em inglês",
-    "sha256": "1a843644"
+    "source_hash": "1a843644"
   },
   "web.translations.start_a_new_translation_from_our": {
     "text": "Começa uma nova tradução a partir do nosso",
-    "sha256": "b963b7e9"
+    "source_hash": "b963b7e9"
   },
   "web.translations.update_a_language_directly_through_our_github_pr": {
     "text": "Atualize um idioma diretamente através do nosso projeto no GitHub",
-    "sha256": "449cde87"
+    "source_hash": "449cde87"
   },
   "web.translations.review_existing_translations_using_the_language_": {
     "text": "Reveja as traduções existentes usando o seletor de idioma acima",
-    "sha256": "74ea57e9"
+    "source_hash": "74ea57e9"
   },
   "web.translations.ready_to_help_some_ways_to_contribute": {
     "text": "Pronto para ajudar? Algumas formas de contribuir:",
-    "sha256": "13131e36"
+    "source_hash": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "As seguintes pessoas doaram o seu tempo para ajudar a expandir o alcance do Onetime Secret:",
-    "sha256": "85a766af"
+    "text": "As seguintes pessoas doaram o seu tempo para ajudar a expandir o alcance do {product_name}:",
+    "source_hash": "3bc84f37"
   },
   "web.translations.translations": {
     "text": "Traduções",
-    "sha256": "266a41b9"
+    "source_hash": "266a41b9"
   },
   "web.translations.fork_on_github_and_submit_a_pr": {
     "text": "Faz fork no GitHub e submete um PR",
-    "sha256": "bb60a45d"
+    "source_hash": "bb60a45d"
   },
   "web.translations.your_language_skills_can_help_expand_access_to_s": {
     "text": "As suas capacidades linguísticas podem ajudar a expandir o acesso à comunicação segura.",
-    "sha256": "ad22076b"
+    "source_hash": "ad22076b"
   },
   "web.translations.thanks_to_our_community_we_support_over_20_langu": {
     "text": "Graças à nossa comunidade, hoje suportamos mais de 20 idiomas. No entanto, com o nosso rápido ritmo de desenvolvimento, muitas traduções precisam de atualizações para se manterem atuais. Isso afeta tanto onetimesecret.com quanto as milhares de instalações auto-hospedadas em todo o mundo.",
-    "sha256": "ba5c4395"
+    "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "Desde 2012, Onetime Secret fornece uma forma segura de partilhar informações sensíveis em todo o mundo. Com utilizadores em regiões onde o inglês não é o idioma principal, traduções precisas são essenciais para tornar a comunicação segura acessível a todos.",
-    "sha256": "87a6e9af"
+    "text": "Desde 2012, {product_name} fornece uma forma segura de partilhar informações sensíveis em todo o mundo. Com utilizadores em regiões onde o inglês não é o idioma principal, traduções precisas são essenciais para tornar a comunicação segura acessível a todos.",
+    "source_hash": "51b81d4f"
   },
   "web.translations.help_secure_communication_go_global": {
     "text": "Ajuda a comunicação segura a tornar-se global",
-    "sha256": "e94bdc8e"
+    "source_hash": "e94bdc8e"
   }
 }

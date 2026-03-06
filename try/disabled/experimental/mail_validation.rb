@@ -39,7 +39,7 @@ OT.boot! :test, false
 @invalid_no_tld = 'tryouts@onetimesecret'
 
 @unknown_tld = 'tryouts@onetimesecret.p.bs'
-@unknown_domain = 'tryouts@1800dotsup3rbogusd0main.net'
+@unknown_domain = 'tryouts@1800dotsup3rbogcad0main.net'
 
 @sms_email = '5551234567@txt.att.net'
 

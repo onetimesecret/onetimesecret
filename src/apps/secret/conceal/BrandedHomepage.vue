@@ -11,7 +11,6 @@
 
   const {
     allowPublicHomepage,
-    primaryColor,
     cornerClass,
     buttonTextLight,
     logoUri,
@@ -49,7 +48,6 @@
     <SecretForm
       v-if="allowPublicHomepage"
       class="mb-8"
-      :primary-color="primaryColor"
       :button-text-light="buttonTextLight"
       :corner-class="cornerClass"
       :with-recipient="false"
@@ -78,19 +76,16 @@
         class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:shadow-none">
         <!-- Brand accent line -->
         <div
-          class="absolute inset-x-0 top-0 h-1"
-          :style="{ backgroundColor: primaryColor }"></div>
+          class="absolute inset-x-0 top-0 h-1 bg-brand-500"></div>
 
         <!-- Status indicator -->
         <div class="mb-6 flex items-center gap-3">
           <div
-            class="flex size-10 items-center justify-center rounded-full"
-            :style="{ backgroundColor: `${primaryColor}20` }">
+            class="flex size-10 items-center justify-center rounded-full bg-brand-500/10">
             <OIcon
               collection="heroicons"
               name="shield-check"
-              class="size-5"
-              :style="{ color: primaryColor }" />
+              class="size-5 text-brand-500" />
           </div>
           <div>
             <p class="text-sm font-medium text-gray-900 dark:text-white/90">

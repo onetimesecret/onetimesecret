@@ -61,9 +61,9 @@ OT.info "Cleaned Redis for fresh test run"
 @domain.org_id
 #=> @org.objid
 
-## Domain does NOT have custid field (migration complete)
-@domain.respond_to?(:custid)
-#=> false
+## Domain has custid as compatibility alias for objid
+@domain.custid
+#=> @domain.objid
 
 ## Domain appears in organization's domains collection
 @org.domain?(@domain.objid)

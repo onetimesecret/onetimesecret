@@ -82,6 +82,21 @@ RSpec.describe "Development config settings" do
         Onetime::Runtime.update_security(global_secret: nil)
         set_passphrase_temp(secret, passphrase)
 
+        # The wrong key that will be used for the decryption attempt
+        wrong_key = Onetime::Secret.encryption_key(nil, secret.identifier, passphrase)
+
+        # Stub Encryptor.decrypt to fail deterministically on wrong key.
+        # CBC mode only raises CipherError on padding failures, which is non-deterministic
+        # (~1/256 chance of valid padding with wrong key). This ensures the test
+        # is reliable rather than flaky.
+        allow(Encryptor).to receive(:decrypt).and_wrap_original do |method, *args|
+          opts = args.last.is_a?(Hash) ? args.last : {}
+          if opts[:key] == wrong_key
+            raise OpenSSL::Cipher::CipherError.new("wrong key - simulated for test")
+          end
+          method.call(*args)
+        end
+
         expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
       end
     end
@@ -270,6 +285,21 @@ RSpec.describe "Development config settings" do
 
         # IMPORTANT: Completely disable the fallback
         @context_config['development']['allow_nil_global_secret'] = false
+
+        # The wrong key that will be used for the decryption attempt
+        wrong_key = Onetime::Secret.encryption_key(regular_secret, secret.identifier, passphrase)
+
+        # Stub Encryptor.decrypt to fail deterministically on wrong key.
+        # CBC mode only raises CipherError on padding failures, which is non-deterministic
+        # (~1/256 chance of valid padding with wrong key). This ensures the test
+        # is reliable rather than flaky.
+        allow(Encryptor).to receive(:decrypt).and_wrap_original do |method, *args|
+          opts = args.last.is_a?(Hash) ? args.last : {}
+          if opts[:key] == wrong_key
+            raise OpenSSL::Cipher::CipherError.new("wrong key - simulated for test")
+          end
+          method.call(*args)
+        end
 
         # The decryption should fail since the key material is different
         set_passphrase_temp(secret, passphrase)

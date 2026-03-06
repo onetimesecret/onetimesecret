@@ -1,543 +1,543 @@
 {
   "web.auth.mfa_required": {
     "text": "Изисква се MFA потвърждение",
-    "sha256": "e93fd3a4"
+    "source_hash": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
     "text": "Изисква се MFA потвърждение за достъп до вашия акаунт",
-    "sha256": "3cff3311"
+    "source_hash": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
     "text": "Завършете MFA потвърждението",
-    "sha256": "0e681134"
+    "source_hash": "0e681134"
   },
   "web.auth.security.authentication_failed": {
     "text": "Удостоверяването е неуспешно. Моля, проверете данните си и опитайте отново.",
-    "sha256": "b0eeece9"
+    "source_hash": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
     "text": "Твърде много опити. Моля, опитайте отново по-късно.",
-    "sha256": "282db6f3"
+    "source_hash": "282db6f3"
   },
   "web.auth.security.session_expired": {
     "text": "Сесията е изтекла. Моля, влезте отново.",
-    "sha256": "f6f51186"
+    "source_hash": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
     "text": "Кодът за възстановяване не е намерен. Моля, проверете дали сте го въвели правилно.",
-    "sha256": "f5f1bd09"
+    "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
     "text": "Този код за възстановяване вече е използван. Всеки код може да бъде използван само веднъж.",
-    "sha256": "b51d6820"
+    "source_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
     "text": "Мрежова грешка. Моля, проверете връзката си и опитайте отново.",
-    "sha256": "31f2678d"
+    "source_hash": "31f2678d"
   },
   "web.auth.security.internal_error": {
     "text": "Възникна грешка. Моля, опитайте отново.",
-    "sha256": "9c170dda"
+    "source_hash": "9c170dda"
   },
   "web.auth.methods.password": {
     "text": "Парола",
-    "sha256": "e7cf3ef4"
+    "source_hash": "e7cf3ef4"
   },
   "web.auth.methods.magicLink": {
     "text": "Имейл връзка",
-    "sha256": "1b6ffed2"
+    "source_hash": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
     "text": "Биометрично",
-    "sha256": "ab2ba7db"
+    "source_hash": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
     "text": "Вход с имейл",
-    "sha256": "79a864df"
+    "source_hash": "79a864df"
   },
   "web.auth.magicLink.description": {
     "text": "Ще ви изпратим сигурна връзка за вход",
-    "sha256": "5d75aeb0"
+    "source_hash": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
     "text": "Въведете имейла си",
-    "sha256": "2837f6fa"
+    "source_hash": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
     "text": "Изпрати връзка за вход",
-    "sha256": "f5f52392"
+    "source_hash": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
     "text": "Проверете имейла си",
-    "sha256": "77322879"
+    "source_hash": "77322879"
   },
   "web.auth.magicLink.sentTo": {
     "text": "Изпратихме връзка за вход до {email}",
-    "sha256": "d9193f59"
+    "source_hash": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
     "text": "Тази връзка ще изтече след 15 минути",
-    "sha256": "91b5f027"
+    "source_hash": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
     "text": "Опитайте с друг имейл",
-    "sha256": "98657c0b"
+    "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
     "text": "Не е необходима парола — просто натиснете връзката в имейла си",
-    "sha256": "5f539b97"
+    "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
     "text": "Мрежова грешка. Моля, опитайте отново.",
-    "sha256": "9ff8cfaf"
+    "source_hash": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
     "text": "Неуспешно изпращане на връзка за вход. Моля, опитайте отново.",
-    "sha256": "4c685e97"
+    "source_hash": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
     "text": "Невалидна или липсваща връзка за вход",
-    "sha256": "d726c0da"
+    "source_hash": "d726c0da"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Влизането е неуспешно. Моля, опитайте отново.",
-    "sha256": "c95b4875"
+    "source_hash": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
     "text": "Влизане...",
-    "sha256": "9d432ef1"
+    "source_hash": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
     "text": "Моля, изчакайте, докато потвърдим връзката ви",
-    "sha256": "81e4efed"
+    "source_hash": "81e4efed"
   },
   "web.auth.magicLink.error": {
     "text": "Грешка при удостоверяване",
-    "sha256": "797b4f03"
+    "source_hash": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
     "text": "Обратно към вход",
-    "sha256": "ee9eb75e"
+    "source_hash": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
     "text": "Влез с Face ID / Touch ID",
-    "sha256": "46f75469"
+    "source_hash": "46f75469"
   },
   "web.auth.webauthn.setup": {
     "text": "Настрой биометрично влизане",
-    "sha256": "7593dd46"
+    "source_hash": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
     "text": "Биометричното удостоверяване не се поддържа в този браузър",
-    "sha256": "fe2a2c2b"
+    "source_hash": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
     "text": "Моля, използвайте модерен браузър, който поддържа WebAuthn (Chrome, Safari, Firefox или Edge)",
-    "sha256": "fd9752eb"
+    "source_hash": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
     "text": "Биометричното влизане е активирано",
-    "sha256": "63407e97"
+    "source_hash": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
     "text": "Неуспешна настройка на биометрично влизане",
-    "sha256": "290cca44"
+    "source_hash": "290cca44"
   },
   "web.auth.webauthn.authFailed": {
     "text": "Биометричното удостоверяване е неуспешно. Моля, опитайте отново.",
-    "sha256": "626b9ece"
+    "source_hash": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
     "text": "Удостоверяването беше отменено",
-    "sha256": "57461b04"
+    "source_hash": "57461b04"
   },
   "web.auth.webauthn.processing": {
     "text": "Удостоверяване...",
-    "sha256": "1f6087c2"
+    "source_hash": "1f6087c2"
   },
   "web.auth.webauthn.description": {
     "text": "Използвайте пръстов отпечатък, лице или ключ за сигурност за влизане",
-    "sha256": "f02f0427"
+    "source_hash": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
     "text": "Поддържа Face ID, Touch ID, Windows Hello и ключове за сигурност",
-    "sha256": "3ea1c1a2"
+    "source_hash": "3ea1c1a2"
   },
   "web.auth.lockout.attempts_remaining": {
     "text": "Предупреждение: Остават {count} опит(а) за влизане",
-    "sha256": "151dcb5e"
+    "source_hash": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
     "text": "Акаунтът е заключен поради твърде много неуспешни опити за влизане",
-    "sha256": "5247f389"
+    "source_hash": "5247f389"
   },
   "web.auth.lockout.locked_until": {
     "text": "Вашият акаунт е заключен до {time}",
-    "sha256": "1a8f382e"
+    "source_hash": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
     "text": "Свържете се с поддръжката, ако се нуждаете от незабавен достъп",
-    "sha256": "23d82e46"
+    "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
     "text": "Можете да нулирате паролата си вместо това",
-    "sha256": "a98a3f9d"
+    "source_hash": "a98a3f9d"
   },
   "web.auth.sessions.title": {
     "text": "Активни сесии",
-    "sha256": "b58fa4e0"
+    "source_hash": "b58fa4e0"
   },
   "web.auth.sessions.current": {
     "text": "Текуща сесия",
-    "sha256": "386c7932"
+    "source_hash": "386c7932"
   },
   "web.auth.sessions.other": {
     "text": "Други сесии",
-    "sha256": "8409f445"
+    "source_hash": "8409f445"
   },
   "web.auth.sessions.device": {
     "text": "Устройство",
-    "sha256": "6ba0bdec"
+    "source_hash": "6ba0bdec"
   },
   "web.auth.sessions.location": {
     "text": "Местоположение",
-    "sha256": "15b61974"
+    "source_hash": "15b61974"
   },
   "web.auth.sessions.ip_address": {
     "text": "IP адрес",
-    "sha256": "3c3de0c9"
+    "source_hash": "3c3de0c9"
   },
   "web.auth.sessions.last_active": {
     "text": "Последно активна",
-    "sha256": "b6dc1b95"
+    "source_hash": "b6dc1b95"
   },
   "web.auth.sessions.created": {
     "text": "Създадена",
-    "sha256": "d70b9e24"
+    "source_hash": "d70b9e24"
   },
   "web.auth.sessions.remove": {
     "text": "Премахни",
-    "sha256": "c3812fc4"
+    "source_hash": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
     "text": "Излез от всички други сесии",
-    "sha256": "412bb9e2"
+    "source_hash": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
     "text": "Сигурни ли сте, че искате да премахнете тази сесия?",
-    "sha256": "ef12c1ba"
+    "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
     "text": "Това ще ви излезе от всички други устройства. Сигурни ли сте?",
-    "sha256": "4a1a73e9"
+    "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
     "text": "Няма други активни сесии",
-    "sha256": "b83317f2"
+    "source_hash": "b83317f2"
   },
   "web.auth.sessions.removed_success": {
     "text": "Сесията е премахната успешно",
-    "sha256": "6d27d44a"
+    "source_hash": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
     "text": "Всички други сесии са прекратени",
-    "sha256": "1b49e75c"
+    "source_hash": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
     "text": "Активни сесии",
-    "sha256": "b58fa4e0"
+    "source_hash": "b58fa4e0"
   },
   "web.auth.mfa.title": {
     "text": "Двуфакторно удостоверяване",
-    "sha256": "bc074b60"
+    "source_hash": "bc074b60"
   },
   "web.auth.mfa.enabled": {
     "text": "Двуфакторното удостоверяване е активирано",
-    "sha256": "d27a70c6"
+    "source_hash": "d27a70c6"
   },
   "web.auth.mfa.disabled": {
     "text": "Двуфакторното удостоверяване е деактивирано",
-    "sha256": "0af18e50"
+    "source_hash": "0af18e50"
   },
   "web.auth.mfa.enable": {
     "text": "Активирай двуфакторно удостоверяване",
-    "sha256": "9b83e658"
+    "source_hash": "9b83e658"
   },
   "web.auth.mfa.disable": {
     "text": "Деактивирай двуфакторно удостоверяване",
-    "sha256": "c9698815"
+    "source_hash": "c9698815"
   },
   "web.auth.mfa.setup_title": {
     "text": "Настройка на двуфакторно удостоверяване",
-    "sha256": "04e05601"
+    "source_hash": "04e05601"
   },
   "web.auth.mfa.setup_description": {
     "text": "Добавете допълнителен слой сигурност към акаунта си",
-    "sha256": "d47240b9"
+    "source_hash": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
     "text": "1. Сканирай QR код",
-    "sha256": "efd0134a"
+    "source_hash": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
     "text": "2. Потвърди настройката",
-    "sha256": "59bba5f7"
+    "source_hash": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
     "text": "Сканирайте този QR код с приложението си за удостоверяване",
-    "sha256": "65752db3"
+    "source_hash": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
     "text": "Или въведете този код ръчно",
-    "sha256": "3ea15b3e"
+    "source_hash": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
     "text": "Въведете 6-цифрения код от приложението си",
-    "sha256": "38f61733"
+    "source_hash": "38f61733"
   },
   "web.auth.mfa.enter_code": {
     "text": "Въведете код за удостоверяване",
-    "sha256": "186a582a"
+    "source_hash": "186a582a"
   },
   "web.auth.mfa.verify": {
     "text": "Потвърди и активирай",
-    "sha256": "7c08f68d"
+    "source_hash": "7c08f68d"
   },
   "web.auth.mfa.code_required": {
     "text": "Изисква се код за удостоверяване",
-    "sha256": "217de0fc"
+    "source_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
     "text": "Невалиден код. Кодовете изтичат на всеки 30 секунди. Опитайте последния код от приложението си за удостоверяване.",
-    "sha256": "94b58889"
+    "source_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
     "text": "Двуфакторното удостоверяване е активирано",
-    "sha256": "e5aff73d"
+    "source_hash": "e5aff73d"
   },
   "web.auth.mfa.success_disabled": {
     "text": "Двуфакторното удостоверяване е деактивирано",
-    "sha256": "4fd6b4b4"
+    "source_hash": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
     "text": "Въведете паролата си, за да деактивирате 2FA",
-    "sha256": "c384b93c"
+    "source_hash": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
     "text": "Парола",
-    "sha256": "e7cf3ef4"
+    "source_hash": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
     "text": "Потвърдете самоличността си, за да промените настройките за двуфакторно удостоверяване",
-    "sha256": "09a96c07"
+    "source_hash": "09a96c07"
   },
   "web.auth.mfa.last_used": {
     "text": "Последно използван: {time}",
-    "sha256": "e1af94fe"
+    "source_hash": "e1af94fe"
   },
   "web.auth.mfa.never_used": {
     "text": "Никога не е използван",
-    "sha256": "24d3236c"
+    "source_hash": "24d3236c"
   },
   "web.auth.mfa.use_recovery_code": {
     "text": "Използвайте код за възстановяване вместо това",
-    "sha256": "23d3441a"
+    "source_hash": "23d3441a"
   },
   "web.auth.mfa.back_to_code": {
     "text": "Обратно към кода за удостоверяване",
-    "sha256": "6fa090b4"
+    "source_hash": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
     "text": "Отмени и се върни към влизане",
-    "sha256": "83256742"
+    "source_hash": "83256742"
   },
   "web.auth.mfa.loading_status": {
     "text": "Зареждане на MFA статус...",
-    "sha256": "01919f0e"
+    "source_hash": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
     "text": "Вашият акаунт е защитен с двуфакторно удостоверяване",
-    "sha256": "02b9d169"
+    "source_hash": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
     "text": "Защитете акаунта си с допълнителен слой сигурност",
-    "sha256": "06d9123b"
+    "source_hash": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
     "text": "Предотвратете неоторизиран достъп дори ако паролата ви е компрометирана",
-    "sha256": "61d99c71"
+    "source_hash": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
     "text": "Работи с Google Authenticator, Authy и други TOTP приложения",
-    "sha256": "6ee8ab12"
+    "source_hash": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
     "text": "Резервни кодове за възстановяване за спешен достъп",
-    "sha256": "747917bb"
+    "source_hash": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
     "text": "Въведете паролата си",
-    "sha256": "c06bf967"
+    "source_hash": "c06bf967"
   },
   "web.auth.mfa.disabling": {
     "text": "Деактивиране...",
-    "sha256": "e4080e19"
+    "source_hash": "e4080e19"
   },
   "web.auth.mfa.disable_button": {
     "text": "Деактивирай 2FA",
-    "sha256": "1c3193f3"
+    "source_hash": "1c3193f3"
   },
   "web.auth.mfa.generating_qr": {
     "text": "Генериране на QR код...",
-    "sha256": "8eab9da9"
+    "source_hash": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
     "text": "Използвайте Google Authenticator, Authy или друго TOTP приложение",
-    "sha256": "a8eaef9d"
+    "source_hash": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
     "text": "Продължи към потвърждение",
-    "sha256": "4da96e87"
+    "source_hash": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
     "text": "Въведете 6-цифрения код от приложението си за удостоверяване",
-    "sha256": "a160dee6"
+    "source_hash": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
     "text": "Активирай MFA",
-    "sha256": "37c8090d"
+    "source_hash": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
     "text": "Завърши настройката",
-    "sha256": "30e87601"
+    "source_hash": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
     "text": "Въведете един от кодовете си за възстановяване",
-    "sha256": "91ab44cf"
+    "source_hash": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
     "text": "Код за възстановяване",
-    "sha256": "cf25d0fc"
+    "source_hash": "cf25d0fc"
   },
   "web.auth.mfa.recovery_code_placeholder": {
     "text": "Въведете код за възстановяване",
-    "sha256": "586d719c"
+    "source_hash": "586d719c"
   },
   "web.auth.mfa.verify_recovery_code": {
     "text": "Потвърди код за възстановяване",
-    "sha256": "c244c7bd"
+    "source_hash": "c244c7bd"
   },
   "web.auth.mfa.six_digit_code": {
     "text": "Въведете 6-цифрен код за удостоверяване",
-    "sha256": "36a438ba"
+    "source_hash": "36a438ba"
   },
   "web.auth.mfa.recovery_code_mode_active": {
     "text": "Режим код за възстановяване е активен",
-    "sha256": "c895f08b"
+    "source_hash": "c895f08b"
   },
   "web.auth.mfa.otp_mode_active": {
     "text": "Режим код за удостоверяване е активен",
-    "sha256": "8c44a306"
+    "source_hash": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
     "text": "Моля, въведете всички 6 цифри, за да продължите",
-    "sha256": "7914f7b2"
+    "source_hash": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
     "text": "Цифра {current} от {total}",
-    "sha256": "879df41a"
+    "source_hash": "879df41a"
   },
   "web.auth.recovery_codes.title": {
     "text": "Кодове за възстановяване",
-    "sha256": "579c7f4e"
+    "source_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
     "text": "Запазете тези кодове на сигурно място. Всеки може да бъде използван веднъж, ако загубите достъп до приложението си за удостоверяване.",
-    "sha256": "87aebdfb"
+    "source_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
     "text": "Тези кодове ще бъдат показани само веднъж",
-    "sha256": "d13f2877"
+    "source_hash": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
     "text": "Трябва да изтеглите или копирате кодовете си за възстановяване, преди да завършите настройката.",
-    "sha256": "6b97bc6d"
+    "source_hash": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
     "text": "Генерирай нови кодове",
-    "sha256": "4025779e"
+    "source_hash": "4025779e"
   },
   "web.auth.recovery_codes.regenerate": {
     "text": "Генерирай нови кодове",
-    "sha256": "aa652d21"
+    "source_hash": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
     "text": "Това ще анулира всички съществуващи кодове за възстановяване",
-    "sha256": "9795a175"
+    "source_hash": "9795a175"
   },
   "web.auth.recovery_codes.download": {
     "text": "Изтегли кодовете",
-    "sha256": "9c23dbba"
+    "source_hash": "9c23dbba"
   },
   "web.auth.recovery_codes.downloaded": {
     "text": "Кодовете за възстановяване са изтеглени",
-    "sha256": "10486340"
+    "source_hash": "10486340"
   },
   "web.auth.recovery_codes.print": {
     "text": "Отпечатай кодовете",
-    "sha256": "ff940182"
+    "source_hash": "ff940182"
   },
   "web.auth.recovery_codes.copy": {
     "text": "Копирай всички кодове",
-    "sha256": "ee956b2b"
+    "source_hash": "ee956b2b"
   },
   "web.auth.recovery_codes.copied": {
     "text": "Кодовете са копирани в клипборда",
-    "sha256": "06ebb466"
+    "source_hash": "06ebb466"
   },
   "web.auth.recovery_codes.copy_failed": {
     "text": "Неуспешно копиране на кодовете в клипборда",
-    "sha256": "e8be6a51"
+    "source_hash": "e8be6a51"
   },
   "web.auth.recovery_codes.code_used": {
     "text": "Използван",
-    "sha256": "ae7d8dfa"
+    "source_hash": "ae7d8dfa"
   },
   "web.auth.recovery_codes.code_unused": {
     "text": "Неизползван",
-    "sha256": "231aedff"
+    "source_hash": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
     "text": "{count} от {limit} кода за възстановяване остават",
-    "sha256": "b5d484e7"
+    "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
     "text": "Всеки код може да бъде използван само веднъж. Генерирайте нови кодове, ако остават малко.",
-    "sha256": "737a7702"
+    "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
     "text": "Няма оставащи кодове за възстановяване",
-    "sha256": "9ae26d68"
+    "source_hash": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
     "text": "Генерирани са нови кодове за възстановяване",
-    "sha256": "831cb1aa"
+    "source_hash": "831cb1aa"
   },
   "web.auth.recovery_codes.link_title": {
     "text": "Кодове за възстановяване",
-    "sha256": "579c7f4e"
+    "source_hash": "579c7f4e"
   },
   "web.auth.mfa.verify_login": {
     "text": "Потвърди",
-    "sha256": "eea2745e"
+    "source_hash": "eea2745e"
   },
   "web.auth.mfa.use_recovery_code_short": {
     "text": "Използвай код за възстановяване",
-    "sha256": "50d5790d"
+    "source_hash": "50d5790d"
   },
   "web.auth.mfa.cancel_sign_in": {
     "text": "Отмени влизането",
-    "sha256": "1bebad2f"
+    "source_hash": "1bebad2f"
   },
   "web.auth.security._guidance.context": {
     "text": "⚠️ КРИТИЧНО ЗА СИГУРНОСТТА: Съобщенията предотвратяват разкриване на информация. Вижте src/locales/SECURITY-TRANSLATION-GUIDE.md"

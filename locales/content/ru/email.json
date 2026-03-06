@@ -1,594 +1,742 @@
 {
   "email.incomingsupport.subject": {
     "text": "[Заявка: %s]",
-    "sha256": "9e2074ae"
+    "renderer": "erb",
+    "source_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
     "text": "Клиент отправил следующую информацию",
-    "sha256": "9c965ab8"
+    "renderer": "erb",
+    "source_hash": "9c965ab8"
   },
   "email.secret_link.subject": {
     "text": "%{sender_email} отправил(а) Вам секрет",
-    "sha256": "3156abde"
+    "renderer": "erb",
+    "source_hash": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
     "text": "отправил(а) Вам секрет:",
-    "sha256": "c0571266"
+    "renderer": "erb",
+    "source_hash": "c0571266"
   },
   "email.secret_link.important_label": {
     "text": "Важно:",
-    "sha256": "496d6960"
+    "renderer": "erb",
+    "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
     "text": "Эта ссылка сработает только один раз. После просмотра секрет будет безвозвратно удалён.",
-    "sha256": "fecaf0a1"
+    "renderer": "erb",
+    "source_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
     "text": "Отправлено через",
-    "sha256": "d01479b3"
+    "renderer": "erb",
+    "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
     "text": "Добро пожаловать в %{product_name} — пожалуйста, подтвердите Вашу почту",
-    "sha256": "96008c17"
+    "renderer": "erb",
+    "source_hash": "96008c17"
   },
   "email.welcome.title": {
     "text": "Добро пожаловать в %{product_name}!",
-    "sha256": "77e7dda4"
+    "renderer": "erb",
+    "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
     "text": "Пожалуйста, подтвердите Ваш адрес электронной почты, нажав на ссылку ниже:",
-    "sha256": "e373dcee"
+    "renderer": "erb",
+    "source_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
     "text": "Подтвердить адрес электронной почты",
-    "sha256": "d261b9df"
+    "renderer": "erb",
+    "source_hash": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
     "text": "Или скопируйте и вставьте эту ссылку:",
-    "sha256": "88c72144"
+    "renderer": "erb",
+    "source_hash": "88c72144"
   },
   "email.welcome.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.welcome.postscript": {
     "text": "P.S. Это письмо было отправлено на %{email_address}. Если Вы не создавали аккаунт, можете спокойно проигнорировать это сообщение.",
-    "sha256": "05709148"
+    "renderer": "erb",
+    "source_hash": "05709148"
   },
   "email.password_request.subject": {
     "text": "Сброс пароля (%{display_domain})",
-    "sha256": "a9882af1"
+    "renderer": "erb",
+    "source_hash": "a9882af1"
   },
   "email.password_request.title": {
     "text": "Сброс пароля",
-    "sha256": "0568c7b0"
+    "renderer": "erb",
+    "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
     "text": "Мы получили запрос на сброс пароля для Вашего аккаунта %{product_name}.",
-    "sha256": "4ad3b5cd"
+    "renderer": "erb",
+    "source_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
     "text": "Сбросить пароль",
-    "sha256": "4e70f1fd"
+    "renderer": "erb",
+    "source_hash": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
     "text": "Или скопируйте и вставьте эту ссылку:",
-    "sha256": "88c72144"
+    "renderer": "erb",
+    "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
     "text": "Если Вы не запрашивали сброс пароля, можете проигнорировать это письмо.",
-    "sha256": "fbb7eb2d"
+    "renderer": "erb",
+    "source_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.password_request.postscript": {
     "text": "P.S. Это письмо было отправлено на %{email_address}.",
-    "sha256": "8ab1dbea"
+    "renderer": "erb",
+    "source_hash": "8ab1dbea"
   },
   "email.magic_link.subject": {
     "text": "Вход на %{display_domain}",
-    "sha256": "2967293e"
+    "renderer": "erb",
+    "source_hash": "2967293e"
   },
   "email.magic_link.title": {
     "text": "Вход по волшебной ссылке",
-    "sha256": "0b84879b"
+    "renderer": "erb",
+    "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
     "text": "Вы запросили ссылку для входа в Ваш аккаунт %{product_name}.",
-    "sha256": "3a34aa1f"
+    "renderer": "erb",
+    "source_hash": "3a34aa1f"
   },
   "email.magic_link.login_button": {
     "text": "Войти",
-    "sha256": "bcc0bcc9"
+    "renderer": "erb",
+    "source_hash": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
     "text": "Или скопируйте и вставьте эту ссылку:",
-    "sha256": "88c72144"
+    "renderer": "erb",
+    "source_hash": "88c72144"
   },
   "email.magic_link.expiration_notice": {
     "text": "Срок действия этой ссылки истечёт через 15 минут.",
-    "sha256": "a6967fa7"
+    "renderer": "erb",
+    "source_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
     "text": "Если Вы не запрашивали эту ссылку, можете проигнорировать это письмо.",
-    "sha256": "1863f5be"
+    "renderer": "erb",
+    "source_hash": "1863f5be"
   },
   "email.magic_link.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.magic_link.postscript": {
     "text": "P.S. Это письмо было отправлено на %{email_address}.",
-    "sha256": "8ab1dbea"
+    "renderer": "erb",
+    "source_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
     "text": "Вы получили секретное сообщение",
-    "sha256": "c7c36a80"
+    "renderer": "erb",
+    "source_hash": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
     "text": "Вы получили защищённое сообщение:",
-    "sha256": "7d3cd4cb"
+    "renderer": "erb",
+    "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
     "text": "Примечание:",
-    "sha256": "8bab5066"
+    "renderer": "erb",
+    "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
     "text": "Кто-то отправил Вам защищённое сообщение через %{display_domain}.",
-    "sha256": "12ac0a81"
+    "renderer": "erb",
+    "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
     "text": "Чтобы просмотреть этот секрет, нажмите на ссылку ниже:",
-    "sha256": "1dcdc014"
+    "renderer": "erb",
+    "source_hash": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
     "text": "Важно:",
-    "sha256": "496d6960"
+    "renderer": "erb",
+    "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
     "text": "Эта ссылка сработает только один раз. После просмотра секрет будет безвозвратно удалён.",
-    "sha256": "fecaf0a1"
+    "renderer": "erb",
+    "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.sent_via": {
     "text": "Отправлено через",
-    "sha256": "d01479b3"
+    "renderer": "erb",
+    "source_hash": "d01479b3"
   },
   "email.secret_revealed.subject": {
     "text": "Ваш секрет был просмотрен",
-    "sha256": "0767ae45"
+    "renderer": "erb",
+    "source_hash": "0767ae45"
   },
   "email.secret_revealed.title": {
     "text": "Ваш секрет был просмотрен",
-    "sha256": "6a530d71"
+    "renderer": "erb",
+    "source_hash": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
     "text": "Ваш секрет был просмотрен %{date}.",
-    "sha256": "6a3d346c"
+    "renderer": "erb",
+    "source_hash": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
     "text": "ID секрета:",
-    "sha256": "ab567438"
+    "renderer": "erb",
+    "source_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
     "text": "Это автоматическое уведомление. Никаких действий не требуется.",
-    "sha256": "3f6b45dd"
+    "renderer": "erb",
+    "source_hash": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
     "text": "Управление настройками уведомлений",
-    "sha256": "a76d7ce0"
+    "renderer": "erb",
+    "source_hash": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
     "text": "Чтобы управлять настройками уведомлений:",
-    "sha256": "83cbd163"
+    "renderer": "erb",
+    "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
     "text": "Срок действия Вашей секретной ссылки скоро истечёт",
-    "sha256": "74813c5f"
+    "renderer": "erb",
+    "source_hash": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
     "text": "Срок действия Вашей секретной ссылки истекает через %{time_remaining}",
-    "sha256": "e7bb47f6"
+    "renderer": "erb",
+    "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
     "text": "Просмотреть секрет до истечения срока",
-    "sha256": "9e7d7396"
+    "renderer": "erb",
+    "source_hash": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
     "text": "Напоминание:",
-    "sha256": "e945d640"
+    "renderer": "erb",
+    "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
     "text": "После истечения срока секрет будет безвозвратно удалён и не может быть восстановлен.",
-    "sha256": "deb92a01"
+    "renderer": "erb",
+    "source_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
     "text": "Отправлено через",
-    "sha256": "d01479b3"
+    "renderer": "erb",
+    "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
     "text": "Просмотрите его, пока не поздно:",
-    "sha256": "30342c04"
+    "renderer": "erb",
+    "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
     "text": "После истечения срока секрет будет безвозвратно удалён.",
-    "sha256": "bd0a9bee"
+    "renderer": "erb",
+    "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
     "text": "Отзыв от %{date} через %{display_domain} (%{strategy})",
-    "sha256": "f7498c8b"
+    "renderer": "erb",
+    "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
     "text": "Отзыв пользователя",
-    "sha256": "47296999"
+    "renderer": "erb",
+    "source_hash": "47296999"
   },
   "email.feedback_email.from_label": {
     "text": "От:",
-    "sha256": "dc45d36f"
+    "renderer": "erb",
+    "source_hash": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
     "text": "Домен:",
-    "sha256": "a4c7de06"
+    "renderer": "erb",
+    "source_hash": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
     "text": "Способ:",
-    "sha256": "8132ec6b"
+    "renderer": "erb",
+    "source_hash": "8132ec6b"
   },
   "email.feedback_email.message_label": {
     "text": "Сообщение:",
-    "sha256": "f5394f72"
+    "renderer": "erb",
+    "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
     "text": "Secret Support",
-    "sha256": "f6a6c90f"
+    "renderer": "erb",
+    "source_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
     "text": "Вас пригласили присоединиться к %{organization_name}",
-    "sha256": "58591e00"
+    "renderer": "erb",
+    "source_hash": "58591e00"
   },
   "email.organization_invitation.title": {
     "text": "Вас пригласили присоединиться к %{organization_name}!",
-    "sha256": "19548dfd"
+    "renderer": "erb",
+    "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
     "text": "%{inviter_email} пригласил(а) Вас присоединиться к «%{organization_name}» в роли %{role_description}.",
-    "sha256": "e4d3fb65"
+    "renderer": "erb",
+    "source_hash": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
     "text": "Принять приглашение",
-    "sha256": "ce7cfeaf"
+    "renderer": "erb",
+    "source_hash": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
     "text": "Или скопируйте и вставьте эту ссылку:",
-    "sha256": "88c72144"
+    "renderer": "erb",
+    "source_hash": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
     "text": "Срок действия этого приглашения истекает через %{days} дней.",
-    "sha256": "dabc54d5"
+    "renderer": "erb",
+    "source_hash": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
     "text": "Если Вы не хотите присоединяться, можете просто проигнорировать это письмо или отклонить приглашение.",
-    "sha256": "734882d2"
+    "renderer": "erb",
+    "source_hash": "734882d2"
   },
   "email.organization_invitation.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
     "text": "P.S. Это письмо было отправлено на %{invited_email}. Если Вы не ожидали этого приглашения, можете спокойно проигнорировать это сообщение.",
-    "sha256": "608e2b40"
+    "renderer": "erb",
+    "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
     "text": "участник",
-    "sha256": "efdef688"
+    "renderer": "erb",
+    "source_hash": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
     "text": "администратор",
-    "sha256": "603fd5c3"
+    "renderer": "erb",
+    "source_hash": "603fd5c3"
   },
   "email.password_changed.subject": {
     "text": "Ваш пароль был изменён (%{display_domain})",
-    "sha256": "b030deff"
+    "renderer": "erb",
+    "source_hash": "b030deff"
   },
   "email.password_changed.title": {
     "text": "Ваш пароль был изменён",
-    "sha256": "adb1f471"
+    "renderer": "erb",
+    "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
     "text": "Пароль Вашего аккаунта %{product_name} был изменён %{date} в %{time}.",
-    "sha256": "21f5117c"
+    "renderer": "erb",
+    "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
     "text": "Если Вы не вносили это изменение, немедленно защитите свой аккаунт, сбросив пароль и связавшись со службой поддержки.",
-    "sha256": "be92cff3"
+    "renderer": "erb",
+    "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.email_changed.subject": {
     "text": "Ваш адрес электронной почты был изменён (%{display_domain})",
-    "sha256": "d68d2f4c"
+    "renderer": "erb",
+    "source_hash": "d68d2f4c"
   },
   "email.email_changed.title": {
     "text": "Ваш адрес электронной почты был изменён",
-    "sha256": "62b07299"
+    "renderer": "erb",
+    "source_hash": "62b07299"
   },
   "email.email_changed.body": {
     "text": "Адрес электронной почты Вашего аккаунта %{product_name} был изменён на %{new_email_masked} %{date}.",
-    "sha256": "6f3419d1"
+    "renderer": "erb",
+    "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "Если Вы не вносили это изменение, немедленно свяжитесь со службой поддержки, так как Ваш аккаунт может быть скомпрометирован.",
-    "sha256": "f505b562"
+    "renderer": "erb",
+    "source_hash": "f505b562"
   },
   "email.email_changed.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.subject": {
     "text": "Подтвердите Ваш новый адрес электронной почты (%{display_domain})",
-    "sha256": "6caae414"
+    "renderer": "erb",
+    "source_hash": "6caae414"
   },
   "email.email_change_confirmation.title": {
     "text": "Подтвердите Ваш новый адрес электронной почты",
-    "sha256": "0ec73977"
+    "renderer": "erb",
+    "source_hash": "0ec73977"
   },
   "email.email_change_confirmation.body": {
     "text": "Пожалуйста, подтвердите этот адрес электронной почты, чтобы завершить изменение Вашего аккаунта %{product_name}.",
-    "sha256": "4df742ab"
+    "renderer": "erb",
+    "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
     "text": "Подтвердить адрес электронной почты",
-    "sha256": "d261b9df"
+    "renderer": "erb",
+    "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Или скопируйте и вставьте эту ссылку:",
-    "sha256": "88c72144"
+    "renderer": "erb",
+    "source_hash": "88c72144"
   },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.mfa_enabled.subject": {
     "text": "Двухфакторная аутентификация включена (%{display_domain})",
-    "sha256": "c067e466"
+    "renderer": "erb",
+    "source_hash": "c067e466"
   },
   "email.mfa_enabled.title": {
     "text": "Двухфакторная аутентификация включена",
-    "sha256": "2398ed9e"
+    "renderer": "erb",
+    "source_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
     "text": "Двухфакторная аутентификация была включена для Вашего аккаунта %{product_name} %{date}.",
-    "sha256": "9f6be43f"
+    "renderer": "erb",
+    "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
     "text": "Ваш аккаунт теперь более защищён. При входе Вам потребуется вводить код подтверждения из приложения-аутентификатора.",
-    "sha256": "e7c11bb0"
+    "renderer": "erb",
+    "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.mfa_disabled.subject": {
     "text": "Двухфакторная аутентификация отключена (%{display_domain})",
-    "sha256": "228a686a"
+    "renderer": "erb",
+    "source_hash": "228a686a"
   },
   "email.mfa_disabled.title": {
     "text": "Двухфакторная аутентификация отключена",
-    "sha256": "372d577a"
+    "renderer": "erb",
+    "source_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
     "text": "Двухфакторная аутентификация была отключена для Вашего аккаунта %{product_name} %{date}.",
-    "sha256": "0248389d"
+    "renderer": "erb",
+    "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
     "text": "Ваш аккаунт теперь менее защищён. Если Вы не вносили это изменение, немедленно защитите свой аккаунт.",
-    "sha256": "97ef0a3e"
+    "renderer": "erb",
+    "source_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.new_login_alert.subject": {
     "text": "Новый вход в Ваш аккаунт (%{display_domain})",
-    "sha256": "a704f0bb"
+    "renderer": "erb",
+    "source_hash": "a704f0bb"
   },
   "email.new_login_alert.title": {
     "text": "Обнаружен новый вход",
-    "sha256": "61172ee4"
+    "renderer": "erb",
+    "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
     "text": "Обнаружен новый вход в Ваш аккаунт %{product_name} %{date} в %{time}.",
-    "sha256": "040f8f48"
+    "renderer": "erb",
+    "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
     "text": "Устройство:",
-    "sha256": "9f8d3539"
+    "renderer": "erb",
+    "source_hash": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
     "text": "Местоположение:",
-    "sha256": "bbdffe25"
+    "renderer": "erb",
+    "source_hash": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
     "text": "IP-адрес:",
-    "sha256": "a2cb73e4"
+    "renderer": "erb",
+    "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
     "text": "Если это были не Вы, Ваш аккаунт может быть скомпрометирован.",
-    "sha256": "e2f819c9"
+    "renderer": "erb",
+    "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
     "text": "Защитить аккаунт",
-    "sha256": "450c54c5"
+    "renderer": "erb",
+    "source_hash": "450c54c5"
   },
   "email.new_login_alert.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.member_removed.subject": {
     "text": "Вы были удалены из %{organization_name}",
-    "sha256": "9e35b86b"
+    "renderer": "erb",
+    "source_hash": "9e35b86b"
   },
   "email.member_removed.title": {
     "text": "Вы были удалены из %{organization_name}",
-    "sha256": "6cf4ee6a"
+    "renderer": "erb",
+    "source_hash": "6cf4ee6a"
   },
   "email.member_removed.body": {
     "text": "Вы были удалены из организации «%{organization_name}» на %{product_name}.",
-    "sha256": "d442beed"
+    "renderer": "erb",
+    "source_hash": "d442beed"
   },
   "email.member_removed.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.role_changed.subject": {
     "text": "Ваша роль была изменена в %{organization_name}",
-    "sha256": "f987a7ad"
+    "renderer": "erb",
+    "source_hash": "f987a7ad"
   },
   "email.role_changed.title": {
     "text": "Ваша роль была изменена",
-    "sha256": "8f892809"
+    "renderer": "erb",
+    "source_hash": "8f892809"
   },
   "email.role_changed.body": {
     "text": "Ваша роль в организации «%{organization_name}» была изменена с %{old_role} на %{new_role}.",
-    "sha256": "c2280c0c"
+    "renderer": "erb",
+    "source_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.organization_deleted.subject": {
     "text": "Организация «%{organization_name}» была удалена",
-    "sha256": "056a9921"
+    "renderer": "erb",
+    "source_hash": "056a9921"
   },
   "email.organization_deleted.title": {
     "text": "Организация удалена",
-    "sha256": "41cff705"
+    "renderer": "erb",
+    "source_hash": "41cff705"
   },
   "email.organization_deleted.body": {
     "text": "Организация «%{organization_name}» была удалена из %{product_name}. Все связанные данные были удалены.",
-    "sha256": "7095fc69"
+    "renderer": "erb",
+    "source_hash": "7095fc69"
   },
   "email.organization_deleted.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.payment_receipt.subject": {
     "text": "Квитанция об оплате для %{product_name}",
-    "sha256": "a1b5cc04"
+    "renderer": "erb",
+    "source_hash": "a1b5cc04"
   },
   "email.payment_receipt.title": {
     "text": "Квитанция об оплате",
-    "sha256": "7e677ab8"
+    "renderer": "erb",
+    "source_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
     "text": "Благодарим за оплату. Вот детали Вашего платежа:",
-    "sha256": "a1fb6502"
+    "renderer": "erb",
+    "source_hash": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
     "text": "Сумма:",
-    "sha256": "cdf45632"
+    "renderer": "erb",
+    "source_hash": "cdf45632"
   },
   "email.payment_receipt.date_label": {
     "text": "Дата:",
-    "sha256": "b51489bd"
+    "renderer": "erb",
+    "source_hash": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
     "text": "План:",
-    "sha256": "c6c28dbb"
+    "renderer": "erb",
+    "source_hash": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
     "text": "Просмотреть счёт",
-    "sha256": "36008943"
+    "renderer": "erb",
+    "source_hash": "36008943"
   },
   "email.payment_receipt.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.payment_failed.subject": {
     "text": "Платёж не прошёл для %{product_name}",
-    "sha256": "77f18a23"
+    "renderer": "erb",
+    "source_hash": "77f18a23"
   },
   "email.payment_failed.title": {
     "text": "Платёж не прошёл",
-    "sha256": "a287ab86"
+    "renderer": "erb",
+    "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
     "text": "Нам не удалось обработать Ваш платёж для %{product_name}. Пожалуйста, обновите способ оплаты, чтобы избежать перерыва в обслуживании.",
-    "sha256": "6496ef22"
+    "renderer": "erb",
+    "source_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
     "text": "Обновить способ оплаты",
-    "sha256": "926406b1"
+    "renderer": "erb",
+    "source_hash": "926406b1"
   },
   "email.payment_failed.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.trial_expiring.subject": {
     "text": "Ваш пробный период %{product_name} истекает через %{days_remaining} дней",
-    "sha256": "82114f95"
+    "renderer": "erb",
+    "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
     "text": "Ваш пробный период скоро заканчивается",
-    "sha256": "36200518"
+    "renderer": "erb",
+    "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
     "text": "Ваш бесплатный пробный период %{product_name} истекает через %{days_remaining} дней. Перейдите на платный план сейчас, чтобы сохранить доступ ко всем функциям.",
-    "sha256": "17fc32dd"
+    "renderer": "erb",
+    "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
     "text": "Перейти на платный план",
-    "sha256": "66a1419e"
+    "renderer": "erb",
+    "source_hash": "66a1419e"
   },
   "email.trial_expiring.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.subscription_changed.subject": {
     "text": "Ваша подписка %{product_name} была изменена",
-    "sha256": "c9b61a4d"
+    "renderer": "erb",
+    "source_hash": "c9b61a4d"
   },
   "email.subscription_changed.title": {
     "text": "Подписка изменена",
-    "sha256": "7523a022"
+    "renderer": "erb",
+    "source_hash": "7523a022"
   },
   "email.subscription_changed.body": {
     "text": "Ваша подписка %{product_name} была изменена с %{old_plan} на %{new_plan}.",
-    "sha256": "72f81a65"
+    "renderer": "erb",
+    "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
     "text": "Это изменение вступает в силу %{date}.",
-    "sha256": "5a96ae38"
+    "renderer": "erb",
+    "source_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {
     "text": "Delano",
-    "sha256": "f58154f7"
+    "renderer": "erb",
+    "source_hash": "f58154f7"
   },
   "email.common.greeting": {
     "text": "Здравствуйте,",
-    "sha256": "dafe7694"
+    "renderer": "erb",
+    "source_hash": "dafe7694"
   },
   "email.common.thanks": {
     "text": "Спасибо,",
-    "sha256": "11dfba8f"
+    "renderer": "erb",
+    "source_hash": "11dfba8f"
   },
   "email.common.unsubscribe": {
     "text": "Отписаться",
-    "sha256": "3e92efb7"
+    "renderer": "erb",
+    "source_hash": "3e92efb7"
   },
   "email.common.view_in_browser": {
     "text": "Открыть в браузере",
-    "sha256": "be843876"
+    "renderer": "erb",
+    "source_hash": "be843876"
   },
   "email.common.onetime_secret": {
-    "text": "Onetime Secret",
-    "sha256": "1cd0194a"
+    "text": "%{product_name}",
+    "renderer": "erb",
+    "source_hash": "7bec5899"
   }
 }

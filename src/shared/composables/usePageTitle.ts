@@ -1,6 +1,7 @@
 // src/shared/composables/usePageTitle.ts
 
 import { globalComposer } from '@/i18n';
+import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';
 import { computed, watch } from 'vue';
@@ -33,7 +34,7 @@ import { computed, watch } from 'vue';
  * });
  */
 
-const APP_NAME = 'Onetime Secret';
+const DEFAULT_APP_NAME = NEUTRAL_BRAND_DEFAULTS.product_name;
 const TITLE_SEPARATOR = ' - ';
 
 export function usePageTitle() {
@@ -43,7 +44,7 @@ export function usePageTitle() {
   const { t, te } = globalComposer;
 
   const bootstrapStore = useBootstrapStore();
-  const { display_domain } = storeToRefs(bootstrapStore);
+  const { display_domain, brand_product_name } = storeToRefs(bootstrapStore);
 
   // Cache DOM elements to avoid repeated queries
   let ogTitleMeta: HTMLMetaElement | null | undefined;
@@ -52,7 +53,8 @@ export function usePageTitle() {
   /**
    * Gets the branded app name from domain settings or defaults to APP_NAME
    */
-  const getAppName = (): string => display_domain.value || APP_NAME;
+  const getAppName = (): string =>
+    display_domain.value || brand_product_name.value || DEFAULT_APP_NAME;
 
   /**
    * Translates a title if it's an i18n key, otherwise returns the raw string

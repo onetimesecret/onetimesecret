@@ -203,7 +203,7 @@ const loadPlans = async () => {
     plans.value = response.plans;
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.message || 'Failed to load plans';
+    error.value = classified.message || t('web.billing.plans.load_error');
     console.error('[PlanSelector] Error loading plans:', err);
   } finally {
     isLoadingPlans.value = false;
@@ -211,7 +211,15 @@ const loadPlans = async () => {
 };
 
 const handlePlanSelect = async (plan: BillingPlan) => {
-  if (isPlanCurrent(plan) || !selectedOrg.value?.extid || plan.tier === 'free') return;
+  if (isPlanCurrent(plan) || !selectedOrg.value?.extid) return;
+
+  // Free plan: open the cancel subscription modal instead of checkout
+  if (plan.tier === 'free') {
+    if (hasActiveSubscription.value) {
+      showCancelModal.value = true;
+    }
+    return;
+  }
 
   // Clear any previous messages
   error.value = '';
@@ -434,7 +442,7 @@ onMounted(async () => {
     }
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.message || 'Failed to load billing data';
+    error.value = classified.message || t('web.billing.plans.load_error');
     console.error('[PlanSelector] Error loading billing data:', err);
   } finally {
     isLoadingOrg.value = false;
@@ -617,7 +625,7 @@ aria-live="polite">
             :is-recommended="isPlanRecommended(plan)"
             :is-suggested="suggestedPlanId === plan.id"
             :button-label="getButtonLabel(plan)"
-            :button-disabled="isPlanCurrent(plan) || isCreatingCheckout || plan.tier === 'free' || isPlanCurrencyMismatch(plan)"
+            :button-disabled="isPlanCurrent(plan) || isCreatingCheckout || (plan.tier === 'free' && !hasActiveSubscription) || isPlanCurrencyMismatch(plan)"
             :disabled-reason="isPlanCurrencyMismatch(plan) ? $t('web.billing.plan_unavailable_region_mismatch') : undefined"
             :is-processing="isCreatingCheckout && !isPlanCurrent(plan)"
             @select="handlePlanSelect" />

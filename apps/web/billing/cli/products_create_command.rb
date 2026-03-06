@@ -77,7 +77,7 @@ module Onetime
             'app' => 'onetimesecret',
             'plan_id' => options[:plan_id] || '',
             'tier' => options[:tier] || '',
-            'region' => options[:region] || 'global',
+            'region' => Billing::RegionNormalizer.normalize(options[:region]) || '',
             'tenancy' => options[:tenancy] || '',
             'entitlements' => options[:entitlements] || '',
             'created' => Time.now.utc.iso8601,
@@ -248,7 +248,7 @@ module Onetime
         end
 
         puts "\nNext steps:"
-        puts "  bin/ots billing prices create #{product.id} --amount=2900 --currency=usd --interval=month"
+        puts "  bin/ots billing prices create #{product.id} --amount=2900 --currency=cad --interval=month"
 
         product
       rescue Stripe::StripeError => ex

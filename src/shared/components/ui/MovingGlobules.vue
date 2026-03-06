@@ -48,8 +48,8 @@ export interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  fromColour: '#655b5f',
-  toColour: '#23b5dd',
+  fromColour: 'var(--color-brandcomp-500)',
+  toColour: 'var(--color-brand-500)',
   speed: '6s',
   interval: 2000,
   scale: 1,

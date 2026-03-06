@@ -114,7 +114,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/invoiceitems
     body:
       encoding: UTF-8
-      string: customer=cus_Thjh9CyDPtrYWk&amount=1000&currency=usd&description=Test+invoice+item
+      string: customer=cus_Thjh9CyDPtrYWk&amount=1000&currency=cad&description=Test+invoice+item
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -191,7 +191,7 @@ http_interactions:
           "id": "ii_1SkKDpH54PcLeqtYs8bIEMHo",
           "object": "invoiceitem",
           "amount": 1000,
-          "currency": "usd",
+          "currency": "cad",
           "customer": "cus_Thjh9CyDPtrYWk",
           "customer_account": null,
           "date": 1767167613,
@@ -324,7 +324,7 @@ http_interactions:
           "billing_reason": "manual",
           "collection_method": "charge_automatically",
           "created": 1767167613,
-          "currency": "usd",
+          "currency": "cad",
           "custom_fields": null,
           "customer": "cus_Thjh9CyDPtrYWk",
           "customer_account": null,
@@ -504,7 +504,7 @@ http_interactions:
               "billing_reason": "manual",
               "collection_method": "charge_automatically",
               "created": 1767167613,
-              "currency": "usd",
+              "currency": "cad",
               "custom_fields": null,
               "customer": "cus_Thjh9CyDPtrYWk",
               "customer_account": null,

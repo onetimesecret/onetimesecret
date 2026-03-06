@@ -13,5 +13,8 @@ set -a
 # Load the vars (use 'source' instead of '.' to handle symlinks in zsh)
 [ -f .env ] && source .env
 
+# .env.local overrides .env (never committed — add to .gitignore)
+[ -f .env.local ] && source .env.local
+
 # Set +a restores default behavior where variables must be explicitly exported
 set +a

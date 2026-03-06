@@ -1,0 +1,2621 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "VaultShare API v3",
+    "version": "3.0.0",
+    "description": "RESTful API for VaultShare v3. Returns native JSON types (numbers, booleans, null) instead of string-serialized values like v2.",
+    "contact": {
+      "name": "VaultShare Support",
+      "url": "https://vaultshare.io",
+      "email": "support@vaultshare.io"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://vaultshare.io/api/v3",
+      "description": "Production"
+    },
+    {
+      "url": "http://localhost:3000/api/v3",
+      "description": "Local development"
+    }
+  ],
+  "tags": [
+    {
+      "name": "v3",
+      "description": "API version 3 - Native JSON types"
+    },
+    {
+      "name": "secrets",
+      "description": "Secret operations (create, reveal, burn)"
+    },
+    {
+      "name": "metadata",
+      "description": "Secret metadata and receipts"
+    },
+    {
+      "name": "generate",
+      "description": "Generate random secrets/passwords"
+    },
+    {
+      "name": "system",
+      "description": "System status and version information"
+    },
+    {
+      "name": "feedback",
+      "description": "User feedback submission"
+    }
+  ],
+  "externalDocs": {
+    "description": "Full API Documentation",
+    "url": "https://docs.vaultshare.io/api/v3"
+  },
+  "components": {
+    "securitySchemes": {
+      "BasicAuth": {
+        "type": "http",
+        "scheme": "basic",
+        "description": "HTTP Basic Authentication using API credentials (username:api_token)"
+      },
+      "SessionAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "sess",
+        "description": "Session-based authentication via browser cookie"
+      }
+    },
+    "schemas": {
+      "ConcealPayload": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "conceal"
+            ]
+          },
+          "share_domain": {
+            "type": "string"
+          },
+          "recipient": {
+            "type": "string"
+          },
+          "passphrase": {
+            "type": "string"
+          },
+          "ttl": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d+$"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "secret": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "kind",
+          "share_domain",
+          "secret"
+        ]
+      },
+      "GeneratePayload": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "generate"
+            ]
+          },
+          "share_domain": {
+            "type": "string"
+          },
+          "recipient": {
+            "type": "string"
+          },
+          "passphrase": {
+            "type": "string"
+          },
+          "ttl": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d+$"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "length": {
+            "type": "integer",
+            "minimum": 4,
+            "maximum": 128
+          },
+          "character_sets": {
+            "type": "object",
+            "properties": {
+              "uppercase": {
+                "type": "boolean"
+              },
+              "lowercase": {
+                "type": "boolean"
+              },
+              "numbers": {
+                "type": "boolean"
+              },
+              "symbols": {
+                "type": "boolean"
+              },
+              "exclude_ambiguous": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "required": [
+          "kind",
+          "share_domain"
+        ]
+      },
+      "Secret": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "key": {
+            "type": "string"
+          },
+          "shortid": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "new",
+              "received",
+              "revealed",
+              "burned",
+              "viewed",
+              "previewed"
+            ]
+          },
+          "has_passphrase": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "verification": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "secret_value": {
+            "type": "string"
+          },
+          "secret_ttl": {
+            "type": "number",
+            "nullable": true
+          },
+          "lifespan": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "identifier",
+          "created",
+          "updated",
+          "key",
+          "shortid",
+          "state"
+        ]
+      },
+      "SecretDetails": {
+        "type": "object",
+        "properties": {
+          "continue": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "is_owner": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "show_secret": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "correct_passphrase": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "display_lines": {
+            "type": "number",
+            "nullable": true
+          },
+          "one_liner": {
+            "type": "boolean",
+            "nullable": true
+          }
+        }
+      },
+      "Receipt": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string"
+          },
+          "created": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "updated": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "key": {
+            "type": "string",
+            "nullable": true
+          },
+          "shortid": {
+            "type": "string"
+          },
+          "secret_shortid": {
+            "type": "string",
+            "nullable": true
+          },
+          "recipients": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "string"
+              },
+              {
+                "nullable": true
+              }
+            ]
+          },
+          "share_domain": {
+            "type": "string",
+            "nullable": true
+          },
+          "secret_ttl": {
+            "type": "number",
+            "nullable": true
+          },
+          "receipt_ttl": {
+            "type": "number",
+            "nullable": true
+          },
+          "lifespan": {
+            "type": "number",
+            "nullable": true
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "new",
+              "shared",
+              "received",
+              "revealed",
+              "burned",
+              "viewed",
+              "previewed",
+              "expired",
+              "orphaned"
+            ]
+          },
+          "has_passphrase": {
+            "type": "boolean"
+          },
+          "shared": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "received": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "viewed": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "previewed": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "revealed": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "burned": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "is_viewed": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "is_received": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "is_previewed": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "is_revealed": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "is_burned": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "is_destroyed": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "is_expired": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "is_orphaned": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "memo": {
+            "type": "string",
+            "nullable": true
+          },
+          "secret_identifier": {
+            "type": "string",
+            "nullable": true
+          },
+          "secret_state": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "new",
+              "shared",
+              "received",
+              "revealed",
+              "burned",
+              "viewed",
+              "previewed",
+              "expired",
+              "orphaned",
+              null
+            ]
+          },
+          "natural_expiration": {
+            "type": "string"
+          },
+          "expiration": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "expiration_in_seconds": {
+            "type": "number",
+            "nullable": true
+          },
+          "share_path": {
+            "type": "string"
+          },
+          "burn_path": {
+            "type": "string"
+          },
+          "receipt_path": {
+            "type": "string"
+          },
+          "share_url": {
+            "type": "string"
+          },
+          "receipt_url": {
+            "type": "string"
+          },
+          "burn_url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "identifier",
+          "created",
+          "updated",
+          "shortid",
+          "state",
+          "natural_expiration",
+          "expiration",
+          "share_path",
+          "burn_path",
+          "receipt_path",
+          "share_url",
+          "receipt_url",
+          "burn_url"
+        ]
+      },
+      "ReceiptDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "record"
+            ]
+          },
+          "display_lines": {
+            "type": "number",
+            "nullable": true
+          },
+          "no_cache": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "secret_realttl": {
+            "type": "number",
+            "nullable": true
+          },
+          "view_count": {
+            "type": "number",
+            "nullable": true
+          },
+          "has_passphrase": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "can_decrypt": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "secret_value": {
+            "type": "string",
+            "nullable": true
+          },
+          "show_secret": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "show_secret_link": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "show_receipt_link": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "show_receipt": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "show_recipients": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "is_orphaned": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "is_expired": {
+            "type": "boolean",
+            "nullable": true
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "SecretResponse": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "shrimp": {
+            "type": "string",
+            "default": ""
+          },
+          "record": {
+            "type": "object",
+            "properties": {
+              "identifier": {
+                "type": "string"
+              },
+              "created": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updated": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "key": {
+                "type": "string"
+              },
+              "shortid": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "new",
+                  "received",
+                  "revealed",
+                  "burned",
+                  "viewed",
+                  "previewed"
+                ]
+              },
+              "has_passphrase": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "verification": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "secret_value": {
+                "type": "string"
+              },
+              "secret_ttl": {
+                "type": "number",
+                "nullable": true
+              },
+              "lifespan": {
+                "type": "number",
+                "nullable": true
+              }
+            },
+            "required": [
+              "identifier",
+              "created",
+              "updated",
+              "key",
+              "shortid",
+              "state"
+            ]
+          },
+          "details": {
+            "type": "object",
+            "properties": {
+              "continue": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "is_owner": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "show_secret": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "correct_passphrase": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "display_lines": {
+                "type": "number",
+                "nullable": true
+              },
+              "one_liner": {
+                "type": "boolean",
+                "nullable": true
+              }
+            }
+          }
+        },
+        "required": [
+          "record"
+        ]
+      },
+      "ReceiptResponse": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "shrimp": {
+            "type": "string",
+            "default": ""
+          },
+          "record": {
+            "type": "object",
+            "properties": {
+              "identifier": {
+                "type": "string"
+              },
+              "created": {
+                "type": "string",
+                "nullable": true,
+                "format": "date-time"
+              },
+              "updated": {
+                "type": "string",
+                "nullable": true,
+                "format": "date-time"
+              },
+              "key": {
+                "type": "string",
+                "nullable": true
+              },
+              "shortid": {
+                "type": "string"
+              },
+              "secret_shortid": {
+                "type": "string",
+                "nullable": true
+              },
+              "recipients": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "nullable": true
+                  }
+                ]
+              },
+              "share_domain": {
+                "type": "string",
+                "nullable": true
+              },
+              "secret_ttl": {
+                "type": "number",
+                "nullable": true
+              },
+              "receipt_ttl": {
+                "type": "number",
+                "nullable": true
+              },
+              "lifespan": {
+                "type": "number",
+                "nullable": true
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "new",
+                  "shared",
+                  "received",
+                  "revealed",
+                  "burned",
+                  "viewed",
+                  "previewed",
+                  "expired",
+                  "orphaned"
+                ]
+              },
+              "has_passphrase": {
+                "type": "boolean"
+              },
+              "shared": {
+                "type": "string",
+                "nullable": true,
+                "format": "date-time"
+              },
+              "received": {
+                "type": "string",
+                "nullable": true,
+                "format": "date-time"
+              },
+              "viewed": {
+                "type": "string",
+                "nullable": true,
+                "format": "date-time"
+              },
+              "previewed": {
+                "type": "string",
+                "nullable": true,
+                "format": "date-time"
+              },
+              "revealed": {
+                "type": "string",
+                "nullable": true,
+                "format": "date-time"
+              },
+              "burned": {
+                "type": "string",
+                "nullable": true,
+                "format": "date-time"
+              },
+              "is_viewed": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "is_received": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "is_previewed": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "is_revealed": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "is_burned": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "is_destroyed": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "is_expired": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "is_orphaned": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "memo": {
+                "type": "string",
+                "nullable": true
+              },
+              "secret_identifier": {
+                "type": "string",
+                "nullable": true
+              },
+              "secret_state": {
+                "type": "string",
+                "nullable": true,
+                "enum": [
+                  "new",
+                  "shared",
+                  "received",
+                  "revealed",
+                  "burned",
+                  "viewed",
+                  "previewed",
+                  "expired",
+                  "orphaned",
+                  null
+                ]
+              },
+              "natural_expiration": {
+                "type": "string"
+              },
+              "expiration": {
+                "type": "string",
+                "nullable": true,
+                "format": "date-time"
+              },
+              "expiration_in_seconds": {
+                "type": "number",
+                "nullable": true
+              },
+              "share_path": {
+                "type": "string"
+              },
+              "burn_path": {
+                "type": "string"
+              },
+              "receipt_path": {
+                "type": "string"
+              },
+              "share_url": {
+                "type": "string"
+              },
+              "receipt_url": {
+                "type": "string"
+              },
+              "burn_url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "identifier",
+              "created",
+              "updated",
+              "shortid",
+              "state",
+              "natural_expiration",
+              "expiration",
+              "share_path",
+              "burn_path",
+              "receipt_path",
+              "share_url",
+              "receipt_url",
+              "burn_url"
+            ]
+          },
+          "details": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "record"
+                ]
+              },
+              "display_lines": {
+                "type": "number",
+                "nullable": true
+              },
+              "no_cache": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "secret_realttl": {
+                "type": "number",
+                "nullable": true
+              },
+              "view_count": {
+                "type": "number",
+                "nullable": true
+              },
+              "has_passphrase": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "can_decrypt": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "secret_value": {
+                "type": "string",
+                "nullable": true
+              },
+              "show_secret": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "show_secret_link": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "show_receipt_link": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "show_receipt": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "show_recipients": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "is_orphaned": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "is_expired": {
+                "type": "boolean",
+                "nullable": true
+              }
+            },
+            "required": [
+              "type"
+            ]
+          }
+        },
+        "required": [
+          "record"
+        ]
+      },
+      "ConcealDataResponse": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "shrimp": {
+            "type": "string",
+            "default": ""
+          },
+          "record": {
+            "type": "object",
+            "properties": {
+              "receipt": {
+                "type": "object",
+                "properties": {
+                  "identifier": {
+                    "type": "string"
+                  },
+                  "created": {
+                    "type": "string",
+                    "nullable": true,
+                    "format": "date-time"
+                  },
+                  "updated": {
+                    "type": "string",
+                    "nullable": true,
+                    "format": "date-time"
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "shortid": {
+                    "type": "string"
+                  },
+                  "secret_shortid": {
+                    "type": "string"
+                  },
+                  "recipients": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "nullable": true
+                      }
+                    ]
+                  },
+                  "share_domain": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "secret_ttl": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "receipt_ttl": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "lifespan": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "state": {
+                    "type": "string",
+                    "enum": [
+                      "new",
+                      "shared",
+                      "received",
+                      "revealed",
+                      "burned",
+                      "viewed",
+                      "previewed",
+                      "expired",
+                      "orphaned"
+                    ]
+                  },
+                  "has_passphrase": {
+                    "type": "boolean"
+                  },
+                  "shared": {
+                    "type": "string",
+                    "nullable": true,
+                    "format": "date-time"
+                  },
+                  "received": {
+                    "type": "string",
+                    "nullable": true,
+                    "format": "date-time"
+                  },
+                  "viewed": {
+                    "type": "string",
+                    "nullable": true,
+                    "format": "date-time"
+                  },
+                  "previewed": {
+                    "type": "string",
+                    "nullable": true,
+                    "format": "date-time"
+                  },
+                  "revealed": {
+                    "type": "string",
+                    "nullable": true,
+                    "format": "date-time"
+                  },
+                  "burned": {
+                    "type": "string",
+                    "nullable": true,
+                    "format": "date-time"
+                  },
+                  "is_viewed": {
+                    "type": "boolean",
+                    "nullable": true
+                  },
+                  "is_received": {
+                    "type": "boolean",
+                    "nullable": true
+                  },
+                  "is_previewed": {
+                    "type": "boolean",
+                    "nullable": true
+                  },
+                  "is_revealed": {
+                    "type": "boolean",
+                    "nullable": true
+                  },
+                  "is_burned": {
+                    "type": "boolean",
+                    "nullable": true
+                  },
+                  "is_destroyed": {
+                    "type": "boolean",
+                    "nullable": true
+                  },
+                  "is_expired": {
+                    "type": "boolean",
+                    "nullable": true
+                  },
+                  "is_orphaned": {
+                    "type": "boolean",
+                    "nullable": true
+                  },
+                  "memo": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "identifier",
+                  "created",
+                  "updated",
+                  "key",
+                  "shortid",
+                  "state"
+                ]
+              },
+              "secret": {
+                "type": "object",
+                "properties": {
+                  "identifier": {
+                    "type": "string"
+                  },
+                  "created": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "updated": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "shortid": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string",
+                    "enum": [
+                      "new",
+                      "received",
+                      "revealed",
+                      "burned",
+                      "viewed",
+                      "previewed"
+                    ]
+                  },
+                  "has_passphrase": {
+                    "type": "boolean",
+                    "nullable": true
+                  },
+                  "verification": {
+                    "type": "boolean",
+                    "nullable": true
+                  },
+                  "secret_value": {
+                    "type": "string"
+                  },
+                  "secret_ttl": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "lifespan": {
+                    "type": "number",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "identifier",
+                  "created",
+                  "updated",
+                  "key",
+                  "shortid",
+                  "state"
+                ]
+              },
+              "share_domain": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "receipt",
+              "secret",
+              "share_domain"
+            ]
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            }
+          }
+        },
+        "required": [
+          "record"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/api/v3/receipt/recent": {
+      "get": {
+        "summary": "List recent receipts",
+        "description": "Retrieve a list of recently created secret receipts.",
+        "tags": [
+          "v3",
+          "metadata"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recent receipts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "user_id": {
+                        "type": "string"
+                      },
+                      "shrimp": {
+                        "type": "string",
+                        "default": ""
+                      },
+                      "record": {
+                        "type": "object",
+                        "properties": {
+                          "identifier": {
+                            "type": "string"
+                          },
+                          "created": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time"
+                          },
+                          "updated": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time"
+                          },
+                          "key": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "shortid": {
+                            "type": "string"
+                          },
+                          "secret_shortid": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "recipients": {
+                            "anyOf": [
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "nullable": true
+                              }
+                            ]
+                          },
+                          "share_domain": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "secret_ttl": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "receipt_ttl": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "lifespan": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "new",
+                              "shared",
+                              "received",
+                              "revealed",
+                              "burned",
+                              "viewed",
+                              "previewed",
+                              "expired",
+                              "orphaned"
+                            ]
+                          },
+                          "has_passphrase": {
+                            "type": "boolean"
+                          },
+                          "shared": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time"
+                          },
+                          "received": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time"
+                          },
+                          "viewed": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time"
+                          },
+                          "previewed": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time"
+                          },
+                          "revealed": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time"
+                          },
+                          "burned": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time"
+                          },
+                          "is_viewed": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_received": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_previewed": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_revealed": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_burned": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_destroyed": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_expired": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_orphaned": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "memo": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "secret_identifier": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "secret_state": {
+                            "type": "string",
+                            "nullable": true,
+                            "enum": [
+                              "new",
+                              "shared",
+                              "received",
+                              "revealed",
+                              "burned",
+                              "viewed",
+                              "previewed",
+                              "expired",
+                              "orphaned",
+                              null
+                            ]
+                          },
+                          "natural_expiration": {
+                            "type": "string"
+                          },
+                          "expiration": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time"
+                          },
+                          "expiration_in_seconds": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "share_path": {
+                            "type": "string"
+                          },
+                          "burn_path": {
+                            "type": "string"
+                          },
+                          "receipt_path": {
+                            "type": "string"
+                          },
+                          "share_url": {
+                            "type": "string"
+                          },
+                          "receipt_url": {
+                            "type": "string"
+                          },
+                          "burn_url": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "identifier",
+                          "created",
+                          "updated",
+                          "shortid",
+                          "state",
+                          "natural_expiration",
+                          "expiration",
+                          "share_path",
+                          "burn_path",
+                          "receipt_path",
+                          "share_url",
+                          "receipt_url",
+                          "burn_url"
+                        ]
+                      },
+                      "details": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "record"
+                            ]
+                          },
+                          "display_lines": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "no_cache": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "secret_realttl": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "view_count": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "has_passphrase": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "can_decrypt": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "secret_value": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "show_secret": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "show_secret_link": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "show_receipt_link": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "show_receipt": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "show_recipients": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_orphaned": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_expired": {
+                            "type": "boolean",
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "type"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "record"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          }
+        }
+      }
+    },
+    "/api/v3/receipt/{identifier}": {
+      "get": {
+        "summary": "Get secret metadata",
+        "description": "Retrieve metadata for a secret without revealing its value. Shows expiration, state, and other receipt information.",
+        "tags": [
+          "v3",
+          "metadata"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "identifier",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Metadata retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user_id": {
+                      "type": "string"
+                    },
+                    "shrimp": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "record": {
+                      "type": "object",
+                      "properties": {
+                        "identifier": {
+                          "type": "string"
+                        },
+                        "created": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date-time"
+                        },
+                        "updated": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date-time"
+                        },
+                        "key": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "shortid": {
+                          "type": "string"
+                        },
+                        "secret_shortid": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "recipients": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "nullable": true
+                            }
+                          ]
+                        },
+                        "share_domain": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "secret_ttl": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "receipt_ttl": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "lifespan": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "new",
+                            "shared",
+                            "received",
+                            "revealed",
+                            "burned",
+                            "viewed",
+                            "previewed",
+                            "expired",
+                            "orphaned"
+                          ]
+                        },
+                        "has_passphrase": {
+                          "type": "boolean"
+                        },
+                        "shared": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date-time"
+                        },
+                        "received": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date-time"
+                        },
+                        "viewed": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date-time"
+                        },
+                        "previewed": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date-time"
+                        },
+                        "revealed": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date-time"
+                        },
+                        "burned": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date-time"
+                        },
+                        "is_viewed": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_received": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_previewed": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_revealed": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_burned": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_destroyed": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_expired": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_orphaned": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "memo": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "secret_identifier": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "secret_state": {
+                          "type": "string",
+                          "nullable": true,
+                          "enum": [
+                            "new",
+                            "shared",
+                            "received",
+                            "revealed",
+                            "burned",
+                            "viewed",
+                            "previewed",
+                            "expired",
+                            "orphaned",
+                            null
+                          ]
+                        },
+                        "natural_expiration": {
+                          "type": "string"
+                        },
+                        "expiration": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date-time"
+                        },
+                        "expiration_in_seconds": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "share_path": {
+                          "type": "string"
+                        },
+                        "burn_path": {
+                          "type": "string"
+                        },
+                        "receipt_path": {
+                          "type": "string"
+                        },
+                        "share_url": {
+                          "type": "string"
+                        },
+                        "receipt_url": {
+                          "type": "string"
+                        },
+                        "burn_url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "identifier",
+                        "created",
+                        "updated",
+                        "shortid",
+                        "state",
+                        "natural_expiration",
+                        "expiration",
+                        "share_path",
+                        "burn_path",
+                        "receipt_path",
+                        "share_url",
+                        "receipt_url",
+                        "burn_url"
+                      ]
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "record"
+                          ]
+                        },
+                        "display_lines": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "no_cache": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "secret_realttl": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "view_count": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "has_passphrase": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "can_decrypt": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "secret_value": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "show_secret": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "show_secret_link": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "show_receipt_link": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "show_receipt": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "show_recipients": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_orphaned": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_expired": {
+                          "type": "boolean",
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "type"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "record"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Metadata not found or expired"
+          }
+        }
+      }
+    },
+    "/api/v3/receipt/{identifier}/burn": {
+      "post": {
+        "summary": "Burn a secret",
+        "description": "Permanently destroy a secret before it expires or is viewed. This action cannot be undone.",
+        "tags": [
+          "v3",
+          "metadata"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "identifier",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret burned successfully"
+          },
+          "404": {
+            "description": "Secret not found or already burned"
+          }
+        }
+      }
+    },
+    "/api/v3/secret/conceal": {
+      "post": {
+        "summary": "Conceal a secret",
+        "description": "Creates an encrypted secret and returns a one-time link. The link can only be viewed once. TTL is limited by plan: 7 days (anonymous), 14 days (basic), 30 days (premium).",
+        "tags": [
+          "v3",
+          "secrets"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "conceal"
+                    ]
+                  },
+                  "share_domain": {
+                    "type": "string"
+                  },
+                  "recipient": {
+                    "type": "string"
+                  },
+                  "passphrase": {
+                    "type": "string"
+                  },
+                  "ttl": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^\\d+$"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "secret": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "kind",
+                  "share_domain",
+                  "secret"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Secret concealed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user_id": {
+                      "type": "string"
+                    },
+                    "shrimp": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "record": {
+                      "type": "object",
+                      "properties": {
+                        "receipt": {
+                          "type": "object",
+                          "properties": {
+                            "identifier": {
+                              "type": "string"
+                            },
+                            "created": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "updated": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "key": {
+                              "type": "string"
+                            },
+                            "shortid": {
+                              "type": "string"
+                            },
+                            "secret_shortid": {
+                              "type": "string"
+                            },
+                            "recipients": {
+                              "anyOf": [
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "nullable": true
+                                }
+                              ]
+                            },
+                            "share_domain": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "secret_ttl": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "receipt_ttl": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "lifespan": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "state": {
+                              "type": "string",
+                              "enum": [
+                                "new",
+                                "shared",
+                                "received",
+                                "revealed",
+                                "burned",
+                                "viewed",
+                                "previewed",
+                                "expired",
+                                "orphaned"
+                              ]
+                            },
+                            "has_passphrase": {
+                              "type": "boolean"
+                            },
+                            "shared": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "received": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "viewed": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "previewed": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "revealed": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "burned": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "is_viewed": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "is_received": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "is_previewed": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "is_revealed": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "is_burned": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "is_destroyed": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "is_expired": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "is_orphaned": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "memo": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "identifier",
+                            "created",
+                            "updated",
+                            "key",
+                            "shortid",
+                            "state"
+                          ]
+                        },
+                        "secret": {
+                          "type": "object",
+                          "properties": {
+                            "identifier": {
+                              "type": "string"
+                            },
+                            "created": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "key": {
+                              "type": "string"
+                            },
+                            "shortid": {
+                              "type": "string"
+                            },
+                            "state": {
+                              "type": "string",
+                              "enum": [
+                                "new",
+                                "received",
+                                "revealed",
+                                "burned",
+                                "viewed",
+                                "previewed"
+                              ]
+                            },
+                            "has_passphrase": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "verification": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "secret_value": {
+                              "type": "string"
+                            },
+                            "secret_ttl": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "lifespan": {
+                              "type": "number",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "identifier",
+                            "created",
+                            "updated",
+                            "key",
+                            "shortid",
+                            "state"
+                          ]
+                        },
+                        "share_domain": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "receipt",
+                        "secret",
+                        "share_domain"
+                      ]
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    }
+                  },
+                  "required": [
+                    "record"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - check TTL limits and required fields"
+          },
+          "401": {
+            "description": "Unauthorized - invalid or missing credentials"
+          },
+          "429": {
+            "description": "Too many requests - rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/api/v3/secret/generate": {
+      "post": {
+        "summary": "Generate a secret",
+        "description": "Generates a random password and returns a one-time link. The link can only be viewed once.",
+        "tags": [
+          "v3",
+          "secrets",
+          "generate"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "generate"
+                    ]
+                  },
+                  "share_domain": {
+                    "type": "string"
+                  },
+                  "recipient": {
+                    "type": "string"
+                  },
+                  "passphrase": {
+                    "type": "string"
+                  },
+                  "ttl": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^\\d+$"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "length": {
+                    "type": "integer",
+                    "minimum": 4,
+                    "maximum": 128
+                  },
+                  "character_sets": {
+                    "type": "object",
+                    "properties": {
+                      "uppercase": {
+                        "type": "boolean"
+                      },
+                      "lowercase": {
+                        "type": "boolean"
+                      },
+                      "numbers": {
+                        "type": "boolean"
+                      },
+                      "symbols": {
+                        "type": "boolean"
+                      },
+                      "exclude_ambiguous": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "kind",
+                  "share_domain"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Secret generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user_id": {
+                      "type": "string"
+                    },
+                    "shrimp": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "record": {
+                      "type": "object",
+                      "properties": {
+                        "receipt": {
+                          "type": "object",
+                          "properties": {
+                            "identifier": {
+                              "type": "string"
+                            },
+                            "created": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "updated": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "key": {
+                              "type": "string"
+                            },
+                            "shortid": {
+                              "type": "string"
+                            },
+                            "secret_shortid": {
+                              "type": "string"
+                            },
+                            "recipients": {
+                              "anyOf": [
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "nullable": true
+                                }
+                              ]
+                            },
+                            "share_domain": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "secret_ttl": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "receipt_ttl": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "lifespan": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "state": {
+                              "type": "string",
+                              "enum": [
+                                "new",
+                                "shared",
+                                "received",
+                                "revealed",
+                                "burned",
+                                "viewed",
+                                "previewed",
+                                "expired",
+                                "orphaned"
+                              ]
+                            },
+                            "has_passphrase": {
+                              "type": "boolean"
+                            },
+                            "shared": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "received": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "viewed": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "previewed": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "revealed": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "burned": {
+                              "type": "string",
+                              "nullable": true,
+                              "format": "date-time"
+                            },
+                            "is_viewed": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "is_received": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "is_previewed": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "is_revealed": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "is_burned": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "is_destroyed": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "is_expired": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "is_orphaned": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "memo": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "identifier",
+                            "created",
+                            "updated",
+                            "key",
+                            "shortid",
+                            "state"
+                          ]
+                        },
+                        "secret": {
+                          "type": "object",
+                          "properties": {
+                            "identifier": {
+                              "type": "string"
+                            },
+                            "created": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "key": {
+                              "type": "string"
+                            },
+                            "shortid": {
+                              "type": "string"
+                            },
+                            "state": {
+                              "type": "string",
+                              "enum": [
+                                "new",
+                                "received",
+                                "revealed",
+                                "burned",
+                                "viewed",
+                                "previewed"
+                              ]
+                            },
+                            "has_passphrase": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "verification": {
+                              "type": "boolean",
+                              "nullable": true
+                            },
+                            "secret_value": {
+                              "type": "string"
+                            },
+                            "secret_ttl": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "lifespan": {
+                              "type": "number",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "identifier",
+                            "created",
+                            "updated",
+                            "key",
+                            "shortid",
+                            "state"
+                          ]
+                        },
+                        "share_domain": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "receipt",
+                        "secret",
+                        "share_domain"
+                      ]
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      }
+                    }
+                  },
+                  "required": [
+                    "record"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters"
+          },
+          "429": {
+            "description": "Too many requests - rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/api/v3/guest/receipt/{identifier}/burn": {
+      "post": {
+        "summary": "Burn a secret",
+        "description": "Permanently destroy a secret before it expires or is viewed. This action cannot be undone.",
+        "tags": [
+          "v3",
+          "metadata"
+        ],
+        "security": [
+          {}
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "identifier",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret burned successfully"
+          },
+          "404": {
+            "description": "Secret not found or already burned"
+          }
+        }
+      }
+    },
+    "/api/v3/status": {
+      "get": {
+        "summary": "System status",
+        "description": "Check if the API is operational",
+        "tags": [
+          "v3",
+          "system"
+        ],
+        "responses": {
+          "200": {
+            "description": "System is operational",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "version"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

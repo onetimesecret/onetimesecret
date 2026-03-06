@@ -20,22 +20,22 @@ MockProduct = Data.define(:metadata)
 
 ## Test: format_amount converts cents to dollars
 helper = @helper_class.new
-helper.format_amount(1000, 'usd')
+helper.format_amount(1000, 'cad')
 #=> 'USD 10.00'
 
 ## Test: format_amount handles zero
 helper = @helper_class.new
-helper.format_amount(0, 'usd')
+helper.format_amount(0, 'cad')
 #=> 'USD 0.00'
 
 ## Test: format_amount handles large amounts
 helper = @helper_class.new
-helper.format_amount(99_999, 'usd')
+helper.format_amount(99_999, 'cad')
 #=> 'USD 999.99'
 
 ## Test: format_amount handles nil amount
 helper = @helper_class.new
-helper.format_amount(nil, 'usd')
+helper.format_amount(nil, 'cad')
 #=> 'N/A'
 
 ## Test: format_amount handles nil currency

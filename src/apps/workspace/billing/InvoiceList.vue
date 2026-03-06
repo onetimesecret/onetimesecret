@@ -7,7 +7,7 @@ import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import { classifyError } from '@/schemas/errors';
-import { BillingService } from '@/services/billing.service';
+import { BillingService, type StripeInvoice } from '@/services/billing.service';
 import type { InvoiceStatus } from '@/types/billing';
 import { formatCurrency } from '@/types/billing';
 import { computed, onMounted, ref } from 'vue';
@@ -18,23 +18,27 @@ const route = useRoute();
 // Org extid comes from URL (e.g., /billing/:extid/invoices)
 const orgExtid = computed(() => route.params.extid as string);
 
-const invoices = ref<any[]>([]);
+const invoices = ref<StripeInvoice[]>([]);
 const isLoading = ref(false);
 const error = ref('');
 
-const formatDate = (timestamp: number): string => new Intl.DateTimeFormat('en-US', {
+const formatDate = (timestamp: number): string => new Intl.DateTimeFormat(undefined, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   }).format(new Date(timestamp * 1000));
 
 const getStatusBadgeClass = (status: InvoiceStatus): string => {
-  const classes = {
+  const classes: Record<string, string> = {
     paid: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+    open: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
     pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+    draft: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
     failed: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    uncollectible: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    void: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
   };
-  return classes[status];
+  return classes[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
 };
 
 const loadInvoices = async (extid: string) => {
@@ -52,28 +56,21 @@ const loadInvoices = async (extid: string) => {
   }
 };
 
-const handleDownload = async (invoice: any) => {
+const handleDownload = async (invoice: StripeInvoice) => {
   const url = invoice.invoice_pdf || invoice.hosted_invoice_url;
   if (!url) return;
 
   try {
     // Open download URL in new window
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
   } catch (err) {
     console.error('[InvoiceList] Error downloading invoice:', err);
   }
 };
 
 onMounted(async () => {
-  try {
-    // Load invoices using extid from URL
-    if (orgExtid.value) {
-      await loadInvoices(orgExtid.value);
-    }
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || 'Failed to load invoices';
-    console.error('[InvoiceList] Error loading invoices:', err);
+  if (orgExtid.value) {
+    await loadInvoices(orgExtid.value);
   }
 });
 </script>
@@ -112,7 +109,7 @@ onMounted(async () => {
                 <th
                   scope="col"
                   class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  Invoice #
+                  {{ t('web.billing.invoices.invoice_number') }}
                 </th>
                 <th
                   scope="col"
@@ -187,7 +184,7 @@ onMounted(async () => {
           {{ t('web.billing.invoices.no_invoices') }}
         </h3>
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Your invoices will appear here once you upgrade to a paid plan
+          {{ t('web.billing.invoices.no_invoices_description') }}
         </p>
         <div class="mt-6">
           <router-link
@@ -198,7 +195,7 @@ onMounted(async () => {
               name="square-letter-s"
               class="size-4"
               aria-hidden="true" />
-            View Plans
+            {{ t('web.billing.invoices.view_plans') }}
           </router-link>
         </div>
       </div>

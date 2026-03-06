@@ -1,50 +1,50 @@
 {
   "web.testimonials.ai_generated_testimonial": {
     "text": "AI-genererat omdöme",
-    "sha256": "ff4d6634"
+    "source_hash": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
     "text": "AI-genererat innehåll för demonstration. Inte från en faktisk person eller företag.",
-    "sha256": "d7093de7"
+    "source_hash": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
     "text": "{0}/5",
-    "sha256": "a5bdbbd3"
+    "source_hash": "a5bdbbd3"
   },
   "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
     "text": "- {0}, {1}",
-    "sha256": "a06d9daa"
+    "source_hash": "a06d9daa"
   },
   "web.testimonials.randomtestimonial_quote": {
     "text": "\"{0}\"",
-    "sha256": "7a27d02b"
+    "source_hash": "7a27d02b"
   },
   "web.testimonials.t_ai_generated_testimonial": {
     "text": "{0}:",
-    "sha256": "14159dd9"
+    "source_hash": "14159dd9"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
     "text": "Vad ledande AI säger om oss",
-    "sha256": "f46a8839"
+    "source_hash": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
     "text": "AI-genererade omdömen",
-    "sha256": "947cd6b4"
+    "source_hash": "947cd6b4"
   },
   "web.testimonials.this_quote_was_generated_by": {
     "text": "Detta citat genererades av",
-    "sha256": "7879a747"
+    "source_hash": "7879a747"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
     "text": "Det baserades på innehållet på sidan och representerar inte en verklig person eller företag.",
-    "sha256": "8b290e9a"
+    "source_hash": "8b290e9a"
   },
   "web.testimonials.artificial_feedback": {
     "text": "Artificiell återkoppling",
-    "sha256": "4c8d20ba"
+    "source_hash": "4c8d20ba"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
     "text": "Detta innehåll är AI-genererat baserat på innehållet på denna sida och representerar inte en verklig person eller företag.",
-    "sha256": "03c16436"
+    "source_hash": "03c16436"
   }
 }

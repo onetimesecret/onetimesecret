@@ -1,170 +1,170 @@
 {
   "web.branding.color_picker": {
     "text": "Kaikōwhiri Tae",
-    "sha256": "ba42602c"
+    "source_hash": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
     "text": "Ko te {0} o nāianei: {1}. Pāwhiri ki te huri i ngā kōwhiringa.",
-    "sha256": "84bf49e6"
+    "source_hash": "84bf49e6"
   },
   "web.branding.use_setting": {
     "text": "Whakamahi tautuhinga",
-    "sha256": "8a18d118"
+    "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
     "text": "Whānau Momotuhi",
-    "sha256": "f81339da"
+    "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
     "text": "Kāhua Kokonga",
-    "sha256": "fcb3ecdf"
+    "source_hash": "fcb3ecdf"
   },
   "web.branding.brand_color": {
     "text": "Tae Waitohu",
-    "sha256": "db3183e3"
+    "source_hash": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
     "text": "Arokite o te tirohanga a te kaiwhiwhi ina urunga ki tō hononga haumaru",
-    "sha256": "199c165f"
+    "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
     "text": "Arokite & Whakaritenga",
-    "sha256": "215d3659"
+    "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
     "text": "Huri ki te tirohanga tirotiro Safari",
-    "sha256": "6e0fe791"
+    "source_hash": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
     "text": "Microsoft Edge",
-    "sha256": "951e7f89"
+    "source_hash": "951e7f89"
   },
   "web.branding.maximize_window": {
     "text": "Whakanui matapihi",
-    "sha256": "45d23969"
+    "source_hash": "45d23969"
   },
   "web.branding.minimize_window": {
     "text": "Whakaiti matapihi",
-    "sha256": "5cd54386"
+    "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
     "text": "Huri ki te tirohanga tirotiro Edge",
-    "sha256": "a8fcd82d"
+    "source_hash": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
     "text": "{0}/500 pūāhua",
-    "sha256": "e36598ef"
+    "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
     "text": "Whakamahia tō waea hei matawai i te waehere QR",
-    "sha256": "99ecf59f"
+    "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
     "text": "Whakapā atu ki onboarding{'@'}example.com mō ngā pātai",
-    "sha256": "bee120a7"
+    "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Ka whakaaturia ēnei tohutohu ki ngā kaiwhiwhi i mua i tā rātou whakaatu i te ihirangi karere huna",
-    "sha256": "9d5a6334"
+    "source_hash": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
     "text": "Ka whakaaturia ēnei tohutohu ki ngā kaiwhiwhi i muri i tā rātou whakaatu i te karere huna",
-    "sha256": "9f82bd94"
+    "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
     "text": "Tohutohu Mua-whakaatu",
-    "sha256": "a299422e"
+    "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
     "text": "Tohutohu Muri-whakaatu",
-    "sha256": "72ecc23a"
+    "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
     "text": "Ngā Tohutohu",
-    "sha256": "934652dc"
+    "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
     "text": "Ngā whakahaere moko",
-    "sha256": "43e9a2d7"
+    "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
     "text": "Pāwhiri ki te tukuake i tētahi tohu. Rahinga tūtohu: 128x128 ngā pika. Rahi kōnae mōrahi: 1MB. Ngā whakatakotoranga tautokona: PNG, JPG, SVG",
-    "sha256": "a35452bf"
+    "source_hash": "a35452bf"
   },
   "web.branding.upload_logo": {
     "text": "Tukuake moko",
-    "sha256": "c3330082"
+    "source_hash": "c3330082"
   },
   "web.branding.loading_preview": {
     "text": "E uta ana i te arokite...",
-    "sha256": "c02130fa"
+    "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
     "text": "Titiro tīpako ka pēhea te kitenga o ō karere huna e ngā kaiwhiwhi mā te whakamātau i te pātene \"Tirohia te Karere Huna\"",
-    "sha256": "3b58a297"
+    "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
     "text": "Ata karu",
-    "sha256": "7f605d3c"
+    "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
     "text": "Pāwhiri te awhiata arokite i raro nei ki te whakahou i tō tohu (tūtohu 128x128 ngā pika, 1MB max)",
-    "sha256": "77a19049"
+    "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
     "text": "Ata whakaahua",
-    "sha256": "b0d64fcf"
+    "source_hash": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
     "text": "Whakamahia ngā tohutoro i runga ake ki te whakarite i te tae waitohu, ngā kāhua, me ngā tohutohu kaiwhiwhi",
-    "sha256": "d6287134"
+    "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
     "text": "Ata ritenga",
-    "sha256": "bde04d31"
+    "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
     "text": "Kei a koe ngā huringa kāore anō kia tiakina. Kei te tino hiahia koe?",
-    "sha256": "184b6a83"
+    "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
     "text": "I rahua te uta i ngā tautuhinga waitohu",
-    "sha256": "a7a1575e"
+    "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
     "text": "He arokite tauwhitwhiti tēnei o te āhua ka kite ai ngā kaiwhiwhi i ō karere haumaru. Ka taea e koe: - Te whakaritenga i ngā tae me ngā momotuhi mā ngā whakahaere kei runga - Te tukuake moko (e tūtohu ana te 128x128 pika iti rawa, 1MB te nui rawa) - Te whakamātau i te arokite mā te pātene \"Tirohia te Karere Huna\"",
-    "sha256": "3d8b2c0d"
+    "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
     "text": "He arokite pāhekoheko tēnei o te pēhea e kite ai ngā kaiwhiwhi i ō karere haumaru. Ka taea e koe te: - Whakarite i ngā tae me ngā momotuhi mā ngā tohutoro i runga ake - Tukuake i tētahi tohu (tūtohu 128x128 ngā pika, 1MB max) - Whakamātau i te arokite mā te pātene \"Tirohia te Karere Huna\"",
-    "sha256": "3d8b2c0d"
+    "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
     "text": "Kanji Hapanīhi '秘' (himitsu) ko te tikanga 'huna' 'matatapu' rānei",
-    "sha256": "1e04ba2e"
+    "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Nā Onetime Secret te mana",
-    "sha256": "935442d0"
+    "text": "Nā {product_name} te mana",
+    "source_hash": "eb66485c"
   },
   "web.branding.heading_logo": {
     "text": "Moko {0}",
-    "sha256": "3a3c98ed"
+    "source_hash": "3a3c98ed"
   },
   "web.branding.edge": {
     "text": "Edge",
-    "sha256": "0f82fe72"
+    "source_hash": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
     "text": "Huri ki te arokite Edge",
-    "sha256": "83883d84"
+    "source_hash": "83883d84"
   },
   "web.branding.safari": {
     "text": "Safari",
-    "sha256": "5f033039"
+    "source_hash": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
     "text": "Huri ki te arokite Safari",
-    "sha256": "f24ac447"
+    "source_hash": "f24ac447"
   }
 }

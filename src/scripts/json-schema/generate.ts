@@ -54,6 +54,9 @@ interface ManifestEntry {
 // Generation Logic
 // =============================================================================
 
+// Read brand configuration from environment variables
+const PRODUCT_DOMAIN = process.env.BRAND_PRODUCT_DOMAIN || 'onetimesecret.com';
+
 function generateSchema(key: SchemaKey, schema: z.ZodType): Record<string, unknown> {
   try {
     const jsonSchema = z.toJSONSchema(schema, {
@@ -76,7 +79,7 @@ function generateSchema(key: SchemaKey, schema: z.ZodType): Record<string, unkno
     // Add $id for schema identification
     return {
       $schema: 'https://json-schema.org/draft/2020-12/schema',
-      $id: `https://onetimesecret.com/schemas/${key}.schema.json`,
+      $id: `https://${PRODUCT_DOMAIN}/schemas/${key}.schema.json`,
       ...jsonSchema,
     };
   } catch (error) {
@@ -124,9 +127,11 @@ function writeSchemaFile(key: SchemaKey, jsonSchema: Record<string, unknown>): G
 }
 
 function writeManifest(results: GenerationResult[]): void {
+  const PRODUCT_NAME = process.env.BRAND_PRODUCT_NAME || 'OTS';
+
   const manifest = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
-    title: 'Onetime Secret Schema Manifest',
+    title: `${PRODUCT_NAME} Schema Manifest`,
     description: 'Index of all generated JSON Schema files',
     generatedAt: new Date().toISOString(),
     schemas: results

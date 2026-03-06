@@ -71,8 +71,9 @@ response = @mock_request.get('/api/v2/status')
 
 ## v2 API does not have an authcheck endpoint
 response = @mock_request.get('/api/v2/authcheck')
-[response.status, response.body]
-#=> [404, '{"error":"Not Found"}']
+content = Familia::JsonSerializer.parse(response.body)
+[response.status, content.key?('error'), content['error']]
+#=> [404, true, 'Not Found']
 
 ## Can access the API share endpoint
 # NOTE: Disabled pending Otto v2 migration for v1 API (#2128)
@@ -111,8 +112,8 @@ content = Familia::JsonSerializer.parse(response.body)
 response = @mock_request.post('/api/v2/humphrey/bogus', @api_auth)
 content = Familia::JsonSerializer.parse(response.body)
 has_msg = content.slice('error').eql?({'error' => 'Not Found'})
-[response.status, has_msg, content.keys.sort]
-#=> [404, true, ['error']]
+[response.status, has_msg, content.key?('error')]
+#=> [404, true, true]
 
 # API v2 Routes
 

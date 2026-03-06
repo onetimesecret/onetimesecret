@@ -2,20 +2,21 @@
 
 import { responseSchemas } from '@/schemas/api/v3';
 import type { BrandSettings, ImageProps } from '@/schemas/models';
+import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { inject, ref } from 'vue';
 
 const defaultBranding: BrandSettings = {
-  primary_color: '#dc4a22',
-  font_family: 'sans',
-  corner_style: 'rounded',
-  button_text_light: true,
+  primary_color: NEUTRAL_BRAND_DEFAULTS.primary_color,
+  font_family: NEUTRAL_BRAND_DEFAULTS.font_family,
+  corner_style: NEUTRAL_BRAND_DEFAULTS.corner_style,
+  button_text_light: NEUTRAL_BRAND_DEFAULTS.button_text_light,
   instructions_pre_reveal: '',
   instructions_post_reveal: '',
   instructions_reveal: '',
-  allow_public_api: false,
-  allow_public_homepage: false,
+  allow_public_api: NEUTRAL_BRAND_DEFAULTS.allow_public_api,
+  allow_public_homepage: NEUTRAL_BRAND_DEFAULTS.allow_public_homepage,
 };
 
 /* eslint max-lines-per-function: off */

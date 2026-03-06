@@ -114,10 +114,10 @@ describe('MastHead', () => {
               navigation: { enabled: true },
               branding: {
                 logo: { url: 'DefaultLogo.vue', alt: 'Onetime Secret' },
-                site_name: 'Onetime Secret',
               },
             },
           },
+          brand_product_name: 'Onetime Secret',
           authentication: {
             enabled: true,
             signin: true,
@@ -224,6 +224,33 @@ describe('MastHead', () => {
       await nextTick();
       const logo = wrapper.find('.default-logo');
       expect(logo.attributes('data-size')).toBe('48');
+    });
+  });
+
+  describe('Site Name Display', () => {
+    it('hides site name for authenticated users', async () => {
+      wrapper = mountComponent({}, {
+        authenticated: true,
+        cust: mockCustomer,
+        email: mockCustomer.email,
+      });
+
+      await nextTick();
+      // Check that logo component doesn't render site name
+      const html = wrapper.html();
+      expect(html).not.toContain('class="font-brand');
+    });
+
+    it('shows site name for unauthenticated users', async () => {
+      wrapper = mountComponent({}, {
+        authenticated: false,
+        cust: null,
+        email: null,
+      });
+
+      await nextTick();
+      const siteName = wrapper.find('.font-brand');
+      expect(siteName.exists()).toBe(true);
     });
   });
 

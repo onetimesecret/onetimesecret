@@ -20,6 +20,7 @@ module Billing
     FIELD_ENTITLEMENTS       = 'entitlements'
     FIELD_PLAN_ID            = 'plan_id'
     FIELD_CREATED            = 'created'
+    FIELD_CURRENCY           = 'currency'
     FIELD_DISPLAY_ORDER      = 'display_order'
     FIELD_SHOW_ON_PLANS_PAGE = 'show_on_plans_page'
 

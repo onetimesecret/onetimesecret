@@ -6,14 +6,14 @@
  * Maps to the `redis:` section in config.defaults.yaml
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 
 /**
  * Redis database mapping
  * Maps database names to their Redis database numbers (0-15)
  */
 const redisDbsSchema = z.object({
-  session: z.number().int().min(0).max(15).default(0),
+  session: z.number().int().min(0).max(15).default(0).optional(),
   custom_domain: z.number().int().min(0).max(15).default(0),
   customer: z.number().int().min(0).max(15).default(0),
   metadata: z.number().int().min(0).max(15).default(0),
@@ -26,6 +26,7 @@ const redisDbsSchema = z.object({
  */
 const redisSchema = z.object({
   uri: z.string().default('redis://127.0.0.1:6379'),
+  debug: z.boolean().default(false).optional(),
   dbs: redisDbsSchema.optional(),
 });
 

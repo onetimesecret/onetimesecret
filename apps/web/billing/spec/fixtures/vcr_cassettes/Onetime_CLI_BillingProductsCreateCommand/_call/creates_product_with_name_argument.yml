@@ -5,7 +5,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/products
     body:
       encoding: UTF-8
-      string: name=Test+Product&metadata[app]=onetimesecret&metadata[plan_id]=&metadata[tier]=&metadata[region]=global&metadata[tenancy]=&metadata[entitlements]=&metadata[created]=2025-12-25T14%3A20%3A19Z&metadata[display_order]=0&metadata[show_on_plans_page]=
+      string: name=Test+Product&metadata[app]=onetimesecret&metadata[plan_id]=&metadata[tier]=&metadata[region]=&metadata[tenancy]=&metadata[entitlements]=&metadata[created]=2025-12-25T14%3A20%3A19Z&metadata[display_order]=0&metadata[show_on_plans_page]=
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -84,7 +84,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/products
     body:
       encoding: UTF-8
-      string: name=Test+Product&metadata[app]=onetimesecret&metadata[plan_id]=&metadata[tier]=&metadata[region]=global&metadata[tenancy]=&metadata[entitlements]=&metadata[created]=2025-12-25T14%3A20%3A28Z&metadata[display_order]=0&metadata[show_on_plans_page]=
+      string: name=Test+Product&metadata[app]=onetimesecret&metadata[plan_id]=&metadata[tier]=&metadata[region]=&metadata[tenancy]=&metadata[entitlements]=&metadata[created]=2025-12-25T14%3A20%3A28Z&metadata[display_order]=0&metadata[show_on_plans_page]=
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -163,7 +163,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/products
     body:
       encoding: UTF-8
-      string: name=Test+Product&metadata[app]=onetimesecret&metadata[plan_id]=&metadata[tier]=&metadata[region]=global&metadata[tenancy]=&metadata[entitlements]=&metadata[created]=2025-12-29T05%3A22%3A10Z&metadata[display_order]=0&metadata[show_on_plans_page]=
+      string: name=Test+Product&metadata[app]=onetimesecret&metadata[plan_id]=&metadata[tier]=&metadata[region]=&metadata[tenancy]=&metadata[entitlements]=&metadata[created]=2025-12-29T05%3A22%3A10Z&metadata[display_order]=0&metadata[show_on_plans_page]=
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -251,7 +251,7 @@ http_interactions:
             "app": "onetimesecret",
             "created": "2025-12-29T05:22:10Z",
             "display_order": "0",
-            "region": "global"
+            "region": ""
           },
           "name": "Test Product",
           "package_dimensions": null,

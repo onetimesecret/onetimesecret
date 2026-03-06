@@ -71,7 +71,7 @@ module Auth
       # When mounted at /auth, this handles requests to /auth and /auth/
       r.is do
         r.get do
-          { message: 'OneTimeSecret Authentication Service', version: Onetime::VERSION }
+          { message: 'OTS Authentication Service', version: Onetime::VERSION }
         end
       end
 

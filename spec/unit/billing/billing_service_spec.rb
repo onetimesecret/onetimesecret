@@ -165,8 +165,8 @@ RSpec.describe Billing::BillingService, billing: true do
       before do
         allow(Billing::Plan).to receive(:load).with('config_plan').and_return(nil)
         allow(Onetime).to receive(:conf).and_return({
-          billing: {
-            plans: { config_plan: { name: 'Config Plan' } },
+          'billing' => {
+            'plans' => { 'config_plan' => { 'name' => 'Config Plan' } },
           },
         })
       end
@@ -180,7 +180,7 @@ RSpec.describe Billing::BillingService, billing: true do
       before do
         allow(Billing::Plan).to receive(:load).with('invalid_plan').and_return(nil)
         allow(Onetime).to receive(:conf).and_return({
-          billing: { plans: {} },
+          'billing' => { 'plans' => {} },
         })
       end
 

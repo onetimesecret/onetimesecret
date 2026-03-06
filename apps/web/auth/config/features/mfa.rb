@@ -21,7 +21,7 @@ module Auth::Config::Features
       auth.enable :recovery_codes  # Backup codes for MFA
 
       # MFA Configuration
-      auth.otp_issuer 'OneTimeSecret'
+      auth.otp_issuer OT.conf.dig('brand', 'totp_issuer') || 'OTS'
       auth.otp_setup_param 'otp_setup'
       auth.otp_setup_raw_param 'otp_raw_secret'
       auth.otp_auth_param 'otp_code'

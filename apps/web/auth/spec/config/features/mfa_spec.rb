@@ -25,7 +25,7 @@ RSpec.describe 'Auth::Config::Features::MFA' do
         features: [:base, :login, :logout, :two_factor_base, :otp, :recovery_codes],
       ) do
         # Configuration values from mfa.rb
-        otp_issuer 'OneTimeSecret'
+        otp_issuer 'OTS'
         otp_setup_param 'otp_setup'
         otp_setup_raw_param 'otp_raw_secret'
         otp_auth_param 'otp_code'
@@ -88,8 +88,8 @@ RSpec.describe 'Auth::Config::Features::MFA' do
         app.rodauth.new(request.scope)
       end
 
-      it 'sets otp_issuer to OneTimeSecret' do
-        expect(rodauth_instance.otp_issuer).to eq('OneTimeSecret')
+      it 'sets otp_issuer to OTS' do
+        expect(rodauth_instance.otp_issuer).to eq('OTS')
       end
 
       it 'sets otp_auth_failures_limit to configured constant' do

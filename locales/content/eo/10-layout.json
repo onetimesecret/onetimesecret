@@ -1,334 +1,334 @@
 {
   "web.footer.api_docs": {
     "text": "API-dokumentaro",
-    "sha256": "f4137804"
+    "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
     "text": "Marka gvidilo",
-    "sha256": "53f994c5"
+    "source_hash": "53f994c5"
   },
   "web.footer.customize": {
     "text": "Personecigi",
-    "sha256": "c5276e27"
+    "source_hash": "c5276e27"
   },
   "web.footer.plans": {
     "text": "Planoj",
-    "sha256": "dfe8b2f0"
+    "source_hash": "dfe8b2f0"
   },
   "web.footer.security": {
     "text": "Sekureco",
-    "sha256": "8f6fb4eb"
+    "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
     "text": "Lernu pri niaj sekurecaj mezuroj",
-    "sha256": "16c8adae"
+    "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
     "text": "Vidu niajn kondiĉojn kaj terminojn",
-    "sha256": "0dde60b7"
+    "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
     "text": "Kondiĉoj",
-    "sha256": "ede54899"
+    "source_hash": "ede54899"
   },
   "web.footer.privacy": {
     "text": "Privateco",
-    "sha256": "54a57c31"
+    "source_hash": "54a57c31"
   },
   "web.footer.contact": {
     "text": "Kontakti",
-    "sha256": "2b5c3d26"
+    "source_hash": "2b5c3d26"
   },
   "web.footer.support": {
     "text": "Subteno",
-    "sha256": "be91940b"
+    "source_hash": "be91940b"
   },
   "web.footer.legals": {
     "text": "Juraj",
-    "sha256": "0a410c78"
+    "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "Kiam vi sendos rimarkojn, ni vidos:",
-    "sha256": "fe77172e"
+    "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
     "text": "Legu nian privatec-politikon",
-    "sha256": "eb443229"
+    "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
     "text": "Kontrolu la staton de nia servo",
-    "sha256": "1f04937e"
+    "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
     "text": "Esploru nian API-dokumentaron",
-    "sha256": "45beb8f8"
+    "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
     "text": "Dokumentaro",
-    "sha256": "7af023c4"
+    "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
     "text": "Aliru nian dokumentaron",
-    "sha256": "37686da2"
+    "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
     "text": "Vidu nian fontkodon ĉe GitHub",
-    "sha256": "d5def0ab"
+    "source_hash": "d5def0ab"
   },
   "web.footer.resources": {
     "text": "Rimedoj",
-    "sha256": "e89b30aa"
+    "source_hash": "e89b30aa"
   },
   "web.footer.blog": {
     "text": "Blogo",
-    "sha256": "8c6bc099"
+    "source_hash": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
     "text": "Legu niajn plej lastajn blogaĵojn",
-    "sha256": "77468d43"
+    "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
     "text": "Vidu niajn abonajn prezojn",
-    "sha256": "55f1f590"
+    "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
     "text": "Lernu pri nia kompanio",
-    "sha256": "780e18cd"
+    "source_hash": "780e18cd"
   },
   "web.footer.company": {
     "text": "Kompanio",
-    "sha256": "de4743c8"
+    "source_hash": "de4743c8"
   },
   "web.navigation.billing": {
     "text": "Fakturado",
-    "sha256": "3ac8bbca"
+    "source_hash": "3ac8bbca"
   },
   "web.navigation.billingOverview": {
     "text": "Superrigardo",
-    "sha256": "d4b1ea57"
+    "source_hash": "d4b1ea57"
   },
   "web.navigation.organizations": {
     "text": "Organizoj",
-    "sha256": "2730183d"
+    "source_hash": "2730183d"
   },
   "web.site.website_version": {
     "text": "Reteja versio",
-    "sha256": "4d4a570f"
+    "source_hash": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
     "text": "",
-    "sha256": "3b482d7f"
+    "source_hash": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
     "text": "",
-    "sha256": "31eca08d"
+    "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
     "text": "Ni lastatempe aldonis tradukojn. Ĉu vi rimarkis eraron? {send-feedback}",
-    "sha256": "6e2455c1"
+    "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
     "text": "",
-    "sha256": "1b8bb38f"
+    "source_hash": "1b8bb38f"
   },
   "web.help.learn_more": {
     "text": "Lernu pli",
-    "sha256": "1445799c"
+    "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
     "text": "Kion mi rigardas?",
-    "sha256": "b9766df3"
+    "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Vi rigardas sekuran mesaĝon kiu estis kunhavigita kun vi per Onetime Secret. Ĉi tiu enhavo estas montrata nur unufoje kaj poste por ĉiam forigita el niaj serviloj.",
-    "sha256": "e0f1a10c"
+    "text": "Vi rigardas sekuran mesaĝon kiu estis kunhavigita kun vi per {product_name}. Ĉi tiu enhavo estas montrata nur unufoje kaj poste por ĉiam forigita el niaj serviloj.",
+    "source_hash": "c7aba1df"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
     "text": "Ĉu mi povas vidi ĉi tiun sekreton denove poste?",
-    "sha256": "c8c2c9da"
+    "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
     "text": "Ne. Pro sekurecaj kialoj, ĉi tiu sekreto estas videbla nur unufoje. Post fermo de ĉi tiu paĝo, la enhavo estos porĉiame forigita kaj ne reakirigebla de iu ajn, inkluzive de ni.",
-    "sha256": "4bf980a4"
+    "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
     "text": "Kiel mi konservas ĉi tiun informon?",
-    "sha256": "90deddbb"
+    "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
     "text": "Uzu la butonon 'Kopii al tondujo' por kopii la tutan sekreton. Por pli longaj sekretoj, certigu ke vi kopiis la kompletan enhavon antaŭ ol forlasi ĉi tiun paĝon.",
-    "sha256": "440aa828"
+    "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
     "text": "Ĉu mia vidado de ĉi tiu sekreto estas spurata?",
-    "sha256": "90145e28"
+    "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
     "text": "La sendinto estos sciigita ke ilia sekreto estis vidata, sed ni ne spuras kiu vidis ĝin aŭ de kiu loko. Via privateco estas protektata.",
-    "sha256": "70737473"
+    "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
     "text": "Post kiam vi forlasos aŭ refreŝigos ĉi tiun paĝon, ĉi tiu sekreto estos porĉiame forigita kaj ne reakirigebla de iu ajn.",
-    "sha256": "47feab6e"
+    "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
     "text": "Reveni al antaŭa paĝo",
-    "sha256": "1778f2e7"
+    "source_hash": "1778f2e7"
   },
   "web.layout.site_footer": {
     "text": "Reteja piedteksto",
-    "sha256": "6ca09429"
+    "source_hash": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
     "text": "Baskuligi malhelan reĝimon",
-    "sha256": "ffe32a00"
+    "source_hash": "ffe32a00"
   },
   "web.layout.provide_feedback": {
     "text": "Doni retrosciigon",
-    "sha256": "a70766ae"
+    "source_hash": "a70766ae"
   },
   "web.layout.company_logo": {
     "text": "Kompania emblemo",
-    "sha256": "87a86135"
+    "source_hash": "87a86135"
   },
   "web.layout.brand_logo": {
     "text": "Marka emblemo",
-    "sha256": "e458e2b5"
+    "source_hash": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
     "text": "Panela navigado",
-    "sha256": "da5c1c43"
+    "source_hash": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
     "text": "Poŝtelefona navigado",
-    "sha256": "ccea1730"
+    "source_hash": "ccea1730"
   },
   "web.layout.main_navigation": {
     "text": "Ĉefa navigado",
-    "sha256": "56ea852a"
+    "source_hash": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
     "text": "{count} eroj",
-    "sha256": "f65216b3"
+    "source_hash": "f65216b3"
   },
   "web.layout.release_notes": {
     "text": "Eldonnotoj",
-    "sha256": "bd4702c1"
+    "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
     "text": "Ŝargas agordan enhavon...",
-    "sha256": "81a2a30e"
+    "source_hash": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
     "text": "Agordaj sekcioj",
-    "sha256": "e26d51d3"
+    "source_hash": "e26d51d3"
   },
   "web.layout.close_settings": {
     "text": "Fermi agordojn",
-    "sha256": "0ccfef82"
+    "source_hash": "0ccfef82"
   },
   "web.layout.settings_sections": {
     "text": "Agordaj sekcioj",
-    "sha256": "e26d51d3"
+    "source_hash": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
     "text": "",
-    "sha256": "00d74c98"
+    "source_hash": "00d74c98"
   },
   "web.layout.return_home": {
     "text": "Reveni hejmen",
-    "sha256": "bbcc935e"
+    "source_hash": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
     "text": "Reveni al hejmpaĝo",
-    "sha256": "8d27b81d"
+    "source_hash": "8d27b81d"
   },
   "web.layout.return_to_home": {
     "text": "Reveni al Hejmo",
-    "sha256": "299291b0"
+    "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
     "text": "Vidi privatecan politikon",
-    "sha256": "377733b6"
+    "source_hash": "377733b6"
   },
   "web.layout.view_terms_of_service": {
     "text": "Vidi kondiĉojn de servo",
-    "sha256": "e2f124cd"
+    "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Viziti Onetime Secret hejmpaĝon",
-    "sha256": "625556d2"
+    "text": "Viziti {product_name} hejmpaĝon",
+    "source_hash": "f414520f"
   },
   "web.layout.footer_navigation": {
     "text": "Piedteksta navigado",
-    "sha256": "76363a64"
+    "source_hash": "76363a64"
   },
   "web.layout.terms_of_service": {
     "text": "Kondiĉoj de servo",
-    "sha256": "4afa55bf"
+    "source_hash": "4afa55bf"
   },
   "web.layout.privacy_policy": {
     "text": "Privateca politiko",
-    "sha256": "506ff394"
+    "source_hash": "506ff394"
   },
   "web.layout.icon_library": {
     "text": "Piktograma biblioteko",
-    "sha256": "a73f4c07"
+    "source_hash": "a73f4c07"
   },
   "web.layout.google_material": {
     "text": "Google Material",
-    "sha256": "7c7afa99"
+    "source_hash": "7c7afa99"
   },
   "web.layout.material_design_icons": {
     "text": "Material Design Icons",
-    "sha256": "0fb27437"
+    "source_hash": "0fb27437"
   },
   "web.layout.heroicons": {
     "text": "Heroicons",
-    "sha256": "5e7cc07e"
+    "source_hash": "5e7cc07e"
   },
   "web.layout.carbon": {
     "text": "Carbon",
-    "sha256": "694c87c2"
+    "source_hash": "694c87c2"
   },
   "web.layout.font_awesome_6": {
     "text": "Font Awesome 6",
-    "sha256": "d4eedb15"
+    "source_hash": "d4eedb15"
   },
   "web.layout.view_source_on_github": {
     "text": "Vidi fontkodon ĉe GitHub",
-    "sha256": "75e96614"
+    "source_hash": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
     "text": "Reteja versio: v{0}",
-    "sha256": "343f57de"
+    "source_hash": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
     "text": "Ŝanĝi lingvon. Nuna lingvo estas {0}",
-    "sha256": "77f9c322"
+    "source_hash": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
     "text": "Lingvo ŝanĝita al {0}",
-    "sha256": "1680f4fe"
+    "source_hash": "1680f4fe"
   },
   "web.layout.reset_to_default_language": {
     "text": "Restarigi al {0}",
-    "sha256": "c0cfa9b2"
+    "source_hash": "c0cfa9b2"
   },
   "web.layout.switch_to_blank_mode": {
     "text": "Ŝanĝi al {0} reĝimo",
-    "sha256": "c8b909e0"
+    "source_hash": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
     "text": "{0} reĝimo ebligita",
-    "sha256": "e1d200cb"
+    "source_hash": "e1d200cb"
   },
   "web.layout.workspace": {
     "text": "Laborspaco",
-    "sha256": "87bb59ba"
+    "source_hash": "87bb59ba"
   },
   "web.layout.workspace_context": {
     "text": "Laborspaca kunteksto",
-    "sha256": "dc6fa4f5"
+    "source_hash": "dc6fa4f5"
   }
 }

@@ -144,14 +144,17 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr
         expect(output).to include('region: EU')
       end
 
-      it 'defaults region to global if not specified', :vcr do
+      it 'defaults region to empty when not specified', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
           command.call(name: 'Test Product')
         end
 
-        expect(output).to include('region: global')
+        # There is no "global" region — region is either a specific code
+        # (e.g. 'EU') or empty when regionalization is not applicable.
+        # See Billing::RegionNormalizer for the design rationale.
+        expect(output).to match(/region:\s*$/)
       end
 
       it 'accepts tenancy option', :vcr do
@@ -379,7 +382,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr
         stripe_client.create(Stripe::Price, {
           product: product.id,
           unit_amount: 1999,
-          currency: 'usd',
+          currency: 'cad',
           recurring: { interval: 'month' },
         }
         )
@@ -402,7 +405,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr
         stripe_client.create(Stripe::Price, {
           product: product.id,
           unit_amount: 2500,
-          currency: 'usd',
+          currency: 'cad',
           recurring: { interval: 'month' },
         }
         )
@@ -412,7 +415,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr
         end
 
         # Verify price formatting includes amount and currency
-        expect(output).to match(/\$\d+\.\d{2}|USD/)
+        expect(output).to match(/CA\$\d+\.\d{2}|CAD/)
 
         # Note: No cleanup - VCR tests dont need product deletion
       end
@@ -426,7 +429,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr
         stripe_client.create(Stripe::Price, {
           product: product.id,
           unit_amount: 1000,
-          currency: 'usd',
+          currency: 'cad',
           recurring: { interval: 'month' },
         }
         )
@@ -450,7 +453,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr
         stripe_client.create(Stripe::Price, {
           product: product.id,
           unit_amount: 500,
-          currency: 'usd',
+          currency: 'cad',
           recurring: { interval: 'month' },
         }
         )

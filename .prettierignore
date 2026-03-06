@@ -1,8 +1,12 @@
 
+etc
+generated
+log
 node_modules
 node_modules/**/*
 public
-log
 sorbet
-etc
+test-results
+tmp
+*.rst
 *.svg

@@ -18,7 +18,6 @@
     disabled: { type: Boolean, default: false },
     disableGenerate: { type: Boolean, default: false },
     cornerClass: { type: String, default: '' },
-    primaryColor: { type: String, default: '' },
     buttonTextLight: { type: Boolean, default: undefined },
     /** Whether keyboard shortcuts (Cmd/Ctrl+Enter) should trigger the main action */
     keyboardShortcutEnabled: { type: Boolean, default: false },
@@ -69,8 +68,8 @@
   // Right button focus ring (respects right corner rounding)
   const rightButtonFocusClass = computed(() => `${corners.value.rightCorner}`);
 
-  // Compute the ring color based on primaryColor availability
-  const ringColorStyle = computed(() => props.primaryColor ? props.primaryColor : 'var(--color-brand-600)');
+  // Ring color uses the brand CSS variable
+  const ringColorStyle = computed(() => 'var(--color-brand-600)');
 
   // Button labels based on selected action
   const buttonLabel = computed(() => {
@@ -155,12 +154,11 @@
         },
       ]"
       :style="{
-        backgroundColor: `${primaryColor}`,
-        borderColor: `${primaryColor}`,
         '--tw-ring-color': ringColorStyle,
         '--tw-ring-opacity': '0.2',
-        '--button-shadow-color': primaryColor || 'rgb(59, 130, 246)',
+        '--button-shadow-color': 'var(--color-brand-500)',
       }"
+      class="bg-brand-500 hover:bg-brand-600 border-brand-500"
       :disabled="isMainButtonDisabled"
       :aria-label="buttonLabel">
       <!-- Gradient overlay for depth -->
@@ -223,12 +221,11 @@ ry="2" />
         'active:scale-[0.98]',
       ]"
       :style="{
-        backgroundColor: `${primaryColor}`,
-        borderColor: `${primaryColor}`,
         '--tw-ring-color': ringColorStyle,
         '--tw-ring-opacity': '0.2',
-        '--button-shadow-color': primaryColor || 'rgb(59, 130, 246)',
+        '--button-shadow-color': 'var(--color-brand-500)',
       }"
+      class="bg-brand-500 hover:bg-brand-600 border-brand-500"
       @click="handleDropdownToggle"
       aria-label="Show more actions"
       :aria-expanded="isDropdownOpen"

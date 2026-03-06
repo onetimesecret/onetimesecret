@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'json'
+
 module Onetime
   # The Problem class inherits from RuntimeError, which is a subclass of StandardError.
   # Both RuntimeError and StandardError are standard exception classes in Ruby, but
@@ -25,6 +27,41 @@ module Onetime
   # correctly and needs to be reviewed and corrected before normal operation
   # can proceed.
   class ConfigError < Problem
+  end
+
+  # Specific error for schema validation failures with structured information
+  # about which paths in the configuration are problematic
+  class ConfigValidationError < ConfigError
+    attr_reader :messages, :paths
+
+    def initialize(messages:, paths: nil)
+      @messages = Array(messages).compact.reject(&:empty?)
+      @paths    = paths
+      super(formatted_message)
+    end
+
+    private
+
+    def formatted_message
+      return 'Configuration validation failed' if @messages.empty?
+
+      parts = [
+        'Configuration validation failed:',
+        *@messages.each_with_index.map { |msg, i| "  #{i + 1}. #{msg}" },
+      ]
+
+      if @paths&.any?
+        parts << ''
+        parts << 'Affected paths:'
+        parts << JSON.pretty_generate(OT::Utils.type_structure(@paths))
+          .lines
+          .map { |line| "  #{line}" }
+          .join
+          .chomp
+      end
+
+      parts.join("\n")
+    end
   end
 
   class MigrationError < Problem

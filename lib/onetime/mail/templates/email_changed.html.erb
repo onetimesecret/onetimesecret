@@ -28,7 +28,7 @@
               <td class="container-padding" align="left" style="padding: 24px; background-color: #ffffff;">
                 <!-- Logo -->
                 <img alt="Onetime Secret" src="<%= baseuri %>/img/onetime-logo-v3-xl.svg"
-                   style="border: 0; display: block; margin: 0 0 32px 0; height: 48px; width: 48px; background-color: #dc4a22;"
+                   style="border: 0; display: block; margin: 0 0 32px 0; height: 48px; width: 48px; background-color: <%= brand_color %>;"
                    width="48" height="48" />
 
                 <!-- Title -->
@@ -53,14 +53,14 @@
 
                   <p style="color: #666666; background-color: #f5f5f5; padding: 12px; border-radius: 4px; margin-top: 24px;">
                     <%= t('email.email_changed.not_you_notice') %>
-                    <a href="<%= baseuri %><%= support_path %>" style="color: #dc4a22;"><%= t('email.email_changed.contact_support') %></a>
+                    <a href="<%= baseuri %><%= support_path %>" style="color: <%= brand_color %>;"><%= t('email.email_changed.contact_support') %></a>
                   </p>
                 </div>
 
                 <!-- Signature -->
                 <div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333; margin-top: 32px; border-top: 1px solid #eeeeee; padding-top: 16px;">
                   <p style="margin: 0;"><%= t('email.email_changed.signature') %><br />
-                    <a href="<%= baseuri %>" style="color: #dc4a22;"><%= baseuri %></a></p>
+                    <a href="<%= baseuri %>" style="color: <%= brand_color %>;"><%= baseuri %></a></p>
                 </div>
 
                 <!-- Postscript -->

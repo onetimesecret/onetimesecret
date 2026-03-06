@@ -1,134 +1,134 @@
 {
   "incoming.page_title": {
     "text": "Отправить секрет",
-    "sha256": "f83b6303"
+    "source_hash": "f83b6303"
   },
   "incoming.page_description": {
     "text": "Безопасная передача конфиденциальной информации нашей службе поддержки",
-    "sha256": "08beca74"
+    "source_hash": "08beca74"
   },
   "incoming.loading_config": {
     "text": "Загрузка...",
-    "sha256": "47d2a515"
+    "source_hash": "47d2a515"
   },
   "incoming.config_error_title": {
     "text": "Не удалось загрузить конфигурацию",
-    "sha256": "6410ad42"
+    "source_hash": "6410ad42"
   },
   "incoming.feature_disabled_title": {
     "text": "Функция недоступна",
-    "sha256": "bfd624f7"
+    "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
     "text": "Эта функция в настоящее время отключена. Пожалуйста, свяжитесь со службой поддержки.",
-    "sha256": "f13fbf2b"
+    "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
     "text": "Примечание",
-    "sha256": "64cecb8a"
+    "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
     "text": "Краткое описание (напр., Запрос на сброс пароля)",
-    "sha256": "16bf83fd"
+    "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
     "text": "Помогите нам направить Ваше сообщение нужному человеку",
-    "sha256": "185a207e"
+    "source_hash": "185a207e"
   },
   "incoming.recipient_label": {
     "text": "Отправить",
-    "sha256": "9bcbb3bc"
+    "source_hash": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
     "text": "Выберите получателя",
-    "sha256": "4eb1ed54"
+    "source_hash": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
     "text": "Выберите получателя для этого секрета",
-    "sha256": "c98ac75f"
+    "source_hash": "c98ac75f"
   },
   "incoming.recipient_hint": {
     "text": "Выберите, кто получит это защищённое сообщение",
-    "sha256": "0dfafc45"
+    "source_hash": "0dfafc45"
   },
   "incoming.no_recipients_available": {
     "text": "Нет доступных получателей",
-    "sha256": "62834334"
+    "source_hash": "62834334"
   },
   "incoming.secret_content_label": {
     "text": "Секретная информация",
-    "sha256": "b4f8c120"
+    "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
     "text": "Вставьте конфиденциальную информацию сюда (пароли, ключи и т.д.)",
-    "sha256": "7d7abb48"
+    "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
     "text": "Эта информация будет зашифрована и доступна для просмотра только один раз",
-    "sha256": "f9151d61"
+    "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
     "text": "Отправить секрет",
-    "sha256": "2a09f5e0"
+    "source_hash": "2a09f5e0"
   },
   "incoming.submit_secret": {
     "text": "Отправить секрет",
-    "sha256": "2a09f5e0"
+    "source_hash": "2a09f5e0"
   },
   "incoming.submitting_button": {
     "text": "Отправка...",
-    "sha256": "286a3af7"
+    "source_hash": "286a3af7"
   },
   "incoming.submitting": {
     "text": "Отправка...",
-    "sha256": "286a3af7"
+    "source_hash": "286a3af7"
   },
   "incoming.reset_button": {
     "text": "Очистить форму",
-    "sha256": "f6c2bb83"
+    "source_hash": "f6c2bb83"
   },
   "incoming.reset_form": {
     "text": "Очистить форму",
-    "sha256": "f6c2bb83"
+    "source_hash": "f6c2bb83"
   },
   "incoming.success_title": {
     "text": "Успешно отправлено",
-    "sha256": "261e9a7e"
+    "source_hash": "261e9a7e"
   },
   "incoming.success_description": {
     "text": "Ваше защищённое сообщение доставлено.",
-    "sha256": "e1538e3e"
+    "source_hash": "e1538e3e"
   },
   "incoming.reference_id": {
     "text": "Идентификатор ссылки",
-    "sha256": "293aba9f"
+    "source_hash": "293aba9f"
   },
   "incoming.success_info_title": {
     "text": "Что будет дальше?",
-    "sha256": "c72895ba"
+    "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
     "text": "Получатель сможет просмотреть этот секрет только один раз. После просмотра секрет будет безвозвратно удалён.",
-    "sha256": "8120bd40"
+    "source_hash": "8120bd40"
   },
   "incoming.create_another": {
     "text": "Отправить ещё секрет",
-    "sha256": "8a61d95c"
+    "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
     "text": "Безопасная передача конфиденциальной информации",
-    "sha256": "099ff0c7"
+    "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
     "text": "Держите пароли и личные данные вне электронной почты и логов чатов",
-    "sha256": "55566199"
+    "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
     "text": "Сохраните {receipt} для своих записей.",
-    "sha256": "db3d9c98"
+    "source_hash": "db3d9c98"
   },
   "incoming.receipt_link_text": {
     "text": "квитанция",
-    "sha256": "6f328609"
+    "source_hash": "6f328609"
   }
 }

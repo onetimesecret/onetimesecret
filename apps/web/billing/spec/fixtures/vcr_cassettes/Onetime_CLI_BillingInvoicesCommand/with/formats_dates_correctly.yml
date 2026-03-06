@@ -5,7 +5,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/prices
     body:
       encoding: UTF-8
-      string: unit_amount=5000&currency=usd&product=prod_TfaM8pBpEWyGGo
+      string: unit_amount=5000&currency=cad&product=prod_TfaM8pBpEWyGGo
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -86,7 +86,7 @@ http_interactions:
           "active": true,
           "billing_scheme": "per_unit",
           "created": 1766671616,
-          "currency": "usd",
+          "currency": "cad",
           "custom_unit_amount": null,
           "livemode": false,
           "lookup_key": null,
@@ -186,7 +186,7 @@ http_interactions:
           "id": "ii_1SiFBsH54PcLeqtY1yTDZXOy",
           "object": "invoiceitem",
           "amount": 5000,
-          "currency": "usd",
+          "currency": "cad",
           "customer": "cus_TfaMu4K37WjBZ8",
           "customer_account": null,
           "date": 1766671616,
@@ -321,7 +321,7 @@ http_interactions:
           "billing_reason": "manual",
           "collection_method": "charge_automatically",
           "created": 1766671616,
-          "currency": "usd",
+          "currency": "cad",
           "custom_fields": null,
           "customer": "cus_TfaMu4K37WjBZ8",
           "customer_account": null,
@@ -501,7 +501,7 @@ http_interactions:
               "billing_reason": "manual",
               "collection_method": "charge_automatically",
               "created": 1766671616,
-              "currency": "usd",
+              "currency": "cad",
               "custom_fields": null,
               "customer": "cus_TfaMu4K37WjBZ8",
               "customer_account": null,
@@ -881,7 +881,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/prices
     body:
       encoding: UTF-8
-      string: unit_amount=5000&currency=usd&product=prod_Tgwm6h7TK377su
+      string: unit_amount=5000&currency=cad&product=prod_Tgwm6h7TK377su
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -962,7 +962,7 @@ http_interactions:
           "active": true,
           "billing_scheme": "per_unit",
           "created": 1766985629,
-          "currency": "usd",
+          "currency": "cad",
           "custom_unit_amount": null,
           "livemode": false,
           "lookup_key": null,
@@ -1062,7 +1062,7 @@ http_interactions:
           "id": "ii_1SjYsbH54PcLeqtYimrxRTH3",
           "object": "invoiceitem",
           "amount": 5000,
-          "currency": "usd",
+          "currency": "cad",
           "customer": "cus_Tgwm0mcUkcW7QN",
           "customer_account": null,
           "date": 1766985629,
@@ -1197,7 +1197,7 @@ http_interactions:
           "billing_reason": "manual",
           "collection_method": "charge_automatically",
           "created": 1766985630,
-          "currency": "usd",
+          "currency": "cad",
           "custom_fields": null,
           "customer": "cus_Tgwm0mcUkcW7QN",
           "customer_account": null,
@@ -1377,7 +1377,7 @@ http_interactions:
               "billing_reason": "manual",
               "collection_method": "charge_automatically",
               "created": 1766985630,
-              "currency": "usd",
+              "currency": "cad",
               "custom_fields": null,
               "customer": "cus_Tgwm0mcUkcW7QN",
               "customer_account": null,

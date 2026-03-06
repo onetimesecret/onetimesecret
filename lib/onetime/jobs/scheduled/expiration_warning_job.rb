@@ -133,14 +133,27 @@ module Onetime
             seconds_until_expiry = receipt.secret_expiration.to_i - Familia.now.to_i
             delay                = [seconds_until_expiry - WARNING_BUFFER_SECONDS, 0].max
 
+            # Resolve brand context from custom domain if present
+            email_data = {
+              recipient: owner.email,
+              secret_key: receipt.secret_shortid,
+              expires_at: receipt.secret_expiration,
+              share_domain: receipt.share_domain,
+            }
+
+            # Add brand context if custom domain is configured
+            if receipt.share_domain && !receipt.share_domain.to_s.empty?
+              custom_domain = Onetime::CustomDomain.load_by_display_domain(receipt.share_domain)
+              if custom_domain
+                brand_settings            = custom_domain.brand.hgetall
+                email_data[:brand_color]  = brand_settings['primary_color'] if brand_settings['primary_color']
+                email_data[:product_name] = brand_settings['product_name'] if brand_settings['product_name']
+              end
+            end
+
             Onetime::Jobs::Publisher.schedule_email(
               :expiration_warning,
-              {
-                recipient: owner.email,
-                secret_key: receipt.secret_shortid,
-                expires_at: receipt.secret_expiration,
-                share_domain: receipt.share_domain,
-              },
+              email_data,
               delay_seconds: delay,
             )
 

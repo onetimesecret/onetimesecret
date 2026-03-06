@@ -221,12 +221,13 @@ RSpec.describe "Onetime global state after boot", type: :integration do
       # asserting that an exception is raised.
 
       it "handles configuration load errors by re-raising the error when not in CLI mode" do
-        # This simulates an error during OT::Config.load
+        # This simulates an error during configuration loading.
+        # Boot now uses Configurator.load! instead of Config.load directly.
         config_error = StandardError.new("Test configuration error")
-        allow(Onetime::Config).to receive(:load).and_raise(config_error)
+        allow(Onetime::Configurator).to receive(:load!).and_raise(config_error)
 
         # Onetime.boot! is called with :test mode.
-        # The rescue block for StandardError in boot! should re-raise the error.
+        # The uncaught StandardError should propagate up from boot!.
         expect {
           Onetime.boot!(:test)
         }.to raise_error(StandardError, "Test configuration error")

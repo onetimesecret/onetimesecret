@@ -37,6 +37,7 @@ Examples:
 
 import argparse
 import json
+import os
 import re
 import sys
 from collections import defaultdict
@@ -466,9 +467,10 @@ Examples:
         )
         return 1
 
-    en_dir = content_dir / "en"
-    if not en_dir.exists():
-        print(f"Error: English locale not found: {en_dir}", file=sys.stderr)
+    source_locale = os.environ.get("I18N_DEFAULT_LOCALE", "en")
+    source_dir = content_dir / source_locale
+    if not source_dir.exists():
+        print(f"Error: Source locale not found: {source_dir}", file=sys.stderr)
         return 1
 
     # Get list of locales to check
@@ -481,7 +483,7 @@ Examples:
         locale_dirs = [
             d
             for d in content_dir.iterdir()
-            if d.is_dir() and d.name != "en" and not d.name.startswith(".")
+            if d.is_dir() and d.name != source_locale and not d.name.startswith(".")
         ]
 
     # Audit each locale
@@ -490,7 +492,7 @@ Examples:
     for locale_dir in sorted(locale_dirs):
         locale_name = locale_dir.name
         issues = audit_locale(
-            en_dir,
+            source_dir,
             locale_dir,
             args.file,
             warned_missing_file,

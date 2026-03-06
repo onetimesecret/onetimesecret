@@ -10,6 +10,7 @@ FontFamily,
 cornerStyleClasses,
 fontFamilyClasses
 } from '@/schemas/models/domain/brand';
+import { DEFAULT_BRAND_HEX } from '@/utils/brand-palette';
 import { computed, ref } from 'vue';
 import { Composer, useI18n } from 'vue-i18n';
 
@@ -18,8 +19,8 @@ const { t } = useI18n();
 const props = defineProps<{
   domainBranding: BrandSettings;
   logoImage?: ImageProps | null;
-  onLogoUpload: (file: File) => Promise<void>;
-  onLogoRemove: () => Promise<void>;
+  onLogoUpload?: (file: File) => Promise<void>;
+  onLogoRemove?: () => Promise<void>;
   secretIdentifier: string;
   previewI18n: Composer;
 }>();
@@ -48,7 +49,7 @@ const ariaLabelText = computed(() =>
 const handleLogoChange = (event: Event) => {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
-  if (file) {
+  if (file && props.onLogoUpload) {
     props.onLogoUpload(file);
   }
   input.value = '';
@@ -83,9 +84,10 @@ const fontFamilyClass = computed(() => {
     <template #logo>
       <div class="group relative mx-auto sm:mx-0">
         <label
-          class="block cursor-pointer"
-          for="logo-upload"
-          role="button">
+          :class="onLogoUpload ? 'cursor-pointer' : 'cursor-default'"
+          class="block"
+          :for="onLogoUpload ? 'logo-upload' : undefined"
+          :role="onLogoUpload ? 'button' : undefined">
           <div
             :class="[cornerClass, {
               'animate-wiggle': !isValidLogo
@@ -122,6 +124,7 @@ const fontFamilyClass = computed(() => {
         </div>
 
         <input
+          v-if="onLogoUpload"
           id="logo-upload"
           type="file"
           class="hidden"
@@ -131,12 +134,12 @@ const fontFamilyClass = computed(() => {
 
         <!-- Hover/Focus Controls -->
         <div
-          v-if="isValidLogo"
+          v-if="isValidLogo && onLogoRemove"
           class="absolute inset-0 flex items-center justify-center rounded-lg bg-black/70 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
           role="group"
           :aria-label="t('web.branding.logo_controls')">
           <button
-            @click.stop="onLogoRemove"
+            @click.stop="onLogoRemove?.()"
             class="rounded-md bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 focus:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
             <span class="flex items-center gap-1">
               <OIcon
@@ -180,7 +183,7 @@ const fontFamilyClass = computed(() => {
         class="w-full py-3 text-base font-medium transition-colors sm:text-lg"
         :class="[cornerClass, fontFamilyClass]"
         :style="{
-          backgroundColor: domainBranding.primary_color ??' #dc4a22',
+          backgroundColor: domainBranding.primary_color ?? DEFAULT_BRAND_HEX,
           color: (domainBranding.button_text_light ?? true) ? '#ffffff' : '#000000',
         }"
         @click="toggleReveal"

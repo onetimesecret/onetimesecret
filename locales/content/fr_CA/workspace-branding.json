@@ -1,170 +1,170 @@
 {
   "web.branding.color_picker": {
     "text": "Sélecteur de couleur",
-    "sha256": "ba42602c"
+    "source_hash": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
     "text": "{0} actuel : {1}. Cliquez pour parcourir les options.",
-    "sha256": "84bf49e6"
+    "source_hash": "84bf49e6"
   },
   "web.branding.use_setting": {
     "text": "Utiliser le paramètre",
-    "sha256": "8a18d118"
+    "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
     "text": "Famille de polices",
-    "sha256": "f81339da"
+    "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
     "text": "Style de coins",
-    "sha256": "fcb3ecdf"
+    "source_hash": "fcb3ecdf"
   },
   "web.branding.brand_color": {
     "text": "Couleur de marque",
-    "sha256": "db3183e3"
+    "source_hash": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
     "text": "Aperçu de la vue du destinataire lors de l'accès à votre lien sécurisé",
-    "sha256": "199c165f"
+    "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
     "text": "Aperçu et personnalisation",
-    "sha256": "215d3659"
+    "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
     "text": "Passer à la vue du navigateur Safari",
-    "sha256": "6e0fe791"
+    "source_hash": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
     "text": "Microsoft Edge",
-    "sha256": "951e7f89"
+    "source_hash": "951e7f89"
   },
   "web.branding.maximize_window": {
     "text": "Maximiser la fenêtre",
-    "sha256": "45d23969"
+    "source_hash": "45d23969"
   },
   "web.branding.minimize_window": {
     "text": "Minimiser la fenêtre",
-    "sha256": "5cd54386"
+    "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
     "text": "Passer à la vue du navigateur Edge",
-    "sha256": "a8fcd82d"
+    "source_hash": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
     "text": "{0}/500 caractères",
-    "sha256": "e36598ef"
+    "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
     "text": "Utilisez votre téléphone pour scanner le code QR",
-    "sha256": "99ecf59f"
+    "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
     "text": "Contactez onboarding{'@'}example.com pour toute question",
-    "sha256": "bee120a7"
+    "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Ces instructions seront affichées aux destinataires avant qu'ils révèlent le contenu du secret",
-    "sha256": "9d5a6334"
+    "source_hash": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
     "text": "Ces instructions seront affichées aux destinataires après qu'ils auront révélé le secret",
-    "sha256": "9f82bd94"
+    "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
     "text": "Instructions avant révélation",
-    "sha256": "a299422e"
+    "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
     "text": "Instructions après révélation",
-    "sha256": "72ecc23a"
+    "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
     "text": "Instructions",
-    "sha256": "934652dc"
+    "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
     "text": "Contrôles du logo",
-    "sha256": "43e9a2d7"
+    "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
     "text": "Cliquez pour importer un logo. Dimensions recommandées : 128x128 pixels. Taille maximale : 1 Mo. Formats acceptés : PNG, JPG, SVG",
-    "sha256": "a35452bf"
+    "source_hash": "a35452bf"
   },
   "web.branding.upload_logo": {
     "text": "Téléverser un logo",
-    "sha256": "c3330082"
+    "source_hash": "c3330082"
   },
   "web.branding.loading_preview": {
     "text": "Chargement de l'aperçu...",
-    "sha256": "c02130fa"
+    "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
     "text": "Prévisualisez comment les destinataires verront vos secrets en testant le bouton « Voir le secret »",
-    "sha256": "3b58a297"
+    "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
     "text": "Icône d'œil",
-    "sha256": "7f605d3c"
+    "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
     "text": "Cliquez sur l'aperçu ci-dessous pour modifier votre logo (minimum recommandé de 128x128 pixels, maximum 1 Mo)",
-    "sha256": "77a19049"
+    "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
     "text": "Icône d'image",
-    "sha256": "b0d64fcf"
+    "source_hash": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
     "text": "Utilisez les commandes ci-dessus pour personnaliser la couleur de marque, les styles et les directives aux destinataires",
-    "sha256": "d6287134"
+    "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
     "text": "Icône de personnalisation",
-    "sha256": "bde04d31"
+    "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
     "text": "Vous avez des modifications non enregistrées. Êtes-vous sûr ?",
-    "sha256": "184b6a83"
+    "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
     "text": "Échec du chargement des paramètres de marque",
-    "sha256": "a7a1575e"
+    "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
     "text": "Ceci est un aperçu interactif de la façon dont les destinataires verront vos messages sécurisés. Vous pouvez : - Personnaliser les couleurs et polices à l'aide des contrôles ci-dessus - Téléverser un logo (minimum 128x128 pixels recommandé, 1 Mo maximum) - Tester l'aperçu en utilisant le bouton « Voir le secret »",
-    "sha256": "3d8b2c0d"
+    "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
     "text": "Il s'agit d'un aperçu interactif de la façon dont les destinataires verront vos messages sécurisés. Vous pouvez : - Personnaliser les couleurs et les polices à l'aide des commandes ci-dessus - télécharger un logo (128x128 pixels minimum recommandés, 1MB maximum) - tester l'aperçu à l'aide du bouton \"Voir le secret\"",
-    "sha256": "3d8b2c0d"
+    "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
     "text": "Kanji japonais '秘' (himitsu) signifiant 'secret' ou 'confidentiel'",
-    "sha256": "1e04ba2e"
+    "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Propulsé par Onetime Secret",
-    "sha256": "935442d0"
+    "text": "Propulsé par {product_name}",
+    "source_hash": "f8cd6c67"
   },
   "web.branding.heading_logo": {
     "text": "Logo {0}",
-    "sha256": "3a3c98ed"
+    "source_hash": "3a3c98ed"
   },
   "web.branding.edge": {
     "text": "Edge",
-    "sha256": "0f82fe72"
+    "source_hash": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
     "text": "Passer à l'aperçu Edge",
-    "sha256": "83883d84"
+    "source_hash": "83883d84"
   },
   "web.branding.safari": {
     "text": "Safari",
-    "sha256": "5f033039"
+    "source_hash": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
     "text": "Passer à l'aperçu Safari",
-    "sha256": "f24ac447"
+    "source_hash": "f24ac447"
   }
 }

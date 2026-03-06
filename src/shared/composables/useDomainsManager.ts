@@ -55,13 +55,9 @@ export function useDomainsManager() {
         return router.push({ name: 'NotFound' });
       }
 
-      // 422: validation error (e.g., upgrade required) - show the error message
-      // 403: permission denied - show the error message
-      // These should surface to the user, not redirect to NotFound
+      // Set local error state for inline ErrorDisplay.
+      // Notification is handled by wrap()'s notify handler — don't duplicate it here.
       error.value = err;
-      if (err.message) {
-        notifications.show(err.message, 'error', 'top');
-      }
     },
   };
 
@@ -104,15 +100,21 @@ export function useDomainsManager() {
   const handleDomainExistsError = async (domain: string, errorMessage: string) => {
     if (errorMessage.includes('already registered in your organization')) {
       notifications.show(t('web.domains.domain_already_in_organization'), 'warning', 'top');
-      await store.fetchList();
-      const existingDomain = store.records?.find(d => d.display_domain === domain);
-      if (existingDomain && orgid.value) {
-        setTimeout(() => {
-          router.push({
-            name: 'DomainVerify',
-            params: { orgid: orgid.value, extid: existingDomain.extid },
-          });
-        }, 2000);
+      // Best-effort: refresh and redirect to the existing domain's verify page.
+      // If fetchList fails (e.g. schema mismatch), we still show the warning above.
+      try {
+        await store.fetchList();
+        const existingDomain = store.records?.find(d => d.display_domain === domain);
+        if (existingDomain && orgid.value) {
+          setTimeout(() => {
+            router.push({
+              name: 'DomainVerify',
+              params: { orgid: orgid.value, extid: existingDomain.extid },
+            });
+          }, 2000);
+        }
+      } catch {
+        // fetchList failure shouldn't mask the duplicate-domain warning
       }
       return null;
     }

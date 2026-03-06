@@ -64,7 +64,7 @@ module Onetime
             Onetime.ld '[StaticFiles] Enabling StaticFiles middleware'
             require 'rack/static'
             use Rack::Static,
-              urls: ['/dist', '/img', '/v3', '/site.webmanifest', '/favicon.ico'],
+              urls: ['/dist', '/img', '/v3', '/favicon.ico'],
               root: 'public/web'
           end
 

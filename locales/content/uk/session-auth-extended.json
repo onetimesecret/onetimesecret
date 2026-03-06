@@ -1,543 +1,543 @@
 {
   "web.auth.mfa_required": {
     "text": "Потрібна перевірка MFA",
-    "sha256": "e93fd3a4"
+    "source_hash": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
     "text": "Для доступу до Вашого облікового запису потрібна перевірка MFA",
-    "sha256": "3cff3311"
+    "source_hash": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
     "text": "Завершити перевірку MFA",
-    "sha256": "0e681134"
+    "source_hash": "0e681134"
   },
   "web.auth.security.authentication_failed": {
     "text": "Помилка автентифікації. Будь ласка, перевірте свої облікові дані та спробуйте ще раз.",
-    "sha256": "b0eeece9"
+    "source_hash": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
     "text": "Забагато спроб. Будь ласка, спробуйте пізніше.",
-    "sha256": "282db6f3"
+    "source_hash": "282db6f3"
   },
   "web.auth.security.session_expired": {
     "text": "Сесія закінчилася. Будь ласка, увійдіть знову.",
-    "sha256": "f6f51186"
+    "source_hash": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
     "text": "Код відновлення не знайдено. Будь ласка, перевірте, чи правильно Ви його ввели.",
-    "sha256": "f5f1bd09"
+    "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
     "text": "Цей код відновлення вже використано. Кожен код можна використати лише один раз.",
-    "sha256": "b51d6820"
+    "source_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
     "text": "Помилка мережі. Будь ласка, перевірте з'єднання та спробуйте ще раз.",
-    "sha256": "31f2678d"
+    "source_hash": "31f2678d"
   },
   "web.auth.security.internal_error": {
     "text": "Сталася помилка. Будь ласка, спробуйте ще раз.",
-    "sha256": "9c170dda"
+    "source_hash": "9c170dda"
   },
   "web.auth.methods.password": {
     "text": "Пароль",
-    "sha256": "e7cf3ef4"
+    "source_hash": "e7cf3ef4"
   },
   "web.auth.methods.magicLink": {
     "text": "Посилання в листі",
-    "sha256": "1b6ffed2"
+    "source_hash": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
     "text": "Біометрія",
-    "sha256": "ab2ba7db"
+    "source_hash": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
     "text": "Увійти через електронну пошту",
-    "sha256": "79a864df"
+    "source_hash": "79a864df"
   },
   "web.auth.magicLink.description": {
     "text": "Ми надішлемо Вам безпечне посилання для входу",
-    "sha256": "5d75aeb0"
+    "source_hash": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
     "text": "Введіть Вашу електронну адресу",
-    "sha256": "2837f6fa"
+    "source_hash": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
     "text": "Надіслати посилання для входу",
-    "sha256": "f5f52392"
+    "source_hash": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
     "text": "Перевірте Вашу електронну пошту",
-    "sha256": "77322879"
+    "source_hash": "77322879"
   },
   "web.auth.magicLink.sentTo": {
     "text": "Ми надіслали посилання для входу на {email}",
-    "sha256": "d9193f59"
+    "source_hash": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
     "text": "Термін дії цього посилання закінчується через 15 хвилин",
-    "sha256": "91b5f027"
+    "source_hash": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
     "text": "Спробуйте іншу електронну адресу",
-    "sha256": "98657c0b"
+    "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
     "text": "Пароль не потрібен — просто натисніть на посилання у Вашому листі",
-    "sha256": "5f539b97"
+    "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
     "text": "Помилка мережі. Будь ласка, спробуйте ще раз.",
-    "sha256": "9ff8cfaf"
+    "source_hash": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
     "text": "Не вдалося надіслати посилання для входу. Будь ласка, спробуйте ще раз.",
-    "sha256": "4c685e97"
+    "source_hash": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
     "text": "Недійсне або відсутнє посилання для входу",
-    "sha256": "d726c0da"
+    "source_hash": "d726c0da"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Помилка входу. Будь ласка, спробуйте ще раз.",
-    "sha256": "c95b4875"
+    "source_hash": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
     "text": "Виконується вхід...",
-    "sha256": "9d432ef1"
+    "source_hash": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
     "text": "Будь ласка, зачекайте, поки ми перевіримо Ваше посилання",
-    "sha256": "81e4efed"
+    "source_hash": "81e4efed"
   },
   "web.auth.magicLink.error": {
     "text": "Помилка автентифікації",
-    "sha256": "797b4f03"
+    "source_hash": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
     "text": "Повернутися до входу",
-    "sha256": "ee9eb75e"
+    "source_hash": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
     "text": "Увійти за допомогою Face ID / Touch ID",
-    "sha256": "46f75469"
+    "source_hash": "46f75469"
   },
   "web.auth.webauthn.setup": {
     "text": "Налаштувати біометричний вхід",
-    "sha256": "7593dd46"
+    "source_hash": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
     "text": "Біометрична автентифікація не підтримується в цьому браузері",
-    "sha256": "fe2a2c2b"
+    "source_hash": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
     "text": "Будь ласка, використовуйте сучасний браузер, який підтримує WebAuthn (Chrome, Safari, Firefox або Edge)",
-    "sha256": "fd9752eb"
+    "source_hash": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
     "text": "Біометричний вхід увімкнено",
-    "sha256": "63407e97"
+    "source_hash": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
     "text": "Не вдалося налаштувати біометричний вхід",
-    "sha256": "290cca44"
+    "source_hash": "290cca44"
   },
   "web.auth.webauthn.authFailed": {
     "text": "Біометрична автентифікація не вдалася. Будь ласка, спробуйте ще раз.",
-    "sha256": "626b9ece"
+    "source_hash": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
     "text": "Автентифікацію скасовано",
-    "sha256": "57461b04"
+    "source_hash": "57461b04"
   },
   "web.auth.webauthn.processing": {
     "text": "Автентифікація...",
-    "sha256": "1f6087c2"
+    "source_hash": "1f6087c2"
   },
   "web.auth.webauthn.description": {
     "text": "Використовуйте відбиток пальця, обличчя або ключ безпеки для входу",
-    "sha256": "f02f0427"
+    "source_hash": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
     "text": "Підтримує Face ID, Touch ID, Windows Hello та ключі безпеки",
-    "sha256": "3ea1c1a2"
+    "source_hash": "3ea1c1a2"
   },
   "web.auth.lockout.attempts_remaining": {
     "text": "Попередження: залишилося {count} спроб входу",
-    "sha256": "151dcb5e"
+    "source_hash": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
     "text": "Обліковий запис заблоковано через занадто багато невдалих спроб входу",
-    "sha256": "5247f389"
+    "source_hash": "5247f389"
   },
   "web.auth.lockout.locked_until": {
     "text": "Ваш обліковий запис заблоковано до {time}",
-    "sha256": "1a8f382e"
+    "source_hash": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
     "text": "Зв'яжіться зі службою підтримки, якщо Вам потрібен негайний доступ",
-    "sha256": "23d82e46"
+    "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
     "text": "Ви можете скинути пароль замість цього",
-    "sha256": "a98a3f9d"
+    "source_hash": "a98a3f9d"
   },
   "web.auth.sessions.title": {
     "text": "Активні сесії",
-    "sha256": "b58fa4e0"
+    "source_hash": "b58fa4e0"
   },
   "web.auth.sessions.current": {
     "text": "Поточна сесія",
-    "sha256": "386c7932"
+    "source_hash": "386c7932"
   },
   "web.auth.sessions.other": {
     "text": "Інші сесії",
-    "sha256": "8409f445"
+    "source_hash": "8409f445"
   },
   "web.auth.sessions.device": {
     "text": "Пристрій",
-    "sha256": "6ba0bdec"
+    "source_hash": "6ba0bdec"
   },
   "web.auth.sessions.location": {
     "text": "Місцезнаходження",
-    "sha256": "15b61974"
+    "source_hash": "15b61974"
   },
   "web.auth.sessions.ip_address": {
     "text": "IP-адреса",
-    "sha256": "3c3de0c9"
+    "source_hash": "3c3de0c9"
   },
   "web.auth.sessions.last_active": {
     "text": "Остання активність",
-    "sha256": "b6dc1b95"
+    "source_hash": "b6dc1b95"
   },
   "web.auth.sessions.created": {
     "text": "Створено",
-    "sha256": "d70b9e24"
+    "source_hash": "d70b9e24"
   },
   "web.auth.sessions.remove": {
     "text": "Видалити",
-    "sha256": "c3812fc4"
+    "source_hash": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
     "text": "Вийти з усіх інших сесій",
-    "sha256": "412bb9e2"
+    "source_hash": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
     "text": "Ви впевнені, що хочете видалити цю сесію?",
-    "sha256": "ef12c1ba"
+    "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
     "text": "Це завершить Ваш сеанс на всіх інших пристроях. Ви впевнені?",
-    "sha256": "4a1a73e9"
+    "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
     "text": "Немає інших активних сесій",
-    "sha256": "b83317f2"
+    "source_hash": "b83317f2"
   },
   "web.auth.sessions.removed_success": {
     "text": "Сесію успішно видалено",
-    "sha256": "6d27d44a"
+    "source_hash": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
     "text": "Усі інші сесії завершено",
-    "sha256": "1b49e75c"
+    "source_hash": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
     "text": "Активні сесії",
-    "sha256": "b58fa4e0"
+    "source_hash": "b58fa4e0"
   },
   "web.auth.mfa.title": {
     "text": "Двофакторна автентифікація",
-    "sha256": "bc074b60"
+    "source_hash": "bc074b60"
   },
   "web.auth.mfa.enabled": {
     "text": "Двофакторну автентифікацію увімкнено",
-    "sha256": "d27a70c6"
+    "source_hash": "d27a70c6"
   },
   "web.auth.mfa.disabled": {
     "text": "Двофакторну автентифікацію вимкнено",
-    "sha256": "0af18e50"
+    "source_hash": "0af18e50"
   },
   "web.auth.mfa.enable": {
     "text": "Увімкнути двофакторну автентифікацію",
-    "sha256": "9b83e658"
+    "source_hash": "9b83e658"
   },
   "web.auth.mfa.disable": {
     "text": "Вимкнути двофакторну автентифікацію",
-    "sha256": "c9698815"
+    "source_hash": "c9698815"
   },
   "web.auth.mfa.setup_title": {
     "text": "Налаштування двофакторної автентифікації",
-    "sha256": "04e05601"
+    "source_hash": "04e05601"
   },
   "web.auth.mfa.setup_description": {
     "text": "Додайте додатковий рівень безпеки до Вашого облікового запису",
-    "sha256": "d47240b9"
+    "source_hash": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
     "text": "1. Відскануйте QR-код",
-    "sha256": "efd0134a"
+    "source_hash": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
     "text": "2. Перевірте налаштування",
-    "sha256": "59bba5f7"
+    "source_hash": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
     "text": "Відскануйте цей QR-код за допомогою додатку автентифікації",
-    "sha256": "65752db3"
+    "source_hash": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
     "text": "Або введіть цей код вручну",
-    "sha256": "3ea15b3e"
+    "source_hash": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
     "text": "Введіть 6-значний код з Вашого додатку",
-    "sha256": "38f61733"
+    "source_hash": "38f61733"
   },
   "web.auth.mfa.enter_code": {
     "text": "Введіть код автентифікації",
-    "sha256": "186a582a"
+    "source_hash": "186a582a"
   },
   "web.auth.mfa.verify": {
     "text": "Перевірити та увімкнути",
-    "sha256": "7c08f68d"
+    "source_hash": "7c08f68d"
   },
   "web.auth.mfa.code_required": {
     "text": "Код автентифікації обов'язковий",
-    "sha256": "217de0fc"
+    "source_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
     "text": "Недійсний код. Коди закінчуються кожні 30 секунд. Спробуйте останній код з Вашого додатку автентифікації.",
-    "sha256": "94b58889"
+    "source_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
     "text": "Двофакторну автентифікацію увімкнено",
-    "sha256": "e5aff73d"
+    "source_hash": "e5aff73d"
   },
   "web.auth.mfa.success_disabled": {
     "text": "Двофакторну автентифікацію вимкнено",
-    "sha256": "4fd6b4b4"
+    "source_hash": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
     "text": "Введіть свій пароль, щоб вимкнути 2FA",
-    "sha256": "c384b93c"
+    "source_hash": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
     "text": "Пароль",
-    "sha256": "e7cf3ef4"
+    "source_hash": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
     "text": "Підтвердіть свою особу, щоб змінити налаштування двофакторної автентифікації",
-    "sha256": "09a96c07"
+    "source_hash": "09a96c07"
   },
   "web.auth.mfa.last_used": {
     "text": "Останнє використання: {time}",
-    "sha256": "e1af94fe"
+    "source_hash": "e1af94fe"
   },
   "web.auth.mfa.never_used": {
     "text": "Ніколи не використовувався",
-    "sha256": "24d3236c"
+    "source_hash": "24d3236c"
   },
   "web.auth.mfa.use_recovery_code": {
     "text": "Використати код відновлення замість цього",
-    "sha256": "23d3441a"
+    "source_hash": "23d3441a"
   },
   "web.auth.mfa.back_to_code": {
     "text": "Повернутися до коду автентифікації",
-    "sha256": "6fa090b4"
+    "source_hash": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
     "text": "Скасувати і повернутися до входу",
-    "sha256": "83256742"
+    "source_hash": "83256742"
   },
   "web.auth.mfa.loading_status": {
     "text": "Завантаження статусу MFA...",
-    "sha256": "01919f0e"
+    "source_hash": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
     "text": "Ваш обліковий запис захищений двофакторною автентифікацією",
-    "sha256": "02b9d169"
+    "source_hash": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
     "text": "Захистіть свій обліковий запис додатковим рівнем безпеки",
-    "sha256": "06d9123b"
+    "source_hash": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
     "text": "Запобігайте несанкціонованому доступу, навіть якщо Ваш пароль скомпрометовано",
-    "sha256": "61d99c71"
+    "source_hash": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
     "text": "Працює з Google Authenticator, Authy та іншими TOTP-додатками",
-    "sha256": "6ee8ab12"
+    "source_hash": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
     "text": "Резервні коди відновлення для екстреного доступу",
-    "sha256": "747917bb"
+    "source_hash": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
     "text": "Введіть свій пароль",
-    "sha256": "c06bf967"
+    "source_hash": "c06bf967"
   },
   "web.auth.mfa.disabling": {
     "text": "Вимкнення...",
-    "sha256": "e4080e19"
+    "source_hash": "e4080e19"
   },
   "web.auth.mfa.disable_button": {
     "text": "Вимкнути 2FA",
-    "sha256": "1c3193f3"
+    "source_hash": "1c3193f3"
   },
   "web.auth.mfa.generating_qr": {
     "text": "Генерація QR-коду...",
-    "sha256": "8eab9da9"
+    "source_hash": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
     "text": "Використовуйте Google Authenticator, Authy або будь-який TOTP-додаток",
-    "sha256": "a8eaef9d"
+    "source_hash": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
     "text": "Продовжити перевірку",
-    "sha256": "4da96e87"
+    "source_hash": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
     "text": "Введіть 6-значний код з Вашого додатку автентифікації",
-    "sha256": "a160dee6"
+    "source_hash": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
     "text": "Увімкнути MFA",
-    "sha256": "37c8090d"
+    "source_hash": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
     "text": "Завершити налаштування",
-    "sha256": "30e87601"
+    "source_hash": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
     "text": "Введіть один із Ваших кодів відновлення",
-    "sha256": "91ab44cf"
+    "source_hash": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
     "text": "Код відновлення",
-    "sha256": "cf25d0fc"
+    "source_hash": "cf25d0fc"
   },
   "web.auth.mfa.recovery_code_placeholder": {
     "text": "Введіть код відновлення",
-    "sha256": "586d719c"
+    "source_hash": "586d719c"
   },
   "web.auth.mfa.verify_recovery_code": {
     "text": "Перевірити код відновлення",
-    "sha256": "c244c7bd"
+    "source_hash": "c244c7bd"
   },
   "web.auth.mfa.six_digit_code": {
     "text": "Введіть 6-значний код автентифікації",
-    "sha256": "36a438ba"
+    "source_hash": "36a438ba"
   },
   "web.auth.mfa.recovery_code_mode_active": {
     "text": "Режим коду відновлення активний",
-    "sha256": "c895f08b"
+    "source_hash": "c895f08b"
   },
   "web.auth.mfa.otp_mode_active": {
     "text": "Режим коду автентифікації активний",
-    "sha256": "8c44a306"
+    "source_hash": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
     "text": "Будь ласка, введіть усі 6 цифр, щоб продовжити",
-    "sha256": "7914f7b2"
+    "source_hash": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
     "text": "Цифра {current} з {total}",
-    "sha256": "879df41a"
+    "source_hash": "879df41a"
   },
   "web.auth.recovery_codes.title": {
     "text": "Коди відновлення",
-    "sha256": "579c7f4e"
+    "source_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
     "text": "Збережіть ці коди в безпечному місці. Кожен можна використати один раз, якщо Ви втратите доступ до додатку автентифікації.",
-    "sha256": "87aebdfb"
+    "source_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
     "text": "Ці коди будуть показані лише один раз",
-    "sha256": "d13f2877"
+    "source_hash": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
     "text": "Ви повинні завантажити або скопіювати коди відновлення перед завершенням налаштування.",
-    "sha256": "6b97bc6d"
+    "source_hash": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
     "text": "Згенерувати нові коди",
-    "sha256": "4025779e"
+    "source_hash": "4025779e"
   },
   "web.auth.recovery_codes.regenerate": {
     "text": "Перегенерувати коди",
-    "sha256": "aa652d21"
+    "source_hash": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
     "text": "Це зробить недійсними всі існуючі коди відновлення",
-    "sha256": "9795a175"
+    "source_hash": "9795a175"
   },
   "web.auth.recovery_codes.download": {
     "text": "Завантажити коди",
-    "sha256": "9c23dbba"
+    "source_hash": "9c23dbba"
   },
   "web.auth.recovery_codes.downloaded": {
     "text": "Коди відновлення завантажено",
-    "sha256": "10486340"
+    "source_hash": "10486340"
   },
   "web.auth.recovery_codes.print": {
     "text": "Роздрукувати коди",
-    "sha256": "ff940182"
+    "source_hash": "ff940182"
   },
   "web.auth.recovery_codes.copy": {
     "text": "Копіювати всі коди",
-    "sha256": "ee956b2b"
+    "source_hash": "ee956b2b"
   },
   "web.auth.recovery_codes.copied": {
     "text": "Коди скопійовано до буфера обміну",
-    "sha256": "06ebb466"
+    "source_hash": "06ebb466"
   },
   "web.auth.recovery_codes.copy_failed": {
     "text": "Не вдалося скопіювати коди до буфера обміну",
-    "sha256": "e8be6a51"
+    "source_hash": "e8be6a51"
   },
   "web.auth.recovery_codes.code_used": {
     "text": "Використано",
-    "sha256": "ae7d8dfa"
+    "source_hash": "ae7d8dfa"
   },
   "web.auth.recovery_codes.code_unused": {
     "text": "Не використано",
-    "sha256": "231aedff"
+    "source_hash": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
     "text": "Залишилося {count} з {limit} кодів відновлення",
-    "sha256": "b5d484e7"
+    "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
     "text": "Кожен код можна використати лише один раз. Перегенеруйте коди, якщо вони закінчуються.",
-    "sha256": "737a7702"
+    "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
     "text": "Кодів відновлення не залишилося",
-    "sha256": "9ae26d68"
+    "source_hash": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
     "text": "Нові коди відновлення згенеровано",
-    "sha256": "831cb1aa"
+    "source_hash": "831cb1aa"
   },
   "web.auth.recovery_codes.link_title": {
     "text": "Коди відновлення",
-    "sha256": "579c7f4e"
+    "source_hash": "579c7f4e"
   },
   "web.auth.mfa.verify_login": {
     "text": "Перевірити",
-    "sha256": "eea2745e"
+    "source_hash": "eea2745e"
   },
   "web.auth.mfa.use_recovery_code_short": {
     "text": "Використати код відновлення",
-    "sha256": "50d5790d"
+    "source_hash": "50d5790d"
   },
   "web.auth.mfa.cancel_sign_in": {
     "text": "Скасувати вхід",
-    "sha256": "1bebad2f"
+    "source_hash": "1bebad2f"
   },
   "web.auth.security._guidance.context": {
     "text": "⚠️ КРИТИЧНО ДЛЯ БЕЗПЕКИ: Повідомлення запобігають витоку інформації. Див. src/locales/SECURITY-TRANSLATION-GUIDE.md"

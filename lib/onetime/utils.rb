@@ -251,7 +251,8 @@ module Onetime
         return nil if filepath.nil?
 
         basepath      = ENV.fetch('ONETIME_HOME', __dir__)
-        relative_path = Pathname.new(filepath).relative_path_from(basepath)
+        absolute_path = File.expand_path(filepath)
+        relative_path = Pathname.new(absolute_path).relative_path_from(basepath)
         if relative_path.to_s.start_with?('..')
           File.basename(filepath)
         else

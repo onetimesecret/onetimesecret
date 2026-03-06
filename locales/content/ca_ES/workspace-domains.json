@@ -1,402 +1,402 @@
 {
   "web.domains.learn_more_dns": {
     "text": "Més informació sobre la configuració DNS",
-    "sha256": "c592a5c6"
+    "source_hash": "c592a5c6"
   },
   "web.domains.view_domain_verification_status": {
     "text": "Veure l'estat de verificació del domini",
-    "sha256": "23635e2d"
+    "source_hash": "23635e2d"
   },
   "web.domains.domain_already_in_organization": {
     "text": "Aquest domini ja està registrat a la teva organització",
-    "sha256": "6e0d628f"
+    "source_hash": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
     "text": "Aquest domini ja està registrat a una altra organització. Contacta amb el suport si creus que és un error.",
-    "sha256": "7fae16a9"
+    "source_hash": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
     "text": "Domini reclamat correctament i afegit a la teva organització",
-    "sha256": "d53e1ac1"
+    "source_hash": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
     "text": "Valors predeterminats de privadesa",
-    "sha256": "5bce069d"
+    "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_description": {
     "text": "Estableix les opcions de privadesa predeterminades per als secrets creats sota aquest domini. Aquestes configuracions s'ompliran prèviament en crear nous secrets.",
-    "sha256": "1d98959c"
+    "source_hash": "1d98959c"
   },
   "web.domains.privacy_defaults": {
     "text": "Valors predeterminats de privadesa",
-    "sha256": "5bce069d"
+    "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_icon": {
     "text": "Icona de valors predeterminats de privadesa",
-    "sha256": "c6bef509"
+    "source_hash": "c6bef509"
   },
   "web.domains.default_ttl_label": {
     "text": "Temps de vida predeterminat",
-    "sha256": "ce3c65fe"
+    "source_hash": "ce3c65fe"
   },
   "web.domains.default_ttl_hint": {
     "text": "Quant de temps han d'estar accessibles els secrets per defecte",
-    "sha256": "777b978d"
+    "source_hash": "777b978d"
   },
   "web.domains.passphrase_required_label": {
     "text": "Requerir frase de contrasenya",
-    "sha256": "3a448e69"
+    "source_hash": "3a448e69"
   },
   "web.domains.passphrase_required_hint": {
     "text": "Fer obligatòria la frase de contrasenya per a tots els secrets d'aquest domini",
-    "sha256": "6ac05bce"
+    "source_hash": "6ac05bce"
   },
   "web.domains.notify_enabled_label": {
     "text": "Activar notificacions",
-    "sha256": "682be64a"
+    "source_hash": "682be64a"
   },
   "web.domains.notify_enabled_hint": {
     "text": "Activar les notificacions per correu electrònic per defecte quan es visualitzen els secrets",
-    "sha256": "3e16dd5f"
+    "source_hash": "3e16dd5f"
   },
   "web.domains.use_global_default": {
     "text": "Utilitzar valor predeterminat global",
-    "sha256": "a83c91e4"
+    "source_hash": "a83c91e4"
   },
   "web.domains.global_default": {
     "text": "Global",
-    "sha256": "a258b30f"
+    "source_hash": "a258b30f"
   },
   "web.domains.required": {
     "text": "Obligatori",
-    "sha256": "4850b174"
+    "source_hash": "4850b174"
   },
   "web.domains.optional": {
     "text": "Opcional",
-    "sha256": "59be7133"
+    "source_hash": "59be7133"
   },
   "web.domains.enabled": {
     "text": "Activat",
-    "sha256": "92c1cdfd"
+    "source_hash": "92c1cdfd"
   },
   "web.domains.disabled": {
     "text": "Desactivat",
-    "sha256": "75081b59"
+    "source_hash": "75081b59"
   },
   "web.domains.custom": {
     "text": "Personalitzat",
-    "sha256": "494ca78f"
+    "source_hash": "494ca78f"
   },
   "web.domains.edit_defaults": {
     "text": "Editar valors predeterminats",
-    "sha256": "50f49b87"
+    "source_hash": "50f49b87"
   },
   "web.domains.ttl_short": {
     "text": "TTL",
-    "sha256": "76f6014f"
+    "source_hash": "76f6014f"
   },
   "web.domains.passphrase_short": {
     "text": "Frase de contrasenya",
-    "sha256": "e7611f05"
+    "source_hash": "e7611f05"
   },
   "web.domains.notify_short": {
     "text": "Notificacions",
-    "sha256": "78801183"
+    "source_hash": "78801183"
   },
   "web.domains.scope_switch_label": {
     "text": "Canviar l'àmbit del domini",
-    "sha256": "c776f846"
+    "source_hash": "c776f846"
   },
   "web.domains.switcher_locked": {
     "text": "El canvi de domini no està disponible en aquesta pàgina",
-    "sha256": "ccd202fe"
+    "source_hash": "ccd202fe"
   },
   "web.domains.scope_list_label": {
     "text": "Dominis disponibles",
-    "sha256": "026552b3"
+    "source_hash": "026552b3"
   },
   "web.domains.scope_header": {
     "text": "Dominis",
-    "sha256": "ced67718"
+    "source_hash": "ced67718"
   },
   "web.domains.add_domain": {
     "text": "Afegir domini",
-    "sha256": "d86476ae"
+    "source_hash": "d86476ae"
   },
   "web.domains.domain_settings": {
     "text": "Configuració del domini",
-    "sha256": "3dedc533"
+    "source_hash": "3dedc533"
   },
   "web.domains.canonical_no_settings": {
     "text": "El domini predeterminat no té pàgina de configuració",
-    "sha256": "59b8806e"
+    "source_hash": "59b8806e"
   },
   "web.domains.please_enter_a_domain_name": {
     "text": "Introdueix un nom de domini {0}",
-    "sha256": "167f2d19"
+    "source_hash": "167f2d19"
   },
   "web.domains.domain_name": {
     "text": "Nom del domini",
-    "sha256": "421b1e61"
+    "source_hash": "421b1e61"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
     "text": "Controla si els usuaris poden crear enllaços de secrets des de la pàgina inicial del teu domini",
-    "sha256": "a25d6fca"
+    "source_hash": "a25d6fca"
   },
   "web.domains.homepage_access": {
     "text": "Accés a la pàgina d'inici",
-    "sha256": "00c89609"
+    "source_hash": "00c89609"
   },
   "web.domains.and_status": {
     "text": "i estat",
-    "sha256": "fe871d2c"
+    "source_hash": "fe871d2c"
   },
   "web.domains.domain": {
     "text": "Domini",
-    "sha256": "79fa3361"
+    "source_hash": "79fa3361"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
     "text": "Gestiona i configura els teus dominis personalitzats verificats",
-    "sha256": "4e7f8311"
+    "source_hash": "4e7f8311"
   },
   "web.domains.domains": {
     "text": "Dominis",
-    "sha256": "ced67718"
+    "source_hash": "ced67718"
   },
   "web.domains.last_monitored": {
     "text": "Última supervisió",
-    "sha256": "8d39d1d0"
+    "source_hash": "8d39d1d0"
   },
   "web.domains.ssl_status": {
     "text": "Estat SSL",
-    "sha256": "bec72630"
+    "source_hash": "bec72630"
   },
   "web.domains.ssl_renews": {
     "text": "Renovació SSL",
-    "sha256": "c49a8cff"
+    "source_hash": "c49a8cff"
   },
   "web.domains.dns_record": {
     "text": "Registre DNS",
-    "sha256": "33cbb244"
+    "source_hash": "33cbb244"
   },
   "web.domains.target_address": {
     "text": "Adreça de destinació",
-    "sha256": "5e812179"
+    "source_hash": "5e812179"
   },
   "web.domains.domain_status": {
     "text": "Estat del domini",
-    "sha256": "cd6b089b"
+    "source_hash": "cd6b089b"
   },
   "web.domains.custom_domains_count": {
     "text": "Recompte de dominis personalitzats",
-    "sha256": "a9929be0"
+    "source_hash": "a9929be0"
   },
   "web.domains.custom_domain": {
     "text": "Domini personalitzat",
-    "sha256": "c1683eeb"
+    "source_hash": "c1683eeb"
   },
   "web.domains.open_domain_in_new_tab": {
     "text": "Obrir domini en una pestanya nova",
-    "sha256": "01571f31"
+    "source_hash": "01571f31"
   },
   "web.domains.back_to_domains": {
     "text": "Tornar als dominis",
-    "sha256": "d1dc32ad"
+    "source_hash": "d1dc32ad"
   },
   "web.domains.return_to_domains_list": {
     "text": "Tornar a la llista de dominis",
-    "sha256": "c7632413"
+    "source_hash": "c7632413"
   },
   "web.domains.verify_domain": {
     "text": "Verificar domini",
-    "sha256": "b416f537"
+    "source_hash": "b416f537"
   },
   "web.domains.manage_brand": {
     "text": "Gestionar marca",
-    "sha256": "b6ec5cd4"
+    "source_hash": "b6ec5cd4"
   },
   "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
     "text": "Afegit {0}",
-    "sha256": "dc9ff9ec"
+    "source_hash": "dc9ff9ec"
   },
   "web.domains.add_your_domain": {
     "text": "Afegeix el teu domini",
-    "sha256": "6b95c91c"
+    "source_hash": "6b95c91c"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
     "text": "Comença afegint un domini personalitzat.",
-    "sha256": "abdbe9ab"
+    "source_hash": "abdbe9ab"
   },
   "web.domains.no_domains_found": {
     "text": "No s'han trobat dominis.",
-    "sha256": "574264df"
+    "source_hash": "574264df"
   },
   "web.domains.loading_domain_information": {
     "text": "Carregant informació del domini...",
-    "sha256": "b5549ff7"
+    "source_hash": "b5549ff7"
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
     "text": "Per connectar el teu domini, hauràs de tenir un registre CNAME al teu DNS que apunti",
-    "sha256": "c560710e"
+    "source_hash": "c560710e"
   },
   "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
     "text": "Si ja tens un registre CNAME per a aquesta adreça, canvia'l perquè apunti a",
-    "sha256": "6f23e6db"
+    "source_hash": "6f23e6db"
   },
   "web.domains.a_cname_record_is_not_allowed_instead_youll_need": {
     "text": "), no es permet un registre CNAME. En canvi, hauràs de crear un registre A. Els detalls sobre com fer-ho es proporcionen més avall a la pàgina.",
-    "sha256": "76d5ab5f"
+    "source_hash": "76d5ab5f"
   },
   "web.domains.and_remove_any_other_a_aaaa_or_cname_records_for": {
     "text": "i elimina qualsevol altre registre A, AAAA o CNAME per a aquesta adreça exacta.",
-    "sha256": "8978f5e7"
+    "source_hash": "8978f5e7"
   },
   "web.domains.youll_need_to_complete_these_steps": {
     "text": ", hauràs de completar aquests passos.",
-    "sha256": "1d81c53e"
+    "source_hash": "1d81c53e"
   },
   "web.domains.before_we_can_activate_links_for": {
     "text": "Abans que puguem activar els enllaços per a",
-    "sha256": "aae43a00"
+    "source_hash": "aae43a00"
   },
   "web.domains.please_note_that_for_apex_domains": {
     "text": "Tingues en compte que per als dominis arrel (p. ex.,",
-    "sha256": "09a4b0ca"
+    "source_hash": "09a4b0ca"
   },
   "web.domains.verify_your_domain": {
     "text": "Verifica el teu domini",
-    "sha256": "afa10517"
+    "source_hash": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {
     "text": "secrets.exemple.com",
-    "sha256": "9ea4d0d6"
+    "source_hash": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
     "text": "Personalitza la marca del teu domini",
-    "sha256": "e3f97ac1"
+    "source_hash": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
     "text": "Pot trigar uns minuts perquè el teu certificat SSL entri en vigor.",
-    "sha256": "2e4f3179"
+    "source_hash": "2e4f3179"
   },
   "web.domains.dns_changes_can_take_as_little_as_60_seconds_or_": {
     "text": "Els canvis de DNS poden trigar tan poc com 60 segons -- o fins a 24 hores -- a entrar en vigor.",
-    "sha256": "38774290"
+    "source_hash": "38774290"
   },
   "web.domains.3_wait_for_propagation": {
     "text": "3. Esperar la propagació",
-    "sha256": "3e6cf4e1"
+    "source_hash": "3e6cf4e1"
   },
   "web.domains.value_2": {
     "text": "Valor",
-    "sha256": "8e37953d"
+    "source_hash": "8e37953d"
   },
   "web.domains.value_1": {
     "text": "Valor",
-    "sha256": "8e37953d"
+    "source_hash": "8e37953d"
   },
   "web.domains.host_1": {
     "text": "Host",
-    "sha256": "4a823118"
+    "source_hash": "4a823118"
   },
   "web.domains.type_2": {
     "text": "Tipus",
-    "sha256": "baaddf70"
+    "source_hash": "baaddf70"
   },
   "web.domains.type_1": {
     "text": "Tipus",
-    "sha256": "baaddf70"
+    "source_hash": "baaddf70"
   },
   "web.domains.2_create_the_cname_record": {
     "text": "2. Crear el registre CNAME",
-    "sha256": "781e438b"
+    "source_hash": "781e438b"
   },
   "web.domains.value_0": {
     "text": "Valor",
-    "sha256": "8e37953d"
+    "source_hash": "8e37953d"
   },
   "web.domains.host_0": {
     "text": "Host",
-    "sha256": "4a823118"
+    "source_hash": "4a823118"
   },
   "web.domains.type_0": {
     "text": "Tipus",
-    "sha256": "baaddf70"
+    "source_hash": "baaddf70"
   },
   "web.domains.2_create_the_a_record": {
     "text": "2. Crear el registre A",
-    "sha256": "7b5aa1fc"
+    "source_hash": "7b5aa1fc"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
     "text": "Afegeix aquest nom d'host a la teva configuració de DNS:",
-    "sha256": "4bf09ead"
+    "source_hash": "4bf09ead"
   },
   "web.domains.1_create_a_txt_record": {
     "text": "1. Crear un registre TXT",
-    "sha256": "62766ffd"
+    "source_hash": "62766ffd"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
     "text": "Segueix aquests passos per verificar la propietat del domini i elevar la teva presència en línia:",
-    "sha256": "a33f94d3"
+    "source_hash": "a33f94d3"
   },
   "web.domains.domain_verification_steps": {
     "text": "Passos de verificació del domini",
-    "sha256": "16dca977"
+    "source_hash": "16dca977"
   },
   "web.domains.domain_verification_initiated_successfully": {
     "text": "Verificació del domini iniciada correctament.",
-    "sha256": "5969b924"
+    "source_hash": "5969b924"
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
     "text": "Estàs segur que vols eliminar aquest domini? Aquesta acció no es pot desfer.",
-    "sha256": "403c6d3b"
+    "source_hash": "403c6d3b"
   },
   "web.domains.remove_domain": {
     "text": "Eliminar domini",
-    "sha256": "07a1675d"
+    "source_hash": "07a1675d"
   },
   "web.domains.domain_removed_successfully": {
     "text": "Domini eliminat correctament",
-    "sha256": "2984d483"
+    "source_hash": "2984d483"
   },
   "web.domains.failed_to_add_domain": {
     "text": "No s'ha pogut afegir el domini",
-    "sha256": "5fc4c4b3"
+    "source_hash": "5fc4c4b3"
   },
   "web.domains.domain_added_successfully": {
     "text": "Domini afegit correctament",
-    "sha256": "dd8180cf"
+    "source_hash": "dd8180cf"
   },
   "web.domains.passphrase_set": {
     "text": "Protegit",
-    "sha256": "b0ed2633"
+    "source_hash": "b0ed2633"
   },
   "web.domains.manage_domains": {
     "text": "Gestionar dominis",
-    "sha256": "36dd9781"
+    "source_hash": "36dd9781"
   },
   "web.domains.global_defaults": {
     "text": "Valors predeterminats globals",
-    "sha256": "4526107f"
+    "source_hash": "4526107f"
   },
   "web.domains.edit_ttl": {
     "text": "Editar configuració de temps de vida",
-    "sha256": "ea8afd62"
+    "source_hash": "ea8afd62"
   },
   "web.domains.edit_passphrase": {
     "text": "Editar requisit de frase de contrasenya",
-    "sha256": "0b5555b5"
+    "source_hash": "0b5555b5"
   },
   "web.domains.edit_notify": {
     "text": "Editar configuració de notificacions",
-    "sha256": "2e9e1ea0"
+    "source_hash": "2e9e1ea0"
   },
   "web.domains.configure_dns_records": {
     "text": "Configurar registres DNS",
-    "sha256": "5932f0cb"
+    "source_hash": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
     "text": "Utilitza l'eina de sota per detectar automàticament el teu proveïdor de DNS i obtenir instruccions pas a pas per configurar el teu domini.",
-    "sha256": "91c1af2e"
+    "source_hash": "91c1af2e"
   }
 }

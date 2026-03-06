@@ -20,6 +20,8 @@
     cust,
     ui,
     domain_logo,
+    domain_branding,
+    brand_product_name,
   } = storeToRefs(bootstrapStore);
 
   const props = withDefaults(defineProps<LayoutProps>(), {
@@ -47,10 +49,13 @@
   // Helper functions for logo configuration
   // Priority: props > custom domain logo > static config > default
   const getLogoUrl = () => props.logo?.url || domain_logo.value || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
-  const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal');
+  const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name.value });
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
   // Custom domain logos are larger to emphasize brand identity
   const isCustomDomainLogo = computed(() => !!domain_logo.value);
+  // Dark-mode logo variant from brand settings (logo_dark_url)
+  const darkLogoUrl = computed(() => domain_branding.value?.logo_dark_url ?? null);
+  const hasDarkLogo = computed(() => isCustomDomainLogo.value && !!darkLogoUrl.value);
   // Authenticated users get a smaller logo (40px) to balance visual weight with context switchers
   // Custom domain logos remain at 80px, unauthenticated users get 64px
   const getLogoSize = () => {
@@ -58,9 +63,9 @@
     if (isCustomDomainLogo.value) return 80;
     return isUserPresent.value ? 40 : 64;
   };
-  // Hide site name when custom domain logo is displayed (unless explicitly configured)
-  const getShowSiteName = () => props.logo?.showSiteName ?? (domain_logo.value ? false : !!headerConfig.value?.branding?.site_name);
-  const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal');
+  // Hide site name when custom domain logo is displayed OR when user is authenticated (unless explicitly configured)
+  const getShowSiteName = () => props.logo?.showSiteName ?? !(domain_logo.value || isUserPresent.value);
+  const getSiteName = () => props.logo?.siteName || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name.value });
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
 
@@ -161,10 +166,27 @@
               :href="logoConfig.href"
               class="flex items-center gap-3"
               :aria-label="logoConfig.alt">
+              <!-- Light-mode logo (hidden in dark mode when dark variant exists) -->
               <img
                 id="logo"
                 :src="logoConfig.url"
                 class="transition-transform"
+                :class="[
+                  hasDarkLogo ? 'dark:hidden' : '',
+                  isCustomDomainLogo
+                    ? 'size-20'
+                    : isUserPresent
+                      ? 'size-10'
+                      : 'size-12'
+                ]"
+                :height="logoConfig.size"
+                :width="logoConfig.size"
+                :alt="logoConfig.alt" />
+              <!-- Dark-mode logo (only shown when dark variant is configured) -->
+              <img
+                v-if="hasDarkLogo"
+                :src="darkLogoUrl!"
+                class="hidden transition-transform dark:block"
                 :class="[
                   isCustomDomainLogo
                     ? 'size-20'
@@ -229,7 +251,7 @@
             <router-link
               v-if="authentication.signin"
               to="/signin"
-              :title="t('web.homepage.log_in_to_onetime_secret')"
+              :title="t('web.homepage.log_in_to_onetime_secret', { product_name: brand_product_name })"
               class="text-gray-600 transition-colors duration-200
                 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
               {{ t('web.COMMON.header_sign_in') }}

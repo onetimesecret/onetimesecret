@@ -5,8 +5,10 @@
 # rubocop:disable Metrics/ModuleLength
 
 require 'stripe'
+require 'json_schemer'
 require_relative '../metadata'
 require_relative '../config'
+require_relative '../region_normalizer'
 require_relative '../lib/stripe_circuit_breaker'
 
 module Billing
@@ -73,7 +75,7 @@ module Billing
     field :tier                     # e.g., 'single_team', 'multi_team'
     field :interval                 # 'month' or 'year'
     field :amount                   # Price in cents
-    field :currency                 # 'usd', 'eur', etc.
+    field :currency                 # 'cad', 'eur', etc.
     field :region                   # EU, CA, US, NZ, etc
     field :tenancy                  # One of: multitenant, dedicated
     field :display_order            # Display ordering (higher = earlier)
@@ -223,10 +225,10 @@ module Billing
       # @param product [Stripe::Product] The Stripe product
       # @return [Boolean] true if the product matches the configured region (or no region set)
       def correct_region?(product)
-        configured_region = Onetime.billing_config.region
-        return true if configured_region.nil?
-
-        product.metadata[Metadata::FIELD_REGION].to_s.upcase == configured_region
+        Billing::RegionNormalizer.match?(
+          product.metadata[Metadata::FIELD_REGION],
+          Onetime.billing_config.region,
+        )
       end
 
       # Refresh plan cache from Stripe API
@@ -277,21 +279,23 @@ module Billing
         # PHASE 2: Upsert all plans (NO clear_cache!)
         # Each plan is created or updated individually, ensuring the catalog
         # is never empty during sync
-        upserted_ids = []
-        failed_ids   = []
+        upserted_ids    = []
+        not_persisted   = []
         plan_data_list.each do |plan_data|
           plan = upsert_from_stripe_data(plan_data)
           upserted_ids << plan.plan_id
 
-          # Verify save succeeded by checking instances membership.
+          # Plans not in instances were either skipped by the stale check
+          # or failed to save. Both cases are logged inside upsert_from_stripe_data
+          # with appropriate severity (ld for skips, le for failures).
           # O(log n) per call but catalog is small (~20 plans max).
-          failed_ids << plan.plan_id unless instances.member?(plan.plan_id)
+          not_persisted << plan.plan_id unless instances.member?(plan.plan_id)
         end
 
-        saved_count = upserted_ids.size - failed_ids.size
+        saved_count = upserted_ids.size - not_persisted.size
 
-        if failed_ids.any?
-          OT.le "[Plan.refresh_from_stripe] #{failed_ids.size} plan(s) failed to save: #{failed_ids.join(', ')}",
+        if not_persisted.any?
+          OT.lw "[Plan.refresh_from_stripe] #{not_persisted.size} plan(s) not persisted: #{not_persisted.join(', ')}",
             {
               region: Onetime.billing_config.region,
             }
@@ -308,7 +312,7 @@ module Billing
         update_catalog_sync_timestamp
 
         OT.li "[Plan.refresh_from_stripe] Synced #{saved_count}/#{upserted_ids.size} plans " \
-              "(#{failed_ids.size} failed), pruned #{pruned_count}"
+              "(#{not_persisted.size} not persisted), pruned #{pruned_count}"
         saved_count
       end
 
@@ -340,6 +344,18 @@ module Billing
           # Skip if not configured to show on plans page
           next unless plan_def['show_on_plans_page'] == true
 
+          # Resolve effective region: explicit plan region, or inherit from deployment
+          # Config-only plans (free tier) typically don't specify a region in YAML
+          # because they're universal — they inherit the deployment's region.
+          configured_region = OT.billing_config.region
+          plan_region       = Billing::RegionNormalizer.normalize(plan_def['region']) || configured_region
+
+          # Skip plans whose effective region doesn't match deployment
+          unless Billing::RegionNormalizer.match?(plan_region, configured_region)
+            OT.ld "[Plan.upsert_config_only_plans] Skipping config-only plan for region #{plan_region}: #{plan_key}"
+            next
+          end
+
           # Extract plan attributes from config
           tier               = plan_def['tier']
           tenancy            = plan_def['tenancy'] || 'multi'
@@ -360,7 +376,7 @@ module Billing
           plan.tier               = tier
           plan.interval           = nil  # Free plans have no interval
           plan.amount             = '0'
-          plan.currency           = 'usd'
+          plan.currency           = OT.billing_config.currency
           plan.tenancy            = tenancy
           plan.display_order      = display_order.to_s
           plan.show_on_plans_page = 'true'
@@ -372,6 +388,7 @@ module Billing
           plan.plan_name_label    = plan_def['plan_name_label']
           plan.includes_plan      = plan_def['includes_plan']
           plan.is_popular         = (plan_def['is_popular'] == true).to_s
+          plan.region             = Billing::RegionNormalizer.normalize(plan_def['region']) || OT.billing_config.region
           plan.last_synced_at     = Time.now.to_i.to_s
 
           # Set entitlements
@@ -565,6 +582,7 @@ module Billing
           product: {
             id: product.id,
             name: product.name,
+            currency: product.metadata[Metadata::FIELD_CURRENCY],
             metadata: product.metadata.to_h,
             marketing_features: product.marketing_features&.map(&:name) || [],
           },
@@ -631,14 +649,22 @@ module Billing
         end
 
         # Check for stale update (out-of-order webhook delivery)
-        # Only skip if BOTH timestamps are valid (> 0)
+        # Only skip if BOTH timestamps are valid (> 0) AND the Stripe product
+        # is the same. When stripe_product_id differs (cross-region replacement),
+        # bypass the stale check so the new product always wins.
+        # NOTE: nil == nil is true in Ruby — plans without a stripe_product_id
+        # (e.g., config-only plans created before this field existed) are treated
+        # as "same product", so the stale check still applies. This is the correct
+        # safe default, avoiding accidental overwrites when product provenance is
+        # unknown.
         if existing && plan_data[:stripe_updated_at]
+          same_product     = existing.stripe_product_id == plan_data[:stripe_product_id]
           incoming_updated = plan_data[:stripe_updated_at].to_i
           existing_updated = existing.stripe_updated_at.to_i
 
-          if incoming_updated > 0 && existing_updated > 0 && incoming_updated <= existing_updated
+          if same_product && incoming_updated > 0 && existing_updated > 0 && incoming_updated <= existing_updated
             OT.ld "[Plan.upsert_from_stripe_data] Skipping stale update for #{plan_id} " \
-                  "(incoming: #{incoming_updated}, existing: #{existing_updated})"
+                  "(same_product: #{same_product}, incoming: #{incoming_updated}, existing: #{existing_updated})"
             return existing
           end
         end
@@ -775,7 +801,8 @@ module Billing
       #
       # @param tier [String] Entitlement tier (e.g., 'single_team', 'single_identity')
       # @param interval [String] Billing interval ('monthly' or 'yearly')
-      # @param region [String] Region code (e.g., 'EU', 'global')
+      # @param region [String, nil] Region code (e.g., 'EU', 'NZ') or nil when
+      #   regionalization is not applicable. There is no "global" region.
       # @return [Plan, nil] Cached plan or nil if not found
       def get_plan(tier, interval, region = nil)
         # Normalize interval to singular form (monthly -> month)
@@ -964,6 +991,14 @@ module Billing
         plans_count = 0
 
         plans_hash.each do |plan_key, plan_def|
+          # Skip plans not matching the configured region
+          configured_region = OT.billing_config.region
+          plan_region       = Billing::RegionNormalizer.normalize(plan_def['region'])
+          unless Billing::RegionNormalizer.match?(plan_region, configured_region)
+            OT.ld "[Plan.load_all_from_config] Skipping plan for region #{plan_region}: #{plan_key}"
+            next
+          end
+
           prices = plan_def['prices'] || []
 
           # Skip plans without prices (e.g., free tier)
@@ -977,9 +1012,10 @@ module Billing
             interval = price['interval'] # 'month' or 'year'
             plan_id  = "#{plan_key}_#{interval}ly"
 
-            # Extract plan attributes
+            # Extract plan attributes. Region is either a specific code
+            # (e.g. 'EU') or nil — there is no "global" default.
             tier               = plan_def['tier']
-            region             = plan_def['region'] || 'global'
+            region             = Billing::RegionNormalizer.normalize(plan_def['region']) || OT.billing_config.region
             tenancy            = plan_def['tenancy'] || 'multi'
             display_order      = plan_def['display_order'] || 0
             show_on_plans_page = plan_def['show_on_plans_page'] == true
@@ -992,6 +1028,9 @@ module Billing
             end
 
             # Create Plan instance
+            # Currency: per-price overrides top-level config default
+            plan_currency = price['currency'] || OT.billing_config.currency
+
             plan = new(
               plan_id: plan_id,
               stripe_price_id: price.key?('price_id') ? price['price_id'] : nil,
@@ -1000,7 +1039,7 @@ module Billing
               tier: tier,
               interval: interval,
               amount: price['amount'].to_s,
-              currency: price['currency'],
+              currency: plan_currency,
               region: region,
               tenancy: tenancy,
               display_order: display_order.to_s,
@@ -1045,7 +1084,7 @@ module Billing
                 tier: tier,
                 interval: interval,
                 amount: price['amount'],
-                currency: price['currency'],
+                currency: plan_currency,
               }
 
             plans_count += 1
@@ -1109,6 +1148,8 @@ module Billing
       # @param plans_hash [Hash] All plans hash for resolving includes_plan_name
       # @return [Hash] Normalized plan hash
       def config_plan_to_hash(plan_id, plan_def, plans_hash = {})
+        validate_plan_definition(plan_def, context: "config_plan_to_hash(#{plan_id})")
+
         # Convert limits to flattened format (e.g., "teams" -> "teams.max")
         limits = (plan_def['limits'] || {}).transform_keys { |k| "#{k}.max" }
         limits = limits.transform_values do |v|
@@ -1137,6 +1178,33 @@ module Billing
           features: plan_def['features'] || [],
           limits: limits,
         }
+      end
+
+      # Lazily load and memoize the generated PlanDefinition JSON Schema.
+      # Returns nil if the schema file does not exist (e.g., dev environments
+      # that haven't run the schema generator).
+      def plan_definition_schema
+        @plan_definition_schema ||= begin
+          schema_path = File.join(
+            Onetime::HOME, 'generated', 'schemas', 'billing', 'plan-definition.schema.json'
+          )
+          if File.exist?(schema_path)
+            JSONSchemer.schema(JSON.parse(File.read(schema_path)))
+          end
+        end
+      end
+
+      # Validate a raw plan definition hash against the generated JSON Schema.
+      # Logs warnings on validation failures — never raises, so the system
+      # continues to operate even with schema mismatches.
+      def validate_plan_definition(plan_def, context:)
+        return unless plan_definition_schema
+
+        errors = plan_definition_schema.validate(plan_def).to_a
+        return if errors.empty?
+
+        error_messages = errors.map { |e| "#{e['data_pointer']}: #{e['error']}" }
+        OT.lw "[Plan.#{context}] Schema validation warnings: #{error_messages.join('; ')}"
       end
     end
 

@@ -5,6 +5,7 @@ import { ref, computed, nextTick } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { DEFAULT_BRAND_HEX } from '@/shared/constants/brand';
 import type { BrandSettings } from '@/schemas/models/domain';
 
 // Mock formatDuration
@@ -71,7 +72,7 @@ describe('useWorkspacePrivacyDefaults', () => {
     }> = {}
   ): UseWorkspacePrivacyDefaultsOptions {
     const defaultBrandSettings: BrandSettings = {
-      primary_color: '#dc4a22',
+      primary_color: DEFAULT_BRAND_HEX,
       font_family: 'sans',
       corner_style: 'rounded',
       button_text_light: false,

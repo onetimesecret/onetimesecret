@@ -322,7 +322,7 @@ async def _invoke_claude_async(
 
             elif isinstance(message, ResultMessage):
                 if verbose:
-                    cost = getattr(message, "cost_usd", 0) or 0
+                    cost = getattr(message, "cost_cad", 0) or 0
                     duration = getattr(message, "duration_ms", 0) or 0
                     print(f"  Cost: ${cost:.4f}, duration: {duration}ms")
 

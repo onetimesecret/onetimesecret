@@ -5,7 +5,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/charges
     body:
       encoding: UTF-8
-      string: amount=1000&currency=usd&customer=cus_TfaNASIBFUpgwo
+      string: amount=1000&currency=cad&customer=cus_TfaNASIBFUpgwo
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -107,7 +107,7 @@ http_interactions:
           "calculated_statement_descriptor": "ONETIME.DEV LINKS",
           "captured": true,
           "created": 1766671642,
-          "currency": "usd",
+          "currency": "cad",
           "customer": "cus_TfaNASIBFUpgwo",
           "description": null,
           "destination": null,
@@ -318,7 +318,7 @@ http_interactions:
           "calculated_statement_descriptor": "ONETIME.DEV LINKS",
           "captured": true,
           "created": 1766671642,
-          "currency": "usd",
+          "currency": "cad",
           "customer": "cus_TfaNASIBFUpgwo",
           "description": null,
           "destination": null,
@@ -624,7 +624,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/charges
     body:
       encoding: UTF-8
-      string: amount=1000&currency=usd&customer=cus_Tgwob6igvTPaN5
+      string: amount=1000&currency=cad&customer=cus_Tgwob6igvTPaN5
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -726,7 +726,7 @@ http_interactions:
           "calculated_statement_descriptor": "ONETIME.DEV LINKS",
           "captured": true,
           "created": 1766985777,
-          "currency": "usd",
+          "currency": "cad",
           "customer": "cus_Tgwob6igvTPaN5",
           "description": null,
           "destination": null,
@@ -937,7 +937,7 @@ http_interactions:
           "calculated_statement_descriptor": "ONETIME.DEV LINKS",
           "captured": true,
           "created": 1766985777,
-          "currency": "usd",
+          "currency": "cad",
           "customer": "cus_Tgwob6igvTPaN5",
           "description": null,
           "destination": null,

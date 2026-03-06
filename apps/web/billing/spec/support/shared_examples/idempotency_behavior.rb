@@ -104,7 +104,7 @@ end
 # This tests implementation, not Stripe behavior
 RSpec.shared_examples 'generates consistent idempotency keys' do |method_name|
   it 'generates the same key for identical parameters' do
-    params = { customer: 'cus_test', amount: 1000, currency: 'usd' }
+    params = { customer: 'cus_test', amount: 1000, currency: 'cad' }
 
     key1 = subject.send(:generate_idempotency_key, method_name, **params)
     key2 = subject.send(:generate_idempotency_key, method_name, **params)
@@ -143,8 +143,8 @@ RSpec.shared_examples 'generates consistent idempotency keys' do |method_name|
 
   it 'generates deterministic keys from hash parameters' do
     # Order shouldn't matter
-    params1 = { customer: 'cus_test', amount: 1000, currency: 'usd' }
-    params2 = { currency: 'usd', customer: 'cus_test', amount: 1000 }
+    params1 = { customer: 'cus_test', amount: 1000, currency: 'cad' }
+    params2 = { currency: 'cad', customer: 'cus_test', amount: 1000 }
 
     key1 = subject.send(:generate_idempotency_key, method_name, **params1)
     key2 = subject.send(:generate_idempotency_key, method_name, **params2)
@@ -215,7 +215,7 @@ RSpec.shared_examples 'detects idempotency conflicts', :stripe do |resource_type
       )
     when :payment_intent
       Stripe::PaymentIntent.create(
-        { amount: 1000, currency: 'usd' },
+        { amount: 1000, currency: 'cad' },
         { idempotency_key: idempotency_key },
       )
     end
@@ -231,7 +231,7 @@ RSpec.shared_examples 'detects idempotency conflicts', :stripe do |resource_type
         )
       when :payment_intent
         Stripe::PaymentIntent.create(
-          { amount: 2000, currency: 'usd' },  # Different amount
+          { amount: 2000, currency: 'cad' },  # Different amount
           { idempotency_key: idempotency_key },
         )
       end

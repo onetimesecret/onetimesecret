@@ -81,7 +81,7 @@ http_interactions:
               "balance_transaction": "txn_3SiFCTH54PcLeqtY18ndYPZI",
               "charge": "ch_3SiFCTH54PcLeqtY1397R7t1",
               "created": 1766671654,
-              "currency": "usd",
+              "currency": "cad",
               "destination_details": {
                 "card": {
                   "reference": "9830518548196182",
@@ -106,7 +106,7 @@ http_interactions:
               "balance_transaction": "txn_3SiFCPH54PcLeqtY0bC7uuEj",
               "charge": "ch_3SiFCPH54PcLeqtY0429mFIi",
               "created": 1766671651,
-              "currency": "usd",
+              "currency": "cad",
               "destination_details": {
                 "card": {
                   "reference": "2869891975494417",
@@ -131,7 +131,7 @@ http_interactions:
               "balance_transaction": "txn_3SiFCNH54PcLeqtY0uvZVTub",
               "charge": "ch_3SiFCNH54PcLeqtY01I4MIXm",
               "created": 1766671648,
-              "currency": "usd",
+              "currency": "cad",
               "destination_details": {
                 "card": {
                   "reference": "4753070534690511",
@@ -156,7 +156,7 @@ http_interactions:
               "balance_transaction": "txn_3SiFCKH54PcLeqtY1t1n0uRd",
               "charge": "ch_3SiFCKH54PcLeqtY1p355aSS",
               "created": 1766671645,
-              "currency": "usd",
+              "currency": "cad",
               "destination_details": {
                 "card": {
                   "reference": "3652214255221835",
@@ -181,7 +181,7 @@ http_interactions:
               "balance_transaction": "txn_3SiFCFH54PcLeqtY1CT1MTzK",
               "charge": "ch_3SiFCFH54PcLeqtY1N1wpOy1",
               "created": 1766671640,
-              "currency": "usd",
+              "currency": "cad",
               "destination_details": {
                 "card": {
                   "reference": "2240033478217801",

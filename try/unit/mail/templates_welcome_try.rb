@@ -57,7 +57,7 @@ template.class
 ## Welcome subject is verification message
 template = Onetime::Mail::Templates::Welcome.new(@valid_data)
 template.subject
-#=> 'Welcome to Onetime Secret - Please verify your email'
+#=> 'Welcome to OTS - Please verify your email'
 
 ## Welcome recipient_email returns email_address from data
 template = Onetime::Mail::Templates::Welcome.new(@valid_data)

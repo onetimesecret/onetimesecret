@@ -466,7 +466,7 @@ RSpec.describe 'Auth::Config::Email modules' do
         email_address: 'user@example.com',
         verification_path: '/verify-account?key=abc123',
         baseuri: 'https://example.com',
-        product_name: 'Onetime Secret',
+        product_name: 'OTS',
         display_domain: 'example.com',
       }
 
@@ -498,7 +498,7 @@ RSpec.describe 'Auth::Config::Email modules' do
         email_address: 'user@example.com',
         reset_password_path: '/reset-password?key=xyz789',
         baseuri: 'https://example.com',
-        product_name: 'Onetime Secret',
+        product_name: 'OTS',
         display_domain: 'example.com',
       }
 

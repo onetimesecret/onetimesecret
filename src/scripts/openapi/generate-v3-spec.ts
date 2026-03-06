@@ -363,17 +363,22 @@ console.log('✅ Routes mapped\n');
 // Generate OpenAPI document
 console.log('📝 Generating OpenAPI document...');
 
+// Read brand configuration from environment variables
+const PRODUCT_NAME = process.env.BRAND_PRODUCT_NAME || 'OTS';
+const PRODUCT_DOMAIN = process.env.BRAND_PRODUCT_DOMAIN || 'onetimesecret.com';
+const DOCS_HOST = process.env.SUPPORT_HOST || `docs.${PRODUCT_DOMAIN}`;
+
 const generator = new OpenApiGeneratorV3(registry.definitions);
 const document = generator.generateDocument({
   openapi: '3.0.3',
   info: {
-    title: 'Onetime Secret API v3',
+    title: `${PRODUCT_NAME} API v3`,
     version: '3.0.0',
-    description: 'RESTful API for Onetime Secret v3. Returns native JSON types (numbers, booleans, null) instead of string-serialized values like v2.',
+    description: `RESTful API for ${PRODUCT_NAME} v3. Returns native JSON types (numbers, booleans, null) instead of string-serialized values like v2.`,
     contact: {
-      name: 'Onetime Secret Support',
-      url: 'https://onetimesecret.com',
-      email: 'support@onetimesecret.com'
+      name: `${PRODUCT_NAME} Support`,
+      url: `https://${PRODUCT_DOMAIN}`,
+      email: `support@${PRODUCT_DOMAIN}`
     },
     license: {
       name: 'MIT',
@@ -382,16 +387,8 @@ const document = generator.generateDocument({
   },
   servers: [
     {
-      url: 'https://onetimesecret.com/api/v3',
-      description: 'Production - Global'
-    },
-    {
-      url: 'https://eu.onetimesecret.com/api/v3',
-      description: 'Production - Europe'
-    },
-    {
-      url: 'https://us.onetimesecret.com/api/v3',
-      description: 'Production - United States'
+      url: `https://${PRODUCT_DOMAIN}/api/v3`,
+      description: 'Production'
     },
     {
       url: 'http://localhost:3000/api/v3',
@@ -426,7 +423,7 @@ const document = generator.generateDocument({
   ],
   externalDocs: {
     description: 'Full API Documentation',
-    url: 'https://docs.onetimesecret.com/api/v3'
+    url: `https://${DOCS_HOST}/api/v3`
   }
 });
 
