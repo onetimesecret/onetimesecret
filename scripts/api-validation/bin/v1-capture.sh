@@ -508,9 +508,11 @@ capture "90-form-encoded-share" POST "/share" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d 'secret=form+encoded+secret&ttl=300'
 
-# No content-type header
+# No content-type header — uses form-encoded body so both --form and
+# non-form runs send identical data. Tests whether the server handles
+# a POST with form data but no explicit Content-Type header.
 capture "91-no-content-type" POST "/share" \
-  --data-raw '{"secret":"no content type","ttl":300}'
+  -d 'secret=no+content+type&ttl=300'
 
 # ── Summary ──
 
