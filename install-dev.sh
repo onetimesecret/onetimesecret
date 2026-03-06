@@ -16,7 +16,6 @@ OTS_DEV_CONFIG="${OTS_DEV_CONFIG:-$HOME/.config/onetimesecret-dev}"
 
 # Files/dirs to symlink: local_path -> shared_path
 declare -A LINKS=(
-    ["etc/logging.yaml"]="logging.yaml"
     ["data"]="data"
     [".env.test"]=".env.test"
     ["etc/puma.rb"]="puma.rb"
