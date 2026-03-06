@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../base'
+require_relative 'base_incoming'
 require_relative '../../../../../lib/onetime/jobs/publisher'
 
 module V3
@@ -30,7 +30,7 @@ module V3
       #     details: { memo: "...", recipient: "abc123..." }
       #   }
       #
-      class CreateIncomingSecret < V3::Logic::Base
+      class CreateIncomingSecret < V3::Logic::Incoming::BaseIncoming
         include Onetime::LoggerMethods
 
         attr_reader :memo, :secret_value, :recipient_email, :recipient_hash, :ttl, :passphrase, :receipt, :secret, :greenlighted
@@ -65,7 +65,10 @@ module V3
         end
 
         def raise_concerns
-          # Check if feature is enabled
+          # On custom domains, require the owning org's entitlement
+          require_incoming_entitlement!
+
+          # Check if feature is enabled (global config gate)
           incoming_config = OT.conf.dig('features', 'incoming') || {}
           unless incoming_config['enabled']
             raise_form_error 'Incoming secrets feature is not enabled'

@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../base'
+require_relative 'base_incoming'
 
 module V3
   module Logic
@@ -19,7 +19,7 @@ module V3
       # @example Response
       #   { recipient: "abc123...", valid: true }
       #
-      class ValidateRecipient < V3::Logic::Base
+      class ValidateRecipient < V3::Logic::Incoming::BaseIncoming
         attr_reader :greenlighted, :recipient_hash, :is_valid
 
         def process_params
@@ -27,7 +27,10 @@ module V3
         end
 
         def raise_concerns
-          # Check if feature is enabled
+          # On custom domains, require the owning org's entitlement
+          require_incoming_entitlement!
+
+          # Check if feature is enabled (global config gate)
           incoming_config = OT.conf.dig('features', 'incoming') || {}
           unless incoming_config['enabled']
             raise_form_error 'Incoming secrets feature is not enabled'

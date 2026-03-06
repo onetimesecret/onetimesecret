@@ -58,6 +58,11 @@ module Onetime
         # Extract organization and team context from StrategyResult metadata
         extract_organization_context(strategy_result)
 
+        # Extract domain context from StrategyResult metadata
+        # (set by DomainStrategy middleware via build_metadata)
+        @display_domain  = strategy_result.metadata[:display_domain]
+        @domain_strategy = strategy_result.metadata[:domain_strategy]
+
         @processed_params ||= {} # TODO: Remove
         process_settings
 

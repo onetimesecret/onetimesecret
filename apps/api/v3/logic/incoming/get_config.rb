@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../base'
+require_relative 'base_incoming'
 
 module V3
   module Logic
@@ -27,7 +27,7 @@ module V3
       #     }
       #   }
       #
-      class GetConfig < V3::Logic::Base
+      class GetConfig < V3::Logic::Incoming::BaseIncoming
         attr_reader :greenlighted, :config_data
 
         def process_params
@@ -35,9 +35,10 @@ module V3
         end
 
         def raise_concerns
-          # No concerns to raise. The feature may be disabled; the frontend
-          # renders a "feature disabled" state when config.enabled is false.
-          # Raising FormError here would show the error state instead.
+          # On custom domains, require the owning org to have the
+          # incoming_secrets entitlement. On canonical domain, this
+          # is a no-op (global config controls feature availability).
+          require_incoming_entitlement!
         end
 
         def process
