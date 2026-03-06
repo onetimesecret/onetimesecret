@@ -306,7 +306,7 @@ capture "24-share-unicode" POST "/share" \
   -d '{"secret":"emoji 🔑 and CJK 秘密 and diacritics über","ttl":300}'
 
 # Large-ish secret (2KB)
-LARGE_SECRET=$(python3 -c "print('A' * 2048)")
+LARGE_SECRET=$(printf 'A%.0s' {1..2048})
 capture "25-share-large" POST "/share" \
   -H "Content-Type: application/json" \
   -d "{\"secret\":\"${LARGE_SECRET}\",\"ttl\":300}"

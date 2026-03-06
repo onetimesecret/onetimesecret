@@ -4,7 +4,7 @@ Validates backward compatibility of the OTS V1 API between v0.23.6 (baseline) an
 
 ## Prerequisites
 
-- bash, curl, jq
+- bash, curl, jq, python3 (for `json_to_form` URL encoding)
 - Node.js + npx (for TypeScript scripts)
 - Two running OTS instances: one v0.23.6, one v0.24.0
 
