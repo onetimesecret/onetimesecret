@@ -1,0 +1,7 @@
+# Procfile.dev
+
+#valkey: valkey-server --port 9111 --save "" --appendonly no
+
+backend: bin/backend -p ${PORT:-3000} etc/puma.rb
+
+frontend: bin/frontend

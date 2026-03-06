@@ -32,16 +32,18 @@ module Onetime
 
       ENV['RACK_ENV'] = env
 
-      has_options = option.port || option.threads || option.workers || option.bind
-
-      if config_file && has_options
-        warn 'Cannot specify both a config file and command-line options'
-        exit 1
-      end
-
       # Use Kernel.exec to replace this process with puma (safe: args passed as
       # array, not shell string; no injection risk).
       if config_file
+        # When a config file is given, propagate CLI options via the env vars
+        # that etc/puma.rb already reads, so both can be used together.
+        ENV['PORT'] = port.to_s if option.port
+        if option.threads
+          min, max = threads.split(':')
+          ENV['PUMA_MIN_THREADS'] = min
+          ENV['PUMA_MAX_THREADS'] = max
+        end
+        ENV['PUMA_WORKERS'] = workers.to_s if option.workers
         Kernel.exec('bundle', 'exec', 'puma', '-C', config_file)
       else
         args = ['-p', port.to_s, '-b', "tcp://#{bind}", '-t', threads, '-e', env]
