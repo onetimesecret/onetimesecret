@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+# bin/dev - Overmind Development Runner
+#
+# USAGE:
+#   $ bin/dev                       # Start with Procfile.dev
+#   $ bin/dev --volatile            # Start with Procfile.volatile (no persistent data)
+#
+# WINDOW MODES:
+#   Main Window (bin/dev): Pure log stream. Bird's-eye view of all processes.
+#                          Non-interactive (Ctrl+C kills everything).
+#   Connect Mode:          Interactive TTY. Run in a separate terminal tab to
+#                          access debuggers (pry/debugger) or restart services.
+#
+# -----------------------------------------------------------------------------
+# CONTROL COMMANDS (New Terminal Tab)
+# -----------------------------------------------------------------------------
+#   $ overmind connect <name>       # Open interactive TTY (backend|frontend|worker)
+#   $ overmind restart <name>       # Restart a specific process
+#   $ overmind stop <name>          # Kill a specific process
+#
+# -----------------------------------------------------------------------------
+# CONNECT MODE SHORTCUTS (Inside 'overmind connect')
+# -----------------------------------------------------------------------------
+#   Ctrl+b, d                       # Detach (Return to shell, process keeps running)
+#   r                               # Restart the process you are connected to
+#   q                               # Quit connection (Process keeps running)
+#
+#   Usage: Essential for 'binding.pry', 'debugger', or surgical restarts.
+# -----------------------------------------------------------------------------
+
+if ! command -v overmind >/dev/null 2>&1; then
+  echo "Error: Overmind not found. Install with: brew install overmind"
+  exit 1
+fi
+
+# Parse arguments
+PROCFILE="Procfile.dev"
+ARGS=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --volatile)
+      echo "Starting in volatile mode (no persistent data)..."
+      PROCFILE="Procfile.volatile"
+      shift
+      ;;
+    *)
+      ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+
+# Load local environment if present (export all variables)
+if [ -f .env.sh ]; then
+  set -a
+  . .env.sh
+  set +a
+fi
+
+# Ensure PORT is a valid integer (Overmind fails if empty or invalid)
+export PORT="${PORT:-7143}"
+
+exec overmind start -f "$PROCFILE" "${ARGS[@]}"
