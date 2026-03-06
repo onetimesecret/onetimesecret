@@ -52,7 +52,7 @@ Anonymous secrets set `custid` to `"anon"`.
 
 ## Auth Modes
 
-The server-wide `apiauth` setting controls V1 behavior:
+The server-wide `AUTHENTICATION_MODE` setting controls V1 behavior:
 
 | Mode       | Effect                                                     |
 |------------|------------------------------------------------------------|

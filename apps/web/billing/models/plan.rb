@@ -1061,7 +1061,7 @@ module Billing
 
             # Save scalar fields before writing collections (sets, hashkeys)
             # which write directly to Redis and expect the parent to exist.
-            plan.save
+            next unless plan.save
 
             # Populate collections after save (these write directly to Redis)
             plan.entitlements.clear

@@ -88,12 +88,14 @@ result['custid']
 #=> 'anon'
 
 ## Handling nil secret_identifier maps to empty string secret_key (v0.23 compat)
+@receipt.state = 'shared'
 @receipt.secret_identifier = nil
 @receipt.save
 result = V1::Controllers::Index.receipt_hsh(@receipt)
-# V1 compat: v0.23 returned "" (not nil) for secret_key after burn
+# V1 compat: v0.23 returned "" (not nil) for secret_key when nil.
+# Note: state must not be 'received' (which deletes secret_key entirely).
 result['secret_key']
-#=>
+#=> ''
 
 ## Handling nil state
 @receipt.state = nil
