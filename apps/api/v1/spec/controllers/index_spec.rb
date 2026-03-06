@@ -113,7 +113,7 @@ RSpec.xdescribe V1::Controllers::Index, type: :request do
 
     before do
       allow(V1::Logic::Secrets::ConcealSecret).to receive(:new)
-        .with(session, customer, {secret: request.params}, 'en')
+        .with(session, customer, {'secret' => request.params}, 'en')
         .and_return(logic)
       allow(logic).to receive(:raise_concerns)
       allow(logic).to receive(:process)

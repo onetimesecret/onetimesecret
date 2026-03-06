@@ -38,7 +38,7 @@ module V1
 
       def share
         authorized(true) do
-          logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, {secret: req.params}, locale
+          logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, {'secret' => req.params}, locale
           logic.raise_concerns
           logic.process
           if req.get?
@@ -54,7 +54,7 @@ module V1
 
       def generate
         authorized(true) do
-          logic = V1::Logic::Secrets::GenerateSecret.new sess, cust, {secret: req.params}, locale
+          logic = V1::Logic::Secrets::GenerateSecret.new sess, cust, {'secret' => req.params}, locale
           logic.raise_concerns
           logic.process
           if req.get?
