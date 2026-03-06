@@ -6,24 +6,24 @@
  * the Zod schemas. This gives you a machine-readable diff of declared
  * API contracts between versions.
  *
- * Approach: Since v0.23.4 has no Zod schemas, we instead:
- *   1. Clone main branch, extract all Zod schema field definitions
- *   2. Clone v0.23.4, extract Ruby API response hashes (receipt_hsh, secret_hsh patterns)
+ * Approach: Since v0.23.6 has no Zod schemas, we instead:
+ *   1. Read main branch files, extract all Zod schema field definitions
+ *   2. Read v0.23.6 files, extract Ruby API response hashes (receipt_hsh, secret_hsh patterns)
  *   3. Compare the two
  *
  * Usage:
  *   npx tsx v1-zod-diff.ts [output_file]
  *
- * This script shells out to git + gh. It needs network access.
+ * This script uses local git (git show) to read files at different refs.
+ * No network access required.
  */
 
 import { execSync } from 'child_process';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync } from 'fs';
 
-const REPO = 'onetimesecret/onetimesecret';
 const OUTPUT = process.argv[2] || './diffs/zod-ruby-diff.json';
 
-// ─── Extract Ruby response hashes from v0.23.4 ───────────────────────
+// ─── Extract Ruby response hashes from v0.23.6 ───────────────────────
 
 interface RubyField {
   key: string;
@@ -181,18 +181,14 @@ async function main() {
 
   // Fetch key files from both refs
   const filesToFetch = {
-    'v0.23.4': {
+    'v0.23.6': {
       ruby: [
-        'apps/api/v1/controllers/index.rb',
-        'apps/api/v1/logic/secrets/base_secret_action.rb',
-        'apps/api/v1/logic/secrets/show_secret.rb',
-        'apps/api/v1/logic/secrets/generate_secret.rb',
-        'apps/api/v1/logic/secrets/show_metadata.rb',
-        'apps/api/v1/logic/secrets/burn_secret.rb',
-        'apps/api/v1/logic/dashboard.rb',
-        'apps/api/v1/models/secret.rb',
-        'apps/api/v1/models/metadata.rb',
-        'apps/api/v1/controllers/base.rb',
+        'lib/onetime/app/api/v1.rb',
+        'lib/onetime/app/api/base.rb',
+        'lib/onetime/logic/secrets.rb',
+        'lib/onetime/logic/dashboard.rb',
+        'lib/onetime/models/secret.rb',
+        'lib/onetime/models/metadata.rb',
       ],
     },
     'main': {
@@ -222,11 +218,12 @@ async function main() {
     },
   };
 
+  // Uses local git to read files at specific refs — no network or gh CLI needed
   function fetchFile(path: string, ref: string): string | null {
     try {
       const result = execSync(
-        `gh api repos/${REPO}/contents/${path}?ref=${ref} --jq .content 2>/dev/null | base64 -d`,
-        { encoding: 'utf-8', timeout: 15000 }
+        `git show ${ref}:${path}`,
+        { encoding: 'utf-8', timeout: 15000, cwd: process.cwd() }
       );
       return result;
     } catch {
@@ -235,13 +232,13 @@ async function main() {
     }
   }
 
-  // ── Extract v0.23.4 Ruby fields ──
+  // ── Extract v0.23.6 Ruby fields ──
 
-  console.log('Fetching v0.23.4 Ruby files...');
+  console.log('Fetching v0.23.6 Ruby files...');
   const v023RubyFields: Record<string, Record<string, RubyField[]>> = {};
 
-  for (const path of filesToFetch['v0.23.4'].ruby) {
-    const content = fetchFile(path, 'v0.23.4');
+  for (const path of filesToFetch['v0.23.6'].ruby) {
+    const content = fetchFile(path, 'v0.23.6');
     if (content) {
       const fields = extractRubyResponseFields(content, path);
       if (Object.keys(fields).length > 0) {
@@ -288,7 +285,7 @@ async function main() {
 
   console.log('\n--- Comparison ---\n');
 
-  // Flatten all field keys from v0.23.4 Ruby response hashes
+  // Flatten all field keys from v0.23.6 Ruby response hashes
   const v023AllFields = new Set<string>();
   for (const [_, methods] of Object.entries(v023RubyFields)) {
     for (const [_, fields] of Object.entries(methods)) {
@@ -318,9 +315,9 @@ async function main() {
     }
   }
 
-  // Fields in v0.23.4 Ruby but not in main Ruby
+  // Fields in v0.23.6 Ruby but not in main Ruby
   const removedFromRuby = [...v023AllFields].filter(f => !mainAllRubyFields.has(f));
-  // Fields in main Ruby but not in v0.23.4
+  // Fields in main Ruby but not in v0.23.6
   const addedToRuby = [...mainAllRubyFields].filter(f => !v023AllFields.has(f));
 
   // Fields in main Zod but not in main Ruby (schema declares more than implementation sends)
@@ -328,8 +325,8 @@ async function main() {
   // Fields in main Ruby but not in Zod (implementation sends more than schema declares)
   const rubyOnly = [...mainAllRubyFields].filter(f => !mainAllZodFields.has(f));
 
-  console.log('Fields removed from Ruby (v0.23.4 -> main):', removedFromRuby);
-  console.log('Fields added to Ruby (v0.23.4 -> main):', addedToRuby);
+  console.log('Fields removed from Ruby (v0.23.6 -> main):', removedFromRuby);
+  console.log('Fields added to Ruby (v0.23.6 -> main):', addedToRuby);
   console.log('Fields in Zod but not Ruby (main):', zodOnly);
   console.log('Fields in Ruby but not Zod (main):', rubyOnly);
 
