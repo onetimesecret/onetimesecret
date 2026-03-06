@@ -30,13 +30,13 @@ RSpec.describe Core::Controllers::Authentication do
   let(:req) do
     request = double('Request')
     allow(request).to receive_messages(env: env, ip: '127.0.0.1', locale: 'en')
+    allow(request).to receive(:app_path) { |path| path }
     request
   end
   let(:res) do
     response = double('Response')
     allow(response).to receive(:do_not_cache!)
     allow(response).to receive(:redirect)
-    allow(request).to receive(:app_path) { |path| path }
     allow(response).to receive(:status=)
     response
   end
