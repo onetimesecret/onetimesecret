@@ -7,6 +7,8 @@ module V1::Logic
 
     using Familia::Refinements::TimeLiterals
 
+    # V1 compat: uses load_owner (not load_customer). See ShowSecret
+    # for rationale. The v0.24 model renamed the method.
     class BurnSecret < V1::Logic::Base
       attr_reader :key, :passphrase, :continue
       attr_reader :receipt, :secret, :correct_passphrase, :greenlighted

@@ -16,32 +16,36 @@ module V1
 
   module Controllers
     module ClassMethods
-      # Transforms a receipt into a structured hash with enhanced information.
+      # V1 Response Shaping — receipt_hsh [#2615]
       #
-      # This method processes a receipt object and optional parameters to create
-      # a comprehensive hash representation. It includes derived and calculated
-      # values, providing a rich snapshot of the receipt and associated secret
-      # state.
+      # This is the V1 compatibility layer. It transforms a Receipt (which
+      # uses v0.24 vocabulary internally) into a hash using v0.23.x field
+      # names. Every V1 endpoint that returns receipt data MUST use this
+      # method, and callers MUST pass :custid => cust.email so that the
+      # response contains the email address (not the internal UUID).
+      #
+      # Field mapping (v0.24 internal -> v0.23.x V1 response):
+      #   identifier         -> metadata_key
+      #   secret_identifier  -> secret_key
+      #   has_passphrase     -> passphrase_required
+      #   recipients         -> recipient (singular, array)
+      #   receipt_ttl        -> metadata_ttl (actual seconds remaining)
+      #   secret_value       -> value
+      #   share_domain nil   -> '' (empty string, never null)
+      #
+      # State mapping (v0.24 -> v0.23.x):
+      #   previewed -> viewed
+      #   revealed  -> received
+      #   shared    -> new
+      #
+      # Timestamp fallback:
+      #   received timestamp -> falls back to revealed if empty (v0.24
+      #   sets revealed!, not the deprecated received field)
       #
       # @param md [Receipt] The receipt object to process
-      # @param opts [Hash] Optional parameters to influence the output
-      # @option opts [Integer, nil] :secret_ttl The actual TTL of the associated
-      #   secret, if available
-      #
-      # @return [Hash] A structured hash containing metadata and derived
-      #   information
-      #
-      # @note This method relies on the FlexibleHashAccess refinement for hash
-      #   key access.
-      #
-      # @example Basic usage
-      #   receipt = Receipt.new(key: 'abc123', custid: 'user@example.com')
-      #   result = API.receipt_hsh(receipt)
-      #   puts result[:custid] # => "user@example.com"
-      #
-      # @example With secret TTL provided
-      #   result = API.receipt_hsh(receipt, secret_ttl: 3600)
-      #   puts result[:secret_ttl] # => 3600
+      # @param opts [Hash] Options — :custid (email), :secret_ttl, :value,
+      #   :passphrase_required
+      # @return [Hash] V1-shaped response hash with string keys
       #
       def receipt_hsh md, opts={}
 

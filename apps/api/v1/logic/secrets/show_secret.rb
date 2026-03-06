@@ -7,6 +7,11 @@ module V1::Logic
 
     using Familia::Refinements::TimeLiterals
 
+    # V1 compat: uses load_owner (not load_customer) and
+    # decrypted_secret_value (not decrypted_value). The v0.24 model
+    # renamed load_customer -> load_owner, and the new decryption
+    # dispatcher (decrypted_secret_value) handles both v1 legacy
+    # `value` field and v2 `ciphertext` field transparently.
     class ShowSecret < V1::Logic::Base
       attr_reader :key, :passphrase, :continue
       attr_reader :secret, :show_secret, :secret_value, :is_truncated,

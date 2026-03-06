@@ -9,6 +9,20 @@ require_relative 'settings'
 
 module V1
   module Controllers
+    # V1 Controller Endpoints [#2615]
+    #
+    # All endpoints that return receipt/secret data use receipt_hsh (via
+    # self.class.receipt_hsh) to map internal v0.24 vocabulary back to
+    # v0.23.x field names. Each call passes :custid => cust.email so the
+    # response contains the email address, not the internal UUID.
+    #
+    # The burn response uses :secret_shortkey (v0.23.x name) for the
+    # truncated secret identifier, even though the model method is
+    # secret_shortid (v0.24 name).
+    #
+    # GET /private/:key was supported in v0.23.x but v0.24 only routes
+    # POST for receipt lookup. This is a known behavioral change.
+    #
     class Index
       include ControllerBase
       include ControllerSettings
