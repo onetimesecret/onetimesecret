@@ -68,7 +68,7 @@ module Onetime
         # Lazy require - rackup is in development group, not available in production containers
         require 'rackup'
 
-        has_options = port != 7143 || threads != '2:4' || workers != 0 || bind != '127.0.0.1'
+        has_options = threads != '2:4' || workers != 0 || bind != '127.0.0.1'
 
         if config_file && has_options
           Onetime.app_logger.error('Cannot specify both a config file and command-line options')
@@ -85,6 +85,10 @@ module Onetime
         }
 
         if config_file
+          # Drop Host/Port from the config hash — the puma config file owns binding
+          # via ENV['PORT']. Leaving them in would override the config file's bind directive.
+          config.delete(:Host)
+          config.delete(:Port)
           config[:config_files] = config_file
         elsif server == 'puma'
           thread_config    = parse_threads(threads)
