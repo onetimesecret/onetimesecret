@@ -84,10 +84,8 @@ src/.eslintrc-auto-import.json
 generated/locales/*.json
 generated/types/*.d.ts
 
-scripts/api-validation/scripts/captures
-scripts/api-validation/scripts/diffs
-scripts/api-validation/scripts/captures/*
-scripts/api-validation/scripts/diffs/*
+scripts/api-validation/captures
+scripts/api-validation/diffs
 
 # Environment files
 .env*
