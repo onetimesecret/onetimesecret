@@ -87,6 +87,7 @@ generated/types/*.d.ts
 # Environment files
 .env*
 !.env.example
+!.env.reference
 !.env.sh
 
 # Playwright paths
