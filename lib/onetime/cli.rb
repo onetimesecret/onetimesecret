@@ -14,8 +14,40 @@ require_relative 'cli/change_email'
 module Onetime
   class CLI < Drydock::Command
     def init
+      # Server command manages its own boot via config.ru when puma starts.
+      # Booting here in CLI mode would double-boot and leave stale connections.
+      return if ARGV.include?('server')
+
       # Make sure all the models are loaded before calling boot
       OT.boot! :cli
+    end
+
+    def server
+      port    = (option.port || ENV.fetch('PORT', 7143)).to_i
+      env     = option.environment || ENV.fetch('RACK_ENV', 'development')
+      threads = option.threads || '2:4'
+      workers = (option.workers || 0).to_i
+      bind    = option.bind || '127.0.0.1'
+      config_file = argv.first
+
+      ENV['RACK_ENV'] = env
+
+      has_options = option.port || option.threads || option.workers || option.bind
+
+      if config_file && has_options
+        warn 'Cannot specify both a config file and command-line options'
+        exit 1
+      end
+
+      # Use Kernel.exec to replace this process with puma (safe: args passed as
+      # array, not shell string; no injection risk).
+      if config_file
+        Kernel.exec('bundle', 'exec', 'puma', '-C', config_file)
+      else
+        args = ['-p', port.to_s, '-b', "tcp://#{bind}", '-t', threads, '-e', env]
+        args += ['-w', workers.to_s] if workers.positive?
+        Kernel.exec('bundle', 'exec', 'puma', *args)
+      end
     end
 
     def migrate

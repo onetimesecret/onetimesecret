@@ -12,4 +12,4 @@ fi
 
 RACK_ENV="${RACK_ENV:-development}"
 
-bundle exec puma -C "${1:-etc/puma.rb}"
+bundle exec bin/ots server "$@"

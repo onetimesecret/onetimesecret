@@ -49,6 +49,15 @@ class OT::CLI::Definition
   end
   alias_command :build, :version
 
+  usage 'ots server [options] [configpath]'
+  about 'Start the web server (Puma)'
+  option :p, :port, Integer, 'Port to bind to (default: 7143)'
+  option :e, :environment, String, 'Environment to run in (default: $RACK_ENV or development)'
+  option :t, :threads, String, 'Thread pool size min:max (default: 2:4)'
+  option :w, :workers, Integer, 'Number of Puma worker processes (default: 0)'
+  option :b, :bind, String, 'Bind address (default: 127.0.0.1)'
+  command server: OT::CLI
+
   # In OT::CLI::Definition in bin/ots
   usage 'ots migrate MIGRATION_SCRIPT [--run]'
   about 'Run a migration script from the migrate/ directory'
