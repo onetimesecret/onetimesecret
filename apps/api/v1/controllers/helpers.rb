@@ -96,7 +96,7 @@ module V1
       # Track Familia errors as regular exceptions
       capture_error ex
 
-      error_response I18n.t('api.errors.unexpected_error')
+      error_response 'An unexpected error occurred :['
     rescue Errno::ECONNREFUSED => ex
       OT.le ex.message
       OT.le ex.backtrace
@@ -116,7 +116,7 @@ module V1
       # Track the unexected errors
       capture_error ex
 
-      error_response I18n.t('api.errors.unexpected_error')
+      error_response 'An unexpected error occurred :['
     end
 
     # Sets the locale for the request based on various sources.
