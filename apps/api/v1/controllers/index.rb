@@ -91,10 +91,10 @@ module V1
 
       def show_metadata_recent
         authorized(false) do
-          logic = V1::Logic::Dashboard::ShowRecentMetadata.new sess, cust, req.params, locale
+          logic = V1::Logic::Secrets::ShowMetadataList.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
-          recent_metadata = logic.metadata.collect { |md|
+          recent_metadata = logic.records.collect { |md|
             next if md.nil?
             hash = self.class.metadata_hsh(md)
             hash.delete :secret_key   # Don't call md.delete, that will delete from redis
