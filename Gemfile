@@ -144,7 +144,7 @@ group :development do
 
   # Code quality and language server
   gem 'kanayago', '~> 0.7', require: false
-  gem 'rubocop', '~> 1.85.0', require: false
+  gem 'rubocop', '~> 1.85.1', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-sequel', require: false
