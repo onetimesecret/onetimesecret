@@ -26,6 +26,10 @@ gem 'rodauth-omniauth', '~> 0.4'
 gem 'rodauth-tools', '~> 0.3.1'
 
 # OmniAuth providers (SSO via OIDC)
+# NOTE: omniauth_openid_connect transitively pulls in activesupport (via
+# openid_connect → activemodel, rack-oauth2, json-jwt, swd, webfinger). No
+# ActiveSupport APIs are used by application code. email_validator and
+# validate_url are also passengers from this chain.
 gem 'omniauth_openid_connect', '~> 0.8'
 
 # Web server and middleware
