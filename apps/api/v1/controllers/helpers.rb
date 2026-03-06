@@ -546,8 +546,16 @@ module V1
       res.header['Pragma'] = "no-cache"
     end
 
-    # app_path is provided by Otto on its Rack request and response objects.
-    # Use req.app_path(...) or res.app_path(...) directly rather than defining it here.
+    # Constructs a path relative to the app's mount point (SCRIPT_NAME).
+    # Required for Otto 1.x which does not provide app_path on its
+    # request/response objects. Otto 2.x (>= 2.0.0.pre10) adds this
+    # natively to Otto::Request and Otto::Response, making this helper
+    # redundant once the gem is upgraded.
+    def app_path *paths
+      paths = paths.flatten.compact
+      paths.unshift req.script_name
+      paths.join('/').gsub '//', '/'
+    end
 
   end
 end

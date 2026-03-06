@@ -238,7 +238,7 @@ module Core
           logic = V2::Logic::Authentication::DestroySession.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
-          res.redirect req.app_path('/')
+          res.redirect app_path('/')
         end
       end
 
