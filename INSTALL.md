@@ -30,13 +30,13 @@ This guide covers detailed installation methods for Onetime Secret, including ma
 **Pre-built Images:**
 ```bash
 # GitHub Container Registry (recommended)
-docker pull ghcr.io/onetimesecret/onetimesecret:latest
+docker pull ghcr.io/onetimesecret/onetimesecret:v0.23.6
 
 # Docker Hub
-docker pull onetimesecret/onetimesecret:latest
+docker pull onetimesecret/onetimesecret:v0.23.6
 
 # Lite version (optimized for smaller deployments)
-docker pull ghcr.io/onetimesecret/onetimesecret-lite:latest
+docker pull ghcr.io/onetimesecret/onetimesecret-lite:v0.23.6
 ```
 
 ### Building Images Locally
@@ -84,7 +84,7 @@ docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret
      -e HOST=localhost:3000 \
      -e SSL=false \
      -e RACK_ENV=production \
-     onetimesecret/onetimesecret:latest
+     onetimesecret/onetimesecret:v0.23.6
    ```
 
 ### Docker Troubleshooting
@@ -264,7 +264,7 @@ redis-server -v      # Should be 5+
 
 **Using .env with Docker:**
 ```bash
-docker run --env-file .env onetimesecret/onetimesecret:latest
+docker run --env-file .env onetimesecret/onetimesecret:v0.23.6
 ```
 
 ### Security Considerations
@@ -322,7 +322,7 @@ docker history <image_id>
 
 **Interactive debugging:**
 ```bash
-docker run -it --entrypoint /bin/bash onetimesecret/onetimesecret:latest
+docker run -it --entrypoint /bin/bash onetimesecret/onetimesecret:v0.23.6
 ```
 
 ## Production Considerations

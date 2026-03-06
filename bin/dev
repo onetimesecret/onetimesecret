@@ -61,13 +61,6 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Load local environment if present (export all variables)
-if [ -f .env.sh ]; then
-  set -a
-  . .env.sh
-  set +a
-fi
-
 # Ensure PORT is a valid integer (Overmind fails if empty or invalid)
 # --port flag takes precedence over PORT env var, then falls back to 7143
 PORT="${PORT_OVERRIDE:-${PORT:-7143}}"

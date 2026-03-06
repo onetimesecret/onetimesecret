@@ -27,7 +27,7 @@
 #         --network onetime-network \
 #         -p 6379:6379 \
 #         -v onetime_maindb_data:/data \
-#         valkey/valkey
+#         valkey/valkey:8
 #
 #     # 3. Set a unique secret:
 #     $ openssl rand -hex 24
