@@ -24,14 +24,14 @@ module V1::Logic
         # Fetch entries from the sorted set within the past 30 days
         @query_results = cust.metadata.rangebyscore(since, @now.to_i)
 
-        # Get the safe fields for each record
+        # Get the metadata objects for each record
         @records = query_results.filter_map do |identifier|
-          md = V1::Metadata.from_identifier(identifier)
-          md&.safe_dump
+          V1::Metadata.from_identifier(identifier)
         end
 
         @has_items = records.any?
-        @received, @notreceived = *records.partition{ |m| m[:is_destroyed] }
+        dumped = records.map(&:safe_dump)
+        @received, @notreceived = *dumped.partition{ |m| m[:is_destroyed] }
         received.sort_by! { |a| a[:updated] }
         notreceived.sort!{ |a,b| b[:updated] <=> a[:updated] }
       end
@@ -40,7 +40,7 @@ module V1::Logic
         {
           custid: cust.custid,
           count: records.count,
-          records: records,
+          records: records.map(&:safe_dump),
           details: {
             type: 'list', # Add the type discriminator
             since: since,
