@@ -329,9 +329,9 @@ capture "63-burn-nonexistent" POST "/private/nonexistent_burn_key/burn"
 echo "--- Passphrase Protected ---"
 
 CREATE_RESP5=$(curl -s -X POST \
-  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
   "${AUTH_ARGS[@]}" \
-  -d '{"secret":"passphrase protected secret","ttl":300,"passphrase":"correct-horse-battery"}' \
+  -d 'secret=passphrase+protected+secret&ttl=300&passphrase=correct-horse-battery' \
   "${BASE_URL}/api/v1/share" 2>/dev/null)
 
 SECRET_KEY5=$(echo "$CREATE_RESP5" | jq -r '.secret_key // empty' 2>/dev/null)
