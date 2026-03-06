@@ -3,10 +3,14 @@
 # v1-capture.sh — Capture V1 API request/response pairs from a running OTS instance.
 #
 # Usage:
-#   ./v1-capture.sh <base_url> <output_dir> [username] [apitoken]
+#   ./v1-capture.sh <base_url> <output_dir> [username] [apitoken] [--form]
+#
+# Options:
+#   --form    Send POST data as application/x-www-form-urlencoded instead of
+#             application/json. Use this for v0.23.x which lacks Rack::JSONBodyParser.
 #
 # Examples:
-#   ./v1-capture.sh http://localhost:3000 ./captures/v0.23.6 user@example.com abc123
+#   ./v1-capture.sh http://localhost:3000 ./captures/v0.23.6 user@example.com abc123 --form
 #   ./v1-capture.sh https://staging.onetimesecret.com ./captures/v0.24.0 user@example.com xyz789
 #
 # Produces one JSON file per test case in output_dir, each containing:
@@ -16,10 +20,19 @@
 
 set -euo pipefail
 
-BASE_URL="${1:?Usage: $0 <base_url> <output_dir> [username] [apitoken]}"
-OUTPUT_DIR="${2:?Usage: $0 <base_url> <output_dir> [username] [apitoken]}"
+BASE_URL="${1:?Usage: $0 <base_url> <output_dir> [username] [apitoken] [--form]}"
+OUTPUT_DIR="${2:?Usage: $0 <base_url> <output_dir> [username] [apitoken] [--form]}"
 USERNAME="${3:-}"
 APITOKEN="${4:-}"
+
+# Detect --form flag in any positional argument
+FORM_MODE=false
+for arg in "$@"; do
+  if [[ "$arg" == "--form" ]]; then
+    FORM_MODE=true
+    break
+  fi
+done
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -36,12 +49,95 @@ fi
 
 # ─── Helpers ───────────────────────────────────────────────────────────
 
+# json_to_form — Convert a flat JSON object string to form-encoded key=value pairs.
+#
+# Examples:
+#   json_to_form '{"secret":"test value","ttl":300}'  => 'secret=test+value&ttl=300'
+#   json_to_form '{}'                                  => ''
+#   json_to_form '{"continue":"true"}'                 => 'continue=true'
+#
+# Uses jq to parse the JSON and Python 3 urllib to properly percent-encode values.
+# Returns empty string for empty objects.
+json_to_form() {
+  local json_str="$1"
+
+  # Empty object or empty string — return empty
+  if [[ -z "$json_str" ]] || [[ "$json_str" == "{}" ]]; then
+    echo ""
+    return
+  fi
+
+  # Extract key-value pairs with jq, then URL-encode with Python 3
+  echo "$json_str" | jq -r 'to_entries | map("\(.key)=\(.value)") | join("&")' | \
+    python3 -c "
+import sys, urllib.parse
+line = sys.stdin.read().strip()
+if not line:
+    sys.exit(0)
+pairs = line.split('&')
+encoded = []
+for pair in pairs:
+    key, _, val = pair.partition('=')
+    encoded.append(urllib.parse.quote(key, safe='') + '=' + urllib.parse.quote(val, safe=''))
+print('&'.join(encoded))
+"
+}
+
+# apply_form_mode — Transform extra_args array for form-encoded mode.
+#
+# When FORM_MODE is active, this rewrites the curl arguments:
+#   - Replaces Content-Type: application/json with application/x-www-form-urlencoded
+#   - Converts JSON -d payloads to form-encoded format
+#   - Drops -d for empty JSON objects (no body needed)
+#
+# Reads extra_args from the caller's scope and writes FORM_ARGS as output.
+apply_form_mode() {
+  local -n _in_args=$1
+  FORM_ARGS=()
+
+  local i=0
+  while (( i < ${#_in_args[@]} )); do
+    local arg="${_in_args[$i]}"
+
+    if [[ "$arg" == "-H" ]]; then
+      local header="${_in_args[$((i+1))]}"
+      if [[ "$header" == "Content-Type: application/json" ]]; then
+        # Swap JSON content type for form-encoded
+        FORM_ARGS+=(-H "Content-Type: application/x-www-form-urlencoded")
+      else
+        FORM_ARGS+=(-H "$header")
+      fi
+      (( i += 2 ))
+
+    elif [[ "$arg" == "-d" ]]; then
+      local data="${_in_args[$((i+1))]}"
+      local converted
+      converted=$(json_to_form "$data")
+      if [[ -n "$converted" ]]; then
+        FORM_ARGS+=(-d "$converted")
+      fi
+      # If converted is empty (from '{}'), skip the -d entirely
+      (( i += 2 ))
+
+    else
+      FORM_ARGS+=("$arg")
+      (( i += 1 ))
+    fi
+  done
+}
+
 capture() {
   local test_name="$1"
   local method="$2"
   local path="$3"
   shift 3
   local extra_args=("$@")
+
+  # In form mode, convert JSON payloads and Content-Type headers
+  if [[ "$FORM_MODE" == "true" && "$method" == "POST" && ${#extra_args[@]} -gt 0 ]]; then
+    apply_form_mode extra_args
+    extra_args=("${FORM_ARGS[@]+"${FORM_ARGS[@]}"}")
+  fi
 
   local url="${BASE_URL}/api/v1${path}"
   local outfile="${RUN_DIR}/${test_name}.json"
@@ -55,10 +151,10 @@ capture() {
   http_code=$(curl -s -w '%{http_code}' \
     -X "$method" \
     -H "Accept: application/json" \
-    "${AUTH_ARGS[@]}" \
+    ${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"} \
     -D "${tmpfile}.headers" \
     -o "${tmpfile}.body" \
-    "${extra_args[@]}" \
+    ${extra_args[@]+"${extra_args[@]}"} \
     "$url" 2>/dev/null) || http_code="000"
 
   # Parse response body as JSON (or capture raw if not JSON)
@@ -90,7 +186,7 @@ capture() {
     --arg method "$method" \
     --arg path "$path" \
     --arg url "$url" \
-    --argjson extras "$(printf '%s\n' "${extra_args[@]}" | jq -Rs 'split("\n") | map(select(length > 0))')" \
+    --argjson extras "$(printf '%s\n' ${extra_args[@]+"${extra_args[@]}"} | jq -Rs 'split("\n") | map(select(length > 0))')" \
     '{method: $method, path: $path, url: $url, curl_extras: $extras}')
 
   # Assemble full capture
@@ -124,6 +220,7 @@ echo "=== OTS V1 API Capture ==="
 echo "Target: $BASE_URL"
 echo "Output: $RUN_DIR"
 echo "Auth:   ${USERNAME:-anonymous}"
+echo "Mode:   $( [[ "$FORM_MODE" == "true" ]] && echo "form-encoded" || echo "json" )"
 echo ""
 
 # ── 1. Status & Health ──
