@@ -52,11 +52,11 @@ fi
 # json_to_form — Convert a flat JSON object string to form-encoded key=value pairs.
 #
 # Examples:
-#   json_to_form '{"secret":"test value","ttl":300}'  => 'secret=test+value&ttl=300'
+#   json_to_form '{"secret":"test value","ttl":300}'  => 'secret=test%20value&ttl=300'
 #   json_to_form '{}'                                  => ''
 #   json_to_form '{"continue":"true"}'                 => 'continue=true'
 #
-# Uses jq to parse the JSON and Python 3 urllib to properly percent-encode values.
+# Uses Python 3 to parse the JSON and percent-encode values in one step.
 # Returns empty string for empty objects.
 json_to_form() {
   local json_str="$1"
@@ -67,20 +67,17 @@ json_to_form() {
     return
   fi
 
-  # Extract key-value pairs with jq, then URL-encode with Python 3
-  echo "$json_str" | jq -r 'to_entries | map("\(.key)=\(.value)") | join("&")' | \
-    python3 -c "
-import sys, urllib.parse
-line = sys.stdin.read().strip()
-if not line:
+  python3 -c "
+import json, sys, urllib.parse
+data = json.loads(sys.stdin.read())
+if not data:
     sys.exit(0)
-pairs = line.split('&')
-encoded = []
-for pair in pairs:
-    key, _, val = pair.partition('=')
-    encoded.append(urllib.parse.quote(key, safe='') + '=' + urllib.parse.quote(val, safe=''))
-print('&'.join(encoded))
-"
+# Convert all values to strings, then percent-encode
+pairs = []
+for k, v in data.items():
+    pairs.append(urllib.parse.quote(str(k), safe='') + '=' + urllib.parse.quote(str(v), safe=''))
+print('&'.join(pairs))
+" <<< "$json_str"
 }
 
 # apply_form_mode — Transform extra_args array for form-encoded mode.
