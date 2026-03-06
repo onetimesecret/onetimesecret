@@ -183,12 +183,15 @@ async function main() {
   const filesToFetch = {
     'v0.23.6': {
       ruby: [
-        'lib/onetime/app/api/v1.rb',
-        'lib/onetime/app/api/base.rb',
-        'lib/onetime/logic/secrets.rb',
-        'lib/onetime/logic/dashboard.rb',
-        'lib/onetime/models/secret.rb',
-        'lib/onetime/models/metadata.rb',
+        'apps/api/v1/controllers/index.rb',
+        'apps/api/v1/controllers/base.rb',
+        'apps/api/v1/logic/secrets/base_secret_action.rb',
+        'apps/api/v1/logic/secrets/show_secret.rb',
+        'apps/api/v1/logic/secrets/generate_secret.rb',
+        'apps/api/v1/logic/secrets/show_metadata.rb',
+        'apps/api/v1/logic/secrets/burn_secret.rb',
+        'apps/api/v1/models/secret.rb',
+        'apps/api/v1/models/metadata.rb',
       ],
     },
     'main': {
