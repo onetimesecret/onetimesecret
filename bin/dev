@@ -4,6 +4,7 @@
 #
 # USAGE:
 #   $ bin/dev                       # Start with Procfile.dev
+#   $ bin/dev --port 3001           # Override port (also: -p 3001 or --port=3001)
 #   $ bin/dev --volatile            # Start with Procfile.volatile (no persistent data)
 #
 # WINDOW MODES:
@@ -36,12 +37,21 @@ fi
 
 # Parse arguments
 PROCFILE="Procfile.dev"
+PORT_OVERRIDE=""
 ARGS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --volatile)
       echo "Starting in volatile mode (no persistent data)..."
       PROCFILE="Procfile.volatile"
+      shift
+      ;;
+    --port|-p)
+      PORT_OVERRIDE="$2"
+      shift 2
+      ;;
+    --port=*|-p=*)
+      PORT_OVERRIDE="${1#*=}"
       shift
       ;;
     *)
@@ -59,6 +69,7 @@ if [ -f .env.sh ]; then
 fi
 
 # Ensure PORT is a valid integer (Overmind fails if empty or invalid)
-export PORT="${PORT:-7143}"
+# --port flag takes precedence over .env.sh and the default
+export PORT="${PORT_OVERRIDE:-${PORT:-7143}}"
 
 exec overmind start -f "$PROCFILE" "${ARGS[@]}"
