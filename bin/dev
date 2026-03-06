@@ -31,7 +31,7 @@
 # -----------------------------------------------------------------------------
 
 if ! command -v overmind >/dev/null 2>&1; then
-  echo "Error: Overmind not found. Install with: brew install overmind"
+  echo "Error: Overmind not found. Install from https://github.com/DarthSim/overmind"
   exit 1
 fi
 
