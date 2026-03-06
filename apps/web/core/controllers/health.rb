@@ -60,7 +60,10 @@ module Core
       end
 
       def check_jobqueue
-        # Job queue (RabbitMQ) is optional - get URL from config first, then env
+        # Job queue (RabbitMQ) is optional - skip entirely if jobs are disabled
+        return { status: 'not_configured' } unless OT.conf.dig('jobs', 'enabled')
+
+        # Get URL from config first, then env
         amqp_url = OT.conf.dig('jobs', 'rabbitmq_url') || ENV.fetch('RABBITMQ_URL', nil)
         return { status: 'not_configured' } if amqp_url.nil? || amqp_url.empty?
 

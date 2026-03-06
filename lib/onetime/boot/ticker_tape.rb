@@ -17,9 +17,9 @@
 # BOOT_TICKER_TAPE=1 bundle exec bin/ots worker
 #
 # # Analyze output
-# bin/analyze-boot-trace tmp/boot_ticker_tape_*.jsonl
-# bin/analyze-boot-trace tmp/boot_ticker_tape_*.jsonl --rabbitmq
-# bin/analyze-boot-trace tmp/boot_ticker_tape_*.jsonl --initializers
+# scripts/analyze-boot-trace tmp/boot_ticker_tape_*.jsonl
+# scripts/analyze-boot-trace tmp/boot_ticker_tape_*.jsonl --rabbitmq
+# scripts/analyze-boot-trace tmp/boot_ticker_tape_*.jsonl --initializers
 # ```
 #
 # Output: `tmp/boot_ticker_tape_<timestamp>.jsonl`
@@ -37,7 +37,7 @@
 # ## See
 #
 # - `lib/onetime/boot/TICKER-TAPE.md` - Full documentation
-# - `bin/analyze-boot-trace` - Analysis tool
+# - `scripts/analyze-boot-trace` - Analysis tool
 #
 module Onetime
   module Boot
