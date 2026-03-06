@@ -69,8 +69,11 @@ compare_bodies() {
         [prefix + "(value)"]
       end;
 
-    ($b | if type == "object" then keys else [] end) as $bkeys |
-    ($c | if type == "object" then keys else [] end) as $ckeys |
+    # Fields intentionally removed in v0.24 (not regressions)
+    ["shrimp"] as $ignored_fields |
+
+    ($b | if type == "object" then keys | map(select(. as $k | $ignored_fields | index($k) | not)) else [] end) as $bkeys |
+    ($c | if type == "object" then keys | map(select(. as $k | $ignored_fields | index($k) | not)) else [] end) as $ckeys |
 
     {
       fields_only_in_baseline: ($bkeys - $ckeys),
