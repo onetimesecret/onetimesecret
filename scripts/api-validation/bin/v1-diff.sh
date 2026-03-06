@@ -6,7 +6,7 @@
 #   ./v1-diff.sh <baseline_dir> <candidate_dir> [output_file]
 #
 # Example:
-#   ./v1-diff.sh ./captures/v0.23.4/20260217-120000 ./captures/v0.24.0/20260217-120500 ./diffs/report.json
+#   ./v1-diff.sh ./captures/v0.23.6/20260217-120000 ./captures/v0.24.0/20260217-120500 ./diffs/report.json
 #
 # Compares each test case across both runs and flags:
 #   - Status code changes
@@ -96,7 +96,7 @@ compare_bodies() {
             ($b[$k] | type) != "array" and
             $b[$k] != $c[$k] and
             # Skip dynamic fields that will always differ
-            ($k | test("key|updated|created|shrimp|token|secret_key|metadata_key|identifier") | not)
+            (["updated","created","shrimp","secret_key","metadata_key","identifier","key","shortid","secret_shortid","secret_identifier"] | index($k) | not)
           ) |
           {
             key: $k,
@@ -121,6 +121,7 @@ TOTAL=0
 PASS=0
 FAIL=0
 MISSING=0
+EXTRA=0
 
 for baseline_file in "$BASELINE_DIR"/*.json; do
   test_name=$(basename "$baseline_file" .json)
@@ -221,6 +222,20 @@ for baseline_file in "$BASELINE_DIR"/*.json; do
 
 done
 
+# ─── Candidate-Only Tests ─────────────────────────────────────────────
+
+for candidate_file in "$CANDIDATE_DIR"/*.json; do
+  test_name=$(basename "$candidate_file" .json)
+  baseline_file="$BASELINE_DIR/${test_name}.json"
+  if [[ ! -f "$baseline_file" ]]; then
+    echo "  [EXTRA] $test_name — candidate only (no baseline)"
+    EXTRA=$((EXTRA + 1))
+    RESULTS=$(echo "$RESULTS" | jq \
+      --arg name "$test_name" \
+      '. + [{test: $name, status: "extra", issues: ["Present in candidate but absent from baseline"]}]')
+  fi
+done
+
 # ─── Summary Report ────────────────────────────────────────────────────
 
 SUMMARY=$(jq -n \
@@ -230,6 +245,7 @@ SUMMARY=$(jq -n \
   --argjson pass "$PASS" \
   --argjson fail "$FAIL" \
   --argjson missing "$MISSING" \
+  --argjson extra "$EXTRA" \
   --argjson results "$RESULTS" \
   '{
     summary: {
@@ -239,6 +255,7 @@ SUMMARY=$(jq -n \
       pass: $pass,
       fail: $fail,
       missing: $missing,
+      extra: $extra,
       generated: (now | strftime("%Y-%m-%dT%H:%M:%SZ"))
     },
     results: $results
@@ -248,7 +265,7 @@ echo "$SUMMARY" > "$OUTPUT_FILE"
 
 echo ""
 echo "=== Summary ==="
-echo "Total: $TOTAL | Pass: $PASS | Fail: $FAIL | Missing: $MISSING"
+echo "Total: $TOTAL | Pass: $PASS | Fail: $FAIL | Missing: $MISSING | Extra: $EXTRA"
 echo "Report: $OUTPUT_FILE"
 
 # Exit with failure if any diffs found

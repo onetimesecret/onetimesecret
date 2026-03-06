@@ -9,6 +9,20 @@ require_relative 'settings'
 
 module V1
   module Controllers
+    # V1 Controller Endpoints [#2615]
+    #
+    # All endpoints that return receipt/secret data use receipt_hsh (via
+    # self.class.receipt_hsh) to map internal v0.24 vocabulary back to
+    # v0.23.x field names. Each call passes :custid => cust.email so the
+    # response contains the email address, not the internal UUID.
+    #
+    # The burn response uses :secret_shortkey (v0.23.x name) for the
+    # truncated secret identifier, even though the model method is
+    # secret_shortid (v0.24 name).
+    #
+    # GET /private/:key was supported in v0.23.x but v0.24 only routes
+    # POST for receipt lookup. This is a known behavioral change.
+    #
     class Index
       include ControllerBase
       include ControllerSettings
@@ -42,10 +56,11 @@ module V1
           logic.raise_concerns
           logic.process
           if req.get?
-            res.redirect app_path(logic.redirect_uri)
+            res.redirect req.app_path(logic.redirect_uri)
           else
             secret = logic.secret
             json self.class.receipt_hsh(logic.receipt,
+                                :custid => cust.email,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end
@@ -58,10 +73,11 @@ module V1
           logic.raise_concerns
           logic.process
           if req.get?
-            res.redirect app_path(logic.redirect_uri)
+            res.redirect req.app_path(logic.redirect_uri)
           else
             secret = logic.secret
             json self.class.receipt_hsh(logic.receipt,
+                                :custid => cust.email,
                                 :value => logic.secret_value,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
@@ -75,17 +91,19 @@ module V1
           logic = V1::Logic::Secrets::ShowReceipt.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
-          secret = logic.receipt.load_secret
+          # Reuse data already loaded/decrypted in logic.process rather than
+          # re-loading the secret from Redis and re-decrypting (which can fail).
           if logic.show_secret
-            secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
             json self.class.receipt_hsh(logic.receipt,
-                                :value => secret_value,
-                                :secret_ttl => secret.current_expiration,
-                                :passphrase_required => secret && secret.has_passphrase?)
+                                :custid => cust.email,
+                                :value => logic.secret_value,
+                                :secret_ttl => logic.secret_realttl,
+                                :passphrase_required => logic.has_passphrase)
           else
             json self.class.receipt_hsh(logic.receipt,
-                                :secret_ttl => secret ? secret.current_expiration : nil,
-                                :passphrase_required => secret && secret.has_passphrase?)
+                                :custid => cust.email,
+                                :secret_ttl => logic.secret_realttl,
+                                :passphrase_required => logic.has_passphrase)
           end
           logic.receipt.previewed!
         end
@@ -98,7 +116,7 @@ module V1
           logic.process
           recent_receipts = logic.receipts.collect { |md|
             next if md.nil?
-            hash = self.class.receipt_hsh(md)
+            hash = self.class.receipt_hsh(md, :custid => cust.email)
             hash.delete 'secret_key'  # Don't call md.delete, that will delete from the db
             hash
           }.compact
@@ -130,8 +148,8 @@ module V1
           logic.raise_concerns
           logic.process
           if logic.greenlighted
-            json :state           => self.class.receipt_hsh(logic.receipt),
-                :secret_shortid => logic.receipt.secret_shortid
+            json :state           => self.class.receipt_hsh(logic.receipt, :custid => cust.email),
+                :secret_shortkey => logic.receipt.secret_shortid
           else
             secret_not_found_response
           end
@@ -144,10 +162,11 @@ module V1
           logic.raise_concerns
           logic.process
           if req.get?
-            res.redirect app_path(logic.redirect_uri)
+            res.redirect req.app_path(logic.redirect_uri)
           else
             secret = logic.secret
             json self.class.receipt_hsh(logic.receipt,
+                                :custid => cust.email,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end

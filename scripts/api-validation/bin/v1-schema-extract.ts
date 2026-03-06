@@ -2,7 +2,7 @@
 /**
  * v1-schema-extract.ts
  *
- * Extracts V1 API response schemas from actual captured responses (v0.23.4)
+ * Extracts V1 API response schemas from actual captured responses (v0.23.6)
  * and compares them against the Zod schemas defined in main branch.
  *
  * This script does two things:
@@ -13,7 +13,7 @@
  *   npx tsx v1-schema-extract.ts <captures_dir> [output_file]
  *
  * Example:
- *   npx tsx v1-schema-extract.ts ./captures/v0.23.4/20260217-120000 ./diffs/schema-inference.json
+ *   npx tsx v1-schema-extract.ts ./captures/v0.23.6/20260217-120000 ./diffs/schema-inference.json
  */
 
 import { readFileSync, readdirSync, writeFileSync, existsSync } from 'fs';
@@ -119,9 +119,12 @@ function inferSchemaFromBody(body: unknown): Record<string, InferredField> {
   return fields;
 }
 
-// ─── V0.23.4 Known Schema (from investigation) ───────────────────────
+// ─── V0.23.6 Known Schema (from investigation) ───────────────────────
 
-// These represent what we know the v0.23.4 V1 API returned, codified as
+// NOTE: These known schemas are hand-authored from manual investigation.
+// They should be cross-checked against actual capture data when available.
+
+// These represent what we know the v0.23.6 V1 API returned, codified as
 // reference schemas for comparison.
 
 const V023_KNOWN_SCHEMAS: Record<string, {
@@ -188,12 +191,15 @@ const V023_KNOWN_SCHEMAS: Record<string, {
     description: 'Error response',
     fields: {
       'message': { type: 'string', required: true },
-      'shrimp':  { type: 'string', required: false, notes: 'CSRF token in v0.23.4' },
+      'shrimp':  { type: 'string', required: false, notes: 'CSRF token in v0.23.6' },
     }
   },
 };
 
 // ─── V0.24.0 Zod Schema Summary (from main branch investigation) ─────
+
+// NOTE: These Zod schema summaries are manually maintained from the main branch.
+// They should be cross-checked against the actual Zod source files when updated.
 
 // Summarized from the Zod schemas in src/schemas/ on main branch.
 // These represent the *declared* contract for the reconstituted V1.
@@ -284,14 +290,14 @@ function compareSchemas(
 ): SchemaDiff[] {
   const diffs: SchemaDiff[] = [];
 
-  // Fields removed from v0.23.4
+  // Fields removed from v0.23.6
   for (const [field, spec] of Object.entries(v023)) {
     if (!(field in v024)) {
       diffs.push({
         category: endpointName,
         field,
         severity: spec.required ? 'breaking' : 'warning',
-        description: `Field "${field}" present in v0.23.4 but absent in v0.24.0 schema${spec.required ? ' (REQUIRED)' : ' (optional)'}`,
+        description: `Field "${field}" present in v0.23.6 but absent in v0.24.0 schema${spec.required ? ' (REQUIRED)' : ' (optional)'}`,
       });
     }
   }
@@ -327,7 +333,7 @@ function compareSchemas(
         category: endpointName,
         field,
         severity: 'warning',
-        description: `Was required in v0.23.4, now optional in v0.24.0`,
+        description: `Was required in v0.23.6, now optional in v0.24.0`,
       });
     }
   }
@@ -351,7 +357,7 @@ function compareStateMachines(): SchemaDiff[] {
       category: 'state_machine',
       field: 'state',
       severity: 'breaking',
-      description: `State "${state}" exists in v0.23.4 but not in v0.24.0. Clients matching on this value will break.`,
+      description: `State "${state}" exists in v0.23.6 but not in v0.24.0. Clients matching on this value will break.`,
     });
   }
 
@@ -412,7 +418,7 @@ function main() {
   const allDiffs: SchemaDiff[] = [];
 
   // Compare known schemas
-  console.log('=== Schema Comparison: v0.23.4 vs v0.24.0 ===\n');
+  console.log('=== Schema Comparison: v0.23.6 vs v0.24.0 ===\n');
 
   // Status endpoint
   allDiffs.push(...compareSchemas(
@@ -524,7 +530,7 @@ function main() {
     diffs: allDiffs,
     inferred_schemas: inferredSchemas,
     known_schemas: {
-      'v0.23.4': V023_KNOWN_SCHEMAS,
+      'v0.23.6': V023_KNOWN_SCHEMAS,
       'v0.24.0_zod': V024_ZOD_SCHEMAS,
     },
   };

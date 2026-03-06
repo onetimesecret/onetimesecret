@@ -16,32 +16,36 @@ module V1
 
   module Controllers
     module ClassMethods
-      # Transforms a receipt into a structured hash with enhanced information.
+      # V1 Response Shaping — receipt_hsh [#2615]
       #
-      # This method processes a receipt object and optional parameters to create
-      # a comprehensive hash representation. It includes derived and calculated
-      # values, providing a rich snapshot of the receipt and associated secret
-      # state.
+      # This is the V1 compatibility layer. It transforms a Receipt (which
+      # uses v0.24 vocabulary internally) into a hash using v0.23.x field
+      # names. Every V1 endpoint that returns receipt data MUST use this
+      # method, and callers MUST pass :custid => cust.email so that the
+      # response contains the email address (not the internal UUID).
+      #
+      # Field mapping (v0.24 internal -> v0.23.x V1 response):
+      #   identifier         -> metadata_key
+      #   secret_identifier  -> secret_key
+      #   has_passphrase     -> passphrase_required
+      #   recipients         -> recipient (singular, array)
+      #   receipt_ttl        -> metadata_ttl (actual seconds remaining)
+      #   secret_value       -> value
+      #   share_domain nil   -> '' (empty string, never null)
+      #
+      # State mapping (v0.24 -> v0.23.x):
+      #   previewed -> viewed
+      #   revealed  -> received
+      #   shared    -> new
+      #
+      # Timestamp fallback:
+      #   received timestamp -> falls back to revealed if empty (v0.24
+      #   sets revealed!, not the deprecated received field)
       #
       # @param md [Receipt] The receipt object to process
-      # @param opts [Hash] Optional parameters to influence the output
-      # @option opts [Integer, nil] :secret_ttl The actual TTL of the associated
-      #   secret, if available
-      #
-      # @return [Hash] A structured hash containing metadata and derived
-      #   information
-      #
-      # @note This method relies on the FlexibleHashAccess refinement for hash
-      #   key access.
-      #
-      # @example Basic usage
-      #   receipt = Receipt.new(key: 'abc123', custid: 'user@example.com')
-      #   result = API.receipt_hsh(receipt)
-      #   puts result[:custid] # => "user@example.com"
-      #
-      # @example With secret TTL provided
-      #   result = API.receipt_hsh(receipt, secret_ttl: 3600)
-      #   puts result[:secret_ttl] # => 3600
+      # @param opts [Hash] Options — :custid (email), :secret_ttl, :value,
+      #   :passphrase_required
+      # @return [Hash] V1-shaped response hash with string keys
       #
       def receipt_hsh md, opts={}
 
@@ -88,19 +92,34 @@ module V1
         owner_id_val = hsh.fetch('owner_id', nil)
         secret_id_val = hsh.fetch('secret_identifier', nil)
 
+        # V1 compat: resolve custid to email address.
+        # In v0.24, owner_id stores Customer objid (UUID). Legacy custid stored email.
+        # Priority: opts[:custid] (caller-supplied email) > v1_custid (migrated) > custid (legacy).
+        # Fallback: anonymous secrets return "anon" (not nil) to match v0.23 behavior.
+        v1_custid = opts[:custid] || hsh.fetch('v1_custid', nil)
+        v1_custid = hsh.fetch('custid', nil) if v1_custid.nil? || v1_custid.to_s.empty?
+        v1_custid = 'anon' if v1_custid.nil? && owner_id_val.to_s == 'anon'
+
+        # Map v0.24.0 state values back to v0.23.x vocabulary for V1 compat.
+        # Internally: previewed -> viewed, revealed -> received, shared -> new
+        v1_state_map = { 'previewed' => 'viewed', 'revealed' => 'received', 'shared' => 'new' }.freeze
+        raw_state = hsh.key?('state') ? hsh['state'] : 'new'
+
         ret = {
-          'custid' => (owner_id_val && !owner_id_val.empty? ? owner_id_val : hsh.fetch('custid', nil)),
+          'custid' => v1_custid,
           'metadata_key' => md.identifier,
-          'secret_key' => (secret_id_val && !secret_id_val.empty? ? secret_id_val : hsh.fetch('secret_key', nil)),
+          'secret_key' => (secret_id_val && !secret_id_val.empty? ? secret_id_val : hsh.fetch('secret_key', '')),
           'ttl' => receipt_ttl, # static value from database hash field
           'metadata_ttl' => receipt_realttl, # actual number of seconds left to live
           'secret_ttl' => secret_realttl, # ditto, actual number
-          'state' => hsh.key?('state') ? hsh['state'] : 'new',
+          'state' => v1_state_map.fetch(raw_state, raw_state),
           'updated' => hsh.fetch('updated', nil)&.to_i,
           'created' => hsh.fetch('created', nil)&.to_i,
-          'received' => hsh.fetch('received', nil).to_i, # empty fields become 0
+          # V1 compat: fall back to `revealed` timestamp if `received` is empty.
+          # In v0.24, revealed! sets `revealed` (not the deprecated `received` field).
+          'received' => (hsh.fetch('received', nil).to_s.empty? ? hsh.fetch('revealed', nil) : hsh.fetch('received', nil)).to_i,
           'recipient' => recipient.compact,
-          'share_domain' => hsh.fetch('share_domain', nil),
+          'share_domain' => hsh.fetch('share_domain', nil) || '',
         }
 
         if ret['state'] == 'received'

@@ -7,6 +7,22 @@ module V1::Logic
 
     using Familia::Refinements::TimeLiterals
 
+    # V1 Secret Creation Logic [#2615]
+    #
+    # TTL bounds come from site.secret_options in config. The config path
+    # is OT.conf.dig('site', 'secret_options') — NOT a top-level fetch.
+    # If the config key is missing, the hardcoded fallback applies:
+    #   ttl_options: [30.minutes, 2.hours, 1.day, 7.days]
+    #   default_ttl: 7.days
+    #
+    # v0.23.x accepted TTL as low as 60s (1 minute). The v0.24 fallback
+    # floor is 30 minutes. The actual floor depends on config.
+    #
+    # Passphrase validation reads from site.secret_options.passphrase
+    # (correct dig path). Min length is config-driven, not hardcoded.
+    #
+    # The metadata_ttl = 2 * secret_ttl ratio is unchanged from v0.23.x.
+    #
     class BaseSecretAction < V1::Logic::Base
       # Email validation regex - defined once to avoid recompilation on every call
       EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
@@ -83,10 +99,10 @@ module V1::Logic
         #
         # NOTE: These values differ from v2 slightly. Here the minimum is 30
         # minutes for historical reasons.
-        secret_options = OT.conf&.fetch('secret_options', {
+        secret_options = OT.conf.dig('site', 'secret_options') || {
           'default_ttl' => 7.days,
           'ttl_options' => [30.minutes, 2.hours, 1.day, 7.days],
-        })
+        }
         default_ttl = secret_options['default_ttl']
         ttl_options = secret_options['ttl_options']
 
