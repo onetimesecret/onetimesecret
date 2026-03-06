@@ -36,7 +36,7 @@ module V1::Logic
 
           if greenlighted
             @secret = potential_secret
-            owner = secret.load_customer
+            owner = secret.load_owner
             secret.burned!
             owner.increment_field :secrets_burned unless owner.anonymous?
             # TODO:

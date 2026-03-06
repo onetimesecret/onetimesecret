@@ -32,7 +32,7 @@ module V1::Logic
         @verification = secret.verification.to_s == "true"
         @secret_key = @secret.identifier # Use identifier, not deprecated .key field
 
-        owner = secret.load_customer
+        owner = secret.load_owner
 
         if show_secret
           # If we can't decrypt that's great! We just set secret_value to

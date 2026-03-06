@@ -6,7 +6,7 @@ require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.rb')
 
-RSpec.xdescribe V1::Logic::Secrets::ShowSecret do
+RSpec.describe V1::Logic::Secrets::ShowSecret do
   let(:session) { double('Session') }
   let(:customer) { double('Onetime::Customer', anonymous?: false, custid: 'cust123', increment_field: nil ) }
   let(:owner) { double('Owner', custid: 'owner123', verified?: false, anonymous?: false, increment_field: nil ) }
@@ -15,15 +15,15 @@ RSpec.xdescribe V1::Logic::Secrets::ShowSecret do
     double('Onetime::Secret',
       verification: 'false',
       key: 'secret123',
-      state?: true,
-      owner?: false)
+      identifier: 'secret123',
+      share_domain: '')
   end
 
   let(:base_params) do
     {
-      key: 'secret123',
-      passphrase: 'pass123',
-      continue: 'true'
+      'key' => 'secret123',
+      'passphrase' => 'pass123',
+      'continue' => 'true'
     }
   end
 
@@ -35,8 +35,7 @@ RSpec.xdescribe V1::Logic::Secrets::ShowSecret do
 
   before do
     allow(Onetime::Secret).to receive(:load).with('secret123').and_return(secret)
-    allow(secret).to receive(:load_customer).and_return(owner)
-    allow(Onetime::Customer).to receive(:global).and_return(double('Global', increment_field: true))
+    allow(secret).to receive(:load_owner).and_return(owner)
   end
 
   describe '#process' do
@@ -51,7 +50,12 @@ RSpec.xdescribe V1::Logic::Secrets::ShowSecret do
         allow(secret).to receive(:original_size).and_return(100)
         allow(secret).to receive(:viewed!)
         allow(secret).to receive(:received!)
+        allow(secret).to receive(:revealed!)
+        allow(secret).to receive(:previewed!)
         allow(secret).to receive(:verification).and_return('false')
+        allow(secret).to receive(:state?).with(:new).and_return(true)
+        allow(secret).to receive(:owner?).with(customer).and_return(false)
+        allow(owner).to receive(:anonymous?).and_return(false)
       end
 
       it 'processes valid secret viewing' do
@@ -68,10 +72,12 @@ RSpec.xdescribe V1::Logic::Secrets::ShowSecret do
         allow(secret).to receive(:viewable?).and_return(true)
         allow(secret).to receive(:has_passphrase?).and_return(true)
         allow(secret).to receive(:passphrase?).with('pass123').and_return(false)
-        allow(secret).to receive(:state?).and_return(true)
+        allow(secret).to receive(:state?).with(:new).and_return(true)
         allow(secret).to receive(:truncated?).and_return(false)
         allow(secret).to receive(:can_decrypt?).and_return(false)
         allow(secret).to receive(:viewed!)
+        allow(secret).to receive(:previewed!)
+        allow(secret).to receive(:owner?).with(customer).and_return(false)
       end
 
       it 'handles incorrect passphrase' do
