@@ -111,12 +111,32 @@ apply_form_mode() {
 
     elif [[ "$arg" == "-d" ]]; then
       local data="${_in_args[$((i+1))]}"
-      local converted
-      converted=$(json_to_form "$data")
-      if [[ -n "$converted" ]]; then
-        FORM_ARGS+=(-d "$converted")
+      if [[ "$data" == "{"* ]]; then
+        # JSON payload — convert to form-encoded
+        local converted
+        converted=$(json_to_form "$data")
+        if [[ -n "$converted" ]]; then
+          FORM_ARGS+=(-d "$converted")
+        fi
+        # If converted is empty (from '{}'), skip the -d entirely
+      else
+        # Already form-encoded or other format — pass through unchanged
+        FORM_ARGS+=(-d "$data")
       fi
-      # If converted is empty (from '{}'), skip the -d entirely
+      (( i += 2 ))
+
+    elif [[ "$arg" == "--data-raw" ]]; then
+      # --data-raw with JSON payload — convert to form-encoded -d
+      local data="${_in_args[$((i+1))]}"
+      if [[ "$data" == "{"* ]]; then
+        local converted
+        converted=$(json_to_form "$data")
+        if [[ -n "$converted" ]]; then
+          FORM_ARGS+=(-d "$converted")
+        fi
+      else
+        FORM_ARGS+=(--data-raw "$data")
+      fi
       (( i += 2 ))
 
     else
