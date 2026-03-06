@@ -38,11 +38,11 @@ module V1
 
       def share
         authorized(true) do
-          logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, {'secret' => req.params}, locale
+          logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           if req.get?
-            res.redirect res.app_path(logic.redirect_uri)
+            res.redirect app_path(logic.redirect_uri)
           else
             secret = logic.secret
             json self.class.receipt_hsh(logic.receipt,
@@ -54,11 +54,11 @@ module V1
 
       def generate
         authorized(true) do
-          logic = V1::Logic::Secrets::GenerateSecret.new sess, cust, {'secret' => req.params}, locale
+          logic = V1::Logic::Secrets::GenerateSecret.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           if req.get?
-            res.redirect res.app_path(logic.redirect_uri)
+            res.redirect app_path(logic.redirect_uri)
           else
             secret = logic.secret
             json self.class.receipt_hsh(logic.receipt,
@@ -140,12 +140,11 @@ module V1
 
       def create
         authorized(true) do
-          logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, {'secret' => req.params}, locale
-          logic.token = ''.instance_of?(String).to_s  # lol a roundabout way to get to "true"
+          logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           if req.get?
-            res.redirect res.app_path(logic.redirect_uri)
+            res.redirect app_path(logic.redirect_uri)
           else
             secret = logic.secret
             json self.class.receipt_hsh(logic.receipt,

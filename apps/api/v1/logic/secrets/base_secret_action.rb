@@ -18,8 +18,9 @@ module V1::Logic
       # raise_concerns and process methods deal with the values in the instance
       # variables only (no more params access).
       def process_params
-        # All parameters are passed in the :secret hash (secret[:ttl], etc)
-        @payload = params['secret'] || {}
+        # V1 uses flat query/form params: params['secret'], params['ttl'], etc.
+        # (V2/V3 use a nested 'secret' namespace; V1 does not.)
+        @payload = params || {}
         raise_form_error "Incorrect payload format" if payload.is_a?(String)
         process_ttl
         process_secret
