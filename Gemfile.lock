@@ -116,6 +116,9 @@ GEM
       reline (>= 0.4.2)
     jmespath (1.6.2)
     json (2.10.2)
+    json-schema (6.2.0)
+      addressable (~> 2.8)
+      bigdecimal (>= 3.1, < 5)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
     listen (3.9.0)
@@ -127,6 +130,8 @@ GEM
       net-imap
       net-pop
       net-smtp
+    mcp (0.8.0)
+      json-schema (>= 4.1)
     mini_mime (1.1.5)
     minitest (5.25.5)
     multi_json (1.15.0)
@@ -158,7 +163,7 @@ GEM
       prettyprint
     prettier_print (1.2.1)
     prettyprint (0.2.0)
-    prism (1.4.0)
+    prism (1.9.0)
     psych (5.2.6)
       date
       stringio
@@ -200,20 +205,21 @@ GEM
     rerun (0.14.0)
       listen (~> 3.0)
     rexml (3.4.2)
-    rubocop (1.81.7)
+    rubocop (1.85.1)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
+      mcp (~> 0.6)
       parallel (~> 1.10)
       parser (>= 3.3.0.2)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 2.9.3, < 3.0)
-      rubocop-ast (>= 1.47.1, < 2.0)
+      rubocop-ast (>= 1.49.0, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 4.0)
-    rubocop-ast (1.48.0)
+    rubocop-ast (1.49.0)
       parser (>= 3.3.7.2)
-      prism (~> 1.4)
+      prism (~> 1.7)
     rubocop-performance (1.25.0)
       lint_roller (~> 1.1)
       rubocop (>= 1.75.0, < 2.0)
@@ -344,7 +350,7 @@ DEPENDENCIES
   rspec-expectations!
   rspec-mocks!
   rspec-support!
-  rubocop (~> 1.81.7)
+  rubocop (~> 1.85.1)
   rubocop-performance
   rubocop-rspec
   rubocop-sequel
