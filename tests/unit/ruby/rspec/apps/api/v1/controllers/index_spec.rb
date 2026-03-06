@@ -134,8 +134,10 @@ RSpec.describe V1::Controllers::Index, type: :request do
     end
 
     context 'when request is GET' do
+      # Use plain double since Otto adds app_path at runtime (not on Rack::Request)
+      let(:request) { double(:rack_request, params: {}, get?: true) }
+
       before do
-        allow(request).to receive(:get?).and_return(true)
         allow(request).to receive(:app_path).with('/some/path').and_return('/some/path')
         allow(logic).to receive(:redirect_uri).and_return('/some/path')
       end
