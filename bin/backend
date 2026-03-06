@@ -12,4 +12,4 @@ fi
 
 RACK_ENV="${RACK_ENV:-development}"
 
-bundle exec thin -e "$RACK_ENV" -R config.ru -p "${PORT:-7143}" start "$@"
+bundle exec puma -C "${1:-etc/puma.rb}"

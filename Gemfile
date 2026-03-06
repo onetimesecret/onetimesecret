@@ -28,9 +28,9 @@ gem 'rack-contrib', '~> 2.5'
 gem 'rack-protection', '~> 3.2'
 gem 'rack-proxy'
 gem 'rack-utf8_sanitizer', '~> 1.10.1'
+gem 'puma', '~> 6.6'
 gem 'storable'
 gem 'sysinfo'
-gem 'thin'
 gem 'tty-table', '~> 0.12.0'
 
 # ====================================
@@ -130,19 +130,4 @@ group :test do
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
     gem lib, git: 'https://github.com/rspec/rspec', glob: "#{lib}/#{lib}.gemspec"
   end
-end
-
-
-# Optional alternate server - install with: bundle install --with optional
-#
-# Start with:
-#   $ RUBY_YJIT_ENABLE=1 bundle exec puma -p 7143 -t 4:16 -w 2
-#
-# Arguments explained:
-#   RUBY_YJIT_ENABLE=1  - Enable Ruby's JIT compiler for better performance
-#   -p 7143             - Run on port 7143
-#   -t 4:16             - Use min 4, max 16 threads per worker
-#   -w 2                - Run 2 worker processes (clustered mode)
-group :optional do
-  gem 'puma', '~> 6.6'
 end
