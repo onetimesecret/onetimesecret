@@ -6,7 +6,7 @@
 #   ./v1-capture.sh <base_url> <output_dir> [username] [apitoken]
 #
 # Examples:
-#   ./v1-capture.sh http://localhost:3000 ./captures/v0.23.4 user@example.com abc123
+#   ./v1-capture.sh http://localhost:3000 ./captures/v0.23.6 user@example.com abc123
 #   ./v1-capture.sh https://staging.onetimesecret.com ./captures/v0.24.0 user@example.com xyz789
 #
 # Produces one JSON file per test case in output_dir, each containing:
@@ -49,10 +49,11 @@ capture() {
   tmpfile=$(mktemp)
 
   # Capture full response: status, headers, body
+  # No Content-Type header is set here — each call site provides its own
+  # via extra_args when needed. Accept header requests JSON responses.
   local http_code
   http_code=$(curl -s -w '%{http_code}' \
     -X "$method" \
-    -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     "${AUTH_ARGS[@]}" \
     -D "${tmpfile}.headers" \
@@ -62,28 +63,26 @@ capture() {
 
   # Parse response body as JSON (or capture raw if not JSON)
   local body_json
-  if jq . "${tmpfile}.body" >/dev/null 2>&1; then
+  if [[ ! -s "${tmpfile}.body" ]]; then
+    body_json='null'
+  elif jq . "${tmpfile}.body" >/dev/null 2>&1; then
     body_json=$(jq . "${tmpfile}.body")
   else
-    body_json=$(jq -Rs . "${tmpfile}.body")
+    body_json=$(jq -Rs . "${tmpfile}.body") || body_json='null'
   fi
 
   # Parse response headers into JSON object
   local headers_json
-  headers_json=$(awk '
-    BEGIN { printf "{" }
-    /^[A-Za-z]/ {
-      gsub(/\r/, "")
-      split($0, a, ": ")
-      key = tolower(a[1])
-      val = a[2]
-      for (i=3; i<=length(a); i++) val = val ": " a[i]
-      if (started) printf ","
-      printf "\"%s\":\"%s\"", key, val
-      started = 1
-    }
-    END { printf "}" }
-  ' "${tmpfile}.headers" 2>/dev/null | jq . 2>/dev/null || echo '{}')
+  headers_json=$(
+    grep -E '^[A-Za-z]' "${tmpfile}.headers" 2>/dev/null | \
+    sed 's/\r$//' | \
+    jq -Rs '
+      split("\n") | map(select(length > 0)) |
+      map(capture("^(?<key>[^:]+):\\s*(?<val>.*)")) |
+      map({(.key | ascii_downcase): .val}) |
+      add // {}
+    '
+  ) || headers_json='{}'
 
   # Build request record
   local request_json
@@ -140,22 +139,27 @@ echo "--- Secret Creation ---"
 
 # Share with minimal params
 capture "10-share-minimal" POST "/share" \
+  -H "Content-Type: application/json" \
   -d '{"secret":"test secret value for capture","ttl":300}'
 
 # Share with all params
 capture "11-share-full" POST "/share" \
+  -H "Content-Type: application/json" \
   -d '{"secret":"full param test","ttl":600,"passphrase":"testpass123","recipient":""}'
 
 # Generate with defaults
 capture "12-generate-default" POST "/generate" \
+  -H "Content-Type: application/json" \
   -d '{}'
 
 # Generate with params
 capture "13-generate-params" POST "/generate" \
+  -H "Content-Type: application/json" \
   -d '{"ttl":3600}'
 
 # Create (alias for share)
 capture "14-create-alias" POST "/create" \
+  -H "Content-Type: application/json" \
   -d '{"secret":"testing create alias","ttl":300}'
 
 # ── 3. Edge Cases: Creation ──
@@ -164,34 +168,42 @@ echo "--- Creation Edge Cases ---"
 
 # Empty secret
 capture "20-share-empty-secret" POST "/share" \
+  -H "Content-Type: application/json" \
   -d '{"secret":"","ttl":300}'
 
 # Very short TTL (below minimum)
 capture "21-share-ttl-too-low" POST "/share" \
+  -H "Content-Type: application/json" \
   -d '{"secret":"low ttl test","ttl":1}'
 
 # Very long TTL (above maximum)
 capture "22-share-ttl-too-high" POST "/share" \
+  -H "Content-Type: application/json" \
   -d '{"secret":"high ttl test","ttl":99999999}'
 
 # Missing secret field entirely
 capture "23-share-no-secret-field" POST "/share" \
+  -H "Content-Type: application/json" \
   -d '{"ttl":300}'
 
 # Unicode content
 capture "24-share-unicode" POST "/share" \
+  -H "Content-Type: application/json" \
   -d '{"secret":"emoji 🔑 and CJK 秘密 and diacritics über","ttl":300}'
 
 # Large-ish secret (2KB)
 LARGE_SECRET=$(python3 -c "print('A' * 2048)")
 capture "25-share-large" POST "/share" \
+  -H "Content-Type: application/json" \
   -d "{\"secret\":\"${LARGE_SECRET}\",\"ttl\":300}"
 
 # Passphrase edge cases
 capture "26-share-short-passphrase" POST "/share" \
+  -H "Content-Type: application/json" \
   -d '{"secret":"short pass test","ttl":300,"passphrase":"ab"}'
 
 capture "27-share-long-passphrase" POST "/share" \
+  -H "Content-Type: application/json" \
   -d '{"secret":"long pass test","ttl":300,"passphrase":"abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+"}'
 
 # ── 4. Secret Retrieval ──
@@ -200,9 +212,9 @@ echo "--- Secret Retrieval ---"
 
 # Create a secret, then retrieve it
 CREATE_RESP=$(curl -s -X POST \
-  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
   "${AUTH_ARGS[@]}" \
-  -d '{"secret":"retrieval test secret","ttl":300}' \
+  -d 'secret=retrieval+test+secret&ttl=300' \
   "${BASE_URL}/api/v1/share" 2>/dev/null)
 
 SECRET_KEY=$(echo "$CREATE_RESP" | jq -r '.secret_key // empty' 2>/dev/null)
@@ -214,6 +226,7 @@ if [[ -n "$SECRET_KEY" ]]; then
 
   # Show secret with continue=true
   capture "31-show-secret-with-continue" POST "/secret/${SECRET_KEY}" \
+    -H "Content-Type: application/json" \
     -d '{"continue":"true"}'
 else
   echo "  [SKIP] Could not create secret for retrieval tests"
@@ -221,6 +234,7 @@ fi
 
 # Retrieve non-existent secret
 capture "32-show-secret-nonexistent" POST "/secret/nonexistent_key_12345" \
+  -H "Content-Type: application/json" \
   -d '{"continue":"true"}'
 
 # ── 5. Metadata / Private / Receipt ──
@@ -229,9 +243,9 @@ echo "--- Metadata/Receipt Retrieval ---"
 
 # Create another secret for metadata tests
 CREATE_RESP2=$(curl -s -X POST \
-  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
   "${AUTH_ARGS[@]}" \
-  -d '{"secret":"metadata test secret","ttl":300}' \
+  -d 'secret=metadata+test+secret&ttl=300' \
   "${BASE_URL}/api/v1/share" 2>/dev/null)
 
 METADATA_KEY2=$(echo "$CREATE_RESP2" | jq -r '.metadata_key // empty' 2>/dev/null)
@@ -275,9 +289,9 @@ echo "--- Burn ---"
 
 # Create a secret to burn
 CREATE_RESP3=$(curl -s -X POST \
-  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
   "${AUTH_ARGS[@]}" \
-  -d '{"secret":"burn test secret","ttl":300}' \
+  -d 'secret=burn+test+secret&ttl=300' \
   "${BASE_URL}/api/v1/share" 2>/dev/null)
 
 METADATA_KEY3=$(echo "$CREATE_RESP3" | jq -r '.metadata_key // empty' 2>/dev/null)
@@ -294,9 +308,9 @@ fi
 
 # Create another to burn via /receipt path
 CREATE_RESP4=$(curl -s -X POST \
-  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
   "${AUTH_ARGS[@]}" \
-  -d '{"secret":"burn test secret 2","ttl":300}' \
+  -d 'secret=burn+test+secret+2&ttl=300' \
   "${BASE_URL}/api/v1/share" 2>/dev/null)
 
 METADATA_KEY4=$(echo "$CREATE_RESP4" | jq -r '.metadata_key // empty' 2>/dev/null)
@@ -326,14 +340,17 @@ METADATA_KEY5=$(echo "$CREATE_RESP5" | jq -r '.metadata_key // empty' 2>/dev/nul
 if [[ -n "$SECRET_KEY5" ]]; then
   # Try to reveal without passphrase
   capture "70-reveal-no-passphrase" POST "/secret/${SECRET_KEY5}" \
+    -H "Content-Type: application/json" \
     -d '{"continue":"true"}'
 
   # Try with wrong passphrase
   capture "71-reveal-wrong-passphrase" POST "/secret/${SECRET_KEY5}" \
+    -H "Content-Type: application/json" \
     -d '{"continue":"true","passphrase":"wrong-pass"}'
 
   # Correct passphrase
   capture "72-reveal-correct-passphrase" POST "/secret/${SECRET_KEY5}" \
+    -H "Content-Type: application/json" \
     -d '{"continue":"true","passphrase":"correct-horse-battery"}'
 
   # Metadata should show passphrase_required
@@ -353,6 +370,7 @@ SAVE_AUTH=("${AUTH_ARGS[@]}")
 AUTH_ARGS=(-u "baduser@example.com:invalidtoken")
 capture "80-bad-credentials" GET "/authcheck"
 capture "81-bad-auth-share" POST "/share" \
+  -H "Content-Type: application/json" \
   -d '{"secret":"should fail","ttl":300}'
 AUTH_ARGS=("${SAVE_AUTH[@]}")
 
@@ -361,6 +379,7 @@ SAVE_AUTH2=("${AUTH_ARGS[@]}")
 AUTH_ARGS=()
 capture "82-no-auth-status" GET "/status"
 capture "83-no-auth-share" POST "/share" \
+  -H "Content-Type: application/json" \
   -d '{"secret":"anonymous test","ttl":300}'
 capture "84-no-auth-authcheck" GET "/authcheck"
 AUTH_ARGS=("${SAVE_AUTH2[@]}")
@@ -385,5 +404,5 @@ echo "=== Capture Complete ==="
 TOTAL=$(find "$RUN_DIR" -name "*.json" | wc -l)
 echo "Captured $TOTAL test cases in $RUN_DIR"
 echo ""
-echo "Next: run against both v0.23.4 and v0.24.0, then diff with:"
+echo "Next: run against both v0.23.6 and v0.24.0, then diff with:"
 echo "  ./v1-diff.sh $RUN_DIR <other_run_dir>"
