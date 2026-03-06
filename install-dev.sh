@@ -16,10 +16,6 @@ OTS_DEV_CONFIG="${OTS_DEV_CONFIG:-$HOME/.config/onetimesecret-dev}"
 
 # Files/dirs to symlink: local_path -> shared_path
 declare -A LINKS=(
-    ["etc/config.yaml"]="config.yaml"
-    ["etc/auth.yaml"]="auth.yaml"
-    ["etc/billing.yaml"]="billing.yaml"
-    ["etc/logging.yaml"]="logging.yaml"
     ["data"]="data"
     [".env.test"]=".env.test"
     ["etc/puma.rb"]="puma.rb"
@@ -44,6 +40,21 @@ setup_procfile_dev() {
 
     cp -n "Procfile.dev.example" "Procfile.dev"
     echo "Copy: Procfile.dev.example -> Procfile.dev"
+}
+
+setup_puma_rb() {
+    if [[ ! -f "etc/examples/puma.example.rb" ]]; then
+        echo "Skip: etc/examples/puma.example.rb does not exist"
+        return
+    fi
+
+    if [[ -f "etc/puma.rb" || -L "etc/puma.rb" ]]; then
+        echo "OK:   etc/puma.rb (already exists)"
+        return
+    fi
+
+    cp -n "etc/examples/puma.example.rb" "etc/puma.rb"
+    echo "Copy: etc/examples/puma.example.rb -> etc/puma.rb"
 }
 
 # Repair .env.sh if it's a symlink (historical git issue)
@@ -128,6 +139,9 @@ fi
 
 # Copy Procfile.dev from example if not present
 setup_procfile_dev
+
+# Copy puma.rb from example if not present
+setup_puma_rb
 
 # Repair .env.sh before proceeding with other links
 repair_env_sh
