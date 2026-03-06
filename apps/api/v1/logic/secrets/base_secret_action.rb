@@ -15,11 +15,19 @@ module V1::Logic
     #   ttl_options: [30.minutes, 2.hours, 1.day, 7.days]
     #   default_ttl: 7.days
     #
-    # v0.23.x accepted TTL as low as 60s (1 minute). The v0.24 fallback
-    # floor is 30 minutes. The actual floor depends on config.
+    # In practice, the fallback rarely triggers because OT::Config.after_load
+    # deep-merges DEFAULTS into the loaded config. When the YAML sets a key
+    # to nil (e.g. `ttl_options: <%= nil %>`), deep_merge preserves the
+    # DEFAULTS value — so the effective max comes from Config::DEFAULTS
+    # (currently 30.days / 2,592,000s). See Config.deep_merge nil semantics.
     #
-    # Passphrase validation reads from site.secret_options.passphrase
-    # (correct dig path). Min length is config-driven, not hardcoded.
+    # v0.23.x vs v0.24 behavioral differences (not bugs):
+    #   TTL max:         v0.23 used plan.options[:ttl] (14 days for most plans)
+    #                    v0.24 uses config ttl_options.max (30 days from DEFAULTS)
+    #   Passphrase min:  v0.23 hardcoded 8 chars; v0.24 is config-driven
+    #                    (site.secret_options.passphrase.minimum_length)
+    #   Secret keys:     v0.23 generated 31-char keys; v0.24 generates 64-char
+    #                    keys, with shortkey truncation at 8 chars (was 6)
     #
     # The metadata_ttl = 2 * secret_ttl ratio is unchanged from v0.23.x.
     #
@@ -94,11 +102,17 @@ module V1::Logic
       def process_ttl
         @ttl = payload.fetch('ttl', nil)
 
-        # Get configuration options. We can rely on these values existing
-        # because that are guaranteed by OT::Config.after_load.
+        # Config resolution chain:
+        #   1. OT::Config.after_load deep-merges DEFAULTS into loaded YAML
+        #   2. YAML nil values are preserved as DEFAULTS (deep_merge skips nil)
+        #   3. This dig reads the merged result — DEFAULTS wins when YAML is nil
         #
-        # NOTE: These values differ from v2 slightly. Here the minimum is 30
-        # minutes for historical reasons.
+        # The inline fallback hash below only triggers if the entire
+        # site.secret_options key is absent (should not happen after after_load).
+        #
+        # Effective bounds come from Config::DEFAULTS.ttl_options:
+        #   min = 60s, max = 30.days (2,592,000s)
+        # Production instances can override via TTL_OPTIONS env var.
         secret_options = OT.conf.dig('site', 'secret_options') || {
           'default_ttl' => 7.days,
           'ttl_options' => [30.minutes, 2.hours, 1.day, 7.days],
@@ -204,7 +218,11 @@ module V1::Logic
       end
 
       def validate_passphrase
-        # Get passphrase configuration
+        # Reads from site.secret_options.passphrase (merged with DEFAULTS).
+        # DEFAULTS set minimum_length to nil (no minimum enforced).
+        # The config.yaml template defaults to PASSPHRASE_MIN_LENGTH env var
+        # or a literal (e.g. 4 in dev, 8 in config.defaults.yaml).
+        # Production behavior depends on which config template is active.
         passphrase_config = OT.conf.dig('site', 'secret_options', 'passphrase') || {}
 
         # Check if passphrase is required
