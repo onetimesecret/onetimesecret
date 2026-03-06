@@ -25,11 +25,11 @@ There are three ways to run the application locally for development.
 
 ```bash
 brew install overmind          # macOS (one-time)
-bin/setup-dev-links            # Link shared config files (one-time per checkout)
+./install-dev.sh               # Link config files + install gems and packages (one-time per checkout)
 bin/dev                        # Start all processes
 ```
 
-`bin/setup-dev-links` symlinks config files from `~/.config/onetimesecret-dev/` into the checkout (e.g., `etc/config.yaml`, `etc/puma.rb`, `Procfile.dev`). Run it once per checkout or worktree.
+`install-dev.sh` symlinks config files from the directory set by `$OTS_DEV_CONFIG` (default: `~/.config/onetimesecret-dev/`) into the checkout (e.g., `etc/config.yaml`, `etc/puma.rb`, `Procfile.dev`), then runs `bundle install` and `pnpm install`. Run it once per checkout or worktree.
 
 Control individual processes from a separate terminal:
 ```bash
@@ -52,7 +52,7 @@ bin/backend
 bin/frontend
 ```
 
-Both scripts source `.env.sh` automatically if present.
+Both scripts inherit environment variables from the shell or `.env` file (loaded by overmind).
 
 ### Option C: Production-style local
 

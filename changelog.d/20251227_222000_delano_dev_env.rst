@@ -2,7 +2,7 @@ Added
 -----
 
 - Development process manager (``bin/dev``) for single-command startup of backend, frontend, and worker processes using Overmind.
-- Configuration linking script (``bin/setup-dev-links``) to symlink shared dev resources from ``~/.config/onetimesecret-dev``, enabling consistent multi-worktree development.
+- Setup script (``install-dev.sh``) to symlink shared dev resources from ``~/.config/onetimesecret-dev``, run ``bundle install``, and run ``pnpm install``, enabling consistent multi-worktree development.
 - New ``Procfile.dev`` defining development services: Puma backend (port 7143), Vite frontend, and background worker.
 
 Changed
