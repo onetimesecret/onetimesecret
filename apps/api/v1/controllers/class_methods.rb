@@ -86,9 +86,9 @@ module V1
           .uniq
 
         ret = {
-          'custid' => hsh.fetch('custid', nil),
-          'metadata_key' => hsh.fetch('key', nil),
-          'secret_key' => hsh.fetch('secret_key', nil),
+          'custid' => hsh.fetch('owner_id', nil).presence || hsh.fetch('custid', nil),
+          'metadata_key' => md.identifier,
+          'secret_key' => hsh.fetch('secret_identifier', nil).presence || hsh.fetch('secret_key', nil),
           'ttl' => receipt_ttl, # static value from database hash field
           'metadata_ttl' => receipt_realttl, # actual number of seconds left to live
           'secret_ttl' => secret_realttl, # ditto, actual number

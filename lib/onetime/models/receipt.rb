@@ -217,7 +217,7 @@ module Onetime
         secret.share_domain       = domain
         secret.ciphertext         = content
 
-        unless passphrase.nil?
+        unless passphrase.to_s.empty?
           secret.update_passphrase passphrase
           receipt.has_passphrase = true
         end
