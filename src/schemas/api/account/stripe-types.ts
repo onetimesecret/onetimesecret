@@ -12,7 +12,7 @@
  * - Subscription: https://stripe.com/docs/api/subscriptions/object
  */
 
-import { z } from '@/schemas/openapi-setup';
+import { z } from 'zod';
 
 /**
  * Minimal Stripe Customer schema for API documentation
@@ -26,7 +26,7 @@ export const stripeCustomerSchema = z.object({
   currency: z.string().nullable().describe('Customer currency preference'),
   balance: z.number().nullable().describe('Customer account balance'),
   metadata: z.record(z.string(), z.string()).describe('Custom metadata key-value pairs')
-}).openapi('StripeCustomer');
+});
 
 /**
  * Minimal Stripe Subscription schema for API documentation
@@ -65,7 +65,7 @@ export const stripeSubscriptionSchema = z.object({
     }))
   }).describe('Subscription line items'),
   metadata: z.record(z.string(), z.string()).describe('Custom metadata key-value pairs')
-}).openapi('StripeSubscription');
+});
 
 /**
  * Export types for TypeScript
