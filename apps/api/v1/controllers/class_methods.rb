@@ -88,6 +88,10 @@ module V1
         owner_id_val = hsh.fetch('owner_id', nil)
         secret_id_val = hsh.fetch('secret_identifier', nil)
 
+        # Translate v0.24 state values back to v0.23.4 vocabulary for V1 clients
+        v1_state_map = { 'previewed' => 'viewed', 'revealed' => 'received', 'shared' => 'new' }.freeze
+        raw_state = hsh.key?('state') ? hsh['state'] : 'new'
+
         ret = {
           'custid' => (owner_id_val && !owner_id_val.empty? ? owner_id_val : hsh.fetch('custid', nil)),
           'metadata_key' => md.identifier,
@@ -95,12 +99,12 @@ module V1
           'ttl' => receipt_ttl, # static value from database hash field
           'metadata_ttl' => receipt_realttl, # actual number of seconds left to live
           'secret_ttl' => secret_realttl, # ditto, actual number
-          'state' => hsh.key?('state') ? hsh['state'] : 'new',
+          'state' => v1_state_map.fetch(raw_state, raw_state),
           'updated' => hsh.fetch('updated', nil)&.to_i,
           'created' => hsh.fetch('created', nil)&.to_i,
           'received' => hsh.fetch('received', nil).to_i, # empty fields become 0
           'recipient' => recipient.compact,
-          'share_domain' => hsh.fetch('share_domain', nil),
+          'share_domain' => hsh.fetch('share_domain', nil) || '',
         }
 
         if ret['state'] == 'received'
