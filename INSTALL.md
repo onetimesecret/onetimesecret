@@ -11,9 +11,9 @@ This guide covers detailed installation methods for Onetime Secret, including ma
 - **OS**: Recent Linux distro (Debian recommended), BSD, or macOS
 
 ### Required Dependencies
-- **Ruby**: 3.1+ (3.0 may work but unsupported)
-- **Redis**: 5.0+
-- **Node.js**: 22+ (for frontend development)
+- **Ruby**: 3.4.7+ (required by Gemfile)
+- **Redis**: 5.0+ or **Valkey**: 8.0+
+- **Node.js**: 22+ (for building frontend assets)
 - **pnpm**: 9.0.0+
 
 ### System Packages
@@ -122,16 +122,25 @@ docker logs redis-onetime
    sudo apt install -y \
      git curl build-essential \
      libyaml-dev libffi-dev \
-     redis-server \
-     ruby3.1 ruby3.1-dev
+     redis-server
    ```
 
-3. **Install package managers:**
-   ```bash
-   # Install Bundler
-   sudo gem install bundler
+3. **Install Ruby 3.4.7+:**
 
-   # Install Node.js
+   Debian/Ubuntu system packages typically ship older Ruby versions.
+   Use a version manager like [rbenv](https://github.com/rbenv/rbenv) or [mise](https://mise.jdx.dev/):
+   ```bash
+   # With rbenv:
+   rbenv install 3.4.7
+   rbenv global 3.4.7
+
+   # Then install Bundler:
+   gem install bundler
+   ```
+
+4. **Install Node.js 22+ and pnpm:**
+   ```bash
+   # Install Node.js (via NodeSource or a version manager)
    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
    sudo apt install -y nodejs
 
@@ -139,7 +148,7 @@ docker logs redis-onetime
    sudo npm install -g pnpm@latest
    ```
 
-4. **Start Redis:**
+5. **Start Redis:**
    ```bash
    sudo service redis-server start
    ```
@@ -179,25 +188,25 @@ Best for production deployments:
 
 1. **Build frontend assets:**
    ```bash
-   pnpm run build:local
+   pnpm run build
    ```
 
-2. **Set development mode to false in config.yaml:**
-   ```yaml
-   :development:
-     :enabled: false
-   ```
-
-3. **Start server:**
+2. **Start server:**
    ```bash
-   RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
+   RACK_ENV=production bundle exec puma -C etc/examples/puma.example.rb
+   ```
+
+   To customize Puma settings, copy the example config first:
+   ```bash
+   cp -np etc/examples/puma.example.rb etc/puma.rb
+   RACK_ENV=production bundle exec puma -C etc/puma.rb
    ```
 
 #### Development Mode
 For backend development without frontend changes:
 
 ```bash
-RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
+RACK_ENV=development bundle exec puma -C etc/examples/puma.example.rb
 ```
 
 #### Frontend Development Mode
@@ -212,7 +221,7 @@ For active frontend development with live reloading:
 
 2. **Start main server:**
    ```bash
-   RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
+   RACK_ENV=development bundle exec puma -C etc/examples/puma.example.rb
    ```
 
 3. **Start Vite dev server (separate terminal):**
@@ -286,7 +295,7 @@ dd if=/dev/urandom bs=32 count=1 2>/dev/null | xxd -p -c 32
 
 ### Debug Mode
 ```bash
-ONETIME_DEBUG=true bundle exec thin -e dev start
+ONETIME_DEBUG=true RACK_ENV=development bundle exec puma -C etc/examples/puma.example.rb
 ```
 
 ### Pre-commit Hooks
@@ -351,8 +360,8 @@ For production deployment details, see the main [Dockerfile](./Dockerfile) and p
 **Ruby version conflicts:**
 ```bash
 # Use rbenv or rvm to manage Ruby versions
-rbenv install 3.1.0
-rbenv global 3.1.0
+rbenv install 3.4.7
+rbenv global 3.4.7
 ```
 
 **Permission errors:**

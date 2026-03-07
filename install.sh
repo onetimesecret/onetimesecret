@@ -24,7 +24,13 @@ check_version() {
 
   required=$(version_from "$file")
   if [[ -z "$required" ]]; then
-    warn "$name version check skipped ($(basename "$file") not found)"
+    if has "$cmd"; then
+      local detected
+      detected=$(eval "$extractor")
+      info "$name $detected (no $(basename "$file") to pin against)"
+    else
+      warn "$name not found and no $(basename "$file") to check"
+    fi
     return 0
   fi
 
@@ -42,7 +48,13 @@ check_version_major() {
 
   required=$(version_from "$file" | sed 's/^v//' | cut -d. -f1)
   if [[ -z "$required" ]]; then
-    warn "$name version check skipped ($(basename "$file") not found)"
+    if has "$cmd"; then
+      local detected
+      detected=$(eval "$extractor" | sed 's/^v//')
+      info "$name $detected (no $(basename "$file") to pin against)"
+    else
+      warn "$name not found and no $(basename "$file") to check"
+    fi
     return 0
   fi
 
@@ -121,6 +133,10 @@ cmd_init() {
   check_version "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"'
   check_version_major "Node" node .nvmrc 'node -v'
 
+  # Install dependencies first — bundle exec is needed for subsequent steps
+  install_gems
+  install_node
+
   bundle exec rake ots:env:setup
 
   local mode
@@ -137,7 +153,13 @@ cmd_init() {
     echo ""
   fi
 
-  cmd_reconcile
+  info "Re-deriving child keys from SECRET..."
+  DERIVE=1 bundle exec rake ots:secrets
+
+  if [[ "$mode" == "full" ]]; then
+    info "Re-applying RabbitMQ policies and queue declarations..."
+    bin/ots queue init --force
+  fi
 
   bundle exec bin/ots install mark > /dev/null
   info "Environment initialized (onetime:install:init_count incremented)"
