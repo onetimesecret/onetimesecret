@@ -4,14 +4,15 @@
 
 require_relative '../base'
 require_relative '../../../../../lib/onetime/jobs/publisher'
+require_relative '../../../../../lib/onetime/incoming/recipient_resolver'
 
 module V3
   module Logic
     module Incoming
       # Creates a secret from an incoming request and notifies the recipient.
       #
-      # This is used by anonymous users to send secrets to pre-configured
-      # recipients. The recipient receives an email notification.
+      # Domain-aware: uses RecipientResolver to look up recipients from
+      # either global config (canonical) or per-domain config (custom).
       #
       # @example Request
       #   POST /api/v3/incoming/secret
@@ -52,8 +53,8 @@ module V3
           # Extract recipient hash instead of email
           @recipient_hash = sanitize_identifier(@payload['recipient'].to_s.strip)
 
-          # Look up actual email from hash
-          @recipient_email = OT.lookup_incoming_recipient(@recipient_hash)
+          # Look up actual email from hash via domain-aware resolver
+          @recipient_email = resolver.lookup(@recipient_hash)
 
           Onetime.secret_logger.debug "[IncomingSecret] Recipient hash: #{@recipient_hash} -> #{@recipient_email ? OT::Utils.obscure_email(@recipient_email) : 'not found'}"
 
@@ -65,9 +66,8 @@ module V3
         end
 
         def raise_concerns
-          # Check if feature is enabled
-          incoming_config = OT.conf.dig('features', 'incoming') || {}
-          unless incoming_config['enabled']
+          # Check if feature is enabled (domain-aware)
+          unless resolver.enabled?
             raise_form_error 'Incoming secrets feature is not enabled'
           end
 
@@ -128,6 +128,13 @@ module V3
         end
 
         private
+
+        def resolver
+          @resolver ||= Onetime::Incoming::RecipientResolver.new(
+            domain_strategy: domain_strategy,
+            display_domain: display_domain,
+          )
+        end
 
         def create_and_encrypt_secret
           # Use Receipt.spawn_pair to create linked secret and receipt
