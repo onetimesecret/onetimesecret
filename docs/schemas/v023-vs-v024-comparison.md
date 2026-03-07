@@ -1,6 +1,166 @@
 # Zod Schema Comparison: v0.23 → v0.24
 
 > Comparing `rel/0.23` (v0.23) and `main` (v0.24) schema surfaces.
+>
+> **How to read this document**: Start wherever makes sense for you.
+> - Visual thinker? Start with the [Schema Dependency Graph](#schema-dependency-graph) and [Change Heatmap](#change-heatmap)
+> - Need the big picture? Start with [Migration Vectors](#migration-vectors)
+> - Looking for a specific entity? Use the [Cross-Reference Matrix](#cross-reference-matrix)
+> - Want the executive summary? Jump to [Summary of Breaking Changes](#summary-of-breaking-changes)
+
+---
+
+## Quick Orientation
+
+### Change Heatmap
+
+Where did the change energy go? Sized by magnitude of change:
+
+```
+                        v0.23 → v0.24 Change Density
+  ┌─────────────────────────────────────────────────────────┐
+  │                                                         │
+  │  ████████████████████  config/ (16 NEW files)           │
+  │  ██████████████        colonel (3 → 20+ schemas)        │
+  │  ████████████          metadata → receipt (full rename)  │
+  │  ██████████            customer (billing extraction)    │
+  │  ████████              api/base (REST semantics)        │
+  │  ██████                auth endpoints (5 NEW)           │
+  │  ██████                organizations (7 NEW)            │
+  │  █████                 ui/ (5 NEW files)                │
+  │  ████                  secret (state terminology)       │
+  │  ███                   public (slimmed)                 │
+  │  ██                    conceal (metadata→receipt)       │
+  │  ██                    recent (scope filtering)         │
+  │  █                     account (Stripe loosened)        │
+  │  ░                     transforms (Zod v4 tweaks)       │
+  │  ░                     base, feedback (identical)       │
+  │  ░                     payloads (identical)             │
+  │                                                         │
+  └─────────────────────────────────────────────────────────┘
+```
+
+### Migration Vectors
+
+Five forces drove v0.23 → v0.24. Every change traces back to one of these:
+
+```
+  ┌──────────────────────────────────────────────────────────────────┐
+  │                                                                  │
+  │  1. MULTI-TENANCY          Customer billing → Organization       │
+  │     ├── customer loses plan/stripe fields                        │
+  │     ├── organization model (NEW)                                 │
+  │     ├── billing model + config/billing.ts (NEW)                  │
+  │     └── colonel gets org management schemas                      │
+  │                                                                  │
+  │  2. TERMINOLOGY CLEANUP    metadata → receipt, viewed → previewed│
+  │     ├── models/metadata.ts → models/receipt.ts                   │
+  │     ├── secret states: +REVEALED, +PREVIEWED                     │
+  │     ├── shortkey → shortid                                       │
+  │     ├── custid → user_id (API) / objid+extid (model)            │
+  │     └── all downstream: conceal, recent, responses               │
+  │                                                                  │
+  │  3. API MODERNIZATION      success boolean → HTTP status codes   │
+  │     ├── api/base.ts → api/v3/base.ts                            │
+  │     ├── error codes: number → string                             │
+  │     ├── flat endpoints/ → domain-grouped api/{domain}/           │
+  │     └── Rodauth auth endpoints (NEW)                             │
+  │                                                                  │
+  │  4. CONFIG VALIDATION      Runtime config gets schema coverage   │
+  │     ├── config/ (16 NEW files)                                   │
+  │     ├── systemSettings extracted from colonel → config/config.ts │
+  │     └── auth, billing, logging configs (NEW)                     │
+  │                                                                  │
+  │  5. ADMIN EXPANSION        Colonel gets full observability       │
+  │     ├── users, secrets (paginated lists)                         │
+  │     ├── database/redis metrics                                   │
+  │     ├── banned IPs, usage export                                 │
+  │     ├── queue metrics                                            │
+  │     └── org billing investigation                                │
+  │                                                                  │
+  └──────────────────────────────────────────────────────────────────┘
+```
+
+### Schema Dependency Graph
+
+How schemas compose — read top-down for "depends on", bottom-up for "used by":
+
+```
+                    ┌─────────────────┐
+                    │  baseModelSchema │
+                    │  (base.ts)       │
+                    └────────┬────────┘
+                             │ .extend()
+              ┌──────────────┼──────────────┐
+              ▼              ▼              ▼
+        ┌───────────┐ ┌───────────┐ ┌──────────────┐
+        │ secretBase│ │receiptBase│ │ customerSchema│
+        │  Schema   │ │  Schema   │ │              │
+        └─────┬─────┘ └─────┬─────┘ └──────┬───────┘
+              │              │              │
+     ┌────────┤        ┌─────┤              │
+     ▼        ▼        ▼     ▼              ▼
+  ┌──────┐┌──────┐┌──────┐┌──────┐   ┌──────────┐
+  │secret││secret││receipt││receipt│   │ account  │
+  │Schema││Resps ││Schema││Recs  │   │ Schema   │
+  └──┬───┘└──────┘└──┬───┘└──────┘   └──────────┘
+     │               │
+     └───────┬───────┘
+             ▼
+      ┌─────────────┐        ┌─────────────────────┐
+      │ concealData  │        │  responseSchemas     │
+      │ Schema       │───────▶│  (registry of all    │
+      └─────────────┘        │   response types)    │
+                              └─────────────────────┘
+                                       ▲
+                 ┌─────────────────────┤
+                 │                     │
+          ┌──────┴──────┐    ┌─────────┴──────┐
+          │ auth        │    │ colonel        │
+          │ responses   │    │ schemas        │
+          │ (v0.24 NEW) │    │ (v0.24 expand) │
+          └─────────────┘    └────────────────┘
+```
+
+### Cross-Reference Matrix
+
+For any entity, find its model schema, API endpoint, payload, and response type:
+
+```
+  Entity        │ Model Schema      │ API Endpoint           │ Payload        │ Response Key
+  ══════════════╪═══════════════════╪════════════════════════╪════════════════╪══════════════
+  Secret        │ models/secret     │ v3/endpoints/conceal   │ payloads/      │ secret,
+                │                   │                        │  conceal,      │ secretList,
+                │                   │                        │  generate      │ concealData
+  ──────────────┼───────────────────┼────────────────────────┼────────────────┼──────────────
+  Receipt       │ models/receipt    │ account/endpoints/     │ —              │ receipt,
+  (was Metadata)│ (was metadata)    │  recent                │                │ receiptList
+  ──────────────┼───────────────────┼────────────────────────┼────────────────┼──────────────
+  Customer      │ models/customer   │ account/endpoints/     │ —              │ customer,
+                │                   │  account               │                │ checkAuth
+  ──────────────┼───────────────────┼────────────────────────┼────────────────┼──────────────
+  Organization  │ models/           │ organizations/         │ —              │ (custom)
+  (v0.24 NEW)   │  organization     │  endpoints/orgs        │                │
+  ──────────────┼───────────────────┼────────────────────────┼────────────────┼──────────────
+  Auth          │ models/auth       │ auth/endpoints/auth    │ —              │ login,
+  (v0.24 NEW)   │                   │                        │                │ createAccount,
+                │                   │                        │                │ logout, ...
+  ──────────────┼───────────────────┼────────────────────────┼────────────────┼──────────────
+  Domain        │ models/domain/*   │ (via colonel)          │ —              │ customDomain,
+                │                   │                        │                │ customDomainList
+  ──────────────┼───────────────────┼────────────────────────┼────────────────┼──────────────
+  Billing       │ models/billing    │ (via account +         │ —              │ account
+  (v0.24 NEW)   │ config/billing    │  organizations)        │                │
+  ──────────────┼───────────────────┼────────────────────────┼────────────────┼──────────────
+  Feedback      │ models/feedback   │ (inline)               │ —              │ feedback
+  ──────────────┼───────────────────┼────────────────────────┼────────────────┼──────────────
+  Jurisdiction  │ models/           │ (inline)               │ —              │ jurisdiction
+                │  jurisdiction     │                        │                │
+  ──────────────┼───────────────────┼────────────────────────┼────────────────┼──────────────
+  Settings      │ models/public     │ account/endpoints/     │ —              │ systemSettings
+  (public +     │ config/config     │  colonel               │                │
+   system)      │                   │                        │                │
+```
 
 ---
 
@@ -89,6 +249,8 @@ No changes. `baseModelSchema` has `{ identifier, created, updated }` with `creat
 
 **Key change**: State terminology migration — `viewed→previewed`, `received→revealed` (both old and new values accepted). Field rename `shortkey→shortid`. Removed `is_truncated` from base.
 
+**Why this matters**: The state rename reflects a conceptual clarification. "Viewed" was ambiguous — did the recipient see the secret link or the secret content? v0.24 disambiguates: `previewed` = link accessed (confirmation page), `revealed` = content decrypted. This distinction is critical for audit trails and receipt state machines.
+
 ---
 
 ### 2.3 `models/metadata.ts` (v0.23) → `models/receipt.ts` (v0.24)
@@ -115,6 +277,17 @@ This is the biggest model rename in the migration.
 | `maxviews, has_maxviews` | REMOVED |
 | `show_metadata_link, show_metadata` | `show_receipt_link, show_receipt` |
 
+**Rename ripple effect** — this rename propagates through:
+```
+  metadata.ts ──renamed──▶ receipt.ts
+       │
+       ├──▶ conceal endpoint:  metadata: metadataSchema  →  receipt: concealReceiptSchema
+       ├──▶ recent endpoint:   metadataRecordsSchema     →  receiptRecordsSchema
+       ├──▶ responses:         metadata, metadataList    →  receipt, receiptList
+       ├──▶ colonel stats:     metadata_count            →  receipt_count
+       └──▶ colonel info:      metadata_count            →  receipt_count
+```
+
 ---
 
 ### 2.4 `models/customer.ts`
@@ -130,6 +303,17 @@ This is the biggest model rename in the migration.
 | **Import** | `import { planSchema } from './plan'` | No plan import |
 
 **Key change**: Customer is now a leaner entity. Billing/plan/Stripe fields moved to the organization level. Dual-ID pattern (`objid` + `extid`) replaces single `custid`.
+
+**Architectural shift** — where billing responsibility lives:
+```
+  v0.23:  Customer ──has──▶ Plan ──has──▶ Stripe IDs
+                    (1:1 embedded)
+
+  v0.24:  Customer ──belongs to──▶ Organization ──has──▶ Subscription
+                                        │                    │
+                                        ├── Plan (via catalog)│
+                                        └── Stripe IDs ──────┘
+```
 
 ---
 
@@ -175,6 +359,27 @@ v0.24 replaces this with a comprehensive billing catalog system in `config/billi
 
 **Key change**: v0.24 drops the `success` boolean — uses pure REST semantics with HTTP status codes. Error codes changed from numeric to string-based machine-readable codes.
 
+**API response evolution**:
+```
+  v0.23 response shape:           v0.24 response shape:
+  ┌─────────────────────┐         ┌─────────────────────┐
+  │ success: true       │         │                     │
+  │ custid: "abc123"    │         │ user_id: "abc123"   │
+  │ shrimp: "csrf_tok"  │         │ shrimp: "csrf_tok"  │
+  │ record: { ... }     │         │ record: { ... }     │
+  │ details: { ... }    │         │ details: { ... }    │
+  └─────────────────────┘         └─────────────────────┘
+
+  v0.23 error shape:              v0.24 error shape:
+  ┌─────────────────────┐         ┌───────────────────────────┐
+  │ success: false      │         │                           │
+  │ message: "Not found"│         │ message: "Not found"      │
+  │ code: 404           │         │ code: "NOT_FOUND"         │
+  │ record: null        │         │ details: { ... }          │
+  └─────────────────────┘         └───────────────────────────┘
+                                  (HTTP 404 carries the status)
+```
+
 ---
 
 ### 2.9 `api/endpoints/conceal.ts` → `api/v3/endpoints/conceal.ts`
@@ -208,19 +413,17 @@ v0.24 massively expands the colonel schemas:
 | `colonelStatsDetailsSchema` | Same (`metadata_count` → `receipt_count`) |
 | `colonelInfoDetailsSchema` | Same (`redis_info` → `dbclient_info`, `plans_enabled` → `billing_enabled`, `metadata_count` → `receipt_count`) |
 
-**New in v0.24**:
-- `colonelUserSchema` + `colonelUsersDetailsSchema` (paginated user list)
-- `colonelSecretSchema` + `colonelSecretsDetailsSchema` (paginated secret list)
-- `databaseMetricsDetailsSchema` (Redis INFO + memory stats)
-- `redisMetricsDetailsSchema` (raw Redis INFO)
-- `bannedIPSchema` + `bannedIPsDetailsSchema`
-- `usageExportDetailsSchema` (date ranges, daily stats)
-- `colonelCustomDomainSchema` + `colonelCustomDomainsDetailsSchema`
-- `colonelOrganizationSchema` + `colonelOrganizationsDetailsSchema` (with billing sync health)
-- `investigateOrganizationResultSchema` (billing investigation with Stripe comparison)
-- `queueMetricSchema` + `queueMetricsDetailsSchema` (message queue health)
-- `paginationSchema` (shared pagination metadata)
-- `systemSettingsSchema` extracted to `config/config.ts` (much richer)
+**New in v0.24** (grouped by concern):
+
+```
+  Observability                    Management                   Investigation
+  ─────────────                    ──────────                   ─────────────
+  databaseMetricsDetails           colonelUsersDetails          investigateOrganization
+  redisMetricsDetails              colonelSecretsDetails          ├── localState
+  queueMetricsDetails              colonelCustomDomainsDetails    ├── stripeState
+  usageExportDetails               colonelOrganizationsDetails    └── comparison
+  bannedIPsDetails                 paginationSchema
+```
 
 ---
 
@@ -269,29 +472,46 @@ Minimal changes — mainly Zod v4 API adjustments.
 
 ## Summary of Breaking Changes
 
-### Naming
-1. `metadata` → `receipt` (model, schema names, types, paths)
-2. `shortkey` → `shortid` (secret and receipt)
-3. `secret_shortkey` → `secret_shortid`
-4. `custid` → `user_id` (API responses)
-5. `custid` → `objid` + `extid` (customer model)
-6. `metadata_ttl` → `receipt_ttl`
-7. `metadata_path/url` → `receipt_path/url`
-8. `cluster_ip/host/name` → `proxy_ip/host/name`
+### Field Renames (find-and-replace scope)
 
-### Structural
+```
+  v0.23 name              →  v0.24 name              Where
+  ────────────────────────────────────────────────────────────
+  metadata                →  receipt                  everywhere
+  shortkey                →  shortid                  secret, receipt
+  secret_shortkey         →  secret_shortid           receipt
+  custid (API response)   →  user_id                  api/base
+  custid (customer model) →  objid + extid            models/customer
+  metadata_ttl            →  receipt_ttl              receipt
+  metadata_path/url       →  receipt_path/url         receipt
+  cluster_ip/host/name    →  proxy_ip/host/name       public settings
+  secret_key (receipt)    →  secret_identifier        receipt
+  redis_info (colonel)    →  dbclient_info            colonel
+  plans_enabled           →  billing_enabled          colonel
+  planid (recentCustomer) →  (removed)                colonel
+```
+
+### Structural Changes
+
 1. `success` boolean removed from API responses (pure REST)
 2. Error `code` changed from number to string
 3. Plan/Stripe fields removed from customer (org-level now)
 4. API endpoints reorganized: flat `api/endpoints/` → domain-grouped `api/account/`, `api/auth/`, `api/organizations/`, `api/v3/`
 5. `is_truncated` removed from secret base
+6. `maxviews`, `has_maxviews` removed from receipt details
 
 ### State Terminology
-1. `viewed` → `previewed` (link accessed)
-2. `received` → `revealed` (content consumed)
-3. Old values kept for backward compat during migration
 
-### Zod v4 Usage
+```
+  v0.23 state   →  v0.24 state      Meaning
+  ────────────────────────────────────────────────
+  viewed        →  previewed        Link accessed, confirmation page shown
+  received      →  revealed         Secret content decrypted/consumed
+  (old values kept in schema enum for backward compat during migration)
+```
+
+### Zod v4 API Changes
+
 1. `z.string().email()` → `z.email()`
-2. Type predicates in refinements
+2. Type predicates in refinements: `(val): val is Date =>`
 3. `import { z } from 'zod/v4'` in some files (colonel)
