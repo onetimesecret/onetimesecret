@@ -23,11 +23,13 @@ module V1::Logic
     #
     # v0.23.x vs v0.24 behavioral differences (not bugs):
     #   TTL max:         v0.23 used plan.options[:ttl] (14 days for most plans)
-    #                    v0.24 uses config ttl_options.max (30 days from DEFAULTS)
+    #                    v0.24 resolves org from customer for plan-aware limits:
+    #                    14 days free tier, 30 days paid/billing-disabled.
     #   Passphrase min:  v0.23 hardcoded 8 chars; v0.24 is config-driven
     #                    (site.secret_options.passphrase.minimum_length)
     #   Secret keys:     v0.23 generated 31-char keys; v0.24 generates 64-char
-    #                    keys, with shortkey truncation at 8 chars (was 6)
+    #                    keys (intentional — more secure algorithm), with
+    #                    shortkey truncation at 8 chars (was 6)
     #
     # The metadata_ttl = 2 * secret_ttl ratio is unchanged from v0.23.x.
     #
@@ -123,14 +125,16 @@ module V1::Logic
         # Get min/max values safely
         min_ttl = ttl_options.min || 30.minutes
 
-        # Limit enforcement: fail-open (unlimited) when no billing, else plan limit.
-        # Note: V1 logic doesn't include OrganizationContext, so org may be undefined.
+        # Limit enforcement: plan-aware TTL cap.
+        # V1 logic doesn't include OrganizationContext, so we resolve the
+        # customer's org directly to check plan limits. Falls back to
+        # config_max when billing is disabled (self-hosted fail-open).
         config_max = ttl_options.max || 30.days
         max_ttl = if respond_to?(:org) && org&.respond_to?(:limit_for)
                     org_limit = org.limit_for('secret_lifetime')
                     org_limit.positive? ? org_limit : config_max
                   else
-                    config_max
+                    resolve_ttl_limit(config_max)
                   end
 
         # Apply default if nil
@@ -272,6 +276,47 @@ module V1::Logic
       end
 
       private
+
+      # Resolve max TTL when OrganizationContext is not available (V1).
+      #
+      # Looks up the customer's organization to check plan-based limits.
+      # Billing-disabled (self-hosted) deployments get config_max (30 days).
+      # Billing-enabled free/anonymous users get the free tier limit (14 days).
+      #
+      # @param config_max [Integer] Fallback from config ttl_options.max
+      # @return [Integer] Maximum TTL in seconds
+      def resolve_ttl_limit(config_max)
+        billing_enabled = begin
+          Onetime::BillingConfig.instance.enabled?
+        rescue StandardError
+          false
+        end
+
+        # Billing disabled (self-hosted): fail-open at config max
+        return config_max unless billing_enabled
+
+        # Anonymous users: free tier limit
+        if cust.nil? || cust.anonymous?
+          free_max = Onetime::Models::Features::WithEntitlements
+                       .free_tier_limits['secret_lifetime.max']
+          return free_max.positive? ? free_max : config_max
+        end
+
+        # Authenticated: look up customer's org for plan-based limit
+        resolved_org = cust.organization_instances.to_a.first
+        if resolved_org&.respond_to?(:limit_for)
+          org_limit = resolved_org.limit_for('secret_lifetime')
+          return org_limit.positive? ? [org_limit, config_max].min : config_max
+        end
+
+        # No org found (edge case): fall back to free tier limit
+        free_max = Onetime::Models::Features::WithEntitlements
+                     .free_tier_limits['secret_lifetime.max']
+        free_max.positive? ? free_max : config_max
+      rescue StandardError => e
+        OT.ld "[BaseSecretAction] TTL limit resolution failed: #{e.message}"
+        config_max
+      end
 
       # Creates the receipt/secret pair using the modern Metadata.spawn_pair API.
       #

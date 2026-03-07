@@ -200,7 +200,7 @@ tests:
     type: edge
     covers: [limit_for('secret_lifetime'), TTL controls]
     notes: |
-      FREE_TIER_LIMITS['secret_lifetime.max'] = 604800 (7 days).
+      FREE_TIER_LIMITS['secret_lifetime.max'] = 1209600 (14 days).
       BaseSecretAction uses org.limit_for('secret_lifetime') for max TTL.
 
   # ---------------------------------------------------------------------------
