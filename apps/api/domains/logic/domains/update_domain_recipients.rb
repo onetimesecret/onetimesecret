@@ -109,8 +109,8 @@ module DomainsAPI::Logic
             raise_form_error "Recipient at index #{i} requires an email"
           end
 
-          unless email.match?(/\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i)
-            raise_form_error "Invalid email format for recipient at index #{i}"
+          unless valid_email?(email)
+            raise_form_error "Invalid email for recipient at index #{i}"
           end
         end
       end
