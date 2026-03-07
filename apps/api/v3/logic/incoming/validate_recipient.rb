@@ -3,14 +3,15 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative '../../../../../lib/onetime/incoming/recipient_resolver'
 
 module V3
   module Logic
     module Incoming
       # Validates that a recipient hash exists in our configured recipients.
       #
-      # Used by the frontend to verify a recipient selection before
-      # submitting the full secret creation request.
+      # Domain-aware: uses RecipientResolver to check recipients from
+      # either global config (canonical) or per-domain config (custom).
       #
       # @example Request
       #   POST /api/incoming/validate
@@ -32,9 +33,8 @@ module V3
         end
 
         def raise_concerns
-          # Check if feature is enabled
-          incoming_config = OT.conf.dig('features', 'incoming') || {}
-          unless incoming_config['enabled']
+          # Check if feature is enabled (domain-aware)
+          unless resolver.enabled?
             raise_form_error 'Incoming secrets feature is not enabled'
           end
 
@@ -42,8 +42,8 @@ module V3
         end
 
         def process
-          # Validate that the hash exists in our lookup table
-          @is_valid     = !OT.lookup_incoming_recipient(recipient_hash).nil?
+          # Validate that the hash exists via domain-aware resolver
+          @is_valid     = !resolver.lookup(recipient_hash).nil?
           @greenlighted = true
           success_data
         end
@@ -53,6 +53,15 @@ module V3
             recipient: recipient_hash,
             valid: is_valid,
           }
+        end
+
+        private
+
+        def resolver
+          @resolver ||= Onetime::Incoming::RecipientResolver.new(
+            domain_strategy: domain_strategy,
+            display_domain: display_domain,
+          )
         end
       end
     end

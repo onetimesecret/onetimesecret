@@ -1,0 +1,112 @@
+# lib/onetime/incoming/recipient_resolver.rb
+#
+# frozen_string_literal: true
+
+module Onetime
+  module Incoming
+    # Domain-aware recipient resolution for incoming secrets.
+    #
+    # Enforces the "no fallback" rule: canonical domains use global
+    # boot-time recipients; custom domains use per-domain Redis config.
+    # The two systems never intermix.
+    #
+    # @example Canonical domain
+    #   resolver = RecipientResolver.new(domain_strategy: :canonical)
+    #   resolver.enabled?           # => true (if YAML config enabled)
+    #   resolver.public_recipients  # => global boot-time list
+    #
+    # @example Custom domain
+    #   resolver = RecipientResolver.new(domain_strategy: :custom, display_domain: "secrets.acme.com")
+    #   resolver.enabled?           # => true (if domain has recipients configured)
+    #   resolver.public_recipients  # => per-domain hashed list
+    #
+    class RecipientResolver
+      def initialize(domain_strategy:, display_domain: nil)
+        @domain_strategy = domain_strategy&.to_sym
+        @display_domain = display_domain
+      end
+
+      # Check if incoming secrets are enabled for this domain context
+      #
+      # @return [Boolean]
+      def enabled?
+        case @domain_strategy
+        when :canonical, nil
+          incoming_config['enabled'] || false
+        when :custom
+          custom_domain_record&.incoming_secrets_config&.has_incoming_recipients? || false
+        else
+          false
+        end
+      end
+
+      # Returns hashed recipients list for frontend display
+      #
+      # @return [Array<Hash>] Array of {hash:, name:} hashes
+      def public_recipients
+        case @domain_strategy
+        when :canonical, nil
+          OT.incoming_public_recipients # Global boot-time hashed list
+        when :custom
+          custom_domain_record&.incoming_secrets_config&.public_incoming_recipients(site_secret) || []
+        else
+          []
+        end
+      end
+
+      # Look up email from recipient hash
+      #
+      # @param hash_key [String] The recipient hash
+      # @return [String, nil] Email address if found
+      def lookup(hash_key)
+        case @domain_strategy
+        when :canonical, nil
+          OT.lookup_incoming_recipient(hash_key) # Global boot-time lookup
+        when :custom
+          custom_domain_record&.incoming_secrets_config&.lookup_incoming_recipient(hash_key, site_secret)
+        else
+          nil
+        end
+      end
+
+      # Returns full config data for GetConfig API response
+      #
+      # For custom domains, uses per-domain settings when available,
+      # falling back to global defaults for non-recipient config.
+      #
+      # @return [Hash] Config data for API response
+      def config_data
+        config = custom_domain_config
+        {
+          enabled: enabled?,
+          memo_max_length: config&.memo_max_length || incoming_config['memo_max_length'] || 50,
+          default_ttl: config&.default_ttl || incoming_config['default_ttl'] || 604_800,
+          recipients: public_recipients,
+        }
+      end
+
+      private
+
+      def incoming_config
+        OT.conf.dig('features', 'incoming') || {}
+      end
+
+      def site_secret
+        OT.conf.dig('site', 'secret')
+      end
+
+      def custom_domain_record
+        return nil unless @display_domain
+
+        @custom_domain_record ||= Onetime::CustomDomain.from_display_domain(@display_domain)
+      end
+
+      # Returns IncomingSecretsConfig only for custom domains
+      def custom_domain_config
+        return nil unless @domain_strategy == :custom
+
+        custom_domain_record&.incoming_secrets_config
+      end
+    end
+  end
+end

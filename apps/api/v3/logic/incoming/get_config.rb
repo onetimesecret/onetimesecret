@@ -3,17 +3,15 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative '../../../../../lib/onetime/incoming/recipient_resolver'
 
 module V3
   module Logic
     module Incoming
       # Returns the incoming secrets configuration for the frontend.
       #
-      # This includes:
-      # - Whether the feature is enabled
-      # - Maximum memo length
-      # - Default TTL
-      # - List of available recipients (hashed, not actual emails)
+      # Domain-aware: canonical domains return global YAML recipients;
+      # custom domains return per-domain Redis recipients.
       #
       # @example Response
       #   {
@@ -46,17 +44,14 @@ module V3
         end
 
         def process
-          incoming_config = OT.conf.dig('features', 'incoming') || {}
+          resolver = Onetime::Incoming::RecipientResolver.new(
+            domain_strategy: domain_strategy,
+            display_domain: display_domain,
+          )
 
-          # Use hashed recipients to prevent email exposure
-          @config_data = {
-            enabled: incoming_config['enabled'] || false,
-            memo_max_length: incoming_config['memo_max_length'] || 50,
-            default_ttl: incoming_config['default_ttl'] || 604_800,
-            recipients: OT.incoming_public_recipients, # Returns hashed version
-          }
+          @config_data = resolver.config_data
 
-          Onetime.secret_logger.debug "[IncomingConfig] Returning #{@config_data[:recipients].size} recipients (hashed)"
+          Onetime.secret_logger.debug "[IncomingConfig] Returning #{@config_data[:recipients].size} recipients (hashed) for #{domain_strategy || 'default'}"
 
           @greenlighted = true
 
