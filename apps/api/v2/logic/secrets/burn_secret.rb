@@ -102,10 +102,8 @@ module V2::Logic
             share_path: build_path(:secret, receipt.secret_identifier),
             burn_path: build_path(:receipt, receipt.identifier, 'burn'),
             receipt_path: build_path(:receipt, receipt.identifier),
-            metadata_path: build_path(:receipt, receipt.identifier), # maintain public API
             share_url: build_url(domain_uri, build_path(:secret, receipt.secret_identifier)),
             receipt_url: build_url(domain_uri, build_path(:receipt, receipt.identifier)),
-            metadata_url: build_url(domain_uri, build_path(:receipt, receipt.identifier)), # maintain public API
             burn_url: build_url(domain_uri, build_path(:receipt, receipt.identifier, 'burn')),
           },
         )

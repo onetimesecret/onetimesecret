@@ -39,11 +39,9 @@ module V2::Logic
         :share_path,
         :burn_path,
         :receipt_path,
-        :metadata_path,
         :share_url,
         :is_expired,
         :receipt_url,
-        :metadata_url,
         :burn_url,
         :display_lines
 
@@ -236,10 +234,8 @@ module V2::Logic
             share_path: share_path,
             burn_path: burn_path,
             receipt_path: receipt_path,
-            metadata_path: metadata_path, # maintain public API
             share_url: share_url,
             receipt_url: receipt_url,
-            metadata_url: metadata_url, # maintain public API
             burn_url: burn_url,
           },
         )
@@ -269,10 +265,8 @@ module V2::Logic
         @share_path    = build_path(:secret, secret_identifier)
         @burn_path     = build_path(:receipt, receipt_identifier, 'burn')
         @receipt_path  = build_path(:receipt, receipt_identifier)
-        @metadata_path = @receipt_path # maintain public API
         @share_url     = build_url(share_domain, @share_path)
         @receipt_url   = build_url(share_domain, @receipt_path)
-        @metadata_url  = @receipt_url # maintain public API
         @burn_url      = build_url(share_domain, @burn_path)
         @display_lines = calculate_display_lines
       end
