@@ -283,6 +283,22 @@ module V1::Logic
       # Billing-disabled (self-hosted) deployments get config_max (30 days).
       # Billing-enabled free/anonymous users get the free tier limit (14 days).
       #
+      # Codeflow for organization_instances (Familia participates_in):
+      #   1. Customer.participates_in :Organization, :members (customer.rb:116)
+      #      generates cust.organization_instances, organization_ids, organization?, etc.
+      #   2. organization_instances calls participating_ids_for_target(Organization)
+      #      which scans the customer's `participations` Redis set (all relationship
+      #      types: orgs, domains, etc.), filtering by the "organization" key prefix.
+      #   3. Matching IDs are passed to Organization.load_multi(ids) — one HGETALL
+      #      per org — and the result is already an Array (compact'd).
+      #   4. .to_a is therefore a no-op (load_multi returns Array). Kept for
+      #      defensive clarity but has zero cost.
+      #   5. .first picks the first org. Typical customer has exactly 1 org
+      #      (created on signup), so the scan + load is ~1 set read + 1 HGETALL.
+      #
+      # Lighter alternative if needed: Organization.load(cust.organization_ids.first)
+      # skips loading all org objects. Not worth the change at current scale.
+      #
       # @param config_max [Integer] Fallback from config ttl_options.max
       # @return [Integer] Maximum TTL in seconds
       def resolve_ttl_limit(config_max)
