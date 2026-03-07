@@ -69,6 +69,31 @@ The server-wide `AUTHENTICATION_MODE` setting controls V1 behavior:
   email via `opts[:custid]`, falling back to `v1_custid` and `custid` fields.
   The resolution chain: caller-supplied email > `v1_custid` (migrated) >
   `custid` (legacy) > `"anon"`.
+- **Key length**: v0.24 generates ~63-character keys (v0.23 used ~31 chars).
+  This is intentional — v0.24 uses a more secure identifier algorithm.
+  `secret_shortkey` (burn responses) is 8 chars (was 6). Clients must treat
+  keys as opaque, variable-length strings.
+- **Passphrase minimum**: Configurable via `site.secret_options.passphrase.minimum_length`
+  (v0.23 hardcoded 8 chars). The lower bound is acceptable; operators can
+  raise it via config if their security policy requires longer passphrases.
+- **`shrimp` field removed**: v0.23 included a `shrimp` CSRF token in error
+  responses. v0.24 omits it — V1 uses Basic Auth exclusively, so the
+  session-based CSRF token was never part of the API contract.
+- **Max TTL**: v0.23 capped at 14 days (plan-based). v0.24 enforces
+  plan-aware limits: 14 days for free tier (billing enabled), 30 days for
+  paid plans or when billing is disabled (self-hosted). See `process_ttl`
+  in `base_secret_action.rb`.
+
+## New Endpoints (v0.24)
+
+These endpoints are additive — they did not exist in v0.23 and do not
+affect existing clients. They provide semantic parity with the rest of
+the application, which no longer uses the term "metadata" (too vague).
+
+- **`POST /create`**: Alias for `/share`. Matches the web UI action name.
+- **`GET/POST /receipt/:key`**: Alias for `/private/:key` and `/metadata/:key`.
+- **`GET /receipt/recent`**: Alias for `/private/recent` and `/metadata/recent`.
+- **`POST /receipt/:key/burn`**: Alias for `/private/:key/burn`.
 
 ## Validation Tooling
 
