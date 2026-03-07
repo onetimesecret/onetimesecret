@@ -100,6 +100,32 @@ end
 translated.none? { |s| v024_only_states.include?(s) }
 #=> true
 
+## TC-11: V1_STATE_MAP constant is accessible and frozen
+[V1::Controllers::ClassMethods::V1_STATE_MAP.frozen?, V1::Controllers::ClassMethods::V1_STATE_MAP.size]
+#=> [true, 3]
+
+## TC-12: translate_v1_state method maps known states and passes through unknown ones
+[V1::Controllers::Index.translate_v1_state('previewed'), V1::Controllers::Index.translate_v1_state('burned')]
+#=> ['viewed', 'burned']
+
+## TC-13: custid falls back to 'anon' for anonymous secrets
+@receipt.custid = nil
+@receipt.v1_custid = nil
+@receipt.save
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['custid']
+#=> 'anon'
+
+## TC-14: received timestamp falls back to revealed field
+now_ts = Time.now.to_i
+@receipt.received = nil
+@receipt.revealed = now_ts
+@receipt.state = 'revealed'
+@receipt.save
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['received'] == now_ts
+#=> true
+
 # Teardown
 @receipt.destroy!
 @secret.destroy!
