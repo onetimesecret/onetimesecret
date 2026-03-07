@@ -63,7 +63,7 @@ module DomainsAPI::Logic
         # Persist to Redis
         @custom_domain.update_incoming_secrets_config(config)
 
-        OT.info "[UpdateDomainRecipients] Updated #{config.recipients.size} recipients for domain #{@extid}"
+        OT.info "[UpdateDomainRecipients] Updated #{config.recipients.size} recipients for domain #{@extid} by #{@cust.objid} (org: #{organization&.extid})"
 
         success_data
       end

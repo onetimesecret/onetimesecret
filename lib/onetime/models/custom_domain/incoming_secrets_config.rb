@@ -38,6 +38,7 @@ module Onetime
       }.freeze
 
       MAX_RECIPIENTS = 20
+      MAX_NAME_LENGTH = 100
 
       attr_reader :recipients, :memo_max_length, :default_ttl
 
@@ -49,7 +50,8 @@ module Onetime
         return new({}) if json_str.to_s.empty?
 
         new(JSON.parse(json_str))
-      rescue JSON::ParserError
+      rescue JSON::ParserError => ex
+        OT.le "[IncomingSecretsConfig] Corrupted JSON in Redis, returning empty config: #{ex.message}"
         new({})
       end
 
@@ -135,7 +137,8 @@ module Onetime
           email = r['email'].to_s.strip.downcase
           next if email.empty?
 
-          { email: email, name: r['name']&.strip || email.split('@').first }
+          name = (r['name']&.strip || email.split('@').first).slice(0, MAX_NAME_LENGTH)
+          { email: email, name: name }
         end.take(MAX_RECIPIENTS).freeze
       end
     end

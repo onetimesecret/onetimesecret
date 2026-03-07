@@ -49,7 +49,7 @@ module DomainsAPI::Logic
         # Persist to Redis
         @custom_domain.update_incoming_secrets_config(config)
 
-        OT.info "[RemoveDomainRecipients] Cleared recipients for domain #{@extid}"
+        OT.info "[RemoveDomainRecipients] Cleared recipients for domain #{@extid} by #{@cust.objid} (org: #{organization&.extid})"
 
         success_data
       end

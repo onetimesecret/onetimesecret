@@ -75,14 +75,32 @@ module Onetime
       # falling back to global defaults for non-recipient config.
       #
       # @return [Hash] Config data for API response
+      # Returns full config data for GetConfig API response.
+      #
+      # No cross-system fallback: custom domains use their own config
+      # or defaults; canonical domains use global YAML config.
+      #
+      # @return [Hash] Config data for API response
       def config_data
-        config = custom_domain_config
-        {
-          enabled: enabled?,
-          memo_max_length: config&.memo_max_length || incoming_config['memo_max_length'] || 50,
-          default_ttl: config&.default_ttl || incoming_config['default_ttl'] || 604_800,
-          recipients: public_recipients,
-        }
+        defaults = Onetime::CustomDomain::IncomingSecretsConfig::DEFAULTS
+        case @domain_strategy
+        when :custom
+          config = custom_domain_config
+          {
+            enabled: enabled?,
+            memo_max_length: config&.memo_max_length || defaults[:memo_max_length],
+            default_ttl: config&.default_ttl || defaults[:default_ttl],
+            recipients: public_recipients,
+          }
+        else
+          # Canonical or nil — use global YAML config
+          {
+            enabled: enabled?,
+            memo_max_length: incoming_config['memo_max_length'] || defaults[:memo_max_length],
+            default_ttl: incoming_config['default_ttl'] || defaults[:default_ttl],
+            recipients: public_recipients,
+          }
+        end
       end
 
       private
