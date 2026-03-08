@@ -9,7 +9,7 @@
 
 import { z } from 'zod';
 
-import { concealPayloadSchema } from '@/schemas/api/v3/payloads/conceal';
+import { concealPayloadSchema } from '../payloads/conceal';
 
 export const concealSecretRequestSchema = z.object({
   /** Transport wrapper — V2 BaseSecretAction unwraps params['secret'] */

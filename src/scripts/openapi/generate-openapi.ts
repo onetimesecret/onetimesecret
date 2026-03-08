@@ -37,8 +37,8 @@ import { scanSchemas, buildHandlerSchemaMap, type SchemaEntry, type ScanResult }
 
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import { schemaRegistry } from '@/schemas/registry';
-import { concealPayloadSchema } from '@/schemas/api/v3/payloads/conceal';
-import { generatePayloadSchema } from '@/schemas/api/v3/payloads/generate';
+import { concealPayloadSchema } from '@/schemas/api/v2/payloads/conceal';
+import { generatePayloadSchema } from '@/schemas/api/v2/payloads/generate';
 
 // =============================================================================
 // Configuration

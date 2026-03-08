@@ -10,7 +10,7 @@
 
 import { z } from 'zod';
 
-import { generatePayloadSchema } from '@/schemas/api/v3/payloads/generate';
+import { generatePayloadSchema } from '@/schemas/api/v2/payloads/generate';
 
 export const generateSecretRequestSchema = z.object({
   /** Transport wrapper — inherited from V2 BaseSecretAction */
