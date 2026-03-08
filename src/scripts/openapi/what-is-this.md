@@ -10,6 +10,42 @@ those declarations, and a generator assembles the OpenAPI document. The goal is 
 that can drive client SDK generation, documentation, contract testing, and anomaly detection across API versions.
 
 
+> What is the reason for having "operationId" that the ruby module namespace didn't already do?
+
+OpenAPI requires globally unique operationIds. The Ruby namespace gives you the handler identity — which code runs. The operationId gives you the API operation
+identity — which endpoint is being called.
+
+They diverge in three cases that are visible in this codebase:
+
+1. Same handler, multiple paths (the alias problem we just solved)
+
+GET /receipt/:key   V1::Controllers::Index#show_receipt
+GET /private/:key   V1::Controllers::Index#show_receipt   deprecated=true
+
+One Ruby handler, two distinct API operations. The namespace can't distinguish them — both are
+V1::Controllers::Index#show_receipt. But a client SDK needs two methods: v1ShowReceipt() and
+v1PrivateShowReceipt().
+
+2. Same handler, different auth contexts (V3 guest routes)
+
+POST /secret/conceal        V3::Logic::Secrets::ConcealSecret  auth=sessionauth
+POST /guest/secret/conceal  V3::Logic::Secrets::ConcealSecret  auth=noauth
+
+Same class, but these are semantically different operations (authenticated vs anonymous). The operationId
+differentiates them in the spec.
+
+3. Cross-version handler reuse
+
+V2 and V3 share handler class names (e.g., both have ConcealSecret). The operationId prefixes with the API name
+(v2_concealSecret vs v3_concealSecret) so they're unambiguous across the full spec.
+
+Beyond disambiguation, operationId serves a different audience entirely. The Ruby namespace is for the server
+(routing, code organization). The operationId is for consumers — SDK generators use it as method names,
+documentation tools use it as anchor links, and contract testing tools use it to correlate requests to spec
+entries. The OpenAPI spec is an external contract; it shouldn't leak internal class hierarchies.
+
+---
+
 Next steps for the convention-based OpenAPI generator
 
 The scanner and generator pipeline is functional: Ruby SCHEMA constants are declared on 62 handler classes and 4
