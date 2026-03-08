@@ -122,9 +122,41 @@ All 21 colonel routes annotated with scope=internal in routes.txt. The scaffold 
 x-otto-route-scope: internal, so consumers can filter them programmatically. Colonel response schemas are
 unaffected — they remain in the spec for documentation.
 
+6. ✓ Fix V2/V3 request schema nesting and establish compose-not-redefine pattern
+
+V2/V3 conceal and generate request schemas were flat, but the Ruby handlers nest params under a "secret" key
+(BaseSecretAction: @payload = params['secret'] || {}). Fixed by composing from existing payload schemas:
+
+  z.object({ secret: concealPayloadSchema })  // transport wrapper
+  z.object({ secret: generatePayloadSchema })
+
+This established the request schema layering pattern:
+- payloads/ = flat domain validation schemas (used by Vue forms, stores, composables)
+- requests/ = transport wrappers that compose payloads (used by OpenAPI pipeline)
+- Endpoints with params['secret'] nesting: request wraps payload under secret key
+- Endpoints with flat params (show, reveal, burn): request schema IS the payload (no wrapper)
+
+V1 request schemas are frozen — flat inline definitions, not composed from payloads. V1 is deprecated; these
+exist solely for contract testing (validating response stability between releases). Do not refactor.
+
+7. ✓ Migrate v3/requests.ts → v3/requests/*.ts (pending)
+
+The single-file v3/requests.ts predates the per-endpoint requests/ directory. It has only 2 active consumers:
+- DomainForm.vue imports createDomainRequestSchema
+- domainsStore.ts imports UpdateDomainBrandRequest (via v3/index.ts barrel)
+
+The concealRequestSchema and generateRequestSchema in requests.ts are unused — the store wraps manually.
+The per-endpoint requests/ directory files are completely orphaned (zero imports reach them).
+
+Migration: move createDomainRequestSchema and updateDomainBrandRequestSchema to their per-endpoint files
+(or into domains/requests/ where they arguably belong), update 2 imports, delete requests.ts. The barrel
+export * from './requests' in v3/index.ts then resolves to requests/index.ts automatically.
+
+ExceptionReport interface in requests.ts is unrelated to request schemas — relocate to a types file.
+
 ### Remaining:
 
-6. Add the 3 uncovered Meta endpoints per version
+8. Add the 3 uncovered Meta endpoints per version
 
 system_status, system_version, get_supported_locales are class methods on a module, not logic classes. They need
 either:
@@ -134,7 +166,7 @@ locale list)
 
 Request schema scaffolds already exist for these (empty z.object({}) — correct, since they accept no params).
 
-7. Wire request schemas into the OpenAPI generator
+9. Wire request schemas into the OpenAPI generator
 
 The 80 request schema scaffolds are standalone files. To connect them to the generated spec:
 - Create a requestSchemaRegistry (parallel to responseSchemas) that maps handler names to Zod request schemas
@@ -146,11 +178,9 @@ Currently 4/~50 mutation endpoints have wired request schemas. The scaffolds pro
 step connects them to the pipeline.
 
 Known scaffold issues to fix before wiring:
-- V2/V3 conceal-secret.ts and generate-secret.ts define flat params, but V2/V3 nest under secret: {...}. The
-  existing v3/requests.ts already shows the correct wrapper pattern (z.object({ secret: concealPayloadSchema }))
 - domains update-domain-logo.ts and update-domain-icon.ts are multipart file uploads, not JSON bodies
 
-8. Register the V2 wire format difference
+10. Register the V2 wire format difference
 
 V2 and V3 share the same SCHEMA values but V2 returns string-encoded booleans/numbers while V3 returns native JSON
 types. Options:
@@ -158,13 +188,11 @@ types. Options:
 - Add an x-otto-route-wire-format: string-encoded annotation to V2 routes.txt (flows through the extension bridge)
 - Document it and move on — V2 is stable and likely headed for deprecation
 
-9. Fill remaining response schema gaps incrementally
+11. Fill remaining response schema gaps incrementally
 
 The 46 uncovered handlers break down as:
-- 9 V1 controllers — V1 is the oldest external API; frozen response shapes via receipt_hsh make these easy to
-  document accurately. Option B (TS-side hardcoded map, no Ruby SCHEMA convention) is pragmatic since the shapes
-  won't evolve
-- 6 V2/V3 Meta methods — covered by step 6 above
+- 9 V1 controllers — frozen response shapes via receipt_hsh; TS-side hardcoded map is pragmatic
+- 6 V2/V3 Meta methods — covered by step 8 above
 - 8 Account mutations — generic success responses, low priority
 - 8 Domain image/remove ops — could inherit from existing imageProps schema. Adding SCHEMA to GetDomainImage /
   UpdateDomainImage base classes would cover 8 routes at once
@@ -174,6 +202,7 @@ The 46 uncovered handlers break down as:
 
 Suggested order
 
-Step 6 is mechanical and could be done now. Step 7 is the main pipeline advancement — connecting request schemas
-to the generator. Step 8 is worth discussing before acting (the x-otto-route extension bridge now makes the
-annotation approach trivial). Step 9 is ongoing.
+Step 7 is small (3 files to touch) and resolves the requests.ts / requests/ duality before it causes confusion.
+Step 8 is mechanical. Step 9 is the main pipeline advancement — connecting request schemas to the generator.
+Step 10 is worth discussing before acting (the x-otto-route extension bridge makes annotation trivial).
+Step 11 is ongoing.
