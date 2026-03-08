@@ -1,4 +1,4 @@
-// src/scripts/openapi/test-parser.ts
+// src/scripts/openapi/tests/test-parser.ts
 
 /**
  * Test Otto Routes Parser
@@ -15,7 +15,7 @@ import {
   toOpenAPIPath,
   groupRoutesByTag,
   parseAllApiRoutes
-} from './otto-routes-parser';
+} from '../otto-routes-parser';
 
 console.log('🧪 Testing Otto Routes Parser...\n');
 

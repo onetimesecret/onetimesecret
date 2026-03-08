@@ -1,4 +1,4 @@
-// src/scripts/openapi/test-scanner.ts
+// src/scripts/openapi/tests/test-scanner.ts
 
 /**
  * Test Schema Scanner
@@ -8,7 +8,7 @@
  * meaningful coverage gap reports when combined with route data.
  */
 
-import { scanSchemas, buildHandlerSchemaMap } from './schema-scanner';
+import { scanSchemas, buildHandlerSchemaMap } from '../schema-scanner';
 import { responseSchemas } from '@/schemas/api/v3/responses';
 
 console.log('Testing Schema Scanner...\n');
