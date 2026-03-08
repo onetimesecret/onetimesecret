@@ -11,6 +11,7 @@ pnpm run openapi:generate -- --verbose  # Show per-route details (+ = has schema
 pnpm run schema:scan                    # Scan Ruby SCHEMA constants, print coverage gap report
 pnpm run openapi:test-parser            # Smoke tests for the routes parser
 pnpm run schema:test-scanner            # Smoke tests for the schema scanner
+pnpm run openapi:scaffold-requests      # Generating request schema scaffolds from routes.txt. it skips existing files unless --force is passed
 ```
 
 ## How it works

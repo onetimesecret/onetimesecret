@@ -305,6 +305,12 @@ function buildPathParameters(path: string): Array<Record<string, unknown>> {
 
 /**
  * Build the request body for a route, if a schema is mapped.
+ *
+ * All request bodies are emitted as application/json. Routes that accept
+ * application/x-www-form-urlencoded (notably V1) use the same schema shape —
+ * the field names and types are identical, only the encoding differs. We treat
+ * form-encoded payloads as plain text for manual review; the spec documents
+ * the field contract, not the transport encoding.
  */
 function buildRequestBody(handler: string): Record<string, unknown> | undefined {
   const schema = lookupRequestSchema(handler);

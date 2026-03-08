@@ -10,6 +10,7 @@
 import { z } from 'zod';
 
 export const showSecretRequestSchema = z.object({
+  // what about the /secret/:key path param? OpenAPI generator should handle that, but we may want to include it here for clarity.
   /** Passphrase if the secret is protected */
   passphrase: z.string().optional(),
   /** Set to "true" to proceed with reveal */
