@@ -8,6 +8,8 @@ module Onetime
   class Secret < Familia::Horreum
     include Familia::Features::Autoloader
 
+    SCHEMA = 'models/secret'
+
     using Familia::Refinements::TimeLiterals
 
     feature :object_identifier,

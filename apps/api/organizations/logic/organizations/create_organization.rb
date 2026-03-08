@@ -5,6 +5,8 @@
 module OrganizationAPI::Logic
   module Organizations
     class CreateOrganization < OrganizationAPI::Logic::Base
+      SCHEMA = { response: 'organization' }.freeze
+
       attr_reader :organization, :display_name, :description, :contact_email
 
       def process_params

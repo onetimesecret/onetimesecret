@@ -7,6 +7,8 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class ShowReceipt < V2::Logic::Base
+      SCHEMA = { response: 'receipt' }.freeze
+
       # Working variables
       attr_reader :identifier, :receipt, :secret
       # Template variables

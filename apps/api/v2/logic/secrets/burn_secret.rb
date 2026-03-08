@@ -9,6 +9,8 @@ module V2::Logic
     class BurnSecret < V2::Logic::Base
       include Onetime::LoggerMethods
 
+      SCHEMA = { response: 'receipt' }.freeze
+
       attr_reader :identifier, :passphrase, :continue, :receipt, :secret, :correct_passphrase, :greenlighted
 
       def process_params

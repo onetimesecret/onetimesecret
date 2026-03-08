@@ -8,6 +8,8 @@ module ColonelAPI
   module Logic
     module Colonel
       class ExportUsage < ColonelAPI::Logic::Base
+        SCHEMA = { response: 'usageExport' }.freeze
+
         using Familia::Refinements::TimeLiterals
 
         attr_reader :start_date, :end_date, :usage_data, :secrets_by_day, :users_by_day

@@ -8,6 +8,8 @@ module ColonelAPI
   module Logic
     module Colonel
       class ListUsers < ColonelAPI::Logic::Base
+        SCHEMA = { response: 'colonelUsers' }.freeze
+
         attr_reader :users, :total_count, :page, :per_page, :total_pages, :role_filter
 
         def process_params

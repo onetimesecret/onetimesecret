@@ -5,6 +5,8 @@
 module OrganizationAPI::Logic
   module Organizations
     class DeleteOrganization < OrganizationAPI::Logic::Base
+      SCHEMA = { response: 'organizationDelete' }.freeze
+
       attr_reader :organization
 
       def process_params

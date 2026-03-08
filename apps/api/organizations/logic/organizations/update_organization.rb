@@ -25,6 +25,8 @@ module OrganizationAPI::Logic
     # - Stripe -> OTS: CustomerUpdated webhook handler (on portal changes)
     #
     class UpdateOrganization < OrganizationAPI::Logic::Base
+      SCHEMA = { response: 'organization' }.freeze
+
       attr_reader :organization, :display_name, :description, :billing_email, :extid
 
       def process_params

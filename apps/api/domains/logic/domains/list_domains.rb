@@ -18,6 +18,8 @@ module DomainsAPI::Logic
     # the session is updated.
     #
     class ListDomains < DomainsAPI::Logic::Base
+      SCHEMA = { response: 'customDomainList' }.freeze
+
       attr_reader :custom_domains, :with_brand, :target_organization
 
       def process_params
