@@ -18,6 +18,7 @@ import { relative, join } from 'path';
 import { globSync } from 'glob';
 import { parseAllApiRoutes } from './otto-routes-parser';
 import { responseSchemas } from '@/schemas/api/v3/responses';
+import { schemaRegistry } from '@/schemas/registry';
 
 // =============================================================================
 // Configuration
@@ -211,18 +212,28 @@ export function buildHandlerSchemaMap(entries: SchemaEntry[]): Map<string, Schem
 // =============================================================================
 
 const validResponseKeys = new Set(Object.keys(responseSchemas));
+const validRegistryKeys = new Set(Object.keys(schemaRegistry));
 
 /**
- * Check whether all schema keys in an entry resolve to known responseSchemas.
- * Request keys are not validated against responseSchemas (they use separate registries).
+ * Check whether a schema key resolves to a known schema.
+ * Checks responseSchemas first, then falls back to schemaRegistry
+ * for model-prefixed keys (e.g. 'models/secret').
+ */
+function isValidSchemaKey(key: string): boolean {
+  return validResponseKeys.has(key) || validRegistryKeys.has(key);
+}
+
+/**
+ * Check whether all schema keys in an entry resolve to known schemas.
+ * Request keys are not validated (they use separate registries).
  */
 function isEntryCovered(entry: SchemaEntry): boolean {
   if (typeof entry.schema === 'string') {
-    return validResponseKeys.has(entry.schema);
+    return isValidSchemaKey(entry.schema);
   }
   // For hash entries, only validate the response key
   if (entry.schema.response) {
-    return validResponseKeys.has(entry.schema.response);
+    return isValidSchemaKey(entry.schema.response);
   }
   // Entry with only a request key is considered covered (no response to validate)
   return true;

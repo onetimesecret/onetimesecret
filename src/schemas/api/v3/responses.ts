@@ -39,6 +39,11 @@ import {
   memberResponseSchema,
   memberDeleteResponseSchema,
 } from '@/schemas/api/organizations/endpoints/organizations';
+import {
+  incomingConfigSchema,
+  incomingSecretResponseSchema,
+  validateRecipientResponseSchema,
+} from '@/schemas/api/incoming';
 import { createApiListResponseSchema, createApiResponseSchema } from '@/schemas/api/v3/base';
 import {
   concealDataSchema,
@@ -105,6 +110,11 @@ export const responseSchemas = {
   receiptList: createApiListResponseSchema(receiptRecordsSchema, receiptRecordsDetailsSchema),
   secretList: createApiListResponseSchema(secretResponsesSchema),
 
+  // Incoming secret responses
+  incomingConfig: createApiResponseSchema(incomingConfigSchema),
+  incomingSecret: incomingSecretResponseSchema,
+  validateRecipient: createApiResponseSchema(validateRecipientResponseSchema),
+
   // Special responses
   csrf: z.object({
     isValid: z.boolean(),
@@ -148,6 +158,9 @@ export type CustomDomainResponse = ResponseTypes['customDomain'];
 export type CustomerResponse = ResponseTypes['customer'];
 export type FeedbackResponse = ResponseTypes['feedback'];
 export type ImagePropsResponse = ResponseTypes['imageProps'];
+export type IncomingConfigResponse = ResponseTypes['incomingConfig'];
+export type IncomingSecretResponse = ResponseTypes['incomingSecret'];
+export type ValidateRecipientResponse = ResponseTypes['validateRecipient'];
 export type ReceiptListResponse = ResponseTypes['receiptList'];
 export type ReceiptResponse = ResponseTypes['receipt'];
 export type SecretListResponse = ResponseTypes['secretList'];

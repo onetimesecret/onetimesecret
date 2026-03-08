@@ -36,6 +36,7 @@ import { standardErrorResponses } from './route-config';
 import { scanSchemas, buildHandlerSchemaMap, type SchemaEntry, type ScanResult } from './schema-scanner';
 
 import { responseSchemas } from '@/schemas/api/v3/responses';
+import { schemaRegistry } from '@/schemas/registry';
 import { concealPayloadSchema } from '@/schemas/api/v3/payloads/conceal';
 import { generatePayloadSchema } from '@/schemas/api/v3/payloads/generate';
 
@@ -330,10 +331,22 @@ function buildResponses(
   const responses: Record<string, unknown> = {};
 
   // Determine success response via scanner lookup
+  // Check responseSchemas first, then fall back to schemaRegistry for model keys
   const schemaKey = lookupResponseSchemaKey(handler);
-  const validKey = schemaKey as keyof typeof responseSchemas | undefined;
-  if (validKey && responseSchemas[validKey]) {
-    const schema = responseSchemas[validKey];
+  const responseKey = schemaKey as keyof typeof responseSchemas | undefined;
+  const registryKey = schemaKey as keyof typeof schemaRegistry | undefined;
+  if (responseKey && responseSchemas[responseKey]) {
+    const schema = responseSchemas[responseKey];
+    responses['200'] = {
+      description: 'Successful response',
+      content: {
+        'application/json': {
+          schema: zodToJsonSchema(schema),
+        },
+      },
+    };
+  } else if (registryKey && schemaRegistry[registryKey]) {
+    const schema = schemaRegistry[registryKey];
     responses['200'] = {
       description: 'Successful response',
       content: {
