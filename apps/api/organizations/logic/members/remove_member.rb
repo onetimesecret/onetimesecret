@@ -16,7 +16,7 @@ module OrganizationAPI::Logic
     #   - Cannot remove yourself (use leave organization instead)
     #
     class RemoveMember < OrganizationAPI::Logic::Base
-      SCHEMA = { response: 'memberDelete' }.freeze
+      SCHEMAS = { response: 'memberDelete' }.freeze
 
       attr_reader :organization, :target_member, :target_membership, :actor_membership
 

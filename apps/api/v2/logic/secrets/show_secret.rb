@@ -7,7 +7,7 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class ShowSecret < V2::Logic::Base
-      SCHEMA = { response: 'secret' }.freeze
+      SCHEMAS = { response: 'secret' }.freeze
 
       attr_reader :identifier,
         :passphrase,

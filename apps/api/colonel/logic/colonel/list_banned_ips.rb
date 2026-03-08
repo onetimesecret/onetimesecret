@@ -8,7 +8,7 @@ module ColonelAPI
   module Logic
     module Colonel
       class ListBannedIPs < ColonelAPI::Logic::Base
-        SCHEMA = { response: 'bannedIPs' }.freeze
+        SCHEMAS = { response: 'bannedIPs' }.freeze
 
         attr_reader :banned_ips, :total_count
 

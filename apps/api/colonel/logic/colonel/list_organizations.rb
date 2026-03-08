@@ -16,7 +16,7 @@ module ColonelAPI
       # @see Billing::BillingService for sync status computation logic
       #
       class ListOrganizations < ColonelAPI::Logic::Base
-        SCHEMA = { response: 'colonelOrganizations' }.freeze
+        SCHEMAS = { response: 'colonelOrganizations' }.freeze
 
         attr_reader :organizations, :total_count, :page, :per_page, :total_pages, :status_filter, :sync_status_filter
 

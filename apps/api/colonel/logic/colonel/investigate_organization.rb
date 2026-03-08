@@ -15,7 +15,7 @@ module ColonelAPI
       # regardless of the computed sync_status.
       #
       class InvestigateOrganization < ColonelAPI::Logic::Base
-        SCHEMA = { response: 'investigateOrganization' }.freeze
+        SCHEMAS = { response: 'investigateOrganization' }.freeze
 
         attr_reader :org, :investigation_result
 

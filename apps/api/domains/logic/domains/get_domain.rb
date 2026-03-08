@@ -8,7 +8,7 @@ require_relative '../base'
 module DomainsAPI::Logic
   module Domains
     class GetDomain < DomainsAPI::Logic::Base
-      SCHEMA = { response: 'customDomain' }.freeze
+      SCHEMAS = { response: 'customDomain' }.freeze
 
       attr_reader :greenlighted, :display_domain, :custom_domain
 

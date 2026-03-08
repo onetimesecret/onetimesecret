@@ -16,7 +16,7 @@ module OrganizationAPI::Logic
     #   - Joined date
     #
     class ListMembers < OrganizationAPI::Logic::Base
-      SCHEMA = { response: 'memberList' }.freeze
+      SCHEMAS = { response: 'memberList' }.freeze
 
       attr_reader :organization, :memberships
 

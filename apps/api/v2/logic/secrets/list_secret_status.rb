@@ -7,7 +7,7 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class ListSecretStatus < V2::Logic::Base
-      SCHEMA = { response: 'secretList' }.freeze
+      SCHEMAS = { response: 'secretList' }.freeze
 
       attr_reader :identifiers
 

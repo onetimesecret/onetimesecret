@@ -8,7 +8,7 @@ module ColonelAPI
   module Logic
     module Colonel
       class GetDatabaseMetrics < ColonelAPI::Logic::Base
-        SCHEMA = { response: 'databaseMetrics' }.freeze
+        SCHEMAS = { response: 'databaseMetrics' }.freeze
 
         attr_reader :redis_info, :db_sizes, :total_keys, :memory_stats
 

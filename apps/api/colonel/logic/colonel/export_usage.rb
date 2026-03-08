@@ -8,7 +8,7 @@ module ColonelAPI
   module Logic
     module Colonel
       class ExportUsage < ColonelAPI::Logic::Base
-        SCHEMA = { response: 'usageExport' }.freeze
+        SCHEMAS = { response: 'usageExport' }.freeze
 
         using Familia::Refinements::TimeLiterals
 

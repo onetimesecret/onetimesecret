@@ -8,7 +8,7 @@ require_relative '../base'
 module DomainsAPI::Logic
   module Domains
     class UpdateDomainBrand < DomainsAPI::Logic::Base
-      SCHEMA = { response: 'brandSettings' }.freeze
+      SCHEMAS = { response: 'brandSettings' }.freeze
 
       attr_reader :greenlighted, :brand_settings, :display_domain, :custom_domain
 

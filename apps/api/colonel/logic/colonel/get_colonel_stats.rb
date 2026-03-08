@@ -8,7 +8,7 @@ module ColonelAPI
   module Logic
     module Colonel
       class GetColonelStats < ColonelAPI::Logic::Base
-        SCHEMA = { response: 'colonelStats' }.freeze
+        SCHEMAS = { response: 'colonelStats' }.freeze
 
         attr_reader :session_count,
           :customer_count,

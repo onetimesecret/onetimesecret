@@ -20,7 +20,7 @@ module OrganizationAPI::Logic
     #   - role (required): New role ('member' or 'admin')
     #
     class UpdateMemberRole < OrganizationAPI::Logic::Base
-      SCHEMA = { response: 'member' }.freeze
+      SCHEMAS = { response: 'member' }.freeze
 
       VALID_ROLES = %w[member admin].freeze
 

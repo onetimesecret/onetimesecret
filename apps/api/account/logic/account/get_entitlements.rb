@@ -54,7 +54,7 @@ module AccountAPI::Logic
     # - Returns only public entitlement metadata, no sensitive data
     #
     class GetEntitlements < AccountAPI::Logic::Base
-      SCHEMA = { response: 'account' }.freeze
+      SCHEMAS = { response: 'account' }.freeze
 
       def raise_concerns
         # Basic auth check - requires logged in user

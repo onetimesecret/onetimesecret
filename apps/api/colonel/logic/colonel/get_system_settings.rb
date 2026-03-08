@@ -8,7 +8,7 @@ module ColonelAPI
   module Logic
     module Colonel
       class GetSystemSettings < ColonelAPI::Logic::Base
-        SCHEMA = { response: 'systemSettings' }.freeze
+        SCHEMAS = { response: 'systemSettings' }.freeze
 
         attr_reader :config_sections
 

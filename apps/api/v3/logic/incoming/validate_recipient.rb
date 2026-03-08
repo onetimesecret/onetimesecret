@@ -20,7 +20,7 @@ module V3
       #   { recipient: "abc123...", valid: true }
       #
       class ValidateRecipient < V3::Logic::Base
-        SCHEMA = { response: 'validateRecipient' }.freeze
+        SCHEMAS = { response: 'validateRecipient' }.freeze
 
         attr_reader :greenlighted, :recipient_hash, :is_valid
 

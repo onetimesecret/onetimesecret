@@ -28,7 +28,7 @@ module V3
       #   }
       #
       class GetConfig < V3::Logic::Base
-        SCHEMA = { response: 'incomingConfig' }.freeze
+        SCHEMAS = { response: 'incomingConfig' }.freeze
 
         attr_reader :greenlighted, :config_data
 

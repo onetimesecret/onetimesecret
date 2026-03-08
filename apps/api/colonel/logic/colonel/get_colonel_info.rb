@@ -10,7 +10,7 @@ module ColonelAPI
   module Logic
     module Colonel
       class GetColonelInfo < ColonelAPI::Logic::Base
-        SCHEMA = { response: 'colonelInfo' }.freeze
+        SCHEMAS = { response: 'colonelInfo' }.freeze
 
         using Familia::Refinements::TimeLiterals
 

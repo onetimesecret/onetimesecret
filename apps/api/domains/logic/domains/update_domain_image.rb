@@ -18,7 +18,7 @@ module DomainsAPI::Logic
     end
 
     class UpdateDomainImage < DomainsAPI::Logic::Base
-      SCHEMA = { response: 'imageProps' }.freeze
+      SCHEMAS = { response: 'imageProps' }.freeze
 
       attr_reader :greenlighted,
         :image,

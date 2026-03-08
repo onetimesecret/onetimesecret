@@ -8,7 +8,7 @@ module ColonelAPI
   module Logic
     module Colonel
       class ListCustomDomains < ColonelAPI::Logic::Base
-        SCHEMA = { response: 'customDomains' }.freeze
+        SCHEMAS = { response: 'customDomains' }.freeze
 
         attr_reader :domains, :total_count, :page, :per_page, :total_pages
 

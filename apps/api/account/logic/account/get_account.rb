@@ -7,7 +7,7 @@ require 'onetime/refinements/stripe_refinements'
 module AccountAPI::Logic
   module Account
     class GetAccount < AccountAPI::Logic::Base
-      SCHEMA = { response: 'account' }.freeze
+      SCHEMAS = { response: 'account' }.freeze
 
       attr_accessor :billing_enabled
       attr_reader :stripe_subscription, :stripe_customer

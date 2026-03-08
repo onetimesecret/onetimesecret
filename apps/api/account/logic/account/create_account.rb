@@ -5,7 +5,7 @@
 module AccountAPI::Logic
   module Account
     class CreateAccount < AccountAPI::Logic::Base
-      SCHEMA = { response: 'createAccount' }.freeze
+      SCHEMAS = { response: 'createAccount' }.freeze
 
       using Familia::Refinements::TimeLiterals
 

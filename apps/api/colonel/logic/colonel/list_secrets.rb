@@ -8,7 +8,7 @@ module ColonelAPI
   module Logic
     module Colonel
       class ListSecrets < ColonelAPI::Logic::Base
-        SCHEMA = { response: 'colonelSecrets' }.freeze
+        SCHEMAS = { response: 'colonelSecrets' }.freeze
 
         attr_reader :secrets, :total_count, :page, :per_page, :total_pages
 

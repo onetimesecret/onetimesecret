@@ -5,7 +5,7 @@
 module OrganizationAPI::Logic
   module Organizations
     class GetOrganization < OrganizationAPI::Logic::Base
-      SCHEMA = { response: 'organization' }.freeze
+      SCHEMAS = { response: 'organization' }.freeze
 
       attr_reader :organization, :members
 

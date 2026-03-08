@@ -7,7 +7,7 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class ShowSecretStatus < V2::Logic::Base
-      SCHEMA = { response: 'secret' }.freeze
+      SCHEMAS = { response: 'secret' }.freeze
 
       attr_reader :identifier, :current_expiration, :secret, :verification
 

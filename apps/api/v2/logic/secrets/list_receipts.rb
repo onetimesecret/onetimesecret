@@ -9,7 +9,7 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class ListReceipts < V2::Logic::Base
-      SCHEMA = { response: 'receiptList' }.freeze
+      SCHEMAS = { response: 'receiptList' }.freeze
 
       attr_reader :records,
         :since,
