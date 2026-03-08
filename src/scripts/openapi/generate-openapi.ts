@@ -402,9 +402,18 @@ function buildOperation(
   const leaf = getHandlerLeaf(route.handler);
   const operationId = toOperationId(leaf);
   const tag = deriveTag(apiName, route.handler);
+  const isDeprecated = route.params.deprecated === 'true';
 
-  // Make operationId unique by prefixing with apiName when needed
-  const qualifiedOperationId = `${apiName}_${operationId}`;
+  // Make operationId unique by prefixing with apiName.
+  // For deprecated alias routes, also incorporate the path prefix
+  // to avoid collisions with the canonical route's operationId.
+  let qualifiedOperationId = `${apiName}_${operationId}`;
+  if (isDeprecated) {
+    const pathPrefix = route.path.split('/').filter(Boolean)[0] ?? '';
+    if (pathPrefix) {
+      qualifiedOperationId = `${apiName}_${pathPrefix}_${operationId}`;
+    }
+  }
 
   const operation: Record<string, unknown> = {
     operationId: qualifiedOperationId,
@@ -412,6 +421,11 @@ function buildOperation(
     tags: [tag],
     responses: buildResponses(route.handler, route),
   };
+
+  // Mark deprecated alias routes
+  if (isDeprecated) {
+    operation.deprecated = true;
+  }
 
   // Add security
   const security = buildSecurity(route);

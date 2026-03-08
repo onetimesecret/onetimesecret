@@ -10,17 +10,19 @@ POST   /create                               V1::Controllers::Index#create
 
 POST   /secret/:key                          V1::Controllers::Index#show_secret
 
-GET    /private/recent                       V1::Controllers::Index#show_receipt_recent
-GET    /metadata/recent                      V1::Controllers::Index#show_receipt_recent
+# Canonical receipt paths
 GET    /receipt/recent                       V1::Controllers::Index#show_receipt_recent
-
-GET    /private/:key                         V1::Controllers::Index#show_receipt
-POST   /private/:key                         V1::Controllers::Index#show_receipt
-GET    /metadata/:key                        V1::Controllers::Index#show_receipt
-POST   /metadata/:key                        V1::Controllers::Index#show_receipt
 GET    /receipt/:key                         V1::Controllers::Index#show_receipt
 POST   /receipt/:key                         V1::Controllers::Index#show_receipt
-
-POST   /private/:key/burn                    V1::Controllers::Index#burn_secret
-POST   /metadata/:key/burn                   V1::Controllers::Index#burn_secret
 POST   /receipt/:key/burn                    V1::Controllers::Index#burn_secret
+
+# Legacy aliases — use /receipt/ paths instead
+GET    /private/recent                       V1::Controllers::Index#show_receipt_recent deprecated=true
+GET    /private/:key                         V1::Controllers::Index#show_receipt deprecated=true
+POST   /private/:key                         V1::Controllers::Index#show_receipt deprecated=true
+POST   /private/:key/burn                    V1::Controllers::Index#burn_secret deprecated=true
+
+GET    /metadata/recent                      V1::Controllers::Index#show_receipt_recent deprecated=true
+GET    /metadata/:key                        V1::Controllers::Index#show_receipt deprecated=true
+POST   /metadata/:key                        V1::Controllers::Index#show_receipt deprecated=true
+POST   /metadata/:key/burn                   V1::Controllers::Index#burn_secret deprecated=true
