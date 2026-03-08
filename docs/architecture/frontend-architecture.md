@@ -15,7 +15,7 @@ Defines data structures and validation:
 // schemas/user.ts
 export const userSchema = z.object({
   id: z.string().uuid(),
-  email: z.string().email(),
+  email: z.email(),
   name: z.string(),
   createdAt: z.string().datetime(),
 });
