@@ -33,8 +33,8 @@ import {
 } from './otto-routes-parser';
 
 import { standardErrorResponses } from './route-config';
+import { scanSchemas, buildHandlerSchemaMap, type SchemaEntry, type ScanResult } from './schema-scanner';
 
-// Optional: import response schemas for enrichment
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import { concealPayloadSchema } from '@/schemas/api/v3/payloads/conceal';
 import { generatePayloadSchema } from '@/schemas/api/v3/payloads/generate';
@@ -64,71 +64,59 @@ const API_MOUNT_PATHS: Record<string, string> = {
 };
 
 // =============================================================================
-// Schema Mapping
+// Schema Mapping (scanner-driven)
 // =============================================================================
 
+// Scan Ruby source for SCHEMA constants and build lookup map
+const scanResult = scanSchemas();
+const handlerSchemaMap = buildHandlerSchemaMap(scanResult.entries);
+
 /**
- * Maps handler class names to response schema keys.
- * Only entries with known Zod schemas are listed here.
+ * Registry of request payload schemas, keyed by the request path
+ * declared in Ruby SCHEMA constants (e.g. 'api/v3/conceal-payload').
  */
-const RESPONSE_SCHEMA_MAP: Record<string, keyof typeof responseSchemas> = {
-  // V3 Secrets
-  ConcealSecret: 'concealData',
-  GenerateSecret: 'concealData',
-  ShowSecret: 'secret',
-  RevealSecret: 'secret',
-  ShowReceipt: 'receipt',
-  UpdateReceipt: 'receipt',
-  ListReceipts: 'receiptList',
-  BurnSecret: 'receipt',
-  ShowSecretStatus: 'secret',
-  ListSecretStatus: 'secretList',
-  ShowMultipleReceipts: 'receiptList',
-
-  // Account
-  GetAccount: 'account',
-  GetEntitlements: 'account',
-  GenerateAPIToken: 'apiToken',
-
-  // Auth
-  CheckAuth: 'checkAuth',
-
-  // Colonel
-  GetColonelInfo: 'colonelInfo',
-  GetColonelStats: 'colonelStats',
-  GetSystemSettings: 'systemSettings',
-  ListSecrets: 'colonelSecrets',
-  ListUsers: 'colonelUsers',
-  GetDatabaseMetrics: 'databaseMetrics',
-  GetRedisMetrics: 'redisMetrics',
-  GetQueueMetrics: 'queueMetrics',
-  ListBannedIPs: 'bannedIPs',
-  ListCustomDomains: 'customDomains',
-  ListOrganizations: 'colonelOrganizations',
-  InvestigateOrganization: 'investigateOrganization',
-  ExportUsage: 'usageExport',
-
-  // Domains
-  GetDomain: 'customDomain',
-  ListDomains: 'customDomainList',
-  GetDomainBrand: 'brandSettings',
-  UpdateDomainBrand: 'brandSettings',
-  GetDomainLogo: 'imageProps',
-  UpdateDomainLogo: 'imageProps',
-  GetDomainIcon: 'imageProps',
-  UpdateDomainIcon: 'imageProps',
-
-  // Feedback
-  ReceiveFeedback: 'feedback',
+const REQUEST_PAYLOAD_REGISTRY: Record<string, z.ZodType> = {
+  'api/v3/conceal-payload': concealPayloadSchema,
+  'api/v3/generate-payload': generatePayloadSchema,
 };
 
 /**
- * Maps handler class names to request body schemas.
+ * Look up the response schema key for a route handler.
+ * Tries FQCN first, then leaf name fallback.
  */
-const REQUEST_SCHEMA_MAP: Record<string, z.ZodType> = {
-  ConcealSecret: concealPayloadSchema,
-  GenerateSecret: generatePayloadSchema,
-};
+function lookupResponseSchemaKey(handler: string): string | undefined {
+  const entry = handlerSchemaMap.get(handler);
+  if (entry) return getResponseKey(entry);
+
+  // Leaf-name fallback
+  const leaf = getHandlerLeaf(handler);
+  const leafEntry = handlerSchemaMap.get(leaf);
+  if (leafEntry) return getResponseKey(leafEntry);
+
+  return undefined;
+}
+
+/**
+ * Extract the response key from a SchemaEntry.
+ */
+function getResponseKey(entry: SchemaEntry): string | undefined {
+  if (typeof entry.schema === 'string') return entry.schema;
+  return entry.schema.response;
+}
+
+/**
+ * Look up the request payload schema for a route handler.
+ */
+function lookupRequestSchema(handler: string): z.ZodType | undefined {
+  const entry = handlerSchemaMap.get(handler)
+    ?? handlerSchemaMap.get(getHandlerLeaf(handler));
+  if (!entry) return undefined;
+
+  const requestKey = typeof entry.schema === 'string' ? undefined : entry.schema.request;
+  if (!requestKey) return undefined;
+
+  return REQUEST_PAYLOAD_REGISTRY[requestKey];
+}
 
 // =============================================================================
 // Convention Helpers
@@ -317,8 +305,8 @@ function buildPathParameters(path: string): Array<Record<string, unknown>> {
 /**
  * Build the request body for a route, if a schema is mapped.
  */
-function buildRequestBody(leaf: string): Record<string, unknown> | undefined {
-  const schema = REQUEST_SCHEMA_MAP[leaf];
+function buildRequestBody(handler: string): Record<string, unknown> | undefined {
+  const schema = lookupRequestSchema(handler);
   if (!schema) return undefined;
 
   return {
@@ -335,16 +323,17 @@ function buildRequestBody(leaf: string): Record<string, unknown> | undefined {
  * Build the responses object for a route.
  */
 function buildResponses(
-  leaf: string,
+  handler: string,
   route: OttoRoute
 ): Record<string, unknown> {
   const responseType = getResponseType(route);
   const responses: Record<string, unknown> = {};
 
-  // Determine success response
-  const schemaKey = RESPONSE_SCHEMA_MAP[leaf];
-  if (schemaKey && responseSchemas[schemaKey]) {
-    const schema = responseSchemas[schemaKey];
+  // Determine success response via scanner lookup
+  const schemaKey = lookupResponseSchemaKey(handler);
+  const validKey = schemaKey as keyof typeof responseSchemas | undefined;
+  if (validKey && responseSchemas[validKey]) {
+    const schema = responseSchemas[validKey];
     responses['200'] = {
       description: 'Successful response',
       content: {
@@ -408,7 +397,7 @@ function buildOperation(
     operationId: qualifiedOperationId,
     summary: toSummary(leaf),
     tags: [tag],
-    responses: buildResponses(leaf, route),
+    responses: buildResponses(route.handler, route),
   };
 
   // Add security
@@ -428,7 +417,7 @@ function buildOperation(
 
   // Add request body for POST/PUT/PATCH
   if (['POST', 'PUT', 'PATCH'].includes(route.method)) {
-    const requestBody = buildRequestBody(leaf);
+    const requestBody = buildRequestBody(route.handler);
     if (requestBody) {
       operation.requestBody = requestBody;
     }
@@ -482,16 +471,15 @@ function processAllRoutes(
         tagSet.add(tag);
       }
 
-      const leaf = getHandlerLeaf(route.handler);
-      if (RESPONSE_SCHEMA_MAP[leaf]) schemaHits++;
+      const hasSchema = !!lookupResponseSchemaKey(route.handler);
+      if (hasSchema) schemaHits++;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (doc.paths[openApiPath] as any)[method] = operation;
       routeCount++;
 
       if (VERBOSE) {
-        const hasSchema = RESPONSE_SCHEMA_MAP[leaf] ? '+' : ' ';
-        console.log(`    ${hasSchema} ${route.method} ${openApiPath}`);
+        console.log(`    ${hasSchema ? '+' : ' '} ${route.method} ${openApiPath}`);
       }
     }
   }
@@ -531,6 +519,33 @@ function writeAndSummarize(
   console.log(`Tags:             ${result.tags.size}`);
   console.log(`Output:           ${outputPath}`);
   console.log(DRY_RUN ? '\nDry run complete. No files written.' : '\nOpenAPI spec generated.');
+
+  // Gap report from scanner
+  printGapReport(scanResult);
+}
+
+/**
+ * Print schema gap report from scanner results.
+ */
+function printGapReport(result: ScanResult): void {
+  if (result.broken.length === 0 && result.uncoveredHandlers.length === 0) return;
+
+  console.log('\nSchema Gaps');
+  console.log('───────────────────────');
+
+  for (const entry of result.broken) {
+    const key = typeof entry.schema === 'string'
+      ? entry.schema
+      : entry.schema.response ?? '?';
+    console.log(`  Broken: ${entry.className} → ${key}`);
+  }
+
+  console.log(`Uncovered handlers (no SCHEMA): ${result.uncoveredHandlers.length}`);
+  if (VERBOSE) {
+    for (const handler of result.uncoveredHandlers) {
+      console.log(`  ${handler}`);
+    }
+  }
 }
 
 // =============================================================================

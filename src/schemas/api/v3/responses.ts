@@ -31,6 +31,14 @@ import {
   resetPasswordRequestResponseSchema,
   resetPasswordResponseSchema,
 } from '@/schemas/api/auth/endpoints/auth';
+import {
+  organizationResponseSchema,
+  organizationsResponseSchema,
+  deleteResponseSchema as orgDeleteResponseSchema,
+  membersResponseSchema,
+  memberResponseSchema,
+  memberDeleteResponseSchema,
+} from '@/schemas/api/organizations/endpoints/organizations';
 import { createApiListResponseSchema, createApiResponseSchema } from '@/schemas/api/v3/base';
 import {
   concealDataSchema,
@@ -83,6 +91,14 @@ export const responseSchemas = {
   jurisdiction: createApiResponseSchema(jurisdictionSchema, jurisdictionDetailsSchema),
   receipt: createApiResponseSchema(receiptSchema, receiptDetailsSchema),
   secret: createApiResponseSchema(secretSchema, secretDetailsSchema),
+
+  // Organization responses
+  organization: organizationResponseSchema,
+  organizationList: organizationsResponseSchema,
+  organizationDelete: orgDeleteResponseSchema,
+  memberList: membersResponseSchema,
+  member: memberResponseSchema,
+  memberDelete: memberDeleteResponseSchema,
 
   // List responses
   customDomainList: createApiListResponseSchema(customDomainSchema, customDomainDetailsSchema),
@@ -141,3 +157,9 @@ export type CreateAccountResponse = ResponseTypes['createAccount'];
 export type LogoutResponse = ResponseTypes['logout'];
 export type ResetPasswordRequestResponse = ResponseTypes['resetPasswordRequest'];
 export type ResetPasswordResponse = ResponseTypes['resetPassword'];
+export type OrganizationResponse = ResponseTypes['organization'];
+export type OrganizationListResponse = ResponseTypes['organizationList'];
+export type OrganizationDeleteResponse = ResponseTypes['organizationDelete'];
+export type MemberListResponse = ResponseTypes['memberList'];
+export type MemberResponse = ResponseTypes['member'];
+export type MemberDeleteResponse = ResponseTypes['memberDelete'];
