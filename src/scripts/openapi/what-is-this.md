@@ -9,6 +9,10 @@ them — Ruby handler classes declare which schemas they use via SCHEMA constant
 those declarations, and a generator assembles the OpenAPI document. The goal is a machine-readable API contract
 that can drive client SDK generation, documentation, contract testing, and anomaly detection across API versions.
 
+It's a two-phase convention bridge — Ruby source declares intent (SCHEMA constants), TypeScript scanner reads it,
+and the generator joins routes with schemas at build time. This is effectively a compile-time contract between
+the Ruby backend and the TypeScript schema layer, with no runtime coupling. The gap report acts as a liveness
+check on that contract.
 
 > What is the reason for having "operationId" that the ruby module namespace didn't already do?
 
@@ -43,6 +47,24 @@ Beyond disambiguation, operationId serves a different audience entirely. The Rub
 (routing, code organization). The operationId is for consumers — SDK generators use it as method names,
 documentation tools use it as anchor links, and contract testing tools use it to correlate requests to spec
 entries. The OpenAPI spec is an external contract; it shouldn't leak internal class hierarchies.
+
+> What does covered and uncovered mean?
+- Covered = the Ruby class declares a SCHEMA/SCHEMAS constant AND the key it points to resolves to an actual Zod
+schema in one of the TS registries (responseSchemas or schemaRegistry). The OpenAPI generator can produce a typed
+JSON Schema for this handler's response.
+- Broken (a subset of declared) = the Ruby class declares the constant but the key doesn't resolve anywhere. This
+is what we just fixed — 7 → 0.
+- Uncovered handler = a route handler class that has no SCHEMA/SCHEMAS constant at all. The generator still emits
+an OpenAPI path entry for it, but with a generic { type: 'object' } response body instead of a real schema. These
+are the 46 remaining gaps.
+- Uncovered model = a model file in lib/onetime/models/ with no SCHEMA constant. These aren't route handlers, so
+they don't directly affect the API spec — but they're tracked because model schemas feed the JSON Schema
+generation pipeline (schemaRegistry).
+
+Example: So a coverage number (62/108 = 54%) means: of 108 route handlers the scanner sees, 62 have declared schema
+constants that resolve to real Zod schemas. The other 46 produce spec entries with placeholder response shapes.
+
+
 
 ---
 
