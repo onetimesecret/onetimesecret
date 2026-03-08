@@ -1021,13 +1021,18 @@ function writeScaffold(filePath: string, content: string): void {
 function processApi(
   apiName: string, routes: OttoRoute[],
   dirFiles: Map<string, string[]>,
-): { generated: number; exists: number } {
+): { generated: number; exists: number; internal: number } {
   const seen = new Set<string>();
   let generated = 0;
   let exists = 0;
+  let internal = 0;
 
   for (const route of routes) {
     if (route.method === 'OPTIONS') continue;
+    if (route.params.scope === 'internal') {
+      internal++;
+      continue;
+    }
 
     const leaf = getHandlerLeaf(route.handler);
     if (seen.has(leaf)) continue;
@@ -1051,7 +1056,7 @@ function processApi(
     generated++;
   }
 
-  return { generated, exists };
+  return { generated, exists, internal };
 }
 
 function main(): void {
@@ -1064,11 +1069,13 @@ function main(): void {
   const dirFiles = new Map<string, string[]>();
   let totalGenerated = 0;
   let totalExists = 0;
+  let totalInternal = 0;
 
   for (const [apiName, parsed] of Object.entries(allRoutes)) {
     const counts = processApi(apiName, parsed.routes, dirFiles);
     totalGenerated += counts.generated;
     totalExists += counts.exists;
+    totalInternal += counts.internal;
   }
 
   // Generate index.ts for each requests/ directory
@@ -1084,6 +1091,7 @@ function main(): void {
   console.log('───────────────────────');
   console.log(`Generated:  ${totalGenerated}`);
   console.log(`Existing:   ${totalExists}`);
+  console.log(`Internal:   ${totalInternal} (skipped, scope=internal)`);
   console.log(`Directories: ${dirFiles.size}`);
   console.log(DRY_RUN ? '\nDry run complete. No files written.' : '\nScaffolds generated. Review each file and fill in TODOs.');
 }
