@@ -3,7 +3,7 @@
 import { brandSettingschema } from '@/schemas/models/domain/brand';
 import { z } from 'zod';
 
-import { concealPayloadSchema, generatePayloadSchema } from './payloads/index';
+import { concealPayloadSchema, generatePayloadSchema } from '@/schemas/api/v2/payloads';
 
 export const updateDomainBrandRequestSchema = z.object({
   brand: brandSettingschema.partial(),
