@@ -9,9 +9,6 @@ pnpm run openapi:generate              # Generate spec to generated/openapi/open
 pnpm run openapi:generate -- --dry-run  # Preview without writing
 pnpm run openapi:generate -- --verbose  # Show per-route details (+ = has schema)
 pnpm run schema:scan                    # Scan Ruby SCHEMA constants, print coverage gap report
-pnpm run openapi:test-parser            # Smoke tests for the routes parser
-pnpm run schema:test-scanner            # Smoke tests for the schema scanner
-pnpm run openapi:scaffold-requests      # Generating request schema scaffolds from routes.txt. it skips existing files unless --force is passed
 ```
 
 ## How it works
@@ -28,8 +25,8 @@ pnpm run openapi:scaffold-requests      # Generating request schema scaffolds fr
 - `schema-scanner.ts` — scans Ruby source for `SCHEMA` constants, produces coverage reports
 - `otto-routes-parser.ts` — parses routes.txt into structured route metadata
 - `route-config.ts` — shared helpers (standardErrorResponses, mergeResponses)
-- `test-parser.ts` — smoke tests for the routes parser
-- `test-scanner.ts` — smoke tests for the schema scanner
+- `tests/test-parser.ts` — smoke tests for the routes parser
+- `tests/test-scanner.ts` — smoke tests for the schema scanner
 
 ## Adding schema coverage
 

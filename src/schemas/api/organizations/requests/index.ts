@@ -1,5 +1,4 @@
 // Auto-generated index — re-exports all request schemas in this directory.
-// Regenerate with: pnpm run openapi:scaffold-requests
 
 export * from './create-invitation';
 export * from './create-organization';

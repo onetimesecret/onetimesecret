@@ -1,5 +1,4 @@
 // Auto-generated index — re-exports all request schemas in this directory.
-// Regenerate with: pnpm run openapi:scaffold-requests
 
 export * from './burn-secret';
 export * from './conceal-secret';
