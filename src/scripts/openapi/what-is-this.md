@@ -50,28 +50,26 @@ Next steps for the convention-based OpenAPI generator
 
 The scanner and generator pipeline is functional: Ruby SCHEMA constants are declared on 62 handler classes and 4
 models, the TypeScript scanner extracts them, and the generator produces a valid OpenAPI 3.1 spec covering 54% of
-the 120 API routes. The remaining work falls into two categories — fixing the 7 broken schema references (schemas
-that exist but aren't wired into the resolver), and incrementally closing the 46 uncovered handler gaps to push
-coverage toward completeness. Along the way, the tooling has already surfaced structural anomalies in the public
-API surface: V1's path triplication, V2's inherited aliases, and the V2/V3 wire format divergence.
+the 120 API routes (65 of 120 routes have schema-backed responses). The tooling has surfaced structural anomalies
+in the public API surface: V1's path triplication, V2's inherited aliases, and the V2/V3 wire format divergence.
 
-Based on where things stand, here are the next steps in priority order:
+Completed:
 
-1. Fix the 7 broken references (quick win)
+1. ✓ Fix the 7 broken references
 
-Three are the incoming schemas that exist but aren't registered in responseSchemas. Four are model schemas using
-models/ keys that the scanner validates against responseSchemas only — the resolver needs to also check
-schemaRegistry for prefixed keys. This is either a one-line scanner fix or adding the entries to responseSchemas.
+Registered 3 Incoming response schemas (validateRecipient, incomingConfig, incomingSecret) in responseSchemas —
+the Zod schemas existed in src/schemas/api/incoming.ts but weren't wired into the central registry. Taught the
+scanner and generator to also check schemaRegistry for model-prefixed keys (models/secret, models/receipt, etc.)
+so Ruby model SCHEMA declarations resolve correctly. Broken references: 7 → 0.
 
-2. Decide what to do about V1 aliasing
+2. ✓ Document and deprecate V1/V2 path aliases
 
-V1 has 6 unique operations served across 18 routes via 3 path prefixes (/private/, /metadata/, /receipt/). V2
-carries 4 of those aliases forward. Three options:
-- Document and deprecate — the OpenAPI spec makes the duplication visible; mark /private/ and /metadata/ paths as
-deprecated: true in the generated spec
-- Suppress aliases — add a mechanism (routes.txt annotation or generator config) to skip alias routes from spec
-output
-- Leave as-is — all paths are real and served; the spec should reflect reality
+Added deprecated=true annotation to 12 legacy alias routes in V1 and V2 routes.txt (/private/ and /metadata/
+paths). The generator reads the param and emits deprecated: true on those OpenAPI operations. OperationIds include
+the path prefix for deprecated routes (e.g. v1_private_showReceipt) to avoid collisions with canonical routes.
+All paths remain in the spec — existing clients still find them, but the deprecation signal is clear.
+
+Remaining:
 
 3. Add the 3 uncovered Meta endpoints per version
 
@@ -92,7 +90,7 @@ accurate since the paths differ)
 5. Register the V2 wire format difference
 
 V2 and V3 share the same SCHEMA values but V2 returns string-encoded booleans/numbers while V3 returns native JSON
-  types. Options:
+types. Options:
 - Create separate v2/ response schemas that reflect the wire format (strings everywhere)
 - Add an x-wire-format: string-encoded extension to V2 operations in the generated spec
 - Document it and move on — V2 is stable and likely headed for deprecation
@@ -111,9 +109,9 @@ The 46 uncovered handlers break down as:
 The domain image handlers are the easiest gap to close — GetDomainLogo, GetDomainIcon, UpdateDomainLogo,
 UpdateDomainIcon all use the imageProps response but the scanner missed them because they inherit via
 GetDomainImage/UpdateDomainImage base classes. Adding SCHEMA to the base classes (or the subclasses) would cover 8
-  routes at once.
+routes at once.
 
 Suggested order
 
-Steps 1-3 are mechanical and could be done now. Step 4 is a design call. Step 5 is worth discussing before acting.
-  Step 6 is ongoing — each gap filled immediately increases coverage in the generated spec.
+Step 3 is mechanical and could be done now. Step 4 is a design call. Step 5 is worth discussing before acting.
+Step 6 is ongoing — each gap filled immediately increases coverage in the generated spec.
