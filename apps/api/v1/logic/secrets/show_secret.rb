@@ -22,7 +22,6 @@ module V1::Logic
       end
 
       def raise_concerns
-
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
       end
 

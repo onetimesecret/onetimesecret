@@ -3,10 +3,6 @@
 // Request schema for V1::Controllers::Index#status
 // GET /status
 //
-// TODO: Review and adjust — this scaffold was auto-generated from
-// the Ruby source parameter survey. Verify against the actual
-// handler implementation before using in the OpenAPI pipeline.
-//
 // No request params. Returns system status.
 
 import { z } from 'zod';
