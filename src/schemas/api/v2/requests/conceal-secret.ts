@@ -9,20 +9,11 @@
 
 import { z } from 'zod';
 
+import { concealPayloadSchema } from '@/schemas/api/v3/payloads/conceal';
+
 export const concealSecretRequestSchema = z.object({
-  /** Nested payload — V2 BaseSecretAction unwraps params['secret'] */
-  secret: z.object({
-    /** The secret content to conceal */
-    secret: z.string(),
-    /** Time-to-live in seconds */
-    ttl: z.number().int().optional(),
-    /** Passphrase to protect the secret */
-    passphrase: z.string().optional(),
-    /** Recipient email address(es) */
-    recipient: z.array(z.email()).optional(),
-    /** Custom domain for the share link */
-    share_domain: z.string().optional(),
-  }),
+  /** Transport wrapper — V2 BaseSecretAction unwraps params['secret'] */
+  secret: concealPayloadSchema,
 });
 
 export type ConcealSecretRequest = z.infer<typeof concealSecretRequestSchema>;
