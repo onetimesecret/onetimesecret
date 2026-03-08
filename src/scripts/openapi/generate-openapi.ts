@@ -433,6 +433,15 @@ function buildOperation(
     operation.deprecated = true;
   }
 
+  // Emit custom route params as x-o-route-* extensions.
+  // Reserved params (consumed by the generator for structural purposes)
+  // are excluded — only domain-specific annotations pass through.
+  const RESERVED_PARAMS = new Set(['response', 'auth', 'csrf', 'deprecated']);
+  for (const [key, value] of Object.entries(route.params)) {
+    if (RESERVED_PARAMS.has(key)) continue;
+    operation[`x-otto-route-${key}`] = value;
+  }
+
   // Add security
   const security = buildSecurity(route);
   if (security) {
