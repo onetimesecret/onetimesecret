@@ -1,12 +1,11 @@
 // src/schemas/api/v3/responses/organizations.ts
 //
 // V3 JSON wire-format schemas for organization and member endpoints.
-//
-// The V2 organization model uses z.string().transform(toObjId) and
-// z.coerce.number().transform(Date) which serialize as {} in JSON Schema.
-// V3 replaces these with plain primitives: strings for IDs, strings for
-// timestamps, numbers for counts.
+// Timestamps use transforms.fromNumber.toDate so that .parse() returns
+// Date objects for the frontend while io:"input" still documents them
+// as numbers in OpenAPI.
 
+import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -41,8 +40,8 @@ const organizationRecord = z.object({
   contact_email: z.string().nullish(),
   billing_email: z.string().nullish(),
   is_default: z.boolean(),
-  created: z.number(),            // Unix epoch (UTC seconds)
-  updated: z.number(),            // Unix epoch (UTC seconds)
+  created: transforms.fromNumber.toDate,
+  updated: transforms.fromNumber.toDate,
   owner_extid: z.string().nullish(),
   member_count: z.number().int().min(0).nullish(),
   current_user_role: z.enum(organizationRoles).nullish(),
@@ -57,7 +56,7 @@ const memberRecord = z.object({
   extid: z.string(),
   email: z.string(),
   role: z.enum(organizationRoles),
-  joined_at: z.number(),
+  joined_at: transforms.fromNumber.toDate,
   is_owner: z.boolean(),
   is_current_user: z.boolean(),
 });

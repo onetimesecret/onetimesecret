@@ -1,8 +1,12 @@
 // src/schemas/api/v3/responses/account.ts
 //
 // V3 JSON wire-format schemas for account and customer endpoints.
+// Timestamps use transforms.fromNumber.toDate so that .parse() returns
+// Date objects for the frontend while io:"input" still documents them
+// as numbers in OpenAPI.
 
 import { createApiResponseSchema } from '@/schemas/api/base';
+import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -14,8 +18,8 @@ const customerRoles = ['customer', 'colonel', 'recipient', 'user_deleted_self'] 
 /** Customer record as it appears in JSON responses. */
 const customerRecord = z.object({
   identifier: z.string(),
-  created: z.number(),            // Unix epoch (UTC seconds)
-  updated: z.number(),            // Unix epoch (UTC seconds)
+  created: transforms.fromNumber.toDate,
+  updated: transforms.fromNumber.toDate,
   objid: z.string(),
   extid: z.string(),
   role: z.enum(customerRoles),
@@ -27,7 +31,7 @@ const customerRecord = z.object({
   secrets_burned: z.number().default(0),
   secrets_shared: z.number().default(0),
   emails_sent: z.number().default(0),
-  last_login: z.number().nullable(),  // Unix epoch or null
+  last_login: transforms.fromNumber.toDateNullable,
   locale: z.string().nullable(),
   notify_on_reveal: z.boolean().default(false),
   feature_flags: z.record(z.string(), z.boolean()).default({}),
@@ -36,6 +40,7 @@ const customerRecord = z.object({
 /** Account record (V2 AccountOwnInfo shape). */
 const accountRecord = z.object({
   cust: customerRecord,
+  apitoken: z.string().nullable(),
   stripe_customer: z.any().optional(),
   stripe_subscriptions: z.any().optional(),
 });

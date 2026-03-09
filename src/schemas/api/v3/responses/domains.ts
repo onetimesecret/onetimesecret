@@ -2,8 +2,12 @@
 //
 // V3 JSON wire-format schemas for custom domain, jurisdiction, brand,
 // and image endpoints.
+// Timestamps use transforms.fromNumber.toDate so that .parse() returns
+// Date objects for the frontend while io:"input" still documents them
+// as numbers in OpenAPI.
 
 import { createApiResponseSchema, createApiListResponseSchema } from '@/schemas/api/base';
+import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -44,10 +48,10 @@ const vhostRecord = z
     has_ssl: z.boolean().optional(),
     is_resolving: z.boolean().optional(),
     status_message: z.string().optional(),
-    created_at: z.number().optional(),            // Unix epoch (UTC seconds)
-    last_monitored_unix: z.number().optional(),  // Unix epoch (UTC seconds)
-    ssl_active_from: z.number().nullable(),
-    ssl_active_until: z.number().nullable(),
+    created_at: transforms.fromNumber.toDateOptional,
+    last_monitored_unix: transforms.fromNumber.toDateOptional,
+    ssl_active_from: transforms.fromNumber.toDateNullable,
+    ssl_active_until: transforms.fromNumber.toDateNullable,
   })
   .partial();
 
@@ -67,8 +71,8 @@ const imagePropsRecord = z
 /** Custom domain record. */
 const customDomainRecord = z.object({
   identifier: z.string(),
-  created: z.number(),            // Unix epoch (UTC seconds)
-  updated: z.number(),            // Unix epoch (UTC seconds)
+  created: transforms.fromNumber.toDate,
+  updated: transforms.fromNumber.toDate,
   domainid: z.string(),
   extid: z.string(),
   custid: z.string().nullable(),

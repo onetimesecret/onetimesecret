@@ -1,14 +1,12 @@
 // src/schemas/api/v3/responses/secrets.ts
 //
 // V3 JSON wire-format schemas for secret endpoints.
-// All fields use JSON primitives — no transforms, no preprocessing.
-//
-// V2 model schemas (src/schemas/models/secret.ts) use z.preprocess() and
-// transforms.fromString.* for parsing Redis/backend data at runtime.
-// These V3 schemas describe what the client actually receives over JSON:
-// booleans are true/false, numbers are numbers, timestamps are Unix epoch.
+// Timestamps use transforms.fromNumber.toDate so that .parse() returns
+// Date objects for the frontend while io:"input" still documents them
+// as numbers in OpenAPI.
 
 import { createApiResponseSchema, createApiListResponseSchema } from '@/schemas/api/base';
+import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -20,8 +18,8 @@ const secretStateValues = ['new', 'received', 'revealed', 'burned', 'viewed', 'p
 /** Core secret fields shared between list and detail views. */
 const secretBaseRecord = z.object({
   identifier: z.string(),
-  created: z.number(),            // Unix epoch (UTC seconds)
-  updated: z.number(),            // Unix epoch (UTC seconds)
+  created: transforms.fromNumber.toDate,
+  updated: transforms.fromNumber.toDate,
   key: z.string(),
   shortid: z.string(),
   state: z.enum(secretStateValues),
@@ -32,7 +30,7 @@ const secretBaseRecord = z.object({
 
 /** Full secret record with TTL fields. */
 const secretRecord = secretBaseRecord.extend({
-  secret_ttl: z.number(),         // seconds
+  secret_ttl: z.number(),         // seconds (duration, not timestamp)
   lifespan: z.number(),           // seconds
 });
 
@@ -57,8 +55,8 @@ const receiptStateValues = [
 
 const concealReceiptRecord = z.object({
   identifier: z.string(),
-  created: z.number(),            // Unix epoch (UTC seconds)
-  updated: z.number(),            // Unix epoch (UTC seconds)
+  created: transforms.fromNumber.toDate,
+  updated: transforms.fromNumber.toDate,
   key: z.string(),
   shortid: z.string(),
   secret_shortid: z.string().optional(),
@@ -69,12 +67,12 @@ const concealReceiptRecord = z.object({
   lifespan: z.number(),
   state: z.enum(receiptStateValues),
   has_passphrase: z.boolean().optional(),
-  shared: z.number().nullable().optional(),        // Unix epoch or null
-  received: z.number().nullable().optional(),
-  viewed: z.number().nullable().optional(),
-  previewed: z.number().nullable().optional(),
-  revealed: z.number().nullable().optional(),
-  burned: z.number().nullable().optional(),
+  shared: transforms.fromNumber.toDateNullish,
+  received: transforms.fromNumber.toDateNullish,
+  viewed: transforms.fromNumber.toDateNullish,
+  previewed: transforms.fromNumber.toDateNullish,
+  revealed: transforms.fromNumber.toDateNullish,
+  burned: transforms.fromNumber.toDateNullish,
   is_viewed: z.boolean(),
   is_received: z.boolean(),
   is_previewed: z.boolean().optional(),

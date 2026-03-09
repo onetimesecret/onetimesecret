@@ -2,12 +2,14 @@
 //
 // V3 response schema registry and barrel exports.
 //
-// Every response schema in this directory uses JSON-native types:
-// booleans, numbers, strings (including ISO 8601 dates). No z.preprocess(),
-// no transforms.fromString.*, no .transform() chains.
+// V3 schemas use JSON-native input types (booleans, numbers, strings) that
+// match what the V3 API sends over the wire. Timestamp fields use
+// transforms.fromNumber.toDate to convert Unix epoch seconds into Date
+// objects at parse time. This works with io:"input" in z.toJSONSchema()
+// so OpenAPI still documents the wire type (number), not the output (Date).
 //
-// This makes the schemas directly representable in JSON Schema / OpenAPI
-// without relying on Zod serialization heuristics.
+// Unlike V2 schemas, V3 does NOT use z.preprocess() or transforms.fromString.*
+// because the V3 backend sends properly typed JSON (not Redis string encodings).
 
 import { z } from 'zod';
 

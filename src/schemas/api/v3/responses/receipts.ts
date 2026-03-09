@@ -1,9 +1,12 @@
 // src/schemas/api/v3/responses/receipts.ts
 //
 // V3 JSON wire-format schemas for receipt endpoints.
-// Timestamps are Unix epoch (UTC seconds), booleans/numbers are native JSON types.
+// Timestamps use transforms.fromNumber.toDate so that .parse() returns
+// Date objects for the frontend while io:"input" still documents them
+// as numbers in OpenAPI.
 
 import { createApiResponseSchema, createApiListResponseSchema } from '@/schemas/api/base';
+import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -18,26 +21,26 @@ const receiptStateValues = [
 /** Base receipt fields shared between list and detail views. */
 const receiptBaseRecord = z.object({
   identifier: z.string(),
-  created: z.number(),            // Unix epoch (UTC seconds)
-  updated: z.number(),            // Unix epoch (UTC seconds)
+  created: transforms.fromNumber.toDate,
+  updated: transforms.fromNumber.toDate,
   key: z.string(),
   shortid: z.string(),
   secret_shortid: z.string().optional(),
   recipients: z.array(z.string()).or(z.string()).nullable().optional(),
   share_domain: z.string().nullable().optional(),
-  secret_ttl: z.number(),         // seconds
+  secret_ttl: z.number(),         // seconds (duration, not timestamp)
   receipt_ttl: z.number(),        // seconds
   lifespan: z.number(),           // seconds
   state: z.enum(receiptStateValues),
   has_passphrase: z.boolean().optional(),
 
-  // Timestamp fields (Unix epoch or null)
-  shared: z.number().nullable().optional(),
-  received: z.number().nullable().optional(),     // @deprecated — use revealed
-  viewed: z.number().nullable().optional(),       // @deprecated — use previewed
-  previewed: z.number().nullable().optional(),
-  revealed: z.number().nullable().optional(),
-  burned: z.number().nullable().optional(),
+  // Timestamp fields (Unix epoch → Date, or null)
+  shared: transforms.fromNumber.toDateNullish,
+  received: transforms.fromNumber.toDateNullish,     // @deprecated — use revealed
+  viewed: transforms.fromNumber.toDateNullish,       // @deprecated — use previewed
+  previewed: transforms.fromNumber.toDateNullish,
+  revealed: transforms.fromNumber.toDateNullish,
+  burned: transforms.fromNumber.toDateNullish,
 
   // Boolean status flags
   is_viewed: z.boolean(),         // @deprecated — use is_previewed
@@ -58,7 +61,7 @@ const receiptRecord = receiptBaseRecord.extend({
   secret_identifier: z.string().nullish(),
   secret_state: z.enum(receiptStateValues).nullish(),
   natural_expiration: z.string(),
-  expiration: z.number(),         // Unix epoch (UTC seconds)
+  expiration: transforms.fromNumber.toDate,
   expiration_in_seconds: z.number(),
   share_path: z.string(),
   burn_path: z.string(),
