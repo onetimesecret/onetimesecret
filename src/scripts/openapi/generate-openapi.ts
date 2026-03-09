@@ -28,6 +28,7 @@ import {
   toOpenAPIPath,
   getPathParams,
   getAuthRequirements,
+  getContentType,
   getResponseType,
   type OttoRoute,
 } from './otto-routes-parser';
@@ -318,26 +319,51 @@ function buildPathParameters(path: string): Array<Record<string, unknown>> {
 }
 
 /**
- * Build the request body for a route, if a schema is mapped.
+ * Build the request body for a route.
  *
- * All request bodies are emitted as application/json. Routes that accept
- * application/x-www-form-urlencoded (notably V1) use the same schema shape —
- * the field names and types are identical, only the encoding differs. We treat
- * form-encoded payloads as plain text for manual review; the spec documents
- * the field contract, not the transport encoding.
+ * Uses the route's `content` param to select the media type:
+ * - content=form → application/x-www-form-urlencoded (V1 API)
+ * - default      → application/json (V2/V3 APIs)
+ *
+ * When a mapped Zod schema exists, its JSON Schema is inlined.
+ * For POST/PUT/PATCH routes with content=form but no schema yet,
+ * a stub {type: 'object'} is emitted so the spec still documents
+ * that the endpoint accepts a request body.
  */
-function buildRequestBody(handler: string): Record<string, unknown> | undefined {
-  const schema = lookupRequestSchema(handler);
-  if (!schema) return undefined;
+function buildRequestBody(route: OttoRoute): Record<string, unknown> | undefined {
+  const schema = lookupRequestSchema(route.handler);
+  const contentType = getContentType(route);
+  const isForm = contentType === 'form';
+  const mediaType = isForm
+    ? 'application/x-www-form-urlencoded'
+    : 'application/json';
 
-  return {
-    required: true,
-    content: {
-      'application/json': {
-        schema: zodToJsonSchema(schema),
+  // If we have a schema, emit it under the correct media type
+  if (schema) {
+    return {
+      required: true,
+      content: {
+        [mediaType]: {
+          schema: zodToJsonSchema(schema),
+        },
       },
-    },
-  };
+    };
+  }
+
+  // For form-encoded routes without a schema, emit a stub so the
+  // spec documents the content type even before schemas are wired up
+  if (isForm) {
+    return {
+      required: true,
+      content: {
+        [mediaType]: {
+          schema: { type: 'object' },
+        },
+      },
+    };
+  }
+
+  return undefined;
 }
 
 /**
@@ -438,7 +464,7 @@ function buildOperation(
   // Emit custom route params as x-o-route-* extensions.
   // Reserved params (consumed by the generator for structural purposes)
   // are excluded — only domain-specific annotations pass through.
-  const RESERVED_PARAMS = new Set(['response', 'auth', 'csrf', 'deprecated']);
+  const RESERVED_PARAMS = new Set(['response', 'auth', 'content', 'csrf', 'deprecated']);
   for (const [key, value] of Object.entries(route.params)) {
     if (RESERVED_PARAMS.has(key)) continue;
     operation[`x-otto-route-${key}`] = value;
@@ -461,7 +487,7 @@ function buildOperation(
 
   // Add request body for POST/PUT/PATCH
   if (['POST', 'PUT', 'PATCH'].includes(route.method)) {
-    const requestBody = buildRequestBody(route.handler);
+    const requestBody = buildRequestBody(route);
     if (requestBody) {
       operation.requestBody = requestBody;
     }

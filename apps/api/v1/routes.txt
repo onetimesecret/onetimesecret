@@ -1,28 +1,33 @@
 # apps/api/v1/routes.txt
+#
+# Route attributes (auth=, content=, response=, deprecated=) are declarative
+# metadata for the otto-route-parser used in OpenAPI schema generation.
+# Authentication is enforced in the controller via authorized(true|false),
+# not by Otto's route-level auth strategies.
 
-GET    /status                               V1::Controllers::Index#status
-GET    /authcheck                            V1::Controllers::Index#authcheck
+GET    /status                               V1::Controllers::Index#status     auth=basic,anonymous response=json
+GET    /authcheck                            V1::Controllers::Index#authcheck  auth=basic response=json
 
-POST   /share                                V1::Controllers::Index#share
-POST   /generate                             V1::Controllers::Index#generate
+POST   /share                                V1::Controllers::Index#share      auth=basic,anonymous content=form response=json
+POST   /generate                             V1::Controllers::Index#generate   auth=basic,anonymous content=form response=json
 
-POST   /create                               V1::Controllers::Index#create
+POST   /create                               V1::Controllers::Index#create     auth=basic,anonymous content=form response=json
 
-POST   /secret/:key                          V1::Controllers::Index#show_secret
+POST   /secret/:key                          V1::Controllers::Index#show_secret auth=basic,anonymous content=form response=json
 
 # Canonical receipt paths
-GET    /receipt/recent                       V1::Controllers::Index#show_receipt_recent
-GET    /receipt/:key                         V1::Controllers::Index#show_receipt
-POST   /receipt/:key                         V1::Controllers::Index#show_receipt
-POST   /receipt/:key/burn                    V1::Controllers::Index#burn_secret
+GET    /receipt/recent                       V1::Controllers::Index#show_receipt_recent auth=basic response=json
+GET    /receipt/:key                         V1::Controllers::Index#show_receipt auth=basic,anonymous response=json
+POST   /receipt/:key                         V1::Controllers::Index#show_receipt auth=basic,anonymous content=form response=json
+POST   /receipt/:key/burn                    V1::Controllers::Index#burn_secret auth=basic,anonymous content=form response=json
 
 # Legacy aliases — use /receipt/ paths instead
-GET    /private/recent                       V1::Controllers::Index#show_receipt_recent deprecated=true
-GET    /private/:key                         V1::Controllers::Index#show_receipt deprecated=true
-POST   /private/:key                         V1::Controllers::Index#show_receipt deprecated=true
-POST   /private/:key/burn                    V1::Controllers::Index#burn_secret deprecated=true
+GET    /private/recent                       V1::Controllers::Index#show_receipt_recent auth=basic response=json deprecated=true
+GET    /private/:key                         V1::Controllers::Index#show_receipt auth=basic,anonymous response=json deprecated=true
+POST   /private/:key                         V1::Controllers::Index#show_receipt auth=basic,anonymous content=form response=json deprecated=true
+POST   /private/:key/burn                    V1::Controllers::Index#burn_secret auth=basic,anonymous content=form response=json deprecated=true
 
-GET    /metadata/recent                      V1::Controllers::Index#show_receipt_recent deprecated=true
-GET    /metadata/:key                        V1::Controllers::Index#show_receipt deprecated=true
-POST   /metadata/:key                        V1::Controllers::Index#show_receipt deprecated=true
-POST   /metadata/:key/burn                   V1::Controllers::Index#burn_secret deprecated=true
+GET    /metadata/recent                      V1::Controllers::Index#show_receipt_recent auth=basic response=json deprecated=true
+GET    /metadata/:key                        V1::Controllers::Index#show_receipt auth=basic,anonymous response=json deprecated=true
+POST   /metadata/:key                        V1::Controllers::Index#show_receipt auth=basic,anonymous content=form response=json deprecated=true
+POST   /metadata/:key/burn                   V1::Controllers::Index#burn_secret auth=basic,anonymous content=form response=json deprecated=true
