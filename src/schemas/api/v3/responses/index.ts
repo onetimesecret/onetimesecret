@@ -50,6 +50,11 @@ import {
 } from './domains';
 import { feedbackResponseSchema } from './feedback';
 import {
+  systemStatusResponseSchema,
+  systemVersionResponseSchema,
+  supportedLocalesResponseSchema,
+} from './meta';
+import {
   incomingConfigResponseSchema,
   incomingSecretResponseSchema,
   validateRecipientEnvelopeSchema,
@@ -126,6 +131,11 @@ export const responseSchemas = {
   incomingSecret: incomingSecretResponseSchema,
   validateRecipient: validateRecipientEnvelopeSchema,
 
+  // Meta
+  systemStatus: systemStatusResponseSchema,
+  systemVersion: systemVersionResponseSchema,
+  supportedLocales: supportedLocalesResponseSchema,
+
   // Feedback
   feedback: feedbackResponseSchema,
 
@@ -162,3 +172,4 @@ export type { IncomingConfigResponse, IncomingSecretResponse, ValidateRecipientR
 export type { OrganizationResponse, OrganizationListResponse, OrganizationDeleteResponse, MemberListResponse, MemberResponse, MemberDeleteResponse } from './organizations';
 export type { ReceiptResponse, ReceiptListResponse } from './receipts';
 export type { ConcealDataResponse, SecretResponse, SecretListResponse } from './secrets';
+export type { SystemStatusResponse, SystemVersionResponse, SupportedLocalesResponse } from './meta';

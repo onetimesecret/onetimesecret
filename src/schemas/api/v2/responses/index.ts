@@ -10,4 +10,5 @@ export * from './incoming';
 export * from './organizations';
 export * from './receipts';
 export * from './secrets';
+export * from './meta';
 export * from './registry';
