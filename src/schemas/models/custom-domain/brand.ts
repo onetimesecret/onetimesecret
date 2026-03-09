@@ -1,4 +1,4 @@
-// src/schemas/models/domain/brand.ts
+// src/schemas/models/custom-domain/brand.ts
 
 import { localeSchema } from '@/schemas/i18n/locale';
 import { transforms } from '@/schemas/transforms';

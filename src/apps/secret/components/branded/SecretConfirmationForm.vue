@@ -8,7 +8,7 @@
     FontFamily,
     cornerStyleClasses,
     fontFamilyClasses,
-  } from '@/schemas/models/domain/brand';
+  } from '@/schemas/models/custom-domain/brand';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { ref, computed } from 'vue';
 

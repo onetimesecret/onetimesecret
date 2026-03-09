@@ -1,4 +1,4 @@
-// src/schemas/models/domain/vhost.ts
+// src/schemas/models/custom-domain/vhost.ts
 
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';

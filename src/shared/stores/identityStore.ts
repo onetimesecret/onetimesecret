@@ -1,6 +1,6 @@
 // src/shared/stores/identityStore.ts
 
-import { brandSettingschema, type BrandSettings } from '@/schemas/models/domain/brand';
+import { brandSettingschema, type BrandSettings } from '@/schemas/models/custom-domain/brand';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, toRefs, watch } from 'vue';
 import { useI18n } from 'vue-i18n';

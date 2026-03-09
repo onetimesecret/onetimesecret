@@ -9,7 +9,7 @@ import {
   jurisdictionDetailsSchema,
   jurisdictionSchema,
 } from '@/schemas/models';
-import { brandSettingschema, imagePropsSchema } from '@/schemas/models/domain/brand';
+import { brandSettingschema, imagePropsSchema } from '@/schemas/models/custom-domain/brand';
 import { z } from 'zod';
 
 export const brandSettingsResponseSchema = createApiResponseSchema(brandSettingschema);

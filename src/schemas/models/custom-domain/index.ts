@@ -1,9 +1,9 @@
-// src/schemas/models/domain/index.ts
+// src/schemas/models/custom-domain/index.ts
 
 export * from './brand';
 export * from './vhost';
 
-// src/schemas/models/domain.ts
+// src/schemas/models/custom-domain.ts
 import { createModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';

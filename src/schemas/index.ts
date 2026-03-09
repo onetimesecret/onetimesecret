@@ -69,7 +69,7 @@ export * from './config';
 // Domain-specific models and endpoints
 export * from './api/v2/responses/content/secrets';
 export * from './api/account/endpoints/colonel';
-export * from './models/domain/index';
+export * from './models/custom-domain/index';
 
 // API response types
 export type {
