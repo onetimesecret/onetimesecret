@@ -19,26 +19,46 @@ pnpm run schema:scan                    # Scan Ruby SCHEMA constants, print cove
 4. Matched schemas are converted via `z.toJSONSchema()` (Zod v4 native, JSON Schema 2020-12)
 5. Output is a single OpenAPI 3.1 JSON file with a gap report on stderr
 
-## Schema transforms and JSON Schema (`io: "input"`)
+## Terminology: V2/V3 are API versions, not Zod versions
 
-V3 schemas serve two purposes: runtime validation (Pinia stores call `.parse()`) and
-OpenAPI documentation (this generator calls `z.toJSONSchema()`). Some fields use
-`.transform()` to coerce wire values into application types — for example,
-`z.number().transform(v => new Date(v * 1000))` converts Unix epoch seconds into
-JavaScript `Date` objects for frontend consumption.
+References to "V2" and "V3" throughout this codebase refer to the Onetime Secret
+REST API versions (`/api/v2/*`, `/api/v3/*`), not Zod library versions. The project
+uses Zod v4 (the npm `zod` package) for all schema definitions across both API versions.
 
-All `z.toJSONSchema()` calls pass `io: "input"` so that transforms document the
-**wire format** (what the API actually sends), not the coerced output type. Without
-this option, a `Date` output would serialize as `{}` (unrepresentable in JSON Schema).
+## Schema data flow: Wire → Domain → Documentation
 
-| Wire value (input)   | Application value (output) | JSON Schema type |
-|----------------------|---------------------------|-----------------|
-| `1641234567`         | `Date`                    | `number`        |
-| `"0"` / `"1"`       | `false` / `true`          | `string`        |
-| `"1641234567"`       | `1641234567`              | `string`        |
+Each V3 schema serves three roles in a single definition:
+
+```typescript
+// Wire → Domain → Documentation
+//
+// 1. VALIDATE: Parse the JSON response from the API
+secretResponseSchema.parse(json)       // input:  { created: 1641234567 }
+//
+// 2. TRANSFORM: Coerce wire values into domain types for Pinia/components
+//    ↓ .transform(v => new Date(v * 1000))
+//    result: { created: Date }          // output: consumed by stores & components
+//
+// 3. DOCUMENT: Generate JSON Schema for API consumers
+//    z.toJSONSchema(schema, { io: "input" })
+//    ↓ documents the input (wire) type, not the output (domain) type
+//    result: { "type": "number" }       // OpenAPI spec reflects what the API sends
+```
+
+The `io: "input"` parameter is what makes this work. Without it, `z.toJSONSchema()`
+defaults to the output type — and `Date` serializes as `{}` (unrepresentable in
+JSON Schema). With `io: "input"`, it documents the wire format instead.
+
+| Wire value (input)   | Domain value (output) | JSON Schema type |
+|----------------------|----------------------|-----------------|
+| `1641234567`         | `Date`               | `number`        |
+| `"0"` / `"1"`       | `false` / `true`     | `string`        |
+| `"1641234567"`       | `1641234567`         | `string`        |
 
 This means you can safely add `.transform()` to any V3 schema field without breaking
-the generated OpenAPI spec.
+the generated OpenAPI spec. V3 timestamp transforms live in `src/schemas/transforms.ts`
+under `transforms.fromNumber.*` (as opposed to V2's `transforms.fromString.*` which
+handle string-encoded Redis values).
 
 ## Files
 
