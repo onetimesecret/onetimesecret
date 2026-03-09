@@ -253,10 +253,16 @@ function createDocument(): OpenAPIDocument {
 
 /**
  * Convert a Zod schema to an OpenAPI-compatible JSON Schema.
- * Uses the same options as the JSON Schema generator.
+ *
+ * Uses `io: "input"` so that schemas with .transform() produce JSON Schema
+ * for their *input* type (the wire format), not the output type. This lets
+ * V3 schemas use transforms (e.g. `z.number().transform(v => new Date(v * 1000))`)
+ * while still documenting the correct wire type (`number`) in the OpenAPI spec.
+ * Without this, transformed output types like Date serialize as `{}`.
  */
 function zodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
   return z.toJSONSchema(schema, {
+    io: 'input',
     unrepresentable: 'any',
     override: (ctx) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

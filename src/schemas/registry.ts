@@ -124,9 +124,14 @@ export function getSchemasByCategory(): Record<string, SchemaKey[]> {
 /**
  * Convert a single schema to JSON Schema using Zod v4's native API.
  *
+ * Uses `io: "input"` so that schemas with .transform() document the wire
+ * format (input type) rather than the coerced application type (output type).
+ * For example, `z.number().transform(v => new Date(v * 1000))` produces
+ * `{ "type": "number" }` instead of an unrepresentable Date.
+ *
  * Note: Schemas using z.preprocess() will serialize to their underlying type.
  * The preprocessing logic (e.g., string-to-boolean conversion) is runtime-only.
  */
 export function toJsonSchema(schema: z.ZodType): Record<string, unknown> {
-  return z.toJSONSchema(schema);
+  return z.toJSONSchema(schema, { io: 'input' });
 }

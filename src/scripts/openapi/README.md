@@ -19,6 +19,27 @@ pnpm run schema:scan                    # Scan Ruby SCHEMA constants, print cove
 4. Matched schemas are converted via `z.toJSONSchema()` (Zod v4 native, JSON Schema 2020-12)
 5. Output is a single OpenAPI 3.1 JSON file with a gap report on stderr
 
+## Schema transforms and JSON Schema (`io: "input"`)
+
+V3 schemas serve two purposes: runtime validation (Pinia stores call `.parse()`) and
+OpenAPI documentation (this generator calls `z.toJSONSchema()`). Some fields use
+`.transform()` to coerce wire values into application types — for example,
+`z.number().transform(v => new Date(v * 1000))` converts Unix epoch seconds into
+JavaScript `Date` objects for frontend consumption.
+
+All `z.toJSONSchema()` calls pass `io: "input"` so that transforms document the
+**wire format** (what the API actually sends), not the coerced output type. Without
+this option, a `Date` output would serialize as `{}` (unrepresentable in JSON Schema).
+
+| Wire value (input)   | Application value (output) | JSON Schema type |
+|----------------------|---------------------------|-----------------|
+| `1641234567`         | `Date`                    | `number`        |
+| `"0"` / `"1"`       | `false` / `true`          | `string`        |
+| `"1641234567"`       | `1641234567`              | `string`        |
+
+This means you can safely add `.transform()` to any V3 schema field without breaking
+the generated OpenAPI spec.
+
 ## Files
 
 - `generate-openapi.ts` — the generator script
