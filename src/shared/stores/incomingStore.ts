@@ -8,7 +8,7 @@ import {
   incomingConfigSchema,
   incomingSecretResponseSchema,
 } from '@/schemas/api/incoming';
-import { responseSchemas, ReceiptResponse } from '@/schemas/api/v3/responses';
+import { responseSchemas, ReceiptResponse } from '@/schemas/api/v2/responses';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';

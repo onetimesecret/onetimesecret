@@ -6,7 +6,7 @@ import {
   useAsyncHandler,
 } from '@/shared/composables/useAsyncHandler';
 import { ConcealDataResponse } from '@/schemas/api/v3';
-import { ConcealPayload, GeneratePayload } from '@/schemas/api/v3/payloads';
+import { ConcealPayload, GeneratePayload } from '@/schemas/api/v3/requests/content';
 import { loggingService } from '@/services/logging.service';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
