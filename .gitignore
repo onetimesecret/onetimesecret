@@ -71,7 +71,7 @@ tsconfig.tsbuildinfo
 *.db
 !locales/db/*.sql
 !routes.txt
-
+.overmind.sock
 Procfile.*
 !Procfile*.example
 
