@@ -2,7 +2,7 @@
 
 import { systemSettingsSchema } from '@/schemas/api/account/endpoints/colonel';
 import { type SystemSettingsDetails } from '@/schemas/config';
-import { responseSchemas } from '@/schemas/api/v3';
+import { responseSchemas } from '@/schemas/api/v2/responses';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';
