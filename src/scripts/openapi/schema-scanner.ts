@@ -45,6 +45,7 @@ import { modelSchemas } from '@/schemas/registry';
 
 const SCAN_GLOBS = [
   'apps/api/**/logic/**/*.rb',
+  'apps/api/**/controllers/**/*.rb',
   'lib/onetime/models/*.rb',
 ];
 
@@ -357,8 +358,11 @@ function findUncoveredHandlers(handlerMap: Map<string, SchemaEntry>): string[] {
 
   const uncovered: string[] = [];
   for (const handler of routeHandlers) {
-    const leaf = handler.split('::').pop() ?? handler;
-    if (!handlerMap.has(handler) && !handlerMap.has(leaf)) {
+    // Normalize instance-method syntax (#) to module-method syntax (.)
+    // so that V1::Controllers::Index#status matches Index.status in the map
+    const normalized = handler.replace('#', '.');
+    const leaf = normalized.split('::').pop() ?? normalized;
+    if (!handlerMap.has(normalized) && !handlerMap.has(leaf)) {
       uncovered.push(handler);
     }
   }

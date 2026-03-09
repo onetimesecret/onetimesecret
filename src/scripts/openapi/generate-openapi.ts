@@ -84,11 +84,14 @@ const REQUEST_SCHEMA_REGISTRY: Record<string, z.ZodType> = {
  * Tries FQCN first, then leaf name fallback.
  */
 function lookupResponseSchemaKey(handler: string): string | undefined {
-  const entry = handlerSchemaMap.get(handler);
+  // Normalize instance-method syntax (#) to module-method syntax (.)
+  // so that V1::Controllers::Index#status matches Index.status in the map
+  const normalized = handler.replace('#', '.');
+  const entry = handlerSchemaMap.get(normalized);
   if (entry) return getResponseKey(entry);
 
   // Leaf-name fallback
-  const leaf = getHandlerLeaf(handler);
+  const leaf = getHandlerLeaf(normalized);
   const leafEntry = handlerSchemaMap.get(leaf);
   if (leafEntry) return getResponseKey(leafEntry);
 
@@ -107,8 +110,9 @@ function getResponseKey(entry: SchemaEntry): string | undefined {
  * Look up the request payload schema for a route handler.
  */
 function lookupRequestSchema(handler: string): z.ZodType | undefined {
-  const entry = handlerSchemaMap.get(handler)
-    ?? handlerSchemaMap.get(getHandlerLeaf(handler));
+  const normalized = handler.replace('#', '.');
+  const entry = handlerSchemaMap.get(normalized)
+    ?? handlerSchemaMap.get(getHandlerLeaf(normalized));
   if (!entry) return undefined;
 
   const requestKey = typeof entry.schema === 'string' ? undefined : entry.schema.request;
