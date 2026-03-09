@@ -34,13 +34,13 @@ Add a `SCHEMA` constant to a Ruby logic class or model:
 
 ```ruby
 # Logic class (request + response)
-SCHEMA = { response: 'concealData', request: 'api/v3/conceal-payload' }.freeze
+SCHEMAS = { response: 'concealData', request: 'concealSecret' }.freeze
 
 # Logic class (response only)
-SCHEMA = { response: 'receipt' }.freeze
+SCHEMAS = { response: 'receipt' }.freeze
 
 # Model class
 SCHEMA = 'models/secret'.freeze
 ```
 
-Response values are keys in `responseSchemas` (`src/schemas/api/v3/responses.ts`). Request values are keys in `schemaRegistry` (`src/schemas/registry.ts`). Run `pnpm run schema:scan` to verify coverage.
+Each key type validates against its own registry: `response` keys against `responseSchemas` (`src/schemas/api/v3/responses.ts`), `request` keys against `REQUEST_SCHEMA_REGISTRY` (`src/scripts/openapi/generate-openapi.ts`), and `model` keys against `modelSchemas` (`src/schemas/registry.ts`). Run `pnpm run schema:scan` to verify coverage.

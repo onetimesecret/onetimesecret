@@ -36,9 +36,7 @@ import { standardErrorResponses } from './route-config';
 import { scanSchemas, buildHandlerSchemaMap, type SchemaEntry, type ScanResult } from './schema-scanner';
 
 import { responseSchemas } from '@/schemas/api/v3/responses';
-import { schemaRegistry } from '@/schemas/registry';
-import { concealPayloadSchema } from '@/schemas/api/v2/payloads/conceal';
-import { generatePayloadSchema } from '@/schemas/api/v2/payloads/generate';
+import { concealSecretRequestSchema, generateSecretRequestSchema } from '@/schemas/api/v3/requests';
 
 // =============================================================================
 // Configuration
@@ -73,12 +71,12 @@ const scanResult = scanSchemas();
 const handlerSchemaMap = buildHandlerSchemaMap(scanResult.entries);
 
 /**
- * Registry of request payload schemas, keyed by the request path
- * declared in Ruby SCHEMA constants (e.g. 'api/v3/conceal-payload').
+ * Registry of request schemas, keyed by bare camelCase names
+ * matching the `request:` values in Ruby SCHEMAS constants.
  */
-const REQUEST_PAYLOAD_REGISTRY: Record<string, z.ZodType> = {
-  'api/v3/conceal-payload': concealPayloadSchema,
-  'api/v3/generate-payload': generatePayloadSchema,
+const REQUEST_SCHEMA_REGISTRY: Record<string, z.ZodType> = {
+  'concealSecret': concealSecretRequestSchema,
+  'generateSecret': generateSecretRequestSchema,
 };
 
 /**
@@ -99,9 +97,9 @@ function lookupResponseSchemaKey(handler: string): string | undefined {
 
 /**
  * Extract the response key from a SchemaEntry.
+ * Returns undefined for model-only entries (no response to emit).
  */
 function getResponseKey(entry: SchemaEntry): string | undefined {
-  if (typeof entry.schema === 'string') return entry.schema;
   return entry.schema.response;
 }
 
@@ -116,7 +114,7 @@ function lookupRequestSchema(handler: string): z.ZodType | undefined {
   const requestKey = typeof entry.schema === 'string' ? undefined : entry.schema.request;
   if (!requestKey) return undefined;
 
-  return REQUEST_PAYLOAD_REGISTRY[requestKey];
+  return REQUEST_SCHEMA_REGISTRY[requestKey];
 }
 
 // =============================================================================
@@ -336,23 +334,11 @@ function buildResponses(
   const responseType = getResponseType(route);
   const responses: Record<string, unknown> = {};
 
-  // Determine success response via scanner lookup
-  // Check responseSchemas first, then fall back to schemaRegistry for model keys
+  // Determine success response via scanner lookup against responseSchemas
   const schemaKey = lookupResponseSchemaKey(handler);
   const responseKey = schemaKey as keyof typeof responseSchemas | undefined;
-  const registryKey = schemaKey as keyof typeof schemaRegistry | undefined;
   if (responseKey && responseSchemas[responseKey]) {
     const schema = responseSchemas[responseKey];
-    responses['200'] = {
-      description: 'Successful response',
-      content: {
-        'application/json': {
-          schema: zodToJsonSchema(schema),
-        },
-      },
-    };
-  } else if (registryKey && schemaRegistry[registryKey]) {
-    const schema = schemaRegistry[registryKey];
     responses['200'] = {
       description: 'Successful response',
       content: {
@@ -576,9 +562,7 @@ function printGapReport(result: ScanResult): void {
   console.log('───────────────────────');
 
   for (const entry of result.broken) {
-    const key = typeof entry.schema === 'string'
-      ? entry.schema
-      : entry.schema.response ?? '?';
+    const key = entry.schema.model ?? entry.schema.response ?? '?';
     console.log(`  Broken: ${entry.className} → ${key}`);
   }
 

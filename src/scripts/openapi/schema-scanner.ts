@@ -18,7 +18,7 @@ import { relative, join } from 'path';
 import { globSync } from 'glob';
 import { parseAllApiRoutes } from './otto-routes-parser';
 import { responseSchemas } from '@/schemas/api/v3/responses';
-import { schemaRegistry } from '@/schemas/registry';
+import { modelSchemas } from '@/schemas/registry';
 
 // =============================================================================
 // Configuration
@@ -38,7 +38,7 @@ const SCHEMA_PATTERN = /^\s*SCHEMAS?\s*=\s*(.+?)(?:\.freeze)?\s*$/m;
 export interface SchemaEntry {
   className: string;     // e.g. "V3::Logic::Secrets::ConcealSecret"
   filePath: string;      // relative path to the .rb file
-  schema: string | { request?: string; response?: string };
+  schema: { model?: string; request?: string; response?: string };
 }
 
 export interface ScanResult {
@@ -57,23 +57,33 @@ export interface ScanResult {
  * Parse a simplified Ruby string or hash literal value.
  *
  * Handles:
- * - String: 'models/secret' or "models/secret"
- * - Hash: { response: 'concealData', request: 'api/v3/conceal-payload' }
+ * - String: 'models/secret' → { model: 'models/secret' }
+ * - Hash: { response: 'concealData', request: 'concealSecret' }
+ *
+ * Singular SCHEMA = 'string' always means a model key. The convention
+ * is: model keys use path-prefixed format ('models/secret'), response
+ * and request keys use bare camelCase ('concealData', 'concealSecret').
  */
-function parseRubyValue(raw: string): string | { request?: string; response?: string } {
+function parseRubyValue(raw: string): { model?: string; request?: string; response?: string } {
   const trimmed = raw.trim();
 
-  // Single-quoted or double-quoted string
+  // Single-quoted or double-quoted string → model key
   const strMatch = trimmed.match(/^['"](.+?)['"]$/);
   if (strMatch) {
-    return strMatch[1];
+    return { model: strMatch[1] };
   }
 
   // Hash literal: { key: 'value', ... }
   const hashMatch = trimmed.match(/^\{(.+)\}$/);
   if (hashMatch) {
     const inner = hashMatch[1];
-    const result: { request?: string; response?: string } = {};
+    const result: { model?: string; request?: string; response?: string } = {};
+
+    // Match model: 'value' or model: "value"
+    const modelMatch = inner.match(/model:\s*['"](.+?)['"]/);
+    if (modelMatch) {
+      result.model = modelMatch[1];
+    }
 
     // Match response: 'value' or response: "value"
     const responseMatch = inner.match(/response:\s*['"](.+?)['"]/);
@@ -90,8 +100,8 @@ function parseRubyValue(raw: string): string | { request?: string; response?: st
     return result;
   }
 
-  // Fallback: treat as bare string
-  return trimmed;
+  // Fallback: treat as model key
+  return { model: trimmed };
 }
 
 // =============================================================================
@@ -159,11 +169,10 @@ function scanRubyFile(filePath: string, projectRoot: string): SchemaEntry[] {
     const schemaMatch = trimmed.match(SCHEMA_PATTERN);
     if (schemaMatch) {
       const fqcn = nameStack.join('::');
-      const value = parseRubyValue(schemaMatch[1]);
       entries.push({
         className: fqcn,
         filePath: relative(projectRoot, filePath),
-        schema: value,
+        schema: parseRubyValue(schemaMatch[1]),
       });
       continue;
     }
@@ -212,30 +221,33 @@ export function buildHandlerSchemaMap(entries: SchemaEntry[]): Map<string, Schem
 // =============================================================================
 
 const validResponseKeys = new Set(Object.keys(responseSchemas));
-const validRegistryKeys = new Set(Object.keys(schemaRegistry));
+const validModelKeys = new Set(Object.keys(modelSchemas));
+
+// Request keys must match the generator's REQUEST_SCHEMA_REGISTRY.
+// Defined here as a static set to avoid importing from the generator.
+const validRequestKeys = new Set([
+  'concealSecret',
+  'generateSecret',
+]);
 
 /**
- * Check whether a schema key resolves to a known schema.
- * Checks responseSchemas first, then falls back to schemaRegistry
- * for model-prefixed keys (e.g. 'models/secret').
+ * Check whether a schema key resolves to a known schema of the given type.
  */
-function isValidSchemaKey(key: string): boolean {
-  return validResponseKeys.has(key) || validRegistryKeys.has(key);
+function isValidKey(key: string, type: 'model' | 'response' | 'request'): boolean {
+  if (type === 'model') return validModelKeys.has(key);
+  if (type === 'request') return validRequestKeys.has(key);
+  return validResponseKeys.has(key);
 }
 
 /**
  * Check whether all schema keys in an entry resolve to known schemas.
- * Request keys are not validated (they use separate registries).
+ * Each key type validates against its own registry.
  */
 function isEntryCovered(entry: SchemaEntry): boolean {
-  if (typeof entry.schema === 'string') {
-    return isValidSchemaKey(entry.schema);
-  }
-  // For hash entries, only validate the response key
-  if (entry.schema.response) {
-    return isValidSchemaKey(entry.schema.response);
-  }
-  // Entry with only a request key is considered covered (no response to validate)
+  const { model, response, request } = entry.schema;
+  if (model && !isValidKey(model, 'model')) return false;
+  if (response && !isValidKey(response, 'response')) return false;
+  if (request && !isValidKey(request, 'request')) return false;
   return true;
 }
 
@@ -355,13 +367,22 @@ function deriveModelName(relPath: string): string {
 // =============================================================================
 
 function formatSchemaValue(schema: SchemaEntry['schema']): string {
-  if (typeof schema === 'string') {
-    return schema;
-  }
   const parts: string[] = [];
+  if (schema.model) parts.push(`model:${schema.model}`);
   if (schema.response) parts.push(`response:${schema.response}`);
   if (schema.request) parts.push(`request:${schema.request}`);
   return parts.join(' + ');
+}
+
+/**
+ * Describe which key type(s) failed validation in a broken entry.
+ */
+function describeBrokenKey(schema: SchemaEntry['schema']): string {
+  const broken: string[] = [];
+  if (schema.model && !isValidKey(schema.model, 'model')) broken.push('model');
+  if (schema.response && !isValidKey(schema.response, 'response')) broken.push('response');
+  if (schema.request && !isValidKey(schema.request, 'request')) broken.push('request');
+  return broken.length > 0 ? `invalid ${broken.join(', ')} key` : 'unknown';
 }
 
 function printReport(result: ScanResult): void {
@@ -376,10 +397,11 @@ function printReport(result: ScanResult): void {
     console.log('');
   }
 
-  // Broken entries
+  // Broken entries — identify which key type failed
   if (result.broken.length > 0) {
     for (const entry of result.broken) {
-      console.log(`BROKEN: ${entry.className} → ${formatSchemaValue(entry.schema)} (key not in responseSchemas)`);
+      const detail = describeBrokenKey(entry.schema);
+      console.log(`BROKEN: ${entry.className} → ${formatSchemaValue(entry.schema)} (${detail})`);
     }
     console.log('');
   }

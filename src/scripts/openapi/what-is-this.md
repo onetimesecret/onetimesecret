@@ -50,9 +50,10 @@ entries. The OpenAPI spec is an external contract; it shouldn't leak internal cl
 
 #### > What does covered and uncovered mean?
 
-- Covered = the Ruby class declares a SCHEMA/SCHEMAS constant AND the key it points to resolves to an actual Zod
-schema in one of the TS registries (responseSchemas or schemaRegistry). The OpenAPI generator can produce a typed
-JSON Schema for this handler's response.
+- Covered = the Ruby class declares a SCHEMA/SCHEMAS constant AND each key resolves to a known Zod schema in its
+respective registry: `response` keys against `responseSchemas`, `model` keys against `modelSchemas`, and `request`
+keys against the generator's `REQUEST_SCHEMA_REGISTRY`. The OpenAPI generator can produce a typed JSON Schema for
+this handler's response.
 - Broken (a subset of declared) = the Ruby class declares the constant but the key doesn't resolve anywhere. This
 is what we just fixed — 7 → 0.
 - Uncovered handler = a route handler class that has no SCHEMA/SCHEMAS constant at all. The generator still emits
@@ -60,7 +61,7 @@ an OpenAPI path entry for it, but with a generic { type: 'object' } response bod
 are the 46 remaining gaps.
 - Uncovered model = a model file in lib/onetime/models/ with no SCHEMA constant. These aren't route handlers, so
 they don't directly affect the API spec — but they're tracked because model schemas feed the JSON Schema
-generation pipeline (schemaRegistry).
+generation pipeline (modelSchemas in src/schemas/registry.ts).
 
 Example: So a coverage number (62/108 = 54%) means: of 108 route handlers the scanner sees, 62 have declared schema
 constants that resolve to real Zod schemas. The other 46 produce spec entries with placeholder response shapes.
@@ -82,7 +83,7 @@ in the public API surface: V1's path triplication, V2's inherited aliases, and t
 
 Registered 3 Incoming response schemas (validateRecipient, incomingConfig, incomingSecret) in responseSchemas —
 the Zod schemas existed in src/schemas/api/incoming.ts but weren't wired into the central registry. Taught the
-scanner and generator to also check schemaRegistry for model-prefixed keys (models/secret, models/receipt, etc.)
+scanner to validate model-prefixed keys (models/secret, models/receipt, etc.) against modelSchemas
 so Ruby model SCHEMA declarations resolve correctly. Broken references: 7 → 0.
 
 2. ✓ Document and deprecate V1/V2 path aliases

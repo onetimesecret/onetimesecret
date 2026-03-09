@@ -44,7 +44,7 @@ module V3
         include ModernResponseFormat
         include Onetime::Logic::GuestRouteGating
 
-        SCHEMAS = { response: 'concealData', request: 'api/v3/conceal-payload' }.freeze
+        SCHEMAS = { response: 'concealData', request: 'concealSecret' }.freeze
 
         def raise_concerns
           require_guest_route_enabled!(:conceal)
@@ -57,7 +57,7 @@ module V3
         include ModernResponseFormat
         include Onetime::Logic::GuestRouteGating
 
-        SCHEMAS = { response: 'concealData', request: 'api/v3/generate-payload' }.freeze
+        SCHEMAS = { response: 'concealData', request: 'generateSecret' }.freeze
 
         def raise_concerns
           require_guest_route_enabled!(:generate)

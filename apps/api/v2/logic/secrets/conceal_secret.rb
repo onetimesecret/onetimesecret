@@ -9,7 +9,7 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class ConcealSecret < BaseSecretAction
-      SCHEMAS = { response: 'concealData', request: 'api/v3/conceal-payload' }.freeze
+      SCHEMAS = { response: 'concealData', request: 'concealSecret' }.freeze
 
       def process_secret
         @kind         = 'conceal'
