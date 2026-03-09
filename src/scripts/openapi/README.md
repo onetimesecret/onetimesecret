@@ -8,7 +8,7 @@ Generates an OpenAPI 3.1 spec from Otto `routes.txt` files and Zod v4 schemas. N
 pnpm run openapi:generate              # Generate spec to generated/openapi/openapi.json
 pnpm run openapi:generate -- --dry-run  # Preview without writing
 pnpm run openapi:generate -- --verbose  # Show per-route details (+ = has schema)
-pnpm run schema:scan                    # Scan Ruby SCHEMA constants, print coverage gap report
+pnpm run schemas:scan                   # Scan Ruby SCHEMA constants, print coverage gap report
 ```
 
 ## How it works
@@ -84,4 +84,4 @@ SCHEMAS = { response: 'receipt' }.freeze
 SCHEMA = 'models/secret'.freeze
 ```
 
-Each key type validates against its own registry: `response` keys against `responseSchemas` (`src/schemas/api/v3/responses.ts`), `request` keys against `REQUEST_SCHEMA_REGISTRY` (`src/scripts/openapi/generate-openapi.ts`), and `model` keys against `modelSchemas` (`src/schemas/registry.ts`). Run `pnpm run schema:scan` to verify coverage.
+Each key type validates against its own registry: `response` keys against `responseSchemas` (`src/schemas/api/v3/responses.ts`), `request` keys against `REQUEST_SCHEMA_REGISTRY` (`src/scripts/openapi/generate-openapi.ts`), and `model` keys against `modelSchemas` (`src/schemas/registry.ts`). Run `pnpm run schemas:scan` to verify coverage.

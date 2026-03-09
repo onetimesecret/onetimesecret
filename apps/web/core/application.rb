@@ -53,10 +53,10 @@ module Core
       # the JSON schemas generated from <schema> sections in .rue templates.
       #
       # To generate/update schemas, run:
-      #   pnpm run build:schemas
+      #   pnpm run schemas:rhales:generate
       #
       # Or directly with rake:
-      #   ruby -I ../rhales/lib -r rake -e "load 'Rakefile'; Rake.application.run" -- rhales:schema:generate TEMPLATES_DIR=./apps/web/core/templates OUTPUT_DIR=./public/schemas
+      #   bundle exec rake rhales:schema:generate TEMPLATES_DIR=./apps/web/core/templates OUTPUT_DIR=./public/schemas
       schemas_dir = File.expand_path('../../../../public/schemas', __dir__)
       if File.exist?(File.join(schemas_dir, 'index.json'))
         begin

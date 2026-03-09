@@ -25,7 +25,7 @@
  *                   → one entry per method: FQCN.method_name → { response: '...' }
  *
  * Usage:
- *   pnpm run schema:scan
+ *   pnpm run schemas:scan
  */
 
 import { readFileSync } from 'fs';
