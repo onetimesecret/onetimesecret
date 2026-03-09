@@ -26,12 +26,14 @@ function fail(msg: string): void {
   console.log(`  FAIL: ${msg}`);
 }
 
+// Scan once (async) and run all tests against the result
+const result = await scanSchemas();
+
 // ---------------------------------------------------------------------------
 // Test 1: Scanner discovers SCHEMA entries
 // ---------------------------------------------------------------------------
 console.log('Test 1: Scanner discovers SCHEMA entries');
 try {
-  const result = scanSchemas();
   const count = result.entries.length;
 
   if (count >= 55) {
@@ -75,14 +77,11 @@ try {
 // ---------------------------------------------------------------------------
 console.log('Test 2: Response keys resolve to responseSchemas registry');
 try {
-  const result = scanSchemas();
   const registryKeys = new Set(Object.keys(responseSchemas));
 
   // Check covered entries have valid response keys
   for (const entry of result.covered) {
-    const key = typeof entry.schema === 'string'
-      ? entry.schema
-      : entry.schema.response;
+    const key = entry.schema.response;
     if (key && !registryKeys.has(key)) {
       fail(`Covered entry ${entry.className} has key "${key}" not in responseSchemas`);
     }
@@ -96,9 +95,7 @@ try {
 
   // Broken entries should have keys NOT in the registry
   for (const entry of result.broken) {
-    const key = typeof entry.schema === 'string'
-      ? entry.schema
-      : entry.schema.response;
+    const key = entry.schema.response;
     if (key && registryKeys.has(key)) {
       fail(`Broken entry ${entry.className} has key "${key}" that IS in responseSchemas`);
     }
@@ -117,7 +114,6 @@ try {
 // ---------------------------------------------------------------------------
 console.log('Test 3: Handler map lookup (FQCN and leaf name)');
 try {
-  const result = scanSchemas();
   const handlerMap = buildHandlerSchemaMap(result.entries);
 
   // FQCN lookup
@@ -153,8 +149,6 @@ try {
 // ---------------------------------------------------------------------------
 console.log('Test 4: Scanner + routes coverage stats');
 try {
-  const result = scanSchemas();
-
   const totalWithSchema = result.entries.length;
   const totalHandlers = result.uncoveredHandlers.length + totalWithSchema;
   const coveragePercent = totalHandlers > 0
@@ -187,8 +181,6 @@ try {
 // ---------------------------------------------------------------------------
 console.log('Test 5: Gap report identifies known uncovered handlers');
 try {
-  const result = scanSchemas();
-
   // These handlers were intentionally skipped (no schema defined)
   const knownGaps = [
     'DestroyAccount',
@@ -210,8 +202,8 @@ try {
     pass(`All ${knownGaps.length} known gap handlers correctly identified as uncovered`);
   }
 
-  // Known uncovered models
-  const knownUncoveredModels = ['Onetime::CustomDomain', 'Onetime::Organization'];
+  // Known uncovered models (CustomDomain & Organization now have SCHEMA constants)
+  const knownUncoveredModels = ['Onetime::Features', 'Onetime::OrganizationMembership'];
   let foundModels = 0;
   for (const model of knownUncoveredModels) {
     if (result.uncoveredModels.includes(model)) {
@@ -235,17 +227,13 @@ try {
 // ---------------------------------------------------------------------------
 console.log('Test 6: V2/V3 schema parity');
 try {
-  const result = scanSchemas();
-
   // Build maps by leaf class name for V2 and V3
   const v2Entries = new Map<string, string>();
   const v3Entries = new Map<string, string>();
 
   for (const entry of result.entries) {
     const leaf = entry.className.split('::').pop() ?? '';
-    const responseKey = typeof entry.schema === 'string'
-      ? entry.schema
-      : entry.schema.response ?? '';
+    const responseKey = entry.schema.response ?? '';
 
     if (entry.className.startsWith('V2::')) {
       v2Entries.set(leaf, responseKey);

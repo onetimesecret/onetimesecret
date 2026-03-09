@@ -176,6 +176,7 @@
     "@pinia/testing": "^1.0.3",
     "@playwright/test": "^1.57.0",
     "@prettier/plugin-ruby": "^4.0.4",
+    "@ruby/prism": "^1.9.0",
     "@sentry/cli": "^3.1.0",
     "@sentry/vite-plugin": "^4.9.0",
     "@tailwindcss/forms": "^0.5.11",

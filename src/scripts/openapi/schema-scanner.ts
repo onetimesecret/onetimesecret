@@ -2,12 +2,27 @@
 // src/scripts/openapi/schema-scanner.ts
 
 /**
- * Schema Scanner
+ * Schema Scanner (Prism-based)
  *
- * Config-driven scanner that discovers SCHEMA constants in Ruby source files,
- * tracks module/class nesting to build fully-qualified class names (FQCN),
- * and cross-references against the TypeScript response schema registry and
- * Otto route handlers to produce a coverage gap report.
+ * Uses the official Ruby parser (@ruby/prism) to discover SCHEMA constants
+ * in Ruby source files, resolve module/class scope via AST traversal, and
+ * cross-reference against the TypeScript response schema registry and Otto
+ * route handlers to produce a coverage gap report.
+ *
+ * Supports three SCHEMA value forms:
+ *
+ *   1. String:      SCHEMA  = 'models/secret'
+ *                   → { model: 'models/secret' }
+ *
+ *   2. Flat hash:   SCHEMAS = { response: 'concealData', request: 'concealSecret' }
+ *                   → single entry: { response: 'concealData', request: 'concealSecret' }
+ *
+ *   3. Method-keyed hash:
+ *                   SCHEMAS = {
+ *                     system_status: { response: 'systemStatus' },
+ *                     system_version: { response: 'systemVersion' },
+ *                   }
+ *                   → one entry per method: FQCN.method_name → { response: '...' }
  *
  * Usage:
  *   pnpm run schema:scan
@@ -16,6 +31,10 @@
 import { readFileSync } from 'fs';
 import { relative, join } from 'path';
 import { globSync } from 'glob';
+import { loadPrism, Visitor } from '@ruby/prism';
+// Node types are checked via constructor.name at runtime (Prism's JS API
+// uses plain classes without a shared type hierarchy we can import).
+// The visitor callbacks receive untyped nodes — see @ruby/prism's nodes.js.
 import { parseAllApiRoutes } from './otto-routes-parser';
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import { modelSchemas } from '@/schemas/registry';
@@ -29,14 +48,12 @@ const SCAN_GLOBS = [
   'lib/onetime/models/*.rb',
 ];
 
-const SCHEMA_PATTERN = /^\s*SCHEMAS?\s*=\s*(.+?)(?:\.freeze)?\s*$/m;
-
 // =============================================================================
 // Types
 // =============================================================================
 
 export interface SchemaEntry {
-  className: string;     // e.g. "V3::Logic::Secrets::ConcealSecret"
+  className: string;     // e.g. "V3::Logic::Secrets::ConcealSecret" or "V3::Logic::Meta.system_status"
   filePath: string;      // relative path to the .rb file
   schema: { model?: string; request?: string; response?: string };
 }
@@ -50,143 +67,211 @@ export interface ScanResult {
 }
 
 // =============================================================================
-// Ruby Value Parsing
+// AST Value Extraction
 // =============================================================================
 
 /**
- * Parse a simplified Ruby string or hash literal value.
- *
- * Handles:
- * - String: 'models/secret' → { model: 'models/secret' }
- * - Hash: { response: 'concealData', request: 'concealSecret' }
- *
- * Singular SCHEMA = 'string' always means a model key. The convention
- * is: model keys use path-prefixed format ('models/secret'), response
- * and request keys use bare camelCase ('concealData', 'concealSecret').
+ * Unwrap a `.freeze` call to get the underlying value node.
+ * If the node is `{ ... }.freeze`, returns the HashNode receiver.
+ * Otherwise returns the node as-is.
  */
-function parseRubyValue(raw: string): { model?: string; request?: string; response?: string } {
-  const trimmed = raw.trim();
-
-  // Single-quoted or double-quoted string → model key
-  const strMatch = trimmed.match(/^['"](.+?)['"]$/);
-  if (strMatch) {
-    return { model: strMatch[1] };
+function unwrapFreeze(node: any): any {
+  if (node.constructor.name === 'CallNode' && node.name === 'freeze' && node.receiver) {
+    return node.receiver;
   }
-
-  // Hash literal: { key: 'value', ... }
-  const hashMatch = trimmed.match(/^\{(.+)\}$/);
-  if (hashMatch) {
-    const inner = hashMatch[1];
-    const result: { model?: string; request?: string; response?: string } = {};
-
-    // Match model: 'value' or model: "value"
-    const modelMatch = inner.match(/model:\s*['"](.+?)['"]/);
-    if (modelMatch) {
-      result.model = modelMatch[1];
-    }
-
-    // Match response: 'value' or response: "value"
-    const responseMatch = inner.match(/response:\s*['"](.+?)['"]/);
-    if (responseMatch) {
-      result.response = responseMatch[1];
-    }
-
-    // Match request: 'value' or request: "value"
-    const requestMatch = inner.match(/request:\s*['"](.+?)['"]/);
-    if (requestMatch) {
-      result.request = requestMatch[1];
-    }
-
-    return result;
-  }
-
-  // Fallback: treat as model key
-  return { model: trimmed };
-}
-
-// =============================================================================
-// Class Name Tracking
-// =============================================================================
-
-interface NestingFrame {
-  segmentCount: number;
+  return node;
 }
 
 /**
- * Scan a Ruby file for module/class nesting and SCHEMA constants.
- *
- * Tracks a stack of nesting frames. Each module/class opening pushes
- * segments (split on ::), and each `end` pops the most recent frame.
+ * Extract a string value from a StringNode or SymbolNode.
  */
-function scanRubyFile(filePath: string, projectRoot: string): SchemaEntry[] {
-  const content = readFileSync(filePath, 'utf-8');
-  const lines = content.split('\n');
-  const entries: SchemaEntry[] = [];
+function extractStringValue(node: any): string | null {
+  if (node.constructor.name === 'StringNode' || node.constructor.name === 'SymbolNode') {
+    return node.unescaped?.value ?? null;
+  }
+  return null;
+}
 
-  const nameStack: string[] = [];
-  const frameStack: NestingFrame[] = [];
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-
-    // Skip comments
-    if (trimmed.startsWith('#')) continue;
-
-    // Match module opening: `module V3::Logic` or `module Secrets`
-    const moduleMatch = trimmed.match(/^module\s+([\w:]+)/);
-    if (moduleMatch) {
-      const segments = moduleMatch[1].split('::');
-      nameStack.push(...segments);
-      frameStack.push({ segmentCount: segments.length });
-      continue;
-    }
-
-    // Match class opening: `class ConcealSecret < Base` or `class Secret`
-    const classMatch = trimmed.match(/^class\s+([\w:]+)/);
-    if (classMatch) {
-      const segments = classMatch[1].split('::');
-      nameStack.push(...segments);
-      frameStack.push({ segmentCount: segments.length });
-      continue;
-    }
-
-    // Track other block-introducing keywords (def, if, unless, while, until,
-    // for, case, begin) with zero-segment frames so their `end` doesn't
-    // incorrectly pop a module/class frame.
-    // Only matches statement-form (start of line), not modifier-form.
-    if (/^(def|if|unless|while|until|for|case|begin)\b/.test(trimmed)) {
-      frameStack.push({ segmentCount: 0 });
-      continue;
-    }
-
-    // Track do-blocks: `something.each do |x|`
-    if (/\bdo\s*(\|[^|]*\|)?\s*$/.test(trimmed)) {
-      frameStack.push({ segmentCount: 0 });
-      // Don't continue — this line may also contain other meaningful content
-    }
-
-    // Match SCHEMA constant
-    const schemaMatch = trimmed.match(SCHEMA_PATTERN);
-    if (schemaMatch) {
-      const fqcn = nameStack.join('::');
-      entries.push({
-        className: fqcn,
-        filePath: relative(projectRoot, filePath),
-        schema: parseRubyValue(schemaMatch[1]),
-      });
-      continue;
-    }
-
-    // Match `end` — pop the most recent nesting frame
-    if (/^end\b/.test(trimmed)) {
-      const frame = frameStack.pop();
-      if (frame && frame.segmentCount > 0) {
-        nameStack.splice(nameStack.length - frame.segmentCount, frame.segmentCount);
+/**
+ * Extract a flat schema hash from a HashNode.
+ * Expects: { response: 'foo', request: 'bar', model: 'baz' }
+ * where all values are strings.
+ */
+function extractFlatSchema(hash: any): { model?: string; request?: string; response?: string } {
+  const result: { model?: string; request?: string; response?: string } = {};
+  for (const element of hash.elements) {
+    if (element.constructor.name !== 'AssocNode') continue;
+    const key = extractStringValue(element.key);
+    const value = extractStringValue(element.value);
+    if (key && value) {
+      if (key === 'model' || key === 'response' || key === 'request') {
+        result[key] = value;
       }
     }
   }
+  return result;
+}
 
-  return entries;
+/**
+ * Determine if a HashNode contains method-keyed schemas (nested hashes)
+ * vs flat schema keys (string values).
+ *
+ * Method-keyed: { system_status: { response: 'systemStatus' }, ... }
+ * Flat:         { response: 'concealData', request: 'concealSecret' }
+ *
+ * Detection: if any value is a HashNode, it's method-keyed.
+ */
+function isMethodKeyed(hash: any): boolean {
+  for (const element of hash.elements) {
+    if (element.constructor.name !== 'AssocNode') continue;
+    const value = unwrapFreeze(element.value);
+    if (value.constructor.name === 'HashNode') return true;
+  }
+  return false;
+}
+
+/**
+ * Extract method-keyed schemas from a nested HashNode.
+ * Returns an array of [methodName, schema] tuples.
+ */
+function extractMethodKeyedSchemas(
+  hash: any,
+): Array<[string, { model?: string; request?: string; response?: string }]> {
+  const results: Array<[string, { model?: string; request?: string; response?: string }]> = [];
+  for (const element of hash.elements) {
+    if (element.constructor.name !== 'AssocNode') continue;
+    const methodName = extractStringValue(element.key);
+    const innerValue = unwrapFreeze(element.value);
+    if (methodName && innerValue.constructor.name === 'HashNode') {
+      results.push([methodName, extractFlatSchema(innerValue)]);
+    }
+  }
+  return results;
+}
+
+// =============================================================================
+// AST Scope Resolution
+// =============================================================================
+
+/**
+ * Resolve the full constant name from a constantPath node.
+ *
+ * Handles both simple and qualified module/class declarations:
+ *   module Foo          → ConstantReadNode("Foo")      → ["Foo"]
+ *   module Foo::Bar     → ConstantPathNode(parent, "Bar") → ["Foo", "Bar"]
+ *   module A::B::C      → nested ConstantPathNodes       → ["A", "B", "C"]
+ */
+function resolveConstantPath(node: any): string[] {
+  const typeName = node.constructor.name;
+  if (typeName === 'ConstantReadNode') {
+    return [node.name];
+  }
+  if (typeName === 'ConstantPathNode') {
+    const parentSegments = node.parent ? resolveConstantPath(node.parent) : [];
+    return [...parentSegments, node.name];
+  }
+  return [];
+}
+
+// =============================================================================
+// AST Visitor — Schema Discovery
+// =============================================================================
+
+/**
+ * Visitor that walks a Ruby AST to find SCHEMA/SCHEMAS constant assignments,
+ * tracking module/class nesting to build fully-qualified class names.
+ */
+class SchemaVisitor extends Visitor {
+  private scope: string[] = [];
+  public entries: SchemaEntry[] = [];
+  private filePath: string;
+
+  constructor(filePath: string) {
+    super();
+    this.filePath = filePath;
+  }
+
+  override visitModuleNode(node: any): void {
+    const segments = resolveConstantPath(node.constantPath);
+    this.scope.push(...segments);
+    super.visitModuleNode(node);
+    this.scope.splice(this.scope.length - segments.length, segments.length);
+  }
+
+  override visitClassNode(node: any): void {
+    const segments = resolveConstantPath(node.constantPath);
+    this.scope.push(...segments);
+    super.visitClassNode(node);
+    this.scope.splice(this.scope.length - segments.length, segments.length);
+  }
+
+  override visitConstantWriteNode(node: any): void {
+    if (node.name === 'SCHEMA' || node.name === 'SCHEMAS') {
+      this.processSchemaConstant(node);
+    }
+    super.visitConstantWriteNode(node);
+  }
+
+  private processSchemaConstant(node: any): void {
+    const fqcn = this.scope.join('::');
+    const value = unwrapFreeze(node.value);
+    const nodeName = value.constructor.name;
+
+    // Form 1: SCHEMA = 'models/secret'
+    if (nodeName === 'StringNode') {
+      const str = extractStringValue(value);
+      if (str) {
+        this.entries.push({
+          className: fqcn,
+          filePath: this.filePath,
+          schema: { model: str },
+        });
+      }
+      return;
+    }
+
+    // Form 2 or 3: SCHEMAS = { ... }
+    if (nodeName === 'HashNode') {
+      if (isMethodKeyed(value)) {
+        // Form 3: method-keyed — emit one entry per method
+        const methods = extractMethodKeyedSchemas(value);
+        for (const [methodName, schema] of methods) {
+          this.entries.push({
+            className: `${fqcn}.${methodName}`,
+            filePath: this.filePath,
+            schema,
+          });
+        }
+      } else {
+        // Form 2: flat hash — single entry
+        this.entries.push({
+          className: fqcn,
+          filePath: this.filePath,
+          schema: extractFlatSchema(value),
+        });
+      }
+    }
+  }
+}
+
+// =============================================================================
+// File Scanner
+// =============================================================================
+
+type ParseFn = (source: string) => any;
+
+/**
+ * Scan a Ruby file for SCHEMA constants using the Prism parser.
+ */
+function scanRubyFile(filePath: string, projectRoot: string, parse: ParseFn): SchemaEntry[] {
+  const content = readFileSync(filePath, 'utf-8');
+  const relPath = relative(projectRoot, filePath);
+
+  const result = parse(content);
+  const visitor = new SchemaVisitor(relPath);
+  visitor.visit(result.value);
+
+  return visitor.entries;
 }
 
 // =============================================================================
@@ -201,10 +286,12 @@ export function buildHandlerSchemaMap(entries: SchemaEntry[]): Map<string, Schem
   const map = new Map<string, SchemaEntry>();
 
   for (const entry of entries) {
-    // Full qualified name
+    // Full qualified name (includes method-keyed like "V3::Logic::Meta.system_status")
     map.set(entry.className, entry);
 
-    // Leaf name (last segment after ::)
+    // Leaf name (last segment after :: or .)
+    // For "V3::Logic::Meta.system_status" → "Meta.system_status"
+    // For "V3::Logic::Secrets::ConcealSecret" → "ConcealSecret"
     const parts = entry.className.split('::');
     const leaf = parts[parts.length - 1];
     // Only set leaf if not already claimed (first-come wins)
@@ -304,10 +391,14 @@ function findUncoveredModels(entries: SchemaEntry[], projectRoot: string): strin
 
 /**
  * Scan Ruby source files for SCHEMA constants and produce a coverage report.
+ * Async because Prism's WASM module requires async initialization.
  */
-export function scanSchemas(globs?: string[]): ScanResult {
+export async function scanSchemas(globs?: string[]): Promise<ScanResult> {
   const projectRoot = process.cwd();
   const patterns = globs ?? SCAN_GLOBS;
+
+  // Initialize the Prism parser (loads WASM once)
+  const parse = await loadPrism();
 
   // Discover Ruby files
   const allFiles = new Set<string>();
@@ -327,7 +418,7 @@ export function scanSchemas(globs?: string[]): ScanResult {
   // Scan all files for SCHEMA constants
   const entries: SchemaEntry[] = [];
   for (const file of rubyFiles) {
-    entries.push(...scanRubyFile(file, projectRoot));
+    entries.push(...scanRubyFile(file, projectRoot, parse));
   }
 
   // Classify entries
@@ -446,6 +537,6 @@ const isMainModule = process.argv[1]?.endsWith('schema-scanner.ts') ||
   process.argv[1]?.endsWith('schema-scanner.js');
 
 if (isMainModule) {
-  const result = scanSchemas();
+  const result = await scanSchemas();
   printReport(result);
 }

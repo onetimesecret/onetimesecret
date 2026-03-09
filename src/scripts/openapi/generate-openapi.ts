@@ -67,7 +67,7 @@ const API_MOUNT_PATHS: Record<string, string> = {
 // =============================================================================
 
 // Scan Ruby source for SCHEMA constants and build lookup map
-const scanResult = scanSchemas();
+const scanResult = await scanSchemas();
 const handlerSchemaMap = buildHandlerSchemaMap(scanResult.entries);
 
 /**
