@@ -63,7 +63,7 @@ are the 46 remaining gaps.
 they don't directly affect the API spec — but they're tracked because model schemas feed the JSON Schema
 generation pipeline (modelSchemas in src/schemas/registry.ts).
 
-Example: So a coverage number (62/108 = 54%) means: of 108 route handlers the scanner sees, 62 have declared schema
+Example: A coverage number of 64/110 (58%) means: of 110 route handlers the scanner sees, 64 have declared schema
 constants that resolve to real Zod schemas. The other 46 produce spec entries with placeholder response shapes.
 
 
@@ -72,10 +72,11 @@ constants that resolve to real Zod schemas. The other 46 produce spec entries wi
 
 ## Next steps for the convention-based OpenAPI generator
 
-The scanner and generator pipeline is functional: Ruby SCHEMA constants are declared on 62 handler classes and 4
-models, the TypeScript scanner extracts them, and the generator produces a valid OpenAPI 3.1 spec covering 54% of
-the 120 API routes (65 of 120 routes have schema-backed responses). The tooling has surfaced structural anomalies
-in the public API surface: V1's path triplication, V2's inherited aliases, and the V2/V3 wire format divergence.
+The scanner and generator pipeline is functional: Ruby SCHEMA constants are declared on 64 handler classes and 6
+models, the TypeScript scanner extracts them, and the generator produces a valid OpenAPI 3.1 spec covering 58% of
+the API routes (64 of 110 handler entries have schema-backed responses). The tooling has surfaced structural
+anomalies in the public API surface: V1's path triplication, V2's inherited aliases, and the V2/V3 wire format
+divergence.
 
 ### Completed:
 
@@ -140,34 +141,57 @@ This established the request schema layering pattern:
 V1 request schemas are frozen — flat inline definitions, not composed from payloads. V1 is deprecated; these
 exist solely for contract testing (validating response stability between releases). Do not refactor.
 
-7. ✓ Migrate v3/requests.ts → v3/requests/*.ts (pending)
+7. ✓ Migrate v3/requests.ts → v3/requests/*.ts
 
-The single-file v3/requests.ts predates the per-endpoint requests/ directory. It has only 2 active consumers:
-- DomainForm.vue imports createDomainRequestSchema
-- domainsStore.ts imports UpdateDomainBrandRequest (via v3/index.ts barrel)
+The single-file v3/requests.ts predated the per-endpoint requests/ directory. Deleted the flat file, consumers
+now import from the per-endpoint requests/ directory.
 
-The concealRequestSchema and generateRequestSchema in requests.ts are unused — the store wraps manually.
-The per-endpoint requests/ directory files are completely orphaned (zero imports reach them).
+8. ✓ Split V2/V3 response schema layers
 
-Migration: move createDomainRequestSchema and updateDomainBrandRequestSchema to their per-endpoint files
-(or into domains/requests/ where they arguably belong), update 2 imports, delete requests.ts. The barrel
-export * from './requests' in v3/index.ts then resolves to requests/index.ts automatically.
+Created separate schema layers for V2 (runtime parsing) and V3 (JSON-native OpenAPI):
+- v3/responses/*.ts — JSON-native schemas using plain z.string(), z.boolean(), z.number(). No transforms,
+  no preprocess. These are the source of truth for OpenAPI spec generation.
+- v2/responses/ — Runtime parsing schemas with z.preprocess(), transforms.fromString.*, coercion. These are
+  used by Pinia stores and Vue components that need to handle Redis string-encoded values.
+- api/base.ts — Shared envelope schemas (ApiRecordResponse, ApiRecordsResponse) hoisted out of v3 so both
+  layers can compose from the same base.
 
-ExceptionReport interface in requests.ts is unrelated to request schemas — relocate to a types file.
+The split resolves the V2 wire format question (old step 10): V3 schemas define the canonical JSON contract,
+V2 schemas handle the string-encoded wire format at runtime. No annotation needed — the schema layer itself
+encodes the difference.
+
+Consumer imports (stores, composables) were redirected from v3/responses → v2/responses, since stores parse
+runtime data. The v3 barrel now re-exports only what's needed for backward compatibility.
+
+9. ✓ Register CustomDomain and Organization model schemas
+
+Added SCHEMA constants to custom_domain.rb ('models/custom-domain') and organization.rb ('models/organization'),
+following the established models/kebab-name convention. Registered both in the TS modelSchemas registry.
+Renamed src/schemas/models/domain/ → models/custom-domain/ to align directory name with the Ruby model class
+and registry key. Models: 4/8 → 6/8. Remaining uncovered: Features (embedded value object) and
+OrganizationMembership (join model) — both always nested inside other responses.
 
 ### Remaining:
 
-8. Add the 3 uncovered Meta endpoints per version
+10. Add the 3 uncovered Meta endpoints per version
 
-system_status, system_version, get_supported_locales are class methods on a module, not logic classes. They need
-either:
-- A SCHEMA constant on the Meta module itself (minor convention extension)
-- Simple response schemas added to responseSchemas (these return trivial JSON — status string, version string,
-locale list)
+system_status, system_version, get_supported_locales are class methods on a module, not instance-based logic
+classes. The scanner's 1:1 class→SCHEMA mapping doesn't apply. Proposed convention: a method-keyed SCHEMAS
+hash on the Meta module:
+
+  SCHEMAS = {
+    system_status:         { response: 'systemStatus' },
+    system_version:        { response: 'systemVersion' },
+    get_supported_locales: { response: 'supportedLocales' },
+  }.freeze
+
+Scanner changes needed: multiline SCHEMAS parsing (accumulate lines between { and }.freeze), emit entries with
+dot notation (V3::Logic::Meta.system_status) matching how routes.txt references them. Simple response schemas
+needed in responseSchemas for these trivial JSON shapes.
 
 Request schema scaffolds already exist for these (empty z.object({}) — correct, since they accept no params).
 
-9. Wire request schemas into the OpenAPI generator
+11. Wire request schemas into the OpenAPI generator
 
 The 80 request schema scaffolds are standalone files. To connect them to the generated spec:
 - Create a requestSchemaRegistry (parallel to responseSchemas) that maps handler names to Zod request schemas
@@ -181,19 +205,11 @@ step connects them to the pipeline.
 Known scaffold issues to fix before wiring:
 - domains update-domain-logo.ts and update-domain-icon.ts are multipart file uploads, not JSON bodies
 
-10. Register the V2 wire format difference
-
-V2 and V3 share the same SCHEMA values but V2 returns string-encoded booleans/numbers while V3 returns native JSON
-types. Options:
-- Create separate v2/ response schemas that reflect the wire format (strings everywhere)
-- Add an x-otto-route-wire-format: string-encoded annotation to V2 routes.txt (flows through the extension bridge)
-- Document it and move on — V2 is stable and likely headed for deprecation
-
-11. Fill remaining response schema gaps incrementally
+12. Fill remaining response schema gaps incrementally
 
 The 46 uncovered handlers break down as:
 - 9 V1 controllers — frozen response shapes via receipt_hsh; TS-side hardcoded map is pragmatic
-- 6 V2/V3 Meta methods — covered by step 8 above
+- 6 V2/V3 Meta methods — covered by step 10 above
 - 8 Account mutations — generic success responses, low priority
 - 8 Domain image/remove ops — could inherit from existing imageProps schema. Adding SCHEMA to GetDomainImage /
   UpdateDomainImage base classes would cover 8 routes at once
@@ -201,9 +217,5 @@ The 46 uncovered handlers break down as:
 - 3 Invite API — need new schemas
 - 8 Colonel admin ops — scope=internal, low priority but response schemas still useful for admin tooling
 
-Suggested order
-
-Step 7 is small (3 files to touch) and resolves the requests.ts / requests/ duality before it causes confusion.
-Step 8 is mechanical. Step 9 is the main pipeline advancement — connecting request schemas to the generator.
-Step 10 is worth discussing before acting (the x-otto-route extension bridge makes annotation trivial).
-Step 11 is ongoing.
+Suggested order: Step 10 is mechanical (6 handlers, trivial response shapes). Step 11 is the main pipeline
+advancement — connecting request schemas to the generator. Step 12 is ongoing gap closure.
