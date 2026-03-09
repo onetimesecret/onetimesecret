@@ -2,7 +2,7 @@
 //
 // Endpoint-level data shapes for the secrets domain.
 // V2 owns these definitions — the business logic originates in V2 handlers.
-// V3 re-exports or extends via v3/endpoints/.
+// V3 previously re-exported these; now consumers import directly.
 
 import { receiptBaseSchema, secretSchema } from '@/schemas/models';
 import { z } from 'zod';

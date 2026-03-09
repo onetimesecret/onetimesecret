@@ -47,7 +47,7 @@ import { feedbackSchema } from './models/feedback';
 // =============================================================================
 import { concealPayloadSchema } from './api/v2/payloads/conceal';
 import { generatePayloadSchema } from './api/v2/payloads/generate';
-import { responseSchemas } from './api/v3/responses';
+import { responseSchemas } from './api/v2/responses';
 
 // =============================================================================
 // Schema Categories

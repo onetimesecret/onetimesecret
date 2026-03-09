@@ -51,7 +51,7 @@
 
 // Exports organized by architectural layer
 // Base schemas and utilities
-export * from './api/v3/base';
+export * from './api/base';
 export * from './models/base';
 
 // Error Flynn
@@ -67,7 +67,7 @@ export * from './models/secret';
 export * from './config';
 
 // Domain-specific models and endpoints
-export * from './api/v3/endpoints';
+export * from './api/v2/endpoints/secrets';
 export * from './api/account/endpoints/colonel';
 export * from './models/domain/index';
 
@@ -77,7 +77,7 @@ export type {
   ApiErrorResponse,
   ApiRecordResponse,
   ApiRecordsResponse,
-} from './api/v3/base';
+} from './api/base';
 
 export type {
   AccountResponse,

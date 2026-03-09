@@ -213,7 +213,7 @@ async function main() {
         'src/schemas/api/v3/base.ts',
         'src/schemas/api/v3/responses.ts',
         'src/schemas/api/v3/requests.ts',
-        'src/schemas/api/v3/endpoints/conceal.ts',
+        'src/schemas/api/v2/endpoints/secrets.ts',
         'src/schemas/api/v3/payloads/base.ts',
         'src/schemas/api/v3/payloads/conceal.ts',
         'src/schemas/api/v3/payloads/generate.ts',
