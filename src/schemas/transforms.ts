@@ -69,6 +69,8 @@ export const transforms = {
       .number()
       .optional()
       .transform((v) => (v === undefined ? undefined : new Date(v * 1000))),
+    /** Accepts number, null, or undefined; normalizes to Date | null.
+     *  Collapses undefined → null so consumers get a simpler union. */
     toDateNullish: z
       .number()
       .nullish()
