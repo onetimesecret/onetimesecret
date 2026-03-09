@@ -3,25 +3,14 @@
 // Request schema for DomainsAPI::Logic::Domains::UpdateDomainBrand
 // PUT /:extid/brand
 //
-// TODO: Review and adjust — this scaffold was auto-generated from
-// the Ruby source parameter survey. Verify against the actual
-// handler implementation before using in the OpenAPI pipeline.
-//
-// Existing Zod schema in v3/requests.ts (updateDomainBrandRequestSchema).
+// Transport wrapper: Ruby handler reads params['brand'], so the
+// request body nests brand settings under a `brand` key.
 
+import { brandSettingschema } from '@/schemas/models/domain/brand';
 import { z } from 'zod';
 
 export const updateDomainBrandRequestSchema = z.object({
-  /** Hex color for brand */
-  primary_color: z.string().optional(),
-  /** Font family enum */
-  font_family: z.string().optional(),
-  /** Corner style enum */
-  corner_style: z.string().optional(),
-  /** Default TTL in seconds (entitlement-gated) */
-  default_ttl: z.number().int().optional(),
-  /** Allow public homepage (entitlement-gated) */
-  allow_public_homepage: z.boolean().optional(),
+  brand: brandSettingschema.partial(),
 });
 
 export type UpdateDomainBrandRequest = z.infer<typeof updateDomainBrandRequestSchema>;
