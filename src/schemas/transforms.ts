@@ -45,6 +45,30 @@ export const transforms = {
 
   fromNumber: {
     secondsToDate: z.preprocess((val) => new Date((val as number) * 1000), z.date()),
+
+    /**
+     * V3 timestamp transforms using .transform() instead of .preprocess().
+     *
+     * These preserve the input type for JSON Schema generation (io: "input"
+     * sees z.number() → { "type": "number" }) while producing Date objects
+     * at runtime for frontend consumption.
+     *
+     * Use these in V3 response schemas. V2 schemas should continue using
+     * transforms.fromString.date which handles string-encoded timestamps.
+     */
+    toDate: z.number().transform((v) => new Date(v * 1000)),
+    toDateNullable: z
+      .number()
+      .nullable()
+      .transform((v) => (v === null ? null : new Date(v * 1000))),
+    toDateOptional: z
+      .number()
+      .optional()
+      .transform((v) => (v === undefined ? undefined : new Date(v * 1000))),
+    toDateNullish: z
+      .number()
+      .nullish()
+      .transform((v) => (v == null ? null : new Date(v * 1000))),
   },
 
   fromObject: {
