@@ -38,9 +38,11 @@ import { z } from 'zod';
 // Model Schemas
 // =============================================================================
 import { customerSchema } from './models/customer';
+import { customDomainSchema } from './models/custom-domain';
 import { secretSchema, secretDetailsSchema, secretStateSchema } from './models/secret';
 import { receiptSchema, receiptDetailsSchema, receiptStateSchema } from './models/receipt';
 import { feedbackSchema } from './models/feedback';
+import { organizationSchema } from './models/organization';
 
 // =============================================================================
 // API v3 Schemas
@@ -65,6 +67,8 @@ export const modelSchemas = {
   'models/receipt-details': receiptDetailsSchema,
   'models/receipt-state': receiptStateSchema,
   'models/feedback': feedbackSchema,
+  'models/custom-domain': customDomainSchema,
+  'models/organization': organizationSchema,
 } as const;
 
 /**
