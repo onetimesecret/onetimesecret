@@ -1,4 +1,4 @@
-// src/schemas/api/v2/payloads/index.ts
+// src/schemas/api/v2/requests/content/index.ts
 
 export * from './base';
 export * from './conceal';

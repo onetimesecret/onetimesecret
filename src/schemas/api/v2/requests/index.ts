@@ -1,5 +1,6 @@
 // Auto-generated index — re-exports all request schemas in this directory.
 
+export * from './content';
 export * from './burn-secret';
 export * from './conceal-secret';
 export * from './generate-secret';

@@ -3,7 +3,7 @@
 // Response schemas for secret endpoints.
 
 import { createApiResponseSchema, createApiListResponseSchema } from '@/schemas/api/base';
-import { concealDataSchema } from '@/schemas/api/v2/endpoints/secrets';
+import { concealDataSchema } from './content/secrets';
 import { secretResponsesSchema } from '@/schemas/models';
 import { secretDetailsSchema, secretSchema } from '@/schemas/models/secret';
 import { z } from 'zod';

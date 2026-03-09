@@ -1,8 +1,7 @@
-// src/schemas/api/v2/endpoints/secrets.ts
+// src/schemas/api/v2/responses/content/secrets.ts
 //
-// Endpoint-level data shapes for the secrets domain.
-// V2 owns these definitions — the business logic originates in V2 handlers.
-// V3 previously re-exported these; now consumers import directly.
+// Response content shapes for the secrets domain — the data
+// that handler endpoints produce before envelope wrapping.
 
 import { receiptBaseSchema, secretSchema } from '@/schemas/models';
 import { z } from 'zod';

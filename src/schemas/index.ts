@@ -67,7 +67,7 @@ export * from './models/secret';
 export * from './config';
 
 // Domain-specific models and endpoints
-export * from './api/v2/endpoints/secrets';
+export * from './api/v2/responses/content/secrets';
 export * from './api/account/endpoints/colonel';
 export * from './models/domain/index';
 
@@ -84,7 +84,7 @@ export type {
   ApiTokenResponse,
   ReceiptResponse,
   SecretResponse,
-} from './api/v3/responses';
+} from './api/v2/responses';
 
 export type { ColonelInfoDetails } from './api/account/endpoints/colonel';
 

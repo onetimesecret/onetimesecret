@@ -9,7 +9,7 @@
 
 import { z } from 'zod';
 
-import { generatePayloadSchema } from '../payloads/generate';
+import { generatePayloadSchema } from './content/generate';
 
 export const generateSecretRequestSchema = z.object({
   /** Transport wrapper — V2 BaseSecretAction unwraps params['secret'] */
