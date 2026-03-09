@@ -74,6 +74,9 @@ import {
   secretListResponseSchema,
 } from './secrets';
 
+// V1-specific response schemas (registered here for scanner validation)
+import { v1ResponseSchemas } from '../../v1/responses';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Response schema registry
 // ─────────────────────────────────────────────────────────────────────────────
@@ -148,6 +151,9 @@ export const responseSchemas = {
   logout: logoutResponseSchema,
   resetPasswordRequest: resetPasswordRequestResponseSchema,
   resetPassword: resetPasswordResponseSchema,
+
+  // V1 legacy API
+  ...v1ResponseSchemas,
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -13,6 +13,18 @@ module V1
       include ControllerBase
       include ControllerSettings
 
+      SCHEMAS = {
+        status:              { response: 'v1Status' },
+        authcheck:           { response: 'v1Status' },
+        share:               { response: 'v1Receipt' },
+        generate:            { response: 'v1Receipt' },
+        create:              { response: 'v1Receipt' },
+        show_receipt:        { response: 'v1Receipt' },
+        show_receipt_recent: { response: 'v1ReceiptList' },
+        show_secret:         { response: 'v1SecretReveal' },
+        burn_secret:         { response: 'v1BurnSecret' },
+      }.freeze
+
       @check_utf8 = true
       @check_uri_encoding = true
 
