@@ -171,9 +171,7 @@ Renamed src/schemas/models/domain/ → models/custom-domain/ to align directory 
 and registry key. Models: 4/8 → 6/8. Remaining uncovered: Features (embedded value object) and
 OrganizationMembership (join model) — both always nested inside other responses.
 
-### Remaining:
-
-10. Add the 3 uncovered Meta endpoints per version
+10. ✓ Add the 3 uncovered Meta endpoints per version
 
 system_status, system_version, get_supported_locales are class methods on a module, not instance-based logic
 classes. The scanner's 1:1 class→SCHEMA mapping doesn't apply. Proposed convention: a method-keyed SCHEMAS
@@ -191,6 +189,10 @@ needed in responseSchemas for these trivial JSON shapes.
 
 Request schema scaffolds already exist for these (empty z.object({}) — correct, since they accept no params).
 
+
+### Remaining:
+
+
 11. Wire request schemas into the OpenAPI generator
 
 The 80 request schema scaffolds are standalone files. To connect them to the generated spec:
@@ -205,7 +207,7 @@ step connects them to the pipeline.
 Known scaffold issues to fix before wiring:
 - domains update-domain-logo.ts and update-domain-icon.ts are multipart file uploads, not JSON bodies
 
-12. Fill remaining response schema gaps incrementally
+12. Fill remaining response schema gaps
 
 The 46 uncovered handlers break down as:
 - 9 V1 controllers — frozen response shapes via receipt_hsh; TS-side hardcoded map is pragmatic
