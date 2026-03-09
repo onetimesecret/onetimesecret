@@ -5,7 +5,7 @@ import {
   createError,
   useAsyncHandler,
 } from '@/shared/composables/useAsyncHandler';
-import { type ConcealDataResponse } from '@/schemas/api/v2/responses';
+import { type ConcealDataResponse } from '@/schemas/api/v3/responses';
 import { ConcealPayload, GeneratePayload } from '@/schemas/api/v3/requests/content';
 import { loggingService } from '@/services/logging.service';
 import { useAuthStore } from '@/shared/stores/authStore';

@@ -2,7 +2,7 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import type { ReceiptRecords, ReceiptRecordsDetails } from '@/schemas/api/account/endpoints/recent';
-import { responseSchemas } from '@/schemas/api/v2/responses';
+import { responseSchemas } from '@/schemas/api/v3/responses';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';

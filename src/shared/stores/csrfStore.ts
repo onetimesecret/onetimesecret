@@ -1,7 +1,7 @@
 // src/shared/stores/csrfStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import { responseSchemas } from '@/schemas/api/v2/responses';
+import { responseSchemas } from '@/schemas/api/v3/responses';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useDocumentVisibility } from '@vueuse/core';
 import { AxiosInstance } from 'axios';
