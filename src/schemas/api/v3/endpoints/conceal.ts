@@ -1,28 +1,12 @@
 // src/schemas/api/v3/endpoints/conceal.ts
+//
+// V3 re-exports the V2 conceal endpoint schemas.
+// V2 owns these definitions — V3 inherits the business logic.
+// If V3 needs to diverge (e.g., additional fields), extend here.
 
-import { receiptBaseSchema, secretSchema } from '@/schemas/models';
-import { z } from 'zod';
-
-/**
- * Schema for receipt returned by conceal endpoint
- * Uses base schema since URLs are not computed during creation
- */
-export const concealReceiptSchema = receiptBaseSchema.extend({
-  identifier: z.string(),
-});
-
-/**
- * Schema for combined secret and receipt (conceal data)
- * Uses conceal-specific receipt schema without URL fields
- *
- * Note: V3 API uses modern "receipt" terminology exclusively.
- * The legacy "metadata" key was removed in V3 responses.
- */
-export const concealDataSchema = z.object({
-  receipt: concealReceiptSchema,
-  secret: secretSchema,
-  share_domain: z.string().nullable(),
-});
-
-export type ConcealData = z.infer<typeof concealDataSchema>;
-export type ConcealReceipt = z.infer<typeof concealReceiptSchema>;
+export {
+  concealReceiptSchema,
+  concealDataSchema,
+  type ConcealData,
+  type ConcealReceipt,
+} from '@/schemas/api/v2/endpoints/secrets';
