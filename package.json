@@ -172,7 +172,7 @@
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "^12.1.0",
-    "@asteasolutions/zod-to-openapi": "^8.4.0",
+    "@asteasolutions/zod-to-openapi": "^8.4.1",
     "@eslint/js": "^9.39.2",
     "@eslint/plugin-kit": "^0.6.0",
     "@intlify/devtools-types": "^11.2.8",
