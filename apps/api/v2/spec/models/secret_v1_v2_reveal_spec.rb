@@ -49,10 +49,10 @@ RSpec.describe Onetime::Secret, 'v1/v2 reveal paths' do
           "Expected UTF-8 but got #{result.encoding} — JSON.generate will reject BINARY strings in json 3.0"
       end
 
-      it 'does not mutate the original string from ciphertext.reveal' do
-        secret.decrypted_secret_value
-        expect(binary_secret_value.encoding).to eq(Encoding::ASCII_8BIT),
-          'The original BINARY string should not be mutated by dup.force_encoding'
+      it 'applies force_encoding in-place without duplicating decrypted content' do
+        result = secret.decrypted_secret_value
+        expect(result).to equal(binary_secret_value),
+          'Should be the same object (no dup) to avoid extra copies of secrets in memory'
       end
 
       it 'produces a string that JSON.generate accepts without warning' do
