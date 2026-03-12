@@ -16,8 +16,15 @@ module Onetime
         @app                 = app
         @config              = config
         @logger              = Onetime.get_logger('HTTP')
-        @capture             = CAPTURE_MODES[config['capture']&.to_sym || :standard]
         @slow_threshold_μs   = (config['slow_request_ms'] || 1000) * 1000
+
+        requested_mode = config['capture']&.to_sym || :standard
+        @capture = CAPTURE_MODES[requested_mode]
+
+        unless @capture
+          @capture = CAPTURE_MODES[:standard]
+          @logger.warn "Unknown LOG_HTTP_CAPTURE mode '#{requested_mode}', falling back to :standard (valid: #{CAPTURE_MODES.keys.join(', ')})"
+        end
       end
 
       def call(env)

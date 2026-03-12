@@ -6,7 +6,7 @@
   import DomainsTableActionsCell from '@/apps/workspace/components/dashboard/DomainsTableActionsCell.vue';
   import DomainsTableDomainCell from '@/apps/workspace/components/dashboard/DomainsTableDomainCell.vue';
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
-  import type { CustomDomain } from '@/schemas/models/domain';
+  import type { CustomDomain } from '@/schemas/models/custom-domain';
   import { useConfirmDialog } from '@vueuse/core';
 
   const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();

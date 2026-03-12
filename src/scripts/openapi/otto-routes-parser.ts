@@ -14,6 +14,7 @@
  * Supported parameters:
  * - response: json|view|redirect|auto
  * - auth: noauth|sessionauth|basicauth|role:colonel
+ * - content: form|json (request body encoding; default json)
  * - csrf: exempt
  */
 
@@ -147,6 +148,19 @@ export function isCsrfExempt(route: OttoRoute): boolean {
  */
 export function getResponseType(route: OttoRoute): string {
   return route.params.response || 'auto';
+}
+
+/**
+ * Get request content type from route.
+ *
+ * Returns the content type for request bodies:
+ * - 'form' → application/x-www-form-urlencoded (V1 API)
+ * - 'json' → application/json (V2/V3 APIs, also the default)
+ *
+ * When absent, callers should default to 'json'.
+ */
+export function getContentType(route: OttoRoute): 'form' | 'json' {
+  return route.params.content === 'form' ? 'form' : 'json';
 }
 
 /**

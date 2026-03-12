@@ -7,6 +7,12 @@ require_relative 'base'
 module V2
   module Logic
     module Meta
+      SCHEMAS = {
+        system_status: { response: 'systemStatus' },
+        system_version: { response: 'systemVersion' },
+        get_supported_locales: { response: 'supportedLocales' },
+      }.freeze
+
       # Static methods that return system information
       def self.get_supported_locales(_req, _res)
         supported_locales = OT.supported_locales.map(&:to_s)

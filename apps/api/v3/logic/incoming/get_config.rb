@@ -28,6 +28,8 @@ module V3
       #   }
       #
       class GetConfig < V3::Logic::Base
+        SCHEMAS = { response: 'incomingConfig' }.freeze
+
         attr_reader :greenlighted, :config_data
 
         def process_params

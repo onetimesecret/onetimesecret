@@ -8,6 +8,8 @@ module ColonelAPI
   module Logic
     module Colonel
       class GetRedisMetrics < ColonelAPI::Logic::Base
+        SCHEMAS = { response: 'redisMetrics' }.freeze
+
         attr_reader :redis_full_info
 
         def raise_concerns

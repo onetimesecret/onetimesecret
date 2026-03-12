@@ -8,7 +8,7 @@ import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  mockSecretRecord,
+  mockSecretRecordRaw,
   mockSecretResponse,
   mockSecretRevealed,
 } from '../../fixtures/receipt.fixture';
@@ -57,14 +57,14 @@ describe('secretStore', () => {
 
       // This highlights an important lesson: when tests fail with 404s, always
       // verify your mock endpoints match what the code actually calls.
-      it('handles missing lifespan field from API', async () => {
+      it('rejects missing lifespan field from API (V3 requires number)', async () => {
         const testKey = 'abc123';
 
         const mockResponseWithoutLifespan = {
-          success: true, // Add this to match mockSecretResponse structure
+          success: true,
           record: {
-            ...mockSecretRecord,
-            lifespan: null, // Explicitly null per schema
+            ...mockSecretRecordRaw,
+            lifespan: null,
           },
           details: {
             continue: false,
@@ -76,12 +76,10 @@ describe('secretStore', () => {
           },
         };
 
-        // Use consistent API endpoint
         axiosMock?.onGet(`/api/v3/secret/${testKey}`).reply(200, mockResponseWithoutLifespan);
 
-        await store.fetch(testKey);
-
-        expect(store.record?.lifespan).toBeNull();
+        // V3 schema requires z.number() — null is rejected
+        await expect(store.fetch(testKey)).rejects.toThrow();
       });
 
       it('maintains is_owner state after reveal operation', async () => {
@@ -104,19 +102,18 @@ describe('secretStore', () => {
         expect(store.details?.is_owner).toBe(true);
       });
 
-      it('handles missing is_owner field by defaulting to false', async () => {
+      it('rejects missing is_owner field (V3 requires boolean)', async () => {
         const response = {
           ...mockSecretResponse,
           details: {
             ...mockSecretResponse.details,
-            // @ts-expect-error - intentionally omitting is_owner
             is_owner: undefined,
           },
         };
         axiosMock?.onGet('/api/v3/secret/abc123').reply(200, response);
 
-        await store.fetch('abc123');
-        expect(store.details?.is_owner).toBe(false);
+        // V3 schema requires z.boolean() — undefined is rejected
+        await expect(store.fetch('abc123')).rejects.toThrow();
       });
     });
 
@@ -137,7 +134,7 @@ describe('secretStore', () => {
         expect(store.record?.secret_ttl).toBe(86400); // Verify TTL is preserved
       });
 
-      it('handles null lifespan value', async () => {
+      it('rejects null lifespan value (V3 requires numbers)', async () => {
         const response = {
           ...mockSecretResponse,
           record: {
@@ -148,9 +145,8 @@ describe('secretStore', () => {
         };
         axiosMock?.onGet('/api/v3/secret/abc123').reply(200, response);
 
-        await store.fetch('abc123');
-        expect(store.record?.lifespan).toBeNull();
-        expect(store.record?.secret_ttl).toBeNull();
+        // V3 schema requires z.number() — null is rejected
+        await expect(store.fetch('abc123')).rejects.toThrow();
       });
 
       it('maintains consistent lifespan after reveal', async () => {
@@ -182,7 +178,7 @@ describe('secretStore', () => {
         expect(store.record?.lifespan).toBe(initialLifespan);
       });
 
-      it('handles null lifespan value', async () => {
+      it('rejects null lifespan value (V3 requires numbers)', async () => {
         const response = {
           ...mockSecretResponse,
           record: {
@@ -193,8 +189,8 @@ describe('secretStore', () => {
         };
         axiosMock?.onGet('/api/v3/secret/abc123').reply(200, response);
 
-        await store.fetch('abc123');
-        expect(store.record?.lifespan).toBeNull();
+        // V3 schema requires z.number() — null is rejected
+        await expect(store.fetch('abc123')).rejects.toThrow();
       });
 
       it('calculates TTL duration in seconds', async () => {

@@ -47,7 +47,7 @@
   const invitationSchema = z.object({
     organization_name: z.string(),
     organization_id: z.string(),
-    email: z.string().email(),
+    email: z.email(),
     role: z.string(),
     invited_by_email: z.string(),
     expires_at: z.number(),

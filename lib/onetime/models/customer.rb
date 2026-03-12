@@ -57,6 +57,8 @@ module Onetime
   class Customer < Familia::Horreum
     include Onetime::LoggerMethods
 
+    SCHEMA = 'models/customer'
+
     require_relative 'customer/features'
 
     using Familia::Refinements::TimeLiterals
