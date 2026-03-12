@@ -3,9 +3,6 @@
 // Request schema for OrganizationAPI::Logic::Invitations::RevokeInvitation
 // DELETE /:extid/invitations/:token
 //
-// TODO: Review and adjust — this scaffold was auto-generated from
-// the Ruby source parameter survey. Verify against the actual
-// handler implementation before using in the OpenAPI pipeline.
 //
 // DELETE — org extid + token in path.
 

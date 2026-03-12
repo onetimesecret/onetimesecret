@@ -3,9 +3,6 @@
 // Request schema for V2::Logic::Secrets::UpdateReceipt
 // PATCH /receipt/:identifier
 //
-// TODO: Review and adjust — this scaffold was auto-generated from
-// the Ruby source parameter survey. Verify against the actual
-// handler implementation before using in the OpenAPI pipeline.
 //
 // PATCH — body params TBD. Identifier is in path.
 

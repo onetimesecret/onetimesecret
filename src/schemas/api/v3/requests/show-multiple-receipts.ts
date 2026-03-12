@@ -3,9 +3,6 @@
 // Request schema for V3::Logic::Secrets::ShowMultipleReceipts
 // POST /guest/receipts
 //
-// TODO: Review and adjust — this scaffold was auto-generated from
-// the Ruby source parameter survey. Verify against the actual
-// handler implementation before using in the OpenAPI pipeline.
 //
 // POST with array of identifiers to batch-fetch receipts.
 

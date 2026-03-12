@@ -3,9 +3,6 @@
 // Request schema for OrganizationAPI::Logic::Invitations::ResendInvitation
 // POST /:extid/invitations/:token/resend
 //
-// TODO: Review and adjust — this scaffold was auto-generated from
-// the Ruby source parameter survey. Verify against the actual
-// handler implementation before using in the OpenAPI pipeline.
 //
 // POST — org extid + token in path.
 

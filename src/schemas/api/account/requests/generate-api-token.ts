@@ -3,9 +3,6 @@
 // Request schema for AccountAPI::Logic::Account::GenerateAPIToken
 // POST /apitoken
 //
-// TODO: Review and adjust — this scaffold was auto-generated from
-// the Ruby source parameter survey. Verify against the actual
-// handler implementation before using in the OpenAPI pipeline.
 //
 // POST — no body params. Generates and returns a new API token.
 

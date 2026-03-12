@@ -3,9 +3,6 @@
 // Request schema for DomainsAPI::Logic::Domains::UpdateDomainIcon
 // POST /:extid/icon
 //
-// TODO: Review and adjust — this scaffold was auto-generated from
-// the Ruby source parameter survey. Verify against the actual
-// handler implementation before using in the OpenAPI pipeline.
 //
 // POST — multipart file upload. Extid in path.
 

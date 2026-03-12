@@ -3,9 +3,6 @@
 // Request schema for AccountAPI::Logic::Account::ResendEmailChangeConfirmation
 // POST /resend-email-change-confirmation
 //
-// TODO: Review and adjust — this scaffold was auto-generated from
-// the Ruby source parameter survey. Verify against the actual
-// handler implementation before using in the OpenAPI pipeline.
 //
 // POST — no body params. Resends confirmation to pending email.
 

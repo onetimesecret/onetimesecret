@@ -3,9 +3,6 @@
 // Request schema for V1::Controllers::Index#show_receipt_recent
 // GET /receipt/recent
 //
-// TODO: Review and adjust — this scaffold was auto-generated from
-// the Ruby source parameter survey. Verify against the actual
-// handler implementation before using in the OpenAPI pipeline.
 //
 // No request params. Returns recent receipts for authenticated user.
 

@@ -3,9 +3,6 @@
 // Request schema for V3::Logic::Incoming::CreateIncomingSecret
 // POST /incoming/secret
 //
-// TODO: Review and adjust — this scaffold was auto-generated from
-// the Ruby source parameter survey. Verify against the actual
-// handler implementation before using in the OpenAPI pipeline.
 //
 // Incoming secret — TTL and passphrase set by config, not request.
 

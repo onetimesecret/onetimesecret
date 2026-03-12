@@ -3,9 +3,6 @@
 // Request schema for V2::Logic::Secrets::ListReceipts
 // GET /receipt/recent
 //
-// TODO: Review and adjust — this scaffold was auto-generated from
-// the Ruby source parameter survey. Verify against the actual
-// handler implementation before using in the OpenAPI pipeline.
 //
 // GET — no body. Returns recent receipts.
 

@@ -3,9 +3,6 @@
 // Request schema for V2::Logic::Secrets::ShowSecret
 // GET /secret/:identifier
 //
-// TODO: Review and adjust — this scaffold was auto-generated from
-// the Ruby source parameter survey. Verify against the actual
-// handler implementation before using in the OpenAPI pipeline.
 //
 // GET — no body. Identifier is in path.
 

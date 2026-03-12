@@ -3,9 +3,6 @@
 // Request schema for InviteAPI::Logic::Invites::ShowInvite
 // GET /:token
 //
-// TODO: Review and adjust — this scaffold was auto-generated from
-// the Ruby source parameter survey. Verify against the actual
-// handler implementation before using in the OpenAPI pipeline.
 //
 // GET — token in path.
 

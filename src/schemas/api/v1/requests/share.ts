@@ -3,9 +3,6 @@
 // Request schema for V1::Controllers::Index#share
 // POST /share
 //
-// TODO: Review and adjust — this scaffold was auto-generated from
-// the Ruby source parameter survey. Verify against the actual
-// handler implementation before using in the OpenAPI pipeline.
 //
 // Alias for "create". V1 uses flat form params, not nested JSON.
 
