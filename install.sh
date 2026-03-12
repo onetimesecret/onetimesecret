@@ -24,13 +24,10 @@ check_version() {
 
   required=$(version_from "$file")
   if [[ -z "$required" ]]; then
-    if has "$cmd"; then
-      local detected
-      detected=$(eval "$extractor")
-      info "$name $detected (no $(basename "$file") to pin against)"
-    else
-      warn "$name not found and no $(basename "$file") to check"
-    fi
+    has "$cmd" || die "$name not found ($(basename "$file") missing — cannot determine required version)"
+    local detected
+    detected=$(eval "$extractor")
+    warn "$name $detected detected but no $(basename "$file") to pin against — version not verified"
     return 0
   fi
 
@@ -48,13 +45,10 @@ check_version_major() {
 
   required=$(version_from "$file" | sed 's/^v//' | cut -d. -f1)
   if [[ -z "$required" ]]; then
-    if has "$cmd"; then
-      local detected
-      detected=$(eval "$extractor" | sed 's/^v//')
-      info "$name $detected (no $(basename "$file") to pin against)"
-    else
-      warn "$name not found and no $(basename "$file") to check"
-    fi
+    has "$cmd" || die "$name not found ($(basename "$file") missing — cannot determine required version)"
+    local detected
+    detected=$(eval "$extractor" | sed 's/^v//')
+    warn "$name $detected detected but no $(basename "$file") to pin against — version not verified"
     return 0
   fi
 
@@ -85,6 +79,7 @@ install_node() {
   for pkg in "pnpm-lock.yaml:pnpm:install --frozen-lockfile" "package-lock.json:npm:ci" "yarn.lock:yarn:install --frozen-lockfile"; do
     IFS=: read -r lockfile mgr flags <<< "$pkg"
     if [[ -f "$lockfile" ]]; then
+      has "$mgr" || die "$mgr not found but $lockfile exists — install $mgr first (see INSTALL.md)"
       info "Installing node packages ($mgr)..."
       $mgr $flags
       return
