@@ -18,10 +18,13 @@ RSpec.describe Onetime::Secret, 'v1/v2 reveal paths' do
 
   describe '#decrypted_secret_value' do
     context 'v2 secret (ciphertext field)' do
+      # OpenSSL returns ASCII-8BIT (BINARY) bytes from decrypt. Simulate this
+      # so encoding-related tests exercise the real production path.
+      let(:binary_secret_value) { secret_value.dup.force_encoding('ASCII-8BIT') }
       let(:ciphertext_double) do
         instance_double('Familia::EncryptedField').tap do |ct|
           allow(ct).to receive(:to_s).and_return('encrypted-blob')
-          allow(ct).to receive(:reveal).and_yield(secret_value).and_return(secret_value)
+          allow(ct).to receive(:reveal).and_yield(binary_secret_value).and_return(binary_secret_value)
         end
       end
 
@@ -39,6 +42,23 @@ RSpec.describe Onetime::Secret, 'v1/v2 reveal paths' do
         secret.decrypted_secret_value
         expect(ciphertext_double).to have_received(:reveal)
       end
+
+      it 'returns UTF-8 encoding even when ciphertext.reveal returns BINARY' do
+        result = secret.decrypted_secret_value
+        expect(result.encoding).to eq(Encoding::UTF_8),
+          "Expected UTF-8 but got #{result.encoding} — JSON.generate will reject BINARY strings in json 3.0"
+      end
+
+      it 'does not mutate the original string from ciphertext.reveal' do
+        secret.decrypted_secret_value
+        expect(binary_secret_value.encoding).to eq(Encoding::ASCII_8BIT),
+          'The original BINARY string should not be mutated by dup.force_encoding'
+      end
+
+      it 'produces a string that JSON.generate accepts without warning' do
+        result = secret.decrypted_secret_value
+        expect { JSON.generate({ secret_value: result }) }.not_to output.to_stderr
+      end
     end
 
     context 'v1 secret (value field, legacy encryption)' do
@@ -50,6 +70,11 @@ RSpec.describe Onetime::Secret, 'v1/v2 reveal paths' do
 
       it 'returns the plaintext via decrypted_value' do
         expect(secret.decrypted_secret_value).to eq(secret_value)
+      end
+
+      it 'returns UTF-8 encoding' do
+        result = secret.decrypted_secret_value
+        expect(result.encoding).to eq(Encoding::UTF_8)
       end
     end
 
@@ -150,10 +175,11 @@ RSpec.describe Onetime::Secret, 'v1/v2 reveal paths' do
     end
 
     context 'prefers ciphertext over value when both present' do
+      let(:v2_binary) { 'v2-plaintext'.dup.force_encoding('ASCII-8BIT') }
       let(:ciphertext_double) do
         instance_double('Familia::EncryptedField').tap do |ct|
           allow(ct).to receive(:to_s).and_return('encrypted-blob')
-          allow(ct).to receive(:reveal).and_yield('v2-plaintext').and_return('v2-plaintext')
+          allow(ct).to receive(:reveal).and_yield(v2_binary).and_return(v2_binary)
         end
       end
 
@@ -164,6 +190,11 @@ RSpec.describe Onetime::Secret, 'v1/v2 reveal paths' do
 
       it 'uses ciphertext (v2) path' do
         expect(secret.decrypted_secret_value).to eq('v2-plaintext')
+      end
+
+      it 'returns UTF-8 even when v1 value is also present' do
+        result = secret.decrypted_secret_value
+        expect(result.encoding).to eq(Encoding::UTF_8)
       end
     end
   end
