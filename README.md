@@ -133,7 +133,7 @@ docker build -t onetimesecret .
 git clone https://github.com/onetimesecret/onetimesecret.git
 cd onetimesecret
 ./install.sh init    # Install deps, generate secrets, prepare .env
-# Review .env — set REDIS_URL if Redis isn't on localhost:6379
+# Review .env — set REDIS_URL (or VALKEY_URL) if not on localhost:6379
 pnpm run build
 RACK_ENV=production bundle exec puma -C etc/examples/puma.example.rb
 ```
