@@ -125,7 +125,7 @@ docker build -t onetimesecret .
 **System Requirements:**
 - Ruby 3.4.7+
 - Redis 5+ or Valkey 8+
-- Node.js 22+ and pnpm 10+ (for building frontend)
+- Node.js 22+ and pnpm 10+ via Corepack (for building frontend)
 - 1GB RAM, 2 CPU cores minimum
 
 **Quick setup:**

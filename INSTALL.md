@@ -14,7 +14,7 @@ This guide covers detailed installation methods for Onetime Secret, including ma
 - **Ruby**: 3.4.7+ (required by Gemfile)
 - **Redis**: 5.0+ or **Valkey**: 8.0+
 - **Node.js**: 22+ (for building frontend assets)
-- **pnpm**: 10+
+- **pnpm**: 10+ (via Corepack; pinned to 10.30.3 in `package.json`)
 
 ### System Packages
 - build-essential

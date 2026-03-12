@@ -114,8 +114,8 @@ cmd_reconcile() {
   install_node
 
   info "Re-deriving child keys from existing SECRET..."
-  DERIVE=1 bundle exec rake ots:secrets
-  chmod 600 .env
+  DERIVE=1 bundle exec rake ots:secrets || die "Failed to generate secrets"
+  chmod 600 .env || die "Failed to secure .env file permissions"
 
   local mode
   mode=$(auth_mode)
@@ -155,8 +155,8 @@ cmd_init() {
   fi
 
   info "Re-deriving child keys from SECRET..."
-  DERIVE=1 bundle exec rake ots:secrets
-  chmod 600 .env
+  DERIVE=1 bundle exec rake ots:secrets || die "Failed to generate secrets"
+  chmod 600 .env || die "Failed to secure .env file permissions"
 
   if [[ "$mode" == "full" ]]; then
     info "Re-applying RabbitMQ policies and queue declarations..."
