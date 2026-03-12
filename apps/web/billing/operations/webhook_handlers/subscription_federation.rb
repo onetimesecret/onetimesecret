@@ -218,12 +218,12 @@ module Billing
         def store_pending_federation(email_hash, subscription, stripe_customer)
           return nil if email_hash.to_s.empty?
 
-          home_region = stripe_customer&.metadata&.[]('home_region')
+          region = stripe_customer&.metadata&.[]('region')
 
           Billing::PendingFederatedSubscription.store_from_webhook(
             email_hash: email_hash,
             subscription: subscription,
-            home_region: home_region,
+            region: region,
           )
         end
       end

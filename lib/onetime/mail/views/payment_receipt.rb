@@ -15,7 +15,7 @@ module Onetime
       # Required data:
       #   email_address: Customer's email
       #   amount:        Payment amount (numeric)
-      #   currency:      Currency code (e.g., 'usd')
+      #   currency:      Currency code (e.g., 'cad')
       #   plan_name:     Subscription plan name
       #   invoice_id:    Stripe invoice ID
       #   paid_at:       Timestamp when paid

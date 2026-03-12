@@ -1,0 +1,979 @@
+{
+  "generated": "2026-02-18T01:30:37.603Z",
+  "summary": {
+    "breaking": 20,
+    "warnings": 58,
+    "info": 13
+  },
+  "diffs": [
+    {
+      "category": "POST /api/v1/share",
+      "field": "metadata_ttl",
+      "severity": "breaking",
+      "description": "Field \"metadata_ttl\" present in v0.23.4 but absent in v0.24.0 schema (REQUIRED)"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "recipient",
+      "severity": "warning",
+      "description": "Field \"recipient\" present in v0.23.4 but absent in v0.24.0 schema (optional)"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "passphrase_required",
+      "severity": "breaking",
+      "description": "Field \"passphrase_required\" present in v0.23.4 but absent in v0.24.0 schema (REQUIRED)"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "value",
+      "severity": "warning",
+      "description": "Field \"value\" present in v0.23.4 but absent in v0.24.0 schema (optional)"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "identifier",
+      "severity": "warning",
+      "description": "Field \"identifier\" added in v0.24.0 (required): NEW - was metadata_key"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "key",
+      "severity": "warning",
+      "description": "Field \"key\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "shortid",
+      "severity": "warning",
+      "description": "Field \"shortid\" added in v0.24.0 (required): NEW field"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "secret_shortid",
+      "severity": "info",
+      "description": "Field \"secret_shortid\" added in v0.24.0 (optional): NEW field"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "secret_identifier",
+      "severity": "info",
+      "description": "Field \"secret_identifier\" added in v0.24.0 (optional): NEW field"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "receipt_ttl",
+      "severity": "warning",
+      "description": "Field \"receipt_ttl\" added in v0.24.0 (required): NEW - was metadata_ttl"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "lifespan",
+      "severity": "warning",
+      "description": "Field \"lifespan\" added in v0.24.0 (required): NEW field"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "recipients",
+      "severity": "info",
+      "description": "Field \"recipients\" added in v0.24.0 (optional): Was \"recipient\" (singular)"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "has_passphrase",
+      "severity": "info",
+      "description": "Field \"has_passphrase\" added in v0.24.0 (optional): Was \"passphrase_required\""
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "natural_expiration",
+      "severity": "warning",
+      "description": "Field \"natural_expiration\" added in v0.24.0 (required): NEW field"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "expiration",
+      "severity": "warning",
+      "description": "Field \"expiration\" added in v0.24.0 (required): NEW field"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "share_path",
+      "severity": "warning",
+      "description": "Field \"share_path\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "burn_path",
+      "severity": "warning",
+      "description": "Field \"burn_path\" added in v0.24.0 (required): NEW name"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "receipt_path",
+      "severity": "warning",
+      "description": "Field \"receipt_path\" added in v0.24.0 (required): NEW - was metadata_url path"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "share_url",
+      "severity": "warning",
+      "description": "Field \"share_url\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "receipt_url",
+      "severity": "warning",
+      "description": "Field \"receipt_url\" added in v0.24.0 (required): NEW - was metadata_url"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "burn_url",
+      "severity": "warning",
+      "description": "Field \"burn_url\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "is_viewed",
+      "severity": "warning",
+      "description": "Field \"is_viewed\" added in v0.24.0 (required): NEW boolean flags"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "is_received",
+      "severity": "warning",
+      "description": "Field \"is_received\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "is_burned",
+      "severity": "warning",
+      "description": "Field \"is_burned\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "is_destroyed",
+      "severity": "warning",
+      "description": "Field \"is_destroyed\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "is_expired",
+      "severity": "warning",
+      "description": "Field \"is_expired\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "is_orphaned",
+      "severity": "warning",
+      "description": "Field \"is_orphaned\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "kind",
+      "severity": "info",
+      "description": "Field \"kind\" added in v0.24.0 (optional): NEW: generate|conceal"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "memo",
+      "severity": "info",
+      "description": "Field \"memo\" added in v0.24.0 (optional): NEW field"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "metadata_key",
+      "severity": "warning",
+      "description": "Was required in v0.23.4, now optional in v0.24.0"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "secret_key",
+      "severity": "warning",
+      "description": "Was required in v0.23.4, now optional in v0.24.0"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "ttl",
+      "severity": "warning",
+      "description": "Was required in v0.23.4, now optional in v0.24.0"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "updated",
+      "severity": "breaking",
+      "description": "Type changed: number -> Date (Transform: seconds -> Date)"
+    },
+    {
+      "category": "POST /api/v1/share",
+      "field": "created",
+      "severity": "breaking",
+      "description": "Type changed: number -> Date (Transform: seconds -> Date)"
+    },
+    {
+      "category": "POST /api/v1/secret/:key",
+      "field": "value",
+      "severity": "breaking",
+      "description": "Field \"value\" present in v0.23.4 but absent in v0.24.0 schema (REQUIRED)"
+    },
+    {
+      "category": "POST /api/v1/secret/:key",
+      "field": "secret_key",
+      "severity": "breaking",
+      "description": "Field \"secret_key\" present in v0.23.4 but absent in v0.24.0 schema (REQUIRED)"
+    },
+    {
+      "category": "POST /api/v1/secret/:key",
+      "field": "share_domain",
+      "severity": "warning",
+      "description": "Field \"share_domain\" present in v0.23.4 but absent in v0.24.0 schema (optional)"
+    },
+    {
+      "category": "POST /api/v1/secret/:key",
+      "field": "identifier",
+      "severity": "warning",
+      "description": "Field \"identifier\" added in v0.24.0 (required): NEW - was secret_key"
+    },
+    {
+      "category": "POST /api/v1/secret/:key",
+      "field": "key",
+      "severity": "warning",
+      "description": "Field \"key\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "POST /api/v1/secret/:key",
+      "field": "shortid",
+      "severity": "warning",
+      "description": "Field \"shortid\" added in v0.24.0 (required): NEW field"
+    },
+    {
+      "category": "POST /api/v1/secret/:key",
+      "field": "state",
+      "severity": "warning",
+      "description": "Field \"state\" added in v0.24.0 (required): new|received|revealed|burned|viewed|previewed"
+    },
+    {
+      "category": "POST /api/v1/secret/:key",
+      "field": "has_passphrase",
+      "severity": "warning",
+      "description": "Field \"has_passphrase\" added in v0.24.0 (required): Was implicit"
+    },
+    {
+      "category": "POST /api/v1/secret/:key",
+      "field": "verification",
+      "severity": "warning",
+      "description": "Field \"verification\" added in v0.24.0 (required): NEW field"
+    },
+    {
+      "category": "POST /api/v1/secret/:key",
+      "field": "secret_value",
+      "severity": "info",
+      "description": "Field \"secret_value\" added in v0.24.0 (optional): Was \"value\""
+    },
+    {
+      "category": "POST /api/v1/secret/:key",
+      "field": "secret_ttl",
+      "severity": "warning",
+      "description": "Field \"secret_ttl\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "POST /api/v1/secret/:key",
+      "field": "lifespan",
+      "severity": "warning",
+      "description": "Field \"lifespan\" added in v0.24.0 (required): NEW field"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "metadata_ttl",
+      "severity": "breaking",
+      "description": "Field \"metadata_ttl\" present in v0.23.4 but absent in v0.24.0 schema (REQUIRED)"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "received",
+      "severity": "warning",
+      "description": "Field \"received\" present in v0.23.4 but absent in v0.24.0 schema (optional)"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "recipient",
+      "severity": "warning",
+      "description": "Field \"recipient\" present in v0.23.4 but absent in v0.24.0 schema (optional)"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "passphrase_required",
+      "severity": "breaking",
+      "description": "Field \"passphrase_required\" present in v0.23.4 but absent in v0.24.0 schema (REQUIRED)"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "secret_realttl",
+      "severity": "warning",
+      "description": "Field \"secret_realttl\" present in v0.23.4 but absent in v0.24.0 schema (optional)"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "metadata_url",
+      "severity": "warning",
+      "description": "Field \"metadata_url\" present in v0.23.4 but absent in v0.24.0 schema (optional)"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "identifier",
+      "severity": "warning",
+      "description": "Field \"identifier\" added in v0.24.0 (required): NEW - was metadata_key"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "key",
+      "severity": "warning",
+      "description": "Field \"key\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "shortid",
+      "severity": "warning",
+      "description": "Field \"shortid\" added in v0.24.0 (required): NEW field"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "secret_shortid",
+      "severity": "info",
+      "description": "Field \"secret_shortid\" added in v0.24.0 (optional): NEW field"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "secret_identifier",
+      "severity": "info",
+      "description": "Field \"secret_identifier\" added in v0.24.0 (optional): NEW field"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "receipt_ttl",
+      "severity": "warning",
+      "description": "Field \"receipt_ttl\" added in v0.24.0 (required): NEW - was metadata_ttl"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "lifespan",
+      "severity": "warning",
+      "description": "Field \"lifespan\" added in v0.24.0 (required): NEW field"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "recipients",
+      "severity": "info",
+      "description": "Field \"recipients\" added in v0.24.0 (optional): Was \"recipient\" (singular)"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "has_passphrase",
+      "severity": "info",
+      "description": "Field \"has_passphrase\" added in v0.24.0 (optional): Was \"passphrase_required\""
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "natural_expiration",
+      "severity": "warning",
+      "description": "Field \"natural_expiration\" added in v0.24.0 (required): NEW field"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "expiration",
+      "severity": "warning",
+      "description": "Field \"expiration\" added in v0.24.0 (required): NEW field"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "burn_path",
+      "severity": "warning",
+      "description": "Field \"burn_path\" added in v0.24.0 (required): NEW name"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "receipt_path",
+      "severity": "warning",
+      "description": "Field \"receipt_path\" added in v0.24.0 (required): NEW - was metadata_url path"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "receipt_url",
+      "severity": "warning",
+      "description": "Field \"receipt_url\" added in v0.24.0 (required): NEW - was metadata_url"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "is_viewed",
+      "severity": "warning",
+      "description": "Field \"is_viewed\" added in v0.24.0 (required): NEW boolean flags"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "is_received",
+      "severity": "warning",
+      "description": "Field \"is_received\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "is_burned",
+      "severity": "warning",
+      "description": "Field \"is_burned\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "is_destroyed",
+      "severity": "warning",
+      "description": "Field \"is_destroyed\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "is_expired",
+      "severity": "warning",
+      "description": "Field \"is_expired\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "is_orphaned",
+      "severity": "warning",
+      "description": "Field \"is_orphaned\" added in v0.24.0 (required)"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "kind",
+      "severity": "info",
+      "description": "Field \"kind\" added in v0.24.0 (optional): NEW: generate|conceal"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "memo",
+      "severity": "info",
+      "description": "Field \"memo\" added in v0.24.0 (optional): NEW field"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "metadata_key",
+      "severity": "warning",
+      "description": "Was required in v0.23.4, now optional in v0.24.0"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "ttl",
+      "severity": "warning",
+      "description": "Was required in v0.23.4, now optional in v0.24.0"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "created",
+      "severity": "breaking",
+      "description": "Type changed: number -> Date (Transform: seconds -> Date)"
+    },
+    {
+      "category": "GET /api/v1/private/:key",
+      "field": "updated",
+      "severity": "breaking",
+      "description": "Type changed: number -> Date (Transform: seconds -> Date)"
+    },
+    {
+      "category": "state_machine",
+      "field": "state",
+      "severity": "breaking",
+      "description": "State \"viewed\" exists in v0.23.4 but not in v0.24.0. Clients matching on this value will break."
+    },
+    {
+      "category": "state_machine",
+      "field": "state",
+      "severity": "warning",
+      "description": "State \"shared\" is new in v0.24.0. Clients with exhaustive switch/case will need updating."
+    },
+    {
+      "category": "state_machine",
+      "field": "state",
+      "severity": "warning",
+      "description": "State \"revealed\" is new in v0.24.0. Clients with exhaustive switch/case will need updating."
+    },
+    {
+      "category": "state_machine",
+      "field": "state",
+      "severity": "warning",
+      "description": "State \"previewed\" is new in v0.24.0. Clients with exhaustive switch/case will need updating."
+    },
+    {
+      "category": "state_machine",
+      "field": "state",
+      "severity": "breaking",
+      "description": "State rename: \"viewed\" -> \"previewed\". Both may coexist in v0.24 for backward compat; verify V1 sends old names."
+    },
+    {
+      "category": "state_machine",
+      "field": "state",
+      "severity": "breaking",
+      "description": "State rename: \"received\" -> \"revealed\". Check if V1 translates back to old terminology."
+    },
+    {
+      "category": "field_renames",
+      "field": "metadata_key",
+      "severity": "breaking",
+      "description": "\"metadata_key\" renamed to \"identifier\" in Receipt/Metadata responses. V1 must preserve old name for backward compat."
+    },
+    {
+      "category": "field_renames",
+      "field": "secret_key",
+      "severity": "breaking",
+      "description": "\"secret_key\" renamed to \"key or identifier\" in Secret responses. V1 must preserve old name for backward compat."
+    },
+    {
+      "category": "field_renames",
+      "field": "passphrase_required",
+      "severity": "breaking",
+      "description": "\"passphrase_required\" renamed to \"has_passphrase\" in All secret-related responses. V1 must preserve old name for backward compat."
+    },
+    {
+      "category": "field_renames",
+      "field": "recipient",
+      "severity": "breaking",
+      "description": "\"recipient\" renamed to \"recipients\" in Receipt responses (singular -> plural). V1 must preserve old name for backward compat."
+    },
+    {
+      "category": "field_renames",
+      "field": "metadata_ttl",
+      "severity": "breaking",
+      "description": "\"metadata_ttl\" renamed to \"receipt_ttl\" in TTL fields in receipt. V1 must preserve old name for backward compat."
+    },
+    {
+      "category": "field_renames",
+      "field": "metadata_url",
+      "severity": "breaking",
+      "description": "\"metadata_url\" renamed to \"receipt_url\" in URL fields in receipt. V1 must preserve old name for backward compat."
+    },
+    {
+      "category": "field_renames",
+      "field": "value",
+      "severity": "breaking",
+      "description": "\"value\" renamed to \"secret_value\" in Secret reveal response. V1 must preserve old name for backward compat."
+    }
+  ],
+  "inferred_schemas": {},
+  "known_schemas": {
+    "v0.23.4": {
+      "status": {
+        "description": "GET /api/v1/status",
+        "fields": {
+          "status": {
+            "type": "string",
+            "required": true,
+            "notes": "Value: \"nominal\""
+          },
+          "locale": {
+            "type": "string",
+            "required": true
+          }
+        }
+      },
+      "share": {
+        "description": "POST /api/v1/share (create secret)",
+        "fields": {
+          "custid": {
+            "type": "string",
+            "required": true
+          },
+          "metadata_key": {
+            "type": "string",
+            "required": true
+          },
+          "secret_key": {
+            "type": "string",
+            "required": true
+          },
+          "ttl": {
+            "type": "number",
+            "required": true,
+            "notes": "Static TTL from creation"
+          },
+          "metadata_ttl": {
+            "type": "number",
+            "required": true,
+            "notes": "Real seconds remaining"
+          },
+          "secret_ttl": {
+            "type": "number",
+            "required": true,
+            "notes": "Real seconds remaining"
+          },
+          "state": {
+            "type": "string",
+            "required": true,
+            "notes": "Value: \"new\""
+          },
+          "updated": {
+            "type": "number",
+            "required": true,
+            "notes": "Unix timestamp"
+          },
+          "created": {
+            "type": "number",
+            "required": true,
+            "notes": "Unix timestamp"
+          },
+          "recipient": {
+            "type": "array",
+            "required": false
+          },
+          "share_domain": {
+            "type": "string",
+            "required": false
+          },
+          "passphrase_required": {
+            "type": "boolean",
+            "required": true
+          },
+          "value": {
+            "type": "string",
+            "required": false,
+            "notes": "Only for /generate"
+          }
+        }
+      },
+      "show_secret": {
+        "description": "POST /api/v1/secret/:key",
+        "fields": {
+          "value": {
+            "type": "string",
+            "required": true
+          },
+          "secret_key": {
+            "type": "string",
+            "required": true
+          },
+          "share_domain": {
+            "type": "string",
+            "required": false
+          }
+        }
+      },
+      "show_metadata": {
+        "description": "GET /api/v1/private/:key",
+        "fields": {
+          "custid": {
+            "type": "string",
+            "required": true
+          },
+          "metadata_key": {
+            "type": "string",
+            "required": true
+          },
+          "secret_key": {
+            "type": "string",
+            "required": false,
+            "notes": "Absent if received/burned"
+          },
+          "ttl": {
+            "type": "number",
+            "required": true
+          },
+          "metadata_ttl": {
+            "type": "number",
+            "required": true
+          },
+          "secret_ttl": {
+            "type": "number",
+            "required": true
+          },
+          "state": {
+            "type": "string",
+            "required": true,
+            "notes": "new|viewed|received|burned|expired|orphaned"
+          },
+          "created": {
+            "type": "number",
+            "required": true
+          },
+          "updated": {
+            "type": "number",
+            "required": true
+          },
+          "received": {
+            "type": "number",
+            "required": false
+          },
+          "recipient": {
+            "type": "array",
+            "required": false
+          },
+          "share_domain": {
+            "type": "string",
+            "required": false
+          },
+          "passphrase_required": {
+            "type": "boolean",
+            "required": true
+          },
+          "secret_realttl": {
+            "type": "number",
+            "required": false
+          },
+          "share_path": {
+            "type": "string",
+            "required": false
+          },
+          "share_url": {
+            "type": "string",
+            "required": false
+          },
+          "metadata_url": {
+            "type": "string",
+            "required": false
+          },
+          "burn_url": {
+            "type": "string",
+            "required": false
+          }
+        }
+      },
+      "error": {
+        "description": "Error response",
+        "fields": {
+          "message": {
+            "type": "string",
+            "required": true
+          },
+          "shrimp": {
+            "type": "string",
+            "required": false,
+            "notes": "CSRF token in v0.23.4"
+          }
+        }
+      }
+    },
+    "v0.24.0_zod": {
+      "status": {
+        "description": "GET /api/v1/status",
+        "source_file": "src/schemas/ (inferred from controllers)",
+        "fields": {
+          "status": {
+            "type": "string",
+            "required": true
+          },
+          "locale": {
+            "type": "string",
+            "required": true
+          }
+        }
+      },
+      "share_receipt": {
+        "description": "POST /api/v1/share (as receipt)",
+        "source_file": "src/schemas/models/receipt.ts",
+        "fields": {
+          "custid": {
+            "type": "string",
+            "required": true,
+            "notes": "V3 uses \"user_id\""
+          },
+          "identifier": {
+            "type": "string",
+            "required": true,
+            "notes": "NEW - was metadata_key"
+          },
+          "key": {
+            "type": "string",
+            "required": true
+          },
+          "shortid": {
+            "type": "string",
+            "required": true,
+            "notes": "NEW field"
+          },
+          "secret_shortid": {
+            "type": "string",
+            "required": false,
+            "notes": "NEW field"
+          },
+          "secret_identifier": {
+            "type": "string",
+            "required": false,
+            "notes": "NEW field"
+          },
+          "metadata_key": {
+            "type": "string",
+            "required": false,
+            "notes": "Possibly removed; check alias"
+          },
+          "secret_key": {
+            "type": "string",
+            "required": false,
+            "notes": "Possibly removed; check alias"
+          },
+          "ttl": {
+            "type": "number",
+            "required": false,
+            "notes": "May be absent if using receipt_ttl"
+          },
+          "receipt_ttl": {
+            "type": "number",
+            "required": true,
+            "notes": "NEW - was metadata_ttl"
+          },
+          "secret_ttl": {
+            "type": "number",
+            "required": true
+          },
+          "lifespan": {
+            "type": "number",
+            "required": true,
+            "notes": "NEW field"
+          },
+          "state": {
+            "type": "string",
+            "required": true,
+            "notes": "new|shared|received|revealed|burned|previewed|expired|orphaned"
+          },
+          "created": {
+            "type": "Date",
+            "required": true,
+            "notes": "Transform: seconds -> Date"
+          },
+          "updated": {
+            "type": "Date",
+            "required": true,
+            "notes": "Transform: seconds -> Date"
+          },
+          "recipients": {
+            "type": "array",
+            "required": false,
+            "notes": "Was \"recipient\" (singular)"
+          },
+          "share_domain": {
+            "type": "string",
+            "required": false
+          },
+          "has_passphrase": {
+            "type": "boolean",
+            "required": false,
+            "notes": "Was \"passphrase_required\""
+          },
+          "natural_expiration": {
+            "type": "string",
+            "required": true,
+            "notes": "NEW field"
+          },
+          "expiration": {
+            "type": "Date",
+            "required": true,
+            "notes": "NEW field"
+          },
+          "share_path": {
+            "type": "string",
+            "required": true
+          },
+          "burn_path": {
+            "type": "string",
+            "required": true,
+            "notes": "NEW name"
+          },
+          "receipt_path": {
+            "type": "string",
+            "required": true,
+            "notes": "NEW - was metadata_url path"
+          },
+          "share_url": {
+            "type": "string",
+            "required": true
+          },
+          "receipt_url": {
+            "type": "string",
+            "required": true,
+            "notes": "NEW - was metadata_url"
+          },
+          "burn_url": {
+            "type": "string",
+            "required": true
+          },
+          "is_viewed": {
+            "type": "boolean",
+            "required": true,
+            "notes": "NEW boolean flags"
+          },
+          "is_received": {
+            "type": "boolean",
+            "required": true
+          },
+          "is_burned": {
+            "type": "boolean",
+            "required": true
+          },
+          "is_destroyed": {
+            "type": "boolean",
+            "required": true
+          },
+          "is_expired": {
+            "type": "boolean",
+            "required": true
+          },
+          "is_orphaned": {
+            "type": "boolean",
+            "required": true
+          },
+          "kind": {
+            "type": "string",
+            "required": false,
+            "notes": "NEW: generate|conceal"
+          },
+          "memo": {
+            "type": "string",
+            "required": false,
+            "notes": "NEW field"
+          }
+        }
+      },
+      "show_secret": {
+        "description": "POST /api/v1/secret/:key (reveal)",
+        "source_file": "src/schemas/models/secret.ts",
+        "fields": {
+          "identifier": {
+            "type": "string",
+            "required": true,
+            "notes": "NEW - was secret_key"
+          },
+          "key": {
+            "type": "string",
+            "required": true
+          },
+          "shortid": {
+            "type": "string",
+            "required": true,
+            "notes": "NEW field"
+          },
+          "state": {
+            "type": "string",
+            "required": true,
+            "notes": "new|received|revealed|burned|viewed|previewed"
+          },
+          "has_passphrase": {
+            "type": "boolean",
+            "required": true,
+            "notes": "Was implicit"
+          },
+          "verification": {
+            "type": "boolean",
+            "required": true,
+            "notes": "NEW field"
+          },
+          "secret_value": {
+            "type": "string",
+            "required": false,
+            "notes": "Was \"value\""
+          },
+          "secret_ttl": {
+            "type": "number",
+            "required": true
+          },
+          "lifespan": {
+            "type": "number",
+            "required": true,
+            "notes": "NEW field"
+          }
+        }
+      }
+    }
+  }
+}

@@ -52,6 +52,8 @@ module Core
         # an appropriate value that can be safely redirected to. A path or other portion
         # of a URI can't be properly validated whereas a complete URL describes a
         # specific location to attempt to navigate to.
+        return nil if url.nil? || url.to_s.strip.empty?
+
         uri = nil
         begin
           # Attempt to parse the URL

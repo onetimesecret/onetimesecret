@@ -60,7 +60,7 @@ module V2::Logic
           success: greenlighted,
           record: {
             receipt: receipt.safe_dump,
-            metadata: receipt.safe_dump, # maintain public API
+            metadata: receipt.safe_dump, # V2 backward-compat alias
             secret: secret.safe_dump,
             share_domain: share_domain, # we return the value, but don't save it
           },
@@ -93,13 +93,10 @@ module V2::Logic
 
         # Get configuration options. We can rely on these values existing
         # because that are guaranteed by OT::Config.after_load.
-        secret_options = OT.conf&.fetch(
-          'secret_options',
-          {
-            'default_ttl' => 7.days,
-            'ttl_options' => [1.minute, 1.hour, 1.day, 7.days],
-          },
-        )
+        secret_options = OT.conf.dig('site', 'secret_options') || {
+          'default_ttl' => 7.days,
+          'ttl_options' => [1.minute, 1.hour, 1.day, 7.days],
+        }
         default_ttl    = secret_options['default_ttl']
         ttl_options    = secret_options['ttl_options']
 

@@ -506,12 +506,19 @@ export function useAuth() {
         throw createError(validated.error, 'human', 'error');
       }
 
-      // Success - clear auth state
-      await authStore.logout();
-
-      // Force page reload to fetch fresh unauthenticated state from backend
-      // Validate redirect URL to prevent open redirect attacks
+      // Force page reload to fetch fresh unauthenticated state from backend.
+      // Navigate BEFORE clearing reactive state to prevent a flash where
+      // brand-dependent components (logo, colors) briefly revert to defaults
+      // as Pinia stores reset. The hard navigation discards all in-memory
+      // state anyway, making the reset purely a cleanup for non-visual concerns.
       const safeRedirect = isValidRedirect(redirectTo) ? redirectTo : '/';
+
+      // Clear cookies and session storage before navigating so the server
+      // sees an unauthenticated request. Skip bootstrapStore.$reset() —
+      // it triggers reactive flushes that cause visual artifacts, and the
+      // full page reload will discard all Pinia state regardless.
+      await authStore.logoutMinimal();
+
       window.location.href = safeRedirect;
       return true;
     });

@@ -172,7 +172,7 @@ jobs:
     steps:
       - *checkout-step
 
-      - uses: ruby/setup-ruby@7f562e2882f42fe3ccc6f67a86ec4d551fdfcaf1
+      - uses: ruby/setup-ruby@ea73ddb198f027c31d496ef5749cf297fe1a0695
         with:
           ruby-version: '3.4.8'
           bundler-cache: true
@@ -286,6 +286,15 @@ jobs:
           --memory=4g
         ports:
           - 2121:6379
+      rabbitmq: &rabbitmq-service
+        image: rabbitmq:4.0
+        options: >-
+          --health-cmd "rabbitmq-diagnostics check_port_connectivity"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+        ports:
+          - 5672:5672
 
     steps:
       - *checkout-step
@@ -314,6 +323,7 @@ jobs:
         with:
           test-type: unit
           auth-mode: simple
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_unit_results.json'
           debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
@@ -401,6 +411,7 @@ jobs:
 
     services:
       redis: *valkey-service
+      rabbitmq: *rabbitmq-service
 
     steps:
       - *checkout-step
@@ -429,6 +440,7 @@ jobs:
         with:
           test-type: integration
           auth-mode: simple
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_simple_results.json'
 
   ruby-integration-full-sqlite:
@@ -440,6 +452,7 @@ jobs:
 
     services:
       redis: *valkey-service
+      rabbitmq: *rabbitmq-service
 
     steps:
       - *checkout-step
@@ -469,6 +482,7 @@ jobs:
           test-type: integration
           auth-mode: full
           auth-database-url: 'sqlite::memory:'
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_full_sqlite_results.json'
 
   ruby-integration-full-postgres:
@@ -480,8 +494,9 @@ jobs:
 
     services:
       redis: *valkey-service
+      rabbitmq: *rabbitmq-service
       postgres:
-        image: postgres:17@sha256:1eada89ec2521ae0f61125f6bdaf83bbbf88a43fecda48d112a83bb92df75c36
+        image: postgres:17@sha256:2cd82735a36356842d5eb1ef80db3ae8f1154172f0f653db48fde079b2a0b7f7
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -566,6 +581,7 @@ jobs:
           auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
           auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
           rspec-tag: 'postgres_database'
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_full_postgres_results.json'
 
   ruby-integration-disabled:
@@ -577,6 +593,7 @@ jobs:
 
     services:
       redis: *valkey-service
+      rabbitmq: *rabbitmq-service
 
     steps:
       - *checkout-step
@@ -605,6 +622,7 @@ jobs:
         with:
           test-type: integration
           auth-mode: disabled
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_disabled_results.json'
 
   # ============================================================================

@@ -63,7 +63,7 @@ module Core
           json_success('You have been logged out')
         else
           session['success_message'] = 'You have been logged out'
-          res.redirect res.app_path('/')
+          res.redirect req.app_path('/')
         end
       end
 
@@ -74,7 +74,7 @@ module Core
           json_success('You are already logged in')
         else
           session['info_message'] = 'You are already logged in.'
-          res.redirect '/'
+          res.redirect req.app_path('/')
         end
       end
 
@@ -117,7 +117,7 @@ module Core
                 role: cust_after.role,
               }
 
-            res.redirect '/colonel/'
+            res.redirect req.app_path('/colonel/')
           end
         end
       rescue OT::Unauthorized => ex
@@ -126,7 +126,7 @@ module Core
           json_error(ex.message, field_error: %w[email invalid], status: 401)
         else
           session['error_message'] = ex.message
-          res.redirect '/signin'
+          res.redirect req.app_path('/signin')
         end
       end
     end

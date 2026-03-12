@@ -165,7 +165,7 @@ RSpec.describe Billing::StripeClient, :stripe, :stripe_sandbox_api, type: :billi
       product = Stripe::Product.create({ name: 'Sub Test' })
       price = Stripe::Price.create({
         product: product.id,
-        currency: 'usd',
+        currency: 'cad',
         unit_amount: 1000,
         recurring: { interval: 'month' },
       })
@@ -290,7 +290,7 @@ RSpec.describe Billing::StripeClient, :stripe, :stripe_sandbox_api, type: :billi
     product = Stripe::Product.create({ name: 'Test Product' })
     Stripe::Price.create({
       product: product.id,
-      currency: 'usd',
+      currency: 'cad',
       unit_amount: 1000,
       recurring: { interval: 'month' },
     },

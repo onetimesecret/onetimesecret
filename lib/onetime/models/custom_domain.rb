@@ -53,6 +53,8 @@ module Onetime
   class CustomDomain < Familia::Horreum
     include Familia::Features::Autoloader
 
+    SCHEMA = 'models/custom-domain'
+
     unless defined?(MAX_SUBDOMAIN_DEPTH)
       MAX_SUBDOMAIN_DEPTH = 10  # e.g. a.b.c.d.e.f.g.h.i.j.example.com
       MAX_TOTAL_LENGTH    = 253 # RFC 1034 section 3.1
@@ -141,6 +143,10 @@ module Onetime
       # create a new validation record every time we instantiate a
       # custom domain object. Instead, we'll call it when we're ready
       # to verify the domain.
+    end
+
+    def custid
+      objid
     end
 
     # Alias domainid to objid for API compatibility
@@ -388,7 +394,7 @@ module Onetime
     #
     # @return [Boolean] true if the domain is an apex domain, false otherwise
     def apex?
-      subdomain.empty?
+      subdomain.to_s.empty?
     end
 
     # Overrides Familia::Horreum#exists? to handle connection pool issues

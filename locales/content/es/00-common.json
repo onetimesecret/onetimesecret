@@ -1335,5 +1335,9 @@
   "web.pricing.free_tier_description": {
     "text": "Crea y comparte secretos con funciones básicas. No se requiere tarjeta de crédito.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "Enlace externo",
+    "sha256": "a1b2c3d5"
   }
 }

@@ -59,6 +59,7 @@ stripe_api_version: "2025-12-15.clover"
 # match_fields: Reserved for future composite-key matching. Not read at runtime;
 #   regional isolation is driven solely by the region field above.
 region: <%= ENV['JURISDICTION'] || nil %>
+currency: <%= ENV['BILLING_CURRENCY'] || 'cad' %>
 match_fields:
   - plan_id
   - region
@@ -169,7 +170,7 @@ plans:
       organizations: 1
       members_per_team: 1
       custom_domains: 1
-      secret_lifetime: 604800  # 7 days in seconds
+      secret_lifetime: 1209600 # 14 days in seconds
       secrets_per_day: null    # TBD - not yet enforced
 
     prices: []  # Free tier has no prices
@@ -251,11 +252,9 @@ plans:
 
     prices:
       - interval: month
-        amount: 900   # $9.00 USD
-        currency: usd
+        amount: 900   # $9.00
       - interval: year
-        amount: 9000  # $90.00 USD
-        currency: usd
+        amount: 9000  # $90.00
 
   # # Team Plan - Uncomment to enable team subscriptions
   # team_plus_v1:
@@ -293,11 +292,9 @@ plans:
   #
   #   prices:
   #     - interval: month
-  #       amount: 8500  # $85.00 USD
-  #       currency: usd
+  #       amount: 8500  # $85.00
   #     - interval: year
-  #       amount: 85000 # $850.00 USD
-  #       currency: usd
+  #       amount: 85000 # $850.00
 
 # Metadata Schema for Stripe Products
 # Documents required and optional fields that must be present in Stripe product metadata.

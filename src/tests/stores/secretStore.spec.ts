@@ -6,7 +6,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App, ComponentPublicInstance } from 'vue';
 
 import { AxiosInstance } from 'axios';
-import { mockSecretRecord, mockSecretResponse } from '../fixtures/receipt.fixture';
+import {
+  mockSecretRecord,
+  mockSecretRecordRaw,
+  mockSecretResponse,
+} from '../fixtures/receipt.fixture';
 import { setupTestPinia } from '../setup';
 import { setupWindowState } from '../setupWindow';
 
@@ -77,7 +81,7 @@ describe('secretStore', () => {
       axiosMock?.onGet('/api/v3/guest/secret/abc123').reply(200, mockSecretResponse);
       axiosMock?.onPost('/api/v3/guest/secret/abc123/reveal').reply(200, {
         ...mockSecretResponse,
-        record: { ...mockSecretRecord, secret_value: 'revealed' },
+        record: { ...mockSecretRecordRaw, secret_value: 'revealed' },
         details: { ...mockSecretResponse.details, show_secret: true },
       });
 
@@ -165,7 +169,7 @@ describe('secretStore', () => {
       it('reveal() uses /api/v3/secret/:id/reveal in authenticated mode', async () => {
         axiosMock?.onPost('/api/v3/secret/abc123/reveal').reply(200, {
           ...mockSecretResponse,
-          record: { ...mockSecretRecord, secret_value: 'revealed' },
+          record: { ...mockSecretRecordRaw, secret_value: 'revealed' },
           details: { ...mockSecretResponse.details, show_secret: true },
         });
 
@@ -179,7 +183,7 @@ describe('secretStore', () => {
         store.setApiMode('public');
         axiosMock?.onPost('/api/v3/guest/secret/abc123/reveal').reply(200, {
           ...mockSecretResponse,
-          record: { ...mockSecretRecord, secret_value: 'revealed' },
+          record: { ...mockSecretRecordRaw, secret_value: 'revealed' },
           details: { ...mockSecretResponse.details, show_secret: true },
         });
 
@@ -195,20 +199,14 @@ describe('secretStore', () => {
     it('debug response transformation', async () => {
       axiosMock?.onGet('/api/v3/secret/abc123').reply(200, mockSecretResponse);
 
-      // // Log the mock response
-      // console.log('Mock Response:', JSON.stringify(mockSecretResponse, null, 2));
-
       await store.fetch('abc123');
 
-      // // Log what's in the store
-      // console.log('Store Record:', JSON.stringify(store.record, null, 2));
-
-      expect(store.record).toEqual(mockSecretResponse.record);
+      // After parse, timestamps are Dates — compare against transformed fixture
+      expect(store.record).toEqual(mockSecretRecord);
       expect(store.details).toEqual(mockSecretResponse.details);
 
       // Test individual fields
-      expect(store.record?.lifespan).toBe(mockSecretResponse.record.lifespan);
-      // Other fields...
+      expect(store.record?.lifespan).toBe(mockSecretRecord.lifespan);
     });
 
     it('loads secret details successfully (everything except lifespan)', async () => {
@@ -216,12 +214,10 @@ describe('secretStore', () => {
 
       await store.fetch('abc123');
 
-      // Test everything except lifespan
       const { lifespan: _, ...recordWithoutLifespan } = store.record!;
-      const { lifespan: __, ...expectedWithoutLifespan } = mockSecretResponse.record;
+      const { lifespan: __, ...expectedWithoutLifespan } = mockSecretRecord;
 
       expect(recordWithoutLifespan).toEqual(expectedWithoutLifespan);
-      // Test that lifespan exists and is a number (transformed by schema)
       expect(typeof store.record?.lifespan).toBe('number');
       expect(store.details).toEqual(mockSecretResponse.details);
     });
@@ -231,39 +227,30 @@ describe('secretStore', () => {
 
       await store.fetch('abc123');
 
-      expect(store.record).toEqual(mockSecretResponse.record);
+      expect(store.record).toEqual(mockSecretRecord);
       expect(store.details).toEqual(mockSecretResponse.details);
-      // add: expect error to be null
     });
 
-    // Test the transformed values exactly (more brittle but more precise)
     it('loads secret details successfully (strict values)', async () => {
       axiosMock?.onGet('/api/v3/secret/abc123').reply(200, mockSecretResponse);
 
       await store.fetch('abc123');
 
-      const expectedRecord = {
-        ...mockSecretResponse.record,
-        lifespan: 86400, // Schema transforms to number
-      };
-
-      expect(store.record).toEqual(expectedRecord);
+      expect(store.record).toEqual(mockSecretRecord);
       expect(store.details).toEqual(mockSecretResponse.details);
     });
 
-    // Test for shape and types rather than exact values for transformed fields
     it('loads secret details successfully (looser values)', async () => {
       axiosMock?.onGet('/api/v3/secret/abc123').reply(200, mockSecretResponse);
 
       await store.fetch('abc123');
 
-      // Check record shape and transformed fields separately
       const { lifespan: _, ...recordWithoutLifespan } = store.record!;
-      const { lifespan: __, ...expectedWithoutLifespan } = mockSecretResponse.record;
+      const { lifespan: __, ...expectedWithoutLifespan } = mockSecretRecord;
 
       expect(recordWithoutLifespan).toEqual(expectedWithoutLifespan);
       expect(typeof store.record?.lifespan).toBe('number');
-      expect(store.record?.lifespan).toBeGreaterThan(0); // Positive number check
+      expect(store.record?.lifespan).toBeGreaterThan(0);
       expect(store.details).toEqual(mockSecretResponse.details);
     });
 
@@ -285,9 +272,8 @@ describe('secretStore', () => {
 
       await store.fetch('abc123');
 
-      expect(store.record).toEqual(mockSecretResponse.record);
+      expect(store.record).toEqual(mockSecretRecord);
       expect(store.details).toEqual(mockSecretResponse.details);
-      // No isLoading checks - that belongs in composable tests
     });
 
     // For error tests, focus on store state integrity
@@ -313,7 +299,7 @@ describe('secretStore', () => {
       axiosMock?.onPost('/api/v3/secret/abc123/reveal').reply(200, {
         success: true,
         record: {
-          ...mockSecretRecord,
+          ...mockSecretRecordRaw,
           secret_value: 'revealed secret',
         },
         details: {
@@ -392,7 +378,7 @@ describe('secretStore', () => {
         expect(store.details?.is_owner).toBe(false);
       });
 
-      it('handles missing is_owner field from API', async () => {
+      it('rejects missing is_owner field from API (V3 requires boolean)', async () => {
         const responseWithoutOwner = {
           ...mockSecretResponse,
           details: {
@@ -402,33 +388,31 @@ describe('secretStore', () => {
         };
 
         axiosMock?.onGet('/api/v3/secret/abc123').reply(200, responseWithoutOwner);
-        await store.fetch('abc123');
 
-        // Schema should default undefined to false
-        expect(store.details?.is_owner).toBe(false);
+        // V3 schema requires z.boolean() — undefined is rejected
+        await expect(store.fetch('abc123')).rejects.toThrow();
       });
     });
 
     describe('lifespan field', () => {
-      it('transforms TTL into human readable duration', async () => {
+      it('passes through numeric TTL values', async () => {
         const response = {
           ...mockSecretResponse,
           record: {
             ...mockSecretResponse.record,
-            secret_ttl: 86400, // 24 hours in seconds
+            secret_ttl: 86400,
           },
         };
 
         axiosMock?.onGet('/api/v3/secret/abc123').reply(200, response);
         await store.fetch('abc123');
 
-        // Test that lifespan exists and is transformed to number
         expect(store.record?.lifespan).toBeDefined();
         expect(typeof store.record?.lifespan).toBe('number');
         expect(store.record?.lifespan).toBe(86400);
       });
 
-      it('handles null TTL values', async () => {
+      it('rejects null TTL values (V3 requires numbers)', async () => {
         const response = {
           ...mockSecretResponse,
           record: {
@@ -439,28 +423,28 @@ describe('secretStore', () => {
         };
 
         axiosMock?.onGet('/api/v3/secret/abc123').reply(200, response);
-        await store.fetch('abc123');
 
-        expect(store.record?.lifespan).toBeNull();
+        // V3 schema requires z.number() — null is rejected
+        await expect(store.fetch('abc123')).rejects.toThrow();
       });
 
-      it('handles static lifespan from API', async () => {
-        const staticLifespanResponse = {
+      it('handles zero lifespan from API', async () => {
+        const zeroLifespanResponse = {
           ...mockSecretResponse,
           record: {
             ...mockSecretResponse.record,
-            lifespan: '86400', // String that can be converted to number
+            lifespan: 0,
           },
         };
 
-        axiosMock?.onGet('/api/v3/secret/abc123').reply(200, staticLifespanResponse);
+        axiosMock?.onGet('/api/v3/secret/abc123').reply(200, zeroLifespanResponse);
         await store.fetch('abc123');
 
         expect(typeof store.record?.lifespan).toBe('number');
-        expect(store.record?.lifespan).toBe(86400);
+        expect(store.record?.lifespan).toBe(0);
       });
 
-      it('handles null lifespan from API', async () => {
+      it('rejects null lifespan from API (V3 requires numbers)', async () => {
         const nullLifespanResponse = {
           ...mockSecretResponse,
           record: {
@@ -470,12 +454,11 @@ describe('secretStore', () => {
         };
 
         axiosMock?.onGet('/api/v3/secret/abc123').reply(200, nullLifespanResponse);
-        await store.fetch('abc123');
 
-        expect(store.record?.lifespan).toBeNull();
+        await expect(store.fetch('abc123')).rejects.toThrow();
       });
 
-      it('handles missing lifespan field from API', async () => {
+      it('rejects missing lifespan field from API (V3 requires numbers)', async () => {
         const responseWithoutLifespan = {
           ...mockSecretResponse,
           record: {
@@ -486,49 +469,8 @@ describe('secretStore', () => {
 
         axiosMock?.onGet('/api/v3/secret/abc123').reply(200, responseWithoutLifespan);
 
-        await store.fetch('abc123');
-
-        // Schema transforms undefined to null
-        expect(store.record?.lifespan).toBeNull();
-      });
-
-      it('should handle undefined lifespan gracefully', async () => {
-        const responseWithUndefinedLifespan = {
-          ...mockSecretResponse,
-          record: {
-            ...mockSecretResponse.record,
-            lifespan: undefined,
-          },
-        };
-
-        axiosMock?.onGet('/api/v3/secret/abc123').reply(200, responseWithUndefinedLifespan);
-
-        // Schema transforms undefined to null, which is valid
-        await store.fetch('abc123');
-
-        // Store should have the record with lifespan as null
-        expect(store.record?.lifespan).toBeNull();
-      });
-
-      it('handles undefined lifespan consistently across calls', async () => {
-        // Start with null store state
-        expect(store.record).toBeNull();
-
-        const responseWithUndefinedLifespan = {
-          ...mockSecretResponse,
-          record: {
-            ...mockSecretResponse.record,
-            lifespan: undefined,
-          },
-        };
-
-        axiosMock?.onGet('/api/v3/secret/abc123').reply(200, responseWithUndefinedLifespan);
-
-        // Schema transforms undefined to null successfully
-        await store.fetch('abc123');
-
-        // Store should have the record with consistent null handling
-        expect(store.record?.lifespan).toBeNull();
+        // V3 schema requires z.number() — undefined is rejected
+        await expect(store.fetch('abc123')).rejects.toThrow();
       });
     });
   });

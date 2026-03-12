@@ -13,6 +13,11 @@
 #     --set '*.args.COMMIT_HASH=abc1234' \
 #     ci
 #
+# Tagging:
+#   VERSION    → clean semver for build args and OCI labels (never a Docker tag)
+#   IMAGE_TAG  → v-prefixed Docker tag for releases; empty skips version tag
+#   EXTRA_TAGS → comma-separated additional tags (latest, next, nightly, etc.)
+#
 
 # ---------------------------------------------------------------------------
 # Variables
@@ -32,6 +37,12 @@ variable "VERSION" {
 
 variable "COMMIT_HASH" {
   default = "dev"
+}
+
+# Docker image tag for versioned releases (e.g. "v0.24.0-rc15").
+# Empty for non-tag builds (nightly, branch push, manual dispatch) — only EXTRA_TAGS apply.
+variable "IMAGE_TAG" {
+  default = ""
 }
 
 # Comma-separated list of additional tags to apply (e.g. "latest,edge,nightly")
@@ -58,18 +69,19 @@ variable "PLATFORMS" {
 
 function "tags" {
   params = [suffix]
-  # Custom registry: org/image namespace — Public: GHCR + DockerHub
+  # IMAGE_TAG (v-prefixed) → versioned Docker tag; empty → only EXTRA_TAGS
+  # VERSION (clean semver) → build args and OCI labels only, never used as a Docker tag
   result = (
     equal(REGISTRY_MODE, "custom") && notequal(CUSTOM_REGISTRY, "") ? concat(
-      ["${CUSTOM_REGISTRY}/onetimesecret/onetimesecret${suffix}:${VERSION}"],
+      notequal(IMAGE_TAG, "") ? ["${CUSTOM_REGISTRY}/onetimesecret/onetimesecret${suffix}:${IMAGE_TAG}"] : [],
       [for t in compact(split(",", EXTRA_TAGS)) :
         "${CUSTOM_REGISTRY}/onetimesecret/onetimesecret${suffix}:${trimspace(t)}"
       ]
     ) : concat(
-      [
-        "${REGISTRY}/onetimesecret${suffix}:${VERSION}",
-        "${DOCKERHUB_REPO}${suffix}:${VERSION}",
-      ],
+      notequal(IMAGE_TAG, "") ? [
+        "${REGISTRY}/onetimesecret${suffix}:${IMAGE_TAG}",
+        "${DOCKERHUB_REPO}${suffix}:${IMAGE_TAG}",
+      ] : [],
       flatten([
         [for t in compact(split(",", EXTRA_TAGS)) :
           "${REGISTRY}/onetimesecret${suffix}:${trimspace(t)}"

@@ -9,6 +9,8 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class ConcealSecret < BaseSecretAction
+      SCHEMAS = { response: 'concealData', request: 'concealSecret' }.freeze
+
       def process_secret
         @kind         = 'conceal'
         @secret_value = payload['secret']

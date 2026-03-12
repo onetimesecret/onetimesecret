@@ -20,8 +20,8 @@
 #
 
 ARG APP_DIR=/app
-ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:bbc49173621b513e33c4add027747db0c41d540c86492cca66e90814a7518c84
-ARG NODE_IMAGE_TAG=22@sha256:379c51ac7bbf9bffe16769cfda3eb027d59d9c66ac314383da3fcf71b46d026c
+ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:1af92319c7301866eddd99a7d43750d64afa1f2b96d9a4cb45167d759e865a85
+ARG NODE_IMAGE_TAG=22@sha256:b501c082306a4f528bc4038cbf2fbb58095d583d0419a259b2114b5ac53d12e9
 
 ##
 # NODE: Node.js source for copying binaries
@@ -85,7 +85,7 @@ RUN set -eux && \
     ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
     ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx && \
     node --version && npm --version && \
-    npm install -g pnpm@9 && \
+    npm install -g pnpm@10 && \
     pnpm --version
 
 # Create non-root user

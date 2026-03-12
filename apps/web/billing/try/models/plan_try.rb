@@ -28,7 +28,7 @@ Billing::Plan.clear_cache.class
   tier: 'single_team',
   interval: 'month',
   amount: '2900',
-  currency: 'usd',
+  currency: 'cad',
   region: 'us-east',
 )
 @plan.entitlements.add('api_access')
@@ -71,7 +71,7 @@ Billing::Plan.instances.size
   tier: 'single_team',
   interval: 'year',
   amount: '29000',
-  currency: 'usd',
+  currency: 'cad',
   region: 'us-east',
 )
 @yearly_plan.entitlements.add('api_access')

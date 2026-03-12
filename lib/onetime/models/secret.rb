@@ -8,6 +8,8 @@ module Onetime
   class Secret < Familia::Horreum
     include Familia::Features::Autoloader
 
+    SCHEMA = 'models/secret'
+
     using Familia::Refinements::TimeLiterals
 
     feature :object_identifier,
@@ -86,7 +88,7 @@ module Onetime
     # for v1 (legacy OpenSSL via LegacyEncryptedFields#decrypted_value).
     def decrypted_secret_value(passphrase_input: nil)
       if !ciphertext.to_s.empty?
-        ciphertext.reveal { it }
+        ciphertext.reveal { it }&.force_encoding('utf-8')
       elsif !value_encryption.to_s.empty?
         @passphrase_temp = passphrase_input.to_s.empty? ? nil : passphrase_input
         decrypted_value

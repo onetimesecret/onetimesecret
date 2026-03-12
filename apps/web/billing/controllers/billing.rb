@@ -350,7 +350,7 @@ module Billing
               name: plan.name,
               tier: plan.tier,
               interval: plan.interval,
-              amount: plan.amount,
+              amount: plan.amount.to_i,
               currency: plan.currency,
               region: plan.region,
               features: plan.features.to_a,

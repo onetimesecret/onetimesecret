@@ -172,6 +172,10 @@ class ReceiptTransformer
       failed_org_lookups: [],
       failed_domain_lookups: [],
       errors: [],
+      secret_ttl_derived_from_lifespan: 0,
+      secret_ttl_derived_keys: [],  # Sample receipt keys that used derivation
+      secret_ttl_missing_both: 0,
+      secret_ttl_missing_both_keys: [],  # Sample receipt keys missing both fields
     }
   end
 
@@ -319,6 +323,20 @@ class ReceiptTransformer
       if v1_fields.key?(field)
         v2_fields[field] = v1_fields[field]
         @stats[:direct_copy_field_hits][field] += 1
+      end
+    end
+
+    # Derive secret_ttl from lifespan when missing (173 v1 records lack secret_ttl)
+    secret_ttl_val = v2_fields['secret_ttl']
+    if secret_ttl_val.nil? || secret_ttl_val.to_s.empty? || secret_ttl_val.to_i <= 0
+      lifespan_val = v2_fields['lifespan']
+      if lifespan_val && !lifespan_val.to_s.empty? && lifespan_val.to_i > 0
+        v2_fields['secret_ttl'] = lifespan_val
+        @stats[:secret_ttl_derived_from_lifespan] += 1
+        @stats[:secret_ttl_derived_keys] << objid if @stats[:secret_ttl_derived_keys].size < 10
+      else
+        @stats[:secret_ttl_missing_both] += 1
+        @stats[:secret_ttl_missing_both_keys] << objid if @stats[:secret_ttl_missing_both_keys].size < 10
       end
     end
 
@@ -497,7 +515,7 @@ class ReceiptTransformer
     failed_customers = @stats[:failed_customer_lookups].uniq
     if failed_customers.any?
       puts "Failed customer lookups (#{failed_customers.size} unique):"
-      failed_customers.first(20).each { |email| puts "  - #{email}" }
+      failed_customers.first(20).each { |email| puts "  - #{redact_email(email)}" }
       puts "  ... and #{failed_customers.size - 20} more" if failed_customers.size > 20
       puts
     end
@@ -513,7 +531,7 @@ class ReceiptTransformer
     failed_domains = @stats[:failed_domain_lookups].uniq
     if failed_domains.any?
       puts "Failed domain lookups (#{failed_domains.size} unique):"
-      failed_domains.first(20).each { |fqdn| puts "  - #{fqdn}" }
+      failed_domains.first(20).each { |fqdn| puts "  - #{redact_fqdn(fqdn)}" }
       puts "  ... and #{failed_domains.size - 20} more" if failed_domains.size > 20
       puts
     end
@@ -536,11 +554,42 @@ class ReceiptTransformer
       puts
     end
 
+    if @stats[:secret_ttl_derived_from_lifespan] > 0 || @stats[:secret_ttl_missing_both] > 0
+      puts 'Field Derivation:'
+      puts "  secret_ttl derived from lifespan: #{@stats[:secret_ttl_derived_from_lifespan]}"
+      if @stats[:secret_ttl_derived_keys].any?
+        puts '  Sample receipt keys (up to 10):'
+        @stats[:secret_ttl_derived_keys].each { |key| puts "    #{key}" }
+      end
+      if @stats[:secret_ttl_missing_both] > 0
+        puts "  WARNING: Missing both secret_ttl and lifespan: #{@stats[:secret_ttl_missing_both]}"
+        if @stats[:secret_ttl_missing_both_keys].any?
+          puts '  Sample receipt keys missing both (up to 10):'
+          @stats[:secret_ttl_missing_both_keys].each { |key| puts "    #{key}" }
+        end
+      end
+      puts
+    end
+
     return unless @stats[:errors].any?
 
     puts "Errors (#{@stats[:errors].size}):"
     @stats[:errors].first(10).each { |err| puts "  - #{err}" }
     puts "  ... and #{@stats[:errors].size - 10} more" if @stats[:errors].size > 10
+  end
+
+  def redact_email(email)
+    return '***' unless email.is_a?(String) && email.include?('@')
+    local, domain = email.split('@', 2)
+    "#{local[0..2]}***@#{domain.sub(/\A[^.]+/, '***')}"
+  end
+
+  def redact_fqdn(fqdn)
+    return '***' unless fqdn.is_a?(String) && fqdn.include?('.')
+    parts = fqdn.split('.')
+    parts[0] = '***'
+    parts[-2] = '***' if parts.size >= 2
+    parts.join('.')
   end
 end
 

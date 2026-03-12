@@ -95,6 +95,17 @@ module Onetime
       config['stripe_metadata_schema'] || {}
     end
 
+    # Currency for billing catalog
+    #
+    # All products and prices in this billing configuration use this currency.
+    # Defaults to 'cad' when not set.
+    def currency
+      val = config['currency']
+      return 'cad' if val.to_s.strip.empty?
+
+      val.to_s.strip.downcase
+    end
+
     # Region / jurisdiction for catalog isolation
     #
     # When set (e.g. 'NZ', 'CA'), only Stripe products whose region metadata

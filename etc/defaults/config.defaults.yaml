@@ -355,13 +355,22 @@ features:
       vhost_target: <%= ENV['APPROXIMATED_VHOST_TARGET'] || nil %>
 
     # Internal ACME endpoint configuration (for 'caddy_on_demand' strategy)
-    # This endpoint allows Caddy to verify domains before issuing certificates
+    # This endpoint allows Caddy to verify domains before issuing certificates.
+    #
+    # When enabled is true, the ACME app is auto-mounted inside the main
+    # application process and available on the loopback interface at the
+    # main app's port (e.g. http://127.0.0.1:3000/api/internal/acme/ask).
+    #
+    # When enabled is false, the ACME app must be run as a standalone
+    # process: rackup apps/internal/acme/config.ru
+    # It will bind to the listen_address and port configured below.
+    #
+    # The listen_address and port settings only apply to standalone mode.
     acme:
-      # Enable the internal ACME endpoint at /api/internal/acme/ask
       enabled: <%= ENV['ACME_ENDPOINT_ENABLED'] == 'true' %>
-      # IP address to bind to (should always be localhost for security)
+      # IP address to bind to in standalone mode (should always be localhost)
       listen_address: <%= ENV['ACME_LISTEN_ADDRESS'] || '127.0.0.1' %>
-      # Port for the ACME endpoint (Caddy will call this)
+      # Port for standalone mode (Caddy's ask directive points here)
       port: <%= ENV['ACME_PORT'] || '12020' %>
 
 # Main Database Configuration
@@ -581,6 +590,46 @@ jobs:
     # Maximum warnings to process per job run (rate limiting)
     # Prevents queue overflow; remaining secrets processed in next run
     batch_size: <%= ENV['JOBS_EXPIRATION_BATCH_SIZE']&.to_i || 100 %>
+
+  # Data maintenance jobs
+  # Scheduled jobs for Redis data consistency checks and repairs.
+  # All jobs ship with auto_repair: false — enable only after
+  # reviewing audit reports over multiple cycles.
+  maintenance:
+    # Master toggle — disables all maintenance jobs when false
+    enabled: <%= ENV['JOBS_MAINTENANCE_ENABLED'] == 'true' || false %>
+
+    # Phase 1: Remove phantom members from sorted sets (hourly)
+    phantom_cleanup:
+      enabled: <%= ENV['JOBS_PHANTOM_CLEANUP_ENABLED'] == 'true' || false %>
+      interval: <%= ENV['JOBS_PHANTOM_CLEANUP_INTERVAL'] || '1h' %>
+      batch_size: <%= ENV['JOBS_PHANTOM_CLEANUP_BATCH_SIZE']&.to_i || 500 %>
+      auto_repair: <%= ENV['JOBS_PHANTOM_CLEANUP_AUTO_REPAIR'] == 'true' || false %>
+
+    # Phase 2: Read-only data consistency audit (every 6h)
+    data_audit:
+      enabled: <%= ENV['JOBS_DATA_AUDIT_ENABLED'] == 'true' || false %>
+      interval: <%= ENV['JOBS_DATA_AUDIT_INTERVAL'] || '6h' %>
+      sample_size: <%= ENV['JOBS_DATA_AUDIT_SAMPLE_SIZE']&.to_i || 100 %>
+
+    # Phase 3: GC stale participation sorted set members (daily 5 AM)
+    participation_gc:
+      enabled: <%= ENV['JOBS_PARTICIPATION_GC_ENABLED'] == 'true' || false %>
+      cron: <%= ENV['JOBS_PARTICIPATION_GC_CRON'] || '0 5 * * *' %>
+      batch_size: <%= ENV['JOBS_PARTICIPATION_GC_BATCH_SIZE']&.to_i || 500 %>
+      auto_repair: <%= ENV['JOBS_PARTICIPATION_GC_AUTO_REPAIR'] == 'true' || false %>
+
+    # Phase 4: Reconcile unique indexes (daily 4 AM)
+    index_rebuild:
+      enabled: <%= ENV['JOBS_INDEX_REBUILD_ENABLED'] == 'true' || false %>
+      cron: <%= ENV['JOBS_INDEX_REBUILD_CRON'] || '0 4 * * *' %>
+      auto_repair: <%= ENV['JOBS_INDEX_REBUILD_AUTO_REPAIR'] == 'true' || false %>
+
+    # Phase 5: Rebuild instances sorted sets (weekly Sunday 3 AM)
+    instances_rebuild:
+      enabled: <%= ENV['JOBS_INSTANCES_REBUILD_ENABLED'] == 'true' || false %>
+      cron: <%= ENV['JOBS_INSTANCES_REBUILD_CRON'] || '0 3 * * 0' %>
+      auto_repair: <%= ENV['JOBS_INSTANCES_REBUILD_AUTO_REPAIR'] == 'true' || false %>
 
 internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>

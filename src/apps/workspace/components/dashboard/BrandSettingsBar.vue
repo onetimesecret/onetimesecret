@@ -14,7 +14,7 @@
     FontFamily,
     fontIconMap,
     fontOptions,
-  } from '@/schemas/models/domain/brand';
+  } from '@/schemas/models/custom-domain/brand';
   import { computed } from 'vue';
   import { useI18n, Composer } from 'vue-i18n';
 

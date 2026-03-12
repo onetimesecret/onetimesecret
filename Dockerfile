@@ -59,7 +59,7 @@
 ARG APP_DIR=/app
 ARG PUBLIC_DIR=/app/public
 ARG VERSION
-ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:bbc49173621b513e33c4add027747db0c41d540c86492cca66e90814a7518c84
+ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:1af92319c7301866eddd99a7d43750d64afa1f2b96d9a4cb45167d759e865a85
 
 ##
 # DEPENDENCIES: Install application dependencies
@@ -112,17 +112,17 @@ COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts \
 # Build application and generate schema
 RUN set -eux && \
     pnpm run build && \
+    chmod -R a+rX public/ && \
     pnpm prune --prod && \
     rm -rf node_modules ~/.npm ~/.pnpm-store && \
     npm uninstall -g pnpm
 
-# Generate build metadata
+# Generate build metadata from the VERSION build arg (authoritative source).
 # COMMIT_HASH is passed as a build arg from CI (GitHub Actions).
-# For local builds without the arg, falls back to "dev".
+# For local builds without args, falls back to defaults.
 RUN set -eux && \
-    VERSION=$(node -p "require('./package.json').version") && \
     mkdir -p /tmp/build-meta && \
-    echo "VERSION=${VERSION}" > /tmp/build-meta/version_env && \
+    echo "VERSION=${VERSION:-0.0.0-rc0}" > /tmp/build-meta/version_env && \
     echo "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> /tmp/build-meta/version_env && \
     echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt
 
@@ -205,6 +205,7 @@ COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
 COPY --chown=appuser:appuser install.sh ./
 COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
@@ -241,12 +242,12 @@ RUN set -eux && \
         fi; \
     done && \
     cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
-    chmod +x bin/entrypoint.sh
+    chmod +x bin/entrypoint.sh bin/healthcheck.sh
 
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD s6-svstat /run/service/web && curl -f http://127.0.0.1:3000/api/v2/status || exit 1
+    CMD bin/healthcheck.sh
 
 # Run as non-root user
 USER appuser
@@ -311,6 +312,7 @@ COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
 COPY --chown=appuser:appuser install.sh ./
 COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
@@ -340,12 +342,12 @@ RUN set -eux && \
         fi; \
     done && \
     cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
-    chmod +x bin/entrypoint.sh
+    chmod +x bin/entrypoint.sh bin/healthcheck.sh
 
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://127.0.0.1:3000/api/v2/status || exit 1
+    CMD bin/healthcheck.sh
 
 # Run as non-root user
 USER appuser

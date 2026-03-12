@@ -1333,5 +1333,9 @@
   "web.pricing.free_tier_description": {
     "text": "Twórz i udostępniaj sekrety z podstawowymi funkcjami. Karta kredytowa nie jest wymagana.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "Link zewnętrzny",
+    "sha256": "a1b2c3d5"
   }
 }

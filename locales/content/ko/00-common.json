@@ -1335,5 +1335,9 @@
   "web.pricing.free_tier_description": {
     "text": "기본 기능으로 비밀 메시지를 생성하고 공유하세요. 신용카드가 필요하지 않습니다.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "외부 링크",
+    "sha256": "a1b2c3d5"
   }
 }

@@ -1335,5 +1335,9 @@
   "web.pricing.free_tier_description": {
     "text": "Ustvarjajte in delite skrivnosti z osnovnimi funkcijami. Kreditna kartica ni potrebna.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "Zunanja povezava",
+    "sha256": "a1b2c3d5"
   }
 }

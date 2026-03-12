@@ -1333,5 +1333,9 @@
   "web.pricing.free_tier_description": {
     "text": "Skapa och dela hemligheter med grundläggande funktioner. Inget kreditkort krävs.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "Extern länk",
+    "sha256": "a1b2c3d5"
   }
 }

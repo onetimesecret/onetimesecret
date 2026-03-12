@@ -32,7 +32,7 @@ require_relative '../../../apps/web/billing/models/pending_federated_subscriptio
 @initial_pending = Billing::PendingFederatedSubscription.new(@update_email_hash)
 @initial_pending.subscription_status = 'active'
 @initial_pending.subscription_period_end = (Time.now + 30 * 24 * 60 * 60).to_i.to_s
-@initial_pending.home_region = 'US'
+@initial_pending.region = 'US'
 @initial_pending.received_at = Time.now.to_i.to_s
 @initial_pending.save
 @created_pending_records << @initial_pending
@@ -42,7 +42,7 @@ require_relative '../../../apps/web/billing/models/pending_federated_subscriptio
 @canceled_pending = Billing::PendingFederatedSubscription.new(@canceled_email_hash)
 @canceled_pending.subscription_status = 'canceled'
 @canceled_pending.subscription_period_end = (Time.now + 30 * 24 * 60 * 60).to_i.to_s
-@canceled_pending.home_region = 'EU'
+@canceled_pending.region = 'EU'
 @canceled_pending.received_at = Time.now.to_i.to_s
 @canceled_pending.save
 @created_pending_records << @canceled_pending
@@ -52,7 +52,7 @@ require_relative '../../../apps/web/billing/models/pending_federated_subscriptio
 @trialing_pending = Billing::PendingFederatedSubscription.new(@trialing_email_hash)
 @trialing_pending.subscription_status = 'trialing'
 @trialing_pending.subscription_period_end = (Time.now + 30 * 24 * 60 * 60).to_i.to_s
-@trialing_pending.home_region = 'US'
+@trialing_pending.region = 'US'
 @trialing_pending.received_at = Time.now.to_i.to_s
 @trialing_pending.save
 @created_pending_records << @trialing_pending
@@ -62,7 +62,7 @@ require_relative '../../../apps/web/billing/models/pending_federated_subscriptio
 @past_due_pending = Billing::PendingFederatedSubscription.new(@past_due_email_hash)
 @past_due_pending.subscription_status = 'past_due'
 @past_due_pending.subscription_period_end = (Time.now + 30 * 24 * 60 * 60).to_i.to_s
-@past_due_pending.home_region = 'US'
+@past_due_pending.region = 'US'
 @past_due_pending.received_at = Time.now.to_i.to_s
 @past_due_pending.save
 @created_pending_records << @past_due_pending
@@ -72,7 +72,7 @@ require_relative '../../../apps/web/billing/models/pending_federated_subscriptio
 @unpaid_pending = Billing::PendingFederatedSubscription.new(@unpaid_email_hash)
 @unpaid_pending.subscription_status = 'unpaid'
 @unpaid_pending.subscription_period_end = (Time.now + 30 * 24 * 60 * 60).to_i.to_s
-@unpaid_pending.home_region = 'US'
+@unpaid_pending.region = 'US'
 @unpaid_pending.received_at = Time.now.to_i.to_s
 @unpaid_pending.save
 @created_pending_records << @unpaid_pending
@@ -82,7 +82,7 @@ require_relative '../../../apps/web/billing/models/pending_federated_subscriptio
 @expired_pending = Billing::PendingFederatedSubscription.new(@expired_email_hash)
 @expired_pending.subscription_status = 'active'
 @expired_pending.subscription_period_end = (Time.now - 24 * 60 * 60).to_i.to_s  # Yesterday
-@expired_pending.home_region = 'US'
+@expired_pending.region = 'US'
 @expired_pending.received_at = Time.now.to_i.to_s
 @expired_pending.save
 @created_pending_records << @expired_pending
@@ -92,17 +92,17 @@ require_relative '../../../apps/web/billing/models/pending_federated_subscriptio
 @no_period_pending = Billing::PendingFederatedSubscription.new(@no_period_email_hash)
 @no_period_pending.subscription_status = 'active'
 @no_period_pending.subscription_period_end = nil
-@no_period_pending.home_region = 'US'
+@no_period_pending.region = 'US'
 @no_period_pending.received_at = Time.now.to_i.to_s
 @no_period_pending.save
 @created_pending_records << @no_period_pending
 
-# Scenario 9: No home_region
+# Scenario 9: No region
 @no_region_email_hash = Onetime::Utils::EmailHash.compute("no-region-sub-#{SecureRandom.hex(4)}@example.com")
 @no_region_pending = Billing::PendingFederatedSubscription.new(@no_region_email_hash)
 @no_region_pending.subscription_status = 'active'
 @no_region_pending.subscription_period_end = (Time.now + 30 * 24 * 60 * 60).to_i.to_s
-@no_region_pending.home_region = nil
+@no_region_pending.region = nil
 @no_region_pending.received_at = Time.now.to_i.to_s
 @no_region_pending.save
 @created_pending_records << @no_region_pending
@@ -209,17 +209,17 @@ Billing::PendingFederatedSubscription.pending?('nonexistent_hash_98765')
 Billing::PendingFederatedSubscription.default_expiration
 #=> 7776000
 
-# --- Edge Case 9: Optional home_region ---
+# --- Edge Case 9: Optional region ---
 
-## TEST: Pending without home_region exists
+## TEST: Pending without region exists
 !@no_region_pending.nil?
 #=> true
 
-## TEST: home_region is nil/empty
-@no_region_pending.home_region.to_s.empty?
+## TEST: region is nil/empty
+@no_region_pending.region.to_s.empty?
 #=> true
 
-## TEST: Pending without home_region is still active
+## TEST: Pending without region is still active
 @no_region_pending.active?
 #=> true
 

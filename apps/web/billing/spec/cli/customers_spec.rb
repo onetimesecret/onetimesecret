@@ -232,8 +232,8 @@ RSpec.describe 'Billing Customers CLI Commands', :billing_cli, :integration, :vc
           command.call(customer_id: customer.id)
         end
 
-        # Verify currency format (USD X.XX or USD -X.XX for credits)
-        expect(output).to match(/Balance: USD -?\d+\.\d{2}/)
+        # Verify currency format (CAD X.XX or CAD -X.XX for credits)
+        expect(output).to match(/Balance: CAD -?\d+\.\d{2}/)
 
         # Note: No cleanup - VCR tests dont need deletion
       end
@@ -257,7 +257,7 @@ RSpec.describe 'Billing Customers CLI Commands', :billing_cli, :integration, :vc
         price = stripe_client.create(Stripe::Price, {
           product: product.id,
           unit_amount: 1000,
-          currency: 'usd',
+          currency: 'cad',
           recurring: { interval: 'month' },
         }
         )

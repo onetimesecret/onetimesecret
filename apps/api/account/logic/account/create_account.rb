@@ -5,6 +5,8 @@
 module AccountAPI::Logic
   module Account
     class CreateAccount < AccountAPI::Logic::Base
+      SCHEMAS = { response: 'createAccount' }.freeze
+
       using Familia::Refinements::TimeLiterals
 
       attr_reader :cust, :autoverify, :customer_role, :email, :password, :skill

@@ -82,7 +82,7 @@ class CustomDomainTransformer
   # These are 2-part keys like custom_domain:owners, custom_domain:display_domains
   V1_INDEX_KEYS = %w[owners display_domains instances values].freeze
 
-  # Field type mappings for brand hash (from src/schemas/models/domain/brand.ts)
+  # Field type mappings for brand hash (from src/schemas/models/custom-domain/brand.ts)
   BRAND_FIELD_TYPES = {
     'primary_color' => :string,
     'colour' => :string,
@@ -101,7 +101,7 @@ class CustomDomainTransformer
     'notify_enabled' => :boolean,
   }.freeze
 
-  # Field type mappings for logo/icon hash (from src/schemas/models/domain/brand.ts imagePropsSchema)
+  # Field type mappings for logo/icon hash (from src/schemas/models/custom-domain/brand.ts imagePropsSchema)
   IMAGE_FIELD_TYPES = {
     'encoded' => :string,
     'content_type' => :string,
@@ -370,7 +370,7 @@ class CustomDomainTransformer
           customer_objid: customer_objid,
           reason: customer_objid ? 'customer_objid not in org mapping' : 'custid not in customer mapping',
         }
-        @stats[:errors] << { domain: objid, error: "No org mapping for custid: #{custid}" }
+        @stats[:errors] << { domain: objid, error: "No org mapping for custid: #{redact_email(custid)}" }
       end
     end
 
@@ -567,6 +567,20 @@ class CustomDomainTransformer
     end
   end
 
+  def redact_email(email)
+    return '***' unless email.is_a?(String) && email.include?('@')
+    local, domain = email.split('@', 2)
+    "#{local[0..2]}***@#{domain.sub(/\A[^.]+/, '***')}"
+  end
+
+  def redact_fqdn(fqdn)
+    return '***' unless fqdn.is_a?(String) && fqdn.include?('.')
+    parts = fqdn.split('.')
+    parts[0] = '***'
+    parts[-2] = '***' if parts.size >= 2
+    parts.join('.')
+  end
+
   def write_output(records)
     FileUtils.mkdir_p(@output_dir)
     output_file = File.join(@output_dir, 'customdomain_transformed.jsonl')
@@ -628,8 +642,8 @@ class CustomDomainTransformer
       by_reason.each do |reason, records|
         puts "  #{reason} (#{records.size}):"
         records.first(10).each do |record|
-          puts "    - #{record[:display_domain] || record[:domainid]}"
-          puts "      custid: #{record[:custid]}"
+          puts "    - #{record[:display_domain] ? redact_fqdn(record[:display_domain]) : record[:domainid]}"
+          puts "      custid: #{redact_email(record[:custid])}"
           puts "      objid: #{record[:objid]}"
           puts "      customer_objid: #{record[:customer_objid] || '(not found)'}"
           puts "      created: #{record[:created]}"
@@ -676,8 +690,8 @@ class CustomDomainTransformer
         f.puts [
           record[:domainid],
           record[:objid],
-          record[:custid],
-          record[:display_domain],
+          redact_email(record[:custid]),
+          redact_fqdn(record[:display_domain]),
           record[:customer_objid],
           record[:reason],
           record[:created],

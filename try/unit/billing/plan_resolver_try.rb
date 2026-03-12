@@ -25,7 +25,7 @@ def setup_test_plan
     tier: 'identity',
     interval: 'month',
     amount: '1500',
-    currency: 'usd',
+    currency: 'cad',
     region: 'global'
   )
   plan.active = 'true'
@@ -40,7 +40,7 @@ def setup_test_plan
     tier: 'identity',
     interval: 'year',
     amount: '15000',
-    currency: 'usd',
+    currency: 'cad',
     region: 'global'
   )
   yearly_plan.active = 'true'

@@ -45,6 +45,36 @@ export const transforms = {
 
   fromNumber: {
     secondsToDate: z.preprocess((val) => new Date((val as number) * 1000), z.date()),
+
+    /**
+     * V3 API timestamp transforms (Wire → Domain):
+     *   Wire:   z.number()           validates input (Unix epoch seconds)
+     *   Domain: .transform(→ Date)   coerces for Pinia stores & components
+     *   Docs:   io:"input"           JSON Schema documents "number", not Date
+     *
+     * Uses .transform() instead of .preprocess() so that z.toJSONSchema()
+     * with io:"input" sees the typed input (number), not unknown.
+     *
+     * V2 schemas should continue using transforms.fromString.date which
+     * handles string-encoded timestamps from the V2 API.
+     *
+     * Note: V2/V3 refer to Onetime Secret API versions, not Zod versions.
+     */
+    toDate: z.number().transform((v) => new Date(v * 1000)),
+    toDateNullable: z
+      .number()
+      .nullable()
+      .transform((v) => (v === null ? null : new Date(v * 1000))),
+    toDateOptional: z
+      .number()
+      .optional()
+      .transform((v) => (v === undefined ? undefined : new Date(v * 1000))),
+    /** Accepts number, null, or undefined; normalizes to Date | null.
+     *  Collapses undefined → null so consumers get a simpler union. */
+    toDateNullish: z
+      .number()
+      .nullish()
+      .transform((v) => (v == null ? null : new Date(v * 1000))),
   },
 
   fromObject: {

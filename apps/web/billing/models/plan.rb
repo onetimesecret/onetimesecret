@@ -74,7 +74,7 @@ module Billing
     field :tier                     # e.g., 'single_team', 'multi_team'
     field :interval                 # 'month' or 'year'
     field :amount                   # Price in cents
-    field :currency                 # 'usd', 'eur', etc.
+    field :currency                 # 'cad', 'eur', etc.
     field :region                   # EU, CA, US, NZ, etc
     field :tenancy                  # One of: multitenant, dedicated
     field :display_order            # Display ordering (higher = earlier)
@@ -375,7 +375,7 @@ module Billing
           plan.tier               = tier
           plan.interval           = nil  # Free plans have no interval
           plan.amount             = '0'
-          plan.currency           = 'usd'
+          plan.currency           = OT.billing_config.currency
           plan.tenancy            = tenancy
           plan.display_order      = display_order.to_s
           plan.show_on_plans_page = 'true'
@@ -390,18 +390,8 @@ module Billing
           plan.region             = Billing::RegionNormalizer.normalize(plan_def['region']) || OT.billing_config.region
           plan.last_synced_at     = Time.now.to_i.to_s
 
-          # Set entitlements
-          plan.entitlements.clear
-          entitlements_list.each { |ent| plan.entitlements.add(ent) }
-
-          # Set features
-          plan.features.clear
-          features_list.each { |feat| plan.features.add(feat) }
-
-          # Set limits
-          plan.limits.clear
-          limits_hash.each { |key, val| plan.limits[key] = val }
-
+          # Save scalar fields before writing collections (sets, hashkeys)
+          # which write directly to Redis and expect the parent to exist.
           unless plan.save
             OT.le "[Plan.upsert_config_only_plans] Save FAILED for config-only plan: #{plan_id}",
               {
@@ -410,6 +400,17 @@ module Billing
               }
             next
           end
+
+          # Populate collections after save (these write directly to Redis)
+          plan.entitlements.clear
+          entitlements_list.each { |ent| plan.entitlements.add(ent) }
+
+          plan.features.clear
+          features_list.each { |feat| plan.features.add(feat) }
+
+          plan.limits.clear
+          limits_hash.each { |key, val| plan.limits[key] = val }
+
           upserted_count += 1
 
           OT.li "[Plan.upsert_config_only_plans] Upserted config-only plan: #{plan_id}"
@@ -581,6 +582,7 @@ module Billing
           product: {
             id: product.id,
             name: product.name,
+            currency: product.metadata[Metadata::FIELD_CURRENCY],
             metadata: product.metadata.to_h,
             marketing_features: product.marketing_features&.map(&:name) || [],
           },
@@ -696,15 +698,25 @@ module Billing
         # Store stripe_updated_at for future stale update comparison
         plan.stripe_updated_at  = plan_data[:stripe_updated_at] || Time.now.to_i.to_s
 
-        # Clear and repopulate entitlements set
+        # Save scalar fields before writing collections (sets, hashkeys)
+        # which write directly to Redis and expect the parent to exist.
+        unless plan.save
+          OT.le "[Plan.upsert_from_stripe_data] Save FAILED for plan: #{plan_id}",
+            {
+              existing: !existing.nil?,
+              region: plan_data[:region],
+              stripe_product_id: plan_data[:stripe_product_id],
+            }
+          return plan
+        end
+
+        # Populate collections after save (these write directly to Redis)
         plan.entitlements.clear
         plan_data[:entitlements]&.each { |ent| plan.entitlements.add(ent) }
 
-        # Clear and repopulate features set
         plan.features.clear
         plan_data[:features]&.each { |feat| plan.features.add(feat) }
 
-        # Clear and repopulate limits hashkey with flattened keys
         plan.limits.clear
         plan_data[:limits]&.each do |resource, value|
           key              = "#{resource}.max"
@@ -715,16 +727,6 @@ module Billing
         # Store Stripe data snapshot for recovery
         if plan_data[:stripe_snapshot]
           plan.stripe_data_snapshot.value = plan_data[:stripe_snapshot].to_json
-        end
-
-        unless plan.save
-          OT.le "[Plan.upsert_from_stripe_data] Save FAILED for plan: #{plan_id}",
-            {
-              existing: !existing.nil?,
-              region: plan_data[:region],
-              stripe_product_id: plan_data[:stripe_product_id],
-            }
-          return plan
         end
 
         action = existing ? 'Updated' : 'Created'
@@ -1026,6 +1028,9 @@ module Billing
             end
 
             # Create Plan instance
+            # Currency: per-price overrides top-level config default
+            plan_currency = price['currency'] || OT.billing_config.currency
+
             plan = new(
               plan_id: plan_id,
               stripe_price_id: price.key?('price_id') ? price['price_id'] : nil,
@@ -1034,7 +1039,7 @@ module Billing
               tier: tier,
               interval: interval,
               amount: price['amount'].to_s,
-              currency: price['currency'],
+              currency: plan_currency,
               region: region,
               tenancy: tenancy,
               display_order: display_order.to_s,
@@ -1054,16 +1059,18 @@ module Billing
             plan.includes_plan     = plan_def['includes_plan']
             plan.last_synced_at    = Time.now.to_i.to_s
 
-            # Add entitlements to set
+            # Save scalar fields before writing collections (sets, hashkeys)
+            # which write directly to Redis and expect the parent to exist.
+            next unless plan.save
+
+            # Populate collections after save (these write directly to Redis)
             plan.entitlements.clear
             entitlements_list.each { |ent| plan.entitlements.add(ent) }
 
-            # Add features to set (i18n locale keys for UI display)
             features_list = plan_def['features'] || []
             plan.features.clear
             features_list.each { |feat| plan.features.add(feat) }
 
-            # Add limits to hashkey
             plan.limits.clear
             limits_hash.each do |key, val|
               plan.limits[key] = val
@@ -1072,14 +1079,12 @@ module Billing
             # No stripe_data_snapshot for config-based plans
             plan.stripe_data_snapshot.value = nil
 
-            plan.save
-
             OT.ld "[Plan.load_all_from_config] Cached plan: #{plan_id}",
               {
                 tier: tier,
                 interval: interval,
                 amount: price['amount'],
-                currency: price['currency'],
+                currency: plan_currency,
               }
 
             plans_count += 1

@@ -17,6 +17,8 @@ module ColonelAPI
       # run on different machines (no PID file access).
       #
       class GetQueueMetrics < ColonelAPI::Logic::Base
+        SCHEMAS = { response: 'queueMetrics' }.freeze
+
         def process_params
           # No parameters needed
         end

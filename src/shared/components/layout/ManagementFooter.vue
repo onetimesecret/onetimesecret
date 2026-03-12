@@ -182,7 +182,7 @@
           text-xs text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
             v-if="displayVersion"
-            :title="`${t('web.homepage.onetime_secret_literal')} Version`">
+            :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
               :aria-label="t('web.layout.release_notes')">
@@ -197,7 +197,7 @@
           </span>
           <span
             v-if="displayPoweredBy"
-            :title="`${t('web.homepage.onetime_secret_literal')} Version`">
+            :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
             <a
               :href="t('web.COMMON.website_url')"
               target="_blank"

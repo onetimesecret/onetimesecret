@@ -42,9 +42,21 @@ module Billing
   class WebhookValidator
     include Onetime::LoggerMethods
 
-    # Maximum age for webhook events (5 minutes)
-    # Events older than this are rejected to prevent replay attacks
-    MAX_EVENT_AGE = 300 # seconds
+    # Maximum age for webhook events (24 hours)
+    #
+    # Stripe retries failed webhook deliveries for up to 3 days with increasing
+    # delays (immediate, 5min, 30min, 2hr, 5hr, 10hr, 10hr). Each retry reuses
+    # the original event timestamp in the Stripe-Signature header, meaning
+    # legitimate retries become progressively "staler."
+    #
+    # A 24-hour window accepts most retry scenarios while still providing
+    # protection against replay attacks. Duplicate processing is prevented
+    # by the idempotency check in StripeWebhookEvent, not the timestamp.
+    #
+    # The Stripe SDK's own construct_event also checks timestamp tolerance
+    # (default 300s). We pass our MAX_EVENT_AGE as the tolerance parameter
+    # to keep both checks aligned.
+    MAX_EVENT_AGE = 86_400 # seconds (24 hours)
 
     # Maximum future timestamp tolerance (1 minute)
     # Events with timestamps more than 1 minute in the future are rejected
@@ -83,9 +95,16 @@ module Billing
     def construct_event(payload, signature)
       billing_logger.debug '[WebhookValidator] Validating webhook event'
 
-      # Verify signature and construct event
+      # Verify signature and construct event.
+      # Pass MAX_EVENT_AGE as tolerance so the SDK's internal timestamp check
+      # matches our own verify_timestamp! check below.
       begin
-        event = Stripe::Webhook.construct_event(payload, signature, @webhook_secret)
+        event = Stripe::Webhook.construct_event(
+          payload,
+          signature,
+          @webhook_secret,
+          tolerance: MAX_EVENT_AGE,
+        )
       rescue JSON::ParserError => ex
         billing_logger.error '[WebhookValidator] Invalid JSON payload',
           {

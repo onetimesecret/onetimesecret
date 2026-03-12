@@ -34,6 +34,8 @@ module V3
       class CreateIncomingSecret < V3::Logic::Base
         include Onetime::LoggerMethods
 
+        SCHEMAS = { response: 'incomingSecret' }.freeze
+
         attr_reader :memo, :secret_value, :recipient_email, :recipient_hash, :ttl, :passphrase, :receipt, :secret, :greenlighted
 
         def process_params
