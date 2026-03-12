@@ -42,7 +42,9 @@ module V1
       #
       # Transforms a Receipt (which uses v0.24 vocabulary internally)
       # into a hash using v0.23.x field names. Every V1 endpoint that
-      # returns receipt data MUST use this method.
+      # returns receipt data MUST use this method, and callers MUST
+      # pass :custid => cust.email so that the response contains the
+      # email address (not the internal UUID).
       #
       # Field mapping (v0.24 internal -> v0.23.x V1 response):
       #   identifier         -> metadata_key

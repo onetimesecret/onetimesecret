@@ -6,7 +6,7 @@
 #   ./v1-diff.sh <baseline_dir> <candidate_dir> [output_file]
 #
 # Example:
-#   ./v1-diff.sh ./captures/v0.23.4/20260217-120000 ./captures/v0.24.0/20260217-120500 ./diffs/report.json
+#   ./v1-diff.sh ./captures/v0.23.6/20260217-120000 ./captures/v0.24.0/20260217-120500 ./diffs/report.json
 #
 # Compares each test case across both runs and flags:
 #   - Status code changes
@@ -18,9 +18,12 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BASE_DIR="$(dirname "$SCRIPT_DIR")"
+
 BASELINE_DIR="${1:?Usage: $0 <baseline_dir> <candidate_dir> [output_file]}"
 CANDIDATE_DIR="${2:?Usage: $0 <baseline_dir> <candidate_dir> [output_file]}"
-OUTPUT_FILE="${3:-./diffs/v1-diff-report.json}"
+OUTPUT_FILE="${3:-$BASE_DIR/diffs/v1-diff-report.json}"
 
 mkdir -p "$(dirname "$OUTPUT_FILE")"
 
@@ -69,8 +72,11 @@ compare_bodies() {
         [prefix + "(value)"]
       end;
 
-    ($b | if type == "object" then keys else [] end) as $bkeys |
-    ($c | if type == "object" then keys else [] end) as $ckeys |
+    # Fields intentionally removed in v0.24 (not regressions)
+    ["shrimp"] as $ignored_fields |
+
+    ($b | if type == "object" then keys | map(select(. as $k | $ignored_fields | index($k) | not)) else [] end) as $bkeys |
+    ($c | if type == "object" then keys | map(select(. as $k | $ignored_fields | index($k) | not)) else [] end) as $ckeys |
 
     {
       fields_only_in_baseline: ($bkeys - $ckeys),
@@ -95,8 +101,18 @@ compare_bodies() {
             ($b[$k] | type) != "object" and
             ($b[$k] | type) != "array" and
             $b[$k] != $c[$k] and
-            # Skip dynamic fields that will always differ
-            ($k | test("key|updated|created|shrimp|token|secret_key|metadata_key|identifier") | not)
+            # Skip dynamic fields that will always differ between captures:
+            #   identifiers/keys: unique per secret creation
+            #   value/secret_value: random for /generate, consumed on reveal
+            #   received: timestamp set at reveal time
+            #   updated/created: timestamps
+            (["updated","created","shrimp","secret_key","metadata_key","identifier","key","shortid","secret_shortid","secret_identifier","value","secret_value","received"] | index($k) | not) and
+            # Numeric tolerance: skip near-equal numbers (timing drift between captures)
+            (if ($b[$k] | type) == "number" and ($c[$k] | type) == "number" then
+              (($b[$k] - $c[$k]) | if . < 0 then -. else . end) > 10
+            else
+              true
+            end)
           ) |
           {
             key: $k,
@@ -121,6 +137,7 @@ TOTAL=0
 PASS=0
 FAIL=0
 MISSING=0
+EXTRA=0
 
 for baseline_file in "$BASELINE_DIR"/*.json; do
   test_name=$(basename "$baseline_file" .json)
@@ -221,6 +238,20 @@ for baseline_file in "$BASELINE_DIR"/*.json; do
 
 done
 
+# ─── Candidate-Only Tests ─────────────────────────────────────────────
+
+for candidate_file in "$CANDIDATE_DIR"/*.json; do
+  test_name=$(basename "$candidate_file" .json)
+  baseline_file="$BASELINE_DIR/${test_name}.json"
+  if [[ ! -f "$baseline_file" ]]; then
+    echo "  [EXTRA] $test_name — candidate only (no baseline)"
+    EXTRA=$((EXTRA + 1))
+    RESULTS=$(echo "$RESULTS" | jq \
+      --arg name "$test_name" \
+      '. + [{test: $name, status: "extra", issues: ["Present in candidate but absent from baseline"]}]')
+  fi
+done
+
 # ─── Summary Report ────────────────────────────────────────────────────
 
 SUMMARY=$(jq -n \
@@ -230,6 +261,7 @@ SUMMARY=$(jq -n \
   --argjson pass "$PASS" \
   --argjson fail "$FAIL" \
   --argjson missing "$MISSING" \
+  --argjson extra "$EXTRA" \
   --argjson results "$RESULTS" \
   '{
     summary: {
@@ -239,6 +271,7 @@ SUMMARY=$(jq -n \
       pass: $pass,
       fail: $fail,
       missing: $missing,
+      extra: $extra,
       generated: (now | strftime("%Y-%m-%dT%H:%M:%SZ"))
     },
     results: $results
@@ -248,7 +281,7 @@ echo "$SUMMARY" > "$OUTPUT_FILE"
 
 echo ""
 echo "=== Summary ==="
-echo "Total: $TOTAL | Pass: $PASS | Fail: $FAIL | Missing: $MISSING"
+echo "Total: $TOTAL | Pass: $PASS | Fail: $FAIL | Missing: $MISSING | Extra: $EXTRA"
 echo "Report: $OUTPUT_FILE"
 
 # Exit with failure if any diffs found

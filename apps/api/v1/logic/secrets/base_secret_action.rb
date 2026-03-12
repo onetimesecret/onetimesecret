@@ -7,6 +7,32 @@ module V1::Logic
 
     using Familia::Refinements::TimeLiterals
 
+    # V1 Secret Creation Logic [#2615]
+    #
+    # TTL bounds come from site.secret_options in config. The config path
+    # is OT.conf.dig('site', 'secret_options') — NOT a top-level fetch.
+    # If the config key is missing, the hardcoded fallback applies:
+    #   ttl_options: [30.minutes, 2.hours, 1.day, 7.days]
+    #   default_ttl: 7.days
+    #
+    # In practice, the fallback rarely triggers because OT::Config.after_load
+    # deep-merges DEFAULTS into the loaded config. When the YAML sets a key
+    # to nil (e.g. `ttl_options: <%= nil %>`), deep_merge preserves the
+    # DEFAULTS value — so the effective max comes from Config::DEFAULTS
+    # (currently 30.days / 2,592,000s). See Config.deep_merge nil semantics.
+    #
+    # v0.23.x vs v0.24 behavioral differences (not bugs):
+    #   TTL max:         v0.23 used plan.options[:ttl] (14 days for most plans)
+    #                    v0.24 resolves org from customer for plan-aware limits:
+    #                    14 days free tier, 30 days paid/billing-disabled.
+    #   Passphrase min:  v0.23 hardcoded 8 chars; v0.24 is config-driven
+    #                    (site.secret_options.passphrase.minimum_length)
+    #   Secret keys:     v0.23 generated 31-char keys; v0.24 generates 64-char
+    #                    keys (intentional — more secure algorithm), with
+    #                    shortkey truncation at 8 chars (was 6)
+    #
+    # The metadata_ttl = 2 * secret_ttl ratio is unchanged from v0.23.x.
+    #
     class BaseSecretAction < V1::Logic::Base
       # Email validation regex - defined once to avoid recompilation on every call
       EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
@@ -78,29 +104,37 @@ module V1::Logic
       def process_ttl
         @ttl = payload.fetch('ttl', nil)
 
-        # Get configuration options. We can rely on these values existing
-        # because that are guaranteed by OT::Config.after_load.
+        # Config resolution chain:
+        #   1. OT::Config.after_load deep-merges DEFAULTS into loaded YAML
+        #   2. YAML nil values are preserved as DEFAULTS (deep_merge skips nil)
+        #   3. This dig reads the merged result — DEFAULTS wins when YAML is nil
         #
-        # NOTE: These values differ from v2 slightly. Here the minimum is 30
-        # minutes for historical reasons.
-        secret_options = OT.conf&.fetch('secret_options', {
+        # The inline fallback hash below only triggers if the entire
+        # site.secret_options key is absent (should not happen after after_load).
+        #
+        # Effective bounds come from Config::DEFAULTS.ttl_options:
+        #   min = 60s, max = 30.days (2,592,000s)
+        # Production instances can override via TTL_OPTIONS env var.
+        secret_options = OT.conf.dig('site', 'secret_options') || {
           'default_ttl' => 7.days,
           'ttl_options' => [30.minutes, 2.hours, 1.day, 7.days],
-        })
+        }
         default_ttl = secret_options['default_ttl']
         ttl_options = secret_options['ttl_options']
 
         # Get min/max values safely
         min_ttl = ttl_options.min || 30.minutes
 
-        # Limit enforcement: fail-open (unlimited) when no billing, else plan limit.
-        # Note: V1 logic doesn't include OrganizationContext, so org may be undefined.
+        # Limit enforcement: plan-aware TTL cap.
+        # V1 logic doesn't include OrganizationContext, so we resolve the
+        # customer's org directly to check plan limits. Falls back to
+        # config_max when billing is disabled (self-hosted fail-open).
         config_max = ttl_options.max || 30.days
         max_ttl = if respond_to?(:org) && org&.respond_to?(:limit_for)
                     org_limit = org.limit_for('secret_lifetime')
                     org_limit.positive? ? org_limit : config_max
                   else
-                    config_max
+                    resolve_ttl_limit(config_max)
                   end
 
         # Apply default if nil
@@ -188,7 +222,11 @@ module V1::Logic
       end
 
       def validate_passphrase
-        # Get passphrase configuration
+        # Reads from site.secret_options.passphrase (merged with DEFAULTS).
+        # DEFAULTS set minimum_length to nil (no minimum enforced).
+        # The config.yaml template defaults to PASSPHRASE_MIN_LENGTH env var
+        # or a literal (e.g. 4 in dev, 8 in config.defaults.yaml).
+        # Production behavior depends on which config template is active.
         passphrase_config = OT.conf.dig('site', 'secret_options', 'passphrase') || {}
 
         # Check if passphrase is required
@@ -238,6 +276,63 @@ module V1::Logic
       end
 
       private
+
+      # Resolve max TTL when OrganizationContext is not available (V1).
+      #
+      # Looks up the customer's organization to check plan-based limits.
+      # Billing-disabled (self-hosted) deployments get config_max (30 days).
+      # Billing-enabled free/anonymous users get the free tier limit (14 days).
+      #
+      # Codeflow for organization_instances (Familia participates_in):
+      #   1. Customer.participates_in :Organization, :members (customer.rb:116)
+      #      generates cust.organization_instances, organization_ids, organization?, etc.
+      #   2. organization_instances calls participating_ids_for_target(Organization)
+      #      which scans the customer's `participations` Redis set (all relationship
+      #      types: orgs, domains, etc.), filtering by the "organization" key prefix.
+      #   3. Matching IDs are passed to Organization.load_multi(ids) — one HGETALL
+      #      per org — and the result is already an Array (compact'd).
+      #   4. .to_a is therefore a no-op (load_multi returns Array). Kept for
+      #      defensive clarity but has zero cost.
+      #   5. .first picks the first org. Typical customer has exactly 1 org
+      #      (created on signup), so the scan + load is ~1 set read + 1 HGETALL.
+      #
+      # Lighter alternative if needed: Organization.load(cust.organization_ids.first)
+      # skips loading all org objects. Not worth the change at current scale.
+      #
+      # @param config_max [Integer] Fallback from config ttl_options.max
+      # @return [Integer] Maximum TTL in seconds
+      def resolve_ttl_limit(config_max)
+        billing_enabled = begin
+          Onetime::BillingConfig.instance.enabled?
+        rescue StandardError
+          false
+        end
+
+        # Billing disabled (self-hosted): fail-open at config max
+        return config_max unless billing_enabled
+
+        # Anonymous users: free tier limit
+        if cust.nil? || cust.anonymous?
+          free_max = Onetime::Models::Features::WithEntitlements
+                       .free_tier_limits['secret_lifetime.max']
+          return free_max.positive? ? free_max : config_max
+        end
+
+        # Authenticated: look up customer's org for plan-based limit
+        resolved_org = cust.organization_instances.to_a.first
+        if resolved_org&.respond_to?(:limit_for)
+          org_limit = resolved_org.limit_for('secret_lifetime')
+          return org_limit.positive? ? [org_limit, config_max].min : config_max
+        end
+
+        # No org found (edge case): fall back to free tier limit
+        free_max = Onetime::Models::Features::WithEntitlements
+                     .free_tier_limits['secret_lifetime.max']
+        free_max.positive? ? free_max : config_max
+      rescue StandardError => e
+        OT.ld "[BaseSecretAction] TTL limit resolution failed: #{e.message}"
+        config_max
+      end
 
       # Creates the receipt/secret pair using the modern Metadata.spawn_pair API.
       #

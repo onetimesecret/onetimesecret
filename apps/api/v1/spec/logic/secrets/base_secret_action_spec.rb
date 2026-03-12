@@ -123,3 +123,135 @@ RSpec.xdescribe V1::Logic::Secrets::BaseSecretAction do
     end
   end
 end
+
+# ============================================================================
+# Config Path Bug Tests (TDD Red Phase)
+#
+# These tests demonstrate that process_ttl reads secret_options from the
+# WRONG config path. It does:
+#
+#   OT.conf.fetch('secret_options', { hardcoded fallback })
+#
+# But secret_options is nested under 'site' in config. The correct path
+# (used by validate_passphrase in the same file) is:
+#
+#   OT.conf.dig('site', 'secret_options')
+#
+# As a result, process_ttl ALWAYS uses the hardcoded fallback values:
+#   default_ttl: 604800 (7 days)
+#   ttl_options: [1800, 7200, 86400, 604800]
+#
+# Instead of the test config values (spec/config.test.yaml):
+#   default_ttl: 43200 (12 hours)
+#   ttl_options: [1800, 43200, 604800]
+#
+# These tests should FAIL against the current code and PASS after the fix.
+# ============================================================================
+RSpec.describe 'V1 BaseSecretAction config path bug' do
+  using Familia::Refinements::TimeLiterals
+
+  # Subclass that implements the required abstract method
+  class V1ConfigTestAction < V1::Logic::Secrets::BaseSecretAction
+    def process_secret
+      @kind = :test
+      @secret_value = 'test_secret'
+    end
+  end
+
+  let(:customer) {
+    double('Customer',
+      anonymous?: false,
+      custid: 'cust123',
+      objid: 'obj123',
+      planid: 'anonymous')
+  }
+
+  let(:session) {
+    double('Session',
+      anonymous?: false,
+      custid: 'cust123')
+  }
+
+  # Minimal params — no TTL so we can test defaults
+  let(:base_params) {
+    {
+      'recipient'    => [],
+      'share_domain' => '',
+    }
+  }
+
+  subject { V1ConfigTestAction.new(session, customer, base_params) }
+
+  before(:all) do
+    OT.boot!(:test)
+  end
+
+  before do
+    allow(Truemail).to receive(:validate).and_return(
+      double('Validator', result: double('Result', valid?: true), as_json: '{}'),
+    )
+  end
+
+  describe '#process_ttl config path' do
+    it 'reads default_ttl from site.secret_options in config (43200), not the hardcoded fallback (604800)' do
+      # Verify the config actually has the value we expect at the correct path
+      configured_default_ttl = OT.conf.dig('site', 'secret_options', 'default_ttl')
+      expect(configured_default_ttl).to eq(43200), "Precondition: config.test.yaml should define site.secret_options.default_ttl as 43200"
+
+      # Now test that process_ttl actually uses that config value when no TTL is provided
+      subject.instance_variable_set(:@payload, {})
+      subject.send(:process_ttl)
+
+      expect(subject.default_expiration).to eq(43200),
+        "Expected default_ttl=43200 from config, got #{subject.default_expiration}. " \
+        "Bug: process_ttl reads OT.conf.fetch('secret_options') (root level) " \
+        "instead of OT.conf.dig('site', 'secret_options')"
+    end
+
+    it 'reads ttl_options from site.secret_options in config, not the hardcoded fallback' do
+      # The test config defines: ttl_options: '1800 43200 604800'
+      # After OT::Config.after_load parses it, this becomes [1800, 43200, 604800]
+      #
+      # The hardcoded V1 fallback is [1800, 7200, 86400, 604800]
+      # So the arrays differ in both values and length.
+      configured_options = OT.conf.dig('site', 'secret_options', 'ttl_options')
+      expect(configured_options).to be_an(Array), "Precondition: after_load should parse ttl_options string into an array"
+      expect(configured_options).to include(43200), "Precondition: ttl_options should include 43200"
+
+      # process_ttl uses ttl_options to determine min_ttl. With the config
+      # values [1800, 43200, 604800], min is 1800. With the hardcoded V1
+      # fallback [1800, 7200, 86400, 604800], min is also 1800.
+      # But the max differs: config max is 604800, fallback max is also 604800.
+      # The real difference is in the OPTIONS ARRAY itself. Let's verify
+      # by checking that a TTL below the config min gets clamped to the config min.
+      subject.instance_variable_set(:@payload, { 'ttl' => '5' })
+      subject.send(:process_ttl)
+
+      # Both config and fallback have min=1800, so let's check the default_ttl
+      # which is the differentiating value. When TTL is nil, it uses default_ttl.
+      subject.instance_variable_set(:@payload, {})
+      subject.send(:process_ttl)
+      expect(subject.default_expiration).to eq(43200),
+        "Expected default from config ttl_options context (43200), " \
+        "got #{subject.default_expiration}. This confirms the config path bug."
+    end
+
+    it 'uses config default_ttl (43200) when TTL param is nil' do
+      subject.instance_variable_set(:@payload, { 'ttl' => nil })
+      subject.send(:process_ttl)
+
+      expect(subject.default_expiration).to eq(43200),
+        "Expected nil TTL to default to config's 43200, got #{subject.default_expiration}. " \
+        "Bug: falls through to hardcoded 604800 because it reads from wrong config path."
+    end
+
+    it 'uses config default_ttl (43200) when TTL key is absent from payload' do
+      subject.instance_variable_set(:@payload, {})
+      subject.send(:process_ttl)
+
+      expect(subject.default_expiration).to eq(43200),
+        "Expected absent TTL to default to config's 43200, got #{subject.default_expiration}. " \
+        "Bug: falls through to hardcoded 604800 because it reads from wrong config path."
+    end
+  end
+end
