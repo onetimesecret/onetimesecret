@@ -115,6 +115,7 @@ cmd_reconcile() {
 
   info "Re-deriving child keys from existing SECRET..."
   DERIVE=1 bundle exec rake ots:secrets
+  chmod 600 .env
 
   local mode
   mode=$(auth_mode)
@@ -155,6 +156,7 @@ cmd_init() {
 
   info "Re-deriving child keys from SECRET..."
   DERIVE=1 bundle exec rake ots:secrets
+  chmod 600 .env
 
   if [[ "$mode" == "full" ]]; then
     info "Re-applying RabbitMQ policies and queue declarations..."

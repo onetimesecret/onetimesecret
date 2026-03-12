@@ -25,7 +25,7 @@ import baseConfig from './vite.config';
  * - Build timestamp for cache busting
  *
  * Usage:
- * Run `pnpm run build:local` to generate the build.
+ * Run `pnpm run build` to generate the build.
  * The output will be in the `public/web/dist` directory.
  * These files should be committed to the repository.
  *

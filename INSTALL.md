@@ -14,7 +14,7 @@ This guide covers detailed installation methods for Onetime Secret, including ma
 - **Ruby**: 3.4.7+ (required by Gemfile)
 - **Redis**: 5.0+ or **Valkey**: 8.0+
 - **Node.js**: 22+ (for building frontend assets)
-- **pnpm**: 9.0.0+
+- **pnpm**: 10+
 
 ### System Packages
 - build-essential
@@ -145,7 +145,7 @@ docker logs redis-onetime
    sudo apt install -y nodejs
 
    # Install pnpm
-   sudo npm install -g pnpm@latest
+   corepack enable && corepack prepare pnpm@10.30.3 --activate
    ```
 
 5. **Start Redis:**
@@ -292,6 +292,16 @@ dd if=/dev/urandom bs=32 count=1 2>/dev/null | xxd -p -c 32
 - Use strong Redis authentication if exposed
 
 ## Development Tools
+
+### Developer Environment Setup
+
+For local development (especially with multiple worktrees), use `install-dev.sh` to link shared config files and install dependencies:
+
+```bash
+./install-dev.sh
+```
+
+This symlinks config files (`etc/config.yaml`, `.env`, etc.) from a shared location (`~/.config/onetimesecret-dev/` by default), runs `bundle install` and `pnpm install`. Idempotent and safe to re-run. Set `OTS_DEV_CONFIG` to use a different config directory.
 
 ### Debug Mode
 ```bash
