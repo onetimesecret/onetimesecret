@@ -19,6 +19,7 @@ module Core
       @safe_site_fields = %w[
         host ssl interface
         secret_options authentication
+        support
       ]
 
       class << self
