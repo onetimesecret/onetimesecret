@@ -55,20 +55,15 @@ module DomainsAPI::Logic
       end
 
       def success_data
+        config = @custom_domain.incoming_secrets_config
         {
           user_id: @cust.objid,
           record: {
             recipients: [],
-            memo_max_length: Onetime::CustomDomain::IncomingSecretsConfig::DEFAULTS[:memo_max_length],
-            default_ttl: Onetime::CustomDomain::IncomingSecretsConfig::DEFAULTS[:default_ttl],
+            memo_max_length: config.memo_max_length,
+            default_ttl: config.default_ttl,
           },
         }
-      end
-
-      private
-
-      def valid_extid?(extid)
-        extid.match?(/\A[a-z0-9]+\z/)
       end
     end
   end
