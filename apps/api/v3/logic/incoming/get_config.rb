@@ -38,18 +38,13 @@ module V3
         end
 
         def raise_concerns
-          # On custom domains, require the owning org to have the
+          # On custom domains, require the domain-owning org to have the
           # incoming_secrets entitlement. On canonical domain, this
           # is a no-op (global config controls feature availability).
-          require_entitlement!('incoming_secrets') if custom_domain?
+          resolver.require_domain_entitlement!('incoming_secrets')
         end
 
         def process
-          resolver = Onetime::Incoming::RecipientResolver.new(
-            domain_strategy: domain_strategy,
-            display_domain: display_domain,
-          )
-
           @config_data = resolver.config_data
 
           Onetime.secret_logger.debug "[IncomingConfig] Returning #{@config_data[:recipients].size} recipients (hashed) for #{domain_strategy || 'default'}"
@@ -63,6 +58,15 @@ module V3
           {
             config: config_data,
           }
+        end
+
+        private
+
+        def resolver
+          @resolver ||= Onetime::Incoming::RecipientResolver.new(
+            domain_strategy: domain_strategy,
+            display_domain: display_domain,
+          )
         end
       end
     end

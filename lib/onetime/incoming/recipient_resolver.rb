@@ -69,12 +69,40 @@ module Onetime
         end
       end
 
-      # Returns full config data for GetConfig API response
+      # Require that the domain-owning org has a specific entitlement.
       #
-      # For custom domains, uses per-domain settings when available,
-      # falling back to global defaults for non-recipient config.
+      # On canonical domains, this is a no-op (global config controls).
+      # On custom domains, resolves the org that owns the domain and
+      # checks its entitlements. Fails closed if no owning org can be
+      # resolved for a custom domain (orphaned domain).
       #
-      # @return [Hash] Config data for API response
+      # @param entitlement [String] The entitlement to check
+      # @raise [Onetime::EntitlementRequired] If org lacks the entitlement
+      # @raise [OT::Forbidden] If custom domain has no resolvable owner
+      # @return [true]
+      def require_domain_entitlement!(entitlement)
+        return true unless @domain_strategy == :custom
+
+        owning_org = custom_domain_record&.primary_organization
+
+        if owning_org.nil?
+          raise OT::Forbidden, 'Custom domain organization could not be resolved'
+        end
+
+        return true if owning_org.can?(entitlement)
+
+        current_plan = owning_org.planid
+        upgrade_to   = if defined?(Billing::PlanHelpers)
+                         Billing::PlanHelpers.upgrade_path_for(entitlement, current_plan)
+                       end
+
+        raise Onetime::EntitlementRequired.new(
+          entitlement,
+          current_plan: current_plan,
+          upgrade_to: upgrade_to,
+        )
+      end
+
       # Returns full config data for GetConfig API response.
       #
       # No cross-system fallback: custom domains use their own config
