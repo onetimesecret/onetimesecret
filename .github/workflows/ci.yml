@@ -172,7 +172,7 @@ jobs:
     steps:
       - *checkout-step
 
-      - uses: ruby/setup-ruby@0fa965176eabbb494a5778ac04477b260840ef45
+      - uses: ruby/setup-ruby@ea73ddb198f027c31d496ef5749cf297fe1a0695
         with:
           ruby-version: '3.4.8'
           bundler-cache: true
@@ -496,7 +496,7 @@ jobs:
       redis: *valkey-service
       rabbitmq: *rabbitmq-service
       postgres:
-        image: postgres:17@sha256:1eada89ec2521ae0f61125f6bdaf83bbbf88a43fecda48d112a83bb92df75c36
+        image: postgres:17@sha256:2cd82735a36356842d5eb1ef80db3ae8f1154172f0f653db48fde079b2a0b7f7
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres

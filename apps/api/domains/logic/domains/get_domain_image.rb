@@ -7,6 +7,8 @@ require 'base64'
 module DomainsAPI::Logic
   module Domains
     class GetDomainImage < DomainsAPI::Logic::Base
+      SCHEMAS = { response: 'imageProps' }.freeze
+
       attr_reader :display_domain, :image_field, :image, :custom_domain
 
       @field = nil

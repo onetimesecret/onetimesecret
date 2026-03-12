@@ -7,6 +7,8 @@ module Onetime
     include Familia::Features::Autoloader
     include Onetime::LoggerMethods
 
+    SCHEMA = 'models/receipt'
+
     using Familia::Refinements::TimeLiterals
 
     feature :object_identifier,

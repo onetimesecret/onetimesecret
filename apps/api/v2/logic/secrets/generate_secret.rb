@@ -9,6 +9,8 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class GenerateSecret < BaseSecretAction
+      SCHEMAS = { response: 'concealData', request: 'generateSecret' }.freeze
+
       def process_secret
         @kind = 'generate'
 

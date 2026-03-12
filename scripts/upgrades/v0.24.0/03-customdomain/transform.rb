@@ -82,7 +82,7 @@ class CustomDomainTransformer
   # These are 2-part keys like custom_domain:owners, custom_domain:display_domains
   V1_INDEX_KEYS = %w[owners display_domains instances values].freeze
 
-  # Field type mappings for brand hash (from src/schemas/models/domain/brand.ts)
+  # Field type mappings for brand hash (from src/schemas/models/custom-domain/brand.ts)
   BRAND_FIELD_TYPES = {
     'primary_color' => :string,
     'colour' => :string,
@@ -101,7 +101,7 @@ class CustomDomainTransformer
     'notify_enabled' => :boolean,
   }.freeze
 
-  # Field type mappings for logo/icon hash (from src/schemas/models/domain/brand.ts imagePropsSchema)
+  # Field type mappings for logo/icon hash (from src/schemas/models/custom-domain/brand.ts imagePropsSchema)
   IMAGE_FIELD_TYPES = {
     'encoded' => :string,
     'content_type' => :string,

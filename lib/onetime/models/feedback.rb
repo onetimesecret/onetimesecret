@@ -4,6 +4,8 @@
 
 module Onetime
   class Feedback < Familia::Horreum
+    SCHEMA = 'models/feedback'
+
     using Familia::Refinements::TimeLiterals
 
     module ClassMethods

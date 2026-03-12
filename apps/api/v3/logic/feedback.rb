@@ -8,6 +8,8 @@ require_relative '../../../../lib/onetime/jobs/publisher'
 module V3
   module Logic
     class ReceiveFeedback < V3::Logic::Base
+      SCHEMAS = { response: 'feedback' }.freeze
+
       attr_reader :msg, :greenlighted, :tz, :version
 
       def process_params

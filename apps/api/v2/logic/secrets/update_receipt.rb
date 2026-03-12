@@ -5,6 +5,8 @@
 module V2::Logic
   module Secrets
     class UpdateReceipt < V2::Logic::Base
+      SCHEMAS = { response: 'receipt' }.freeze
+
       # Maximum length for memo field (matches feedback message limit)
       MEMO_MAX_LENGTH = 500
 
