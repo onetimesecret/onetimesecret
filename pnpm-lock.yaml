@@ -232,7 +232,7 @@ importers:
         specifier: ^17.3.0
         version: 17.3.0
       happy-dom:
-        specifier: ^20.1.0
+        specifier: ^20.7.0
         version: 20.7.0
       jiti:
         specifier: ^2.6.1

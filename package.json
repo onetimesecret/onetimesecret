@@ -211,7 +211,7 @@
     "git-json-merge": "^1.0.0",
     "glob": "^13.0.0",
     "globals": "^17.3.0",
-    "happy-dom": "^20.1.0",
+    "happy-dom": "^20.7.0",
     "jiti": "^2.6.1",
     "jsdom": "^27.4.0",
     "lint-staged": "^16.3.2",
