@@ -67,11 +67,6 @@ module DomainsAPI::Logic
         }
       end
 
-      private
-
-      def valid_extid?(extid)
-        extid.match?(/\A[a-z0-9]+\z/)
-      end
     end
   end
 end
