@@ -116,6 +116,11 @@ export function getAuthRequirements(route: OttoRoute): {
 } {
   // V1 uses openapi_auth= (decoupled from Otto's route-level enforcement)
   // V2+ uses auth= (registered with Otto's RouteAuthWrapper)
+  // Precedence: auth > openapi_auth. V2+ routes define auth= which Otto
+  // enforces at the middleware level. V1 routes define openapi_auth= which
+  // is metadata-only — Otto ignores it, but this parser reads it for schema
+  // generation. If both are present, auth= wins since it reflects the
+  // actually-enforced auth requirement.
   const auth = route.params.auth || route.params.openapi_auth || '';
 
   if (auth === 'noauth' || auth === '') {

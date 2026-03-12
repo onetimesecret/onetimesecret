@@ -81,7 +81,7 @@ module AccountAPI::Logic
               customer_id: cust.extid,
               email: cust.obscure_email,
               error: ex.message,
-              session_id: (sess.respond_to?(:id) ? sess.id : nil),
+              session_id: safe_session_id,
             }
 
           set_error_message(errmsg)
@@ -90,7 +90,7 @@ module AccountAPI::Logic
             {
               customer_id: cust.extid,
               email: cust.obscure_email,
-              session_id: (sess.respond_to?(:id) ? sess.id : nil),
+              session_id: safe_session_id,
               secret_identifier: secret.identifier,
             }
 
