@@ -38,9 +38,10 @@ module V3
         end
 
         def raise_concerns
-          # No concerns to raise. The feature may be disabled; the frontend
-          # renders a "feature disabled" state when config.enabled is false.
-          # Raising FormError here would show the error state instead.
+          # On custom domains, require the owning org to have the
+          # incoming_secrets entitlement. On canonical domain, this
+          # is a no-op (global config controls feature availability).
+          require_entitlement!('incoming_secrets') if custom_domain?
         end
 
         def process

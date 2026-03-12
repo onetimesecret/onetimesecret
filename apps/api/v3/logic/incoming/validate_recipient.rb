@@ -33,6 +33,9 @@ module V3
         end
 
         def raise_concerns
+          # On custom domains, require the owning org's entitlement
+          require_entitlement!('incoming_secrets') if custom_domain?
+
           # Check if feature is enabled (domain-aware)
           unless resolver.enabled?
             raise_form_error 'Incoming secrets feature is not enabled'

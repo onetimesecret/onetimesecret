@@ -130,5 +130,13 @@
   "incoming.receipt_link_text": {
     "text": "receipt",
     "sha256": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Upgrade Required",
+    "sha256": "16487236"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "This feature requires a plan upgrade. Please contact the account owner to enable incoming secrets.",
+    "sha256": "5df7f715"
   }
 }
