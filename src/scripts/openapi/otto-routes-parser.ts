@@ -13,7 +13,8 @@
  *
  * Supported parameters:
  * - response: json|view|redirect|auto
- * - auth: noauth|sessionauth|basicauth|role:colonel
+ * - auth: noauth|sessionauth|basicauth|role:colonel (V2+, enforced by Otto)
+ * - openapi_auth: basic|anonymous (V1 only, not enforced by Otto)
  * - content: form|json (request body encoding; default json)
  * - csrf: exempt
  */
@@ -113,7 +114,9 @@ export function getAuthRequirements(route: OttoRoute): {
   schemes: string[];
   role?: string;
 } {
-  const auth = route.params.auth || '';
+  // V1 uses openapi_auth= (decoupled from Otto's route-level enforcement)
+  // V2+ uses auth= (registered with Otto's RouteAuthWrapper)
+  const auth = route.params.auth || route.params.openapi_auth || '';
 
   if (auth === 'noauth' || auth === '') {
     return { required: false, schemes: [] };
