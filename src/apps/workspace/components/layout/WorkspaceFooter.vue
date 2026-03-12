@@ -190,12 +190,6 @@
             :rel="link.external ? 'noopener noreferrer' : undefined"
             class="text-sm text-gray-600 transition-colors duration-200 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
             {{ link.label }}
-            <span
-              v-if="link.external"
-              class="ml-0.5 text-xs opacity-60"
-              aria-hidden="true"
-              >↗</span
-            >
           </a>
         </template>
       </div>
