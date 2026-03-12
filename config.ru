@@ -5,9 +5,8 @@
 #
 # Usage:
 #
-#   $ thin -e dev -R config.ru -p 3000 start
-#
-#   $ puma -e development -p 3000 config.ru
+#   $ bundle exec puma -C etc/examples/puma.example.rb
+#   $ RACK_ENV=development bundle exec puma -C etc/examples/puma.example.rb
 #
 # Application Structure:
 # ```
