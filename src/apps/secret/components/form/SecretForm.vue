@@ -507,7 +507,7 @@
               </div>
 
               <!-- Action Button (full-width on mobile, normal width on desktop) -->
-              <div class="order-2 shrink-0 sm:order-2">
+              <div class="order-2 shrink-0 sm:order-2 sm:ml-auto">
                 <div class="mb-0 mt-3 sm:mt-0">
                   <SplitButton
                     :with-generate="props.withGenerate"

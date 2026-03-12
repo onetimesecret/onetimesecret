@@ -9,7 +9,7 @@ CornerStyle,
 FontFamily,
 cornerStyleClasses,
 fontFamilyClasses
-} from '@/schemas/models/domain/brand';
+} from '@/schemas/models/custom-domain/brand';
 import { computed, ref } from 'vue';
 import { Composer, useI18n } from 'vue-i18n';
 

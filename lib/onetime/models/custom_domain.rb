@@ -53,6 +53,8 @@ module Onetime
   class CustomDomain < Familia::Horreum
     include Familia::Features::Autoloader
 
+    SCHEMA = 'models/custom-domain'
+
     unless defined?(MAX_SUBDOMAIN_DEPTH)
       MAX_SUBDOMAIN_DEPTH = 10  # e.g. a.b.c.d.e.f.g.h.i.j.example.com
       MAX_TOTAL_LENGTH    = 253 # RFC 1034 section 3.1

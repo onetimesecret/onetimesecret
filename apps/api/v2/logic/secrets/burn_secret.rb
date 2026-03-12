@@ -9,6 +9,8 @@ module V2::Logic
     class BurnSecret < V2::Logic::Base
       include Onetime::LoggerMethods
 
+      SCHEMAS = { response: 'receipt' }.freeze
+
       attr_reader :identifier, :passphrase, :continue, :receipt, :secret, :correct_passphrase, :greenlighted
 
       def process_params
@@ -102,10 +104,10 @@ module V2::Logic
             share_path: build_path(:secret, receipt.secret_identifier),
             burn_path: build_path(:receipt, receipt.identifier, 'burn'),
             receipt_path: build_path(:receipt, receipt.identifier),
-            metadata_path: build_path(:receipt, receipt.identifier), # maintain public API
+            metadata_path: build_path(:receipt, receipt.identifier), # V2 backward-compat alias
             share_url: build_url(domain_uri, build_path(:secret, receipt.secret_identifier)),
             receipt_url: build_url(domain_uri, build_path(:receipt, receipt.identifier)),
-            metadata_url: build_url(domain_uri, build_path(:receipt, receipt.identifier)), # maintain public API
+            metadata_url: build_url(domain_uri, build_path(:receipt, receipt.identifier)), # V2 backward-compat alias
             burn_url: build_url(domain_uri, build_path(:receipt, receipt.identifier, 'burn')),
           },
         )

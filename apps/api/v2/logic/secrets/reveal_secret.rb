@@ -22,6 +22,8 @@ module V2::Logic
     class RevealSecret < V2::Logic::Base
       include Onetime::LoggerMethods
 
+      SCHEMAS = { response: 'secret' }.freeze
+
       attr_reader :identifier,
         :passphrase,
         :continue,

@@ -6,30 +6,31 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
 
 /**
- * Creates a complete account response fixture that matches the Zod schema
+ * Creates a complete account response fixture matching V3 Zod schema.
+ * V3 uses JSON-native types (numbers, booleans), not Redis strings.
  */
 function createAccountFixture(overrides: { notify_on_reveal?: boolean } = {}) {
-  const now = new Date().toISOString();
+  const nowEpoch = Math.floor(Date.now() / 1000); // Unix epoch seconds
   return {
     record: {
       cust: {
         identifier: 'test-cust-id',
         objid: 'cust:test-cust-123',
         extid: 'ext-test-123',
-        created: now,
-        updated: now,
+        created: nowEpoch,
+        updated: nowEpoch,
         role: 'customer',
         email: 'test@example.com',
-        verified: 'true',
-        active: 'true',
-        contributor: 'false',
-        secrets_created: '0',
-        secrets_burned: '0',
-        secrets_shared: '0',
-        emails_sent: '0',
+        verified: true,
+        active: true,
+        contributor: false,
+        secrets_created: 0,
+        secrets_burned: 0,
+        secrets_shared: 0,
+        emails_sent: 0,
         last_login: null,
         locale: 'en',
-        notify_on_reveal: overrides.notify_on_reveal ? 'true' : 'false',
+        notify_on_reveal: overrides.notify_on_reveal ?? false,
       },
       apitoken: 'test-api-token-123',
     },

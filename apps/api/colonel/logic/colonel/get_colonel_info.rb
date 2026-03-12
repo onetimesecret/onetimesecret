@@ -10,6 +10,8 @@ module ColonelAPI
   module Logic
     module Colonel
       class GetColonelInfo < ColonelAPI::Logic::Base
+        SCHEMAS = { response: 'colonelInfo' }.freeze
+
         using Familia::Refinements::TimeLiterals
 
         attr_reader :billing_enabled,

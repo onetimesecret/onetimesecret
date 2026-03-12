@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
 import DomainInput from '@/apps/workspace/components/domains/DomainInput.vue'
 import ErrorDisplay from '@/shared/components/ui/ErrorDisplay.vue'
-import { createDomainRequestSchema } from '@/schemas/api/v3/requests';
+import { addDomainRequestSchema } from '@/schemas/api/domains/requests';
 import { createError, type ApplicationError } from '@/schemas/errors';
 import { ref, computed } from 'vue';
 
@@ -36,7 +36,7 @@ const handleSubmit = () => {
   }
 
   try {
-    const validated = createDomainRequestSchema.parse({ domain: domain.value });
+    const validated = addDomainRequestSchema.parse({ domain: domain.value });
     isValid.value = true;
     emit('submit', validated.domain);
   } catch {

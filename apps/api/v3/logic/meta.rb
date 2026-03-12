@@ -12,6 +12,12 @@ require_relative '../../v2/logic/meta'
 module V3
   module Logic
     module Meta
+      SCHEMAS = {
+        system_status: { response: 'systemStatus' },
+        system_version: { response: 'systemVersion' },
+        get_supported_locales: { response: 'supportedLocales' },
+      }.freeze
+
       # Delegate to V2 implementations (already return native types)
       def self.get_supported_locales(req, res)
         V2::Logic::Meta.get_supported_locales(req, res)

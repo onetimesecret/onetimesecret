@@ -16,13 +16,35 @@ module V1
 
   module Controllers
     module ClassMethods
-      # V1 Response Shaping — receipt_hsh [#2615]
+      # Translate v0.24 state values back to v0.23.4 vocabulary for V1
+      # clients. See issue #2619 for rationale and mapping details.
       #
-      # This is the V1 compatibility layer. It transforms a Receipt (which
-      # uses v0.24 vocabulary internally) into a hash using v0.23.x field
-      # names. Every V1 endpoint that returns receipt data MUST use this
-      # method, and callers MUST pass :custid => cust.email so that the
-      # response contains the email address (not the internal UUID).
+      #   previewed -> viewed   (renamed in v0.24)
+      #   shared    -> new      (new in v0.24, nearest v0.23.4 equivalent)
+      #   revealed  -> received (new in v0.24, nearest v0.23.4 equivalent)
+      #
+      V1_STATE_MAP = {
+        'previewed' => 'viewed',
+        'shared'    => 'new',
+        'revealed'  => 'received',
+      }.freeze
+
+      # Translate a single state value from v0.24 to v0.23.4 vocabulary.
+      # Unknown states pass through unchanged.
+      #
+      # @param state [String] The v0.24 state value
+      # @return [String] The v0.23.4 equivalent
+      def translate_v1_state(state)
+        V1_STATE_MAP.fetch(state, state)
+      end
+
+      # V1 Response Shaping — receipt_hsh [#2615, #2619]
+      #
+      # Transforms a Receipt (which uses v0.24 vocabulary internally)
+      # into a hash using v0.23.x field names. Every V1 endpoint that
+      # returns receipt data MUST use this method, and callers MUST
+      # pass :custid => cust.email so that the response contains the
+      # email address (not the internal UUID).
       #
       # Field mapping (v0.24 internal -> v0.23.x V1 response):
       #   identifier         -> metadata_key
@@ -32,11 +54,6 @@ module V1
       #   receipt_ttl        -> metadata_ttl (actual seconds remaining)
       #   secret_value       -> value
       #   share_domain nil   -> '' (empty string, never null)
-      #
-      # State mapping (v0.24 -> v0.23.x):
-      #   previewed -> viewed
-      #   revealed  -> received
-      #   shared    -> new
       #
       # Timestamp fallback:
       #   received timestamp -> falls back to revealed if empty (v0.24
@@ -101,9 +118,6 @@ module V1
         v1_custid = hsh.fetch('custid', nil) if v1_custid.nil? || v1_custid.to_s.empty?
         v1_custid = 'anon' if v1_custid.nil? || v1_custid.to_s.empty?
 
-        # Map v0.24.0 state values back to v0.23.x vocabulary for V1 compat.
-        # Internally: previewed -> viewed, revealed -> received, shared -> new
-        v1_state_map = { 'previewed' => 'viewed', 'revealed' => 'received', 'shared' => 'new' }.freeze
         raw_state = hsh.key?('state') ? hsh['state'] : 'new'
 
         ret = {
@@ -113,7 +127,7 @@ module V1
           'ttl' => receipt_ttl, # static value from database hash field
           'metadata_ttl' => receipt_realttl, # actual number of seconds left to live
           'secret_ttl' => secret_realttl, # ditto, actual number
-          'state' => v1_state_map.fetch(raw_state, raw_state),
+          'state' => translate_v1_state(raw_state),
           'updated' => hsh.fetch('updated', nil)&.to_i,
           'created' => hsh.fetch('created', nil)&.to_i,
           # V1 compat: fall back to `revealed` timestamp if `received` is empty.

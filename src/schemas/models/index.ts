@@ -20,5 +20,5 @@ export * from './secret';
  *
  */
 export * from '../api/account/endpoints/account';
-export * from './domain/index';
+export * from './custom-domain/index';
 export * from './receipt';

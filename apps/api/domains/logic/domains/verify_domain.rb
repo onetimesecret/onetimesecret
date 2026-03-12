@@ -10,6 +10,8 @@ require_relative 'get_domain'
 module DomainsAPI::Logic
   module Domains
     class VerifyDomain < GetDomain
+      SCHEMAS = { response: 'customDomain' }.freeze
+
       def process
         super
 

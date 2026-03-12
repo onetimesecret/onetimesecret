@@ -216,7 +216,9 @@ module Auth
           connection_opts,
           logger: Onetime.get_logger('Sequel'),
           sql_log_level: :trace,  # Log SQL statements at trace level for safety
-        )
+        ).tap do |db|
+          db.extension :date_arithmetic
+        end
       end
     end
 
@@ -231,7 +233,9 @@ module Auth
         database_url,
         logger: Onetime.get_logger('Sequel'),
         sql_log_level: :trace,
-      )
+      ).tap do |db|
+        db.extension :date_arithmetic
+      end
     end
 
     # Ensure database migrations are up to date.
