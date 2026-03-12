@@ -212,13 +212,13 @@ module Auth
           database_url
         end
 
-        db = Sequel.connect(
+        Sequel.connect(
           connection_opts,
           logger: Onetime.get_logger('Sequel'),
           sql_log_level: :trace,  # Log SQL statements at trace level for safety
-        )
-        db.extension :date_arithmetic
-        db
+        ).tap do |db|
+          db.extension :date_arithmetic
+        end
       end
     end
 
@@ -229,13 +229,13 @@ module Auth
 
       database_url = Onetime.auth_config.database_url || 'sqlite://data/auth.db'
 
-      db = Sequel.connect(
+      Sequel.connect(
         database_url,
         logger: Onetime.get_logger('Sequel'),
         sql_log_level: :trace,
-      )
-      db.extension :date_arithmetic
-      db
+      ).tap do |db|
+        db.extension :date_arithmetic
+      end
     end
 
     # Ensure database migrations are up to date.
