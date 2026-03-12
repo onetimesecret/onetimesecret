@@ -369,7 +369,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       )
     end
 
-    it 'uses idempotency key to prevent duplicates' do
+    it 'uses a UUID idempotency key for each checkout session attempt' do
       # Mock Stripe checkout session creation
       mock_session = build_checkout_session(
         'url' => 'https://checkout.stripe.com/c/pay/cs_test_idempotent',
@@ -387,12 +387,41 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
         expect(last_response.status).to eq(200)
       end
 
-      # Verify idempotency key was used in both requests
-      # The key is a SHA256 hash (64 hex chars) of checkout:<org_id>:<plan_id>:<time>
+      # Verify each request gets a fresh UUID so Stripe creates a new session
+      # instead of returning a stale cached checkout URL.
       expect(Stripe::Checkout::Session).to have_received(:create).twice.with(
         anything,
-        hash_including(idempotency_key: a_string_matching(/^[a-f0-9]{64}$/))
+        hash_including(
+          idempotency_key: a_string_matching(
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+          ),
+        ),
       )
+    end
+
+    it 'generates a different idempotency key for each checkout request' do
+      mock_session = build_checkout_session(
+        'url' => 'https://checkout.stripe.com/c/pay/cs_test_unique',
+        'id' => 'cs_test_unique'
+      )
+      request_keys = []
+
+      allow(Stripe::Checkout::Session).to receive(:create) do |_params, opts|
+        request_keys << opts[:idempotency_key]
+        mock_session
+      end
+
+      2.times do
+        post "/billing/api/org/#{organization.extid}/checkout", {
+          product: product,
+          interval: interval,
+        }.to_json, { 'CONTENT_TYPE' => 'application/json' }
+
+        expect(last_response.status).to eq(200)
+      end
+
+      expect(request_keys.size).to eq(2)
+      expect(request_keys.first).not_to eq(request_keys.last)
     end
 
     it 'returns 403 when customer is not organization owner' do

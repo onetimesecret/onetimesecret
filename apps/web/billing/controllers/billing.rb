@@ -5,6 +5,7 @@
 # rubocop:disable Metrics/ClassLength
 
 require 'stripe'
+require 'securerandom'
 
 require_relative 'base'
 require_relative '../lib/stripe_client'
@@ -139,34 +140,15 @@ module Billing
           return json_error('Billing service temporarily unavailable', status: 503)
         end
 
-        # Create Stripe Checkout Session with idempotency
-        # Generate deterministic idempotency key to prevent duplicate sessions
+        # Create Stripe Checkout Session.
+        #
+        # Checkout sessions are ephemeral pre-payment URLs, not the subscription
+        # mutation itself. Stripe recommends creating a new Checkout Session for
+        # each pay attempt, so we intentionally use a fresh UUID here instead of
+        # a deterministic key. Subscription mutations keep their deterministic
+        # idempotency elsewhere.
         stripe_client = Billing::StripeClient.new
-
-        # ==========================================================================
-        # IDEMPOTENCY KEY - CRITICAL FOR PREVENTING DUPLICATE CHECKOUTS
-        # ==========================================================================
-        #
-        # Stripe caches checkout sessions by idempotency key. If you see
-        # "You're all done here" on the checkout page, it means Stripe returned
-        # a cached (already-completed) session instead of creating a new one.
-        #
-        # KEY BEHAVIOR DIFFERENCE:
-        #   - TEST MODE (sk_test_*): Minute granularity - allows rapid iteration
-        #   - LIVE MODE (sk_live_*): Daily granularity - prevents accidental duplicates
-        #
-        # If stuck in test mode: wait 1 minute, or try a different plan tier.
-        #
-        # SHA256 produces 64 hex chars, well within Stripe's 255 char limit.
-        # ==========================================================================
-        time_component  = if Stripe.api_key&.start_with?('sk_test_')
-                           Time.now.strftime('%Y-%m-%dT%H:%M') # Minute granularity for test
-                         else
-                           Time.now.to_date.iso8601 # Daily for production
-                         end
-        idempotency_key = Digest::SHA256.hexdigest(
-          "checkout:#{org.objid}:#{plan.plan_id}:#{time_component}",
-        )
+        idempotency_key = SecureRandom.uuid
 
         checkout_session = stripe_client.create(
           Stripe::Checkout::Session,
