@@ -196,6 +196,7 @@ plans:
       - custom_branding
       - custom_privacy_defaults
       - homepage_secrets
+      - incoming_secrets
       - api_access
 
     features:
@@ -232,6 +233,7 @@ plans:
       - custom_privacy_defaults
       - custom_branding
       - homepage_secrets
+      - incoming_secrets
 
     features:
       - web.billing.features.custom_domains
