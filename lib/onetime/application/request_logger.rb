@@ -59,7 +59,7 @@ module Onetime
         payload[:request_id] = request.env['HTTP_X_REQUEST_ID'] if capture?(:request_id)
         payload[:ip]         = request.ip if capture?(:ip)
         payload[:params]     = redact_params(request.params) if capture?(:params)
-        payload[:session_id] = request.session.id if capture?(:session_id)
+        payload[:session_id] = request.session.id if capture?(:session_id) && request.session.respond_to?(:id)
 
         if capture?(:headers)
           payload[:headers] = request.env.select { |k, _| k.start_with?('HTTP_') }

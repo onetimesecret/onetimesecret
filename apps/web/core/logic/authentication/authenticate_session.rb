@@ -75,7 +75,7 @@ module Core::Logic
             {
               email: cust.obscure_email,
               role: cust.role,
-              session_id: sess&.id,
+              session_id: (sess.respond_to?(:id) ? sess.id : nil),
               ip: @strategy_result.metadata[:ip],
               reason: :invalid_credentials,
             }
@@ -89,7 +89,7 @@ module Core::Logic
               customer_id: cust.objid,
               email: cust.obscure_email,
               role: cust.role,
-              session_id: sess&.id,
+              session_id: (sess.respond_to?(:id) ? sess.id : nil),
               status: :pending,
             }
 
