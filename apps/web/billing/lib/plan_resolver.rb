@@ -75,7 +75,6 @@ module Billing
       :billing_cycle,
       :plan,
       :error,
-      keyword_init: true,
     ) do
       def success?
         success == true

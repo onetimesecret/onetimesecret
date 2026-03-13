@@ -83,7 +83,7 @@ module Onetime
         end
 
         # Build full hash with nil defaults for all members, then apply DEFAULTS, then user values
-        all_nil = members.each_with_object({}) { |m, h| h[m] = nil }
+        all_nil = members.to_h { |m| [m, nil] }
         new(**all_nil, **BrandSettingsConstants::DEFAULTS, **normalized)
       end
 

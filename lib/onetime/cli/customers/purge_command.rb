@@ -32,10 +32,10 @@ module Onetime
       desc 'Purge inactive customer records by last activity date'
 
       ACTIVITY_CACHE = 'tmp:cli:cust_by_activity'
-      CREATED_CACHE = 'tmp:cli:cust_by_created'
-      CACHE_TTL = 1800 # 30 minutes
-      SCAN_COUNT = 200
-      BATCH_SIZE = 50
+      CREATED_CACHE  = 'tmp:cli:cust_by_created'
+      CACHE_TTL      = 1800 # 30 minutes
+      SCAN_COUNT     = 200
+      BATCH_SIZE     = 50
 
       option :older_than,
         type: :string,
@@ -62,12 +62,12 @@ module Onetime
         redis = Familia.dbclient
 
         threshold_secs = parse_duration(older_than)
-        cutoff = Time.now - threshold_secs
-        cutoff_epoch = cutoff.to_f
+        cutoff         = Time.now - threshold_secs
+        cutoff_epoch   = cutoff.to_f
 
         if refresh
           redis.del(ACTIVITY_CACHE, CREATED_CACHE)
-          puts "Cache cleared."
+          puts 'Cache cleared.'
         end
 
         ensure_cache(redis)
@@ -76,11 +76,11 @@ module Onetime
         candidates = redis.zrangebyscore(ACTIVITY_CACHE, '-inf', cutoff_epoch.to_s)
 
         puts "Purge candidates: #{candidates.size} customers inactive since #{cutoff.strftime('%Y-%m-%d')}"
-        puts "Activity source: last_login (preferred) or updated (fallback)"
+        puts 'Activity source: last_login (preferred) or updated (fallback)'
         puts
 
         if candidates.empty?
-          puts "No customers match the criteria."
+          puts 'No customers match the criteria.'
           return
         end
 
@@ -121,15 +121,15 @@ module Onetime
         USAGE
       end
 
-      def show_dry_run(redis, candidates, duration)
-        puts "DRY RUN - No records will be modified"
+      def show_dry_run(_redis, candidates, duration)
+        puts 'DRY RUN - No records will be modified'
         puts
 
         # Iterate all candidates (same code path as purge, minus destroy!)
-        purgeable_count = 0
+        purgeable_count   = 0
         billing_protected = 0
-        no_load = 0
-        shown = 0
+        no_load           = 0
+        shown             = 0
 
         candidates.each do |objid|
           cust = Onetime::Customer.load(objid)
@@ -138,28 +138,28 @@ module Onetime
             next
           end
 
-          if has_stripe_billing?(cust)
+          if stripe_billing?(cust)
             billing_protected += 1
             next
           end
 
           last_login = cust.last_login.to_f
-          updated = cust.updated.to_f
+          updated    = cust.updated.to_f
 
           if last_login > 0
-            source = 'last_login'
+            source   = 'last_login'
             activity = last_login
           else
-            source = 'updated'
+            source   = 'updated'
             activity = updated
           end
 
-          date = activity > 0 ? Time.at(activity).strftime('%Y-%m-%d') : 'unknown'
+          date             = activity > 0 ? Time.at(activity).strftime('%Y-%m-%d') : 'unknown'
           purgeable_count += 1
 
           # Show first 20 in detail, then just count
           if shown < 20
-            puts format("  %-36s %s=%-10s %s", objid, source, date, cust.obscure_email)
+            puts format('  %-36s %s=%-10s %s', objid, source, date, cust.obscure_email)
             shown += 1
           end
         end
@@ -179,30 +179,30 @@ module Onetime
 
         puts
         puts '-' * 60
-        puts "BEFORE PURGING:"
-        puts "  1. Back up Redis: redis-cli BGSAVE"
-        puts "  2. Export affected emails if needed for notification"
+        puts 'BEFORE PURGING:'
+        puts '  1. Back up Redis: redis-cli BGSAVE'
+        puts '  2. Export affected emails if needed for notification'
         puts "  3. Run during off-peak hours for large sets (#{purgeable_count} records)"
-        puts "  4. Each destroy! removes: object hash, indexes, metadata, relationships"
-        puts "  5. This action is NOT reversible without a Redis backup"
+        puts '  4. Each destroy! removes: object hash, indexes, metadata, relationships'
+        puts '  5. This action is NOT reversible without a Redis backup'
         puts
-        puts "NOTE: If running in full auth mode, corresponding SQL accounts"
-        puts "  in the auth database are NOT removed by this command. Clean"
-        puts "  up orphaned accounts separately if needed."
+        puts 'NOTE: If running in full auth mode, corresponding SQL accounts'
+        puts '  in the auth database are NOT removed by this command. Clean'
+        puts '  up orphaned accounts separately if needed.'
         puts
-        puts "To execute:"
+        puts 'To execute:'
         puts "  bin/ots customers purge --older-than #{duration} --purge"
       end
 
       def execute_purge(redis, candidates, cutoff)
-        total = candidates.size
-        destroyed = 0
-        skipped = 0
+        total             = candidates.size
+        destroyed         = 0
+        skipped           = 0
         billing_protected = 0
-        errors = []
+        errors            = []
 
         puts "PURGING #{total} candidates inactive since #{cutoff.strftime('%Y-%m-%d')}..."
-        puts "(Customers with Stripe billing will be skipped automatically)"
+        puts '(Customers with Stripe billing will be skipped automatically)'
         puts
 
         candidates.each_slice(BATCH_SIZE).with_index do |batch, batch_idx|
@@ -218,7 +218,7 @@ module Onetime
               next
             end
 
-            if has_stripe_billing?(cust)
+            if stripe_billing?(cust)
               billing_protected += 1
               OT.info "[purge] Protected (billing): #{objid} #{cust.obscure_email}"
               next
@@ -234,7 +234,7 @@ module Onetime
 
               destroyed += 1
               OT.info "[purge] Destroyed #{objid} #{email_obscured}"
-            rescue => ex
+            rescue StandardError => ex
               errors << "#{objid}: #{ex.message}"
               OT.le "[purge] Error destroying #{objid}: #{ex.message}"
             end
@@ -247,24 +247,24 @@ module Onetime
 
         print "\r" + (' ' * 80) + "\r"
         puts
-        puts "Purge complete"
+        puts 'Purge complete'
         puts '-' * 30
         puts "  Destroyed:         #{destroyed}"
         puts "  Billing-protected: #{billing_protected}"
         puts "  Skipped:           #{skipped}"
         puts "  Errors:            #{errors.size}"
 
-        if errors.any?
-          puts
-          puts "  Error details:"
-          errors.first(20).each { |e| puts "    #{e}" }
-          puts "    ... and #{errors.size - 20} more" if errors.size > 20
-        end
+        return unless errors.any?
+
+        puts
+        puts '  Error details:'
+        errors.first(20).each { |e| puts "    #{e}" }
+        puts "    ... and #{errors.size - 20} more" if errors.size > 20
       end
 
       def ensure_cache(redis)
         if redis.exists?(ACTIVITY_CACHE)
-          ttl = redis.ttl(ACTIVITY_CACHE)
+          ttl   = redis.ttl(ACTIVITY_CACHE)
           count = redis.zcard(ACTIVITY_CACHE)
           puts "Using cached data: #{count} records (expires in #{format_ttl(ttl)})"
           return
@@ -274,7 +274,7 @@ module Onetime
       end
 
       def build_cache(redis)
-        puts "Scanning customer records for activity dates..."
+        puts 'Scanning customer records for activity dates...'
 
         # Phase 1: Collect keys via SCAN
         keys = []
@@ -284,7 +284,7 @@ module Onetime
 
         # Fallback if no :object suffix keys exist
         if keys.empty?
-          puts "  No customer:*:object keys found. Using instances index..."
+          puts '  No customer:*:object keys found. Using instances index...'
           count, skipped = build_cache_from_instances(redis)
           finalize_cache(redis, count, skipped)
           return
@@ -293,7 +293,7 @@ module Onetime
         puts "  Found #{keys.size} keys. Reading timestamps..."
 
         # Phase 2: Pipeline HMGET in batches
-        count = 0
+        count   = 0
         skipped = 0
 
         keys.each_slice(500) do |batch|
@@ -315,8 +315,8 @@ module Onetime
             objid = key.split(':')[1]
 
             last_login = parse_ts(last_login_raw)
-            updated = parse_ts(updated_raw)
-            activity = [last_login, updated].select { |t| t > 0 }.max
+            updated    = parse_ts(updated_raw)
+            activity   = [last_login, updated].select { |t| t > 0 }.max
 
             if activity && activity > 0
               redis.zadd(ACTIVITY_CACHE, activity, objid)
@@ -335,10 +335,10 @@ module Onetime
       end
 
       def build_cache_from_instances(redis)
-        count = 0
+        count   = 0
         skipped = 0
         all_ids = Onetime::Customer.instances.all
-        total = all_ids.size
+        total   = all_ids.size
 
         puts "  Loading #{total} customers from instances index..."
 
@@ -350,8 +350,8 @@ module Onetime
             next unless cust.email.to_s.include?('@')
 
             last_login = cust.last_login.to_f
-            updated = cust.updated.to_f
-            activity = [last_login, updated].select { |t| t > 0 }.max
+            updated    = cust.updated.to_f
+            activity   = [last_login, updated].select { |t| t > 0 }.max
 
             if activity && activity > 0
               redis.zadd(ACTIVITY_CACHE, activity, cust.objid)
@@ -377,7 +377,7 @@ module Onetime
         end
 
         puts "Cached #{count} records (#{skipped} without activity date)"
-        puts "Cache valid for 30 minutes (--refresh to rebuild)"
+        puts 'Cache valid for 30 minutes (--refresh to rebuild)'
         puts
       end
 
@@ -388,17 +388,18 @@ module Onetime
           exit 1
         end
 
-        num = match[1].to_i
+        num  = match[1].to_i
         unit = match[2].downcase
 
         case unit
-        when 'm' then num * 30 * 86400
-        when 'y' then num * 365 * 86400
+        when 'm' then num * 30 * 86_400
+        when 'y' then num * 365 * 86_400
         end
       end
 
       def parse_ts(raw)
         return 0.0 if raw.nil? || raw.to_s.strip.empty?
+
         JSON.parse(raw).to_f
       rescue JSON::ParserError
         raw.to_f
@@ -406,6 +407,7 @@ module Onetime
 
       def parse_json_field(raw)
         return nil if raw.nil? || raw.to_s.strip.empty?
+
         JSON.parse(raw)
       rescue JSON::ParserError
         raw.to_s
@@ -415,7 +417,7 @@ module Onetime
       # Checks both deprecated v1 fields on Customer and current
       # Organization billing fields. If ANY association exists,
       # the customer is protected from purge.
-      def has_stripe_billing?(cust)
+      def stripe_billing?(cust)
         # Check deprecated v1 billing fields on customer record
         return true unless cust.stripe_customer_id.to_s.empty?
         return true unless cust.stripe_subscription_id.to_s.empty?
@@ -424,9 +426,10 @@ module Onetime
         orgs = cust.organization_instances.to_a
         orgs.any? do |org|
           next false unless org
+
           !org.stripe_customer_id.to_s.empty?
         end
-      rescue => ex
+      rescue StandardError => ex
         # If we can't determine billing status, protect the customer
         OT.le "[purge] Error checking billing for #{cust.objid}: #{ex.message}"
         true

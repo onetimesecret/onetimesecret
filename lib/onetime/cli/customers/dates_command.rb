@@ -16,11 +16,11 @@ module Onetime
     class CustomersDatesCommand < Command
       desc 'Report customer record dates and age distribution'
 
-      CREATED_CACHE = 'tmp:cli:cust_by_created'
+      CREATED_CACHE  = 'tmp:cli:cust_by_created'
       ACTIVITY_CACHE = 'tmp:cli:cust_by_activity'
-      FIELD_GAPS = 'tmp:cli:cust_field_gaps'
-      CACHE_TTL = 1800 # 30 minutes
-      SCAN_COUNT = 200
+      FIELD_GAPS     = 'tmp:cli:cust_field_gaps'
+      CACHE_TTL      = 1800 # 30 minutes
+      SCAN_COUNT     = 200
 
       option :by_age,
         type: :boolean,
@@ -32,63 +32,82 @@ module Onetime
         default: false,
         desc: 'Clear cached scan data and rebuild'
 
-      def call(by_age: false, refresh: false, **)
-        boot_application!
-        redis = Familia.dbclient
+      option :redis_url,
+        type: :string,
+        default: nil,
+        desc: 'Redis/Valkey URL to scan (e.g., redis://host:6379/6)'
 
-        if refresh
-          redis.del(CREATED_CACHE, ACTIVITY_CACHE, FIELD_GAPS)
-          puts "Cache cleared."
+      def call(by_age: false, refresh: false, redis_url: nil, **)
+        boot_application!
+
+        # Source: where to SCAN customer keys from
+        # Cache: where to store temp sorted sets (always the configured db)
+        cache_redis   = Familia.dbclient
+        source_redis  = redis_url ? redis_client_from_url(redis_url) : cache_redis
+        @using_remote = !redis_url.nil?
+
+        if @using_remote
+          puts "Source: #{redact_url(redis_url)}"
+          puts 'Cache:  configured db (temp keys)'
+          puts
         end
 
-        ensure_cache(redis)
+        if refresh
+          cache_redis.del(CREATED_CACHE, ACTIVITY_CACHE, FIELD_GAPS)
+          puts 'Cache cleared.'
+        end
+
+        ensure_cache(source_redis, cache_redis)
 
         if by_age
-          show_by_age(redis)
+          show_by_age(cache_redis)
         else
-          show_by_year(redis)
+          show_by_year(cache_redis)
         end
       end
 
       private
 
-      def ensure_cache(redis)
-        if redis.exists?(CREATED_CACHE)
-          ttl = redis.ttl(CREATED_CACHE)
-          count = redis.zcard(CREATED_CACHE)
+      def ensure_cache(source_redis, cache_redis)
+        if cache_redis.exists?(CREATED_CACHE)
+          ttl   = cache_redis.ttl(CREATED_CACHE)
+          count = cache_redis.zcard(CREATED_CACHE)
           puts "Using cached data: #{count} records (expires in #{format_ttl(ttl)})"
           puts
           return
         end
 
-        build_cache(redis)
+        build_cache(source_redis, cache_redis)
       end
 
-      def build_cache(redis)
-        puts "Scanning customer:*:object keys..."
+      def build_cache(source_redis, cache_redis)
+        puts 'Scanning customer:*:object keys...'
 
-        # Phase 1: Collect keys via SCAN
+        # Phase 1: Collect keys via SCAN (from source)
         keys = []
-        redis.scan_each(match: 'customer:*:object', count: SCAN_COUNT) do |key|
+        source_redis.scan_each(match: 'customer:*:object', count: SCAN_COUNT) do |key|
           keys << key
         end
 
-        # Fallback if no :object suffix keys exist
-        if keys.empty?
-          puts "  No customer:*:object keys found. Using instances index..."
-          count, no_date = build_cache_from_instances(redis)
-          finalize_cache(redis, count, no_date)
+        # Fallback to instances index (only when scanning local db)
+        if keys.empty? && !@using_remote
+          puts '  No customer:*:object keys found. Using instances index...'
+          count, no_date = build_cache_from_instances(cache_redis)
+          finalize_cache(cache_redis, count, no_date)
+          return
+        elsif keys.empty?
+          puts '  No customer:*:object keys found in source.'
           return
         end
 
         puts "  Found #{keys.size} keys. Reading timestamps..."
 
-        # Phase 2: Pipeline HMGET in batches
+        # Phase 2: Pipeline HMGET (read from source, write cache locally)
         count = 0
-        gaps = { 'no_created' => 0, 'no_updated' => 0, 'no_last_login' => 0, 'total' => 0 }
+        gaps  = { 'no_created' => 0, 'no_updated' => 0, 'no_last_login' => 0, 'total' => 0 }
 
         keys.each_slice(500) do |batch|
-          results = redis.pipelined do |pipe|
+          results = source_redis.pipelined do |pipe|
             batch.each do |key|
               pipe.hmget(key, 'created', 'updated', 'last_login', 'role', 'email')
             end
@@ -97,47 +116,44 @@ module Onetime
           batch.zip(results).each do |key, fields|
             created_raw, updated_raw, last_login_raw, role_raw, email_raw = fields
 
-            # Skip anonymous/system records
             role = parse_json_field(role_raw)
             next if role == 'anonymous'
 
             email = parse_json_field(email_raw)
             next unless email.to_s.include?('@')
 
-            objid = key.split(':')[1]
+            objid          = key.split(':')[1]
             gaps['total'] += 1
 
-            created = parse_ts(created_raw)
-            updated = parse_ts(updated_raw)
+            created    = parse_ts(created_raw)
+            updated    = parse_ts(updated_raw)
             last_login = parse_ts(last_login_raw)
 
-            # Track missing fields
-            gaps['no_created'] += 1 if created <= 0
-            gaps['no_updated'] += 1 if updated <= 0
+            gaps['no_created']    += 1 if created <= 0
+            gaps['no_updated']    += 1 if updated <= 0
             gaps['no_last_login'] += 1 if last_login <= 0
 
             if created > 0
-              redis.zadd(CREATED_CACHE, created, objid)
+              cache_redis.zadd(CREATED_CACHE, created, objid)
               count += 1
             end
 
-            # Also cache activity timestamps (used by purge command)
             activity = [last_login, updated].select { |t| t > 0 }.max
-            redis.zadd(ACTIVITY_CACHE, activity, objid) if activity && activity > 0
+            cache_redis.zadd(ACTIVITY_CACHE, activity, objid) if activity && activity > 0
           end
         end
 
-        redis.mapped_hmset(FIELD_GAPS, gaps)
-        redis.expire(FIELD_GAPS, CACHE_TTL)
+        cache_redis.mapped_hmset(FIELD_GAPS, gaps)
+        cache_redis.expire(FIELD_GAPS, CACHE_TTL)
 
-        finalize_cache(redis, count, gaps['no_created'])
+        finalize_cache(cache_redis, count, gaps['no_created'])
       end
 
-      def build_cache_from_instances(redis)
-        count = 0
-        gaps = { 'no_created' => 0, 'no_updated' => 0, 'no_last_login' => 0, 'total' => 0 }
+      def build_cache_from_instances(cache_redis)
+        count   = 0
+        gaps    = { 'no_created' => 0, 'no_updated' => 0, 'no_last_login' => 0, 'total' => 0 }
         all_ids = Onetime::Customer.instances.all
-        total = all_ids.size
+        total   = all_ids.size
 
         puts "  Loading #{total} customers from instances index..."
 
@@ -150,21 +166,21 @@ module Onetime
 
             gaps['total'] += 1
 
-            created = cust.created.to_f
-            updated = cust.updated.to_f
+            created    = cust.created.to_f
+            updated    = cust.updated.to_f
             last_login = cust.last_login.to_f
 
-            gaps['no_created'] += 1 if created <= 0
-            gaps['no_updated'] += 1 if updated <= 0
+            gaps['no_created']    += 1 if created <= 0
+            gaps['no_updated']    += 1 if updated <= 0
             gaps['no_last_login'] += 1 if last_login <= 0
 
             if created > 0
-              redis.zadd(CREATED_CACHE, created, cust.objid)
+              cache_redis.zadd(CREATED_CACHE, created, cust.objid)
               count += 1
             end
 
             activity = [last_login, updated].select { |t| t > 0 }.max
-            redis.zadd(ACTIVITY_CACHE, activity, cust.objid) if activity && activity > 0
+            cache_redis.zadd(ACTIVITY_CACHE, activity, cust.objid) if activity && activity > 0
           end
 
           print "\r  #{count + gaps['no_created']}/#{total} processed..."
@@ -172,31 +188,31 @@ module Onetime
 
         print "\r" + (' ' * 60) + "\r"
 
-        redis.mapped_hmset(FIELD_GAPS, gaps)
-        redis.expire(FIELD_GAPS, CACHE_TTL)
+        cache_redis.mapped_hmset(FIELD_GAPS, gaps)
+        cache_redis.expire(FIELD_GAPS, CACHE_TTL)
 
         [count, gaps['no_created']]
       end
 
-      def finalize_cache(redis, count, no_date)
+      def finalize_cache(cache_redis, count, no_date)
         [CREATED_CACHE, ACTIVITY_CACHE].each do |key|
-          redis.expire(key, CACHE_TTL) if redis.exists?(key)
+          cache_redis.expire(key, CACHE_TTL) if cache_redis.exists?(key)
         end
 
         puts "Cached #{count} records (#{no_date} skipped, no created date)"
-        puts "Cache valid for 30 minutes (--refresh to rebuild)"
+        puts 'Cache valid for 30 minutes (--refresh to rebuild)'
         puts
       end
 
       def show_by_year(redis)
-        all = redis.zrangebyscore(CREATED_CACHE, '-inf', '+inf', with_scores: true)
-        gaps = redis.hgetall(FIELD_GAPS)
+        all           = redis.zrangebyscore(CREATED_CACHE, '-inf', '+inf', with_scores: true)
+        gaps          = redis.hgetall(FIELD_GAPS)
         total_records = gaps['total'].to_i
-        dated = all.size
+        dated         = all.size
 
         by_year = Hash.new(0)
         all.each do |_objid, score|
-          year = Time.at(score).year
+          year           = Time.at(score).year
           by_year[year] += 1
         end
 
@@ -210,21 +226,21 @@ module Onetime
       end
 
       def show_by_age(redis)
-        now = Time.now.to_f
-        gaps = redis.hgetall(FIELD_GAPS)
+        now           = Time.now.to_f
+        gaps          = redis.hgetall(FIELD_GAPS)
         total_records = gaps['total'].to_i
-        dated = redis.zcard(CREATED_CACHE)
+        dated         = redis.zcard(CREATED_CACHE)
 
         # Each bracket: [label, min_age_secs, max_age_secs]
         # age = now - created_at
         age_brackets = [
-          ['0-6m',    nil,                6 * 30 * 86400],
-          ['6m-12m',  6 * 30 * 86400,   12 * 30 * 86400],
-          ['12m-18m', 12 * 30 * 86400,  18 * 30 * 86400],
-          ['18m-2y',  18 * 30 * 86400,   2 * 365 * 86400],
-          ['2y-3y',    2 * 365 * 86400,  3 * 365 * 86400],
-          ['3y-5y',    3 * 365 * 86400,  5 * 365 * 86400],
-          ['5y+',      5 * 365 * 86400, nil],
+          ['0-6m',    nil, 6 * 30 * 86_400],
+          ['6m-12m',  6 * 30 * 86_400,   12 * 30 * 86_400],
+          ['12m-18m', 12 * 30 * 86_400,  18 * 30 * 86_400],
+          ['18m-2y',  18 * 30 * 86_400,   2 * 365 * 86_400],
+          ['2y-3y',    2 * 365 * 86_400,  3 * 365 * 86_400],
+          ['3y-5y',    3 * 365 * 86_400,  5 * 365 * 86_400],
+          ['5y+',      5 * 365 * 86_400, nil],
         ]
 
         puts "Customer records by account age (#{total_records} total)"
@@ -254,11 +270,11 @@ module Onetime
         show_field_gaps(gaps, dated)
       end
 
-      def show_field_gaps(gaps, dated)
-        no_created = gaps['no_created'].to_i
-        no_updated = gaps['no_updated'].to_i
+      def show_field_gaps(gaps, _dated)
+        no_created    = gaps['no_created'].to_i
+        no_updated    = gaps['no_updated'].to_i
         no_last_login = gaps['no_last_login'].to_i
-        total = gaps['total'].to_i
+        total         = gaps['total'].to_i
 
         return if no_created == 0 && no_updated == 0 && no_last_login == 0
 
@@ -272,6 +288,7 @@ module Onetime
 
       def parse_ts(raw)
         return 0.0 if raw.nil? || raw.to_s.strip.empty?
+
         JSON.parse(raw).to_f
       rescue JSON::ParserError
         raw.to_f
@@ -279,9 +296,29 @@ module Onetime
 
       def parse_json_field(raw)
         return nil if raw.nil? || raw.to_s.strip.empty?
+
         JSON.parse(raw)
       rescue JSON::ParserError
         raw.to_s
+      end
+
+      def redis_client_from_url(url)
+        uri = URI.parse(url)
+        db  = uri.path.to_s.sub('/', '').to_i
+
+        Redis.new(
+          host: uri.host,
+          port: uri.port || 6379,
+          db: db,
+          password: uri.password,
+          username: uri.user == '' ? nil : uri.user,
+          timeout: 30,
+          reconnect_attempts: 3,
+        )
+      end
+
+      def redact_url(url)
+        url.sub(/:[^:@\/]+@/, ':***@')
       end
 
       def format_ttl(seconds)

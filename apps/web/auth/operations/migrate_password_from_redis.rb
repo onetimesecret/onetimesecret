@@ -28,7 +28,7 @@ module Auth
       include Onetime::LoggerMethods
 
       # Result object for migration attempt
-      MigrationResult = Struct.new(:success, :customer, :reason, keyword_init: true) do
+      MigrationResult = Struct.new(:success, :customer, :reason) do
         def success?
           success == true
         end

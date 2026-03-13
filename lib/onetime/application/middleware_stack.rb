@@ -97,8 +97,8 @@ module Onetime
           }
 
           # Return only locales that are in OT.supported_locales
-          OT.supported_locales.each_with_object({}) do |locale, result|
-            result[locale] = locale_names.fetch(locale, locale)
+          OT.supported_locales.to_h do |locale|
+            [locale, locale_names.fetch(locale, locale)]
           end
         end
 

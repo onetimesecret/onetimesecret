@@ -19,7 +19,7 @@ module Onetime
         @slow_threshold_μs   = (config['slow_request_ms'] || 1000) * 1000
 
         requested_mode = config['capture']&.to_sym || :standard
-        @capture = CAPTURE_MODES[requested_mode]
+        @capture       = CAPTURE_MODES[requested_mode]
 
         unless @capture
           @capture = CAPTURE_MODES[:standard]
