@@ -28,7 +28,7 @@
 
 module Onetime
   module CLI
-    class CustomersPurgeCommand < Command
+    class CustomersPurgeCommand < Command # rubocop:disable Metrics/ClassLength
       include Customers::Shared
 
       desc 'Purge inactive customer records by last activity date'

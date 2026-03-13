@@ -90,38 +90,38 @@ Onetime::CLI::CustomersPurgeCommand::ACTIVITY_CACHE.start_with?('tmp:cli:')
 1 * 365 * 86_400
 #=> 31536000
 
-## parse_duration with invalid input calls exit (caught by SystemExit)
+## parse_duration with invalid input raises ArgumentError
 begin
   @cmd.send(:parse_duration, 'invalid')
   false
-rescue SystemExit
+rescue ArgumentError
   true
 end
 #=> true
 
-## parse_duration with unsupported unit (days) calls exit
+## parse_duration with unsupported unit (days) raises ArgumentError
 begin
   @cmd.send(:parse_duration, '5d')
   false
-rescue SystemExit
+rescue ArgumentError
   true
 end
 #=> true
 
-## parse_duration with empty string calls exit
+## parse_duration with empty string raises ArgumentError
 begin
   @cmd.send(:parse_duration, '')
   false
-rescue SystemExit
+rescue ArgumentError
   true
 end
 #=> true
 
-## parse_duration with negative number calls exit
+## parse_duration with negative number raises ArgumentError
 begin
   @cmd.send(:parse_duration, '-3y')
   false
-rescue SystemExit
+rescue ArgumentError
   true
 end
 #=> true
