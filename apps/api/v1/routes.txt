@@ -12,29 +12,31 @@
 # OpenAPI spec because the generator resolves schemas via the SCHEMAS
 # constant in the controller class, not the response= attribute.
 
-GET    /status                               V1::Controllers::Index#status     openapi_auth=basic,anonymous response=default
-GET    /authcheck                            V1::Controllers::Index#authcheck  openapi_auth=basic response=default
+GET    /status                               V1::Controllers::Index#status      openapi_auth=basic,anonymous response=default
+GET    /authcheck                            V1::Controllers::Index#authcheck   openapi_auth=basic response=default
 
-POST   /share                                V1::Controllers::Index#share      openapi_auth=basic,anonymous content=form response=default
-POST   /generate                             V1::Controllers::Index#generate   openapi_auth=basic,anonymous content=form response=default
+POST   /share                                V1::Controllers::Index#share       openapi_auth=basic,anonymous content=form response=default
+POST   /generate                             V1::Controllers::Index#generate    openapi_auth=basic,anonymous content=form response=default
 
-POST   /create                               V1::Controllers::Index#create     openapi_auth=basic,anonymous content=form response=default
+POST   /create                               V1::Controllers::Index#create      openapi_auth=basic,anonymous content=form response=default
 
 POST   /secret/:key                          V1::Controllers::Index#show_secret openapi_auth=basic,anonymous content=form response=default
 
 # Canonical receipt paths
+# NOTE: Specific sub-paths (burn) must precede the :key wildcard so
+# Otto's first-match-wins dynamic routing resolves them correctly.
 GET    /receipt/recent                       V1::Controllers::Index#show_receipt_recent openapi_auth=basic response=default
+POST   /receipt/:key/burn                    V1::Controllers::Index#burn_secret  openapi_auth=basic,anonymous content=form response=default
 GET    /receipt/:key                         V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous response=default
 POST   /receipt/:key                         V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous content=form response=default
-POST   /receipt/:key/burn                    V1::Controllers::Index#burn_secret openapi_auth=basic,anonymous content=form response=default
 
 # Legacy aliases — use /receipt/ paths instead
 GET    /private/recent                       V1::Controllers::Index#show_receipt_recent openapi_auth=basic response=default deprecated=true
+POST   /private/:key/burn                    V1::Controllers::Index#burn_secret  openapi_auth=basic,anonymous content=form response=default deprecated=true
 GET    /private/:key                         V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous response=default deprecated=true
 POST   /private/:key                         V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous content=form response=default deprecated=true
-POST   /private/:key/burn                    V1::Controllers::Index#burn_secret openapi_auth=basic,anonymous content=form response=default deprecated=true
 
 GET    /metadata/recent                      V1::Controllers::Index#show_receipt_recent openapi_auth=basic response=default deprecated=true
+POST   /metadata/:key/burn                   V1::Controllers::Index#burn_secret  openapi_auth=basic,anonymous content=form response=default deprecated=true
 GET    /metadata/:key                        V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous response=default deprecated=true
 POST   /metadata/:key                        V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous content=form response=default deprecated=true
-POST   /metadata/:key/burn                   V1::Controllers::Index#burn_secret openapi_auth=basic,anonymous content=form response=default deprecated=true
