@@ -1,33 +1,36 @@
 # apps/api/v1/routes.txt
 #
-# Route attributes (auth=, content=, response=, deprecated=) are declarative
+# V1 uses controller-level auth via authorized(true|false), NOT Otto's
+# route-level auth strategies. Auth metadata uses openapi_auth= (not auth=)
+# so Otto's RouteAuthWrapper doesn't try to enforce unregistered strategies.
+# The OpenAPI parser reads openapi_auth= for schema generation.
+#
+# Other attributes (content=, response=, deprecated=) are declarative
 # metadata for the otto-route-parser used in OpenAPI schema generation.
-# Authentication is enforced in the controller via authorized(true|false),
-# not by Otto's route-level auth strategies.
 
-GET    /status                               V1::Controllers::Index#status     auth=basic,anonymous response=json
-GET    /authcheck                            V1::Controllers::Index#authcheck  auth=basic response=json
+GET    /status                               V1::Controllers::Index#status     openapi_auth=basic,anonymous response=json
+GET    /authcheck                            V1::Controllers::Index#authcheck  openapi_auth=basic response=json
 
-POST   /share                                V1::Controllers::Index#share      auth=basic,anonymous content=form response=json
-POST   /generate                             V1::Controllers::Index#generate   auth=basic,anonymous content=form response=json
+POST   /share                                V1::Controllers::Index#share      openapi_auth=basic,anonymous content=form response=json
+POST   /generate                             V1::Controllers::Index#generate   openapi_auth=basic,anonymous content=form response=json
 
-POST   /create                               V1::Controllers::Index#create     auth=basic,anonymous content=form response=json
+POST   /create                               V1::Controllers::Index#create     openapi_auth=basic,anonymous content=form response=json
 
-POST   /secret/:key                          V1::Controllers::Index#show_secret auth=basic,anonymous content=form response=json
+POST   /secret/:key                          V1::Controllers::Index#show_secret openapi_auth=basic,anonymous content=form response=json
 
 # Canonical receipt paths
-GET    /receipt/recent                       V1::Controllers::Index#show_receipt_recent auth=basic response=json
-GET    /receipt/:key                         V1::Controllers::Index#show_receipt auth=basic,anonymous response=json
-POST   /receipt/:key                         V1::Controllers::Index#show_receipt auth=basic,anonymous content=form response=json
-POST   /receipt/:key/burn                    V1::Controllers::Index#burn_secret auth=basic,anonymous content=form response=json
+GET    /receipt/recent                       V1::Controllers::Index#show_receipt_recent openapi_auth=basic response=json
+GET    /receipt/:key                         V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous response=json
+POST   /receipt/:key                         V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous content=form response=json
+POST   /receipt/:key/burn                    V1::Controllers::Index#burn_secret openapi_auth=basic,anonymous content=form response=json
 
 # Legacy aliases — use /receipt/ paths instead
-GET    /private/recent                       V1::Controllers::Index#show_receipt_recent auth=basic response=json deprecated=true
-GET    /private/:key                         V1::Controllers::Index#show_receipt auth=basic,anonymous response=json deprecated=true
-POST   /private/:key                         V1::Controllers::Index#show_receipt auth=basic,anonymous content=form response=json deprecated=true
-POST   /private/:key/burn                    V1::Controllers::Index#burn_secret auth=basic,anonymous content=form response=json deprecated=true
+GET    /private/recent                       V1::Controllers::Index#show_receipt_recent openapi_auth=basic response=json deprecated=true
+GET    /private/:key                         V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous response=json deprecated=true
+POST   /private/:key                         V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous content=form response=json deprecated=true
+POST   /private/:key/burn                    V1::Controllers::Index#burn_secret openapi_auth=basic,anonymous content=form response=json deprecated=true
 
-GET    /metadata/recent                      V1::Controllers::Index#show_receipt_recent auth=basic response=json deprecated=true
-GET    /metadata/:key                        V1::Controllers::Index#show_receipt auth=basic,anonymous response=json deprecated=true
-POST   /metadata/:key                        V1::Controllers::Index#show_receipt auth=basic,anonymous content=form response=json deprecated=true
-POST   /metadata/:key/burn                   V1::Controllers::Index#burn_secret auth=basic,anonymous content=form response=json deprecated=true
+GET    /metadata/recent                      V1::Controllers::Index#show_receipt_recent openapi_auth=basic response=json deprecated=true
+GET    /metadata/:key                        V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous response=json deprecated=true
+POST   /metadata/:key                        V1::Controllers::Index#show_receipt openapi_auth=basic,anonymous content=form response=json deprecated=true
+POST   /metadata/:key/burn                   V1::Controllers::Index#burn_secret openapi_auth=basic,anonymous content=form response=json deprecated=true

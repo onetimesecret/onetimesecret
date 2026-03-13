@@ -175,7 +175,7 @@ module V2::Logic
             {
               secret_identifier: secret.shortid,
               user_id: cust&.custid,
-              session_id: sess&.id&.public_id,
+              session_id: safe_session_id&.public_id,
               action: 'reveal',
               result: :passphrase_failed,
             }
