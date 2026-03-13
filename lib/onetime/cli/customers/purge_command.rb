@@ -489,7 +489,7 @@ module Onetime
 
         if @using_remote
           objids.each do |objid|
-            record = load_customer_record_raw(source_redis, objid)
+            record         = load_customer_record_raw(source_redis, objid)
             records[objid] = record if record
           end
         else
@@ -499,9 +499,9 @@ module Onetime
             next if cust.anonymous?
 
             source, activity = activity_source(cust.last_login.to_f, cust.updated.to_f)
-            record = build_record(cust.obscure_email, source, activity, stripe_billing?(cust))
-            record[:_model] = cust
-            records[objid] = record
+            record           = build_record(cust.obscure_email, source, activity, stripe_billing?(cust))
+            record[:_model]  = cust
+            records[objid]   = record
           end
         end
 
