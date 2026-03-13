@@ -152,11 +152,9 @@ RSpec.describe 'V1 API Response Contract', type: :integration do
 
   describe 'POST /api/v1/secret/:key' do
     context 'when secret exists' do
-      # Anonymous-generated secrets have owner_id='anon' which causes
-      # load_owner to return nil in show_secret, triggering the generic
-      # error handler. The contract test still verifies the response is
-      # flat JSON (not wrapped). Full happy-path testing requires an
-      # authenticated customer with a persisted record.
+      # Anonymous-generated secrets have owner_id='anon'; load_owner
+      # returns nil but show_secret now guards against this, allowing
+      # the reveal to complete without crashing.
       let(:secret_key) do
         post '/api/v1/generate', {}
         JSON.parse(last_response.body)['secret_key']
@@ -169,15 +167,12 @@ RSpec.describe 'V1 API Response Contract', type: :integration do
 
       include_examples 'flat JSON response'
 
-      it 'returns either secret data or an error as flat JSON' do
+      it 'returns secret data with value, secret_key, and share_domain' do
         body = JSON.parse(last_response.body)
-        if body.key?('value')
-          expect(body).to have_key('secret_key')
-          expect(body).to have_key('share_domain')
-          expect(body['value']).to be_a(String)
-        else
-          expect(body).to have_key('message')
-        end
+        expect(body).to have_key('value')
+        expect(body).to have_key('secret_key')
+        expect(body).to have_key('share_domain')
+        expect(body['value']).to be_a(String)
       end
     end
 
@@ -234,9 +229,8 @@ RSpec.describe 'V1 API Response Contract', type: :integration do
 
   describe 'POST /api/v1/receipt/:key/burn' do
     context 'when receipt exists and secret is burnable' do
-      # Same anonymous owner limitation as show_secret. The burn logic
-      # calls load_owner which returns nil for anonymous secrets, causing
-      # an error. The contract test still validates flat JSON.
+      # Anonymous-generated secrets have owner_id='anon'; load_owner
+      # returns nil but burn_secret now guards against this.
       let(:receipt_key) do
         post '/api/v1/share', { secret: 'burn test secret', ttl: 3600 }
         JSON.parse(last_response.body)['metadata_key']
@@ -249,15 +243,12 @@ RSpec.describe 'V1 API Response Contract', type: :integration do
 
       include_examples 'flat JSON response'
 
-      it 'returns either burn data or an error as flat JSON' do
+      it 'returns burn data with state and secret_shortkey' do
         body = JSON.parse(last_response.body)
-        if body.key?('state')
-          expect(body).to have_key('secret_shortkey')
-          expect(body['state']).to be_a(Hash)
-          expect(body['secret_shortkey']).to be_a(String)
-        else
-          expect(body).to have_key('message')
-        end
+        expect(body).to have_key('state')
+        expect(body).to have_key('secret_shortkey')
+        expect(body['state']).to be_a(Hash)
+        expect(body['secret_shortkey']).to be_a(String)
       end
     end
 
