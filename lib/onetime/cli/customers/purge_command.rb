@@ -231,8 +231,16 @@ module Onetime
         puts
 
         candidates.each_slice(BATCH_SIZE).with_index do |batch, batch_idx|
+          # Batch-load customer records to avoid N+1 Redis round-trips.
+          # For local mode, uses Familia's load_multi (single pipeline).
+          # For remote mode, load_customer_record already does individual
+          # HMGET calls; batching at this level keeps the slice structure
+          # consistent and bounds the working set to BATCH_SIZE.
+          records_by_id = batch_load_customer_records(source_redis, batch)
+          destroyed_ids = []
+
           batch.each do |objid|
-            record = load_customer_record(source_redis, objid)
+            record = records_by_id[objid]
             unless record
               skipped += 1
               next
@@ -249,7 +257,7 @@ module Onetime
                 # Direct key deletion on remote source (no model, no indexes to clean)
                 delete_customer_keys(source_redis, objid)
               else
-                cust = Onetime::Customer.load(objid)
+                cust = record[:_model]
                 unless cust
                   skipped += 1
                   next
@@ -257,15 +265,20 @@ module Onetime
                 cust.destroy!
               end
 
-              cache_redis.zrem(ACTIVITY_CACHE, objid)
-              cache_redis.zrem(CREATED_CACHE, objid)
-
+              destroyed_ids << objid
               destroyed += 1
               OT.info "[purge] Destroyed #{objid} #{record[:email]}"
             rescue StandardError => ex
               errors << "#{objid}: #{ex.message}"
               OT.le "[purge] Error destroying #{objid}: #{ex.message}"
             end
+          end
+
+          # Batch zrem: remove all destroyed IDs from cache in one call
+          # per sorted set, rather than one zrem per customer.
+          if destroyed_ids.any?
+            cache_redis.zrem(ACTIVITY_CACHE, destroyed_ids)
+            cache_redis.zrem(CREATED_CACHE, destroyed_ids)
           end
 
           processed = (batch_idx + 1) * BATCH_SIZE
@@ -368,6 +381,9 @@ module Onetime
       def build_cache_from_instances(cache_redis)
         count   = 0
         skipped = 0
+        # NOTE: Loads all customer identifiers into memory. Acceptable for
+        # operational CLI (run infrequently). Would need cursor-based iteration
+        # (ZSCAN) for datasets exceeding available memory.
         all_ids = Onetime::Customer.instances.all
         total   = all_ids.size
 
@@ -462,6 +478,34 @@ module Onetime
       def build_record(email, source, activity, billing)
         date = activity > 0 ? Time.at(activity).strftime('%Y-%m-%d') : 'unknown'
         { email: email, source: source, date: date, billing_protected: billing }
+      end
+
+      # Batch-load customer records for a slice of objids.
+      # Returns a Hash of { objid => record } for records that loaded successfully.
+      # In local mode, uses Familia's load_multi to fetch all records in a
+      # single Redis pipeline instead of N individual HGETALL calls.
+      def batch_load_customer_records(source_redis, objids)
+        records = {}
+
+        if @using_remote
+          objids.each do |objid|
+            record = load_customer_record_raw(source_redis, objid)
+            records[objid] = record if record
+          end
+        else
+          models = Onetime::Customer.load_multi(objids)
+          objids.zip(models).each do |objid, cust|
+            next unless cust
+            next if cust.anonymous?
+
+            source, activity = activity_source(cust.last_login.to_f, cust.updated.to_f)
+            record = build_record(cust.obscure_email, source, activity, stripe_billing?(cust))
+            record[:_model] = cust
+            records[objid] = record
+          end
+        end
+
+        records
       end
 
       # Delete customer keys directly from a remote Redis (no model, no index cleanup).

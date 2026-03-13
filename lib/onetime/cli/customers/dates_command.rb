@@ -157,6 +157,9 @@ module Onetime
       def build_cache_from_instances(cache_redis)
         count   = 0
         gaps    = { 'no_created' => 0, 'no_updated' => 0, 'no_last_login' => 0, 'total' => 0 }
+        # NOTE: Loads all customer identifiers into memory. Acceptable for
+        # operational CLI (run infrequently). Would need cursor-based iteration
+        # (ZSCAN) for datasets exceeding available memory.
         all_ids = Onetime::Customer.instances.all
         total   = all_ids.size
 
