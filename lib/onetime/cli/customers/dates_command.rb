@@ -21,10 +21,6 @@ module Onetime
       CREATED_CACHE  = 'tmp:cli:cust_by_created'
       ACTIVITY_CACHE = 'tmp:cli:cust_by_activity'
       FIELD_GAPS     = 'tmp:cli:cust_field_gaps'
-      # Balance freshness vs Redis load; 30min avoids repeated full SCANs
-      CACHE_TTL      = 1800
-      # SCAN cursor batch size; 200 keeps round-trips low without blocking
-      SCAN_COUNT     = 200
 
       option :by_age,
         type: :boolean,
@@ -61,7 +57,12 @@ module Onetime
           puts 'Cache cleared.'
         end
 
-        ensure_cache(source_redis, cache_redis)
+        ensure_cache(
+          source_redis,
+          cache_redis,
+          primary_key: CREATED_CACHE,
+          cache_keys: [CREATED_CACHE, ACTIVITY_CACHE, FIELD_GAPS],
+        )
 
         if by_age
           show_by_age(cache_redis)
@@ -71,18 +72,6 @@ module Onetime
       end
 
       private
-
-      def ensure_cache(source_redis, cache_redis)
-        if cache_redis.exists?(CREATED_CACHE)
-          ttl   = cache_redis.ttl(CREATED_CACHE)
-          count = cache_redis.zcard(CREATED_CACHE)
-          puts "Using cached data: #{count} records (expires in #{format_ttl(ttl)})"
-          puts
-          return
-        end
-
-        build_cache(source_redis, cache_redis)
-      end
 
       def build_cache(source_redis, cache_redis)
         puts 'Scanning customer:*:object keys...'
@@ -97,7 +86,13 @@ module Onetime
         if keys.empty? && !@using_remote
           puts '  No customer:*:object keys found. Using instances index...'
           count, no_date = build_cache_from_instances(cache_redis)
-          finalize_cache(cache_redis, count, no_date)
+          finalize_cache(
+            cache_redis,
+            count,
+            no_date,
+            cache_keys: [CREATED_CACHE, ACTIVITY_CACHE],
+            skip_label: 'skipped, no created date',
+          )
           return
         elsif keys.empty?
           puts '  No customer:*:object keys found in source.'
@@ -110,7 +105,7 @@ module Onetime
         count = 0
         gaps  = { 'no_created' => 0, 'no_updated' => 0, 'no_last_login' => 0, 'total' => 0 }
 
-        keys.each_slice(500) do |batch|
+        keys.each_slice(PIPELINE_BATCH) do |batch|
           results = source_redis.pipelined do |pipe|
             batch.each do |key|
               pipe.hmget(key, 'created', 'updated', 'last_login', 'role', 'email')
@@ -150,7 +145,13 @@ module Onetime
         cache_redis.mapped_hmset(FIELD_GAPS, gaps)
         cache_redis.expire(FIELD_GAPS, CACHE_TTL)
 
-        finalize_cache(cache_redis, count, gaps['no_created'])
+        finalize_cache(
+          cache_redis,
+          count,
+          gaps['no_created'],
+          cache_keys: [CREATED_CACHE, ACTIVITY_CACHE],
+          skip_label: 'skipped, no created date',
+        )
       end
 
       def build_cache_from_instances(cache_redis)
@@ -161,7 +162,7 @@ module Onetime
 
         puts "  Loading #{total} customers from instances index..."
 
-        all_ids.each_slice(500) do |batch|
+        all_ids.each_slice(PIPELINE_BATCH) do |batch|
           customers = Onetime::Customer.load_multi(batch)
           customers.each do |cust|
             next unless cust
@@ -196,16 +197,6 @@ module Onetime
         cache_redis.expire(FIELD_GAPS, CACHE_TTL)
 
         [count, gaps['no_created']]
-      end
-
-      def finalize_cache(cache_redis, count, no_date)
-        [CREATED_CACHE, ACTIVITY_CACHE].each do |key|
-          cache_redis.expire(key, CACHE_TTL) if cache_redis.exists?(key)
-        end
-
-        puts "Cached #{count} records (#{no_date} skipped, no created date)"
-        puts 'Cache valid for 30 minutes (--refresh to rebuild)'
-        puts
       end
 
       def show_by_year(redis)
@@ -291,7 +282,8 @@ module Onetime
       end
 
       # parse_ts, parse_json_field, redis_client_from_url, redact_url,
-      # format_ttl are provided by Customers::Shared
+      # format_ttl, ensure_cache, finalize_cache, and time/batch constants
+      # are provided by Customers::Shared
     end
 
     register 'customers dates', CustomersDatesCommand

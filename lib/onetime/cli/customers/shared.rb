@@ -3,8 +3,8 @@
 # frozen_string_literal: true
 
 # Shared utilities for customer CLI commands (dates, purge).
-# Provides timestamp parsing, Redis helpers, and time constants
-# used across multiple customer subcommands.
+# Provides timestamp parsing, Redis helpers, time constants,
+# and cache management used across multiple customer subcommands.
 
 module Onetime
   module CLI
@@ -16,6 +16,18 @@ module Onetime
         SECONDS_IN_DAY   = 86_400
         SECONDS_IN_MONTH = 30 * SECONDS_IN_DAY
         SECONDS_IN_YEAR  = 365 * SECONDS_IN_DAY
+
+        # Balance freshness vs Redis load; 30min avoids repeated full
+        # SCANs while keeping data current enough for operational use.
+        CACHE_TTL = 1800
+
+        # SCAN cursor batch size; 200 keeps round-trips low without
+        # blocking Redis for too long on each iteration.
+        SCAN_COUNT = 200
+
+        # Redis pipeline batch size for HMGET calls; 500 balances
+        # memory overhead against round-trip count on large datasets.
+        PIPELINE_BATCH = 500
 
         # -- Timestamp & field parsing -----------------------------------
 
@@ -66,6 +78,35 @@ module Onetime
           else
             "#{seconds}s"
           end
+        end
+
+        # -- Cache management --------------------------------------------
+
+        # Check for existing cache and report status, or trigger a build.
+        # +primary_key+: the cache key to check for existence/TTL.
+        def ensure_cache(source_redis, cache_redis, primary_key:, **)
+          if cache_redis.exists?(primary_key)
+            ttl   = cache_redis.ttl(primary_key)
+            count = cache_redis.zcard(primary_key)
+            puts "Using cached data: #{count} records (expires in #{format_ttl(ttl)})"
+            puts
+            return
+          end
+
+          build_cache(source_redis, cache_redis)
+        end
+
+        # Set TTL on cache keys and print summary.
+        # +skip_label+: describes what the skipped count represents
+        #   (e.g., "no created date" or "without activity date").
+        def finalize_cache(cache_redis, count, skipped, cache_keys:, skip_label: 'skipped')
+          cache_keys.each do |key|
+            cache_redis.expire(key, CACHE_TTL) if cache_redis.exists?(key)
+          end
+
+          puts "Cached #{count} records (#{skipped} #{skip_label})"
+          puts 'Cache valid for 30 minutes (--refresh to rebuild)'
+          puts
         end
       end
     end

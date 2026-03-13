@@ -35,11 +35,8 @@ module Onetime
 
       ACTIVITY_CACHE = 'tmp:cli:cust_by_activity'
       CREATED_CACHE  = 'tmp:cli:cust_by_created'
-      # Balance freshness vs Redis load; 30min avoids repeated full SCANs
-      CACHE_TTL      = 1800
-      # SCAN cursor batch size; 200 keeps round-trips low without blocking
-      SCAN_COUNT     = 200
       # Purge batch size; 50 balances throughput with progress visibility
+      # while allowing frequent progress output to the console.
       BATCH_SIZE     = 50
 
       # Sub-keys to delete when purging a customer directly from Redis.
@@ -94,7 +91,12 @@ module Onetime
           puts 'Cache cleared.'
         end
 
-        ensure_cache(source_redis, cache_redis)
+        ensure_cache(
+          source_redis,
+          cache_redis,
+          primary_key: ACTIVITY_CACHE,
+          cache_keys: [ACTIVITY_CACHE, CREATED_CACHE],
+        )
 
         # Get candidates: all objids with last activity before cutoff
         candidates = cache_redis.zrangebyscore(ACTIVITY_CACHE, '-inf', cutoff_epoch.to_s)
@@ -273,17 +275,6 @@ module Onetime
         puts "    ... and #{errors.size - 20} more" if errors.size > 20
       end
 
-      def ensure_cache(source_redis, cache_redis)
-        if cache_redis.exists?(ACTIVITY_CACHE)
-          ttl   = cache_redis.ttl(ACTIVITY_CACHE)
-          count = cache_redis.zcard(ACTIVITY_CACHE)
-          puts "Using cached data: #{count} records (expires in #{format_ttl(ttl)})"
-          return
-        end
-
-        build_cache(source_redis, cache_redis)
-      end
-
       def build_cache(source_redis, cache_redis)
         puts 'Scanning customer records for activity dates...'
 
@@ -297,7 +288,13 @@ module Onetime
         if keys.empty? && !@using_remote
           puts '  No customer:*:object keys found. Using instances index...'
           count, skipped = build_cache_from_instances(cache_redis)
-          finalize_cache(cache_redis, count, skipped)
+          finalize_cache(
+            cache_redis,
+            count,
+            skipped,
+            cache_keys: [ACTIVITY_CACHE, CREATED_CACHE],
+            skip_label: 'without activity date',
+          )
           return
         elsif keys.empty?
           puts '  No customer:*:object keys found in source.'
@@ -310,7 +307,7 @@ module Onetime
         count   = 0
         skipped = 0
 
-        keys.each_slice(500) do |batch|
+        keys.each_slice(PIPELINE_BATCH) do |batch|
           results = source_redis.pipelined do |pipe|
             batch.each do |key|
               pipe.hmget(key, 'created', 'updated', 'last_login', 'role', 'email')
@@ -344,7 +341,13 @@ module Onetime
           end
         end
 
-        finalize_cache(cache_redis, count, skipped)
+        finalize_cache(
+          cache_redis,
+          count,
+          skipped,
+          cache_keys: [ACTIVITY_CACHE, CREATED_CACHE],
+          skip_label: 'without activity date',
+        )
       end
 
       def build_cache_from_instances(cache_redis)
@@ -355,7 +358,7 @@ module Onetime
 
         puts "  Loading #{total} customers from instances index..."
 
-        all_ids.each_slice(500) do |batch|
+        all_ids.each_slice(PIPELINE_BATCH) do |batch|
           customers = Onetime::Customer.load_multi(batch)
           customers.each do |cust|
             next unless cust
@@ -384,16 +387,6 @@ module Onetime
         [count, skipped]
       end
 
-      def finalize_cache(cache_redis, count, skipped)
-        [ACTIVITY_CACHE, CREATED_CACHE].each do |key|
-          cache_redis.expire(key, CACHE_TTL) if cache_redis.exists?(key)
-        end
-
-        puts "Cached #{count} records (#{skipped} without activity date)"
-        puts 'Cache valid for 30 minutes (--refresh to rebuild)'
-        puts
-      end
-
       def parse_duration(str)
         match = str.match(/^(\d+)(m|y)$/i)
         unless match
@@ -411,7 +404,8 @@ module Onetime
       end
 
       # parse_ts, parse_json_field, redis_client_from_url, redact_url,
-      # format_ttl are provided by Customers::Shared
+      # format_ttl, ensure_cache, finalize_cache, and time/batch constants
+      # are provided by Customers::Shared
 
       # Load customer record from source. When using --redis-url, reads
       # raw fields via HMGET (no model loading). Otherwise loads via Familia.
