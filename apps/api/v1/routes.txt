@@ -7,6 +7,10 @@
 #
 # Other attributes (content=, response=, deprecated=) are declarative
 # metadata for the otto-route-parser used in OpenAPI schema generation.
+# V1 uses response=default so Otto skips its JSONHandler pipeline (V1
+# controllers serialize responses directly). This has no effect on the
+# OpenAPI spec because the generator resolves schemas via the SCHEMAS
+# constant in the controller class, not the response= attribute.
 
 GET    /status                               V1::Controllers::Index#status     openapi_auth=basic,anonymous response=default
 GET    /authcheck                            V1::Controllers::Index#authcheck  openapi_auth=basic response=default
