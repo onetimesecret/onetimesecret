@@ -14,12 +14,16 @@
 module Onetime
   module CLI
     class CustomersDatesCommand < Command
+      include Customers::Shared
+
       desc 'Report customer record dates and age distribution'
 
       CREATED_CACHE  = 'tmp:cli:cust_by_created'
       ACTIVITY_CACHE = 'tmp:cli:cust_by_activity'
       FIELD_GAPS     = 'tmp:cli:cust_field_gaps'
-      CACHE_TTL      = 1800 # 30 minutes
+      # Balance freshness vs Redis load; 30min avoids repeated full SCANs
+      CACHE_TTL      = 1800
+      # SCAN cursor batch size; 200 keeps round-trips low without blocking
       SCAN_COUNT     = 200
 
       option :by_age,
@@ -234,13 +238,13 @@ module Onetime
         # Each bracket: [label, min_age_secs, max_age_secs]
         # age = now - created_at
         age_brackets = [
-          ['0-6m',    nil, 6 * 30 * 86_400],
-          ['6m-12m',  6 * 30 * 86_400,   12 * 30 * 86_400],
-          ['12m-18m', 12 * 30 * 86_400,  18 * 30 * 86_400],
-          ['18m-2y',  18 * 30 * 86_400,   2 * 365 * 86_400],
-          ['2y-3y',    2 * 365 * 86_400,  3 * 365 * 86_400],
-          ['3y-5y',    3 * 365 * 86_400,  5 * 365 * 86_400],
-          ['5y+',      5 * 365 * 86_400, nil],
+          ['0-6m', nil, 6 * SECONDS_IN_MONTH],
+          ['6m-12m', 6 * SECONDS_IN_MONTH, 12 * SECONDS_IN_MONTH],
+          ['12m-18m', 12 * SECONDS_IN_MONTH, 18 * SECONDS_IN_MONTH],
+          ['18m-2y', 18 * SECONDS_IN_MONTH, 2 * SECONDS_IN_YEAR],
+          ['2y-3y', 2 * SECONDS_IN_YEAR, 3 * SECONDS_IN_YEAR],
+          ['3y-5y', 3 * SECONDS_IN_YEAR, 5 * SECONDS_IN_YEAR],
+          ['5y+', 5 * SECONDS_IN_YEAR, nil],
         ]
 
         puts "Customer records by account age (#{total_records} total)"
@@ -286,48 +290,8 @@ module Onetime
         puts format('  %-16s %5d', 'no last_login', no_last_login) if no_last_login > 0
       end
 
-      def parse_ts(raw)
-        return 0.0 if raw.nil? || raw.to_s.strip.empty?
-
-        JSON.parse(raw).to_f
-      rescue JSON::ParserError
-        raw.to_f
-      end
-
-      def parse_json_field(raw)
-        return nil if raw.nil? || raw.to_s.strip.empty?
-
-        JSON.parse(raw)
-      rescue JSON::ParserError
-        raw.to_s
-      end
-
-      def redis_client_from_url(url)
-        uri = URI.parse(url)
-        db  = uri.path.to_s.sub('/', '').to_i
-
-        Redis.new(
-          host: uri.host,
-          port: uri.port || 6379,
-          db: db,
-          password: uri.password,
-          username: uri.user == '' ? nil : uri.user,
-          timeout: 30,
-          reconnect_attempts: 3,
-        )
-      end
-
-      def redact_url(url)
-        url.sub(/:[^:@\/]+@/, ':***@')
-      end
-
-      def format_ttl(seconds)
-        if seconds >= 60
-          "#{seconds / 60}m #{seconds % 60}s"
-        else
-          "#{seconds}s"
-        end
-      end
+      # parse_ts, parse_json_field, redis_client_from_url, redact_url,
+      # format_ttl are provided by Customers::Shared
     end
 
     register 'customers dates', CustomersDatesCommand

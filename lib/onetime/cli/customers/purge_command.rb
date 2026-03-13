@@ -29,13 +29,23 @@
 module Onetime
   module CLI
     class CustomersPurgeCommand < Command
+      include Customers::Shared
+
       desc 'Purge inactive customer records by last activity date'
 
       ACTIVITY_CACHE = 'tmp:cli:cust_by_activity'
       CREATED_CACHE  = 'tmp:cli:cust_by_created'
-      CACHE_TTL      = 1800 # 30 minutes
+      # Balance freshness vs Redis load; 30min avoids repeated full SCANs
+      CACHE_TTL      = 1800
+      # SCAN cursor batch size; 200 keeps round-trips low without blocking
       SCAN_COUNT     = 200
+      # Purge batch size; 50 balances throughput with progress visibility
       BATCH_SIZE     = 50
+
+      # Sub-keys to delete when purging a customer directly from Redis.
+      CUSTOMER_SUB_KEYS = %w[object metadata receipts reset_secret
+                             pending_email_change pending_email_delivery_status
+                             feature_flags].freeze
 
       option :older_than,
         type: :string,
@@ -52,28 +62,42 @@ module Onetime
         default: false,
         desc: 'Force cache rebuild before selecting candidates'
 
-      def call(older_than: nil, purge: false, refresh: false, **)
+      option :redis_url,
+        type: :string,
+        default: nil,
+        desc: 'Redis/Valkey URL to scan (e.g., redis://host:6379/6)'
+
+      def call(older_than: nil, purge: false, refresh: false, redis_url: nil, **)
         unless older_than
           show_usage
           return
         end
 
         boot_application!
-        redis = Familia.dbclient
+
+        cache_redis   = Familia.dbclient
+        source_redis  = redis_url ? redis_client_from_url(redis_url) : cache_redis
+        @using_remote = !redis_url.nil?
+
+        if @using_remote
+          puts "Source: #{redact_url(redis_url)}"
+          puts 'Cache:  configured db (temp keys)'
+          puts
+        end
 
         threshold_secs = parse_duration(older_than)
         cutoff         = Time.now - threshold_secs
         cutoff_epoch   = cutoff.to_f
 
         if refresh
-          redis.del(ACTIVITY_CACHE, CREATED_CACHE)
+          cache_redis.del(ACTIVITY_CACHE, CREATED_CACHE)
           puts 'Cache cleared.'
         end
 
-        ensure_cache(redis)
+        ensure_cache(source_redis, cache_redis)
 
         # Get candidates: all objids with last activity before cutoff
-        candidates = redis.zrangebyscore(ACTIVITY_CACHE, '-inf', cutoff_epoch.to_s)
+        candidates = cache_redis.zrangebyscore(ACTIVITY_CACHE, '-inf', cutoff_epoch.to_s)
 
         puts "Purge candidates: #{candidates.size} customers inactive since #{cutoff.strftime('%Y-%m-%d')}"
         puts 'Activity source: last_login (preferred) or updated (fallback)'
@@ -85,9 +109,9 @@ module Onetime
         end
 
         if purge
-          execute_purge(redis, candidates, cutoff)
+          execute_purge(source_redis, cache_redis, candidates, cutoff)
         else
-          show_dry_run(redis, candidates, older_than)
+          show_dry_run(source_redis, candidates, older_than)
         end
       end
 
@@ -95,71 +119,52 @@ module Onetime
 
       def show_usage
         puts <<~USAGE
-          Customer Purge Tool
+          Usage: bin/ots customers purge --older-than DURATION [options]
 
-          Usage:
-            bin/ots customers purge --older-than DURATION [options]
-
-          Duration format:
-            6m, 12m, 18m    Months (30-day months)
-            1y, 2y, 3y, 5y  Years (365-day years)
+          Duration: 6m, 12m, 18m (30-day months) | 1y, 2y, 3y, 5y (365-day years)
 
           Options:
             --older-than DURATION   Activity age threshold (required)
             --purge                 Execute deletion (default is dry-run)
             --refresh               Force cache rebuild before selecting
+            --redis-url URL         Scan a different Redis (e.g., pre-migration db=6)
 
           Examples:
             bin/ots customers purge --older-than 3y              # Preview
             bin/ots customers purge --older-than 3y --purge      # Execute
-            bin/ots customers purge --older-than 5y --refresh    # Rescan + preview
+            bin/ots customers purge --older-than 5y --redis-url redis://host:6379/6
 
-          The dry-run caches candidates for 30 minutes. Running --purge
-          within that window reuses the same candidate set, so you review
-          exactly what will be deleted.
-
+          Dry-run caches candidates for 30 minutes. Running --purge within that
+          window reuses the same set. When --redis-url is used, purge deletes
+          keys directly via DEL (no model loading, no index cleanup).
         USAGE
       end
 
-      def show_dry_run(_redis, candidates, duration)
+      def show_dry_run(source_redis, candidates, duration)
         puts 'DRY RUN - No records will be modified'
         puts
 
-        # Iterate all candidates (same code path as purge, minus destroy!)
         purgeable_count   = 0
         billing_protected = 0
         no_load           = 0
         shown             = 0
 
         candidates.each do |objid|
-          cust = Onetime::Customer.load(objid)
-          unless cust
+          record = load_customer_record(source_redis, objid)
+          unless record
             no_load += 1
             next
           end
 
-          if stripe_billing?(cust)
+          if record[:billing_protected]
             billing_protected += 1
             next
           end
 
-          last_login = cust.last_login.to_f
-          updated    = cust.updated.to_f
-
-          if last_login > 0
-            source   = 'last_login'
-            activity = last_login
-          else
-            source   = 'updated'
-            activity = updated
-          end
-
-          date             = activity > 0 ? Time.at(activity).strftime('%Y-%m-%d') : 'unknown'
           purgeable_count += 1
 
-          # Show first 20 in detail, then just count
           if shown < 20
-            puts format('  %-36s %s=%-10s %s', objid, source, date, cust.obscure_email)
+            puts format('  %-36s %s=%-10s %s', objid, record[:source], record[:date], record[:email])
             shown += 1
           end
         end
@@ -194,7 +199,7 @@ module Onetime
         puts "  bin/ots customers purge --older-than #{duration} --purge"
       end
 
-      def execute_purge(redis, candidates, cutoff)
+      def execute_purge(source_redis, cache_redis, candidates, cutoff)
         total             = candidates.size
         destroyed         = 0
         skipped           = 0
@@ -203,37 +208,43 @@ module Onetime
 
         puts "PURGING #{total} candidates inactive since #{cutoff.strftime('%Y-%m-%d')}..."
         puts '(Customers with Stripe billing will be skipped automatically)'
+        if @using_remote
+          puts '(Deleting keys directly from source via DEL)'
+        end
         puts
 
         candidates.each_slice(BATCH_SIZE).with_index do |batch, batch_idx|
           batch.each do |objid|
-            cust = Onetime::Customer.load(objid)
-            unless cust
+            record = load_customer_record(source_redis, objid)
+            unless record
               skipped += 1
               next
             end
 
-            if cust.anonymous?
-              skipped += 1
-              next
-            end
-
-            if stripe_billing?(cust)
+            if record[:billing_protected]
               billing_protected += 1
-              OT.info "[purge] Protected (billing): #{objid} #{cust.obscure_email}"
+              OT.info "[purge] Protected (billing): #{objid} #{record[:email]}"
               next
             end
 
             begin
-              email_obscured = cust.obscure_email
-              cust.destroy!
+              if @using_remote
+                # Direct key deletion on remote source (no model, no indexes to clean)
+                delete_customer_keys(source_redis, objid)
+              else
+                cust = Onetime::Customer.load(objid)
+                unless cust
+                  skipped += 1
+                  next
+                end
+                cust.destroy!
+              end
 
-              # Clean up cache entries
-              redis.zrem(ACTIVITY_CACHE, objid)
-              redis.zrem(CREATED_CACHE, objid)
+              cache_redis.zrem(ACTIVITY_CACHE, objid)
+              cache_redis.zrem(CREATED_CACHE, objid)
 
               destroyed += 1
-              OT.info "[purge] Destroyed #{objid} #{email_obscured}"
+              OT.info "[purge] Destroyed #{objid} #{record[:email]}"
             rescue StandardError => ex
               errors << "#{objid}: #{ex.message}"
               OT.le "[purge] Error destroying #{objid}: #{ex.message}"
@@ -262,42 +273,45 @@ module Onetime
         puts "    ... and #{errors.size - 20} more" if errors.size > 20
       end
 
-      def ensure_cache(redis)
-        if redis.exists?(ACTIVITY_CACHE)
-          ttl   = redis.ttl(ACTIVITY_CACHE)
-          count = redis.zcard(ACTIVITY_CACHE)
+      def ensure_cache(source_redis, cache_redis)
+        if cache_redis.exists?(ACTIVITY_CACHE)
+          ttl   = cache_redis.ttl(ACTIVITY_CACHE)
+          count = cache_redis.zcard(ACTIVITY_CACHE)
           puts "Using cached data: #{count} records (expires in #{format_ttl(ttl)})"
           return
         end
 
-        build_cache(redis)
+        build_cache(source_redis, cache_redis)
       end
 
-      def build_cache(redis)
+      def build_cache(source_redis, cache_redis)
         puts 'Scanning customer records for activity dates...'
 
-        # Phase 1: Collect keys via SCAN
+        # Phase 1: Collect keys via SCAN (from source)
         keys = []
-        redis.scan_each(match: 'customer:*:object', count: SCAN_COUNT) do |key|
+        source_redis.scan_each(match: 'customer:*:object', count: SCAN_COUNT) do |key|
           keys << key
         end
 
-        # Fallback if no :object suffix keys exist
-        if keys.empty?
+        # Fallback to instances index (only when scanning local db)
+        if keys.empty? && !@using_remote
           puts '  No customer:*:object keys found. Using instances index...'
-          count, skipped = build_cache_from_instances(redis)
-          finalize_cache(redis, count, skipped)
+          count, skipped = build_cache_from_instances(cache_redis)
+          finalize_cache(cache_redis, count, skipped)
+          return
+        elsif keys.empty?
+          puts '  No customer:*:object keys found in source.'
           return
         end
 
         puts "  Found #{keys.size} keys. Reading timestamps..."
 
-        # Phase 2: Pipeline HMGET in batches
+        # Phase 2: Pipeline HMGET (read from source, write cache locally)
         count   = 0
         skipped = 0
 
         keys.each_slice(500) do |batch|
-          results = redis.pipelined do |pipe|
+          results = source_redis.pipelined do |pipe|
             batch.each do |key|
               pipe.hmget(key, 'created', 'updated', 'last_login', 'role', 'email')
             end
@@ -319,22 +333,21 @@ module Onetime
             activity   = [last_login, updated].select { |t| t > 0 }.max
 
             if activity && activity > 0
-              redis.zadd(ACTIVITY_CACHE, activity, objid)
+              cache_redis.zadd(ACTIVITY_CACHE, activity, objid)
               count += 1
             else
               skipped += 1
             end
 
-            # Also cache created timestamps (used by dates command)
             created = parse_ts(created_raw)
-            redis.zadd(CREATED_CACHE, created, objid) if created > 0
+            cache_redis.zadd(CREATED_CACHE, created, objid) if created > 0
           end
         end
 
-        finalize_cache(redis, count, skipped)
+        finalize_cache(cache_redis, count, skipped)
       end
 
-      def build_cache_from_instances(redis)
+      def build_cache_from_instances(cache_redis)
         count   = 0
         skipped = 0
         all_ids = Onetime::Customer.instances.all
@@ -354,14 +367,14 @@ module Onetime
             activity   = [last_login, updated].select { |t| t > 0 }.max
 
             if activity && activity > 0
-              redis.zadd(ACTIVITY_CACHE, activity, cust.objid)
+              cache_redis.zadd(ACTIVITY_CACHE, activity, cust.objid)
               count += 1
             else
               skipped += 1
             end
 
             created = cust.created.to_f
-            redis.zadd(CREATED_CACHE, created, cust.objid) if created > 0
+            cache_redis.zadd(CREATED_CACHE, created, cust.objid) if created > 0
           end
 
           print "\r  #{count + skipped}/#{total} processed..."
@@ -371,9 +384,9 @@ module Onetime
         [count, skipped]
       end
 
-      def finalize_cache(redis, count, skipped)
+      def finalize_cache(cache_redis, count, skipped)
         [ACTIVITY_CACHE, CREATED_CACHE].each do |key|
-          redis.expire(key, CACHE_TTL) if redis.exists?(key)
+          cache_redis.expire(key, CACHE_TTL) if cache_redis.exists?(key)
         end
 
         puts "Cached #{count} records (#{skipped} without activity date)"
@@ -392,25 +405,67 @@ module Onetime
         unit = match[2].downcase
 
         case unit
-        when 'm' then num * 30 * 86_400
-        when 'y' then num * 365 * 86_400
+        when 'm' then num * SECONDS_IN_MONTH
+        when 'y' then num * SECONDS_IN_YEAR
         end
       end
 
-      def parse_ts(raw)
-        return 0.0 if raw.nil? || raw.to_s.strip.empty?
+      # parse_ts, parse_json_field, redis_client_from_url, redact_url,
+      # format_ttl are provided by Customers::Shared
 
-        JSON.parse(raw).to_f
-      rescue JSON::ParserError
-        raw.to_f
+      # Load customer record from source. When using --redis-url, reads
+      # raw fields via HMGET (no model loading). Otherwise loads via Familia.
+      def load_customer_record(source_redis, objid)
+        if @using_remote
+          load_customer_record_raw(source_redis, objid)
+        else
+          load_customer_record_model(objid)
+        end
       end
 
-      def parse_json_field(raw)
-        return nil if raw.nil? || raw.to_s.strip.empty?
+      def load_customer_record_raw(redis, objid)
+        fields     = %w[last_login updated email stripe_customer_id stripe_subscription_id]
+        vals       = redis.hmget("customer:#{objid}:object", *fields)
+        return nil if vals[2].nil?
 
-        JSON.parse(raw)
-      rescue JSON::ParserError
-        raw.to_s
+        email       = parse_json_field(vals[2])
+        last_login  = parse_ts(vals[0])
+        updated     = parse_ts(vals[1])
+        has_billing = !parse_json_field(vals[3]).to_s.empty? ||
+                      !parse_json_field(vals[4]).to_s.empty?
+
+        source, activity = activity_source(last_login, updated)
+        build_record(OT::Utils.obscure_email(email.to_s), source, activity, has_billing)
+      end
+
+      def load_customer_record_model(objid)
+        cust = Onetime::Customer.load(objid)
+        return nil unless cust
+        return nil if cust.anonymous?
+
+        source, activity = activity_source(cust.last_login.to_f, cust.updated.to_f)
+        build_record(cust.obscure_email, source, activity, stripe_billing?(cust))
+      end
+
+      def activity_source(last_login, updated)
+        last_login > 0 ? ['last_login', last_login] : ['updated', updated]
+      end
+
+      def build_record(email, source, activity, billing)
+        date = activity > 0 ? Time.at(activity).strftime('%Y-%m-%d') : 'unknown'
+        { email: email, source: source, date: date, billing_protected: billing }
+      end
+
+      # Delete customer keys directly from a remote Redis (no model, no index cleanup).
+      # Used when --redis-url points at a pre-migration db where indexes will be abandoned.
+      def delete_customer_keys(redis, objid)
+        keys_to_del = CUSTOMER_SUB_KEYS.map { |suffix| "customer:#{objid}:#{suffix}" }
+        # Also try the bare key (Familia v1 pattern)
+        keys_to_del << "customer:#{objid}"
+
+        # Only delete keys that exist
+        existing = keys_to_del.select { |k| redis.exists?(k) }
+        redis.del(*existing) unless existing.empty?
       end
 
       # Check if customer has any Stripe billing association.
@@ -418,11 +473,9 @@ module Onetime
       # Organization billing fields. If ANY association exists,
       # the customer is protected from purge.
       def stripe_billing?(cust)
-        # Check deprecated v1 billing fields on customer record
         return true unless cust.stripe_customer_id.to_s.empty?
         return true unless cust.stripe_subscription_id.to_s.empty?
 
-        # Check organization billing (current architecture)
         orgs = cust.organization_instances.to_a
         orgs.any? do |org|
           next false unless org
@@ -430,17 +483,8 @@ module Onetime
           !org.stripe_customer_id.to_s.empty?
         end
       rescue StandardError => ex
-        # If we can't determine billing status, protect the customer
         OT.le "[purge] Error checking billing for #{cust.objid}: #{ex.message}"
         true
-      end
-
-      def format_ttl(seconds)
-        if seconds >= 60
-          "#{seconds / 60}m #{seconds % 60}s"
-        else
-          "#{seconds}s"
-        end
       end
     end
 
