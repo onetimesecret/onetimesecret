@@ -109,7 +109,7 @@ module V1
     # Any key shorter than this cannot be a real identifier — it's likely
     # a sub-path segment (e.g. "burn") that reached a :key route after
     # Rack::Protection::PathTraversal collapsed double slashes.
-    V1_MIN_IDENTIFIER_LENGTH = 8
+    V1_MIN_IDENTIFIER_LENGTH = 20
 
     # Returns true when the key param is structurally valid as an
     # identifier (meets minimum length). Short strings like "burn"
