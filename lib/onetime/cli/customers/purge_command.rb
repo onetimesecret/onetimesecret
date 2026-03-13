@@ -115,6 +115,8 @@ module Onetime
         else
           show_dry_run(source_redis, candidates, older_than)
         end
+      rescue ArgumentError => ex
+        puts ex.message
       end
 
       private
@@ -202,6 +204,19 @@ module Onetime
       end
 
       def execute_purge(source_redis, cache_redis, candidates, cutoff)
+        # Verify cache is still populated before executing destructive operation
+        cache_size = cache_redis.zcard(ACTIVITY_CACHE)
+        if cache_size.zero?
+          puts 'Cache expired. Re-run without --purge to rebuild candidate list.'
+          return
+        end
+
+        if cache_size != candidates.size
+          puts "WARNING: Cache size (#{cache_size}) differs from candidate count (#{candidates.size})."
+          puts 'Cache may have been modified. Re-run without --purge to rebuild.'
+          return
+        end
+
         total             = candidates.size
         destroyed         = 0
         skipped           = 0
@@ -321,7 +336,7 @@ module Onetime
             next if role == 'anonymous'
 
             email = parse_json_field(email_raw)
-            next unless email.to_s.include?('@')
+            next unless email.to_s.match?(/\A[^@\s]+@[^@\s]+\z/)
 
             objid = key.split(':')[1]
 
@@ -363,7 +378,7 @@ module Onetime
           customers.each do |cust|
             next unless cust
             next if cust.anonymous?
-            next unless cust.email.to_s.include?('@')
+            next unless cust.email.to_s.match?(/\A[^@\s]+@[^@\s]+\z/)
 
             last_login = cust.last_login.to_f
             updated    = cust.updated.to_f
@@ -390,8 +405,7 @@ module Onetime
       def parse_duration(str)
         match = str.match(/^(\d+)(m|y)$/i)
         unless match
-          puts "Error: Invalid duration '#{str}'. Use format like: 6m, 1y, 2y, 3y, 5y"
-          exit 1
+          raise ArgumentError, "Invalid duration '#{str}'. Use format like: 6m, 1y, 2y, 3y, 5y"
         end
 
         num  = match[1].to_i

@@ -119,7 +119,7 @@ module Onetime
             next if role == 'anonymous'
 
             email = parse_json_field(email_raw)
-            next unless email.to_s.include?('@')
+            next unless email.to_s.match?(/\A[^@\s]+@[^@\s]+\z/)
 
             objid          = key.split(':')[1]
             gaps['total'] += 1
@@ -167,7 +167,7 @@ module Onetime
           customers.each do |cust|
             next unless cust
             next if cust.anonymous?
-            next unless cust.email.to_s.include?('@')
+            next unless cust.email.to_s.match?(/\A[^@\s]+@[^@\s]+\z/)
 
             gaps['total'] += 1
 
