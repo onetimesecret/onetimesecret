@@ -61,6 +61,13 @@ module Onetime
           puts '  bin/ots customers --list                    # List all customers'
           puts '  bin/ots customers --create EMAIL            # Create new customer'
           puts '  bin/ots customers --create EMAIL --role colonel  # Create admin'
+          puts
+          puts 'Subcommands:'
+          puts '  bin/ots customers dates                    # Count by creation year'
+          puts '  bin/ots customers dates --by-age           # Count by age bucket'
+          puts '  bin/ots customers purge --older-than 3y    # Dry-run purge preview'
+          puts '  bin/ots customers purge --older-than 3y --purge  # Execute purge'
+          puts '  bin/ots customers sync-auth-accounts       # Sync to auth DB'
         end
       end
 

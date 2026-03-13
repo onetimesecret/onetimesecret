@@ -71,6 +71,8 @@ require_relative 'cli/boot_test_command'
 require_relative 'cli/migrate_command'
 require_relative 'cli/migrate_redis_data_command'
 require_relative 'cli/customers/sync_auth_accounts_command'
+require_relative 'cli/customers/dates_command'
+require_relative 'cli/customers/purge_command'
 require_relative 'cli/customers_command'
 
 # Load migration CLI commands
