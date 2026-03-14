@@ -318,7 +318,7 @@ module V1
     # Note: app_path is not defined here. Otto provides it on both req and res,
     # prepending script_name to support sub-path mounting. Use req.app_path(...).
 
-    # authentication_enabled? is inherited from SessionHelpers (included
+    # session_auth_enforced? is inherited from SessionHelpers (included
     # at the top of this module). It uses safe `dig` access and defaults
     # to disabled when config is absent — account features are rendered
     # unavailable unless authentication is explicitly configured.
