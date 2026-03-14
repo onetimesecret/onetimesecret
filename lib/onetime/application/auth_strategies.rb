@@ -49,11 +49,19 @@ module Onetime
         end
       end
 
-      # Checks if authentication is enabled in configuration
+      # Can users create and use accounts?
       #
-      # @return [Boolean] true if authentication is enabled
-      def authentication_enabled?
-        settings = OT.conf.dig('site', 'authentication')
+      # Boot-time capability decision — called once during strategy
+      # registration to determine whether to register sessionauth and
+      # basicauth strategies with Otto. Uses strict `== true` because
+      # enabling account capabilities is an explicit opt-in.
+      #
+      # Distinct from SessionHelpers#session_auth_enforced? which is
+      # a per-request check using loose `!= false` comparison.
+      #
+      # @return [Boolean] true only if authentication is explicitly enabled
+      def account_creation_allowed?
+        settings = OT.conf&.dig('site', 'authentication')
         return false unless settings
 
         settings['enabled'] == true
