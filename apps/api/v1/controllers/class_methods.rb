@@ -59,6 +59,7 @@ module V1
         # Integer fields: timestamps and TTLs
         %w[created updated received ttl metadata_ttl secret_ttl].each do |key|
           next unless hsh.key?(key)
+          next if hsh[key].nil?
           hsh[key] = hsh[key].to_i
         end
 
@@ -82,9 +83,10 @@ module V1
             .reject(&:empty?)
         end
 
-        # String fields: ensure nil doesn't leak as JSON null
+        # String fields: coerce non-nil values to strings
         %w[custid metadata_key secret_key state share_domain value].each do |key|
           next unless hsh.key?(key)
+          next if hsh[key].nil?
           hsh[key] = hsh[key].to_s
         end
 
