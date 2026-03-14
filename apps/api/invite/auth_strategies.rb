@@ -29,8 +29,8 @@ module InviteAPI
       # Public routes - always available (anonymous or authenticated)
       otto.add_auth_strategy('noauth', Onetime::Application::AuthStrategies::NoAuthStrategy.new)
 
-      # Check if authentication is enabled at initialization time
-      unless Onetime::Application::AuthStrategies.authentication_enabled?
+      # Check if account creation/usage is allowed at initialization time
+      unless Onetime::Application::AuthStrategies.account_creation_allowed?
         OT.le '[InviteAPI::AuthStrategies] Authentication disabled in config - skipping session strategies'
         return
       end
