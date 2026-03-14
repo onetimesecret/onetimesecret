@@ -29,6 +29,18 @@ module V1
         'revealed'  => 'received',
       }.freeze
 
+      # Field lists for coerce_v1_types — frozen to avoid per-call
+      # array allocation.
+      V1_INTEGER_FIELDS = %w[
+        created updated received ttl metadata_ttl secret_ttl
+      ].freeze
+
+      V1_STRING_FIELDS = %w[
+        custid metadata_key secret_key state share_domain value
+      ].freeze
+
+      V1_FALSY_STRINGS = %w[0 false no off].freeze
+
       # Translate a single state value from v0.24 to v0.23.4 vocabulary.
       # Unknown states pass through unchanged.
       #
@@ -57,18 +69,28 @@ module V1
       #
       def coerce_v1_types(hsh)
         # Integer fields: timestamps and TTLs
-        %w[created updated received ttl metadata_ttl secret_ttl].each do |key|
+        V1_INTEGER_FIELDS.each do |key|
           next unless hsh.key?(key)
           next if hsh[key].nil?
           hsh[key] = hsh[key].to_i
         end
 
-        # Boolean field: passphrase_required must be true/false, never
-        # a truthy string like "true" or "1".
+        # Boolean field: passphrase_required must be true/false.
+        # Normalize all input types consistently: nil stays nil,
+        # strings are case-insensitively matched against known
+        # falsy tokens, and numerics treat 0 as false.
         if hsh.key?('passphrase_required')
           val = hsh['passphrase_required']
-          hsh['passphrase_required'] = if val.is_a?(String)
-                                         !val.empty? && val != '0' && val != 'false'
+          hsh['passphrase_required'] = case val
+                                       when true, false
+                                         val
+                                       when nil
+                                         false
+                                       when String
+                                         !val.strip.empty? &&
+                                           !V1_FALSY_STRINGS.include?(val.strip.downcase)
+                                       when Numeric
+                                         !val.zero?
                                        else
                                          !!val
                                        end
@@ -84,7 +106,7 @@ module V1
         end
 
         # String fields: coerce non-nil values to strings
-        %w[custid metadata_key secret_key state share_domain value].each do |key|
+        V1_STRING_FIELDS.each do |key|
           next unless hsh.key?(key)
           next if hsh[key].nil?
           hsh[key] = hsh[key].to_s
