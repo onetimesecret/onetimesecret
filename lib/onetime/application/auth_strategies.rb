@@ -49,11 +49,18 @@ module Onetime
         end
       end
 
-      # Checks if authentication is enabled in configuration
+      # Should auth strategies (sessionauth, basicauth) be registered?
       #
-      # @return [Boolean] true if authentication is enabled
+      # This is a boot-time capability decision — called once during
+      # strategy registration, not per-request. Uses strict `== true`
+      # because registering auth strategies is an explicit opt-in.
+      #
+      # Distinct from SessionHelpers#authentication_enabled? which is
+      # a per-request check using loose `!= false` comparison.
+      #
+      # @return [Boolean] true only if authentication is explicitly enabled
       def authentication_enabled?
-        settings = OT.conf.dig('site', 'authentication')
+        settings = OT.conf&.dig('site', 'authentication')
         return false unless settings
 
         settings['enabled'] == true
