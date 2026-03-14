@@ -123,4 +123,16 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       described_class.call(org, subscription, owner: true)
     end
   end
+
+  describe 'save: false' do
+    it 'applies fields but does not call save' do
+      subscription = build_subscription
+
+      expect(org).to receive(:subscription_status=).with('active')
+      expect(org).to receive(:planid=).with('identity_plus_v1')
+      expect(org).not_to receive(:save)
+
+      described_class.call(org, subscription, owner: false, save: false)
+    end
+  end
 end

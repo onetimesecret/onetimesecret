@@ -28,7 +28,7 @@
 
 module Onetime
   module CLI
-    class MigrateProbonAccountsCommand < Command
+    class MigrateProbonoAccountsCommand < Command
       desc 'Migrate legacy pro-bono accounts (customer.planid=identity) to $0 subscriptions'
 
       # Conservative rate limit for Stripe API calls
@@ -247,7 +247,7 @@ module Onetime
       # Find existing Stripe customer or create a new one
       def get_or_create_stripe_customer(org, cust)
         # Try existing org stripe_customer_id first
-        if org.stripe_customer_id.to_s.present?
+        unless org.stripe_customer_id.to_s.empty?
           begin
             return Stripe::Customer.retrieve(org.stripe_customer_id)
           rescue Stripe::InvalidRequestError
@@ -256,9 +256,9 @@ module Onetime
         end
 
         # Try finding by email
-        email = org.billing_email.to_s.presence ||
-                org.contact_email.to_s.presence ||
-                cust.email.to_s.presence
+        email = [org.billing_email, org.contact_email, cust.email].find do |e|
+          !e.to_s.empty?
+        end
 
         if email
           existing = Stripe::Customer.list(email: email, limit: 1)
@@ -362,6 +362,6 @@ module Onetime
       end
     end
 
-    register 'migrations migrate-probono-accounts', MigrateProbonAccountsCommand
+    register 'migrations migrate-probono-accounts', MigrateProbonoAccountsCommand
   end
 end

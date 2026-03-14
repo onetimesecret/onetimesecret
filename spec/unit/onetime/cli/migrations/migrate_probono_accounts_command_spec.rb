@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-# Unit tests for MigrateProbonAccountsCommand#process_customer.
+# Unit tests for MigrateProbonoAccountsCommand#process_customer.
 #
 # Covers:
 # - Dry-run mode (no mutations, correct preview output)
@@ -17,7 +17,7 @@
 require 'spec_helper'
 require 'onetime/cli'
 
-RSpec.describe Onetime::CLI::MigrateProbonAccountsCommand do
+RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
   subject(:command) { described_class.new }
 
   let(:customer_email) { 'probono@example.com' }

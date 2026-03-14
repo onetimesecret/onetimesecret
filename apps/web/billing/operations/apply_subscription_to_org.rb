@@ -20,11 +20,11 @@ module Billing
     # complimentary marker and plan resolution.
     #
     # Usage:
-    #   # Owner path (full update with Stripe IDs)
+    #   # Owner path (full update with Stripe IDs, auto-save)
     #   ApplySubscriptionToOrg.call(org, subscription, owner: true)
     #
-    #   # Federated path (status + plan only, no Stripe IDs)
-    #   ApplySubscriptionToOrg.call(org, subscription, owner: false)
+    #   # Federated path (no Stripe IDs, caller saves after marking federated)
+    #   ApplySubscriptionToOrg.call(org, subscription, owner: false, save: false)
     #
     #   # Migration path (owner + explicit plan when price not in catalog)
     #   ApplySubscriptionToOrg.call(org, subscription, owner: true,
@@ -37,16 +37,20 @@ module Billing
       # @param planid_override [String, nil] Explicit plan ID, skips catalog
       #   resolution. Use for migration tooling where the price may not be
       #   in the catalog yet.
-      # @return [Boolean] Result of org.save
-      def self.call(org, subscription, owner: true, planid_override: nil)
-        new(org, subscription, owner: owner, planid_override: planid_override).call
+      # @param save [Boolean] Whether to call org.save after applying fields.
+      #   Set to false when the caller needs to set additional fields before
+      #   saving (e.g., federation marking).
+      # @return [Boolean, nil] Result of org.save, or nil when save: false
+      def self.call(org, subscription, owner: true, planid_override: nil, save: true)
+        new(org, subscription, owner: owner, planid_override: planid_override, save: save).call
       end
 
-      def initialize(org, subscription, owner: true, planid_override: nil)
+      def initialize(org, subscription, owner: true, planid_override: nil, save: true)
         @org              = org
         @subscription     = subscription
         @owner            = owner
         @planid_override  = planid_override
+        @save             = save
       end
 
       def call
@@ -55,7 +59,7 @@ module Billing
         apply_complimentary_marker
         apply_owner_fields if @owner
 
-        @org.save
+        @org.save if @save
       end
 
       private

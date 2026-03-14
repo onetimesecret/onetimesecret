@@ -117,9 +117,10 @@ module Billing
           first_federation = !org.subscription_federated?
 
           # Delegate field-setting to shared operation (federated path:
-          # status + plan + complimentary, but NOT stripe IDs)
+          # status + plan + complimentary, but NOT stripe IDs).
+          # save: false because we set additional fields below before saving.
           Billing::Operations::ApplySubscriptionToOrg.call(
-            org, subscription, owner: false
+            org, subscription, owner: false, save: false
           )
 
           # Mark as federated if first time
