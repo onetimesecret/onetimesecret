@@ -87,7 +87,11 @@ module Billing
         @org.planid = plan_id if plan_id
       end
 
-      # Sync complimentary marker from subscription metadata
+      # Cache Stripe's complimentary marker locally (Stripe → org, never reverse)
+      #
+      # Reads metadata['complimentary'] from the Stripe subscription and
+      # stores it on the org for fast local queries. This is the only
+      # codepath that should write org.complimentary.
       def apply_complimentary_marker
         meta = @subscription.metadata
         if meta && meta[Billing::Metadata::FIELD_COMPLIMENTARY].to_s == 'true'

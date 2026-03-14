@@ -49,9 +49,13 @@ module Onetime
           # Unix timestamp, nil if never dismissed
           base.field :federation_notification_dismissed_at
 
-          # Complimentary subscription marker
-          # Set to 'true' when org has a $0 complimentary subscription (pro-bono).
-          # Synced from Stripe subscription metadata['complimentary'] field.
+          # Complimentary subscription marker (read-only cache, Stripe → local)
+          #
+          # Mirrors Stripe subscription metadata['complimentary']. The source
+          # of truth is Stripe — this field is written only by webhook
+          # processing (ApplySubscriptionToOrg) and migration tooling, never
+          # pushed back to Stripe. To grant or revoke complimentary status,
+          # update the Stripe subscription metadata and let webhooks propagate.
           base.field :complimentary
 
           # Currency migration intent fields
@@ -181,9 +185,9 @@ module Onetime
           # the subscription carries no revenue, but the org still gets
           # premium entitlements through its planid.
           #
-          # The complimentary field is synced from Stripe subscription
-          # metadata['complimentary'] during webhook processing and
-          # migration tooling.
+          # This reads a local cache of Stripe state. To change an org's
+          # complimentary status, update the Stripe subscription metadata
+          # and let webhooks propagate — do not set this field directly.
           #
           # @return [Boolean] True if org has active complimentary subscription
           #
@@ -374,6 +378,10 @@ module Onetime
           end
 
           # Clear billing fields (on subscription cancellation)
+          #
+          # Called by webhook handlers when a subscription is deleted.
+          # Clears the complimentary cache along with other billing state
+          # because the Stripe subscription that sourced it no longer exists.
           #
           # @return [Boolean] True if saved successfully
           def clear_billing_fields

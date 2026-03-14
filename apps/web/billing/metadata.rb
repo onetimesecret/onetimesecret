@@ -24,7 +24,9 @@ module Billing
     FIELD_DISPLAY_ORDER      = 'display_order'
     FIELD_SHOW_ON_PLANS_PAGE = 'show_on_plans_page'
 
-    # Complimentary subscription marker (set on Stripe subscription metadata)
+    # Complimentary subscription marker — lives on Stripe subscription
+    # metadata and is cached locally on org.complimentary by webhooks.
+    # Stripe is the source of truth; the local field is read-only.
     FIELD_COMPLIMENTARY      = 'complimentary'
 
     # Optional metadata fields
