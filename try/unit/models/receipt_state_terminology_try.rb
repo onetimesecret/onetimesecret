@@ -160,3 +160,198 @@ receipt.previewed!
 dump = receipt.safe_dump
 dump[:is_previewed]
 #=> true
+
+# ----------------------------------------------------------------
+# burned! transitions (#2619)
+# ----------------------------------------------------------------
+
+## burned! transitions from :new to 'burned'
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.burned!
+receipt.state
+#=> 'burned'
+
+## burned! sets burned timestamp
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.burned!
+receipt.burned.to_i > 0
+#=> true
+
+## burned! clears secret_identifier
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+original = receipt.secret_identifier
+receipt.burned!
+[original.length > 0, receipt.secret_identifier]
+#=> [true, '']
+
+## burned! transitions from :previewed to 'burned'
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.previewed!
+receipt.burned!
+receipt.state
+#=> 'burned'
+
+## state?(:burned) returns true after burned!
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.burned!
+receipt.state?(:burned)
+#=> true
+
+## burned! guard prevents transition from :revealed
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.revealed!
+receipt.burned!
+receipt.state
+#=> 'revealed'
+
+## burned! guard prevents transition from :burned (no double-burn)
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.burned!
+ts = receipt.burned.to_i
+receipt.burned!
+receipt.burned.to_i == ts
+#=> true
+
+# ----------------------------------------------------------------
+# orphaned! transitions (#2619)
+# ----------------------------------------------------------------
+
+## orphaned! transitions from :new to 'orphaned'
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.orphaned!
+receipt.state
+#=> 'orphaned'
+
+## orphaned! clears secret_identifier
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+original = receipt.secret_identifier
+receipt.orphaned!
+[original.length > 0, receipt.secret_identifier]
+#=> [true, '']
+
+## orphaned! sets updated timestamp
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.orphaned!
+receipt.updated.to_i > 0
+#=> true
+
+## orphaned! transitions from :previewed to 'orphaned'
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.previewed!
+receipt.orphaned!
+receipt.state
+#=> 'orphaned'
+
+## state?(:orphaned) returns true after orphaned!
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.orphaned!
+receipt.state?(:orphaned)
+#=> true
+
+## orphaned! guard prevents transition from :revealed
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.revealed!
+receipt.orphaned!
+receipt.state
+#=> 'revealed'
+
+## orphaned! guard prevents transition from :burned
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.burned!
+receipt.orphaned!
+receipt.state
+#=> 'burned'
+
+## orphaned! guard requires non-empty secret_identifier
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.secret_identifier = ''
+receipt.save
+receipt.orphaned!
+receipt.state
+#=> 'new'
+
+# ----------------------------------------------------------------
+# expired! transitions (#2619)
+# ----------------------------------------------------------------
+
+## expired! transitions to 'expired' when secret has expired
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 1, 'test secret'
+# Force created timestamp far in the past so secret_expired? returns true
+receipt.created = (Familia.now.to_i - 3600)
+receipt.save
+receipt.expired!
+receipt.state
+#=> 'expired'
+
+## expired! clears secret_identifier and secret_key
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 1, 'test secret'
+receipt.created = (Familia.now.to_i - 3600)
+receipt.save
+receipt.expired!
+[receipt.secret_identifier, receipt.secret_key]
+#=> ['', '']
+
+## expired! sets updated timestamp
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 1, 'test secret'
+receipt.created = (Familia.now.to_i - 3600)
+receipt.save
+receipt.expired!
+receipt.updated.to_i > 0
+#=> true
+
+## state?(:expired) returns true after expired!
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 1, 'test secret'
+receipt.created = (Familia.now.to_i - 3600)
+receipt.save
+receipt.expired!
+receipt.state?(:expired)
+#=> true
+
+## expired! guard prevents transition when secret has not expired
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 86400, 'test secret'
+receipt.expired!
+receipt.state
+#=> 'new'
+
+# ----------------------------------------------------------------
+# Sequential lifecycle chains (#2619)
+# ----------------------------------------------------------------
+
+## new → previewed → burned chain
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+s1 = receipt.state
+receipt.previewed!
+s2 = receipt.state
+receipt.burned!
+s3 = receipt.state
+[s1, s2, s3]
+#=> ['new', 'previewed', 'burned']
+
+## new → previewed → revealed chain
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+s1 = receipt.state
+receipt.previewed!
+s2 = receipt.state
+receipt.revealed!
+s3 = receipt.state
+[s1, s2, s3]
+#=> ['new', 'previewed', 'revealed']
+
+## new → previewed → orphaned chain
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+s1 = receipt.state
+receipt.previewed!
+s2 = receipt.state
+receipt.orphaned!
+s3 = receipt.state
+[s1, s2, s3]
+#=> ['new', 'previewed', 'orphaned']
+
+## Terminal states reject all further transitions
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.burned!
+receipt.previewed!
+receipt.revealed!
+receipt.orphaned!
+receipt.state
+#=> 'burned'
