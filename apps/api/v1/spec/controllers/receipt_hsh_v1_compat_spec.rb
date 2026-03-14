@@ -97,7 +97,7 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
       expect(result_no_domain['metadata_url']).not_to be_empty
     end
 
-    it 'returns nil metadata_url when both share_domain and site host are absent' do
+    it 'returns nil metadata_url when share_domain is nil and site host key is absent' do
       no_domain_hash = base_hash.merge('share_domain' => nil)
       md_no_domain = double('Onetime::Receipt',
         to_h: no_domain_hash,
@@ -107,6 +107,30 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
       allow(Onetime).to receive(:conf).and_return({ 'site' => {} })
       result_no_domain = V1::Controllers::Index.receipt_hsh(md_no_domain)
       expect(result_no_domain['metadata_url']).to be_nil
+    end
+
+    it 'returns nil metadata_url when share_domain is empty and site host is empty string' do
+      empty_domain_hash = base_hash.merge('share_domain' => '')
+      md_empty = double('Onetime::Receipt',
+        to_h: empty_domain_hash,
+        identifier: 'metadata_key_123',
+        secret_ttl: 3600,
+        current_expiration: 7000)
+      allow(Onetime).to receive(:conf).and_return({ 'site' => { 'host' => '' } })
+      result_empty = V1::Controllers::Index.receipt_hsh(md_empty)
+      expect(result_empty['metadata_url']).to be_nil
+    end
+
+    it 'returns nil metadata_url when share_domain is nil and site host is nil' do
+      nil_domain_hash = base_hash.merge('share_domain' => nil)
+      md_nil = double('Onetime::Receipt',
+        to_h: nil_domain_hash,
+        identifier: 'metadata_key_123',
+        secret_ttl: 3600,
+        current_expiration: 7000)
+      allow(Onetime).to receive(:conf).and_return({ 'site' => { 'host' => nil } })
+      result_nil = V1::Controllers::Index.receipt_hsh(md_nil)
+      expect(result_nil['metadata_url']).to be_nil
     end
 
     it 'includes all seven V1 field names for a new receipt' do
