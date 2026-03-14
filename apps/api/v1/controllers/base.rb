@@ -119,13 +119,12 @@ module V1
       key.to_s.length >= V1_MIN_IDENTIFIER_LENGTH
     end
 
-    # Return the same response format as Otto's not_found handler.
-    # Used when a route matched but the key param is structurally
-    # invalid — reproduces v0.23 behavior where these paths never
-    # matched a route at all.
+    # Return a 404 when a route matched but the key param is
+    # structurally invalid (too short to be a real identifier).
+    # Uses V1's standard not_found_response for a consistent
+    # error shape across all V1 endpoints.
     def otto_not_found
-      res.status = 404
-      json :error => 'Not Found'
+      not_found_response 'Not Found'
     end
 
     def disabled_response path

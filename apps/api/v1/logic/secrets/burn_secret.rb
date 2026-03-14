@@ -40,7 +40,7 @@ module V1::Logic
             @secret = potential_secret
             owner = secret.load_owner
             secret.burned!
-            owner&.increment_field(:secrets_burned) unless owner.nil? || owner.anonymous?
+            owner.increment_field(:secrets_burned) if owner && !owner.anonymous?
             # TODO:
             # Onetime::Customer.global.increment_field :secrets_burned
 

@@ -64,7 +64,7 @@ module V1::Logic
             end
           else
 
-            owner&.increment_field(:secrets_shared) unless owner.nil? || owner.anonymous?
+            owner.increment_field(:secrets_shared) if owner && !owner.anonymous?
             # TODO:
             # Onetime::Customer.global.increment_field :secrets_shared
 
