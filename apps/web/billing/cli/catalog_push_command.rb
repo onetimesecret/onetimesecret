@@ -530,14 +530,19 @@ module Onetime
 
       def create_price(product_id, price_def)
         with_stripe_retry do
-          Stripe::Price.create(
+          params = {
             product: product_id,
             unit_amount: price_def[:amount],
             currency: price_def[:currency].downcase,
             recurring: {
               interval: price_def[:interval],
             },
-          )
+          }
+
+          # Forward price-level metadata when defined in billing.yaml
+          params[:metadata] = price_def[:metadata] if price_def[:metadata]&.any?
+
+          Stripe::Price.create(params)
         end
 
         amount_display = format_amount(price_def[:amount], price_def[:currency])

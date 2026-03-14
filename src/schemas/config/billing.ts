@@ -137,6 +137,10 @@ export const PlanPriceSchema = z.object({
   interval: BillingIntervalSchema,
   amount: z.number().int().nonnegative().describe('Amount in cents (e.g., 2900 = $29.00)'),
   currency: CurrencyCodeSchema,
+  metadata: z
+    .record(z.string(), z.string())
+    .optional()
+    .describe('Optional metadata passed through to Stripe::Price.create()'),
 });
 
 export type PlanPrice = z.infer<typeof PlanPriceSchema>;
