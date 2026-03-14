@@ -50,7 +50,7 @@ RSpec.describe V1::Controllers::Index, type: :request do
   end
 
   describe '#show_secret' do
-    let(:secret_key) { 'test_secret_key' }
+    let(:secret_key) { 'test_secret_key_abcdefg' }
     let(:logic) { instance_double(V1::Logic::Secrets::ShowSecret) }
     let(:secret_params) { {'key' => secret_key, 'continue' => 'true'} }
 
@@ -280,7 +280,7 @@ RSpec.describe V1::Controllers::Index, type: :request do
   describe '#show_secret (passphrase required case)' do
     # The existing context covers show_secret=true and show_secret=false (not found).
     # This adds the passphrase-required case: secret exists but correct_passphrase is false.
-    let(:secret_key) { 'locked_secret_key' }
+    let(:secret_key) { 'locked_secret_key_abcde' }
     let(:logic) { instance_double(V1::Logic::Secrets::ShowSecret) }
     let(:secret_params) { {'key' => secret_key, 'continue' => 'true'} }
 
@@ -304,7 +304,7 @@ RSpec.describe V1::Controllers::Index, type: :request do
   end
 
   describe '#burn_secret' do
-    let(:receipt_key) { 'receipt_key_burn' }
+    let(:receipt_key) { 'receipt_key_burn_abcde' }
     let(:logic) { instance_double(V1::Logic::Secrets::BurnSecret) }
     let(:burn_params) { {'key' => receipt_key, 'continue' => 'true'} }
     let(:receipt) do

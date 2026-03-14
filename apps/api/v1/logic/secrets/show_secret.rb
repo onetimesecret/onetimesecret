@@ -52,7 +52,9 @@ module V1::Logic
           @original_size = secret.respond_to?(:original_size) ? secret.original_size : nil
 
           if verification
-            if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
+            if owner.nil?
+              raise_form_error "Unable to verify account"
+            elsif cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
               owner.verified! "true"
               # Skip for stateless auth (BasicAuth provides empty session)
               sess.clear unless sess.empty?
@@ -62,7 +64,7 @@ module V1::Logic
             end
           else
 
-            owner.increment_field :secrets_shared unless owner.anonymous?
+            owner.increment_field(:secrets_shared) if owner && !owner.anonymous?
             # TODO:
             # Onetime::Customer.global.increment_field :secrets_shared
 
