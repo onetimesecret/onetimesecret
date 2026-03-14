@@ -97,6 +97,18 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
       expect(result_no_domain['metadata_url']).not_to be_empty
     end
 
+    it 'returns nil metadata_url when both share_domain and site host are absent' do
+      no_domain_hash = base_hash.merge('share_domain' => nil)
+      md_no_domain = double('Onetime::Receipt',
+        to_h: no_domain_hash,
+        identifier: 'metadata_key_123',
+        secret_ttl: 3600,
+        current_expiration: 7000)
+      allow(Onetime).to receive(:conf).and_return({ 'site' => {} })
+      result_no_domain = V1::Controllers::Index.receipt_hsh(md_no_domain)
+      expect(result_no_domain['metadata_url']).to be_nil
+    end
+
     it 'includes all seven V1 field names for a new receipt' do
       result_full = V1::Controllers::Index.receipt_hsh(md,
         value: 'test', passphrase_required: false, secret_ttl: 3600)

@@ -126,10 +126,12 @@ module V1
         # it; otherwise we derive it from config + share_domain + identifier.
         v1_metadata_url = opts[:metadata_url]
         if v1_metadata_url.nil? || v1_metadata_url.to_s.empty?
-          scheme = Onetime.conf.dig('site', 'ssl') ? 'https://' : 'http://'
-          domain = hsh.fetch('share_domain', nil)
-          domain = Onetime.conf.dig('site', 'host') if domain.nil? || domain.to_s.empty?
-          v1_metadata_url = "#{scheme}#{domain}/receipt/#{md.identifier}"
+          domain = hsh.fetch('share_domain', nil).to_s
+          domain = Onetime.conf.dig('site', 'host').to_s if domain.empty?
+          unless domain.empty?
+            scheme = Onetime.conf.dig('site', 'ssl') ? 'https://' : 'http://'
+            v1_metadata_url = "#{scheme}#{domain}/receipt/#{md.identifier}"
+          end
         end
 
         ret = {
