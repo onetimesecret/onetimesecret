@@ -261,5 +261,54 @@ end
 with_version('0.0.0-feature-my-thing.abc1234') { Onetime::VERSION.to_s }
 #=> '0.0.0-feature-my-thing.abc1234'
 
+## Branch slug with many hyphens preserves full pre-release suffix
+with_version('0.0.0-fix-long-branch-name-here.def5678') do
+  Onetime::VERSION.instance_variable_get(:@version)[:PRE]
+end
+#=> 'fix-long-branch-name-here.def5678'
+
+## Branch slug with many hyphens round-trips through to_s
+with_version('0.0.0-fix-long-branch-name-here.def5678') { Onetime::VERSION.to_s }
+#=> '0.0.0-fix-long-branch-name-here.def5678'
+
+## Semver pre-release with embedded hyphens preserves full suffix
+with_version('1.0.0-beta.1-rc.2') do
+  Onetime::VERSION.instance_variable_get(:@version)[:PRE]
+end
+#=> 'beta.1-rc.2'
+
+## Semver pre-release with embedded hyphens round-trips through to_s
+with_version('1.0.0-beta.1-rc.2') { Onetime::VERSION.to_s }
+#=> '1.0.0-beta.1-rc.2'
+
+## Single-character pre-release identifier
+with_version('2.0.0-a') do
+  Onetime::VERSION.instance_variable_get(:@version)[:PRE]
+end
+#=> 'a'
+
+## Single-character pre-release round-trips through to_s
+with_version('2.0.0-a') { Onetime::VERSION.to_s }
+#=> '2.0.0-a'
+
+## Pre-release that is only hyphens after the first split
+with_version('0.0.0-a-b-c-d-e') do
+  Onetime::VERSION.instance_variable_get(:@version)[:PRE]
+end
+#=> 'a-b-c-d-e'
+
+## details for hyphenated branch build starts with full version string
+with_version('0.0.0-feature-my-thing.abc1234') do
+  Onetime::VERSION.details.start_with?('0.0.0-feature-my-thing.abc1234')
+end
+#=> true
+
+## user_agent includes full hyphenated pre-release suffix
+with_version('0.0.0-feature-my-thing.abc1234') do
+  ua = Onetime::VERSION.user_agent
+  ua.match?(/\AOnetimeWorker\/0\.0\.0-feature-my-thing\.abc1234 \(Ruby\//)
+end
+#=> true
+
 # Teardown - Restore original version cache state
 Onetime::VERSION.instance_variable_set(:@version, nil)
