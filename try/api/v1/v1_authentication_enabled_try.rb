@@ -8,6 +8,10 @@
 # This is a regression test for issue #2620 where the previous `rescue false`
 # pattern caused API auth to silently fail when config keys were missing,
 # returning 404 for valid Basic Auth credentials on POST /api/v1/share.
+#
+# Also verifies that the `signin` flag does NOT gate API key authentication.
+# The `signin` flag controls web login forms — a deployment with
+# `enabled: true, signin: false` must still accept API credentials.
 
 require_relative '../../support/test_helpers'
 OT.boot! :test
@@ -23,15 +27,13 @@ end
 @harness = V1AuthTestHarness.new
 
 # Save original config for restoration
-@original_conf = OT.conf.dup
-@original_site = OT.conf['site'].dup
 @original_auth = OT.conf['site']['authentication']&.dup
 
 # -----------------------------------------------------------------------
 # TEST: authentication_enabled? returns true with standard config
 # -----------------------------------------------------------------------
 
-## TC-1: Returns true when authentication.enabled and authentication.signin are both true
+## TC-1: Returns true when authentication.enabled is true
 OT.conf['site']['authentication'] = { 'enabled' => true, 'signin' => true }
 @harness.authentication_enabled?
 #=> true
@@ -41,8 +43,19 @@ OT.conf['site']['authentication'] = { 'enabled' => false, 'signin' => true }
 @harness.authentication_enabled?
 #=> false
 
-## TC-3: Returns false when authentication.signin is explicitly false
+# -----------------------------------------------------------------------
+# TEST: signin flag does NOT gate API authentication (#2620 insight)
+# -----------------------------------------------------------------------
+
+## TC-3: Returns true when signin is false but enabled is true
+# A deployment may disable web login while keeping the API active.
+# The previous implementation incorrectly returned false here.
 OT.conf['site']['authentication'] = { 'enabled' => true, 'signin' => false }
+@harness.authentication_enabled?
+#=> true
+
+## TC-4: Returns false only when enabled is explicitly false
+OT.conf['site']['authentication'] = { 'enabled' => false, 'signin' => false }
 @harness.authentication_enabled?
 #=> false
 
@@ -50,23 +63,24 @@ OT.conf['site']['authentication'] = { 'enabled' => true, 'signin' => false }
 # TEST: Defaults to enabled when config keys are missing (the #2620 fix)
 # -----------------------------------------------------------------------
 
-## TC-4: Returns true when authentication hash is missing entirely
+## TC-5: Returns true when authentication hash is missing entirely
 OT.conf['site'].delete('authentication')
 @harness.authentication_enabled?
 #=> true
 
-## TC-5: Returns true when only 'enabled' key is present and true
+## TC-6: Returns true when only 'enabled' key is present and true
 OT.conf['site']['authentication'] = { 'enabled' => true }
-@harness.authentication_enabled?
-#=> true
-
-## TC-6: Returns true when only 'signin' key is present and true
-OT.conf['site']['authentication'] = { 'signin' => true }
 @harness.authentication_enabled?
 #=> true
 
 ## TC-7: Returns true when authentication hash is empty
 OT.conf['site']['authentication'] = {}
+@harness.authentication_enabled?
+#=> true
+
+## TC-8: Returns true when only 'signin' key is present (enabled absent)
+# Missing 'enabled' key defaults to enabled, signin is irrelevant for API.
+OT.conf['site']['authentication'] = { 'signin' => false }
 @harness.authentication_enabled?
 #=> true
 

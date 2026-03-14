@@ -324,6 +324,11 @@ module V1
     # configuration is missing. This aligns with SessionHelpers and ensures
     # API authentication works even when config keys are absent.
     #
+    # Only checks `authentication.enabled` — NOT `signin`. The `signin`
+    # flag controls web login forms and should not gate API key
+    # authentication. A deployment with `enabled: true, signin: false`
+    # (web login disabled, API active) must still accept API credentials.
+    #
     # @return [Boolean] True if authentication is enabled, false only if
     #   explicitly disabled in configuration.
     #
@@ -333,9 +338,7 @@ module V1
       auth_conf = OT.conf&.dig('site', 'authentication')
       return true unless auth_conf
 
-      # Both 'enabled' and 'signin' must not be explicitly set to false.
-      # Missing keys default to enabled (true).
-      auth_conf['enabled'] != false && auth_conf['signin'] != false
+      auth_conf['enabled'] != false
     end
 
     def log_customer_activity
