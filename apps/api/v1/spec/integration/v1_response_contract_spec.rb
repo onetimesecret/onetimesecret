@@ -264,6 +264,68 @@ RSpec.describe 'V1 API Response Contract', type: :integration do
     end
   end
 
+  # ----------------------------------------------------------------
+  # Sequential lifecycle: v0.24 states never leak (#2619)
+  # ----------------------------------------------------------------
+  describe 'state-machine lifecycle: create → view → reveal (#2619)' do
+    let(:v024_only_states) { %w[previewed revealed shared] }
+
+    it 'returns only v0.23.4 state vocabulary at each step' do
+      # Step 1: Create — state should be 'new'
+      post '/api/v1/share', { secret: 'lifecycle test secret', ttl: 3600 }
+      create_body = JSON.parse(last_response.body)
+      metadata_key = create_body['metadata_key']
+      secret_key = create_body['secret_key']
+      expect(create_body['state']).to eq('new')
+
+      # Step 2: View receipt — state should still be 'new' or 'viewed'
+      get "/api/v1/receipt/#{metadata_key}"
+      view_body = JSON.parse(last_response.body)
+      expect(v024_only_states).not_to include(view_body['state'])
+
+      # Step 3: Reveal secret — receipt state becomes 'received'
+      post "/api/v1/secret/#{secret_key}", {}
+      # Check the receipt after reveal
+      get "/api/v1/receipt/#{metadata_key}"
+      reveal_body = JSON.parse(last_response.body)
+      expect(v024_only_states).not_to include(reveal_body['state'])
+
+      # Collect all states and verify none are v0.24-only
+      all_states = [
+        create_body['state'],
+        view_body['state'],
+        reveal_body['state'],
+      ]
+      expect(all_states).to all(satisfy('be v0.23.4 vocabulary') { |s|
+        !v024_only_states.include?(s)
+      })
+    end
+
+    it 'returns only v0.23.4 state vocabulary through burn lifecycle' do
+      # Step 1: Create
+      post '/api/v1/share', { secret: 'burn lifecycle secret', ttl: 3600 }
+      create_body = JSON.parse(last_response.body)
+      metadata_key = create_body['metadata_key']
+      expect(create_body['state']).to eq('new')
+
+      # Step 2: View receipt
+      get "/api/v1/receipt/#{metadata_key}"
+      view_body = JSON.parse(last_response.body)
+      expect(v024_only_states).not_to include(view_body['state'])
+
+      # Step 3: Burn
+      post "/api/v1/receipt/#{metadata_key}/burn", { continue: 'true' }
+      burn_body = JSON.parse(last_response.body)
+      burn_state = burn_body['state']
+      # Burn returns state as a hash (nested receipt_hsh)
+      if burn_state.is_a?(Hash)
+        expect(v024_only_states).not_to include(burn_state['state'])
+      else
+        expect(v024_only_states).not_to include(burn_state)
+      end
+    end
+  end
+
   # Keys shorter than V1_MIN_IDENTIFIER_LENGTH (20) are rejected early
   # by valid_identifier? — exercises the otto_not_found code path.
   describe 'short key rejection (valid_identifier? guard)' do
