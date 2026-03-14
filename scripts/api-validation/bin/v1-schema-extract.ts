@@ -614,70 +614,68 @@ function main() {
 
   // ── Report ──
 
-  // V1-specific results (what matters for backward compat)
-  const v1Breaking = v1Diffs.filter(d => d.severity === 'breaking');
-  const v1Warnings = v1Diffs.filter(d => d.severity === 'warning');
-  const v1Info = v1Diffs.filter(d => d.severity === 'info');
+  function summarizeAndLogDiffs(
+    diffs: SchemaDiff[],
+    label: string,
+    banner: string,
+    subtitle?: string
+  ): { breaking: number; warnings: number; info: number } {
+    const breaking = diffs.filter(d => d.severity === 'breaking');
+    const warns = diffs.filter(d => d.severity === 'warning');
+    const infos = diffs.filter(d => d.severity === 'info');
 
-  console.log('\n╔══════════════════════════════════════════════╗');
-  console.log('║  V1 API Wire Format (client-facing)          ║');
-  console.log('╚══════════════════════════════════════════════╝');
+    console.log(`\n╔══════════════════════════════════════════════╗`);
+    console.log(`║  ${banner.padEnd(43)}║`);
+    console.log(`╚══════════════════════════════════════════════╝`);
 
-  if (v1Breaking.length === 0) {
-    console.log('\n  ✓ No breaking changes for V1 API clients');
-  } else {
-    console.log('\n--- V1 Breaking Changes ---');
-    for (const d of v1Breaking) {
-      console.log(`  [BREAK] ${d.category} :: ${d.field} — ${d.description}`);
+    if (breaking.length === 0) {
+      console.log(`\n  ✓ No breaking changes for ${label}`);
+    } else {
+      console.log(`\n--- ${label} Breaking Changes ---`);
+      for (const d of breaking) {
+        console.log(`  [BREAK] ${d.category} :: ${d.field} — ${d.description}`);
+      }
     }
+
+    if (warns.length > 0) {
+      console.log(`\n--- ${label} Warnings ---`);
+      for (const d of warns) {
+        console.log(`  [WARN]  ${d.category} :: ${d.field} — ${d.description}`);
+      }
+    }
+
+    console.log(`\n${label} Total: ${breaking.length} breaking, ${warns.length} warnings, ${infos.length} info`);
+    if (subtitle) {
+      console.log(subtitle);
+    }
+
+    return { breaking: breaking.length, warnings: warns.length, info: infos.length };
   }
 
-  if (v1Warnings.length > 0) {
-    console.log('\n--- V1 Warnings ---');
-    for (const d of v1Warnings) {
-      console.log(`  [WARN]  ${d.category} :: ${d.field} — ${d.description}`);
-    }
-  }
-
-  console.log(`\nV1 Total: ${v1Breaking.length} breaking, ${v1Warnings.length} warnings, ${v1Info.length} info`);
-
-  // V3/model results (internal reference)
-  const v3Breaking = v3Diffs.filter(d => d.severity === 'breaking');
-  const v3Warnings = v3Diffs.filter(d => d.severity === 'warning');
-  const v3Info = v3Diffs.filter(d => d.severity === 'info');
-
-  console.log('\n╔══════════════════════════════════════════════╗');
-  console.log('║  V3/Model Schemas (internal reference)       ║');
-  console.log('╚══════════════════════════════════════════════╝');
-  console.log(`\nV3 Total: ${v3Breaking.length} breaking, ${v3Warnings.length} warnings, ${v3Info.length} info`);
-  console.log('(These are internal model changes, NOT visible to V1 clients)');
-
-  // Combined totals
-  const breaking = allDiffs.filter(d => d.severity === 'breaking');
-  const warnings = allDiffs.filter(d => d.severity === 'warning');
-  const info = allDiffs.filter(d => d.severity === 'info');
-
-  console.log(`\nCombined Total: ${breaking.length} breaking, ${warnings.length} warnings, ${info.length} info`);
+  const v1Summary = summarizeAndLogDiffs(
+    v1Diffs,
+    'V1',
+    'V1 API Wire Format (client-facing)'
+  );
+  const v3Summary = summarizeAndLogDiffs(
+    v3Diffs,
+    'V3',
+    'V3/Model Schemas (internal reference)',
+    '(These are internal model changes, NOT visible to V1 clients)'
+  );
+  const combinedSummary = summarizeAndLogDiffs(
+    allDiffs,
+    'Combined',
+    'Combined Totals'
+  );
 
   // Write report
   const report = {
     generated: new Date().toISOString(),
     summary: {
-      v1_wire_format: {
-        breaking: v1Breaking.length,
-        warnings: v1Warnings.length,
-        info: v1Info.length,
-      },
-      v3_internal: {
-        breaking: v3Breaking.length,
-        warnings: v3Warnings.length,
-        info: v3Info.length,
-      },
-      combined: {
-        breaking: breaking.length,
-        warnings: warnings.length,
-        info: info.length,
-      },
+      v1_wire_format: v1Summary,
+      v3_internal: v3Summary,
+      combined: combinedSummary,
     },
     v1_diffs: v1Diffs,
     v3_diffs: v3Diffs,
