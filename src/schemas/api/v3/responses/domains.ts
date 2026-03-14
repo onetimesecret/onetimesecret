@@ -38,7 +38,12 @@ const brandSettingsRecord = z
   })
   .partial();
 
-/** Vhost (virtual host) details from domain provider. */
+/** Vhost (virtual host) details from domain provider.
+ *  Timestamps use fromString.date/dateNullable (parseDateValue) instead
+ *  of fromNumber transforms because vhost data comes verbatim from an
+ *  external provider (Approximated) whose API returns string timestamps,
+ *  not the numeric epochs that OTS's own V3 serialization produces.
+ */
 const vhostRecord = z
   .object({
     target_address: z.string().optional(),
@@ -48,10 +53,10 @@ const vhostRecord = z
     has_ssl: z.boolean().optional(),
     is_resolving: z.boolean().optional(),
     status_message: z.string().optional(),
-    created_at: transforms.fromNumber.toDateOptional,
-    last_monitored_unix: transforms.fromNumber.toDateOptional,
-    ssl_active_from: transforms.fromNumber.toDateNullable,
-    ssl_active_until: transforms.fromNumber.toDateNullable,
+    created_at: transforms.fromString.date.optional(),
+    last_monitored_unix: transforms.fromString.date.optional(),
+    ssl_active_from: transforms.fromString.dateNullable,
+    ssl_active_until: transforms.fromString.dateNullable,
   })
   .partial();
 

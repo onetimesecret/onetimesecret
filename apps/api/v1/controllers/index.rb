@@ -100,6 +100,8 @@ module V1
 
       def show_receipt
         authorized(true) do
+          return otto_not_found unless valid_identifier?(req.params['key'])
+
           logic = V1::Logic::Secrets::ShowReceipt.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
@@ -138,6 +140,8 @@ module V1
 
       def show_secret
         authorized(true) do
+          return otto_not_found unless valid_identifier?(req.params['key'])
+
           req.params['continue'] = 'true'
           logic = V1::Logic::Secrets::ShowSecret.new sess, cust, req.params, locale
           logic.raise_concerns
@@ -155,6 +159,8 @@ module V1
       # curl -X POST -u 'EMAIL:APITOKEN' http://LOCALHOSTNAME:3000/api/v1/receipt/:key/burn
       def burn_secret
         authorized(true) do
+          return otto_not_found unless valid_identifier?(req.params['key'])
+
           req.params['continue'] = 'true'
           logic = V1::Logic::Secrets::BurnSecret.new sess, cust, req.params, locale
           logic.raise_concerns

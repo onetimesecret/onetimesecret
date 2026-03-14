@@ -28,12 +28,13 @@ chmod 600 .ots_secret
 echo "Secret key saved to .ots_secret (keep this file secure!)"
 
 # Now run the container using the key
+# ⚠️ WARNING: Set SSL=true for production deployments
 docker run -p 3000:3000 -d \
   -e REDIS_URL=redis://host.docker.internal:6379/0 \
   -e SECRET="$(cat .ots_secret)" \
   -e HOST=localhost:3000 \
   -e AUTH_REQUIRED=false \
-  -e SSL=false \ # ⚠️ WARNING: Set SSL=true for production deployments
+  -e SSL=false \
   onetimesecret/onetimesecret:v0.24.0
 ```
 
@@ -65,9 +66,9 @@ Starting with v0.23, Onetime Secret uses Redis database 0 for all models by defa
 
 ### Essential Settings
 
-Create `./etc/config.yaml` from the example:
+Create `./etc/config.yaml` from the defaults:
 ```bash
-cp -p ./etc/defaults/config.defaults.yaml ./etc/config.yaml
+cp -np ./etc/defaults/config.defaults.yaml ./etc/config.yaml
 ```
 
 Key configuration areas:
@@ -122,9 +123,9 @@ docker build -t onetimesecret .
 ### Manual Installation
 
 **System Requirements:**
-- Ruby 3.4+
-- Redis 5+
-- Node.js 22+ (for development)
+- Ruby 3.4.7+
+- Redis 5+ or Valkey 8+
+- Node.js 22+ and pnpm 10+ via Corepack (for building frontend)
 - 1GB RAM, 2 CPU cores minimum
 
 **Quick setup:**
@@ -132,10 +133,9 @@ docker build -t onetimesecret .
 git clone https://github.com/onetimesecret/onetimesecret.git
 cd onetimesecret
 ./install.sh init    # Install deps, generate secrets, prepare .env
-cp ./etc/config.example.yaml ./etc/config.yaml
-# Edit config.yaml as needed
-pnpm build
-RACK_ENV=production bin/backend
+# Review .env — set REDIS_URL (or VALKEY_URL) if not on localhost:6379
+pnpm run build
+RACK_ENV=production bundle exec puma -C etc/examples/puma.example.rb
 ```
 
 > **Tip**: Run `./install.sh doctor` to check your environment for common issues.
@@ -190,8 +190,8 @@ bin/frontend
 
 Build the frontend and serve everything from the backend:
 ```bash
-pnpm build
-RACK_ENV=production bin/backend
+pnpm run build
+RACK_ENV=production bundle exec puma -C etc/examples/puma.example.rb
 ```
 
 ### Frontend Development Mode

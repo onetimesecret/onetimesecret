@@ -104,6 +104,29 @@ module V1
       not_found_response "Unknown secret", :secret_key => req.params['key']
     end
 
+    # Minimum length for a valid secret/receipt identifier. V0.23 keys
+    # were 31 chars (base36), v0.24 keys are 62 chars (VerifiableIdentifier).
+    # Any key shorter than this cannot be a real identifier — it's likely
+    # a sub-path segment (e.g. "burn") that reached a :key route after
+    # Rack::Protection::PathTraversal collapsed double slashes.
+    V1_MIN_IDENTIFIER_LENGTH = 20
+
+    # Returns true when the key param is structurally valid as an
+    # identifier (meets minimum length). Short strings like "burn"
+    # or "recent" fail this check, matching v0.23 behavior where
+    # such paths returned Otto's default 404.
+    def valid_identifier?(key)
+      key.to_s.length >= V1_MIN_IDENTIFIER_LENGTH
+    end
+
+    # Return a 404 when a route matched but the key param is
+    # structurally invalid (too short to be a real identifier).
+    # Uses V1's standard not_found_response for a consistent
+    # error shape across all V1 endpoints.
+    def otto_not_found
+      not_found_response 'Not Found'
+    end
+
     def disabled_response path
       not_found_response "#{path} is not available"
     end

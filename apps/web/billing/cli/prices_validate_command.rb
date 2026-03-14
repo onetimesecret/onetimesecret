@@ -322,8 +322,8 @@ module Onetime
         valid_count = count_valid_items(prices, errors, warnings, :id)
 
         # Count error and warning prices
-        error_price_ids   = errors.select { |e| e.is_a?(Hash) }.map { |e| e[:price_id] }.compact.uniq
-        warning_price_ids = warnings.select { |w| w.is_a?(Hash) }.map { |w| w[:price_id] }.compact.uniq
+        error_price_ids   = errors.grep(Hash).map { |e| e[:price_id] }.compact.uniq
+        warning_price_ids = warnings.grep(Hash).map { |w| w[:price_id] }.compact.uniq
 
         # Print summary section
         print_section_header('SUMMARY')

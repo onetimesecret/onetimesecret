@@ -1,7 +1,6 @@
 ---
 id: 002
 status: accepted
-date: 2025-10-10
 title: ADR-002: Why a Custom Session Handler?
 ---
 
