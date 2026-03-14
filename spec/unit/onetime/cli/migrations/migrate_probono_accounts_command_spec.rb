@@ -16,6 +16,8 @@
 
 require 'spec_helper'
 require 'onetime/cli'
+require 'billing/metadata'
+require 'billing/operations/apply_subscription_to_org'
 
 RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
   subject(:command) { described_class.new }

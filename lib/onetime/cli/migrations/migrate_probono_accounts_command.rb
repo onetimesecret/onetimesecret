@@ -2,8 +2,6 @@
 #
 # frozen_string_literal: true
 
-require 'billing/operations/apply_subscription_to_org'
-
 # Migrate legacy pro-bono accounts to $0 complimentary subscriptions.
 #
 # Legacy pro-bono accounts have customer.planid='identity' but no
@@ -74,6 +72,7 @@ module Onetime
         return show_usage_help if help
 
         boot_application!
+        require 'billing/operations/apply_subscription_to_org'
 
         puts "\nPro-Bono Account Migration"
         puts '=' * 60
