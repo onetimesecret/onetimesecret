@@ -188,7 +188,8 @@ module V1
           'created' => hsh.fetch('created', nil),
           # V1 compat: fall back to `revealed` timestamp if `received` is empty.
           # In v0.24, revealed! sets `revealed` (not the deprecated `received` field).
-          'received' => (hsh.fetch('received', nil).to_s.empty? ? hsh.fetch('revealed', nil) : hsh.fetch('received', nil)),
+          # When both are nil, default to 0 — the V1 schema requires an integer when present.
+          'received' => (hsh.fetch('received', nil).to_s.empty? ? (hsh.fetch('revealed', nil) || 0) : hsh.fetch('received', nil)),
           'recipient' => recipient.compact,
           'share_domain' => hsh.fetch('share_domain', nil) || '',
         }
