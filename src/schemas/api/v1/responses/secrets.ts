@@ -39,9 +39,11 @@ export const v1SecretRevealResponseSchema = z.object({
 });
 
 // POST /receipt/:key/burn — burn a secret
+// The Ruby controller sends secret_shortkey (v0.23 name), mapped from
+// receipt.secret_shortid (v0.24 internal name). See controllers/index.rb:170.
 export const v1BurnSecretResponseSchema = z.object({
   state: v1ReceiptBase,
-  secret_shortid: z.string(),
+  secret_shortkey: z.string(),
 });
 
 export type V1ReceiptResponse = z.infer<typeof v1ReceiptResponseSchema>;
