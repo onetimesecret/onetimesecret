@@ -104,18 +104,18 @@ module V1
     #
     # v0.23.x had rate limiting in the web layer; V1 reconstitution omitted
     # it. This adds basic per-IP rate limiting for secret creation endpoints
-    # using Redis counters with a 20-minute sliding window, matching v0.23.x
-    # behavior.
+    # using Redis counters with a 20-minute fixed window, matching v0.23.x
+    # behavior. Rate limits are now enforced externally (infrastructure
+    # layer), so this is vestigial — preserved for V1 API contract only.
     #
-    # Rate limit keys use the same event names as v0.23.x:
-    #   - create_secret: share/create/generate endpoints
-    #   - get_secret: show_secret endpoint
+    # Counts sourced from rel/0.23 etc/defaults/config.defaults.yaml:
+    #   create_secret: 1000, show_secret: 1000 (per 20-min window)
     #
     # Paid-plan exemptions: authenticated users with a non-anonymous plan
     # bypass rate limits, matching v0.23.x behavior.
-    V1_RATE_LIMIT_WINDOW = 1200 # 20 minutes in seconds
-    V1_RATE_LIMIT_MAX_CREATES = 30 # max secret creations per window
-    V1_RATE_LIMIT_MAX_READS = 60   # max secret reads per window
+    V1_RATE_LIMIT_WINDOW = 1200  # 20 minutes in seconds
+    V1_RATE_LIMIT_MAX_CREATES = 1000 # v0.23: limits.create_secret
+    V1_RATE_LIMIT_MAX_READS = 1000   # v0.23: limits.show_secret
 
     def check_rate_limit!(event, max_count)
       # Paid-plan exemption: skip rate limiting for authenticated paid users

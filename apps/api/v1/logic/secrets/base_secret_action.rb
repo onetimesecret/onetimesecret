@@ -160,20 +160,23 @@ module V1::Logic
         # Convert to integer, now that we know it has a value
         @ttl = ttl.to_i
 
-        # Entitlement gate: requests beyond free tier TTL require extended_default_expiration.
-        free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
-        if ttl > free_ttl && respond_to?(:org) && org && !org.can?('extended_default_expiration')
-          require_entitlement!('extended_default_expiration')
-        end
-
         # V1 TTL clamping [#2621]: silently clamp to V1 bounds.
         # v0.23.4 silently clamped rather than rejecting, so V1 preserves
-        # that behavior for backward compatibility.
+        # that behavior for backward compatibility. Clamping happens BEFORE
+        # the entitlement gate so that e.g. ttl=9999999 gets clamped to
+        # 30 days rather than rejected for missing entitlements.
         @ttl = max_ttl if ttl > max_ttl
         @ttl = min_ttl if ttl < min_ttl
 
         # Further constrain by plan limit (may be lower than V1_MAX_TTL)
         @ttl = plan_max if ttl > plan_max
+
+        # Entitlement gate: requests beyond free tier TTL require extended_default_expiration.
+        # Checked after clamping so the effective (clamped) value is evaluated.
+        free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
+        if ttl > free_ttl && respond_to?(:org) && org && !org.can?('extended_default_expiration')
+          require_entitlement!('extended_default_expiration')
+        end
 
         # Set default_expiration for compatibility with tests
         @default_expiration = @ttl
