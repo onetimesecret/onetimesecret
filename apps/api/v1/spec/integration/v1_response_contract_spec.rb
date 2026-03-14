@@ -318,11 +318,8 @@ RSpec.describe 'V1 API Response Contract', type: :integration do
       burn_body = JSON.parse(last_response.body)
       burn_state = burn_body['state']
       # Burn returns state as a hash (nested receipt_hsh)
-      if burn_state.is_a?(Hash)
-        expect(v024_only_states).not_to include(burn_state['state'])
-      else
-        expect(v024_only_states).not_to include(burn_state)
-      end
+      expect(burn_state).to be_a(Hash)
+      expect(v024_only_states).not_to include(burn_state['state'])
     end
   end
 
