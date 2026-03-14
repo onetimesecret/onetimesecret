@@ -318,28 +318,9 @@ module V1
     # Note: app_path is not defined here. Otto provides it on both req and res,
     # prepending script_name to support sub-path mounting. Use req.app_path(...).
 
-    # Checks if authentication is enabled for the site.
-    #
-    # Uses safe hash access via `dig` and defaults to enabled (true) when
-    # configuration is missing. This aligns with SessionHelpers and ensures
-    # API authentication works even when config keys are absent.
-    #
-    # Only checks `authentication.enabled` — NOT `signin`. The `signin`
-    # flag controls web login forms and should not gate API key
-    # authentication. A deployment with `enabled: true, signin: false`
-    # (web login disabled, API active) must still accept API credentials.
-    #
-    # @return [Boolean] True if authentication is enabled, false only if
-    #   explicitly disabled in configuration.
-    #
-    def authentication_enabled?
-      return true unless defined?(OT) && OT.respond_to?(:conf)
-
-      auth_conf = OT.conf&.dig('site', 'authentication')
-      return true unless auth_conf
-
-      auth_conf['enabled'] != false
-    end
+    # authentication_enabled? is inherited from SessionHelpers (included
+    # at the top of this module). It uses safe `dig` access and defaults
+    # to enabled. See lib/onetime/helpers/session_helpers.rb.
 
     def log_customer_activity
       return if cust.anonymous?

@@ -193,23 +193,9 @@ module Core
         Onetime::Customer.anonymous
       end
 
-      # Checks if authentication is enabled for the site.
-      #
-      # Uses safe hash access via `dig` and defaults to enabled (true) when
-      # configuration is missing. Only checks `authentication.enabled` to
-      # align with SessionHelpers. The `signin` flag controls form display,
-      # not whether authentication itself is active.
-      #
-      # @return [Boolean] True if authentication is enabled, false only if
-      #   explicitly disabled in configuration.
-      def authentication_enabled?
-        return true unless defined?(OT) && OT.respond_to?(:conf)
-
-        auth_conf = OT.conf&.dig('site', 'authentication')
-        return true unless auth_conf
-
-        auth_conf['enabled'] != false
-      end
+      # authentication_enabled? is inherited from SessionHelpers (included
+      # at the top of this module). It uses safe `dig` access and defaults
+      # to enabled. See lib/onetime/helpers/session_helpers.rb.
 
       # Checks if the request accepts JSON responses
       #

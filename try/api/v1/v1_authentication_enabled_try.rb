@@ -2,26 +2,30 @@
 #
 # frozen_string_literal: true
 
-# Tests that authentication_enabled? in V1::ControllerHelpers uses safe
-# hash access and defaults to enabled (true) when config keys are absent.
+# Tests that authentication_enabled? (defined in SessionHelpers, inherited
+# by V1::ControllerHelpers) uses safe hash access and defaults to enabled
+# (true) when config keys are absent.
 #
-# This is a regression test for issue #2620 where the previous `rescue false`
-# pattern caused API auth to silently fail when config keys were missing,
-# returning 404 for valid Basic Auth credentials on POST /api/v1/share.
+# Regression test for issue #2620 where the previous `rescue false` pattern
+# in the V1 override caused API auth to silently fail when config keys were
+# missing, returning 404 for valid Basic Auth credentials on POST /api/v1/share.
 #
-# Also verifies that the `signin` flag does NOT gate API key authentication.
-# The `signin` flag controls web login forms — a deployment with
-# `enabled: true, signin: false` must still accept API credentials.
+# The override has been removed — V1 now inherits directly from SessionHelpers.
+# The `signin` flag is NOT checked, as it controls web login forms, not API
+# key authentication.
 
 require_relative '../../support/test_helpers'
 OT.boot! :test
 
-# Create a test object that includes the V1 helpers so we can test
-# authentication_enabled? in isolation.
+# Create a test object that includes the V1 helpers (which includes
+# SessionHelpers) to test authentication_enabled? in isolation.
 require 'apps/api/v1/controllers/helpers'
 
 class V1AuthTestHarness
   include V1::ControllerHelpers
+
+  # Expose the private method for testing
+  public :authentication_enabled?
 end
 
 @harness = V1AuthTestHarness.new
@@ -30,7 +34,7 @@ end
 @original_auth = OT.conf['site']['authentication']&.dup
 
 # -----------------------------------------------------------------------
-# TEST: authentication_enabled? returns true with standard config
+# TEST: authentication_enabled? returns correct values with explicit config
 # -----------------------------------------------------------------------
 
 ## TC-1: Returns true when authentication.enabled is true
@@ -49,7 +53,7 @@ OT.conf['site']['authentication'] = { 'enabled' => false, 'signin' => true }
 
 ## TC-3: Returns true when signin is false but enabled is true
 # A deployment may disable web login while keeping the API active.
-# The previous implementation incorrectly returned false here.
+# The previous V1 override incorrectly returned false here.
 OT.conf['site']['authentication'] = { 'enabled' => true, 'signin' => false }
 @harness.authentication_enabled?
 #=> true
@@ -79,7 +83,7 @@ OT.conf['site']['authentication'] = {}
 #=> true
 
 ## TC-8: Returns true when only 'signin' key is present (enabled absent)
-# Missing 'enabled' key defaults to enabled, signin is irrelevant for API.
+# Missing 'enabled' key defaults to enabled, signin is irrelevant.
 OT.conf['site']['authentication'] = { 'signin' => false }
 @harness.authentication_enabled?
 #=> true
