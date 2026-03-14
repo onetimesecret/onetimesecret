@@ -288,26 +288,6 @@ module V1::Logic
         # The enforce_complexity config option is ignored for V1 API.
       end
 
-      def validate_passphrase_complexity
-        errors = []
-
-        # Check for at least one uppercase letter
-        errors << "uppercase letter" unless passphrase.match?(/[A-Z]/)
-
-        # Check for at least one lowercase letter
-        errors << "lowercase letter" unless passphrase.match?(/[a-z]/)
-
-        # Check for at least one number
-        errors << "number" unless passphrase.match?(/\d/)
-
-        # Check for at least one symbol
-        errors << "symbol" unless passphrase.match?(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/)
-
-        unless errors.empty?
-          raise_form_error "Passphrase must contain at least one #{errors.join(', ')}"
-        end
-      end
-
       private
 
       # Resolve max TTL when OrganizationContext is not available (V1).

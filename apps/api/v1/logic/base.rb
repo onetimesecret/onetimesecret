@@ -68,17 +68,13 @@ module V1
       # v0.23.4 used basic format validation only. v0.24 introduced Truemail
       # with stricter DNS MX + SMTP verification, rejecting disposable email
       # addresses that previously succeeded. V1 preserves the old format-only
-      # check to avoid breaking existing integrations.
-      #
-      # Uses Truemail with :regex validation type (format-only) regardless
-      # of the global Truemail configuration, which may use :mx or :smtp.
+      # check via a standalone RFC 5321 regex — no Truemail dependency, no
+      # DNS lookups, no SMTP probes.
       V1_EMAIL_REGEX = /\A[a-zA-Z0-9.!\#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\z/
 
       def v1_valid_email?(email_field)
-        OT.ld "[v1_valid_email?] Email field: #{email_field}"
-
         valid = V1_EMAIL_REGEX.match?(email_field.to_s)
-        OT.info "[v1_valid_email?] Address is valid (#{valid}): #{email_field}"
+        OT.ld "[v1_valid_email?] valid=#{valid}"
         valid
       rescue StandardError => e
         OT.le "V1 email validation error: #{e.message}"

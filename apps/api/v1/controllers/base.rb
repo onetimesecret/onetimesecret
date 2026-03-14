@@ -126,15 +126,15 @@ module V1
 
       key = "v1:ratelimit:#{event}:#{ip}"
       begin
-        current = Familia.redis.get(key).to_i
-        if current >= max_count
+        # INCR first, then check — avoids TOCTOU race where two concurrent
+        # requests both read the same count and both pass the limit.
+        # SETNX + EXPIRE on first hit ensures a fixed window (not sliding).
+        count = Familia.redis.incr(key)
+        Familia.redis.expire(key, V1_RATE_LIMIT_WINDOW) if count == 1
+
+        if count > max_count
           error_response "Rate limit exceeded. Please try again later."
           return :limited
-        end
-
-        Familia.redis.multi do |txn|
-          txn.incr(key)
-          txn.expire(key, V1_RATE_LIMIT_WINDOW)
         end
       rescue StandardError => e
         # Fail open: if Redis is down, don't block the request
