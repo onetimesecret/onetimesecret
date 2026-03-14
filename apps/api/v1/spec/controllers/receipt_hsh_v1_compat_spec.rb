@@ -7,7 +7,7 @@
 # Tests the receipt_hsh class method on V1::Controllers::Index for:
 #   Bug #3: Anonymous custid returns null instead of "anon"
 #   Bug #4: Burned secret_key returns null instead of ""
-#   Field rename mapping (6 old field names)
+#   Field rename mapping (7 old field names)
 #   State mapping (previewed->viewed, revealed->received, shared->new)
 
 require_relative '../../application'
@@ -72,10 +72,35 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
       expect(result_with_val['value']).to eq('the secret')
     end
 
-    it 'includes all six V1 field names for a new receipt' do
+    it 'computes metadata_url from share_domain and identifier' do
+      expect(result['metadata_url']).to be_a(String)
+      expect(result['metadata_url']).to include('example.com')
+      expect(result['metadata_url']).to include('/receipt/metadata_key_123')
+    end
+
+    it 'uses opts[:metadata_url] override when provided' do
+      override_url = 'https://custom.example.com/receipt/metadata_key_123'
+      result_with_url = V1::Controllers::Index.receipt_hsh(md, metadata_url: override_url)
+      expect(result_with_url['metadata_url']).to eq(override_url)
+    end
+
+    it 'falls back to site host when share_domain is empty' do
+      empty_domain_hash = base_hash.merge('share_domain' => '')
+      md_no_domain = double('Onetime::Receipt',
+        to_h: empty_domain_hash,
+        identifier: 'metadata_key_123',
+        secret_ttl: 3600,
+        current_expiration: 7000)
+      result_no_domain = V1::Controllers::Index.receipt_hsh(md_no_domain)
+      expect(result_no_domain['metadata_url']).to be_a(String)
+      expect(result_no_domain['metadata_url']).to include('/receipt/metadata_key_123')
+      expect(result_no_domain['metadata_url']).not_to be_empty
+    end
+
+    it 'includes all seven V1 field names for a new receipt' do
       result_full = V1::Controllers::Index.receipt_hsh(md,
         value: 'test', passphrase_required: false, secret_ttl: 3600)
-      %w[metadata_key secret_key metadata_ttl recipient value passphrase_required].each do |field|
+      %w[metadata_key secret_key metadata_ttl metadata_url recipient value passphrase_required].each do |field|
         expect(result_full).to have_key(field), "expected V1 field '#{field}' to be present"
       end
     end

@@ -112,12 +112,14 @@ module V1
                                 :custid => cust.email,
                                 :value => logic.secret_value,
                                 :secret_ttl => logic.secret_realttl,
-                                :passphrase_required => logic.has_passphrase)
+                                :passphrase_required => logic.has_passphrase,
+                                :metadata_url => logic.metadata_url)
           else
             json self.class.receipt_hsh(logic.receipt,
                                 :custid => cust.email,
                                 :secret_ttl => logic.secret_realttl,
-                                :passphrase_required => logic.has_passphrase)
+                                :passphrase_required => logic.has_passphrase,
+                                :metadata_url => logic.metadata_url)
           end
           logic.receipt.previewed!
         end
