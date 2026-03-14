@@ -64,6 +64,8 @@ module V1
 
       def share
         authorized(true) do
+          return if check_rate_limit!(:create_secret, V1_RATE_LIMIT_MAX_CREATES) == :limited
+
           logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
@@ -81,6 +83,8 @@ module V1
 
       def generate
         authorized(true) do
+          return if check_rate_limit!(:create_secret, V1_RATE_LIMIT_MAX_CREATES) == :limited
+
           logic = V1::Logic::Secrets::GenerateSecret.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
@@ -141,6 +145,7 @@ module V1
       def show_secret
         authorized(true) do
           return otto_not_found unless valid_identifier?(req.params['key'])
+          return if check_rate_limit!(:get_secret, V1_RATE_LIMIT_MAX_READS) == :limited
 
           req.params['continue'] = 'true'
           logic = V1::Logic::Secrets::ShowSecret.new sess, cust, req.params, locale
@@ -176,6 +181,8 @@ module V1
 
       def create
         authorized(true) do
+          return if check_rate_limit!(:create_secret, V1_RATE_LIMIT_MAX_CREATES) == :limited
+
           logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process

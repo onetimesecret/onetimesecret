@@ -34,6 +34,25 @@ module V1::Logic
     # The metadata_ttl = 2 * secret_ttl ratio is unchanged from v0.23.x.
     #
     class BaseSecretAction < V1::Logic::Base
+      # V1-specific validation boundaries [#2621]
+      #
+      # These constants preserve v0.23.4 behavior for backward compatibility.
+      # V1 consumers rely on these bounds; changing them is a breaking change.
+      #
+      # TTL: v0.23.4 allowed 60s minimum; v0.24 raised it to 1800s.
+      # V1 preserves the old 60s floor so existing integrations don't break.
+      V1_MIN_TTL = 60        # 1 minute, matching v0.23.4
+      V1_MAX_TTL = 2_592_000 # 30 days (30 * 86400)
+
+      # Passphrase: v0.23.4 had no enforced minimum for V1 API consumers.
+      # The config-driven minimum (often 8) is for the web UI. V1 API
+      # preserves nil (no minimum) unless the operator explicitly sets one.
+      V1_PASSPHRASE_MIN_LENGTH = nil
+
+      # Max secret size: 10_000 characters matches the API spec's
+      # maxLength: 10000 documented in the OpenAPI definition.
+      V1_MAX_SECRET_SIZE = 10_000
+
       # Email validation regex - defined once to avoid recompilation on every call
       EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
 
@@ -56,9 +75,8 @@ module V1::Logic
       end
 
       def raise_concerns
-
-
         raise_form_error "Unknown type of secret" if kind.nil?
+        validate_secret_size
         validate_recipient
         validate_share_domain
         validate_passphrase
@@ -112,30 +130,29 @@ module V1::Logic
         # The inline fallback hash below only triggers if the entire
         # site.secret_options key is absent (should not happen after after_load).
         #
-        # Effective bounds come from Config::DEFAULTS.ttl_options:
-        #   min = 60s, max = 30.days (2,592,000s)
-        # Production instances can override via TTL_OPTIONS env var.
+        # V1-specific TTL bounds [#2621]:
+        #   min = V1_MIN_TTL (60s), max = V1_MAX_TTL (30 days)
+        # These preserve v0.23.4 behavior. The config values are used for
+        # default_ttl only; bounds are V1-specific constants.
         secret_options = OT.conf.dig('site', 'secret_options') || {
           'default_ttl' => 7.days,
           'ttl_options' => [30.minutes, 2.hours, 1.day, 7.days],
         }
         default_ttl = secret_options['default_ttl']
-        ttl_options = secret_options['ttl_options']
 
-        # Get min/max values safely
-        min_ttl = ttl_options.min || 30.minutes
+        # V1 uses its own TTL bounds, not the config's ttl_options min/max.
+        # This preserves v0.23.4 behavior where 60s was the minimum.
+        min_ttl = V1_MIN_TTL
+        max_ttl = V1_MAX_TTL
 
-        # Limit enforcement: plan-aware TTL cap.
-        # V1 logic doesn't include OrganizationContext, so we resolve the
-        # customer's org directly to check plan limits. Falls back to
-        # config_max when billing is disabled (self-hosted fail-open).
-        config_max = ttl_options.max || 30.days
-        max_ttl = if respond_to?(:org) && org&.respond_to?(:limit_for)
-                    org_limit = org.limit_for('secret_lifetime')
-                    org_limit.positive? ? org_limit : config_max
-                  else
-                    resolve_ttl_limit(config_max)
-                  end
+        # Plan-aware TTL cap: resolve the customer's org for plan limits.
+        # Falls back to V1_MAX_TTL when billing is disabled (self-hosted).
+        plan_max = if respond_to?(:org) && org&.respond_to?(:limit_for)
+                     org_limit = org.limit_for('secret_lifetime')
+                     org_limit.positive? ? org_limit : max_ttl
+                   else
+                     resolve_ttl_limit(max_ttl)
+                   end
 
         # Apply default if nil
         @ttl = default_ttl || 7.days if ttl.nil?
@@ -149,12 +166,14 @@ module V1::Logic
           require_entitlement!('extended_default_expiration')
         end
 
-        # Apply a global maximum
-        @ttl = 30.days if ttl && ttl >= 30.days
-
-        # Enforce bounds
-        @ttl = min_ttl if ttl < min_ttl
+        # V1 TTL clamping [#2621]: silently clamp to V1 bounds.
+        # v0.23.4 silently clamped rather than rejecting, so V1 preserves
+        # that behavior for backward compatibility.
         @ttl = max_ttl if ttl > max_ttl
+        @ttl = min_ttl if ttl < min_ttl
+
+        # Further constrain by plan limit (may be lower than V1_MAX_TTL)
+        @ttl = plan_max if ttl > plan_max
 
         # Set default_expiration for compatibility with tests
         @default_expiration = @ttl
@@ -201,11 +220,23 @@ module V1::Logic
         @share_domain = potential_domain
       end
 
+      # V1 secret size enforcement [#2621]
+      #
+      # The API spec documents maxLength: 10000 but this was never enforced
+      # in code. V1 now enforces the documented limit to prevent abuse and
+      # ensure consistent behavior with the API documentation.
+      def validate_secret_size
+        return if secret_value.nil?
+        return if secret_value.length <= V1_MAX_SECRET_SIZE
+
+        raise_form_error "Secret value exceeds the maximum size of #{V1_MAX_SECRET_SIZE} characters"
+      end
+
       def validate_recipient
         return if recipient.empty?
         raise_form_error "An account is required to send emails." if cust.anonymous?
         recipient.each do |recip|
-          raise_form_error "Undeliverable email address: #{recip}" unless valid_email?(recip)
+          raise_form_error "Undeliverable email address: #{recip}" unless v1_valid_email?(recip)
         end
       end
 
@@ -222,14 +253,17 @@ module V1::Logic
       end
 
       def validate_passphrase
-        # Reads from site.secret_options.passphrase (merged with DEFAULTS).
-        # DEFAULTS set minimum_length to nil (no minimum enforced).
-        # The config.yaml template defaults to PASSPHRASE_MIN_LENGTH env var
-        # or a literal (e.g. 4 in dev, 8 in config.defaults.yaml).
-        # Production behavior depends on which config template is active.
+        # V1-specific passphrase validation [#2621]
+        #
+        # V1 preserves v0.23.4 behavior: passphrases are always optional
+        # and have no minimum length enforced via the API. The config-driven
+        # minimum_length (often 8) is for the web UI; V1 API consumers
+        # relied on being able to send short passphrases (e.g. "1234").
+        #
+        # Only the maximum length and required flag are checked from config.
         passphrase_config = OT.conf.dig('site', 'secret_options', 'passphrase') || {}
 
-        # Check if passphrase is required
+        # Check if passphrase is required (defaults to false for V1 compat)
         if passphrase_config['required'] && passphrase.to_s.empty?
           raise_form_error "A passphrase is required for all secrets"
         end
@@ -237,22 +271,21 @@ module V1::Logic
         # Skip further validation if no passphrase provided
         return if passphrase.to_s.empty?
 
-        # Validate minimum length
-        min_length = passphrase_config['minimum_length']
+        # V1 uses its own minimum length (nil = no minimum) instead of
+        # the config value, preserving v0.23.4 backward compatibility.
+        min_length = V1_PASSPHRASE_MIN_LENGTH
         if min_length && passphrase.length < min_length
           raise_form_error "Passphrase must be at least #{min_length} characters long"
         end
 
-        # Validate maximum length
+        # Validate maximum length (shared with all versions)
         max_length = passphrase_config['maximum_length']
         if max_length && passphrase.length > max_length
           raise_form_error "Passphrase must be no more than #{max_length} characters long"
         end
 
-        # Validate complexity if required
-        if passphrase_config['enforce_complexity']
-          validate_passphrase_complexity
-        end
+        # V1 does not enforce complexity — preserves v0.23.4 behavior.
+        # The enforce_complexity config option is ignored for V1 API.
       end
 
       def validate_passphrase_complexity

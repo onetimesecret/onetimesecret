@@ -100,6 +100,50 @@ module V1
       error_response ex.message, hsh
     end
 
+    # V1 rate limiting [#2621]
+    #
+    # v0.23.x had rate limiting in the web layer; V1 reconstitution omitted
+    # it. This adds basic per-IP rate limiting for secret creation endpoints
+    # using Redis counters with a 20-minute sliding window, matching v0.23.x
+    # behavior.
+    #
+    # Rate limit keys use the same event names as v0.23.x:
+    #   - create_secret: share/create/generate endpoints
+    #   - get_secret: show_secret endpoint
+    #
+    # Paid-plan exemptions: authenticated users with a non-anonymous plan
+    # bypass rate limits, matching v0.23.x behavior.
+    V1_RATE_LIMIT_WINDOW = 1200 # 20 minutes in seconds
+    V1_RATE_LIMIT_MAX_CREATES = 30 # max secret creations per window
+    V1_RATE_LIMIT_MAX_READS = 60   # max secret reads per window
+
+    def check_rate_limit!(event, max_count)
+      # Paid-plan exemption: skip rate limiting for authenticated paid users
+      return if cust && !cust.anonymous? && cust.planid.to_s != 'anonymous'
+
+      ip = req.client_ipaddress.to_s
+      return if ip.empty?
+
+      key = "v1:ratelimit:#{event}:#{ip}"
+      begin
+        current = Familia.redis.get(key).to_i
+        if current >= max_count
+          error_response "Rate limit exceeded. Please try again later."
+          return :limited
+        end
+
+        Familia.redis.multi do |txn|
+          txn.incr(key)
+          txn.expire(key, V1_RATE_LIMIT_WINDOW)
+        end
+      rescue StandardError => e
+        # Fail open: if Redis is down, don't block the request
+        OT.le "[V1 rate_limit] #{e.class}: #{e.message}"
+      end
+
+      nil
+    end
+
     def secret_not_found_response
       not_found_response "Unknown secret", :secret_key => req.params['key']
     end
