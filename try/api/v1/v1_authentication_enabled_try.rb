@@ -3,12 +3,17 @@
 # frozen_string_literal: true
 
 # Tests that authentication_enabled? (defined in SessionHelpers, inherited
-# by V1::ControllerHelpers) uses safe hash access and defaults to enabled
-# (true) when config keys are absent.
+# by V1::ControllerHelpers) uses safe hash access via `dig` and defaults
+# to DISABLED when config is absent.
+#
+# Defaulting to disabled is the conservative choice: if config is missing,
+# accounts are not used and auth-required features are unavailable. This
+# prevents the app from running with unintended auth behavior.
 #
 # Regression test for issue #2620 where the previous `rescue false` pattern
-# in the V1 override caused API auth to silently fail when config keys were
-# missing, returning 404 for valid Basic Auth credentials on POST /api/v1/share.
+# in the V1 override silently swallowed config access errors, making it
+# impossible to distinguish "config missing" from "config present but key
+# absent." The `dig` approach fixes this while preserving the safe default.
 #
 # The override has been removed — V1 now inherits directly from SessionHelpers.
 # The `signin` flag is NOT checked, as it controls web login forms, not API
@@ -64,26 +69,29 @@ OT.conf['site']['authentication'] = { 'enabled' => false, 'signin' => false }
 #=> false
 
 # -----------------------------------------------------------------------
-# TEST: Defaults to enabled when config keys are missing (the #2620 fix)
+# TEST: Defaults to DISABLED when config is missing (conservative default)
 # -----------------------------------------------------------------------
 
-## TC-5: Returns true when authentication hash is missing entirely
+## TC-5: Returns false when authentication hash is missing entirely
+# No auth config → auth disabled → account features unavailable
 OT.conf['site'].delete('authentication')
 @harness.authentication_enabled?
-#=> true
+#=> false
 
 ## TC-6: Returns true when only 'enabled' key is present and true
 OT.conf['site']['authentication'] = { 'enabled' => true }
 @harness.authentication_enabled?
 #=> true
 
-## TC-7: Returns true when authentication hash is empty
+## TC-7: Returns true when authentication hash exists but 'enabled' key absent
+# Auth section present implies intent to use auth; missing 'enabled' key
+# is not the same as explicitly disabled.
 OT.conf['site']['authentication'] = {}
 @harness.authentication_enabled?
 #=> true
 
 ## TC-8: Returns true when only 'signin' key is present (enabled absent)
-# Missing 'enabled' key defaults to enabled, signin is irrelevant.
+# Auth section present, 'enabled' not explicitly false → enabled.
 OT.conf['site']['authentication'] = { 'signin' => false }
 @harness.authentication_enabled?
 #=> true

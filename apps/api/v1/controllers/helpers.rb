@@ -320,7 +320,9 @@ module V1
 
     # authentication_enabled? is inherited from SessionHelpers (included
     # at the top of this module). It uses safe `dig` access and defaults
-    # to enabled. See lib/onetime/helpers/session_helpers.rb.
+    # to disabled when config is absent — account features are rendered
+    # unavailable unless authentication is explicitly configured.
+    # See lib/onetime/helpers/session_helpers.rb.
 
     def log_customer_activity
       return if cust.anonymous?

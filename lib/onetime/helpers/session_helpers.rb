@@ -87,12 +87,27 @@ module Onetime
         customer
       end
 
+      # Determines whether the site has authentication enabled.
+      #
+      # Defaulting to disabled is the right thing to do. If the site
+      # config is missing, we assume that authentication is disabled
+      # and that accounts are not used. This prevents situations where
+      # the app is running and anyone can create an account without
+      # proper authentication configuration in place. Features that
+      # require an account are rendered unavailable.
+      #
+      # Uses `dig` for safe hash access to avoid the `rescue false`
+      # anti-pattern that silently swallowed config access errors,
+      # masking legitimate configuration problems (see #2620).
+      #
+      # @return [Boolean] true only if authentication is explicitly
+      #   configured; false when config is absent or disabled.
+      #
       def authentication_enabled?
-        # Check global authentication toggle
-        return true unless defined?(OT) && OT.respond_to?(:conf)
+        return false unless defined?(OT) && OT.respond_to?(:conf)
 
         auth_conf = OT.conf&.dig('site', 'authentication')
-        return true unless auth_conf
+        return false unless auth_conf
 
         auth_conf['enabled'] != false
       end
