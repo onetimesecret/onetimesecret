@@ -140,10 +140,11 @@ module V1
         # so that the creator has time to keep retreiving them metadata after the
         # secret itself has expired. Otherwise there'd be no record of whether the
         # secret was seen or not.
-        receipt_ttl = md.secret_ttl&.to_i
+        # Raw values — type coercion happens in coerce_v1_types at the end.
+        receipt_ttl = md.secret_ttl
 
         # Show the secret's actual real ttl as of now if we have it.
-        secret_realttl = opts[:secret_ttl]&.to_i
+        secret_realttl = opts[:secret_ttl]
 
         # md.current_expiration is a db command method. This makes a call to the db server
         # to get the current value of the ttl for the metadata object. This is the
@@ -151,7 +152,7 @@ module V1
         #
         # For the v1 API, this real value is what gets returned as "receipt_ttl". If
         # you don't find that confusing, take another look through the code.
-        receipt_realttl = md.current_expiration&.to_i
+        receipt_realttl = md.current_expiration
 
         recipient = [hsh.fetch('recipients', nil)]
           .flatten
@@ -176,16 +177,16 @@ module V1
         ret = {
           'custid' => v1_custid,
           'metadata_key' => md.identifier,
-          'secret_key' => (secret_id_val && !secret_id_val.empty? ? secret_id_val : hsh.fetch('secret_key', '')).to_s,
+          'secret_key' => (secret_id_val && !secret_id_val.empty? ? secret_id_val : hsh.fetch('secret_key', '')),
           'ttl' => receipt_ttl, # static value from database hash field
           'metadata_ttl' => receipt_realttl, # actual number of seconds left to live
           'secret_ttl' => secret_realttl, # ditto, actual number
           'state' => translate_v1_state(raw_state),
-          'updated' => hsh.fetch('updated', nil)&.to_i,
-          'created' => hsh.fetch('created', nil)&.to_i,
+          'updated' => hsh.fetch('updated', nil),
+          'created' => hsh.fetch('created', nil),
           # V1 compat: fall back to `revealed` timestamp if `received` is empty.
           # In v0.24, revealed! sets `revealed` (not the deprecated `received` field).
-          'received' => (hsh.fetch('received', nil).to_s.empty? ? hsh.fetch('revealed', nil) : hsh.fetch('received', nil)).to_i,
+          'received' => (hsh.fetch('received', nil).to_s.empty? ? hsh.fetch('revealed', nil) : hsh.fetch('received', nil)),
           'recipient' => recipient.compact,
           'share_domain' => hsh.fetch('share_domain', nil) || '',
         }
