@@ -27,8 +27,8 @@ module DomainsAPI
       # NOTE: enable_authentication! is not needed - RouteAuthWrapper handles it
       # Authentication now happens via post-routing handler wrapping (not middleware)
 
-      # Check if authentication is enabled at initialization time
-      unless Onetime::Application::AuthStrategies.authentication_enabled?
+      # Check if account creation/usage is allowed at initialization time
+      unless Onetime::Application::AuthStrategies.account_creation_allowed?
         OT.le '[DomainsAPI::AuthStrategies] Authentication disabled in config - skipping session strategies'
         return
       end
