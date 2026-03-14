@@ -227,7 +227,8 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
         include Onetime::Models::Features::WithOrganizationBilling::InstanceMethods
 
         attr_accessor :objid, :stripe_subscription_id, :stripe_customer_id,
-                      :subscription_status, :subscription_period_end, :planid
+                      :subscription_status, :subscription_period_end, :planid,
+                      :complimentary
 
         def initialize
           @objid = 'test-org-123'

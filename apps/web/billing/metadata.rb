@@ -75,6 +75,9 @@ module Billing
       FIELD_CREATED,
     ].freeze
 
+    # Plan IDs that represent free/unpaid tiers
+    FREE_PLAN_IDS = %w[free free_v1].freeze
+
     # Values representing unlimited resources
     UNLIMITED_VALUES = ['-1', 'infinity'].freeze
 

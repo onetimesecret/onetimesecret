@@ -6,6 +6,7 @@ require 'billing/metadata'
 require 'billing/models/plan'
 require 'billing/lib/billing_service'
 require 'billing/lib/plan_validator'
+require 'billing/operations/apply_subscription_to_org'
 require_relative '../../../utils/email_hash'
 
 module Onetime
@@ -145,26 +146,32 @@ module Onetime
           # Single source of truth for whether an organization is paying.
           # Combines subscription liveness with plan classification.
 
-          # Check if organization is a paying customer
+          # Check if organization has premium entitlements via subscription
           #
           # An org is paid when it has an active (or trialing) subscription
           # AND a non-free plan assigned. This prevents false positives from
           # stale planid values after cancellation (webhooks set planid to
           # 'free_v1' on cancel, but this guards against race conditions).
           #
+          # NOTE: Complimentary ($0) subscriptions return true here. This is
+          # intentional — complimentary accounts behave identically to paying
+          # accounts for entitlements, features, and UX. The distinction is
+          # purely financial and belongs in reporting/analytics, not in
+          # application authorization logic. Use complimentary? when you need
+          # to distinguish revenue-bearing subscriptions.
+          #
           # @return [Boolean] True if org has active subscription with paid plan
           #
           # @example
           #   org.paid?  # => true (active sub + identity_plus_v1)
+          #   org.paid?  # => true (complimentary $0 sub + identity_plus_v1)
           #   org.paid?  # => false (canceled sub, even with paid planid)
           #   org.paid?  # => false (active sub + free_v1)
           #
-          FREE_PLAN_IDS = %w[free free_v1].freeze
-
           def paid?
             active_subscription? &&
               !planid.to_s.empty? &&
-              !FREE_PLAN_IDS.include?(planid.to_s)
+              !Billing::Metadata::FREE_PLAN_IDS.include?(planid.to_s)
           end
 
           # Check if organization has a complimentary (pro-bono) subscription
@@ -360,22 +367,10 @@ module Onetime
               end
             end
 
-            # Update fields
-            self.stripe_subscription_id  = subscription.id
-            self.stripe_customer_id      = new_customer_id
-            self.subscription_status     = subscription.status
-            # current_period_end moved from subscription to subscription items in newer Stripe API
-            period_end                   = subscription.items.data.first&.current_period_end
-            self.subscription_period_end = period_end.to_s if period_end
-
-            # Extract plan ID with validation
-            plan_id     = extract_plan_id_from_subscription(subscription)
-            self.planid = plan_id if plan_id
-
-            # Sync complimentary marker from subscription metadata
-            sync_complimentary_from_subscription(subscription)
-
-            save
+            # Delegate field-setting to shared operation (owner path)
+            Billing::Operations::ApplySubscriptionToOrg.call(
+              self, subscription, owner: true
+            )
           end
 
           # Clear billing fields (on subscription cancellation)
@@ -431,22 +426,6 @@ module Onetime
             end
 
             plan_id
-          end
-
-          # Sync complimentary marker from Stripe subscription metadata
-          #
-          # Reads the 'complimentary' field from subscription metadata and
-          # stores it locally. This avoids hitting Stripe API on every check.
-          #
-          # @param subscription [Stripe::Subscription] Stripe subscription
-          # @return [void]
-          def sync_complimentary_from_subscription(subscription)
-            meta = subscription.metadata
-            if meta && meta[Billing::Metadata::FIELD_COMPLIMENTARY].to_s == 'true'
-              self.complimentary = 'true'
-            else
-              self.complimentary = nil
-            end
           end
 
           # Extract plan_id from subscription metadata (for drift detection only)

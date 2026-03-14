@@ -213,17 +213,15 @@ module Onetime
             },
           )
 
-          # Step 3: Update organization
-          org.stripe_customer_id     = stripe_customer.id
-          org.stripe_subscription_id = subscription.id
-          org.subscription_status    = subscription.status
-          org.planid                 = TARGET_PLANID
-          org.complimentary          = 'true'
-
-          period_end = subscription.items.data.first&.current_period_end
-          org.subscription_period_end = period_end.to_s if period_end
-
-          org.save
+          # Step 3: Update organization via shared operation
+          # Uses planid_override because the $0 complimentary price may
+          # not be in the plan catalog yet.
+          require 'billing/operations/apply_subscription_to_org'
+          Billing::Operations::ApplySubscriptionToOrg.call(
+            org, subscription,
+            owner: true,
+            planid_override: TARGET_PLANID
+          )
 
           # Step 4: Clear legacy customer.planid
           cust.planid = nil
