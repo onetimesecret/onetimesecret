@@ -38,6 +38,59 @@ module V1
         V1_STATE_MAP.fetch(state, state)
       end
 
+      # Enforce V1 wire types on a response hash. [#2618]
+      #
+      # Ensures every field in a V1 response has the exact type that
+      # v0.23.x clients expect, regardless of what upstream code
+      # supplies. This is the single enforcement point — call it on
+      # the finished hash right before returning from receipt_hsh.
+      #
+      # Type contracts:
+      #   created, updated, received  -> Integer (Unix epoch)
+      #   ttl, metadata_ttl, secret_ttl -> Integer (seconds)
+      #   passphrase_required          -> true | false (boolean)
+      #   recipient                    -> Array of Strings
+      #   custid, metadata_key, secret_key, state, share_domain, value -> String
+      #
+      # @param hsh [Hash] The V1 response hash (mutated in place)
+      # @return [Hash] The same hash, with types enforced
+      #
+      def coerce_v1_types(hsh)
+        # Integer fields: timestamps and TTLs
+        %w[created updated received ttl metadata_ttl secret_ttl].each do |key|
+          next unless hsh.key?(key)
+          hsh[key] = hsh[key].to_i
+        end
+
+        # Boolean field: passphrase_required must be true/false, never
+        # a truthy string like "true" or "1".
+        if hsh.key?('passphrase_required')
+          val = hsh['passphrase_required']
+          hsh['passphrase_required'] = if val.is_a?(String)
+                                         !val.empty? && val != '0' && val != 'false'
+                                       else
+                                         !!val
+                                       end
+        end
+
+        # Array field: recipient must always be an Array of Strings
+        if hsh.key?('recipient')
+          hsh['recipient'] = [hsh['recipient']]
+            .flatten
+            .compact
+            .map(&:to_s)
+            .reject(&:empty?)
+        end
+
+        # String fields: ensure nil doesn't leak as JSON null
+        %w[custid metadata_key secret_key state share_domain value].each do |key|
+          next unless hsh.key?(key)
+          hsh[key] = hsh[key].to_s
+        end
+
+        hsh
+      end
+
       # V1 Response Shaping — receipt_hsh [#2615, #2619]
       #
       # Transforms a Receipt (which uses v0.24 vocabulary internally)
@@ -147,7 +200,7 @@ module V1
         if !opts[:passphrase_required].nil?
           ret['passphrase_required'] = opts[:passphrase_required]
         end
-        ret
+        coerce_v1_types(ret)
       end
 
     end

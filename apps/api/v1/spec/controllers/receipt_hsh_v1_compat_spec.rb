@@ -258,4 +258,130 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
       end
     end
   end
+
+  # ----------------------------------------------------------------
+  # Type contract enforcement (coerce_v1_types) [#2618]
+  # ----------------------------------------------------------------
+  describe 'V1 type contract enforcement' do
+    let(:opts) do
+      { custid: 'user@example.com', secret_ttl: 3600,
+        passphrase_required: false, value: 'shhh' }
+    end
+
+    it 'returns created as Integer' do
+      expect(result['created']).to be_a(Integer)
+    end
+
+    it 'returns updated as Integer' do
+      expect(result['updated']).to be_a(Integer)
+    end
+
+    it 'returns ttl as Integer' do
+      expect(result['ttl']).to be_a(Integer)
+    end
+
+    it 'returns metadata_ttl as Integer' do
+      expect(result['metadata_ttl']).to be_a(Integer)
+    end
+
+    it 'returns secret_ttl as Integer' do
+      expect(result['secret_ttl']).to be_a(Integer)
+    end
+
+    it 'returns recipient as Array' do
+      expect(result['recipient']).to be_a(Array)
+    end
+
+    it 'returns recipient elements as Strings' do
+      result['recipient'].each do |r|
+        expect(r).to be_a(String)
+      end
+    end
+
+    it 'returns custid as String' do
+      expect(result['custid']).to be_a(String)
+    end
+
+    it 'returns metadata_key as String' do
+      expect(result['metadata_key']).to be_a(String)
+    end
+
+    it 'returns secret_key as String' do
+      expect(result['secret_key']).to be_a(String)
+    end
+
+    it 'returns state as String' do
+      expect(result['state']).to be_a(String)
+    end
+
+    it 'returns share_domain as String' do
+      expect(result['share_domain']).to be_a(String)
+    end
+
+    context 'passphrase_required boolean enforcement' do
+      it 'returns boolean false when passed false' do
+        r = V1::Controllers::Index.receipt_hsh(md, passphrase_required: false)
+        expect(r['passphrase_required']).to eq(false)
+      end
+
+      it 'returns boolean true when passed true' do
+        r = V1::Controllers::Index.receipt_hsh(md, passphrase_required: true)
+        expect(r['passphrase_required']).to eq(true)
+      end
+
+      it 'coerces string "true" to boolean true' do
+        r = V1::Controllers::Index.receipt_hsh(md, passphrase_required: 'true')
+        expect(r['passphrase_required']).to eq(true)
+      end
+
+      it 'coerces string "false" to boolean false' do
+        r = V1::Controllers::Index.receipt_hsh(md, passphrase_required: 'false')
+        expect(r['passphrase_required']).to eq(false)
+      end
+
+      it 'coerces string "1" to boolean true' do
+        r = V1::Controllers::Index.receipt_hsh(md, passphrase_required: '1')
+        expect(r['passphrase_required']).to eq(true)
+      end
+
+      it 'coerces string "0" to boolean false' do
+        r = V1::Controllers::Index.receipt_hsh(md, passphrase_required: '0')
+        expect(r['passphrase_required']).to eq(false)
+      end
+
+      it 'coerces empty string to boolean false' do
+        r = V1::Controllers::Index.receipt_hsh(md, passphrase_required: '')
+        expect(r['passphrase_required']).to eq(false)
+      end
+    end
+
+    context 'when timestamps are string values from Redis' do
+      let(:base_hash) do
+        super().merge(
+          'created' => '1699999000',
+          'updated' => '1700000000',
+        )
+      end
+
+      it 'coerces string timestamps to Integer' do
+        expect(result['created']).to eq(1699999000)
+        expect(result['updated']).to eq(1700000000)
+      end
+    end
+
+    context 'when ttl values are string values from Redis' do
+      let(:md) do
+        double('Onetime::Receipt',
+          to_h: base_hash,
+          identifier: 'metadata_key_123',
+          secret_ttl: '3600',
+          current_expiration: '7000')
+      end
+
+      it 'coerces string TTLs to Integer' do
+        expect(result['ttl']).to eq(3600)
+        expect(result['metadata_ttl']).to eq(7000)
+      end
+    end
+  end
 end
