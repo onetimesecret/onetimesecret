@@ -67,6 +67,16 @@ module DomainsAPI
 
         domains_data
       end
+
+      private
+
+      # Validates that an external ID contains only lowercase alphanumeric characters.
+      #
+      # @param extid [String] The external ID to validate
+      # @return [Boolean]
+      def valid_extid?(extid)
+        extid.match?(/\A[a-z0-9]+\z/)
+      end
     end
   end
 end

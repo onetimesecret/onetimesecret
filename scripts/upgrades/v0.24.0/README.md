@@ -3,10 +3,10 @@
 > **Relocated**: These scripts were moved from `migrations/2026-01-26/` to
 > `scripts/upgrades/v0.24.0/` for better organization. Git history is preserved.
 
+
+## Dependency Graph
+
 ```
-
-Dependency Graph
-
 Customer ──────────────────┬──────────────────┐
     │                      │                  │
     ▼                      ▼                  │
