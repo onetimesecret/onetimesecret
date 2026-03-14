@@ -347,7 +347,7 @@ s3 = receipt.state
 [s1, s2, s3]
 #=> ['new', 'previewed', 'orphaned']
 
-## Terminal states reject all further transitions
+## Terminal state: burned rejects all further transitions
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
 receipt.burned!
 receipt.previewed!
@@ -355,3 +355,13 @@ receipt.revealed!
 receipt.orphaned!
 receipt.state
 #=> 'burned'
+
+## Terminal state: revealed rejects all further transitions
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.previewed!
+receipt.revealed!
+receipt.previewed!
+receipt.burned!
+receipt.orphaned!
+receipt.state
+#=> 'revealed'
