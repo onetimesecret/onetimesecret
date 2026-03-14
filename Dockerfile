@@ -125,13 +125,13 @@ ARG ALLOW_DEV_VERSION=false
 RUN set -eux && \
     mkdir -p /tmp/build-meta && \
     echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt && \
-    PKG_VERSION=$(grep -o '"version": "[^"]*"' package.json | head -1) && \
-    if echo "$PKG_VERSION" | grep -q '"0\.0\.0-rc0"'; then \
+    PKG_VERSION=$(node -p "require('./package.json').version") && \
+    if [ "${PKG_VERSION}" = "0.0.0-rc0" ]; then \
       if [ "${ALLOW_DEV_VERSION}" = "true" ]; then \
-        echo "WARNING: Building with development version (${PKG_VERSION})" ; \
+        echo "WARNING: Building with archetype version (${PKG_VERSION})" >&2 ; \
       else \
-        echo "ERROR: package.json still has archetype placeholder version 0.0.0-rc0 (${PKG_VERSION})." && \
-        echo "Run update-version.sh before building, or set --build-arg ALLOW_DEV_VERSION=true" && \
+        echo "ERROR: package.json still has archetype placeholder version (${PKG_VERSION})." >&2 && \
+        echo "Run update-version.sh before building, or set --build-arg ALLOW_DEV_VERSION=true" >&2 && \
         exit 1 ; \
       fi ; \
     fi
