@@ -125,7 +125,7 @@ RUN set -eux && \
     mkdir -p /tmp/build-meta && \
     echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt && \
     PKG_VERSION=$(grep -o '"version": "[^"]*"' package.json | head -1) && \
-    if echo "$PKG_VERSION" | grep -q '0.0.0'; then \
+    if echo "$PKG_VERSION" | grep -q '"0\.0\.0'; then \
       if [ "${ALLOW_DEV_VERSION}" = "true" ]; then \
         echo "WARNING: Building with development version (${PKG_VERSION})" ; \
       else \
