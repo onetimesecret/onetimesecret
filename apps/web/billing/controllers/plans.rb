@@ -4,6 +4,7 @@
 
 require_relative 'base'
 require 'stripe'
+require 'securerandom'
 
 module Billing
   module Controllers
@@ -19,7 +20,7 @@ module Billing
       #
       # - Automatic Tax: Stripe Tax for EU VAT, Canadian GST/HST, etc.
       # - VAT ID Collection: EU B2B customers can enter VAT for reverse charge
-      # - Idempotency Key: Per-customer, per-plan, per-minute to prevent duplicates
+      # - Idempotency Key: Fresh UUID per session attempt
       # - Nested JSON Metadata: Grouped debug info per Stripe best practices
       # - Customer Reuse: Returning subscribers use existing Stripe Customer ID
       #
@@ -150,9 +151,11 @@ module Billing
           },
         }
 
-        # Create Stripe Checkout Session with idempotency key
-        # Key granularity: per-customer, per-plan, per-minute (prevents duplicates on retry)
-        idempotency_key  = "checkout_#{cust.extid}_#{plan.plan_id}_#{Time.now.to_i / 60}"
+        # Checkout Sessions should be recreated on each pay attempt. We use a
+        # fresh UUID here so minor parameter drift cannot collide with a stale
+        # cached session. Deterministic idempotency is reserved for actual
+        # subscription mutations, not pre-payment URLs.
+        idempotency_key  = SecureRandom.uuid
         checkout_session = Stripe::Checkout::Session.create(
           session_params,
           { idempotency_key: idempotency_key },

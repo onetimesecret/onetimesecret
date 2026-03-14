@@ -121,6 +121,28 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       expect(last_response.location).to include('/signup')
     end
 
+    it 'uses a fresh UUID idempotency key for each checkout redirect request', :vcr do
+      request_keys = []
+
+      allow(Stripe::Checkout::Session).to receive(:create).and_wrap_original do |original, params, opts|
+        request_keys << opts[:idempotency_key]
+        original.call(params, opts)
+      end
+
+      2.times do
+        get "/billing/plans/#{product}/#{interval}"
+
+        expect(last_response.status).to eq(302)
+        expect(last_response.location).to match(%r{\Ahttps://checkout\.stripe\.com/})
+      end
+
+      expect(request_keys.size).to eq(2)
+      expect(request_keys).to all(
+        match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/),
+      )
+      expect(request_keys.first).not_to eq(request_keys.last)
+    end
+
     it 'uses yearly interval parameter', :vcr do
       get "/billing/plans/#{product}/yearly"
 
