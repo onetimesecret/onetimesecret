@@ -263,4 +263,26 @@ RSpec.describe 'V1 API Response Contract', type: :integration do
       end
     end
   end
+
+  # Keys shorter than V1_MIN_IDENTIFIER_LENGTH (20) are rejected early
+  # by valid_identifier? — exercises the otto_not_found code path.
+  describe 'short key rejection (valid_identifier? guard)' do
+    %w[show_secret show_receipt burn_secret].zip([
+      ->(key) { post "/api/v1/secret/#{key}", {} },
+      ->(key) { get  "/api/v1/receipt/#{key}" },
+      ->(key) { post "/api/v1/receipt/#{key}/burn", {} },
+    ]).each do |label, request_proc|
+      context "#{label} with sub-20-char key" do
+        before { request_proc.call('short') }
+        include_examples 'flat JSON response'
+
+        it 'returns 404 with message key (not error key)' do
+          expect(last_response.status).to eq(404)
+          body = JSON.parse(last_response.body)
+          expect(body).to have_key('message')
+          expect(body).not_to have_key('error')
+        end
+      end
+    end
+  end
 end
