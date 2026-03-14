@@ -196,8 +196,9 @@ module Core
       # Checks if authentication is enabled for the site.
       #
       # Uses safe hash access via `dig` and defaults to enabled (true) when
-      # configuration is missing. This aligns with SessionHelpers and ensures
-      # authentication works even when config keys are absent.
+      # configuration is missing. Only checks `authentication.enabled` to
+      # align with SessionHelpers. The `signin` flag controls form display,
+      # not whether authentication itself is active.
       #
       # @return [Boolean] True if authentication is enabled, false only if
       #   explicitly disabled in configuration.
@@ -207,7 +208,7 @@ module Core
         auth_conf = OT.conf&.dig('site', 'authentication')
         return true unless auth_conf
 
-        auth_conf['enabled'] != false && auth_conf['signin'] != false
+        auth_conf['enabled'] != false
       end
 
       # Checks if the request accepts JSON responses

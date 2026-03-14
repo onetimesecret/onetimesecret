@@ -60,6 +60,8 @@ module V1
           custid, apitoken = *(auth.credentials || [])
           raise OT::Unauthorized, 'Invalid credentials' if custid.to_s.empty? || apitoken.to_s.empty?
 
+          # Returns 404 (not 401) when auth is disabled — intentional for
+          # backwards compatibility but can mask config issues. See #2620.
           return disabled_response(req.path) unless authentication_enabled?
 
           OT.ld "[authorized] Attempt for '#{custid}' via #{req.client_ipaddress} (basic auth)"
