@@ -448,5 +448,166 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
         expect(org.planid).to eq('identity_plus_v1')
       end
     end
+
+    context 'complimentary metadata syncing' do
+      it 'sets complimentary when subscription metadata has complimentary=true' do
+        subscription = Stripe::Subscription.construct_from({
+          id: 'sub_comp_123',
+          object: 'subscription',
+          customer: 'cus_test_456',
+          status: 'active',
+          metadata: {
+            Billing::Metadata::FIELD_PLAN_ID => 'identity_plus_v1',
+            Billing::Metadata::FIELD_COMPLIMENTARY => 'true',
+          },
+          items: {
+            data: [{
+              price: {
+                id: 'price_test',
+                product: 'prod_test',
+                metadata: {},
+              },
+              current_period_end: period_end,
+            }],
+          },
+        })
+
+        org.update_from_stripe_subscription(subscription)
+        expect(org.complimentary).to eq('true')
+      end
+
+      it 'clears complimentary when metadata does not have complimentary' do
+        org.complimentary = 'true'
+        subscription = build_valid_subscription
+        org.update_from_stripe_subscription(subscription)
+        expect(org.complimentary).to be_nil
+      end
+    end
+  end
+
+  # ==========================================================================
+  # paid? and complimentary? canonical method tests
+  # ==========================================================================
+  describe '#paid?' do
+    let(:billing_test_class) do
+      Class.new do
+        include Onetime::Models::Features::WithOrganizationBilling::InstanceMethods
+
+        attr_accessor :subscription_status, :planid, :complimentary
+
+        def initialize(status: nil, planid: nil, complimentary: nil)
+          @subscription_status = status
+          @planid = planid
+          @complimentary = complimentary
+        end
+      end
+    end
+
+    it 'returns true for active subscription with paid plan' do
+      org = billing_test_class.new(status: 'active', planid: 'identity_plus_v1')
+      expect(org.paid?).to be true
+    end
+
+    it 'returns true for trialing subscription with paid plan' do
+      org = billing_test_class.new(status: 'trialing', planid: 'identity_plus_v1')
+      expect(org.paid?).to be true
+    end
+
+    it 'returns false for canceled subscription even with paid planid' do
+      org = billing_test_class.new(status: 'canceled', planid: 'identity_plus_v1')
+      expect(org.paid?).to be false
+    end
+
+    it 'returns false for past_due subscription' do
+      org = billing_test_class.new(status: 'past_due', planid: 'identity_plus_v1')
+      expect(org.paid?).to be false
+    end
+
+    it 'returns false for active subscription with free_v1 plan' do
+      org = billing_test_class.new(status: 'active', planid: 'free_v1')
+      expect(org.paid?).to be false
+    end
+
+    it 'returns false for active subscription with free plan' do
+      org = billing_test_class.new(status: 'active', planid: 'free')
+      expect(org.paid?).to be false
+    end
+
+    it 'returns false for active subscription with empty planid' do
+      org = billing_test_class.new(status: 'active', planid: '')
+      expect(org.paid?).to be false
+    end
+
+    it 'returns false for active subscription with nil planid' do
+      org = billing_test_class.new(status: 'active', planid: nil)
+      expect(org.paid?).to be false
+    end
+
+    it 'returns false when no subscription status' do
+      org = billing_test_class.new(status: nil, planid: 'identity_plus_v1')
+      expect(org.paid?).to be false
+    end
+  end
+
+  describe '#complimentary?' do
+    let(:billing_test_class) do
+      Class.new do
+        include Onetime::Models::Features::WithOrganizationBilling::InstanceMethods
+
+        attr_accessor :subscription_status, :planid, :complimentary
+
+        def initialize(status: nil, planid: nil, complimentary: nil)
+          @subscription_status = status
+          @planid = planid
+          @complimentary = complimentary
+        end
+      end
+    end
+
+    it 'returns true for active subscription with complimentary marker' do
+      org = billing_test_class.new(
+        status: 'active',
+        planid: 'identity_plus_v1',
+        complimentary: 'true'
+      )
+      expect(org.complimentary?).to be true
+    end
+
+    it 'returns false for active subscription without complimentary marker' do
+      org = billing_test_class.new(
+        status: 'active',
+        planid: 'identity_plus_v1',
+        complimentary: nil
+      )
+      expect(org.complimentary?).to be false
+    end
+
+    it 'returns false for canceled subscription even with complimentary marker' do
+      org = billing_test_class.new(
+        status: 'canceled',
+        planid: 'identity_plus_v1',
+        complimentary: 'true'
+      )
+      expect(org.complimentary?).to be false
+    end
+
+    it 'returns false when complimentary is empty string' do
+      org = billing_test_class.new(
+        status: 'active',
+        planid: 'identity_plus_v1',
+        complimentary: ''
+      )
+      expect(org.complimentary?).to be false
+    end
+
+    it 'a complimentary org is also paid' do
+      org = billing_test_class.new(
+        status: 'active',
+        planid: 'identity_plus_v1',
+        complimentary: 'true'
+      )
+      expect(org.paid?).to be true
+      expect(org.complimentary?).to be true
+    end
   end
 end

@@ -24,6 +24,9 @@ module Billing
     FIELD_DISPLAY_ORDER      = 'display_order'
     FIELD_SHOW_ON_PLANS_PAGE = 'show_on_plans_page'
 
+    # Complimentary subscription marker (set on Stripe subscription metadata)
+    FIELD_COMPLIMENTARY      = 'complimentary'
+
     # Optional metadata fields
     FIELD_PLAN_CODE          = 'ots_plan_code'           # Deduplication key (e.g., "identity_plus" for monthly+yearly)
     FIELD_IS_POPULAR         = 'ots_is_popular'          # Boolean: show "Most Popular" badge

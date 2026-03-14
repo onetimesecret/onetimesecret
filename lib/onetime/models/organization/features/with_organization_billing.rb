@@ -48,6 +48,11 @@ module Onetime
           # Unix timestamp, nil if never dismissed
           base.field :federation_notification_dismissed_at
 
+          # Complimentary subscription marker
+          # Set to 'true' when org has a $0 complimentary subscription (pro-bono).
+          # Synced from Stripe subscription metadata['complimentary'] field.
+          base.field :complimentary
+
           # Currency migration intent fields
           # Set when user initiates graceful migration (cancel-at-period-end path).
           # Frontend checks these to prompt user for new checkout after old sub ends.
@@ -133,6 +138,55 @@ module Onetime
           # @return [Boolean] True if subscription status is 'canceled'
           def canceled?
             subscription_status.to_s == 'canceled'
+          end
+
+          # Canonical Paid Status
+          # ---------------------
+          # Single source of truth for whether an organization is paying.
+          # Combines subscription liveness with plan classification.
+
+          # Check if organization is a paying customer
+          #
+          # An org is paid when it has an active (or trialing) subscription
+          # AND a non-free plan assigned. This prevents false positives from
+          # stale planid values after cancellation (webhooks set planid to
+          # 'free_v1' on cancel, but this guards against race conditions).
+          #
+          # @return [Boolean] True if org has active subscription with paid plan
+          #
+          # @example
+          #   org.paid?  # => true (active sub + identity_plus_v1)
+          #   org.paid?  # => false (canceled sub, even with paid planid)
+          #   org.paid?  # => false (active sub + free_v1)
+          #
+          FREE_PLAN_IDS = %w[free free_v1].freeze
+
+          def paid?
+            active_subscription? &&
+              !planid.to_s.empty? &&
+              !FREE_PLAN_IDS.include?(planid.to_s)
+          end
+
+          # Check if organization has a complimentary (pro-bono) subscription
+          #
+          # A complimentary org has an active $0 subscription with the
+          # 'complimentary' marker set. This is distinct from paid? because
+          # the subscription carries no revenue, but the org still gets
+          # premium entitlements through its planid.
+          #
+          # The complimentary field is synced from Stripe subscription
+          # metadata['complimentary'] during webhook processing and
+          # migration tooling.
+          #
+          # @return [Boolean] True if org has active complimentary subscription
+          #
+          # @example
+          #   org.complimentary?  # => true ($0 sub, complimentary marker)
+          #   org.complimentary?  # => false (regular paid sub)
+          #   org.complimentary?  # => false (canceled complimentary sub)
+          #
+          def complimentary?
+            active_subscription? && complimentary.to_s == 'true'
           end
 
           # Federation Methods
@@ -318,6 +372,9 @@ module Onetime
             plan_id     = extract_plan_id_from_subscription(subscription)
             self.planid = plan_id if plan_id
 
+            # Sync complimentary marker from subscription metadata
+            sync_complimentary_from_subscription(subscription)
+
             save
           end
 
@@ -328,6 +385,7 @@ module Onetime
             self.stripe_subscription_id = nil
             self.subscription_status    = 'canceled'
             self.planid                 = 'free_v1'
+            self.complimentary          = nil
             save
           end
 
@@ -373,6 +431,22 @@ module Onetime
             end
 
             plan_id
+          end
+
+          # Sync complimentary marker from Stripe subscription metadata
+          #
+          # Reads the 'complimentary' field from subscription metadata and
+          # stores it locally. This avoids hitting Stripe API on every check.
+          #
+          # @param subscription [Stripe::Subscription] Stripe subscription
+          # @return [void]
+          def sync_complimentary_from_subscription(subscription)
+            meta = subscription.metadata
+            if meta && meta[Billing::Metadata::FIELD_COMPLIMENTARY].to_s == 'true'
+              self.complimentary = 'true'
+            else
+              self.complimentary = nil
+            end
           end
 
           # Extract plan_id from subscription metadata (for drift detection only)
