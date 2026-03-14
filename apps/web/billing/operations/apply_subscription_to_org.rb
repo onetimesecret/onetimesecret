@@ -68,7 +68,7 @@ module Billing
       def apply_status_fields
         @org.subscription_status = @subscription.status
 
-        period_end = @subscription.items.data.first&.current_period_end
+        period_end                   = @subscription.items.data.first&.current_period_end
         @org.subscription_period_end = period_end.to_s if period_end
       end
 
@@ -94,11 +94,9 @@ module Billing
       # codepath that should write org.complimentary.
       def apply_complimentary_marker
         meta = @subscription.metadata
-        if meta && meta[Billing::Metadata::FIELD_COMPLIMENTARY].to_s == 'true'
-          @org.complimentary = 'true'
-        else
-          @org.complimentary = nil
-        end
+        @org.complimentary = if meta && meta[Billing::Metadata::FIELD_COMPLIMENTARY].to_s == 'true'
+                               'true'
+                             end
       end
 
       # Fields only set on owner orgs (not federated)

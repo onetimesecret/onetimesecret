@@ -87,7 +87,7 @@ module Onetime
           return
         end
 
-        return unless verify_stripe_configured! unless dry_run
+        return unless dry_run || verify_stripe_configured!
 
         customers = find_probono_customers
         return if customers.empty?
@@ -160,7 +160,7 @@ module Onetime
 
       def process_customer(cust, idx, total, stats, dry_run, verbose, price_id, target_planid)
         stats[:total] += 1
-        label = "[#{idx + 1}/#{total}]"
+        label          = "[#{idx + 1}/#{total}]"
 
         # Find default organization
         orgs = cust.organization_instances.to_a
@@ -224,7 +224,8 @@ module Onetime
           # Uses planid_override because the $0 complimentary price may
           # not be in the plan catalog yet.
           Billing::Operations::ApplySubscriptionToOrg.call(
-            org, subscription,
+            org,
+            subscription,
             owner: true,
             planid_override: target_planid
           )
@@ -237,16 +238,14 @@ module Onetime
           puts "  #{label} Migrated: #{cust.extid} -> sub #{subscription.id}" if verbose
 
           sleep(BATCH_DELAY_SECONDS)
-        rescue Stripe::RateLimitError => ex
+        rescue Stripe::RateLimitError
           rate_limit_retries += 1
-          if rate_limit_retries <= MAX_RATE_LIMIT_RETRIES
-            backoff = 5 * rate_limit_retries
-            puts "  #{label} Rate limited (attempt #{rate_limit_retries}/#{MAX_RATE_LIMIT_RETRIES}), waiting #{backoff}s..."
-            sleep(backoff)
-            retry
-          else
-            raise
-          end
+          raise unless rate_limit_retries <= MAX_RATE_LIMIT_RETRIES
+
+          backoff = 5 * rate_limit_retries
+          puts "  #{label} Rate limited (attempt #{rate_limit_retries}/#{MAX_RATE_LIMIT_RETRIES}), waiting #{backoff}s..."
+          sleep(backoff)
+          retry
         end
       end
 
