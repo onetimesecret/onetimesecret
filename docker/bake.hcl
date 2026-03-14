@@ -39,6 +39,10 @@ variable "COMMIT_HASH" {
   default = "dev"
 }
 
+variable "ALLOW_DEV_VERSION" {
+  default = "false"
+}
+
 # Docker image tag for versioned releases (e.g. "v0.24.0-rc15").
 # Empty for non-tag builds (nightly, branch push, manual dispatch) — only EXTRA_TAGS apply.
 variable "IMAGE_TAG" {
@@ -117,8 +121,9 @@ group "ci" {
 # Abstract target: shared args and labels for all app images
 target "_common" {
   args = {
-    VERSION     = VERSION
-    COMMIT_HASH = COMMIT_HASH
+    VERSION           = VERSION
+    COMMIT_HASH       = COMMIT_HASH
+    ALLOW_DEV_VERSION = ALLOW_DEV_VERSION
   }
   labels = {
     "org.opencontainers.image.source"  = "https://github.com/onetimesecret/onetimesecret"

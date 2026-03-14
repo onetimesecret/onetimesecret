@@ -97,7 +97,6 @@ RUN set -eux && \
 #
 FROM dependencies AS build
 ARG APP_DIR
-ARG VERSION
 ARG COMMIT_HASH
 
 WORKDIR ${APP_DIR}
@@ -117,14 +116,24 @@ RUN set -eux && \
     rm -rf node_modules ~/.npm ~/.pnpm-store && \
     npm uninstall -g pnpm
 
-# Generate build metadata from the VERSION build arg (authoritative source).
+# Generate build metadata and validate version.
 # COMMIT_HASH is passed as a build arg from CI (GitHub Actions).
-# For local builds without args, falls back to defaults.
+# package.json version must be set by update-version.sh BEFORE the build.
+# Builds fail if package.json still has the 0.0.0 archetype unless explicitly allowed.
+ARG ALLOW_DEV_VERSION=false
 RUN set -eux && \
     mkdir -p /tmp/build-meta && \
-    echo "VERSION=${VERSION:-0.0.0-rc0}" > /tmp/build-meta/version_env && \
-    echo "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> /tmp/build-meta/version_env && \
-    echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt
+    echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt && \
+    PKG_VERSION=$(grep -o '"version": "[^"]*"' package.json | head -1) && \
+    if echo "$PKG_VERSION" | grep -q '0.0.0'; then \
+      if [ "${ALLOW_DEV_VERSION}" = "true" ]; then \
+        echo "WARNING: Building with development version (${PKG_VERSION})" ; \
+      else \
+        echo "ERROR: package.json still has development version (${PKG_VERSION})." && \
+        echo "Run update-version.sh before building, or set --build-arg ALLOW_DEV_VERSION=true" && \
+        exit 1 ; \
+      fi ; \
+    fi
 
 ##
 # FINAL-S6: Production image with S6 overlay for multi-process supervision
@@ -209,7 +218,8 @@ COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
 COPY --chown=appuser:appuser install.sh ./
 COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
-COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/package.json ./
+COPY --chown=appuser:appuser config.ru Gemfile Gemfile.lock ./
 
 # Copy S6 service definitions (as root for proper ownership)
 COPY --chown=root:root docker/s6/services /etc/s6-overlay/s6-rc.d
@@ -316,7 +326,8 @@ COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
 COPY --chown=appuser:appuser install.sh ./
 COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
-COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/package.json ./
+COPY --chown=appuser:appuser config.ru Gemfile Gemfile.lock ./
 
 # Set production environment
 ENV RACK_ENV=production \
