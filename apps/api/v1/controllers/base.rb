@@ -119,6 +119,14 @@ module V1
     V1_RATE_LIMIT_MAX_CREATES = 1000 # v0.23: limits.create_secret
     V1_RATE_LIMIT_MAX_READS = 1000   # v0.23: limits.show_secret
 
+    # Lua script for atomic INCR + EXPIRE (prevents race condition
+    # where a crash between the two commands leaves a permanent key).
+    V1_RATE_LIMIT_LUA = <<~LUA.freeze
+      local c = redis.call('INCR', KEYS[1])
+      if tonumber(c) == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end
+      return c
+    LUA
+
     def check_rate_limit!(event, max_count)
       # Paid-plan exemption: skip rate limiting for authenticated paid users
       return if cust && !cust.anonymous? && cust.planid.to_s != 'anonymous'
@@ -128,11 +136,12 @@ module V1
 
       key = "v1:ratelimit:#{event}:#{ip}"
       begin
-        # INCR first, then check — avoids TOCTOU race where two concurrent
-        # requests both read the same count and both pass the limit.
-        # SETNX + EXPIRE on first hit ensures a fixed window (not sliding).
-        count = Familia.redis.incr(key)
-        Familia.redis.expire(key, V1_RATE_LIMIT_WINDOW) if count == 1
+        # Atomic INCR + EXPIRE via Lua script to prevent race condition.
+        # Without atomicity, a crash between INCR and EXPIRE could leave
+        # a permanent key that never expires, causing permanent IP blocking.
+        count = Familia.redis.eval(
+          V1_RATE_LIMIT_LUA, keys: [key], argv: [V1_RATE_LIMIT_WINDOW]
+        )
 
         if count > max_count
           error_response "Rate limit exceeded. Please try again later."

@@ -35,15 +35,15 @@ Familia.dbclient.flushdb
 # -----------------------------------------------------------------------
 
 ## TC-1: V1_RATE_LIMIT_WINDOW is 20 minutes (1200 seconds)
-V1::Controllers::Base::V1_RATE_LIMIT_WINDOW
+V1::ControllerBase::V1_RATE_LIMIT_WINDOW
 #=> 1200
 
 ## TC-2: V1_RATE_LIMIT_MAX_CREATES matches v0.23 create_secret limit
-V1::Controllers::Base::V1_RATE_LIMIT_MAX_CREATES
+V1::ControllerBase::V1_RATE_LIMIT_MAX_CREATES
 #=> 1000
 
 ## TC-3: V1_RATE_LIMIT_MAX_READS matches v0.23 show_secret limit
-V1::Controllers::Base::V1_RATE_LIMIT_MAX_READS
+V1::ControllerBase::V1_RATE_LIMIT_MAX_READS
 #=> 1000
 
 # -----------------------------------------------------------------------
@@ -90,7 +90,7 @@ response.status
 # Artificially set counter to the max to trigger rate limiting
 key_pattern = 'v1:ratelimit:create_secret:*'
 key = Familia.redis.keys(key_pattern).first
-Familia.redis.set(key, V1::Controllers::Base::V1_RATE_LIMIT_MAX_CREATES)
+Familia.redis.set(key, V1::ControllerBase::V1_RATE_LIMIT_MAX_CREATES)
 Familia.redis.expire(key, 1200)
 response = @mock_request.post('/api/v1/generate')
 body = JSON.parse(response.body)

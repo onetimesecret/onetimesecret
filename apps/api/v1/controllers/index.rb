@@ -145,7 +145,7 @@ module V1
       def show_secret
         authorized(true) do
           return otto_not_found unless valid_identifier?(req.params['key'])
-          return if check_rate_limit!(:get_secret, V1_RATE_LIMIT_MAX_READS) == :limited
+          return if check_rate_limit!(:show_secret, V1_RATE_LIMIT_MAX_READS) == :limited
 
           req.params['continue'] = 'true'
           logic = V1::Logic::Secrets::ShowSecret.new sess, cust, req.params, locale

@@ -53,8 +53,11 @@ module V1::Logic
       # maxLength: 10000 documented in the OpenAPI definition.
       V1_MAX_SECRET_SIZE = 10_000
 
-      # Email validation regex - defined once to avoid recompilation on every call
-      EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
+      # Email validation regex - defined once to avoid recompilation on every call.
+      # TLD allows 2+ chars to support modern TLDs (.technology, .international)
+      # that would be silently dropped by the old {2,4} limit before reaching
+      # v1_valid_email? (RFC 5321) validation.
+      EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/
 
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
       attr_reader :receipt, :secret, :share_domain, :custom_domain, :payload, :default_expiration
