@@ -13,6 +13,13 @@
 #   2. Run again with --purge to execute (reuses cached candidate set)
 #   3. Each customer.destroy! removes object hash + all indexes + metadata
 #
+# Design note: Soft-delete via Redis TTL was considered but rejected.
+# Class-level indexes (email_index, extid_lookup, role_index, instances)
+# are shared keys — individual fields/members cannot be TTL'd, leaving
+# orphaned references that accumulate without bound. The recommended
+# recovery strategy is to BGSAVE before purging and restore the RDB
+# if needed.
+#
 # Operational notes:
 #   - BGSAVE Redis before running --purge on production
 #   - Run during off-peak hours for large purges (1000+ records)
@@ -458,8 +465,45 @@ module Onetime
         has_billing = !parse_json_field(vals[3]).to_s.empty? ||
                       !parse_json_field(vals[4]).to_s.empty?
 
+        # Check Organization-level billing via raw Redis, matching the
+        # stripe_billing? check in local mode. The customer's participations
+        # set (customer:{objid}:participations) contains entries like
+        # "organization:{org_id}:members". We extract org IDs and check
+        # each organization's stripe_customer_id field.
+        unless has_billing
+          has_billing = org_billing_raw?(redis, objid)
+        end
+
         source, activity = activity_source(last_login, updated)
         build_record(OT::Utils.obscure_email(email.to_s), source, activity, has_billing)
+      end
+
+      # Check Organization-level Stripe billing via raw Redis HMGET.
+      # Mirrors the Organization check in stripe_billing? for remote mode
+      # where Familia models are not available.
+      #
+      # Returns true (billing-protected) on error, matching the fail-safe
+      # behavior of stripe_billing?.
+      def org_billing_raw?(redis, objid)
+        participations = redis.smembers("customer:#{objid}:participations")
+        return false if participations.nil? || participations.empty?
+
+        participations.each do |key|
+          next unless key.start_with?('organization:')
+
+          # Parse "organization:{org_id}:members" → org_id
+          org_id = key.split(':', 3)[1]
+          next if org_id.nil? || org_id.empty?
+
+          stripe_cust = redis.hmget("organization:#{org_id}:object", 'stripe_customer_id')
+          val = parse_json_field(stripe_cust[0])
+          return true unless val.to_s.empty?
+        end
+
+        false
+      rescue StandardError => ex
+        OT.le "[purge] Error checking org billing for #{objid}: #{ex.message}"
+        true
       end
 
       def load_customer_record_model(objid)
@@ -515,9 +559,8 @@ module Onetime
         # Also try the bare key (Familia v1 pattern)
         keys_to_del << "customer:#{objid}"
 
-        # Only delete keys that exist
-        existing = keys_to_del.select { |k| redis.exists?(k) }
-        redis.del(*existing) unless existing.empty?
+        # DEL silently ignores non-existent keys; no need to check first
+        redis.del(*keys_to_del)
       end
 
       # Check if customer has any Stripe billing association.

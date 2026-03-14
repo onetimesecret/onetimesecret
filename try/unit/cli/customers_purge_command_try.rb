@@ -256,6 +256,78 @@ cust.define_singleton_method(:organization_instances) { raise StandardError, 're
 #=> true
 
 # -------------------------------------------------------------------
+# org_billing_raw? logic (remote mode Organization billing check)
+# -------------------------------------------------------------------
+
+## org_billing_raw? returns false when customer has no participations
+@mock_redis_class = Class.new do
+  def initialize(participations: [], org_fields: {})
+    @participations = participations
+    @org_fields = org_fields
+  end
+  def smembers(_key) = @participations
+  def hmget(key, *fields) = @org_fields[key] || [nil] * fields.size
+end
+mock_redis = @mock_redis_class.new(participations: [])
+@cmd.send(:org_billing_raw?, mock_redis, 'cust123')
+#=> false
+
+## org_billing_raw? returns false when participations is nil
+mock_redis = @mock_redis_class.new
+mock_redis.define_singleton_method(:smembers) { |_| nil }
+@cmd.send(:org_billing_raw?, mock_redis, 'cust123')
+#=> false
+
+## org_billing_raw? returns true when org has stripe_customer_id
+mock_redis = @mock_redis_class.new(
+  participations: ['organization:org1:members'],
+  org_fields: { 'organization:org1:object' => ['"cus_org456"'] }
+)
+@cmd.send(:org_billing_raw?, mock_redis, 'cust123')
+#=> true
+
+## org_billing_raw? returns false when org has empty stripe_customer_id
+mock_redis = @mock_redis_class.new(
+  participations: ['organization:org1:members'],
+  org_fields: { 'organization:org1:object' => ['""'] }
+)
+@cmd.send(:org_billing_raw?, mock_redis, 'cust123')
+#=> false
+
+## org_billing_raw? returns false when org has nil stripe_customer_id
+mock_redis = @mock_redis_class.new(
+  participations: ['organization:org1:members'],
+  org_fields: { 'organization:org1:object' => [nil] }
+)
+@cmd.send(:org_billing_raw?, mock_redis, 'cust123')
+#=> false
+
+## org_billing_raw? skips non-organization participations
+mock_redis = @mock_redis_class.new(
+  participations: ['customdomain:dom1:members'],
+  org_fields: {}
+)
+@cmd.send(:org_billing_raw?, mock_redis, 'cust123')
+#=> false
+
+## org_billing_raw? checks multiple orgs and finds billing on second
+mock_redis = @mock_redis_class.new(
+  participations: ['organization:org1:members', 'organization:org2:members'],
+  org_fields: {
+    'organization:org1:object' => [nil],
+    'organization:org2:object' => ['"cus_stripe789"']
+  }
+)
+@cmd.send(:org_billing_raw?, mock_redis, 'cust123')
+#=> true
+
+## org_billing_raw? returns true on error (fail-safe, same as stripe_billing?)
+mock_redis = @mock_redis_class.new
+mock_redis.define_singleton_method(:smembers) { |_| raise StandardError, 'connection lost' }
+@cmd.send(:org_billing_raw?, mock_redis, 'cust123')
+#=> true
+
+# -------------------------------------------------------------------
 # Activity source selection logic (used in show_dry_run)
 # -------------------------------------------------------------------
 
