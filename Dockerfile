@@ -119,17 +119,18 @@ RUN set -eux && \
 # Generate build metadata and validate version.
 # COMMIT_HASH is passed as a build arg from CI (GitHub Actions).
 # package.json version must be set by update-version.sh BEFORE the build.
-# Builds fail if package.json still has the 0.0.0 archetype unless explicitly allowed.
+# Builds fail if package.json still has the 0.0.0-rc0 archetype placeholder
+# unless explicitly allowed. Intentional builds like 0.0.0-nightly.* pass through.
 ARG ALLOW_DEV_VERSION=false
 RUN set -eux && \
     mkdir -p /tmp/build-meta && \
     echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt && \
     PKG_VERSION=$(grep -o '"version": "[^"]*"' package.json | head -1) && \
-    if echo "$PKG_VERSION" | grep -q '"0\.0\.0'; then \
+    if echo "$PKG_VERSION" | grep -q '"0\.0\.0-rc0"'; then \
       if [ "${ALLOW_DEV_VERSION}" = "true" ]; then \
         echo "WARNING: Building with development version (${PKG_VERSION})" ; \
       else \
-        echo "ERROR: package.json still has development version (${PKG_VERSION})." && \
+        echo "ERROR: package.json still has archetype placeholder version 0.0.0-rc0 (${PKG_VERSION})." && \
         echo "Run update-version.sh before building, or set --build-arg ALLOW_DEV_VERSION=true" && \
         exit 1 ; \
       fi ; \
