@@ -146,7 +146,13 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
       double('Stripe::Subscription',
         id: 'sub_new_123',
         status: 'active',
+        customer: 'cus_new_123',
         items: items_data,
+        metadata: {
+          Billing::Metadata::FIELD_COMPLIMENTARY => 'true',
+          Billing::Metadata::FIELD_PLAN_ID => target_planid,
+          'migrated_from' => 'probono',
+        },
       )
     end
 
