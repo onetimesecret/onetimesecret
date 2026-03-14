@@ -195,11 +195,19 @@ module Core
 
       # Checks if authentication is enabled for the site.
       #
-      # @return [Boolean] True if authentication and sign-in are enabled, false otherwise.
+      # Uses safe hash access via `dig` and defaults to enabled (true) when
+      # configuration is missing. This aligns with SessionHelpers and ensures
+      # authentication works even when config keys are absent.
+      #
+      # @return [Boolean] True if authentication is enabled, false only if
+      #   explicitly disabled in configuration.
       def authentication_enabled?
-        authentication_enabled = OT.conf['site']['authentication']['enabled'] rescue false # rubocop:disable Style/RescueModifier
-        signin_enabled         = OT.conf['site']['authentication']['signin'] rescue false # rubocop:disable Style/RescueModifier
-        authentication_enabled && signin_enabled
+        return true unless defined?(OT) && OT.respond_to?(:conf)
+
+        auth_conf = OT.conf&.dig('site', 'authentication')
+        return true unless auth_conf
+
+        auth_conf['enabled'] != false && auth_conf['signin'] != false
       end
 
       # Checks if the request accepts JSON responses

@@ -320,28 +320,22 @@ module V1
 
     # Checks if authentication is enabled for the site.
     #
-    # This method determines whether authentication is enabled by checking the
-    # site configuration. It defaults to disabled if the site configuration is
-    # missing. This approach prevents unauthorized access by ensuring that
-    # accounts are not used if authentication is not explicitly enabled.
+    # Uses safe hash access via `dig` and defaults to enabled (true) when
+    # configuration is missing. This aligns with SessionHelpers and ensures
+    # API authentication works even when config keys are absent.
     #
-    # @return [Boolean] True if authentication and sign-in are enabled, false otherwise.
+    # @return [Boolean] True if authentication is enabled, false only if
+    #   explicitly disabled in configuration.
     #
     def authentication_enabled?
-      # Defaulting to disabled is the Right Thing to Do™. If the site config
-      # is missing, we assume that authentication is disabled and that accounts
-      # are not used. This prevents situations where the app is running and
-      # anyone accessing it can create an account without proper authentication.
-      authentication_enabled = OT.conf['site']['authentication']['enabled'] rescue false # rubocop:disable Style/RescueModifier
-      signin_enabled         = OT.conf['site']['authentication']['signin'] rescue false # rubocop:disable Style/RescueModifier
+      return true unless defined?(OT) && OT.respond_to?(:conf)
 
-      # The only condition that allows a request to be authenticated is if
-      # the site has authentication enabled, and the user is signed in. If a
-      # user is signed in and the site configuration changes to disable it,
-      # the user will be signed out temporarily. If the setting is restored
-      # before the session key expires in Redis, that user will be signed in
-      # again. This is a security feature.
-      authentication_enabled && signin_enabled
+      auth_conf = OT.conf&.dig('site', 'authentication')
+      return true unless auth_conf
+
+      # Both 'enabled' and 'signin' must not be explicitly set to false.
+      # Missing keys default to enabled (true).
+      auth_conf['enabled'] != false && auth_conf['signin'] != false
     end
 
     def log_customer_activity
