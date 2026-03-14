@@ -155,6 +155,12 @@ secret.burned!
 secret.state == original_state
 #=> true
 
+## burned! from :new destroys the secret in Redis
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+secret.burned!
+secret.exists?
+#=> false
+
 ## burned! from :new transitions receipt to 'burned'
 receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
 secret.burned!
@@ -250,3 +256,9 @@ secret.revealed!
 secret.previewed!
 secret.state
 #=> 'revealed'
+
+## revealed! destroys the secret in Redis
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+secret.revealed!
+secret.exists?
+#=> false
