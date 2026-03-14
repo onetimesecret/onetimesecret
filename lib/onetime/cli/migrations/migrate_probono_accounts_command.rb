@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'billing/operations/apply_subscription_to_org'
+
 # Migrate legacy pro-bono accounts to $0 complimentary subscriptions.
 #
 # Legacy pro-bono accounts have customer.planid='identity' but no
@@ -38,8 +40,8 @@ module Onetime
       # Legacy planid values that indicate pro-bono accounts
       LEGACY_PROBONO_PLANIDS = %w[identity].freeze
 
-      # Target plan for migrated accounts
-      TARGET_PLANID = 'identity_plus_v1'
+      # Default target plan for migrated accounts
+      DEFAULT_TARGET_PLANID = 'identity_plus_v1'
 
       option :run,
         type: :boolean,
@@ -57,13 +59,18 @@ module Onetime
         default: nil,
         desc: 'Stripe Price ID for the $0 complimentary plan (required for --run)'
 
+      option :target_planid,
+        type: :string,
+        default: DEFAULT_TARGET_PLANID,
+        desc: "Target plan ID for migrated accounts (default: #{DEFAULT_TARGET_PLANID})"
+
       option :help,
         type: :boolean,
         default: false,
         aliases: ['h'],
         desc: 'Show help message'
 
-      def call(run: false, verbose: false, price_id: nil, help: false, **)
+      def call(run: false, verbose: false, price_id: nil, target_planid: DEFAULT_TARGET_PLANID, help: false, **)
         return show_usage_help if help
 
         boot_application!
@@ -97,7 +104,7 @@ module Onetime
         }
 
         customers.each_with_index do |cust, idx|
-          process_customer(cust, idx, customers.size, stats, dry_run, verbose, price_id)
+          process_customer(cust, idx, customers.size, stats, dry_run, verbose, price_id, target_planid)
         end
 
         print_results(stats, dry_run)
@@ -151,7 +158,7 @@ module Onetime
         end
       end
 
-      def process_customer(cust, idx, total, stats, dry_run, verbose, price_id)
+      def process_customer(cust, idx, total, stats, dry_run, verbose, price_id, target_planid)
         stats[:total] += 1
         label = "[#{idx + 1}/#{total}]"
 
@@ -186,14 +193,14 @@ module Onetime
         end
 
         # Live migration
-        migrate_account!(cust, org, price_id, label, stats, verbose)
+        migrate_account!(cust, org, price_id, target_planid, label, stats, verbose)
       rescue StandardError => ex
         stats[:errors] << "#{cust.extid}: #{ex.message}"
         puts "  #{label} Error: #{ex.message}"
         OT.le "[MigrateProBono] Error for #{cust.extid}: #{ex.message}"
       end
 
-      def migrate_account!(cust, org, price_id, label, stats, verbose)
+      def migrate_account!(cust, org, price_id, target_planid, label, stats, verbose)
         rate_limit_retries = 0
 
         begin
@@ -206,7 +213,7 @@ module Onetime
             items: [{ price: price_id }],
             metadata: {
               Billing::Metadata::FIELD_COMPLIMENTARY => 'true',
-              Billing::Metadata::FIELD_PLAN_ID => TARGET_PLANID,
+              Billing::Metadata::FIELD_PLAN_ID => target_planid,
               'migrated_from' => 'probono',
               'migrated_at' => Time.now.utc.iso8601,
               'legacy_planid' => cust.planid.to_s,
@@ -216,11 +223,10 @@ module Onetime
           # Step 3: Update organization via shared operation
           # Uses planid_override because the $0 complimentary price may
           # not be in the plan catalog yet.
-          require 'billing/operations/apply_subscription_to_org'
           Billing::Operations::ApplySubscriptionToOrg.call(
             org, subscription,
             owner: true,
-            planid_override: TARGET_PLANID
+            planid_override: target_planid
           )
 
           # Step 4: Clear legacy customer.planid
@@ -326,10 +332,11 @@ module Onetime
             complimentary? methods.
 
           Options:
-            --run                 Execute migration (default is dry-run)
-            --price-id <ID>       Stripe Price ID for $0 complimentary plan (required with --run)
-            --verbose, -v         Show detailed progress for each account
-            --help, -h            Show this help message
+            --run                   Execute migration (default is dry-run)
+            --price-id <ID>         Stripe Price ID for $0 complimentary plan (required with --run)
+            --target-planid <ID>    Target plan ID (default: identity_plus_v1)
+            --verbose, -v           Show detailed progress for each account
+            --help, -h              Show this help message
 
           Examples:
             # Preview migration (dry run)

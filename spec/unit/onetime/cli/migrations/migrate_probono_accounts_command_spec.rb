@@ -22,6 +22,7 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
 
   let(:customer_email) { 'probono@example.com' }
   let(:price_id) { 'price_0_complimentary' }
+  let(:target_planid) { 'identity_plus_v1' }
 
   let(:customer) do
     double('Customer',
@@ -86,7 +87,7 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
       expect(Stripe::Customer).not_to receive(:create)
       expect(Stripe::Subscription).not_to receive(:create)
 
-      command.send(:process_customer, customer, 0, 1, stats, true, false, price_id)
+      command.send(:process_customer, customer, 0, 1, stats, true, false, price_id, target_planid)
 
       expect(stats[:total]).to eq(1)
       expect(stats[:migrated]).to eq(1)
@@ -95,7 +96,7 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
     it 'outputs preview message' do
       expect(command).to receive(:puts).with(/Would migrate.*cust_ext_1/)
 
-      command.send(:process_customer, customer, 0, 1, stats, true, true, price_id)
+      command.send(:process_customer, customer, 0, 1, stats, true, true, price_id, target_planid)
     end
   end
 
@@ -108,7 +109,7 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
       allow(customer).to receive(:organization_instances)
         .and_return(double(to_a: []))
 
-      command.send(:process_customer, customer, 0, 1, stats, true, false, price_id)
+      command.send(:process_customer, customer, 0, 1, stats, true, false, price_id, target_planid)
 
       expect(stats[:skipped_no_org]).to eq(1)
       expect(stats[:migrated]).to eq(0)
@@ -118,7 +119,7 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
       allow(org).to receive(:active_subscription?).and_return(true)
       allow(org).to receive(:planid).and_return('identity_plus_v1')
 
-      command.send(:process_customer, customer, 0, 1, stats, true, false, price_id)
+      command.send(:process_customer, customer, 0, 1, stats, true, false, price_id, target_planid)
 
       expect(stats[:skipped_has_subscription]).to eq(1)
     end
@@ -126,7 +127,7 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
     it 'skips when org already has complimentary marker' do
       allow(org).to receive(:complimentary).and_return('true')
 
-      command.send(:process_customer, customer, 0, 1, stats, true, false, price_id)
+      command.send(:process_customer, customer, 0, 1, stats, true, false, price_id, target_planid)
 
       expect(stats[:skipped_already_migrated]).to eq(1)
     end
@@ -169,7 +170,7 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
         ),
       ).and_return(stripe_subscription)
 
-      command.send(:process_customer, customer, 0, 1, stats, false, false, price_id)
+      command.send(:process_customer, customer, 0, 1, stats, false, false, price_id, target_planid)
 
       expect(stats[:migrated]).to eq(1)
     end
@@ -182,14 +183,14 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
       expect(org).to receive(:complimentary=).with('true')
       expect(org).to receive(:save)
 
-      command.send(:process_customer, customer, 0, 1, stats, false, false, price_id)
+      command.send(:process_customer, customer, 0, 1, stats, false, false, price_id, target_planid)
     end
 
     it 'clears legacy customer planid' do
       expect(customer).to receive(:planid=).with(nil)
       expect(customer).to receive(:save)
 
-      command.send(:process_customer, customer, 0, 1, stats, false, false, price_id)
+      command.send(:process_customer, customer, 0, 1, stats, false, false, price_id, target_planid)
     end
   end
 
@@ -203,7 +204,7 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
         StandardError.new('test error')
       )
 
-      command.send(:process_customer, customer, 0, 1, stats, false, false, price_id)
+      command.send(:process_customer, customer, 0, 1, stats, false, false, price_id, target_planid)
 
       expect(stats[:errors].size).to eq(1)
       expect(stats[:errors].first).to include('test error')
