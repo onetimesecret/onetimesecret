@@ -201,7 +201,7 @@ module V1
         ret = {
           'custid' => v1_custid,
           'metadata_key' => md.identifier,
-          'secret_key' => (secret_id_val && !secret_id_val.empty? ? secret_id_val : hsh.fetch('secret_key', '')),
+          'secret_key' => (secret_id_val && !secret_id_val.empty? ? secret_id_val : hsh.fetch('secret_key', '').to_s),
           'ttl' => receipt_ttl, # static value from database hash field
           'metadata_ttl' => receipt_realttl, # actual number of seconds left to live
           'secret_ttl' => secret_realttl, # ditto, actual number
