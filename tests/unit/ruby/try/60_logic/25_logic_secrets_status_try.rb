@@ -13,11 +13,14 @@ OT.boot! :test
 @email = "tryouts+#{Time.now.to_i}@onetimesecret.com"
 @cust = Customer.create @email
 
+@created_objects = []
+
 @create_secret = lambda {
   metadata = Metadata.create
   secret = Secret.create(value: "This is a secret message")
   metadata.secret_key = secret.key
   metadata.save
+  @created_objects.push(metadata, secret)
   [metadata, secret]
 }
 
@@ -237,4 +240,5 @@ logic.process
 true
 #=> true
 
+@created_objects.each { |obj| obj.destroy! rescue nil }
 @cust.destroy!
