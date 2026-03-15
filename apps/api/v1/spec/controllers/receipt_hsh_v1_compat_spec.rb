@@ -227,6 +227,48 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
   end
 
   # ----------------------------------------------------------------
+  # Sequential Lifecycle: v0.24 states never leak (#2619)
+  # ----------------------------------------------------------------
+  describe 'sequential state-machine lifecycle (#2619)' do
+    let(:v024_only_states) { %w[previewed revealed shared] }
+
+    def translate_states(*states)
+      states.map do |s|
+        hash = base_hash.merge('state' => s)
+        md_step = double('Onetime::Receipt',
+          to_h: hash,
+          identifier: 'meta_key_lifecycle',
+          secret_ttl: 3600,
+          current_expiration: 7000)
+        V1::Controllers::Index.receipt_hsh(md_step)['state']
+      end
+    end
+
+    {
+      'new → previewed → revealed' =>
+        { input: %w[new previewed revealed],
+          expected: %w[new viewed received] },
+      'new → previewed → burned' =>
+        { input: %w[new previewed burned],
+          expected: %w[new viewed burned] },
+      'shared (direct) → previewed → revealed' =>
+        { input: %w[shared previewed revealed],
+          expected: %w[new viewed received] }
+    }.each do |label, scenario|
+      context label do
+        it 'translates every state to v0.23.4 vocabulary' do
+          steps = translate_states(*scenario[:input])
+
+          expect(steps).to eq(scenario[:expected])
+          expect(steps).to all(satisfy('not be a v0.24-only state') { |s|
+            !v024_only_states.include?(s)
+          })
+        end
+      end
+    end
+  end
+
+  # ----------------------------------------------------------------
   # Received timestamp fallback
   # ----------------------------------------------------------------
   describe 'received timestamp fallback from revealed' do
