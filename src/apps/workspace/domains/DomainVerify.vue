@@ -9,7 +9,7 @@
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { type CustomDomainResponse } from '@/schemas/api/v3/responses';
+  import { type CustomDomainResponse } from '@/schemas/api/v2/responses';
   import { CustomDomain, CustomDomainProxy } from '@/schemas/models';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';

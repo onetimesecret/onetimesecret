@@ -5,6 +5,8 @@
 module AccountAPI::Logic
   module Account
     class GenerateAPIToken < AccountAPI::Logic::Base
+      SCHEMAS = { response: 'apiToken' }.freeze
+
       attr_reader :apitoken, :greenlighted
 
       def process_params

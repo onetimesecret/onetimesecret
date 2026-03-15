@@ -22,29 +22,14 @@ require_relative '../../apps/web/core/views'
 
 OT.boot! :test, false
 
-# Mock class for strategy results with metadata support
-class MockStrategyResult
-  attr_reader :session, :user, :metadata
-
-  def initialize(session:, user:, authenticated: false, metadata: {})
-    @session = session
-    @user = user
-    @authenticated = authenticated
-    @metadata = metadata || {}
-  end
-
-  def authenticated?
-    @authenticated
-  end
-end
+# MockStrategyResult is defined in try/support/test_helpers.rb (already required above)
 
 # Setup for normal flow tests (using instance variables to persist across test cases)
 @mock_session = { 'test_key' => 'test_value' }
 @mock_user = Onetime::Customer.anonymous
 @strategy_result = MockStrategyResult.new(
   session: @mock_session,
-  user: @mock_user,
-  authenticated: true
+  user: @mock_user
 )
 
 env = Rack::MockRequest.env_for('http://example.com/')

@@ -1,8 +1,8 @@
 <!-- src/shared/components/base/BaseUnknownSecret.vue -->
 
 <script setup lang="ts">
-  import type { BrandSettings } from '@/schemas/models/domain/brand';
-  import { fontFamilyClasses, FontFamily } from '@/schemas/models/domain/brand';
+  import type { BrandSettings } from '@/schemas/models/custom-domain/brand';
+  import { fontFamilyClasses, FontFamily } from '@/schemas/models/custom-domain/brand';
   import { computed } from 'vue';
 
   export interface Props {

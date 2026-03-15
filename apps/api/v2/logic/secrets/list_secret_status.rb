@@ -7,7 +7,9 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class ListSecretStatus < V2::Logic::Base
-      attr_reader :identifiers
+      SCHEMAS = { response: 'secretList' }.freeze
+
+      attr_reader :identifiers, :secrets
 
       def process_params
         @identifiers      = params['identifiers'].to_s.strip.downcase.gsub(/[^a-z0-9,]/, '').split(',').compact

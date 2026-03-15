@@ -1,6 +1,6 @@
 // src/shared/composables/useFetchData.ts
 
-import type { ApiRecordResponse, ApiRecordsResponse } from '@/schemas/api/v3';
+import type { ApiRecordResponse, ApiRecordsResponse } from '@/schemas/api/base';
 import { computed, ref, Ref } from 'vue';
 
 // Core API record interface used across models

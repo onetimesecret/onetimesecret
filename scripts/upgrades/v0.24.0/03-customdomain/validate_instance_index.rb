@@ -596,6 +596,14 @@ class CustomDomainInstanceIndexValidator
     @stats[:errors] << { file: 'live_redis', error: "Owner chain validation error: #{ex.message}" }
   end
 
+  def redact_fqdn(fqdn)
+    return '***' unless fqdn.is_a?(String) && fqdn.include?('.')
+    parts = fqdn.split('.')
+    parts[0] = '***'
+    parts[-2] = '***' if parts.size >= 2
+    parts.join('.')
+  end
+
   def print_report
     puts '=== Validation Results ==='
     puts "V1 ZSET members (customdomain:values): #{@stats[:v1_members]} (hex IDs, count-only reference)"
@@ -684,7 +692,7 @@ class CustomDomainInstanceIndexValidator
     if @stats[:duplicate_display_domains].any?
       puts '=== Duplicate display_domain Values (routing conflicts) ==='
       @stats[:duplicate_display_domains].first(10).each do |entry|
-        puts "  #{entry[:display_domain]}: domainids=#{entry[:domainids].join(', ')}"
+        puts "  #{redact_fqdn(entry[:display_domain])}: domainids=#{entry[:domainids].join(', ')}"
       end
       puts
     end

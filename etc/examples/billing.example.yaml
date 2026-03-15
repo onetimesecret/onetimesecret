@@ -170,7 +170,7 @@ plans:
       organizations: 1
       members_per_team: 1
       custom_domains: 1
-      secret_lifetime: 604800  # 7 days in seconds
+      secret_lifetime: 1209600 # 14 days in seconds
       secrets_per_day: null    # TBD - not yet enforced
 
     prices: []  # Free tier has no prices
@@ -253,6 +253,12 @@ plans:
         amount: 900   # $9.00
       - interval: year
         amount: 9000  # $90.00
+      # Complimentary price for pro-bono accounts (see #2657)
+      # Used by: bin/ots migrations migrate-probono-accounts --price-id <id>
+      - interval: month
+        amount: 0
+        metadata:
+          complimentary: "true"
 
   # # Team Plan - Uncomment to enable team subscriptions
   # team_plus_v1:

@@ -21,6 +21,8 @@ module DomainsAPI::Logic
     # the session is updated.
     #
     class AddDomain < DomainsAPI::Logic::Base
+      SCHEMAS = { response: 'customDomain' }.freeze
+
       attr_reader :greenlighted, :custom_domain, :domain_input, :display_domain, :target_organization
 
       def process_params

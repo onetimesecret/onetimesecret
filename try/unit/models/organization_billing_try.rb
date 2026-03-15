@@ -148,6 +148,58 @@ dump = @org.safe_dump
 [dump[:billing_email], dump[:contact_email]]
 #=> ["dump-billing-#{@test_suffix}@example.com", "dump-contact-#{@test_suffix}@example.com"]
 
+## ----------------------------------------------------------------
+## paid? and complimentary? canonical method tests
+## ----------------------------------------------------------------
+
+## paid? returns true for active subscription with paid plan
+@org.subscription_status = 'active'
+@org.planid = 'identity_plus_v1'
+@org.save
+@org.paid?
+#=> true
+
+## paid? returns false for canceled subscription
+@org.subscription_status = 'canceled'
+@org.save
+@org.paid?
+#=> false
+
+## paid? returns false for active subscription with free plan
+@org.subscription_status = 'active'
+@org.planid = 'free_v1'
+@org.save
+@org.paid?
+#=> false
+
+## complimentary? returns true when marker is set and subscription active
+@org.subscription_status = 'active'
+@org.planid = 'identity_plus_v1'
+@org.complimentary = 'true'
+@org.save
+@org.complimentary?
+#=> true
+
+## complimentary? returns false when subscription canceled
+@org.subscription_status = 'canceled'
+@org.save
+@org.complimentary?
+#=> false
+
+## complimentary? returns false when marker not set
+@org.subscription_status = 'active'
+@org.complimentary = nil
+@org.save
+@org.complimentary?
+#=> false
+
+## clear_billing_fields clears complimentary marker
+@org.complimentary = 'true'
+@org.save
+@org.clear_billing_fields
+@org.complimentary
+#=> nil
+
 ## Cleanup
 @cleanup_result = @org.destroy!
 @cleanup_result.success?

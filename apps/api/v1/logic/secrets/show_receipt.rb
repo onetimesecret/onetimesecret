@@ -93,7 +93,7 @@ module V1::Logic
             # a secret we can show the received contents on the "/receipt/receipt_key"
             # page one time. Particularly for generated passwords which are not
             # shown any other time.
-            @secret_value = secret.decrypted_value if @can_decrypt
+            @secret_value = secret.decrypted_secret_value if @can_decrypt
             @is_truncated = secret.truncated?
           end
         end

@@ -1,368 +1,87 @@
-# OpenAPI Generation Infrastructure
+# OpenAPI Generation
 
-## Status: ✅ Implemented
+Generates an OpenAPI 3.1 spec from Otto `routes.txt` files and Zod v4 schemas. No third-party OpenAPI libraries required.
 
-This directory contains the infrastructure for generating OpenAPI 3.0.3 specifications from Onetime Secret's Zod schemas and Otto routes.
-
-### Quick Start
+## Usage
 
 ```bash
-# Generate all API specifications (V3 + Account)
-pnpm run openapi:generate
-
-# Generate individual API specifications
-pnpm run openapi:generate:v3
-pnpm run openapi:generate:account
-
-# Test the Otto routes parser (finds 68 routes across 6 APIs)
-pnpm run openapi:test-parser
-
-# Run the original PoC validation
-pnpm run openapi:poc
+pnpm run openapi:generate              # Generate spec to generated/openapi/openapi.json
+pnpm run openapi:generate -- --dry-run  # Preview without writing
+pnpm run openapi:generate -- --verbose  # Show per-route details (+ = has schema)
+pnpm run schemas:scan                   # Scan Ruby SCHEMA constants, print coverage gap report
 ```
 
-### Generated Files
+## How it works
 
-- `docs/api/v3-openapi.json` - V3 API OpenAPI specification (7 of 18 routes mapped)
-- `docs/api/account-openapi.json` - Account API OpenAPI specification (all 7 routes mapped)
+1. `otto-routes-parser.ts` auto-discovers and parses all `apps/api/{name}/routes.txt`
+2. `schema-scanner.ts` scans Ruby logic classes and models for `SCHEMA` constants (configurable globs)
+3. `generate-openapi.ts` joins routes with scanned schemas, derives operationId/summary/tags from handler class names
+4. Matched schemas are converted via `z.toJSONSchema()` (Zod v4 native, JSON Schema 2020-12)
+5. Output is a single OpenAPI 3.1 JSON file with a gap report on stderr
 
-### Implementation Files
+## Terminology: V2/V3 are API versions, not Zod versions
 
-- `otto-routes-parser.ts` - Parses Otto route files to extract endpoint metadata (discovers all 68 routes)
-- `generate-all-specs.ts` - Master script that generates all API specs
-- `generate-v3-spec.ts` - Generates complete OpenAPI spec for V3 API (public secrets)
-- `generate-account-spec.ts` - Generates complete OpenAPI spec for Account API (account management)
-- `test-parser.ts` - Test suite for the routes parser
-- `poc.ts` - Original proof of concept validation
-- `poc-approach-analysis.ts` - Integration approach analysis
+References to "V2" and "V3" throughout this codebase refer to the Onetime Secret
+REST API versions (`/api/v2/*`, `/api/v3/*`), not Zod library versions. The project
+uses Zod v4 (the npm `zod` package) for all schema definitions across both API versions.
 
-### CI/CD Automation
+## Schema data flow: Wire → Domain → Documentation
 
-The OpenAPI specs are automatically regenerated via GitHub Actions when:
-- Schema files in `src/schemas/` are modified
-- Otto routes files in `apps/api/*/routes` are updated
-- OpenAPI generator scripts are changed
+Each V3 schema serves three roles in a single definition:
 
-See `.github/workflows/openapi-generation.yml` for the workflow configuration.
-
----
-
-## Executive Summary
-
-✅ **Implementation Status: COMPLETE**
-
-The `@asteasolutions/zod-to-openapi` library is **fully compatible** with the Onetime Secret codebase and can generate complete OpenAPI 3.0.3 documents from existing Zod schemas.
-
-**Parser Results**: 68 routes discovered across 6 APIs (v2: 17, v3: 18, account: 7, domains: 13, organizations: 5, teams: 8)
-
----
-
-## Test Results
-
-### Test 1: Basic Functionality ✅
-- **File**: `poc.ts`
-- **Result**: All tests passed
-- **Findings**:
-  - Library generates valid OpenAPI 3.0.3 documents
-  - Security schemes work correctly
-  - Path registration works as expected
-  - Complete document structure validated
-
-### Test 2: Approach Analysis ✅
-- **File**: `poc-approach-analysis.ts`
-- **Result**: Optimal approach identified
-- **Decision**: Use global Zod extension pattern
-
----
-
-## Key Findings
-
-### ✅ What Works
-
-1. **Complete OpenAPI Documents**
-   - Generates paths, servers, security schemes, tags
-   - Full OpenAPI 3.0.3 compliance
-   - No manual JSON Schema writing needed
-
-2. **Schema Patterns**
-   - ✅ Factory functions (createApiResponseSchema)
-   - ✅ Custom transforms (transforms.fromString.number)
-   - ✅ Complex nested objects
-   - ✅ Enums and unions
-   - ✅ Optional/nullable fields
-   - ✅ Generic types
-
-3. **Security & Authentication**
-   - ✅ Multiple security schemes (Basic Auth, Session Auth)
-   - ✅ Per-endpoint security requirements
-   - ✅ Optional authentication (empty object in security array)
-
-### ⚠️ Requirements
-
-1. **Global Zod Extension**
-   - Must call `extendZodWithOpenApi(z)` BEFORE schemas are defined
-   - Solution: Created `src/schemas/openapi-setup.ts`
-   - All schema files should import from this file
-
-2. **Migration Path**
-   - Update imports: `import { z } from '@/schemas/openapi-setup'`
-   - Schemas work immediately without `.openapi()` metadata
-   - Can add metadata incrementally for richer documentation
-
----
-
-## Implementation Strategy
-
-### Phase 1: Foundation (Week 1) - COMPLETED ✅
-
-- [x] Install @asteasolutions/zod-to-openapi
-- [x] Validate library compatibility
-- [x] Test with real Onetime Secret schemas
-- [x] Identify optimal integration approach
-- [x] Create global Zod extension setup
-
-### Phase 2: Otto Routes Parser (Week 1-2) - NEXT
-
-Create `otto-routes-parser.ts` to:
-- Parse Otto routes files (apps/api/*/routes)
-- Extract HTTP methods, paths, authentication requirements
-- Map routes to Logic classes
-- Generate path metadata for OpenAPI registration
-
-### Phase 3: Full Generation Script (Week 2)
-
-Create `generate-openapi.ts` to:
-- Import all schemas from `src/schemas/api/`
-- Parse all Otto routes files
-- Generate 6 separate OpenAPI specs:
-  - `v2-openapi.json` (Public API v2)
-  - `v3-openapi.json` (Public API v3)
-  - `account-openapi.json` (Internal Account API)
-  - `domains-openapi.json` (Internal Domains API)
-  - `organizations-openapi.json` (Internal Organizations API)
-  - `teams-openapi.json` (Internal Teams API)
-
-### Phase 4: Schema Enhancement (Week 2-3)
-
-Optionally enhance schemas with OpenAPI metadata:
 ```typescript
-// Minimal (works as-is)
-const secretSchema = z.object({
-  id: z.string(),
-  value: z.string()
-});
-
-// Enhanced (better documentation)
-const secretSchema = z.object({
-  id: z.string().openapi({
-    description: 'Unique secret identifier',
-    example: 'abc123def456'
-  }),
-  value: z.string().openapi({
-    description: 'Encrypted secret value',
-    example: 'encrypted_data_here'
-  })
-}).openapi('Secret');
+// Wire → Domain → Documentation
+//
+// 1. VALIDATE: Parse the JSON response from the API
+secretResponseSchema.parse(json)       // input:  { created: 1641234567 }
+//
+// 2. TRANSFORM: Coerce wire values into domain types for Pinia/components
+//    ↓ .transform(v => new Date(v * 1000))
+//    result: { created: Date }          // output: consumed by stores & components
+//
+// 3. DOCUMENT: Generate JSON Schema for API consumers
+//    z.toJSONSchema(schema, { io: "input" })
+//    ↓ documents the input (wire) type, not the output (domain) type
+//    result: { "type": "number" }       // OpenAPI spec reflects what the API sends
 ```
 
-### Phase 5: Automation (Week 3-4)
+The `io: "input"` parameter is what makes this work. Without it, `z.toJSONSchema()`
+defaults to the output type — and `Date` serializes as `{}` (unrepresentable in
+JSON Schema). With `io: "input"`, it documents the wire format instead.
 
-- Add npm scripts for generation
-- Create CI/CD GitHub Actions workflow
-- Set up validation pipeline
-- Generate documentation site (Redoc/Swagger UI)
+| Wire value (input)   | Domain value (output) | JSON Schema type |
+|----------------------|----------------------|-----------------|
+| `1641234567`         | `Date`               | `number`        |
+| `"0"` / `"1"`       | `false` / `true`     | `string`        |
+| `"1641234567"`       | `1641234567`         | `string`        |
 
----
+This means you can safely add `.transform()` to any V3 schema field without breaking
+the generated OpenAPI spec. V3 timestamp transforms live in `src/schemas/transforms.ts`
+under `transforms.fromNumber.*` (as opposed to V2's `transforms.fromString.*` which
+handle string-encoded Redis values).
 
-## Migration Guide
+## Files
 
-### For Existing Schema Files
+- `generate-openapi.ts` — the generator script
+- `schema-scanner.ts` — scans Ruby source for `SCHEMA` constants, produces coverage reports
+- `otto-routes-parser.ts` — parses routes.txt into structured route metadata
+- `route-config.ts` — shared helpers (standardErrorResponses, mergeResponses)
+- `tests/test-parser.ts` — smoke tests for the routes parser
+- `tests/test-scanner.ts` — smoke tests for the schema scanner
 
-**Option A: Gradual Migration (Recommended)**
-1. Update import statement:
-   ```typescript
-   // Before
-   import { z } from 'zod';
+## Adding schema coverage
 
-   // After
-   import { z } from '@/schemas/openapi-setup';
-   ```
-2. Schema works immediately (no other changes needed)
-3. Optionally add `.openapi()` metadata later
+Add a `SCHEMA` constant to a Ruby logic class or model:
 
-**Option B: Keep Existing Imports**
-- Schemas can be registered using `registerComponent`
-- Requires manual OpenAPI schema definition
-- Not recommended (risk of drift)
+```ruby
+# Logic class (request + response)
+SCHEMAS = { response: 'concealData', request: 'concealSecret' }.freeze
 
-### For New Schema Files
+# Logic class (response only)
+SCHEMAS = { response: 'receipt' }.freeze
 
-Always import from `openapi-setup.ts`:
-```typescript
-import { z } from '@/schemas/openapi-setup';
-
-export const mySchema = z.object({
-  field: z.string().openapi({
-    description: 'Field description',
-    example: 'Example value'
-  })
-}).openapi('MySchema');
+# Model class
+SCHEMA = 'models/secret'.freeze
 ```
 
----
-
-## Running the PoC
-
-```bash
-# Basic functionality test
-pnpm exec tsx src/scripts/openapi/poc.ts
-
-# Approach analysis
-pnpm exec tsx src/scripts/openapi/poc-approach-analysis.ts
-```
-
----
-
-## Maintenance Procedures
-
-### Regular Maintenance
-
-#### When Adding New API Endpoints
-1. Add route to appropriate `apps/api/*/routes` file using Otto format
-2. Create Zod schemas in `src/schemas/api/` (import from `@/schemas/openapi-setup`)
-3. Map route to schema in the appropriate generator script
-4. Regenerate OpenAPI spec: `pnpm run openapi:generate`
-5. Validate the generated spec
-6. Commit both schema changes and generated spec
-
-#### When Modifying Existing Schemas
-1. Update Zod schema in `src/schemas/`
-2. Regenerate affected OpenAPI specs: `pnpm run openapi:generate`
-3. Review diff to ensure changes are correct
-4. Update any affected tests
-5. Commit changes
-
-#### When Upgrading Dependencies
-Check compatibility when upgrading:
-- `zod` - Ensure `@asteasolutions/zod-to-openapi` supports the new version
-- `@asteasolutions/zod-to-openapi` - Review changelog for breaking changes
-- Test with: `pnpm run openapi:poc && pnpm run openapi:generate`
-
-### Validation Checklist
-
-Before committing OpenAPI spec changes:
-- [ ] Run `pnpm run openapi:generate` successfully
-- [ ] Validate generated JSON structure
-- [ ] Check that all new endpoints are documented
-- [ ] Verify security schemes are correctly applied
-- [ ] Ensure examples are realistic and valid
-- [ ] Review that descriptions are clear and accurate
-
-### Troubleshooting
-
-**Problem**: "schema.openapi is not a function"
-- **Cause**: Schema imported from 'zod' instead of '@/schemas/openapi-setup'
-- **Fix**: Update import to use `@/schemas/openapi-setup`
-
-**Problem**: Route not appearing in generated spec
-- **Cause**: Route not mapped in generator script
-- **Fix**: Add route mapping in `generate-*-spec.ts` file
-
-**Problem**: Schema not showing in components
-- **Cause**: Schema not registered with `registry.register()`
-- **Fix**: Add registration in generator script
-
-### Version Compatibility
-
-Current versions:
-- Zod: 4.1.11
-- @asteasolutions/zod-to-openapi: 8.1.0
-- OpenAPI: 3.0.3
-
-Known compatible Zod patterns:
-- ✅ Factory functions
-- ✅ Custom transforms
-- ✅ Complex nested objects
-- ✅ Enums and unions
-- ✅ Optional/nullable fields
-- ✅ Generic types
-
-Incompatible patterns:
-- ❌ `z.lazy()` (not tested - may require migration to zod-openapi)
-
----
-
-## Implementation Status
-
-### Phase 1: Foundation - ✅ COMPLETED
-1. ✅ Complete PoC validation
-2. ✅ Create Otto routes parser
-3. ✅ Build generation scripts (V3 API, Account API)
-4. ✅ Create master generation script (generate-all-specs.ts)
-5. ✅ Set up CI/CD automation (GitHub Actions workflow)
-6. ✅ Document maintenance procedures
-
-### Phase 2: Expansion - 🚧 IN PROGRESS
-4. ⏳ Expand V3 API generator to cover all 18 routes (currently 7/18)
-5. ⏳ Create generators for remaining APIs:
-   - V2 API (17 routes)
-   - Domains API (13 routes)
-   - Organizations API (5 routes)
-   - Teams API (8 routes)
-6. ⏳ Add OpenAPI metadata to key schemas for richer documentation
-7. ⏳ Set up validation pipeline
-
-### Phase 3: Enhancement - 📋 PLANNED
-8. Generate documentation site (Redoc/Swagger UI)
-9. Add contract testing
-10. Set up API versioning strategy
-
----
-
-## Files Created
-
-### Infrastructure
-- ✅ `../schemas/openapi-setup.ts` - Global Zod extension point
-- ✅ `otto-routes-parser.ts` - Route discovery and parsing (68 routes across 6 APIs)
-- ✅ `generate-all-specs.ts` - Master generation orchestrator
-
-### Generators
-- ✅ `generate-v3-spec.ts` - V3 API specification generator (7/18 routes mapped)
-- ✅ `generate-account-spec.ts` - Account API specification generator (7/7 routes mapped)
-
-### Testing & Validation
-- ✅ `test-parser.ts` - Route parser test suite
-- ✅ `poc.ts` - Original PoC validation
-- ✅ `poc-approach-analysis.ts` - Integration approach analysis
-
-### Documentation
-- ✅ `README.md` - This file
-- ✅ `../../.github/workflows/openapi-generation.yml` - CI/CD workflow
-
-### Generated Outputs
-- ✅ `../../../docs/api/v3-openapi.json` - V3 API OpenAPI 3.0.3 spec
-- ✅ `../../../docs/api/account-openapi.json` - Account API OpenAPI 3.0.3 spec
-
----
-
-## Decision: Proceed with Implementation ✅
-
-**Recommendation**: Move forward with full implementation using `@asteasolutions/zod-to-openapi`.
-
-**Confidence Level**: High (95%)
-
-**Risk Level**: Low
-- Library is mature and well-maintained
-- Compatible with all Onetime Secret patterns
-- Clear migration path
-- No breaking changes required
-
-**Timeline**: 4 weeks to complete all 6 API specs with automation
-
----
-
-## Conclusion
-
-The Proof of Concept successfully validated that `@asteasolutions/zod-to-openapi` is the right tool for generating OpenAPI documentation from Onetime Secret's Zod schemas. The library handles all current schema patterns, requires minimal code changes, and provides a clear path to complete, accurate, and maintainable API documentation.
-
-**Status**: ✅ **READY TO PROCEED WITH FULL IMPLEMENTATION**
+Each key type validates against its own registry: `response` keys against `responseSchemas` (`src/schemas/api/v3/responses.ts`), `request` keys against `REQUEST_SCHEMA_REGISTRY` (`src/scripts/openapi/generate-openapi.ts`), and `model` keys against `modelSchemas` (`src/schemas/registry.ts`). Run `pnpm run schemas:scan` to verify coverage.

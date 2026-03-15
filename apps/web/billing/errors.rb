@@ -33,7 +33,7 @@ module Billing
   #     Billing::StripeCircuitBreaker.call { Stripe::Product.list }
   #   rescue Billing::CircuitOpenError => e
   #     # Use cached catalog data or return error to user
-  #     Rails.logger.warn "Circuit open: #{e.message}"
+  #     OT.logger.warn "Circuit open: #{e.message}"
   #   end
   #
   class CircuitOpenError < OpsProblem

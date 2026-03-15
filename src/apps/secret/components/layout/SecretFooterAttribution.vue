@@ -41,7 +41,7 @@ const { brand_product_name } = storeToRefs(useBootstrapStore());
           to="/info/terms"
           class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
           :aria-label="t('web.layout.view_terms_of_service')">
-          {{ t('terms') }}
+          {{ t('web.footer.terms') }}
         </router-link>
         <span
           aria-hidden="true"
@@ -51,7 +51,7 @@ const { brand_product_name } = storeToRefs(useBootstrapStore());
           to="/info/privacy"
           class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
           :aria-label="t('web.layout.view_privacy_policy')">
-          {{ t('privacy') }}
+          {{ t('web.footer.privacy') }}
         </router-link>
       </template>
     </nav>

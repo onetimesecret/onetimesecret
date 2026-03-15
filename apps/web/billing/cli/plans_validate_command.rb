@@ -207,8 +207,8 @@ module Onetime
 
         # Count items using shared helper
         count_valid_items(products, errors, warnings, :id)
-        error_count   = errors.select { |e| e.is_a?(Hash) }.map { |e| e[:product_id] }.compact.uniq.size
-        warning_count = warnings.select { |w| w.is_a?(Hash) }.map { |w| w[:product_id] }.compact.uniq.size
+        error_count   = errors.grep(Hash).map { |e| e[:product_id] }.compact.uniq.size
+        warning_count = warnings.grep(Hash).map { |w| w[:product_id] }.compact.uniq.size
 
         # Print summary section
         print_section_header('SUMMARY')

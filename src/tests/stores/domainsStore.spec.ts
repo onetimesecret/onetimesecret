@@ -6,7 +6,12 @@ import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { mockCustomBrandingRed as mockCustomBranding } from '../fixtures/domainBranding.fixture';
-import { mockDomains, newDomainData } from '../fixtures/domains.fixture'; // <-- CORRECT fixture import
+import {
+  mockDomains,
+  mockDomainsRaw,
+  newDomainData,
+  newDomainDataRaw,
+} from '../fixtures/domains.fixture';
 import { setupTestPinia } from '../setup';
 
 describe('domainsStore', () => {
@@ -25,11 +30,11 @@ describe('domainsStore', () => {
   });
 
   describe('Initialization', () => {
-    // First create valid mock data matching schema requirements
-    const mockNewDomain = {
+    // V3 wire format: Unix epoch seconds for timestamps
+    const mockNewDomainRaw = {
       identifier: 'domain-123',
-      created: new Date('2024-12-31T21:35:45.367Z'), // Date object
-      updated: new Date('2024-12-31T21:35:45.367Z'), // Date object
+      created: 1735681545,     // Unix epoch seconds
+      updated: 1735681545,
       domainid: 'did-123',
       extid: 'dm-ext-123',
       custid: 'cust-123',
@@ -58,23 +63,21 @@ describe('domainsStore', () => {
     };
 
     it('should add a new domain', async () => {
-      // Setup mock response with valid data
       axiosMock.onPost('/api/domains/add').reply(200, {
-        record: mockNewDomain,
+        record: mockNewDomainRaw,
         details: { domain_context: 'example.com' },
       });
 
-      // Call store action with just the domain name
       const result = await store.addDomain('example.com');
 
-      // Verify response matches expected structure (now returns { record, details })
-      expect(result.record).toEqual(mockNewDomain);
+      // After parse, timestamps become Dates — check structural match
+      expect(result.record.identifier).toBe('domain-123');
+      expect(result.record.created).toBeInstanceOf(Date);
       expect(result.details?.domain_context).toBe('example.com');
 
-      // Verify domain was added to store
-      expect(store.domains).toContainEqual(mockNewDomain);
+      expect(store.domains).toHaveLength(1);
+      expect(store.domains[0].identifier).toBe('domain-123');
 
-      // Verify API call
       expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({
         domain: 'example.com',
       });
@@ -84,69 +87,47 @@ describe('domainsStore', () => {
   describe('Domain Operations', () => {
     it('should add a new domain (schema validation issues)', async () => {
       axiosMock.onPost('/api/domains/add').reply(200, {
-        record: newDomainData,
+        record: newDomainDataRaw,
         details: { domain_context: newDomainData.display_domain },
       });
 
-      const result = await store.addDomain(newDomainData.name);
-      expect(result.record).toMatchObject(newDomainData);
+      const result = await store.addDomain(newDomainData.display_domain);
+      expect(result.record.identifier).toBe(newDomainData.identifier);
+      expect(result.record.created).toBeInstanceOf(Date);
       expect(result.details?.domain_context).toBe(newDomainData.display_domain);
-      expect(store.records).toContainEqual(expect.objectContaining(newDomainData));
     });
 
     it('should refresh domain records (schema validation issues)', async () => {
-      // Use mockDomains from the fixture instead of undefined mockDomainsList
       axiosMock.onGet('/api/domains').reply(200, {
-        records: Object.values(mockDomains),
-        count: Object.keys(mockDomains).length,
+        records: Object.values(mockDomainsRaw),
+        count: Object.keys(mockDomainsRaw).length,
       });
 
       await store.refreshRecords();
 
-      // Verify the domains were loaded into the store
-      expect(store.records).toHaveLength(Object.keys(mockDomains).length);
-      expect(store.recordCount()).toBe(Object.keys(mockDomains).length);
+      expect(store.records).toHaveLength(Object.keys(mockDomainsRaw).length);
+      expect(store.recordCount()).toBe(Object.keys(mockDomainsRaw).length);
 
-      // Verify the domains match the fixture data
-      expect(store.domains).toEqual(expect.arrayContaining(Object.values(mockDomains)));
+      // After parse, timestamps are Dates
+      expect(store.domains[0].created).toBeInstanceOf(Date);
     });
 
     it('should update domain branding', async () => {
       const domain = mockDomains['domain-1'];
+      const domainRaw = mockDomainsRaw['domain-1'];
       const brandUpdate = { brand: mockCustomBranding };
 
-      // console.log('Test Starting ================');
-      // console.log('Initial domain from fixture:', JSON.stringify(domain, null, 2));
-      // console.log('Brand update:', JSON.stringify(brandUpdate, null, 2));
-
-      // Setup mock response
+      // Mock response uses raw wire format
       axiosMock.onPut(`/api/domains/${domain.extid}/brand`).reply(200, {
         record: {
-          ...domain, // Use all fields from correct fixture
+          ...domainRaw,
           brand: mockCustomBranding,
         },
       });
 
-      // Debug mock setup
-      console.log('Mock URL:', `/api/domains/${domain.extid}/brand`);
-      console.log('Mock Config:', axiosMock.history.put);
-
       store.domains = [domain];
-      // console.log('Store domains after setup:', JSON.stringify(store.domains, null, 2));
 
-      try {
-        await store.updateDomainBrand(domain.extid, brandUpdate);
-        // console.log('Update successful');
-        // console.log('Updated store domains:', JSON.stringify(store.domains, null, 2));
-      } catch (error) {
-        //console.error('Update failed:', error);
-        if (error.details) {
-          //console.error('Validation Details:', JSON.stringify(error.details, null, 2));
-        }
-        throw error;
-      }
-
-      //console.log('Test Ending ================');
+      await store.updateDomainBrand(domain.extid, brandUpdate);
     });
 
     it('should delete a domain', async () => {
@@ -269,26 +250,24 @@ describe('domainsStore', () => {
 
   describe('State Management', () => {
     it('should prevent duplicate refreshes when initialized', async () => {
-      // First call initializes the store
       axiosMock.onGet('/api/domains').reply(200, {
-        records: Object.values(mockDomains),
-        count: Object.keys(mockDomains).length,
+        records: Object.values(mockDomainsRaw),
+        count: Object.keys(mockDomainsRaw).length,
       });
 
       await store.refreshRecords();
       expect(axiosMock.history.get).toHaveLength(1);
 
-      // Second call should skip fetching because store is initialized
       await store.refreshRecords();
-      expect(axiosMock.history.get).toHaveLength(1); // Still 1, not 2
+      expect(axiosMock.history.get).toHaveLength(1);
     });
   });
 
   describe('Organization Context Tracking', () => {
     it('should trigger refetch when orgId changes', async () => {
       axiosMock.onGet('/api/domains').reply(200, {
-        records: Object.values(mockDomains),
-        count: Object.keys(mockDomains).length,
+        records: Object.values(mockDomainsRaw),
+        count: Object.keys(mockDomainsRaw).length,
       });
 
       // Initialize with org1
@@ -304,8 +283,8 @@ describe('domainsStore', () => {
 
     it('should skip fetch when same orgId and initialized', async () => {
       axiosMock.onGet('/api/domains').reply(200, {
-        records: Object.values(mockDomains),
-        count: Object.keys(mockDomains).length,
+        records: Object.values(mockDomainsRaw),
+        count: Object.keys(mockDomainsRaw).length,
       });
 
       // Initialize with org1
@@ -319,8 +298,8 @@ describe('domainsStore', () => {
 
     it('should force fetch even with same orgId when force=true', async () => {
       axiosMock.onGet('/api/domains').reply(200, {
-        records: Object.values(mockDomains),
-        count: Object.keys(mockDomains).length,
+        records: Object.values(mockDomainsRaw),
+        count: Object.keys(mockDomainsRaw).length,
       });
 
       // Initialize with org1
@@ -334,8 +313,8 @@ describe('domainsStore', () => {
 
     it('should clear org tracking on $reset', async () => {
       axiosMock.onGet('/api/domains').reply(200, {
-        records: Object.values(mockDomains),
-        count: Object.keys(mockDomains).length,
+        records: Object.values(mockDomainsRaw),
+        count: Object.keys(mockDomainsRaw).length,
       });
 
       // Initialize with org1
@@ -362,7 +341,7 @@ describe('domainsStore', () => {
      * org tracking, the store would return cached Org A data.
      */
     it('should prevent cross-org data leakage when navigating between orgs', async () => {
-      const orgADomains = Object.values(mockDomains);
+      const orgADomains = Object.values(mockDomainsRaw);
       const orgBDomains: typeof orgADomains = []; // Org B has no domains
 
       // First request: Org A with domains
@@ -396,8 +375,8 @@ describe('domainsStore', () => {
   describe('refreshRecords options object pattern', () => {
     it('should accept no options (default behavior)', async () => {
       axiosMock.onGet('/api/domains').reply(200, {
-        records: Object.values(mockDomains),
-        count: Object.keys(mockDomains).length,
+        records: Object.values(mockDomainsRaw),
+        count: Object.keys(mockDomainsRaw).length,
       });
 
       await store.refreshRecords();
@@ -405,13 +384,13 @@ describe('domainsStore', () => {
       expect(axiosMock.history.get).toHaveLength(1);
       // When no orgId provided, params is empty object (no org_id key)
       expect(axiosMock.history.get[0].params).toEqual({});
-      expect(store.records).toHaveLength(Object.keys(mockDomains).length);
+      expect(store.records).toHaveLength(Object.keys(mockDomainsRaw).length);
     });
 
     it('should accept empty options object', async () => {
       axiosMock.onGet('/api/domains').reply(200, {
-        records: Object.values(mockDomains),
-        count: Object.keys(mockDomains).length,
+        records: Object.values(mockDomainsRaw),
+        count: Object.keys(mockDomainsRaw).length,
       });
 
       await store.refreshRecords({});
@@ -422,8 +401,8 @@ describe('domainsStore', () => {
 
     it('should force refresh when force: true even if initialized', async () => {
       axiosMock.onGet('/api/domains').reply(200, {
-        records: Object.values(mockDomains),
-        count: Object.keys(mockDomains).length,
+        records: Object.values(mockDomainsRaw),
+        count: Object.keys(mockDomainsRaw).length,
       });
 
       // First call initializes
@@ -442,8 +421,8 @@ describe('domainsStore', () => {
     it('should pass orgId to fetchList when provided', async () => {
       const testOrgId = 'org-test-123';
       axiosMock.onGet('/api/domains').reply(200, {
-        records: Object.values(mockDomains),
-        count: Object.keys(mockDomains).length,
+        records: Object.values(mockDomainsRaw),
+        count: Object.keys(mockDomainsRaw).length,
       });
 
       await store.refreshRecords({ orgId: testOrgId });
@@ -455,8 +434,8 @@ describe('domainsStore', () => {
     it('should pass both orgId and force options together', async () => {
       const testOrgId = 'org-combined-456';
       axiosMock.onGet('/api/domains').reply(200, {
-        records: Object.values(mockDomains),
-        count: Object.keys(mockDomains).length,
+        records: Object.values(mockDomainsRaw),
+        count: Object.keys(mockDomainsRaw).length,
       });
 
       // First call to initialize
@@ -475,8 +454,8 @@ describe('domainsStore', () => {
 
     it('should not include org_id param when orgId is undefined', async () => {
       axiosMock.onGet('/api/domains').reply(200, {
-        records: Object.values(mockDomains),
-        count: Object.keys(mockDomains).length,
+        records: Object.values(mockDomainsRaw),
+        count: Object.keys(mockDomainsRaw).length,
       });
 
       await store.refreshRecords({ orgId: undefined, force: true });

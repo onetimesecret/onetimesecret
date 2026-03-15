@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@0fa965176eabbb494a5778ac04477b260840ef45
+        uses: ruby/setup-ruby@ea73ddb198f027c31d496ef5749cf297fe1a0695
         with:
           ruby-version: '3.4.8'
           bundler-cache: true
@@ -53,7 +53,7 @@ jobs:
         run: pnpm install
 
       - name: Generate JSON schemas
-        run: pnpm run schemas:generate
+        run: pnpm run schemas:json:generate
 
       - name: Validate example config
         run: pnpm run config:validate

@@ -13,7 +13,9 @@
  *
  * Supported parameters:
  * - response: json|view|redirect|auto
- * - auth: noauth|sessionauth|basicauth|role:colonel
+ * - auth: noauth|sessionauth|basicauth|role:colonel (V2+, enforced by Otto)
+ * - openapi_auth: basic|anonymous (V1 only, not enforced by Otto)
+ * - content: form|json (request body encoding; default json)
  * - csrf: exempt
  */
 
@@ -112,7 +114,14 @@ export function getAuthRequirements(route: OttoRoute): {
   schemes: string[];
   role?: string;
 } {
-  const auth = route.params.auth || '';
+  // V1 uses openapi_auth= (decoupled from Otto's route-level enforcement)
+  // V2+ uses auth= (registered with Otto's RouteAuthWrapper)
+  // Precedence: auth > openapi_auth. V2+ routes define auth= which Otto
+  // enforces at the middleware level. V1 routes define openapi_auth= which
+  // is metadata-only — Otto ignores it, but this parser reads it for schema
+  // generation. If both are present, auth= wins since it reflects the
+  // actually-enforced auth requirement.
+  const auth = route.params.auth || route.params.openapi_auth || '';
 
   if (auth === 'noauth' || auth === '') {
     return { required: false, schemes: [] };
@@ -147,6 +156,19 @@ export function isCsrfExempt(route: OttoRoute): boolean {
  */
 export function getResponseType(route: OttoRoute): string {
   return route.params.response || 'auto';
+}
+
+/**
+ * Get request content type from route.
+ *
+ * Returns the content type for request bodies:
+ * - 'form' → application/x-www-form-urlencoded (V1 API)
+ * - 'json' → application/json (V2/V3 APIs, also the default)
+ *
+ * When absent, callers should default to 'json'.
+ */
+export function getContentType(route: OttoRoute): 'form' | 'json' {
+  return route.params.content === 'form' ? 'form' : 'json';
 }
 
 /**

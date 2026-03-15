@@ -23,7 +23,7 @@
     displayPoweredBy: true,
   });
 
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const route = useRoute();
   const bootstrapStore = useBootstrapStore();
   const { ot_version, ot_version_long, domains_enabled, support_host, brand_product_name } = storeToRefs(bootstrapStore);
@@ -89,15 +89,22 @@
     return host ? `https://${host}` : '';
   });
 
+  // Use the current locale for documentation links (fallback to 'en')
+  const docsLocale = computed(() => {
+    const lang = locale.value;
+    // Documentation sites typically use base language codes
+    return lang?.split(/[-_]/)[0] || 'en';
+  });
+
   const footerLinks = computed((): FooterLink[] => [
     {
       label: t('web.footer.api_docs'),
-      href: `${docsBase.value}/en/rest-api/`,
+      href: `${docsBase.value}/${docsLocale.value}/rest-api/`,
       external: !!docsBase.value,
     },
     {
       label: t('web.footer.branding_guide'),
-      href: `${docsBase.value}/en/custom-domains/brand-guide/`,
+      href: `${docsBase.value}/${docsLocale.value}/custom-domains/brand-guide/`,
       external: !!docsBase.value,
     },
     {
@@ -183,12 +190,6 @@
             :rel="link.external ? 'noopener noreferrer' : undefined"
             class="text-sm text-gray-600 transition-colors duration-200 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
             {{ link.label }}
-            <span
-              v-if="link.external"
-              class="ml-0.5 text-xs opacity-60"
-              aria-hidden="true"
-              >↗</span
-            >
           </a>
         </template>
       </div>
@@ -205,7 +206,7 @@
         <div class="flex items-center gap-x-3">
           <span
             v-if="displayVersion"
-            :title="`${t('web.homepage.onetime_secret_literal', { product_name: brand_product_name })} Version`">
+:title="`${t('web.homepage.onetime_secret_literal', { product_name: brand_product_name })} ${t('web.COMMON.version')}`">
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
               target="_blank"
@@ -222,7 +223,7 @@
           </span>
           <span
             v-if="displayPoweredBy"
-            :title="`${t('web.homepage.onetime_secret_literal', { product_name: brand_product_name })} Version`">
+:title="`${t('web.homepage.onetime_secret_literal', { product_name: brand_product_name })} ${t('web.COMMON.version')}`">
             <a
               :href="t('web.COMMON.website_url')"
               target="_blank"

@@ -212,7 +212,7 @@ class CustomerIndexCreator
         objid = @email_to_objid[email]
 
         unless objid
-          @stats[:errors] << { key: record[:key], error: "No objid mapping for email: #{email}" }
+          @stats[:errors] << { key: record[:key], error: "No objid mapping for email: #{redact_email(email)}" }
           next
         end
 
@@ -431,6 +431,13 @@ class CustomerIndexCreator
   #
   #   commands
   # end
+
+  def redact_email(email)
+    return '***' unless email.is_a?(String) && email.include?('@')
+
+    local, domain = email.split('@', 2)
+    "#{local[0..2]}***@#{domain.sub(/\A[^.]+/, '***')}"
+  end
 
   def write_output(commands)
     FileUtils.mkdir_p(@output_dir)

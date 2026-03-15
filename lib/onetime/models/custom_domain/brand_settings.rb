@@ -131,7 +131,7 @@ module Onetime
         end
 
         # Build full hash with nil defaults for all members, then apply defaults, then user values
-        all_nil = members.each_with_object({}) { |m, h| h[m] = nil }
+        all_nil = members.to_h { |m| [m, nil] }
         new(**all_nil, **BrandSettingsConstants.defaults, **normalized)
       end
 
@@ -332,15 +332,10 @@ module Onetime
         return true if url.start_with?('/')
 
         # Require https:// for absolute URLs with valid host
-        begin
-          uri = URI.parse(url)
-          return false unless uri.is_a?(URI::HTTPS)
-          return false if uri.host.nil? || uri.host.empty?
-
-          true
-        rescue URI::InvalidURIError
-          false
-        end
+        uri = URI.parse(url)
+        uri.is_a?(URI::HTTPS) && !uri.host.nil? && !uri.host.empty?
+      rescue URI::InvalidURIError
+        false
       end
 
       # Converts to a hash suitable for Redis storage.

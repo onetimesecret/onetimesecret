@@ -43,7 +43,7 @@ module BillingTestHelpers
       return if Familia.uri.to_s.include?('2121')
 
       begin
-        return if Familia.redis.connected?
+        return if Familia.dbclient.connected?
       rescue StandardError
         false
       end

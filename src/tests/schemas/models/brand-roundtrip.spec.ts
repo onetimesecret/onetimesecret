@@ -5,7 +5,7 @@
 // (BrandSettings.valid_color?) and frontend validation (isValidHex).
 
 import { describe, expect, it } from 'vitest';
-import { brandSettingSchema } from '@/schemas/models/domain/brand';
+import { brandSettingSchema } from '@/schemas/models/custom-domain/brand';
 import {
   DEFAULT_BRAND_HEX,
   generateBrandPalette,

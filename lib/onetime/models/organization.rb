@@ -32,6 +32,8 @@ module Onetime
   class Organization < Familia::Horreum
     include Familia::Features::Autoloader
 
+    SCHEMA = 'models/organization'
+
     using Familia::Refinements::TimeLiterals
 
     # Use 'organization' prefix to match config_name for Familia v2 participation lookups

@@ -60,7 +60,9 @@ module V1
           custid, apitoken = *(auth.credentials || [])
           raise OT::Unauthorized, 'Invalid credentials' if custid.to_s.empty? || apitoken.to_s.empty?
 
-          return disabled_response(req.path) unless authentication_enabled?
+          # Returns 404 (not 401) when auth is disabled — intentional for
+          # backwards compatibility but can mask config issues. See #2620.
+          return disabled_response(req.path) unless session_auth_enforced?
 
           OT.ld "[authorized] Attempt for '#{custid}' via #{req.client_ipaddress} (basic auth)"
           possible = Onetime::Customer.load_by_extid_or_email(custid)
@@ -100,8 +102,84 @@ module V1
       error_response ex.message, hsh
     end
 
+    # V1 rate limiting [#2621]
+    #
+    # v0.23.x had rate limiting in the web layer; V1 reconstitution omitted
+    # it. This adds basic per-IP rate limiting for secret creation endpoints
+    # using Redis counters with a 20-minute fixed window, matching v0.23.x
+    # behavior. Rate limits are now enforced externally (infrastructure
+    # layer), so this is vestigial — preserved for V1 API contract only.
+    #
+    # Counts sourced from rel/0.23 etc/defaults/config.defaults.yaml:
+    #   create_secret: 1000, show_secret: 1000 (per 20-min window)
+    #
+    # Paid-plan exemptions: authenticated users with a non-anonymous plan
+    # bypass rate limits, matching v0.23.x behavior.
+    V1_RATE_LIMIT_WINDOW = 1200  # 20 minutes in seconds
+    V1_RATE_LIMIT_MAX_CREATES = 1000 # v0.23: limits.create_secret
+    V1_RATE_LIMIT_MAX_READS = 1000   # v0.23: limits.show_secret
+
+    # Lua script for atomic INCR + EXPIRE (prevents race condition
+    # where a crash between the two commands leaves a permanent key).
+    V1_RATE_LIMIT_LUA = <<~LUA.freeze
+      local c = redis.call('INCR', KEYS[1])
+      if tonumber(c) == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end
+      return c
+    LUA
+
+    def check_rate_limit!(event, max_count)
+      # Paid-plan exemption: skip rate limiting for authenticated paid users
+      return if cust && !cust.anonymous? && cust.planid.to_s != 'anonymous'
+
+      ip = req.client_ipaddress.to_s
+      return if ip.empty?
+
+      key = "v1:ratelimit:#{event}:#{ip}"
+      begin
+        # Atomic INCR + EXPIRE via Lua script to prevent race condition.
+        # Without atomicity, a crash between INCR and EXPIRE could leave
+        # a permanent key that never expires, causing permanent IP blocking.
+        count = Familia.dbclient.eval(
+          V1_RATE_LIMIT_LUA, keys: [key], argv: [V1_RATE_LIMIT_WINDOW]
+        )
+
+        if count > max_count
+          error_response "Rate limit exceeded. Please try again later."
+          return :limited
+        end
+      rescue StandardError => e
+        # Fail open: if Redis is down, don't block the request
+        OT.le "[V1 rate_limit] #{e.class}: #{e.message}"
+      end
+
+      nil
+    end
+
     def secret_not_found_response
       not_found_response "Unknown secret", :secret_key => req.params['key']
+    end
+
+    # Minimum length for a valid secret/receipt identifier. V0.23 keys
+    # were 31 chars (base36), v0.24 keys are 62 chars (VerifiableIdentifier).
+    # Any key shorter than this cannot be a real identifier — it's likely
+    # a sub-path segment (e.g. "burn") that reached a :key route after
+    # Rack::Protection::PathTraversal collapsed double slashes.
+    V1_MIN_IDENTIFIER_LENGTH = 20
+
+    # Returns true when the key param is structurally valid as an
+    # identifier (meets minimum length). Short strings like "burn"
+    # or "recent" fail this check, matching v0.23 behavior where
+    # such paths returned Otto's default 404.
+    def valid_identifier?(key)
+      key.to_s.length >= V1_MIN_IDENTIFIER_LENGTH
+    end
+
+    # Return a 404 when a route matched but the key param is
+    # structurally invalid (too short to be a real identifier).
+    # Uses V1's standard not_found_response for a consistent
+    # error shape across all V1 endpoints.
+    def otto_not_found
+      not_found_response 'Not Found'
     end
 
     def disabled_response path

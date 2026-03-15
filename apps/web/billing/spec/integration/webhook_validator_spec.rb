@@ -137,8 +137,8 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
       end
     end
 
-    context 'with old timestamp (> 5 minutes)' do
-      let(:old_timestamp) { Time.now.to_i - 400 } # 6+ minutes ago
+    context 'with old timestamp (> 24 hours)' do
+      let(:old_timestamp) { Time.now.to_i - 90_000 } # 25 hours ago
       let(:old_payload) { '{"id":"evt_old","type":"customer.created","created":' + old_timestamp.to_s + ',"data":{}}' }
       let(:signature) do
         generate_stripe_signature(
@@ -156,6 +156,24 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
           expect(error).to be_a(SecurityError).or be_a(Stripe::SignatureVerificationError)
           expect(error.message).to match(/too old|tolerance zone/i)
         end
+      end
+    end
+
+    context 'with moderately old timestamp (within 24 hours)' do
+      let(:retry_timestamp) { Time.now.to_i - 43_200 } # 12 hours ago (within Stripe retry window)
+      let(:retry_payload) { '{"id":"evt_retry","type":"customer.created","created":' + retry_timestamp.to_s + ',"data":{}}' }
+      let(:signature) do
+        generate_stripe_signature(
+          payload: retry_payload,
+          secret: webhook_secret,
+          timestamp: retry_timestamp,
+        )
+      end
+
+      it 'accepts the event (legitimate Stripe retry)' do
+        expect do
+          validator.construct_event(retry_payload, signature)
+        end.not_to raise_error
       end
     end
 
@@ -178,7 +196,7 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
     end
 
     context 'with timestamp within tolerance' do
-      let(:recent_timestamp) { Time.now.to_i - 30 } # 30 seconds ago (within 5 min limit)
+      let(:recent_timestamp) { Time.now.to_i - 30 } # 30 seconds ago (within 24h limit)
       let(:recent_payload) { '{"id":"evt_recent","type":"customer.created","created":' + recent_timestamp.to_s + ',"data":{}}' }
       let(:signature) do
         generate_stripe_signature(

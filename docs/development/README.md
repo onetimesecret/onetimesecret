@@ -8,28 +8,73 @@ To enable debug logging, set the `ONETIME_DEBUG` environment variable to `true`,
 
 ```bash
 export ONETIME_DEBUG=true
-bundle exec thin -R config.ru -p 3000 start
+bin/backend
 ```
 
 ## Initial Setup
 
 Run `./install.sh init` from the project root to install dependencies, generate secrets, and prepare the `.env` file. Use `./install.sh doctor` to verify your environment.
 
+## Running the Application
+
+There are three ways to run the application locally for development.
+
+### Option A: Overmind (recommended)
+
+[Overmind](https://github.com/DarthSim/overmind) runs backend, frontend, and worker from a single command using `Procfile.dev`:
+
+```bash
+brew install overmind          # macOS (one-time)
+./install-dev.sh               # Link config files + install gems and packages (one-time per checkout)
+bin/dev                        # Start all processes
+```
+
+`install-dev.sh` symlinks config files from the directory set by `$OTS_DEV_CONFIG` (default: `~/.config/onetimesecret-dev/`) into the checkout (e.g., `etc/config.yaml`, `etc/puma.rb`, `Procfile.dev`), then runs `bundle install` and `pnpm install`. Run it once per checkout or worktree.
+
+Control individual processes from a separate terminal:
+```bash
+overmind connect backend       # Attach for debugger/pry (Ctrl+b,d to detach)
+overmind restart frontend      # Restart a single process
+overmind stop worker           # Stop a specific process
+```
+
+There is also a `--volatile` flag for ephemeral runs with no persistent data: `bin/dev --volatile`.
+
+### Option B: Separate terminals
+
+Run the backend and frontend in different terminal windows:
+
+```bash
+# Terminal 1: Backend (Puma server)
+bin/backend
+
+# Terminal 2: Frontend (Vite dev server with HMR)
+bin/frontend
+```
+
+Both scripts inherit environment variables from the shell or `.env` file (loaded by overmind).
+
+### Option C: Production-style local
+
+Build the frontend first and serve everything from the backend:
+```bash
+pnpm build
+RACK_ENV=production bin/backend
+```
+
+This skips Vite's dev server and serves pre-built assets through Rack.
+
 ## Frontend Development
 
-For frontend development with live reloading, you should run the application in frontend development mode. This involves running two processes in separate terminals:
+For HMR support, enable development mode in `etc/config.yaml`:
 
-1.  **Start the main server:** This runs the Ruby backend.
-    ```bash
-    RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
-    ```
+```yaml
+:development:
+  :enabled: true
+  :frontend_host: 'http://localhost:5173'
+```
 
-2.  **Start the Vite dev server:** This serves frontend assets and enables Hot Module Replacement (HMR).
-    ```bash
-    pnpm run dev
-    ```
-
-Ensure your `etc/config.yaml` is configured correctly for this mode. See the [Installation Guide](../INSTALL.md) for details.
+See the [Installation Guide](../INSTALL.md) for additional configuration details.
 
 ### Vite Development Server Security
 
@@ -120,6 +165,11 @@ docker history onetimesecret --format "table {{.CreatedBy}}\t{{.Size}}"
 
 ### Docker Compose
 
-For managing multi-container setups (e.g., the application and a separate database), we recommend using Docker Compose. We maintain a separate repository with ready-to-use configurations.
+Docker Compose configurations are included in this repository. The root `docker-compose.yml` includes a simple profile (app + Valkey) by default, with a full production stack (Caddy, RabbitMQ, workers) available:
 
-Visit our [Docker Compose repository](https://github.com/onetimesecret/docker-compose) for more information.
+```bash
+cp --preserve --no-clobber .env.example .env
+docker compose up
+```
+
+See `docker-compose.yml` for profile options and `docker/README.md` for complete setup documentation.

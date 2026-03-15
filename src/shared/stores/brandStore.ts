@@ -1,6 +1,6 @@
 // src/shared/stores/brandStore.ts
 
-import { responseSchemas } from '@/schemas/api/v3';
+import { responseSchemas } from '@/schemas/api/v3/responses';
 import type { BrandSettings, ImageProps } from '@/schemas/models';
 import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { AxiosInstance } from 'axios';

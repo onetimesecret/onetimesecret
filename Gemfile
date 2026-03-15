@@ -26,6 +26,10 @@ gem 'rodauth-omniauth', '~> 0.4'
 gem 'rodauth-tools', '~> 0.3.1'
 
 # OmniAuth providers (SSO via OIDC)
+# NOTE: omniauth_openid_connect transitively pulls in activesupport (via
+# openid_connect → activemodel, rack-oauth2, json-jwt, swd, webfinger). No
+# ActiveSupport APIs are used by application code. email_validator and
+# validate_url are also passengers from this chain.
 gem 'omniauth_openid_connect', '~> 0.8'
 
 # Web server and middleware
@@ -68,7 +72,7 @@ gem 'truemail'
 # ORMs and database drivers
 # NOTE: We install both db drivers for the OCI images so that users can choose
 # which database to use at runtime via environment variable without rebuilding.
-gem 'familia', '2.3.0'
+gem 'familia', '2.3.2'
 gem 'pg', '~> 1.6'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'
@@ -140,7 +144,7 @@ group :development do
 
   # Code quality and language server
   gem 'kanayago', '~> 0.7', require: false
-  gem 'rubocop', '~> 1.81.7', require: false
+  gem 'rubocop', '~> 1.85.1', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-sequel', require: false

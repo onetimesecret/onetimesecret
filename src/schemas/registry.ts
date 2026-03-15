@@ -38,16 +38,18 @@ import { z } from 'zod';
 // Model Schemas
 // =============================================================================
 import { customerSchema } from './models/customer';
+import { customDomainSchema } from './models/custom-domain';
 import { secretSchema, secretDetailsSchema, secretStateSchema } from './models/secret';
 import { receiptSchema, receiptDetailsSchema, receiptStateSchema } from './models/receipt';
 import { feedbackSchema } from './models/feedback';
+import { organizationSchema } from './models/organization';
 
 // =============================================================================
 // API v3 Schemas
 // =============================================================================
-import { concealPayloadSchema } from './api/v3/payloads/conceal';
-import { generatePayloadSchema } from './api/v3/payloads/generate';
-import { responseSchemas } from './api/v3/responses';
+import { concealPayloadSchema } from './api/v2/requests/content/conceal';
+import { generatePayloadSchema } from './api/v2/requests/content/generate';
+import { responseSchemas } from './api/v2/responses';
 
 // =============================================================================
 // Billing Schemas
@@ -86,6 +88,8 @@ export const modelSchemas = {
   'models/receipt-details': receiptDetailsSchema,
   'models/receipt-state': receiptStateSchema,
   'models/feedback': feedbackSchema,
+  'models/custom-domain': customDomainSchema,
+  'models/organization': organizationSchema,
 } as const;
 
 /**
@@ -172,9 +176,14 @@ export function getSchemasByCategory(): Record<string, SchemaKey[]> {
 /**
  * Convert a single schema to JSON Schema using Zod v4's native API.
  *
+ * Uses `io: "input"` so that schemas with .transform() document the wire
+ * format (input type) rather than the coerced application type (output type).
+ * For example, `z.number().transform(v => new Date(v * 1000))` produces
+ * `{ "type": "number" }` instead of an unrepresentable Date.
+ *
  * Note: Schemas using z.preprocess() will serialize to their underlying type.
  * The preprocessing logic (e.g., string-to-boolean conversion) is runtime-only.
  */
 export function toJsonSchema(schema: z.ZodType): Record<string, unknown> {
-  return z.toJSONSchema(schema);
+  return z.toJSONSchema(schema, { io: 'input' });
 }
