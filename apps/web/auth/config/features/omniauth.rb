@@ -47,6 +47,11 @@ module Auth::Config::Features
       configure_google_provider(auth)
     end
 
+    # Returns names of env vars that are nil or empty.
+    def self.missing_env_vars(required)
+      required.select { |name| val = ENV.fetch(name, nil); val.nil? || val.empty? }
+    end
+
     def self.configure_oidc_provider(auth)
       # NOTE: No explicit state parameter (though rodauth-omniauth should handle this).
       issuer        = ENV.fetch('OIDC_ISSUER', nil)
@@ -59,11 +64,7 @@ module Auth::Config::Features
 
       provider_name = ENV.fetch('OIDC_ROUTE_NAME', 'oidc').to_sym
 
-      # Validate required configuration - check for empty strings too
-      missing = []
-      missing << 'OIDC_ISSUER' if issuer.nil? || issuer.empty?
-      missing << 'OIDC_CLIENT_ID' if client_id.nil? || client_id.empty?
-
+      missing = missing_env_vars(%w[OIDC_ISSUER OIDC_CLIENT_ID])
       if missing.any?
         OT.le "[OmniAuth] Missing OIDC configuration: #{missing.join(', ')}"
         return
@@ -107,12 +108,7 @@ module Auth::Config::Features
       # For log message only; the frontend display_name comes from AuthConfig.sso_providers
       display_name  = ENV.fetch('ENTRA_DISPLAY_NAME', 'Microsoft')
 
-      # Validate required configuration - check for empty strings too
-      missing = []
-      missing << 'ENTRA_TENANT_ID' if tenant_id.nil? || tenant_id.empty?
-      missing << 'ENTRA_CLIENT_ID' if client_id.nil? || client_id.empty?
-      missing << 'ENTRA_CLIENT_SECRET' if client_secret.nil? || client_secret.empty?
-
+      missing = missing_env_vars(%w[ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET])
       if missing.any?
         OT.le "[OmniAuth] Missing Entra ID configuration: #{missing.join(', ')}"
         return
@@ -140,11 +136,7 @@ module Auth::Config::Features
       provider_name = ENV.fetch('GITHUB_ROUTE_NAME', 'github').to_sym
       display_name  = ENV.fetch('GITHUB_DISPLAY_NAME', 'GitHub')
 
-      # Validate required configuration - check for empty strings too
-      missing = []
-      missing << 'GITHUB_CLIENT_ID' if client_id.nil? || client_id.empty?
-      missing << 'GITHUB_CLIENT_SECRET' if client_secret.nil? || client_secret.empty?
-
+      missing = missing_env_vars(%w[GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET])
       if missing.any?
         OT.le "[OmniAuth] Missing GitHub configuration: #{missing.join(', ')}"
         return
@@ -171,11 +163,7 @@ module Auth::Config::Features
       provider_name = ENV.fetch('GOOGLE_ROUTE_NAME', 'google').to_sym
       display_name  = ENV.fetch('GOOGLE_DISPLAY_NAME', 'Google')
 
-      # Validate required configuration - check for empty strings too
-      missing = []
-      missing << 'GOOGLE_CLIENT_ID' if client_id.nil? || client_id.empty?
-      missing << 'GOOGLE_CLIENT_SECRET' if client_secret.nil? || client_secret.empty?
-
+      missing = missing_env_vars(%w[GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET])
       if missing.any?
         OT.le "[OmniAuth] Missing Google configuration: #{missing.join(', ')}"
         return

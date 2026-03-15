@@ -161,47 +161,21 @@ module Onetime
     end
 
     # All configured SSO providers, built dynamically from env var presence.
-    # Returns an array of hashes: [{ route_name: 'oidc', display_name: 'SSO' }, ...]
+    # Returns an array of hashes: [{ 'route_name' => 'oidc', 'display_name' => 'SSO' }, ...]
     # Each entry corresponds to a provider whose required env vars are present.
     # Returns empty array if omniauth is disabled or no providers are configured.
     def sso_providers
       return [] unless omniauth_enabled?
 
-      providers = []
+      provider_definitions.filter_map do |defn|
+        next unless defn[:required_vars].all? { |var| env_present?(var) }
 
-      # OIDC (generic OpenID Connect) — requires OIDC_ISSUER and OIDC_CLIENT_ID
-      if env_present?('OIDC_ISSUER') && env_present?('OIDC_CLIENT_ID')
-        providers << {
-          'route_name' => ENV.fetch('OIDC_ROUTE_NAME', 'oidc'),
-          'display_name' => ENV.fetch('OIDC_DISPLAY_NAME', nil) || sso_display_name || 'SSO',
+        display = ENV.fetch(defn[:display_var], nil) || defn[:display_default]
+        {
+          'route_name' => ENV.fetch(defn[:route_var], defn[:route_default]),
+          'display_name' => display,
         }
       end
-
-      # Entra ID (Microsoft) — requires ENTRA_TENANT_ID, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET
-      if env_present?('ENTRA_TENANT_ID') && env_present?('ENTRA_CLIENT_ID') && env_present?('ENTRA_CLIENT_SECRET')
-        providers << {
-          'route_name' => ENV.fetch('ENTRA_ROUTE_NAME', 'entra'),
-          'display_name' => ENV.fetch('ENTRA_DISPLAY_NAME', 'Microsoft'),
-        }
-      end
-
-      # Google — requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET
-      if env_present?('GOOGLE_CLIENT_ID') && env_present?('GOOGLE_CLIENT_SECRET')
-        providers << {
-          'route_name' => ENV.fetch('GOOGLE_ROUTE_NAME', 'google'),
-          'display_name' => ENV.fetch('GOOGLE_DISPLAY_NAME', 'Google'),
-        }
-      end
-
-      # GitHub — requires GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET
-      if env_present?('GITHUB_CLIENT_ID') && env_present?('GITHUB_CLIENT_SECRET')
-        providers << {
-          'route_name' => ENV.fetch('GITHUB_ROUTE_NAME', 'github'),
-          'display_name' => ENV.fetch('GITHUB_DISPLAY_NAME', 'GitHub'),
-        }
-      end
-
-      providers
     end
 
     # DEPRECATED: Use email_auth_enabled?
@@ -225,6 +199,33 @@ module Onetime
       return false unless full_enabled?
 
       features.fetch(key, default)
+    end
+
+    # Provider definitions for sso_providers. Each entry defines the env
+    # vars that gate the provider and where to read its route/display names.
+    def provider_definitions
+      [
+        {
+          required_vars: %w[OIDC_ISSUER OIDC_CLIENT_ID],
+          route_var: 'OIDC_ROUTE_NAME', route_default: 'oidc',
+          display_var: 'OIDC_DISPLAY_NAME', display_default: sso_display_name || 'SSO',
+        },
+        {
+          required_vars: %w[ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET],
+          route_var: 'ENTRA_ROUTE_NAME', route_default: 'entra',
+          display_var: 'ENTRA_DISPLAY_NAME', display_default: 'Microsoft',
+        },
+        {
+          required_vars: %w[GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET],
+          route_var: 'GOOGLE_ROUTE_NAME', route_default: 'google',
+          display_var: 'GOOGLE_DISPLAY_NAME', display_default: 'Google',
+        },
+        {
+          required_vars: %w[GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET],
+          route_var: 'GITHUB_ROUTE_NAME', route_default: 'github',
+          display_var: 'GITHUB_DISPLAY_NAME', display_default: 'GitHub',
+        },
+      ]
     end
 
     # Check if an environment variable is present and non-empty

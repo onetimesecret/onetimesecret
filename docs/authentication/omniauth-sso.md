@@ -80,7 +80,7 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `ENTRA_TENANT_ID` | Yes | Directory (tenant) ID from Azure portal |
 | `ENTRA_CLIENT_ID` | Yes | Application (client) ID |
 | `ENTRA_CLIENT_SECRET` | Yes | Client secret value (not the secret ID) |
-| `ENTRA_REDIRECT_URI` | No | Callback: `https://{host}/auth/sso/entra/callback` |
+| `ENTRA_REDIRECT_URI` | Yes | Callback: `https://{host}/auth/sso/entra/callback` |
 | `ENTRA_ROUTE_NAME` | No | URL segment (default: `entra`) |
 | `ENTRA_DISPLAY_NAME` | No | Button label (default: `Microsoft`) |
 
@@ -90,7 +90,7 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 |----------|----------|-------------|
 | `GOOGLE_CLIENT_ID` | Yes | OAuth 2.0 client ID |
 | `GOOGLE_CLIENT_SECRET` | Yes | OAuth 2.0 client secret |
-| `GOOGLE_REDIRECT_URI` | No | Callback: `https://{host}/auth/sso/google/callback` |
+| `GOOGLE_REDIRECT_URI` | Yes | Callback: `https://{host}/auth/sso/google/callback` |
 | `GOOGLE_ROUTE_NAME` | No | URL segment (default: `google`) |
 | `GOOGLE_DISPLAY_NAME` | No | Button label (default: `Google`) |
 
@@ -100,7 +100,7 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 |----------|----------|-------------|
 | `GITHUB_CLIENT_ID` | Yes | OAuth App client ID |
 | `GITHUB_CLIENT_SECRET` | Yes | OAuth App client secret |
-| `GITHUB_REDIRECT_URI` | No | Callback: `https://{host}/auth/sso/github/callback` |
+| `GITHUB_REDIRECT_URI` | Yes | Callback: `https://{host}/auth/sso/github/callback` |
 | `GITHUB_ROUTE_NAME` | No | URL segment (default: `github`) |
 | `GITHUB_DISPLAY_NAME` | No | Button label (default: `GitHub`) |
 
