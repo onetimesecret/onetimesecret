@@ -76,7 +76,7 @@ module Billing
 
         # Build checkout session parameters
         site_host = Onetime.conf['site']['host']
-        is_secure = Onetime.conf['site']['ssl']
+        is_secure = Onetime.conf.dig('site', 'ssl') != false
         protocol  = is_secure ? 'https' : 'http'
 
         success_url = "#{protocol}://#{site_host}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
@@ -240,7 +240,7 @@ module Billing
         end
 
         site_host  = Onetime.conf['site']['host']
-        is_secure  = Onetime.conf['site']['ssl']
+        is_secure  = Onetime.conf.dig('site', 'ssl') != false
         protocol   = is_secure ? 'https' : 'http'
 
         # Return to billing overview for the specific organization
