@@ -93,7 +93,7 @@ module Billing
       # stores it on the org for fast local queries. This is the only
       # codepath that should write org.complimentary.
       def apply_complimentary_marker
-        meta = @subscription.metadata
+        meta               = @subscription.metadata
         @org.complimentary = if meta && meta[Billing::Metadata::FIELD_COMPLIMENTARY].to_s == 'true'
                                'true'
                              end

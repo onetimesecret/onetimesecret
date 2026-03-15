@@ -226,7 +226,7 @@ module Onetime
             org,
             subscription,
             owner: true,
-            planid_override: target_planid
+            planid_override: target_planid,
           )
 
           # Step 4: Clear legacy customer.planid

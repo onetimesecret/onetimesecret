@@ -470,9 +470,7 @@ module Onetime
         # set (customer:{objid}:participations) contains entries like
         # "organization:{org_id}:members". We extract org IDs and check
         # each organization's stripe_customer_id field.
-        unless has_billing
-          has_billing = org_billing_raw?(redis, objid)
-        end
+        has_billing ||= org_billing_raw?(redis, objid)
 
         source, activity = activity_source(last_login, updated)
         build_record(OT::Utils.obscure_email(email.to_s), source, activity, has_billing)
@@ -496,7 +494,7 @@ module Onetime
           next if org_id.nil? || org_id.empty?
 
           stripe_cust = redis.hmget("organization:#{org_id}:object", 'stripe_customer_id')
-          val = parse_json_field(stripe_cust[0])
+          val         = parse_json_field(stripe_cust[0])
           return true unless val.to_s.empty?
         end
 
