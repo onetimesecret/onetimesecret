@@ -168,11 +168,9 @@ module V1::Logic
         # that behavior for backward compatibility. Clamping happens BEFORE
         # the entitlement gate so that e.g. ttl=9999999 gets clamped to
         # 30 days rather than rejected for missing entitlements.
-        @ttl = max_ttl if ttl > max_ttl
-        @ttl = min_ttl if ttl < min_ttl
-
-        # Further constrain by plan limit (may be lower than V1_MAX_TTL)
-        @ttl = plan_max if ttl > plan_max
+        # plan_max may be lower than max_ttl, so use the stricter ceiling.
+        effective_max_ttl = [max_ttl, plan_max].min
+        @ttl = ttl.clamp(min_ttl, effective_max_ttl)
 
         # Entitlement gate: requests beyond free tier TTL require extended_default_expiration.
         # Checked after clamping so the effective (clamped) value is evaluated.
