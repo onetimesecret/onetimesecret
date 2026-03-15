@@ -7,16 +7,18 @@ import type { ComposerTranslation } from 'vue-i18n';
 vi.mock('@/utils/features', () => ({
   isFullAuthMode: vi.fn(() => false),
   isWebAuthnEnabled: vi.fn(() => false),
+  hasPassword: vi.fn(() => false),
 }));
 
 import {
   getSettingsNavigation,
   getSettingsNavigationSections,
 } from '@/apps/workspace/config/settings-navigation';
-import { isFullAuthMode, isWebAuthnEnabled } from '@/utils/features';
+import { isFullAuthMode, isWebAuthnEnabled, hasPassword } from '@/utils/features';
 
 const mockedIsFullAuthMode = vi.mocked(isFullAuthMode);
 const mockedIsWebAuthnEnabled = vi.mocked(isWebAuthnEnabled);
+const mockedHasPassword = vi.mocked(hasPassword);
 
 // Minimal translation stub that returns the key path
 const t = ((key: string) => key) as unknown as ComposerTranslation;
@@ -26,6 +28,7 @@ describe('settings-navigation config', () => {
     vi.clearAllMocks();
     mockedIsFullAuthMode.mockReturnValue(false);
     mockedIsWebAuthnEnabled.mockReturnValue(false);
+    mockedHasPassword.mockReturnValue(false);
   });
 
   describe('Security section visibility', () => {
@@ -38,8 +41,9 @@ describe('settings-navigation config', () => {
       expect(securityItem?.visible).toBeTypeOf('function');
     });
 
-    it('security section is visible when auth mode is full', () => {
+    it('security section is visible when auth mode is full and user has password', () => {
       mockedIsFullAuthMode.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(true);
 
       const sections = getSettingsNavigationSections(t);
       const accountSection = sections.find((s) => s.id === 'account');
@@ -50,6 +54,18 @@ describe('settings-navigation config', () => {
 
     it('security section is hidden when auth mode is not full', () => {
       mockedIsFullAuthMode.mockReturnValue(false);
+      mockedHasPassword.mockReturnValue(true);
+
+      const sections = getSettingsNavigationSections(t);
+      const accountSection = sections.find((s) => s.id === 'account');
+      const securityItem = accountSection?.items.find((i) => i.id === 'security');
+
+      expect(securityItem?.visible?.()).toBe(false);
+    });
+
+    it('security section is hidden when user has no password (SSO-only)', () => {
+      mockedIsFullAuthMode.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(false);
 
       const sections = getSettingsNavigationSections(t);
       const accountSection = sections.find((s) => s.id === 'account');
@@ -84,8 +100,9 @@ describe('settings-navigation config', () => {
       expect(securityItem).toBeUndefined();
     });
 
-    it('SettingsLayout-style filtering includes security when full mode', () => {
+    it('SettingsLayout-style filtering includes security when full mode and has password', () => {
       mockedIsFullAuthMode.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(true);
 
       const sections = getSettingsNavigationSections(t);
       const visibleItems = sections.flatMap((section) =>
@@ -101,6 +118,7 @@ describe('settings-navigation config', () => {
   describe('Security section children', () => {
     it('includes password, mfa, sessions, and recovery-codes children', () => {
       mockedIsFullAuthMode.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(true);
 
       const items = getSettingsNavigation(t);
       const securityItem = items.find((i) => i.id === 'security');
@@ -114,6 +132,7 @@ describe('settings-navigation config', () => {
 
     it('passkeys child is visible only when WebAuthn is enabled', () => {
       mockedIsFullAuthMode.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(true);
       mockedIsWebAuthnEnabled.mockReturnValue(false);
 
       const items = getSettingsNavigation(t);

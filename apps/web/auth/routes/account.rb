@@ -49,12 +49,17 @@ module Auth
               .where(account_id: account[:id])
               .count
 
+            # Check if account has a password hash (SSO-only accounts do not)
+            has_password = rodauth.db[:account_password_hashes]
+              .where(id: account[:id]).count > 0
+
             {
               id: account[:id],
               email: account[:email],
               created_at: account[:created_at],
               status: account[:status_id],
               email_verified: account[:status_id] == VERIFIED_STATUS_ID,
+              has_password: has_password,
               mfa_enabled: mfa_enabled,
               recovery_codes_count: recovery_codes_count,
               active_sessions_count: active_sessions_count,
@@ -131,12 +136,17 @@ module Auth
               .where(account_id: account[:id])
               .count
 
+            # Check if account has a password hash (SSO-only accounts do not)
+            has_password = rodauth.db[:account_password_hashes]
+              .where(id: account[:id]).count > 0
+
             {
               id: account[:id],
               email: account[:email],
               created_at: account[:created_at],
               status: account[:status_id],
               email_verified: account[:status_id] == VERIFIED_STATUS_ID,
+              has_password: has_password,
               mfa_enabled: mfa_enabled,
               recovery_codes_count: recovery_codes_count,
               active_sessions_count: active_sessions_count,

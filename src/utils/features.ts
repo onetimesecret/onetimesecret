@@ -114,6 +114,17 @@ export function isFullAuthMode(): boolean {
 }
 
 /**
+ * Checks if the current authenticated user has a password set.
+ * SSO-only accounts (Entra, Google, GitHub) return false.
+ * Used to hide password-based security settings for SSO-only users.
+ */
+export function hasPassword(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  return getBootstrapValue('has_password') === true;
+}
+
+/**
  * Gets all enabled authentication features
  */
 export function getAuthFeatures(): AuthFeatures {

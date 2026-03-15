@@ -105,6 +105,14 @@ export interface BootstrapPayload {
    */
   had_valid_session: boolean;
 
+  /**
+   * Whether the authenticated account has a password set.
+   * SSO-only accounts (Entra, Google, GitHub) have no password.
+   * Used to hide security settings (password change, MFA, recovery codes)
+   * that are irrelevant for SSO-only users.
+   */
+  has_password?: boolean;
+
   baseuri: string;
   cust: Customer | null;
   custid: string;

@@ -34,6 +34,7 @@ const DEFAULTS: BootstrapPayload = {
   authenticated: false,
   awaiting_mfa: false,
   had_valid_session: false,
+  has_password: false,
 
   // User identity (null/empty when logged out)
   cust: null,
@@ -215,6 +216,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   const authenticated = ref<boolean>(DEFAULTS.authenticated);
   const awaiting_mfa = ref<boolean>(DEFAULTS.awaiting_mfa);
   const had_valid_session = ref<boolean>(DEFAULTS.had_valid_session);
+  const has_password = ref<boolean>(DEFAULTS.has_password ?? false);
 
   // User identity
   const cust = ref<Customer | null>(DEFAULTS.cust);
@@ -330,6 +332,9 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     updateIfDefined(authenticated, data.authenticated);
     updateIfDefined(awaiting_mfa, data.awaiting_mfa);
     updateIfDefined(had_valid_session, data.had_valid_session);
+    if (data.has_password !== undefined) {
+      has_password.value = data.has_password;
+    }
   }
 
   function hydrateUserIdentity(data: Partial<BootstrapPayload>): void {
@@ -423,6 +428,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     authenticated.value = DEFAULTS.authenticated;
     awaiting_mfa.value = DEFAULTS.awaiting_mfa;
     had_valid_session.value = DEFAULTS.had_valid_session;
+    has_password.value = DEFAULTS.has_password ?? false;
   }
 
   function resetUserIdentity(): void {
@@ -600,6 +606,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     authenticated,
     awaiting_mfa,
     had_valid_session,
+    has_password,
 
     // State - User identity
     cust,

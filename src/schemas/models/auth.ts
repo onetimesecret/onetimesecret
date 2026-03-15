@@ -75,6 +75,7 @@ export const accountInfoSchema = z.object({
   created_at: z.string(),
   status: z.number(),
   email_verified: z.boolean(),
+  has_password: z.boolean().optional(),
   mfa_enabled: z.boolean(),
   recovery_codes_count: z.number(),
   active_sessions_count: z.number().optional(),
