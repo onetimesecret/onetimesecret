@@ -53,7 +53,7 @@ jobs:
         run: pnpm install
 
       - name: Generate JSON schemas
-        run: pnpm run schemas:generate
+        run: pnpm run schemas:json:generate
 
       - name: Validate example config
         run: pnpm run config:validate
