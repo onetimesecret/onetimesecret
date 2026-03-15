@@ -20,7 +20,13 @@ module Middleware
   #   Fallback chain for fr-CA: [fr_CA, fr_FR, en]
   #   Result: "fr_FR" (first available entry in the chain)
   #
-  # Middleware order:
+  # NOTE: As of Otto 2.0, fallback chains are handled natively by
+  # Otto::Locale::Middleware via the fallback_locale option. This
+  # middleware is not in the active stack but is retained as a
+  # standalone alternative for deployments that need custom fallback
+  # logic beyond what Otto provides.
+  #
+  # Middleware order (when active):
   #   1. Otto::Locale::Middleware sets env['otto.locale']
   #   2. This middleware may override env['otto.locale'] via fallback chains
   #   3. Middleware::I18nLocale reads env['otto.locale'] for I18n.with_locale
@@ -82,7 +88,8 @@ module Middleware
       end
 
       nil
-    rescue StandardError
+    rescue StandardError => e
+      warn "[#{self.class.name}] Failed to resolve locale from header: #{e.message}"
       nil
     end
 

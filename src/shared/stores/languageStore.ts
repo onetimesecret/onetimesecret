@@ -90,8 +90,9 @@ export const useLanguageStore = defineStore('language', () => {
 
   function initializeLocale() {
     try {
-      // supportedLocales is already loaded by init() before this runs,
-      // and deviceLocale is already normalized (e.g. "it-IT" → "it_IT").
+      // Idempotent: init() loads these before calling us, but
+      // initializeLocale() may also be called independently (e.g.
+      // from LanguageToggle.onMounted), so we load here too.
       loadSupportedLocales();
 
       // Check for user preference first
