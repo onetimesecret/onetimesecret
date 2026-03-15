@@ -17,6 +17,7 @@ const v1ReceiptBase = z.object({
   ttl: z.number().int().nullable(),
   metadata_ttl: z.number().int().nullable(),
   secret_ttl: z.number().int().nullable().optional(),
+  metadata_url: z.string().nullable().optional(),
   state: z.string(),
   updated: z.number().int().nullable(),
   created: z.number().int().nullable(),
@@ -25,6 +26,24 @@ const v1ReceiptBase = z.object({
   share_domain: z.string(),
   value: z.string().optional(),
   passphrase_required: z.boolean().optional(),
+
+  // Additive v0.24 field names (#2617) — aliases for v0.23 fields above.
+  // Emitted alongside their v0.23 counterparts so clients can migrate
+  // incrementally. See V1_ADDITIVE_FIELD_MAP in class_methods.rb.
+  identifier: z.string()
+    .describe('v0.24 name for metadata_key. Prefer this field for new integrations.'),
+  secret_identifier: z.string().optional()
+    .describe('v0.24 name for secret_key. Absent when state is received.'),
+  has_passphrase: z.boolean().optional()
+    .describe('v0.24 name for passphrase_required. Present only when a passphrase was set.'),
+  recipients: z.array(z.string())
+    .describe('v0.24 name for recipient.'),
+  receipt_ttl: z.number().int().nullable()
+    .describe('v0.24 name for metadata_ttl. Seconds remaining before expiry.'),
+  receipt_url: z.string().nullable().optional()
+    .describe('v0.24 name for metadata_url. URL to view the receipt.'),
+  secret_value: z.string().optional()
+    .describe('v0.24 name for value. Present only when the secret content is included.'),
 });
 
 export const v1ReceiptResponseSchema = v1ReceiptBase;
