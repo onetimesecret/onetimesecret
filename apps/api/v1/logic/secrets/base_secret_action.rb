@@ -45,8 +45,10 @@ module V1::Logic
       V1_MAX_TTL = 2_592_000 # 30 days (30 * 86400)
 
       # Passphrase: v0.23.4 had no enforced minimum for V1 API consumers.
-      # The config-driven minimum (often 8) is for the web UI. V1 API
-      # preserves nil (no minimum) unless the operator explicitly sets one.
+      # The config-driven minimum_length (often 8) is for the web UI only;
+      # V1 API hard-codes nil here so no minimum is ever enforced,
+      # preserving backward compatibility for callers sending short
+      # passphrases (e.g. "1234"). Config cannot override this value.
       V1_PASSPHRASE_MIN_LENGTH = nil
 
       # Max secret size: 10_000 characters matches the API spec's
