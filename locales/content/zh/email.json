@@ -151,6 +151,14 @@
     "text": "此链接仅可使用一次。查看后，机密信息将被永久删除。",
     "sha256": "fecaf0a1"
   },
+  "email.incoming_secret.passphrase_required": {
+    "text": "此内容受口令保护。发送者应另行提供口令给您。",
+    "sha256": ""
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "需要口令:",
+    "sha256": ""
+  },
   "email.incoming_secret.sent_via": {
     "text": "发送自",
     "sha256": "d01479b3"
@@ -327,9 +335,77 @@
     "text": "如果这不是您本人操作，请立即联系支持团队，您的账户可能已被盗用。",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "您的 %{product_name} 账户邮箱地址已更改。",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "新邮箱:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "更改时间:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "如果此更改由您本人操作，无需进一步处理。",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "如果此更改并非由您操作，您的账户可能已被盗用。",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "联系支持",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "附: 此邮件已发送至 %{email_address}，通知您邮箱地址变更事宜。",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "邮箱更改请求 (%{display_domain})",
+    "sha256": ""
+  },
+  "email.email_change_requested.title": {
+    "text": "邮箱更改请求",
+    "sha256": ""
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "有人请求更改您的 %{product_name} 账户邮箱地址。",
+    "sha256": ""
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "请求的新邮箱:",
+    "sha256": ""
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "请求时间:",
+    "sha256": ""
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "如果此请求由您本人发起，请检查新邮箱中的确认链接。目前尚未做任何更改。",
+    "sha256": ""
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "如果此请求并非由您发起，您可以安全地忽略此邮件。您的账户未被更改。",
+    "sha256": ""
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "联系支持",
+    "sha256": ""
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": ""
+  },
+  "email.email_change_requested.postscript": {
+    "text": "附: 此邮件已发送至 %{email_address}，因为有人请求更改您的账户邮箱。",
+    "sha256": ""
   },
   "email.email_change_confirmation.subject": {
     "text": "验证您的新邮箱地址 (%{display_domain})",
@@ -347,13 +423,33 @@
     "text": "验证邮箱地址",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "有人请求将您的 %{product_name} 账户邮箱地址更改为 %{new_email}。",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "确认更改邮箱",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "或复制粘贴此链接：",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "此链接将在 %{hours} 小时后失效。",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "如果您未请求此更改，可以安全地忽略此邮件。您的邮箱地址不会被更改。",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "附: 此邮件已发送至 %{email_address}，用于确认邮箱地址变更。",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "双因素认证已启用 (%{display_domain})",

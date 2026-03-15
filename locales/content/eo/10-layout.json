@@ -99,6 +99,14 @@
     "text": "Kompanio",
     "sha256": "de4743c8"
   },
+  "web.footer.product": {
+    "text": "Produkto",
+    "sha256": "7f5540e9"
+  },
+  "web.footer.source_code_purveyor": {
+    "text": "Fontkodo",
+    "sha256": "29c5c68f"
+  },
   "web.navigation.billing": {
     "text": "Fakturado",
     "sha256": "3ac8bbca"

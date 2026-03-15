@@ -151,6 +151,14 @@
     "text": "이 링크는 한 번만 작동합니다. 확인 후 비밀 메시지는 영구적으로 삭제됩니다.",
     "sha256": "fecaf0a1"
   },
+  "email.incoming_secret.passphrase_required": {
+    "text": "이 비밀 메시지는 접근 문구로 보호되어 있습니다. 발신자가 별도로 접근 문구를 제공해야 합니다.",
+    "sha256": ""
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "접근 문구 필요:",
+    "sha256": ""
+  },
   "email.incoming_secret.sent_via": {
     "text": "발송 경로:",
     "sha256": "d01479b3"
@@ -327,9 +335,77 @@
     "text": "본인이 변경하지 않았다면 계정이 손상되었을 수 있으니 즉시 고객 지원에 문의해 주세요.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "%{product_name} 계정의 이메일 주소가 변경되었습니다.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "새 이메일:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "변경 시각:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "본인이 변경한 경우 추가 조치가 필요하지 않습니다.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "본인이 변경하지 않은 경우 계정이 침해되었을 수 있습니다.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "고객 지원 문의",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "추신: 이 이메일은 이메일 주소 변경을 알려드리기 위해 %{email_address}(으)로 발송되었습니다.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "이메일 변경 요청 (%{display_domain})",
+    "sha256": ""
+  },
+  "email.email_change_requested.title": {
+    "text": "이메일 변경 요청",
+    "sha256": ""
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "%{product_name} 계정의 이메일 주소 변경 요청이 접수되었습니다.",
+    "sha256": ""
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "요청한 새 이메일:",
+    "sha256": ""
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "요청 시각:",
+    "sha256": ""
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "본인이 요청한 경우 새 이메일에서 확인 링크를 확인하세요. 아직 변경 사항이 적용되지 않았습니다.",
+    "sha256": ""
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "본인이 요청하지 않은 경우 이 이메일을 무시하셔도 됩니다. 계정은 변경되지 않았습니다.",
+    "sha256": ""
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "고객 지원 문의",
+    "sha256": ""
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": ""
+  },
+  "email.email_change_requested.postscript": {
+    "text": "추신: 이 이메일은 계정의 이메일 변경 요청으로 인해 %{email_address}(으)로 발송되었습니다.",
+    "sha256": ""
   },
   "email.email_change_confirmation.subject": {
     "text": "새 이메일 주소 인증 (%{display_domain})",
@@ -347,13 +423,33 @@
     "text": "이메일 주소 인증",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "%{product_name} 계정의 이메일 주소를 %{new_email}(으)로 변경하는 요청이 접수되었습니다.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "이메일 변경 확인",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "또는 이 링크를 복사하여 붙여넣으세요:",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "이 링크는 %{hours}시간 후에 만료됩니다.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "본인이 요청하지 않은 경우 이 이메일을 무시하셔도 됩니다. 이메일 주소는 변경되지 않습니다.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "추신: 이 이메일은 이메일 주소 변경을 확인하기 위해 %{email_address}(으)로 발송되었습니다.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "2단계 인증 활성화됨 (%{display_domain})",

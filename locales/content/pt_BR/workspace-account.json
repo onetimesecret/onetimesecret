@@ -155,6 +155,10 @@
     "text": "Excluindo {0}",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Excluindo...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Excluir Conta Permanentemente",
     "sha256": "f894e42c"
@@ -210,6 +214,22 @@
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Gerencie suas configurações e preferências de conta",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Voltar ao Painel",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Conta",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Cobrança",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Avançado",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "Geral",
@@ -615,24 +635,52 @@
     "text": "Esta ação não pode ser desfeita",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "Excluindo...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "Endereço de e-mail atualizado",
+    "sha256": ""
   },
-  "web.settings.back_to_dashboard": {
-    "text": "Voltar ao Painel",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Seu e-mail foi atualizado com sucesso. Entre com seu novo endereço de e-mail.",
+    "sha256": "e5f6a7b8"
   },
-  "web.settings.sections.account": {
-    "text": "Conta",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Verificando seu novo endereço de e-mail...",
+    "sha256": "c9d0e1f2"
   },
-  "web.settings.sections.billing": {
-    "text": "Cobrança",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "Falha na alteração de e-mail",
+    "sha256": ""
   },
-  "web.settings.sections.advanced": {
-    "text": "Avançado",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "Este link de verificação é inválido ou expirou.",
+    "sha256": "a3b4c5d6"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Voltar para configurações da conta",
+    "sha256": "e7f8a9b0"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Redirecionando para o login...",
+    "sha256": "c1d2e3f4"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Reenviar e-mail de confirmação",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "E-mail de confirmação reenviado com sucesso.",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Enviando...",
+    "sha256": ""
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "Um e-mail de verificação foi enviado. Verifique sua caixa de entrada e clique no link de confirmação.",
+    "sha256": ""
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "Não recebeu o e-mail?",
+    "sha256": ""
   }
 }

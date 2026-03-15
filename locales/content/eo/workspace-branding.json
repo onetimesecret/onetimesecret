@@ -166,5 +166,9 @@
   "web.branding.switch_to_safari_preview": {
     "text": "Ŝanĝu al Safari antaŭrigardo",
     "sha256": "f24ac447"
+  },
+  "web.branding.upgrade_to_customize": {
+    "text": "Altigu vian planon por personecigi la markadon por ĉi tiu domajno.",
+    "sha256": "placeholder"
   }
 }

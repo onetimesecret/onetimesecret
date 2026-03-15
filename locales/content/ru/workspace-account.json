@@ -155,6 +155,10 @@
     "text": "Удаление {0}",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Удаление...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Безвозвратно удалить аккаунт",
     "sha256": "f894e42c"
@@ -210,6 +214,22 @@
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Управляйте настройками Вашей учётной записи и предпочтениями",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Вернуться в панель управления",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Аккаунт",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Оплата",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Дополнительно",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "Общие",
@@ -615,24 +635,52 @@
     "text": "Это действие нельзя отменить",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "Удаление...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "Адрес электронной почты обновлён",
+    "sha256": ""
   },
-  "web.settings.back_to_dashboard": {
-    "text": "Вернуться в панель управления",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Ваш адрес электронной почты успешно обновлён. Пожалуйста, войдите с новым адресом.",
+    "sha256": "e5f6a7b8"
   },
-  "web.settings.sections.account": {
-    "text": "Аккаунт",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Проверка Вашего нового адреса электронной почты...",
+    "sha256": "c9d0e1f2"
   },
-  "web.settings.sections.billing": {
-    "text": "Оплата",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "Ошибка смены электронной почты",
+    "sha256": ""
   },
-  "web.settings.sections.advanced": {
-    "text": "Дополнительно",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "Эта ссылка для подтверждения недействительна или срок её действия истёк.",
+    "sha256": "a3b4c5d6"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Вернуться к настройкам аккаунта",
+    "sha256": "e7f8a9b0"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Перенаправление на страницу входа...",
+    "sha256": "c1d2e3f4"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Отправить письмо для подтверждения повторно",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "Письмо для подтверждения успешно отправлено повторно.",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Отправка...",
+    "sha256": ""
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "Письмо для подтверждения отправлено. Проверьте входящие и перейдите по ссылке для подтверждения.",
+    "sha256": ""
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "Не получили письмо?",
+    "sha256": ""
   }
 }

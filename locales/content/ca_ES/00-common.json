@@ -132,9 +132,17 @@
     "text": "Recent",
     "sha256": "690dbe9d"
   },
-  "web.COMMON.received": {
-    "text": "Rebut",
-    "sha256": "49f19bee"
+  "web.COMMON.not_set": {
+    "text": "No definit",
+    "sha256": "4895f731"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Editar",
+    "sha256": "464c4ffd"
+  },
+  "web.COMMON.word_save": {
+    "text": "Desar",
+    "sha256": "1509f561"
   },
   "web.COMMON.burn": {
     "text": "Destruir",
@@ -432,6 +440,10 @@
     "text": "p. ex. {example}",
     "sha256": "cc921aaa"
   },
+  "web.COMMON.about": {
+    "text": "Quant a",
+    "sha256": "d833339d"
+  },
   "web.COMMON.status": {
     "text": "Estat",
     "sha256": "920e413c"
@@ -648,6 +660,10 @@
     "text": "Prem el botó de copiar a sota.",
     "sha256": "77fcf6fb"
   },
+  "web.COMMON.external_link": {
+    "text": "Enllaç extern",
+    "sha256": "a1b2c3d5"
+  },
   "web.LABELS.view_toggle.show": {
     "text": "Mostrar",
     "sha256": "0df6f1ca"
@@ -687,6 +703,10 @@
   "web.LABELS.expiration_time": {
     "text": "Temps de caducitat",
     "sha256": "c5db84a8"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Caduca en",
+    "sha256": "de996752"
   },
   "web.LABELS.close": {
     "text": "Tancar",
@@ -824,6 +844,14 @@
     "text": "Recarregar",
     "sha256": "bdc090ec"
   },
+  "web.LABELS.filter": {
+    "text": "Filtre",
+    "sha256": "638e249f"
+  },
+  "web.LABELS.clear": {
+    "text": "Esborrar",
+    "sha256": "83b12c22"
+  },
   "web.LABELS.caption_recent_secrets": {
     "text": "Enllaços de secrets creats en aquesta sessió",
     "sha256": "6c7ceab8"
@@ -848,6 +876,11 @@
     "text": "Configuració relacionada",
     "sha256": "68574b20"
   },
+  "web.LABELS.benefits": {
+    "text": "Avantatges",
+    "context": "Section header for listing benefits",
+    "sha256": "d5b67bc9"
+  },
   "web.LABELS.creating_links_for": {
     "text": "Creant enllaços per a",
     "sha256": "57db069e"
@@ -871,6 +904,14 @@
   "web.STATUS.received": {
     "text": "Rebut",
     "sha256": "49f19bee"
+  },
+  "web.STATUS.previewed": {
+    "text": "Previsualitzat",
+    "sha256": "3d391a9b"
+  },
+  "web.STATUS.revealed": {
+    "text": "Revelat",
+    "sha256": "17376ee4"
   },
   "web.STATUS.burned": {
     "text": "Destruït",
@@ -931,6 +972,14 @@
   "web.STATUS.received_description": {
     "text": "El secret s'ha revelat al destinatari",
     "sha256": "ceb756b4"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "L'enllaç del secret s'ha obert i està llest per ser revelat",
+    "sha256": "cc7d1e92"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "El contingut del secret s'ha revelat al destinatari",
+    "sha256": "39b32f80"
   },
   "web.STATUS.burned_description": {
     "text": "El secret s'ha destruït manualment abans de ser visualitzat",
@@ -1056,6 +1105,10 @@
     "text": "Comentaris",
     "sha256": "aac77df3"
   },
+  "web.TITLES.help": {
+    "text": "Ajuda",
+    "sha256": "b79cac92"
+  },
   "web.TITLES.signin": {
     "text": "Iniciar sessió",
     "sha256": "bcc0bcc9"
@@ -1172,6 +1225,10 @@
     "text": "Canviar correu electrònic",
     "sha256": "18c3f2d5"
   },
+  "web.TITLES.confirm_email_change": {
+    "text": "Confirmar el canvi de correu electrònic",
+    "sha256": "a1b2c3d4"
+  },
   "web.TITLES.security_overview": {
     "text": "Seguretat",
     "sha256": "8f6fb4eb"
@@ -1191,6 +1248,11 @@
   "web.TITLES.recovery_codes": {
     "text": "Codis de recuperació",
     "sha256": "579c7f4e"
+  },
+  "web.TITLES.passkeys": {
+    "text": "Claus d'accés",
+    "context": "Page title for passkey management",
+    "sha256": "c87ccdb4"
   },
   "web.TITLES.api_settings": {
     "text": "Configuració de l'API",
@@ -1216,6 +1278,10 @@
     "text": "Configuració de l'organització",
     "sha256": "cc1d9e61"
   },
+  "web.TITLES.pricing": {
+    "text": "Preus",
+    "sha256": "dfe95783"
+  },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
     "text": "El focus ara és a l'àrea de text principal",
     "sha256": "e00dd260"
@@ -1239,70 +1305,6 @@
   "web.INSTRUCTION.phishing_warning": {
     "text": "Verifica sempre que estàs al lloc web oficial d'Onetime Secret. Els estafadors de vegades creen llocs web falsos que semblen exactament Onetime Secret per robar els teus secrets. Per evitar atacs de phishing, comprova el domini de la regió abans de crear nous enllaços.",
     "sha256": "b588f5b2"
-  },
-  "web.STATUS.previewed": {
-    "text": "Previsualitzat",
-    "sha256": "3d391a9b"
-  },
-  "web.STATUS.revealed": {
-    "text": "Revelat",
-    "sha256": "17376ee4"
-  },
-  "web.STATUS.previewed_description": {
-    "text": "L'enllaç del secret s'ha obert i està llest per ser revelat",
-    "sha256": "cc7d1e92"
-  },
-  "web.STATUS.revealed_description": {
-    "text": "El contingut del secret s'ha revelat al destinatari",
-    "sha256": "39b32f80"
-  },
-  "web.COMMON.not_set": {
-    "text": "No definit",
-    "sha256": "4895f731"
-  },
-  "web.COMMON.word_edit": {
-    "text": "Editar",
-    "sha256": "464c4ffd"
-  },
-  "web.COMMON.word_save": {
-    "text": "Desar",
-    "sha256": "1509f561"
-  },
-  "web.LABELS.secret_ttl": {
-    "text": "Caduca en",
-    "sha256": "de996752"
-  },
-  "web.LABELS.filter": {
-    "text": "Filtre",
-    "sha256": "638e249f"
-  },
-  "web.LABELS.clear": {
-    "text": "Esborrar",
-    "sha256": "83b12c22"
-  },
-  "web.LABELS.add_note": {
-    "text": "Afegir nota...",
-    "sha256": "32738894"
-  },
-  "web.LABELS.edit_note": {
-    "text": "Editar nota",
-    "sha256": "299e604c"
-  },
-  "web.LABELS.add_memo": {
-    "text": "Afegir memo...",
-    "sha256": "02384c53"
-  },
-  "web.LABELS.edit_memo": {
-    "text": "Editar memo",
-    "sha256": "0ec1a5db"
-  },
-  "web.TITLES.help": {
-    "text": "Ajuda",
-    "sha256": "b79cac92"
-  },
-  "web.TITLES.pricing": {
-    "text": "Preus",
-    "sha256": "dfe95783"
   },
   "web.pricing.title": {
     "text": "Preus simples i transparents",
@@ -1332,12 +1334,58 @@
     "text": "Recomanat per a tu",
     "sha256": "00093fbd"
   },
+  "web.COMMON.received": {
+    "text": "Rebut",
+    "sha256": "49f19bee"
+  },
+  "web.LABELS.add_note": {
+    "text": "Afegir nota...",
+    "sha256": "32738894"
+  },
+  "web.LABELS.edit_note": {
+    "text": "Editar nota",
+    "sha256": "299e604c"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Afegir memo...",
+    "sha256": "02384c53"
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Editar memo",
+    "sha256": "0ec1a5db"
+  },
   "web.pricing.free_tier_description": {
     "text": "Crea i comparteix secrets amb funcions bàsiques. No es requereix targeta de crèdit.",
     "sha256": "3a4f2bc0"
   },
-  "web.COMMON.external_link": {
-    "text": "Enllaç extern",
-    "sha256": "a1b2c3d5"
+  "web.COMMON.enter_password_to_continue": {
+    "text": "Introdueix la teva contrasenya per continuar",
+    "context": "Prompt for password confirmation modal",
+    "sha256": "09055357"
+  },
+  "web.COMMON.password_required_for_action": {
+    "text": "Cal la teva contrasenya per completar aquesta acció",
+    "context": "Description for password confirmation modal",
+    "sha256": "cc078766"
+  },
+  "api.errors.unexpected_error": {
+    "text": "S'ha produït un error inesperat",
+    "context": "Generic error message for unhandled exceptions in API",
+    "sha256": "6615bf1c"
+  },
+  "api.errors.service_unavailable": {
+    "text": "El servei no està disponible temporalment. Si us plau, torna-ho a provar d'aquí a poc.",
+    "context": "Error message when database connection fails",
+    "sha256": "343ccdcb"
+  },
+  "api.errors.request_processing_error": {
+    "text": "No s'ha pogut processar la teva sol·licitud en aquest moment",
+    "context": "Error message for recoverable server errors",
+    "sha256": "fb961f3f"
+  },
+  "web.COMMON.upgrade_description": {
+    "text": "Actualitza per desbloquejar més funcions",
+    "context": "Description shown for free plan users encouraging upgrade",
+    "sha256": "783f174c"
   }
 }

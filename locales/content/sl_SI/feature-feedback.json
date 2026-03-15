@@ -31,17 +31,13 @@
     "text": "Vsebina pomoči gre sem.",
     "sha256": "796979ea"
   },
-  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Hvala, da pomagate izboljšati Onetime Secret. To nam veliko pomeni."
+  "web.feedback.founder_note_line1": {
+    "text": "Preberem vsak kos povratnih informacij, ki pride prek tukaj. Tako ugotovim, na kaj porabiti čas.",
+    "sha256": "8b430d93"
   },
-  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
-    "text": "To orodje smo zgradili, da vam pomagamo varno deliti občutljive informacije, in vaše izkušnje iz resničnega sveta so ključnega pomena za osredotočanje naših prizadevanj. Pomaga nam ugotoviti, na čem delati naprej in kako storitev izboljšati za vse."
-  },
-  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
-    "text": "Pozdravljeni, hvala, da ste obiskali našo stran za povratne informacije. Vaš prispevek ni samo dobrodošel - je ključnega pomena."
-  },
-  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Opomba od Delana, ustanovitelja Onetime Secret"
+  "web.feedback.founder_note_line2": {
+    "text": "Če je kaj narobe ali imate ideje, kako bi moralo delovati, je to pravo mesto.",
+    "sha256": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
     "text": "Odpri obrazec za povratne informacije",
@@ -55,12 +51,12 @@
     "text": "Pošlji povratne informacije",
     "sha256": "8235980b"
   },
-  "web.feedback.founder_note_line1": {
-    "text": "Preberem vsak kos povratnih informacij, ki pride prek tukaj. Tako ugotovim, na kaj porabiti čas.",
-    "sha256": "8b430d93"
+  "web.feedback.sending_ellipses": {
+    "text": "Sending...",
+    "sha256": "a1b2c3d4"
   },
-  "web.feedback.founder_note_line2": {
-    "text": "Če je kaj narobe ali imate ideje, kako bi moralo delovati, je to pravo mesto.",
-    "sha256": "d4b8f073"
+  "web.feedback.reason_email_change_unauthorized": {
+    "text": "It looks like you're reporting an unauthorized email change on your account. Please describe what happened and we'll investigate right away.",
+    "sha256": "b2c3d4e5"
   }
 }

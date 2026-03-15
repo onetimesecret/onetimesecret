@@ -1,4 +1,9 @@
 {
+  "web.COMMON.broadcast": {
+    "text": "",
+    "skip": true,
+    "note": "empty source"
+  },
   "web.COMMON.tagline": {
     "text": "Sekuraj ligiloj, kiuj funkcias nur unufoje",
     "sha256": "9da7aece"
@@ -127,9 +132,17 @@
     "text": "Lastatempa",
     "sha256": "690dbe9d"
   },
-  "web.COMMON.received": {
-    "text": "Ricevita",
-    "sha256": "49f19bee"
+  "web.COMMON.not_set": {
+    "text": "Ne agordita",
+    "sha256": "4895f731"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Redakti",
+    "sha256": "464c4ffd"
+  },
+  "web.COMMON.word_save": {
+    "text": "Konservi",
+    "sha256": "1509f561"
   },
   "web.COMMON.burn": {
     "text": "Forbruligi",
@@ -427,6 +440,10 @@
     "text": "ekz. {example}",
     "sha256": "cc921aaa"
   },
+  "web.COMMON.about": {
+    "text": "Pri",
+    "sha256": "d833339d"
+  },
   "web.COMMON.status": {
     "text": "Stato",
     "sha256": "920e413c"
@@ -643,6 +660,10 @@
     "text": "Premu la kopian butonon sube.",
     "sha256": "77fcf6fb"
   },
+  "web.COMMON.external_link": {
+    "text": "Ekstera ligilo",
+    "sha256": "a1b2c3d5"
+  },
   "web.LABELS.view_toggle.show": {
     "text": "Montri",
     "sha256": "0df6f1ca"
@@ -682,6 +703,10 @@
   "web.LABELS.expiration_time": {
     "text": "Tempo de eksvalidiĝo",
     "sha256": "c5db84a8"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Eksvalidiĝas post",
+    "sha256": "de996752"
   },
   "web.LABELS.close": {
     "text": "Fermi",
@@ -851,6 +876,11 @@
     "text": "Rilataj agordoj",
     "sha256": "68574b20"
   },
+  "web.LABELS.benefits": {
+    "text": "Avantaĝoj",
+    "context": "Section header for listing benefits",
+    "sha256": "d5b67bc9"
+  },
   "web.LABELS.creating_links_for": {
     "text": "Kreante ligilojn por",
     "sha256": "57db069e"
@@ -874,6 +904,14 @@
   "web.STATUS.received": {
     "text": "Ricevita",
     "sha256": "49f19bee"
+  },
+  "web.STATUS.previewed": {
+    "text": "Antaŭvidita",
+    "sha256": "3d391a9b"
+  },
+  "web.STATUS.revealed": {
+    "text": "Malkaŝita",
+    "sha256": "17376ee4"
   },
   "web.STATUS.burned": {
     "text": "Forbruligita",
@@ -934,6 +972,14 @@
   "web.STATUS.received_description": {
     "text": "Sekreto estis malkaŝita al la ricevanto",
     "sha256": "ceb756b4"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Sekreta ligilo estis malfermita kaj preta por esti malkaŝita",
+    "sha256": "cc7d1e92"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Sekreta enhavo estis malkaŝita al la ricevanto",
+    "sha256": "39b32f80"
   },
   "web.STATUS.burned_description": {
     "text": "Sekreto estis mane forbruligita antaŭ ol esti vidita",
@@ -1179,6 +1225,10 @@
     "text": "Ŝanĝi retpoŝton",
     "sha256": "18c3f2d5"
   },
+  "web.TITLES.confirm_email_change": {
+    "text": "Konfirmi retpoŝtan ŝanĝon",
+    "sha256": "a1b2c3d4"
+  },
   "web.TITLES.security_overview": {
     "text": "Sekureco",
     "sha256": "8f6fb4eb"
@@ -1198,6 +1248,11 @@
   "web.TITLES.recovery_codes": {
     "text": "Restarigaj kodoj",
     "sha256": "579c7f4e"
+  },
+  "web.TITLES.passkeys": {
+    "text": "Pasŝlosiloj",
+    "context": "Page title for passkey management",
+    "sha256": "c87ccdb4"
   },
   "web.TITLES.api_settings": {
     "text": "API-agordoj",
@@ -1279,37 +1334,9 @@
     "text": "Rekomendita por vi",
     "sha256": "00093fbd"
   },
-  "web.STATUS.previewed": {
-    "text": "Antaŭvidita",
-    "sha256": "3d391a9b"
-  },
-  "web.STATUS.revealed": {
-    "text": "Malkaŝita",
-    "sha256": "17376ee4"
-  },
-  "web.STATUS.previewed_description": {
-    "text": "Sekreta ligilo estis malfermita kaj preta por esti malkaŝita",
-    "sha256": "cc7d1e92"
-  },
-  "web.STATUS.revealed_description": {
-    "text": "Sekreta enhavo estis malkaŝita al la ricevanto",
-    "sha256": "39b32f80"
-  },
-  "web.COMMON.not_set": {
-    "text": "Ne agordita",
-    "sha256": "4895f731"
-  },
-  "web.COMMON.word_edit": {
-    "text": "Redakti",
-    "sha256": "464c4ffd"
-  },
-  "web.COMMON.word_save": {
-    "text": "Konservi",
-    "sha256": "1509f561"
-  },
-  "web.LABELS.secret_ttl": {
-    "text": "Eksvalidiĝas post",
-    "sha256": "de996752"
+  "web.COMMON.received": {
+    "text": "Ricevita",
+    "sha256": "49f19bee"
   },
   "web.LABELS.add_note": {
     "text": "Aldoni noton...",
@@ -1331,8 +1358,34 @@
     "text": "Kreu kaj kunhavigu sekretojn kun bazaj funkcioj. Neniu kreditkarto necesa.",
     "sha256": "3a4f2bc0"
   },
-  "web.COMMON.external_link": {
-    "text": "Ekstera ligilo",
-    "sha256": "a1b2c3d5"
+  "web.COMMON.enter_password_to_continue": {
+    "text": "Enigu vian pasvorton por daŭrigi",
+    "context": "Prompt for password confirmation modal",
+    "sha256": "09055357"
+  },
+  "web.COMMON.password_required_for_action": {
+    "text": "Via pasvorto estas bezonata por plenumi ĉi tiun agon",
+    "context": "Description for password confirmation modal",
+    "sha256": "cc078766"
+  },
+  "api.errors.unexpected_error": {
+    "text": "Neatendita eraro okazis",
+    "context": "Generic error message for unhandled exceptions in API",
+    "sha256": "6615bf1c"
+  },
+  "api.errors.service_unavailable": {
+    "text": "Servo provizore nedisponebla. Bonvolu reprovi baldaŭ.",
+    "context": "Error message when database connection fails",
+    "sha256": "343ccdcb"
+  },
+  "api.errors.request_processing_error": {
+    "text": "Ne eblas procezi vian peton ĉi-momente",
+    "context": "Error message for recoverable server errors",
+    "sha256": "fb961f3f"
+  },
+  "web.COMMON.upgrade_description": {
+    "text": "Altigu vian planon por malŝlosi pliajn funkciojn",
+    "context": "Description shown for free plan users encouraging upgrade",
+    "sha256": "783f174c"
   }
 }

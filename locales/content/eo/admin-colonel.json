@@ -575,10 +575,6 @@
     "text": "Administri proprajn domajnojn kaj markadon",
     "sha256": "808ee2cb"
   },
-  "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Kiam vi sendos retrosciigon, ni vidos:",
-    "sha256": "fe77172e"
-  },
   "web.colonel.feedback.send_feedback": {
     "text": "Sendi retrosciigon",
     "sha256": "8235980b"
@@ -634,5 +630,9 @@
   "web.colonel.titles.redis": {
     "text": "Redis",
     "sha256": "a7f64157"
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Kiam vi sendos retrosciigon, ni vidos:",
+    "sha256": "fe77172e"
   }
 }

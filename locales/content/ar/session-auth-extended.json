@@ -143,6 +143,10 @@
     "text": "رابط تسجيل دخول غير صالح أو مفقود",
     "sha256": "d726c0da"
   },
+  "web.auth.magicLink.sessionExpired": {
+    "text": "انتهت صلاحية جلستك. يرجى تحديث الصفحة والمحاولة مرة أخرى.",
+    "sha256": "a7c3e901"
+  },
   "web.auth.magicLink.loginFailed": {
     "text": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.",
     "sha256": "c95b4875"
@@ -187,6 +191,10 @@
     "text": "فشل إعداد تسجيل الدخول بالبصمة الحيوية",
     "sha256": "290cca44"
   },
+  "web.auth.webauthn.passwordRequired": {
+    "text": "كلمة المرور مطلوبة لإعداد مفتاح المرور",
+    "sha256": "085bb238"
+  },
   "web.auth.webauthn.authFailed": {
     "text": "فشلت المصادقة بالبصمة الحيوية. يرجى المحاولة مرة أخرى.",
     "sha256": "626b9ece"
@@ -206,6 +214,111 @@
   "web.auth.webauthn.supportedMethods": {
     "text": "يدعم Face ID و Touch ID و Windows Hello ومفاتيح الأمان",
     "sha256": "3ea1c1a2"
+  },
+  "web.auth.passkeys.title": {
+    "text": "مفاتيح المرور",
+    "context": "Title for passkey management section",
+    "sha256": "c87ccdb4"
+  },
+  "web.auth.passkeys.description": {
+    "text": "تسجيل الدخول باستخدام Face ID أو Touch ID أو Windows Hello أو مفتاح الأمان",
+    "context": "Description of passkey authentication",
+    "sha256": "a513ed5c"
+  },
+  "web.auth.passkeys.setup_description": {
+    "text": "تتيح لك مفاتيح المرور تسجيل الدخول بأمان بدون كلمة مرور",
+    "context": "Setup page description",
+    "sha256": "85630bef"
+  },
+  "web.auth.passkeys.not_configured": {
+    "text": "غير مُهيّأ",
+    "context": "Status when no passkeys are registered",
+    "sha256": "dd1841d2"
+  },
+  "web.auth.passkeys.count": {
+    "text": "مفتاح مرور واحد مسجل | {count} مفاتيح مرور مسجلة",
+    "context": "Number of registered passkeys",
+    "sha256": "82e6681f"
+  },
+  "web.auth.passkeys.add_passkey": {
+    "text": "إضافة مفتاح مرور",
+    "context": "Button to add a new passkey",
+    "sha256": "93713ad7"
+  },
+  "web.auth.passkeys.register_passkey": {
+    "text": "تسجيل مفتاح مرور",
+    "context": "Button to register a new passkey",
+    "sha256": "26db6968"
+  },
+  "web.auth.passkeys.remove_passkey": {
+    "text": "إزالة مفتاح مرور",
+    "context": "Button to remove a passkey",
+    "sha256": "67b1d47c"
+  },
+  "web.auth.passkeys.confirm_remove": {
+    "text": "هل أنت متأكد من رغبتك في إزالة مفتاح المرور هذا؟ لن تتمكن بعدها من تسجيل الدخول به.",
+    "context": "Confirmation message for passkey removal",
+    "sha256": "487ab72c"
+  },
+  "web.auth.passkeys.removed_success": {
+    "text": "تمت إزالة مفتاح المرور بنجاح",
+    "context": "Success message after removing passkey",
+    "sha256": "436c1050"
+  },
+  "web.auth.passkeys.registered_success": {
+    "text": "تم تسجيل مفتاح المرور بنجاح",
+    "context": "Success message after registering passkey",
+    "sha256": "fbfb0713"
+  },
+  "web.auth.passkeys.no_passkeys": {
+    "text": "لا توجد مفاتيح مرور مسجلة",
+    "context": "Empty state when no passkeys exist",
+    "sha256": "1d97fde4"
+  },
+  "web.auth.passkeys.no_passkeys_description": {
+    "text": "أضف مفتاح مرور لتسجيل الدخول بشكل أكثر أماناً بدون إدخال كلمة مرور",
+    "context": "Description for empty state",
+    "sha256": "e5bc07f1"
+  },
+  "web.auth.passkeys.name": {
+    "text": "اسم مفتاح المرور",
+    "context": "Label for passkey name field",
+    "sha256": "22eefa67"
+  },
+  "web.auth.passkeys.created": {
+    "text": "تاريخ الإنشاء",
+    "context": "Label for creation date",
+    "sha256": "d70b9e24"
+  },
+  "web.auth.passkeys.last_used": {
+    "text": "آخر استخدام: {time}",
+    "context": "Last used timestamp",
+    "sha256": "e1af94fe"
+  },
+  "web.auth.passkeys.never_used": {
+    "text": "لم يُستخدم أبداً",
+    "context": "Status when passkey has not been used",
+    "sha256": "24d3236c"
+  },
+  "web.auth.passkeys.benefit_secure": {
+    "text": "أكثر أماناً من كلمات المرور - مقاومة لهجمات التصيد الاحتيالي",
+    "context": "Passkey benefit",
+    "sha256": "41afb6ec"
+  },
+  "web.auth.passkeys.benefit_fast": {
+    "text": "سريعة وسهلة - فقط استخدم بصمة الإصبع أو الوجه أو مفتاح الأمان",
+    "context": "Passkey benefit",
+    "sha256": "5a0ce96c"
+  },
+  "web.auth.passkeys.benefit_synced": {
+    "text": "متزامنة عبر أجهزتك عند استخدام مصادقات المنصة",
+    "context": "Passkey benefit",
+    "sha256": "7480c7ae"
+  },
+  "web.auth.passkeys.link_title": {
+    "text": "مفاتيح المرور",
+    "context": "Navigation link title",
+    "sha256": "c87ccdb4"
   },
   "web.auth.lockout.attempts_remaining": {
     "text": "تحذير: متبقي {count} محاولة (محاولات) تسجيل دخول",
@@ -586,11 +699,5 @@
   "web.auth.recovery_codes.link_title": {
     "text": "رموز الاسترداد",
     "sha256": "579c7f4e"
-  },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ حرج أمنياً: الرسائل تمنع الكشف عن المعلومات. انظر src/locales/SECURITY-TRANSLATION-GUIDE.md"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "صفحة إدارة الأجهزة/المتصفحات المسجل دخولها للمستخدم"
   }
 }

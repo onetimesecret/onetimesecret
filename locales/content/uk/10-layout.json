@@ -47,6 +47,10 @@
     "text": "Юридична інформація",
     "sha256": "0a410c78"
   },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Коли Ви надішлете відгук, ми побачимо:",
+    "sha256": "fe77172e"
+  },
   "web.footer.read_our_privacy_policy": {
     "text": "Ознайомтеся з нашою політикою конфіденційності",
     "sha256": "eb443229"
@@ -94,6 +98,14 @@
   "web.footer.company": {
     "text": "Компанія",
     "sha256": "de4743c8"
+  },
+  "web.footer.product": {
+    "text": "Продукт",
+    "sha256": "7f5540e9"
+  },
+  "web.footer.source_code_purveyor": {
+    "text": "Вихідний код",
+    "sha256": "29c5c68f"
   },
   "web.navigation.billing": {
     "text": "Оплата",
@@ -307,6 +319,10 @@
     "text": "Мову змінено на {0}",
     "sha256": "1680f4fe"
   },
+  "web.layout.reset_to_default_language": {
+    "text": "Скинути до {0}",
+    "sha256": "c0cfa9b2"
+  },
   "web.layout.switch_to_blank_mode": {
     "text": "Перемкнути на режим {0}",
     "sha256": "c8b909e0"
@@ -322,13 +338,5 @@
   "web.layout.workspace_context": {
     "text": "Контекст робочої області",
     "sha256": "dc6fa4f5"
-  },
-  "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Коли Ви надішлете відгук, ми побачимо:",
-    "sha256": "fe77172e"
-  },
-  "web.layout.reset_to_default_language": {
-    "text": "Скинути до {0}",
-    "sha256": "c0cfa9b2"
   }
 }

@@ -440,6 +440,10 @@
     "text": "مثال: {example}",
     "sha256": "cc921aaa"
   },
+  "web.COMMON.about": {
+    "text": "حول",
+    "sha256": "d833339d"
+  },
   "web.COMMON.status": {
     "text": "الحالة",
     "sha256": "920e413c"
@@ -656,6 +660,10 @@
     "text": "اضغط زر النسخ أدناه.",
     "sha256": "77fcf6fb"
   },
+  "web.COMMON.external_link": {
+    "text": "رابط خارجي",
+    "sha256": "a1b2c3d5"
+  },
   "web.LABELS.view_toggle.show": {
     "text": "إظهار",
     "sha256": "0df6f1ca"
@@ -867,6 +875,11 @@
   "web.LABELS.related_settings": {
     "text": "الإعدادات ذات الصلة",
     "sha256": "68574b20"
+  },
+  "web.LABELS.benefits": {
+    "text": "المزايا",
+    "context": "Section header for listing benefits",
+    "sha256": "d5b67bc9"
   },
   "web.LABELS.creating_links_for": {
     "text": "جاري إنشاء روابط لـ",
@@ -1212,6 +1225,10 @@
     "text": "تغيير البريد الإلكتروني",
     "sha256": "18c3f2d5"
   },
+  "web.TITLES.confirm_email_change": {
+    "text": "تأكيد تغيير البريد الإلكتروني",
+    "sha256": "a1b2c3d4"
+  },
   "web.TITLES.security_overview": {
     "text": "الأمان",
     "sha256": "8f6fb4eb"
@@ -1231,6 +1248,11 @@
   "web.TITLES.recovery_codes": {
     "text": "رموز الاسترداد",
     "sha256": "579c7f4e"
+  },
+  "web.TITLES.passkeys": {
+    "text": "مفاتيح المرور",
+    "context": "Page title for passkey management",
+    "sha256": "c87ccdb4"
   },
   "web.TITLES.api_settings": {
     "text": "إعدادات API",
@@ -1336,8 +1358,34 @@
     "text": "أنشئ وشارك الأسرار بالميزات الأساسية. لا حاجة لبطاقة ائتمان.",
     "sha256": "3a4f2bc0"
   },
-  "web.COMMON.external_link": {
-    "text": "رابط خارجي",
-    "sha256": "a1b2c3d5"
+  "web.COMMON.enter_password_to_continue": {
+    "text": "أدخل كلمة المرور للمتابعة",
+    "context": "Prompt for password confirmation modal",
+    "sha256": "09055357"
+  },
+  "web.COMMON.password_required_for_action": {
+    "text": "كلمة المرور مطلوبة لإتمام هذا الإجراء",
+    "context": "Description for password confirmation modal",
+    "sha256": "cc078766"
+  },
+  "api.errors.unexpected_error": {
+    "text": "حدث خطأ غير متوقع",
+    "context": "Generic error message for unhandled exceptions in API",
+    "sha256": "6615bf1c"
+  },
+  "api.errors.service_unavailable": {
+    "text": "الخدمة غير متاحة مؤقتاً. يرجى المحاولة مرة أخرى بعد قليل.",
+    "context": "Error message when database connection fails",
+    "sha256": "343ccdcb"
+  },
+  "api.errors.request_processing_error": {
+    "text": "تعذرت معالجة طلبك في الوقت الحالي",
+    "context": "Error message for recoverable server errors",
+    "sha256": "fb961f3f"
+  },
+  "web.COMMON.upgrade_description": {
+    "text": "قم بالترقية لفتح المزيد من الميزات",
+    "context": "Description shown for free plan users encouraging upgrade",
+    "sha256": "783f174c"
   }
 }

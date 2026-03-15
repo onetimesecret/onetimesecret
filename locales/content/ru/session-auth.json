@@ -23,6 +23,86 @@
     "text": "Запомнить меня",
     "sha256": "f93267aa"
   },
+  "web.login.send_sign_in_link": {
+    "text": "Отправить ссылку для входа",
+    "sha256": "b1402b67"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Безопасная ссылка будет отправлена на Вашу электронную почту.",
+    "sha256": "d31d20cf"
+  },
+  "web.login.or_divider": {
+    "text": "или",
+    "sha256": "7175517a"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Войти с паролем",
+    "sha256": "bedac809"
+  },
+  "web.login.use_passwordless": {
+    "text": "Использовать вход без пароля",
+    "sha256": "dddc0097"
+  },
+  "web.login.create_account": {
+    "text": "Создать аккаунт",
+    "sha256": "798ca2ce"
+  },
+  "web.login.return_home": {
+    "text": "Вернуться на главную",
+    "sha256": "bbcc935e"
+  },
+  "web.login.tab_password": {
+    "text": "Пароль",
+    "sha256": "e7cf3ef4"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Волшебная ссылка",
+    "sha256": "7a9ba11a"
+  },
+  "web.login.tab_passkey": {
+    "text": "Ключ доступа",
+    "sha256": ""
+  },
+  "web.login.need_help": {
+    "text": "Нужна помощь?",
+    "sha256": "c225cdfb"
+  },
+  "web.login.or_continue_with": {
+    "text": "Или продолжить с",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "Войти через SSO",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_provider": {
+    "text": "Войти через {provider}",
+    "sha256": "b8794f11"
+  },
+  "web.auth.sso.signing_in": {
+    "text": "Перенаправление к провайдеру идентификации...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "Ошибка входа через SSO. Пожалуйста, попробуйте ещё раз.",
+    "sha256": ""
+  },
+  "web.login.errors.sso_failed": {
+    "text": "Ошибка SSO-аутентификации. Пожалуйста, попробуйте снова или используйте вход по паролю.",
+    "sha256": "13a2210a"
+  },
+  "web.login.errors.token_missing": {
+    "text": "Ссылка для аутентификации неполная. Пожалуйста, запросите новую ссылку для входа.",
+    "sha256": "f4a10652"
+  },
+  "web.login.errors.token_expired": {
+    "text": "Срок действия этой ссылки для входа истёк. Пожалуйста, запросите новую.",
+    "sha256": "f0de42ec"
+  },
+  "web.login.errors.token_invalid": {
+    "text": "Эта ссылка для входа недействительна. Пожалуйста, запросите новую.",
+    "sha256": "270c6401"
+  },
   "web.signup.create_your_account": {
     "text": "Создайте аккаунт",
     "sha256": "5f4c33d7"
@@ -46,6 +126,9 @@
   "web.signup.email_error": {
     "text": "Электронная почта",
     "sha256": "969ccbd3"
+  },
+  "web.auth.verify._guidance": {
+    "context": "Email verification flow after signup"
   },
   "web.auth.verify.title": {
     "text": "Подтвердите Ваш аккаунт",
@@ -173,6 +256,7 @@
   },
   "web.auth.password_reset.title": {
     "text": "Выберите новый пароль",
+    "context": "Password reset request flow - user requests a reset link",
     "sha256": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
@@ -189,6 +273,7 @@
   },
   "web.auth.account.title": {
     "text": "Информация об аккаунте",
+    "context": "User account overview/dashboard section",
     "sha256": "4e59b6c7"
   },
   "web.auth.account.email": {
@@ -255,9 +340,6 @@
     "text": "Закрыть аккаунт",
     "sha256": "e1513814"
   },
-  "web.auth.verify._guidance.context": {
-    "text": "Процесс подтверждения электронной почты после регистрации"
-  },
   "web.help.title": {
     "text": "Помощь и поддержка",
     "sha256": "1f8ecc24"
@@ -313,65 +395,5 @@
   "web.help.contact_support": {
     "text": "Связаться с поддержкой",
     "sha256": "f8d47b82"
-  },
-  "web.login.send_sign_in_link": {
-    "text": "Отправить ссылку для входа",
-    "sha256": "b1402b67"
-  },
-  "web.login.secure_link_helper": {
-    "text": "Безопасная ссылка будет отправлена на Вашу электронную почту.",
-    "sha256": "d31d20cf"
-  },
-  "web.login.or_divider": {
-    "text": "или",
-    "sha256": "7175517a"
-  },
-  "web.login.sign_in_with_password": {
-    "text": "Войти с паролем",
-    "sha256": "bedac809"
-  },
-  "web.login.use_passwordless": {
-    "text": "Использовать вход без пароля",
-    "sha256": "dddc0097"
-  },
-  "web.login.create_account": {
-    "text": "Создать аккаунт",
-    "sha256": "798ca2ce"
-  },
-  "web.login.return_home": {
-    "text": "Вернуться на главную",
-    "sha256": "bbcc935e"
-  },
-  "web.login.tab_password": {
-    "text": "Пароль",
-    "sha256": "e7cf3ef4"
-  },
-  "web.login.tab_magic_link": {
-    "text": "Волшебная ссылка",
-    "sha256": "7a9ba11a"
-  },
-  "web.login.tab_passkey": {
-    "text": "Ключ доступа",
-    "sha256": ""
-  },
-  "web.login.or_continue_with": {
-    "text": "Или продолжить с",
-    "sha256": ""
-  },
-  "web.login.sign_in_with_sso": {
-    "text": "Войти через SSO",
-    "sha256": ""
-  },
-  "web.auth.sso.signing_in": {
-    "text": "Перенаправление к провайдеру идентификации...",
-    "sha256": ""
-  },
-  "web.auth.sso.error": {
-    "text": "Ошибка входа через SSO. Пожалуйста, попробуйте ещё раз.",
-    "sha256": ""
-  },
-  "web.login.need_help": {
-    "text": "Нужна помощь?",
-    "sha256": "c225cdfb"
   }
 }

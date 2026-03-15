@@ -96,7 +96,7 @@
     "sha256": "76f6014f"
   },
   "web.domains.passphrase_short": {
-    "text": "Passphrase",
+    "text": "Sicherheitsphrase",
     "sha256": "e7611f05"
   },
   "web.domains.notify_short": {
@@ -116,7 +116,7 @@
     "sha256": "026552b3"
   },
   "web.domains.scope_header": {
-    "text": "Domains",
+    "text": "Domänen",
     "sha256": "ced67718"
   },
   "web.domains.add_domain": {
@@ -152,7 +152,7 @@
     "sha256": "fe871d2c"
   },
   "web.domains.domain": {
-    "text": "Domain",
+    "text": "Domäne",
     "sha256": "79fa3361"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
@@ -160,7 +160,7 @@
     "sha256": "4e7f8311"
   },
   "web.domains.domains": {
-    "text": "Domains",
+    "text": "Domänen",
     "sha256": "ced67718"
   },
   "web.domains.last_monitored": {

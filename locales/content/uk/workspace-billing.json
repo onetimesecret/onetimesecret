@@ -1,4 +1,12 @@
 {
+  "web.billing.subscription_synced_title": {
+    "text": "Підписку синхронізовано",
+    "sha256": "3086ef43"
+  },
+  "web.billing.subscription_synced_description": {
+    "text": "Переваги вашої підписки синхронізовано з іншого регіону.",
+    "sha256": "a99b7a98"
+  },
   "web.billing.upgrade.required": {
     "text": "Потрібне оновлення",
     "sha256": "16487236"
@@ -35,8 +43,9 @@
     "text": "Перегляньте та керуйте підпискою та платіжними даними",
     "sha256": "60e5a00e"
   },
-  "web.billing.overview.organization_selector": {
-    "text": "Вибрати організацію"
+  "web.billing.overview.billing_for_organization": {
+    "text": "Оплата для цієї організації",
+    "sha256": "21806992"
   },
   "web.billing.overview.current_plan": {
     "text": "Поточний план",
@@ -73,6 +82,22 @@
   "web.billing.overview.change_plan": {
     "text": "Змінити план",
     "sha256": "2d0b195b"
+  },
+  "web.billing.overview.manage_subscription": {
+    "text": "Керувати підпискою",
+    "sha256": "cbc4ef92"
+  },
+  "web.billing.plans.legacy_plan_info": {
+    "text": "Ви на плані зі збереженою спеціальною ціною.",
+    "sha256": "e9aa8bf0"
+  },
+  "web.billing.plans.early_supporter_plan": {
+    "text": "Identity Plus (Ранній підтримувач)",
+    "sha256": "f37cd0d9"
+  },
+  "web.billing.plans.legacy_plan_warning": {
+    "text": "Зміна плану призведе до втрати вашої збереженої ціни. Цю дію неможливо скасувати.",
+    "sha256": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
     "text": "Спосіб оплати не вказано",
@@ -122,6 +147,22 @@
     "text": "Створіть організацію для керування оплатою та підпискою",
     "sha256": "41e922d2"
   },
+  "web.billing.overview.load_error": {
+    "text": "Не вдалося завантажити інформацію про оплату",
+    "sha256": "d4e5f6a7"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "Ваш план успішно оновлено",
+    "sha256": "00ac43f8"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Ваш новий план тепер активний. Дякуємо за покупку.",
+    "sha256": "fd1caeb1"
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Контакт для оплати",
+    "sha256": "8f782ad8"
+  },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "Створення таємниць",
     "sha256": "0320541d"
@@ -155,8 +196,8 @@
     "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Брендована домашня сторінка",
-    "sha256": "e355a396"
+    "text": "Таємниці домашньої сторінки",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "Вхідні таємниці",
@@ -198,6 +239,74 @@
     "text": "Функції недоступні",
     "sha256": "03d195e8"
   },
+  "web.billing.features.create_secrets": {
+    "text": "Створення та передача таємниць",
+    "sha256": "303f9386"
+  },
+  "web.billing.features.api_access": {
+    "text": "Доступ до API",
+    "sha256": "5f31cc2f"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Власні домени",
+    "sha256": "6170ab94"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 власний домен",
+    "sha256": "6a6be744"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Необмежена кількість власних доменів",
+    "sha256": "53eb7521"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Власне брендування",
+    "sha256": "237dabec"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Таємниці домашньої сторінки",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Керування командою",
+    "sha256": "6bcbac8f"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Керування учасниками",
+    "sha256": "b38b89db"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Журнали аудиту",
+    "sha256": "5428d7fe"
+  },
+  "web.billing.features.sso": {
+    "text": "Єдиний вхід (SSO)",
+    "sha256": "5db5c812"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Пріоритетна підтримка",
+    "sha256": "ed8a65c8"
+  },
+  "web.billing.features.sla": {
+    "text": "Угода про рівень обслуговування",
+    "sha256": "436f2550"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Централізована оплата",
+    "sha256": "62042d3b"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Аудиторський слід",
+    "sha256": "d52b4039"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Потік активності",
+    "sha256": "b9c6cba7"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Робочі процеси передачі",
+    "sha256": "07202af3"
+  },
   "web.billing.plans.title": {
     "text": "Виберіть план",
     "sha256": "79506c82"
@@ -225,6 +334,10 @@
   "web.billing.plans.downgrade": {
     "text": "Знизити",
     "sha256": "d955b7e8"
+  },
+  "web.billing.plans.cancel_to_downgrade": {
+    "text": "Скасувати для переходу",
+    "sha256": "1c4cda89"
   },
   "web.billing.plans.monthly": {
     "text": "Щомісяця",
@@ -330,6 +443,10 @@
     "text": "Наразі плани {interval} недоступні.",
     "sha256": "d8454436"
   },
+  "web.billing.plans.load_error": {
+    "text": "Не вдалося завантажити плани",
+    "sha256": "e5f6a7b8"
+  },
   "web.billing.plans.change_immediate": {
     "text": "Ваш план зміниться негайно.",
     "sha256": "889d13be"
@@ -345,6 +462,14 @@
   "web.billing.plans.credit_label": {
     "text": "Кредит за невикористаний час:",
     "sha256": "001e4901"
+  },
+  "web.billing.plans.due_today": {
+    "text": "До сплати сьогодні:",
+    "sha256": "e370e3aa"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Наступна оплата ({date}):",
+    "sha256": "a6846a85"
   },
   "web.billing.plans.next_invoice": {
     "text": "Наступний рахунок",
@@ -374,6 +499,30 @@
     "text": "Знизити до {plan}?",
     "sha256": "8eb8ea81"
   },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Як застосовується Ваш кредит:",
+    "sha256": "a0943c3b"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Сума наступного рахунку:",
+    "sha256": "526ad28f"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Застосований кредит:",
+    "sha256": "e5f2e81a"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Сума до сплати при наступній оплаті:",
+    "sha256": "22ee868a"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Залишок кредиту облікового запису:",
+    "sha256": "eedd0c0a"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Застосовується до майбутніх рахунків",
+    "sha256": "5007add6"
+  },
   "web.billing.invoices.title": {
     "text": "Історія оплат",
     "sha256": "5ade0861"
@@ -398,9 +547,21 @@
     "text": "Завантажити",
     "sha256": "d6eafe82"
   },
+  "web.billing.invoices.invoice_number": {
+    "text": "Рахунок №",
+    "sha256": "a1c2d3e4"
+  },
   "web.billing.invoices.no_invoices": {
     "text": "Рахунків ще немає",
     "sha256": "92d2d0ce"
+  },
+  "web.billing.invoices.no_invoices_description": {
+    "text": "Ваші рахунки з'являться тут після переходу на платний план",
+    "sha256": "b2c3d4e5"
+  },
+  "web.billing.invoices.view_plans": {
+    "text": "Переглянути плани",
+    "sha256": "c3d4e5f6"
   },
   "web.billing.invoices.paid": {
     "text": "Оплачено",
@@ -417,6 +578,18 @@
   "web.billing.invoices.draft": {
     "text": "Чернетка",
     "sha256": "d2e16e61"
+  },
+  "web.billing.invoices.open": {
+    "text": "Відкритий",
+    "sha256": "a2b3c4d5"
+  },
+  "web.billing.invoices.uncollectible": {
+    "text": "Не стягнутий",
+    "sha256": "b3c4d5e6"
+  },
+  "web.billing.invoices.void": {
+    "text": "Анульовано",
+    "sha256": "c4d5e6f7"
   },
   "web.billing.invoices.load_error": {
     "text": "Не вдалося завантажити рахунки",
@@ -465,6 +638,14 @@
   "web.billing.subscription.catalog_name": {
     "text": "План",
     "sha256": "fa8ed0bd"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Використання команди",
+    "sha256": "f9989642"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} з {limit} команд",
+    "sha256": "1db6b53c"
   },
   "web.billing.portal.title": {
     "text": "Платіжний портал",
@@ -580,10 +761,12 @@
   },
   "web.billing.cancel.link_text": {
     "text": "Скасувати підписку",
+    "context": "Link text shown below the plan selector for paid users",
     "sha256": "3f85967f"
   },
   "web.billing.cancel.title": {
     "text": "Скасувати підписку",
+    "context": "Modal dialog heading/title",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
@@ -612,10 +795,12 @@
   },
   "web.billing.cancel.keep_subscription": {
     "text": "Зберегти підписку",
+    "context": "Secondary button in modal - keeps subscription active",
     "sha256": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
     "text": "Скасувати підписку",
+    "context": "Primary action button in modal - confirms the cancellation",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
@@ -628,91 +813,34 @@
   },
   "web.billing.cancel.scheduled_title": {
     "text": "Заплановано скасування підписки",
+    "context": "Alert banner heading shown when cancellation is pending",
     "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
     "text": "Ваша підписка залишатиметься активною до {date}. Ви продовжуватимете мати повний доступ до всіх функцій до цього часу.",
+    "context": "Alert banner description explaining continued access",
     "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
     "text": "Передумали? Ви можете повторно активувати підписку в будь-який час до дати скасування.",
+    "context": "Alert banner note encouraging reactivation",
     "sha256": "c94d5527"
   },
-  "web.billing.features.create_secrets": {
-    "text": "Створення та передача таємниць",
-    "sha256": "303f9386"
+  "web.billing.overview.entitlements.notifications": {
+    "text": "Сповіщення електронною поштою",
+    "sha256": "04e0f1e9"
   },
-  "web.billing.features.api_access": {
-    "text": "Доступ до API",
-    "sha256": "5f31cc2f"
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "Правила доступу за IP",
+    "sha256": "db966d47"
   },
-  "web.billing.features.custom_domains": {
-    "text": "Власні домени",
-    "sha256": "6170ab94"
-  },
-  "web.billing.features.custom_domain": {
-    "text": "1 власний домен",
-    "sha256": "6a6be744"
-  },
-  "web.billing.features.unlimited_custom_domains": {
-    "text": "Необмежена кількість власних доменів",
-    "sha256": "53eb7521"
-  },
-  "web.billing.features.custom_branding": {
-    "text": "Власне брендування",
-    "sha256": "237dabec"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "Брендована домашня сторінка",
-    "sha256": "e355a396"
-  },
-  "web.billing.features.manage_teams": {
-    "text": "Керування командою",
-    "sha256": "6bcbac8f"
-  },
-  "web.billing.features.manage_members": {
-    "text": "Керування учасниками",
-    "sha256": "b38b89db"
-  },
-  "web.billing.features.audit_logs": {
-    "text": "Журнали аудиту",
-    "sha256": "5428d7fe"
-  },
-  "web.billing.features.sso": {
-    "text": "Єдиний вхід (SSO)",
-    "sha256": "5db5c812"
-  },
-  "web.billing.features.priority_support": {
-    "text": "Пріоритетна підтримка",
-    "sha256": "ed8a65c8"
-  },
-  "web.billing.features.sla": {
-    "text": "Угода про рівень обслуговування",
-    "sha256": "436f2550"
-  },
-  "web.billing.features.centralized_billing": {
-    "text": "Централізована оплата",
-    "sha256": "62042d3b"
-  },
-  "web.billing.features.audit_trail": {
-    "text": "Аудиторський слід",
-    "sha256": "d52b4039"
-  },
-  "web.billing.features.activity_stream": {
-    "text": "Потік активності",
-    "sha256": "b9c6cba7"
-  },
-  "web.billing.features.handoff_workflows": {
-    "text": "Робочі процеси передачі",
-    "sha256": "07202af3"
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Брендування робочої області",
+    "sha256": "e7acbf6f"
   },
   "web.billing.features.extended_retention": {
     "text": "Зберігання таємниць 30 днів",
     "sha256": "21d6d514"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "Таємниці домашньої сторінки",
-    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
     "text": "Вхідні таємниці",
@@ -758,76 +886,107 @@
     "text": "Спільні робочі процеси",
     "sha256": "158f558e"
   },
-  "web.billing.overview.billing_for_organization": {
-    "text": "Оплата для цієї організації",
-    "sha256": "21806992"
+  "web.billing.currency_migration.title": {
+    "text": "Потрібна зміна валюти",
+    "context": "Modal title when plan requires different currency than current subscription",
+    "sha256": "a1b2c3d4"
   },
-  "web.billing.overview.upgrade_success": {
-    "text": "Ваш план успішно оновлено",
-    "sha256": "00ac43f8"
+  "web.billing.currency_migration.description": {
+    "text": "Ваша поточна підписка використовує {from}. Обраний план оплачується у {to}. Для цього потрібно перевести вашу підписку на нову валюту.",
+    "sha256": "b2c3d4e5"
   },
-  "web.billing.overview.upgrade_success_description": {
-    "text": "Ваш новий план тепер активний. Дякуємо за покупку.",
-    "sha256": "fd1caeb1"
+  "web.billing.currency_migration.current_plan": {
+    "text": "Поточний план:",
+    "sha256": "c3d4e5f6"
   },
-  "web.billing.overview.billing_contact": {
-    "text": "Контакт для оплати",
-    "sha256": "8f782ad8"
+  "web.billing.currency_migration.new_plan": {
+    "text": "Новий план:",
+    "sha256": "d4e5f6a7"
   },
-  "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Таємниці домашньої сторінки",
-    "sha256": "6360f7ec"
+  "web.billing.currency_migration.current_period_ends": {
+    "text": "Поточний період закінчується:",
+    "sha256": "e5f6a7b8"
   },
-  "web.billing.overview.entitlements.notifications": {
-    "text": "Сповіщення електронною поштою",
-    "sha256": "04e0f1e9"
+  "web.billing.currency_migration.choose_timing": {
+    "text": "Коли має відбутися перехід?",
+    "sha256": "f6a7b8c9"
   },
-  "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "Правила доступу за IP",
-    "sha256": "db966d47"
+  "web.billing.currency_migration.graceful_title": {
+    "text": "Перейти наприкінці розрахункового періоду",
+    "sha256": "a7b8c9d0"
   },
-  "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Брендування робочої області",
-    "sha256": "e7acbf6f"
+  "web.billing.currency_migration.graceful_description": {
+    "text": "Ваш поточний план залишається активним до {date}. Після цього ви завершите оформлення нового плану.",
+    "sha256": "b8c9d0e1"
   },
-  "web.billing.plans.due_today": {
-    "text": "До сплати сьогодні:",
-    "sha256": "e370e3aa"
+  "web.billing.currency_migration.immediate_title": {
+    "text": "Перейти негайно",
+    "sha256": "c9d0e1f2"
   },
-  "web.billing.plans.next_billing": {
-    "text": "Наступна оплата ({date}):",
-    "sha256": "a6846a85"
+  "web.billing.currency_migration.immediate_description": {
+    "text": "Ваш поточний план скасовується зараз. Ви отримаєте повернення за невикористаний час і завершите оформлення нового плану.",
+    "sha256": "d0e1f2a3"
   },
-  "web.billing.plans.credit_applies_heading": {
-    "text": "Як застосовується Ваш кредит:",
-    "sha256": "a0943c3b"
+  "web.billing.currency_migration.confirm": {
+    "text": "Підтвердити зміну валюти",
+    "sha256": "e1f2a3b4"
   },
-  "web.billing.plans.next_bill_amount": {
-    "text": "Сума наступного рахунку:",
-    "sha256": "526ad28f"
+  "web.billing.currency_migration.error": {
+    "text": "Зміну валюти не вдалося виконати. Спробуйте знову.",
+    "sha256": "f2a3b4c5"
   },
-  "web.billing.plans.credit_applied_to_bill": {
-    "text": "Застосований кредит:",
-    "sha256": "e5f2e81a"
+  "web.billing.currency_migration.success": {
+    "text": "Валюту вашої підписки успішно оновлено.",
+    "sha256": "a3b4c5d6"
   },
-  "web.billing.plans.amount_due_next_billing": {
-    "text": "Сума до сплати при наступній оплаті:",
-    "sha256": "22ee868a"
+  "web.billing.currency_migration.graceful_success": {
+    "text": "Ваш поточний план залишатиметься активним до кінця розрахункового періоду. Після цього вам буде запропоновано завершити оформлення нового плану.",
+    "sha256": "b4c5d6e7"
   },
-  "web.billing.plans.remaining_account_credit": {
-    "text": "Залишок кредиту облікового запису:",
-    "sha256": "eedd0c0a"
+  "web.billing.currency_migration.warning_credit_balance": {
+    "text": "У вас є кредитний баланс у {currency}, який не може бути переведений на нову валюту.",
+    "sha256": "c5d6e7f8"
   },
-  "web.billing.plans.credit_future_note": {
-    "text": "Застосовується до майбутніх рахунків",
-    "sha256": "5007add6"
+  "web.billing.currency_migration.warning_pending_items": {
+    "text": "У вас є незавершені позиції в рахунках, які потрібно вирішити перед переходом.",
+    "sha256": "d6e7f8a9"
   },
-  "web.billing.subscription.team_usage": {
-    "text": "Використання команди",
-    "sha256": "f9989642"
+  "web.billing.currency_migration.warning_coupons": {
+    "text": "Активні купони у вашому обліковому записі можуть бути несумісні з новою валютою.",
+    "sha256": "e7f8a9b0"
   },
-  "web.billing.subscription.teams_used": {
-    "text": "{used} з {limit} команд",
-    "sha256": "1db6b53c"
+  "web.billing.currency_migration.pending_title": {
+    "text": "Зміна валюти очікується",
+    "context": "Banner heading when graceful migration is scheduled",
+    "sha256": "f8a9b0c1"
+  },
+  "web.billing.currency_migration.pending_description": {
+    "text": "Ваш поточний план закінчується {date}. Завершіть перехід на {plan} ({currency}).",
+    "sha256": "a9b0c1d2"
+  },
+  "web.billing.currency_migration.complete_migration": {
+    "text": "Завершити перехід",
+    "context": "Button to start checkout for the new currency plan",
+    "sha256": "b0c1d2e3"
+  },
+  "web.billing.checkout_session_failed": {
+    "text": "Не вдалося створити сеанс оформлення",
+    "context": "Error when Stripe checkout session creation returns no URL",
+    "sha256": "c1d2e3f4"
+  },
+  "web.billing.checkout_initiate_failed": {
+    "text": "Не вдалося розпочати оформлення",
+    "context": "Fallback error for checkout failures",
+    "sha256": "d2e3f4a5"
+  },
+  "web.billing.plan_switch_success": {
+    "text": "Успішно переведено на {plan}",
+    "context": "Success message after plan change",
+    "sha256": "e3f4a5b6"
+  },
+  "web.billing.plan_unavailable_region_mismatch": {
+    "text": "Доступно лише у вашому початковому регіоні підписки",
+    "context": "Hint shown on plan cards when currency does not match active subscription",
+    "sha256": "f4a5b6c7"
   }
 }

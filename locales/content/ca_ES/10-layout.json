@@ -44,8 +44,12 @@
     "sha256": "be91940b"
   },
   "web.footer.legals": {
-    "text": "Legals",
+    "text": "Avisos legals",
     "sha256": "0a410c78"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Quan enviïs comentaris, veurem:",
+    "sha256": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
     "text": "Llegeix la nostra política de privadesa",
@@ -94,6 +98,14 @@
   "web.footer.company": {
     "text": "Empresa",
     "sha256": "de4743c8"
+  },
+  "web.footer.product": {
+    "text": "Producte",
+    "sha256": "7f5540e9"
+  },
+  "web.footer.source_code_purveyor": {
+    "text": "Codi font",
+    "sha256": "29c5c68f"
   },
   "web.navigation.billing": {
     "text": "Facturació",
@@ -307,6 +319,10 @@
     "text": "Idioma canviat a {0}",
     "sha256": "1680f4fe"
   },
+  "web.layout.reset_to_default_language": {
+    "text": "Restablir a {0}",
+    "sha256": "c0cfa9b2"
+  },
   "web.layout.switch_to_blank_mode": {
     "text": "Canviar a mode {0}",
     "sha256": "c8b909e0"
@@ -322,13 +338,5 @@
   "web.layout.workspace_context": {
     "text": "Context de l'espai de treball",
     "sha256": "dc6fa4f5"
-  },
-  "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Quan enviïs comentaris, veurem:",
-    "sha256": "fe77172e"
-  },
-  "web.layout.reset_to_default_language": {
-    "text": "Restablir a {0}",
-    "sha256": "c0cfa9b2"
   }
 }

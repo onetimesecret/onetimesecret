@@ -47,6 +47,10 @@
     "text": "法的情報",
     "sha256": "0a410c78"
   },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "フィードバックを送信すると、以下の情報が送信されます:",
+    "sha256": "fe77172e"
+  },
   "web.footer.read_our_privacy_policy": {
     "text": "プライバシーポリシーを読む",
     "sha256": "eb443229"
@@ -94,6 +98,14 @@
   "web.footer.company": {
     "text": "会社概要",
     "sha256": "de4743c8"
+  },
+  "web.footer.product": {
+    "text": "Product",
+    "sha256": "7f5540e9"
+  },
+  "web.footer.source_code_purveyor": {
+    "text": "Source Code",
+    "sha256": "29c5c68f"
   },
   "web.navigation.billing": {
     "text": "請求",
@@ -307,6 +319,10 @@
     "text": "言語を{0}に変更しました",
     "sha256": "1680f4fe"
   },
+  "web.layout.reset_to_default_language": {
+    "text": "{0}にリセット",
+    "sha256": "c0cfa9b2"
+  },
   "web.layout.switch_to_blank_mode": {
     "text": "{0}モードに切り替え",
     "sha256": "c8b909e0"
@@ -322,13 +338,5 @@
   "web.layout.workspace_context": {
     "text": "ワークスペースコンテキスト",
     "sha256": "dc6fa4f5"
-  },
-  "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "フィードバックを送信すると、以下の情報が送信されます:",
-    "sha256": "fe77172e"
-  },
-  "web.layout.reset_to_default_language": {
-    "text": "{0}にリセット",
-    "sha256": "c0cfa9b2"
   }
 }

@@ -31,17 +31,13 @@
     "text": "Helpa enhavo iras ĉi tie.",
     "sha256": "796979ea"
   },
-  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Dankon pro helpi Onetime Secret pliboniĝi. Tio signifas multe."
+  "web.feedback.founder_note_line1": {
+    "text": "Mi legas ĉiun revoĵon kiu venas ĉi tien. Tiel mi determinas kion pripensi.",
+    "sha256": "8b430d93"
   },
-  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
-    "text": "Ni konstruis ĉi tiun ilon por helpi vin sekure kunhavigi sentivajn informojn, kaj viaj realmondaj spertoj estas decidaj por fokusigi niajn klopodojn. Tio helpas nin kompreni pri kio labori poste kaj kiel plibonigi la servon por ĉiuj."
-  },
-  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
-    "text": "Saluton, dankon pro viziti nian retrosciigan paĝon. Via kontribuo ne nur estas bonvena - ĝi estas decida."
-  },
-  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Noto de Delano, fondinto de Onetime Secret"
+  "web.feedback.founder_note_line2": {
+    "text": "Se io misas, aŭ vi havas ideojn pri kiel ĝi devus funkcii, ĉi tio estas la ĝusta loko.",
+    "sha256": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
     "text": "Malfermi revoĵan formularon",
@@ -55,12 +51,12 @@
     "text": "Sendi revoĵon",
     "sha256": "8235980b"
   },
-  "web.feedback.founder_note_line1": {
-    "text": "Mi legas ĉiun revoĵon kiu venas ĉi tien. Tiel mi determinas kion pripensi.",
-    "sha256": "8b430d93"
+  "web.feedback.sending_ellipses": {
+    "text": "Sendante...",
+    "sha256": "a1b2c3d4"
   },
-  "web.feedback.founder_note_line2": {
-    "text": "Se io misas, aŭ vi havas ideojn pri kiel ĝi devus funkcii, ĉi tio estas la ĝusta loko.",
-    "sha256": "d4b8f073"
+  "web.feedback.reason_email_change_unauthorized": {
+    "text": "Ŝajnas, ke vi raportas neaŭtorizitan retpoŝtan ŝanĝon en via konto. Bonvolu priskribi kio okazis kaj ni esploros tuj.",
+    "sha256": "b2c3d4e5"
   }
 }

@@ -151,6 +151,14 @@
     "text": "קישור זה יעבוד רק פעם אחת. לאחר הצפייה, הסוד יימחק לצמיתות.",
     "sha256": "fecaf0a1"
   },
+  "email.incoming_secret.passphrase_required": {
+    "text": "סוד זה מוגן באמצעות ביטוי סיסמה. השולח צריך לספק לך אותו בנפרד.",
+    "sha256": ""
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "נדרש ביטוי סיסמה:",
+    "sha256": ""
+  },
   "email.incoming_secret.sent_via": {
     "text": "נשלח באמצעות",
     "sha256": "d01479b3"
@@ -327,9 +335,77 @@
     "text": "אם לא ביצעת שינוי זה, אנא צור קשר עם התמיכה מיד מכיוון שהחשבון שלך עשוי להיות פרוץ.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "כתובת הדואר האלקטרוני בחשבון %{product_name} שלך שונתה.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "דואר אלקטרוני חדש:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "שונה בתאריך:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "אם ביצעת שינוי זה, אין צורך בפעולה נוספת.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "אם לא ביצעת שינוי זה, ייתכן שחשבונך נפרץ.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "פנה לתמיכה",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "נ.ב. דואר אלקטרוני זה נשלח אל %{email_address} כדי להודיע לך על שינוי כתובת דואר אלקטרוני.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "התבקש שינוי דואר אלקטרוני (%{display_domain})",
+    "sha256": ""
+  },
+  "email.email_change_requested.title": {
+    "text": "התבקש שינוי דואר אלקטרוני",
+    "sha256": ""
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "התקבלה בקשה לשנות את כתובת הדואר האלקטרוני בחשבון %{product_name} שלך.",
+    "sha256": ""
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "דואר אלקטרוני חדש מבוקש:",
+    "sha256": ""
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "הוגש בתאריך:",
+    "sha256": ""
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "אם הגשת בקשה זו, בדוק את הדואר האלקטרוני החדש שלך לקישור אישור. טרם בוצעו שינויים.",
+    "sha256": ""
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "אם לא הגשת בקשה זו, באפשרותך להתעלם מדואר אלקטרוני זה. חשבונך לא שונה.",
+    "sha256": ""
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "פנה לתמיכה",
+    "sha256": ""
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": ""
+  },
+  "email.email_change_requested.postscript": {
+    "text": "נ.ב. דואר אלקטרוני זה נשלח אל %{email_address} כי התבקש שינוי דואר אלקטרוני לחשבונך.",
+    "sha256": ""
   },
   "email.email_change_confirmation.subject": {
     "text": "אמת את כתובת הדוא״ל החדשה שלך (%{display_domain})",
@@ -347,13 +423,33 @@
     "text": "אמת כתובת דוא״ל",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "התקבלה בקשה לשנות את כתובת הדואר האלקטרוני בחשבון %{product_name} שלך ל-%{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "אישור שינוי דואר אלקטרוני",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "או העתק והדבק קישור זה:",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "קישור זה יפוג בעוד %{hours} שעות.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "אם לא ביקשת שינוי זה, באפשרותך להתעלם מדואר אלקטרוני זה. כתובת הדואר האלקטרוני שלך לא תשתנה.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "נ.ב. דואר אלקטרוני זה נשלח אל %{email_address} כדי לאשר שינוי כתובת דואר אלקטרוני.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "אימות דו-שלבי הופעל (%{display_domain})",

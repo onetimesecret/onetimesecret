@@ -24,7 +24,7 @@
     "sha256": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "Memo",
+    "text": "Nota",
     "sha256": "64cecb8a"
   },
   "incoming.memo_placeholder": {

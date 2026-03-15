@@ -1,4 +1,12 @@
 {
+  "web.billing.subscription_synced_title": {
+    "text": "Abono sinkronigita",
+    "sha256": "3086ef43"
+  },
+  "web.billing.subscription_synced_description": {
+    "text": "Viaj abonaj avantaĝoj estis sinkronigitaj el alia regiono.",
+    "sha256": "a99b7a98"
+  },
   "web.billing.upgrade.required": {
     "text": "Ĝisdatigo bezonata",
     "sha256": "16487236"
@@ -75,6 +83,22 @@
     "text": "Ŝanĝu planon",
     "sha256": "2d0b195b"
   },
+  "web.billing.overview.manage_subscription": {
+    "text": "Administri abonon",
+    "sha256": "cbc4ef92"
+  },
+  "web.billing.plans.legacy_plan_info": {
+    "text": "Vi havas hereditan planon kun speciala prezo.",
+    "sha256": "e9aa8bf0"
+  },
+  "web.billing.plans.early_supporter_plan": {
+    "text": "Identity Plus (Frua subteno)",
+    "sha256": "f37cd0d9"
+  },
+  "web.billing.plans.legacy_plan_warning": {
+    "text": "Ŝanĝi planon forigos vian hereditan tarifo. Ĉi tio ne estas malfarebla.",
+    "sha256": "eda13d64"
+  },
   "web.billing.overview.no_payment_method": {
     "text": "Neniu pagmetodo registrita",
     "sha256": "77f71037"
@@ -123,6 +147,10 @@
     "text": "Kreu organizon por administri vian fakturado kaj abonon",
     "sha256": "41e922d2"
   },
+  "web.billing.overview.load_error": {
+    "text": "Malsukcesis ŝargi fakturan informon",
+    "sha256": "d4e5f6a7"
+  },
   "web.billing.overview.upgrade_success": {
     "text": "Via plano estis sukcese ĝisdatigita",
     "sha256": "00ac43f8"
@@ -130,6 +158,10 @@
   "web.billing.overview.upgrade_success_description": {
     "text": "Via nova plano nun estas aktiva. Dankon pro via aĉeto.",
     "sha256": "fd1caeb1"
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Fakturada kontakto",
+    "sha256": "8f782ad8"
   },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "Kreu sekretojn",
@@ -164,8 +196,8 @@
     "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Markita hejmpaĝo",
-    "sha256": "e355a396"
+    "text": "Hejmpaĝaj sekretoj",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "Envenantaj sekretoj",
@@ -219,13 +251,21 @@
     "text": "Propraj domajnoj",
     "sha256": "6170ab94"
   },
+  "web.billing.features.custom_domain": {
+    "text": "1 propra domajno",
+    "sha256": "6a6be744"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Senlimaj propraj domajnoj",
+    "sha256": "53eb7521"
+  },
   "web.billing.features.custom_branding": {
     "text": "Propra marko",
     "sha256": "237dabec"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "Markita hejmpaĝo",
-    "sha256": "e355a396"
+    "text": "Hejmpaĝaj sekretoj",
+    "sha256": "6360f7ec"
   },
   "web.billing.features.manage_teams": {
     "text": "Team-administrado",
@@ -250,6 +290,22 @@
   "web.billing.features.sla": {
     "text": "Servonivela interkonsento",
     "sha256": "436f2550"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Centralizita fakturado",
+    "sha256": "62042d3b"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Kontrola spuro",
+    "sha256": "d52b4039"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Aktiveca fluo",
+    "sha256": "b9c6cba7"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Transdono-laborfluoj",
+    "sha256": "07202af3"
   },
   "web.billing.plans.title": {
     "text": "Elektu planon",
@@ -278,6 +334,10 @@
   "web.billing.plans.downgrade": {
     "text": "Malplialtigi",
     "sha256": "d955b7e8"
+  },
+  "web.billing.plans.cancel_to_downgrade": {
+    "text": "Rezigni por ŝanĝi",
+    "sha256": "1c4cda89"
   },
   "web.billing.plans.monthly": {
     "text": "Monate",
@@ -383,6 +443,10 @@
     "text": "Neniuj {interval} planoj disponeblaj nuntempe.",
     "sha256": "d8454436"
   },
+  "web.billing.plans.load_error": {
+    "text": "Malsukcesis ŝargi planojn",
+    "sha256": "e5f6a7b8"
+  },
   "web.billing.plans.change_immediate": {
     "text": "Via plano ŝanĝiĝos tuj.",
     "sha256": "889d13be"
@@ -483,9 +547,21 @@
     "text": "Elŝuti",
     "sha256": "d6eafe82"
   },
+  "web.billing.invoices.invoice_number": {
+    "text": "Fakturo #",
+    "sha256": "a1c2d3e4"
+  },
   "web.billing.invoices.no_invoices": {
     "text": "Ankoraŭ neniuj fakturoj",
     "sha256": "92d2d0ce"
+  },
+  "web.billing.invoices.no_invoices_description": {
+    "text": "Viaj fakturoj aperos ĉi tie post kiam vi altigos al pagata plano",
+    "sha256": "b2c3d4e5"
+  },
+  "web.billing.invoices.view_plans": {
+    "text": "Vidi planojn",
+    "sha256": "c3d4e5f6"
   },
   "web.billing.invoices.paid": {
     "text": "Pagita",
@@ -502,6 +578,18 @@
   "web.billing.invoices.draft": {
     "text": "Malneto",
     "sha256": "d2e16e61"
+  },
+  "web.billing.invoices.open": {
+    "text": "Malfermita",
+    "sha256": "a2b3c4d5"
+  },
+  "web.billing.invoices.uncollectible": {
+    "text": "Neenkasebla",
+    "sha256": "b3c4d5e6"
+  },
+  "web.billing.invoices.void": {
+    "text": "Nuligita",
+    "sha256": "c4d5e6f7"
   },
   "web.billing.invoices.load_error": {
     "text": "Malsukcesis ŝargi fakturojn",
@@ -673,10 +761,12 @@
   },
   "web.billing.cancel.link_text": {
     "text": "Nuligi abonon",
+    "context": "Link text shown below the plan selector for paid users",
     "sha256": "3f85967f"
   },
   "web.billing.cancel.title": {
     "text": "Nuligi Abonon",
+    "context": "Modal dialog heading/title",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
@@ -705,10 +795,12 @@
   },
   "web.billing.cancel.keep_subscription": {
     "text": "Konservi Abonon",
+    "context": "Secondary button in modal - keeps subscription active",
     "sha256": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
     "text": "Nuligi Abonon",
+    "context": "Primary action button in modal - confirms the cancellation",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
@@ -721,47 +813,34 @@
   },
   "web.billing.cancel.scheduled_title": {
     "text": "Abonnuligo Planita",
+    "context": "Alert banner heading shown when cancellation is pending",
     "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
     "text": "Via abono restos aktiva ĝis {date}. Vi daŭre havos plenan aliron al ĉiuj funkcioj ĝis tiam.",
+    "context": "Alert banner description explaining continued access",
     "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
     "text": "Ĉu vi ŝanĝis la opinion? Vi povas reaktivigi vian abonon iam ajn antaŭ la nuliga dato.",
+    "context": "Alert banner note encouraging reactivation",
     "sha256": "c94d5527"
   },
-  "web.billing.features.custom_domain": {
-    "text": "1 propra domajno",
-    "sha256": "6a6be744"
+  "web.billing.overview.entitlements.notifications": {
+    "text": "Retpoŝtaj sciigoj",
+    "sha256": "04e0f1e9"
   },
-  "web.billing.features.unlimited_custom_domains": {
-    "text": "Senlimaj propraj domajnoj",
-    "sha256": "53eb7521"
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IP-aliraj reguloj",
+    "sha256": "db966d47"
   },
-  "web.billing.features.centralized_billing": {
-    "text": "Centralizita fakturado",
-    "sha256": "62042d3b"
-  },
-  "web.billing.features.audit_trail": {
-    "text": "Kontrola spuro",
-    "sha256": "d52b4039"
-  },
-  "web.billing.features.activity_stream": {
-    "text": "Aktiveca fluo",
-    "sha256": "b9c6cba7"
-  },
-  "web.billing.features.handoff_workflows": {
-    "text": "Transdono-laborfluoj",
-    "sha256": "07202af3"
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Laborspaco-marko",
+    "sha256": "e7acbf6f"
   },
   "web.billing.features.extended_retention": {
     "text": "30-taga sekreto-konservado",
     "sha256": "21d6d514"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "Hejmpaĝaj sekretoj",
-    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
     "text": "Envenantaj sekretoj",
@@ -807,24 +886,107 @@
     "text": "Kunhavitaj laborfluoj",
     "sha256": "158f558e"
   },
-  "web.billing.overview.billing_contact": {
-    "text": "Fakturada kontakto",
-    "sha256": "8f782ad8"
+  "web.billing.currency_migration.title": {
+    "text": "Valutŝanĝo bezonata",
+    "context": "Modal title when plan requires different currency than current subscription",
+    "sha256": "a1b2c3d4"
   },
-  "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Hejmpaĝaj sekretoj",
-    "sha256": "6360f7ec"
+  "web.billing.currency_migration.description": {
+    "text": "Via nuna abono uzas {from}. La elektita plano estas fakturata en {to}. Ĉi tio postulas migri vian abonon al la nova valuto.",
+    "sha256": "b2c3d4e5"
   },
-  "web.billing.overview.entitlements.notifications": {
-    "text": "Retpoŝtaj sciigoj",
-    "sha256": "04e0f1e9"
+  "web.billing.currency_migration.current_plan": {
+    "text": "Nuna plano:",
+    "sha256": "c3d4e5f6"
   },
-  "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "IP-aliraj reguloj",
-    "sha256": "db966d47"
+  "web.billing.currency_migration.new_plan": {
+    "text": "Nova plano:",
+    "sha256": "d4e5f6a7"
   },
-  "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Laborspaco-marko",
-    "sha256": "e7acbf6f"
+  "web.billing.currency_migration.current_period_ends": {
+    "text": "Nuna periodo finiĝas:",
+    "sha256": "e5f6a7b8"
+  },
+  "web.billing.currency_migration.choose_timing": {
+    "text": "Kiam devus okazi la ŝanĝo?",
+    "sha256": "f6a7b8c9"
+  },
+  "web.billing.currency_migration.graceful_title": {
+    "text": "Ŝanĝi je fino de faktura periodo",
+    "sha256": "a7b8c9d0"
+  },
+  "web.billing.currency_migration.graceful_description": {
+    "text": "Via nuna plano restas aktiva ĝis {date}. Post tio, vi kompletigos la pagon por via nova plano.",
+    "sha256": "b8c9d0e1"
+  },
+  "web.billing.currency_migration.immediate_title": {
+    "text": "Ŝanĝi tuj",
+    "sha256": "c9d0e1f2"
+  },
+  "web.billing.currency_migration.immediate_description": {
+    "text": "Via nuna plano estas nuligita nun. Vi ricevos repagon por via neuzita tempo kaj kompletos la pagon por la nova plano.",
+    "sha256": "d0e1f2a3"
+  },
+  "web.billing.currency_migration.confirm": {
+    "text": "Konfirmi valutŝanĝon",
+    "sha256": "e1f2a3b4"
+  },
+  "web.billing.currency_migration.error": {
+    "text": "Valutmigrado malsukcesis. Bonvolu reprovi.",
+    "sha256": "f2a3b4c5"
+  },
+  "web.billing.currency_migration.success": {
+    "text": "Via abona valuto estis sukcese ĝisdatigita.",
+    "sha256": "a3b4c5d6"
+  },
+  "web.billing.currency_migration.graceful_success": {
+    "text": "Via nuna plano restos aktiva ĝis la fino de la faktura periodo. Vi estos invitita kompletigi la pagon por via nova plano post tio.",
+    "sha256": "b4c5d6e7"
+  },
+  "web.billing.currency_migration.warning_credit_balance": {
+    "text": "Vi havas kreditan saldon en {currency}, kiu ne povas esti transdonita al la nova valuto.",
+    "sha256": "c5d6e7f8"
+  },
+  "web.billing.currency_migration.warning_pending_items": {
+    "text": "Vi havas ankoraŭ ne solvitajn fakturajn erojn, kiuj devas esti solvitaj antaŭ la migrado.",
+    "sha256": "d6e7f8a9"
+  },
+  "web.billing.currency_migration.warning_coupons": {
+    "text": "Aktivaj kuponoj en via konto eble ne estas kongruaj kun la nova valuto.",
+    "sha256": "e7f8a9b0"
+  },
+  "web.billing.currency_migration.pending_title": {
+    "text": "Valutmigrado atendanta",
+    "context": "Banner heading when graceful migration is scheduled",
+    "sha256": "f8a9b0c1"
+  },
+  "web.billing.currency_migration.pending_description": {
+    "text": "Via nuna plano finiĝas je {date}. Kompletigu vian ŝanĝon al {plan} ({currency}).",
+    "sha256": "a9b0c1d2"
+  },
+  "web.billing.currency_migration.complete_migration": {
+    "text": "Kompletigi migradon",
+    "context": "Button to start checkout for the new currency plan",
+    "sha256": "b0c1d2e3"
+  },
+  "web.billing.checkout_session_failed": {
+    "text": "Malsukcesis krei pagseancon",
+    "context": "Error when Stripe checkout session creation returns no URL",
+    "sha256": "c1d2e3f4"
+  },
+  "web.billing.checkout_initiate_failed": {
+    "text": "Malsukcesis komenci pagon",
+    "context": "Fallback error for checkout failures",
+    "sha256": "d2e3f4a5"
+  },
+  "web.billing.plan_switch_success": {
+    "text": "Sukcese ŝanĝita al {plan}",
+    "context": "Success message after plan change",
+    "sha256": "e3f4a5b6"
+  },
+  "web.billing.plan_unavailable_region_mismatch": {
+    "text": "Disponebla nur en via origina abona regiono",
+    "context": "Hint shown on plan cards when currency does not match active subscription",
+    "sha256": "f4a5b6c7"
   }
 }

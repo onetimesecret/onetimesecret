@@ -132,7 +132,7 @@
     "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Memo:",
+    "text": "Nota:",
     "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
@@ -150,6 +150,14 @@
   "email.incoming_secret.link_works_once": {
     "text": "Aquest enllaç només funcionarà una vegada. Després de veure'l, el secret s'eliminarà permanentment.",
     "sha256": "fecaf0a1"
+  },
+  "email.incoming_secret.passphrase_required": {
+    "text": "Aquest secret està protegit amb una frase de contrasenya. El remitent te l'ha de proporcionar per separat.",
+    "sha256": ""
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "Frase de contrasenya requerida:",
+    "sha256": ""
   },
   "email.incoming_secret.sent_via": {
     "text": "Enviat via",
@@ -327,9 +335,77 @@
     "text": "Si no has fet aquest canvi, si us plau contacta amb el suport immediatament ja que el teu compte pot estar compromès.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "L'adreça de correu electrònic del teu compte de %{product_name} s'ha canviat.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "Nou correu electrònic:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "Canviat a:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "Si has fet aquest canvi, no cal cap altra acció.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "Si no has fet aquest canvi, el teu compte podria estar compromès.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "Contactar amb suport",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "P.D. Aquest correu electrònic s'ha enviat a %{email_address} per notificar-te d'un canvi d'adreça de correu electrònic.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "Sol·licitud de canvi de correu electrònic (%{display_domain})",
+    "sha256": ""
+  },
+  "email.email_change_requested.title": {
+    "text": "Sol·licitud de canvi de correu electrònic",
+    "sha256": ""
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "S'ha sol·licitat un canvi d'adreça de correu electrònic al teu compte de %{product_name}.",
+    "sha256": ""
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "Nou correu electrònic sol·licitat:",
+    "sha256": ""
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "Sol·licitat a:",
+    "sha256": ""
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "Si has fet aquesta sol·licitud, comprova el teu nou correu electrònic per trobar un enllaç de confirmació. Encara no s'ha fet cap canvi.",
+    "sha256": ""
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "Si no has fet aquesta sol·licitud, pots ignorar aquest correu electrònic amb tranquil·litat. El teu compte no s'ha modificat.",
+    "sha256": ""
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "Contactar amb suport",
+    "sha256": ""
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": ""
+  },
+  "email.email_change_requested.postscript": {
+    "text": "P.D. Aquest correu electrònic s'ha enviat a %{email_address} perquè s'ha sol·licitat un canvi de correu electrònic per al teu compte.",
+    "sha256": ""
   },
   "email.email_change_confirmation.subject": {
     "text": "Verifica la teva nova adreça de correu electrònic (%{display_domain})",
@@ -347,13 +423,33 @@
     "text": "Verificar adreça de correu electrònic",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "S'ha sol·licitat un canvi d'adreça de correu electrònic del teu compte de %{product_name} a %{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "Confirmar el canvi de correu electrònic",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "O copia i enganxa aquest enllaç:",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "Aquest enllaç caducarà en %{hours} hores.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "Si no has sol·licitat aquest canvi, pots ignorar aquest correu electrònic amb tranquil·litat. La teva adreça de correu electrònic no es canviarà.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "P.D. Aquest correu electrònic s'ha enviat a %{email_address} per confirmar un canvi d'adreça de correu electrònic.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "Autenticació de dos factors activada (%{display_domain})",

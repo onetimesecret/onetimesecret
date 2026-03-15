@@ -155,6 +155,14 @@
     "text": "Không thể cập nhật tổ chức",
     "sha256": "bc2b59b8"
   },
+  "web.organizations.billing_email_updated": {
+    "text": "Đã cập nhật email thanh toán thành công",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Email thanh toán có thể được thay đổi trên trang Tổng quan thanh toán",
+    "sha256": "8a131415"
+  },
   "web.organizations.billing_coming_soon": {
     "text": "Tích hợp thanh toán sắp ra mắt",
     "sha256": "d3e0ec75"
@@ -206,6 +214,10 @@
   "web.organizations.tabs.billing": {
     "text": "Thanh toán",
     "sha256": "3ac8bbca"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Đăng ký",
+    "sha256": "4999c6c6"
   },
   "web.organizations.danger_zone": {
     "text": "Vùng nguy hiểm",
@@ -515,17 +527,21 @@
     "text": "Đang tải chi tiết lời mời",
     "sha256": "58884885"
   },
-  "web.organizations.billing_email_updated": {
-    "text": "Đã cập nhật email thanh toán thành công",
-    "sha256": "080a7f11"
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Nâng cấp gói để mời thành viên nhóm",
+    "sha256": "5e3f8df8"
   },
-  "web.organizations.billing_email_managed_on_billing": {
-    "text": "Email thanh toán có thể được thay đổi trên trang Tổng quan thanh toán",
-    "sha256": "8a131415"
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Mời thành viên nhóm yêu cầu gói có quản lý nhóm. Nâng cấp để thêm cộng tác viên vào tổ chức.",
+    "sha256": "cf10d623"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
     "sha256": "957b0b87"
+  },
+  "web.organizations.early_supporter_badge": {
+    "text": "Early Supporter",
+    "sha256": "e67d2ef8"
   },
   "web.organizations.member_count": {
     "text": "{count} thành viên | {count} thành viên",
@@ -535,13 +551,9 @@
     "text": "{count} tên miền | {count} tên miền",
     "sha256": "09f52efa"
   },
-  "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Nâng cấp gói để mời thành viên nhóm",
-    "sha256": "5e3f8df8"
-  },
-  "web.organizations.invitations.upgrade_prompt": {
-    "text": "Mời thành viên nhóm yêu cầu gói có quản lý nhóm. Nâng cấp để thêm cộng tác viên vào tổ chức.",
-    "sha256": "cf10d623"
+  "web.organizations.tabs.domains": {
+    "text": "Tên miền",
+    "sha256": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Sai tài khoản",
@@ -566,13 +578,5 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Sắp hết hạn",
     "sha256": "a5dcfef9"
-  },
-  "web.organizations.tabs.subscription": {
-    "text": "Đăng ký",
-    "sha256": "4999c6c6"
-  },
-  "web.organizations.tabs.domains": {
-    "text": "Tên miền",
-    "sha256": "ced67718"
   }
 }

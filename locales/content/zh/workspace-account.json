@@ -155,6 +155,10 @@
     "text": "正在删除 {0}",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "删除中...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "永久删除账户",
     "sha256": "f894e42c"
@@ -210,6 +214,22 @@
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "管理您的账户设置和偏好",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "返回控制面板",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "账户",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "账单",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "高级",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "通用",
@@ -615,24 +635,52 @@
     "text": "此操作无法撤销",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "删除中...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "邮箱地址已更新",
+    "sha256": ""
   },
-  "web.settings.back_to_dashboard": {
-    "text": "返回控制面板",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "邮箱已更新成功。请使用新邮箱地址登录。",
+    "sha256": "e5f6a7b8"
   },
-  "web.settings.sections.account": {
-    "text": "账户",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "正在验证您的新邮箱地址...",
+    "sha256": "c9d0e1f2"
   },
-  "web.settings.sections.billing": {
-    "text": "账单",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "邮箱更改失败",
+    "sha256": ""
   },
-  "web.settings.sections.advanced": {
-    "text": "高级",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "此验证链接无效或已过期。",
+    "sha256": "a3b4c5d6"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "返回账户设置",
+    "sha256": "e7f8a9b0"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "正在跳转至登录页面...",
+    "sha256": "c1d2e3f4"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "重新发送确认邮件",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "确认邮件已重新发送。",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "发送中...",
+    "sha256": ""
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "验证邮件已发送。请检查收件箱并点击确认链接。",
+    "sha256": ""
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "没有收到邮件？",
+    "sha256": ""
   }
 }

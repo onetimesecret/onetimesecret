@@ -1,15 +1,69 @@
 {
+  "web.auth._guidance": {
+    "skip": true,
+    "_meta": {
+      "_purpose": "These messages follow OWASP/NIST guidelines to prevent information disclosure. Translations MUST maintain generic wording to prevent credential enumeration and timing attacks. Never reveal: which credential failed, precise timing, account existence, or attack progress.",
+      "authentication_failed": {
+        "security_note": "MUST NOT reveal which credential failed (password, OTP, or recovery code). This prevents attackers from determining valid credentials or enumerating accounts.",
+        "owasp_ref": "ASVS 2.2.2 - Authentication failure responses must be generic"
+      },
+      "rate_limited": {
+        "security_note": "MUST NOT reveal precise lockout duration, attempt counts, or remaining attempts. This prevents timing attacks and progress tracking.",
+        "owasp_ref": "ASVS 2.2.1 - Account lockout must not be timing-based enumerable"
+      },
+      "session_expired": {
+        "security_note": "Safe to indicate session issue as it doesn't reveal credential information. Helps users understand they need to re-authenticate.",
+        "owasp_ref": "Session management best practices"
+      },
+      "recovery_code_not_found": {
+        "security_note": "Safe to indicate recovery code context as user explicitly selected this authentication method. Does not reveal whether code exists.",
+        "owasp_ref": "Recovery code validation guidance"
+      },
+      "recovery_code_used": {
+        "security_note": "Safe expected behavior message. Users need to know recovery codes are single-use to prevent confusion.",
+        "owasp_ref": "User guidance for recovery mechanisms"
+      }
+    },
+    "_translation_guidelines": {
+      "DO_NOT_translate_as": [
+        "Wrong password",
+        "Invalid OTP code",
+        "Incorrect recovery code",
+        "Wait 5 minutes",
+        "3 attempts remaining",
+        "Account locked for 15 minutes"
+      ],
+      "MUST_translate_as": [
+        "Generic authentication failure (no credential specifics)",
+        "Generic rate limit message (no precise timing)",
+        "Recovery code validation (no existence confirmation)"
+      ],
+      "WHY": "These restrictions prevent attackers from: (1) determining valid usernames/emails, (2) knowing which credential to focus attacks on, (3) conducting timing attacks, (4) measuring attack progress"
+    },
+    "_safe_information": {
+      "format_requirements": "Safe to specify format rules (e.g., 'OTP must be 6 digits')",
+      "expected_behavior": "Safe to describe how features work (e.g., 'Codes expire every 30 seconds')",
+      "recovery_options": "Safe to offer alternatives (e.g., 'Use a recovery code instead')",
+      "general_guidance": "Safe to provide help (e.g., 'Check your authenticator app')"
+    }
+  },
   "web.auth.mfa_required": {
     "text": "MFA-verifiering krävs",
+    "context": "Page heading shown when user must complete MFA to proceed",
     "sha256": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
     "text": "MFA-verifiering krävs för att komma åt ditt konto",
+    "context": "Explanatory text below the heading",
     "sha256": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
     "text": "Slutför MFA-verifiering",
     "sha256": "0e681134"
+  },
+  "web.auth.security._guidance": {
+    "skip": true,
+    "context": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.security.authentication_failed": {
     "text": "Autentisering misslyckades. Vänligen verifiera dina uppgifter och försök igen.",
@@ -45,6 +99,7 @@
   },
   "web.auth.methods.magicLink": {
     "text": "E-postlänk",
+    "context": "Passwordless authentication via email link",
     "sha256": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
@@ -99,6 +154,10 @@
     "text": "Ogiltig eller saknad inloggningslänk",
     "sha256": "d726c0da"
   },
+  "web.auth.magicLink.sessionExpired": {
+    "text": "Din session har gått ut. Uppdatera sidan och försök igen.",
+    "sha256": "a7c3e901"
+  },
   "web.auth.magicLink.loginFailed": {
     "text": "Inloggningen misslyckades. Vänligen försök igen.",
     "sha256": "c95b4875"
@@ -143,6 +202,10 @@
     "text": "Det gick inte att konfigurera biometrisk inloggning",
     "sha256": "290cca44"
   },
+  "web.auth.webauthn.passwordRequired": {
+    "text": "Lösenord krävs för att konfigurera en nyckel",
+    "sha256": "085bb238"
+  },
   "web.auth.webauthn.authFailed": {
     "text": "Biometrisk autentisering misslyckades. Vänligen försök igen.",
     "sha256": "626b9ece"
@@ -163,6 +226,111 @@
     "text": "Stöder Face ID, Touch ID, Windows Hello och säkerhetsnycklar",
     "sha256": "3ea1c1a2"
   },
+  "web.auth.passkeys.title": {
+    "text": "Nycklar",
+    "context": "Title for passkey management section",
+    "sha256": "c87ccdb4"
+  },
+  "web.auth.passkeys.description": {
+    "text": "Logga in med Face ID, Touch ID, Windows Hello eller säkerhetsnyckel",
+    "context": "Description of passkey authentication",
+    "sha256": "a513ed5c"
+  },
+  "web.auth.passkeys.setup_description": {
+    "text": "Nycklar låter dig logga in säkert utan lösenord",
+    "context": "Setup page description",
+    "sha256": "85630bef"
+  },
+  "web.auth.passkeys.not_configured": {
+    "text": "Ej konfigurerad",
+    "context": "Status when no passkeys are registered",
+    "sha256": "dd1841d2"
+  },
+  "web.auth.passkeys.count": {
+    "text": "{count} nyckel registrerad | {count} nycklar registrerade",
+    "context": "Number of registered passkeys",
+    "sha256": "82e6681f"
+  },
+  "web.auth.passkeys.add_passkey": {
+    "text": "Lägg till nyckel",
+    "context": "Button to add a new passkey",
+    "sha256": "93713ad7"
+  },
+  "web.auth.passkeys.register_passkey": {
+    "text": "Registrera nyckel",
+    "context": "Button to register a new passkey",
+    "sha256": "26db6968"
+  },
+  "web.auth.passkeys.remove_passkey": {
+    "text": "Ta bort nyckel",
+    "context": "Button to remove a passkey",
+    "sha256": "67b1d47c"
+  },
+  "web.auth.passkeys.confirm_remove": {
+    "text": "Är du säker på att du vill ta bort denna nyckel? Du kommer inte längre att kunna logga in med den.",
+    "context": "Confirmation message for passkey removal",
+    "sha256": "487ab72c"
+  },
+  "web.auth.passkeys.removed_success": {
+    "text": "Nyckeln har tagits bort",
+    "context": "Success message after removing passkey",
+    "sha256": "436c1050"
+  },
+  "web.auth.passkeys.registered_success": {
+    "text": "Nyckeln har registrerats",
+    "context": "Success message after registering passkey",
+    "sha256": "fbfb0713"
+  },
+  "web.auth.passkeys.no_passkeys": {
+    "text": "Inga nycklar registrerade",
+    "context": "Empty state when no passkeys exist",
+    "sha256": "1d97fde4"
+  },
+  "web.auth.passkeys.no_passkeys_description": {
+    "text": "Lägg till en nyckel för att logga in säkrare utan att ange ett lösenord",
+    "context": "Description for empty state",
+    "sha256": "e5bc07f1"
+  },
+  "web.auth.passkeys.name": {
+    "text": "Nyckelnamn",
+    "context": "Label for passkey name field",
+    "sha256": "22eefa67"
+  },
+  "web.auth.passkeys.created": {
+    "text": "Skapad",
+    "context": "Label for creation date",
+    "sha256": "d70b9e24"
+  },
+  "web.auth.passkeys.last_used": {
+    "text": "Senast använd: {time}",
+    "context": "Last used timestamp",
+    "sha256": "e1af94fe"
+  },
+  "web.auth.passkeys.never_used": {
+    "text": "Aldrig använd",
+    "context": "Status when passkey has not been used",
+    "sha256": "24d3236c"
+  },
+  "web.auth.passkeys.benefit_secure": {
+    "text": "Säkrare än lösenord – motståndskraftigt mot nätfiskeattacker",
+    "context": "Passkey benefit",
+    "sha256": "41afb6ec"
+  },
+  "web.auth.passkeys.benefit_fast": {
+    "text": "Snabbt och enkelt – använd bara ditt fingeravtryck, ansikte eller din säkerhetsnyckel",
+    "context": "Passkey benefit",
+    "sha256": "5a0ce96c"
+  },
+  "web.auth.passkeys.benefit_synced": {
+    "text": "Synkroniseras mellan dina enheter vid användning av plattformsautentisering",
+    "context": "Passkey benefit",
+    "sha256": "7480c7ae"
+  },
+  "web.auth.passkeys.link_title": {
+    "text": "Nycklar",
+    "context": "Navigation link title",
+    "sha256": "c87ccdb4"
+  },
   "web.auth.lockout.attempts_remaining": {
     "text": "Varning: {count} inloggningsförsök kvar",
     "sha256": "151dcb5e"
@@ -182,6 +350,10 @@
   "web.auth.lockout.try_password_reset": {
     "text": "Du kan återställa ditt lösenord istället",
     "sha256": "a98a3f9d"
+  },
+  "web.auth.sessions._guidance": {
+    "skip": true,
+    "context": "User's logged-in devices/browsers management page"
   },
   "web.auth.sessions.title": {
     "text": "Aktiva sessioner",
@@ -303,6 +475,10 @@
     "text": "Verifiera och aktivera",
     "sha256": "7c08f68d"
   },
+  "web.auth.mfa.verify_login": {
+    "text": "Verifiera",
+    "sha256": "eea2745e"
+  },
   "web.auth.mfa.code_required": {
     "text": "Autentiseringskod krävs",
     "sha256": "217de0fc"
@@ -343,6 +519,10 @@
     "text": "Använd en återställningskod istället",
     "sha256": "23d3441a"
   },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Använd återställningskod",
+    "sha256": "50d5790d"
+  },
   "web.auth.mfa.back_to_code": {
     "text": "Tillbaka till autentiseringskod",
     "sha256": "6fa090b4"
@@ -350,6 +530,10 @@
   "web.auth.mfa.cancel": {
     "text": "Avbryt och återgå till inloggning",
     "sha256": "83256742"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Avbryt inloggning",
+    "sha256": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {
     "text": "Laddar MFA-status...",
@@ -526,23 +710,5 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Återställningskoder",
     "sha256": "579c7f4e"
-  },
-  "web.auth.mfa.verify_login": {
-    "text": "Verifiera",
-    "sha256": "eea2745e"
-  },
-  "web.auth.mfa.use_recovery_code_short": {
-    "text": "Använd återställningskod",
-    "sha256": "50d5790d"
-  },
-  "web.auth.mfa.cancel_sign_in": {
-    "text": "Avbryt inloggning",
-    "sha256": "1bebad2f"
-  },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ SÄKERHETSKRITISKT: Meddelanden förhindrar informationsläckage. Se src/locales/SECURITY-TRANSLATION-GUIDE.md"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "Hanteringssida för användarens inloggade enheter/webbläsare"
   }
 }

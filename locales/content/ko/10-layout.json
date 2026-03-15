@@ -47,6 +47,10 @@
     "text": "법적 고지",
     "sha256": "0a410c78"
   },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "의견을 제출하시면 다음 정보를 확인할 수 있습니다:",
+    "sha256": "fe77172e"
+  },
   "web.footer.read_our_privacy_policy": {
     "text": "개인정보 보호정책 읽기",
     "sha256": "eb443229"
@@ -94,6 +98,14 @@
   "web.footer.company": {
     "text": "회사",
     "sha256": "de4743c8"
+  },
+  "web.footer.product": {
+    "text": "제품",
+    "sha256": "7f5540e9"
+  },
+  "web.footer.source_code_purveyor": {
+    "text": "소스 코드",
+    "sha256": "29c5c68f"
   },
   "web.navigation.billing": {
     "text": "결제",
@@ -307,6 +319,10 @@
     "text": "언어가 {0}(으)로 변경되었습니다",
     "sha256": "1680f4fe"
   },
+  "web.layout.reset_to_default_language": {
+    "text": "{0}(으)로 재설정",
+    "sha256": "c0cfa9b2"
+  },
   "web.layout.switch_to_blank_mode": {
     "text": "{0} 모드로 전환",
     "sha256": "c8b909e0"
@@ -322,13 +338,5 @@
   "web.layout.workspace_context": {
     "text": "작업 공간 컨텍스트",
     "sha256": "dc6fa4f5"
-  },
-  "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "의견을 제출하시면 다음 정보를 확인할 수 있습니다:",
-    "sha256": "fe77172e"
-  },
-  "web.layout.reset_to_default_language": {
-    "text": "{0}(으)로 재설정",
-    "sha256": "c0cfa9b2"
   }
 }

@@ -132,9 +132,17 @@
     "text": "最近",
     "sha256": "690dbe9d"
   },
-  "web.COMMON.received": {
-    "text": "已查看",
-    "sha256": "49f19bee"
+  "web.COMMON.not_set": {
+    "text": "未设置",
+    "sha256": "4895f731"
+  },
+  "web.COMMON.word_edit": {
+    "text": "编辑",
+    "sha256": "464c4ffd"
+  },
+  "web.COMMON.word_save": {
+    "text": "保存",
+    "sha256": "1509f561"
   },
   "web.COMMON.burn": {
     "text": "销毁",
@@ -432,6 +440,10 @@
     "text": "例如 {example}",
     "sha256": "cc921aaa"
   },
+  "web.COMMON.about": {
+    "text": "关于",
+    "sha256": "d833339d"
+  },
   "web.COMMON.status": {
     "text": "状态",
     "sha256": "920e413c"
@@ -648,6 +660,10 @@
     "text": "点击下方的复制按钮。",
     "sha256": "77fcf6fb"
   },
+  "web.COMMON.external_link": {
+    "text": "外部链接",
+    "sha256": "a1b2c3d5"
+  },
   "web.LABELS.view_toggle.show": {
     "text": "显示",
     "sha256": "0df6f1ca"
@@ -687,6 +703,10 @@
   "web.LABELS.expiration_time": {
     "text": "过期时间",
     "sha256": "c5db84a8"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "过期时间",
+    "sha256": "de996752"
   },
   "web.LABELS.close": {
     "text": "关闭",
@@ -824,6 +844,14 @@
     "text": "重新加载",
     "sha256": "bdc090ec"
   },
+  "web.LABELS.filter": {
+    "text": "筛选",
+    "sha256": "638e249f"
+  },
+  "web.LABELS.clear": {
+    "text": "清除",
+    "sha256": "83b12c22"
+  },
   "web.LABELS.caption_recent_secrets": {
     "text": "本次会话中创建的链接",
     "sha256": "6c7ceab8"
@@ -848,6 +876,11 @@
     "text": "相关设置",
     "sha256": "68574b20"
   },
+  "web.LABELS.benefits": {
+    "text": "优势",
+    "context": "Section header for listing benefits",
+    "sha256": "d5b67bc9"
+  },
   "web.LABELS.creating_links_for": {
     "text": "正在为以下地址创建链接",
     "sha256": "57db069e"
@@ -871,6 +904,14 @@
   "web.STATUS.received": {
     "text": "已查看",
     "sha256": "49f19bee"
+  },
+  "web.STATUS.previewed": {
+    "text": "已预览",
+    "sha256": "3d391a9b"
+  },
+  "web.STATUS.revealed": {
+    "text": "已显示",
+    "sha256": "17376ee4"
   },
   "web.STATUS.burned": {
     "text": "已销毁",
@@ -931,6 +972,14 @@
   "web.STATUS.received_description": {
     "text": "内容已被接收者查看",
     "sha256": "ceb756b4"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "链接已被打开，可以显示内容",
+    "sha256": "cc7d1e92"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "内容已向接收者显示",
+    "sha256": "39b32f80"
   },
   "web.STATUS.burned_description": {
     "text": "内容在查看前被手动销毁",
@@ -1056,6 +1105,10 @@
     "text": "反馈",
     "sha256": "aac77df3"
   },
+  "web.TITLES.help": {
+    "text": "帮助",
+    "sha256": "b79cac92"
+  },
   "web.TITLES.signin": {
     "text": "登录",
     "sha256": "bcc0bcc9"
@@ -1172,6 +1225,10 @@
     "text": "更改邮箱",
     "sha256": "18c3f2d5"
   },
+  "web.TITLES.confirm_email_change": {
+    "text": "确认更改邮箱",
+    "sha256": "a1b2c3d4"
+  },
   "web.TITLES.security_overview": {
     "text": "安全",
     "sha256": "8f6fb4eb"
@@ -1191,6 +1248,11 @@
   "web.TITLES.recovery_codes": {
     "text": "恢复代码",
     "sha256": "579c7f4e"
+  },
+  "web.TITLES.passkeys": {
+    "text": "通行密钥",
+    "context": "Page title for passkey management",
+    "sha256": "c87ccdb4"
   },
   "web.TITLES.api_settings": {
     "text": "API 设置",
@@ -1216,6 +1278,10 @@
     "text": "组织设置",
     "sha256": "cc1d9e61"
   },
+  "web.TITLES.pricing": {
+    "text": "定价",
+    "sha256": "dfe95783"
+  },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
     "text": "焦点现在位于主文本区域",
     "sha256": "e00dd260"
@@ -1239,70 +1305,6 @@
   "web.INSTRUCTION.phishing_warning": {
     "text": "请确认您访问的是 Onetime Secret 官方网站。不法分子有时会创建与 Onetime Secret 外观完全相同的虚假网站来窃取您的信息。为避免钓鱼攻击，请在创建新链接前核实域名。",
     "sha256": "b588f5b2"
-  },
-  "web.STATUS.previewed": {
-    "text": "已预览",
-    "sha256": "3d391a9b"
-  },
-  "web.STATUS.revealed": {
-    "text": "已显示",
-    "sha256": "17376ee4"
-  },
-  "web.STATUS.previewed_description": {
-    "text": "链接已被打开，可以显示内容",
-    "sha256": "cc7d1e92"
-  },
-  "web.STATUS.revealed_description": {
-    "text": "内容已向接收者显示",
-    "sha256": "39b32f80"
-  },
-  "web.COMMON.not_set": {
-    "text": "未设置",
-    "sha256": "4895f731"
-  },
-  "web.COMMON.word_edit": {
-    "text": "编辑",
-    "sha256": "464c4ffd"
-  },
-  "web.COMMON.word_save": {
-    "text": "保存",
-    "sha256": "1509f561"
-  },
-  "web.LABELS.secret_ttl": {
-    "text": "过期时间",
-    "sha256": "de996752"
-  },
-  "web.LABELS.filter": {
-    "text": "筛选",
-    "sha256": "638e249f"
-  },
-  "web.LABELS.clear": {
-    "text": "清除",
-    "sha256": "83b12c22"
-  },
-  "web.LABELS.add_note": {
-    "text": "添加备注...",
-    "sha256": "32738894"
-  },
-  "web.LABELS.edit_note": {
-    "text": "编辑备注",
-    "sha256": "299e604c"
-  },
-  "web.LABELS.add_memo": {
-    "text": "添加备忘...",
-    "sha256": "02384c53"
-  },
-  "web.LABELS.edit_memo": {
-    "text": "编辑备忘",
-    "sha256": "0ec1a5db"
-  },
-  "web.TITLES.help": {
-    "text": "帮助",
-    "sha256": "b79cac92"
-  },
-  "web.TITLES.pricing": {
-    "text": "定价",
-    "sha256": "dfe95783"
   },
   "web.pricing.title": {
     "text": "简单透明的定价",
@@ -1332,12 +1334,58 @@
     "text": "为您推荐",
     "sha256": "00093fbd"
   },
+  "web.COMMON.received": {
+    "text": "已查看",
+    "sha256": "49f19bee"
+  },
+  "web.LABELS.add_note": {
+    "text": "添加备注...",
+    "sha256": "32738894"
+  },
+  "web.LABELS.edit_note": {
+    "text": "编辑备注",
+    "sha256": "299e604c"
+  },
+  "web.LABELS.add_memo": {
+    "text": "添加备忘...",
+    "sha256": "02384c53"
+  },
+  "web.LABELS.edit_memo": {
+    "text": "编辑备忘",
+    "sha256": "0ec1a5db"
+  },
   "web.pricing.free_tier_description": {
     "text": "使用基本功能创建和分享内容。无需信用卡。",
     "sha256": "3a4f2bc0"
   },
-  "web.COMMON.external_link": {
-    "text": "外部链接",
-    "sha256": "a1b2c3d5"
+  "web.COMMON.enter_password_to_continue": {
+    "text": "请输入密码以继续",
+    "context": "Prompt for password confirmation modal",
+    "sha256": "09055357"
+  },
+  "web.COMMON.password_required_for_action": {
+    "text": "完成此操作需要输入密码",
+    "context": "Description for password confirmation modal",
+    "sha256": "cc078766"
+  },
+  "api.errors.unexpected_error": {
+    "text": "发生意外错误",
+    "context": "Generic error message for unhandled exceptions in API",
+    "sha256": "6615bf1c"
+  },
+  "api.errors.service_unavailable": {
+    "text": "服务暂时不可用，请稍后重试。",
+    "context": "Error message when database connection fails",
+    "sha256": "343ccdcb"
+  },
+  "api.errors.request_processing_error": {
+    "text": "目前无法处理您的请求",
+    "context": "Error message for recoverable server errors",
+    "sha256": "fb961f3f"
+  },
+  "web.COMMON.upgrade_description": {
+    "text": "升级以解锁更多功能",
+    "context": "Description shown for free plan users encouraging upgrade",
+    "sha256": "783f174c"
   }
 }

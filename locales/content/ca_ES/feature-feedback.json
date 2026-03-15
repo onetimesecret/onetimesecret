@@ -31,17 +31,13 @@
     "text": "El contingut d'ajuda va aquí.",
     "sha256": "796979ea"
   },
-  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Gràcies per ajudar a millorar Onetime Secret. Significa molt."
+  "web.feedback.founder_note_line1": {
+    "text": "Llegeixo cada comentari que arriba aquí. És com determino en què dedicar temps.",
+    "sha256": "8b430d93"
   },
-  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
-    "text": "Hem construït aquesta eina per ajudar-te a compartir informació sensible de manera segura, i les teves experiències del món real són crucials per centrar els nostres esforços. Ens ajuda a esbrinar en què treballar després i com fer que el servei sigui millor per a tothom."
-  },
-  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
-    "text": "Hola, gràcies per visitar la nostra pàgina de comentaris. La teva aportació no només és benvinguda, és crucial."
-  },
-  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Una nota de Delano, fundador d'Onetime Secret"
+  "web.feedback.founder_note_line2": {
+    "text": "Si alguna cosa no va bé, o tens idees sobre com hauria de funcionar, aquest és el lloc adequat.",
+    "sha256": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
     "text": "Obrir formulari de comentaris",
@@ -55,12 +51,12 @@
     "text": "Enviar comentaris",
     "sha256": "8235980b"
   },
-  "web.feedback.founder_note_line1": {
-    "text": "Llegeixo cada comentari que arriba aquí. És com determino en què dedicar temps.",
-    "sha256": "8b430d93"
+  "web.feedback.sending_ellipses": {
+    "text": "Enviant...",
+    "sha256": "a1b2c3d4"
   },
-  "web.feedback.founder_note_line2": {
-    "text": "Si alguna cosa no va bé, o tens idees sobre com hauria de funcionar, aquest és el lloc adequat.",
-    "sha256": "d4b8f073"
+  "web.feedback.reason_email_change_unauthorized": {
+    "text": "Sembla que estàs informant d'un canvi de correu electrònic no autoritzat al teu compte. Si us plau, descriu què ha passat i ho investigarem de seguida.",
+    "sha256": "b2c3d4e5"
   }
 }

@@ -634,5 +634,53 @@
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "لا يمكن التراجع عن هذا الإجراء",
     "sha256": "02ccc074"
+  },
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "تم تحديث عنوان البريد الإلكتروني",
+    "sha256": ""
+  },
+  "web.settings.profile.email_confirmed_success": {
+    "text": "تم تحديث بريدك الإلكتروني بنجاح. يرجى تسجيل الدخول بعنوان بريدك الإلكتروني الجديد.",
+    "sha256": "e5f6a7b8"
+  },
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "جارٍ التحقق من عنوان بريدك الإلكتروني الجديد...",
+    "sha256": "c9d0e1f2"
+  },
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "فشل تغيير البريد الإلكتروني",
+    "sha256": ""
+  },
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "رابط التحقق هذا غير صالح أو منتهي الصلاحية.",
+    "sha256": "a3b4c5d6"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "العودة إلى إعدادات الحساب",
+    "sha256": "e7f8a9b0"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "جارٍ إعادة التوجيه لتسجيل الدخول...",
+    "sha256": "c1d2e3f4"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "إعادة إرسال بريد التأكيد",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "تمت إعادة إرسال بريد التأكيد بنجاح.",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "جارٍ الإرسال...",
+    "sha256": ""
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "تم إرسال بريد تحقق. تحقق من صندوق الوارد وانقر على رابط التأكيد.",
+    "sha256": ""
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "لم تتلقَّ البريد الإلكتروني؟",
+    "sha256": ""
   }
 }

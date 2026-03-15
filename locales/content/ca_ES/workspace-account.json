@@ -155,6 +155,10 @@
     "text": "Eliminant {0}",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Eliminant...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Eliminar el compte permanentment",
     "sha256": "f894e42c"
@@ -210,6 +214,22 @@
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Gestiona la configuració i preferències del teu compte",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Tornar al tauler de control",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Compte",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Facturació",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Avançat",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "General",
@@ -615,24 +635,52 @@
     "text": "Aquesta acció no es pot desfer",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "Eliminant...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "Adreça de correu electrònic actualitzada",
+    "sha256": ""
   },
-  "web.settings.back_to_dashboard": {
-    "text": "Tornar al tauler de control",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "El teu correu electrònic s'ha actualitzat correctament. Si us plau, inicia sessió amb la teva nova adreça de correu electrònic.",
+    "sha256": "e5f6a7b8"
   },
-  "web.settings.sections.account": {
-    "text": "Compte",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Verificant la teva nova adreça de correu electrònic...",
+    "sha256": "c9d0e1f2"
   },
-  "web.settings.sections.billing": {
-    "text": "Facturació",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "El canvi de correu electrònic ha fallat",
+    "sha256": ""
   },
-  "web.settings.sections.advanced": {
-    "text": "Avançat",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "Aquest enllaç de verificació no és vàlid o ha caducat.",
+    "sha256": "a3b4c5d6"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Tornar a la configuració del compte",
+    "sha256": "e7f8a9b0"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Redirigint a l'inici de sessió...",
+    "sha256": "c1d2e3f4"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Reenviar el correu de confirmació",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "El correu de confirmació s'ha reenviat correctament.",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Enviant...",
+    "sha256": ""
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "S'ha enviat un correu de verificació. Comprova la teva safata d'entrada i fes clic a l'enllaç de confirmació.",
+    "sha256": ""
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "No has rebut el correu electrònic?",
+    "sha256": ""
   }
 }

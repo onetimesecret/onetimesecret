@@ -23,6 +23,86 @@
     "text": "로그인 유지",
     "sha256": "f93267aa"
   },
+  "web.login.send_sign_in_link": {
+    "text": "로그인 링크 보내기",
+    "sha256": "b1402b67"
+  },
+  "web.login.secure_link_helper": {
+    "text": "안전한 링크가 이메일로 발송됩니다.",
+    "sha256": "d31d20cf"
+  },
+  "web.login.or_divider": {
+    "text": "또는",
+    "sha256": "7175517a"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "비밀번호로 로그인",
+    "sha256": "bedac809"
+  },
+  "web.login.use_passwordless": {
+    "text": "비밀번호 없이 로그인",
+    "sha256": "dddc0097"
+  },
+  "web.login.create_account": {
+    "text": "계정 만들기",
+    "sha256": "798ca2ce"
+  },
+  "web.login.return_home": {
+    "text": "홈으로 돌아가기",
+    "sha256": "bbcc935e"
+  },
+  "web.login.tab_password": {
+    "text": "비밀번호",
+    "sha256": "e7cf3ef4"
+  },
+  "web.login.tab_magic_link": {
+    "text": "매직 링크",
+    "sha256": "7a9ba11a"
+  },
+  "web.login.tab_passkey": {
+    "text": "패스키",
+    "sha256": ""
+  },
+  "web.login.need_help": {
+    "text": "도움이 필요하세요?",
+    "sha256": "c225cdfb"
+  },
+  "web.login.or_continue_with": {
+    "text": "또는 다음으로 계속",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "SSO로 로그인",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_provider": {
+    "text": "{provider}(으)로 로그인",
+    "sha256": "b8794f11"
+  },
+  "web.auth.sso.signing_in": {
+    "text": "ID 공급자로 리디렉션 중...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "SSO 로그인 실패. 다시 시도해 주세요.",
+    "sha256": ""
+  },
+  "web.login.errors.sso_failed": {
+    "text": "SSO 인증에 실패했습니다. 다시 시도하거나 비밀번호로 로그인해 주세요.",
+    "sha256": "13a2210a"
+  },
+  "web.login.errors.token_missing": {
+    "text": "인증 링크가 불완전합니다. 새 로그인 링크를 요청해 주세요.",
+    "sha256": "f4a10652"
+  },
+  "web.login.errors.token_expired": {
+    "text": "이 로그인 링크가 만료되었습니다. 새 링크를 요청해 주세요.",
+    "sha256": "f0de42ec"
+  },
+  "web.login.errors.token_invalid": {
+    "text": "이 로그인 링크가 유효하지 않습니다. 새 링크를 요청해 주세요.",
+    "sha256": "270c6401"
+  },
   "web.signup.create_your_account": {
     "text": "계정 만들기",
     "sha256": "5f4c33d7"
@@ -46,6 +126,9 @@
   "web.signup.email_error": {
     "text": "이메일",
     "sha256": "969ccbd3"
+  },
+  "web.auth.verify._guidance": {
+    "context": "Email verification flow after signup"
   },
   "web.auth.verify.title": {
     "text": "계정 인증",
@@ -173,6 +256,7 @@
   },
   "web.auth.password_reset.title": {
     "text": "새 비밀번호 선택",
+    "context": "Password reset request flow - user requests a reset link",
     "sha256": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
@@ -189,6 +273,7 @@
   },
   "web.auth.account.title": {
     "text": "계정 정보",
+    "context": "User account overview/dashboard section",
     "sha256": "4e59b6c7"
   },
   "web.auth.account.email": {
@@ -255,9 +340,6 @@
     "text": "계정 폐쇄",
     "sha256": "e1513814"
   },
-  "web.auth.verify._guidance.context": {
-    "text": "가입 후 이메일 인증 흐름"
-  },
   "web.help.title": {
     "text": "도움말 및 지원",
     "sha256": "1f8ecc24"
@@ -313,65 +395,5 @@
   "web.help.contact_support": {
     "text": "고객 지원 문의",
     "sha256": "f8d47b82"
-  },
-  "web.login.send_sign_in_link": {
-    "text": "로그인 링크 보내기",
-    "sha256": "b1402b67"
-  },
-  "web.login.secure_link_helper": {
-    "text": "안전한 링크가 이메일로 발송됩니다.",
-    "sha256": "d31d20cf"
-  },
-  "web.login.or_divider": {
-    "text": "또는",
-    "sha256": "7175517a"
-  },
-  "web.login.sign_in_with_password": {
-    "text": "비밀번호로 로그인",
-    "sha256": "bedac809"
-  },
-  "web.login.use_passwordless": {
-    "text": "비밀번호 없이 로그인",
-    "sha256": "dddc0097"
-  },
-  "web.login.create_account": {
-    "text": "계정 만들기",
-    "sha256": "798ca2ce"
-  },
-  "web.login.return_home": {
-    "text": "홈으로 돌아가기",
-    "sha256": "bbcc935e"
-  },
-  "web.login.tab_password": {
-    "text": "비밀번호",
-    "sha256": "e7cf3ef4"
-  },
-  "web.login.tab_magic_link": {
-    "text": "매직 링크",
-    "sha256": "7a9ba11a"
-  },
-  "web.login.tab_passkey": {
-    "text": "패스키",
-    "sha256": ""
-  },
-  "web.login.or_continue_with": {
-    "text": "또는 다음으로 계속",
-    "sha256": ""
-  },
-  "web.login.sign_in_with_sso": {
-    "text": "SSO로 로그인",
-    "sha256": ""
-  },
-  "web.auth.sso.signing_in": {
-    "text": "ID 공급자로 리디렉션 중...",
-    "sha256": ""
-  },
-  "web.auth.sso.error": {
-    "text": "SSO 로그인 실패. 다시 시도해 주세요.",
-    "sha256": ""
-  },
-  "web.login.need_help": {
-    "text": "도움이 필요하세요?",
-    "sha256": "c225cdfb"
   }
 }

@@ -132,9 +132,17 @@
     "text": "Nedavno",
     "sha256": "690dbe9d"
   },
-  "web.COMMON.received": {
-    "text": "Prejeto",
-    "sha256": "49f19bee"
+  "web.COMMON.not_set": {
+    "text": "Ni nastavljeno",
+    "sha256": "4895f731"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Uredi",
+    "sha256": "464c4ffd"
+  },
+  "web.COMMON.word_save": {
+    "text": "Shrani",
+    "sha256": "1509f561"
   },
   "web.COMMON.burn": {
     "text": "Trajno izbriši",
@@ -432,6 +440,10 @@
     "text": "npr. {example}",
     "sha256": "cc921aaa"
   },
+  "web.COMMON.about": {
+    "text": "About",
+    "sha256": "d833339d"
+  },
   "web.COMMON.status": {
     "text": "Stanje",
     "sha256": "920e413c"
@@ -648,6 +660,10 @@
     "text": "Pritisnite gumb za kopiranje spodaj.",
     "sha256": "77fcf6fb"
   },
+  "web.COMMON.external_link": {
+    "text": "Zunanja povezava",
+    "sha256": "a1b2c3d5"
+  },
   "web.LABELS.view_toggle.show": {
     "text": "Prikaži",
     "sha256": "0df6f1ca"
@@ -687,6 +703,10 @@
   "web.LABELS.expiration_time": {
     "text": "Čas poteka",
     "sha256": "c5db84a8"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Poteče čez",
+    "sha256": "de996752"
   },
   "web.LABELS.close": {
     "text": "Zapri",
@@ -824,6 +844,14 @@
     "text": "Ponovno naloži",
     "sha256": "bdc090ec"
   },
+  "web.LABELS.filter": {
+    "text": "Filtriraj",
+    "sha256": "638e249f"
+  },
+  "web.LABELS.clear": {
+    "text": "Počisti",
+    "sha256": "83b12c22"
+  },
   "web.LABELS.caption_recent_secrets": {
     "text": "Skrivne povezave ustvarjene v tej seji",
     "sha256": "6c7ceab8"
@@ -848,6 +876,11 @@
     "text": "Povezane nastavitve",
     "sha256": "68574b20"
   },
+  "web.LABELS.benefits": {
+    "text": "Benefits",
+    "context": "Section header for listing benefits",
+    "sha256": "d5b67bc9"
+  },
   "web.LABELS.creating_links_for": {
     "text": "Ustvarjanje povezav za",
     "sha256": "57db069e"
@@ -871,6 +904,14 @@
   "web.STATUS.received": {
     "text": "Prejeto",
     "sha256": "49f19bee"
+  },
+  "web.STATUS.previewed": {
+    "text": "Predogledano",
+    "sha256": "3d391a9b"
+  },
+  "web.STATUS.revealed": {
+    "text": "Razkrito",
+    "sha256": "17376ee4"
   },
   "web.STATUS.burned": {
     "text": "Trajno izbrisano",
@@ -931,6 +972,14 @@
   "web.STATUS.received_description": {
     "text": "Skrivnost je bila razkrita prejemniku",
     "sha256": "ceb756b4"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Skrivna povezava je bila odprta in je pripravljena za razkritje",
+    "sha256": "cc7d1e92"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Vsebina skrivnosti je bila razkrita prejemniku",
+    "sha256": "39b32f80"
   },
   "web.STATUS.burned_description": {
     "text": "Skrivnost je bila ročno trajno izbrisana, preden je bila ogledana",
@@ -1056,6 +1105,10 @@
     "text": "Povratne informacije",
     "sha256": "aac77df3"
   },
+  "web.TITLES.help": {
+    "text": "Pomoč",
+    "sha256": "b79cac92"
+  },
   "web.TITLES.signin": {
     "text": "Prijava",
     "sha256": "bcc0bcc9"
@@ -1172,6 +1225,10 @@
     "text": "Spremeni e-pošto",
     "sha256": "18c3f2d5"
   },
+  "web.TITLES.confirm_email_change": {
+    "text": "Confirm Email Change",
+    "sha256": "a1b2c3d4"
+  },
   "web.TITLES.security_overview": {
     "text": "Varnost",
     "sha256": "8f6fb4eb"
@@ -1191,6 +1248,11 @@
   "web.TITLES.recovery_codes": {
     "text": "Obnovitvene kode",
     "sha256": "579c7f4e"
+  },
+  "web.TITLES.passkeys": {
+    "text": "Passkeys",
+    "context": "Page title for passkey management",
+    "sha256": "c87ccdb4"
   },
   "web.TITLES.api_settings": {
     "text": "Nastavitve API",
@@ -1216,6 +1278,10 @@
     "text": "Nastavitve organizacije",
     "sha256": "cc1d9e61"
   },
+  "web.TITLES.pricing": {
+    "text": "Cenik",
+    "sha256": "dfe95783"
+  },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
     "text": "Fokus je zdaj v glavnem besedilnem polju",
     "sha256": "e00dd260"
@@ -1239,70 +1305,6 @@
   "web.INSTRUCTION.phishing_warning": {
     "text": "Vedno preverite, da ste na uradni spletni strani Onetime Secret. Goljufi včasih ustvarijo lažne spletne strani, ki izgledajo točno kot Onetime Secret, da vam ukradejo skrivnosti. Da se izognete phishing napadom, pred ustvarjanjem novih povezav preverite regionalno domeno.",
     "sha256": "b588f5b2"
-  },
-  "web.STATUS.previewed": {
-    "text": "Predogledano",
-    "sha256": "3d391a9b"
-  },
-  "web.STATUS.revealed": {
-    "text": "Razkrito",
-    "sha256": "17376ee4"
-  },
-  "web.STATUS.previewed_description": {
-    "text": "Skrivna povezava je bila odprta in je pripravljena za razkritje",
-    "sha256": "cc7d1e92"
-  },
-  "web.STATUS.revealed_description": {
-    "text": "Vsebina skrivnosti je bila razkrita prejemniku",
-    "sha256": "39b32f80"
-  },
-  "web.COMMON.not_set": {
-    "text": "Ni nastavljeno",
-    "sha256": "4895f731"
-  },
-  "web.COMMON.word_edit": {
-    "text": "Uredi",
-    "sha256": "464c4ffd"
-  },
-  "web.COMMON.word_save": {
-    "text": "Shrani",
-    "sha256": "1509f561"
-  },
-  "web.LABELS.secret_ttl": {
-    "text": "Poteče čez",
-    "sha256": "de996752"
-  },
-  "web.LABELS.filter": {
-    "text": "Filtriraj",
-    "sha256": "638e249f"
-  },
-  "web.LABELS.clear": {
-    "text": "Počisti",
-    "sha256": "83b12c22"
-  },
-  "web.LABELS.add_note": {
-    "text": "Dodaj opombo...",
-    "sha256": "32738894"
-  },
-  "web.LABELS.edit_note": {
-    "text": "Uredi opombo",
-    "sha256": "299e604c"
-  },
-  "web.LABELS.add_memo": {
-    "text": "Dodaj memo...",
-    "sha256": "02384c53"
-  },
-  "web.LABELS.edit_memo": {
-    "text": "Uredi memo",
-    "sha256": "0ec1a5db"
-  },
-  "web.TITLES.help": {
-    "text": "Pomoč",
-    "sha256": "b79cac92"
-  },
-  "web.TITLES.pricing": {
-    "text": "Cenik",
-    "sha256": "dfe95783"
   },
   "web.pricing.title": {
     "text": "Preprosto, transparentno oblikovanje cen",
@@ -1332,12 +1334,58 @@
     "text": "Priporočeno za vas",
     "sha256": "00093fbd"
   },
+  "web.COMMON.received": {
+    "text": "Prejeto",
+    "sha256": "49f19bee"
+  },
+  "web.LABELS.add_note": {
+    "text": "Dodaj opombo...",
+    "sha256": "32738894"
+  },
+  "web.LABELS.edit_note": {
+    "text": "Uredi opombo",
+    "sha256": "299e604c"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Dodaj memo...",
+    "sha256": "02384c53"
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Uredi memo",
+    "sha256": "0ec1a5db"
+  },
   "web.pricing.free_tier_description": {
     "text": "Ustvarjajte in delite skrivnosti z osnovnimi funkcijami. Kreditna kartica ni potrebna.",
     "sha256": "3a4f2bc0"
   },
-  "web.COMMON.external_link": {
-    "text": "Zunanja povezava",
-    "sha256": "a1b2c3d5"
+  "web.COMMON.enter_password_to_continue": {
+    "text": "Enter your password to continue",
+    "context": "Prompt for password confirmation modal",
+    "sha256": "09055357"
+  },
+  "web.COMMON.password_required_for_action": {
+    "text": "Your password is required to complete this action",
+    "context": "Description for password confirmation modal",
+    "sha256": "cc078766"
+  },
+  "api.errors.unexpected_error": {
+    "text": "An unexpected error occurred",
+    "context": "Generic error message for unhandled exceptions in API",
+    "sha256": "6615bf1c"
+  },
+  "api.errors.service_unavailable": {
+    "text": "Service temporarily unavailable. Please try again shortly.",
+    "context": "Error message when database connection fails",
+    "sha256": "343ccdcb"
+  },
+  "api.errors.request_processing_error": {
+    "text": "Unable to process your request at this time",
+    "context": "Error message for recoverable server errors",
+    "sha256": "fb961f3f"
+  },
+  "web.COMMON.upgrade_description": {
+    "text": "Upgrade to unlock more features",
+    "context": "Description shown for free plan users encouraging upgrade",
+    "sha256": "783f174c"
   }
 }

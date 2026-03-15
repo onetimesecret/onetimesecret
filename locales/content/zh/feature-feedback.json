@@ -31,17 +31,13 @@
     "text": "帮助内容在此处。",
     "sha256": "796979ea"
   },
-  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "感谢您帮助 Onetime Secret 改进。这意义重大。"
+  "web.feedback.founder_note_line1": {
+    "text": "我会阅读这里收到的每一条反馈。这是我决定把时间花在哪里的方式。",
+    "sha256": "8b430d93"
   },
-  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
-    "text": "我们构建了这个工具来帮助您安全地分享敏感信息，您的实际使用体验对于我们集中精力至关重要。它帮助我们确定下一步要做什么以及如何为每个人改进服务。"
-  },
-  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
-    "text": "嘿，感谢您访问我们的反馈页面。您的意见不仅受欢迎，而且至关重要。"
-  },
-  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "来自 Onetime Secret 创始人 Delano 的一封信"
+  "web.feedback.founder_note_line2": {
+    "text": "如果有什么不对，或者您有关于它应该如何工作的想法，这里是正确的地方。",
+    "sha256": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
     "text": "打开反馈表单",
@@ -55,12 +51,12 @@
     "text": "发送反馈",
     "sha256": "8235980b"
   },
-  "web.feedback.founder_note_line1": {
-    "text": "我会阅读这里收到的每一条反馈。这是我决定把时间花在哪里的方式。",
-    "sha256": "8b430d93"
+  "web.feedback.sending_ellipses": {
+    "text": "发送中...",
+    "sha256": "a1b2c3d4"
   },
-  "web.feedback.founder_note_line2": {
-    "text": "如果有什么不对，或者您有关于它应该如何工作的想法，这里是正确的地方。",
-    "sha256": "d4b8f073"
+  "web.feedback.reason_email_change_unauthorized": {
+    "text": "您似乎在报告账户邮箱被未授权更改的情况。请描述发生了什么，我们将立即调查。",
+    "sha256": "b2c3d4e5"
   }
 }

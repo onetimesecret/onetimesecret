@@ -151,6 +151,14 @@
     "text": "Denna länk fungerar endast en gång. Efter visning kommer hemligheten att raderas permanent.",
     "sha256": "fecaf0a1"
   },
+  "email.incoming_secret.passphrase_required": {
+    "text": "Denna hemlighet är skyddad med en lösenfras. Avsändaren bör ge den till dig separat.",
+    "sha256": ""
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "Lösenfras krävs:",
+    "sha256": ""
+  },
   "email.incoming_secret.sent_via": {
     "text": "Skickad via",
     "sha256": "d01479b3"
@@ -327,9 +335,77 @@
     "text": "Om du inte gjorde denna ändring, vänligen kontakta supporten omedelbart eftersom ditt konto kan vara komprometterat.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "E-postadressen för ditt %{product_name}-konto har ändrats.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "Ny e-post:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "Ändrad:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "Om du gjorde denna ändring behöver du inte göra något mer.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "Om du inte gjorde denna ändring kan ditt konto vara komprometterat.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "Kontakta support",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "PS. Detta e-postmeddelande skickades till %{email_address} för att meddela dig om en ändring av e-postadressen.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "E-poständring begärd (%{display_domain})",
+    "sha256": ""
+  },
+  "email.email_change_requested.title": {
+    "text": "E-poständring begärd",
+    "sha256": ""
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "En begäran har gjorts om att ändra e-postadressen för ditt %{product_name}-konto.",
+    "sha256": ""
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "Begärd ny e-post:",
+    "sha256": ""
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "Begärd:",
+    "sha256": ""
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "Om du gjorde denna begäran, kontrollera din nya e-post för en bekräftelselänk. Inga ändringar har gjorts ännu.",
+    "sha256": ""
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "Om du inte gjorde denna begäran kan du tryggt ignorera detta e-postmeddelande. Ditt konto har inte ändrats.",
+    "sha256": ""
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "Kontakta support",
+    "sha256": ""
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": ""
+  },
+  "email.email_change_requested.postscript": {
+    "text": "PS. Detta e-postmeddelande skickades till %{email_address} eftersom en e-poständring begärdes för ditt konto.",
+    "sha256": ""
   },
   "email.email_change_confirmation.subject": {
     "text": "Verifiera din nya e-postadress (%{display_domain})",
@@ -347,13 +423,33 @@
     "text": "Verifiera e-postadress",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "En begäran har gjorts om att ändra e-postadressen för ditt %{product_name}-konto till %{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "Bekräfta e-poständring",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Eller kopiera och klistra in denna länk:",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "Denna länk går ut om %{hours} timmar.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "Om du inte begärde denna ändring kan du tryggt ignorera detta e-postmeddelande. Din e-postadress kommer inte att ändras.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "PS. Detta e-postmeddelande skickades till %{email_address} för att bekräfta en ändring av e-postadressen.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "Tvåfaktorsautentisering aktiverad (%{display_domain})",

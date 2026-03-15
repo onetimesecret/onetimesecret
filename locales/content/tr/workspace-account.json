@@ -155,6 +155,10 @@
     "text": "{0} siliniyor",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Siliniyor...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Hesabı Kalıcı Olarak Sil",
     "sha256": "f894e42c"
@@ -209,9 +213,23 @@
   },
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "",
-    "skip": true,
-    "note": "empty",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Kontrol Paneline Dön",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Hesap",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Faturalandırma",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Gelişmiş",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "Genel",
@@ -387,8 +405,6 @@
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
     "text": "",
-    "skip": true,
-    "note": "empty",
     "sha256": "eb5f3ebd"
   },
   "web.settings.security.configured": {
@@ -619,24 +635,52 @@
     "text": "Bu işlem geri alınamaz",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "Siliniyor...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "Email Address Updated",
+    "sha256": ""
   },
-  "web.settings.back_to_dashboard": {
-    "text": "Kontrol Paneline Dön",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Your email has been updated successfully. Please sign in with your new email address.",
+    "sha256": "e5f6a7b8"
   },
-  "web.settings.sections.account": {
-    "text": "Hesap",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Verifying your new email address...",
+    "sha256": "c9d0e1f2"
   },
-  "web.settings.sections.billing": {
-    "text": "Faturalandırma",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "Email Change Failed",
+    "sha256": ""
   },
-  "web.settings.sections.advanced": {
-    "text": "Gelişmiş",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "This verification link is invalid or has expired.",
+    "sha256": "a3b4c5d6"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Back to Account Settings",
+    "sha256": "e7f8a9b0"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Redirecting to sign in...",
+    "sha256": "c1d2e3f4"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Resend confirmation email",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "Confirmation email resent successfully.",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Sending...",
+    "sha256": ""
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "A verification email has been sent. Check your inbox and click the confirmation link.",
+    "sha256": ""
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "Didn't receive the email?",
+    "sha256": ""
   }
 }

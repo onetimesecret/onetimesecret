@@ -155,6 +155,14 @@
     "text": "Nepodařilo se aktualizovat organizaci",
     "sha256": "bc2b59b8"
   },
+  "web.organizations.billing_email_updated": {
+    "text": "Fakturační e-mail úspěšně aktualizován",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Fakturační e-mail lze změnit na stránce Přehled fakturace",
+    "sha256": "8a131415"
+  },
   "web.organizations.billing_coming_soon": {
     "text": "Integrace fakturace již brzy",
     "sha256": "d3e0ec75"
@@ -206,6 +214,10 @@
   "web.organizations.tabs.billing": {
     "text": "Fakturace",
     "sha256": "3ac8bbca"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Předplatné",
+    "sha256": "4999c6c6"
   },
   "web.organizations.danger_zone": {
     "text": "Nebezpečná zóna",
@@ -515,17 +527,21 @@
     "text": "Načítání podrobností pozvánky",
     "sha256": "58884885"
   },
-  "web.organizations.billing_email_updated": {
-    "text": "Fakturační e-mail úspěšně aktualizován",
-    "sha256": "080a7f11"
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Upgradujte svůj plán pro pozvání členů týmu",
+    "sha256": "5e3f8df8"
   },
-  "web.organizations.billing_email_managed_on_billing": {
-    "text": "Fakturační e-mail lze změnit na stránce Přehled fakturace",
-    "sha256": "8a131415"
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Pozvánky členů týmu vyžadují plán se správou týmů. Upgradujte pro přidání spolupracovníků do vaší organizace.",
+    "sha256": "cf10d623"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
     "sha256": "957b0b87"
+  },
+  "web.organizations.early_supporter_badge": {
+    "text": "Early Supporter",
+    "sha256": "e67d2ef8"
   },
   "web.organizations.member_count": {
     "text": "{count} člen | {count} členů",
@@ -535,13 +551,9 @@
     "text": "{count} doména | {count} domén",
     "sha256": "09f52efa"
   },
-  "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Upgradujte svůj plán pro pozvání členů týmu",
-    "sha256": "5e3f8df8"
-  },
-  "web.organizations.invitations.upgrade_prompt": {
-    "text": "Pozvánky členů týmu vyžadují plán se správou týmů. Upgradujte pro přidání spolupracovníků do vaší organizace.",
-    "sha256": "cf10d623"
+  "web.organizations.tabs.domains": {
+    "text": "Domény",
+    "sha256": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Špatný účet",
@@ -566,13 +578,5 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Brzy vyprší",
     "sha256": "a5dcfef9"
-  },
-  "web.organizations.tabs.subscription": {
-    "text": "Předplatné",
-    "sha256": "4999c6c6"
-  },
-  "web.organizations.tabs.domains": {
-    "text": "Domény",
-    "sha256": "ced67718"
   }
 }

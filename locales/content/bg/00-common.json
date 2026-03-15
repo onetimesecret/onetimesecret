@@ -132,9 +132,17 @@
     "text": "Скорошни",
     "sha256": "690dbe9d"
   },
-  "web.COMMON.received": {
-    "text": "Получена",
-    "sha256": "49f19bee"
+  "web.COMMON.not_set": {
+    "text": "Не е зададено",
+    "sha256": "4895f731"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Редактирай",
+    "sha256": "464c4ffd"
+  },
+  "web.COMMON.word_save": {
+    "text": "Запази",
+    "sha256": "1509f561"
   },
   "web.COMMON.burn": {
     "text": "Изтрий",
@@ -432,6 +440,10 @@
     "text": "напр. {example}",
     "sha256": "cc921aaa"
   },
+  "web.COMMON.about": {
+    "text": "Относно",
+    "sha256": "d833339d"
+  },
   "web.COMMON.status": {
     "text": "Статус",
     "sha256": "920e413c"
@@ -648,6 +660,10 @@
     "text": "Натиснете бутона за копиране по-долу.",
     "sha256": "77fcf6fb"
   },
+  "web.COMMON.external_link": {
+    "text": "Външна връзка",
+    "sha256": "a1b2c3d5"
+  },
   "web.LABELS.view_toggle.show": {
     "text": "Покажи",
     "sha256": "0df6f1ca"
@@ -687,6 +703,10 @@
   "web.LABELS.expiration_time": {
     "text": "Време на изтичане",
     "sha256": "c5db84a8"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Изтича след",
+    "sha256": "de996752"
   },
   "web.LABELS.close": {
     "text": "Затвори",
@@ -856,6 +876,11 @@
     "text": "Свързани настройки",
     "sha256": "68574b20"
   },
+  "web.LABELS.benefits": {
+    "text": "Предимства",
+    "context": "Section header for listing benefits",
+    "sha256": "d5b67bc9"
+  },
   "web.LABELS.creating_links_for": {
     "text": "Създаване на връзки за",
     "sha256": "57db069e"
@@ -879,6 +904,14 @@
   "web.STATUS.received": {
     "text": "Получена",
     "sha256": "49f19bee"
+  },
+  "web.STATUS.previewed": {
+    "text": "Прегледана",
+    "sha256": "3d391a9b"
+  },
+  "web.STATUS.revealed": {
+    "text": "Разкрита",
+    "sha256": "17376ee4"
   },
   "web.STATUS.burned": {
     "text": "Изтрита",
@@ -939,6 +972,14 @@
   "web.STATUS.received_description": {
     "text": "Тайната е разкрита на получателя",
     "sha256": "ceb756b4"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Тайната връзка е отворена и е готова за разкриване",
+    "sha256": "cc7d1e92"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Съдържанието на тайната е разкрито на получателя",
+    "sha256": "39b32f80"
   },
   "web.STATUS.burned_description": {
     "text": "Тайната е ръчно изтрита преди да бъде прегледана",
@@ -1064,6 +1105,10 @@
     "text": "Обратна връзка",
     "sha256": "aac77df3"
   },
+  "web.TITLES.help": {
+    "text": "Помощ",
+    "sha256": "b79cac92"
+  },
   "web.TITLES.signin": {
     "text": "Вход",
     "sha256": "bcc0bcc9"
@@ -1180,6 +1225,10 @@
     "text": "Промяна на имейл",
     "sha256": "18c3f2d5"
   },
+  "web.TITLES.confirm_email_change": {
+    "text": "Потвърждаване на промяна на имейл",
+    "sha256": "a1b2c3d4"
+  },
   "web.TITLES.security_overview": {
     "text": "Сигурност",
     "sha256": "8f6fb4eb"
@@ -1199,6 +1248,11 @@
   "web.TITLES.recovery_codes": {
     "text": "Кодове за възстановяване",
     "sha256": "579c7f4e"
+  },
+  "web.TITLES.passkeys": {
+    "text": "Ключове за достъп",
+    "context": "Page title for passkey management",
+    "sha256": "c87ccdb4"
   },
   "web.TITLES.api_settings": {
     "text": "API настройки",
@@ -1224,6 +1278,10 @@
     "text": "Настройки на организацията",
     "sha256": "cc1d9e61"
   },
+  "web.TITLES.pricing": {
+    "text": "Цени",
+    "sha256": "dfe95783"
+  },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
     "text": "Фокусът вече е в основната текстова област",
     "sha256": "e00dd260"
@@ -1247,62 +1305,6 @@
   "web.INSTRUCTION.phishing_warning": {
     "text": "Винаги проверявайте дали сте на официалния уебсайт на Onetime Secret. Измамниците понякога създават фалшиви уебсайтове, които изглеждат точно като Onetime Secret, за да откраднат тайните ви. За да избегнете фишинг атаки, проверете домейна преди да създавате нови връзки.",
     "sha256": "b588f5b2"
-  },
-  "web.STATUS.previewed": {
-    "text": "Прегледана",
-    "sha256": "3d391a9b"
-  },
-  "web.STATUS.revealed": {
-    "text": "Разкрита",
-    "sha256": "17376ee4"
-  },
-  "web.STATUS.previewed_description": {
-    "text": "Тайната връзка е отворена и е готова за разкриване",
-    "sha256": "cc7d1e92"
-  },
-  "web.STATUS.revealed_description": {
-    "text": "Съдържанието на тайната е разкрито на получателя",
-    "sha256": "39b32f80"
-  },
-  "web.COMMON.not_set": {
-    "text": "Не е зададено",
-    "sha256": "4895f731"
-  },
-  "web.COMMON.word_edit": {
-    "text": "Редактирай",
-    "sha256": "464c4ffd"
-  },
-  "web.COMMON.word_save": {
-    "text": "Запази",
-    "sha256": "1509f561"
-  },
-  "web.LABELS.secret_ttl": {
-    "text": "Изтича след",
-    "sha256": "de996752"
-  },
-  "web.LABELS.add_note": {
-    "text": "Добави бележка...",
-    "sha256": "32738894"
-  },
-  "web.LABELS.edit_note": {
-    "text": "Редактирай бележка",
-    "sha256": "299e604c"
-  },
-  "web.LABELS.add_memo": {
-    "text": "Добави бележка...",
-    "sha256": "02384c53"
-  },
-  "web.LABELS.edit_memo": {
-    "text": "Редактирай бележка",
-    "sha256": "0ec1a5db"
-  },
-  "web.TITLES.help": {
-    "text": "Помощ",
-    "sha256": "b79cac92"
-  },
-  "web.TITLES.pricing": {
-    "text": "Цени",
-    "sha256": "dfe95783"
   },
   "web.pricing.title": {
     "text": "Прости и прозрачни цени",
@@ -1332,12 +1334,58 @@
     "text": "Препоръчано за вас",
     "sha256": "00093fbd"
   },
+  "web.COMMON.received": {
+    "text": "Получена",
+    "sha256": "49f19bee"
+  },
+  "web.LABELS.add_note": {
+    "text": "Добави бележка...",
+    "sha256": "32738894"
+  },
+  "web.LABELS.edit_note": {
+    "text": "Редактирай бележка",
+    "sha256": "299e604c"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Добави бележка...",
+    "sha256": "02384c53"
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Редактирай бележка",
+    "sha256": "0ec1a5db"
+  },
   "web.pricing.free_tier_description": {
     "text": "Създавайте и споделяйте тайни с основни функции. Не се изисква кредитна карта.",
     "sha256": "3a4f2bc0"
   },
-  "web.COMMON.external_link": {
-    "text": "Външна връзка",
-    "sha256": "a1b2c3d5"
+  "web.COMMON.enter_password_to_continue": {
+    "text": "Въведете паролата си, за да продължите",
+    "context": "Prompt for password confirmation modal",
+    "sha256": "09055357"
+  },
+  "web.COMMON.password_required_for_action": {
+    "text": "Паролата ви е необходима за извършване на това действие",
+    "context": "Description for password confirmation modal",
+    "sha256": "cc078766"
+  },
+  "api.errors.unexpected_error": {
+    "text": "Възникна неочаквана грешка",
+    "context": "Generic error message for unhandled exceptions in API",
+    "sha256": "6615bf1c"
+  },
+  "api.errors.service_unavailable": {
+    "text": "Услугата е временно недостъпна. Моля, опитайте отново след малко.",
+    "context": "Error message when database connection fails",
+    "sha256": "343ccdcb"
+  },
+  "api.errors.request_processing_error": {
+    "text": "Заявката ви не може да бъде обработена в момента",
+    "context": "Error message for recoverable server errors",
+    "sha256": "fb961f3f"
+  },
+  "web.COMMON.upgrade_description": {
+    "text": "Надградете, за да отключите повече функции",
+    "context": "Description shown for free plan users encouraging upgrade",
+    "sha256": "783f174c"
   }
 }

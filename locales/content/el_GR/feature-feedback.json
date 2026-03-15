@@ -31,17 +31,13 @@
     "text": "Το περιεχόμενο βοήθειας τοποθετείται εδώ.",
     "sha256": "796979ea"
   },
-  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Ευχαριστούμε που βοηθάτε το Onetime Secret να βελτιωθεί. Σημαίνει πολλά."
+  "web.feedback.founder_note_line1": {
+    "text": "Διαβάζω κάθε σχόλιο που έρχεται εδώ. Έτσι καταλαβαίνω σε τι πρέπει να αφιερώσω χρόνο.",
+    "sha256": "8b430d93"
   },
-  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
-    "text": "Έχουμε δημιουργήσει αυτό το εργαλείο για να σας βοηθήσουμε να μοιράζεστε ευαίσθητες πληροφορίες με ασφάλεια, και οι πραγματικές σας εμπειρίες είναι κρίσιμες για την εστίαση των προσπαθειών μας. Μας βοηθά να καταλάβουμε πάνω σε τι να δουλέψουμε στη συνέχεια και πώς να κάνουμε την υπηρεσία καλύτερη για όλους."
-  },
-  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
-    "text": "Γεια σας, ευχαριστούμε που περάσατε από τη σελίδα σχολίων μας. Η συμβολή σας δεν είναι απλώς ευπρόσδεκτη - είναι κρίσιμη."
-  },
-  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Μια σημείωση από τον Delano, ιδρυτή του Onetime Secret"
+  "web.feedback.founder_note_line2": {
+    "text": "Εάν κάτι δεν πάει καλά, ή έχετε ιδέες για το πώς θα έπρεπε να λειτουργεί, αυτό είναι το σωστό μέρος.",
+    "sha256": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
     "text": "Άνοιγμα φόρμας σχολίων",
@@ -55,12 +51,12 @@
     "text": "Αποστολή σχολίων",
     "sha256": "8235980b"
   },
-  "web.feedback.founder_note_line1": {
-    "text": "Διαβάζω κάθε σχόλιο που έρχεται εδώ. Έτσι καταλαβαίνω σε τι πρέπει να αφιερώσω χρόνο.",
-    "sha256": "8b430d93"
+  "web.feedback.sending_ellipses": {
+    "text": "Sending...",
+    "sha256": "a1b2c3d4"
   },
-  "web.feedback.founder_note_line2": {
-    "text": "Εάν κάτι δεν πάει καλά, ή έχετε ιδέες για το πώς θα έπρεπε να λειτουργεί, αυτό είναι το σωστό μέρος.",
-    "sha256": "d4b8f073"
+  "web.feedback.reason_email_change_unauthorized": {
+    "text": "It looks like you're reporting an unauthorized email change on your account. Please describe what happened and we'll investigate right away.",
+    "sha256": "b2c3d4e5"
   }
 }

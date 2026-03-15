@@ -1,4 +1,12 @@
 {
+  "web.billing.subscription_synced_title": {
+    "text": "구독 동기화 완료",
+    "sha256": "3086ef43"
+  },
+  "web.billing.subscription_synced_description": {
+    "text": "다른 지역에서 구독 혜택이 동기화되었습니다.",
+    "sha256": "a99b7a98"
+  },
   "web.billing.upgrade.required": {
     "text": "업그레이드 필요",
     "sha256": "16487236"
@@ -35,8 +43,9 @@
     "text": "구독 및 결제 세부정보 보기 및 관리",
     "sha256": "60e5a00e"
   },
-  "web.billing.overview.organization_selector": {
-    "text": "조직 선택"
+  "web.billing.overview.billing_for_organization": {
+    "text": "이 조직의 결제",
+    "sha256": "21806992"
   },
   "web.billing.overview.current_plan": {
     "text": "현재 요금제",
@@ -73,6 +82,22 @@
   "web.billing.overview.change_plan": {
     "text": "요금제 변경",
     "sha256": "2d0b195b"
+  },
+  "web.billing.overview.manage_subscription": {
+    "text": "구독 관리",
+    "sha256": "cbc4ef92"
+  },
+  "web.billing.plans.legacy_plan_info": {
+    "text": "기존 특별 가격이 적용된 플랜을 사용 중입니다.",
+    "sha256": "e9aa8bf0"
+  },
+  "web.billing.plans.early_supporter_plan": {
+    "text": "Identity Plus (초기 서포터)",
+    "sha256": "f37cd0d9"
+  },
+  "web.billing.plans.legacy_plan_warning": {
+    "text": "플랜을 변경하면 기존 특별 가격이 상실됩니다. 이 작업은 되돌릴 수 없습니다.",
+    "sha256": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
     "text": "등록된 결제 방법 없음",
@@ -122,6 +147,22 @@
     "text": "결제 및 구독을 관리하려면 조직을 만드세요",
     "sha256": "41e922d2"
   },
+  "web.billing.overview.load_error": {
+    "text": "결제 정보를 불러오지 못했습니다",
+    "sha256": "d4e5f6a7"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "요금제가 성공적으로 업그레이드되었습니다",
+    "sha256": "00ac43f8"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "새 요금제가 활성화되었습니다. 구매해 주셔서 감사합니다.",
+    "sha256": "fd1caeb1"
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "결제 담당자",
+    "sha256": "8f782ad8"
+  },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "비밀 메시지 생성",
     "sha256": "0320541d"
@@ -155,8 +196,8 @@
     "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "브랜드 홈페이지",
-    "sha256": "e355a396"
+    "text": "홈페이지 비밀 메시지",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "수신 비밀 메시지",
@@ -198,6 +239,74 @@
     "text": "사용 가능한 기능 없음",
     "sha256": "03d195e8"
   },
+  "web.billing.features.create_secrets": {
+    "text": "비밀 메시지 생성 및 공유",
+    "sha256": "303f9386"
+  },
+  "web.billing.features.api_access": {
+    "text": "API 접근",
+    "sha256": "5f31cc2f"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "사용자 지정 도메인",
+    "sha256": "6170ab94"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1개 사용자 지정 도메인",
+    "sha256": "6a6be744"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "무제한 사용자 지정 도메인",
+    "sha256": "53eb7521"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "사용자 지정 브랜딩",
+    "sha256": "237dabec"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "홈페이지 비밀 메시지",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "팀 관리",
+    "sha256": "6bcbac8f"
+  },
+  "web.billing.features.manage_members": {
+    "text": "멤버 관리",
+    "sha256": "b38b89db"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "감사 로그",
+    "sha256": "5428d7fe"
+  },
+  "web.billing.features.sso": {
+    "text": "싱글 사인온(SSO)",
+    "sha256": "5db5c812"
+  },
+  "web.billing.features.priority_support": {
+    "text": "우선 지원",
+    "sha256": "ed8a65c8"
+  },
+  "web.billing.features.sla": {
+    "text": "서비스 수준 계약",
+    "sha256": "436f2550"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "중앙 집중식 결제",
+    "sha256": "62042d3b"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "감사 추적",
+    "sha256": "d52b4039"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "활동 스트림",
+    "sha256": "b9c6cba7"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "핸드오프 워크플로",
+    "sha256": "07202af3"
+  },
   "web.billing.plans.title": {
     "text": "요금제 선택",
     "sha256": "79506c82"
@@ -225,6 +334,10 @@
   "web.billing.plans.downgrade": {
     "text": "다운그레이드",
     "sha256": "d955b7e8"
+  },
+  "web.billing.plans.cancel_to_downgrade": {
+    "text": "취소 후 전환",
+    "sha256": "1c4cda89"
   },
   "web.billing.plans.monthly": {
     "text": "월간",
@@ -330,6 +443,10 @@
     "text": "현재 {interval} 요금제가 없습니다.",
     "sha256": "d8454436"
   },
+  "web.billing.plans.load_error": {
+    "text": "플랜을 불러오지 못했습니다",
+    "sha256": "e5f6a7b8"
+  },
   "web.billing.plans.change_immediate": {
     "text": "요금제가 즉시 변경됩니다.",
     "sha256": "889d13be"
@@ -345,6 +462,14 @@
   "web.billing.plans.credit_label": {
     "text": "미사용 시간 크레딧:",
     "sha256": "001e4901"
+  },
+  "web.billing.plans.due_today": {
+    "text": "오늘 결제:",
+    "sha256": "e370e3aa"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "다음 결제 ({date}):",
+    "sha256": "a6846a85"
   },
   "web.billing.plans.next_invoice": {
     "text": "다음 청구서",
@@ -374,6 +499,30 @@
     "text": "{plan}(으)로 다운그레이드하시겠습니까?",
     "sha256": "8eb8ea81"
   },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "크레딧 적용 방법:",
+    "sha256": "a0943c3b"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "다음 청구 금액:",
+    "sha256": "526ad28f"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "적용된 크레딧:",
+    "sha256": "e5f2e81a"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "다음 결제 시 청구 금액:",
+    "sha256": "22ee868a"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "남은 계정 크레딧:",
+    "sha256": "eedd0c0a"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "향후 청구서에 적용됨",
+    "sha256": "5007add6"
+  },
   "web.billing.invoices.title": {
     "text": "결제 내역",
     "sha256": "5ade0861"
@@ -398,9 +547,21 @@
     "text": "다운로드",
     "sha256": "d6eafe82"
   },
+  "web.billing.invoices.invoice_number": {
+    "text": "청구서 #",
+    "sha256": "a1c2d3e4"
+  },
   "web.billing.invoices.no_invoices": {
     "text": "청구서가 아직 없습니다",
     "sha256": "92d2d0ce"
+  },
+  "web.billing.invoices.no_invoices_description": {
+    "text": "유료 플랜으로 업그레이드하면 청구서가 여기에 표시됩니다",
+    "sha256": "b2c3d4e5"
+  },
+  "web.billing.invoices.view_plans": {
+    "text": "플랜 보기",
+    "sha256": "c3d4e5f6"
   },
   "web.billing.invoices.paid": {
     "text": "결제됨",
@@ -417,6 +578,18 @@
   "web.billing.invoices.draft": {
     "text": "초안",
     "sha256": "d2e16e61"
+  },
+  "web.billing.invoices.open": {
+    "text": "미결제",
+    "sha256": "a2b3c4d5"
+  },
+  "web.billing.invoices.uncollectible": {
+    "text": "수금 불가",
+    "sha256": "b3c4d5e6"
+  },
+  "web.billing.invoices.void": {
+    "text": "무효",
+    "sha256": "c4d5e6f7"
   },
   "web.billing.invoices.load_error": {
     "text": "청구서 로드 실패",
@@ -465,6 +638,14 @@
   "web.billing.subscription.catalog_name": {
     "text": "요금제",
     "sha256": "fa8ed0bd"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "팀 사용량",
+    "sha256": "f9989642"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{limit}개 팀 중 {used}개 사용",
+    "sha256": "1db6b53c"
   },
   "web.billing.portal.title": {
     "text": "결제 포털",
@@ -580,10 +761,12 @@
   },
   "web.billing.cancel.link_text": {
     "text": "구독 취소",
+    "context": "Link text shown below the plan selector for paid users",
     "sha256": "3f85967f"
   },
   "web.billing.cancel.title": {
     "text": "구독 취소",
+    "context": "Modal dialog heading/title",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
@@ -612,10 +795,12 @@
   },
   "web.billing.cancel.keep_subscription": {
     "text": "구독 유지",
+    "context": "Secondary button in modal - keeps subscription active",
     "sha256": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
     "text": "구독 취소",
+    "context": "Primary action button in modal - confirms the cancellation",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
@@ -628,91 +813,34 @@
   },
   "web.billing.cancel.scheduled_title": {
     "text": "구독 취소 예약됨",
+    "context": "Alert banner heading shown when cancellation is pending",
     "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
     "text": "{date}까지 구독이 활성 상태로 유지됩니다. 그때까지 모든 기능에 대한 전체 접근 권한을 계속 갖습니다.",
+    "context": "Alert banner description explaining continued access",
     "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
     "text": "마음이 바뀌셨나요? 취소 날짜 전에 언제든지 구독을 다시 활성화할 수 있습니다.",
+    "context": "Alert banner note encouraging reactivation",
     "sha256": "c94d5527"
   },
-  "web.billing.features.create_secrets": {
-    "text": "비밀 메시지 생성 및 공유",
-    "sha256": "303f9386"
+  "web.billing.overview.entitlements.notifications": {
+    "text": "이메일 알림",
+    "sha256": "04e0f1e9"
   },
-  "web.billing.features.api_access": {
-    "text": "API 접근",
-    "sha256": "5f31cc2f"
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IP 접근 규칙",
+    "sha256": "db966d47"
   },
-  "web.billing.features.custom_domains": {
-    "text": "사용자 지정 도메인",
-    "sha256": "6170ab94"
-  },
-  "web.billing.features.custom_domain": {
-    "text": "1개 사용자 지정 도메인",
-    "sha256": "6a6be744"
-  },
-  "web.billing.features.unlimited_custom_domains": {
-    "text": "무제한 사용자 지정 도메인",
-    "sha256": "53eb7521"
-  },
-  "web.billing.features.custom_branding": {
-    "text": "사용자 지정 브랜딩",
-    "sha256": "237dabec"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "브랜드 홈페이지",
-    "sha256": "e355a396"
-  },
-  "web.billing.features.manage_teams": {
-    "text": "팀 관리",
-    "sha256": "6bcbac8f"
-  },
-  "web.billing.features.manage_members": {
-    "text": "멤버 관리",
-    "sha256": "b38b89db"
-  },
-  "web.billing.features.audit_logs": {
-    "text": "감사 로그",
-    "sha256": "5428d7fe"
-  },
-  "web.billing.features.sso": {
-    "text": "싱글 사인온(SSO)",
-    "sha256": "5db5c812"
-  },
-  "web.billing.features.priority_support": {
-    "text": "우선 지원",
-    "sha256": "ed8a65c8"
-  },
-  "web.billing.features.sla": {
-    "text": "서비스 수준 계약",
-    "sha256": "436f2550"
-  },
-  "web.billing.features.centralized_billing": {
-    "text": "중앙 집중식 결제",
-    "sha256": "62042d3b"
-  },
-  "web.billing.features.audit_trail": {
-    "text": "감사 추적",
-    "sha256": "d52b4039"
-  },
-  "web.billing.features.activity_stream": {
-    "text": "활동 스트림",
-    "sha256": "b9c6cba7"
-  },
-  "web.billing.features.handoff_workflows": {
-    "text": "핸드오프 워크플로",
-    "sha256": "07202af3"
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "작업 공간 브랜딩",
+    "sha256": "e7acbf6f"
   },
   "web.billing.features.extended_retention": {
     "text": "30일 비밀 메시지 보존",
     "sha256": "21d6d514"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "홈페이지 비밀 메시지",
-    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
     "text": "수신 비밀 메시지",
@@ -758,76 +886,107 @@
     "text": "공유 워크플로",
     "sha256": "158f558e"
   },
-  "web.billing.overview.billing_for_organization": {
-    "text": "이 조직의 결제",
-    "sha256": "21806992"
+  "web.billing.currency_migration.title": {
+    "text": "통화 변경 필요",
+    "context": "Modal title when plan requires different currency than current subscription",
+    "sha256": "a1b2c3d4"
   },
-  "web.billing.overview.upgrade_success": {
-    "text": "요금제가 성공적으로 업그레이드되었습니다",
-    "sha256": "00ac43f8"
+  "web.billing.currency_migration.description": {
+    "text": "현재 구독은 {from}을(를) 사용합니다. 선택한 플랜은 {to}(으)로 청구됩니다. 구독을 새 통화로 전환해야 합니다.",
+    "sha256": "b2c3d4e5"
   },
-  "web.billing.overview.upgrade_success_description": {
-    "text": "새 요금제가 활성화되었습니다. 구매해 주셔서 감사합니다.",
-    "sha256": "fd1caeb1"
+  "web.billing.currency_migration.current_plan": {
+    "text": "현재 플랜:",
+    "sha256": "c3d4e5f6"
   },
-  "web.billing.overview.billing_contact": {
-    "text": "결제 담당자",
-    "sha256": "8f782ad8"
+  "web.billing.currency_migration.new_plan": {
+    "text": "새 플랜:",
+    "sha256": "d4e5f6a7"
   },
-  "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "홈페이지 비밀 메시지",
-    "sha256": "6360f7ec"
+  "web.billing.currency_migration.current_period_ends": {
+    "text": "현재 기간 종료:",
+    "sha256": "e5f6a7b8"
   },
-  "web.billing.overview.entitlements.notifications": {
-    "text": "이메일 알림",
-    "sha256": "04e0f1e9"
+  "web.billing.currency_migration.choose_timing": {
+    "text": "전환은 언제 진행할까요?",
+    "sha256": "f6a7b8c9"
   },
-  "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "IP 접근 규칙",
-    "sha256": "db966d47"
+  "web.billing.currency_migration.graceful_title": {
+    "text": "결제 기간 종료 시 전환",
+    "sha256": "a7b8c9d0"
   },
-  "web.billing.overview.entitlements.workspace_branding": {
-    "text": "작업 공간 브랜딩",
-    "sha256": "e7acbf6f"
+  "web.billing.currency_migration.graceful_description": {
+    "text": "현재 플랜은 {date}까지 유지됩니다. 이후 새 플랜의 결제를 완료하게 됩니다.",
+    "sha256": "b8c9d0e1"
   },
-  "web.billing.plans.due_today": {
-    "text": "오늘 결제:",
-    "sha256": "e370e3aa"
+  "web.billing.currency_migration.immediate_title": {
+    "text": "즉시 전환",
+    "sha256": "c9d0e1f2"
   },
-  "web.billing.plans.next_billing": {
-    "text": "다음 결제 ({date}):",
-    "sha256": "a6846a85"
+  "web.billing.currency_migration.immediate_description": {
+    "text": "현재 플랜이 즉시 취소됩니다. 미사용 기간에 대한 환불을 받고 새 플랜의 결제를 완료하게 됩니다.",
+    "sha256": "d0e1f2a3"
   },
-  "web.billing.plans.credit_applies_heading": {
-    "text": "크레딧 적용 방법:",
-    "sha256": "a0943c3b"
+  "web.billing.currency_migration.confirm": {
+    "text": "통화 변경 확인",
+    "sha256": "e1f2a3b4"
   },
-  "web.billing.plans.next_bill_amount": {
-    "text": "다음 청구 금액:",
-    "sha256": "526ad28f"
+  "web.billing.currency_migration.error": {
+    "text": "통화 전환에 실패했습니다. 다시 시도해 주세요.",
+    "sha256": "f2a3b4c5"
   },
-  "web.billing.plans.credit_applied_to_bill": {
-    "text": "적용된 크레딧:",
-    "sha256": "e5f2e81a"
+  "web.billing.currency_migration.success": {
+    "text": "구독 통화가 성공적으로 업데이트되었습니다.",
+    "sha256": "a3b4c5d6"
   },
-  "web.billing.plans.amount_due_next_billing": {
-    "text": "다음 결제 시 청구 금액:",
-    "sha256": "22ee868a"
+  "web.billing.currency_migration.graceful_success": {
+    "text": "현재 플랜은 결제 기간이 끝날 때까지 유지됩니다. 이후 새 플랜의 결제를 완료하라는 안내를 받게 됩니다.",
+    "sha256": "b4c5d6e7"
   },
-  "web.billing.plans.remaining_account_credit": {
-    "text": "남은 계정 크레딧:",
-    "sha256": "eedd0c0a"
+  "web.billing.currency_migration.warning_credit_balance": {
+    "text": "{currency}의 크레딧 잔액이 있으며 새 통화로 이전할 수 없습니다.",
+    "sha256": "c5d6e7f8"
   },
-  "web.billing.plans.credit_future_note": {
-    "text": "향후 청구서에 적용됨",
-    "sha256": "5007add6"
+  "web.billing.currency_migration.warning_pending_items": {
+    "text": "전환 전에 처리해야 할 미결 청구 항목이 있습니다.",
+    "sha256": "d6e7f8a9"
   },
-  "web.billing.subscription.team_usage": {
-    "text": "팀 사용량",
-    "sha256": "f9989642"
+  "web.billing.currency_migration.warning_coupons": {
+    "text": "계정의 활성 쿠폰이 새 통화와 호환되지 않을 수 있습니다.",
+    "sha256": "e7f8a9b0"
   },
-  "web.billing.subscription.teams_used": {
-    "text": "{limit}개 팀 중 {used}개 사용",
-    "sha256": "1db6b53c"
+  "web.billing.currency_migration.pending_title": {
+    "text": "통화 전환 대기 중",
+    "context": "Banner heading when graceful migration is scheduled",
+    "sha256": "f8a9b0c1"
+  },
+  "web.billing.currency_migration.pending_description": {
+    "text": "현재 플랜은 {date}에 종료됩니다. {plan} ({currency})으로의 전환을 완료하세요.",
+    "sha256": "a9b0c1d2"
+  },
+  "web.billing.currency_migration.complete_migration": {
+    "text": "전환 완료",
+    "context": "Button to start checkout for the new currency plan",
+    "sha256": "b0c1d2e3"
+  },
+  "web.billing.checkout_session_failed": {
+    "text": "결제 세션을 생성하지 못했습니다",
+    "context": "Error when Stripe checkout session creation returns no URL",
+    "sha256": "c1d2e3f4"
+  },
+  "web.billing.checkout_initiate_failed": {
+    "text": "결제를 시작하지 못했습니다",
+    "context": "Fallback error for checkout failures",
+    "sha256": "d2e3f4a5"
+  },
+  "web.billing.plan_switch_success": {
+    "text": "{plan}(으)로 전환되었습니다",
+    "context": "Success message after plan change",
+    "sha256": "e3f4a5b6"
+  },
+  "web.billing.plan_unavailable_region_mismatch": {
+    "text": "기존 구독 지역에서만 사용 가능",
+    "context": "Hint shown on plan cards when currency does not match active subscription",
+    "sha256": "f4a5b6c7"
   }
 }

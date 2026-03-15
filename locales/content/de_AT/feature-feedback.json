@@ -31,17 +31,13 @@
     "text": "Hilfeinhalt kommt hierher.",
     "sha256": "796979ea"
   },
-  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Danke, dass Sie Onetime Secret geholfen haben, sich zu verbessern. Das bedeutet mir sehr viel."
+  "web.feedback.founder_note_line1": {
+    "text": "Ich lese jede Rückmeldung, die hier eingeht. So finde ich heraus, worauf ich meine Zeit verwenden sollte.",
+    "sha256": "8b430d93"
   },
-  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
-    "text": "Wir haben dieses Tool entwickelt, um Ihnen zu helfen, vertrauliche Informationen sicher auszutauschen, und Ihre Erfahrungen aus der Praxis sind entscheidend für die Ausrichtung unserer Bemühungen. Sie helfen uns, herauszufinden, woran wir als Nächstes arbeiten und wie wir den Dienst für alle verbessern können."
-  },
-  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
-    "text": "Hallo, danke, dass Sie auf unserer Rückmeldung-Seite vorbeischauen. Ihr Beitrag ist nicht nur willkommen - er ist entscheidend."
-  },
-  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Eine Anmerkung von Delano, dem Gründer von Onetime Secret"
+  "web.feedback.founder_note_line2": {
+    "text": "Wenn etwas nicht stimmt oder Sie Ideen haben, wie es funktionieren sollte, ist dies der richtige Ort.",
+    "sha256": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
     "text": "Rückmeldungsformular öffnen",
@@ -55,12 +51,12 @@
     "text": "Rückmeldung senden",
     "sha256": "8235980b"
   },
-  "web.feedback.founder_note_line1": {
-    "text": "Ich lese jede Rückmeldung, die hier eingeht. So finde ich heraus, worauf ich meine Zeit verwenden sollte.",
-    "sha256": "8b430d93"
+  "web.feedback.sending_ellipses": {
+    "text": "Wird gesendet...",
+    "sha256": "a1b2c3d4"
   },
-  "web.feedback.founder_note_line2": {
-    "text": "Wenn etwas nicht stimmt oder Sie Ideen haben, wie es funktionieren sollte, ist dies der richtige Ort.",
-    "sha256": "d4b8f073"
+  "web.feedback.reason_email_change_unauthorized": {
+    "text": "Es sieht so aus, als würden Sie eine nicht autorisierte E-Mail-Änderung an Ihrem Konto melden. Bitte beschreiben Sie, was passiert ist, und wir werden dies umgehend untersuchen.",
+    "sha256": "b2c3d4e5"
   }
 }

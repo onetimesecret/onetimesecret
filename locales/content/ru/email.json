@@ -151,6 +151,14 @@
     "text": "Эта ссылка сработает только один раз. После просмотра секрет будет безвозвратно удалён.",
     "sha256": "fecaf0a1"
   },
+  "email.incoming_secret.passphrase_required": {
+    "text": "Этот секрет защищён кодовой фразой. Отправитель должен передать её Вам отдельно.",
+    "sha256": ""
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "Требуется кодовая фраза:",
+    "sha256": ""
+  },
   "email.incoming_secret.sent_via": {
     "text": "Отправлено через",
     "sha256": "d01479b3"
@@ -327,9 +335,77 @@
     "text": "Если Вы не вносили это изменение, немедленно свяжитесь со службой поддержки, так как Ваш аккаунт может быть скомпрометирован.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "Адрес электронной почты в Вашем аккаунте %{product_name} был изменён.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "Новый адрес:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "Изменено:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "Если Вы сделали это изменение, никаких дополнительных действий не требуется.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "Если Вы не вносили это изменение, Ваш аккаунт мог быть скомпрометирован.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "Связаться с поддержкой",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "P.S. Это письмо было отправлено на %{email_address}, чтобы уведомить Вас о смене адреса электронной почты.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "Запрос на смену электронной почты (%{display_domain})",
+    "sha256": ""
+  },
+  "email.email_change_requested.title": {
+    "text": "Запрос на смену электронной почты",
+    "sha256": ""
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "Был получен запрос на смену адреса электронной почты в Вашем аккаунте %{product_name}.",
+    "sha256": ""
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "Запрошенный новый адрес:",
+    "sha256": ""
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "Запрошено:",
+    "sha256": ""
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "Если Вы сделали этот запрос, проверьте новый адрес электронной почты на наличие ссылки для подтверждения. Изменения ещё не были внесены.",
+    "sha256": ""
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "Если Вы не делали этот запрос, можете спокойно проигнорировать это письмо. Ваш аккаунт не был изменён.",
+    "sha256": ""
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "Связаться с поддержкой",
+    "sha256": ""
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": ""
+  },
+  "email.email_change_requested.postscript": {
+    "text": "P.S. Это письмо было отправлено на %{email_address}, так как был запрошен запрос на смену адреса электронной почты для Вашего аккаунта.",
+    "sha256": ""
   },
   "email.email_change_confirmation.subject": {
     "text": "Подтвердите Ваш новый адрес электронной почты (%{display_domain})",
@@ -347,13 +423,33 @@
     "text": "Подтвердить адрес электронной почты",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "Был получен запрос на смену адреса электронной почты в Вашем аккаунте %{product_name} на %{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "Подтвердить смену почты",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Или скопируйте и вставьте эту ссылку:",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "Срок действия этой ссылки истекает через %{hours} часов.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "Если Вы не запрашивали это изменение, можете спокойно проигнорировать это письмо. Ваш адрес электронной почты не будет изменён.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "P.S. Это письмо было отправлено на %{email_address} для подтверждения смены адреса электронной почты.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "Двухфакторная аутентификация включена (%{display_domain})",

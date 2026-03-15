@@ -31,17 +31,13 @@
     "text": "תוכן העזרה יופיע כאן.",
     "sha256": "796979ea"
   },
-  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "תודה על העזרה ב-Onetime Secret להשתפר. זה אומר הרבה."
+  "web.feedback.founder_note_line1": {
+    "text": "אני קורא כל משוב שמגיע לכאן. כך אני מבין על מה להשקיע זמן.",
+    "sha256": "8b430d93"
   },
-  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
-    "text": "בנינו כלי זה כדי לעזור לכם לשתף מידע רגיש בצורה מאובטחת, והניסיון שלכם בעולם האמיתי חיוני למיקוד המאמצים שלנו. זה עוזר לנו להבין על מה לעבוד בהמשך וכיצד להפוך את השירות לטוב יותר עבור כולם."
-  },
-  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
-    "text": "היי, תודה שעצרתם בעמוד המשוב שלנו. הקלט שלכם לא רק מתקבל בברכה - הוא קריטי."
-  },
-  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "הערה מ-Delano, מייסד Onetime Secret"
+  "web.feedback.founder_note_line2": {
+    "text": "אם משהו לא בסדר, או שיש לך רעיונות איך זה צריך לעבוד, זה המקום הנכון.",
+    "sha256": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
     "text": "פתח טופס משוב",
@@ -55,12 +51,12 @@
     "text": "שלח משוב",
     "sha256": "8235980b"
   },
-  "web.feedback.founder_note_line1": {
-    "text": "אני קורא כל משוב שמגיע לכאן. כך אני מבין על מה להשקיע זמן.",
-    "sha256": "8b430d93"
+  "web.feedback.sending_ellipses": {
+    "text": "שולח...",
+    "sha256": "a1b2c3d4"
   },
-  "web.feedback.founder_note_line2": {
-    "text": "אם משהו לא בסדר, או שיש לך רעיונות איך זה צריך לעבוד, זה המקום הנכון.",
-    "sha256": "d4b8f073"
+  "web.feedback.reason_email_change_unauthorized": {
+    "text": "נראה שאתה מדווח על שינוי דואר אלקטרוני בלתי מורשה בחשבונך. תאר מה קרה ואנחנו נחקור מיד.",
+    "sha256": "b2c3d4e5"
   }
 }

@@ -166,5 +166,9 @@
   "web.branding.switch_to_safari_preview": {
     "text": "切换到 Safari 预览",
     "sha256": "f24ac447"
+  },
+  "web.branding.upgrade_to_customize": {
+    "text": "升级方案以自定义此域名的品牌。",
+    "sha256": "placeholder"
   }
 }

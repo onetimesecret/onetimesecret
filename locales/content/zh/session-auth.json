@@ -23,6 +23,86 @@
     "text": "记住我",
     "sha256": "f93267aa"
   },
+  "web.login.send_sign_in_link": {
+    "text": "发送登录链接",
+    "sha256": "b1402b67"
+  },
+  "web.login.secure_link_helper": {
+    "text": "安全链接将发送到您的邮箱。",
+    "sha256": "d31d20cf"
+  },
+  "web.login.or_divider": {
+    "text": "或",
+    "sha256": "7175517a"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "使用密码登录",
+    "sha256": "bedac809"
+  },
+  "web.login.use_passwordless": {
+    "text": "使用无密码登录",
+    "sha256": "dddc0097"
+  },
+  "web.login.create_account": {
+    "text": "创建账户",
+    "sha256": "798ca2ce"
+  },
+  "web.login.return_home": {
+    "text": "返回首页",
+    "sha256": "bbcc935e"
+  },
+  "web.login.tab_password": {
+    "text": "密码",
+    "sha256": "e7cf3ef4"
+  },
+  "web.login.tab_magic_link": {
+    "text": "魔法链接",
+    "sha256": "7a9ba11a"
+  },
+  "web.login.tab_passkey": {
+    "text": "通行密钥",
+    "sha256": ""
+  },
+  "web.login.need_help": {
+    "text": "需要帮助？",
+    "sha256": "c225cdfb"
+  },
+  "web.login.or_continue_with": {
+    "text": "或继续使用",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "使用 SSO 登录",
+    "sha256": ""
+  },
+  "web.login.sign_in_with_provider": {
+    "text": "使用 {provider} 登录",
+    "sha256": "b8794f11"
+  },
+  "web.auth.sso.signing_in": {
+    "text": "正在跳转到身份提供商...",
+    "sha256": ""
+  },
+  "web.auth.sso.error": {
+    "text": "SSO 登录失败。请重试。",
+    "sha256": ""
+  },
+  "web.login.errors.sso_failed": {
+    "text": "SSO 认证失败。请重试或使用密码登录。",
+    "sha256": "13a2210a"
+  },
+  "web.login.errors.token_missing": {
+    "text": "认证链接不完整。请申请新的登录链接。",
+    "sha256": "f4a10652"
+  },
+  "web.login.errors.token_expired": {
+    "text": "此登录链接已过期。请申请新的链接。",
+    "sha256": "f0de42ec"
+  },
+  "web.login.errors.token_invalid": {
+    "text": "此登录链接无效。请申请新的链接。",
+    "sha256": "270c6401"
+  },
   "web.signup.create_your_account": {
     "text": "创建您的账户",
     "sha256": "5f4c33d7"
@@ -46,6 +126,9 @@
   "web.signup.email_error": {
     "text": "邮箱",
     "sha256": "969ccbd3"
+  },
+  "web.auth.verify._guidance": {
+    "context": "Email verification flow after signup"
   },
   "web.auth.verify.title": {
     "text": "验证您的账户",
@@ -173,6 +256,7 @@
   },
   "web.auth.password_reset.title": {
     "text": "设置新密码",
+    "context": "Password reset request flow - user requests a reset link",
     "sha256": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
@@ -189,6 +273,7 @@
   },
   "web.auth.account.title": {
     "text": "账户信息",
+    "context": "User account overview/dashboard section",
     "sha256": "4e59b6c7"
   },
   "web.auth.account.email": {
@@ -255,9 +340,6 @@
     "text": "关闭账户",
     "sha256": "e1513814"
   },
-  "web.auth.verify._guidance.context": {
-    "text": "注册后的邮箱验证流程"
-  },
   "web.help.title": {
     "text": "帮助与支持",
     "sha256": "1f8ecc24"
@@ -313,65 +395,5 @@
   "web.help.contact_support": {
     "text": "联系支持",
     "sha256": "f8d47b82"
-  },
-  "web.login.send_sign_in_link": {
-    "text": "发送登录链接",
-    "sha256": "b1402b67"
-  },
-  "web.login.secure_link_helper": {
-    "text": "安全链接将发送到您的邮箱。",
-    "sha256": "d31d20cf"
-  },
-  "web.login.or_divider": {
-    "text": "或",
-    "sha256": "7175517a"
-  },
-  "web.login.sign_in_with_password": {
-    "text": "使用密码登录",
-    "sha256": "bedac809"
-  },
-  "web.login.use_passwordless": {
-    "text": "使用无密码登录",
-    "sha256": "dddc0097"
-  },
-  "web.login.create_account": {
-    "text": "创建账户",
-    "sha256": "798ca2ce"
-  },
-  "web.login.return_home": {
-    "text": "返回首页",
-    "sha256": "bbcc935e"
-  },
-  "web.login.tab_password": {
-    "text": "密码",
-    "sha256": "e7cf3ef4"
-  },
-  "web.login.tab_magic_link": {
-    "text": "魔法链接",
-    "sha256": "7a9ba11a"
-  },
-  "web.login.tab_passkey": {
-    "text": "通行密钥",
-    "sha256": ""
-  },
-  "web.login.or_continue_with": {
-    "text": "或继续使用",
-    "sha256": ""
-  },
-  "web.login.sign_in_with_sso": {
-    "text": "使用 SSO 登录",
-    "sha256": ""
-  },
-  "web.auth.sso.signing_in": {
-    "text": "正在跳转到身份提供商...",
-    "sha256": ""
-  },
-  "web.auth.sso.error": {
-    "text": "SSO 登录失败。请重试。",
-    "sha256": ""
-  },
-  "web.login.need_help": {
-    "text": "需要帮助？",
-    "sha256": "c225cdfb"
   }
 }

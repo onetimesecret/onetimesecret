@@ -1,4 +1,12 @@
 {
+  "web.billing.subscription_synced_title": {
+    "text": "Assinatura sincronizada",
+    "sha256": "3086ef43"
+  },
+  "web.billing.subscription_synced_description": {
+    "text": "Os benefícios da sua assinatura foram sincronizados de outra região.",
+    "sha256": "a99b7a98"
+  },
   "web.billing.upgrade.required": {
     "text": "Upgrade Necessário",
     "sha256": "16487236"
@@ -35,8 +43,9 @@
     "text": "Visualize e gerencie sua assinatura e detalhes de pagamento",
     "sha256": "60e5a00e"
   },
-  "web.billing.overview.organization_selector": {
-    "text": "Selecionar Organização"
+  "web.billing.overview.billing_for_organization": {
+    "text": "Cobrança para esta organização",
+    "sha256": "21806992"
   },
   "web.billing.overview.current_plan": {
     "text": "Plano Atual",
@@ -73,6 +82,22 @@
   "web.billing.overview.change_plan": {
     "text": "Alterar Plano",
     "sha256": "2d0b195b"
+  },
+  "web.billing.overview.manage_subscription": {
+    "text": "Gerenciar assinatura",
+    "sha256": "cbc4ef92"
+  },
+  "web.billing.plans.legacy_plan_info": {
+    "text": "Você está em um plano legado com preço especial.",
+    "sha256": "e9aa8bf0"
+  },
+  "web.billing.plans.early_supporter_plan": {
+    "text": "Identity Plus (Apoiador inicial)",
+    "sha256": "f37cd0d9"
+  },
+  "web.billing.plans.legacy_plan_warning": {
+    "text": "Trocar de plano fará você perder sua tarifa legada. Isso não pode ser desfeito.",
+    "sha256": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
     "text": "Nenhum método de pagamento cadastrado",
@@ -122,6 +147,22 @@
     "text": "Crie uma organização para gerenciar sua cobrança e assinatura",
     "sha256": "41e922d2"
   },
+  "web.billing.overview.load_error": {
+    "text": "Falha ao carregar informações de cobrança",
+    "sha256": "d4e5f6a7"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "Seu plano foi atualizado com sucesso",
+    "sha256": "00ac43f8"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Seu novo plano está ativo agora. Obrigado pela sua compra.",
+    "sha256": "fd1caeb1"
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Contato de Cobrança",
+    "sha256": "8f782ad8"
+  },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "Criar Mensagens Confidenciais",
     "sha256": "0320541d"
@@ -155,8 +196,8 @@
     "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Página Inicial com Marca",
-    "sha256": "e355a396"
+    "text": "Mensagens Confidenciais na Página Inicial",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "Mensagens Confidenciais Recebidas",
@@ -198,6 +239,74 @@
     "text": "Nenhum recurso disponível",
     "sha256": "03d195e8"
   },
+  "web.billing.features.create_secrets": {
+    "text": "Criar e Compartilhar Mensagens Confidenciais",
+    "sha256": "303f9386"
+  },
+  "web.billing.features.api_access": {
+    "text": "Acesso à API",
+    "sha256": "5f31cc2f"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Domínios Personalizados",
+    "sha256": "6170ab94"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 Domínio Personalizado",
+    "sha256": "6a6be744"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Domínios Personalizados Ilimitados",
+    "sha256": "53eb7521"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Marca Personalizada",
+    "sha256": "237dabec"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Mensagens Confidenciais na Página Inicial",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Gerenciamento de Equipes",
+    "sha256": "6bcbac8f"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Gerenciamento de Membros",
+    "sha256": "b38b89db"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Logs de Auditoria",
+    "sha256": "5428d7fe"
+  },
+  "web.billing.features.sso": {
+    "text": "Single Sign-On (SSO)",
+    "sha256": "5db5c812"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Suporte Prioritário",
+    "sha256": "ed8a65c8"
+  },
+  "web.billing.features.sla": {
+    "text": "Acordo de Nível de Serviço",
+    "sha256": "436f2550"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Cobrança Centralizada",
+    "sha256": "62042d3b"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Trilha de Auditoria",
+    "sha256": "d52b4039"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Fluxo de Atividades",
+    "sha256": "b9c6cba7"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Fluxos de Trabalho de Transferência",
+    "sha256": "07202af3"
+  },
   "web.billing.plans.title": {
     "text": "Selecione um Plano",
     "sha256": "79506c82"
@@ -225,6 +334,10 @@
   "web.billing.plans.downgrade": {
     "text": "Downgrade",
     "sha256": "d955b7e8"
+  },
+  "web.billing.plans.cancel_to_downgrade": {
+    "text": "Cancelar para trocar",
+    "sha256": "1c4cda89"
   },
   "web.billing.plans.monthly": {
     "text": "Mensal",
@@ -330,6 +443,10 @@
     "text": "Nenhum plano {interval} disponível no momento.",
     "sha256": "d8454436"
   },
+  "web.billing.plans.load_error": {
+    "text": "Falha ao carregar planos",
+    "sha256": "e5f6a7b8"
+  },
   "web.billing.plans.change_immediate": {
     "text": "Seu plano será alterado imediatamente.",
     "sha256": "889d13be"
@@ -345,6 +462,14 @@
   "web.billing.plans.credit_label": {
     "text": "Crédito por tempo não utilizado:",
     "sha256": "001e4901"
+  },
+  "web.billing.plans.due_today": {
+    "text": "Valor devido hoje:",
+    "sha256": "e370e3aa"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Próxima cobrança ({date}):",
+    "sha256": "a6846a85"
   },
   "web.billing.plans.next_invoice": {
     "text": "Próxima fatura",
@@ -374,6 +499,30 @@
     "text": "Fazer downgrade para {plan}?",
     "sha256": "8eb8ea81"
   },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Como seu crédito se aplica:",
+    "sha256": "a0943c3b"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Valor da próxima cobrança:",
+    "sha256": "526ad28f"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Crédito aplicado:",
+    "sha256": "e5f2e81a"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Valor devido na próxima cobrança:",
+    "sha256": "22ee868a"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Crédito restante na conta:",
+    "sha256": "eedd0c0a"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Aplicado a faturas futuras",
+    "sha256": "5007add6"
+  },
   "web.billing.invoices.title": {
     "text": "Histórico de Cobrança",
     "sha256": "5ade0861"
@@ -398,9 +547,21 @@
     "text": "Baixar",
     "sha256": "d6eafe82"
   },
+  "web.billing.invoices.invoice_number": {
+    "text": "Fatura #",
+    "sha256": "a1c2d3e4"
+  },
   "web.billing.invoices.no_invoices": {
     "text": "Nenhuma fatura ainda",
     "sha256": "92d2d0ce"
+  },
+  "web.billing.invoices.no_invoices_description": {
+    "text": "Suas faturas aparecerão aqui assim que você fizer upgrade para um plano pago",
+    "sha256": "b2c3d4e5"
+  },
+  "web.billing.invoices.view_plans": {
+    "text": "Ver planos",
+    "sha256": "c3d4e5f6"
   },
   "web.billing.invoices.paid": {
     "text": "Pago",
@@ -417,6 +578,18 @@
   "web.billing.invoices.draft": {
     "text": "Rascunho",
     "sha256": "d2e16e61"
+  },
+  "web.billing.invoices.open": {
+    "text": "Em aberto",
+    "sha256": "a2b3c4d5"
+  },
+  "web.billing.invoices.uncollectible": {
+    "text": "Incobrável",
+    "sha256": "b3c4d5e6"
+  },
+  "web.billing.invoices.void": {
+    "text": "Anulada",
+    "sha256": "c4d5e6f7"
   },
   "web.billing.invoices.load_error": {
     "text": "Falha ao carregar faturas",
@@ -465,6 +638,14 @@
   "web.billing.subscription.catalog_name": {
     "text": "Plano",
     "sha256": "fa8ed0bd"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Uso de Equipes",
+    "sha256": "f9989642"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} de {limit} equipes",
+    "sha256": "1db6b53c"
   },
   "web.billing.portal.title": {
     "text": "Portal de Cobrança",
@@ -580,10 +761,12 @@
   },
   "web.billing.cancel.link_text": {
     "text": "Cancelar assinatura",
+    "context": "Link text shown below the plan selector for paid users",
     "sha256": "3f85967f"
   },
   "web.billing.cancel.title": {
     "text": "Cancelar Assinatura",
+    "context": "Modal dialog heading/title",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
@@ -612,10 +795,12 @@
   },
   "web.billing.cancel.keep_subscription": {
     "text": "Manter Assinatura",
+    "context": "Secondary button in modal - keeps subscription active",
     "sha256": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
     "text": "Cancelar Assinatura",
+    "context": "Primary action button in modal - confirms the cancellation",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
@@ -628,91 +813,34 @@
   },
   "web.billing.cancel.scheduled_title": {
     "text": "Cancelamento de Assinatura Agendado",
+    "context": "Alert banner heading shown when cancellation is pending",
     "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
     "text": "Sua assinatura permanecerá ativa até {date}. Você continuará tendo acesso completo a todos os recursos até lá.",
+    "context": "Alert banner description explaining continued access",
     "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
     "text": "Mudou de ideia? Você pode reativar sua assinatura a qualquer momento antes da data de cancelamento.",
+    "context": "Alert banner note encouraging reactivation",
     "sha256": "c94d5527"
   },
-  "web.billing.features.create_secrets": {
-    "text": "Criar e Compartilhar Mensagens Confidenciais",
-    "sha256": "303f9386"
+  "web.billing.overview.entitlements.notifications": {
+    "text": "Notificações por E-mail",
+    "sha256": "04e0f1e9"
   },
-  "web.billing.features.api_access": {
-    "text": "Acesso à API",
-    "sha256": "5f31cc2f"
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "Regras de Acesso por IP",
+    "sha256": "db966d47"
   },
-  "web.billing.features.custom_domains": {
-    "text": "Domínios Personalizados",
-    "sha256": "6170ab94"
-  },
-  "web.billing.features.custom_domain": {
-    "text": "1 Domínio Personalizado",
-    "sha256": "6a6be744"
-  },
-  "web.billing.features.unlimited_custom_domains": {
-    "text": "Domínios Personalizados Ilimitados",
-    "sha256": "53eb7521"
-  },
-  "web.billing.features.custom_branding": {
-    "text": "Marca Personalizada",
-    "sha256": "237dabec"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "Página Inicial com Marca",
-    "sha256": "e355a396"
-  },
-  "web.billing.features.manage_teams": {
-    "text": "Gerenciamento de Equipes",
-    "sha256": "6bcbac8f"
-  },
-  "web.billing.features.manage_members": {
-    "text": "Gerenciamento de Membros",
-    "sha256": "b38b89db"
-  },
-  "web.billing.features.audit_logs": {
-    "text": "Logs de Auditoria",
-    "sha256": "5428d7fe"
-  },
-  "web.billing.features.sso": {
-    "text": "Single Sign-On (SSO)",
-    "sha256": "5db5c812"
-  },
-  "web.billing.features.priority_support": {
-    "text": "Suporte Prioritário",
-    "sha256": "ed8a65c8"
-  },
-  "web.billing.features.sla": {
-    "text": "Acordo de Nível de Serviço",
-    "sha256": "436f2550"
-  },
-  "web.billing.features.centralized_billing": {
-    "text": "Cobrança Centralizada",
-    "sha256": "62042d3b"
-  },
-  "web.billing.features.audit_trail": {
-    "text": "Trilha de Auditoria",
-    "sha256": "d52b4039"
-  },
-  "web.billing.features.activity_stream": {
-    "text": "Fluxo de Atividades",
-    "sha256": "b9c6cba7"
-  },
-  "web.billing.features.handoff_workflows": {
-    "text": "Fluxos de Trabalho de Transferência",
-    "sha256": "07202af3"
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Marca do Espaço de Trabalho",
+    "sha256": "e7acbf6f"
   },
   "web.billing.features.extended_retention": {
     "text": "Retenção de 30 dias",
     "sha256": "21d6d514"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "Mensagens Confidenciais na Página Inicial",
-    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
     "text": "Mensagens Confidenciais Recebidas",
@@ -758,76 +886,107 @@
     "text": "Fluxos de Trabalho Compartilhados",
     "sha256": "158f558e"
   },
-  "web.billing.overview.billing_for_organization": {
-    "text": "Cobrança para esta organização",
-    "sha256": "21806992"
+  "web.billing.currency_migration.title": {
+    "text": "Alteração de moeda necessária",
+    "context": "Modal title when plan requires different currency than current subscription",
+    "sha256": "a1b2c3d4"
   },
-  "web.billing.overview.upgrade_success": {
-    "text": "Seu plano foi atualizado com sucesso",
-    "sha256": "00ac43f8"
+  "web.billing.currency_migration.description": {
+    "text": "Sua assinatura atual usa {from}. O plano selecionado é cobrado em {to}. Isso requer migrar sua assinatura para a nova moeda.",
+    "sha256": "b2c3d4e5"
   },
-  "web.billing.overview.upgrade_success_description": {
-    "text": "Seu novo plano está ativo agora. Obrigado pela sua compra.",
-    "sha256": "fd1caeb1"
+  "web.billing.currency_migration.current_plan": {
+    "text": "Plano atual:",
+    "sha256": "c3d4e5f6"
   },
-  "web.billing.overview.billing_contact": {
-    "text": "Contato de Cobrança",
-    "sha256": "8f782ad8"
+  "web.billing.currency_migration.new_plan": {
+    "text": "Novo plano:",
+    "sha256": "d4e5f6a7"
   },
-  "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Mensagens Confidenciais na Página Inicial",
-    "sha256": "6360f7ec"
+  "web.billing.currency_migration.current_period_ends": {
+    "text": "Período atual termina em:",
+    "sha256": "e5f6a7b8"
   },
-  "web.billing.overview.entitlements.notifications": {
-    "text": "Notificações por E-mail",
-    "sha256": "04e0f1e9"
+  "web.billing.currency_migration.choose_timing": {
+    "text": "Quando a troca deve acontecer?",
+    "sha256": "f6a7b8c9"
   },
-  "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "Regras de Acesso por IP",
-    "sha256": "db966d47"
+  "web.billing.currency_migration.graceful_title": {
+    "text": "Trocar no final do período de cobrança",
+    "sha256": "a7b8c9d0"
   },
-  "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Marca do Espaço de Trabalho",
-    "sha256": "e7acbf6f"
+  "web.billing.currency_migration.graceful_description": {
+    "text": "Seu plano atual permanece ativo até {date}. Depois disso, você concluirá o checkout do seu novo plano.",
+    "sha256": "b8c9d0e1"
   },
-  "web.billing.plans.due_today": {
-    "text": "Valor devido hoje:",
-    "sha256": "e370e3aa"
+  "web.billing.currency_migration.immediate_title": {
+    "text": "Trocar imediatamente",
+    "sha256": "c9d0e1f2"
   },
-  "web.billing.plans.next_billing": {
-    "text": "Próxima cobrança ({date}):",
-    "sha256": "a6846a85"
+  "web.billing.currency_migration.immediate_description": {
+    "text": "Seu plano atual é cancelado agora. Você receberá um reembolso pelo tempo não utilizado e concluirá o checkout do novo plano.",
+    "sha256": "d0e1f2a3"
   },
-  "web.billing.plans.credit_applies_heading": {
-    "text": "Como seu crédito se aplica:",
-    "sha256": "a0943c3b"
+  "web.billing.currency_migration.confirm": {
+    "text": "Confirmar alteração de moeda",
+    "sha256": "e1f2a3b4"
   },
-  "web.billing.plans.next_bill_amount": {
-    "text": "Valor da próxima cobrança:",
-    "sha256": "526ad28f"
+  "web.billing.currency_migration.error": {
+    "text": "Falha na migração de moeda. Tente novamente.",
+    "sha256": "f2a3b4c5"
   },
-  "web.billing.plans.credit_applied_to_bill": {
-    "text": "Crédito aplicado:",
-    "sha256": "e5f2e81a"
+  "web.billing.currency_migration.success": {
+    "text": "A moeda da sua assinatura foi atualizada com sucesso.",
+    "sha256": "a3b4c5d6"
   },
-  "web.billing.plans.amount_due_next_billing": {
-    "text": "Valor devido na próxima cobrança:",
-    "sha256": "22ee868a"
+  "web.billing.currency_migration.graceful_success": {
+    "text": "Seu plano atual permanecerá ativo até o final do período de cobrança. Você será solicitado a concluir o checkout do seu novo plano depois disso.",
+    "sha256": "b4c5d6e7"
   },
-  "web.billing.plans.remaining_account_credit": {
-    "text": "Crédito restante na conta:",
-    "sha256": "eedd0c0a"
+  "web.billing.currency_migration.warning_credit_balance": {
+    "text": "Você tem um saldo de crédito em {currency} que não pode ser transferido para a nova moeda.",
+    "sha256": "c5d6e7f8"
   },
-  "web.billing.plans.credit_future_note": {
-    "text": "Aplicado a faturas futuras",
-    "sha256": "5007add6"
+  "web.billing.currency_migration.warning_pending_items": {
+    "text": "Você tem itens de fatura pendentes que precisam ser resolvidos antes da migração.",
+    "sha256": "d6e7f8a9"
   },
-  "web.billing.subscription.team_usage": {
-    "text": "Uso de Equipes",
-    "sha256": "f9989642"
+  "web.billing.currency_migration.warning_coupons": {
+    "text": "Cupons ativos na sua conta podem não ser compatíveis com a nova moeda.",
+    "sha256": "e7f8a9b0"
   },
-  "web.billing.subscription.teams_used": {
-    "text": "{used} de {limit} equipes",
-    "sha256": "1db6b53c"
+  "web.billing.currency_migration.pending_title": {
+    "text": "Migração de moeda pendente",
+    "context": "Banner heading when graceful migration is scheduled",
+    "sha256": "f8a9b0c1"
+  },
+  "web.billing.currency_migration.pending_description": {
+    "text": "Seu plano atual termina em {date}. Conclua sua troca para {plan} ({currency}).",
+    "sha256": "a9b0c1d2"
+  },
+  "web.billing.currency_migration.complete_migration": {
+    "text": "Concluir migração",
+    "context": "Button to start checkout for the new currency plan",
+    "sha256": "b0c1d2e3"
+  },
+  "web.billing.checkout_session_failed": {
+    "text": "Falha ao criar sessão de checkout",
+    "context": "Error when Stripe checkout session creation returns no URL",
+    "sha256": "c1d2e3f4"
+  },
+  "web.billing.checkout_initiate_failed": {
+    "text": "Falha ao iniciar checkout",
+    "context": "Fallback error for checkout failures",
+    "sha256": "d2e3f4a5"
+  },
+  "web.billing.plan_switch_success": {
+    "text": "Troca para {plan} realizada com sucesso",
+    "context": "Success message after plan change",
+    "sha256": "e3f4a5b6"
+  },
+  "web.billing.plan_unavailable_region_mismatch": {
+    "text": "Disponível apenas na sua região de assinatura original",
+    "context": "Hint shown on plan cards when currency does not match active subscription",
+    "sha256": "f4a5b6c7"
   }
 }

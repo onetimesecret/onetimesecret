@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "Nuvarande jurisdiktion:",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "Byta region",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "Vår policy är att aldrig överföra data mellan regioner. Varje region fungerar som en helt oberoende miljö.",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "För att använda en annan region, skapa ett nytt konto där med samma e-postadress som är kopplad till din faktureringskontakt.",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "Om din faktureringskontakts e-postadress skiljer sig från din Onetime Secret-kontos e-postadress, använd faktureringskontaktens e-postadress för det nya regionkontot för att behålla dina prenumerationsförmåner.",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "Dina prenumerationsförmåner gäller automatiskt för alla konton som skapas med din e-postadress för fakturering.",
+    "sha256": "5b2238b2"
   }
 }

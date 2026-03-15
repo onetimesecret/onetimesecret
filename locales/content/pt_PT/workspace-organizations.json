@@ -155,6 +155,14 @@
     "text": "Falha ao atualizar organização",
     "sha256": "bc2b59b8"
   },
+  "web.organizations.billing_email_updated": {
+    "text": "E-mail de faturação atualizado com sucesso",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "O e-mail de faturação pode ser alterado na página Visão Geral da Faturação",
+    "sha256": "8a131415"
+  },
   "web.organizations.billing_coming_soon": {
     "text": "Integração de Faturação Em Breve",
     "sha256": "d3e0ec75"
@@ -206,6 +214,10 @@
   "web.organizations.tabs.billing": {
     "text": "Faturação",
     "sha256": "3ac8bbca"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Subscrição",
+    "sha256": "4999c6c6"
   },
   "web.organizations.danger_zone": {
     "text": "Zona de Perigo",
@@ -515,17 +527,21 @@
     "text": "A carregar detalhes do convite",
     "sha256": "58884885"
   },
-  "web.organizations.billing_email_updated": {
-    "text": "E-mail de faturação atualizado com sucesso",
-    "sha256": "080a7f11"
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Atualize o seu plano para convidar membros da equipa",
+    "sha256": "5e3f8df8"
   },
-  "web.organizations.billing_email_managed_on_billing": {
-    "text": "O e-mail de faturação pode ser alterado na página Visão Geral da Faturação",
-    "sha256": "8a131415"
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Os convites para membros da equipa requerem um plano com gestão de equipas. Atualize para adicionar colaboradores à sua organização.",
+    "sha256": "cf10d623"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
     "sha256": "957b0b87"
+  },
+  "web.organizations.early_supporter_badge": {
+    "text": "Early Supporter",
+    "sha256": "e67d2ef8"
   },
   "web.organizations.member_count": {
     "text": "{count} membro | {count} membros",
@@ -535,13 +551,9 @@
     "text": "{count} domínio | {count} domínios",
     "sha256": "09f52efa"
   },
-  "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Atualize o seu plano para convidar membros da equipa",
-    "sha256": "5e3f8df8"
-  },
-  "web.organizations.invitations.upgrade_prompt": {
-    "text": "Os convites para membros da equipa requerem um plano com gestão de equipas. Atualize para adicionar colaboradores à sua organização.",
-    "sha256": "cf10d623"
+  "web.organizations.tabs.domains": {
+    "text": "Domínios",
+    "sha256": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Conta Errada",
@@ -566,13 +578,5 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Expira em breve",
     "sha256": "a5dcfef9"
-  },
-  "web.organizations.tabs.subscription": {
-    "text": "Subscrição",
-    "sha256": "4999c6c6"
-  },
-  "web.organizations.tabs.domains": {
-    "text": "Domínios",
-    "sha256": "ced67718"
   }
 }

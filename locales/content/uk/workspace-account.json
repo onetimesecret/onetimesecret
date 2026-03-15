@@ -155,6 +155,10 @@
     "text": "Видалення {0}",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Видалення...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Назавжди видалити обліковий запис",
     "sha256": "f894e42c"
@@ -210,6 +214,22 @@
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Керуйте налаштуваннями та уподобаннями свого облікового запису",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Повернутися до панелі керування",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Обліковий запис",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Оплата",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Розширені",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "Загальне",
@@ -615,24 +635,52 @@
     "text": "Цю дію неможливо скасувати",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "Видалення...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "Адресу електронної пошти оновлено",
+    "sha256": ""
   },
-  "web.settings.back_to_dashboard": {
-    "text": "Повернутися до панелі керування",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Вашу електронну пошту успішно оновлено. Увійдіть за допомогою нової адреси електронної пошти.",
+    "sha256": "e5f6a7b8"
   },
-  "web.settings.sections.account": {
-    "text": "Обліковий запис",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Перевірка вашої нової адреси електронної пошти...",
+    "sha256": "c9d0e1f2"
   },
-  "web.settings.sections.billing": {
-    "text": "Оплата",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "Зміну електронної пошти не вдалося виконати",
+    "sha256": ""
   },
-  "web.settings.sections.advanced": {
-    "text": "Розширені",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "Це посилання для підтвердження недійсне або термін його дії закінчився.",
+    "sha256": "a3b4c5d6"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Повернутися до налаштувань облікового запису",
+    "sha256": "e7f8a9b0"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Перенаправлення на сторінку входу...",
+    "sha256": "c1d2e3f4"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Надіслати лист підтвердження повторно",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "Лист підтвердження успішно надіслано повторно.",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Надсилання...",
+    "sha256": ""
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "Лист для підтвердження надіслано. Перевірте вашу поштову скриньку та натисніть на посилання для підтвердження.",
+    "sha256": ""
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "Не отримали лист?",
+    "sha256": ""
   }
 }

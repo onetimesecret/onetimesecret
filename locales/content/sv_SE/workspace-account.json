@@ -155,6 +155,10 @@
     "text": "Raderar {0}",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Raderar...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Radera konto permanent",
     "sha256": "f894e42c"
@@ -210,6 +214,22 @@
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Hantera dina kontoinställningar och preferenser",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Tillbaka till instrumentpanelen",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Konto",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Fakturering",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Avancerat",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "Allmänt",
@@ -615,24 +635,52 @@
     "text": "Denna åtgärd kan inte ångras",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "Raderar...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "E-postadressen har uppdaterats",
+    "sha256": ""
   },
-  "web.settings.back_to_dashboard": {
-    "text": "Tillbaka till instrumentpanelen",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Din e-postadress har uppdaterats. Logga in med din nya e-postadress.",
+    "sha256": "e5f6a7b8"
   },
-  "web.settings.sections.account": {
-    "text": "Konto",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Verifierar din nya e-postadress...",
+    "sha256": "c9d0e1f2"
   },
-  "web.settings.sections.billing": {
-    "text": "Fakturering",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "E-poständring misslyckades",
+    "sha256": ""
   },
-  "web.settings.sections.advanced": {
-    "text": "Avancerat",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "Denna verifieringslänk är ogiltig eller har gått ut.",
+    "sha256": "a3b4c5d6"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Tillbaka till kontoinställningar",
+    "sha256": "e7f8a9b0"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Omdirigerar till inloggning...",
+    "sha256": "c1d2e3f4"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Skicka bekräftelsemeddelande igen",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "Bekräftelsemeddelandet har skickats igen.",
+    "sha256": ""
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Skickar...",
+    "sha256": ""
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "Ett verifieringsmeddelande har skickats. Kontrollera din inkorg och klicka på bekräftelselänken.",
+    "sha256": ""
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "Fick du inte e-postmeddelandet?",
+    "sha256": ""
   }
 }

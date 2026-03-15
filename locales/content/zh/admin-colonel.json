@@ -8,19 +8,19 @@
     "sha256": "52e93cc0"
   },
   "web.colonel.customers_details_counts_recent_customer_count_o_0": {
-    "text": "Customers ({0} of {1})",
+    "text": "客户 ({0} / {1})",
     "sha256": "eb88db1d"
   },
   "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
-    "text": "User Feedback (Total: {0})",
+    "text": "用户反馈 (共 {0} 条)",
     "sha256": "d4a80454"
   },
   "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
-    "text": "Metadata / Secrets: {0}/{1} ({2}/{3}/{4} total)",
+    "text": "元数据 / 内容: {0}/{1} (共 {2}/{3}/{4})",
     "sha256": "5a341707"
   },
   "web.colonel.secrets_details_counts_secret_count_0": {
-    "text": "Secrets ({0})",
+    "text": "内容 ({0})",
     "sha256": "dd1c471a"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
@@ -311,43 +311,6 @@
     "text": "您正在使用 {planName} 权限进行测试（临时会话覆盖）。",
     "sha256": "1a8aecf1"
   },
-  "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "当您提交反馈时，我们将看到："
-  },
-  "web.feedback.send_feedback": {
-    "text": "发送反馈"
-  },
-  "web.feedback.sending_ellipses": {
-    "text": "发送中"
-  },
-  "web.colonel.bannedIps.title": {
-    "text": "已封禁 IP",
-    "sha256": "0ece5643"
-  },
-  "web.colonel.bannedIps.description": {
-    "text": "管理 IP 封禁列表",
-    "sha256": "dd0d2614"
-  },
-  "web.colonel.customDomains.title": {
-    "text": "自定义域名",
-    "sha256": "6170ab94"
-  },
-  "web.colonel.customDomains.description": {
-    "text": "管理自定义域名和品牌",
-    "sha256": "808ee2cb"
-  },
-  "web.colonel.feedback.send_feedback": {
-    "text": "发送反馈",
-    "sha256": "8235980b"
-  },
-  "web.colonel.feedback.sending_ellipses": {
-    "text": "发送中...",
-    "sha256": "286a3af7"
-  },
-  "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "当您提交反馈时，我们会看到：",
-    "sha256": "fe77172e"
-  },
   "web.colonel.organizations.title": {
     "text": "组织",
     "sha256": "2730183d"
@@ -376,13 +339,45 @@
     "text": "未找到组织",
     "sha256": "538995db"
   },
-  "web.colonel.organizations.actions.investigate": {
-    "text": "调查",
-    "sha256": "e2641093"
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "同步状态",
+    "sha256": "b3998276"
   },
-  "web.colonel.organizations.actions.checking": {
-    "text": "检查中...",
-    "sha256": "2e5f79bb"
+  "web.colonel.organizations.filters.subscription": {
+    "text": "订阅",
+    "sha256": "4999c6c6"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "全部",
+    "sha256": "a52ace42"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "可能过期",
+    "sha256": "40137b37"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "未知",
+    "sha256": "b764cdc0"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "已同步",
+    "sha256": "5da22fe4"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "活跃",
+    "sha256": "92340695"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "试用中",
+    "sha256": "3792573d"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "逾期",
+    "sha256": "2bda1c7b"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "已取消",
+    "sha256": "13ca2ee2"
   },
   "web.colonel.organizations.columns.account": {
     "text": "账户",
@@ -436,6 +431,42 @@
     "text": "有账单",
     "sha256": "db0628ed"
   },
+  "web.colonel.organizations.legacy.title": {
+    "text": "组织账单管理",
+    "sha256": "5c7e07e7"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "管理组织并监控账单同步状态（共 {total} 个）",
+    "sha256": "996b446d"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "未找到组织",
+    "sha256": "538995db"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "可能过期",
+    "sha256": "3ddfec45"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "过期",
+    "sha256": "40c9e59c"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "未知",
+    "sha256": "b764cdc0"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "活跃",
+    "sha256": "96879611"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "调查",
+    "sha256": "e2641093"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "检查中...",
+    "sha256": "2e5f79bb"
+  },
   "web.colonel.organizations.expanded.customer": {
     "text": "客户",
     "sha256": "bf376338"
@@ -447,46 +478,6 @@
   "web.colonel.organizations.expanded.orgId": {
     "text": "组织 ID",
     "sha256": "5e6b9932"
-  },
-  "web.colonel.organizations.filters.syncStatus": {
-    "text": "同步状态",
-    "sha256": "b3998276"
-  },
-  "web.colonel.organizations.filters.subscription": {
-    "text": "订阅",
-    "sha256": "4999c6c6"
-  },
-  "web.colonel.organizations.filters.all": {
-    "text": "全部",
-    "sha256": "a52ace42"
-  },
-  "web.colonel.organizations.filters.potentiallyStale": {
-    "text": "可能过期",
-    "sha256": "40137b37"
-  },
-  "web.colonel.organizations.filters.unknown": {
-    "text": "未知",
-    "sha256": "b764cdc0"
-  },
-  "web.colonel.organizations.filters.synced": {
-    "text": "已同步",
-    "sha256": "5da22fe4"
-  },
-  "web.colonel.organizations.filters.active": {
-    "text": "活跃",
-    "sha256": "92340695"
-  },
-  "web.colonel.organizations.filters.trialing": {
-    "text": "试用中",
-    "sha256": "3792573d"
-  },
-  "web.colonel.organizations.filters.pastDue": {
-    "text": "逾期",
-    "sha256": "2bda1c7b"
-  },
-  "web.colonel.organizations.filters.canceled": {
-    "text": "已取消",
-    "sha256": "13ca2ee2"
   },
   "web.colonel.organizations.investigation.failed": {
     "text": "调查失败",
@@ -536,34 +527,6 @@
     "text": "Stripe",
     "sha256": "961a6062"
   },
-  "web.colonel.organizations.legacy.title": {
-    "text": "组织账单管理",
-    "sha256": "5c7e07e7"
-  },
-  "web.colonel.organizations.legacy.description": {
-    "text": "管理组织并监控账单同步状态（共 {total} 个）",
-    "sha256": "996b446d"
-  },
-  "web.colonel.organizations.legacy.empty": {
-    "text": "未找到组织",
-    "sha256": "538995db"
-  },
-  "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "可能过期",
-    "sha256": "3ddfec45"
-  },
-  "web.colonel.organizations.status.stale": {
-    "text": "过期",
-    "sha256": "40c9e59c"
-  },
-  "web.colonel.organizations.status.unknown": {
-    "text": "未知",
-    "sha256": "b764cdc0"
-  },
-  "web.colonel.organizations.status.active": {
-    "text": "活跃",
-    "sha256": "96879611"
-  },
   "web.colonel.organizations.usage.members": {
     "text": "{count} 个成员",
     "sha256": "201eb3d9"
@@ -580,6 +543,22 @@
     "text": "查看和管理所有内容",
     "sha256": "48f8052e"
   },
+  "web.colonel.bannedIps.title": {
+    "text": "已封禁 IP",
+    "sha256": "0ece5643"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "管理 IP 封禁列表",
+    "sha256": "dd0d2614"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "使用量导出",
+    "sha256": "10a0cb94"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "导出使用数据和统计信息",
+    "sha256": "2fd0a2e2"
+  },
   "web.colonel.systemSettings.title": {
     "text": "系统",
     "sha256": "6725e7bb"
@@ -587,6 +566,22 @@
   "web.colonel.systemSettings.description": {
     "text": "系统设置、数据库和配置",
     "sha256": "7690b296"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "自定义域名",
+    "sha256": "6170ab94"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "管理自定义域名和品牌",
+    "sha256": "808ee2cb"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "发送反馈",
+    "sha256": "8235980b"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "发送中...",
+    "sha256": "286a3af7"
   },
   "web.colonel.titles.index": {
     "text": "管理",
@@ -636,12 +631,8 @@
     "text": "Redis",
     "sha256": "a7f64157"
   },
-  "web.colonel.usageExport.title": {
-    "text": "使用量导出",
-    "sha256": "10a0cb94"
-  },
-  "web.colonel.usageExport.description": {
-    "text": "导出使用数据和统计信息",
-    "sha256": "2fd0a2e2"
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "当您提交反馈时，我们会看到：",
+    "sha256": "fe77172e"
   }
 }

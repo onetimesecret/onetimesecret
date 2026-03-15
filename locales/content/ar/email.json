@@ -151,6 +151,14 @@
     "text": "هذا الرابط يعمل مرة واحدة فقط. بعد العرض، سيتم حذف السر نهائياً.",
     "sha256": "fecaf0a1"
   },
+  "email.incoming_secret.passphrase_required": {
+    "text": "هذا السر محمي بعبارة مرور. يجب أن يزودك المرسل بها بشكل منفصل.",
+    "sha256": ""
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "عبارة المرور مطلوبة:",
+    "sha256": ""
+  },
   "email.incoming_secret.sent_via": {
     "text": "أُرسل عبر",
     "sha256": "d01479b3"
@@ -327,9 +335,77 @@
     "text": "إذا لم تقم بهذا التغيير، يرجى الاتصال بالدعم فوراً لأن حسابك قد يكون مخترقاً.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "تم تغيير عنوان البريد الإلكتروني لحسابك في %{product_name}.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "البريد الإلكتروني الجديد:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "تم التغيير في:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "إذا قمت بهذا التغيير، فلا يلزم اتخاذ أي إجراء إضافي.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "إذا لم تقم بهذا التغيير، فقد يكون حسابك قد تعرض للاختراق.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "تواصل مع الدعم",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "ملاحظة: تم إرسال هذا البريد الإلكتروني إلى %{email_address} لإعلامك بتغيير عنوان البريد الإلكتروني.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "طلب تغيير البريد الإلكتروني (%{display_domain})",
+    "sha256": ""
+  },
+  "email.email_change_requested.title": {
+    "text": "طلب تغيير البريد الإلكتروني",
+    "sha256": ""
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "تم تقديم طلب لتغيير عنوان البريد الإلكتروني لحسابك في %{product_name}.",
+    "sha256": ""
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "البريد الإلكتروني الجديد المطلوب:",
+    "sha256": ""
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "تم الطلب في:",
+    "sha256": ""
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "إذا قمت بهذا الطلب، تحقق من بريدك الإلكتروني الجديد للحصول على رابط التأكيد. لم يتم إجراء أي تغييرات بعد.",
+    "sha256": ""
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "إذا لم تقم بهذا الطلب، يمكنك تجاهل هذا البريد الإلكتروني بأمان. لم يتم تغيير حسابك.",
+    "sha256": ""
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "تواصل مع الدعم",
+    "sha256": ""
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": ""
+  },
+  "email.email_change_requested.postscript": {
+    "text": "ملاحظة: تم إرسال هذا البريد الإلكتروني إلى %{email_address} لأنه تم طلب تغيير البريد الإلكتروني لحسابك.",
+    "sha256": ""
   },
   "email.email_change_confirmation.subject": {
     "text": "تأكيد بريدك الإلكتروني الجديد (%{display_domain})",
@@ -347,13 +423,33 @@
     "text": "تأكيد البريد الإلكتروني",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "تم تقديم طلب لتغيير عنوان البريد الإلكتروني لحسابك في %{product_name} إلى %{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "تأكيد تغيير البريد الإلكتروني",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "أو انسخ والصق هذا الرابط:",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "ستنتهي صلاحية هذا الرابط خلال %{hours} ساعات.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "إذا لم تطلب هذا التغيير، يمكنك تجاهل هذا البريد الإلكتروني بأمان. لن يتم تغيير عنوان بريدك الإلكتروني.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "ملاحظة: تم إرسال هذا البريد الإلكتروني إلى %{email_address} لتأكيد تغيير عنوان البريد الإلكتروني.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "تم تفعيل المصادقة الثنائية (%{display_domain})",

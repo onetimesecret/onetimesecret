@@ -151,6 +151,14 @@
     "text": "Questo link funzionerà una sola volta. Dopo la visualizzazione, il segreto verrà eliminato permanentemente.",
     "sha256": "fecaf0a1"
   },
+  "email.incoming_secret.passphrase_required": {
+    "text": "Questo segreto è protetto con una frase di sicurezza. Il mittente dovrebbe fornirtela separatamente.",
+    "sha256": ""
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "Frase di sicurezza richiesta:",
+    "sha256": ""
+  },
   "email.incoming_secret.sent_via": {
     "text": "Inviato tramite",
     "sha256": "d01479b3"
@@ -244,7 +252,7 @@
     "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Secret Support",
+    "text": "Assistenza Secret",
     "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
@@ -327,9 +335,77 @@
     "text": "Se non hai effettuato questa modifica, contatta immediatamente il supporto poiché il tuo account potrebbe essere stato compromesso.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "L'indirizzo email del tuo account %{product_name} è stato modificato.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "Nuova email:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "Modificato il:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "Se hai effettuato questa modifica, non è necessaria alcuna azione.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "Se non hai effettuato questa modifica, il tuo account potrebbe essere stato compromesso.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "Contatta l'assistenza",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "P.S. Questa email è stata inviata a %{email_address} per informarti di una modifica dell'indirizzo email.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "Modifica email richiesta (%{display_domain})",
+    "sha256": ""
+  },
+  "email.email_change_requested.title": {
+    "text": "Modifica email richiesta",
+    "sha256": ""
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "È stata effettuata una richiesta di modifica dell'indirizzo email del tuo account %{product_name}.",
+    "sha256": ""
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "Nuova email richiesta:",
+    "sha256": ""
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "Richiesto il:",
+    "sha256": ""
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "Se hai effettuato questa richiesta, controlla la nuova casella email per il link di conferma. Non è stata ancora apportata alcuna modifica.",
+    "sha256": ""
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "Se non hai effettuato questa richiesta, puoi ignorare questa email. Il tuo account non è stato modificato.",
+    "sha256": ""
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "Contatta l'assistenza",
+    "sha256": ""
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": ""
+  },
+  "email.email_change_requested.postscript": {
+    "text": "P.S. Questa email è stata inviata a %{email_address} perché è stata richiesta una modifica dell'indirizzo email del tuo account.",
+    "sha256": ""
   },
   "email.email_change_confirmation.subject": {
     "text": "Verifica il tuo nuovo indirizzo email (%{display_domain})",
@@ -347,13 +423,33 @@
     "text": "Verifica indirizzo email",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "È stata effettuata una richiesta di modifica dell'indirizzo email del tuo account %{product_name} in %{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "Conferma modifica email",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Oppure copia e incolla questo link:",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "Questo link scadrà tra %{hours} ore.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "Se non hai richiesto questa modifica, puoi ignorare questa email. Il tuo indirizzo email non verrà modificato.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "P.S. Questa email è stata inviata a %{email_address} per confermare una modifica dell'indirizzo email.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "Autenticazione a due fattori attivata (%{display_domain})",

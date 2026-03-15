@@ -63,6 +63,10 @@
     "text": "مفتاح المرور",
     "sha256": ""
   },
+  "web.login.need_help": {
+    "text": "هل تحتاج مساعدة؟",
+    "sha256": "c225cdfb"
+  },
   "web.login.or_continue_with": {
     "text": "أو المتابعة باستخدام",
     "sha256": ""
@@ -70,6 +74,10 @@
   "web.login.sign_in_with_sso": {
     "text": "تسجيل الدخول عبر SSO",
     "sha256": ""
+  },
+  "web.login.sign_in_with_provider": {
+    "text": "تسجيل الدخول باستخدام {provider}",
+    "sha256": "b8794f11"
   },
   "web.auth.sso.signing_in": {
     "text": "جارٍ إعادة التوجيه إلى مزود الهوية...",
@@ -79,9 +87,21 @@
     "text": "فشل تسجيل الدخول عبر SSO. يرجى المحاولة مرة أخرى.",
     "sha256": ""
   },
-  "web.login.need_help": {
-    "text": "هل تحتاج مساعدة؟",
-    "sha256": "c225cdfb"
+  "web.login.errors.sso_failed": {
+    "text": "فشلت مصادقة SSO. يرجى المحاولة مرة أخرى أو استخدام تسجيل الدخول بكلمة المرور.",
+    "sha256": "13a2210a"
+  },
+  "web.login.errors.token_missing": {
+    "text": "رابط المصادقة غير مكتمل. يرجى طلب رابط تسجيل دخول جديد.",
+    "sha256": "f4a10652"
+  },
+  "web.login.errors.token_expired": {
+    "text": "انتهت صلاحية رابط تسجيل الدخول هذا. يرجى طلب رابط جديد.",
+    "sha256": "f0de42ec"
+  },
+  "web.login.errors.token_invalid": {
+    "text": "رابط تسجيل الدخول هذا غير صالح. يرجى طلب رابط جديد.",
+    "sha256": "270c6401"
   },
   "web.signup.create_your_account": {
     "text": "أنشئ حسابك",
@@ -375,8 +395,5 @@
   "web.help.contact_support": {
     "text": "الاتصال بالدعم",
     "sha256": "f8d47b82"
-  },
-  "web.auth.verify._guidance.context": {
-    "text": "مسار التحقق من البريد الإلكتروني بعد التسجيل"
   }
 }
