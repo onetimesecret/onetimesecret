@@ -193,14 +193,11 @@ module Core
         Onetime::Customer.anonymous
       end
 
-      # Checks if authentication is enabled for the site.
-      #
-      # @return [Boolean] True if authentication and sign-in are enabled, false otherwise.
-      def authentication_enabled?
-        authentication_enabled = OT.conf['site']['authentication']['enabled'] rescue false # rubocop:disable Style/RescueModifier
-        signin_enabled         = OT.conf['site']['authentication']['signin'] rescue false # rubocop:disable Style/RescueModifier
-        authentication_enabled && signin_enabled
-      end
+      # session_auth_enforced? is inherited from SessionHelpers (included
+      # at the top of this module). It uses safe `dig` access and defaults
+      # to disabled when config is absent — account features are rendered
+      # unavailable unless authentication is explicitly configured.
+      # See lib/onetime/helpers/session_helpers.rb.
 
       # Checks if the request accepts JSON responses
       #
