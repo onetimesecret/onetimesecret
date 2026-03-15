@@ -47,6 +47,9 @@ RSpec.describe V1::Controllers::Index, type: :request do
     allow(app).to receive(:res).and_return(response)
     allow(app).to receive(:locale).and_return('en')
     allow(app).to receive(:authorized).and_yield
+    # Stub rate limiting so existing specs don't hit Redis or fail on
+    # unstubbed customer.planid / request.client_ipaddress calls.
+    allow(app).to receive(:check_rate_limit!).and_return(nil)
   end
 
   describe '#show_secret' do
@@ -353,6 +356,115 @@ RSpec.describe V1::Controllers::Index, type: :request do
         expect(app).to receive(:secret_not_found_response)
         app.burn_secret
       end
+    end
+  end
+
+  # ===========================================================================
+  # Rate limiting guard behavior [#2621]
+  # ===========================================================================
+  describe 'rate limiting guard' do
+    # Rate-limited endpoints return early with V1 404+{message} shape
+    # before instantiating any logic class.
+
+    shared_examples 'rate-limited endpoint' do |method_name, event, max_const|
+      context 'when rate-limited' do
+        before do
+          allow(app).to receive(:check_rate_limit!)
+            .with(event, described_class.const_get(max_const))
+            .and_return(:limited)
+          allow(app).to receive(:error_response)
+        end
+
+        it 'returns early without calling logic' do
+          # The logic class should never be instantiated
+          expect(app).not_to receive(:json)
+          app.send(method_name)
+        end
+      end
+
+      context 'when not rate-limited' do
+        before do
+          allow(app).to receive(:check_rate_limit!)
+            .with(event, described_class.const_get(max_const))
+            .and_return(nil)
+        end
+
+        it 'proceeds to logic processing' do
+          app.send(method_name)
+        end
+      end
+    end
+
+    describe '#share' do
+      before do
+        logic = instance_double(V1::Logic::Secrets::ConcealSecret)
+        allow(V1::Logic::Secrets::ConcealSecret).to receive(:new).and_return(logic)
+        allow(logic).to receive(:raise_concerns)
+        allow(logic).to receive(:process)
+        allow(logic).to receive(:secret).and_return(
+          double('Secret', current_expiration: 3600, has_passphrase?: false))
+        allow(logic).to receive(:receipt).and_return(double('Receipt', key: 'k'))
+        allow(described_class).to receive(:receipt_hsh).and_return({})
+        allow(app).to receive(:json)
+      end
+
+      include_examples 'rate-limited endpoint',
+        :share, :create_secret, :V1_RATE_LIMIT_MAX_CREATES
+    end
+
+    describe '#generate' do
+      before do
+        logic = instance_double(V1::Logic::Secrets::GenerateSecret)
+        allow(V1::Logic::Secrets::GenerateSecret).to receive(:new).and_return(logic)
+        allow(logic).to receive(:raise_concerns)
+        allow(logic).to receive(:process)
+        allow(logic).to receive(:secret).and_return(
+          double('Secret', current_expiration: 3600, has_passphrase?: false))
+        receipt = double('Receipt', key: 'k', previewed!: nil)
+        allow(logic).to receive(:receipt).and_return(receipt)
+        allow(logic).to receive(:secret_value).and_return('gen')
+        allow(described_class).to receive(:receipt_hsh).and_return({})
+        allow(app).to receive(:json)
+      end
+
+      include_examples 'rate-limited endpoint',
+        :generate, :create_secret, :V1_RATE_LIMIT_MAX_CREATES
+    end
+
+    describe '#create' do
+      before do
+        logic = instance_double(V1::Logic::Secrets::ConcealSecret)
+        allow(V1::Logic::Secrets::ConcealSecret).to receive(:new).and_return(logic)
+        allow(logic).to receive(:raise_concerns)
+        allow(logic).to receive(:process)
+        allow(logic).to receive(:secret).and_return(
+          double('Secret', current_expiration: 3600, has_passphrase?: false))
+        allow(logic).to receive(:receipt).and_return(double('Receipt', key: 'k'))
+        allow(described_class).to receive(:receipt_hsh).and_return({})
+        allow(app).to receive(:json)
+      end
+
+      include_examples 'rate-limited endpoint',
+        :create, :create_secret, :V1_RATE_LIMIT_MAX_CREATES
+    end
+
+    describe '#show_secret' do
+      let(:secret_key) { 'test_rate_limit_key_abc' }
+
+      before do
+        allow(request).to receive(:params).and_return({'key' => secret_key})
+        logic = instance_double(V1::Logic::Secrets::ShowSecret)
+        allow(V1::Logic::Secrets::ShowSecret).to receive(:new).and_return(logic)
+        allow(logic).to receive(:raise_concerns)
+        allow(logic).to receive(:process)
+        allow(logic).to receive(:show_secret).and_return(true)
+        allow(logic).to receive(:secret_value).and_return('val')
+        allow(logic).to receive(:share_domain).and_return('example.com')
+        allow(app).to receive(:json)
+      end
+
+      include_examples 'rate-limited endpoint',
+        :show_secret, :show_secret, :V1_RATE_LIMIT_MAX_READS
     end
   end
 end

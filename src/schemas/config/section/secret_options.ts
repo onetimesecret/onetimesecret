@@ -7,7 +7,7 @@
  * Previously defined in Onetime::Plan.load_plans!
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 import { ValidKeys as UserTypeKeys } from '../shared/user_types';
 
 /**
