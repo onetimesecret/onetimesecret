@@ -22,7 +22,7 @@
  *   App      - Default fallback for application-level logging
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 import { nullableString } from './shared/primitives';
 
 /**
