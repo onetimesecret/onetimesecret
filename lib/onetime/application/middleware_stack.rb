@@ -64,16 +64,16 @@ module Onetime
           # Map of locale codes to language names
           # This could be loaded from locale files in the future
           locale_names = {
-            'en' => 'English',
             'ar' => 'العربية',
             'bg' => 'Български',
             'ca_ES' => 'Català',
             'cs' => 'Čeština',
-            'da' => 'Dansk',
-            'da_DK' => 'Dansk (Danmark)',
+            'da_DK' => 'Dansk',
             'de' => 'Deutsch',
             'de_AT' => 'Deutsch (Österreich)',
             'el_GR' => 'Ελληνικά',
+            'en' => 'English',
+            'eo' => 'Esperanto',
             'es' => 'Español',
             'fr_CA' => 'Français (Canada)',
             'fr_FR' => 'Français (France)',
@@ -96,9 +96,31 @@ module Onetime
             'zh' => '中文',
           }
 
-          # Return only locales that are in OT.supported_locales
-          OT.supported_locales.to_h do |locale|
-            [locale, locale_names.fetch(locale, locale)]
+          # Build locale map from supported locales, adding primary
+          # language code entries for regional variants. This ensures
+          # that when Otto::Locale::Middleware extracts "it" from
+          # Accept-Language "it-IT", it finds a valid locale even
+          # though the canonical code is "it_IT".
+          locales = {}
+          OT.supported_locales.each do |locale|
+            locales[locale] = locale_names.fetch(locale, locale)
+
+            # Add primary language code fallback (e.g. "it" for "it_IT")
+            # only if no locale with that primary code is already present
+            primary = locale.split('_').first
+            locales[primary] ||= locales[locale] unless locales.key?(primary)
+          end
+          locales
+        end
+
+        # Normalize fallback_locale config keys from BCP 47 hyphens (fr-CA)
+        # to POSIX underscores (fr_CA) that Otto expects. Values are already
+        # in underscore format.
+        def normalize_fallback_keys(raw)
+          return nil unless raw.is_a?(Hash) && !raw.empty?
+
+          raw.each_with_object({}) do |(key, chain), normalized|
+            normalized[key.to_s.tr('-', '_')] = chain
           end
         end
 
@@ -157,11 +179,16 @@ module Onetime
           builder.use Onetime::Middleware::EntitlementTestMode
 
           # Locale detection middleware (after session, before domain strategy)
-          # Sets env['otto.locale'] based on URL param, session, Accept-Language header
+          # Sets env['otto.locale'] based on URL param, session, Accept-Language header.
+          # Otto 2.0 handles exact region matching (fr-FR → fr_FR) and fallback
+          # chains natively via the fallback_locale option.
           logger.debug 'Setting up Locale detection middleware'
+          available_locales = build_available_locales
+          fallback_locale = normalize_fallback_keys(OT.fallback_locale)
           builder.use Otto::Locale::Middleware,
-            available_locales: build_available_locales,
+            available_locales: available_locales,
             default_locale: OT.default_locale,
+            fallback_locale: fallback_locale,
             debug: OT.debug?
 
           # I18n locale middleware (after Otto locale detection)

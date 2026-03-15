@@ -226,8 +226,6 @@ internationalization:
     - en
     - fr_CA
     - fr_FR
-  incomplete:
-    - bogus
 
 diagnostics:
   # If this is false, the rest of the settings are ignored
