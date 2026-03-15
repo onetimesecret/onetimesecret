@@ -4,7 +4,7 @@ module V2::Logic
   module Secrets
 
     class ListSecretStatus < V2::Logic::Base
-      attr_reader :keys
+      attr_reader :keys, :secrets
 
       def process_params
         @keys = params[:keys].to_s.strip.downcase.gsub(/[^a-z0-9,]/, '').split(',').compact
