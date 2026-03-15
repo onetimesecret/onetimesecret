@@ -124,6 +124,46 @@ Builds the image, starts it with a Valkey service container, runs health checks,
 
 ---
 
+## Inspecting CI runs
+
+### View recent build runs
+
+```bash
+gh run list --workflow=build-and-publish-oci-images.yml --limit 5
+```
+
+### Check workflow dispatch inputs
+
+GitHub's API doesn't expose dispatch inputs directly. Recover them from the log:
+
+```bash
+# Get the run ID from the list above, then:
+RUN_ID=23120101542
+
+# Dispatch inputs (version_tag, registry_target, etc.)
+gh run view "$RUN_ID" --log 2>&1 | grep "INPUT_VERSION_TAG:" | head -1
+
+# Resolved build config from audit step
+gh run view "$RUN_ID" --log 2>&1 | grep "Audit — resolved" | grep -E "(VERSION|PLATFORMS|REGISTRY_MODE):" | grep -v debug
+
+# Post-build version verification
+gh run view "$RUN_ID" --log 2>&1 | grep "Audit — verify" | grep -E "(Expected|Actual):"
+```
+
+### Watch a running build
+
+```bash
+gh run watch "$RUN_ID"
+```
+
+### Re-run a failed build
+
+```bash
+gh run rerun "$RUN_ID" --failed
+```
+
+---
+
 ## Version pipeline flow
 
 ```
