@@ -3,56 +3,13 @@
 # frozen_string_literal: true
 
 #
-# ==============================================================================
-# FEATURE: OMNIAUTH (EXTERNAL IDENTITY PROVIDERS)
-# ==============================================================================
+# SSO via external identity providers (OIDC, Entra ID, Google, GitHub).
+# Registers OmniAuth strategies at boot based on environment variables.
+# Each provider with valid credentials registers automatically.
 #
-# This feature enables single sign-on (SSO) via external identity providers
-# using the OpenID Connect (OIDC) protocol. Supports any OIDC-compliant
-# provider: Zitadel, Keycloak, Auth0, Okta, etc.
+# See: docs/authentication/omniauth-sso.md (full configuration guide)
+# See: hooks/omniauth.rb (callback hooks — provider-agnostic)
 #
-# OVERVIEW:
-# OmniAuth is a middleware-based authentication framework that provides a
-# standardized interface for multiple authentication providers. This feature
-# integrates rodauth-omniauth with the omniauth_openid_connect strategy.
-#
-# USER JOURNEY - SSO LOGIN:
-#
-# 1. USER INITIATES SSO LOGIN
-#    - User clicks "Login with SSO" button on login page
-#    - Browser POSTs to /auth/sso/oidc (or configured provider name)
-#    - OmniAuth redirects to identity provider's authorization endpoint
-#
-# 2. USER AUTHENTICATES AT IDENTITY PROVIDER
-#    - User sees identity provider login screen (e.g., Zitadel)
-#    - User enters credentials or uses existing session
-#    - Provider redirects back with authorization code
-#
-# 3. TOKEN EXCHANGE & CALLBACK
-#    - OmniAuth exchanges code for tokens at provider's token endpoint
-#    - Provider returns ID token with user claims
-#    - OmniAuth parses claims and populates omniauth_auth hash
-#
-# 4. ACCOUNT LINKING/CREATION (hooks/omniauth.rb)
-#    - account_from_omniauth finds existing account by email
-#    - If no account: new account created (if omniauth_create_account? true)
-#    - Identity record created in account_identities table
-#    - Session synced via after_omniauth_callback hook
-#
-# 5. AUTHENTICATED SESSION
-#    - User redirected to dashboard
-#    - Session populated with user data (same as regular login)
-#
-# CONFIGURATION:
-# Requires environment variables:
-#   - OIDC_ISSUER: Provider's issuer URL (for discovery)
-#   - OIDC_CLIENT_ID: OAuth client ID
-#   - OIDC_CLIENT_SECRET: OAuth client secret
-#   - OIDC_REDIRECT_URI: Callback URL (https://app/auth/sso/oidc/callback)
-#   - OIDC_ROUTE_NAME: Optional route path segment (default: 'oidc')
-#   - SSO_DISPLAY_NAME: Optional display name for button (e.g., 'Company SSO')
-#
-# ==============================================================================
 
 # Load the OpenID Connect strategy before configuring
 require 'omniauth_openid_connect'
