@@ -170,12 +170,29 @@ module Onetime
           # Locale detection middleware (after session, before domain strategy)
           # Sets env['otto.locale'] based on URL param, session, Accept-Language header
           logger.debug 'Setting up Locale detection middleware'
+          available_locales = build_available_locales
           builder.use Otto::Locale::Middleware,
-            available_locales: build_available_locales,
+            available_locales: available_locales,
             default_locale: OT.default_locale,
             debug: OT.debug?
 
-          # I18n locale middleware (after Otto locale detection)
+          # Locale fallback middleware (after Otto, before I18n)
+          # Applies application-level fallback chains from config when Otto's
+          # initial detection resolved to a suboptimal locale. For example,
+          # Accept-Language "fr-CA" with no fr_CA available falls back through
+          # [fr_CA, fr_FR, en] to find the best available match.
+          require 'middleware/locale_fallback'
+          fallback_chains = OT.fallback_locale
+          if fallback_chains.is_a?(Hash) && !fallback_chains.empty?
+            logger.debug 'Setting up Locale fallback middleware',
+              { chains: fallback_chains.size }
+            builder.use ::Middleware::LocaleFallback,
+              fallback_chains: fallback_chains,
+              available_locales: available_locales,
+              default_locale: OT.default_locale
+          end
+
+          # I18n locale middleware (after Otto locale detection + fallback)
           # Sets I18n.locale for the request using env['otto.locale']
           require 'middleware/i18n_locale'
           builder.use ::Middleware::I18nLocale
