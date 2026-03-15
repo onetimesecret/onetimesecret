@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 #
-# bin/frontend
+# bin/frontend - Start just the frontend service via Overmind.
+# For all services, use: bin/dev
 
-set -euo pipefail
-
-if [ -f .env.sh ]; then
-  source .env.sh
+if ! command -v overmind >/dev/null 2>&1; then
+  echo "Error: Overmind not found. Install with: brew install overmind"
+  exit 1
 fi
 
-pnpm run dev "$@"
+PORT="${PORT:-7143}"
+
+exec env PORT="$PORT" overmind start -f Procfile.dev -l frontend

@@ -505,7 +505,7 @@ class SecretTransformer
     failed_customers = @stats[:failed_customer_lookups].uniq
     if failed_customers.any?
       puts "Failed customer lookups (#{failed_customers.size} unique):"
-      failed_customers.first(20).each { |email| puts "  - #{email}" }
+      failed_customers.first(20).each { |email| puts "  - #{redact_email(email)}" }
       puts "  ... and #{failed_customers.size - 20} more" if failed_customers.size > 20
       puts
     end
@@ -521,7 +521,7 @@ class SecretTransformer
     failed_domains = @stats[:failed_domain_lookups].uniq
     if failed_domains.any?
       puts "Failed domain lookups (#{failed_domains.size} unique):"
-      failed_domains.first(20).each { |fqdn| puts "  - #{fqdn}" }
+      failed_domains.first(20).each { |fqdn| puts "  - #{redact_fqdn(fqdn)}" }
       puts "  ... and #{failed_domains.size - 20} more" if failed_domains.size > 20
       puts
     end
@@ -539,6 +539,20 @@ class SecretTransformer
     puts "Errors (#{@stats[:errors].size}):"
     @stats[:errors].first(10).each { |err| puts "  - #{err}" }
     puts "  ... and #{@stats[:errors].size - 10} more" if @stats[:errors].size > 10
+  end
+
+  def redact_email(email)
+    return '***' unless email.is_a?(String) && email.include?('@')
+    local, domain = email.split('@', 2)
+    "#{local[0..2]}***@#{domain.sub(/\A[^.]+/, '***')}"
+  end
+
+  def redact_fqdn(fqdn)
+    return '***' unless fqdn.is_a?(String) && fqdn.include?('.')
+    parts = fqdn.split('.')
+    parts[0] = '***'
+    parts[-2] = '***' if parts.size >= 2
+    parts.join('.')
   end
 end
 

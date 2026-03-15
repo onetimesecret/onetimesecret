@@ -60,6 +60,10 @@ const PRODUCT_DOMAIN = process.env.BRAND_PRODUCT_DOMAIN || 'onetimesecret.com';
 function generateSchema(key: SchemaKey, schema: z.ZodType): Record<string, unknown> {
   try {
     const jsonSchema = z.toJSONSchema(schema, {
+      // Use input type so transforms document the wire format, not the
+      // coerced output. e.g. z.number().transform(Date) → { "type": "number" }
+      io: 'input',
+
       // Prevent throwing on unsupported types (Date, transforms)
       unrepresentable: 'any',
 

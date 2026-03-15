@@ -44,7 +44,7 @@ end
 @pending1 = Billing::PendingFederatedSubscription.store_from_webhook(
   email_hash: @eh1,
   subscription: @sub1,
-  home_region: 'us-east'
+  region: 'us-east'
 )
 
 # --- store_from_webhook: item-level period_end ---
@@ -57,8 +57,8 @@ end
 @pending1.subscription_status
 #=> 'active'
 
-## store_from_webhook sets home_region
-@pending1.home_region
+## store_from_webhook sets region
+@pending1.region
 #=> 'us-east'
 
 ## store_from_webhook sets received_at to a recent timestamp
@@ -70,7 +70,7 @@ sub_no_items = build_mock_subscription_no_items(status: 'active')
 p2 = Billing::PendingFederatedSubscription.store_from_webhook(
   email_hash: @eh2,
   subscription: sub_no_items,
-  home_region: 'eu-west'
+  region: 'eu-west'
 )
 p2.subscription_period_end.to_s
 #=> ''

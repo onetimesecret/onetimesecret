@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import BaseUnknownSecret from '@/shared/components/base/BaseUnknownSecret.vue';
-  import type { BrandSettings } from '@/schemas/models/domain/brand';
+  import type { BrandSettings } from '@/schemas/models/custom-domain/brand';
   import { useProductIdentity } from '@/shared/stores/identityStore';
 
 const { t } = useI18n();

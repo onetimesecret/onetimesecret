@@ -44,6 +44,8 @@ module V3
         include ModernResponseFormat
         include Onetime::Logic::GuestRouteGating
 
+        SCHEMAS = { response: 'concealData', request: 'concealSecret' }.freeze
+
         def raise_concerns
           require_guest_route_enabled!(:conceal)
           super
@@ -55,6 +57,8 @@ module V3
         include ModernResponseFormat
         include Onetime::Logic::GuestRouteGating
 
+        SCHEMAS = { response: 'concealData', request: 'generateSecret' }.freeze
+
         def raise_concerns
           require_guest_route_enabled!(:generate)
           super
@@ -65,6 +69,8 @@ module V3
       # Extended to notify owner when their secret is revealed
       class RevealSecret < V2::Logic::Secrets::RevealSecret
         include Onetime::Logic::GuestRouteGating
+
+        SCHEMAS = { response: 'secret' }.freeze
 
         def raise_concerns
           require_guest_route_enabled!(:reveal)
@@ -109,6 +115,8 @@ module V3
       class ShowSecret < V2::Logic::Secrets::ShowSecret
         include Onetime::Logic::GuestRouteGating
 
+        SCHEMAS = { response: 'secret' }.freeze
+
         def raise_concerns
           require_guest_route_enabled!(:show)
           super
@@ -117,22 +125,30 @@ module V3
 
       # Show secret status
       class ShowSecretStatus < V2::Logic::Secrets::ShowSecretStatus
+        SCHEMAS = { response: 'secret' }.freeze
+
         # include ::V3::Logic::Base
       end
 
       # List secret status for multiple identifiers
       class ListSecretStatus < V2::Logic::Secrets::ListSecretStatus
+        SCHEMAS = { response: 'secretList' }.freeze
+
         # include ::V3::Logic::Base
       end
 
       # List user's receipts (recent secrets - receipt/private)
       class ListReceipts < V2::Logic::Secrets::ListReceipts
+        SCHEMAS = { response: 'receiptList' }.freeze
+
         # include ::V3::Logic::Base
       end
 
       # Burn a secret
       class BurnSecret < V2::Logic::Secrets::BurnSecret
         include Onetime::Logic::GuestRouteGating
+
+        SCHEMAS = { response: 'receipt' }.freeze
 
         def raise_concerns
           require_guest_route_enabled!(:burn)
@@ -144,6 +160,8 @@ module V3
       class ShowReceipt < V2::Logic::Secrets::ShowReceipt
         include Onetime::Logic::GuestRouteGating
 
+        SCHEMAS = { response: 'receipt' }.freeze
+
         def raise_concerns
           require_guest_route_enabled!(:receipt)
           super
@@ -153,6 +171,8 @@ module V3
       # Show multiple receipts for guest users (batch status check)
       class ShowMultipleReceipts < V2::Logic::Base
         include Onetime::Logic::GuestRouteGating
+
+        SCHEMAS = { response: 'receiptList' }.freeze
 
         # Maximum receipt identifiers per batch request
         MAX_RECEIPT_IDENTIFIERS_PER_BATCH = 25
@@ -192,6 +212,8 @@ module V3
 
       # Update receipt (memo field)
       class UpdateReceipt < V2::Logic::Secrets::UpdateReceipt
+        SCHEMAS = { response: 'receipt' }.freeze
+
         # include ::V3::Logic::Base
       end
     end

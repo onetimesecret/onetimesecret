@@ -206,7 +206,7 @@ module Onetime
           application_classes.each_with_index do |app_class, idx|
             # Skip abstract base classes
             if app_class.instance_variable_get(:@abstract) == true
-              Onetime.app_logger.debug " [#{idx + 1} of #{application_classes.size}] Skipping abstract class #{app_class}"
+              Onetime.app_logger.info " [#{idx + 1} of #{application_classes.size}] Skipping abstract class #{app_class}"
               next
             end
 
@@ -216,7 +216,7 @@ module Onetime
               raise ArgumentError, "Mount point must be a string (#{app_class} gave #{mount.class})"
             end
 
-            Onetime.app_logger.debug " [#{idx + 1} of #{application_classes.size}] Registering #{app_class} at #{mount}"
+            Onetime.app_logger.info " [#{idx + 1} of #{application_classes.size}] Registering #{app_class} at #{mount}"
 
             register(mount, app_class)
           end

@@ -7,6 +7,8 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class ShowReceipt < V2::Logic::Base
+      SCHEMAS = { response: 'receipt' }.freeze
+
       # Working variables
       attr_reader :identifier, :receipt, :secret
       # Template variables
@@ -236,10 +238,10 @@ module V2::Logic
             share_path: share_path,
             burn_path: burn_path,
             receipt_path: receipt_path,
-            metadata_path: metadata_path, # maintain public API
+            metadata_path: metadata_path, # V2 backward-compat alias
             share_url: share_url,
             receipt_url: receipt_url,
-            metadata_url: metadata_url, # maintain public API
+            metadata_url: metadata_url, # V2 backward-compat alias
             burn_url: burn_url,
           },
         )
@@ -269,10 +271,10 @@ module V2::Logic
         @share_path    = build_path(:secret, secret_identifier)
         @burn_path     = build_path(:receipt, receipt_identifier, 'burn')
         @receipt_path  = build_path(:receipt, receipt_identifier)
-        @metadata_path = @receipt_path # maintain public API
+        @metadata_path = @receipt_path # V2 backward-compat alias
         @share_url     = build_url(share_domain, @share_path)
         @receipt_url   = build_url(share_domain, @receipt_path)
-        @metadata_url  = @receipt_url # maintain public API
+        @metadata_url  = @receipt_url # V2 backward-compat alias
         @burn_url      = build_url(share_domain, @burn_path)
         @display_lines = calculate_display_lines
       end

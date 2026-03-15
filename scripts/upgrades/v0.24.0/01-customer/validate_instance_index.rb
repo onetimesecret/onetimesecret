@@ -167,6 +167,13 @@ class InstanceIndexValidator
     results
   end
 
+  def redact_email(email)
+    return '***' unless email.is_a?(String) && email.include?('@')
+
+    local, domain = email.split('@', 2)
+    "#{local[0..2]}***@#{domain.sub(/\A[^.]+/, '***')}"
+  end
+
   def print_report(results, members_with_scores, customer_objects)
     puts '=== Validation Results ==='
     puts "Total members in onetime:customer: #{members_with_scores.size}"
@@ -180,16 +187,19 @@ class InstanceIndexValidator
       puts '    (Index score reflects last-modified time, not created time)'
       results[:modified_since_creation].first(10).each do |m|
         days = m[:age_at_modification] / 86_400.0
-        puts "  #{m[:email]}: last_modified=#{m[:last_modified]}, created=#{m[:created]} (#{days.round(1)} days after)"
+        puts "  #{redact_email(m[:email])}: last_modified=#{m[:last_modified]}, created=#{m[:created]} (#{days.round(1)} days after)"
       end
       puts
     end
 
     if results[:missing_objects].any?
-      puts '=== Missing Objects (first 10) ==='
+      puts "=== Orphaned Index Entries: #{results[:missing_objects].size} (not migrated) ==="
+      puts '    (email exists in onetime:customer zset but no customer:*:object key found)'
       results[:missing_objects].first(10).each do |m|
-        puts "  #{m[:email]} (score: #{m[:score]})"
+        label = m[:email] == 'GLOBAL' ? ' (stats singleton)' : ' (deleted account)'
+        puts "  #{redact_email(m[:email])}#{label} (score: #{m[:score]})"
       end
+      puts "  ... and #{results[:missing_objects].size - 10} more" if results[:missing_objects].size > 10
       puts
     end
 
@@ -199,7 +209,7 @@ class InstanceIndexValidator
       customer = customer_objects[email]
       next unless customer
 
-      puts "  #{email}"
+      puts "  #{redact_email(email)}"
       puts "    -> objid: #{customer[:objid]}"
       puts "    -> score: #{score.to_i}, created: #{customer[:created]}"
     end

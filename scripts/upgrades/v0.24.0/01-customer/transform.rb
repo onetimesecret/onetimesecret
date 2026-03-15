@@ -123,7 +123,7 @@ class CustomerTransformer
     records_by_customer.each do |custid, records|
       v2_records.concat(process_customer(custid, records))
     rescue StandardError => ex
-      @stats[:errors] << { customer: custid, error: "Processing failed: #{ex.message}" }
+      @stats[:errors] << { customer: redact_email(custid), error: "Processing failed: #{ex.message}" }
     end
 
     # 3. Write the transformed records to the output file
@@ -197,7 +197,7 @@ class CustomerTransformer
     object_record = records.find { |r| r[:key].end_with?(':object') }
     unless object_record
       @stats[:skipped_customers] += 1
-      @stats[:errors] << { customer: custid, error: 'No :object record found.' }
+      @stats[:errors] << { customer: redact_email(custid), error: 'No :object record found.' }
       return []
     end
 
@@ -208,7 +208,7 @@ class CustomerTransformer
 
     unless objid && !objid.empty?
       @stats[:skipped_customers] += 1
-      @stats[:errors] << { customer: custid, error: 'Could not resolve objid.' }
+      @stats[:errors] << { customer: redact_email(custid), error: 'Could not resolve objid.' }
       return []
     end
 
@@ -415,6 +415,13 @@ class CustomerTransformer
     else
       raise ArgumentError, "Unknown field type '#{field_type}' for field '#{key}'"
     end
+  end
+
+  def redact_email(email)
+    return '***' unless email.is_a?(String) && email.include?('@')
+
+    local, domain = email.split('@', 2)
+    "#{local[0..2]}***@#{domain.sub(/\A[^.]+/, '***')}"
   end
 
   def write_output(records)

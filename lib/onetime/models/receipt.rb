@@ -7,6 +7,8 @@ module Onetime
     include Familia::Features::Autoloader
     include Onetime::LoggerMethods
 
+    SCHEMA = 'models/receipt'
+
     using Familia::Refinements::TimeLiterals
 
     feature :object_identifier,
@@ -206,31 +208,25 @@ module Onetime
         secret  = Onetime::Secret.new(owner_id: owner_id)
         receipt = Onetime::Receipt.new(owner_id: owner_id)
 
+        # Link the pair (objids exist at new-time, no save needed)
         receipt.secret_identifier  = secret.objid
         receipt.default_expiration = lifespan * 2
-        receipt.save
 
         secret.default_expiration = lifespan
         secret.lifespan           = lifespan
         secret.receipt_identifier = receipt.objid
+        secret.ciphertext_domain  = domain
+        secret.share_domain       = domain
+        secret.ciphertext         = content
 
-        # NOTE: Transient fields that are used for aad protection (like
-        # ciphertext_domain) need to be populated before encrypting the
-        # content.
-        secret.ciphertext_domain = domain
-        secret.share_domain      = domain
-        secret.ciphertext        = content
-
-        # Set the passphrase via the special update method that ensures it
-        # is encrypted before its saved. We could override the field setter,
-        # but prefer to be explicit about it.
-        unless passphrase.nil?
+        unless passphrase.to_s.empty?
           secret.update_passphrase passphrase
           receipt.has_passphrase = true
         end
 
         secret.save
 
+        # Single save with all fields populated — no partial-state window
         receipt.secret_shortid = secret.shortid
         receipt.secret_ttl     = lifespan
         receipt.lifespan       = lifespan
@@ -238,7 +234,6 @@ module Onetime
         receipt.kind           = kind
         receipt.save
 
-        # Register for expiration warnings if feature is enabled and TTL is long enough
         receipt.register_for_expiration_notifications
 
         [receipt, secret]

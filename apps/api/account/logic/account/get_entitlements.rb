@@ -54,6 +54,8 @@ module AccountAPI::Logic
     # - Returns only public entitlement metadata, no sensitive data
     #
     class GetEntitlements < AccountAPI::Logic::Base
+      SCHEMAS = { response: 'account' }.freeze
+
       def raise_concerns
         # Basic auth check - requires logged in user
         raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?

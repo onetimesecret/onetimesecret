@@ -9,7 +9,7 @@
 
 import { feedbackSchema } from '@/schemas/models';
 import { transforms } from '@/schemas/transforms';
-import { z } from 'zod/v4';
+import { z } from 'zod';
 
 // Import system settings schemas from config
 import { systemSettingsDetailsSchema, systemSettingsSchema } from '@/schemas/config/config';

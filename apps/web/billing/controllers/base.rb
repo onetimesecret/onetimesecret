@@ -72,6 +72,8 @@ module Billing
       # @param url [String] the URL to validate
       # @return [URI::HTTP, nil] the validated URI object if valid, otherwise nil
       def validate_url(url)
+        return nil if url.nil? || url.to_s.strip.empty?
+
         uri = nil
         begin
           uri = URI.parse(url)

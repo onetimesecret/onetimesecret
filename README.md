@@ -33,22 +33,23 @@ chmod 600 .ots_secret
 echo "Secret key saved to .ots_secret (keep this file secure!)"
 
 # Now run the container using the key
+# ⚠️ WARNING: Set SSL=true for production deployments
 docker run -p 3000:3000 -d \
   -e REDIS_URL=redis://host.docker.internal:6379/0 \
   -e SECRET="$(cat .ots_secret)" \
   -e HOST=localhost:3000 \
   -e AUTH_REQUIRED=false \
-  -e SSL=false \ # ⚠️ WARNING: Set SSL=true for production deployments
-  onetimesecret/onetimesecret:v0.23.0
+  -e SSL=false \
+  onetimesecret/onetimesecret:v0.24.0
 ```
 
 **3. Access:** http://localhost:3000
 
-### Upgrading to v0.23+
+### Upgrading to v0.24+
 
-> **For existing installations**: Your current setup will continue working without changes. Redis data migration is optional until v1.0.
+> **For existing installations**: See the [Upgrading to v0.24 Guide](./docs/upgrading-to-v0.24.md) for what's changed and migration steps.
 
-Starting with v0.23, OneTime Secret uses Redis database 0 for all models by default (previously distributed across multiple databases). This improves compatibility with Redis-as-a-Service providers and support for connection pooling.
+Starting with v0.23, Onetime Secret uses Redis database 0 for all models by default (previously distributed across multiple databases). v0.24 continues this direction with Valkey support and additional infrastructure improvements.
 
 **New installations**: No action needed - automatically uses the optimized setup.
 
@@ -70,10 +71,9 @@ Starting with v0.23, OneTime Secret uses Redis database 0 for all models by defa
 
 ### Essential Settings
 
-Create `./etc/config.yaml` from the example:
-
+Create `./etc/config.yaml` from the defaults:
 ```bash
-cp -p ./etc/defaults/config.defaults.yaml ./etc/config.yaml
+cp -np ./etc/defaults/config.defaults.yaml ./etc/config.yaml
 ```
 
 Key configuration areas:
@@ -133,12 +133,11 @@ docker build -t onetimesecret .
 ### Manual Installation
 
 **System Requirements:**
-
-- Ruby 3.4+
-- Redis 7+
+- Ruby 3.4.7+
+- Redis 7+ or Valkey 8+
 - PostgreSQL 17+ (optional, for full authentication mode)
 - RabbitMQ 3+ (optional, for background jobs)
-- Node.js 22+ (for development)
+- Node.js 22+ and pnpm 10+ via Corepack (for building frontend)
 - 1GB RAM, 2 CPU cores minimum
 
 **Quick setup:**
@@ -147,9 +146,9 @@ docker build -t onetimesecret .
 git clone https://github.com/onetimesecret/onetimesecret.git
 cd onetimesecret
 ./install.sh init    # Install deps, generate secrets, prepare .env
-cp ./etc/config.example.yaml ./etc/config.yaml
-# Edit config.yaml as needed
-RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
+# Review .env — set REDIS_URL (or VALKEY_URL) if not on localhost:6379
+pnpm run build
+RACK_ENV=production bundle exec puma -C etc/examples/puma.example.rb
 ```
 
 > **Tip**: Run `./install.sh doctor` to check your environment for common issues.
@@ -172,25 +171,62 @@ bin/ots role promote user@example.com --role colonel
 
 ## Development
 
+### Running Locally
+
+There are three ways to run the application for local development:
+
+**Option A: Overmind (recommended)**
+
+[Overmind](https://github.com/DarthSim/overmind) runs backend, frontend, and worker from a single command using `Procfile.dev`:
+
+```bash
+brew install overmind          # macOS (one-time)
+./install-dev.sh               # Link config files + install gems and packages (one-time per checkout)
+bin/dev                        # Start all processes
+```
+
+Control individual processes from a separate terminal:
+```bash
+overmind connect backend       # Attach for debugger/pry (Ctrl+b,d to detach)
+overmind restart frontend      # Restart a single process
+```
+
+**Option B: Separate terminals**
+
+```bash
+# Terminal 1: Backend (Puma)
+bin/backend
+
+# Terminal 2: Frontend (Vite dev server with HMR)
+bin/frontend
+```
+
+**Option C: Production-style**
+
+Build the frontend and serve everything from the backend:
+```bash
+pnpm run build
+RACK_ENV=production bundle exec puma -C etc/examples/puma.example.rb
+```
+
 ### Frontend Development Mode
 
-For active development with live reloading:
-
-1. Enable development mode in `etc/config.yaml`:
-
+Enable development mode in `etc/config.yaml` for HMR support:
 ```yaml
 development:
   enabled: true
   frontend_host: 'http://localhost:5173'
 ```
 
-2. Start servers:
+### Docker Compose
 
+Docker Compose configurations are included in this repository:
 ```bash
-brew install overmind
-cp -p Procfile.dev.example Procfile.dev
-bin/dev
+cp --preserve --no-clobber .env.example .env
+docker compose up
 ```
+
+See `docker-compose.yml` for available profiles (simple vs full stack) and `docker/README.md` for details.
 
 ### Git JSON Merge Driver (Recommended)
 

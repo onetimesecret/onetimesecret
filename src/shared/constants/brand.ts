@@ -14,7 +14,7 @@
 //
 // See identityStore.ts for the implementation of this fallback chain.
 
-import { CornerStyle, FontFamily } from '@/schemas/models/domain/brand';
+import { CornerStyle, FontFamily } from '@/schemas/models/custom-domain/brand';
 
 /**
  * @deprecated Legacy OTS-branded fallback. Use NEUTRAL_BRAND_DEFAULTS instead.

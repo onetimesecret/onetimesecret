@@ -1,6 +1,6 @@
 // src/shared/stores/identityStore.ts
 
-import { brandSettingschema, type BrandSettings } from '@/schemas/models/domain/brand';
+import { brandSettingschema, type BrandSettings } from '@/schemas/models/custom-domain/brand';
 import {
   DEFAULT_BUTTON_TEXT_LIGHT,
   DEFAULT_CORNER_CLASS,

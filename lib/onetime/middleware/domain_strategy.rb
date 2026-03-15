@@ -125,16 +125,28 @@ module Onetime
           end
         end
 
+        resolved_domain_strategy = domain_strategy || :invalid # make sure never nil
+
+        # Sanitize display_domain for use in response headers (defense in depth).
+        # Both code paths (DetectHost result and override header) should produce
+        # valid hostnames, but we guard here to prevent header injection.
+        unless Onetime::Utils::DomainParser.basically_valid?(display_domain)
+          display_domain = canonical_domain
+        end
+
         env['onetime.display_domain']  = display_domain
-        env['onetime.domain_strategy'] = domain_strategy || :invalid # make sure never nil
+        env['onetime.domain_strategy'] = resolved_domain_strategy
 
         http_logger.debug '[DomainStrategy] determined',
           {
             host: display_domain,
-            strategy: domain_strategy,
+            strategy: resolved_domain_strategy,
           }
 
-        @app.call(env)
+        status, headers, body        = @app.call(env)
+        headers['O-Domain-Strategy'] = resolved_domain_strategy.to_s
+        headers['O-Display-Domain']  = display_domain.to_s
+        [status, headers, body]
       end
 
       # Detects domain context override from environment or request header.

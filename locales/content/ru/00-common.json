@@ -1335,5 +1335,9 @@
   "web.pricing.free_tier_description": {
     "text": "Создавайте и делитесь секретами с базовыми функциями. Кредитная карта не требуется.",
     "source_hash": "3a4f2bc0"
+  },
+  "web.COMMON.external_link": {
+    "text": "Внешняя ссылка",
+    "source_hash": "a1b2c3d5"
   }
 }

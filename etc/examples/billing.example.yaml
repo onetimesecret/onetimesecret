@@ -170,7 +170,7 @@ plans:
       organizations: 1
       members_per_team: 1
       custom_domains: 1
-      secret_lifetime: 604800  # 7 days in seconds
+      secret_lifetime: 1209600 # 14 days in seconds
       secrets_per_day: null    # TBD - not yet enforced
 
     prices: []  # Free tier has no prices

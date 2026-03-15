@@ -313,6 +313,8 @@ RSpec.configure do |config|
   # Include Rack::Test::Methods for request specs
   config.include Rack::Test::Methods, type: :request
 
+  # ACME integration tests run with mocked dependencies (no live database needed)
+
   config.filter_run_when_matching :focus
   config.order = :random
 

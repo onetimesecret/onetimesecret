@@ -6,7 +6,7 @@ import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { DEFAULT_BRAND_HEX } from '@/shared/constants/brand';
-import type { BrandSettings } from '@/schemas/models/domain';
+import type { BrandSettings } from '@/schemas/models/custom-domain';
 
 // Mock formatDuration
 const mockFormatDuration = vi.fn((seconds: number) => {

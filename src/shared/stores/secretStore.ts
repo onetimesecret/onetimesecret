@@ -1,13 +1,12 @@
 // src/shared/stores/secretStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
+import { ConcealPayload, GeneratePayload } from '@/schemas/api/v3/requests/content';
 import {
-  ConcealDataResponse,
-  ConcealPayload,
-  GeneratePayload,
   responseSchemas,
+  type ConcealDataResponse,
   type SecretResponse,
-} from '@/schemas/api/v3';
+} from '@/schemas/api/v3/responses';
 import { type Secret, type SecretDetails, type SecretState } from '@/schemas/models/secret';
 import { loggingService } from '@/services/logging.service';
 import { useAuthStore } from '@/shared/stores/authStore';

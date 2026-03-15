@@ -66,6 +66,10 @@ inputs:
     description: 'Redis connection URL'
     required: false
     default: 'redis://127.0.0.1:2121/0'
+  rabbitmq-url:
+    description: 'RabbitMQ connection URL (empty string skips job queue health checks)'
+    required: false
+    default: ''
   auth-database-url:
     description: 'Auth database URL (for full mode)'
     required: false
@@ -130,6 +134,7 @@ runs:
       shell: bash
       env:
         REDIS_URL: ${{ inputs.redis-url }}
+        RABBITMQ_URL: ${{ inputs.rabbitmq-url }}
         RACK_ENV: 'test'
         AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
         AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
@@ -143,6 +148,7 @@ runs:
       shell: bash
       env:
         REDIS_URL: ${{ inputs.redis-url }}
+        RABBITMQ_URL: ${{ inputs.rabbitmq-url }}
         RACK_ENV: 'test'
         AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
         AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}

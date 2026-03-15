@@ -434,9 +434,9 @@ RSpec.describe Onetime::CLI::BackfillSubscriptionStatusCommand do
     before do
       instances = double('instances', all: %w[id1 id2 id3])
       allow(Onetime::Organization).to receive(:instances).and_return(instances)
-      allow(Onetime::Organization).to receive(:load).with('id1').and_return(org_with_sub)
-      allow(Onetime::Organization).to receive(:load).with('id2').and_return(org_without_sub)
-      allow(Onetime::Organization).to receive(:load).with('id3').and_return(org_empty_sub)
+      allow(Onetime::Organization).to receive(:load_multi)
+        .with(%w[id1 id2 id3])
+        .and_return([org_with_sub, org_without_sub, org_empty_sub])
     end
 
     it 'returns only orgs with non-empty stripe_subscription_id' do
@@ -448,6 +448,8 @@ RSpec.describe Onetime::CLI::BackfillSubscriptionStatusCommand do
     it 'returns empty array and prints message when no orgs found' do
       allow(Onetime::Organization).to receive(:instances)
         .and_return(double('instances', all: []))
+      allow(Onetime::Organization).to receive(:load_multi)
+        .with([]).and_return([])
 
       result = command.send(:find_orgs_with_subscription)
 

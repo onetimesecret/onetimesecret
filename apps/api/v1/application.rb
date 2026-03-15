@@ -25,11 +25,36 @@ module V1
   # - Otto Hooks: Includes `OttoHooks` for request lifecycle logging
   # - Authentication: HTTP Basic Auth with API token
   #
-  # ## API Compatibility
+  # ## V1 Compatibility Policy [#2615]
   #
-  # This API maintains the original v1 endpoint signatures for backward
-  # compatibility. Uses centralized Onetime:: models rather than
-  # V1-namespaced models.
+  # V1 is FROZEN. No new fields or endpoints. New functionality goes to V2/V3.
+  # The reconstituted V1 uses receipt/V3 vocabulary internally but MUST emit
+  # v0.23.x field names and values in all responses. Governing decisions:
+  #
+  # 1. FIELD PRESERVATION (additive): V1 responses emit old field names.
+  #    Both old and new names MAY coexist but old names MUST be present.
+  #    See receipt_hsh in controllers/class_methods.rb for the mapping.
+  #    Key renames: metadata_key (not identifier), secret_key (not key),
+  #    passphrase_required (not has_passphrase), recipient (not recipients),
+  #    metadata_ttl (not receipt_ttl), value (not secret_value).
+  #
+  # 2. ANONYMOUS ACCESS: preserved. POST /share, /generate, /create, and
+  #    POST /secret/:key accept anonymous requests (allow_anonymous=true).
+  #
+  # 3. AUTH MODES:
+  #    - disabled: all V1 endpoints return 404.
+  #    - simple: Basic Auth works; session/cookie auth rejected.
+  #      Anonymous allowed where allow_anonymous=true.
+  #    - full: same as simple for V1. V1 does not require PostgreSQL
+  #      or RabbitMQ.
+  #
+  # 4. STATE VALUES: V1 sends v0.23.x names. previewed -> viewed,
+  #    revealed -> received, shared -> new. See V1_STATE_MAP in
+  #    controllers/class_methods.rb.
+  #
+  # 5. CUSTID: V1 emits the customer email address (not the internal
+  #    UUID/objid). Controllers pass cust.email to receipt_hsh.
+  #
   #
   class Application < Onetime::Application::Base
     include Onetime::Application::OttoHooks

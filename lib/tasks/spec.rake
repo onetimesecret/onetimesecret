@@ -103,6 +103,12 @@ namespace :spec do
     task all: APP_SPECS.keys.map { |k| k.tr(':', '_') }
   end
 
+  desc 'Run ACME internal app specs'
+  RSpec::Core::RakeTask.new(:acme) do |t|
+    t.pattern    = 'apps/internal/acme/spec/**/*_spec.rb'
+    t.rspec_opts = rspec_format_options
+  end
+
   namespace :integration do
     INTEGRATION_MODES.each do |mode|
       desc "Run integration specs for AUTHENTICATION_MODE=#{mode}"

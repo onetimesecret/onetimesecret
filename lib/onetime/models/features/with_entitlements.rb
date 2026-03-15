@@ -57,7 +57,10 @@ module Onetime
         MAX_TTL = 365 * 24 * 60 * 60
 
         # Default TTL values (in seconds)
-        DEFAULT_FREE_TTL = 604_800  # 7 days
+        # Free tier max: 14 days. Paid plans or billing-disabled get 30 days.
+        # This also serves as the entitlement gate threshold — requests above
+        # this value require the 'extended_default_expiration' entitlement.
+        DEFAULT_FREE_TTL = 1_209_600  # 14 days
 
         # Full entitlement set for standalone mode
         # When billing is disabled or plan cache is empty, users get full access

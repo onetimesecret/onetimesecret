@@ -87,9 +87,12 @@ module Onetime
             require file
           end
 
-          # Find all scheduled job classes (must be subclasses of ScheduledJob)
+          # Find all concrete scheduled job classes. Abstract intermediate
+          # classes (e.g. MaintenanceJob) inherit the base .schedule() stub
+          # that raises NotImplementedError — filter them out via .owner check.
           scheduled_classes = ObjectSpace.each_object(Class).select do |klass|
-            klass < Onetime::Jobs::ScheduledJob
+            klass < Onetime::Jobs::ScheduledJob &&
+              klass.method(:schedule).owner != Onetime::Jobs::ScheduledJob.singleton_class
           end
 
           # Register each job with the scheduler

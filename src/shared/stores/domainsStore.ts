@@ -1,7 +1,7 @@
 // src/shared/stores/domainsStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import { UpdateDomainBrandRequest } from '@/schemas/api/v3';
+import { UpdateDomainBrandRequest } from '@/schemas/api/domains/requests';
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import type {
   BrandSettings,

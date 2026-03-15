@@ -91,7 +91,6 @@ module Billing
           if secret.to_s.empty? && defined?(OT) && OT.respond_to?(:conf) && OT.conf
             secret = OT.conf.dig('features', 'regions', 'federation_secret')
           end
-
           !secret.to_s.empty?
         end
       end
