@@ -53,10 +53,10 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Αποστολή...",
-    "sha256": "a1b2c3d4"
+    "sha256": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Φαίνεται ότι αναφέρετε μια μη εξουσιοδοτημένη αλλαγή email στον λογαριασμό σας. Παρακαλώ περιγράψτε τι συνέβη και θα το διερευνήσουμε αμέσως.",
-    "sha256": "b2c3d4e5"
+    "sha256": "00e56551"
   }
 }

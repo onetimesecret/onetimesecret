@@ -149,7 +149,7 @@
   },
   "web.billing.overview.load_error": {
     "text": "Αποτυχία φόρτωσης πληροφοριών χρέωσης",
-    "sha256": "d4e5f6a7"
+    "sha256": "3bc44882"
   },
   "web.billing.overview.upgrade_success": {
     "text": "Το πακέτο σας αναβαθμίστηκε επιτυχώς",
@@ -445,7 +445,7 @@
   },
   "web.billing.plans.load_error": {
     "text": "Αποτυχία φόρτωσης πλάνων",
-    "sha256": "e5f6a7b8"
+    "sha256": "a37d4d9a"
   },
   "web.billing.plans.change_immediate": {
     "text": "Το πακέτο σας θα αλλάξει άμεσα.",
@@ -549,7 +549,7 @@
   },
   "web.billing.invoices.invoice_number": {
     "text": "Τιμολόγιο #",
-    "sha256": "a1c2d3e4"
+    "sha256": "48a67cac"
   },
   "web.billing.invoices.no_invoices": {
     "text": "Δεν υπάρχουν ακόμα τιμολόγια",
@@ -557,11 +557,11 @@
   },
   "web.billing.invoices.no_invoices_description": {
     "text": "Τα τιμολόγιά σας θα εμφανιστούν εδώ μόλις αναβαθμίσετε σε πλανο επί πληρωμή",
-    "sha256": "b2c3d4e5"
+    "sha256": "7f16be70"
   },
   "web.billing.invoices.view_plans": {
     "text": "Προβολή πλάνων",
-    "sha256": "c3d4e5f6"
+    "sha256": "a865d424"
   },
   "web.billing.invoices.paid": {
     "text": "Πληρωμένο",
@@ -581,15 +581,15 @@
   },
   "web.billing.invoices.open": {
     "text": "Ανοιχτό",
-    "sha256": "a2b3c4d5"
+    "sha256": "ed077f3d"
   },
   "web.billing.invoices.uncollectible": {
     "text": "Ανείσπρακτο",
-    "sha256": "b3c4d5e6"
+    "sha256": "c8d3b241"
   },
   "web.billing.invoices.void": {
     "text": "Άκυρο",
-    "sha256": "c4d5e6f7"
+    "sha256": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
     "text": "Αποτυχία φόρτωσης τιμολογίων",
@@ -889,104 +889,104 @@
   "web.billing.currency_migration.title": {
     "text": "Απαιτείται αλλαγή νομίσματος",
     "context": "Modal title when plan requires different currency than current subscription",
-    "sha256": "a1b2c3d4"
+    "sha256": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
     "text": "Η τρέχουσα συνδρομή σας χρησιμοποιεί {from}. Το επιλεγμένο πλάνο χρεώνεται σε {to}. Αυτό απαιτεί μεταφορά της συνδρομής σας στο νέο νόμισμα.",
-    "sha256": "b2c3d4e5"
+    "sha256": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
     "text": "Τρέχον πλάνο:",
-    "sha256": "c3d4e5f6"
+    "sha256": "648a0ab2"
   },
   "web.billing.currency_migration.new_plan": {
     "text": "Νέο πλάνο:",
-    "sha256": "d4e5f6a7"
+    "sha256": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
     "text": "Η τρέχουσα περίοδος λήγει:",
-    "sha256": "e5f6a7b8"
+    "sha256": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
     "text": "Πότε θα πρέπει να γίνει η αλλαγή;",
-    "sha256": "f6a7b8c9"
+    "sha256": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
     "text": "Αλλαγή στο τέλος της περιόδου χρέωσης",
-    "sha256": "a7b8c9d0"
+    "sha256": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
     "text": "Το τρέχον πλάνο σας παραμένει ενεργό μέχρι τις {date}. Μετά από αυτό, θα ολοκληρώσετε την αγορά του νέου πλάνου σας.",
-    "sha256": "b8c9d0e1"
+    "sha256": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
     "text": "Άμεση αλλαγή",
-    "sha256": "c9d0e1f2"
+    "sha256": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
     "text": "Το τρέχον πλάνο σας ακυρώνεται τώρα. Θα λάβετε επιστροφή χρημάτων για τον ανεκμετάλλευτο χρόνο και θα ολοκληρώσετε την αγορά του νέου πλάνου.",
-    "sha256": "d0e1f2a3"
+    "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
     "text": "Επιβεβαίωση αλλαγής νομίσματος",
-    "sha256": "e1f2a3b4"
+    "sha256": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
     "text": "Η μεταφορά νομίσματος απέτυχε. Παρακαλώ δοκιμάστε ξανά.",
-    "sha256": "f2a3b4c5"
+    "sha256": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
     "text": "Το νόμισμα της συνδρομής σας ενημερώθηκε επιτυχώς.",
-    "sha256": "a3b4c5d6"
+    "sha256": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
     "text": "Το τρέχον πλάνο σας θα παραμείνει ενεργό μέχρι το τέλος της περιόδου χρέωσης. Μετά από αυτό, θα σας ζητηθεί να ολοκληρώσετε την αγορά του νέου πλάνου σας.",
-    "sha256": "b4c5d6e7"
+    "sha256": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
     "text": "Έχετε υπόλοιπο πίστωσης σε {currency} που δεν μπορεί να μεταφερθεί στο νέο νόμισμα.",
-    "sha256": "c5d6e7f8"
+    "sha256": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
     "text": "Έχετε εκκρεμή στοιχεία τιμολογίου που πρέπει να επιλυθούν πριν τη μεταφορά.",
-    "sha256": "d6e7f8a9"
+    "sha256": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
     "text": "Τα ενεργά κουπόνια στον λογαριασμό σας ενδέχεται να μην είναι συμβατά με το νέο νόμισμα.",
-    "sha256": "e7f8a9b0"
+    "sha256": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
     "text": "Εκκρεμής μεταφορά νομίσματος",
     "context": "Banner heading when graceful migration is scheduled",
-    "sha256": "f8a9b0c1"
+    "sha256": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
     "text": "Το τρέχον πλάνο σας λήγει στις {date}. Ολοκληρώστε την αλλαγή σας σε {plan} ({currency}).",
-    "sha256": "a9b0c1d2"
+    "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
     "text": "Ολοκλήρωση μεταφοράς",
     "context": "Button to start checkout for the new currency plan",
-    "sha256": "b0c1d2e3"
+    "sha256": "fa794e0c"
   },
   "web.billing.checkout_session_failed": {
     "text": "Αποτυχία δημιουργίας συνεδρίας αγοράς",
     "context": "Error when Stripe checkout session creation returns no URL",
-    "sha256": "c1d2e3f4"
+    "sha256": "a53f6fa3"
   },
   "web.billing.checkout_initiate_failed": {
     "text": "Αποτυχία έναρξης αγοράς",
     "context": "Fallback error for checkout failures",
-    "sha256": "d2e3f4a5"
+    "sha256": "3ff06e41"
   },
   "web.billing.plan_switch_success": {
     "text": "Επιτυχής αλλαγή σε {plan}",
     "context": "Success message after plan change",
-    "sha256": "e3f4a5b6"
+    "sha256": "ab7c715c"
   },
   "web.billing.plan_unavailable_region_mismatch": {
     "text": "Διαθέσιμο μόνο στην αρχική περιοχή συνδρομής σας",
     "context": "Hint shown on plan cards when currency does not match active subscription",
-    "sha256": "f4a5b6c7"
+    "sha256": "10de32e5"
   }
 }

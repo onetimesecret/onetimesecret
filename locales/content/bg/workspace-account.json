@@ -637,50 +637,50 @@
   },
   "web.settings.profile.confirm_email_change_title": {
     "text": "Имейл адресът е обновен",
-    "sha256": ""
+    "sha256": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
     "text": "Имейлът ви е обновен успешно. Моля, влезте с новия си имейл адрес.",
-    "sha256": "e5f6a7b8"
+    "sha256": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
     "text": "Потвърждаване на новия ви имейл адрес...",
-    "sha256": "c9d0e1f2"
+    "sha256": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
     "text": "Промяната на имейла е неуспешна",
-    "sha256": ""
+    "sha256": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
     "text": "Този линк за потвърждение е невалиден или е изтекъл.",
-    "sha256": "a3b4c5d6"
+    "sha256": "f54594c2"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
     "text": "Обратно към настройките на акаунта",
-    "sha256": "e7f8a9b0"
+    "sha256": "fd49b66b"
   },
   "web.settings.profile.redirecting_to_signin": {
     "text": "Пренасочване към входа...",
-    "sha256": "c1d2e3f4"
+    "sha256": "c65f7dcc"
   },
   "web.settings.profile.resend_confirmation": {
     "text": "Повторно изпращане на имейл за потвърждение",
-    "sha256": ""
+    "sha256": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
     "text": "Имейлът за потвърждение е изпратен отново успешно.",
-    "sha256": ""
+    "sha256": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {
     "text": "Изпращане...",
-    "sha256": ""
+    "sha256": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
     "text": "Изпратен е имейл за потвърждение. Проверете входящата си поща и кликнете върху линка за потвърждение.",
-    "sha256": ""
+    "sha256": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {
     "text": "Не получихте имейла?",
-    "sha256": ""
+    "sha256": "fe3ac3ad"
   }
 }

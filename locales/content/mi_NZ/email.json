@@ -153,11 +153,11 @@
   },
   "email.incoming_secret.passphrase_required": {
     "text": "Kei raro tēnei karere huna i te tiaki kupu karapa. Me tuku motuhake te kaituku i te kupu karapa ki a koe.",
-    "sha256": ""
+    "sha256": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
     "text": "E hiahiatia ana te kupu karapa:",
-    "sha256": ""
+    "sha256": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
     "text": "I tukuna mā",
@@ -369,43 +369,43 @@
   },
   "email.email_change_requested.subject": {
     "text": "Kua tonoa te huringa īmēra (%{display_domain})",
-    "sha256": ""
+    "sha256": "be3441d6"
   },
   "email.email_change_requested.title": {
     "text": "Kua Tonoa te Huringa Īmēra",
-    "sha256": ""
+    "sha256": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
     "text": "Kua tonoa he huringa wāhitau īmēra mō tō pūkete %{product_name}.",
-    "sha256": ""
+    "sha256": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
     "text": "Īmēra hou i tonoa:",
-    "sha256": ""
+    "sha256": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
     "text": "I tonoa i:",
-    "sha256": ""
+    "sha256": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
     "text": "Mēnā nāu tēnei tono, tirohia tō īmēra hou mō te hononga whakaū. Kāore anō kia whakarerekētia.",
-    "sha256": ""
+    "sha256": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
     "text": "Mēnā ehara i a koe nāna tēnei tono, ka taea e koe te karo i tēnei īmēra. Kāore tō pūkete i hurihia.",
-    "sha256": ""
+    "sha256": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
     "text": "Whakapā ki te Tautoko",
-    "sha256": ""
+    "sha256": "f8d47b82"
   },
   "email.email_change_requested.signature": {
     "text": "Delano",
-    "sha256": ""
+    "sha256": "f58154f7"
   },
   "email.email_change_requested.postscript": {
     "text": "Tāpiritanga: I tukuna tēnei īmēra ki %{email_address} nā te mea i tonoa he huringa īmēra mō tō pūkete.",
-    "sha256": ""
+    "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {
     "text": "Manatoko tō wāhitau īmēra hou (%{display_domain})",

@@ -153,11 +153,11 @@
   },
   "email.incoming_secret.passphrase_required": {
     "text": "Этот секрет защищён кодовой фразой. Отправитель должен передать её Вам отдельно.",
-    "sha256": ""
+    "sha256": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
     "text": "Требуется кодовая фраза:",
-    "sha256": ""
+    "sha256": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
     "text": "Отправлено через",
@@ -369,43 +369,43 @@
   },
   "email.email_change_requested.subject": {
     "text": "Запрос на смену электронной почты (%{display_domain})",
-    "sha256": ""
+    "sha256": "be3441d6"
   },
   "email.email_change_requested.title": {
     "text": "Запрос на смену электронной почты",
-    "sha256": ""
+    "sha256": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
     "text": "Был получен запрос на смену адреса электронной почты в Вашем аккаунте %{product_name}.",
-    "sha256": ""
+    "sha256": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
     "text": "Запрошенный новый адрес:",
-    "sha256": ""
+    "sha256": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
     "text": "Запрошено:",
-    "sha256": ""
+    "sha256": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
     "text": "Если Вы сделали этот запрос, проверьте новый адрес электронной почты на наличие ссылки для подтверждения. Изменения ещё не были внесены.",
-    "sha256": ""
+    "sha256": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
     "text": "Если Вы не делали этот запрос, можете спокойно проигнорировать это письмо. Ваш аккаунт не был изменён.",
-    "sha256": ""
+    "sha256": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
     "text": "Связаться с поддержкой",
-    "sha256": ""
+    "sha256": "f8d47b82"
   },
   "email.email_change_requested.signature": {
     "text": "Delano",
-    "sha256": ""
+    "sha256": "f58154f7"
   },
   "email.email_change_requested.postscript": {
     "text": "P.S. Это письмо было отправлено на %{email_address}, так как был запрошен запрос на смену адреса электронной почты для Вашего аккаунта.",
-    "sha256": ""
+    "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {
     "text": "Подтвердите Ваш новый адрес электронной почты (%{display_domain})",

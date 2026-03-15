@@ -662,7 +662,7 @@
   },
   "web.COMMON.external_link": {
     "text": "Harici bağlantı",
-    "sha256": "a1b2c3d5"
+    "sha256": "be6f6527"
   },
   "web.LABELS.view_toggle.show": {
     "text": "Göster",
@@ -1227,7 +1227,7 @@
   },
   "web.TITLES.confirm_email_change": {
     "text": "E-posta Değişikliğini Onaylayın",
-    "sha256": "a1b2c3d4"
+    "sha256": "c2736949"
   },
   "web.TITLES.security_overview": {
     "text": "Güvenlik",

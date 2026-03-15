@@ -61,7 +61,7 @@
   },
   "web.login.tab_passkey": {
     "text": "Chave de acesso",
-    "sha256": ""
+    "sha256": "904c9aa9"
   },
   "web.login.need_help": {
     "text": "Precisa de ajuda?",
@@ -69,11 +69,11 @@
   },
   "web.login.or_continue_with": {
     "text": "Ou continuar com",
-    "sha256": ""
+    "sha256": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
     "text": "Iniciar sessão com SSO",
-    "sha256": ""
+    "sha256": "73e984e9"
   },
   "web.login.sign_in_with_provider": {
     "text": "Iniciar sessão com {provider}",
@@ -81,11 +81,11 @@
   },
   "web.auth.sso.signing_in": {
     "text": "A redirecionar para o fornecedor de identidade...",
-    "sha256": ""
+    "sha256": "4d1213f9"
   },
   "web.auth.sso.error": {
     "text": "Falha no início de sessão SSO. Por favor, tente novamente.",
-    "sha256": ""
+    "sha256": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
     "text": "A autenticação SSO falhou. Tente novamente ou utilize o início de sessão com palavra-passe.",

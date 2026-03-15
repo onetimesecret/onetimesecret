@@ -61,7 +61,7 @@
   },
   "web.login.tab_passkey": {
     "text": "Passkey",
-    "sha256": ""
+    "sha256": "904c9aa9"
   },
   "web.login.need_help": {
     "text": "Hulp nodig?",
@@ -69,11 +69,11 @@
   },
   "web.login.or_continue_with": {
     "text": "Of doorgaan met",
-    "sha256": ""
+    "sha256": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
     "text": "Inloggen met SSO",
-    "sha256": ""
+    "sha256": "73e984e9"
   },
   "web.login.sign_in_with_provider": {
     "text": "Inloggen met {provider}",
@@ -81,11 +81,11 @@
   },
   "web.auth.sso.signing_in": {
     "text": "Doorverwijzen naar identiteitsprovider...",
-    "sha256": ""
+    "sha256": "4d1213f9"
   },
   "web.auth.sso.error": {
     "text": "SSO-aanmelding mislukt. Probeer het opnieuw.",
-    "sha256": ""
+    "sha256": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
     "text": "SSO-authenticatie mislukt. Probeer het opnieuw of log in met je wachtwoord.",

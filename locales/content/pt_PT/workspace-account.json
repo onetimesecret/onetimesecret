@@ -637,50 +637,50 @@
   },
   "web.settings.profile.confirm_email_change_title": {
     "text": "Endereço de e-mail atualizado",
-    "sha256": ""
+    "sha256": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
     "text": "O seu e-mail foi atualizado com sucesso. Inicie sessão com o seu novo endereço de e-mail.",
-    "sha256": "e5f6a7b8"
+    "sha256": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
     "text": "A verificar o seu novo endereço de e-mail...",
-    "sha256": "c9d0e1f2"
+    "sha256": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
     "text": "Falha na alteração de e-mail",
-    "sha256": ""
+    "sha256": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
     "text": "Esta ligação de verificação é inválida ou expirou.",
-    "sha256": "a3b4c5d6"
+    "sha256": "f54594c2"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
     "text": "Voltar às definições da conta",
-    "sha256": "e7f8a9b0"
+    "sha256": "fd49b66b"
   },
   "web.settings.profile.redirecting_to_signin": {
     "text": "A redirecionar para o início de sessão...",
-    "sha256": "c1d2e3f4"
+    "sha256": "c65f7dcc"
   },
   "web.settings.profile.resend_confirmation": {
     "text": "Reenviar e-mail de confirmação",
-    "sha256": ""
+    "sha256": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
     "text": "E-mail de confirmação reenviado com sucesso.",
-    "sha256": ""
+    "sha256": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {
     "text": "A enviar...",
-    "sha256": ""
+    "sha256": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
     "text": "Foi enviado um e-mail de verificação. Verifique a sua caixa de entrada e clique na ligação de confirmação.",
-    "sha256": ""
+    "sha256": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {
     "text": "Não recebeu o e-mail?",
-    "sha256": ""
+    "sha256": "fe3ac3ad"
   }
 }

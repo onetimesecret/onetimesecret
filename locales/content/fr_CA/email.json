@@ -153,11 +153,11 @@
   },
   "email.incoming_secret.passphrase_required": {
     "text": "Ce secret est protégé par une phrase secrète. L'expéditeur devrait vous la fournir séparément.",
-    "sha256": ""
+    "sha256": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
     "text": "Phrase secrète requise :",
-    "sha256": ""
+    "sha256": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
     "text": "Envoyé via",
@@ -369,43 +369,43 @@
   },
   "email.email_change_requested.subject": {
     "text": "Changement de courriel demandé (%{display_domain})",
-    "sha256": ""
+    "sha256": "be3441d6"
   },
   "email.email_change_requested.title": {
     "text": "Changement de courriel demandé",
-    "sha256": ""
+    "sha256": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
     "text": "Une demande de changement d'adresse courriel a été effectuée sur votre compte %{product_name}.",
-    "sha256": ""
+    "sha256": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
     "text": "Nouveau courriel demandé :",
-    "sha256": ""
+    "sha256": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
     "text": "Demandé le :",
-    "sha256": ""
+    "sha256": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
     "text": "Si vous avez fait cette demande, vérifiez votre nouveau courriel pour un lien de confirmation. Aucun changement n'a encore été effectué.",
-    "sha256": ""
+    "sha256": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
     "text": "Si vous n'avez pas fait cette demande, vous pouvez ignorer ce courriel en toute sécurité. Votre compte n'a pas été modifié.",
-    "sha256": ""
+    "sha256": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
     "text": "Contacter le support",
-    "sha256": ""
+    "sha256": "f8d47b82"
   },
   "email.email_change_requested.signature": {
     "text": "Delano",
-    "sha256": ""
+    "sha256": "f58154f7"
   },
   "email.email_change_requested.postscript": {
     "text": "P.S. Ce courriel a été envoyé à %{email_address} parce qu'un changement de courriel a été demandé pour votre compte.",
-    "sha256": ""
+    "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {
     "text": "Vérifiez votre nouvelle adresse courriel (%{display_domain})",

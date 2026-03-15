@@ -53,10 +53,10 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "שולח...",
-    "sha256": "a1b2c3d4"
+    "sha256": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
     "text": "נראה שאתה מדווח על שינוי דואר אלקטרוני בלתי מורשה בחשבונך. תאר מה קרה ואנחנו נחקור מיד.",
-    "sha256": "b2c3d4e5"
+    "sha256": "00e56551"
   }
 }

@@ -61,7 +61,7 @@
   },
   "web.login.tab_passkey": {
     "text": "Adgangsnøgle",
-    "sha256": ""
+    "sha256": "904c9aa9"
   },
   "web.login.need_help": {
     "text": "Brug for hjælp?",
@@ -69,11 +69,11 @@
   },
   "web.login.or_continue_with": {
     "text": "Eller fortsæt med",
-    "sha256": ""
+    "sha256": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
     "text": "Log ind med SSO",
-    "sha256": ""
+    "sha256": "73e984e9"
   },
   "web.login.sign_in_with_provider": {
     "text": "Log ind med {provider}",
@@ -81,11 +81,11 @@
   },
   "web.auth.sso.signing_in": {
     "text": "Omdirigerer til identitetsudbyder...",
-    "sha256": ""
+    "sha256": "4d1213f9"
   },
   "web.auth.sso.error": {
     "text": "SSO-login mislykkedes. Prøv venligst igen.",
-    "sha256": ""
+    "sha256": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
     "text": "SSO-godkendelse mislykkedes. Prøv igen eller brug login med adgangskode.",

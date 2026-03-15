@@ -662,7 +662,7 @@
   },
   "web.COMMON.external_link": {
     "text": "Externí odkaz",
-    "sha256": "a1b2c3d5"
+    "sha256": "be6f6527"
   },
   "web.LABELS.view_toggle.show": {
     "text": "Zobrazit",
@@ -1227,7 +1227,7 @@
   },
   "web.TITLES.confirm_email_change": {
     "text": "Potvrdit změnu e-mailu",
-    "sha256": "a1b2c3d4"
+    "sha256": "c2736949"
   },
   "web.TITLES.security_overview": {
     "text": "Zabezpečení",

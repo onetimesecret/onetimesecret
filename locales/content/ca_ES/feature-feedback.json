@@ -53,10 +53,10 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Enviant...",
-    "sha256": "a1b2c3d4"
+    "sha256": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Sembla que estàs informant d'un canvi de correu electrònic no autoritzat al teu compte. Si us plau, descriu què ha passat i ho investigarem de seguida.",
-    "sha256": "b2c3d4e5"
+    "sha256": "00e56551"
   }
 }

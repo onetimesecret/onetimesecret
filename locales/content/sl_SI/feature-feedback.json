@@ -53,10 +53,10 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Pošiljanje...",
-    "sha256": "a1b2c3d4"
+    "sha256": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Videti je, da prijavljate nepooblaščeno spremembo e-pošte na vašem računu. Prosimo, opišite, kaj se je zgodilo, in takoj bomo preiskali zadevo.",
-    "sha256": "b2c3d4e5"
+    "sha256": "00e56551"
   }
 }

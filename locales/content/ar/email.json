@@ -153,11 +153,11 @@
   },
   "email.incoming_secret.passphrase_required": {
     "text": "هذا السر محمي بعبارة مرور. يجب أن يزودك المرسل بها بشكل منفصل.",
-    "sha256": ""
+    "sha256": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
     "text": "عبارة المرور مطلوبة:",
-    "sha256": ""
+    "sha256": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
     "text": "أُرسل عبر",
@@ -369,43 +369,43 @@
   },
   "email.email_change_requested.subject": {
     "text": "طلب تغيير البريد الإلكتروني (%{display_domain})",
-    "sha256": ""
+    "sha256": "be3441d6"
   },
   "email.email_change_requested.title": {
     "text": "طلب تغيير البريد الإلكتروني",
-    "sha256": ""
+    "sha256": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
     "text": "تم تقديم طلب لتغيير عنوان البريد الإلكتروني لحسابك في %{product_name}.",
-    "sha256": ""
+    "sha256": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
     "text": "البريد الإلكتروني الجديد المطلوب:",
-    "sha256": ""
+    "sha256": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
     "text": "تم الطلب في:",
-    "sha256": ""
+    "sha256": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
     "text": "إذا قمت بهذا الطلب، تحقق من بريدك الإلكتروني الجديد للحصول على رابط التأكيد. لم يتم إجراء أي تغييرات بعد.",
-    "sha256": ""
+    "sha256": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
     "text": "إذا لم تقم بهذا الطلب، يمكنك تجاهل هذا البريد الإلكتروني بأمان. لم يتم تغيير حسابك.",
-    "sha256": ""
+    "sha256": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
     "text": "تواصل مع الدعم",
-    "sha256": ""
+    "sha256": "f8d47b82"
   },
   "email.email_change_requested.signature": {
     "text": "Delano",
-    "sha256": ""
+    "sha256": "f58154f7"
   },
   "email.email_change_requested.postscript": {
     "text": "ملاحظة: تم إرسال هذا البريد الإلكتروني إلى %{email_address} لأنه تم طلب تغيير البريد الإلكتروني لحسابك.",
-    "sha256": ""
+    "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {
     "text": "تأكيد بريدك الإلكتروني الجديد (%{display_domain})",

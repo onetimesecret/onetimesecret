@@ -153,11 +153,11 @@
   },
   "email.incoming_secret.passphrase_required": {
     "text": "Ця таємниця захищена парольною фразою. Відправник повинен надати її вам окремо.",
-    "sha256": ""
+    "sha256": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
     "text": "Потрібна парольна фраза:",
-    "sha256": ""
+    "sha256": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
     "text": "Надіслано через",
@@ -369,43 +369,43 @@
   },
   "email.email_change_requested.subject": {
     "text": "Запит на зміну електронної пошти (%{display_domain})",
-    "sha256": ""
+    "sha256": "be3441d6"
   },
   "email.email_change_requested.title": {
     "text": "Запит на зміну електронної пошти",
-    "sha256": ""
+    "sha256": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
     "text": "Було зроблено запит на зміну адреси електронної пошти Вашого облікового запису %{product_name}.",
-    "sha256": ""
+    "sha256": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
     "text": "Запитана нова електронна пошта:",
-    "sha256": ""
+    "sha256": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
     "text": "Запитано:",
-    "sha256": ""
+    "sha256": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
     "text": "Якщо Ви зробили цей запит, перевірте нову електронну пошту на наявність посилання для підтвердження. Жодних змін ще не внесено.",
-    "sha256": ""
+    "sha256": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
     "text": "Якщо Ви не робили цього запиту, Ви можете спокійно проігнорувати цей лист. Ваш обліковий запис не було змінено.",
-    "sha256": ""
+    "sha256": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
     "text": "Зв'язатися з підтримкою",
-    "sha256": ""
+    "sha256": "f8d47b82"
   },
   "email.email_change_requested.signature": {
     "text": "Delano",
-    "sha256": ""
+    "sha256": "f58154f7"
   },
   "email.email_change_requested.postscript": {
     "text": "P.S. Цей лист надіслано на %{email_address}, оскільки було запитано зміну електронної пошти для Вашого облікового запису.",
-    "sha256": ""
+    "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {
     "text": "Підтвердіть Вашу нову електронну адресу (%{display_domain})",

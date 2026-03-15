@@ -53,10 +53,10 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Đang gửi...",
-    "sha256": "a1b2c3d4"
+    "sha256": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Có vẻ như bạn đang báo cáo một thay đổi email trái phép trên tài khoản của bạn. Vui lòng mô tả những gì đã xảy ra và chúng tôi sẽ điều tra ngay.",
-    "sha256": "b2c3d4e5"
+    "sha256": "00e56551"
   }
 }

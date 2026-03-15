@@ -61,7 +61,7 @@
   },
   "web.login.tab_passkey": {
     "text": "Khóa truy cập",
-    "sha256": ""
+    "sha256": "904c9aa9"
   },
   "web.login.need_help": {
     "text": "Cần trợ giúp?",
@@ -69,11 +69,11 @@
   },
   "web.login.or_continue_with": {
     "text": "Hoặc tiếp tục với",
-    "sha256": ""
+    "sha256": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
     "text": "Đăng nhập bằng SSO",
-    "sha256": ""
+    "sha256": "73e984e9"
   },
   "web.login.sign_in_with_provider": {
     "text": "Đăng nhập bằng {provider}",
@@ -81,11 +81,11 @@
   },
   "web.auth.sso.signing_in": {
     "text": "Đang chuyển hướng đến nhà cung cấp danh tính...",
-    "sha256": ""
+    "sha256": "4d1213f9"
   },
   "web.auth.sso.error": {
     "text": "Đăng nhập SSO thất bại. Vui lòng thử lại.",
-    "sha256": ""
+    "sha256": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
     "text": "Xác thực SSO thất bại. Vui lòng thử lại hoặc đăng nhập bằng mật khẩu.",

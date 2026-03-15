@@ -662,7 +662,7 @@
   },
   "web.COMMON.external_link": {
     "text": "Зовнішнє посилання",
-    "sha256": "a1b2c3d5"
+    "sha256": "be6f6527"
   },
   "web.LABELS.view_toggle.show": {
     "text": "Показати",
@@ -1227,7 +1227,7 @@
   },
   "web.TITLES.confirm_email_change": {
     "text": "Підтвердження зміни електронної пошти",
-    "sha256": "a1b2c3d4"
+    "sha256": "c2736949"
   },
   "web.TITLES.security_overview": {
     "text": "Безпека",

@@ -149,7 +149,7 @@
   },
   "web.billing.overview.load_error": {
     "text": "A számlázási adatok betöltése sikertelen",
-    "sha256": "d4e5f6a7"
+    "sha256": "3bc44882"
   },
   "web.billing.overview.upgrade_success": {
     "text": "A csomagja sikeresen frissítve",
@@ -445,7 +445,7 @@
   },
   "web.billing.plans.load_error": {
     "text": "A csomagok betöltése sikertelen",
-    "sha256": "e5f6a7b8"
+    "sha256": "a37d4d9a"
   },
   "web.billing.plans.change_immediate": {
     "text": "A csomag azonnal megváltozik.",
@@ -549,7 +549,7 @@
   },
   "web.billing.invoices.invoice_number": {
     "text": "Számla #",
-    "sha256": "a1c2d3e4"
+    "sha256": "48a67cac"
   },
   "web.billing.invoices.no_invoices": {
     "text": "Még nincsenek számlák",
@@ -557,11 +557,11 @@
   },
   "web.billing.invoices.no_invoices_description": {
     "text": "A számlái itt jelennek meg, miután fizetős csomagra vált",
-    "sha256": "b2c3d4e5"
+    "sha256": "7f16be70"
   },
   "web.billing.invoices.view_plans": {
     "text": "Csomagok megtekintése",
-    "sha256": "c3d4e5f6"
+    "sha256": "a865d424"
   },
   "web.billing.invoices.paid": {
     "text": "Fizetve",
@@ -581,15 +581,15 @@
   },
   "web.billing.invoices.open": {
     "text": "Nyitott",
-    "sha256": "a2b3c4d5"
+    "sha256": "ed077f3d"
   },
   "web.billing.invoices.uncollectible": {
     "text": "Behajtatatlan",
-    "sha256": "b3c4d5e6"
+    "sha256": "c8d3b241"
   },
   "web.billing.invoices.void": {
     "text": "Érvénytelen",
-    "sha256": "c4d5e6f7"
+    "sha256": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
     "text": "A számlák betöltése sikertelen",
@@ -889,104 +889,104 @@
   "web.billing.currency_migration.title": {
     "text": "Pénznemváltás szükséges",
     "context": "Modal title when plan requires different currency than current subscription",
-    "sha256": "a1b2c3d4"
+    "sha256": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
     "text": "Az aktuális előfizetése {from} pénznemet használ. A kiválasztott csomag számlázása {to} pénznemben történik. Ehhez az előfizetés átállítása szükséges az új pénznemre.",
-    "sha256": "b2c3d4e5"
+    "sha256": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
     "text": "Jelenlegi csomag:",
-    "sha256": "c3d4e5f6"
+    "sha256": "648a0ab2"
   },
   "web.billing.currency_migration.new_plan": {
     "text": "Új csomag:",
-    "sha256": "d4e5f6a7"
+    "sha256": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
     "text": "Jelenlegi időszak vége:",
-    "sha256": "e5f6a7b8"
+    "sha256": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
     "text": "Mikor történjen a váltás?",
-    "sha256": "f6a7b8c9"
+    "sha256": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
     "text": "Váltás a számlázási időszak végén",
-    "sha256": "a7b8c9d0"
+    "sha256": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
     "text": "A jelenlegi csomagja aktív marad {date}-ig. Ezt követően befejezi a fizetést az új csomagjáért.",
-    "sha256": "b8c9d0e1"
+    "sha256": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
     "text": "Azonnali váltás",
-    "sha256": "c9d0e1f2"
+    "sha256": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
     "text": "A jelenlegi csomagja most lemondásra kerül. Visszatérítést kap a fel nem használt időre, és befejezi a fizetést az új csomagért.",
-    "sha256": "d0e1f2a3"
+    "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
     "text": "Pénznemváltás megerősítése",
-    "sha256": "e1f2a3b4"
+    "sha256": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
     "text": "A pénznem átállítása sikertelen. Kérjük, próbálja újra.",
-    "sha256": "f2a3b4c5"
+    "sha256": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
     "text": "Az előfizetés pénzneme sikeresen frissítve.",
-    "sha256": "a3b4c5d6"
+    "sha256": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
     "text": "A jelenlegi csomagja aktív marad a számlázási időszak végéig. Ezt követően a rendszer felkéri az új csomag fizetésének befejezésére.",
-    "sha256": "b4c5d6e7"
+    "sha256": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
     "text": "Ön rendelkezik {currency} pénznemű egyenleggel, amelyet nem lehet átváltani az új pénznemre.",
-    "sha256": "c5d6e7f8"
+    "sha256": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
     "text": "Függőben lévő számlatételei vannak, amelyeket az átállítás előtt rendezni kell.",
-    "sha256": "d6e7f8a9"
+    "sha256": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
     "text": "A fiókjában lévő aktív kuponok esetleg nem kompatibilisek az új pénznemmel.",
-    "sha256": "e7f8a9b0"
+    "sha256": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
     "text": "Pénznem átállítás folyamatban",
     "context": "Banner heading when graceful migration is scheduled",
-    "sha256": "f8a9b0c1"
+    "sha256": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
     "text": "A jelenlegi csomagja {date}-kor lejár. Fejezze be a váltást a következőre: {plan} ({currency}).",
-    "sha256": "a9b0c1d2"
+    "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
     "text": "Átállítás befejezése",
     "context": "Button to start checkout for the new currency plan",
-    "sha256": "b0c1d2e3"
+    "sha256": "fa794e0c"
   },
   "web.billing.checkout_session_failed": {
     "text": "A fizetési munkamenet létrehozása sikertelen",
     "context": "Error when Stripe checkout session creation returns no URL",
-    "sha256": "c1d2e3f4"
+    "sha256": "a53f6fa3"
   },
   "web.billing.checkout_initiate_failed": {
     "text": "A fizetés indítása sikertelen",
     "context": "Fallback error for checkout failures",
-    "sha256": "d2e3f4a5"
+    "sha256": "3ff06e41"
   },
   "web.billing.plan_switch_success": {
     "text": "Sikeresen átváltva a következőre: {plan}",
     "context": "Success message after plan change",
-    "sha256": "e3f4a5b6"
+    "sha256": "ab7c715c"
   },
   "web.billing.plan_unavailable_region_mismatch": {
     "text": "Csak az eredeti előfizetési régiójában érhető el",
     "context": "Hint shown on plan cards when currency does not match active subscription",
-    "sha256": "f4a5b6c7"
+    "sha256": "10de32e5"
   }
 }

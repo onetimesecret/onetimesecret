@@ -61,7 +61,7 @@
   },
   "web.login.tab_passkey": {
     "text": "패스키",
-    "sha256": ""
+    "sha256": "904c9aa9"
   },
   "web.login.need_help": {
     "text": "도움이 필요하세요?",
@@ -69,11 +69,11 @@
   },
   "web.login.or_continue_with": {
     "text": "또는 다음으로 계속",
-    "sha256": ""
+    "sha256": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
     "text": "SSO로 로그인",
-    "sha256": ""
+    "sha256": "73e984e9"
   },
   "web.login.sign_in_with_provider": {
     "text": "{provider}(으)로 로그인",
@@ -81,11 +81,11 @@
   },
   "web.auth.sso.signing_in": {
     "text": "ID 공급자로 리디렉션 중...",
-    "sha256": ""
+    "sha256": "4d1213f9"
   },
   "web.auth.sso.error": {
     "text": "SSO 로그인 실패. 다시 시도해 주세요.",
-    "sha256": ""
+    "sha256": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
     "text": "SSO 인증에 실패했습니다. 다시 시도하거나 비밀번호로 로그인해 주세요.",

@@ -662,7 +662,7 @@
   },
   "web.COMMON.external_link": {
     "text": "외부 링크",
-    "sha256": "a1b2c3d5"
+    "sha256": "be6f6527"
   },
   "web.LABELS.view_toggle.show": {
     "text": "표시",
@@ -1227,7 +1227,7 @@
   },
   "web.TITLES.confirm_email_change": {
     "text": "이메일 변경 확인",
-    "sha256": "a1b2c3d4"
+    "sha256": "c2736949"
   },
   "web.TITLES.security_overview": {
     "text": "보안",

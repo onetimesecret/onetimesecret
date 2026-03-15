@@ -149,7 +149,7 @@
   },
   "web.billing.overview.load_error": {
     "text": "No s'ha pogut carregar la informació de facturació",
-    "sha256": "d4e5f6a7"
+    "sha256": "3bc44882"
   },
   "web.billing.overview.upgrade_success": {
     "text": "El teu pla s'ha millorat correctament",
@@ -445,7 +445,7 @@
   },
   "web.billing.plans.load_error": {
     "text": "No s'han pogut carregar els plans",
-    "sha256": "e5f6a7b8"
+    "sha256": "a37d4d9a"
   },
   "web.billing.plans.change_immediate": {
     "text": "El teu pla canviarà immediatament.",
@@ -549,7 +549,7 @@
   },
   "web.billing.invoices.invoice_number": {
     "text": "Factura núm.",
-    "sha256": "a1c2d3e4"
+    "sha256": "48a67cac"
   },
   "web.billing.invoices.no_invoices": {
     "text": "Encara no hi ha factures",
@@ -557,11 +557,11 @@
   },
   "web.billing.invoices.no_invoices_description": {
     "text": "Les teves factures apareixeran aquí un cop actualitzis a un pla de pagament",
-    "sha256": "b2c3d4e5"
+    "sha256": "7f16be70"
   },
   "web.billing.invoices.view_plans": {
     "text": "Veure plans",
-    "sha256": "c3d4e5f6"
+    "sha256": "a865d424"
   },
   "web.billing.invoices.paid": {
     "text": "Pagat",
@@ -581,15 +581,15 @@
   },
   "web.billing.invoices.open": {
     "text": "Oberta",
-    "sha256": "a2b3c4d5"
+    "sha256": "ed077f3d"
   },
   "web.billing.invoices.uncollectible": {
     "text": "Incobrable",
-    "sha256": "b3c4d5e6"
+    "sha256": "c8d3b241"
   },
   "web.billing.invoices.void": {
     "text": "Anul·lada",
-    "sha256": "c4d5e6f7"
+    "sha256": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
     "text": "No s'han pogut carregar les factures",
@@ -889,104 +889,104 @@
   "web.billing.currency_migration.title": {
     "text": "Cal un canvi de moneda",
     "context": "Modal title when plan requires different currency than current subscription",
-    "sha256": "a1b2c3d4"
+    "sha256": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
     "text": "La teva subscripció actual utilitza {from}. El pla seleccionat es factura en {to}. Això requereix migrar la teva subscripció a la nova moneda.",
-    "sha256": "b2c3d4e5"
+    "sha256": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
     "text": "Pla actual:",
-    "sha256": "c3d4e5f6"
+    "sha256": "648a0ab2"
   },
   "web.billing.currency_migration.new_plan": {
     "text": "Nou pla:",
-    "sha256": "d4e5f6a7"
+    "sha256": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
     "text": "El període actual finalitza:",
-    "sha256": "e5f6a7b8"
+    "sha256": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
     "text": "Quan s'ha de fer el canvi?",
-    "sha256": "f6a7b8c9"
+    "sha256": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
     "text": "Canviar al final del període de facturació",
-    "sha256": "a7b8c9d0"
+    "sha256": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
     "text": "El teu pla actual es mantindrà actiu fins al {date}. Després, completaràs el pagament del teu nou pla.",
-    "sha256": "b8c9d0e1"
+    "sha256": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
     "text": "Canviar immediatament",
-    "sha256": "c9d0e1f2"
+    "sha256": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
     "text": "El teu pla actual es cancel·la ara. Rebràs un reemborsament pel temps no utilitzat i completaràs el pagament del nou pla.",
-    "sha256": "d0e1f2a3"
+    "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
     "text": "Confirmar el canvi de moneda",
-    "sha256": "e1f2a3b4"
+    "sha256": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
     "text": "La migració de moneda ha fallat. Si us plau, torna-ho a provar.",
-    "sha256": "f2a3b4c5"
+    "sha256": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
     "text": "La moneda de la teva subscripció s'ha actualitzat correctament.",
-    "sha256": "a3b4c5d6"
+    "sha256": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
     "text": "El teu pla actual es mantindrà actiu fins al final del període de facturació. Després se't demanarà que completis el pagament del teu nou pla.",
-    "sha256": "b4c5d6e7"
+    "sha256": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
     "text": "Tens un saldo a favor en {currency} que no es pot transferir a la nova moneda.",
-    "sha256": "c5d6e7f8"
+    "sha256": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
     "text": "Tens elements de factura pendents que s'han de resoldre abans de la migració.",
-    "sha256": "d6e7f8a9"
+    "sha256": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
     "text": "Els cupons actius del teu compte podrien no ser compatibles amb la nova moneda.",
-    "sha256": "e7f8a9b0"
+    "sha256": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
     "text": "Migració de moneda pendent",
     "context": "Banner heading when graceful migration is scheduled",
-    "sha256": "f8a9b0c1"
+    "sha256": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
     "text": "El teu pla actual finalitza el {date}. Completa el canvi a {plan} ({currency}).",
-    "sha256": "a9b0c1d2"
+    "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
     "text": "Completar la migració",
     "context": "Button to start checkout for the new currency plan",
-    "sha256": "b0c1d2e3"
+    "sha256": "fa794e0c"
   },
   "web.billing.checkout_session_failed": {
     "text": "No s'ha pogut crear la sessió de pagament",
     "context": "Error when Stripe checkout session creation returns no URL",
-    "sha256": "c1d2e3f4"
+    "sha256": "a53f6fa3"
   },
   "web.billing.checkout_initiate_failed": {
     "text": "No s'ha pogut iniciar el pagament",
     "context": "Fallback error for checkout failures",
-    "sha256": "d2e3f4a5"
+    "sha256": "3ff06e41"
   },
   "web.billing.plan_switch_success": {
     "text": "S'ha canviat correctament a {plan}",
     "context": "Success message after plan change",
-    "sha256": "e3f4a5b6"
+    "sha256": "ab7c715c"
   },
   "web.billing.plan_unavailable_region_mismatch": {
     "text": "Disponible només a la teva regió de subscripció original",
     "context": "Hint shown on plan cards when currency does not match active subscription",
-    "sha256": "f4a5b6c7"
+    "sha256": "10de32e5"
   }
 }

@@ -53,10 +53,10 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Sendante...",
-    "sha256": "a1b2c3d4"
+    "sha256": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Ŝajnas, ke vi raportas neaŭtorizitan retpoŝtan ŝanĝon en via konto. Bonvolu priskribi kio okazis kaj ni esploros tuj.",
-    "sha256": "b2c3d4e5"
+    "sha256": "00e56551"
   }
 }

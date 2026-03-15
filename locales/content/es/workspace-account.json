@@ -637,50 +637,50 @@
   },
   "web.settings.profile.confirm_email_change_title": {
     "text": "Dirección de correo electrónico actualizada",
-    "sha256": ""
+    "sha256": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
     "text": "Tu correo electrónico ha sido actualizado correctamente. Por favor, inicia sesión con tu nueva dirección de correo electrónico.",
-    "sha256": "e5f6a7b8"
+    "sha256": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
     "text": "Verificando tu nueva dirección de correo electrónico...",
-    "sha256": "c9d0e1f2"
+    "sha256": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
     "text": "Error en el cambio de correo electrónico",
-    "sha256": ""
+    "sha256": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
     "text": "Este enlace de verificación no es válido o ha expirado.",
-    "sha256": "a3b4c5d6"
+    "sha256": "f54594c2"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
     "text": "Volver a la configuración de la cuenta",
-    "sha256": "e7f8a9b0"
+    "sha256": "fd49b66b"
   },
   "web.settings.profile.redirecting_to_signin": {
     "text": "Redirigiendo al inicio de sesión...",
-    "sha256": "c1d2e3f4"
+    "sha256": "c65f7dcc"
   },
   "web.settings.profile.resend_confirmation": {
     "text": "Reenviar correo de confirmación",
-    "sha256": ""
+    "sha256": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
     "text": "Correo de confirmación reenviado correctamente.",
-    "sha256": ""
+    "sha256": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {
     "text": "Enviando...",
-    "sha256": ""
+    "sha256": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
     "text": "Se ha enviado un correo de verificación. Revisa tu bandeja de entrada y haz clic en el enlace de confirmación.",
-    "sha256": ""
+    "sha256": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {
     "text": "¿No recibiste el correo electrónico?",
-    "sha256": ""
+    "sha256": "fe3ac3ad"
   }
 }

@@ -149,7 +149,7 @@
   },
   "web.billing.overview.load_error": {
     "text": "결제 정보를 불러오지 못했습니다",
-    "sha256": "d4e5f6a7"
+    "sha256": "3bc44882"
   },
   "web.billing.overview.upgrade_success": {
     "text": "요금제가 성공적으로 업그레이드되었습니다",
@@ -445,7 +445,7 @@
   },
   "web.billing.plans.load_error": {
     "text": "요금제을 불러오지 못했습니다",
-    "sha256": "e5f6a7b8"
+    "sha256": "a37d4d9a"
   },
   "web.billing.plans.change_immediate": {
     "text": "요금제가 즉시 변경됩니다.",
@@ -549,7 +549,7 @@
   },
   "web.billing.invoices.invoice_number": {
     "text": "청구서 #",
-    "sha256": "a1c2d3e4"
+    "sha256": "48a67cac"
   },
   "web.billing.invoices.no_invoices": {
     "text": "청구서가 아직 없습니다",
@@ -557,11 +557,11 @@
   },
   "web.billing.invoices.no_invoices_description": {
     "text": "유료 요금제으로 업그레이드하면 청구서가 여기에 표시됩니다",
-    "sha256": "b2c3d4e5"
+    "sha256": "7f16be70"
   },
   "web.billing.invoices.view_plans": {
     "text": "요금제 보기",
-    "sha256": "c3d4e5f6"
+    "sha256": "a865d424"
   },
   "web.billing.invoices.paid": {
     "text": "결제됨",
@@ -581,15 +581,15 @@
   },
   "web.billing.invoices.open": {
     "text": "미결제",
-    "sha256": "a2b3c4d5"
+    "sha256": "ed077f3d"
   },
   "web.billing.invoices.uncollectible": {
     "text": "수금 불가",
-    "sha256": "b3c4d5e6"
+    "sha256": "c8d3b241"
   },
   "web.billing.invoices.void": {
     "text": "무효",
-    "sha256": "c4d5e6f7"
+    "sha256": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
     "text": "청구서 로드 실패",
@@ -889,104 +889,104 @@
   "web.billing.currency_migration.title": {
     "text": "통화 변경 필요",
     "context": "Modal title when plan requires different currency than current subscription",
-    "sha256": "a1b2c3d4"
+    "sha256": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
     "text": "현재 구독은 {from}을(를) 사용합니다. 선택한 요금제은 {to}(으)로 청구됩니다. 구독을 새 통화로 전환해야 합니다.",
-    "sha256": "b2c3d4e5"
+    "sha256": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
     "text": "현재 요금제:",
-    "sha256": "c3d4e5f6"
+    "sha256": "648a0ab2"
   },
   "web.billing.currency_migration.new_plan": {
     "text": "새 요금제:",
-    "sha256": "d4e5f6a7"
+    "sha256": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
     "text": "현재 기간 종료:",
-    "sha256": "e5f6a7b8"
+    "sha256": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
     "text": "전환은 언제 진행할까요?",
-    "sha256": "f6a7b8c9"
+    "sha256": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
     "text": "결제 기간 종료 시 전환",
-    "sha256": "a7b8c9d0"
+    "sha256": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
     "text": "현재 요금제은 {date}까지 유지됩니다. 이후 새 요금제의 결제를 완료하게 됩니다.",
-    "sha256": "b8c9d0e1"
+    "sha256": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
     "text": "즉시 전환",
-    "sha256": "c9d0e1f2"
+    "sha256": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
     "text": "현재 요금제이 즉시 취소됩니다. 미사용 기간에 대한 환불을 받고 새 요금제의 결제를 완료하게 됩니다.",
-    "sha256": "d0e1f2a3"
+    "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
     "text": "통화 변경 확인",
-    "sha256": "e1f2a3b4"
+    "sha256": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
     "text": "통화 전환에 실패했습니다. 다시 시도해 주세요.",
-    "sha256": "f2a3b4c5"
+    "sha256": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
     "text": "구독 통화가 성공적으로 업데이트되었습니다.",
-    "sha256": "a3b4c5d6"
+    "sha256": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
     "text": "현재 요금제은 결제 기간이 끝날 때까지 유지됩니다. 이후 새 요금제의 결제를 완료하라는 안내를 받게 됩니다.",
-    "sha256": "b4c5d6e7"
+    "sha256": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
     "text": "{currency}의 크레딧 잔액이 있으며 새 통화로 이전할 수 없습니다.",
-    "sha256": "c5d6e7f8"
+    "sha256": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
     "text": "전환 전에 처리해야 할 미결 청구 항목이 있습니다.",
-    "sha256": "d6e7f8a9"
+    "sha256": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
     "text": "계정의 활성 쿠폰이 새 통화와 호환되지 않을 수 있습니다.",
-    "sha256": "e7f8a9b0"
+    "sha256": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
     "text": "통화 전환 대기 중",
     "context": "Banner heading when graceful migration is scheduled",
-    "sha256": "f8a9b0c1"
+    "sha256": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
     "text": "현재 요금제은 {date}에 종료됩니다. {plan} ({currency})으로의 전환을 완료하세요.",
-    "sha256": "a9b0c1d2"
+    "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
     "text": "전환 완료",
     "context": "Button to start checkout for the new currency plan",
-    "sha256": "b0c1d2e3"
+    "sha256": "fa794e0c"
   },
   "web.billing.checkout_session_failed": {
     "text": "결제 세션을 생성하지 못했습니다",
     "context": "Error when Stripe checkout session creation returns no URL",
-    "sha256": "c1d2e3f4"
+    "sha256": "a53f6fa3"
   },
   "web.billing.checkout_initiate_failed": {
     "text": "결제를 시작하지 못했습니다",
     "context": "Fallback error for checkout failures",
-    "sha256": "d2e3f4a5"
+    "sha256": "3ff06e41"
   },
   "web.billing.plan_switch_success": {
     "text": "{plan}(으)로 전환되었습니다",
     "context": "Success message after plan change",
-    "sha256": "e3f4a5b6"
+    "sha256": "ab7c715c"
   },
   "web.billing.plan_unavailable_region_mismatch": {
     "text": "기존 구독 지역에서만 사용 가능",
     "context": "Hint shown on plan cards when currency does not match active subscription",
-    "sha256": "f4a5b6c7"
+    "sha256": "10de32e5"
   }
 }

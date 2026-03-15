@@ -637,50 +637,50 @@
   },
   "web.settings.profile.confirm_email_change_title": {
     "text": "Retpoŝta adreso ĝisdatigita",
-    "sha256": ""
+    "sha256": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
     "text": "Via retpoŝto estis sukcese ĝisdatigita. Bonvolu ensaluti per via nova retpoŝta adreso.",
-    "sha256": "e5f6a7b8"
+    "sha256": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
     "text": "Kontrolante vian novan retpoŝtan adreson...",
-    "sha256": "c9d0e1f2"
+    "sha256": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
     "text": "Retpoŝta ŝanĝo malsukcesis",
-    "sha256": ""
+    "sha256": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
     "text": "Ĉi tiu kontrola ligo estas nevalida aŭ eksvalidiĝis.",
-    "sha256": "a3b4c5d6"
+    "sha256": "f54594c2"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
     "text": "Reen al kontaj agordoj",
-    "sha256": "e7f8a9b0"
+    "sha256": "fd49b66b"
   },
   "web.settings.profile.redirecting_to_signin": {
     "text": "Alidirektas al ensaluto...",
-    "sha256": "c1d2e3f4"
+    "sha256": "c65f7dcc"
   },
   "web.settings.profile.resend_confirmation": {
     "text": "Resendi konfirman retpoŝton",
-    "sha256": ""
+    "sha256": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
     "text": "Konfirma retpoŝto sukcese resendita.",
-    "sha256": ""
+    "sha256": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {
     "text": "Sendante...",
-    "sha256": ""
+    "sha256": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
     "text": "Kontrola retpoŝto estis sendita. Kontrolu vian ricevujon kaj alklaku la konfirman ligon.",
-    "sha256": ""
+    "sha256": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {
     "text": "Ĉu vi ne ricevis la retpoŝton?",
-    "sha256": ""
+    "sha256": "fe3ac3ad"
   }
 }

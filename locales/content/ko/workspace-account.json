@@ -637,50 +637,50 @@
   },
   "web.settings.profile.confirm_email_change_title": {
     "text": "이메일 주소가 업데이트됨",
-    "sha256": ""
+    "sha256": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
     "text": "이메일이 성공적으로 업데이트되었습니다. 새 이메일 주소로 로그인해 주세요.",
-    "sha256": "e5f6a7b8"
+    "sha256": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
     "text": "새 이메일 주소 확인 중...",
-    "sha256": "c9d0e1f2"
+    "sha256": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
     "text": "이메일 변경 실패",
-    "sha256": ""
+    "sha256": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
     "text": "이 확인 링크가 유효하지 않거나 만료되었습니다.",
-    "sha256": "a3b4c5d6"
+    "sha256": "f54594c2"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
     "text": "계정 설정으로 돌아가기",
-    "sha256": "e7f8a9b0"
+    "sha256": "fd49b66b"
   },
   "web.settings.profile.redirecting_to_signin": {
     "text": "로그인 페이지로 이동 중...",
-    "sha256": "c1d2e3f4"
+    "sha256": "c65f7dcc"
   },
   "web.settings.profile.resend_confirmation": {
     "text": "확인 이메일 다시 보내기",
-    "sha256": ""
+    "sha256": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
     "text": "확인 이메일이 성공적으로 다시 발송되었습니다.",
-    "sha256": ""
+    "sha256": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {
     "text": "전송 중...",
-    "sha256": ""
+    "sha256": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
     "text": "확인 이메일이 발송되었습니다. 받은 편지함을 확인하고 확인 링크를 클릭하세요.",
-    "sha256": ""
+    "sha256": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {
     "text": "이메일을 받지 못하셨나요?",
-    "sha256": ""
+    "sha256": "fe3ac3ad"
   }
 }

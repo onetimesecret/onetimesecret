@@ -53,10 +53,10 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "送信中...",
-    "sha256": "a1b2c3d4"
+    "sha256": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
     "text": "アカウントでの不正なメールアドレス変更を報告されているようです。何が起きたかをご説明ください。すぐに調査いたします。",
-    "sha256": "b2c3d4e5"
+    "sha256": "00e56551"
   }
 }

@@ -53,10 +53,10 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Verzenden...",
-    "sha256": "a1b2c3d4"
+    "sha256": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Het lijkt erop dat je een ongeautoriseerde wijziging van het e-mailadres op je account meldt. Beschrijf wat er is gebeurd en we onderzoeken het direct.",
-    "sha256": "b2c3d4e5"
+    "sha256": "00e56551"
   }
 }

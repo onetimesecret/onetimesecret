@@ -149,7 +149,7 @@
   },
   "web.billing.overview.load_error": {
     "text": "فشل تحميل معلومات الفوترة",
-    "sha256": "d4e5f6a7"
+    "sha256": "3bc44882"
   },
   "web.billing.overview.upgrade_success": {
     "text": "تمت ترقية خطتك بنجاح",
@@ -445,7 +445,7 @@
   },
   "web.billing.plans.load_error": {
     "text": "فشل تحميل الخطط",
-    "sha256": "e5f6a7b8"
+    "sha256": "a37d4d9a"
   },
   "web.billing.plans.change_immediate": {
     "text": "سيتم تغيير خطتك فوراً.",
@@ -549,7 +549,7 @@
   },
   "web.billing.invoices.invoice_number": {
     "text": "فاتورة #",
-    "sha256": "a1c2d3e4"
+    "sha256": "48a67cac"
   },
   "web.billing.invoices.no_invoices": {
     "text": "لا توجد فواتير بعد",
@@ -557,11 +557,11 @@
   },
   "web.billing.invoices.no_invoices_description": {
     "text": "ستظهر فواتيرك هنا بمجرد الترقية إلى خطة مدفوعة",
-    "sha256": "b2c3d4e5"
+    "sha256": "7f16be70"
   },
   "web.billing.invoices.view_plans": {
     "text": "عرض الخطط",
-    "sha256": "c3d4e5f6"
+    "sha256": "a865d424"
   },
   "web.billing.invoices.paid": {
     "text": "مدفوع",
@@ -581,15 +581,15 @@
   },
   "web.billing.invoices.open": {
     "text": "مفتوحة",
-    "sha256": "a2b3c4d5"
+    "sha256": "ed077f3d"
   },
   "web.billing.invoices.uncollectible": {
     "text": "غير قابلة للتحصيل",
-    "sha256": "b3c4d5e6"
+    "sha256": "c8d3b241"
   },
   "web.billing.invoices.void": {
     "text": "ملغاة",
-    "sha256": "c4d5e6f7"
+    "sha256": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
     "text": "فشل تحميل الفواتير",
@@ -889,104 +889,104 @@
   "web.billing.currency_migration.title": {
     "text": "مطلوب تغيير العملة",
     "context": "Modal title when plan requires different currency than current subscription",
-    "sha256": "a1b2c3d4"
+    "sha256": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
     "text": "اشتراكك الحالي يستخدم {from}. الخطة المحددة تُفوتر بعملة {to}. يتطلب هذا ترحيل اشتراكك إلى العملة الجديدة.",
-    "sha256": "b2c3d4e5"
+    "sha256": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
     "text": "الخطة الحالية:",
-    "sha256": "c3d4e5f6"
+    "sha256": "648a0ab2"
   },
   "web.billing.currency_migration.new_plan": {
     "text": "الخطة الجديدة:",
-    "sha256": "d4e5f6a7"
+    "sha256": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
     "text": "تنتهي الفترة الحالية في:",
-    "sha256": "e5f6a7b8"
+    "sha256": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
     "text": "متى يجب أن يتم التبديل؟",
-    "sha256": "f6a7b8c9"
+    "sha256": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
     "text": "التبديل في نهاية فترة الفوترة",
-    "sha256": "a7b8c9d0"
+    "sha256": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
     "text": "تبقى خطتك الحالية نشطة حتى {date}. بعد ذلك، ستكمل عملية الدفع لخطتك الجديدة.",
-    "sha256": "b8c9d0e1"
+    "sha256": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
     "text": "التبديل فوراً",
-    "sha256": "c9d0e1f2"
+    "sha256": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
     "text": "يتم إلغاء خطتك الحالية الآن. ستحصل على استرداد للوقت غير المستخدم وستكمل عملية الدفع للخطة الجديدة.",
-    "sha256": "d0e1f2a3"
+    "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
     "text": "تأكيد تغيير العملة",
-    "sha256": "e1f2a3b4"
+    "sha256": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
     "text": "فشل ترحيل العملة. يرجى المحاولة مرة أخرى.",
-    "sha256": "f2a3b4c5"
+    "sha256": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
     "text": "تم تحديث عملة اشتراكك بنجاح.",
-    "sha256": "a3b4c5d6"
+    "sha256": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
     "text": "ستبقى خطتك الحالية نشطة حتى نهاية فترة الفوترة. ستتم مطالبتك بإكمال عملية الدفع لخطتك الجديدة بعد ذلك.",
-    "sha256": "b4c5d6e7"
+    "sha256": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
     "text": "لديك رصيد ائتماني بعملة {currency} لا يمكن تحويله إلى العملة الجديدة.",
-    "sha256": "c5d6e7f8"
+    "sha256": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
     "text": "لديك عناصر فواتير معلقة يجب تسويتها قبل الترحيل.",
-    "sha256": "d6e7f8a9"
+    "sha256": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
     "text": "قد لا تكون القسائم النشطة في حسابك متوافقة مع العملة الجديدة.",
-    "sha256": "e7f8a9b0"
+    "sha256": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
     "text": "ترحيل العملة قيد الانتظار",
     "context": "Banner heading when graceful migration is scheduled",
-    "sha256": "f8a9b0c1"
+    "sha256": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
     "text": "تنتهي خطتك الحالية في {date}. أكمل التبديل إلى {plan} ({currency}).",
-    "sha256": "a9b0c1d2"
+    "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
     "text": "إكمال الترحيل",
     "context": "Button to start checkout for the new currency plan",
-    "sha256": "b0c1d2e3"
+    "sha256": "fa794e0c"
   },
   "web.billing.checkout_session_failed": {
     "text": "فشل إنشاء جلسة الدفع",
     "context": "Error when Stripe checkout session creation returns no URL",
-    "sha256": "c1d2e3f4"
+    "sha256": "a53f6fa3"
   },
   "web.billing.checkout_initiate_failed": {
     "text": "فشل بدء عملية الدفع",
     "context": "Fallback error for checkout failures",
-    "sha256": "d2e3f4a5"
+    "sha256": "3ff06e41"
   },
   "web.billing.plan_switch_success": {
     "text": "تم التبديل بنجاح إلى {plan}",
     "context": "Success message after plan change",
-    "sha256": "e3f4a5b6"
+    "sha256": "ab7c715c"
   },
   "web.billing.plan_unavailable_region_mismatch": {
     "text": "متاح في منطقة اشتراكك الأصلية فقط",
     "context": "Hint shown on plan cards when currency does not match active subscription",
-    "sha256": "f4a5b6c7"
+    "sha256": "10de32e5"
   }
 }

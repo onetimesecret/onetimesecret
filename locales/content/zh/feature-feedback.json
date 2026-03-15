@@ -53,10 +53,10 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "发送中...",
-    "sha256": "a1b2c3d4"
+    "sha256": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
     "text": "您似乎在报告账户邮箱被未授权更改的情况。请描述发生了什么，我们将立即调查。",
-    "sha256": "b2c3d4e5"
+    "sha256": "00e56551"
   }
 }

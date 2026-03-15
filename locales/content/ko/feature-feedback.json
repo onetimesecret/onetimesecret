@@ -53,10 +53,10 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "전송 중...",
-    "sha256": "a1b2c3d4"
+    "sha256": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
     "text": "계정에서 승인되지 않은 이메일 변경을 신고하시는 것으로 보입니다. 상황을 설명해 주시면 즉시 조사하겠습니다.",
-    "sha256": "b2c3d4e5"
+    "sha256": "00e56551"
   }
 }

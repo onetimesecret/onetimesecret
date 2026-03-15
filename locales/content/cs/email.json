@@ -52,7 +52,7 @@
     "sha256": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Tento e-mail byl odeslán na %{email_address}. Pokud jsi si nevytvořili účet, můžeš tuto zprávu klidně ignorovat.",
+    "text": "P.S. Tento e-mail byl odeslán na %{email_address}. Pokud sis účet nevytvořil/a, můžeš tuto zprávu klidně ignorovat.",
     "sha256": "05709148"
   },
   "email.password_request.subject": {
@@ -153,11 +153,11 @@
   },
   "email.incoming_secret.passphrase_required": {
     "text": "Toto tajemství je chráněno přístupovou frází. Odesílatel by ti ji měl poskytnout samostatně.",
-    "sha256": ""
+    "sha256": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
     "text": "Vyžadována přístupová fráze:",
-    "sha256": ""
+    "sha256": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
     "text": "Odesláno prostřednictvím",
@@ -369,43 +369,43 @@
   },
   "email.email_change_requested.subject": {
     "text": "Požadavek na změnu e-mailu (%{display_domain})",
-    "sha256": ""
+    "sha256": "be3441d6"
   },
   "email.email_change_requested.title": {
     "text": "Požadavek na změnu e-mailu",
-    "sha256": ""
+    "sha256": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
     "text": "Byl podán požadavek na změnu e-mailové adresy tvého účtu %{product_name}.",
-    "sha256": ""
+    "sha256": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
     "text": "Požadovaný nový e-mail:",
-    "sha256": ""
+    "sha256": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
     "text": "Požadováno:",
-    "sha256": ""
+    "sha256": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
     "text": "Pokud jsi tento požadavek podal/a ty, zkontroluj svůj nový e-mail, kde najdeš potvrzovací odkaz. Zatím nebyly provedeny žádné změny.",
-    "sha256": ""
+    "sha256": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
     "text": "Pokud jsi tento požadavek nepodal/a, můžeš tento e-mail klidně ignorovat. Tvůj účet nebyl změněn.",
-    "sha256": ""
+    "sha256": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
     "text": "Kontaktovat podporu",
-    "sha256": ""
+    "sha256": "f8d47b82"
   },
   "email.email_change_requested.signature": {
     "text": "Delano",
-    "sha256": ""
+    "sha256": "f58154f7"
   },
   "email.email_change_requested.postscript": {
     "text": "P.S. Tento e-mail byl odeslán na %{email_address}, protože byl podán požadavek na změnu e-mailu tvého účtu.",
-    "sha256": ""
+    "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {
     "text": "Ověř svou novou e-mailovou adresu (%{display_domain})",
@@ -616,7 +616,7 @@
     "sha256": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Nepodařilo se nám zpracovat vaši platbu za %{product_name}. Prosím aktualizuj svou platební metodu, abyste předešli přerušení služby.",
+    "text": "Nepodařilo se nám zpracovat tvou platbu za %{product_name}. Prosím aktualizuj svou platební metodu, abys předešel/a přerušení služby.",
     "sha256": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {

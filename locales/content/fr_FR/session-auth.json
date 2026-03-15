@@ -61,7 +61,7 @@
   },
   "web.login.tab_passkey": {
     "text": "Clé d'accès",
-    "sha256": ""
+    "sha256": "904c9aa9"
   },
   "web.login.need_help": {
     "text": "Besoin d'aide ?",
@@ -69,11 +69,11 @@
   },
   "web.login.or_continue_with": {
     "text": "Ou continuer avec",
-    "sha256": ""
+    "sha256": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
     "text": "Se connecter avec SSO",
-    "sha256": ""
+    "sha256": "73e984e9"
   },
   "web.login.sign_in_with_provider": {
     "text": "Se connecter avec {provider}",
@@ -81,11 +81,11 @@
   },
   "web.auth.sso.signing_in": {
     "text": "Redirection vers le fournisseur d'identité...",
-    "sha256": ""
+    "sha256": "4d1213f9"
   },
   "web.auth.sso.error": {
     "text": "Échec de la connexion SSO. Veuillez réessayer.",
-    "sha256": ""
+    "sha256": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
     "text": "L'authentification SSO a échoué. Veuillez réessayer ou utiliser la connexion par mot de passe.",

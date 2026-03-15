@@ -53,10 +53,10 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "E tuku ana...",
-    "sha256": "a1b2c3d4"
+    "sha256": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Te āhua nei e pūrongo ana koe mō te huringa īmēra kāore i whakaaetia i tō pūkete. Whakamāramatia mai he aha i puta ai, ā ka āta tirotiro mātou.",
-    "sha256": "b2c3d4e5"
+    "sha256": "00e56551"
   }
 }

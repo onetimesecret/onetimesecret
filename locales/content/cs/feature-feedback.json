@@ -53,10 +53,10 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "Odesílání...",
-    "sha256": "a1b2c3d4"
+    "sha256": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
     "text": "Vypadá to, že hlásíš neoprávněnou změnu e-mailu na tvém účtu. Popiš prosím, co se stalo, a hned to prošetříme.",
-    "sha256": "b2c3d4e5"
+    "sha256": "00e56551"
   }
 }

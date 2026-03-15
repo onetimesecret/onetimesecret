@@ -61,7 +61,7 @@
   },
   "web.login.tab_passkey": {
     "text": "Clau d'accés",
-    "sha256": ""
+    "sha256": "904c9aa9"
   },
   "web.login.need_help": {
     "text": "Necessites ajuda?",
@@ -69,11 +69,11 @@
   },
   "web.login.or_continue_with": {
     "text": "O continuar amb",
-    "sha256": ""
+    "sha256": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
     "text": "Inicia sessió amb SSO",
-    "sha256": ""
+    "sha256": "73e984e9"
   },
   "web.login.sign_in_with_provider": {
     "text": "Inicia sessió amb {provider}",
@@ -81,11 +81,11 @@
   },
   "web.auth.sso.signing_in": {
     "text": "Redirigint al proveïdor d'identitat...",
-    "sha256": ""
+    "sha256": "4d1213f9"
   },
   "web.auth.sso.error": {
     "text": "Error en iniciar sessió amb SSO. Si us plau, torna-ho a provar.",
-    "sha256": ""
+    "sha256": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
     "text": "L'autenticació SSO ha fallat. Si us plau, torna-ho a provar o utilitza l'inici de sessió amb contrasenya.",

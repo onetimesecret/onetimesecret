@@ -53,10 +53,10 @@
   },
   "web.feedback.sending_ellipses": {
     "text": "جارٍ الإرسال...",
-    "sha256": "a1b2c3d4"
+    "sha256": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
     "text": "يبدو أنك تبلغ عن تغيير غير مصرح به للبريد الإلكتروني في حسابك. يرجى وصف ما حدث وسنحقق في الأمر فوراً.",
-    "sha256": "b2c3d4e5"
+    "sha256": "00e56551"
   }
 }

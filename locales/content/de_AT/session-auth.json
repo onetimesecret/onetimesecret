@@ -61,7 +61,7 @@
   },
   "web.login.tab_passkey": {
     "text": "Passkey",
-    "sha256": ""
+    "sha256": "904c9aa9"
   },
   "web.login.need_help": {
     "text": "Brauchen Sie Hilfe?",
@@ -69,11 +69,11 @@
   },
   "web.login.or_continue_with": {
     "text": "Oder fortfahren mit",
-    "sha256": ""
+    "sha256": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
     "text": "Mit SSO anmelden",
-    "sha256": ""
+    "sha256": "73e984e9"
   },
   "web.login.sign_in_with_provider": {
     "text": "Anmelden mit {provider}",
@@ -81,11 +81,11 @@
   },
   "web.auth.sso.signing_in": {
     "text": "Weiterleitung zum Identitätsanbieter...",
-    "sha256": ""
+    "sha256": "4d1213f9"
   },
   "web.auth.sso.error": {
     "text": "SSO-Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.",
-    "sha256": ""
+    "sha256": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
     "text": "SSO-Authentifizierung fehlgeschlagen. Bitte versuchen Sie es erneut oder verwenden Sie die Passwort-Anmeldung.",
