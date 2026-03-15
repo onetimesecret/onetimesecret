@@ -241,7 +241,20 @@ module V1
         if !opts[:passphrase_required].nil?
           ret['passphrase_required'] = opts[:passphrase_required]
         end
+
         coerce_v1_types(ret)
+
+        # V1 additive compatibility: emit both v0.23 and v0.24 field names (#2617)
+        # Placed AFTER coerce_v1_types so new-name fields inherit coerced values.
+        ret['identifier'] = ret['metadata_key']
+        ret['secret_identifier'] = ret['secret_key'] if ret.key?('secret_key')
+        ret['has_passphrase'] = ret['passphrase_required'] if ret.key?('passphrase_required')
+        ret['recipients'] = ret['recipient']
+        ret['receipt_ttl'] = ret['metadata_ttl']
+        ret['receipt_url'] = ret['metadata_url']
+        ret['secret_value'] = ret['value'] if ret.key?('value')
+
+        ret
       end
 
     end
