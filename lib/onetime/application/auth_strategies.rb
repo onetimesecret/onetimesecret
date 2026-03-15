@@ -296,9 +296,14 @@ module Onetime
             )
 
             success(
-              session: {},  # Empty hash, not nil: downstream consumers
-              # (Logic::Base, RequestHelpers) index into
-              # session with [] and would raise on nil.
+              session: session,  # Pass the real Rack session (SecureSessionHash),
+              # not a plain Hash. Otto's RouteAuthWrapper (line 131)
+              # writes result.session back to env['rack.session'],
+              # and rack-session's commit_session calls .options on it.
+              # A plain {} would crash with NoMethodError. See:
+              #   5c6339cac (changed to nil — broke [] access)
+              #   ed0670c30 (reverted to {} — broke .options/.id)
+              #   89b745ca4 (guarded .id calls — symptom fix)
               user: cust,
               auth_method: self.class.auth_method_name,
               **metadata_hash,
