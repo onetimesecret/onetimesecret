@@ -6,6 +6,7 @@ require 'billing/metadata'
 require 'billing/models/plan'
 require 'billing/lib/billing_service'
 require 'billing/lib/plan_validator'
+require 'billing/operations/apply_subscription_to_org'
 require_relative '../../../utils/email_hash'
 
 module Onetime
@@ -47,6 +48,15 @@ module Onetime
           # Track when user dismissed the federation notification - for UX
           # Unix timestamp, nil if never dismissed
           base.field :federation_notification_dismissed_at
+
+          # Complimentary subscription marker (read-only cache, Stripe → local)
+          #
+          # Mirrors Stripe subscription metadata['complimentary']. The source
+          # of truth is Stripe — this field is written only by webhook
+          # processing (ApplySubscriptionToOrg) and migration tooling, never
+          # pushed back to Stripe. To grant or revoke complimentary status,
+          # update the Stripe subscription metadata and let webhooks propagate.
+          base.field :complimentary
 
           # Currency migration intent fields
           # Set when user initiates graceful migration (cancel-at-period-end path).
@@ -133,6 +143,61 @@ module Onetime
           # @return [Boolean] True if subscription status is 'canceled'
           def canceled?
             subscription_status.to_s == 'canceled'
+          end
+
+          # Canonical Paid Status
+          # ---------------------
+          # Single source of truth for whether an organization is paying.
+          # Combines subscription liveness with plan classification.
+
+          # Check if organization has premium entitlements via subscription
+          #
+          # An org is paid when it has an active (or trialing) subscription
+          # AND a non-free plan assigned. This prevents false positives from
+          # stale planid values after cancellation (webhooks set planid to
+          # 'free_v1' on cancel, but this guards against race conditions).
+          #
+          # NOTE: Complimentary ($0) subscriptions return true here. This is
+          # intentional — complimentary accounts behave identically to paying
+          # accounts for entitlements, features, and UX. The distinction is
+          # purely financial and belongs in reporting/analytics, not in
+          # application authorization logic. Use complimentary? when you need
+          # to distinguish revenue-bearing subscriptions.
+          #
+          # @return [Boolean] True if org has active subscription with paid plan
+          #
+          # @example
+          #   org.paid?  # => true (active sub + identity_plus_v1)
+          #   org.paid?  # => true (complimentary $0 sub + identity_plus_v1)
+          #   org.paid?  # => false (canceled sub, even with paid planid)
+          #   org.paid?  # => false (active sub + free_v1)
+          #
+          def paid?
+            active_subscription? &&
+              !planid.to_s.empty? &&
+              !Billing::Metadata::FREE_PLAN_IDS.include?(planid.to_s)
+          end
+
+          # Check if organization has a complimentary (pro-bono) subscription
+          #
+          # A complimentary org has an active $0 subscription with the
+          # 'complimentary' marker set. This is distinct from paid? because
+          # the subscription carries no revenue, but the org still gets
+          # premium entitlements through its planid.
+          #
+          # This reads a local cache of Stripe state. To change an org's
+          # complimentary status, update the Stripe subscription metadata
+          # and let webhooks propagate — do not set this field directly.
+          #
+          # @return [Boolean] True if org has active complimentary subscription
+          #
+          # @example
+          #   org.complimentary?  # => true ($0 sub, complimentary marker)
+          #   org.complimentary?  # => false (regular paid sub)
+          #   org.complimentary?  # => false (canceled complimentary sub)
+          #
+          def complimentary?
+            active_subscription? && complimentary.to_s == 'true'
           end
 
           # Federation Methods
@@ -306,28 +371,24 @@ module Onetime
               end
             end
 
-            # Update fields
-            self.stripe_subscription_id  = subscription.id
-            self.stripe_customer_id      = new_customer_id
-            self.subscription_status     = subscription.status
-            # current_period_end moved from subscription to subscription items in newer Stripe API
-            period_end                   = subscription.items.data.first&.current_period_end
-            self.subscription_period_end = period_end.to_s if period_end
-
-            # Extract plan ID with validation
-            plan_id     = extract_plan_id_from_subscription(subscription)
-            self.planid = plan_id if plan_id
-
-            save
+            # Delegate field-setting to shared operation (owner path)
+            Billing::Operations::ApplySubscriptionToOrg.call(
+              self, subscription, owner: true
+            )
           end
 
           # Clear billing fields (on subscription cancellation)
+          #
+          # Called by webhook handlers when a subscription is deleted.
+          # Clears the complimentary cache along with other billing state
+          # because the Stripe subscription that sourced it no longer exists.
           #
           # @return [Boolean] True if saved successfully
           def clear_billing_fields
             self.stripe_subscription_id = nil
             self.subscription_status    = 'canceled'
             self.planid                 = 'free_v1'
+            self.complimentary          = nil
             save
           end
 

@@ -21,7 +21,8 @@ module Billing
   #
   module BillingService
     # Plan IDs that represent free tier
-    FREE_PLAN_IDS = %w[free free_v1].freeze
+    # @deprecated Use Billing::Metadata::FREE_PLAN_IDS instead
+    FREE_PLAN_IDS = Metadata::FREE_PLAN_IDS
 
     extend self
 
