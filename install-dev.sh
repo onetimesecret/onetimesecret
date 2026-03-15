@@ -110,6 +110,20 @@ if [[ ! -f "Gemfile" ]]; then
     exit 1
 fi
 
+# Check for overmind (needed by bin/dev)
+if ! command -v overmind &>/dev/null; then
+    echo "Warning: Overmind not found — required by bin/dev"
+    echo "  Install: https://github.com/DarthSim/overmind#installation"
+    echo ""
+fi
+
+# Warn if shared config directory is absent
+if [[ ! -d "$OTS_DEV_CONFIG" ]]; then
+    echo "Warning: $OTS_DEV_CONFIG does not exist — symlinks will be skipped"
+    echo "  Create it and populate with config files, or set OTS_DEV_CONFIG to an existing directory"
+    echo ""
+fi
+
 # Repair .env.sh before proceeding with other links
 repair_env_sh
 
@@ -120,6 +134,17 @@ for local_path in "${!LINKS[@]}"; do
     link_resource "$local_path" "${LINKS[$local_path]}"
 done
 
+# Fall back to local copies when symlink sources are absent
+if [[ ! -e "Procfile.dev" && -f "Procfile.dev.example" ]]; then
+    cp Procfile.dev.example Procfile.dev
+    echo "Copy: Procfile.dev.example -> Procfile.dev (no symlink source)"
+fi
+
+if [[ ! -e "etc/puma.rb" && -f "etc/examples/puma.example.rb" ]]; then
+    cp etc/examples/puma.example.rb etc/puma.rb
+    echo "Copy: etc/examples/puma.example.rb -> etc/puma.rb (no symlink source)"
+fi
+
 echo "---"
 echo "Installing Ruby gems..."
 bundle install
@@ -129,4 +154,9 @@ echo "Installing Node packages..."
 pnpm install
 
 echo "---"
-echo "Done. Run 'bin/dev' to start."
+if command -v overmind &>/dev/null; then
+    echo "Done. Run 'bin/dev' to start."
+else
+    echo "Done. Install overmind to use 'bin/dev', or start services manually:"
+    echo "  source .env.sh && bundle exec puma -C etc/puma.rb"
+fi

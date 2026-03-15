@@ -158,8 +158,28 @@ cmd_init() {
     bin/ots queue init --force
   fi
 
-  bundle exec bin/ots install mark > /dev/null
-  info "Environment initialized (onetime:install:init_count incremented)"
+  if bundle exec bin/ots install mark > /dev/null 2>&1; then
+    info "Environment initialized (onetime:install:init_count incremented)"
+  else
+    warn "Redis/Valkey not running — skipping install mark (run install.sh again after starting Valkey)"
+  fi
+
+  echo ""
+  info "Next steps:"
+  if [[ "$mode" == "full" ]]; then
+    echo "  1. Start Valkey/Redis and RabbitMQ"
+    echo "  2. Source environment:  source .env.sh"
+    echo "  3. Start the app:      bundle exec puma -C etc/puma.rb"
+    echo "  4. Start workers:      bundle exec bin/ots worker"
+    echo "  5. Start scheduler:    bundle exec bin/ots scheduler"
+  else
+    echo "  1. Start Valkey/Redis"
+    echo "  2. Source environment:  source .env.sh"
+    echo "  3. Start the app:      bundle exec puma -C etc/puma.rb"
+  fi
+  echo ""
+  echo "  For development with Overmind:  bin/dev"
+  echo "  Check environment health:       install.sh doctor"
 }
 
 cmd_console() {
@@ -172,13 +192,23 @@ cmd_doctor() {
   (check_version "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"') || true
   (check_version_major "Node" node .nvmrc 'node -v') || true
 
-  if has redis-cli && redis-cli ping &>/dev/null; then
+  if has valkey-cli && valkey-cli ping &>/dev/null; then
+    info "Valkey responding"
+  elif has redis-cli && redis-cli ping &>/dev/null; then
     info "Redis responding"
   else
-    warn "Redis not responding or not found"
+    warn "Valkey/Redis not responding or not found"
+  fi
+
+  if has overmind; then
+    info "Overmind found (for development use: bin/dev)"
+  else
+    warn "Overmind not found — needed for bin/dev (install: https://github.com/DarthSim/overmind)"
   fi
 
   [[ -f .env ]] && info ".env exists" || warn ".env missing"
+  [[ -f etc/puma.rb ]] && info "etc/puma.rb exists" || warn "etc/puma.rb missing (copy from etc/examples/puma.example.rb)"
+  [[ -f Procfile.dev ]] && info "Procfile.dev exists" || warn "Procfile.dev missing (copy from Procfile.dev.example)"
 
   local mode
   mode=$(auth_mode)
