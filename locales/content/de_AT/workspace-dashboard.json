@@ -20,7 +20,7 @@
     "sha256": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Beim Laden deiner Daten ist ein Problem aufgetreten. Bitte versuche es erneut.",
+    "text": "Beim Laden Ihrer Daten ist ein Problem aufgetreten. Bitte versuchen Sie es erneut.",
     "sha256": "ff0d904e"
   }
 }

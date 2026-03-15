@@ -220,7 +220,7 @@
     "sha256": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Single Sign-On",
+    "text": "Enkelt login",
     "sha256": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
@@ -280,7 +280,7 @@
     "sha256": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Single Sign-On (SSO)",
+    "text": "Enkelt login (SSO)",
     "sha256": "5db5c812"
   },
   "web.billing.features.priority_support": {
@@ -544,7 +544,7 @@
     "sha256": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "Download",
+    "text": "Hent",
     "sha256": "d6eafe82"
   },
   "web.billing.invoices.invoice_number": {

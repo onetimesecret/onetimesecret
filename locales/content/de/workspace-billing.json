@@ -20,7 +20,7 @@
     "sha256": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Eigene Domains erfordern Identity Plus oder höher",
+    "text": "Benutzerdefinierte Domains erfordern Identity Plus oder höher",
     "sha256": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
@@ -176,7 +176,7 @@
     "sha256": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "Eigene Domains",
+    "text": "Benutzerdefinierte Domains",
     "sha256": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {

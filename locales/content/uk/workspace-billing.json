@@ -412,11 +412,11 @@
     "sha256": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} команда | {count} команд",
+    "text": "{count} команда | {count} команди | {count} команд",
     "sha256": "a83641bc"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} учасник на команду | {count} учасників на команду",
+    "text": "{count} учасник на команду | {count} учасники на команду | {count} учасників на команду",
     "sha256": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {

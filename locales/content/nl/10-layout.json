@@ -216,7 +216,7 @@
     "sha256": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
-    "text": "{count} items",
+    "text": "{count} onderdelen",
     "sha256": "f65216b3"
   },
   "web.layout.release_notes": {

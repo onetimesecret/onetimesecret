@@ -328,7 +328,7 @@
     "sha256": "7b5aa1fc"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
-    "text": "Füge diesen Hostnamen zu deiner DNS-Konfiguration hinzu:",
+    "text": "Fügen Sie diesen Hostnamen zu Ihrer DNS-Konfiguration hinzu:",
     "sha256": "4bf09ead"
   },
   "web.domains.1_create_a_txt_record": {

@@ -236,7 +236,7 @@
     "sha256": "dd1841d2"
   },
   "web.auth.passkeys.count": {
-    "text": "مفتاح مرور واحد مسجل | {count} مفاتيح مرور مسجلة",
+    "text": "{count} مفتاح مرور مسجل | {count} مفاتيح مرور مسجلة",
     "context": "Number of registered passkeys",
     "sha256": "82e6681f"
   },

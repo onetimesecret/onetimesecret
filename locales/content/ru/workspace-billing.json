@@ -360,11 +360,11 @@
     "sha256": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Single Team",
+    "text": "Одна команда",
     "sha256": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Multi Team",
+    "text": "Много команд",
     "sha256": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {

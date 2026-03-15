@@ -220,7 +220,7 @@
     "sha256": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Single Sign-On",
+    "text": "Jednokrotne logowanie",
     "sha256": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
@@ -280,7 +280,7 @@
     "sha256": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Single Sign-On (SSO)",
+    "text": "Jednokrotne logowanie (SSO)",
     "sha256": "5db5c812"
   },
   "web.billing.features.priority_support": {
@@ -360,11 +360,11 @@
     "sha256": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Single Team",
+    "text": "Jeden zespół",
     "sha256": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Multi Team",
+    "text": "Wiele zespołów",
     "sha256": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {

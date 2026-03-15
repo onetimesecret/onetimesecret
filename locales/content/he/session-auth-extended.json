@@ -247,7 +247,7 @@
     "sha256": "dd1841d2"
   },
   "web.auth.passkeys.count": {
-    "text": "מפתח גישה אחד רשום | {count} מפתחות גישה רשומים",
+    "text": "{count} מפתח גישה רשום | {count} מפתחות גישה רשומים",
     "context": "Number of registered passkeys",
     "sha256": "82e6681f"
   },

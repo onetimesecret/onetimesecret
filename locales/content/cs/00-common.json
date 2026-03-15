@@ -221,7 +221,7 @@
     "sha256": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Registrujte se pro více",
+    "text": "Zaregistruj se pro více",
     "sha256": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
@@ -289,7 +289,7 @@
     "sha256": "76900f1b"
   },
   "web.COMMON.feedback_text": {
-    "text": "Podělte se o své myšlenky, nápady nebo zkušenosti...",
+    "text": "Poděl se o své myšlenky, nápady nebo zkušenosti...",
     "sha256": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
@@ -349,7 +349,7 @@
     "sha256": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Nelze ověřit účet, když jsi již přihlášeni",
+    "text": "Nelze ověřit účet, když jsi již přihlášen/a",
     "sha256": "f0a17c5f"
   },
   "web.COMMON.show_password": {
@@ -1303,7 +1303,7 @@
     "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vždy si ověř, že jsi na oficiálních stránkách Onetime Secret. Podvodníci někdy vytvářejí falešné weby, které vypadají přesně jako Onetime Secret, aby ukradli tvoje tajemství. Abyste se vyhnuli phishingovým útokům, zkontroluj doménu před vytvořením nových odkazů.",
+    "text": "Vždy si ověř, že jsi na oficiálních stránkách Onetime Secret. Podvodníci někdy vytvářejí falešné weby, které vypadají přesně jako Onetime Secret, aby ukradli tvoje tajemství. Abys předešel/a phishingovým útokům, zkontroluj doménu před vytvořením nových odkazů.",
     "sha256": "b588f5b2"
   },
   "web.pricing.title": {

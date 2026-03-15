@@ -821,7 +821,7 @@
     "sha256": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
-    "text": "Rimarkojn ricevitaj.",
+    "text": "Rimarkoj ricevitaj.",
     "sha256": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
