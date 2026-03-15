@@ -8,15 +8,15 @@
     "sha256": "23635e2d"
   },
   "web.domains.domain_already_in_organization": {
-    "text": "Diese Domain ist bereits in deiner Organisation registriert",
+    "text": "Diese Domain ist bereits in Ihrer Organisation registriert",
     "sha256": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Diese Domain ist bereits bei einer anderen Organisation registriert. Bitte kontaktiere den Support, wenn du glaubst, dass dies ein Fehler ist.",
+    "text": "Diese Domain ist bereits bei einer anderen Organisation registriert. Bitte kontaktieren Sie den Support, wenn Sie glauben, dass dies ein Fehler ist.",
     "sha256": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Domain erfolgreich beansprucht und zu deiner Organisation hinzugefügt",
+    "text": "Domain erfolgreich beansprucht und zu Ihrer Organisation hinzugefügt",
     "sha256": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
@@ -24,7 +24,7 @@
     "sha256": "5bce069d"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Setze Standard-Datenschutzoptionen für Geheimnisse, die unter dieser Domain erstellt werden. Diese Einstellungen werden beim Erstellen neuer Geheimnisse vorausgefüllt.",
+    "text": "Setzen Sie Standard-Datenschutzoptionen für Geheimnisse, die unter dieser Domain erstellt werden. Diese Einstellungen werden beim Erstellen neuer Geheimnisse vorausgefüllt.",
     "sha256": "1d98959c"
   },
   "web.domains.privacy_defaults": {
@@ -96,7 +96,7 @@
     "sha256": "76f6014f"
   },
   "web.domains.passphrase_short": {
-    "text": "Passphrase",
+    "text": "Sicherheitsphrase",
     "sha256": "e7611f05"
   },
   "web.domains.notify_short": {
@@ -116,7 +116,7 @@
     "sha256": "026552b3"
   },
   "web.domains.scope_header": {
-    "text": "Domains",
+    "text": "Domänen",
     "sha256": "ced67718"
   },
   "web.domains.add_domain": {
@@ -152,15 +152,15 @@
     "sha256": "fe871d2c"
   },
   "web.domains.domain": {
-    "text": "Domain",
+    "text": "Domäne",
     "sha256": "79fa3361"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "Verwalte und konfiguriere deine verifizierten eigenen Domains",
+    "text": "Verwalten und konfigurieren Sie Ihre verifizierten eigenen Domains",
     "sha256": "4e7f8311"
   },
   "web.domains.domains": {
-    "text": "Domains",
+    "text": "Domänen",
     "sha256": "ced67718"
   },
   "web.domains.last_monitored": {
@@ -220,11 +220,11 @@
     "sha256": "dc9ff9ec"
   },
   "web.domains.add_your_domain": {
-    "text": "Deine Domain hinzufügen",
+    "text": "Ihre Domain hinzufügen",
     "sha256": "6b95c91c"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
-    "text": "Leg los, indem du eine eigene Domain hinzufügst.",
+    "text": "Fügen Sie eine eigene Domain hinzu, um loszulegen.",
     "sha256": "abdbe9ab"
   },
   "web.domains.no_domains_found": {
@@ -252,7 +252,7 @@
     "sha256": "8978f5e7"
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", musst du diese Schritte abschließen.",
+    "text": ", müssen Sie diese Schritte abschließen.",
     "sha256": "1d81c53e"
   },
   "web.domains.before_we_can_activate_links_for": {
@@ -264,7 +264,7 @@
     "sha256": "09a4b0ca"
   },
   "web.domains.verify_your_domain": {
-    "text": "Deine Domain verifizieren",
+    "text": "Ihre Domain verifizieren",
     "sha256": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {
@@ -272,7 +272,7 @@
     "sha256": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Passe dein Domain-Branding an",
+    "text": "Passen Sie Ihr Domain-Branding an",
     "sha256": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
@@ -328,7 +328,7 @@
     "sha256": "7b5aa1fc"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
-    "text": "Füge diesen Hostnamen zu deiner DNS-Konfiguration hinzu:",
+    "text": "Fügen Sie diesen Hostnamen zu Ihrer DNS-Konfiguration hinzu:",
     "sha256": "4bf09ead"
   },
   "web.domains.1_create_a_txt_record": {
@@ -396,7 +396,7 @@
     "sha256": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
-    "text": "Verwende das Tool unten, um deinen DNS-Anbieter automatisch zu erkennen und Schritt-für-Schritt-Anleitungen zur Konfiguration deiner Domain zu erhalten.",
+    "text": "Verwenden Sie das Tool unten, um Ihren DNS-Anbieter automatisch zu erkennen und Schritt-für-Schritt-Anleitungen zur Konfiguration Ihrer Domain zu erhalten.",
     "sha256": "91c1af2e"
   }
 }

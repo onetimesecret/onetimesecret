@@ -4,7 +4,7 @@
     "sha256": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Bezpečně sdílejte citlivé informace s naším týmem podpory",
+    "text": "Bezpečně sdílej citlivé informace s naším týmem podpory",
     "sha256": "08beca74"
   },
   "incoming.loading_config": {
@@ -20,7 +20,7 @@
     "sha256": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Tato funkce je momentálně zakázána. Pro pomoc kontaktujte podporu.",
+    "text": "Tato funkce je momentálně zakázána. Pro pomoc kontaktuj podporu.",
     "sha256": "f13fbf2b"
   },
   "incoming.memo_label": {
@@ -40,15 +40,15 @@
     "sha256": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "Vyberte příjemce",
+    "text": "Vyber příjemce",
     "sha256": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "Vyberte příjemce pro toto tajemství",
+    "text": "Vyber příjemce pro toto tajemství",
     "sha256": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "Vyberte, kdo obdrží tuto zabezpečenou zprávu",
+    "text": "Vyber, kdo obdrží tuto zabezpečenou zprávu",
     "sha256": "0dfafc45"
   },
   "incoming.no_recipients_available": {
@@ -60,7 +60,7 @@
     "sha256": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Vložte sem citlivé informace (hesla, klíče atd.)",
+    "text": "Vlož sem citlivé informace (hesla, klíče atd.)",
     "sha256": "7d7abb48"
   },
   "incoming.secret_content_hint": {
@@ -96,7 +96,7 @@
     "sha256": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "Vaše zabezpečená zpráva byla doručena.",
+    "text": "Tvoje zabezpečená zpráva byla doručena.",
     "sha256": "e1538e3e"
   },
   "incoming.reference_id": {
@@ -116,15 +116,15 @@
     "sha256": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Bezpečně sdílejte citlivé informace",
+    "text": "Bezpečně sdílej citlivé informace",
     "sha256": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Udržujte hesla a soukromá data mimo e-maily a protokoly chatů",
+    "text": "Udržuj hesla a soukromá data mimo e-maily a protokoly chatů",
     "sha256": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Uložte si {receipt} pro své záznamy.",
+    "text": "Ulož si {receipt} pro své záznamy.",
     "sha256": "db3d9c98"
   },
   "incoming.receipt_link_text": {

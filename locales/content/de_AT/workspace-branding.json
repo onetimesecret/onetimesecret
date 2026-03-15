@@ -56,11 +56,11 @@
     "sha256": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Verwende dein Handy, um den QR-Code zu scannen",
+    "text": "Verwenden Sie Ihr Handy, um den QR-Code zu scannen",
     "sha256": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Kontaktiere onboarding{'@'}example.com bei Fragen",
+    "text": "Kontaktieren Sie onboarding{'@'}example.com bei Fragen",
     "sha256": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -124,7 +124,7 @@
     "sha256": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "Du hast nicht gespeicherte Änderungen. Bist du sicher?",
+    "text": "Sie haben nicht gespeicherte Änderungen. Sind Sie sicher?",
     "sha256": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
@@ -132,7 +132,7 @@
     "sha256": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Dies ist eine interaktive Vorschau, wie Empfänger deine sicheren Nachrichten sehen werden. Du kannst: - Farben und Schriften mit den obigen Steuerelementen anpassen - Ein Logo hochladen (empfohlen mindestens 128x128 Pixel, max. 1MB) - Die Vorschau mit der Schaltfläche 'Geheimnis anzeigen' testen",
+    "text": "Dies ist eine interaktive Vorschau, wie Empfänger Ihre sicheren Nachrichten sehen werden. Sie können: - Farben und Schriften mit den obigen Steuerelementen anpassen - Ein Logo hochladen (empfohlen mindestens 128x128 Pixel, max. 1MB) - Die Vorschau mit der Schaltfläche 'Geheimnis anzeigen' testen",
     "sha256": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -144,7 +144,7 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Powered by Onetime Secret",
+    "text": "Bereitgestellt von Onetime Secret",
     "sha256": "935442d0"
   },
   "web.branding.heading_logo": {
@@ -166,5 +166,9 @@
   "web.branding.switch_to_safari_preview": {
     "text": "Zu Safari-Vorschau wechseln",
     "sha256": "f24ac447"
+  },
+  "web.branding.upgrade_to_customize": {
+    "text": "Upgraden Sie Ihren Tarif, um das Branding für diese Domäne anzupassen.",
+    "sha256": "9077bf79"
   }
 }

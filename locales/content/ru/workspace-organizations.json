@@ -155,6 +155,14 @@
     "text": "Не удалось обновить организацию",
     "sha256": "bc2b59b8"
   },
+  "web.organizations.billing_email_updated": {
+    "text": "Почта для оплаты успешно обновлена",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Почту для оплаты можно изменить на странице обзора оплаты",
+    "sha256": "8a131415"
+  },
   "web.organizations.billing_coming_soon": {
     "text": "Интеграция оплаты скоро появится",
     "sha256": "d3e0ec75"
@@ -206,6 +214,10 @@
   "web.organizations.tabs.billing": {
     "text": "Оплата",
     "sha256": "3ac8bbca"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Подписка",
+    "sha256": "4999c6c6"
   },
   "web.organizations.danger_zone": {
     "text": "Опасная зона",
@@ -515,17 +527,21 @@
     "text": "Загрузка деталей приглашения",
     "sha256": "58884885"
   },
-  "web.organizations.billing_email_updated": {
-    "text": "Почта для оплаты успешно обновлена",
-    "sha256": "080a7f11"
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Обновите план, чтобы приглашать участников команды",
+    "sha256": "5e3f8df8"
   },
-  "web.organizations.billing_email_managed_on_billing": {
-    "text": "Почту для оплаты можно изменить на странице обзора оплаты",
-    "sha256": "8a131415"
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Приглашения участников команды требуют плана с управлением командой. Обновите план, чтобы добавить сотрудников в организацию.",
+    "sha256": "cf10d623"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
     "sha256": "957b0b87"
+  },
+  "web.organizations.early_supporter_badge": {
+    "text": "Ранний пользователь",
+    "sha256": "e67d2ef8"
   },
   "web.organizations.member_count": {
     "text": "{count} участник | {count} участника | {count} участников",
@@ -535,13 +551,9 @@
     "text": "{count} домен | {count} домена | {count} доменов",
     "sha256": "09f52efa"
   },
-  "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Обновите план, чтобы приглашать участников команды",
-    "sha256": "5e3f8df8"
-  },
-  "web.organizations.invitations.upgrade_prompt": {
-    "text": "Приглашения участников команды требуют плана с управлением командой. Обновите план, чтобы добавить сотрудников в организацию.",
-    "sha256": "cf10d623"
+  "web.organizations.tabs.domains": {
+    "text": "Домены",
+    "sha256": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Неверный аккаунт",
@@ -566,13 +578,5 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Скоро истечёт",
     "sha256": "a5dcfef9"
-  },
-  "web.organizations.tabs.subscription": {
-    "text": "Подписка",
-    "sha256": "4999c6c6"
-  },
-  "web.organizations.tabs.domains": {
-    "text": "Домены",
-    "sha256": "ced67718"
   }
 }

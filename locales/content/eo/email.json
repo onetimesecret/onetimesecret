@@ -151,6 +151,14 @@
     "text": "Ĉi tiu ligilo funkcios nur unufoje. Post vidado, la sekreto estos definitive forigita.",
     "sha256": "fecaf0a1"
   },
+  "email.incoming_secret.passphrase_required": {
+    "text": "Ĉi tiu sekreto estas protektita per sekreta frazo. La sendinto devus provizi ĝin al vi aparte.",
+    "sha256": "1e49826b"
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "Sekreta frazo bezonata:",
+    "sha256": "1ab9a20f"
+  },
   "email.incoming_secret.sent_via": {
     "text": "Sendita per",
     "sha256": "d01479b3"
@@ -320,16 +328,84 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "La retpoŝta adreso por via konto %{product_name} estis ŝanĝita al %{new_email_masked} je %{date}.",
+    "text": "La retpoŝta adreso por via konto %{product_name} estis ŝanĝita al %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "Se vi ne faris ĉi tiun ŝanĝon, bonvolu tuj kontakti subtenon ĉar via konto eble estas kompromitita.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "La retpoŝta adreso de via %{product_name}-konto estis ŝanĝita.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "Nova retpoŝto:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "Ŝanĝita je:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "Se vi faris ĉi tiun ŝanĝon, neniu plua ago estas bezonata.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "Se vi ne faris ĉi tiun ŝanĝon, via konto eble estas kompromitita.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "Kontakti helpon",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "P.S. Ĉi tiu retpoŝto estis sendita al %{email_address} por informi vin pri retpoŝta adresŝanĝo.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "Retpoŝta ŝanĝo petita (%{display_domain})",
+    "sha256": "be3441d6"
+  },
+  "email.email_change_requested.title": {
+    "text": "Retpoŝta ŝanĝo petita",
+    "sha256": "704cbdca"
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "Peto estis farita por ŝanĝi la retpoŝtan adreson de via %{product_name}-konto.",
+    "sha256": "d7e39154"
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "Petita nova retpoŝto:",
+    "sha256": "243f3e03"
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "Petita je:",
+    "sha256": "ada23c51"
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "Se vi faris ĉi tiun peton, kontrolu vian novan retpoŝton por konfirmliga ligo. Neniuj ŝanĝoj estis faritaj ankoraŭ.",
+    "sha256": "aa1bf526"
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "Se vi ne faris ĉi tiun peton, vi povas senriske ignori ĉi tiun retpoŝton. Via konto ne estis ŝanĝita.",
+    "sha256": "ff41a7b7"
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "Kontakti helpon",
+    "sha256": "f8d47b82"
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.email_change_requested.postscript": {
+    "text": "P.S. Ĉi tiu retpoŝto estis sendita al %{email_address} ĉar retpoŝta ŝanĝo estis petita por via konto.",
+    "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {
     "text": "Kontrolu vian novan retpoŝtan adreson (%{display_domain})",
@@ -347,24 +423,44 @@
     "text": "Kontroli retpoŝtan adreson",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "Peto estis farita por ŝanĝi la retpoŝtan adreson de via %{product_name}-konto al %{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "Konfirmi retpoŝtan ŝanĝon",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Aŭ kopiu kaj algluu ĉi tiun ligilon:",
     "sha256": "88c72144"
+  },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "Ĉi tiu ligo eksvalidiĝos post %{hours} horoj.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "Se vi ne petis ĉi tiun ŝanĝon, vi povas senriske ignori ĉi tiun retpoŝton. Via retpoŝta adreso ne estos ŝanĝita.",
+    "sha256": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
   },
+  "email.email_change_confirmation.postscript": {
+    "text": "P.S. Ĉi tiu retpoŝto estis sendita al %{email_address} por konfirmi retpoŝtan adresŝanĝon.",
+    "sha256": "b72f557c"
+  },
   "email.mfa_enabled.subject": {
-    "text": "Du-faktora aŭtentikigo ŝaltita (%{display_domain})",
+    "text": "Dufaktora aŭtentikigo ŝaltita (%{display_domain})",
     "sha256": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "Du-Faktora Aŭtentikigo Ŝaltita",
+    "text": "Dufaktora Aŭtentikigo Ŝaltita",
     "sha256": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "Du-faktora aŭtentikigo estis ŝaltita por via %{product_name}-konto je %{date}.",
+    "text": "Dufaktora aŭtentikigo estis ŝaltita por via %{product_name}-konto je %{date}.",
     "sha256": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
@@ -376,15 +472,15 @@
     "sha256": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "Du-faktora aŭtentikigo malŝaltita (%{display_domain})",
+    "text": "Dufaktora aŭtentikigo malŝaltita (%{display_domain})",
     "sha256": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "Du-Faktora Aŭtentikigo Malŝaltita",
+    "text": "Dufaktora Aŭtentikigo Malŝaltita",
     "sha256": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "Du-faktora aŭtentikigo estis malŝaltita por via %{product_name}-konto je %{date}.",
+    "text": "Dufaktora aŭtentikigo estis malŝaltita por via %{product_name}-konto je %{date}.",
     "sha256": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {

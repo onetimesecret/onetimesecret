@@ -47,6 +47,10 @@
     "text": "Юридична інформація",
     "sha256": "0a410c78"
   },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Коли Ви надішлете відгук, ми побачимо:",
+    "sha256": "fe77172e"
+  },
   "web.footer.read_our_privacy_policy": {
     "text": "Ознайомтеся з нашою політикою конфіденційності",
     "sha256": "eb443229"
@@ -95,6 +99,14 @@
     "text": "Компанія",
     "sha256": "de4743c8"
   },
+  "web.footer.product": {
+    "text": "Продукт",
+    "sha256": "7f5540e9"
+  },
+  "web.footer.source_code_purveyor": {
+    "text": "Вихідний код",
+    "sha256": "29c5c68f"
+  },
   "web.navigation.billing": {
     "text": "Оплата",
     "sha256": "3ac8bbca"
@@ -112,7 +124,7 @@
     "sha256": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
-    "text": "Ми робимо Onetime Secret доступним кількома мовами. Оскільки це нова функція, ви можете зіткнутися з помилками перекладу або незграбними формулюваннями. Ваш відгук допомагає нам вдосконалюватися - якщо ви помітите будь-які проблеми, будь ласка, {send-feedback}",
+    "text": "Ми робимо {onetime-secret} доступним кількома мовами. Оскільки це нова функція, ви можете зіткнутися з помилками перекладу або незграбними формулюваннями. Ваш відгук допомагає нам вдосконалюватися - якщо ви помітите будь-які проблеми, будь ласка, {send-feedback}",
     "sha256": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
@@ -307,6 +319,10 @@
     "text": "Мову змінено на {0}",
     "sha256": "1680f4fe"
   },
+  "web.layout.reset_to_default_language": {
+    "text": "Скинути до {0}",
+    "sha256": "c0cfa9b2"
+  },
   "web.layout.switch_to_blank_mode": {
     "text": "Перемкнути на режим {0}",
     "sha256": "c8b909e0"
@@ -322,13 +338,5 @@
   "web.layout.workspace_context": {
     "text": "Контекст робочої області",
     "sha256": "dc6fa4f5"
-  },
-  "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Коли Ви надішлете відгук, ми побачимо:",
-    "sha256": "fe77172e"
-  },
-  "web.layout.reset_to_default_language": {
-    "text": "Скинути до {0}",
-    "sha256": "c0cfa9b2"
   }
 }

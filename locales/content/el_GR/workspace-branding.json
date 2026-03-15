@@ -166,5 +166,9 @@
   "web.branding.switch_to_safari_preview": {
     "text": "Εναλλαγή σε προεπισκόπηση Safari",
     "sha256": "f24ac447"
+  },
+  "web.branding.upgrade_to_customize": {
+    "text": "Αναβαθμίστε το πλάνο σας για να προσαρμόσετε την επωνυμία για αυτόν τον τομέα.",
+    "sha256": "9077bf79"
   }
 }

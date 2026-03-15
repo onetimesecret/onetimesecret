@@ -166,5 +166,9 @@
   "web.branding.switch_to_safari_preview": {
     "text": "Preklopi na predogled Safari",
     "sha256": "f24ac447"
+  },
+  "web.branding.upgrade_to_customize": {
+    "text": "Nadgradite svoj načrt, da prilagodite blagovno znamko za to domeno.",
+    "sha256": "9077bf79"
   }
 }

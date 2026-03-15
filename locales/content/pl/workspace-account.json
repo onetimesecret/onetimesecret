@@ -155,6 +155,10 @@
     "text": "Usuwanie {0}",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Usuwanie...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Trwale usuń konto",
     "sha256": "f894e42c"
@@ -210,6 +214,22 @@
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Zarządzaj ustawieniami konta i preferencjami",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Powrót do panelu",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Konto",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Płatności",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Zaawansowane",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "Ogólne",
@@ -615,24 +635,52 @@
     "text": "Tej operacji nie można cofnąć",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "Usuwanie...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "Adres e-mail zaktualizowany",
+    "sha256": "cf02eb0c"
   },
-  "web.settings.back_to_dashboard": {
-    "text": "Powrót do panelu",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Twój adres e-mail został pomyślnie zaktualizowany. Zaloguj się używając nowego adresu e-mail.",
+    "sha256": "a84efcea"
   },
-  "web.settings.sections.account": {
-    "text": "Konto",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Weryfikowanie Twojego nowego adresu e-mail...",
+    "sha256": "a6a4745f"
   },
-  "web.settings.sections.billing": {
-    "text": "Płatności",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "Zmiana adresu e-mail nie powiodła się",
+    "sha256": "953f3936"
   },
-  "web.settings.sections.advanced": {
-    "text": "Zaawansowane",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "Ten link weryfikacyjny jest nieprawidłowy lub wygasł.",
+    "sha256": "f54594c2"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Wróć do ustawień konta",
+    "sha256": "fd49b66b"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Przekierowywanie do logowania...",
+    "sha256": "c65f7dcc"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Wyślij ponownie e-mail potwierdzający",
+    "sha256": "c617fff7"
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "E-mail potwierdzający został ponownie wysłany.",
+    "sha256": "2287783b"
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Wysyłanie...",
+    "sha256": "286a3af7"
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "E-mail weryfikacyjny został wysłany. Sprawdź swoją skrzynkę odbiorczą i kliknij link potwierdzający.",
+    "sha256": "5806c93f"
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "Nie otrzymałeś e-maila?",
+    "sha256": "fe3ac3ad"
   }
 }

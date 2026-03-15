@@ -155,6 +155,10 @@
     "text": "Eliminazione {0}",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Eliminazione...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Elimina account permanentemente",
     "sha256": "f894e42c"
@@ -210,6 +214,22 @@
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Gestisci le impostazioni e le preferenze del tuo account",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Torna alla dashboard",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Account",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Fatturazione",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Avanzate",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "Generale",
@@ -615,24 +635,52 @@
     "text": "Questa azione non può essere annullata",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "Eliminazione...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "Indirizzo email aggiornato",
+    "sha256": "cf02eb0c"
   },
-  "web.settings.back_to_dashboard": {
-    "text": "Torna alla dashboard",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Il tuo indirizzo email è stato aggiornato con successo. Accedi con il nuovo indirizzo email.",
+    "sha256": "a84efcea"
   },
-  "web.settings.sections.account": {
-    "text": "Account",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Verifica del nuovo indirizzo email in corso...",
+    "sha256": "a6a4745f"
   },
-  "web.settings.sections.billing": {
-    "text": "Fatturazione",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "Modifica email non riuscita",
+    "sha256": "953f3936"
   },
-  "web.settings.sections.advanced": {
-    "text": "Avanzate",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "Questo link di verifica non è valido o è scaduto.",
+    "sha256": "f54594c2"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Torna alle impostazioni dell'account",
+    "sha256": "fd49b66b"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Reindirizzamento all'accesso...",
+    "sha256": "c65f7dcc"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Rinvia email di conferma",
+    "sha256": "c617fff7"
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "Email di conferma rinviata con successo.",
+    "sha256": "2287783b"
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Invio in corso...",
+    "sha256": "286a3af7"
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "Un'email di verifica è stata inviata. Controlla la posta in arrivo e fai clic sul link di conferma.",
+    "sha256": "5806c93f"
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "Non hai ricevuto l'email?",
+    "sha256": "fe3ac3ad"
   }
 }

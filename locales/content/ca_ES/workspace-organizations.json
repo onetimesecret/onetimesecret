@@ -155,6 +155,14 @@
     "text": "No s'ha pogut actualitzar l'organització",
     "sha256": "bc2b59b8"
   },
+  "web.organizations.billing_email_updated": {
+    "text": "Correu de facturació actualitzat correctament",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "El correu de facturació es pot canviar a la pàgina de resum de facturació",
+    "sha256": "8a131415"
+  },
   "web.organizations.billing_coming_soon": {
     "text": "Integració de facturació pròximament",
     "sha256": "d3e0ec75"
@@ -206,6 +214,10 @@
   "web.organizations.tabs.billing": {
     "text": "Facturació",
     "sha256": "3ac8bbca"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Subscripció",
+    "sha256": "4999c6c6"
   },
   "web.organizations.danger_zone": {
     "text": "Zona perillosa",
@@ -515,17 +527,21 @@
     "text": "Carregant detalls de la invitació",
     "sha256": "58884885"
   },
-  "web.organizations.billing_email_updated": {
-    "text": "Correu de facturació actualitzat correctament",
-    "sha256": "080a7f11"
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Millora el teu pla per convidar membres de l'equip",
+    "sha256": "5e3f8df8"
   },
-  "web.organizations.billing_email_managed_on_billing": {
-    "text": "El correu de facturació es pot canviar a la pàgina de resum de facturació",
-    "sha256": "8a131415"
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Les invitacions de membres de l'equip requereixen un pla amb gestió d'equips. Millora per afegir col·laboradors a la teva organització.",
+    "sha256": "cf10d623"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
     "sha256": "957b0b87"
+  },
+  "web.organizations.early_supporter_badge": {
+    "text": "Col·laborador inicial",
+    "sha256": "e67d2ef8"
   },
   "web.organizations.member_count": {
     "text": "{count} membre | {count} membres",
@@ -535,13 +551,9 @@
     "text": "{count} domini | {count} dominis",
     "sha256": "09f52efa"
   },
-  "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Millora el teu pla per convidar membres de l'equip",
-    "sha256": "5e3f8df8"
-  },
-  "web.organizations.invitations.upgrade_prompt": {
-    "text": "Les invitacions de membres de l'equip requereixen un pla amb gestió d'equips. Millora per afegir col·laboradors a la teva organització.",
-    "sha256": "cf10d623"
+  "web.organizations.tabs.domains": {
+    "text": "Dominis",
+    "sha256": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Compte incorrecte",
@@ -566,13 +578,5 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Caduca aviat",
     "sha256": "a5dcfef9"
-  },
-  "web.organizations.tabs.subscription": {
-    "text": "Subscripció",
-    "sha256": "4999c6c6"
-  },
-  "web.organizations.tabs.domains": {
-    "text": "Dominis",
-    "sha256": "ced67718"
   }
 }

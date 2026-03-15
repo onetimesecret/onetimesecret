@@ -23,6 +23,86 @@
     "text": "Запомни ме",
     "sha256": "f93267aa"
   },
+  "web.login.send_sign_in_link": {
+    "text": "Изпрати връзка за вход",
+    "sha256": "b1402b67"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Сигурна връзка ще бъде изпратена до имейл кутията ви.",
+    "sha256": "d31d20cf"
+  },
+  "web.login.or_divider": {
+    "text": "или",
+    "sha256": "7175517a"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Влез с парола",
+    "sha256": "bedac809"
+  },
+  "web.login.use_passwordless": {
+    "text": "Използвай вход без парола",
+    "sha256": "dddc0097"
+  },
+  "web.login.create_account": {
+    "text": "Създай акаунт",
+    "sha256": "798ca2ce"
+  },
+  "web.login.return_home": {
+    "text": "Обратно към началната страница",
+    "sha256": "bbcc935e"
+  },
+  "web.login.tab_password": {
+    "text": "Парола",
+    "sha256": "e7cf3ef4"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Магическа връзка",
+    "sha256": "7a9ba11a"
+  },
+  "web.login.tab_passkey": {
+    "text": "Ключ за достъп",
+    "sha256": "904c9aa9"
+  },
+  "web.login.need_help": {
+    "text": "Нуждаете се от помощ?",
+    "sha256": "c225cdfb"
+  },
+  "web.login.or_continue_with": {
+    "text": "Или продължете с",
+    "sha256": "eb4e8d3b"
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "Влезте чрез SSO",
+    "sha256": "73e984e9"
+  },
+  "web.login.sign_in_with_provider": {
+    "text": "Влезте с {provider}",
+    "sha256": "b8794f11"
+  },
+  "web.auth.sso.signing_in": {
+    "text": "Пренасочване към доставчик на идентичност...",
+    "sha256": "4d1213f9"
+  },
+  "web.auth.sso.error": {
+    "text": "SSO влизането е неуспешно. Моля, опитайте отново.",
+    "sha256": "45a1e65d"
+  },
+  "web.login.errors.sso_failed": {
+    "text": "SSO удостоверяването е неуспешно. Моля, опитайте отново или използвайте вход с парола.",
+    "sha256": "13a2210a"
+  },
+  "web.login.errors.token_missing": {
+    "text": "Линкът за удостоверяване е непълен. Моля, заявете нов линк за вход.",
+    "sha256": "f4a10652"
+  },
+  "web.login.errors.token_expired": {
+    "text": "Този линк за вход е изтекъл. Моля, заявете нов.",
+    "sha256": "f0de42ec"
+  },
+  "web.login.errors.token_invalid": {
+    "text": "Този линк за вход е невалиден. Моля, заявете нов.",
+    "sha256": "270c6401"
+  },
   "web.signup.create_your_account": {
     "text": "Създайте акаунта си",
     "sha256": "5f4c33d7"
@@ -46,6 +126,9 @@
   "web.signup.email_error": {
     "text": "Имейл",
     "sha256": "969ccbd3"
+  },
+  "web.auth.verify._guidance": {
+    "context": "Email verification flow after signup"
   },
   "web.auth.verify.title": {
     "text": "Потвърдете акаунта си",
@@ -173,6 +256,7 @@
   },
   "web.auth.password_reset.title": {
     "text": "Изберете нова парола",
+    "context": "Password reset request flow - user requests a reset link",
     "sha256": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
@@ -189,6 +273,7 @@
   },
   "web.auth.account.title": {
     "text": "Информация за акаунта",
+    "context": "User account overview/dashboard section",
     "sha256": "4e59b6c7"
   },
   "web.auth.account.email": {
@@ -255,9 +340,6 @@
     "text": "Закрий акаунта",
     "sha256": "e1513814"
   },
-  "web.auth.verify._guidance.context": {
-    "text": "Процес на потвърждение на имейл след регистрация"
-  },
   "web.help.title": {
     "text": "Помощ и поддръжка",
     "sha256": "1f8ecc24"
@@ -313,65 +395,5 @@
   "web.help.contact_support": {
     "text": "Свържете се с поддръжката",
     "sha256": "f8d47b82"
-  },
-  "web.login.send_sign_in_link": {
-    "text": "Изпрати връзка за вход",
-    "sha256": "b1402b67"
-  },
-  "web.login.secure_link_helper": {
-    "text": "Сигурна връзка ще бъде изпратена до имейл кутията ви.",
-    "sha256": "d31d20cf"
-  },
-  "web.login.or_divider": {
-    "text": "или",
-    "sha256": "7175517a"
-  },
-  "web.login.sign_in_with_password": {
-    "text": "Влез с парола",
-    "sha256": "bedac809"
-  },
-  "web.login.use_passwordless": {
-    "text": "Използвай вход без парола",
-    "sha256": "dddc0097"
-  },
-  "web.login.create_account": {
-    "text": "Създай акаунт",
-    "sha256": "798ca2ce"
-  },
-  "web.login.return_home": {
-    "text": "Обратно към началната страница",
-    "sha256": "bbcc935e"
-  },
-  "web.login.tab_password": {
-    "text": "Парола",
-    "sha256": "e7cf3ef4"
-  },
-  "web.login.tab_magic_link": {
-    "text": "Магическа връзка",
-    "sha256": "7a9ba11a"
-  },
-  "web.login.tab_passkey": {
-    "text": "Ключ за достъп",
-    "sha256": ""
-  },
-  "web.login.or_continue_with": {
-    "text": "Или продължете с",
-    "sha256": ""
-  },
-  "web.login.sign_in_with_sso": {
-    "text": "Влезте чрез SSO",
-    "sha256": ""
-  },
-  "web.auth.sso.signing_in": {
-    "text": "Пренасочване към доставчик на идентичност...",
-    "sha256": ""
-  },
-  "web.auth.sso.error": {
-    "text": "SSO влизането е неуспешно. Моля, опитайте отново.",
-    "sha256": ""
-  },
-  "web.login.need_help": {
-    "text": "Нуждаете се от помощ?",
-    "sha256": "c225cdfb"
   }
 }

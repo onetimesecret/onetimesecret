@@ -4,7 +4,7 @@
     "sha256": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Vaše data se nacházejí výhradně ve vámi zvoleném regionu a nikdy nejsou přenášena mezi regiony",
+    "text": "Tvoje data se nacházejí výhradně ve vámi zvoleném regionu a nikdy nejsou přenášena mezi regiony",
     "sha256": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
@@ -16,15 +16,15 @@
     "sha256": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Důležité: Přepnutí do jiného regionu vytvoří nový účet. Vaše data zůstávají v původním regionu.",
+    "text": "Důležité: Přepnutí do jiného regionu vytvoří nový účet. Tvoje data zůstávají v původním regionu.",
     "sha256": "40e3ee34"
   },
   "web.regions.your_region": {
-    "text": "Váš region",
+    "text": "Tvůj region",
     "sha256": "cafa720f"
   },
   "web.regions.your_current_region": {
-    "text": "Váš aktuální region",
+    "text": "Tvůj aktuální region",
     "sha256": "45e2a9d6"
   },
   "web.regions.active": {
@@ -44,7 +44,7 @@
     "sha256": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "Vědět přesně, kde se vaše data nacházejí a které zákony řídí jejich ochranu.",
+    "text": "Vědět přesně, kde se tvoje data nacházejí a které zákony řídí jejich ochranu.",
     "sha256": "97fd57ab"
   },
   "web.regions.privacy_title": {
@@ -52,7 +52,7 @@
     "sha256": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Zajistěte, aby se s vašimi osobními údaji zacházelo podle zákonů a předpisů o soukromí vaší země, čímž se zabrání neoprávněnému přístupu nebo zneužití.",
+    "text": "Zajistěte, aby se s vašimi osobními údaji zacházelo podle zákonů a předpisů o soukromí tvojí země, čímž se zabrání neoprávněnému přístupu nebo zneužití.",
     "sha256": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -68,7 +68,7 @@
     "sha256": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "Data uložená blíže k vám znamenají nižší latenci a lepší výkon.",
+    "text": "Data uložená blíže k ti znamenají nižší latenci a lepší výkon.",
     "sha256": "e133ef1d"
   },
   "web.regions.regions": {
@@ -76,7 +76,7 @@
     "sha256": "610c65d8"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "kontaktujte náš tým pro compliance",
+    "text": "kontaktuj náš tým pro compliance",
     "sha256": "87e6746e"
   },
   "web.regions.review_our_documentation": {
@@ -128,7 +128,7 @@
     "sha256": "eae2e122"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Obsluhujeme vás z",
+    "text": "Obsluhujeme tě z",
     "sha256": "25db17aa"
   },
   "web.regions.continue_to_jurisdiction_domain": {
@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "Aktuální jurisdikce:",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "Změna regionu",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "Naší zásadou je nikdy nepřenášet data mezi regiony. Každý region funguje jako zcela nezávislé prostředí.",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "Pro použití jiného regionu si tam vytvoř nový účet se stejnou e-mailovou adresou, která je spojena s tvým fakturačním kontaktním e-mailem.",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "Pokud se tvůj fakturační kontaktní e-mail liší od e-mailu tvého účtu Onetime Secret, použij fakturační kontaktní e-mail pro účet v novém regionu, aby se zachovaly výhody tvého předplatného.",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "Výhody tvého předplatného se automaticky uplatní na jakýkoli účet vytvořený s tvou fakturační e-mailovou adresou.",
+    "sha256": "5b2238b2"
   }
 }

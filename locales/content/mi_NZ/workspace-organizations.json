@@ -155,6 +155,14 @@
     "text": "I rahua te whakahōu i te whakahaere",
     "sha256": "bc2b59b8"
   },
+  "web.organizations.billing_email_updated": {
+    "text": "Kua whakahōu te īmēra pire",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Ka taea te huri i te īmēra pire i te whārangi Tirohanga Pire",
+    "sha256": "8a131415"
+  },
   "web.organizations.billing_coming_soon": {
     "text": "E Haere Mai Ana te Whakahononga Pire",
     "sha256": "d3e0ec75"
@@ -206,6 +214,10 @@
   "web.organizations.tabs.billing": {
     "text": "Pire",
     "sha256": "3ac8bbca"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Ohaurunga",
+    "sha256": "4999c6c6"
   },
   "web.organizations.danger_zone": {
     "text": "Wāhi Mōrearea",
@@ -515,17 +527,21 @@
     "text": "E uta ana i ngā taipitopito pōhiri",
     "sha256": "58884885"
   },
-  "web.organizations.billing_email_updated": {
-    "text": "Kua whakahōu te īmēra pire",
-    "sha256": "080a7f11"
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Whakapiki tō mahere hei pōhiri mema rōpū",
+    "sha256": "5e3f8df8"
   },
-  "web.organizations.billing_email_managed_on_billing": {
-    "text": "Ka taea te huri i te īmēra pire i te whārangi Tirohanga Pire",
-    "sha256": "8a131415"
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Me whai mahere me te whakahaere rōpū mō ngā pōhiri mema rōpū. Whakapiki hei tāpiri kaihonohono ki tō whakahaere.",
+    "sha256": "cf10d623"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
     "sha256": "957b0b87"
+  },
+  "web.organizations.early_supporter_badge": {
+    "text": "Kaitautoko Tōmua",
+    "sha256": "e67d2ef8"
   },
   "web.organizations.member_count": {
     "text": "{count} mema | {count} mema",
@@ -535,13 +551,9 @@
     "text": "{count} rohe | {count} rohe",
     "sha256": "09f52efa"
   },
-  "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Whakapiki tō mahere hei pōhiri mema rōpū",
-    "sha256": "5e3f8df8"
-  },
-  "web.organizations.invitations.upgrade_prompt": {
-    "text": "Me whai mahere me te whakahaere rōpū mō ngā pōhiri mema rōpū. Whakapiki hei tāpiri kaihonohono ki tō whakahaere.",
-    "sha256": "cf10d623"
+  "web.organizations.tabs.domains": {
+    "text": "Ngā Rohe",
+    "sha256": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Pūkete Hē",
@@ -566,13 +578,5 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Ka pau tata",
     "sha256": "a5dcfef9"
-  },
-  "web.organizations.tabs.subscription": {
-    "text": "Ohaurunga",
-    "sha256": "4999c6c6"
-  },
-  "web.organizations.tabs.domains": {
-    "text": "Ngā Rohe",
-    "sha256": "ced67718"
   }
 }

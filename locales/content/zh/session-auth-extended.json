@@ -1,15 +1,69 @@
 {
+  "web.auth._guidance": {
+    "skip": true,
+    "_meta": {
+      "_purpose": "These messages follow OWASP/NIST guidelines to prevent information disclosure. Translations MUST maintain generic wording to prevent credential enumeration and timing attacks. Never reveal: which credential failed, precise timing, account existence, or attack progress.",
+      "authentication_failed": {
+        "security_note": "MUST NOT reveal which credential failed (password, OTP, or recovery code). This prevents attackers from determining valid credentials or enumerating accounts.",
+        "owasp_ref": "ASVS 2.2.2 - Authentication failure responses must be generic"
+      },
+      "rate_limited": {
+        "security_note": "MUST NOT reveal precise lockout duration, attempt counts, or remaining attempts. This prevents timing attacks and progress tracking.",
+        "owasp_ref": "ASVS 2.2.1 - Account lockout must not be timing-based enumerable"
+      },
+      "session_expired": {
+        "security_note": "Safe to indicate session issue as it doesn't reveal credential information. Helps users understand they need to re-authenticate.",
+        "owasp_ref": "Session management best practices"
+      },
+      "recovery_code_not_found": {
+        "security_note": "Safe to indicate recovery code context as user explicitly selected this authentication method. Does not reveal whether code exists.",
+        "owasp_ref": "Recovery code validation guidance"
+      },
+      "recovery_code_used": {
+        "security_note": "Safe expected behavior message. Users need to know recovery codes are single-use to prevent confusion.",
+        "owasp_ref": "User guidance for recovery mechanisms"
+      }
+    },
+    "_translation_guidelines": {
+      "DO_NOT_translate_as": [
+        "Wrong password",
+        "Invalid OTP code",
+        "Incorrect recovery code",
+        "Wait 5 minutes",
+        "3 attempts remaining",
+        "Account locked for 15 minutes"
+      ],
+      "MUST_translate_as": [
+        "Generic authentication failure (no credential specifics)",
+        "Generic rate limit message (no precise timing)",
+        "Recovery code validation (no existence confirmation)"
+      ],
+      "WHY": "These restrictions prevent attackers from: (1) determining valid usernames/emails, (2) knowing which credential to focus attacks on, (3) conducting timing attacks, (4) measuring attack progress"
+    },
+    "_safe_information": {
+      "format_requirements": "Safe to specify format rules (e.g., 'OTP must be 6 digits')",
+      "expected_behavior": "Safe to describe how features work (e.g., 'Codes expire every 30 seconds')",
+      "recovery_options": "Safe to offer alternatives (e.g., 'Use a recovery code instead')",
+      "general_guidance": "Safe to provide help (e.g., 'Check your authenticator app')"
+    }
+  },
   "web.auth.mfa_required": {
     "text": "需要 MFA 验证",
+    "context": "Page heading shown when user must complete MFA to proceed",
     "sha256": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
     "text": "访问您的账户需要 MFA 验证",
+    "context": "Explanatory text below the heading",
     "sha256": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
     "text": "完成 MFA 验证",
     "sha256": "0e681134"
+  },
+  "web.auth.security._guidance": {
+    "skip": true,
+    "context": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.security.authentication_failed": {
     "text": "认证失败，请确认您的凭据并重试。",
@@ -45,6 +99,7 @@
   },
   "web.auth.methods.magicLink": {
     "text": "邮件链接",
+    "context": "Passwordless authentication via email link",
     "sha256": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
@@ -99,6 +154,10 @@
     "text": "登录链接无效或缺失",
     "sha256": "d726c0da"
   },
+  "web.auth.magicLink.sessionExpired": {
+    "text": "您的会话已过期。请刷新页面后重试。",
+    "sha256": "a7c3e901"
+  },
   "web.auth.magicLink.loginFailed": {
     "text": "登录失败，请重试。",
     "sha256": "c95b4875"
@@ -143,6 +202,10 @@
     "text": "设置生物识别登录失败",
     "sha256": "290cca44"
   },
+  "web.auth.webauthn.passwordRequired": {
+    "text": "设置通行密钥需要输入密码",
+    "sha256": "085bb238"
+  },
   "web.auth.webauthn.authFailed": {
     "text": "生物识别认证失败，请重试。",
     "sha256": "626b9ece"
@@ -163,6 +226,111 @@
     "text": "支持面容 ID、触控 ID、Windows Hello 和安全密钥",
     "sha256": "3ea1c1a2"
   },
+  "web.auth.passkeys.title": {
+    "text": "通行密钥",
+    "context": "Title for passkey management section",
+    "sha256": "c87ccdb4"
+  },
+  "web.auth.passkeys.description": {
+    "text": "使用 Face ID、Touch ID、Windows Hello 或安全密钥登录",
+    "context": "Description of passkey authentication",
+    "sha256": "a513ed5c"
+  },
+  "web.auth.passkeys.setup_description": {
+    "text": "通行密钥让您无需密码即可安全登录",
+    "context": "Setup page description",
+    "sha256": "85630bef"
+  },
+  "web.auth.passkeys.not_configured": {
+    "text": "未配置",
+    "context": "Status when no passkeys are registered",
+    "sha256": "dd1841d2"
+  },
+  "web.auth.passkeys.count": {
+    "text": "已注册 {count} 个通行密钥 | 已注册 {count} 个通行密钥",
+    "context": "Number of registered passkeys",
+    "sha256": "82e6681f"
+  },
+  "web.auth.passkeys.add_passkey": {
+    "text": "添加通行密钥",
+    "context": "Button to add a new passkey",
+    "sha256": "93713ad7"
+  },
+  "web.auth.passkeys.register_passkey": {
+    "text": "注册通行密钥",
+    "context": "Button to register a new passkey",
+    "sha256": "26db6968"
+  },
+  "web.auth.passkeys.remove_passkey": {
+    "text": "移除通行密钥",
+    "context": "Button to remove a passkey",
+    "sha256": "67b1d47c"
+  },
+  "web.auth.passkeys.confirm_remove": {
+    "text": "确定要移除此通行密钥吗？移除后将无法再使用该密钥登录。",
+    "context": "Confirmation message for passkey removal",
+    "sha256": "487ab72c"
+  },
+  "web.auth.passkeys.removed_success": {
+    "text": "通行密钥已移除",
+    "context": "Success message after removing passkey",
+    "sha256": "436c1050"
+  },
+  "web.auth.passkeys.registered_success": {
+    "text": "通行密钥已注册",
+    "context": "Success message after registering passkey",
+    "sha256": "fbfb0713"
+  },
+  "web.auth.passkeys.no_passkeys": {
+    "text": "未注册通行密钥",
+    "context": "Empty state when no passkeys exist",
+    "sha256": "1d97fde4"
+  },
+  "web.auth.passkeys.no_passkeys_description": {
+    "text": "添加通行密钥，无需输入密码即可更安全地登录",
+    "context": "Description for empty state",
+    "sha256": "e5bc07f1"
+  },
+  "web.auth.passkeys.name": {
+    "text": "通行密钥名称",
+    "context": "Label for passkey name field",
+    "sha256": "22eefa67"
+  },
+  "web.auth.passkeys.created": {
+    "text": "创建时间",
+    "context": "Label for creation date",
+    "sha256": "d70b9e24"
+  },
+  "web.auth.passkeys.last_used": {
+    "text": "上次使用: {time}",
+    "context": "Last used timestamp",
+    "sha256": "e1af94fe"
+  },
+  "web.auth.passkeys.never_used": {
+    "text": "从未使用",
+    "context": "Status when passkey has not been used",
+    "sha256": "24d3236c"
+  },
+  "web.auth.passkeys.benefit_secure": {
+    "text": "比密码更安全 - 可抵御钓鱼攻击",
+    "context": "Passkey benefit",
+    "sha256": "41afb6ec"
+  },
+  "web.auth.passkeys.benefit_fast": {
+    "text": "快速便捷 - 使用指纹、面容或安全密钥即可",
+    "context": "Passkey benefit",
+    "sha256": "5a0ce96c"
+  },
+  "web.auth.passkeys.benefit_synced": {
+    "text": "使用平台身份验证器时可在设备间同步",
+    "context": "Passkey benefit",
+    "sha256": "7480c7ae"
+  },
+  "web.auth.passkeys.link_title": {
+    "text": "通行密钥",
+    "context": "Navigation link title",
+    "sha256": "c87ccdb4"
+  },
   "web.auth.lockout.attempts_remaining": {
     "text": "警告：剩余 {count} 次登录尝试",
     "sha256": "151dcb5e"
@@ -182,6 +350,10 @@
   "web.auth.lockout.try_password_reset": {
     "text": "您可以选择重置密码",
     "sha256": "a98a3f9d"
+  },
+  "web.auth.sessions._guidance": {
+    "skip": true,
+    "context": "User's logged-in devices/browsers management page"
   },
   "web.auth.sessions.title": {
     "text": "活跃会话",
@@ -303,6 +475,10 @@
     "text": "验证并启用",
     "sha256": "7c08f68d"
   },
+  "web.auth.mfa.verify_login": {
+    "text": "验证",
+    "sha256": "eea2745e"
+  },
   "web.auth.mfa.code_required": {
     "text": "需要认证代码",
     "sha256": "217de0fc"
@@ -343,6 +519,10 @@
     "text": "改用恢复代码",
     "sha256": "23d3441a"
   },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "使用恢复代码",
+    "sha256": "50d5790d"
+  },
   "web.auth.mfa.back_to_code": {
     "text": "返回认证代码",
     "sha256": "6fa090b4"
@@ -350,6 +530,10 @@
   "web.auth.mfa.cancel": {
     "text": "取消并返回登录",
     "sha256": "83256742"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "取消登录",
+    "sha256": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {
     "text": "正在加载 MFA 状态...",
@@ -526,23 +710,5 @@
   "web.auth.recovery_codes.link_title": {
     "text": "恢复代码",
     "sha256": "579c7f4e"
-  },
-  "web.auth.mfa.verify_login": {
-    "text": "验证",
-    "sha256": "eea2745e"
-  },
-  "web.auth.mfa.use_recovery_code_short": {
-    "text": "使用恢复代码",
-    "sha256": "50d5790d"
-  },
-  "web.auth.mfa.cancel_sign_in": {
-    "text": "取消登录",
-    "sha256": "1bebad2f"
-  },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ 安全关键：消息用于防止信息泄露。请参阅 src/locales/SECURITY-TRANSLATION-GUIDE.md"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "用户已登录设备/浏览器管理页面"
   }
 }

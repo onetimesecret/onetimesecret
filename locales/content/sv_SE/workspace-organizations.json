@@ -155,6 +155,14 @@
     "text": "Kunde inte uppdatera organisation",
     "sha256": "bc2b59b8"
   },
+  "web.organizations.billing_email_updated": {
+    "text": "Faktureringsmejl uppdaterad",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Faktureringsmejl kan ändras på sidan Faktureringsöversikt",
+    "sha256": "8a131415"
+  },
   "web.organizations.billing_coming_soon": {
     "text": "Faktureringsintegration kommer snart",
     "sha256": "d3e0ec75"
@@ -206,6 +214,10 @@
   "web.organizations.tabs.billing": {
     "text": "Fakturering",
     "sha256": "3ac8bbca"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Prenumeration",
+    "sha256": "4999c6c6"
   },
   "web.organizations.danger_zone": {
     "text": "Farozon",
@@ -515,17 +527,21 @@
     "text": "Laddar inbjudningsdetaljer",
     "sha256": "58884885"
   },
-  "web.organizations.billing_email_updated": {
-    "text": "Faktureringsmejl uppdaterad",
-    "sha256": "080a7f11"
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Uppgradera din plan för att bjuda in teammedlemmar",
+    "sha256": "5e3f8df8"
   },
-  "web.organizations.billing_email_managed_on_billing": {
-    "text": "Faktureringsmejl kan ändras på sidan Faktureringsöversikt",
-    "sha256": "8a131415"
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Inbjudningar av teammedlemmar kräver en plan med teamhantering. Uppgradera för att lägga till samarbetspartners i din organisation.",
+    "sha256": "cf10d623"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
     "sha256": "957b0b87"
+  },
+  "web.organizations.early_supporter_badge": {
+    "text": "Tidig supporter",
+    "sha256": "e67d2ef8"
   },
   "web.organizations.member_count": {
     "text": "{count} medlem | {count} medlemmar",
@@ -535,13 +551,9 @@
     "text": "{count} domän | {count} domäner",
     "sha256": "09f52efa"
   },
-  "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Uppgradera din plan för att bjuda in teammedlemmar",
-    "sha256": "5e3f8df8"
-  },
-  "web.organizations.invitations.upgrade_prompt": {
-    "text": "Inbjudningar av teammedlemmar kräver en plan med teamhantering. Uppgradera för att lägga till samarbetspartners i din organisation.",
-    "sha256": "cf10d623"
+  "web.organizations.tabs.domains": {
+    "text": "Domäner",
+    "sha256": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Fel konto",
@@ -566,13 +578,5 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Går snart ut",
     "sha256": "a5dcfef9"
-  },
-  "web.organizations.tabs.subscription": {
-    "text": "Prenumeration",
-    "sha256": "4999c6c6"
-  },
-  "web.organizations.tabs.domains": {
-    "text": "Domäner",
-    "sha256": "ced67718"
   }
 }

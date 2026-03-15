@@ -47,6 +47,10 @@
     "text": "Juridiskt",
     "sha256": "0a410c78"
   },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "När du skickar återkoppling ser vi:",
+    "sha256": "fe77172e"
+  },
   "web.footer.read_our_privacy_policy": {
     "text": "Läs vår integritetspolicy",
     "sha256": "eb443229"
@@ -94,6 +98,14 @@
   "web.footer.company": {
     "text": "Företag",
     "sha256": "de4743c8"
+  },
+  "web.footer.product": {
+    "text": "Produkt",
+    "sha256": "7f5540e9"
+  },
+  "web.footer.source_code_purveyor": {
+    "text": "Källkod",
+    "sha256": "29c5c68f"
   },
   "web.navigation.billing": {
     "text": "Fakturering",
@@ -307,6 +319,10 @@
     "text": "Språket ändrades till {0}",
     "sha256": "1680f4fe"
   },
+  "web.layout.reset_to_default_language": {
+    "text": "Återställ till {0}",
+    "sha256": "c0cfa9b2"
+  },
   "web.layout.switch_to_blank_mode": {
     "text": "Byt till {0}-läge",
     "sha256": "c8b909e0"
@@ -322,13 +338,5 @@
   "web.layout.workspace_context": {
     "text": "Arbetsytekontext",
     "sha256": "dc6fa4f5"
-  },
-  "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "När du skickar återkoppling ser vi:",
-    "sha256": "fe77172e"
-  },
-  "web.layout.reset_to_default_language": {
-    "text": "Återställ till {0}",
-    "sha256": "c0cfa9b2"
   }
 }

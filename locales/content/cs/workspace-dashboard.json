@@ -20,7 +20,7 @@
     "sha256": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Při načítání vašich dat došlo k problému. Zkuste to prosím znovu.",
+    "text": "Při načítání tvých dat došlo k problému. Zkus to prosím znovu.",
     "sha256": "ff0d904e"
   }
 }

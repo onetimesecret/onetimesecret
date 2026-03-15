@@ -297,6 +297,7 @@ Prioritize efficiency without sacrificing quality:
 - Keep "Onetime Secret" untranslated
 - Preserve product names (Starlight, etc.)
 - Use consistent branding terminology
+- Keys ending in `_literal` (e.g., `onetime_secret_literal`) contain brand names that must remain in English exactly as-is
 
 ### 2. Ensure Technical Accuracy
 - Security terms must be precise

@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "الولاية القضائية الحالية:",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "تغيير المنطقة",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "سياستنا هي عدم نقل البيانات بين المناطق أبداً. تعمل كل منطقة كبيئة مستقلة تماماً.",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "لاستخدام منطقة مختلفة، أنشئ حساباً جديداً هناك باستخدام نفس عنوان البريد الإلكتروني المرتبط ببريد جهة اتصال الفوترة الخاصة بك.",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "إذا كان بريد جهة اتصال الفوترة يختلف عن بريد حسابك في Onetime Secret، استخدم بريد جهة اتصال الفوترة لحساب المنطقة الجديدة للحفاظ على مزايا اشتراكك.",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "ستُطبَّق مزايا اشتراكك تلقائياً على أي حساب يتم إنشاؤه باستخدام عنوان بريد الفوترة الخاص بك.",
+    "sha256": "5b2238b2"
   }
 }

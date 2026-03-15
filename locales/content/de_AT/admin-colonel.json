@@ -96,7 +96,7 @@
     "sha256": "efb63b77"
   },
   "web.colonel.dashboard": {
-    "text": "Dashboard",
+    "text": "Übersicht",
     "sha256": "67b69646"
   },
   "web.colonel.admin": {
@@ -120,7 +120,7 @@
     "sha256": "6cfc012c"
   },
   "web.colonel.domains": {
-    "text": "Domains",
+    "text": "Domänen",
     "sha256": "ced67718"
   },
   "web.colonel.settings": {
@@ -311,43 +311,6 @@
     "text": "Sie testen mit {planName}-Berechtigungen (temporäre Sitzungsüberschreibung).",
     "sha256": "1a8aecf1"
   },
-  "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Wenn Sie ein Rückmeldung abgeben, werden wir es sehen:"
-  },
-  "web.feedback.send_feedback": {
-    "text": "Rückmeldung senden"
-  },
-  "web.feedback.sending_ellipses": {
-    "text": "Ich schicke..."
-  },
-  "web.colonel.bannedIps.title": {
-    "text": "Gesperrte IPs",
-    "sha256": "0ece5643"
-  },
-  "web.colonel.bannedIps.description": {
-    "text": "IP-Sperrliste verwalten",
-    "sha256": "dd0d2614"
-  },
-  "web.colonel.customDomains.title": {
-    "text": "Eigene Domains",
-    "sha256": "6170ab94"
-  },
-  "web.colonel.customDomains.description": {
-    "text": "Eigene Domains und Branding verwalten",
-    "sha256": "808ee2cb"
-  },
-  "web.colonel.feedback.send_feedback": {
-    "text": "Rückmeldung senden",
-    "sha256": "8235980b"
-  },
-  "web.colonel.feedback.sending_ellipses": {
-    "text": "Wird gesendet...",
-    "sha256": "286a3af7"
-  },
-  "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Wenn Sie Rückmeldung senden, sehen wir:",
-    "sha256": "fe77172e"
-  },
   "web.colonel.organizations.title": {
     "text": "Organisationen",
     "sha256": "2730183d"
@@ -375,78 +338,6 @@
   "web.colonel.organizations.noOrganizations": {
     "text": "Keine Organisationen gefunden",
     "sha256": "538995db"
-  },
-  "web.colonel.organizations.actions.investigate": {
-    "text": "Untersuchen",
-    "sha256": "e2641093"
-  },
-  "web.colonel.organizations.actions.checking": {
-    "text": "Wird überprüft...",
-    "sha256": "2e5f79bb"
-  },
-  "web.colonel.organizations.columns.account": {
-    "text": "Konto",
-    "sha256": "7e1b0d56"
-  },
-  "web.colonel.organizations.columns.billing": {
-    "text": "Abrechnung",
-    "sha256": "3ac8bbca"
-  },
-  "web.colonel.organizations.columns.status": {
-    "text": "Status",
-    "sha256": "920e413c"
-  },
-  "web.colonel.organizations.columns.usage": {
-    "text": "Nutzung",
-    "sha256": "8d59829c"
-  },
-  "web.colonel.organizations.columns.created": {
-    "text": "Erstellt",
-    "sha256": "d70b9e24"
-  },
-  "web.colonel.organizations.columns.details": {
-    "text": "Details",
-    "sha256": "45989de4"
-  },
-  "web.colonel.organizations.columns.owner": {
-    "text": "Besitzer",
-    "sha256": "4b1b8aa3"
-  },
-  "web.colonel.organizations.columns.plan": {
-    "text": "Plan",
-    "sha256": "fa8ed0bd"
-  },
-  "web.colonel.organizations.columns.members": {
-    "text": "Mitglieder",
-    "sha256": "1044a4c0"
-  },
-  "web.colonel.organizations.columns.domains": {
-    "text": "Domains",
-    "sha256": "ced67718"
-  },
-  "web.colonel.organizations.columns.subscription": {
-    "text": "Abonnement",
-    "sha256": "4999c6c6"
-  },
-  "web.colonel.organizations.columns.default_workspace": {
-    "text": "Standard-Arbeitsbereich",
-    "sha256": "53aa279e"
-  },
-  "web.colonel.organizations.columns.has_billing": {
-    "text": "Hat Abrechnung",
-    "sha256": "db0628ed"
-  },
-  "web.colonel.organizations.expanded.customer": {
-    "text": "Kunde",
-    "sha256": "bf376338"
-  },
-  "web.colonel.organizations.expanded.subscription": {
-    "text": "Abonnement",
-    "sha256": "4999c6c6"
-  },
-  "web.colonel.organizations.expanded.orgId": {
-    "text": "Org-ID",
-    "sha256": "5e6b9932"
   },
   "web.colonel.organizations.filters.syncStatus": {
     "text": "Sync-Status",
@@ -487,6 +378,106 @@
   "web.colonel.organizations.filters.canceled": {
     "text": "Gekündigt",
     "sha256": "13ca2ee2"
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Konto",
+    "sha256": "7e1b0d56"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Abrechnung",
+    "sha256": "3ac8bbca"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Status",
+    "sha256": "920e413c"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Nutzung",
+    "sha256": "8d59829c"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Erstellt",
+    "sha256": "d70b9e24"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Details",
+    "sha256": "45989de4"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Besitzer",
+    "sha256": "4b1b8aa3"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Tarif",
+    "sha256": "fa8ed0bd"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Mitglieder",
+    "sha256": "1044a4c0"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Domänen",
+    "sha256": "ced67718"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Abonnement",
+    "sha256": "4999c6c6"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Standard-Arbeitsbereich",
+    "sha256": "53aa279e"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Hat Abrechnung",
+    "sha256": "db0628ed"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Organisations-Abrechnungsverwaltung",
+    "sha256": "5c7e07e7"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Organisationen verwalten und Abrechnungssynchronisation überwachen ({total} gesamt)",
+    "sha256": "996b446d"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Keine Organisationen gefunden",
+    "sha256": "538995db"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "möglicherweise veraltet",
+    "sha256": "3ddfec45"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Veraltet",
+    "sha256": "40c9e59c"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Unbekannt",
+    "sha256": "b764cdc0"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "aktiv",
+    "sha256": "96879611"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Untersuchen",
+    "sha256": "e2641093"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Wird überprüft...",
+    "sha256": "2e5f79bb"
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Kunde",
+    "sha256": "bf376338"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Abonnement",
+    "sha256": "4999c6c6"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "Org-ID",
+    "sha256": "5e6b9932"
   },
   "web.colonel.organizations.investigation.failed": {
     "text": "Untersuchung fehlgeschlagen",
@@ -536,34 +527,6 @@
     "text": "Stripe",
     "sha256": "961a6062"
   },
-  "web.colonel.organizations.legacy.title": {
-    "text": "Organisations-Abrechnungsverwaltung",
-    "sha256": "5c7e07e7"
-  },
-  "web.colonel.organizations.legacy.description": {
-    "text": "Organisationen verwalten und Abrechnungssynchronisation überwachen ({total} gesamt)",
-    "sha256": "996b446d"
-  },
-  "web.colonel.organizations.legacy.empty": {
-    "text": "Keine Organisationen gefunden",
-    "sha256": "538995db"
-  },
-  "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "möglicherweise veraltet",
-    "sha256": "3ddfec45"
-  },
-  "web.colonel.organizations.status.stale": {
-    "text": "Veraltet",
-    "sha256": "40c9e59c"
-  },
-  "web.colonel.organizations.status.unknown": {
-    "text": "Unbekannt",
-    "sha256": "b764cdc0"
-  },
-  "web.colonel.organizations.status.active": {
-    "text": "aktiv",
-    "sha256": "96879611"
-  },
   "web.colonel.organizations.usage.members": {
     "text": "{count} Mitglieder",
     "sha256": "201eb3d9"
@@ -580,6 +543,22 @@
     "text": "Alle Geheimnisse ansehen und verwalten",
     "sha256": "48f8052e"
   },
+  "web.colonel.bannedIps.title": {
+    "text": "Gesperrte IPs",
+    "sha256": "0ece5643"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "IP-Sperrliste verwalten",
+    "sha256": "dd0d2614"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Nutzungsexport",
+    "sha256": "10a0cb94"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Nutzungsdaten und Statistiken exportieren",
+    "sha256": "2fd0a2e2"
+  },
   "web.colonel.systemSettings.title": {
     "text": "System",
     "sha256": "6725e7bb"
@@ -587,6 +566,22 @@
   "web.colonel.systemSettings.description": {
     "text": "Systemeinstellungen, Datenbanken und Konfiguration",
     "sha256": "7690b296"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Eigene Domains",
+    "sha256": "6170ab94"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Eigene Domains und Branding verwalten",
+    "sha256": "808ee2cb"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Rückmeldung senden",
+    "sha256": "8235980b"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Wird gesendet...",
+    "sha256": "286a3af7"
   },
   "web.colonel.titles.index": {
     "text": "Administration",
@@ -636,12 +631,8 @@
     "text": "Redis",
     "sha256": "a7f64157"
   },
-  "web.colonel.usageExport.title": {
-    "text": "Nutzungsexport",
-    "sha256": "10a0cb94"
-  },
-  "web.colonel.usageExport.description": {
-    "text": "Nutzungsdaten und Statistiken exportieren",
-    "sha256": "2fd0a2e2"
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Wenn Sie Rückmeldung senden, sehen wir:",
+    "sha256": "fe77172e"
   }
 }

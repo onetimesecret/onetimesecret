@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "Nuna jurisdikcio:",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "Ŝanĝi regionojn",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "Nia politiko estas neniam transloki datumojn inter regionoj. Ĉiu regiono funkcias kiel tute sendependa medio.",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "Por uzi alian regionon, kreu novan konton tie uzante la saman retpoŝtan adreson ligitan al via faktura kontakta retpoŝto.",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "Se via faktura kontakta retpoŝto diferencas de via Onetime Secret-konta retpoŝto, uzu la fakturan kontaktan retpoŝton por la nova regiona konto por konservi viajn abonajn avantaĝojn.",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "Viaj abonaj avantaĝoj aŭtomate aplikiĝos al ĉiu konto kreita per via faktura retpoŝta adreso.",
+    "sha256": "5b2238b2"
   }
 }

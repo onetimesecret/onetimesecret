@@ -166,5 +166,9 @@
   "web.branding.switch_to_safari_preview": {
     "text": "Cambiar a vista previa de Safari",
     "sha256": "f24ac447"
+  },
+  "web.branding.upgrade_to_customize": {
+    "text": "Mejora tu plan para personalizar la marca de este dominio.",
+    "sha256": "9077bf79"
   }
 }

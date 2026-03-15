@@ -155,6 +155,14 @@
     "text": "Échec de la mise à jour de l'organisation",
     "sha256": "bc2b59b8"
   },
+  "web.organizations.billing_email_updated": {
+    "text": "E-mail de facturation mis à jour avec succès",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "L'e-mail de facturation peut être modifié sur la page Aperçu de la facturation",
+    "sha256": "8a131415"
+  },
   "web.organizations.billing_coming_soon": {
     "text": "Intégration de facturation bientôt disponible",
     "sha256": "d3e0ec75"
@@ -206,6 +214,10 @@
   "web.organizations.tabs.billing": {
     "text": "Facturation",
     "sha256": "3ac8bbca"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Abonnement",
+    "sha256": "4999c6c6"
   },
   "web.organizations.danger_zone": {
     "text": "Zone de danger",
@@ -515,17 +527,21 @@
     "text": "Chargement des détails de l'invitation",
     "sha256": "58884885"
   },
-  "web.organizations.billing_email_updated": {
-    "text": "E-mail de facturation mis à jour avec succès",
-    "sha256": "080a7f11"
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Mettez à niveau votre forfait pour inviter des membres d'équipe",
+    "sha256": "5e3f8df8"
   },
-  "web.organizations.billing_email_managed_on_billing": {
-    "text": "L'e-mail de facturation peut être modifié sur la page Aperçu de la facturation",
-    "sha256": "8a131415"
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Les invitations de membres d'équipe nécessitent un forfait avec gestion d'équipe. Mettez à niveau pour ajouter des collaborateurs à votre organisation.",
+    "sha256": "cf10d623"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
     "sha256": "957b0b87"
+  },
+  "web.organizations.early_supporter_badge": {
+    "text": "Soutien de la première heure",
+    "sha256": "e67d2ef8"
   },
   "web.organizations.member_count": {
     "text": "{count} membre | {count} membres",
@@ -535,13 +551,9 @@
     "text": "{count} domaine | {count} domaines",
     "sha256": "09f52efa"
   },
-  "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Mettez à niveau votre forfait pour inviter des membres d'équipe",
-    "sha256": "5e3f8df8"
-  },
-  "web.organizations.invitations.upgrade_prompt": {
-    "text": "Les invitations de membres d'équipe nécessitent un forfait avec gestion d'équipe. Mettez à niveau pour ajouter des collaborateurs à votre organisation.",
-    "sha256": "cf10d623"
+  "web.organizations.tabs.domains": {
+    "text": "Domaines",
+    "sha256": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Mauvais compte",
@@ -566,13 +578,5 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Expire bientôt",
     "sha256": "a5dcfef9"
-  },
-  "web.organizations.tabs.subscription": {
-    "text": "Abonnement",
-    "sha256": "4999c6c6"
-  },
-  "web.organizations.tabs.domains": {
-    "text": "Domaines",
-    "sha256": "ced67718"
   }
 }

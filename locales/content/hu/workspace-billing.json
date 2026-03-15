@@ -1,4 +1,12 @@
 {
+  "web.billing.subscription_synced_title": {
+    "text": "Előfizetés szinkronizálva",
+    "sha256": "3086ef43"
+  },
+  "web.billing.subscription_synced_description": {
+    "text": "Az előfizetési előnyök szinkronizálva lettek egy másik régióból.",
+    "sha256": "a99b7a98"
+  },
   "web.billing.upgrade.required": {
     "text": "Frissítés szükséges",
     "sha256": "16487236"
@@ -35,8 +43,9 @@
     "text": "Előfizetés és fizetési részletek megtekintése és kezelése",
     "sha256": "60e5a00e"
   },
-  "web.billing.overview.organization_selector": {
-    "text": "Szervezet kiválasztása"
+  "web.billing.overview.billing_for_organization": {
+    "text": "Számlázás ehhez a szervezethez",
+    "sha256": "21806992"
   },
   "web.billing.overview.current_plan": {
     "text": "Jelenlegi csomag",
@@ -73,6 +82,22 @@
   "web.billing.overview.change_plan": {
     "text": "Csomag módosítása",
     "sha256": "2d0b195b"
+  },
+  "web.billing.overview.manage_subscription": {
+    "text": "Előfizetés kezelése",
+    "sha256": "cbc4ef92"
+  },
+  "web.billing.plans.legacy_plan_info": {
+    "text": "Ön egy különleges árazású, korábbi csomagot használ.",
+    "sha256": "e9aa8bf0"
+  },
+  "web.billing.plans.early_supporter_plan": {
+    "text": "Identity Plus (Korai támogató)",
+    "sha256": "f37cd0d9"
+  },
+  "web.billing.plans.legacy_plan_warning": {
+    "text": "A csomag váltásával elveszíti a korábbi kedvezményes díjszabást. Ez nem vonható vissza.",
+    "sha256": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
     "text": "Nincs fizetési mód megadva",
@@ -122,6 +147,22 @@
     "text": "Hozzon létre szervezetet a számlázás és előfizetés kezeléséhez",
     "sha256": "41e922d2"
   },
+  "web.billing.overview.load_error": {
+    "text": "A számlázási adatok betöltése sikertelen",
+    "sha256": "3bc44882"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "A csomagja sikeresen frissítve",
+    "sha256": "00ac43f8"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Az új csomagja most aktív. Köszönjük a vásárlást.",
+    "sha256": "fd1caeb1"
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Számlázási kapcsolattartó",
+    "sha256": "8f782ad8"
+  },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "Titkok létrehozása",
     "sha256": "0320541d"
@@ -155,8 +196,8 @@
     "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Márkázott főoldal",
-    "sha256": "e355a396"
+    "text": "Főoldali titkok",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "Bejövő titkok",
@@ -198,6 +239,74 @@
     "text": "Nincsenek elérhető funkciók",
     "sha256": "03d195e8"
   },
+  "web.billing.features.create_secrets": {
+    "text": "Titkok létrehozása és megosztása",
+    "sha256": "303f9386"
+  },
+  "web.billing.features.api_access": {
+    "text": "API hozzáférés",
+    "sha256": "5f31cc2f"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Egyéni domének",
+    "sha256": "6170ab94"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 egyéni domén",
+    "sha256": "6a6be744"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Korlátlan egyéni domén",
+    "sha256": "53eb7521"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Egyéni márkajelzés",
+    "sha256": "237dabec"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Főoldali titkok",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Csapatkezelés",
+    "sha256": "6bcbac8f"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Tagkezelés",
+    "sha256": "b38b89db"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Audit naplók",
+    "sha256": "5428d7fe"
+  },
+  "web.billing.features.sso": {
+    "text": "Egyszeri bejelentkezés (SSO)",
+    "sha256": "5db5c812"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Kiemelt támogatás",
+    "sha256": "ed8a65c8"
+  },
+  "web.billing.features.sla": {
+    "text": "Szolgáltatási szint megállapodás",
+    "sha256": "436f2550"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Központosított számlázás",
+    "sha256": "62042d3b"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Audit nyomvonal",
+    "sha256": "d52b4039"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Tevékenységfolyam",
+    "sha256": "b9c6cba7"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Átadási munkafolyamatok",
+    "sha256": "07202af3"
+  },
   "web.billing.plans.title": {
     "text": "Válasszon csomagot",
     "sha256": "79506c82"
@@ -225,6 +334,10 @@
   "web.billing.plans.downgrade": {
     "text": "Visszaminősítés",
     "sha256": "d955b7e8"
+  },
+  "web.billing.plans.cancel_to_downgrade": {
+    "text": "Mégse a váltáshoz",
+    "sha256": "1c4cda89"
   },
   "web.billing.plans.monthly": {
     "text": "Havi",
@@ -330,6 +443,10 @@
     "text": "Jelenleg nem érhetők el {interval} csomagok.",
     "sha256": "d8454436"
   },
+  "web.billing.plans.load_error": {
+    "text": "A csomagok betöltése sikertelen",
+    "sha256": "a37d4d9a"
+  },
   "web.billing.plans.change_immediate": {
     "text": "A csomag azonnal megváltozik.",
     "sha256": "889d13be"
@@ -345,6 +462,14 @@
   "web.billing.plans.credit_label": {
     "text": "Jóváírás a fel nem használt időért:",
     "sha256": "001e4901"
+  },
+  "web.billing.plans.due_today": {
+    "text": "Ma esedékes:",
+    "sha256": "e370e3aa"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Következő számlázás ({date}):",
+    "sha256": "a6846a85"
   },
   "web.billing.plans.next_invoice": {
     "text": "Következő számla",
@@ -374,6 +499,30 @@
     "text": "Visszaminősítés erre: {plan}?",
     "sha256": "8eb8ea81"
   },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Hogyan kerül alkalmazásra a jóváírás:",
+    "sha256": "a0943c3b"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Következő számla összege:",
+    "sha256": "526ad28f"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Jóváírás alkalmazva:",
+    "sha256": "e5f2e81a"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Esedékes összeg a következő számlázáskor:",
+    "sha256": "22ee868a"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Fennmaradó fiók jóváírás:",
+    "sha256": "eedd0c0a"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Jövőbeli számlákra alkalmazva",
+    "sha256": "5007add6"
+  },
   "web.billing.invoices.title": {
     "text": "Számlázási előzmények",
     "sha256": "5ade0861"
@@ -398,9 +547,21 @@
     "text": "Letöltés",
     "sha256": "d6eafe82"
   },
+  "web.billing.invoices.invoice_number": {
+    "text": "Számla #",
+    "sha256": "48a67cac"
+  },
   "web.billing.invoices.no_invoices": {
     "text": "Még nincsenek számlák",
     "sha256": "92d2d0ce"
+  },
+  "web.billing.invoices.no_invoices_description": {
+    "text": "A számlái itt jelennek meg, miután fizetős csomagra vált",
+    "sha256": "7f16be70"
+  },
+  "web.billing.invoices.view_plans": {
+    "text": "Csomagok megtekintése",
+    "sha256": "a865d424"
   },
   "web.billing.invoices.paid": {
     "text": "Fizetve",
@@ -417,6 +578,18 @@
   "web.billing.invoices.draft": {
     "text": "Piszkozat",
     "sha256": "d2e16e61"
+  },
+  "web.billing.invoices.open": {
+    "text": "Nyitott",
+    "sha256": "ed077f3d"
+  },
+  "web.billing.invoices.uncollectible": {
+    "text": "Behajtatatlan",
+    "sha256": "c8d3b241"
+  },
+  "web.billing.invoices.void": {
+    "text": "Érvénytelen",
+    "sha256": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
     "text": "A számlák betöltése sikertelen",
@@ -465,6 +638,14 @@
   "web.billing.subscription.catalog_name": {
     "text": "Csomag",
     "sha256": "fa8ed0bd"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Csapathasználat",
+    "sha256": "f9989642"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} / {limit} csapat",
+    "sha256": "1db6b53c"
   },
   "web.billing.portal.title": {
     "text": "Számlázási portál",
@@ -580,10 +761,12 @@
   },
   "web.billing.cancel.link_text": {
     "text": "Előfizetés lemondása",
+    "context": "Link text shown below the plan selector for paid users",
     "sha256": "3f85967f"
   },
   "web.billing.cancel.title": {
     "text": "Előfizetés lemondása",
+    "context": "Modal dialog heading/title",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
@@ -612,10 +795,12 @@
   },
   "web.billing.cancel.keep_subscription": {
     "text": "Előfizetés megtartása",
+    "context": "Secondary button in modal - keeps subscription active",
     "sha256": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
     "text": "Előfizetés lemondása",
+    "context": "Primary action button in modal - confirms the cancellation",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
@@ -628,91 +813,34 @@
   },
   "web.billing.cancel.scheduled_title": {
     "text": "Előfizetés lemondás ütemezve",
+    "context": "Alert banner heading shown when cancellation is pending",
     "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
     "text": "Az előfizetése aktív marad {date}-ig. Addig teljes hozzáférése van minden funkcióhoz.",
+    "context": "Alert banner description explaining continued access",
     "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
     "text": "Meggondolta magát? Bármikor újraaktiválhatja előfizetését a lemondási dátum előtt.",
+    "context": "Alert banner note encouraging reactivation",
     "sha256": "c94d5527"
   },
-  "web.billing.features.create_secrets": {
-    "text": "Titkok létrehozása és megosztása",
-    "sha256": "303f9386"
+  "web.billing.overview.entitlements.notifications": {
+    "text": "E-mail értesítések",
+    "sha256": "04e0f1e9"
   },
-  "web.billing.features.api_access": {
-    "text": "API hozzáférés",
-    "sha256": "5f31cc2f"
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IP hozzáférési szabályok",
+    "sha256": "db966d47"
   },
-  "web.billing.features.custom_domains": {
-    "text": "Egyéni domének",
-    "sha256": "6170ab94"
-  },
-  "web.billing.features.custom_domain": {
-    "text": "1 egyéni domén",
-    "sha256": "6a6be744"
-  },
-  "web.billing.features.unlimited_custom_domains": {
-    "text": "Korlátlan egyéni domén",
-    "sha256": "53eb7521"
-  },
-  "web.billing.features.custom_branding": {
-    "text": "Egyéni márkajelzés",
-    "sha256": "237dabec"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "Márkázott főoldal",
-    "sha256": "e355a396"
-  },
-  "web.billing.features.manage_teams": {
-    "text": "Csapatkezelés",
-    "sha256": "6bcbac8f"
-  },
-  "web.billing.features.manage_members": {
-    "text": "Tagkezelés",
-    "sha256": "b38b89db"
-  },
-  "web.billing.features.audit_logs": {
-    "text": "Audit naplók",
-    "sha256": "5428d7fe"
-  },
-  "web.billing.features.sso": {
-    "text": "Egyszeri bejelentkezés (SSO)",
-    "sha256": "5db5c812"
-  },
-  "web.billing.features.priority_support": {
-    "text": "Kiemelt támogatás",
-    "sha256": "ed8a65c8"
-  },
-  "web.billing.features.sla": {
-    "text": "Szolgáltatási szint megállapodás",
-    "sha256": "436f2550"
-  },
-  "web.billing.features.centralized_billing": {
-    "text": "Központosított számlázás",
-    "sha256": "62042d3b"
-  },
-  "web.billing.features.audit_trail": {
-    "text": "Audit nyomvonal",
-    "sha256": "d52b4039"
-  },
-  "web.billing.features.activity_stream": {
-    "text": "Tevékenységfolyam",
-    "sha256": "b9c6cba7"
-  },
-  "web.billing.features.handoff_workflows": {
-    "text": "Átadási munkafolyamatok",
-    "sha256": "07202af3"
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Munkaterület márkajelzés",
+    "sha256": "e7acbf6f"
   },
   "web.billing.features.extended_retention": {
     "text": "30 napos titok megőrzés",
     "sha256": "21d6d514"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "Főoldali titkok",
-    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
     "text": "Bejövő titkok",
@@ -758,76 +886,107 @@
     "text": "Megosztott munkafolyamatok",
     "sha256": "158f558e"
   },
-  "web.billing.overview.billing_for_organization": {
-    "text": "Számlázás ehhez a szervezethez",
-    "sha256": "21806992"
+  "web.billing.currency_migration.title": {
+    "text": "Pénznemváltás szükséges",
+    "context": "Modal title when plan requires different currency than current subscription",
+    "sha256": "2cd800c5"
   },
-  "web.billing.overview.upgrade_success": {
-    "text": "A csomagja sikeresen frissítve",
-    "sha256": "00ac43f8"
+  "web.billing.currency_migration.description": {
+    "text": "Az aktuális előfizetése {from} pénznemet használ. A kiválasztott csomag számlázása {to} pénznemben történik. Ehhez az előfizetés átállítása szükséges az új pénznemre.",
+    "sha256": "f0cdf727"
   },
-  "web.billing.overview.upgrade_success_description": {
-    "text": "Az új csomagja most aktív. Köszönjük a vásárlást.",
-    "sha256": "fd1caeb1"
+  "web.billing.currency_migration.current_plan": {
+    "text": "Jelenlegi csomag:",
+    "sha256": "648a0ab2"
   },
-  "web.billing.overview.billing_contact": {
-    "text": "Számlázási kapcsolattartó",
-    "sha256": "8f782ad8"
+  "web.billing.currency_migration.new_plan": {
+    "text": "Új csomag:",
+    "sha256": "edb868c4"
   },
-  "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Főoldali titkok",
-    "sha256": "6360f7ec"
+  "web.billing.currency_migration.current_period_ends": {
+    "text": "Jelenlegi időszak vége:",
+    "sha256": "2e20e596"
   },
-  "web.billing.overview.entitlements.notifications": {
-    "text": "E-mail értesítések",
-    "sha256": "04e0f1e9"
+  "web.billing.currency_migration.choose_timing": {
+    "text": "Mikor történjen a váltás?",
+    "sha256": "f4aabb13"
   },
-  "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "IP hozzáférési szabályok",
-    "sha256": "db966d47"
+  "web.billing.currency_migration.graceful_title": {
+    "text": "Váltás a számlázási időszak végén",
+    "sha256": "55cd980b"
   },
-  "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Munkaterület márkajelzés",
-    "sha256": "e7acbf6f"
+  "web.billing.currency_migration.graceful_description": {
+    "text": "A jelenlegi csomagja aktív marad {date}-ig. Ezt követően befejezi a fizetést az új csomagjáért.",
+    "sha256": "b8661418"
   },
-  "web.billing.plans.due_today": {
-    "text": "Ma esedékes:",
-    "sha256": "e370e3aa"
+  "web.billing.currency_migration.immediate_title": {
+    "text": "Azonnali váltás",
+    "sha256": "e9d0ba59"
   },
-  "web.billing.plans.next_billing": {
-    "text": "Következő számlázás ({date}):",
-    "sha256": "a6846a85"
+  "web.billing.currency_migration.immediate_description": {
+    "text": "A jelenlegi csomagja most lemondásra kerül. Visszatérítést kap a fel nem használt időre, és befejezi a fizetést az új csomagért.",
+    "sha256": "b08de0ca"
   },
-  "web.billing.plans.credit_applies_heading": {
-    "text": "Hogyan kerül alkalmazásra a jóváírás:",
-    "sha256": "a0943c3b"
+  "web.billing.currency_migration.confirm": {
+    "text": "Pénznemváltás megerősítése",
+    "sha256": "1edc1c78"
   },
-  "web.billing.plans.next_bill_amount": {
-    "text": "Következő számla összege:",
-    "sha256": "526ad28f"
+  "web.billing.currency_migration.error": {
+    "text": "A pénznem átállítása sikertelen. Kérjük, próbálja újra.",
+    "sha256": "4a6e1ced"
   },
-  "web.billing.plans.credit_applied_to_bill": {
-    "text": "Jóváírás alkalmazva:",
-    "sha256": "e5f2e81a"
+  "web.billing.currency_migration.success": {
+    "text": "Az előfizetés pénzneme sikeresen frissítve.",
+    "sha256": "a8bf437e"
   },
-  "web.billing.plans.amount_due_next_billing": {
-    "text": "Esedékes összeg a következő számlázáskor:",
-    "sha256": "22ee868a"
+  "web.billing.currency_migration.graceful_success": {
+    "text": "A jelenlegi csomagja aktív marad a számlázási időszak végéig. Ezt követően a rendszer felkéri az új csomag fizetésének befejezésére.",
+    "sha256": "15d41483"
   },
-  "web.billing.plans.remaining_account_credit": {
-    "text": "Fennmaradó fiók jóváírás:",
-    "sha256": "eedd0c0a"
+  "web.billing.currency_migration.warning_credit_balance": {
+    "text": "Ön rendelkezik {currency} pénznemű egyenleggel, amelyet nem lehet átváltani az új pénznemre.",
+    "sha256": "aa15be91"
   },
-  "web.billing.plans.credit_future_note": {
-    "text": "Jövőbeli számlákra alkalmazva",
-    "sha256": "5007add6"
+  "web.billing.currency_migration.warning_pending_items": {
+    "text": "Függőben lévő számlatételei vannak, amelyeket az átállítás előtt rendezni kell.",
+    "sha256": "7b4c5e10"
   },
-  "web.billing.subscription.team_usage": {
-    "text": "Csapathasználat",
-    "sha256": "f9989642"
+  "web.billing.currency_migration.warning_coupons": {
+    "text": "A fiókjában lévő aktív kuponok esetleg nem kompatibilisek az új pénznemmel.",
+    "sha256": "f572ee81"
   },
-  "web.billing.subscription.teams_used": {
-    "text": "{used} / {limit} csapat",
-    "sha256": "1db6b53c"
+  "web.billing.currency_migration.pending_title": {
+    "text": "Pénznem átállítás folyamatban",
+    "context": "Banner heading when graceful migration is scheduled",
+    "sha256": "018ae653"
+  },
+  "web.billing.currency_migration.pending_description": {
+    "text": "A jelenlegi csomagja {date}-kor lejár. Fejezze be a váltást a következőre: {plan} ({currency}).",
+    "sha256": "998ba4ab"
+  },
+  "web.billing.currency_migration.complete_migration": {
+    "text": "Átállítás befejezése",
+    "context": "Button to start checkout for the new currency plan",
+    "sha256": "fa794e0c"
+  },
+  "web.billing.checkout_session_failed": {
+    "text": "A fizetési munkamenet létrehozása sikertelen",
+    "context": "Error when Stripe checkout session creation returns no URL",
+    "sha256": "a53f6fa3"
+  },
+  "web.billing.checkout_initiate_failed": {
+    "text": "A fizetés indítása sikertelen",
+    "context": "Fallback error for checkout failures",
+    "sha256": "3ff06e41"
+  },
+  "web.billing.plan_switch_success": {
+    "text": "Sikeresen átváltva a következőre: {plan}",
+    "context": "Success message after plan change",
+    "sha256": "ab7c715c"
+  },
+  "web.billing.plan_unavailable_region_mismatch": {
+    "text": "Csak az eredeti előfizetési régiójában érhető el",
+    "context": "Hint shown on plan cards when currency does not match active subscription",
+    "sha256": "10de32e5"
   }
 }

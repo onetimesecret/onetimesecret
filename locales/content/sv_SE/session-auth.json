@@ -23,6 +23,86 @@
     "text": "Kom ihåg mig",
     "sha256": "f93267aa"
   },
+  "web.login.send_sign_in_link": {
+    "text": "Skicka inloggningslänk",
+    "sha256": "b1402b67"
+  },
+  "web.login.secure_link_helper": {
+    "text": "En säker länk skickas till din e-post.",
+    "sha256": "d31d20cf"
+  },
+  "web.login.or_divider": {
+    "text": "eller",
+    "sha256": "7175517a"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Logga in med lösenord",
+    "sha256": "bedac809"
+  },
+  "web.login.use_passwordless": {
+    "text": "Använd lösenordsfri inloggning",
+    "sha256": "dddc0097"
+  },
+  "web.login.create_account": {
+    "text": "Skapa konto",
+    "sha256": "798ca2ce"
+  },
+  "web.login.return_home": {
+    "text": "Tillbaka till startsidan",
+    "sha256": "bbcc935e"
+  },
+  "web.login.tab_password": {
+    "text": "Lösenord",
+    "sha256": "e7cf3ef4"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Magisk länk",
+    "sha256": "7a9ba11a"
+  },
+  "web.login.tab_passkey": {
+    "text": "Nyckel",
+    "sha256": "904c9aa9"
+  },
+  "web.login.need_help": {
+    "text": "Behöver du hjälp?",
+    "sha256": "c225cdfb"
+  },
+  "web.login.or_continue_with": {
+    "text": "Eller fortsätt med",
+    "sha256": "eb4e8d3b"
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "Logga in med SSO",
+    "sha256": "73e984e9"
+  },
+  "web.login.sign_in_with_provider": {
+    "text": "Logga in med {provider}",
+    "sha256": "b8794f11"
+  },
+  "web.auth.sso.signing_in": {
+    "text": "Omdirigerar till identitetsleverantör...",
+    "sha256": "4d1213f9"
+  },
+  "web.auth.sso.error": {
+    "text": "SSO-inloggning misslyckades. Försök igen.",
+    "sha256": "45a1e65d"
+  },
+  "web.login.errors.sso_failed": {
+    "text": "SSO-autentisering misslyckades. Försök igen eller logga in med lösenord.",
+    "sha256": "13a2210a"
+  },
+  "web.login.errors.token_missing": {
+    "text": "Autentiseringslänken är ofullständig. Begär en ny inloggningslänk.",
+    "sha256": "f4a10652"
+  },
+  "web.login.errors.token_expired": {
+    "text": "Denna inloggningslänk har gått ut. Begär en ny.",
+    "sha256": "f0de42ec"
+  },
+  "web.login.errors.token_invalid": {
+    "text": "Denna inloggningslänk är ogiltig. Begär en ny.",
+    "sha256": "270c6401"
+  },
   "web.signup.create_your_account": {
     "text": "Skapa ditt konto",
     "sha256": "5f4c33d7"
@@ -46,6 +126,9 @@
   "web.signup.email_error": {
     "text": "E-post",
     "sha256": "969ccbd3"
+  },
+  "web.auth.verify._guidance": {
+    "context": "Email verification flow after signup"
   },
   "web.auth.verify.title": {
     "text": "Verifiera ditt konto",
@@ -173,6 +256,7 @@
   },
   "web.auth.password_reset.title": {
     "text": "Välj ett nytt lösenord",
+    "context": "Password reset request flow - user requests a reset link",
     "sha256": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
@@ -189,6 +273,7 @@
   },
   "web.auth.account.title": {
     "text": "Kontoinformation",
+    "context": "User account overview/dashboard section",
     "sha256": "4e59b6c7"
   },
   "web.auth.account.email": {
@@ -255,9 +340,6 @@
     "text": "Stäng konto",
     "sha256": "e1513814"
   },
-  "web.auth.verify._guidance.context": {
-    "text": "E-postverifieringsflöde efter registrering"
-  },
   "web.help.title": {
     "text": "Hjälp och support",
     "sha256": "1f8ecc24"
@@ -313,65 +395,5 @@
   "web.help.contact_support": {
     "text": "Kontakta support",
     "sha256": "f8d47b82"
-  },
-  "web.login.send_sign_in_link": {
-    "text": "Skicka inloggningslänk",
-    "sha256": "b1402b67"
-  },
-  "web.login.secure_link_helper": {
-    "text": "En säker länk skickas till din e-post.",
-    "sha256": "d31d20cf"
-  },
-  "web.login.or_divider": {
-    "text": "eller",
-    "sha256": "7175517a"
-  },
-  "web.login.sign_in_with_password": {
-    "text": "Logga in med lösenord",
-    "sha256": "bedac809"
-  },
-  "web.login.use_passwordless": {
-    "text": "Använd lösenordsfri inloggning",
-    "sha256": "dddc0097"
-  },
-  "web.login.create_account": {
-    "text": "Skapa konto",
-    "sha256": "798ca2ce"
-  },
-  "web.login.return_home": {
-    "text": "Tillbaka till startsidan",
-    "sha256": "bbcc935e"
-  },
-  "web.login.tab_password": {
-    "text": "Lösenord",
-    "sha256": "e7cf3ef4"
-  },
-  "web.login.tab_magic_link": {
-    "text": "Magisk länk",
-    "sha256": "7a9ba11a"
-  },
-  "web.login.tab_passkey": {
-    "text": "Nyckel",
-    "sha256": ""
-  },
-  "web.login.or_continue_with": {
-    "text": "Eller fortsätt med",
-    "sha256": ""
-  },
-  "web.login.sign_in_with_sso": {
-    "text": "Logga in med SSO",
-    "sha256": ""
-  },
-  "web.auth.sso.signing_in": {
-    "text": "Omdirigerar till identitetsleverantör...",
-    "sha256": ""
-  },
-  "web.auth.sso.error": {
-    "text": "SSO-inloggning misslyckades. Försök igen.",
-    "sha256": ""
-  },
-  "web.login.need_help": {
-    "text": "Behöver du hjälp?",
-    "sha256": "c225cdfb"
   }
 }

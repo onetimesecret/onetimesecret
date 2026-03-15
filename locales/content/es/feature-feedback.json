@@ -31,17 +31,13 @@
     "text": "El contenido de ayuda va aquí.",
     "sha256": "796979ea"
   },
-  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Gracias por ayudar a mejorar Onetime Secret. Significa mucho."
+  "web.feedback.founder_note_line1": {
+    "text": "Leo cada opinión que llega por aquí. Es como decido en qué invertir mi tiempo.",
+    "sha256": "8b430d93"
   },
-  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
-    "text": "Hemos creado esta herramienta para ayudarte a compartir información sensible de forma segura, y tus experiencias del mundo real son cruciales para enfocar nuestros esfuerzos. Nos ayuda a decidir en qué trabajar a continuación y cómo mejorar el servicio para todos."
-  },
-  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
-    "text": "Hola, gracias por visitar nuestra página de comentarios. Tu opinión no solo es bienvenida, es crucial."
-  },
-  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Una nota de Delano, fundador de Onetime Secret"
+  "web.feedback.founder_note_line2": {
+    "text": "Si algo no funciona bien, o tienes ideas sobre cómo debería funcionar, este es el lugar indicado.",
+    "sha256": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
     "text": "Abrir formulario de opinión",
@@ -55,12 +51,12 @@
     "text": "Enviar opinión",
     "sha256": "8235980b"
   },
-  "web.feedback.founder_note_line1": {
-    "text": "Leo cada opinión que llega por aquí. Es como decido en qué invertir mi tiempo.",
-    "sha256": "8b430d93"
+  "web.feedback.sending_ellipses": {
+    "text": "Enviando...",
+    "sha256": "286a3af7"
   },
-  "web.feedback.founder_note_line2": {
-    "text": "Si algo no funciona bien, o tienes ideas sobre cómo debería funcionar, este es el lugar indicado.",
-    "sha256": "d4b8f073"
+  "web.feedback.reason_email_change_unauthorized": {
+    "text": "Parece que estás reportando un cambio de correo electrónico no autorizado en tu cuenta. Por favor, describe lo que ocurrió y lo investigaremos de inmediato.",
+    "sha256": "00e56551"
   }
 }

@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "Mevcut yargı alanı:",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "Bölge Değiştirme",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "Politikamız, bölgeler arasında asla veri aktarmamaktır. Her bölge tamamen bağımsız bir ortam olarak çalışır.",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "Farklı bir bölge kullanmak için, fatura iletişim e-postanızla ilişkili aynı e-posta adresini kullanarak orada yeni bir hesap oluşturun.",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "Fatura iletişim e-postanız Onetime Secret hesap e-postanızdan farklıysa, abonelik avantajlarınızı korumak için yeni bölge hesabında fatura iletişim e-postanızı kullanın.",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "Abonelik avantajlarınız, fatura e-posta adresinizle oluşturulan tüm hesaplara otomatik olarak uygulanır.",
+    "sha256": "5b2238b2"
   }
 }

@@ -132,7 +132,7 @@
     "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Memo:",
+    "text": "Notat:",
     "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
@@ -150,6 +150,14 @@
   "email.incoming_secret.link_works_once": {
     "text": "Dette link virker kun én gang. Efter visning vil beskeden blive permanent slettet.",
     "sha256": "fecaf0a1"
+  },
+  "email.incoming_secret.passphrase_required": {
+    "text": "Denne besked er beskyttet med en adgangssætning. Afsenderen bør give den til dig separat.",
+    "sha256": "1e49826b"
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "Adgangssætning påkrævet:",
+    "sha256": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
     "text": "Sendt via",
@@ -320,16 +328,84 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "E-mailadressen for din %{product_name}-konto blev ændret til %{new_email_masked} den %{date}.",
+    "text": "E-mailadressen for din %{product_name}-konto blev ændret til %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "Hvis du ikke har foretaget denne ændring, kontakt venligst support med det samme, da din konto kan være kompromitteret.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "E-mailadressen på din %{product_name}-konto er blevet ændret.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "Ny e-mail:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "Ændret den:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "Hvis du har foretaget denne ændring, kræves ingen yderligere handling.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "Hvis du ikke har foretaget denne ændring, kan din konto være kompromitteret.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "Kontakt support",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "P.S. Denne e-mail blev sendt til %{email_address} for at informere dig om en ændring af e-mailadresse.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "Ændring af e-mail anmodet (%{display_domain})",
+    "sha256": "be3441d6"
+  },
+  "email.email_change_requested.title": {
+    "text": "Ændring af e-mail anmodet",
+    "sha256": "704cbdca"
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "Der er anmodet om at ændre e-mailadressen på din %{product_name}-konto.",
+    "sha256": "d7e39154"
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "Anmodet ny e-mail:",
+    "sha256": "243f3e03"
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "Anmodet den:",
+    "sha256": "ada23c51"
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "Hvis du har foretaget denne anmodning, tjek din nye e-mail for et bekræftelseslink. Der er endnu ikke foretaget ændringer.",
+    "sha256": "aa1bf526"
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "Hvis du ikke har foretaget denne anmodning, kan du trygt ignorere denne e-mail. Din konto er ikke blevet ændret.",
+    "sha256": "ff41a7b7"
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "Kontakt support",
+    "sha256": "f8d47b82"
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.email_change_requested.postscript": {
+    "text": "P.S. Denne e-mail blev sendt til %{email_address}, fordi der blev anmodet om en ændring af e-mailadresse for din konto.",
+    "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {
     "text": "Bekræft din nye e-mailadresse (%{display_domain})",
@@ -347,13 +423,33 @@
     "text": "Bekræft e-mailadresse",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "Der er anmodet om at ændre e-mailadressen på din %{product_name}-konto til %{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "Bekræft ændring af e-mail",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Eller kopier og indsæt dette link:",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "Dette link udløber om %{hours} timer.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "Hvis du ikke har anmodet om denne ændring, kan du trygt ignorere denne e-mail. Din e-mailadresse vil ikke blive ændret.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "P.S. Denne e-mail blev sendt til %{email_address} for at bekræfte en ændring af e-mailadresse.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "To-faktor-godkendelse aktiveret (%{display_domain})",

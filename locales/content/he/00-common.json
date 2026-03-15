@@ -132,9 +132,17 @@
     "text": "אחרונים",
     "sha256": "690dbe9d"
   },
-  "web.COMMON.received": {
-    "text": "התקבל",
-    "sha256": "49f19bee"
+  "web.COMMON.not_set": {
+    "text": "לא הוגדר",
+    "sha256": "4895f731"
+  },
+  "web.COMMON.word_edit": {
+    "text": "עריכה",
+    "sha256": "464c4ffd"
+  },
+  "web.COMMON.word_save": {
+    "text": "שמירה",
+    "sha256": "1509f561"
   },
   "web.COMMON.burn": {
     "text": "מחיקה סופית",
@@ -432,6 +440,10 @@
     "text": "לדוגמה {example}",
     "sha256": "cc921aaa"
   },
+  "web.COMMON.about": {
+    "text": "אודות",
+    "sha256": "d833339d"
+  },
   "web.COMMON.status": {
     "text": "סטטוס",
     "sha256": "920e413c"
@@ -648,6 +660,10 @@
     "text": "לחץ על כפתור ההעתקה למטה.",
     "sha256": "77fcf6fb"
   },
+  "web.COMMON.external_link": {
+    "text": "קישור חיצוני",
+    "sha256": "be6f6527"
+  },
   "web.LABELS.view_toggle.show": {
     "text": "הצג",
     "sha256": "0df6f1ca"
@@ -687,6 +703,10 @@
   "web.LABELS.expiration_time": {
     "text": "זמן פקיעה",
     "sha256": "c5db84a8"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "פג תוקף בעוד",
+    "sha256": "de996752"
   },
   "web.LABELS.close": {
     "text": "סגור",
@@ -824,6 +844,14 @@
     "text": "טען מחדש",
     "sha256": "bdc090ec"
   },
+  "web.LABELS.filter": {
+    "text": "סנן",
+    "sha256": "638e249f"
+  },
+  "web.LABELS.clear": {
+    "text": "נקה",
+    "sha256": "83b12c22"
+  },
   "web.LABELS.caption_recent_secrets": {
     "text": "קישורים סודיים שנוצרו בסשן זה",
     "sha256": "6c7ceab8"
@@ -848,6 +876,11 @@
     "text": "הגדרות קשורות",
     "sha256": "68574b20"
   },
+  "web.LABELS.benefits": {
+    "text": "יתרונות",
+    "context": "Section header for listing benefits",
+    "sha256": "d5b67bc9"
+  },
   "web.LABELS.creating_links_for": {
     "text": "יוצר קישורים עבור",
     "sha256": "57db069e"
@@ -871,6 +904,14 @@
   "web.STATUS.received": {
     "text": "התקבל",
     "sha256": "49f19bee"
+  },
+  "web.STATUS.previewed": {
+    "text": "נצפה מראש",
+    "sha256": "3d391a9b"
+  },
+  "web.STATUS.revealed": {
+    "text": "נחשף",
+    "sha256": "17376ee4"
   },
   "web.STATUS.burned": {
     "text": "נמחק סופית",
@@ -931,6 +972,14 @@
   "web.STATUS.received_description": {
     "text": "הסוד נחשף לנמען",
     "sha256": "ceb756b4"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "קישור הסוד נפתח ומוכן לחשיפה",
+    "sha256": "cc7d1e92"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "תוכן הסוד נחשף לנמען",
+    "sha256": "39b32f80"
   },
   "web.STATUS.burned_description": {
     "text": "הסוד נמחק ידנית לפני שנצפה",
@@ -1056,6 +1105,10 @@
     "text": "משוב",
     "sha256": "aac77df3"
   },
+  "web.TITLES.help": {
+    "text": "עזרה",
+    "sha256": "b79cac92"
+  },
   "web.TITLES.signin": {
     "text": "התחברות",
     "sha256": "bcc0bcc9"
@@ -1172,6 +1225,10 @@
     "text": "שינוי דוא״ל",
     "sha256": "18c3f2d5"
   },
+  "web.TITLES.confirm_email_change": {
+    "text": "אישור שינוי דואר אלקטרוני",
+    "sha256": "c2736949"
+  },
   "web.TITLES.security_overview": {
     "text": "אבטחה",
     "sha256": "8f6fb4eb"
@@ -1191,6 +1248,11 @@
   "web.TITLES.recovery_codes": {
     "text": "קודי שחזור",
     "sha256": "579c7f4e"
+  },
+  "web.TITLES.passkeys": {
+    "text": "מפתחות גישה",
+    "context": "Page title for passkey management",
+    "sha256": "c87ccdb4"
   },
   "web.TITLES.api_settings": {
     "text": "הגדרות API",
@@ -1216,6 +1278,10 @@
     "text": "הגדרות ארגון",
     "sha256": "cc1d9e61"
   },
+  "web.TITLES.pricing": {
+    "text": "תמחור",
+    "sha256": "dfe95783"
+  },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
     "text": "המיקוד נמצא כעת באזור הטקסט הראשי",
     "sha256": "e00dd260"
@@ -1239,70 +1305,6 @@
   "web.INSTRUCTION.phishing_warning": {
     "text": "תמיד ודא שאתה באתר הרשמי של Onetime Secret. נוכלים לפעמים יוצרים אתרים מזויפים שנראים בדיוק כמו Onetime Secret כדי לגנוב את הסודות שלך. כדי להימנע מהתקפות פישינג, בדוק את הדומיין לפני יצירת קישורים חדשים.",
     "sha256": "b588f5b2"
-  },
-  "web.STATUS.previewed": {
-    "text": "נצפה מראש",
-    "sha256": "3d391a9b"
-  },
-  "web.STATUS.revealed": {
-    "text": "נחשף",
-    "sha256": "17376ee4"
-  },
-  "web.STATUS.previewed_description": {
-    "text": "קישור הסוד נפתח ומוכן לחשיפה",
-    "sha256": "cc7d1e92"
-  },
-  "web.STATUS.revealed_description": {
-    "text": "תוכן הסוד נחשף לנמען",
-    "sha256": "39b32f80"
-  },
-  "web.COMMON.not_set": {
-    "text": "לא הוגדר",
-    "sha256": "4895f731"
-  },
-  "web.COMMON.word_edit": {
-    "text": "עריכה",
-    "sha256": "464c4ffd"
-  },
-  "web.COMMON.word_save": {
-    "text": "שמירה",
-    "sha256": "1509f561"
-  },
-  "web.LABELS.secret_ttl": {
-    "text": "פג תוקף בעוד",
-    "sha256": "de996752"
-  },
-  "web.LABELS.filter": {
-    "text": "סנן",
-    "sha256": "638e249f"
-  },
-  "web.LABELS.clear": {
-    "text": "נקה",
-    "sha256": "83b12c22"
-  },
-  "web.LABELS.add_note": {
-    "text": "הוסף הערה...",
-    "sha256": "32738894"
-  },
-  "web.LABELS.edit_note": {
-    "text": "עריכת הערה",
-    "sha256": "299e604c"
-  },
-  "web.LABELS.add_memo": {
-    "text": "הוסף תזכורת...",
-    "sha256": "02384c53"
-  },
-  "web.LABELS.edit_memo": {
-    "text": "עריכת תזכורת",
-    "sha256": "0ec1a5db"
-  },
-  "web.TITLES.help": {
-    "text": "עזרה",
-    "sha256": "b79cac92"
-  },
-  "web.TITLES.pricing": {
-    "text": "תמחור",
-    "sha256": "dfe95783"
   },
   "web.pricing.title": {
     "text": "תמחור פשוט ושקוף",
@@ -1332,12 +1334,58 @@
     "text": "מומלץ עבורך",
     "sha256": "00093fbd"
   },
+  "web.COMMON.received": {
+    "text": "התקבל",
+    "sha256": "49f19bee"
+  },
+  "web.LABELS.add_note": {
+    "text": "הוסף הערה...",
+    "sha256": "32738894"
+  },
+  "web.LABELS.edit_note": {
+    "text": "עריכת הערה",
+    "sha256": "299e604c"
+  },
+  "web.LABELS.add_memo": {
+    "text": "הוסף תזכורת...",
+    "sha256": "02384c53"
+  },
+  "web.LABELS.edit_memo": {
+    "text": "עריכת תזכורת",
+    "sha256": "0ec1a5db"
+  },
   "web.pricing.free_tier_description": {
     "text": "צור ושתף סודות עם תכונות בסיסיות. לא נדרש כרטיס אשראי.",
     "sha256": "3a4f2bc0"
   },
-  "web.COMMON.external_link": {
-    "text": "קישור חיצוני",
-    "sha256": "a1b2c3d5"
+  "web.COMMON.enter_password_to_continue": {
+    "text": "הזן את הסיסמה שלך כדי להמשיך",
+    "context": "Prompt for password confirmation modal",
+    "sha256": "09055357"
+  },
+  "web.COMMON.password_required_for_action": {
+    "text": "נדרשת הסיסמה שלך להשלמת פעולה זו",
+    "context": "Description for password confirmation modal",
+    "sha256": "cc078766"
+  },
+  "api.errors.unexpected_error": {
+    "text": "אירעה שגיאה בלתי צפויה",
+    "context": "Generic error message for unhandled exceptions in API",
+    "sha256": "6615bf1c"
+  },
+  "api.errors.service_unavailable": {
+    "text": "השירות אינו זמין באופן זמני. נסה שוב בקרוב.",
+    "context": "Error message when database connection fails",
+    "sha256": "343ccdcb"
+  },
+  "api.errors.request_processing_error": {
+    "text": "לא ניתן לעבד את הבקשה שלך כעת",
+    "context": "Error message for recoverable server errors",
+    "sha256": "fb961f3f"
+  },
+  "web.COMMON.upgrade_description": {
+    "text": "שדרג כדי לפתוח תכונות נוספות",
+    "context": "Description shown for free plan users encouraging upgrade",
+    "sha256": "783f174c"
   }
 }

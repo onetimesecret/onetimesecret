@@ -1,4 +1,12 @@
 {
+  "web.billing.subscription_synced_title": {
+    "text": "Abonnement synchronisiert",
+    "sha256": "3086ef43"
+  },
+  "web.billing.subscription_synced_description": {
+    "text": "Deine Abonnementvorteile wurden aus einer anderen Region synchronisiert.",
+    "sha256": "a99b7a98"
+  },
   "web.billing.upgrade.required": {
     "text": "Upgrade erforderlich",
     "sha256": "16487236"
@@ -12,7 +20,7 @@
     "sha256": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Eigene Domains erfordern Identity Plus oder höher",
+    "text": "Benutzerdefinierte Domains erfordern Identity Plus oder höher",
     "sha256": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
@@ -35,8 +43,9 @@
     "text": "Dein Abonnement und deine Zahlungsdetails ansehen und verwalten",
     "sha256": "60e5a00e"
   },
-  "web.billing.overview.organization_selector": {
-    "text": "Organisation auswählen"
+  "web.billing.overview.billing_for_organization": {
+    "text": "Abrechnung für diese Organisation",
+    "sha256": "21806992"
   },
   "web.billing.overview.current_plan": {
     "text": "Aktueller Tarif",
@@ -73,6 +82,22 @@
   "web.billing.overview.change_plan": {
     "text": "Tarif wechseln",
     "sha256": "2d0b195b"
+  },
+  "web.billing.overview.manage_subscription": {
+    "text": "Abonnement verwalten",
+    "sha256": "cbc4ef92"
+  },
+  "web.billing.plans.legacy_plan_info": {
+    "text": "Du bist in einem Bestandstarif mit Sonderpreisen.",
+    "sha256": "e9aa8bf0"
+  },
+  "web.billing.plans.early_supporter_plan": {
+    "text": "Identity Plus (Early Supporter)",
+    "sha256": "f37cd0d9"
+  },
+  "web.billing.plans.legacy_plan_warning": {
+    "text": "Ein Tarifwechsel führt zum Verlust deines Bestandstarifs. Dies kann nicht rückgängig gemacht werden.",
+    "sha256": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
     "text": "Keine Zahlungsmethode hinterlegt",
@@ -122,6 +147,22 @@
     "text": "Erstelle eine Organisation, um deine Abrechnung und dein Abonnement zu verwalten",
     "sha256": "41e922d2"
   },
+  "web.billing.overview.load_error": {
+    "text": "Rechnungsinformationen konnten nicht geladen werden",
+    "sha256": "3bc44882"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "Dein Tarif wurde erfolgreich aktualisiert",
+    "sha256": "00ac43f8"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Dein neuer Tarif ist jetzt aktiv. Vielen Dank für deinen Kauf.",
+    "sha256": "fd1caeb1"
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Rechnungskontakt",
+    "sha256": "8f782ad8"
+  },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "Nachrichten erstellen",
     "sha256": "0320541d"
@@ -135,7 +176,7 @@
     "sha256": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "Eigene Domains",
+    "text": "Benutzerdefinierte Domains",
     "sha256": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
@@ -155,8 +196,8 @@
     "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Gebrandete Startseite",
-    "sha256": "e355a396"
+    "text": "Startseiten-Nachrichten",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "Eingehende Nachrichten",
@@ -198,6 +239,74 @@
     "text": "Keine Funktionen verfügbar",
     "sha256": "03d195e8"
   },
+  "web.billing.features.create_secrets": {
+    "text": "Nachrichten erstellen & teilen",
+    "sha256": "303f9386"
+  },
+  "web.billing.features.api_access": {
+    "text": "API-Zugang",
+    "sha256": "5f31cc2f"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Benutzerdefinierte Domains",
+    "sha256": "6170ab94"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 benutzerdefinierte Domain",
+    "sha256": "6a6be744"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Unbegrenzte benutzerdefinierte Domains",
+    "sha256": "53eb7521"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Eigenes Branding",
+    "sha256": "237dabec"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Startseiten-Nachrichten",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Teamverwaltung",
+    "sha256": "6bcbac8f"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Mitgliederverwaltung",
+    "sha256": "b38b89db"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Audit-Protokolle",
+    "sha256": "5428d7fe"
+  },
+  "web.billing.features.sso": {
+    "text": "Single Sign-On (SSO)",
+    "sha256": "5db5c812"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Prioritäts-Support",
+    "sha256": "ed8a65c8"
+  },
+  "web.billing.features.sla": {
+    "text": "Service Level Agreement",
+    "sha256": "436f2550"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Zentrale Abrechnung",
+    "sha256": "62042d3b"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Audit-Trail",
+    "sha256": "d52b4039"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Aktivitätsstream",
+    "sha256": "b9c6cba7"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Übergabe-Workflows",
+    "sha256": "07202af3"
+  },
   "web.billing.plans.title": {
     "text": "Tarif auswählen",
     "sha256": "79506c82"
@@ -225,6 +334,10 @@
   "web.billing.plans.downgrade": {
     "text": "Downgrade",
     "sha256": "d955b7e8"
+  },
+  "web.billing.plans.cancel_to_downgrade": {
+    "text": "Kündigen zum Wechseln",
+    "sha256": "1c4cda89"
   },
   "web.billing.plans.monthly": {
     "text": "Monatlich",
@@ -330,6 +443,10 @@
     "text": "Derzeit keine {interval} Tarife verfügbar.",
     "sha256": "d8454436"
   },
+  "web.billing.plans.load_error": {
+    "text": "Tarife konnten nicht geladen werden",
+    "sha256": "a37d4d9a"
+  },
   "web.billing.plans.change_immediate": {
     "text": "Dein Tarif wird sofort geändert.",
     "sha256": "889d13be"
@@ -345,6 +462,14 @@
   "web.billing.plans.credit_label": {
     "text": "Guthaben für ungenutzte Zeit:",
     "sha256": "001e4901"
+  },
+  "web.billing.plans.due_today": {
+    "text": "Heute fällig:",
+    "sha256": "e370e3aa"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Nächste Abrechnung ({date}):",
+    "sha256": "a6846a85"
   },
   "web.billing.plans.next_invoice": {
     "text": "Nächste Rechnung",
@@ -374,6 +499,30 @@
     "text": "Auf {plan} downgraden?",
     "sha256": "8eb8ea81"
   },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Wie dein Guthaben angerechnet wird:",
+    "sha256": "a0943c3b"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Nächster Rechnungsbetrag:",
+    "sha256": "526ad28f"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Angerechnetes Guthaben:",
+    "sha256": "e5f2e81a"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Fälliger Betrag bei nächster Abrechnung:",
+    "sha256": "22ee868a"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Verbleibendes Kontoguthaben:",
+    "sha256": "eedd0c0a"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Wird auf zukünftige Rechnungen angerechnet",
+    "sha256": "5007add6"
+  },
   "web.billing.invoices.title": {
     "text": "Abrechnungsverlauf",
     "sha256": "5ade0861"
@@ -398,9 +547,21 @@
     "text": "Herunterladen",
     "sha256": "d6eafe82"
   },
+  "web.billing.invoices.invoice_number": {
+    "text": "Rechnung Nr.",
+    "sha256": "48a67cac"
+  },
   "web.billing.invoices.no_invoices": {
     "text": "Noch keine Rechnungen",
     "sha256": "92d2d0ce"
+  },
+  "web.billing.invoices.no_invoices_description": {
+    "text": "Deine Rechnungen werden hier angezeigt, sobald du auf einen kostenpflichtigen Tarif wechselst",
+    "sha256": "7f16be70"
+  },
+  "web.billing.invoices.view_plans": {
+    "text": "Tarife ansehen",
+    "sha256": "a865d424"
   },
   "web.billing.invoices.paid": {
     "text": "Bezahlt",
@@ -417,6 +578,18 @@
   "web.billing.invoices.draft": {
     "text": "Entwurf",
     "sha256": "d2e16e61"
+  },
+  "web.billing.invoices.open": {
+    "text": "Offen",
+    "sha256": "ed077f3d"
+  },
+  "web.billing.invoices.uncollectible": {
+    "text": "Uneinbringlich",
+    "sha256": "c8d3b241"
+  },
+  "web.billing.invoices.void": {
+    "text": "Storniert",
+    "sha256": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
     "text": "Rechnungen konnten nicht geladen werden",
@@ -465,6 +638,14 @@
   "web.billing.subscription.catalog_name": {
     "text": "Tarif",
     "sha256": "fa8ed0bd"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Team-Nutzung",
+    "sha256": "f9989642"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{used} von {limit} Teams",
+    "sha256": "1db6b53c"
   },
   "web.billing.portal.title": {
     "text": "Abrechnungsportal",
@@ -580,10 +761,12 @@
   },
   "web.billing.cancel.link_text": {
     "text": "Abonnement kündigen",
+    "context": "Link text shown below the plan selector for paid users",
     "sha256": "3f85967f"
   },
   "web.billing.cancel.title": {
     "text": "Abonnement kündigen",
+    "context": "Modal dialog heading/title",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
@@ -612,10 +795,12 @@
   },
   "web.billing.cancel.keep_subscription": {
     "text": "Abonnement behalten",
+    "context": "Secondary button in modal - keeps subscription active",
     "sha256": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
     "text": "Abonnement kündigen",
+    "context": "Primary action button in modal - confirms the cancellation",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
@@ -628,91 +813,34 @@
   },
   "web.billing.cancel.scheduled_title": {
     "text": "Kündigung des Abonnements geplant",
+    "context": "Alert banner heading shown when cancellation is pending",
     "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
     "text": "Dein Abonnement bleibt bis {date} aktiv. Du hast bis dahin weiterhin vollen Zugriff auf alle Funktionen.",
+    "context": "Alert banner description explaining continued access",
     "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
     "text": "Hast du es dir anders überlegt? Du kannst dein Abonnement jederzeit vor dem Kündigungsdatum reaktivieren.",
+    "context": "Alert banner note encouraging reactivation",
     "sha256": "c94d5527"
   },
-  "web.billing.features.create_secrets": {
-    "text": "Nachrichten erstellen & teilen",
-    "sha256": "303f9386"
+  "web.billing.overview.entitlements.notifications": {
+    "text": "E-Mail-Benachrichtigungen",
+    "sha256": "04e0f1e9"
   },
-  "web.billing.features.api_access": {
-    "text": "API-Zugang",
-    "sha256": "5f31cc2f"
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IP-Zugriffsregeln",
+    "sha256": "db966d47"
   },
-  "web.billing.features.custom_domains": {
-    "text": "Benutzerdefinierte Domains",
-    "sha256": "6170ab94"
-  },
-  "web.billing.features.custom_domain": {
-    "text": "1 benutzerdefinierte Domain",
-    "sha256": "6a6be744"
-  },
-  "web.billing.features.unlimited_custom_domains": {
-    "text": "Unbegrenzte benutzerdefinierte Domains",
-    "sha256": "53eb7521"
-  },
-  "web.billing.features.custom_branding": {
-    "text": "Eigenes Branding",
-    "sha256": "237dabec"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "Gebrandete Startseite",
-    "sha256": "e355a396"
-  },
-  "web.billing.features.manage_teams": {
-    "text": "Teamverwaltung",
-    "sha256": "6bcbac8f"
-  },
-  "web.billing.features.manage_members": {
-    "text": "Mitgliederverwaltung",
-    "sha256": "b38b89db"
-  },
-  "web.billing.features.audit_logs": {
-    "text": "Audit-Protokolle",
-    "sha256": "5428d7fe"
-  },
-  "web.billing.features.sso": {
-    "text": "Single Sign-On (SSO)",
-    "sha256": "5db5c812"
-  },
-  "web.billing.features.priority_support": {
-    "text": "Prioritäts-Support",
-    "sha256": "ed8a65c8"
-  },
-  "web.billing.features.sla": {
-    "text": "Service Level Agreement",
-    "sha256": "436f2550"
-  },
-  "web.billing.features.centralized_billing": {
-    "text": "Zentrale Abrechnung",
-    "sha256": "62042d3b"
-  },
-  "web.billing.features.audit_trail": {
-    "text": "Audit-Trail",
-    "sha256": "d52b4039"
-  },
-  "web.billing.features.activity_stream": {
-    "text": "Aktivitätsstream",
-    "sha256": "b9c6cba7"
-  },
-  "web.billing.features.handoff_workflows": {
-    "text": "Übergabe-Workflows",
-    "sha256": "07202af3"
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Workspace-Branding",
+    "sha256": "e7acbf6f"
   },
   "web.billing.features.extended_retention": {
     "text": "30 Tage Nachrichten-Aufbewahrung",
     "sha256": "21d6d514"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "Startseiten-Nachrichten",
-    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
     "text": "Eingehende Nachrichten",
@@ -758,76 +886,107 @@
     "text": "Geteilte Workflows",
     "sha256": "158f558e"
   },
-  "web.billing.overview.billing_for_organization": {
-    "text": "Abrechnung für diese Organisation",
-    "sha256": "21806992"
+  "web.billing.currency_migration.title": {
+    "text": "Währungsänderung erforderlich",
+    "context": "Modal title when plan requires different currency than current subscription",
+    "sha256": "2cd800c5"
   },
-  "web.billing.overview.upgrade_success": {
-    "text": "Dein Tarif wurde erfolgreich aktualisiert",
-    "sha256": "00ac43f8"
+  "web.billing.currency_migration.description": {
+    "text": "Dein aktuelles Abonnement verwendet {from}. Der gewählte Tarif wird in {to} abgerechnet. Dies erfordert eine Migration deines Abonnements zur neuen Währung.",
+    "sha256": "f0cdf727"
   },
-  "web.billing.overview.upgrade_success_description": {
-    "text": "Dein neuer Tarif ist jetzt aktiv. Vielen Dank für deinen Kauf.",
-    "sha256": "fd1caeb1"
+  "web.billing.currency_migration.current_plan": {
+    "text": "Aktueller Tarif:",
+    "sha256": "648a0ab2"
   },
-  "web.billing.overview.billing_contact": {
-    "text": "Rechnungskontakt",
-    "sha256": "8f782ad8"
+  "web.billing.currency_migration.new_plan": {
+    "text": "Neuer Tarif:",
+    "sha256": "edb868c4"
   },
-  "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Startseiten-Nachrichten",
-    "sha256": "6360f7ec"
+  "web.billing.currency_migration.current_period_ends": {
+    "text": "Aktuelle Periode endet:",
+    "sha256": "2e20e596"
   },
-  "web.billing.overview.entitlements.notifications": {
-    "text": "E-Mail-Benachrichtigungen",
-    "sha256": "04e0f1e9"
+  "web.billing.currency_migration.choose_timing": {
+    "text": "Wann soll der Wechsel stattfinden?",
+    "sha256": "f4aabb13"
   },
-  "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "IP-Zugriffsregeln",
-    "sha256": "db966d47"
+  "web.billing.currency_migration.graceful_title": {
+    "text": "Wechsel am Ende der Abrechnungsperiode",
+    "sha256": "55cd980b"
   },
-  "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Workspace-Branding",
-    "sha256": "e7acbf6f"
+  "web.billing.currency_migration.graceful_description": {
+    "text": "Dein aktueller Tarif bleibt aktiv bis {date}. Danach schließt du den Checkout für deinen neuen Tarif ab.",
+    "sha256": "b8661418"
   },
-  "web.billing.plans.due_today": {
-    "text": "Heute fällig:",
-    "sha256": "e370e3aa"
+  "web.billing.currency_migration.immediate_title": {
+    "text": "Sofort wechseln",
+    "sha256": "e9d0ba59"
   },
-  "web.billing.plans.next_billing": {
-    "text": "Nächste Abrechnung ({date}):",
-    "sha256": "a6846a85"
+  "web.billing.currency_migration.immediate_description": {
+    "text": "Dein aktueller Tarif wird jetzt gekündigt. Du erhältst eine Rückerstattung für die ungenutzte Zeit und schließt den Checkout für den neuen Tarif ab.",
+    "sha256": "b08de0ca"
   },
-  "web.billing.plans.credit_applies_heading": {
-    "text": "Wie dein Guthaben angerechnet wird:",
-    "sha256": "a0943c3b"
+  "web.billing.currency_migration.confirm": {
+    "text": "Währungsänderung bestätigen",
+    "sha256": "1edc1c78"
   },
-  "web.billing.plans.next_bill_amount": {
-    "text": "Nächster Rechnungsbetrag:",
-    "sha256": "526ad28f"
+  "web.billing.currency_migration.error": {
+    "text": "Währungsmigration fehlgeschlagen. Bitte versuche es erneut.",
+    "sha256": "4a6e1ced"
   },
-  "web.billing.plans.credit_applied_to_bill": {
-    "text": "Angerechnetes Guthaben:",
-    "sha256": "e5f2e81a"
+  "web.billing.currency_migration.success": {
+    "text": "Deine Abonnementwährung wurde erfolgreich aktualisiert.",
+    "sha256": "a8bf437e"
   },
-  "web.billing.plans.amount_due_next_billing": {
-    "text": "Fälliger Betrag bei nächster Abrechnung:",
-    "sha256": "22ee868a"
+  "web.billing.currency_migration.graceful_success": {
+    "text": "Dein aktueller Tarif bleibt bis zum Ende der Abrechnungsperiode aktiv. Danach wirst du aufgefordert, den Checkout für deinen neuen Tarif abzuschließen.",
+    "sha256": "15d41483"
   },
-  "web.billing.plans.remaining_account_credit": {
-    "text": "Verbleibendes Kontoguthaben:",
-    "sha256": "eedd0c0a"
+  "web.billing.currency_migration.warning_credit_balance": {
+    "text": "Du hast ein Guthaben in {currency}, das nicht in die neue Währung übertragen werden kann.",
+    "sha256": "aa15be91"
   },
-  "web.billing.plans.credit_future_note": {
-    "text": "Wird auf zukünftige Rechnungen angerechnet",
-    "sha256": "5007add6"
+  "web.billing.currency_migration.warning_pending_items": {
+    "text": "Du hast ausstehende Rechnungsposten, die vor der Migration geklärt werden müssen.",
+    "sha256": "7b4c5e10"
   },
-  "web.billing.subscription.team_usage": {
-    "text": "Team-Nutzung",
-    "sha256": "f9989642"
+  "web.billing.currency_migration.warning_coupons": {
+    "text": "Aktive Gutscheine auf deinem Konto sind möglicherweise nicht mit der neuen Währung kompatibel.",
+    "sha256": "f572ee81"
   },
-  "web.billing.subscription.teams_used": {
-    "text": "{used} von {limit} Teams",
-    "sha256": "1db6b53c"
+  "web.billing.currency_migration.pending_title": {
+    "text": "Währungsmigration ausstehend",
+    "context": "Banner heading when graceful migration is scheduled",
+    "sha256": "018ae653"
+  },
+  "web.billing.currency_migration.pending_description": {
+    "text": "Dein aktueller Tarif endet am {date}. Schließe deinen Wechsel zu {plan} ({currency}) ab.",
+    "sha256": "998ba4ab"
+  },
+  "web.billing.currency_migration.complete_migration": {
+    "text": "Migration abschließen",
+    "context": "Button to start checkout for the new currency plan",
+    "sha256": "fa794e0c"
+  },
+  "web.billing.checkout_session_failed": {
+    "text": "Checkout-Sitzung konnte nicht erstellt werden",
+    "context": "Error when Stripe checkout session creation returns no URL",
+    "sha256": "a53f6fa3"
+  },
+  "web.billing.checkout_initiate_failed": {
+    "text": "Checkout konnte nicht gestartet werden",
+    "context": "Fallback error for checkout failures",
+    "sha256": "3ff06e41"
+  },
+  "web.billing.plan_switch_success": {
+    "text": "Erfolgreich zu {plan} gewechselt",
+    "context": "Success message after plan change",
+    "sha256": "ab7c715c"
+  },
+  "web.billing.plan_unavailable_region_mismatch": {
+    "text": "Nur in deiner ursprünglichen Abonnementregion verfügbar",
+    "context": "Hint shown on plan cards when currency does not match active subscription",
+    "sha256": "10de32e5"
   }
 }

@@ -31,17 +31,13 @@
     "text": "A súgó tartalma ide kerül.",
     "sha256": "796979ea"
   },
-  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Köszönjük, hogy segít az Onetime Secret fejlesztésében. Sokat jelent."
+  "web.feedback.founder_note_line1": {
+    "text": "Minden itt beérkező visszajelzést elolvasok. Így döntöm el, mire érdemes időt szánni.",
+    "sha256": "8b430d93"
   },
-  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
-    "text": "Ezt az eszközt azért hoztuk létre, hogy segítsünk biztonságosan megosztani érzékeny információkat, és valós tapasztalatai kulcsfontosságúak erőfeszítéseink fókuszálásához. Segít megértenünk, min dolgozzunk tovább, és hogyan tegyük jobbá a szolgáltatást mindenki számára."
-  },
-  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
-    "text": "Szia, köszönjük, hogy felkereste visszajelzési oldalunkat. Észrevételei nem csak szívesen látottak - létfontosságúak."
-  },
-  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Üzenet Delanótól, az Onetime Secret alapítójától"
+  "web.feedback.founder_note_line2": {
+    "text": "Ha valami nem stimmel, vagy vannak ötletei, hogyan kellene működnie, ez a megfelelő hely.",
+    "sha256": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
     "text": "Visszajelzési űrlap megnyitása",
@@ -55,12 +51,12 @@
     "text": "Visszajelzés küldése",
     "sha256": "8235980b"
   },
-  "web.feedback.founder_note_line1": {
-    "text": "Minden itt beérkező visszajelzést elolvasok. Így döntöm el, mire érdemes időt szánni.",
-    "sha256": "8b430d93"
+  "web.feedback.sending_ellipses": {
+    "text": "Küldés...",
+    "sha256": "286a3af7"
   },
-  "web.feedback.founder_note_line2": {
-    "text": "Ha valami nem stimmel, vagy vannak ötletei, hogyan kellene működnie, ez a megfelelő hely.",
-    "sha256": "d4b8f073"
+  "web.feedback.reason_email_change_unauthorized": {
+    "text": "Úgy tűnik, hogy jogosulatlan e-mail módosítást jelent a fiókján. Kérjük, írja le, mi történt, és azonnal kivizsgáljuk.",
+    "sha256": "00e56551"
   }
 }

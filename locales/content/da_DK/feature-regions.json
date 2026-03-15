@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "Nuværende jurisdiktion:",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "Skift af region",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "Vores politik er aldrig at overføre data mellem regioner. Hver region fungerer som et fuldstændigt uafhængigt miljø.",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "For at bruge en anden region, opret en ny konto der med den samme e-mailadresse, der er tilknyttet din fakturerings-e-mail.",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "Hvis din fakturerings-e-mail er forskellig fra din Onetime Secret konto-e-mail, brug fakturerings-e-mailen til den nye regionskonto for at bevare dine abonnementsfordele.",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "Dine abonnementsfordele gælder automatisk for enhver konto oprettet med din fakturerings-e-mailadresse.",
+    "sha256": "5b2238b2"
   }
 }

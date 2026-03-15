@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "Juridiction actuelle :",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "Changement de région",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "Notre politique est de ne jamais transférer de données entre les régions. Chaque région fonctionne comme un environnement totalement indépendant.",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "Pour utiliser une autre région, créez un nouveau compte en utilisant la même adresse e-mail associée à votre e-mail de contact de facturation.",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "Si votre e-mail de contact de facturation diffère de votre e-mail de compte Onetime Secret, utilisez l'e-mail de contact de facturation pour le nouveau compte régional afin de conserver vos avantages d'abonnement.",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "Vos avantages d'abonnement s'appliqueront automatiquement à tout compte créé avec votre adresse e-mail de facturation.",
+    "sha256": "5b2238b2"
   }
 }
