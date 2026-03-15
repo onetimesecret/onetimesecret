@@ -97,6 +97,7 @@ RUN set -eux && \
 #
 FROM dependencies AS build
 ARG APP_DIR
+ARG VERSION
 ARG COMMIT_HASH
 
 WORKDIR ${APP_DIR}
@@ -108,24 +109,22 @@ COPY locales ./locales
 COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts \
      tailwind.config.ts eslint.config.ts ./
 
-# Build application and generate schema
-RUN set -eux && \
-    pnpm run build && \
-    chmod -R a+rX public/ && \
-    pnpm prune --prod && \
-    rm -rf node_modules ~/.npm ~/.pnpm-store && \
-    npm uninstall -g pnpm
-
-# Generate build metadata and validate version.
-# COMMIT_HASH is passed as a build arg from CI (GitHub Actions).
-# package.json version must be set by update-version.sh BEFORE the build.
-# Builds fail if package.json still has the 0.0.0-rc0 archetype placeholder
-# unless explicitly allowed. Intentional builds like 0.0.0-nightly.* pass through.
+# Belt-and-suspenders version patch: if the host-side update-version.sh ran
+# but the Docker build context didn't pick up the modified package.json
+# (remote BuildKit builder, context snapshot timing, layer caching, etc.),
+# the VERSION build arg serves as a fallback to patch the version in-container
+# BEFORE the Vite build runs, so compiled assets also carry the correct version.
 ARG ALLOW_DEV_VERSION=false
 RUN set -eux && \
-    mkdir -p /tmp/build-meta && \
-    echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt && \
     PKG_VERSION=$(node -p "require('./package.json').version") && \
+    if [ "${PKG_VERSION}" = "0.0.0-rc0" ] && [ -n "${VERSION}" ] && \
+       [ "${VERSION}" != "dev" ] && [ "${VERSION}" != "0.0.0-rc0" ]; then \
+      node -e "var fs=require('fs'),p=JSON.parse(fs.readFileSync('package.json','utf8')); \
+        p.version=process.argv[1]; \
+        fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')" "${VERSION}" && \
+      echo "NOTICE: package.json had placeholder; updated to ${VERSION} via build arg" >&2 && \
+      PKG_VERSION="${VERSION}" ; \
+    fi && \
     if [ "${PKG_VERSION}" = "0.0.0-rc0" ]; then \
       if [ "${ALLOW_DEV_VERSION}" = "true" ]; then \
         echo "WARNING: Building with archetype version (${PKG_VERSION})" >&2 ; \
@@ -135,6 +134,20 @@ RUN set -eux && \
         exit 1 ; \
       fi ; \
     fi
+
+# Build application and generate schema
+RUN set -eux && \
+    pnpm run build && \
+    chmod -R a+rX public/ && \
+    pnpm prune --prod && \
+    rm -rf node_modules ~/.npm ~/.pnpm-store && \
+    npm uninstall -g pnpm
+
+# Generate build metadata.
+# COMMIT_HASH is passed as a build arg from CI (GitHub Actions).
+RUN set -eux && \
+    mkdir -p /tmp/build-meta && \
+    echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt
 
 ##
 # FINAL-S6: Production image with S6 overlay for multi-process supervision
