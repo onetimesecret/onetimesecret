@@ -15,7 +15,7 @@
 require_relative '../test_logic'
 
 # Use the default config file for tests
-OT.boot! :test, false
+OT.boot! :test
 
 @email = "tryouts+#{Time.now.to_i}@onetimesecret.com"
 @cust = Customer.create @email
