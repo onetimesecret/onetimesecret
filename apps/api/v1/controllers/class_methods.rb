@@ -41,6 +41,19 @@ module V1
 
       V1_FALSY_STRINGS = %w[0 false no off].freeze
 
+      # Additive field mapping for V1 compatibility (#2617).
+      # Maps v0.24 field names (keys) to their v0.23 counterparts (values).
+      # Both names are emitted so clients can migrate incrementally.
+      V1_ADDITIVE_FIELD_MAP = {
+        'identifier'        => 'metadata_key',
+        'secret_identifier' => 'secret_key',
+        'has_passphrase'    => 'passphrase_required',
+        'recipients'        => 'recipient',
+        'receipt_ttl'       => 'metadata_ttl',
+        'receipt_url'       => 'metadata_url',
+        'secret_value'      => 'value',
+      }.freeze
+
       # Translate a single state value from v0.24 to v0.23.4 vocabulary.
       # Unknown states pass through unchanged.
       #
@@ -246,13 +259,9 @@ module V1
 
         # V1 additive compatibility: emit both v0.23 and v0.24 field names (#2617)
         # Placed AFTER coerce_v1_types so new-name fields inherit coerced values.
-        ret['identifier'] = ret['metadata_key']
-        ret['secret_identifier'] = ret['secret_key'] if ret.key?('secret_key')
-        ret['has_passphrase'] = ret['passphrase_required'] if ret.key?('passphrase_required')
-        ret['recipients'] = ret['recipient']
-        ret['receipt_ttl'] = ret['metadata_ttl']
-        ret['receipt_url'] = ret['metadata_url']
-        ret['secret_value'] = ret['value'] if ret.key?('value')
+        V1_ADDITIVE_FIELD_MAP.each do |new_key, old_key|
+          ret[new_key] = ret[old_key] if ret.key?(old_key)
+        end
 
         ret
       end
