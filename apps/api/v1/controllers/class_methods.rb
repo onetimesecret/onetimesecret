@@ -29,6 +29,18 @@ module V1
         'revealed'  => 'received',
       }.freeze
 
+      # Field lists for coerce_v1_types — frozen to avoid per-call
+      # array allocation.
+      V1_INTEGER_FIELDS = %w[
+        created updated received ttl metadata_ttl secret_ttl
+      ].freeze
+
+      V1_STRING_FIELDS = %w[
+        custid metadata_key secret_key state share_domain value
+      ].freeze
+
+      V1_FALSY_STRINGS = %w[0 false no off].freeze
+
       # Translate a single state value from v0.24 to v0.23.4 vocabulary.
       # Unknown states pass through unchanged.
       #
@@ -36,6 +48,71 @@ module V1
       # @return [String] The v0.23.4 equivalent
       def translate_v1_state(state)
         V1_STATE_MAP.fetch(state, state)
+      end
+
+      # Enforce V1 wire types on a response hash. [#2618]
+      #
+      # Ensures every field in a V1 response has the exact type that
+      # v0.23.x clients expect, regardless of what upstream code
+      # supplies. This is the single enforcement point — call it on
+      # the finished hash right before returning from receipt_hsh.
+      #
+      # Type contracts:
+      #   created, updated, received  -> Integer (Unix epoch)
+      #   ttl, metadata_ttl, secret_ttl -> Integer (seconds)
+      #   passphrase_required          -> true | false (boolean)
+      #   recipient                    -> Array of Strings
+      #   custid, metadata_key, secret_key, state, share_domain, value -> String
+      #
+      # @param hsh [Hash] The V1 response hash (mutated in place)
+      # @return [Hash] The same hash, with types enforced
+      #
+      def coerce_v1_types(hsh)
+        # Integer fields: timestamps and TTLs
+        V1_INTEGER_FIELDS.each do |key|
+          next unless hsh.key?(key)
+          next if hsh[key].nil?
+          hsh[key] = hsh[key].to_i
+        end
+
+        # Boolean field: passphrase_required must be true/false.
+        # Normalize all input types consistently: nil stays nil,
+        # strings are case-insensitively matched against known
+        # falsy tokens, and numerics treat 0 as false.
+        if hsh.key?('passphrase_required')
+          val = hsh['passphrase_required']
+          hsh['passphrase_required'] = case val
+                                       when true, false
+                                         val
+                                       when nil
+                                         false
+                                       when String
+                                         !val.strip.empty? &&
+                                           !V1_FALSY_STRINGS.include?(val.strip.downcase)
+                                       when Numeric
+                                         !val.zero?
+                                       else
+                                         !!val
+                                       end
+        end
+
+        # Array field: recipient must always be an Array of Strings
+        if hsh.key?('recipient')
+          hsh['recipient'] = [hsh['recipient']]
+            .flatten
+            .compact
+            .map(&:to_s)
+            .reject(&:empty?)
+        end
+
+        # String fields: coerce non-nil values to strings
+        V1_STRING_FIELDS.each do |key|
+          next unless hsh.key?(key)
+          next if hsh[key].nil?
+          hsh[key] = hsh[key].to_s
+        end
+
+        hsh
       end
 
       # V1 Response Shaping — receipt_hsh [#2615, #2619]
@@ -53,6 +130,7 @@ module V1
       #   recipients         -> recipient (singular, array)
       #   receipt_ttl        -> metadata_ttl (actual seconds remaining)
       #   secret_value       -> value
+      #   receipt_url        -> metadata_url (computed from share_domain + key)
       #   share_domain nil   -> '' (empty string, never null)
       #
       # Timestamp fallback:
@@ -61,7 +139,7 @@ module V1
       #
       # @param md [Receipt] The receipt object to process
       # @param opts [Hash] Options — :custid (email), :secret_ttl, :value,
-      #   :passphrase_required
+      #   :passphrase_required, :metadata_url (override computed URL)
       # @return [Hash] V1-shaped response hash with string keys
       #
       def receipt_hsh md, opts={}
@@ -87,10 +165,11 @@ module V1
         # so that the creator has time to keep retreiving them metadata after the
         # secret itself has expired. Otherwise there'd be no record of whether the
         # secret was seen or not.
-        receipt_ttl = md.secret_ttl&.to_i
+        # Raw values — type coercion happens in coerce_v1_types at the end.
+        receipt_ttl = md.secret_ttl
 
         # Show the secret's actual real ttl as of now if we have it.
-        secret_realttl = opts[:secret_ttl]&.to_i
+        secret_realttl = opts[:secret_ttl]
 
         # md.current_expiration is a db command method. This makes a call to the db server
         # to get the current value of the ttl for the metadata object. This is the
@@ -98,7 +177,7 @@ module V1
         #
         # For the v1 API, this real value is what gets returned as "receipt_ttl". If
         # you don't find that confusing, take another look through the code.
-        receipt_realttl = md.current_expiration&.to_i
+        receipt_realttl = md.current_expiration
 
         recipient = [hsh.fetch('recipients', nil)]
           .flatten
@@ -120,19 +199,34 @@ module V1
 
         raw_state = hsh.key?('state') ? hsh['state'] : 'new'
 
+        # V1 compat: compute metadata_url (v0.23 name for receipt_url).
+        # Callers may pass :metadata_url when the logic layer already computed
+        # it; otherwise we derive it from config + share_domain + identifier.
+        v1_metadata_url = opts[:metadata_url]
+        if v1_metadata_url.nil? || v1_metadata_url.to_s.empty?
+          domain = hsh.fetch('share_domain', nil).to_s
+          domain = Onetime.conf.dig('site', 'host').to_s if domain.empty?
+          unless domain.empty?
+            scheme = Onetime.conf.dig('site', 'ssl') ? 'https://' : 'http://'
+            v1_metadata_url = "#{scheme}#{domain}/receipt/#{md.identifier}"
+          end
+        end
+
         ret = {
           'custid' => v1_custid,
           'metadata_key' => md.identifier,
-          'secret_key' => (secret_id_val && !secret_id_val.empty? ? secret_id_val : hsh.fetch('secret_key', '')).to_s,
+          'secret_key' => (secret_id_val && !secret_id_val.empty? ? secret_id_val : hsh.fetch('secret_key', '').to_s),
           'ttl' => receipt_ttl, # static value from database hash field
           'metadata_ttl' => receipt_realttl, # actual number of seconds left to live
           'secret_ttl' => secret_realttl, # ditto, actual number
+          'metadata_url' => v1_metadata_url,
           'state' => translate_v1_state(raw_state),
-          'updated' => hsh.fetch('updated', nil)&.to_i,
-          'created' => hsh.fetch('created', nil)&.to_i,
+          'updated' => hsh.fetch('updated', nil),
+          'created' => hsh.fetch('created', nil),
           # V1 compat: fall back to `revealed` timestamp if `received` is empty.
           # In v0.24, revealed! sets `revealed` (not the deprecated `received` field).
-          'received' => (hsh.fetch('received', nil).to_s.empty? ? hsh.fetch('revealed', nil) : hsh.fetch('received', nil)).to_i,
+          # When both are nil, default to 0 — the V1 schema requires an integer when present.
+          'received' => (hsh.fetch('received', nil).to_s.empty? ? (hsh.fetch('revealed', nil) || 0) : hsh.fetch('received', nil)),
           'recipient' => recipient.compact,
           'share_domain' => hsh.fetch('share_domain', nil) || '',
         }
@@ -147,7 +241,7 @@ module V1
         if !opts[:passphrase_required].nil?
           ret['passphrase_required'] = opts[:passphrase_required]
         end
-        ret
+        coerce_v1_types(ret)
       end
 
     end

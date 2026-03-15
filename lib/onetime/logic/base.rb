@@ -159,6 +159,12 @@ module Onetime
         )
       end
 
+      # Safely extract session ID when the session object might be a Hash
+      # (e.g. from BasicAuth) rather than a proper session with an #id method.
+      def safe_session_id
+        sess.id if sess.respond_to?(:id)
+      end
+
       def custom_domain?
         domain_strategy.to_s == 'custom'
       end

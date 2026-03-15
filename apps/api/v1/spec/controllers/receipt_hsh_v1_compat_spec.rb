@@ -7,7 +7,7 @@
 # Tests the receipt_hsh class method on V1::Controllers::Index for:
 #   Bug #3: Anonymous custid returns null instead of "anon"
 #   Bug #4: Burned secret_key returns null instead of ""
-#   Field rename mapping (6 old field names)
+#   Field rename mapping (7 old field names)
 #   State mapping (previewed->viewed, revealed->received, shared->new)
 
 require_relative '../../application'
@@ -72,10 +72,71 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
       expect(result_with_val['value']).to eq('the secret')
     end
 
-    it 'includes all six V1 field names for a new receipt' do
+    it 'computes metadata_url from share_domain and identifier' do
+      expect(result['metadata_url']).to be_a(String)
+      expect(result['metadata_url']).to include('example.com')
+      expect(result['metadata_url']).to include('/receipt/metadata_key_123')
+    end
+
+    it 'uses opts[:metadata_url] override when provided' do
+      override_url = 'https://custom.example.com/receipt/metadata_key_123'
+      result_with_url = V1::Controllers::Index.receipt_hsh(md, metadata_url: override_url)
+      expect(result_with_url['metadata_url']).to eq(override_url)
+    end
+
+    it 'falls back to site host when share_domain is empty' do
+      empty_domain_hash = base_hash.merge('share_domain' => '')
+      md_no_domain = double('Onetime::Receipt',
+        to_h: empty_domain_hash,
+        identifier: 'metadata_key_123',
+        secret_ttl: 3600,
+        current_expiration: 7000)
+      result_no_domain = V1::Controllers::Index.receipt_hsh(md_no_domain)
+      expect(result_no_domain['metadata_url']).to be_a(String)
+      expect(result_no_domain['metadata_url']).to include('/receipt/metadata_key_123')
+      expect(result_no_domain['metadata_url']).not_to be_empty
+    end
+
+    it 'returns nil metadata_url when share_domain is nil and site host key is absent' do
+      no_domain_hash = base_hash.merge('share_domain' => nil)
+      md_no_domain = double('Onetime::Receipt',
+        to_h: no_domain_hash,
+        identifier: 'metadata_key_123',
+        secret_ttl: 3600,
+        current_expiration: 7000)
+      allow(Onetime).to receive(:conf).and_return({ 'site' => {} })
+      result_no_domain = V1::Controllers::Index.receipt_hsh(md_no_domain)
+      expect(result_no_domain['metadata_url']).to be_nil
+    end
+
+    it 'returns nil metadata_url when share_domain is empty and site host is empty string' do
+      empty_domain_hash = base_hash.merge('share_domain' => '')
+      md_empty = double('Onetime::Receipt',
+        to_h: empty_domain_hash,
+        identifier: 'metadata_key_123',
+        secret_ttl: 3600,
+        current_expiration: 7000)
+      allow(Onetime).to receive(:conf).and_return({ 'site' => { 'host' => '' } })
+      result_empty = V1::Controllers::Index.receipt_hsh(md_empty)
+      expect(result_empty['metadata_url']).to be_nil
+    end
+
+    it 'returns nil metadata_url when share_domain is nil and site host is nil' do
+      nil_domain_hash = base_hash.merge('share_domain' => nil)
+      md_nil = double('Onetime::Receipt',
+        to_h: nil_domain_hash,
+        identifier: 'metadata_key_123',
+        secret_ttl: 3600,
+        current_expiration: 7000)
+      allow(Onetime).to receive(:conf).and_return({ 'site' => { 'host' => nil } })
+      result_nil = V1::Controllers::Index.receipt_hsh(md_nil)
+      expect(result_nil['metadata_url']).to be_nil
+    end
+
+    it 'includes all seven V1 field names for a new receipt' do
       result_full = V1::Controllers::Index.receipt_hsh(md,
         value: 'test', passphrase_required: false, secret_ttl: 3600)
-      %w[metadata_key secret_key metadata_ttl recipient value passphrase_required].each do |field|
+      %w[metadata_key secret_key metadata_ttl metadata_url recipient value passphrase_required].each do |field|
         expect(result_full).to have_key(field), "expected V1 field '#{field}' to be present"
       end
     end
@@ -227,6 +288,48 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
   end
 
   # ----------------------------------------------------------------
+  # Sequential Lifecycle: v0.24 states never leak (#2619)
+  # ----------------------------------------------------------------
+  describe 'sequential state-machine lifecycle (#2619)' do
+    let(:v024_only_states) { %w[previewed revealed shared] }
+
+    def translate_states(*states)
+      states.map do |s|
+        hash = base_hash.merge('state' => s)
+        md_step = double('Onetime::Receipt',
+          to_h: hash,
+          identifier: 'meta_key_lifecycle',
+          secret_ttl: 3600,
+          current_expiration: 7000)
+        V1::Controllers::Index.receipt_hsh(md_step)['state']
+      end
+    end
+
+    {
+      'new → previewed → revealed' =>
+        { input: %w[new previewed revealed],
+          expected: %w[new viewed received] },
+      'new → previewed → burned' =>
+        { input: %w[new previewed burned],
+          expected: %w[new viewed burned] },
+      'shared (direct) → previewed → revealed' =>
+        { input: %w[shared previewed revealed],
+          expected: %w[new viewed received] }
+    }.each do |label, scenario|
+      context label do
+        it 'translates every state to v0.23.4 vocabulary' do
+          steps = translate_states(*scenario[:input])
+
+          expect(steps).to eq(scenario[:expected])
+          expect(steps).to all(satisfy('not be a v0.24-only state') { |s|
+            !v024_only_states.include?(s)
+          })
+        end
+      end
+    end
+  end
+
+  # ----------------------------------------------------------------
   # Received timestamp fallback
   # ----------------------------------------------------------------
   describe 'received timestamp fallback from revealed' do
@@ -255,6 +358,132 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
 
       it 'uses received timestamp (not revealed) when both present' do
         expect(result['received']).to eq(1700000200)
+      end
+    end
+  end
+
+  # ----------------------------------------------------------------
+  # Type contract enforcement (coerce_v1_types) [#2618]
+  # ----------------------------------------------------------------
+  describe 'V1 type contract enforcement' do
+    let(:opts) do
+      { custid: 'user@example.com', secret_ttl: 3600,
+        passphrase_required: false, value: 'shhh' }
+    end
+
+    it 'returns created as Integer' do
+      expect(result['created']).to be_a(Integer)
+    end
+
+    it 'returns updated as Integer' do
+      expect(result['updated']).to be_a(Integer)
+    end
+
+    it 'returns ttl as Integer' do
+      expect(result['ttl']).to be_a(Integer)
+    end
+
+    it 'returns metadata_ttl as Integer' do
+      expect(result['metadata_ttl']).to be_a(Integer)
+    end
+
+    it 'returns secret_ttl as Integer' do
+      expect(result['secret_ttl']).to be_a(Integer)
+    end
+
+    it 'returns recipient as Array' do
+      expect(result['recipient']).to be_a(Array)
+    end
+
+    it 'returns recipient elements as Strings' do
+      result['recipient'].each do |r|
+        expect(r).to be_a(String)
+      end
+    end
+
+    it 'returns custid as String' do
+      expect(result['custid']).to be_a(String)
+    end
+
+    it 'returns metadata_key as String' do
+      expect(result['metadata_key']).to be_a(String)
+    end
+
+    it 'returns secret_key as String' do
+      expect(result['secret_key']).to be_a(String)
+    end
+
+    it 'returns state as String' do
+      expect(result['state']).to be_a(String)
+    end
+
+    it 'returns share_domain as String' do
+      expect(result['share_domain']).to be_a(String)
+    end
+
+    context 'passphrase_required boolean enforcement' do
+      it 'returns boolean false when passed false' do
+        r = V1::Controllers::Index.receipt_hsh(md, passphrase_required: false)
+        expect(r['passphrase_required']).to eq(false)
+      end
+
+      it 'returns boolean true when passed true' do
+        r = V1::Controllers::Index.receipt_hsh(md, passphrase_required: true)
+        expect(r['passphrase_required']).to eq(true)
+      end
+
+      it 'coerces string "true" to boolean true' do
+        r = V1::Controllers::Index.receipt_hsh(md, passphrase_required: 'true')
+        expect(r['passphrase_required']).to eq(true)
+      end
+
+      it 'coerces string "false" to boolean false' do
+        r = V1::Controllers::Index.receipt_hsh(md, passphrase_required: 'false')
+        expect(r['passphrase_required']).to eq(false)
+      end
+
+      it 'coerces string "1" to boolean true' do
+        r = V1::Controllers::Index.receipt_hsh(md, passphrase_required: '1')
+        expect(r['passphrase_required']).to eq(true)
+      end
+
+      it 'coerces string "0" to boolean false' do
+        r = V1::Controllers::Index.receipt_hsh(md, passphrase_required: '0')
+        expect(r['passphrase_required']).to eq(false)
+      end
+
+      it 'coerces empty string to boolean false' do
+        r = V1::Controllers::Index.receipt_hsh(md, passphrase_required: '')
+        expect(r['passphrase_required']).to eq(false)
+      end
+    end
+
+    context 'when timestamps are string values from Redis' do
+      let(:base_hash) do
+        super().merge(
+          'created' => '1699999000',
+          'updated' => '1700000000',
+        )
+      end
+
+      it 'coerces string timestamps to Integer' do
+        expect(result['created']).to eq(1699999000)
+        expect(result['updated']).to eq(1700000000)
+      end
+    end
+
+    context 'when ttl values are string values from Redis' do
+      let(:md) do
+        double('Onetime::Receipt',
+          to_h: base_hash,
+          identifier: 'metadata_key_123',
+          secret_ttl: '3600',
+          current_expiration: '7000')
+      end
+
+      it 'coerces string TTLs to Integer' do
+        expect(result['ttl']).to eq(3600)
+        expect(result['metadata_ttl']).to eq(7000)
       end
     end
   end

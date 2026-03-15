@@ -180,6 +180,7 @@ RSpec.configure do |config|
   config.include BillingSpecHelper, type: :integration
   config.include BillingSpecHelper, type: :cli
   # Symbol tag matching (for RSpec.describe 'Name', :integration do)
+  config.include BillingSpecHelper, billing: true
   config.include BillingSpecHelper, integration: true
   config.include BillingSpecHelper, billing_cli: true
 
@@ -187,6 +188,7 @@ RSpec.configure do |config|
   config.include StripeMockFactory, type: :billing
   config.include StripeMockFactory, type: :controller
   config.include StripeMockFactory, type: :integration
+  config.include StripeMockFactory, billing: true
   config.include StripeMockFactory, integration: true
 
   # Build VCR cassette name from example metadata

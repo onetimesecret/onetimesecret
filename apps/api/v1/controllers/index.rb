@@ -64,6 +64,8 @@ module V1
 
       def share
         authorized(true) do
+          return if check_rate_limit!(:create_secret, V1_RATE_LIMIT_MAX_CREATES) == :limited
+
           logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
@@ -81,6 +83,8 @@ module V1
 
       def generate
         authorized(true) do
+          return if check_rate_limit!(:create_secret, V1_RATE_LIMIT_MAX_CREATES) == :limited
+
           logic = V1::Logic::Secrets::GenerateSecret.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
@@ -100,6 +104,8 @@ module V1
 
       def show_receipt
         authorized(true) do
+          return otto_not_found unless valid_identifier?(req.params['key'])
+
           logic = V1::Logic::Secrets::ShowReceipt.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
@@ -110,12 +116,14 @@ module V1
                                 :custid => cust.email,
                                 :value => logic.secret_value,
                                 :secret_ttl => logic.secret_realttl,
-                                :passphrase_required => logic.has_passphrase)
+                                :passphrase_required => logic.has_passphrase,
+                                :metadata_url => logic.metadata_url)
           else
             json self.class.receipt_hsh(logic.receipt,
                                 :custid => cust.email,
                                 :secret_ttl => logic.secret_realttl,
-                                :passphrase_required => logic.has_passphrase)
+                                :passphrase_required => logic.has_passphrase,
+                                :metadata_url => logic.metadata_url)
           end
           logic.receipt.previewed!
         end
@@ -138,6 +146,9 @@ module V1
 
       def show_secret
         authorized(true) do
+          return otto_not_found unless valid_identifier?(req.params['key'])
+          return if check_rate_limit!(:show_secret, V1_RATE_LIMIT_MAX_READS) == :limited
+
           req.params['continue'] = 'true'
           logic = V1::Logic::Secrets::ShowSecret.new sess, cust, req.params, locale
           logic.raise_concerns
@@ -155,6 +166,8 @@ module V1
       # curl -X POST -u 'EMAIL:APITOKEN' http://LOCALHOSTNAME:3000/api/v1/receipt/:key/burn
       def burn_secret
         authorized(true) do
+          return otto_not_found unless valid_identifier?(req.params['key'])
+
           req.params['continue'] = 'true'
           logic = V1::Logic::Secrets::BurnSecret.new sess, cust, req.params, locale
           logic.raise_concerns
@@ -170,6 +183,8 @@ module V1
 
       def create
         authorized(true) do
+          return if check_rate_limit!(:create_secret, V1_RATE_LIMIT_MAX_CREATES) == :limited
+
           logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process

@@ -86,11 +86,10 @@ link_resource() {
         return
     fi
 
-    # Exists but not a symlink - back it up
+    # Exists but not a symlink - don't clobber it
     if [[ -e "$local_path" && ! -L "$local_path" ]]; then
-        local backup="${local_path}.bak.$(date +%Y%m%d-%H%M%S)"
-        echo "Backup: $local_path -> $backup"
-        mv "$local_path" "$backup"
+        echo "Skip: $local_path already exists (not a symlink)"
+        return
     fi
 
     # Remove stale symlink

@@ -318,31 +318,11 @@ module V1
     # Note: app_path is not defined here. Otto provides it on both req and res,
     # prepending script_name to support sub-path mounting. Use req.app_path(...).
 
-    # Checks if authentication is enabled for the site.
-    #
-    # This method determines whether authentication is enabled by checking the
-    # site configuration. It defaults to disabled if the site configuration is
-    # missing. This approach prevents unauthorized access by ensuring that
-    # accounts are not used if authentication is not explicitly enabled.
-    #
-    # @return [Boolean] True if authentication and sign-in are enabled, false otherwise.
-    #
-    def authentication_enabled?
-      # Defaulting to disabled is the Right Thing to Do™. If the site config
-      # is missing, we assume that authentication is disabled and that accounts
-      # are not used. This prevents situations where the app is running and
-      # anyone accessing it can create an account without proper authentication.
-      authentication_enabled = OT.conf['site']['authentication']['enabled'] rescue false # rubocop:disable Style/RescueModifier
-      signin_enabled         = OT.conf['site']['authentication']['signin'] rescue false # rubocop:disable Style/RescueModifier
-
-      # The only condition that allows a request to be authenticated is if
-      # the site has authentication enabled, and the user is signed in. If a
-      # user is signed in and the site configuration changes to disable it,
-      # the user will be signed out temporarily. If the setting is restored
-      # before the session key expires in Redis, that user will be signed in
-      # again. This is a security feature.
-      authentication_enabled && signin_enabled
-    end
+    # session_auth_enforced? is inherited from SessionHelpers (included
+    # at the top of this module). It uses safe `dig` access and defaults
+    # to disabled when config is absent — account features are rendered
+    # unavailable unless authentication is explicitly configured.
+    # See lib/onetime/helpers/session_helpers.rb.
 
     def log_customer_activity
       return if cust.anonymous?

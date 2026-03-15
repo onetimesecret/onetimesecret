@@ -683,6 +683,7 @@ jobs:
           load: true
           set: |
             main.tags=onetime-test
+            main.args.ALLOW_DEV_VERSION=true
 
       - name: Generate random secrets for container
         uses: ./.github/actions/generate-test-secrets

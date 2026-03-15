@@ -16,6 +16,7 @@ class OnetimeSessionAdapter < SimpleDelegator
   end
 end
 
+# rubocop:disable Style/OneClassPerFile
 module Onetime
   module Initializers
     # ConfigureRhales initializer

@@ -6,13 +6,13 @@
 # V2 API returns string values for all fields.
 
 # Receipts (creator-facing secret metadata)
-GET    /receipt/recent                            V2::Logic::Secrets::ListReceipts response=json auth=basicauth,noauth
+GET    /receipt/recent                            V2::Logic::Secrets::ListReceipts response=json auth=basicauth
 POST   /receipt/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=basicauth,noauth
 GET    /receipt/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=basicauth,noauth
 PATCH  /receipt/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=basicauth,noauth
 
 # Legacy aliases — use /receipt/ paths instead
-GET    /private/recent                            V2::Logic::Secrets::ListReceipts response=json auth=basicauth,noauth deprecated=true
+GET    /private/recent                            V2::Logic::Secrets::ListReceipts response=json auth=basicauth deprecated=true
 POST   /private/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=basicauth,noauth deprecated=true
 GET    /private/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=basicauth,noauth deprecated=true
 PATCH  /private/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=basicauth,noauth deprecated=true

@@ -107,8 +107,8 @@ module Onetime
       # @param errors [Array<Hash>] Array of structured error hashes
       # @param width [Integer] Line width (default: 80)
       def print_errors_section(errors, width = 80)
-        structured_errors = errors.select { |e| e.is_a?(Hash) }
-        string_errors     = errors.select { |e| e.is_a?(String) }
+        structured_errors = errors.grep(Hash)
+        string_errors     = errors.grep(String)
 
         return if structured_errors.empty? && string_errors.empty?
 
@@ -137,8 +137,8 @@ module Onetime
       # @param warnings [Array<Hash>] Array of structured warning hashes
       # @param width [Integer] Line width (default: 80)
       def print_warnings_section(warnings, width = 80)
-        structured_warnings = warnings.select { |w| w.is_a?(Hash) }
-        string_warnings     = warnings.select { |w| w.is_a?(String) }
+        structured_warnings = warnings.grep(Hash)
+        string_warnings     = warnings.grep(String)
 
         return if structured_warnings.empty? && string_warnings.empty?
 
@@ -209,8 +209,8 @@ module Onetime
       # @param id_field [Symbol] Field name for ID (:id for prices, :product_id for products)
       # @return [Integer] Count of valid items
       def count_valid_items(items, errors, warnings, id_field = :id)
-        error_ids   = errors.select { |e| e.is_a?(Hash) }.map { |e| e[:price_id] || e[:product_id] }.compact.uniq
-        warning_ids = warnings.select { |w| w.is_a?(Hash) }.map { |w| w[:price_id] || w[:product_id] }.compact.uniq
+        error_ids   = errors.grep(Hash).map { |e| e[:price_id] || e[:product_id] }.compact.uniq
+        warning_ids = warnings.grep(Hash).map { |w| w[:price_id] || w[:product_id] }.compact.uniq
 
         items.count do |item|
           item_id = item.is_a?(Hash) ? item[id_field] : item.send(id_field)
