@@ -139,7 +139,7 @@ module V1
         # Atomic INCR + EXPIRE via Lua script to prevent race condition.
         # Without atomicity, a crash between INCR and EXPIRE could leave
         # a permanent key that never expires, causing permanent IP blocking.
-        count = Familia.redis.eval(
+        count = Familia.dbclient.eval(
           V1_RATE_LIMIT_LUA, keys: [key], argv: [V1_RATE_LIMIT_WINDOW]
         )
 
