@@ -146,6 +146,7 @@ Maintain these terms in English for technical precision:
 - JSON
 - YAML
 - hash
+- Keys ending in `_literal` (e.g., `onetime_secret_literal`) contain brand names that must remain in English exactly as-is
 
 ---
 

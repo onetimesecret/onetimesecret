@@ -155,6 +155,14 @@
     "text": "조직 업데이트 실패",
     "sha256": "bc2b59b8"
   },
+  "web.organizations.billing_email_updated": {
+    "text": "결제 이메일이 성공적으로 업데이트되었습니다",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "결제 이메일은 결제 개요 페이지에서 변경할 수 있습니다",
+    "sha256": "8a131415"
+  },
   "web.organizations.billing_coming_soon": {
     "text": "결제 통합 예정",
     "sha256": "d3e0ec75"
@@ -206,6 +214,10 @@
   "web.organizations.tabs.billing": {
     "text": "결제",
     "sha256": "3ac8bbca"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "구독",
+    "sha256": "4999c6c6"
   },
   "web.organizations.danger_zone": {
     "text": "위험 구역",
@@ -515,17 +527,21 @@
     "text": "초대 세부정보 로딩 중",
     "sha256": "58884885"
   },
-  "web.organizations.billing_email_updated": {
-    "text": "결제 이메일이 성공적으로 업데이트되었습니다",
-    "sha256": "080a7f11"
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "팀 멤버를 초대하려면 요금제를 업그레이드하세요",
+    "sha256": "5e3f8df8"
   },
-  "web.organizations.billing_email_managed_on_billing": {
-    "text": "결제 이메일은 결제 개요 페이지에서 변경할 수 있습니다",
-    "sha256": "8a131415"
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "팀 멤버 초대는 팀 관리가 포함된 요금제가 필요합니다. 조직에 협력자를 추가하려면 업그레이드하세요.",
+    "sha256": "cf10d623"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
     "sha256": "957b0b87"
+  },
+  "web.organizations.early_supporter_badge": {
+    "text": "초기 서포터",
+    "sha256": "e67d2ef8"
   },
   "web.organizations.member_count": {
     "text": "{count}명 멤버 | {count}명 멤버",
@@ -535,13 +551,9 @@
     "text": "{count}개 도메인 | {count}개 도메인",
     "sha256": "09f52efa"
   },
-  "web.organizations.invitations.upgrade_to_invite": {
-    "text": "팀 멤버를 초대하려면 요금제를 업그레이드하세요",
-    "sha256": "5e3f8df8"
-  },
-  "web.organizations.invitations.upgrade_prompt": {
-    "text": "팀 멤버 초대는 팀 관리가 포함된 요금제가 필요합니다. 조직에 협력자를 추가하려면 업그레이드하세요.",
-    "sha256": "cf10d623"
+  "web.organizations.tabs.domains": {
+    "text": "도메인",
+    "sha256": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "잘못된 계정",
@@ -566,13 +578,5 @@
   "web.organizations.invitations.expires_soon": {
     "text": "곧 만료",
     "sha256": "a5dcfef9"
-  },
-  "web.organizations.tabs.subscription": {
-    "text": "구독",
-    "sha256": "4999c6c6"
-  },
-  "web.organizations.tabs.domains": {
-    "text": "도메인",
-    "sha256": "ced67718"
   }
 }

@@ -1,4 +1,12 @@
 {
+  "web.billing.subscription_synced_title": {
+    "text": "サブスクリプション同期完了",
+    "sha256": "3086ef43"
+  },
+  "web.billing.subscription_synced_description": {
+    "text": "サブスクリプション特典が別のリージョンから同期されました。",
+    "sha256": "a99b7a98"
+  },
   "web.billing.upgrade.required": {
     "text": "アップグレードが必要",
     "sha256": "16487236"
@@ -35,8 +43,9 @@
     "text": "サブスクリプションと支払いの詳細を表示・管理",
     "sha256": "60e5a00e"
   },
-  "web.billing.overview.organization_selector": {
-    "text": "組織を選択"
+  "web.billing.overview.billing_for_organization": {
+    "text": "この組織の請求",
+    "sha256": "21806992"
   },
   "web.billing.overview.current_plan": {
     "text": "現在のプラン",
@@ -73,6 +82,22 @@
   "web.billing.overview.change_plan": {
     "text": "プランを変更",
     "sha256": "2d0b195b"
+  },
+  "web.billing.overview.manage_subscription": {
+    "text": "サブスクリプションを管理",
+    "sha256": "cbc4ef92"
+  },
+  "web.billing.plans.legacy_plan_info": {
+    "text": "特別価格の旧プランをご利用中です。",
+    "sha256": "e9aa8bf0"
+  },
+  "web.billing.plans.early_supporter_plan": {
+    "text": "Identity Plus（アーリーサポーター）",
+    "sha256": "f37cd0d9"
+  },
+  "web.billing.plans.legacy_plan_warning": {
+    "text": "プランを変更すると旧プランの特別価格が失われます。この操作は取り消せません。",
+    "sha256": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
     "text": "登録された支払い方法がありません",
@@ -122,6 +147,22 @@
     "text": "組織を作成して請求とサブスクリプションを管理",
     "sha256": "41e922d2"
   },
+  "web.billing.overview.load_error": {
+    "text": "請求情報の読み込みに失敗しました",
+    "sha256": "3bc44882"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "プランが正常にアップグレードされました",
+    "sha256": "00ac43f8"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "新しいプランが有効になりました。ご購入ありがとうございます。",
+    "sha256": "fd1caeb1"
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "請求連絡先",
+    "sha256": "8f782ad8"
+  },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "シークレットを作成",
     "sha256": "0320541d"
@@ -155,8 +196,8 @@
     "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "ブランドホームページ",
-    "sha256": "e355a396"
+    "text": "ホームページシークレット",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "受信シークレット",
@@ -198,6 +239,74 @@
     "text": "利用可能な機能がありません",
     "sha256": "03d195e8"
   },
+  "web.billing.features.create_secrets": {
+    "text": "シークレットの作成と共有",
+    "sha256": "303f9386"
+  },
+  "web.billing.features.api_access": {
+    "text": "APIアクセス",
+    "sha256": "5f31cc2f"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "カスタムドメイン",
+    "sha256": "6170ab94"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "カスタムドメイン1件",
+    "sha256": "6a6be744"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "無制限のカスタムドメイン",
+    "sha256": "53eb7521"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "カスタムブランディング",
+    "sha256": "237dabec"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "ホームページシークレット",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "チーム管理",
+    "sha256": "6bcbac8f"
+  },
+  "web.billing.features.manage_members": {
+    "text": "メンバー管理",
+    "sha256": "b38b89db"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "監査ログ",
+    "sha256": "5428d7fe"
+  },
+  "web.billing.features.sso": {
+    "text": "シングルサインオン(SSO)",
+    "sha256": "5db5c812"
+  },
+  "web.billing.features.priority_support": {
+    "text": "優先サポート",
+    "sha256": "ed8a65c8"
+  },
+  "web.billing.features.sla": {
+    "text": "サービスレベル契約",
+    "sha256": "436f2550"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "一元請求",
+    "sha256": "62042d3b"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "監査証跡",
+    "sha256": "d52b4039"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "アクティビティストリーム",
+    "sha256": "b9c6cba7"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "ハンドオフワークフロー",
+    "sha256": "07202af3"
+  },
   "web.billing.plans.title": {
     "text": "プランを選択",
     "sha256": "79506c82"
@@ -225,6 +334,10 @@
   "web.billing.plans.downgrade": {
     "text": "ダウングレード",
     "sha256": "d955b7e8"
+  },
+  "web.billing.plans.cancel_to_downgrade": {
+    "text": "キャンセルして切り替え",
+    "sha256": "1c4cda89"
   },
   "web.billing.plans.monthly": {
     "text": "月間",
@@ -330,6 +443,10 @@
     "text": "現在{interval}プランは利用できません。",
     "sha256": "d8454436"
   },
+  "web.billing.plans.load_error": {
+    "text": "プランの読み込みに失敗しました",
+    "sha256": "a37d4d9a"
+  },
   "web.billing.plans.change_immediate": {
     "text": "プランはすぐに変更されます。",
     "sha256": "889d13be"
@@ -345,6 +462,14 @@
   "web.billing.plans.credit_label": {
     "text": "未使用期間のクレジット:",
     "sha256": "001e4901"
+  },
+  "web.billing.plans.due_today": {
+    "text": "本日のお支払い:",
+    "sha256": "e370e3aa"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "次回請求({date}):",
+    "sha256": "a6846a85"
   },
   "web.billing.plans.next_invoice": {
     "text": "次回請求書",
@@ -374,6 +499,30 @@
     "text": "{plan}にダウングレードしますか?",
     "sha256": "8eb8ea81"
   },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "クレジットの適用方法:",
+    "sha256": "a0943c3b"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "次回請求額:",
+    "sha256": "526ad28f"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "適用されたクレジット:",
+    "sha256": "e5f2e81a"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "次回請求時の支払額:",
+    "sha256": "22ee868a"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "残りのアカウントクレジット:",
+    "sha256": "eedd0c0a"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "今後の請求書に適用",
+    "sha256": "5007add6"
+  },
   "web.billing.invoices.title": {
     "text": "請求履歴",
     "sha256": "5ade0861"
@@ -398,9 +547,21 @@
     "text": "ダウンロード",
     "sha256": "d6eafe82"
   },
+  "web.billing.invoices.invoice_number": {
+    "text": "請求書番号",
+    "sha256": "48a67cac"
+  },
   "web.billing.invoices.no_invoices": {
     "text": "請求書はまだありません",
     "sha256": "92d2d0ce"
+  },
+  "web.billing.invoices.no_invoices_description": {
+    "text": "有料プランにアップグレードすると、ここに請求書が表示されます",
+    "sha256": "7f16be70"
+  },
+  "web.billing.invoices.view_plans": {
+    "text": "プランを表示",
+    "sha256": "a865d424"
   },
   "web.billing.invoices.paid": {
     "text": "支払済み",
@@ -417,6 +578,18 @@
   "web.billing.invoices.draft": {
     "text": "下書き",
     "sha256": "d2e16e61"
+  },
+  "web.billing.invoices.open": {
+    "text": "未払い",
+    "sha256": "ed077f3d"
+  },
+  "web.billing.invoices.uncollectible": {
+    "text": "回収不能",
+    "sha256": "c8d3b241"
+  },
+  "web.billing.invoices.void": {
+    "text": "無効",
+    "sha256": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
     "text": "請求書の読み込みに失敗しました",
@@ -465,6 +638,14 @@
   "web.billing.subscription.catalog_name": {
     "text": "プラン",
     "sha256": "fa8ed0bd"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "チーム使用状況",
+    "sha256": "f9989642"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{limit}チーム中{used}チーム",
+    "sha256": "1db6b53c"
   },
   "web.billing.portal.title": {
     "text": "請求ポータル",
@@ -580,10 +761,12 @@
   },
   "web.billing.cancel.link_text": {
     "text": "サブスクリプションをキャンセル",
+    "context": "Link text shown below the plan selector for paid users",
     "sha256": "3f85967f"
   },
   "web.billing.cancel.title": {
     "text": "サブスクリプションをキャンセル",
+    "context": "Modal dialog heading/title",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
@@ -612,10 +795,12 @@
   },
   "web.billing.cancel.keep_subscription": {
     "text": "サブスクリプションを維持",
+    "context": "Secondary button in modal - keeps subscription active",
     "sha256": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
     "text": "サブスクリプションをキャンセル",
+    "context": "Primary action button in modal - confirms the cancellation",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
@@ -628,91 +813,34 @@
   },
   "web.billing.cancel.scheduled_title": {
     "text": "サブスクリプションのキャンセルが予定されました",
+    "context": "Alert banner heading shown when cancellation is pending",
     "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
     "text": "サブスクリプションは{date}までアクティブのままです。それまですべての機能にフルアクセスできます。",
+    "context": "Alert banner description explaining continued access",
     "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
     "text": "お気持ちが変わりましたか? キャンセル日より前であれば、いつでもサブスクリプションを再開できます。",
+    "context": "Alert banner note encouraging reactivation",
     "sha256": "c94d5527"
   },
-  "web.billing.features.create_secrets": {
-    "text": "シークレットの作成と共有",
-    "sha256": "303f9386"
+  "web.billing.overview.entitlements.notifications": {
+    "text": "メール通知",
+    "sha256": "04e0f1e9"
   },
-  "web.billing.features.api_access": {
-    "text": "APIアクセス",
-    "sha256": "5f31cc2f"
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IPアクセスルール",
+    "sha256": "db966d47"
   },
-  "web.billing.features.custom_domains": {
-    "text": "カスタムドメイン",
-    "sha256": "6170ab94"
-  },
-  "web.billing.features.custom_domain": {
-    "text": "カスタムドメイン1件",
-    "sha256": "6a6be744"
-  },
-  "web.billing.features.unlimited_custom_domains": {
-    "text": "無制限のカスタムドメイン",
-    "sha256": "53eb7521"
-  },
-  "web.billing.features.custom_branding": {
-    "text": "カスタムブランディング",
-    "sha256": "237dabec"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "ブランドホームページ",
-    "sha256": "e355a396"
-  },
-  "web.billing.features.manage_teams": {
-    "text": "チーム管理",
-    "sha256": "6bcbac8f"
-  },
-  "web.billing.features.manage_members": {
-    "text": "メンバー管理",
-    "sha256": "b38b89db"
-  },
-  "web.billing.features.audit_logs": {
-    "text": "監査ログ",
-    "sha256": "5428d7fe"
-  },
-  "web.billing.features.sso": {
-    "text": "シングルサインオン(SSO)",
-    "sha256": "5db5c812"
-  },
-  "web.billing.features.priority_support": {
-    "text": "優先サポート",
-    "sha256": "ed8a65c8"
-  },
-  "web.billing.features.sla": {
-    "text": "サービスレベル契約",
-    "sha256": "436f2550"
-  },
-  "web.billing.features.centralized_billing": {
-    "text": "一元請求",
-    "sha256": "62042d3b"
-  },
-  "web.billing.features.audit_trail": {
-    "text": "監査証跡",
-    "sha256": "d52b4039"
-  },
-  "web.billing.features.activity_stream": {
-    "text": "アクティビティストリーム",
-    "sha256": "b9c6cba7"
-  },
-  "web.billing.features.handoff_workflows": {
-    "text": "ハンドオフワークフロー",
-    "sha256": "07202af3"
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "ワークスペースブランディング",
+    "sha256": "e7acbf6f"
   },
   "web.billing.features.extended_retention": {
     "text": "30日間のシークレット保持",
     "sha256": "21d6d514"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "ホームページシークレット",
-    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
     "text": "受信シークレット",
@@ -758,76 +886,107 @@
     "text": "共有ワークフロー",
     "sha256": "158f558e"
   },
-  "web.billing.overview.billing_for_organization": {
-    "text": "この組織の請求",
-    "sha256": "21806992"
+  "web.billing.currency_migration.title": {
+    "text": "通貨の変更が必要です",
+    "context": "Modal title when plan requires different currency than current subscription",
+    "sha256": "2cd800c5"
   },
-  "web.billing.overview.upgrade_success": {
-    "text": "プランが正常にアップグレードされました",
-    "sha256": "00ac43f8"
+  "web.billing.currency_migration.description": {
+    "text": "現在のサブスクリプションは{from}を使用しています。選択したプランは{to}で請求されます。サブスクリプションを新しい通貨に移行する必要があります。",
+    "sha256": "f0cdf727"
   },
-  "web.billing.overview.upgrade_success_description": {
-    "text": "新しいプランが有効になりました。ご購入ありがとうございます。",
-    "sha256": "fd1caeb1"
+  "web.billing.currency_migration.current_plan": {
+    "text": "現在のプラン:",
+    "sha256": "648a0ab2"
   },
-  "web.billing.overview.billing_contact": {
-    "text": "請求連絡先",
-    "sha256": "8f782ad8"
+  "web.billing.currency_migration.new_plan": {
+    "text": "新しいプラン:",
+    "sha256": "edb868c4"
   },
-  "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "ホームページシークレット",
-    "sha256": "6360f7ec"
+  "web.billing.currency_migration.current_period_ends": {
+    "text": "現在の期間終了日:",
+    "sha256": "2e20e596"
   },
-  "web.billing.overview.entitlements.notifications": {
-    "text": "メール通知",
-    "sha256": "04e0f1e9"
+  "web.billing.currency_migration.choose_timing": {
+    "text": "いつ切り替えますか？",
+    "sha256": "f4aabb13"
   },
-  "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "IPアクセスルール",
-    "sha256": "db966d47"
+  "web.billing.currency_migration.graceful_title": {
+    "text": "請求期間終了時に切り替え",
+    "sha256": "55cd980b"
   },
-  "web.billing.overview.entitlements.workspace_branding": {
-    "text": "ワークスペースブランディング",
-    "sha256": "e7acbf6f"
+  "web.billing.currency_migration.graceful_description": {
+    "text": "現在のプランは{date}まで有効です。その後、新しいプランのチェックアウトを完了していただきます。",
+    "sha256": "b8661418"
   },
-  "web.billing.plans.due_today": {
-    "text": "本日のお支払い:",
-    "sha256": "e370e3aa"
+  "web.billing.currency_migration.immediate_title": {
+    "text": "今すぐ切り替え",
+    "sha256": "e9d0ba59"
   },
-  "web.billing.plans.next_billing": {
-    "text": "次回請求({date}):",
-    "sha256": "a6846a85"
+  "web.billing.currency_migration.immediate_description": {
+    "text": "現在のプランは即時キャンセルされます。未使用期間分の返金を受け取り、新しいプランのチェックアウトを完了していただきます。",
+    "sha256": "b08de0ca"
   },
-  "web.billing.plans.credit_applies_heading": {
-    "text": "クレジットの適用方法:",
-    "sha256": "a0943c3b"
+  "web.billing.currency_migration.confirm": {
+    "text": "通貨変更を確認",
+    "sha256": "1edc1c78"
   },
-  "web.billing.plans.next_bill_amount": {
-    "text": "次回請求額:",
-    "sha256": "526ad28f"
+  "web.billing.currency_migration.error": {
+    "text": "通貨の移行に失敗しました。もう一度お試しください。",
+    "sha256": "4a6e1ced"
   },
-  "web.billing.plans.credit_applied_to_bill": {
-    "text": "適用されたクレジット:",
-    "sha256": "e5f2e81a"
+  "web.billing.currency_migration.success": {
+    "text": "サブスクリプションの通貨が正常に更新されました。",
+    "sha256": "a8bf437e"
   },
-  "web.billing.plans.amount_due_next_billing": {
-    "text": "次回請求時の支払額:",
-    "sha256": "22ee868a"
+  "web.billing.currency_migration.graceful_success": {
+    "text": "現在のプランは請求期間の終了まで有効です。その後、新しいプランのチェックアウトを完了するよう案内されます。",
+    "sha256": "15d41483"
   },
-  "web.billing.plans.remaining_account_credit": {
-    "text": "残りのアカウントクレジット:",
-    "sha256": "eedd0c0a"
+  "web.billing.currency_migration.warning_credit_balance": {
+    "text": "{currency}のクレジット残高があり、新しい通貨に移行できません。",
+    "sha256": "aa15be91"
   },
-  "web.billing.plans.credit_future_note": {
-    "text": "今後の請求書に適用",
-    "sha256": "5007add6"
+  "web.billing.currency_migration.warning_pending_items": {
+    "text": "移行前に解決が必要な未処理の請求項目があります。",
+    "sha256": "7b4c5e10"
   },
-  "web.billing.subscription.team_usage": {
-    "text": "チーム使用状況",
-    "sha256": "f9989642"
+  "web.billing.currency_migration.warning_coupons": {
+    "text": "アカウントの有効なクーポンが新しい通貨に対応していない場合があります。",
+    "sha256": "f572ee81"
   },
-  "web.billing.subscription.teams_used": {
-    "text": "{limit}チーム中{used}チーム",
-    "sha256": "1db6b53c"
+  "web.billing.currency_migration.pending_title": {
+    "text": "通貨移行保留中",
+    "context": "Banner heading when graceful migration is scheduled",
+    "sha256": "018ae653"
+  },
+  "web.billing.currency_migration.pending_description": {
+    "text": "現在のプランは{date}に終了します。{plan}（{currency}）への切り替えを完了してください。",
+    "sha256": "998ba4ab"
+  },
+  "web.billing.currency_migration.complete_migration": {
+    "text": "移行を完了",
+    "context": "Button to start checkout for the new currency plan",
+    "sha256": "fa794e0c"
+  },
+  "web.billing.checkout_session_failed": {
+    "text": "チェックアウトセッションの作成に失敗しました",
+    "context": "Error when Stripe checkout session creation returns no URL",
+    "sha256": "a53f6fa3"
+  },
+  "web.billing.checkout_initiate_failed": {
+    "text": "チェックアウトの開始に失敗しました",
+    "context": "Fallback error for checkout failures",
+    "sha256": "3ff06e41"
+  },
+  "web.billing.plan_switch_success": {
+    "text": "{plan}への切り替えが完了しました",
+    "context": "Success message after plan change",
+    "sha256": "ab7c715c"
+  },
+  "web.billing.plan_unavailable_region_mismatch": {
+    "text": "元のサブスクリプションリージョンでのみ利用可能",
+    "context": "Hint shown on plan cards when currency does not match active subscription",
+    "sha256": "10de32e5"
   }
 }

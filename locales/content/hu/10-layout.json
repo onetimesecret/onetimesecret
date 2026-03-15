@@ -47,6 +47,10 @@
     "text": "Jogi információk",
     "sha256": "0a410c78"
   },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "A visszajelzés beküldésekor a következőket látjuk:",
+    "sha256": "fe77172e"
+  },
   "web.footer.read_our_privacy_policy": {
     "text": "Olvassa el adatvédelmi irányelveinket",
     "sha256": "eb443229"
@@ -95,6 +99,14 @@
     "text": "Cég",
     "sha256": "de4743c8"
   },
+  "web.footer.product": {
+    "text": "Termék",
+    "sha256": "7f5540e9"
+  },
+  "web.footer.source_code_purveyor": {
+    "text": "Forráskód",
+    "sha256": "29c5c68f"
+  },
   "web.navigation.billing": {
     "text": "Számlázás",
     "sha256": "3ac8bbca"
@@ -136,7 +148,7 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Egy biztonságos üzenetet tekint meg, amelyet a Onetime Secret-en keresztül osztottak meg Önnel. Ez a tartalom csak egyszer jelenik meg, majd véglegesen törlődik szervereinkről.",
+    "text": "Egy biztonságos üzenetet tekint meg, amelyet az Onetime Secret-en keresztül osztottak meg Önnel. Ez a tartalom csak egyszer jelenik meg, majd véglegesen törlődik szervereinkről.",
     "sha256": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -307,6 +319,10 @@
     "text": "Nyelv módosítva: {0}",
     "sha256": "1680f4fe"
   },
+  "web.layout.reset_to_default_language": {
+    "text": "Visszaállítás: {0}",
+    "sha256": "c0cfa9b2"
+  },
   "web.layout.switch_to_blank_mode": {
     "text": "Váltás {0} módra",
     "sha256": "c8b909e0"
@@ -322,13 +338,5 @@
   "web.layout.workspace_context": {
     "text": "Munkaterület kontextus",
     "sha256": "dc6fa4f5"
-  },
-  "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "A visszajelzés beküldésekor a következőket látjuk:",
-    "sha256": "fe77172e"
-  },
-  "web.layout.reset_to_default_language": {
-    "text": "Visszaállítás: {0}",
-    "sha256": "c0cfa9b2"
   }
 }

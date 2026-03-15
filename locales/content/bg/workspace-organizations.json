@@ -155,6 +155,14 @@
     "text": "Неуспешна актуализация на организацията",
     "sha256": "bc2b59b8"
   },
+  "web.organizations.billing_email_updated": {
+    "text": "Имейлът за фактуриране е актуализиран успешно",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Имейлът за фактуриране може да бъде променен на страницата Преглед на фактурирането",
+    "sha256": "8a131415"
+  },
   "web.organizations.billing_coming_soon": {
     "text": "Интеграцията с фактуриране идва скоро",
     "sha256": "d3e0ec75"
@@ -206,6 +214,10 @@
   "web.organizations.tabs.billing": {
     "text": "Фактуриране",
     "sha256": "3ac8bbca"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Абонамент",
+    "sha256": "4999c6c6"
   },
   "web.organizations.danger_zone": {
     "text": "Опасна зона",
@@ -523,17 +535,13 @@
     "text": "Каненето на членове на екипа изисква план с управление на екипи. Надградете, за да добавите сътрудници към организацията си.",
     "sha256": "cf10d623"
   },
-  "web.organizations.billing_email_updated": {
-    "text": "Имейлът за фактуриране е актуализиран успешно",
-    "sha256": "080a7f11"
-  },
-  "web.organizations.billing_email_managed_on_billing": {
-    "text": "Имейлът за фактуриране може да бъде променен на страницата Преглед на фактурирането",
-    "sha256": "8a131415"
-  },
   "web.organizations.paid_badge": {
     "text": "Pro",
     "sha256": "957b0b87"
+  },
+  "web.organizations.early_supporter_badge": {
+    "text": "Ранен поддръжник",
+    "sha256": "e67d2ef8"
   },
   "web.organizations.member_count": {
     "text": "{count} член | {count} членове",
@@ -542,6 +550,10 @@
   "web.organizations.domain_count": {
     "text": "{count} домейн | {count} домейна",
     "sha256": "09f52efa"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Домейни",
+    "sha256": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Грешен акаунт",
@@ -566,13 +578,5 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Изтича скоро",
     "sha256": "a5dcfef9"
-  },
-  "web.organizations.tabs.subscription": {
-    "text": "Абонамент",
-    "sha256": "4999c6c6"
-  },
-  "web.organizations.tabs.domains": {
-    "text": "Домейни",
-    "sha256": "ced67718"
   }
 }

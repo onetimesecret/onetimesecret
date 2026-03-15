@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "Bieżąca jurysdykcja:",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "Zmiana regionu",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "Nasza zasada to nigdy nie przesyłać danych między regionami. Każdy region działa jako całkowicie niezależne środowisko.",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "Aby korzystać z innego regionu, utwórz tam nowe konto, używając tego samego adresu e-mail, który jest powiązany z Twoim adresem kontaktowym do rozliczeń.",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "Jeśli Twój adres e-mail do rozliczeń różni się od adresu e-mail konta Onetime Secret, użyj adresu e-mail do rozliczeń dla nowego konta w regionie, aby zachować korzyści z subskrypcji.",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "Korzyści z Twojej subskrypcji zostaną automatycznie zastosowane do każdego konta utworzonego z Twoim adresem e-mail do rozliczeń.",
+    "sha256": "5b2238b2"
   }
 }

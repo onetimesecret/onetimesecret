@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "Quyền tài phán hiện tại:",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "Thay đổi khu vực",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "Chính sách của chúng tôi là không bao giờ chuyển dữ liệu giữa các khu vực. Mỗi khu vực hoạt động như một môi trường hoàn toàn độc lập.",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "Để sử dụng khu vực khác, hãy tạo tài khoản mới ở đó bằng cùng địa chỉ email liên kết với email liên hệ thanh toán của bạn.",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "Nếu email liên hệ thanh toán khác với email tài khoản Onetime Secret, hãy sử dụng email liên hệ thanh toán cho tài khoản khu vực mới để duy trì quyền lợi đăng ký.",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "Quyền lợi đăng ký của bạn sẽ tự động áp dụng cho bất kỳ tài khoản nào được tạo bằng địa chỉ email thanh toán.",
+    "sha256": "5b2238b2"
   }
 }

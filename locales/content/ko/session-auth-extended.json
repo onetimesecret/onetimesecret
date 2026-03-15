@@ -1,15 +1,69 @@
 {
+  "web.auth._guidance": {
+    "skip": true,
+    "_meta": {
+      "_purpose": "These messages follow OWASP/NIST guidelines to prevent information disclosure. Translations MUST maintain generic wording to prevent credential enumeration and timing attacks. Never reveal: which credential failed, precise timing, account existence, or attack progress.",
+      "authentication_failed": {
+        "security_note": "MUST NOT reveal which credential failed (password, OTP, or recovery code). This prevents attackers from determining valid credentials or enumerating accounts.",
+        "owasp_ref": "ASVS 2.2.2 - Authentication failure responses must be generic"
+      },
+      "rate_limited": {
+        "security_note": "MUST NOT reveal precise lockout duration, attempt counts, or remaining attempts. This prevents timing attacks and progress tracking.",
+        "owasp_ref": "ASVS 2.2.1 - Account lockout must not be timing-based enumerable"
+      },
+      "session_expired": {
+        "security_note": "Safe to indicate session issue as it doesn't reveal credential information. Helps users understand they need to re-authenticate.",
+        "owasp_ref": "Session management best practices"
+      },
+      "recovery_code_not_found": {
+        "security_note": "Safe to indicate recovery code context as user explicitly selected this authentication method. Does not reveal whether code exists.",
+        "owasp_ref": "Recovery code validation guidance"
+      },
+      "recovery_code_used": {
+        "security_note": "Safe expected behavior message. Users need to know recovery codes are single-use to prevent confusion.",
+        "owasp_ref": "User guidance for recovery mechanisms"
+      }
+    },
+    "_translation_guidelines": {
+      "DO_NOT_translate_as": [
+        "Wrong password",
+        "Invalid OTP code",
+        "Incorrect recovery code",
+        "Wait 5 minutes",
+        "3 attempts remaining",
+        "Account locked for 15 minutes"
+      ],
+      "MUST_translate_as": [
+        "Generic authentication failure (no credential specifics)",
+        "Generic rate limit message (no precise timing)",
+        "Recovery code validation (no existence confirmation)"
+      ],
+      "WHY": "These restrictions prevent attackers from: (1) determining valid usernames/emails, (2) knowing which credential to focus attacks on, (3) conducting timing attacks, (4) measuring attack progress"
+    },
+    "_safe_information": {
+      "format_requirements": "Safe to specify format rules (e.g., 'OTP must be 6 digits')",
+      "expected_behavior": "Safe to describe how features work (e.g., 'Codes expire every 30 seconds')",
+      "recovery_options": "Safe to offer alternatives (e.g., 'Use a recovery code instead')",
+      "general_guidance": "Safe to provide help (e.g., 'Check your authenticator app')"
+    }
+  },
   "web.auth.mfa_required": {
     "text": "MFA 인증 필요",
+    "context": "Page heading shown when user must complete MFA to proceed",
     "sha256": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
     "text": "계정에 접근하려면 MFA 인증이 필요합니다",
+    "context": "Explanatory text below the heading",
     "sha256": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
     "text": "MFA 인증 완료",
     "sha256": "0e681134"
+  },
+  "web.auth.security._guidance": {
+    "skip": true,
+    "context": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.security.authentication_failed": {
     "text": "인증에 실패했습니다. 자격 증명을 확인하고 다시 시도해 주세요.",
@@ -45,6 +99,7 @@
   },
   "web.auth.methods.magicLink": {
     "text": "이메일 링크",
+    "context": "Passwordless authentication via email link",
     "sha256": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
@@ -99,6 +154,10 @@
     "text": "유효하지 않거나 누락된 로그인 링크",
     "sha256": "d726c0da"
   },
+  "web.auth.magicLink.sessionExpired": {
+    "text": "세션이 만료되었습니다. 페이지를 새로고침한 후 다시 시도해 주세요.",
+    "sha256": "a7c3e901"
+  },
   "web.auth.magicLink.loginFailed": {
     "text": "로그인 실패. 다시 시도해 주세요.",
     "sha256": "c95b4875"
@@ -143,6 +202,10 @@
     "text": "생체 인식 로그인 설정 실패",
     "sha256": "290cca44"
   },
+  "web.auth.webauthn.passwordRequired": {
+    "text": "패스키를 설정하려면 비밀번호가 필요합니다",
+    "sha256": "085bb238"
+  },
   "web.auth.webauthn.authFailed": {
     "text": "생체 인식 인증 실패. 다시 시도해 주세요.",
     "sha256": "626b9ece"
@@ -163,6 +226,111 @@
     "text": "Face ID, Touch ID, Windows Hello 및 보안 키 지원",
     "sha256": "3ea1c1a2"
   },
+  "web.auth.passkeys.title": {
+    "text": "패스키",
+    "context": "Title for passkey management section",
+    "sha256": "c87ccdb4"
+  },
+  "web.auth.passkeys.description": {
+    "text": "Face ID, Touch ID, Windows Hello 또는 보안 키로 로그인",
+    "context": "Description of passkey authentication",
+    "sha256": "a513ed5c"
+  },
+  "web.auth.passkeys.setup_description": {
+    "text": "패스키를 사용하면 비밀번호 없이 안전하게 로그인할 수 있습니다",
+    "context": "Setup page description",
+    "sha256": "85630bef"
+  },
+  "web.auth.passkeys.not_configured": {
+    "text": "설정되지 않음",
+    "context": "Status when no passkeys are registered",
+    "sha256": "dd1841d2"
+  },
+  "web.auth.passkeys.count": {
+    "text": "패스키 {count}개 등록됨 | 패스키 {count}개 등록됨",
+    "context": "Number of registered passkeys",
+    "sha256": "82e6681f"
+  },
+  "web.auth.passkeys.add_passkey": {
+    "text": "패스키 추가",
+    "context": "Button to add a new passkey",
+    "sha256": "93713ad7"
+  },
+  "web.auth.passkeys.register_passkey": {
+    "text": "패스키 등록",
+    "context": "Button to register a new passkey",
+    "sha256": "26db6968"
+  },
+  "web.auth.passkeys.remove_passkey": {
+    "text": "패스키 삭제",
+    "context": "Button to remove a passkey",
+    "sha256": "67b1d47c"
+  },
+  "web.auth.passkeys.confirm_remove": {
+    "text": "이 패스키를 삭제하시겠습니까? 삭제하면 더 이상 이 패스키로 로그인할 수 없습니다.",
+    "context": "Confirmation message for passkey removal",
+    "sha256": "487ab72c"
+  },
+  "web.auth.passkeys.removed_success": {
+    "text": "패스키가 삭제되었습니다",
+    "context": "Success message after removing passkey",
+    "sha256": "436c1050"
+  },
+  "web.auth.passkeys.registered_success": {
+    "text": "패스키가 등록되었습니다",
+    "context": "Success message after registering passkey",
+    "sha256": "fbfb0713"
+  },
+  "web.auth.passkeys.no_passkeys": {
+    "text": "등록된 패스키 없음",
+    "context": "Empty state when no passkeys exist",
+    "sha256": "1d97fde4"
+  },
+  "web.auth.passkeys.no_passkeys_description": {
+    "text": "비밀번호를 입력하지 않고 더 안전하게 로그인하려면 패스키를 추가하세요",
+    "context": "Description for empty state",
+    "sha256": "e5bc07f1"
+  },
+  "web.auth.passkeys.name": {
+    "text": "패스키 이름",
+    "context": "Label for passkey name field",
+    "sha256": "22eefa67"
+  },
+  "web.auth.passkeys.created": {
+    "text": "생성됨",
+    "context": "Label for creation date",
+    "sha256": "d70b9e24"
+  },
+  "web.auth.passkeys.last_used": {
+    "text": "마지막 사용: {time}",
+    "context": "Last used timestamp",
+    "sha256": "e1af94fe"
+  },
+  "web.auth.passkeys.never_used": {
+    "text": "사용한 적 없음",
+    "context": "Status when passkey has not been used",
+    "sha256": "24d3236c"
+  },
+  "web.auth.passkeys.benefit_secure": {
+    "text": "비밀번호보다 안전 - 피싱 공격에 강함",
+    "context": "Passkey benefit",
+    "sha256": "41afb6ec"
+  },
+  "web.auth.passkeys.benefit_fast": {
+    "text": "빠르고 간편 - 지문, 얼굴 인식 또는 보안 키만 사용",
+    "context": "Passkey benefit",
+    "sha256": "5a0ce96c"
+  },
+  "web.auth.passkeys.benefit_synced": {
+    "text": "플랫폼 인증기 사용 시 기기 간 동기화",
+    "context": "Passkey benefit",
+    "sha256": "7480c7ae"
+  },
+  "web.auth.passkeys.link_title": {
+    "text": "패스키",
+    "context": "Navigation link title",
+    "sha256": "c87ccdb4"
+  },
   "web.auth.lockout.attempts_remaining": {
     "text": "경고: 로그인 시도가 {count}회 남았습니다",
     "sha256": "151dcb5e"
@@ -182,6 +350,10 @@
   "web.auth.lockout.try_password_reset": {
     "text": "대신 비밀번호를 재설정할 수 있습니다",
     "sha256": "a98a3f9d"
+  },
+  "web.auth.sessions._guidance": {
+    "skip": true,
+    "context": "User's logged-in devices/browsers management page"
   },
   "web.auth.sessions.title": {
     "text": "활성 세션",
@@ -303,6 +475,10 @@
     "text": "확인 및 활성화",
     "sha256": "7c08f68d"
   },
+  "web.auth.mfa.verify_login": {
+    "text": "인증",
+    "sha256": "eea2745e"
+  },
   "web.auth.mfa.code_required": {
     "text": "인증 코드가 필요합니다",
     "sha256": "217de0fc"
@@ -343,6 +519,10 @@
     "text": "대신 복구 코드 사용",
     "sha256": "23d3441a"
   },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "복구 코드 사용",
+    "sha256": "50d5790d"
+  },
   "web.auth.mfa.back_to_code": {
     "text": "인증 코드로 돌아가기",
     "sha256": "6fa090b4"
@@ -350,6 +530,10 @@
   "web.auth.mfa.cancel": {
     "text": "취소하고 로그인으로 돌아가기",
     "sha256": "83256742"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "로그인 취소",
+    "sha256": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {
     "text": "MFA 상태 로딩 중...",
@@ -526,23 +710,5 @@
   "web.auth.recovery_codes.link_title": {
     "text": "복구 코드",
     "sha256": "579c7f4e"
-  },
-  "web.auth.mfa.verify_login": {
-    "text": "인증",
-    "sha256": "eea2745e"
-  },
-  "web.auth.mfa.use_recovery_code_short": {
-    "text": "복구 코드 사용",
-    "sha256": "50d5790d"
-  },
-  "web.auth.mfa.cancel_sign_in": {
-    "text": "로그인 취소",
-    "sha256": "1bebad2f"
-  },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ 보안 중요: 정보 노출을 방지하는 메시지입니다. src/locales/SECURITY-TRANSLATION-GUIDE.md를 참조하세요"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "사용자의 로그인된 기기/브라우저 관리 페이지"
   }
 }

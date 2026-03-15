@@ -159,6 +159,10 @@
     "text": "Fakturada retpoŝto sukcese ĝisdatigita",
     "sha256": "080a7f11"
   },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Fakturada retpoŝto povas esti ŝanĝita sur la Fakturada Superrigardopaĝo",
+    "sha256": "8a131415"
+  },
   "web.organizations.billing_coming_soon": {
     "text": "Fakturada integriĝo baldaŭ venonta",
     "sha256": "d3e0ec75"
@@ -210,6 +214,10 @@
   "web.organizations.tabs.billing": {
     "text": "Fakturado",
     "sha256": "3ac8bbca"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Abono",
+    "sha256": "4999c6c6"
   },
   "web.organizations.danger_zone": {
     "text": "Danĝera zono",
@@ -527,13 +535,13 @@
     "text": "Teamanaj invitoj bezonas planon kun team-administrado. Ĝisdatigu por aldoni kunlaborantojn al via organizo.",
     "sha256": "cf10d623"
   },
-  "web.organizations.billing_email_managed_on_billing": {
-    "text": "Fakturada retpoŝto povas esti ŝanĝita sur la Fakturada Superrigardopaĝo",
-    "sha256": "8a131415"
-  },
   "web.organizations.paid_badge": {
     "text": "Pro",
     "sha256": "957b0b87"
+  },
+  "web.organizations.early_supporter_badge": {
+    "text": "Frua subtenanto",
+    "sha256": "e67d2ef8"
   },
   "web.organizations.member_count": {
     "text": "{count} membro | {count} membroj",
@@ -542,6 +550,10 @@
   "web.organizations.domain_count": {
     "text": "{count} domajno | {count} domajnoj",
     "sha256": "09f52efa"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Domajnoj",
+    "sha256": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Malĝusta konto",
@@ -566,13 +578,5 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Baldaŭ senvalidiĝas",
     "sha256": "a5dcfef9"
-  },
-  "web.organizations.tabs.subscription": {
-    "text": "Abono",
-    "sha256": "4999c6c6"
-  },
-  "web.organizations.tabs.domains": {
-    "text": "Domajnoj",
-    "sha256": "ced67718"
   }
 }

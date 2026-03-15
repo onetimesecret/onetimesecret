@@ -132,7 +132,7 @@
     "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Memo:",
+    "text": "Zaznamek:",
     "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
@@ -150,6 +150,14 @@
   "email.incoming_secret.link_works_once": {
     "text": "Ta povezava bo delovala samo enkrat. Po ogledu bo skrivnost trajno izbrisana.",
     "sha256": "fecaf0a1"
+  },
+  "email.incoming_secret.passphrase_required": {
+    "text": "Ta skrivnost je zaščitena s pristopno frazo. Pošiljatelj vam jo mora posredovati ločeno.",
+    "sha256": "1e49826b"
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "Pristopna fraza potrebna:",
+    "sha256": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
     "text": "Poslano prek",
@@ -320,16 +328,84 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "E-poštni naslov za vaš račun %{product_name} je bil spremenjen na %{new_email_masked} dne %{date}.",
+    "text": "E-poštni naslov za vaš račun %{product_name} je bil spremenjen na %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "Če te spremembe niste opravili vi, nemudoma kontaktirajte podporo, saj je vaš račun morda ogrožen.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "E-poštni naslov vašega računa %{product_name} je bil spremenjen.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "Nov e-poštni naslov:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "Spremenjeno ob:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "Če ste to spremembo naredili vi, nadaljnje ukrepanje ni potrebno.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "Če te spremembe niste naredili vi, je vaš račun morda ogrožen.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "Obrnite se na podporo",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address}, da vas obvestimo o spremembi e-poštnega naslova.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "Zahteva za spremembo e-pošte (%{display_domain})",
+    "sha256": "be3441d6"
+  },
+  "email.email_change_requested.title": {
+    "text": "Zahteva za spremembo e-pošte",
+    "sha256": "704cbdca"
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "Prejeta je bila zahteva za spremembo e-poštnega naslova vašega računa %{product_name}.",
+    "sha256": "d7e39154"
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "Zahtevani nov e-poštni naslov:",
+    "sha256": "243f3e03"
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "Zahtevano ob:",
+    "sha256": "ada23c51"
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "Če ste to zahtevo oddali vi, preverite nov e-poštni naslov za potrditveno povezavo. Spremembe še niso bile izvedene.",
+    "sha256": "aa1bf526"
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "Če te zahteve niste oddali vi, lahko to e-poštno sporočilo mirno prezrete. Vaš račun ni bil spremenjen.",
+    "sha256": "ff41a7b7"
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "Obrnite se na podporo",
+    "sha256": "f8d47b82"
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.email_change_requested.postscript": {
+    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address}, ker je bila za vaš račun oddana zahteva za spremembo e-pošte.",
+    "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {
     "text": "Preverite svoj novi e-poštni naslov (%{display_domain})",
@@ -347,13 +423,33 @@
     "text": "Preveri e-poštni naslov",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "Prejeta je bila zahteva za spremembo e-poštnega naslova vašega računa %{product_name} na %{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "Potrdite spremembo e-pošte",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Ali kopirajte in prilepite to povezavo:",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "Ta povezava poteče čez %{hours} ur.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "Če te spremembe niste zahtevali, lahko to e-poštno sporočilo mirno prezrete. Vaš e-poštni naslov ne bo spremenjen.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address} za potrditev spremembe e-poštnega naslova.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "Dvostopenjska avtentikacija omogočena (%{display_domain})",

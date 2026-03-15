@@ -31,17 +31,13 @@
     "text": "Il contenuto della guida va qui.",
     "sha256": "796979ea"
   },
-  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Grazie per aver aiutato Onetime Secret a migliorare. Significa molto"
+  "web.feedback.founder_note_line1": {
+    "text": "Leggo ogni feedback che arriva qui. È così che capisco su cosa vale la pena lavorare.",
+    "sha256": "8b430d93"
   },
-  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
-    "text": "Abbiamo costruito questo strumento per aiutarvi a condividere informazioni sensibili in modo sicuro e le vostre esperienze reali sono fondamentali per concentrare i nostri sforzi. Ci aiutano a capire su cosa lavorare e come migliorare il servizio per tutti"
-  },
-  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
-    "text": "Ehilà, grazie per esserti fermato sulla nostra pagina di feedback. Il tuo contributo non è solo gradito, è fondamentale"
-  },
-  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Una nota di Delano, fondatore di Onetime Secret"
+  "web.feedback.founder_note_line2": {
+    "text": "Se qualcosa non va, o hai idee su come dovrebbe funzionare, questo è il posto giusto.",
+    "sha256": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
     "text": "Apri modulo feedback",
@@ -55,12 +51,12 @@
     "text": "Invia feedback",
     "sha256": "8235980b"
   },
-  "web.feedback.founder_note_line1": {
-    "text": "Leggo ogni feedback che arriva qui. È così che capisco su cosa vale la pena lavorare.",
-    "sha256": "8b430d93"
+  "web.feedback.sending_ellipses": {
+    "text": "Invio in corso...",
+    "sha256": "286a3af7"
   },
-  "web.feedback.founder_note_line2": {
-    "text": "Se qualcosa non va, o hai idee su come dovrebbe funzionare, questo è il posto giusto.",
-    "sha256": "d4b8f073"
+  "web.feedback.reason_email_change_unauthorized": {
+    "text": "Sembra che tu stia segnalando una modifica non autorizzata dell'email del tuo account. Descrivi cosa è successo e indagheremo immediatamente.",
+    "sha256": "00e56551"
   }
 }

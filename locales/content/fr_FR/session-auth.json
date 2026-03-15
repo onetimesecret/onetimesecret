@@ -23,6 +23,86 @@
     "text": "Se souvenir de moi",
     "sha256": "f93267aa"
   },
+  "web.login.send_sign_in_link": {
+    "text": "Envoyer le lien de connexion",
+    "sha256": "b1402b67"
+  },
+  "web.login.secure_link_helper": {
+    "text": "Un lien sécurisé sera envoyé à votre boîte de réception.",
+    "sha256": "d31d20cf"
+  },
+  "web.login.or_divider": {
+    "text": "ou",
+    "sha256": "7175517a"
+  },
+  "web.login.sign_in_with_password": {
+    "text": "Se connecter avec un mot de passe",
+    "sha256": "bedac809"
+  },
+  "web.login.use_passwordless": {
+    "text": "Utiliser la connexion sans mot de passe",
+    "sha256": "dddc0097"
+  },
+  "web.login.create_account": {
+    "text": "Créer un compte",
+    "sha256": "798ca2ce"
+  },
+  "web.login.return_home": {
+    "text": "Retour à l'accueil",
+    "sha256": "bbcc935e"
+  },
+  "web.login.tab_password": {
+    "text": "Mot de passe",
+    "sha256": "e7cf3ef4"
+  },
+  "web.login.tab_magic_link": {
+    "text": "Lien magique",
+    "sha256": "7a9ba11a"
+  },
+  "web.login.tab_passkey": {
+    "text": "Clé d'accès",
+    "sha256": "904c9aa9"
+  },
+  "web.login.need_help": {
+    "text": "Besoin d'aide ?",
+    "sha256": "c225cdfb"
+  },
+  "web.login.or_continue_with": {
+    "text": "Ou continuer avec",
+    "sha256": "eb4e8d3b"
+  },
+  "web.login.sign_in_with_sso": {
+    "text": "Se connecter avec SSO",
+    "sha256": "73e984e9"
+  },
+  "web.login.sign_in_with_provider": {
+    "text": "Se connecter avec {provider}",
+    "sha256": "b8794f11"
+  },
+  "web.auth.sso.signing_in": {
+    "text": "Redirection vers le fournisseur d'identité...",
+    "sha256": "4d1213f9"
+  },
+  "web.auth.sso.error": {
+    "text": "Échec de la connexion SSO. Veuillez réessayer.",
+    "sha256": "45a1e65d"
+  },
+  "web.login.errors.sso_failed": {
+    "text": "L'authentification SSO a échoué. Veuillez réessayer ou utiliser la connexion par mot de passe.",
+    "sha256": "13a2210a"
+  },
+  "web.login.errors.token_missing": {
+    "text": "Le lien d'authentification est incomplet. Veuillez demander un nouveau lien de connexion.",
+    "sha256": "f4a10652"
+  },
+  "web.login.errors.token_expired": {
+    "text": "Ce lien de connexion a expiré. Veuillez en demander un nouveau.",
+    "sha256": "f0de42ec"
+  },
+  "web.login.errors.token_invalid": {
+    "text": "Ce lien de connexion est invalide. Veuillez en demander un nouveau.",
+    "sha256": "270c6401"
+  },
   "web.signup.create_your_account": {
     "text": "Créer votre compte",
     "sha256": "5f4c33d7"
@@ -46,6 +126,9 @@
   "web.signup.email_error": {
     "text": "E-mail",
     "sha256": "969ccbd3"
+  },
+  "web.auth.verify._guidance": {
+    "context": "Email verification flow after signup"
   },
   "web.auth.verify.title": {
     "text": "Vérifier votre compte",
@@ -173,6 +256,7 @@
   },
   "web.auth.password_reset.title": {
     "text": "Choisir un nouveau mot de passe",
+    "context": "Password reset request flow - user requests a reset link",
     "sha256": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
@@ -189,6 +273,7 @@
   },
   "web.auth.account.title": {
     "text": "Informations du compte",
+    "context": "User account overview/dashboard section",
     "sha256": "4e59b6c7"
   },
   "web.auth.account.email": {
@@ -255,9 +340,6 @@
     "text": "Fermer le compte",
     "sha256": "e1513814"
   },
-  "web.auth.verify._guidance.context": {
-    "text": "Flux de vérification d'e-mail après inscription"
-  },
   "web.help.title": {
     "text": "Aide et support",
     "sha256": "1f8ecc24"
@@ -313,65 +395,5 @@
   "web.help.contact_support": {
     "text": "Contacter le support",
     "sha256": "f8d47b82"
-  },
-  "web.login.send_sign_in_link": {
-    "text": "Envoyer le lien de connexion",
-    "sha256": "b1402b67"
-  },
-  "web.login.secure_link_helper": {
-    "text": "Un lien sécurisé sera envoyé à votre boîte de réception.",
-    "sha256": "d31d20cf"
-  },
-  "web.login.or_divider": {
-    "text": "ou",
-    "sha256": "7175517a"
-  },
-  "web.login.sign_in_with_password": {
-    "text": "Se connecter avec un mot de passe",
-    "sha256": "bedac809"
-  },
-  "web.login.use_passwordless": {
-    "text": "Utiliser la connexion sans mot de passe",
-    "sha256": "dddc0097"
-  },
-  "web.login.create_account": {
-    "text": "Créer un compte",
-    "sha256": "798ca2ce"
-  },
-  "web.login.return_home": {
-    "text": "Retour à l'accueil",
-    "sha256": "bbcc935e"
-  },
-  "web.login.tab_password": {
-    "text": "Mot de passe",
-    "sha256": "e7cf3ef4"
-  },
-  "web.login.tab_magic_link": {
-    "text": "Lien magique",
-    "sha256": "7a9ba11a"
-  },
-  "web.login.tab_passkey": {
-    "text": "Clé d'accès",
-    "sha256": ""
-  },
-  "web.login.or_continue_with": {
-    "text": "Ou continuer avec",
-    "sha256": ""
-  },
-  "web.login.sign_in_with_sso": {
-    "text": "Se connecter avec SSO",
-    "sha256": ""
-  },
-  "web.auth.sso.signing_in": {
-    "text": "Redirection vers le fournisseur d'identité...",
-    "sha256": ""
-  },
-  "web.auth.sso.error": {
-    "text": "Échec de la connexion SSO. Veuillez réessayer.",
-    "sha256": ""
-  },
-  "web.login.need_help": {
-    "text": "Besoin d'aide ?",
-    "sha256": "c225cdfb"
   }
 }

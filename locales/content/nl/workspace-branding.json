@@ -166,5 +166,9 @@
   "web.branding.switch_to_safari_preview": {
     "text": "Overschakelen naar Safari-voorbeeld",
     "sha256": "f24ac447"
+  },
+  "web.branding.upgrade_to_customize": {
+    "text": "Upgrade je plan om de branding voor dit domein aan te passen.",
+    "sha256": "9077bf79"
   }
 }

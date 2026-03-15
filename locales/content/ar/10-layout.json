@@ -99,6 +99,14 @@
     "text": "الشركة",
     "sha256": "de4743c8"
   },
+  "web.footer.product": {
+    "text": "المنتج",
+    "sha256": "7f5540e9"
+  },
+  "web.footer.source_code_purveyor": {
+    "text": "الشيفرة المصدرية",
+    "sha256": "29c5c68f"
+  },
   "web.navigation.billing": {
     "text": "الفوترة",
     "sha256": "3ac8bbca"

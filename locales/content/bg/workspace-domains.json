@@ -44,11 +44,11 @@
     "sha256": "777b978d"
   },
   "web.domains.passphrase_required_label": {
-    "text": "Изисквай защитна фраза",
+    "text": "Изисквай ключова фраза",
     "sha256": "3a448e69"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Направете защитната фраза задължителна за всички тайни в този домейн",
+    "text": "Направете ключовата фраза задължителна за всички тайни в този домейн",
     "sha256": "6ac05bce"
   },
   "web.domains.notify_enabled_label": {
@@ -384,7 +384,7 @@
     "sha256": "ea8afd62"
   },
   "web.domains.edit_passphrase": {
-    "text": "Редактирай изискването за защитна фраза",
+    "text": "Редактирай изискването за ключова фраза",
     "sha256": "0b5555b5"
   },
   "web.domains.edit_notify": {

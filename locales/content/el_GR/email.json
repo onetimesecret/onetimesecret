@@ -151,6 +151,14 @@
     "text": "Αυτός ο σύνδεσμος θα λειτουργήσει μόνο μία φορά. Μετά την προβολή, το μυστικό θα διαγραφεί οριστικά.",
     "sha256": "fecaf0a1"
   },
+  "email.incoming_secret.passphrase_required": {
+    "text": "Αυτό το μυστικό προστατεύεται με φράση πρόσβασης. Ο αποστολέας θα πρέπει να σας την παρέχει ξεχωριστά.",
+    "sha256": "1e49826b"
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "Απαιτείται φράση πρόσβασης:",
+    "sha256": "1ab9a20f"
+  },
   "email.incoming_secret.sent_via": {
     "text": "Στάλθηκε μέσω",
     "sha256": "d01479b3"
@@ -320,16 +328,84 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Η διεύθυνση email του λογαριασμού σας στο %{product_name} άλλαξε σε %{new_email_masked} στις %{date}.",
+    "text": "Η διεύθυνση email του λογαριασμού σας στο %{product_name} άλλαξε σε %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "Εάν δεν κάνατε εσείς αυτήν την αλλαγή, επικοινωνήστε αμέσως με την υποστήριξη καθώς ο λογαριασμός σας μπορεί να έχει παραβιαστεί.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "Η διεύθυνση email του λογαριασμού σας στο %{product_name} έχει αλλάξει.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "Νέο email:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "Αλλάχθηκε στις:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "Εάν πραγματοποιήσατε εσείς αυτή την αλλαγή, δεν απαιτείται περαιτέρω ενέργεια.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "Εάν δεν πραγματοποιήσατε αυτή την αλλαγή, ο λογαριασμός σας ενδέχεται να έχει παραβιαστεί.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "Επικοινωνία με την υποστήριξη",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address} για να σας ενημερώσει για μια αλλαγή διεύθυνσης email.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "Ζητήθηκε αλλαγή email (%{display_domain})",
+    "sha256": "be3441d6"
+  },
+  "email.email_change_requested.title": {
+    "text": "Ζητήθηκε αλλαγή email",
+    "sha256": "704cbdca"
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "Υποβλήθηκε αίτημα αλλαγής της διεύθυνσης email του λογαριασμού σας στο %{product_name}.",
+    "sha256": "d7e39154"
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "Ζητούμενο νέο email:",
+    "sha256": "243f3e03"
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "Ζητήθηκε στις:",
+    "sha256": "ada23c51"
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "Εάν υποβάλατε εσείς αυτό το αίτημα, ελέγξτε το νέο σας email για σύνδεσμο επιβεβαίωσης. Δεν έχουν γίνει αλλαγές ακόμα.",
+    "sha256": "aa1bf526"
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "Εάν δεν υποβάλατε αυτό το αίτημα, μπορείτε να αγνοήσετε αυτό το email. Ο λογαριασμός σας δεν έχει αλλάξει.",
+    "sha256": "ff41a7b7"
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "Επικοινωνία με την υποστήριξη",
+    "sha256": "f8d47b82"
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.email_change_requested.postscript": {
+    "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address} επειδή ζητήθηκε αλλαγή email για τον λογαριασμό σας.",
+    "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {
     "text": "Επαληθεύστε τη νέα σας διεύθυνση email (%{display_domain})",
@@ -347,13 +423,33 @@
     "text": "Επαλήθευση διεύθυνσης email",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "Υποβλήθηκε αίτημα αλλαγής της διεύθυνσης email του λογαριασμού σας στο %{product_name} σε %{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "Επιβεβαίωση αλλαγής email",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "Αυτός ο σύνδεσμος θα λήξει σε %{hours} ώρες.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "Εάν δεν ζητήσατε αυτή την αλλαγή, μπορείτε να αγνοήσετε αυτό το email. Η διεύθυνση email σας δεν θα αλλάξει.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address} για επιβεβαίωση αλλαγής διεύθυνσης email.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "Η επαλήθευση δύο παραγόντων ενεργοποιήθηκε (%{display_domain})",

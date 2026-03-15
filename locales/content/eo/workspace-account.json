@@ -155,6 +155,10 @@
     "text": "Forigante {0}",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Forigante...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Porĉiame Forigi Konton",
     "sha256": "f894e42c"
@@ -631,8 +635,52 @@
     "text": "Ĉi tiu ago ne povas esti malfarita",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "Forigante...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "Retpoŝta adreso ĝisdatigita",
+    "sha256": "cf02eb0c"
+  },
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Via retpoŝto estis sukcese ĝisdatigita. Bonvolu ensaluti per via nova retpoŝta adreso.",
+    "sha256": "a84efcea"
+  },
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Kontrolante vian novan retpoŝtan adreson...",
+    "sha256": "a6a4745f"
+  },
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "Retpoŝta ŝanĝo malsukcesis",
+    "sha256": "953f3936"
+  },
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "Ĉi tiu kontrola ligo estas nevalida aŭ eksvalidiĝis.",
+    "sha256": "f54594c2"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Reen al kontaj agordoj",
+    "sha256": "fd49b66b"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Alidirektas al ensaluto...",
+    "sha256": "c65f7dcc"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Resendi konfirman retpoŝton",
+    "sha256": "c617fff7"
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "Konfirma retpoŝto sukcese resendita.",
+    "sha256": "2287783b"
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Sendante...",
+    "sha256": "286a3af7"
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "Kontrola retpoŝto estis sendita. Kontrolu vian ricevujon kaj alklaku la konfirman ligon.",
+    "sha256": "5806c93f"
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "Ĉu vi ne ricevis la retpoŝton?",
+    "sha256": "fe3ac3ad"
   }
 }

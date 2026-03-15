@@ -155,6 +155,10 @@
     "text": "Suppression de {0}",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Suppression...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Supprimer définitivement le compte",
     "sha256": "f894e42c"
@@ -210,6 +214,22 @@
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Gérer les paramètres et les préférences de votre compte",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Retour au tableau de bord",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Compte",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Facturation",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Avancé",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "Général",
@@ -615,24 +635,52 @@
     "text": "Cette action est irréversible",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "Suppression...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "Adresse courriel mise à jour",
+    "sha256": "cf02eb0c"
   },
-  "web.settings.back_to_dashboard": {
-    "text": "Retour au tableau de bord",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Votre courriel a été mis à jour avec succès. Veuillez vous connecter avec votre nouvelle adresse courriel.",
+    "sha256": "a84efcea"
   },
-  "web.settings.sections.account": {
-    "text": "Compte",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Vérification de votre nouvelle adresse courriel...",
+    "sha256": "a6a4745f"
   },
-  "web.settings.sections.billing": {
-    "text": "Facturation",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "Échec du changement de courriel",
+    "sha256": "953f3936"
   },
-  "web.settings.sections.advanced": {
-    "text": "Avancé",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "Ce lien de vérification est invalide ou a expiré.",
+    "sha256": "f54594c2"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Retour aux paramètres du compte",
+    "sha256": "fd49b66b"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Redirection vers la connexion...",
+    "sha256": "c65f7dcc"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Renvoyer le courriel de confirmation",
+    "sha256": "c617fff7"
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "Courriel de confirmation renvoyé avec succès.",
+    "sha256": "2287783b"
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Envoi en cours...",
+    "sha256": "286a3af7"
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "Un courriel de vérification a été envoyé. Vérifiez votre boîte de réception et cliquez sur le lien de confirmation.",
+    "sha256": "5806c93f"
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "Vous n'avez pas reçu le courriel ?",
+    "sha256": "fe3ac3ad"
   }
 }

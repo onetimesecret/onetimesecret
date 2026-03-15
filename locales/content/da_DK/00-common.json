@@ -132,9 +132,17 @@
     "text": "Seneste",
     "sha256": "690dbe9d"
   },
-  "web.COMMON.received": {
-    "text": "Modtaget",
-    "sha256": "49f19bee"
+  "web.COMMON.not_set": {
+    "text": "Ikke angivet",
+    "sha256": "4895f731"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Rediger",
+    "sha256": "464c4ffd"
+  },
+  "web.COMMON.word_save": {
+    "text": "Gem",
+    "sha256": "1509f561"
   },
   "web.COMMON.burn": {
     "text": "Ødelæg",
@@ -432,6 +440,10 @@
     "text": "f.eks. {example}",
     "sha256": "cc921aaa"
   },
+  "web.COMMON.about": {
+    "text": "Om",
+    "sha256": "d833339d"
+  },
   "web.COMMON.status": {
     "text": "Status",
     "sha256": "920e413c"
@@ -489,7 +501,7 @@
     "sha256": "c910d474"
   },
   "web.COMMON.note": {
-    "text": "Note",
+    "text": "Bemærk",
     "sha256": "d8da2c49"
   },
   "web.COMMON.monthly": {
@@ -648,6 +660,10 @@
     "text": "Tryk på kopiér-knappen nedenfor.",
     "sha256": "77fcf6fb"
   },
+  "web.COMMON.external_link": {
+    "text": "Eksternt link",
+    "sha256": "be6f6527"
+  },
   "web.LABELS.view_toggle.show": {
     "text": "Vis",
     "sha256": "0df6f1ca"
@@ -687,6 +703,10 @@
   "web.LABELS.expiration_time": {
     "text": "Udløbstidspunkt",
     "sha256": "c5db84a8"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Udløber om",
+    "sha256": "de996752"
   },
   "web.LABELS.close": {
     "text": "Luk",
@@ -824,6 +844,14 @@
     "text": "Genindlæs",
     "sha256": "bdc090ec"
   },
+  "web.LABELS.filter": {
+    "text": "Filtrer",
+    "sha256": "638e249f"
+  },
+  "web.LABELS.clear": {
+    "text": "Ryd",
+    "sha256": "83b12c22"
+  },
   "web.LABELS.caption_recent_secrets": {
     "text": "Beskedlinks oprettet i denne session",
     "sha256": "6c7ceab8"
@@ -848,6 +876,11 @@
     "text": "Relaterede indstillinger",
     "sha256": "68574b20"
   },
+  "web.LABELS.benefits": {
+    "text": "Fordele",
+    "context": "Section header for listing benefits",
+    "sha256": "d5b67bc9"
+  },
   "web.LABELS.creating_links_for": {
     "text": "Opretter links for",
     "sha256": "57db069e"
@@ -871,6 +904,14 @@
   "web.STATUS.received": {
     "text": "Modtaget",
     "sha256": "49f19bee"
+  },
+  "web.STATUS.previewed": {
+    "text": "Forhåndsvist",
+    "sha256": "3d391a9b"
+  },
+  "web.STATUS.revealed": {
+    "text": "Afsløret",
+    "sha256": "17376ee4"
   },
   "web.STATUS.burned": {
     "text": "Ødelagt",
@@ -931,6 +972,14 @@
   "web.STATUS.received_description": {
     "text": "Beskeden er blevet afsløret for modtageren",
     "sha256": "ceb756b4"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Beskedlink er åbnet og klar til at blive afsløret",
+    "sha256": "cc7d1e92"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Beskedens indhold er blevet afsløret for modtageren",
+    "sha256": "39b32f80"
   },
   "web.STATUS.burned_description": {
     "text": "Beskeden blev manuelt ødelagt før den blev vist",
@@ -1056,6 +1105,10 @@
     "text": "Feedback",
     "sha256": "aac77df3"
   },
+  "web.TITLES.help": {
+    "text": "Hjælp",
+    "sha256": "b79cac92"
+  },
   "web.TITLES.signin": {
     "text": "Log ind",
     "sha256": "bcc0bcc9"
@@ -1172,6 +1225,10 @@
     "text": "Skift e-mail",
     "sha256": "18c3f2d5"
   },
+  "web.TITLES.confirm_email_change": {
+    "text": "Bekræft ændring af e-mail",
+    "sha256": "c2736949"
+  },
   "web.TITLES.security_overview": {
     "text": "Sikkerhed",
     "sha256": "8f6fb4eb"
@@ -1191,6 +1248,11 @@
   "web.TITLES.recovery_codes": {
     "text": "Gendannelseskoder",
     "sha256": "579c7f4e"
+  },
+  "web.TITLES.passkeys": {
+    "text": "Adgangsnøgler",
+    "context": "Page title for passkey management",
+    "sha256": "c87ccdb4"
   },
   "web.TITLES.api_settings": {
     "text": "API-indstillinger",
@@ -1216,6 +1278,10 @@
     "text": "Organisationsindstillinger",
     "sha256": "cc1d9e61"
   },
+  "web.TITLES.pricing": {
+    "text": "Priser",
+    "sha256": "dfe95783"
+  },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
     "text": "Fokus er nu i hovedtekstområdet",
     "sha256": "e00dd260"
@@ -1239,70 +1305,6 @@
   "web.INSTRUCTION.phishing_warning": {
     "text": "Bekræft altid at du er på den officielle Onetime Secret-hjemmeside. Svindlere opretter nogle gange falske hjemmesider der ligner Onetime Secret for at stjæle dine beskeder. For at undgå phishing-angreb, tjek regiondomænet før du opretter nye links.",
     "sha256": "b588f5b2"
-  },
-  "web.STATUS.previewed": {
-    "text": "Forhåndsvist",
-    "sha256": "3d391a9b"
-  },
-  "web.STATUS.revealed": {
-    "text": "Afsløret",
-    "sha256": "17376ee4"
-  },
-  "web.STATUS.previewed_description": {
-    "text": "Beskedlink er åbnet og klar til at blive afsløret",
-    "sha256": "cc7d1e92"
-  },
-  "web.STATUS.revealed_description": {
-    "text": "Beskedens indhold er blevet afsløret for modtageren",
-    "sha256": "39b32f80"
-  },
-  "web.COMMON.not_set": {
-    "text": "Ikke angivet",
-    "sha256": "4895f731"
-  },
-  "web.COMMON.word_edit": {
-    "text": "Rediger",
-    "sha256": "464c4ffd"
-  },
-  "web.COMMON.word_save": {
-    "text": "Gem",
-    "sha256": "1509f561"
-  },
-  "web.LABELS.secret_ttl": {
-    "text": "Udløber om",
-    "sha256": "de996752"
-  },
-  "web.LABELS.filter": {
-    "text": "Filtrer",
-    "sha256": "638e249f"
-  },
-  "web.LABELS.clear": {
-    "text": "Ryd",
-    "sha256": "83b12c22"
-  },
-  "web.LABELS.add_note": {
-    "text": "Tilføj note...",
-    "sha256": "32738894"
-  },
-  "web.LABELS.edit_note": {
-    "text": "Rediger note",
-    "sha256": "299e604c"
-  },
-  "web.LABELS.add_memo": {
-    "text": "Tilføj memo...",
-    "sha256": "02384c53"
-  },
-  "web.LABELS.edit_memo": {
-    "text": "Rediger memo",
-    "sha256": "0ec1a5db"
-  },
-  "web.TITLES.help": {
-    "text": "Hjælp",
-    "sha256": "b79cac92"
-  },
-  "web.TITLES.pricing": {
-    "text": "Priser",
-    "sha256": "dfe95783"
   },
   "web.pricing.title": {
     "text": "Enkle, gennemsigtige priser",
@@ -1332,12 +1334,58 @@
     "text": "Anbefalet til dig",
     "sha256": "00093fbd"
   },
+  "web.COMMON.received": {
+    "text": "Modtaget",
+    "sha256": "49f19bee"
+  },
+  "web.LABELS.add_note": {
+    "text": "Tilføj note...",
+    "sha256": "32738894"
+  },
+  "web.LABELS.edit_note": {
+    "text": "Rediger note",
+    "sha256": "299e604c"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Tilføj memo...",
+    "sha256": "02384c53"
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Rediger memo",
+    "sha256": "0ec1a5db"
+  },
   "web.pricing.free_tier_description": {
     "text": "Opret og del beskeder med grundlæggende funktioner. Intet kreditkort påkrævet.",
     "sha256": "3a4f2bc0"
   },
-  "web.COMMON.external_link": {
-    "text": "Eksternt link",
-    "sha256": "a1b2c3d5"
+  "web.COMMON.enter_password_to_continue": {
+    "text": "Indtast din adgangskode for at fortsætte",
+    "context": "Prompt for password confirmation modal",
+    "sha256": "09055357"
+  },
+  "web.COMMON.password_required_for_action": {
+    "text": "Din adgangskode er påkrævet for at fuldføre denne handling",
+    "context": "Description for password confirmation modal",
+    "sha256": "cc078766"
+  },
+  "api.errors.unexpected_error": {
+    "text": "Der opstod en uventet fejl",
+    "context": "Generic error message for unhandled exceptions in API",
+    "sha256": "6615bf1c"
+  },
+  "api.errors.service_unavailable": {
+    "text": "Tjenesten er midlertidigt utilgængelig. Prøv igen om lidt.",
+    "context": "Error message when database connection fails",
+    "sha256": "343ccdcb"
+  },
+  "api.errors.request_processing_error": {
+    "text": "Din anmodning kan ikke behandles på nuværende tidspunkt",
+    "context": "Error message for recoverable server errors",
+    "sha256": "fb961f3f"
+  },
+  "web.COMMON.upgrade_description": {
+    "text": "Opgrader for at låse op for flere funktioner",
+    "context": "Description shown for free plan users encouraging upgrade",
+    "sha256": "783f174c"
   }
 }

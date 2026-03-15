@@ -155,6 +155,10 @@
     "text": "Brisanje {0}",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Brisanje ...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Trajno izbriši račun",
     "sha256": "f894e42c"
@@ -210,6 +214,22 @@
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Upravljajte nastavitve svojega računa in preference",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Nazaj na nadzorno ploščo",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Račun",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Obračunavanje",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Napredno",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "Splošno",
@@ -615,24 +635,52 @@
     "text": "Tega dejanja ni mogoče razveljaviti",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "Brisanje ...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "E-poštni naslov posodobljen",
+    "sha256": "cf02eb0c"
   },
-  "web.settings.back_to_dashboard": {
-    "text": "Nazaj na nadzorno ploščo",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Vaša e-pošta je bila uspešno posodobljena. Prijavite se z novim e-poštnim naslovom.",
+    "sha256": "a84efcea"
   },
-  "web.settings.sections.account": {
-    "text": "Račun",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Preverjanje vašega novega e-poštnega naslova...",
+    "sha256": "a6a4745f"
   },
-  "web.settings.sections.billing": {
-    "text": "Obračunavanje",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "Sprememba e-pošte ni uspela",
+    "sha256": "953f3936"
   },
-  "web.settings.sections.advanced": {
-    "text": "Napredno",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "Ta potrditvena povezava ni veljavna ali je potekla.",
+    "sha256": "f54594c2"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Nazaj na nastavitve računa",
+    "sha256": "fd49b66b"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Preusmeritev na prijavo...",
+    "sha256": "c65f7dcc"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Ponovno pošlji potrditveno e-sporočilo",
+    "sha256": "c617fff7"
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "Potrditveno e-sporočilo uspešno ponovno poslano.",
+    "sha256": "2287783b"
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Pošiljanje...",
+    "sha256": "286a3af7"
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "Potrditveno e-sporočilo je bilo poslano. Preverite svoj nabiralnik in kliknite potrditveno povezavo.",
+    "sha256": "5806c93f"
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "Niste prejeli e-sporočila?",
+    "sha256": "fe3ac3ad"
   }
 }

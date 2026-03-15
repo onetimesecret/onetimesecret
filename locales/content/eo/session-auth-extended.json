@@ -1,15 +1,69 @@
 {
+  "web.auth._guidance": {
+    "skip": true,
+    "_meta": {
+      "_purpose": "These messages follow OWASP/NIST guidelines to prevent information disclosure. Translations MUST maintain generic wording to prevent credential enumeration and timing attacks. Never reveal: which credential failed, precise timing, account existence, or attack progress.",
+      "authentication_failed": {
+        "security_note": "MUST NOT reveal which credential failed (password, OTP, or recovery code). This prevents attackers from determining valid credentials or enumerating accounts.",
+        "owasp_ref": "ASVS 2.2.2 - Authentication failure responses must be generic"
+      },
+      "rate_limited": {
+        "security_note": "MUST NOT reveal precise lockout duration, attempt counts, or remaining attempts. This prevents timing attacks and progress tracking.",
+        "owasp_ref": "ASVS 2.2.1 - Account lockout must not be timing-based enumerable"
+      },
+      "session_expired": {
+        "security_note": "Safe to indicate session issue as it doesn't reveal credential information. Helps users understand they need to re-authenticate.",
+        "owasp_ref": "Session management best practices"
+      },
+      "recovery_code_not_found": {
+        "security_note": "Safe to indicate recovery code context as user explicitly selected this authentication method. Does not reveal whether code exists.",
+        "owasp_ref": "Recovery code validation guidance"
+      },
+      "recovery_code_used": {
+        "security_note": "Safe expected behavior message. Users need to know recovery codes are single-use to prevent confusion.",
+        "owasp_ref": "User guidance for recovery mechanisms"
+      }
+    },
+    "_translation_guidelines": {
+      "DO_NOT_translate_as": [
+        "Wrong password",
+        "Invalid OTP code",
+        "Incorrect recovery code",
+        "Wait 5 minutes",
+        "3 attempts remaining",
+        "Account locked for 15 minutes"
+      ],
+      "MUST_translate_as": [
+        "Generic authentication failure (no credential specifics)",
+        "Generic rate limit message (no precise timing)",
+        "Recovery code validation (no existence confirmation)"
+      ],
+      "WHY": "These restrictions prevent attackers from: (1) determining valid usernames/emails, (2) knowing which credential to focus attacks on, (3) conducting timing attacks, (4) measuring attack progress"
+    },
+    "_safe_information": {
+      "format_requirements": "Safe to specify format rules (e.g., 'OTP must be 6 digits')",
+      "expected_behavior": "Safe to describe how features work (e.g., 'Codes expire every 30 seconds')",
+      "recovery_options": "Safe to offer alternatives (e.g., 'Use a recovery code instead')",
+      "general_guidance": "Safe to provide help (e.g., 'Check your authenticator app')"
+    }
+  },
   "web.auth.mfa_required": {
     "text": "MFA-konfirmo necesas",
+    "context": "Page heading shown when user must complete MFA to proceed",
     "sha256": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
     "text": "MFA-konfirmo necesas por aliri vian konton",
+    "context": "Explanatory text below the heading",
     "sha256": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
     "text": "Kompletigi MFA-Konfirmon",
     "sha256": "0e681134"
+  },
+  "web.auth.security._guidance": {
+    "skip": true,
+    "context": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.security.authentication_failed": {
     "text": "Aŭtentikigo malsukcesis. Bonvolu kontroli viajn akreditaĵojn kaj reprovi.",
@@ -45,6 +99,7 @@
   },
   "web.auth.methods.magicLink": {
     "text": "Retpoŝt-Ligilo",
+    "context": "Passwordless authentication via email link",
     "sha256": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
@@ -99,6 +154,10 @@
     "text": "Nevalida aŭ mankanta ensalut-ligilo",
     "sha256": "d726c0da"
   },
+  "web.auth.magicLink.sessionExpired": {
+    "text": "Via seanco eksvalidiĝis. Bonvolu refreŝigi la paĝon kaj reprovi.",
+    "sha256": "a7c3e901"
+  },
   "web.auth.magicLink.loginFailed": {
     "text": "Ensaluto malsukcesis. Bonvolu reprovi.",
     "sha256": "c95b4875"
@@ -143,6 +202,10 @@
     "text": "Malsukcesis agordi biometrian ensaluton",
     "sha256": "290cca44"
   },
+  "web.auth.webauthn.passwordRequired": {
+    "text": "Pasvorto estas bezonata por agordi pasŝlosilon",
+    "sha256": "085bb238"
+  },
   "web.auth.webauthn.authFailed": {
     "text": "Biometria aŭtentikigo malsukcesis. Bonvolu reprovi.",
     "sha256": "626b9ece"
@@ -163,6 +226,111 @@
     "text": "Subtenas Face ID, Touch ID, Windows Hello, kaj sekurec-ŝlosilojn",
     "sha256": "3ea1c1a2"
   },
+  "web.auth.passkeys.title": {
+    "text": "Pasŝlosiloj",
+    "context": "Title for passkey management section",
+    "sha256": "c87ccdb4"
+  },
+  "web.auth.passkeys.description": {
+    "text": "Ensalutu per Face ID, Touch ID, Windows Hello, aŭ sekureca ŝlosilo",
+    "context": "Description of passkey authentication",
+    "sha256": "a513ed5c"
+  },
+  "web.auth.passkeys.setup_description": {
+    "text": "Pasŝlosiloj ebligas al vi ensaluti sekure sen pasvorto",
+    "context": "Setup page description",
+    "sha256": "85630bef"
+  },
+  "web.auth.passkeys.not_configured": {
+    "text": "Ne agordita",
+    "context": "Status when no passkeys are registered",
+    "sha256": "dd1841d2"
+  },
+  "web.auth.passkeys.count": {
+    "text": "{count} pasŝlosilo registrita | {count} pasŝlosiloj registritaj",
+    "context": "Number of registered passkeys",
+    "sha256": "82e6681f"
+  },
+  "web.auth.passkeys.add_passkey": {
+    "text": "Aldoni pasŝlosilon",
+    "context": "Button to add a new passkey",
+    "sha256": "93713ad7"
+  },
+  "web.auth.passkeys.register_passkey": {
+    "text": "Registri pasŝlosilon",
+    "context": "Button to register a new passkey",
+    "sha256": "26db6968"
+  },
+  "web.auth.passkeys.remove_passkey": {
+    "text": "Forigi pasŝlosilon",
+    "context": "Button to remove a passkey",
+    "sha256": "67b1d47c"
+  },
+  "web.auth.passkeys.confirm_remove": {
+    "text": "Ĉu vi certas, ke vi volas forigi ĉi tiun pasŝlosilon? Vi ne plu povos ensaluti per ĝi.",
+    "context": "Confirmation message for passkey removal",
+    "sha256": "487ab72c"
+  },
+  "web.auth.passkeys.removed_success": {
+    "text": "Pasŝlosilo sukcese forigita",
+    "context": "Success message after removing passkey",
+    "sha256": "436c1050"
+  },
+  "web.auth.passkeys.registered_success": {
+    "text": "Pasŝlosilo sukcese registrita",
+    "context": "Success message after registering passkey",
+    "sha256": "fbfb0713"
+  },
+  "web.auth.passkeys.no_passkeys": {
+    "text": "Neniuj pasŝlosiloj registritaj",
+    "context": "Empty state when no passkeys exist",
+    "sha256": "1d97fde4"
+  },
+  "web.auth.passkeys.no_passkeys_description": {
+    "text": "Aldonu pasŝlosilon por ensaluti pli sekure sen enigi pasvorton",
+    "context": "Description for empty state",
+    "sha256": "e5bc07f1"
+  },
+  "web.auth.passkeys.name": {
+    "text": "Nomo de pasŝlosilo",
+    "context": "Label for passkey name field",
+    "sha256": "22eefa67"
+  },
+  "web.auth.passkeys.created": {
+    "text": "Kreita",
+    "context": "Label for creation date",
+    "sha256": "d70b9e24"
+  },
+  "web.auth.passkeys.last_used": {
+    "text": "Laste uzita: {time}",
+    "context": "Last used timestamp",
+    "sha256": "e1af94fe"
+  },
+  "web.auth.passkeys.never_used": {
+    "text": "Neniam uzita",
+    "context": "Status when passkey has not been used",
+    "sha256": "24d3236c"
+  },
+  "web.auth.passkeys.benefit_secure": {
+    "text": "Pli sekura ol pasvortoj - rezistema kontraŭ fiŝkaptaj atakoj",
+    "context": "Passkey benefit",
+    "sha256": "41afb6ec"
+  },
+  "web.auth.passkeys.benefit_fast": {
+    "text": "Rapida kaj facila - simple uzu vian fingrospuron, vizaĝon, aŭ sekurecan ŝlosilon",
+    "context": "Passkey benefit",
+    "sha256": "5a0ce96c"
+  },
+  "web.auth.passkeys.benefit_synced": {
+    "text": "Sinkronigita trans viaj aparatoj kiam vi uzas platformajn aŭtentikigilojn",
+    "context": "Passkey benefit",
+    "sha256": "7480c7ae"
+  },
+  "web.auth.passkeys.link_title": {
+    "text": "Pasŝlosiloj",
+    "context": "Navigation link title",
+    "sha256": "c87ccdb4"
+  },
   "web.auth.lockout.attempts_remaining": {
     "text": "Averto: {count} ensalut-provo(j) restanta(j)",
     "sha256": "151dcb5e"
@@ -182,6 +350,10 @@
   "web.auth.lockout.try_password_reset": {
     "text": "Vi povas restarigi vian pasvorton anstataŭe",
     "sha256": "a98a3f9d"
+  },
+  "web.auth.sessions._guidance": {
+    "skip": true,
+    "context": "User's logged-in devices/browsers management page"
   },
   "web.auth.sessions.title": {
     "text": "Aktivaj Sesioj",
@@ -538,11 +710,5 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Reakirkodoj",
     "sha256": "579c7f4e"
-  },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ SEKURECOKRITIKA: Mesaĝoj malhelpas informrevelon. Vidu src/locales/SECURITY-TRANSLATION-GUIDE.md"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "Administra paĝo por ensalutitaj aparatoj/folumiloj de uzanto"
   }
 }

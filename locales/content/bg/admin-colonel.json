@@ -575,10 +575,6 @@
     "text": "Управление на персонализирани домейни и брандиране",
     "sha256": "808ee2cb"
   },
-  "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Когато изпратите обратна връзка, ще видим:",
-    "sha256": "fe77172e"
-  },
   "web.colonel.feedback.send_feedback": {
     "text": "Изпрати обратна връзка",
     "sha256": "8235980b"
@@ -634,5 +630,9 @@
   "web.colonel.titles.redis": {
     "text": "Redis",
     "sha256": "a7f64157"
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Когато изпратите обратна връзка, ще видим:",
+    "sha256": "fe77172e"
   }
 }

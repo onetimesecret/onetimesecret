@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "Jelenlegi joghatóság:",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "Régióváltás",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "Irányelveink szerint soha nem továbbítunk adatokat régiók között. Minden régió teljesen független környezetként működik.",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "Egy másik régió használatához hozzon létre ott egy új fiókot ugyanazzal az e-mail címmel, amely a számlázási kapcsolattartó e-mail címéhez van társítva.",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "Ha a számlázási kapcsolattartó e-mail címe eltér az Onetime Secret fiókjának e-mail címétől, használja a számlázási kapcsolattartó e-mail címét az új régiós fiókhoz az előfizetési előnyök megtartásához.",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "Az előfizetési előnyök automatikusan érvényesek minden olyan fiókra, amelyet a számlázási e-mail címével hoztak létre.",
+    "sha256": "5b2238b2"
   }
 }

@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "現在の管轄:",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "リージョンの変更",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "リージョン間でデータを転送しないことが当社のポリシーです。各リージョンは完全に独立した環境として運用されています。",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "別のリージョンを利用するには、請求先メールアドレスに紐づいた同じメールアドレスでそのリージョンに新しいアカウントを作成してください。",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "請求先メールアドレスがOnetime Secretアカウントのメールアドレスと異なる場合、サブスクリプション特典を維持するために、新しいリージョンのアカウントには請求先メールアドレスを使用してください。",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "サブスクリプション特典は、請求先メールアドレスで作成されたすべてのアカウントに自動的に適用されます。",
+    "sha256": "5b2238b2"
   }
 }

@@ -16,7 +16,7 @@
     "sha256": "a06d9daa"
   },
   "web.testimonials.randomtestimonial_quote": {
-    "text": "\"{0}\"",
+    "text": "„{0}“",
     "sha256": "7a27d02b"
   },
   "web.testimonials.t_ai_generated_testimonial": {

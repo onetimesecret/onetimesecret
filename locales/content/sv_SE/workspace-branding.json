@@ -166,5 +166,9 @@
   "web.branding.switch_to_safari_preview": {
     "text": "Byt till Safari-förhandsvisning",
     "sha256": "f24ac447"
+  },
+  "web.branding.upgrade_to_customize": {
+    "text": "Uppgradera din plan för att anpassa varumärkesprofilen för denna domän.",
+    "sha256": "9077bf79"
   }
 }

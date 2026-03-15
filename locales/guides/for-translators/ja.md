@@ -228,6 +228,7 @@ Added Japanese warning marker "注意:" to emphasize importance
 - セキュリティ関連の技術用語は、正確さを優先
 - 一般的に使用されているカタカナ表記を採用
 - **そのまま使用する用語**: API、DNS、SSL/TLS、URL
+- `_literal` サフィックスのキー（例: `onetime_secret_literal`）にはブランド名が含まれており、英語のまま維持してください
 - **例外**: より自然な日本語訳がある場合はそちらを優先
 
 ### Technical Accuracy Examples

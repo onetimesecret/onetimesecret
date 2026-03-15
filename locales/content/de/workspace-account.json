@@ -155,6 +155,10 @@
     "text": "Lösche {0}",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Wird gelöscht...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Konto endgültig löschen",
     "sha256": "f894e42c"
@@ -210,6 +214,22 @@
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Verwalte deine Kontoeinstellungen und Präferenzen",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Zurück zum Dashboard",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Konto",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Abrechnung",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Erweitert",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "Allgemein",
@@ -615,24 +635,52 @@
     "text": "Diese Aktion kann nicht rückgängig gemacht werden",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "Wird gelöscht...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "E-Mail-Adresse aktualisiert",
+    "sha256": "cf02eb0c"
   },
-  "web.settings.back_to_dashboard": {
-    "text": "Zurück zum Dashboard",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Deine E-Mail wurde erfolgreich aktualisiert. Bitte melde dich mit deiner neuen E-Mail-Adresse an.",
+    "sha256": "a84efcea"
   },
-  "web.settings.sections.account": {
-    "text": "Konto",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Deine neue E-Mail-Adresse wird überprüft...",
+    "sha256": "a6a4745f"
   },
-  "web.settings.sections.billing": {
-    "text": "Abrechnung",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "E-Mail-Änderung fehlgeschlagen",
+    "sha256": "953f3936"
   },
-  "web.settings.sections.advanced": {
-    "text": "Erweitert",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "Dieser Bestätigungslink ist ungültig oder abgelaufen.",
+    "sha256": "f54594c2"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Zurück zu den Kontoeinstellungen",
+    "sha256": "fd49b66b"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Weiterleitung zur Anmeldung...",
+    "sha256": "c65f7dcc"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Bestätigungs-E-Mail erneut senden",
+    "sha256": "c617fff7"
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "Bestätigungs-E-Mail wurde erneut gesendet.",
+    "sha256": "2287783b"
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Wird gesendet...",
+    "sha256": "286a3af7"
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "Eine Bestätigungs-E-Mail wurde gesendet. Überprüfe deinen Posteingang und klicke auf den Bestätigungslink.",
+    "sha256": "5806c93f"
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "E-Mail nicht erhalten?",
+    "sha256": "fe3ac3ad"
   }
 }

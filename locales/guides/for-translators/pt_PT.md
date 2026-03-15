@@ -1,24 +1,24 @@
-# Translation Guidance for Portuguese (Português Brasileiro)
+# Translation Guidance for Portuguese (Portugues Europeu)
 
-This document combines the complete glossary and language-specific translation notes for Portuguese (Brazilian) translations of Onetime Secret. It serves as the authoritative reference for maintaining consistency, accuracy, and natural language flow across all Portuguese (Brazilian) content.
+This document combines the complete glossary and language-specific translation notes for European Portuguese translations of Onetime Secret. It serves as the authoritative reference for maintaining consistency, accuracy, and natural language flow across all European Portuguese (pt-PT) content.
 
 ## Overview
 
 This guide provides comprehensive translation standards for the Onetime Secret platform, combining:
 - **Standardized terminology glossary** for consistent term usage
-- **Language-specific guidelines** for Brazilian Portuguese conventions
+- **Language-specific guidelines** for European Portuguese conventions
 - **Translation examples** demonstrating proper application
-- **Cultural and technical considerations** specific to the pt-BR locale
+- **Cultural and technical considerations** specific to the pt-PT locale
 
 ## Core Translation Principles
 
 1. **Consistency**: Use the same translation for each term throughout the application
 2. **Clarity**: Prioritize clear, unambiguous language over literal translations
 3. **Context**: Consider how terms are used within the application
-4. **Cultural Adaptation**: Apply Brazilian Portuguese conventions and preferences
+4. **Cultural Adaptation**: Apply European Portuguese conventions and preferences
 5. **Technical Precision**: Ensure security and technical terms are accurately translated
-6. **Professional Tone**: Maintain a professional yet approachable voice using "você"
-7. **Natural Flow**: Write translations that sound natural to Brazilian Portuguese speakers
+6. **Professional Tone**: Maintain a professional yet approachable voice using "tu"
+7. **Natural Flow**: Write translations that sound natural to European Portuguese speakers
 
 ---
 
@@ -26,37 +26,37 @@ This guide provides comprehensive translation standards for the Onetime Secret p
 
 ## Main Application Concepts
 
-| English | Portuguese (BR) | Context | Notes |
+| English | Portuguese (PT) | Context | Notes |
 |---------|----------------|----------|-------|
-| secret (noun) | mensagem confidencial / conteúdo confidencial | Core application concept | NOT "segredo" - emphasizes shared information |
-| secret (adjective) | confidencial / secreto | Descriptor | |
+| secret (noun) | mensagem confidencial / conteudo confidencial | Core application concept | NOT "segredo" - emphasizes shared information |
+| secret (adjective) | confidencial | Descriptor | NOT "secreto" |
 | passphrase | frase secreta | Secret protection mechanism | Distinct from account password |
-| password | senha | Account login credential | Only for account authentication |
+| password | palavra-passe | Account login credential | Only for account authentication; NOT "senha" |
 | burn | queimar | Delete secret before viewing | Permanent deletion metaphor |
-| view/reveal | visualizar/exibir | Access a secret | Imperative form for buttons |
+| view/reveal | ver/revelar | Access a secret | Imperative form for buttons |
 | hide | ocultar | Conceal content | Imperative form for buttons |
 | link | link | URL providing access | |
-| encrypt/encrypted | criptografar/criptografado | Security method | NOT "encriptar" |
+| encrypt/encrypted | encriptar/encriptado | Security method | NOT "criptografar" (Brazilian) |
 | secure | seguro | Protection state | |
 
 ## User Interface Elements
 
-| English | Portuguese (BR) | Context | Notes |
+| English | Portuguese (PT) | Context | Notes |
 |---------|----------------|----------|-------|
-| Share a secret | Compartilhar mensagem confidencial | Primary action | |
+| Share a secret | Partilhar mensagem confidencial | Primary action | NOT "Compartilhar" (Brazilian) |
 | Create Account | Criar conta | Registration | |
-| Sign In | Entrar | Authentication | NOT "Login" or "Logar" |
-| Sign Out | Sair | Logout action | NOT "Logout" |
-| Dashboard | Painel | User main page | Translated, not loanword |
-| Settings | Configurações | Configuration page | NOT "Ajustes" or "Opções" |
-| Privacy Options | Opções de privacidade | Secret settings | |
+| Sign In | Iniciar sessao | Authentication | NOT "Entrar" or "Login" |
+| Sign Out | Terminar sessao | Logout action | NOT "Sair" alone |
+| Dashboard | Painel | User main page | |
+| Settings | Definicoes | Configuration page | NOT "Configuracoes" (Brazilian) |
+| Privacy Options | Opcoes de privacidade | Secret settings | |
 | Feedback | Feedback | User comments | Keep English term |
-| Search | Buscar | Search action | Brazilian preference, NOT "pesquisar" |
-| Documentation | Documentação | Technical docs | NOT "Documentos" |
+| Search | Pesquisar | Search action | European preference; NOT "buscar" (Brazilian) |
+| Documentation | Documentacao | Technical docs | |
 
 ## Status Terms
 
-| English | Portuguese (BR) | Context |
+| English | Portuguese (PT) | Context |
 |---------|----------------|----------|
 | received | recebido | Secret was viewed |
 | burned | queimado | Secret deleted before viewing |
@@ -67,7 +67,7 @@ This guide provides comprehensive translation standards for the Onetime Secret p
 
 ## Time-Related Terms
 
-| English | Portuguese (BR) | Context |
+| English | Portuguese (PT) | Context |
 |---------|----------------|----------|
 | expires in | expira em | Time until secret unavailable |
 | day/days | dia/dias | Time unit |
@@ -77,35 +77,35 @@ This guide provides comprehensive translation standards for the Onetime Secret p
 
 ## Security Features
 
-| English | Portuguese (BR) | Context |
+| English | Portuguese (PT) | Context |
 |---------|----------------|----------|
-| one-time access | acesso único | Core security feature |
-| passphrase protection | proteção por frase secreta | Additional security |
-| encrypted in transit | criptografado em trânsito | Data protection method |
-| encrypted at rest | criptografado em repouso | Storage protection |
+| one-time access | acesso unico | Core security feature |
+| passphrase protection | protecao por frase secreta | Additional security |
+| encrypted in transit | encriptado em transito | Data protection method |
+| encrypted at rest | encriptado em repouso | Storage protection |
 
 ## Account-Related Terms
 
-| English | Portuguese (BR) | Context |
+| English | Portuguese (PT) | Context |
 |---------|----------------|----------|
 | email | e-mail | User identifier |
-| password | senha | Authentication |
+| password | palavra-passe | Authentication |
 | account | conta | User profile |
-| subscription | assinatura | Paid service |
+| subscription | subscrição | Paid service |
 | customer | cliente | Paying user |
 
 ## Domain-Related Terms
 
-| English | Portuguese (BR) | Context |
+| English | Portuguese (PT) | Context |
 |---------|----------------|----------|
-| custom domain | domínio personalizado | Premium feature |
-| domain verification | verificação de domínio | Setup process |
-| DNS record | registro DNS | Configuration |
-| CNAME record | registro CNAME | DNS configuration |
+| custom domain | dominio personalizado | Premium feature |
+| domain verification | verificacao de dominio | Setup process |
+| DNS record | registo DNS | Configuration |
+| CNAME record | registo CNAME | DNS configuration |
 
 ## Error Messages
 
-| English | Portuguese (BR) | Context |
+| English | Portuguese (PT) | Context |
 |---------|----------------|----------|
 | error | erro | Problem notification |
 | warning | aviso | Caution notification |
@@ -113,18 +113,18 @@ This guide provides comprehensive translation standards for the Onetime Secret p
 
 ## Buttons and Actions
 
-| English | Portuguese (BR) | Context | Notes |
+| English | Portuguese (PT) | Context | Notes |
 |---------|----------------|----------|-------|
 | submit | enviar | Submit action | Imperative voice |
 | cancel | cancelar | Negative action | Imperative voice |
 | confirm | confirmar | Positive action | Imperative voice |
-| copy to clipboard | copiar para área de transferência | Utility action | Brazilian term for clipboard |
+| copy to clipboard | copiar para a area de transferencia | Utility action | |
 | continue | continuar | Navigation | Imperative voice |
 | back | voltar | Navigation | Imperative voice |
 
 ## Marketing Terms
 
-| English | Portuguese (BR) | Context |
+| English | Portuguese (PT) | Context |
 |---------|----------------|----------|
 | secure links | links seguros | Product feature |
 | privacy-first design | design com privacidade em primeiro lugar | Design philosophy |
@@ -141,6 +141,7 @@ Maintain these terms in English for technical precision:
 - JSON
 - YAML
 - hash
+- Keys ending in `_literal` (e.g., `onetime_secret_literal`) contain brand names that must remain in English exactly as-is
 
 ---
 
@@ -152,161 +153,173 @@ Maintain these terms in English for technical precision:
 
 **CRITICAL:** The term "secret" is central to the application and must be translated consistently.
 
-Use **"mensagem confidencial"** (confidential message) or **"conteúdo confidencial"** (confidential content) instead of "segredo" to avoid implications of personal secrets.
+Use **"mensagem confidencial"** (confidential message) or **"conteudo confidencial"** (confidential content) instead of "segredo" to avoid implications of personal secrets.
 
-✅ **CORRECT:**
+- **"confidencial"** as adjective, NOT "secreto"
+
+CORRECT:
 - "Criar mensagem confidencial"
-- "Visualizar conteúdo confidencial"
+- "Ver conteudo confidencial"
 - "3 novas mensagens confidenciais"
 
-❌ **INCORRECT:**
+INCORRECT:
 - "Criar segredo" (implies personal secret)
-- "Visualizar segredo"
+- "Ver segredo"
 - "3 novos segredos"
-
-**Examples from actual translations:**
-- `create-a-secret`: "Criar um Segredo" → **"Criar Mensagem Confidencial"**
-- `secret-content`: "Conteúdo secreto" → **"Conteúdo confidencial"**
-- `recent-secrets-count`: Use **"mensagens confidenciais"**
 
 ### 2. Password vs Passphrase
 
 **CRITICAL:** Distinguish clearly between these two concepts.
 
-- **Senha**: ONLY for account login
+- **Palavra-passe**: ONLY for account login (NOT "senha", which is Brazilian)
 - **Frase secreta**: ONLY for protecting individual secrets
 
-✅ **CORRECT:**
-- "Digite sua senha para entrar na conta" (Enter your password to log in)
-- "Proteja com uma frase secreta" (Protect with a passphrase)
-- `enter-a-passphrase`: **"Insira uma frase secreta"**
+CORRECT:
+- "Introduz a tua palavra-passe para iniciar sessao" (Enter your password to log in)
+- "Protege com uma frase secreta" (Protect with a passphrase)
+- `enter-a-passphrase`: **"Introduz uma frase secreta"**
 
-❌ **INCORRECT:**
-- Using "senha" for both concepts
-- Using ambiguous terms
+INCORRECT:
+- Using "palavra-passe" for both concepts
+- Using "senha" (Brazilian term)
 
-## Brazilian vs European Portuguese
+## European vs Brazilian Portuguese
 
-**CRITICAL:** This translation uses Brazilian Portuguese (pt-BR) conventions, NOT European Portuguese (pt-PT).
+**CRITICAL:** This translation uses European Portuguese (pt-PT) conventions, NOT Brazilian Portuguese (pt-BR).
 
 ### Key Differences
 
-| Aspect | Brazilian (pt-BR) ✅ | European (pt-PT) ❌ |
-|--------|---------------------|-------------------|
-| Search verb | buscar | pesquisar |
-| Informal you | você | tu/vós |
-| Application | aplicativo/aplicação | aplicação |
-| Training | treinar | formar |
-| Clipboard | área de transferência | prancheta |
+| Aspect | European (pt-PT) | Brazilian (pt-BR) |
+|--------|-------------------|-------------------|
+| Password | palavra-passe | senha |
+| Search verb | pesquisar | buscar |
+| Informal you | tu | voce |
+| Share | partilhar | compartilhar |
+| Settings | definicoes | configuracoes |
+| Encrypt | encriptar | criptografar |
+| Sign in | iniciar sessao | entrar |
+| DNS record | registo | registro |
+| Progressive | a + infinitive | gerund (-ndo) |
 
-### Gerund Usage
+### Progressive/Continuous Forms
 
-Brazilian Portuguese uses the gerund (-ndo) more frequently than European Portuguese.
+European Portuguese uses **"a + infinitive"** construction, NOT the gerund.
 
-✅ **Brazilian (CORRECT):**
-- "Mostrando resultados" (Showing results)
-- "Buscando" (Searching)
-- "Carregando" (Loading)
+CORRECT (European):
+- "A mostrar resultados" (Showing results)
+- "A pesquisar" (Searching)
+- "A carregar" (Loading)
 
-❌ **European (INCORRECT for pt-BR):**
-- "A mostrar resultados"
-- "A buscar"
-- "A carregar"
+INCORRECT (Brazilian):
+- "Mostrando resultados"
+- "Buscando"
+- "Carregando"
 
-**Use the Brazilian gerund style throughout all documentation and UI text.**
+**Use the European "a + infinitive" style throughout all UI text.**
 
 ## Formality and Tone
 
-### Use "Você" (Informal You)
+### Use "Tu" (Informal You)
 
-Modern Brazilian Portuguese tech documentation uses **"você"** (informal you), not overly formal "o senhor/a senhora".
+European Portuguese tech products use **"tu"** for an approachable tone. Use tu-form verb conjugations and possessives consistently.
+
+**Tu-form conjugation patterns:**
+- Imperative: "Introduz", "Partilha", "Cria", "Protege", "Faz"
+- Possessives: "tua", "teu", "tuas", "teus"
+- Pronouns: "tu", "te", "-te"
+- Present indicative: "podes", "tens", "queres", "deves"
 
 **Examples:**
-- "Seu recurso central" (Your central resource)
-- "Confira nossa documentação" (Check our documentation)
-- "Se você tiver dúvidas" (If you have questions)
+- "O teu recurso central" (Your central resource)
+- "Consulta a nossa documentacao" (Check our documentation)
+- "Se tiveres duvidas" (If you have questions)
 - "Bem-vindo ao painel" (Welcome to your dashboard)
 
-This creates a professional but approachable tone, which is standard for tech documentation in Brazil.
+**DO NOT MIX REGISTERS.** Every string must use tu-form consistently. Never use "voce", "sua/seu" (voce-form), "Introduza", "Proteja", "Faca" (voce-form imperatives) in the same locale.
+
+| Register | Tu-form (CORRECT) | Voce-form (INCORRECT) |
+|----------|-------------------|----------------------|
+| Imperative | Introduz, Partilha, Cria | Introduza, Partilhe, Crie |
+| Possessive | tua, teu | sua, seu |
+| Present | podes, tens | pode, tem |
+| Pronoun | tu, te | voce |
 
 ### Voice Consistency
 
 **For Actions (Buttons, Commands):**
-Use active, imperative voice:
+Use active, imperative voice (tu-form):
 - **"Ocultar"** (Hide)
-- **"Visualizar"** (View)
+- **"Ver"** (View)
 - **"Enviar"** (Submit)
 - **"Cancelar"** (Cancel)
 
 **For Informational Text (Status, Descriptions):**
 Use declarative/passive voice:
 - "A mensagem foi visualizada" (The message was viewed)
-- "Conteúdo criptografado em repouso" (Content encrypted at rest)
-- "Proteção por frase secreta aplicada" (Passphrase protection applied)
+- "Conteudo encriptado em repouso" (Content encrypted at rest)
+- "Protecao por frase secreta aplicada" (Passphrase protection applied)
 
 ## Clarity and Conciseness
 
 ### Standard Abbreviations
 
-Use standard Brazilian Portuguese abbreviations:
+Use standard European Portuguese abbreviations:
 
-| English | Portuguese (BR) | Notes |
+| English | Portuguese (PT) | Notes |
 |---------|----------------|-------|
-| e.g. | ex. | NOT "p. ex. exemplo" |
-| i.e. | isto é / ou seja | Spelled out for clarity |
+| e.g. | p. ex. | Standard European abbreviation |
+| i.e. | isto e / ou seja | Spelled out for clarity |
 | etc. | etc. | Same as English |
-
-**Example:**
-- `e-g-example`: Changed from "p. ex. exemplo" to **"ex."**
 
 ### Natural Language Flow
 
-Write for Brazilian Portuguese speakers, not literal English translations.
+Write for European Portuguese speakers, not literal English translations.
 
-✅ **GOOD (Natural Brazilian Portuguese):**
+GOOD (Natural European Portuguese):
 ```
-"Bem-vindo ao Onetime Secret Docs, seu recurso central para
-maximizar o valor do nosso serviço de compartilhamento de
-mensagens confidenciais efêmeras e focado em privacidade."
+"Bem-vindo ao Onetime Secret Docs, o teu recurso central para
+tirares o maximo partido do nosso servico de partilha de
+mensagens confidenciais efemeras e focado em privacidade."
 ```
 
 This uses:
 - Natural sentence structure
-- Professional tone with "você/seu"
-- Appropriate vocabulary
-- Natural gerund usage
+- Professional tone with "tu/teu"
+- European vocabulary ("partilha", not "compartilhamento")
+- No gerund constructions
 
-❌ **BAD (Literal translation):**
+BAD (Brazilian Portuguese or mixed):
 ```
-"Bem-vindo para Documentos de Onetime Secret, o recurso central
-de você para maximizando valor de nosso serviço..."
+"Bem-vindo ao Onetime Secret Docs, seu recurso central para
+maximizar o valor do nosso servico de compartilhamento de
+mensagens confidenciais..."
 ```
 
 ## Link Localization
 
-**CRITICAL:** All internal documentation links must use the `/pt-br/` prefix.
+**CRITICAL:** All internal documentation links must use the `/pt-pt/` prefix.
 
 ### Correct Link Format
 
 ```markdown
-✅ CORRECT: [documentação](/pt-br/docs-overview)
-✅ CORRECT: [primeiros passos](/pt-br/introduction)
-✅ CORRECT: [segurança](/pt-br/security/best-practices)
+CORRECT: [documentacao](/pt-pt/docs-overview)
+CORRECT: [primeiros passos](/pt-pt/introduction)
+CORRECT: [seguranca](/pt-pt/security/best-practices)
 
-❌ WRONG: [documentação](/pt/docs-overview)     # Wrong locale code
-❌ WRONG: [documentação](/pt-pt/docs-overview)  # Wrong variant
-❌ WRONG: [documentação](docs-overview)         # Missing locale prefix
+WRONG: [documentacao](/pt/docs-overview)     # Wrong locale code
+WRONG: [documentacao](/pt-br/docs-overview)  # Wrong variant
+WRONG: [documentacao](docs-overview)         # Missing locale prefix
 ```
 
-**Note:** The locale code uses a hyphen: `pt-br` (NOT `pt_br` or `ptbr`)
+**Note:** The locale code uses a hyphen: `pt-pt` (NOT `pt_pt` or `ptpt`)
 
 ### External Links
 
 External links to onetimesecret.com should remain as-is:
 
 ```markdown
-✅ CORRECT: [entrar em contato](https://onetimesecret.com/feedback)
-✅ CORRECT: [criar conta](https://onetimesecret.com/signup)
+CORRECT: [contactar](https://onetimesecret.com/feedback)
+CORRECT: [criar conta](https://onetimesecret.com/signup)
 ```
 
 ---
@@ -323,27 +336,21 @@ External links to onetimesecret.com should remain as-is:
 
 ### Viewing Content
 
-**Before:** "Ver conteúdo secreto"
-**After:** **"Visualizar conteúdo confidencial"**
-**Reasoning:** Uses imperative verb appropriate for buttons + correct terminology
+**Before:** "Ver conteudo secreto"
+**After:** **"Ver conteudo confidencial"**
+**Reasoning:** Uses correct terminology; "confidencial" not "secreto"
 
 ### Passphrase Protection
 
-**Before:** "Digite uma senha" (ambiguous)
-**After:** **"Insira uma frase secreta"**
-**Reasoning:** Clearly distinguishes from account password
+**Before:** "Introduz uma senha" (Brazilian term)
+**After:** **"Introduz uma frase secreta"**
+**Reasoning:** Uses European "palavra-passe" for passwords, "frase secreta" for passphrases
 
-### Documentation Reference
+### Settings Reference
 
-**Before:** "Documentos"
-**After:** **"Documentação"**
-**Reasoning:** More precise term for technical documentation
-
-### Example Abbreviation
-
-**Before:** "p. ex. exemplo"
-**After:** **"ex."**
-**Reasoning:** Standard Brazilian abbreviation, more concise
+**Before:** "Configuracoes" (Brazilian)
+**After:** **"Definicoes"**
+**Reasoning:** European Portuguese standard term
 
 ## Complete UI Example
 
@@ -351,39 +358,39 @@ External links to onetimesecret.com should remain as-is:
 ```
 Bem-vindo ao Onetime Secret
 
-Compartilhe mensagens confidenciais de forma segura com links de acesso único.
+Partilha mensagens confidenciais de forma segura com links de acesso unico.
 
 [Criar Mensagem Confidencial]
-[Entrar na Conta]
-[Ver Documentação]
+[Iniciar Sessao]
+[Ver Documentacao]
 
-Seus dados são criptografados em trânsito e em repouso.
+Os teus dados sao encriptados em transito e em repouso.
 ```
 
 This demonstrates:
 - Correct use of "mensagem confidencial"
 - Imperative verbs on buttons
-- "você" tone ("Seus dados")
-- Proper technical terms
-- Natural Brazilian Portuguese flow
+- "tu" tone ("Os teus dados")
+- European terminology ("partilha", "encriptados", "Iniciar Sessao")
+- No gerund constructions
 
 ---
 
 # Summary of Translation Goals
 
-The Portuguese (Brazilian) translation aims to:
+The European Portuguese translation aims to:
 
-1. **Ensure Consistency:** Use standardized terminology for core concepts like `secret` → `mensagem confidencial` and `passphrase` → `frase secreta`
+1. **Ensure Consistency:** Use standardized terminology for core concepts like `secret` -> `mensagem confidencial` and `passphrase` -> `frase secreta`
 
-2. **Maintain Clarity:** Distinguish clearly between similar concepts (password vs passphrase, secret vs personal secret)
+2. **Maintain Clarity:** Distinguish clearly between similar concepts (palavra-passe vs frase secreta, mensagem confidencial vs segredo)
 
-3. **Follow Brazilian Conventions:** Use Brazilian Portuguese vocabulary, gerund forms, and "você" tone
+3. **Follow European Conventions:** Use European Portuguese vocabulary, "a + infinitive" progressive forms, and "tu" register
 
-4. **Apply Correct Voice:** Imperative for actions, declarative for information
+4. **Apply Correct Voice:** Imperative (tu-form) for actions, declarative for information
 
-5. **Achieve Natural Flow:** Write translations that sound natural to Brazilian Portuguese speakers
+5. **Achieve Natural Flow:** Write translations that sound natural to European Portuguese speakers
 
-6. **Ensure Technical Accuracy:** Translate security and technical terms precisely
+6. **Ensure Technical Accuracy:** Translate security and technical terms precisely using European conventions (encriptar, not criptografar)
 
 7. **Maintain Professional Approachability:** Professional tone while remaining accessible and user-friendly
 
@@ -391,28 +398,29 @@ The Portuguese (Brazilian) translation aims to:
 
 # Quick Reference Checklist
 
-When translating Onetime Secret content to Brazilian Portuguese:
+When translating Onetime Secret content to European Portuguese:
 
-- [ ] Use "mensagem confidencial" or "conteúdo confidencial" for "secret" (noun)
+- [ ] Use "mensagem confidencial" or "conteudo confidencial" for "secret" (noun)
+- [ ] Use "confidencial" for "secret" (adjective), NOT "secreto"
 - [ ] Use "frase secreta" for "passphrase"
-- [ ] Use "senha" ONLY for account passwords
-- [ ] Use "você" tone (informal you), not overly formal language
-- [ ] Use Brazilian Portuguese vocabulary (buscar, não pesquisar)
-- [ ] Use gerund forms (-ndo) for progressive actions
-- [ ] Use imperative voice for buttons and commands
+- [ ] Use "palavra-passe" for account passwords, NOT "senha"
+- [ ] Use "tu" register consistently (tua/teu, Introduz/Partilha/Cria)
+- [ ] NEVER mix tu-form and voce-form in the same locale
+- [ ] Use "a + infinitive" for progressive actions, NOT gerund (-ndo)
+- [ ] Use European vocabulary (partilhar, definicoes, pesquisar, encriptar)
+- [ ] Use imperative voice (tu-form) for buttons and commands
 - [ ] Use declarative voice for status and informational text
 - [ ] Keep technical terms (API, DNS, SSL) in English
-- [ ] Use `/pt-br/` prefix for all internal documentation links
-- [ ] Use "ex." for "e.g."
-- [ ] Use "Entrar" for "Sign In" (not "Login")
-- [ ] Use "Sair" for "Sign Out" (not "Logout")
-- [ ] Use "Configurações" for "Settings"
-- [ ] Use "Documentação" for technical documentation
-- [ ] Write for natural Brazilian Portuguese flow, not literal translations
+- [ ] Use `/pt-pt/` prefix for all internal documentation links
+- [ ] Use "Iniciar sessao" for "Sign In"
+- [ ] Use "Terminar sessao" for "Sign Out"
+- [ ] Use "Definicoes" for "Settings"
+- [ ] Use "Documentacao" for technical documentation
+- [ ] Write for natural European Portuguese flow, not literal translations
 
 ---
 
 **Document Version:** 1.0
 **Created:** 2025
 **For Use With:** Onetime Secret translation projects
-**Locale:** pt-BR (Portuguese - Brazil)
+**Locale:** pt-PT (Portuguese - Portugal)

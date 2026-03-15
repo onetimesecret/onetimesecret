@@ -9,7 +9,7 @@
     "sha256": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "Powered by",
+    "text": "Bereitgestellt von",
     "sha256": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
@@ -132,9 +132,17 @@
     "text": "Kürzlich",
     "sha256": "690dbe9d"
   },
-  "web.COMMON.received": {
-    "text": "Empfangen",
-    "sha256": "49f19bee"
+  "web.COMMON.not_set": {
+    "text": "Nicht festgelegt",
+    "sha256": "4895f731"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Bearbeiten",
+    "sha256": "464c4ffd"
+  },
+  "web.COMMON.word_save": {
+    "text": "Speichern",
+    "sha256": "1509f561"
   },
   "web.COMMON.burn": {
     "text": "Löschen",
@@ -432,6 +440,10 @@
     "text": "z.B. {example}",
     "sha256": "cc921aaa"
   },
+  "web.COMMON.about": {
+    "text": "Über uns",
+    "sha256": "d833339d"
+  },
   "web.COMMON.status": {
     "text": "Status",
     "sha256": "920e413c"
@@ -648,6 +660,10 @@
     "text": "Klicke unten auf die Kopieren-Schaltfläche.",
     "sha256": "77fcf6fb"
   },
+  "web.COMMON.external_link": {
+    "text": "Externer Link",
+    "sha256": "be6f6527"
+  },
   "web.LABELS.view_toggle.show": {
     "text": "Anzeigen",
     "sha256": "0df6f1ca"
@@ -687,6 +703,10 @@
   "web.LABELS.expiration_time": {
     "text": "Ablaufzeit",
     "sha256": "c5db84a8"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Läuft ab in",
+    "sha256": "de996752"
   },
   "web.LABELS.close": {
     "text": "Schließen",
@@ -824,6 +844,14 @@
     "text": "Neu laden",
     "sha256": "bdc090ec"
   },
+  "web.LABELS.filter": {
+    "text": "Filtern",
+    "sha256": "638e249f"
+  },
+  "web.LABELS.clear": {
+    "text": "Leeren",
+    "sha256": "83b12c22"
+  },
   "web.LABELS.caption_recent_secrets": {
     "text": "In dieser Sitzung erstellte geheime Links",
     "sha256": "6c7ceab8"
@@ -848,6 +876,11 @@
     "text": "Verwandte Einstellungen",
     "sha256": "68574b20"
   },
+  "web.LABELS.benefits": {
+    "text": "Vorteile",
+    "context": "Section header for listing benefits",
+    "sha256": "d5b67bc9"
+  },
   "web.LABELS.creating_links_for": {
     "text": "Links werden erstellt für",
     "sha256": "57db069e"
@@ -871,6 +904,14 @@
   "web.STATUS.received": {
     "text": "Empfangen",
     "sha256": "49f19bee"
+  },
+  "web.STATUS.previewed": {
+    "text": "Vorschau angezeigt",
+    "sha256": "3d391a9b"
+  },
+  "web.STATUS.revealed": {
+    "text": "Enthüllt",
+    "sha256": "17376ee4"
   },
   "web.STATUS.burned": {
     "text": "Gelöscht",
@@ -931,6 +972,14 @@
   "web.STATUS.received_description": {
     "text": "Die Nachricht wurde dem Empfänger enthüllt",
     "sha256": "ceb756b4"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Der geheime Link wurde geöffnet und kann enthüllt werden",
+    "sha256": "cc7d1e92"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Der Nachrichteninhalt wurde dem Empfänger enthüllt",
+    "sha256": "39b32f80"
   },
   "web.STATUS.burned_description": {
     "text": "Die Nachricht wurde manuell gelöscht, bevor sie angesehen wurde",
@@ -1056,6 +1105,10 @@
     "text": "Feedback",
     "sha256": "aac77df3"
   },
+  "web.TITLES.help": {
+    "text": "Hilfe",
+    "sha256": "b79cac92"
+  },
   "web.TITLES.signin": {
     "text": "Anmelden",
     "sha256": "bcc0bcc9"
@@ -1172,6 +1225,10 @@
     "text": "E-Mail ändern",
     "sha256": "18c3f2d5"
   },
+  "web.TITLES.confirm_email_change": {
+    "text": "E-Mail-Änderung bestätigen",
+    "sha256": "c2736949"
+  },
   "web.TITLES.security_overview": {
     "text": "Sicherheit",
     "sha256": "8f6fb4eb"
@@ -1191,6 +1248,11 @@
   "web.TITLES.recovery_codes": {
     "text": "Wiederherstellungscodes",
     "sha256": "579c7f4e"
+  },
+  "web.TITLES.passkeys": {
+    "text": "Passkeys",
+    "context": "Page title for passkey management",
+    "sha256": "c87ccdb4"
   },
   "web.TITLES.api_settings": {
     "text": "API-Einstellungen",
@@ -1216,6 +1278,10 @@
     "text": "Organisationseinstellungen",
     "sha256": "cc1d9e61"
   },
+  "web.TITLES.pricing": {
+    "text": "Preise",
+    "sha256": "dfe95783"
+  },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
     "text": "Der Fokus liegt jetzt im Haupttextbereich",
     "sha256": "e00dd260"
@@ -1239,70 +1305,6 @@
   "web.INSTRUCTION.phishing_warning": {
     "text": "Überprüfe immer, ob du auf der offiziellen Onetime Secret-Website bist. Betrüger erstellen manchmal gefälschte Websites, die genau wie Onetime Secret aussehen, um deine Nachrichten zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfe die Domain, bevor du neue Links erstellst.",
     "sha256": "b588f5b2"
-  },
-  "web.STATUS.previewed": {
-    "text": "Vorschau angezeigt",
-    "sha256": "3d391a9b"
-  },
-  "web.STATUS.revealed": {
-    "text": "Enthüllt",
-    "sha256": "17376ee4"
-  },
-  "web.STATUS.previewed_description": {
-    "text": "Der geheime Link wurde geöffnet und kann enthüllt werden",
-    "sha256": "cc7d1e92"
-  },
-  "web.STATUS.revealed_description": {
-    "text": "Der Nachrichteninhalt wurde dem Empfänger enthüllt",
-    "sha256": "39b32f80"
-  },
-  "web.COMMON.not_set": {
-    "text": "Nicht festgelegt",
-    "sha256": "4895f731"
-  },
-  "web.COMMON.word_edit": {
-    "text": "Bearbeiten",
-    "sha256": "464c4ffd"
-  },
-  "web.COMMON.word_save": {
-    "text": "Speichern",
-    "sha256": "1509f561"
-  },
-  "web.LABELS.secret_ttl": {
-    "text": "Läuft ab in",
-    "sha256": "de996752"
-  },
-  "web.LABELS.filter": {
-    "text": "Filtern",
-    "sha256": "638e249f"
-  },
-  "web.LABELS.clear": {
-    "text": "Leeren",
-    "sha256": "83b12c22"
-  },
-  "web.LABELS.add_note": {
-    "text": "Notiz hinzufügen...",
-    "sha256": "32738894"
-  },
-  "web.LABELS.edit_note": {
-    "text": "Notiz bearbeiten",
-    "sha256": "299e604c"
-  },
-  "web.LABELS.add_memo": {
-    "text": "Memo hinzufügen...",
-    "sha256": "02384c53"
-  },
-  "web.LABELS.edit_memo": {
-    "text": "Memo bearbeiten",
-    "sha256": "0ec1a5db"
-  },
-  "web.TITLES.help": {
-    "text": "Hilfe",
-    "sha256": "b79cac92"
-  },
-  "web.TITLES.pricing": {
-    "text": "Preise",
-    "sha256": "dfe95783"
   },
   "web.pricing.title": {
     "text": "Einfache, transparente Preise",
@@ -1332,12 +1334,58 @@
     "text": "Empfohlen für dich",
     "sha256": "00093fbd"
   },
+  "web.COMMON.received": {
+    "text": "Empfangen",
+    "sha256": "49f19bee"
+  },
+  "web.LABELS.add_note": {
+    "text": "Notiz hinzufügen...",
+    "sha256": "32738894"
+  },
+  "web.LABELS.edit_note": {
+    "text": "Notiz bearbeiten",
+    "sha256": "299e604c"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Memo hinzufügen...",
+    "sha256": "02384c53"
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Memo bearbeiten",
+    "sha256": "0ec1a5db"
+  },
   "web.pricing.free_tier_description": {
     "text": "Erstelle und teile Nachrichten mit Basisfunktionen. Keine Kreditkarte erforderlich.",
     "sha256": "3a4f2bc0"
   },
-  "web.COMMON.external_link": {
-    "text": "Externer Link",
-    "sha256": "a1b2c3d5"
+  "web.COMMON.enter_password_to_continue": {
+    "text": "Gib dein Passwort ein, um fortzufahren",
+    "context": "Prompt for password confirmation modal",
+    "sha256": "09055357"
+  },
+  "web.COMMON.password_required_for_action": {
+    "text": "Dein Passwort wird benötigt, um diese Aktion abzuschließen",
+    "context": "Description for password confirmation modal",
+    "sha256": "cc078766"
+  },
+  "api.errors.unexpected_error": {
+    "text": "Ein unerwarteter Fehler ist aufgetreten",
+    "context": "Generic error message for unhandled exceptions in API",
+    "sha256": "6615bf1c"
+  },
+  "api.errors.service_unavailable": {
+    "text": "Dienst vorübergehend nicht verfügbar. Bitte versuche es in Kürze erneut.",
+    "context": "Error message when database connection fails",
+    "sha256": "343ccdcb"
+  },
+  "api.errors.request_processing_error": {
+    "text": "Deine Anfrage kann derzeit nicht verarbeitet werden",
+    "context": "Error message for recoverable server errors",
+    "sha256": "fb961f3f"
+  },
+  "web.COMMON.upgrade_description": {
+    "text": "Upgrade, um weitere Funktionen freizuschalten",
+    "context": "Description shown for free plan users encouraging upgrade",
+    "sha256": "783f174c"
   }
 }

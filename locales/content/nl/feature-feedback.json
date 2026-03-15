@@ -31,17 +31,13 @@
     "text": "Helpinhoud komt hier.",
     "sha256": "796979ea"
   },
-  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Bedankt voor uw hulp bij het verbeteren van Onetime Secret. Het betekent veel voor ons."
+  "web.feedback.founder_note_line1": {
+    "text": "Ik lees elk stukje feedback dat hier binnenkomt. Zo bepaal ik waar ik mijn tijd aan besteed.",
+    "sha256": "8b430d93"
   },
-  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
-    "text": "We hebben deze tool gebouwd om u te helpen gevoelige informatie veilig te delen, en uw praktijkervaringen zijn cruciaal voor het richten van onze inspanningen. Het helpt ons te bepalen waaraan we vervolgens moeten werken en hoe we de service beter kunnen maken voor iedereen."
-  },
-  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
-    "text": "Hallo, bedankt voor uw bezoek aan onze feedbackpagina. Uw input is niet alleen welkom - het is cruciaal."
-  },
-  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Een bericht van Delano, oprichter van Onetime Secret"
+  "web.feedback.founder_note_line2": {
+    "text": "Als er iets niet klopt, of je hebt ideeën over hoe het zou moeten werken, dan is dit de juiste plek.",
+    "sha256": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
     "text": "Feedbackformulier openen",
@@ -55,12 +51,12 @@
     "text": "Feedback verzenden",
     "sha256": "8235980b"
   },
-  "web.feedback.founder_note_line1": {
-    "text": "Ik lees elk stukje feedback dat hier binnenkomt. Zo bepaal ik waar ik mijn tijd aan besteed.",
-    "sha256": "8b430d93"
+  "web.feedback.sending_ellipses": {
+    "text": "Verzenden...",
+    "sha256": "286a3af7"
   },
-  "web.feedback.founder_note_line2": {
-    "text": "Als er iets niet klopt, of je hebt ideeën over hoe het zou moeten werken, dan is dit de juiste plek.",
-    "sha256": "d4b8f073"
+  "web.feedback.reason_email_change_unauthorized": {
+    "text": "Het lijkt erop dat je een ongeautoriseerde wijziging van het e-mailadres op je account meldt. Beschrijf wat er is gebeurd en we onderzoeken het direct.",
+    "sha256": "00e56551"
   }
 }

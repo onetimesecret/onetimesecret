@@ -151,6 +151,14 @@
     "text": "Liên kết này chỉ hoạt động một lần. Sau khi xem, bí mật sẽ bị xóa vĩnh viễn.",
     "sha256": "fecaf0a1"
   },
+  "email.incoming_secret.passphrase_required": {
+    "text": "Bí mật này được bảo vệ bằng cụm mật khẩu. Người gửi sẽ cung cấp cụm mật khẩu cho bạn riêng.",
+    "sha256": "1e49826b"
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "Yêu cầu cụm mật khẩu:",
+    "sha256": "1ab9a20f"
+  },
   "email.incoming_secret.sent_via": {
     "text": "Gửi qua",
     "sha256": "d01479b3"
@@ -320,16 +328,84 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Địa chỉ email cho tài khoản %{product_name} của bạn đã được thay đổi thành %{new_email_masked} vào ngày %{date}.",
+    "text": "Địa chỉ email cho tài khoản %{product_name} của bạn đã được thay đổi thành %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ hỗ trợ ngay lập tức vì tài khoản của bạn có thể đã bị xâm phạm.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "Địa chỉ email trên tài khoản %{product_name} của bạn đã được thay đổi.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "Email mới:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "Thay đổi lúc:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "Nếu bạn đã thực hiện thay đổi này, không cần thao tác thêm.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "Nếu bạn không thực hiện thay đổi này, tài khoản của bạn có thể đã bị xâm phạm.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "Liên hệ hỗ trợ",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "P.S. Email này được gửi đến %{email_address} để thông báo cho bạn về việc thay đổi địa chỉ email.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "Yêu cầu thay đổi email (%{display_domain})",
+    "sha256": "be3441d6"
+  },
+  "email.email_change_requested.title": {
+    "text": "Yêu cầu thay đổi email",
+    "sha256": "704cbdca"
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "Đã có yêu cầu thay đổi địa chỉ email trên tài khoản %{product_name} của bạn.",
+    "sha256": "d7e39154"
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "Email mới yêu cầu:",
+    "sha256": "243f3e03"
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "Yêu cầu lúc:",
+    "sha256": "ada23c51"
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "Nếu bạn đã thực hiện yêu cầu này, hãy kiểm tra email mới để tìm liên kết xác nhận. Chưa có thay đổi nào được thực hiện.",
+    "sha256": "aa1bf526"
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "Nếu bạn không thực hiện yêu cầu này, bạn có thể bỏ qua email này. Tài khoản của bạn chưa bị thay đổi.",
+    "sha256": "ff41a7b7"
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "Liên hệ hỗ trợ",
+    "sha256": "f8d47b82"
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.email_change_requested.postscript": {
+    "text": "P.S. Email này được gửi đến %{email_address} vì đã có yêu cầu thay đổi email cho tài khoản của bạn.",
+    "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {
     "text": "Xác minh địa chỉ email mới của bạn (%{display_domain})",
@@ -347,13 +423,33 @@
     "text": "Xác minh địa chỉ email",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "Đã có yêu cầu thay đổi địa chỉ email trên tài khoản %{product_name} của bạn thành %{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "Xác nhận thay đổi email",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Hoặc sao chép và dán liên kết này:",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "Liên kết này sẽ hết hạn sau %{hours} giờ.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "Nếu bạn không yêu cầu thay đổi này, bạn có thể bỏ qua email này. Địa chỉ email của bạn sẽ không bị thay đổi.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "P.S. Email này được gửi đến %{email_address} để xác nhận thay đổi địa chỉ email.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "Xác thực hai yếu tố đã được bật (%{display_domain})",

@@ -155,6 +155,10 @@
     "text": "Đang xóa {0}",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Đang xóa...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Xóa tài khoản vĩnh viễn",
     "sha256": "f894e42c"
@@ -210,6 +214,22 @@
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Quản lý cài đặt và tùy chọn tài khoản của bạn",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Quay lại bảng điều khiển",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Tài khoản",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Thanh toán",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Nâng cao",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "Chung",
@@ -615,24 +635,52 @@
     "text": "Hành động này không thể hoàn tác",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "Đang xóa...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "Đã cập nhật địa chỉ email",
+    "sha256": "cf02eb0c"
   },
-  "web.settings.back_to_dashboard": {
-    "text": "Quay lại bảng điều khiển",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Email của bạn đã được cập nhật thành công. Vui lòng đăng nhập bằng địa chỉ email mới.",
+    "sha256": "a84efcea"
   },
-  "web.settings.sections.account": {
-    "text": "Tài khoản",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Đang xác minh địa chỉ email mới...",
+    "sha256": "a6a4745f"
   },
-  "web.settings.sections.billing": {
-    "text": "Thanh toán",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "Thay đổi email thất bại",
+    "sha256": "953f3936"
   },
-  "web.settings.sections.advanced": {
-    "text": "Nâng cao",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "Liên kết xác minh này không hợp lệ hoặc đã hết hạn.",
+    "sha256": "f54594c2"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Quay lại cài đặt tài khoản",
+    "sha256": "fd49b66b"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Đang chuyển hướng đến trang đăng nhập...",
+    "sha256": "c65f7dcc"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Gửi lại email xác nhận",
+    "sha256": "c617fff7"
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "Đã gửi lại email xác nhận thành công.",
+    "sha256": "2287783b"
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Đang gửi...",
+    "sha256": "286a3af7"
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "Đã gửi email xác minh. Kiểm tra hộp thư đến và nhấp vào liên kết xác nhận.",
+    "sha256": "5806c93f"
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "Không nhận được email?",
+    "sha256": "fe3ac3ad"
   }
 }

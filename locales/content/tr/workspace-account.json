@@ -155,6 +155,10 @@
     "text": "{0} siliniyor",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Siliniyor...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Hesabı Kalıcı Olarak Sil",
     "sha256": "f894e42c"
@@ -209,9 +213,23 @@
   },
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "",
-    "skip": true,
-    "note": "empty",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Kontrol Paneline Dön",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Hesap",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Faturalandırma",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Gelişmiş",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "Genel",
@@ -387,8 +405,6 @@
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
     "text": "",
-    "skip": true,
-    "note": "empty",
     "sha256": "eb5f3ebd"
   },
   "web.settings.security.configured": {
@@ -619,24 +635,52 @@
     "text": "Bu işlem geri alınamaz",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "Siliniyor...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "E-posta Adresi Güncellendi",
+    "sha256": "cf02eb0c"
   },
-  "web.settings.back_to_dashboard": {
-    "text": "Kontrol Paneline Dön",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "E-postanız başarıyla güncellendi. Lütfen yeni e-posta adresinizle giriş yapın.",
+    "sha256": "a84efcea"
   },
-  "web.settings.sections.account": {
-    "text": "Hesap",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Yeni e-posta adresiniz doğrulanıyor...",
+    "sha256": "a6a4745f"
   },
-  "web.settings.sections.billing": {
-    "text": "Faturalandırma",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "E-posta Değişikliği Başarısız",
+    "sha256": "953f3936"
   },
-  "web.settings.sections.advanced": {
-    "text": "Gelişmiş",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "Bu doğrulama bağlantısı geçersiz veya süresi dolmuş.",
+    "sha256": "f54594c2"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Hesap Ayarlarına Dön",
+    "sha256": "fd49b66b"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Giriş sayfasına yönlendiriliyor...",
+    "sha256": "c65f7dcc"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Onay e-postasını yeniden gönder",
+    "sha256": "c617fff7"
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "Onay e-postası başarıyla yeniden gönderildi.",
+    "sha256": "2287783b"
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Gönderiliyor...",
+    "sha256": "286a3af7"
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "Bir doğrulama e-postası gönderildi. Gelen kutunuzu kontrol edin ve onay bağlantısına tıklayın.",
+    "sha256": "5806c93f"
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "E-postayı almadınız mı?",
+    "sha256": "fe3ac3ad"
   }
 }

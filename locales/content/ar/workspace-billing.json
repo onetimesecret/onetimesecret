@@ -1,4 +1,12 @@
 {
+  "web.billing.subscription_synced_title": {
+    "text": "تمت مزامنة الاشتراك",
+    "sha256": "3086ef43"
+  },
+  "web.billing.subscription_synced_description": {
+    "text": "تمت مزامنة مزايا اشتراكك من منطقة أخرى.",
+    "sha256": "a99b7a98"
+  },
   "web.billing.upgrade.required": {
     "text": "مطلوب ترقية",
     "sha256": "16487236"
@@ -75,6 +83,22 @@
     "text": "تغيير الخطة",
     "sha256": "2d0b195b"
   },
+  "web.billing.overview.manage_subscription": {
+    "text": "إدارة الاشتراك",
+    "sha256": "cbc4ef92"
+  },
+  "web.billing.plans.legacy_plan_info": {
+    "text": "أنت على خطة مميزة بأسعار خاصة.",
+    "sha256": "e9aa8bf0"
+  },
+  "web.billing.plans.early_supporter_plan": {
+    "text": "Identity Plus (داعم مبكر)",
+    "sha256": "f37cd0d9"
+  },
+  "web.billing.plans.legacy_plan_warning": {
+    "text": "سيؤدي تغيير الخطة إلى فقدان السعر المميز الخاص بك. لا يمكن التراجع عن هذا.",
+    "sha256": "eda13d64"
+  },
   "web.billing.overview.no_payment_method": {
     "text": "لا توجد طريقة دفع مسجلة",
     "sha256": "77f71037"
@@ -123,6 +147,10 @@
     "text": "أنشئ مؤسسة لإدارة فوترتك واشتراكك",
     "sha256": "41e922d2"
   },
+  "web.billing.overview.load_error": {
+    "text": "فشل تحميل معلومات الفوترة",
+    "sha256": "3bc44882"
+  },
   "web.billing.overview.upgrade_success": {
     "text": "تمت ترقية خطتك بنجاح",
     "sha256": "00ac43f8"
@@ -168,8 +196,8 @@
     "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "صفحة رئيسية بعلامتك التجارية",
-    "sha256": "e355a396"
+    "text": "أسرار الصفحة الرئيسية",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "الأسرار الواردة",
@@ -236,8 +264,8 @@
     "sha256": "237dabec"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "صفحة رئيسية بعلامتك التجارية",
-    "sha256": "e355a396"
+    "text": "أسرار الصفحة الرئيسية",
+    "sha256": "6360f7ec"
   },
   "web.billing.features.manage_teams": {
     "text": "إدارة الفرق",
@@ -306,6 +334,10 @@
   "web.billing.plans.downgrade": {
     "text": "تخفيض",
     "sha256": "d955b7e8"
+  },
+  "web.billing.plans.cancel_to_downgrade": {
+    "text": "إلغاء للتبديل",
+    "sha256": "1c4cda89"
   },
   "web.billing.plans.monthly": {
     "text": "شهري",
@@ -411,6 +443,10 @@
     "text": "لا توجد خطط {interval} متاحة في الوقت الحالي.",
     "sha256": "d8454436"
   },
+  "web.billing.plans.load_error": {
+    "text": "فشل تحميل الخطط",
+    "sha256": "a37d4d9a"
+  },
   "web.billing.plans.change_immediate": {
     "text": "سيتم تغيير خطتك فوراً.",
     "sha256": "889d13be"
@@ -440,7 +476,7 @@
     "sha256": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "ستتحدث حدود ميزاتك فوراً بعد تغيير الخطة.",
+    "text": "ستُحدَّث حدود ميزاتك فوراً بعد تغيير الخطة.",
     "sha256": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
@@ -511,9 +547,21 @@
     "text": "تنزيل",
     "sha256": "d6eafe82"
   },
+  "web.billing.invoices.invoice_number": {
+    "text": "فاتورة #",
+    "sha256": "48a67cac"
+  },
   "web.billing.invoices.no_invoices": {
     "text": "لا توجد فواتير بعد",
     "sha256": "92d2d0ce"
+  },
+  "web.billing.invoices.no_invoices_description": {
+    "text": "ستظهر فواتيرك هنا بمجرد الترقية إلى خطة مدفوعة",
+    "sha256": "7f16be70"
+  },
+  "web.billing.invoices.view_plans": {
+    "text": "عرض الخطط",
+    "sha256": "a865d424"
   },
   "web.billing.invoices.paid": {
     "text": "مدفوع",
@@ -530,6 +578,18 @@
   "web.billing.invoices.draft": {
     "text": "مسودة",
     "sha256": "d2e16e61"
+  },
+  "web.billing.invoices.open": {
+    "text": "مفتوحة",
+    "sha256": "ed077f3d"
+  },
+  "web.billing.invoices.uncollectible": {
+    "text": "غير قابلة للتحصيل",
+    "sha256": "c8d3b241"
+  },
+  "web.billing.invoices.void": {
+    "text": "ملغاة",
+    "sha256": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
     "text": "فشل تحميل الفواتير",
@@ -766,10 +826,6 @@
     "context": "",
     "sha256": "c94d5527"
   },
-  "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "أسرار الصفحة الرئيسية",
-    "sha256": "6360f7ec"
-  },
   "web.billing.overview.entitlements.notifications": {
     "text": "إشعارات البريد الإلكتروني",
     "sha256": "04e0f1e9"
@@ -785,10 +841,6 @@
   "web.billing.features.extended_retention": {
     "text": "احتفاظ بالأسرار لمدة 30 يوماً",
     "sha256": "21d6d514"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "أسرار الصفحة الرئيسية",
-    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
     "text": "الأسرار الواردة",
@@ -833,5 +885,108 @@
   "web.billing.features.shared_workflows": {
     "text": "سير العمل المشترك",
     "sha256": "158f558e"
+  },
+  "web.billing.currency_migration.title": {
+    "text": "مطلوب تغيير العملة",
+    "context": "Modal title when plan requires different currency than current subscription",
+    "sha256": "2cd800c5"
+  },
+  "web.billing.currency_migration.description": {
+    "text": "اشتراكك الحالي يستخدم {from}. الخطة المحددة تُفوتر بعملة {to}. يتطلب هذا ترحيل اشتراكك إلى العملة الجديدة.",
+    "sha256": "f0cdf727"
+  },
+  "web.billing.currency_migration.current_plan": {
+    "text": "الخطة الحالية:",
+    "sha256": "648a0ab2"
+  },
+  "web.billing.currency_migration.new_plan": {
+    "text": "الخطة الجديدة:",
+    "sha256": "edb868c4"
+  },
+  "web.billing.currency_migration.current_period_ends": {
+    "text": "تنتهي الفترة الحالية في:",
+    "sha256": "2e20e596"
+  },
+  "web.billing.currency_migration.choose_timing": {
+    "text": "متى يجب أن يتم التبديل؟",
+    "sha256": "f4aabb13"
+  },
+  "web.billing.currency_migration.graceful_title": {
+    "text": "التبديل في نهاية فترة الفوترة",
+    "sha256": "55cd980b"
+  },
+  "web.billing.currency_migration.graceful_description": {
+    "text": "تبقى خطتك الحالية نشطة حتى {date}. بعد ذلك، ستكمل عملية الدفع لخطتك الجديدة.",
+    "sha256": "b8661418"
+  },
+  "web.billing.currency_migration.immediate_title": {
+    "text": "التبديل فوراً",
+    "sha256": "e9d0ba59"
+  },
+  "web.billing.currency_migration.immediate_description": {
+    "text": "يتم إلغاء خطتك الحالية الآن. ستحصل على استرداد للوقت غير المستخدم وستكمل عملية الدفع للخطة الجديدة.",
+    "sha256": "b08de0ca"
+  },
+  "web.billing.currency_migration.confirm": {
+    "text": "تأكيد تغيير العملة",
+    "sha256": "1edc1c78"
+  },
+  "web.billing.currency_migration.error": {
+    "text": "فشل ترحيل العملة. يرجى المحاولة مرة أخرى.",
+    "sha256": "4a6e1ced"
+  },
+  "web.billing.currency_migration.success": {
+    "text": "تم تحديث عملة اشتراكك بنجاح.",
+    "sha256": "a8bf437e"
+  },
+  "web.billing.currency_migration.graceful_success": {
+    "text": "ستبقى خطتك الحالية نشطة حتى نهاية فترة الفوترة. ستتم مطالبتك بإكمال عملية الدفع لخطتك الجديدة بعد ذلك.",
+    "sha256": "15d41483"
+  },
+  "web.billing.currency_migration.warning_credit_balance": {
+    "text": "لديك رصيد ائتماني بعملة {currency} لا يمكن تحويله إلى العملة الجديدة.",
+    "sha256": "aa15be91"
+  },
+  "web.billing.currency_migration.warning_pending_items": {
+    "text": "لديك عناصر فواتير معلقة يجب تسويتها قبل الترحيل.",
+    "sha256": "7b4c5e10"
+  },
+  "web.billing.currency_migration.warning_coupons": {
+    "text": "قد لا تكون القسائم النشطة في حسابك متوافقة مع العملة الجديدة.",
+    "sha256": "f572ee81"
+  },
+  "web.billing.currency_migration.pending_title": {
+    "text": "ترحيل العملة قيد الانتظار",
+    "context": "Banner heading when graceful migration is scheduled",
+    "sha256": "018ae653"
+  },
+  "web.billing.currency_migration.pending_description": {
+    "text": "تنتهي خطتك الحالية في {date}. أكمل التبديل إلى {plan} ({currency}).",
+    "sha256": "998ba4ab"
+  },
+  "web.billing.currency_migration.complete_migration": {
+    "text": "إكمال الترحيل",
+    "context": "Button to start checkout for the new currency plan",
+    "sha256": "fa794e0c"
+  },
+  "web.billing.checkout_session_failed": {
+    "text": "فشل إنشاء جلسة الدفع",
+    "context": "Error when Stripe checkout session creation returns no URL",
+    "sha256": "a53f6fa3"
+  },
+  "web.billing.checkout_initiate_failed": {
+    "text": "فشل بدء عملية الدفع",
+    "context": "Fallback error for checkout failures",
+    "sha256": "3ff06e41"
+  },
+  "web.billing.plan_switch_success": {
+    "text": "تم التبديل بنجاح إلى {plan}",
+    "context": "Success message after plan change",
+    "sha256": "ab7c715c"
+  },
+  "web.billing.plan_unavailable_region_mismatch": {
+    "text": "متاح في منطقة اشتراكك الأصلية فقط",
+    "context": "Hint shown on plan cards when currency does not match active subscription",
+    "sha256": "10de32e5"
   }
 }

@@ -151,6 +151,14 @@
     "text": "Deze link werkt maar één keer. Na het bekijken wordt het bericht permanent verwijderd.",
     "sha256": "fecaf0a1"
   },
+  "email.incoming_secret.passphrase_required": {
+    "text": "Dit bericht is beveiligd met een wachtwoordzin. De afzender moet deze apart aan je doorgeven.",
+    "sha256": "1e49826b"
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "Wachtwoordzin vereist:",
+    "sha256": "1ab9a20f"
+  },
   "email.incoming_secret.sent_via": {
     "text": "Verzonden via",
     "sha256": "d01479b3"
@@ -320,16 +328,84 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Het e-mailadres voor je %{product_name}-account is gewijzigd naar %{new_email_masked} op %{date}.",
+    "text": "Het e-mailadres voor je %{product_name}-account is gewijzigd naar %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "Als je deze wijziging niet hebt aangebracht, neem dan onmiddellijk contact op met de ondersteuning, omdat je account mogelijk is gehackt.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "Het e-mailadres van je %{product_name}-account is gewijzigd.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "Nieuw e-mailadres:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "Gewijzigd op:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "Als je deze wijziging hebt aangebracht, hoef je verder niets te doen.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "Als je deze wijziging niet hebt aangebracht, is je account mogelijk gecompromitteerd.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "Contact opnemen met support",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "P.S. Deze e-mail is verzonden naar %{email_address} om je te informeren over een wijziging van je e-mailadres.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "E-mailadres wijzigen aangevraagd (%{display_domain})",
+    "sha256": "be3441d6"
+  },
+  "email.email_change_requested.title": {
+    "text": "E-mailadres wijzigen aangevraagd",
+    "sha256": "704cbdca"
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "Er is een verzoek gedaan om het e-mailadres van je %{product_name}-account te wijzigen.",
+    "sha256": "d7e39154"
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "Aangevraagd nieuw e-mailadres:",
+    "sha256": "243f3e03"
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "Aangevraagd op:",
+    "sha256": "ada23c51"
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "Als je dit verzoek hebt gedaan, controleer dan je nieuwe e-mailadres voor een bevestigingslink. Er zijn nog geen wijzigingen doorgevoerd.",
+    "sha256": "aa1bf526"
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "Als je dit verzoek niet hebt gedaan, kun je deze e-mail veilig negeren. Je account is niet gewijzigd.",
+    "sha256": "ff41a7b7"
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "Contact opnemen met support",
+    "sha256": "f8d47b82"
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.email_change_requested.postscript": {
+    "text": "P.S. Deze e-mail is verzonden naar %{email_address} omdat er een wijziging van je e-mailadres is aangevraagd.",
+    "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {
     "text": "Verifieer je nieuwe e-mailadres (%{display_domain})",
@@ -347,13 +423,33 @@
     "text": "E-mailadres verifiëren",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "Er is een verzoek gedaan om het e-mailadres van je %{product_name}-account te wijzigen naar %{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "E-mailadres wijzigen bevestigen",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Of kopieer en plak deze link:",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "Deze link verloopt over %{hours} uur.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "Als je deze wijziging niet hebt aangevraagd, kun je deze e-mail veilig negeren. Je e-mailadres wordt niet gewijzigd.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "P.S. Deze e-mail is verzonden naar %{email_address} om een wijziging van je e-mailadres te bevestigen.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "Tweefactorauthenticatie ingeschakeld (%{display_domain})",
