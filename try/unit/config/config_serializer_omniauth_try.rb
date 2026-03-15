@@ -22,6 +22,7 @@ OT.boot! :test, false
 
 # Helper to modify features temporarily
 # Must also set mode to 'full' so omniauth_enabled? returns true (since it checks full_enabled?)
+# Sets OIDC env vars so sso_providers returns at least one provider entry.
 def with_omniauth_config(enabled:, display_name: '')
   config = Onetime.auth_config.instance_variable_get(:@config)
   original_mode = config['mode']
@@ -31,6 +32,14 @@ def with_omniauth_config(enabled:, display_name: '')
   original_omniauth = features['omniauth']
   original_provider = features['sso_display_name']
 
+  # Set OIDC env vars so sso_providers builds a provider entry
+  original_issuer = ENV['OIDC_ISSUER']
+  original_client = ENV['OIDC_CLIENT_ID']
+  original_display = ENV['OIDC_DISPLAY_NAME']
+  ENV['OIDC_ISSUER'] = 'https://test.example.com'
+  ENV['OIDC_CLIENT_ID'] = 'test-client-id'
+  ENV.delete('OIDC_DISPLAY_NAME') # let sso_display_name fallback work
+
   features['omniauth'] = enabled
   features['sso_display_name'] = display_name
   yield
@@ -38,6 +47,9 @@ ensure
   config['mode'] = original_mode
   features['omniauth'] = original_omniauth
   features['sso_display_name'] = original_provider
+  ENV['OIDC_ISSUER'] = original_issuer
+  ENV['OIDC_CLIENT_ID'] = original_client
+  ENV['OIDC_DISPLAY_NAME'] = original_display
 end
 
 ## build_omniauth_config returns false when omniauth is disabled
@@ -67,18 +79,18 @@ end
 result.key?('display_name')
 #=> false
 
-## build_omniauth_config includes display_name when configured
+## build_omniauth_config includes display_name in provider entry when configured
 result = with_omniauth_config(enabled: true, display_name: 'Zitadel') do
   Core::Views::ConfigSerializer.send(:build_omniauth_config)
 end
-result['display_name']
+result['providers'].first['display_name']
 #=> "Zitadel"
 
-## build_omniauth_config returns correct structure with provider name
+## build_omniauth_config returns correct structure with provider display_name
 result = with_omniauth_config(enabled: true, display_name: 'Okta') do
   Core::Views::ConfigSerializer.send(:build_omniauth_config)
 end
-[result['enabled'], result['display_name']]
+[result['enabled'], result['providers'].first['display_name']]
 #=> [true, "Okta"]
 
 ## build_feature_flags includes omniauth as false when disabled
@@ -92,22 +104,22 @@ result['omniauth']
 result = with_omniauth_config(enabled: true, display_name: 'Azure AD') do
   Core::Views::ConfigSerializer.send(:build_feature_flags)
 end
-[result['omniauth']['enabled'], result['omniauth']['display_name']]
+[result['omniauth']['enabled'], result['omniauth']['providers'].first['display_name']]
 #=> [true, "Azure AD"]
 
-## build_omniauth_config includes provider_name for backwards compatibility
+## build_omniauth_config provider entry includes route_name
 result = with_omniauth_config(enabled: true, display_name: 'Okta') do
   Core::Views::ConfigSerializer.send(:build_omniauth_config)
 end
-result['provider_name']
-#=> "Okta"
+result['providers'].first['route_name']
+#=> "oidc"
 
-## build_omniauth_config sends both display_name and provider_name with same value
+## build_omniauth_config provider entry has both route_name and display_name
 result = with_omniauth_config(enabled: true, display_name: 'Zitadel') do
   Core::Views::ConfigSerializer.send(:build_omniauth_config)
 end
-[result['display_name'], result['provider_name']]
-#=> ["Zitadel", "Zitadel"]
+[result['providers'].first['route_name'], result['providers'].first['display_name']]
+#=> ["oidc", "Zitadel"]
 
 ## sso_providers returns string-keyed hashes (contract with ConfigSerializer)
 with_omniauth_config(enabled: true) do
