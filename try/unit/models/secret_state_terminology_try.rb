@@ -143,3 +143,122 @@ secret.revealed!
 dump = secret.safe_dump
 dump[:is_received]
 #=> true
+
+# ----------------------------------------------------------------
+# burned! transitions (#2619)
+# ----------------------------------------------------------------
+
+## burned! from :new does not update secret state (secret is destroyed instead)
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+original_state = secret.state
+secret.burned!
+secret.state == original_state
+#=> true
+
+## burned! from :new destroys the secret in Redis
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+secret.burned!
+secret.exists?
+#=> false
+
+## burned! from :new transitions receipt to 'burned'
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+secret.burned!
+Onetime::Receipt.load(receipt.identifier).state
+#=> 'burned'
+
+## burned! from :previewed also transitions receipt to 'burned'
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+secret.previewed!
+secret.burned!
+Onetime::Receipt.load(receipt.identifier).state
+#=> 'burned'
+
+## burned! clears passphrase_temp
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+secret.instance_variable_set(:@passphrase_temp, 'temp_pass')
+secret.burned!
+secret.instance_variable_get(:@passphrase_temp).nil?
+#=> true
+
+## burned! guard prevents burn from :revealed state
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+secret.revealed!
+receipt_state_before = Onetime::Receipt.load(receipt.identifier).state
+secret.burned!
+Onetime::Receipt.load(receipt.identifier).state == receipt_state_before
+#=> true
+
+## viewable? returns false after burned! (secret destroyed from Redis)
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+before = secret.viewable?
+secret.burned!
+[before, secret.viewable?]
+#=> [true, false]
+
+## receivable? returns false after burned! (secret destroyed from Redis)
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+before = secret.receivable?
+secret.burned!
+[before, secret.receivable?]
+#=> [true, false]
+
+# ----------------------------------------------------------------
+# revealed! cascades to receipt (#2619)
+# ----------------------------------------------------------------
+
+## revealed! from :new transitions receipt to 'revealed'
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+secret.revealed!
+Onetime::Receipt.load(receipt.identifier).state
+#=> 'revealed'
+
+## revealed! from :previewed transitions receipt to 'revealed'
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+secret.previewed!
+secret.revealed!
+Onetime::Receipt.load(receipt.identifier).state
+#=> 'revealed'
+
+## revealed! clears @value and @ciphertext
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+secret.revealed!
+[secret.instance_variable_get(:@value), secret.instance_variable_get(:@ciphertext)]
+#=> [nil, nil]
+
+# ----------------------------------------------------------------
+# Sequential lifecycle chains (#2619)
+# ----------------------------------------------------------------
+
+## new → previewed → revealed chain
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+s1 = secret.state
+secret.previewed!
+s2 = secret.state
+secret.revealed!
+s3 = secret.state
+[s1, s2, s3]
+#=> ['new', 'previewed', 'revealed']
+
+## new → previewed → burned chain (receipt reflects burn)
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+s1 = secret.state
+secret.previewed!
+s2 = secret.state
+secret.burned!
+r_state = Onetime::Receipt.load(receipt.identifier).state
+[s1, s2, r_state]
+#=> ['new', 'previewed', 'burned']
+
+## After revealed!, further transitions are no-ops (state stays 'revealed')
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+secret.revealed!
+secret.previewed!
+secret.state
+#=> 'revealed'
+
+## revealed! destroys the secret in Redis
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+secret.revealed!
+secret.exists?
+#=> false
