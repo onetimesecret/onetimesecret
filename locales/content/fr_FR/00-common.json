@@ -1058,7 +1058,7 @@
     "sha256": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} restantes",
+    "text": "{count} {unit} restant(s)",
     "sha256": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {

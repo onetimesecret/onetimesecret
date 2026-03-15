@@ -116,7 +116,7 @@
     "sha256": "617bfe67"
   },
   "web.account.your_account": {
-    "text": "Váš účet",
+    "text": "Tvůj účet",
     "sha256": "89e60bfb"
   },
   "web.account.support_details": {
@@ -140,7 +140,7 @@
     "sha256": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
-    "text": "Potvrďte svým heslem",
+    "text": "Potvrď svým heslem",
     "sha256": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
@@ -168,15 +168,15 @@
     "sha256": "6121225e"
   },
   "web.account.deleting_your_account_is": {
-    "text": "Smazání vašeho účtu je",
+    "text": "Smazání tvého účtu je",
     "sha256": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "trvale je smažte před pokračováním",
+    "text": "trvale je smaž před pokračováním",
     "sha256": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Jakákoli tajemství, která chcete odstranit,",
+    "text": "Jakákoli tajemství, která chceš odstranit,",
     "sha256": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
@@ -208,7 +208,7 @@
     "sha256": "74a883a0"
   },
   "web.settings.description": {
-    "text": "Spravujte nastavení a předvolby svého účtu",
+    "text": "Spravuj nastavení a předvolby svého účtu",
     "sha256": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
@@ -248,11 +248,11 @@
     "sha256": "efb52e71"
   },
   "web.settings.theme.description": {
-    "text": "Vyberte světlé nebo tmavé téma",
+    "text": "Vyber světlé nebo tmavé téma",
     "sha256": "ff0ae84f"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "Vyberte světlé nebo tmavé téma",
+    "text": "Vyber světlé nebo tmavé téma",
     "sha256": "ff0ae84f"
   },
   "web.settings.language.title": {
@@ -260,19 +260,19 @@
     "sha256": "a4fe6526"
   },
   "web.settings.language.description": {
-    "text": "Vyberte preferovaný jazyk",
+    "text": "Vyber preferovaný jazyk",
     "sha256": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Vyberte preferovaný jazyk",
+    "text": "Vyber preferovaný jazyk",
     "sha256": "475bba7a"
   },
   "web.settings.security_settings_description": {
-    "text": "Spravujte ověřování a zabezpečení účtu",
+    "text": "Spravuj ověřování a zabezpečení účtu",
     "sha256": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "Spravujte informace o svém účtu",
+    "text": "Spravuj informace o svém účtu",
     "sha256": "4a23a29f"
   },
   "web.settings.profile.title": {
@@ -296,11 +296,11 @@
     "sha256": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Zadejte své aktuální heslo",
+    "text": "Zadej své aktuální heslo",
     "sha256": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Vaše heslo je vyžadováno z bezpečnostních důvodů",
+    "text": "Tvoje heslo je vyžadováno z bezpečnostních důvodů",
     "sha256": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
@@ -312,7 +312,7 @@
     "sha256": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Aktualizujte e-mailovou adresu přidruženou k vašemu účtu",
+    "text": "Aktualizuj e-mailovou adresu přidruženou k tvému účtu",
     "sha256": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
@@ -320,7 +320,7 @@
     "sha256": "04814271"
   },
   "web.settings.profile.invalid_email": {
-    "text": "Zadejte prosím platnou e-mailovou adresu",
+    "text": "Zadej prosím platnou e-mailovou adresu",
     "sha256": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
@@ -328,11 +328,11 @@
     "sha256": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-mail úspěšně aktualizován. Zkontrolujte prosím svou schránku pro ověření nové e-mailové adresy.",
+    "text": "E-mail úspěšně aktualizován. Zkontroluj prosím svou schránku pro ověření nové e-mailové adresy.",
     "sha256": "58de2536"
   },
   "web.settings.profile.email_change_error": {
-    "text": "Nepodařilo se aktualizovat e-mail. Zkuste to prosím znovu.",
+    "text": "Nepodařilo se aktualizovat e-mail. Zkus to prosím znovu.",
     "sha256": "aeba6591"
   },
   "web.settings.sessions.title": {
@@ -340,11 +340,11 @@
     "sha256": "b58fa4e0"
   },
   "web.settings.sessions.description": {
-    "text": "Spravujte své aktivní relace",
+    "text": "Spravuj své aktivní relace",
     "sha256": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Spravujte své aktivní relace",
+    "text": "Spravuj své aktivní relace",
     "sha256": "e5646da4"
   },
   "web.settings.password.title": {
@@ -364,11 +364,11 @@
     "sha256": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "Trvale smazat váš účet a všechna data",
+    "text": "Trvale smazat tvůj účet a všechna data",
     "sha256": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Trvale smazat váš účet a všechna data",
+    "text": "Trvale smazat tvůj účet a všechna data",
     "sha256": "7a3a6da2"
   },
   "web.settings.security.security_score": {
@@ -376,7 +376,7 @@
     "sha256": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "Celkové zdraví zabezpečení vašeho účtu",
+    "text": "Celkové zdraví zabezpečení tvého účtu",
     "sha256": "cf20935e"
   },
   "web.settings.security.excellent": {
@@ -400,7 +400,7 @@
     "sha256": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Povolte dvoufaktorové ověření pro silnější ochranu",
+    "text": "Povol dvoufaktorové ověření pro silnější ochranu",
     "sha256": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
@@ -444,11 +444,11 @@
     "sha256": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Povolte dvoufaktorové ověření pro další ochranu",
+    "text": "Povol dvoufaktorové ověření pro další ochranu",
     "sha256": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Uložte si obnovovací kódy na bezpečné místo",
+    "text": "Ulož si obnovovací kódy na bezpečné místo",
     "sha256": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
@@ -476,7 +476,7 @@
     "sha256": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Naučte se, jak integrovat Onetime Secret do vašich aplikací",
+    "text": "Naučte se, jak integrovat Onetime Secret do tvých aplikací",
     "sha256": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -516,7 +516,7 @@
     "sha256": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Sledujte využití API a nastavte upozornění",
+    "text": "Sledujte využití API a nastav upozornění",
     "sha256": "abb08beb"
   },
   "web.settings.api.important_notice": {
@@ -524,7 +524,7 @@
     "sha256": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Regenerace vašeho API klíče zneplatní aktuální klíč. Aktualizujte všechny aplikace používající starý klíč.",
+    "text": "Regenerace tvého API klíče zneplatní aktuální klíč. Aktualizuj všechny aplikace používající starý klíč.",
     "sha256": "ab168f83"
   },
   "web.settings.privacy.title": {
@@ -532,11 +532,11 @@
     "sha256": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Spravujte své předvolby soukromí",
+    "text": "Spravuj své předvolby soukromí",
     "sha256": "add087da"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "Vaše soukromí",
+    "text": "Tvoje soukromí",
     "sha256": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
@@ -552,7 +552,7 @@
     "sha256": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "Toto není nastavení, protože není co zapínat nebo vypínat. Vaše soukromí je součástí toho, jak fungujeme.",
+    "text": "Toto není nastavení, protože není co zapínat nebo vypínat. Tvoje soukromí je součástí toho, jak fungujeme.",
     "sha256": "ed943792"
   },
   "web.settings.notifications.title": {
@@ -560,11 +560,11 @@
     "sha256": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "Spravujte způsob přijímání oznámení",
+    "text": "Spravuj způsob přijímání oznámení",
     "sha256": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Nepodařilo se aktualizovat předvolbu oznámení. Zkuste to prosím znovu.",
+    "text": "Nepodařilo se aktualizovat předvolbu oznámení. Zkus to prosím znovu.",
     "sha256": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
@@ -572,11 +572,11 @@
     "sha256": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Obdržet e-mail, když někdo zobrazí vaše tajemství",
+    "text": "Obdržet e-mail, když někdo zobrazí tvoje tajemství",
     "sha256": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Budete upozorněni pokaždé, když příjemce odhalí jedno z vašich tajemství",
+    "text": "Budeš upozorněni pokaždé, když příjemce odhalí jedno z tvých tajemství",
     "sha256": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
@@ -600,7 +600,7 @@
     "sha256": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Požádejte o úplnou kopii dat vašeho účtu ve strojově čitelném formátu",
+    "text": "Požádejte o úplnou kopii dat tvého účtu ve strojově čitelném formátu",
     "sha256": "369c3391"
   },
   "web.settings.caution.request_data_export": {
@@ -616,11 +616,11 @@
     "sha256": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Smazání vašeho účtu způsobí:",
+    "text": "Smazání tvého účtu způsobí:",
     "sha256": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Trvalé smazání všech vašich tajemství",
+    "text": "Trvalé smazání všech tvých tajemství",
     "sha256": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {

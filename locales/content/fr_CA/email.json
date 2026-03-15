@@ -252,7 +252,7 @@
     "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Soutien aux secrets",
+    "text": "Secret Support",
     "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "L'adresse courriel de votre compte %{product_name} a été changée pour %{new_email_masked} le %{date}.",
+    "text": "L'adresse courriel de votre compte %{product_name} a été changée pour %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {

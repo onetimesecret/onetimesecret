@@ -12,7 +12,7 @@
     "sha256": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Spravujte své organizace",
+    "text": "Spravuj své organizace",
     "sha256": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
@@ -132,7 +132,7 @@
     "sha256": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Aktualizujte název a popis organizace",
+    "text": "Aktualizuj název a popis organizace",
     "sha256": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
@@ -184,7 +184,7 @@
     "sha256": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Zde aktualizujte název vaší společnosti a podrobnosti o organizaci. Tyto informace pomáhají personalizovat váš účet a mohou být v budoucnu použity pro funkce brandingu.",
+    "text": "Zde aktualizuj název tvojí společnosti a podrobnosti o organizaci. Tyto informace pomáhají personalizovat tvůj účet a mohou být v budoucnu použity pro funkce brandingu.",
     "sha256": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
@@ -192,11 +192,11 @@
     "sha256": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Vytvořte svou první organizaci pro správu informací o vaší společnosti a přípravu na budoucí funkce brandingu.",
+    "text": "Vytvoř svou první organizaci pro správu informací o tvojí společnosti a přípravu na budoucí funkce brandingu.",
     "sha256": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Spravujte své organizace a členy týmu",
+    "text": "Spravuj své organizace a členy týmu",
     "sha256": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -240,7 +240,7 @@
     "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Opravdu chcete smazat {name}? Tuto akci nelze vrátit zpět.",
+    "text": "Opravdu chceš smazat {name}? Tuto akci nelze vrátit zpět.",
     "sha256": "db7e1f9d"
   },
   "web.organizations.delete_error": {
@@ -252,7 +252,7 @@
     "sha256": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Spravujte členy organizace a jejich role",
+    "text": "Spravuj členy organizace a jejich role",
     "sha256": "1353774c"
   },
   "web.organizations.members.current_members": {
@@ -320,23 +320,23 @@
     "sha256": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Opravdu chcete odebrat {name} z této organizace?",
+    "text": "Opravdu chceš odebrat {name} z této organizace?",
     "sha256": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Nemůžete změnit svou vlastní roli",
+    "text": "Nemůžeš změnit svou vlastní roli",
     "sha256": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Nemůžete odebrat sami sebe z organizace",
+    "text": "Nemůžeš odebrat sami sebe z organizace",
     "sha256": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Nemůžete odebrat vlastníka organizace",
+    "text": "Nemůžeš odebrat vlastníka organizace",
     "sha256": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "Nemáte oprávnění ke správě členů",
+    "text": "Nemáš oprávnění ke správě členů",
     "sha256": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
@@ -488,11 +488,11 @@
     "sha256": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Byli jste pozváni k připojení",
+    "text": "Byl jsi pozván k připojení",
     "sha256": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Byli jste pozváni jako",
+    "text": "Byl jsi pozván jako",
     "sha256": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
@@ -520,7 +520,7 @@
     "sha256": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Pro přijetí této pozvánky se prosím přihlaste",
+    "text": "Pro přijetí této pozvánky se prosím přihlas",
     "sha256": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
@@ -528,11 +528,11 @@
     "sha256": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Upgradujte svůj plán pro pozvání členů týmu",
+    "text": "Upgraduj svůj plán pro pozvání členů týmu",
     "sha256": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Pozvánky členů týmu vyžadují plán se správou týmů. Upgradujte pro přidání spolupracovníků do vaší organizace.",
+    "text": "Pozvánky členů týmu vyžadují plán se správou týmů. Upgraduj pro přidání spolupracovníků do tvojí organizace.",
     "sha256": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -560,7 +560,7 @@
     "sha256": "80c8ffa7"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Tato pozvánka byla odeslána na {invitedEmail}, ale jste přihlášeni jako {currentEmail}.",
+    "text": "Tato pozvánka byla odeslána na {invitedEmail}, ale jsi přihlášeni jako {currentEmail}.",
     "sha256": "937e08e7"
   },
   "web.organizations.invitations.switch_account": {

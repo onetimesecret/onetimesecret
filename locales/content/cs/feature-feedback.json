@@ -1,6 +1,6 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Vaše zpětná vazba",
+    "text": "Tvoje zpětná vazba",
     "sha256": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
@@ -36,7 +36,7 @@
     "sha256": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Pokud něco nefunguje správně nebo máte nápady, jak by to mělo fungovat, toto je správné místo.",
+    "text": "Pokud něco nefunguje správně nebo máš nápady, jak by to mělo fungovat, toto je správné místo.",
     "sha256": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
@@ -44,7 +44,7 @@
     "sha256": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Zadejte svou zpětnou vazbu",
+    "text": "Zadej svou zpětnou vazbu",
     "sha256": "1bb310f4"
   },
   "web.feedback.send_feedback": {

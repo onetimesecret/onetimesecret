@@ -918,7 +918,7 @@
     "sha256": "6d747b33"
   },
   "web.STATUS.destroyed": {
-    "text": "削除済み",
+    "text": "破棄済み",
     "sha256": "ff49630c"
   },
   "web.STATUS.expiring_soon": {

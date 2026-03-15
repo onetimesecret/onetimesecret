@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "E-mailadressen for din %{product_name}-konto blev ændret til %{new_email_masked} den %{date}.",
+    "text": "E-mailadressen for din %{product_name}-konto blev ændret til %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {

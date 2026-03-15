@@ -32,7 +32,7 @@
     "sha256": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Spravujte své předplatné, organizace a nastavení fakturace",
+    "text": "Spravuj své předplatné, organizace a nastavení fakturace",
     "sha256": "3995095c"
   },
   "web.billing.overview.title": {
@@ -144,7 +144,7 @@
     "sha256": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Vytvořte organizaci pro správu fakturace a předplatného",
+    "text": "Vytvoř organizaci pro správu fakturace a předplatného",
     "sha256": "41e922d2"
   },
   "web.billing.overview.load_error": {
@@ -152,11 +152,11 @@
     "sha256": "d4e5f6a7"
   },
   "web.billing.overview.upgrade_success": {
-    "text": "Váš plán byl úspěšně upgradován",
+    "text": "Tvůj plán byl úspěšně upgradován",
     "sha256": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
-    "text": "Váš nový plán je nyní aktivní. Děkujeme za váš nákup.",
+    "text": "Tvůj nový plán je nyní aktivní. Děkujeme za tvůj nákup.",
     "sha256": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
@@ -308,15 +308,15 @@
     "sha256": "07202af3"
   },
   "web.billing.plans.title": {
-    "text": "Vyberte plán",
+    "text": "Vyber plán",
     "sha256": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Vyberte plán, který vyhovuje vašim potřebám",
+    "text": "Vyber plán, který vyhovuje tvým potřebám",
     "sha256": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "Vyberte si dokonalý plán pro vaši organizaci",
+    "text": "Vyber si dokonalý plán pro vaši organizaci",
     "sha256": "308076f2"
   },
   "web.billing.plans.current": {
@@ -404,11 +404,11 @@
     "sha256": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Máte otázky nebo potřebujete něco vlastního?",
+    "text": "Máš otázky nebo potřebuješ něco vlastního?",
     "sha256": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Rádi od vás uslyšíme. Dejte nám vědět, co hledáte.",
+    "text": "Rádi od tě uslyšíme. Dejte nám vědět, co hledáte.",
     "sha256": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
@@ -448,7 +448,7 @@
     "sha256": "e5f6a7b8"
   },
   "web.billing.plans.change_immediate": {
-    "text": "Váš plán se změní okamžitě.",
+    "text": "Tvůj plán se změní okamžitě.",
     "sha256": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
@@ -476,11 +476,11 @@
     "sha256": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Vaše limity funkcí se aktualizují ihned po změně plánu.",
+    "text": "Tvoje limity funkcí se aktualizují ihned po změně plánu.",
     "sha256": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "Změna plánu selhala. Zkuste to prosím znovu.",
+    "text": "Změna plánu selhala. Zkus to prosím znovu.",
     "sha256": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
@@ -500,7 +500,7 @@
     "sha256": "8eb8ea81"
   },
   "web.billing.plans.credit_applies_heading": {
-    "text": "Jak se váš kredit použije:",
+    "text": "Jak se tvůj kredit použije:",
     "sha256": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
@@ -604,11 +604,11 @@
     "sha256": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "Dosáhli jste limitu členů pro tento tým",
+    "text": "Dosáhl jsi limitu členů pro tento tým",
     "sha256": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Upgradujte pro přidání více členů",
+    "text": "Upgraduj pro přidání více členů",
     "sha256": "602bdef4"
   },
   "web.billing.subscription.title": {
@@ -652,7 +652,7 @@
     "sha256": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "Spravujte své předplatné, platební metody a historii fakturace",
+    "text": "Spravuj své předplatné, platební metody a historii fakturace",
     "sha256": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
@@ -770,7 +770,7 @@
     "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
-    "text": "Opravdu chcete zrušit své předplatné {plan}?",
+    "text": "Opravdu chceš zrušit své předplatné {plan}?",
     "sha256": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
@@ -778,19 +778,19 @@
     "sha256": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
-    "text": "Budete mít přístup ke všem funkcím do {date}",
+    "text": "Budeš mít přístup ke všem funkcím do {date}",
     "sha256": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "Budete mít přístup do konce aktuálního fakturačního období",
+    "text": "Budeš mít přístup do konce aktuálního fakturačního období",
     "sha256": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
-    "text": "Již vám nebude účtováno",
+    "text": "Již ti nebude účtováno",
     "sha256": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
-    "text": "Váš účet bude převeden na bezplatný plán",
+    "text": "Tvůj účet bude převeden na bezplatný plán",
     "sha256": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
@@ -804,11 +804,11 @@
     "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "Vaše předplatné bylo zrušeno. Budete mít přístup do konce fakturačního období.",
+    "text": "Tvoje předplatné bylo zrušeno. Budeš mít přístup do konce fakturačního období.",
     "sha256": "e18fd9d5"
   },
   "web.billing.cancel.error": {
-    "text": "Nepodařilo se zrušit předplatné. Zkuste to prosím znovu.",
+    "text": "Nepodařilo se zrušit předplatné. Zkus to prosím znovu.",
     "sha256": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
@@ -817,12 +817,12 @@
     "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "Vaše předplatné zůstane aktivní do {date}. Do té doby budete mít plný přístup ke všem funkcím.",
+    "text": "Tvoje předplatné zůstane aktivní do {date}. Do té doby budeš mít plný přístup ke všem funkcím.",
     "context": "Alert banner description explaining continued access",
     "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "Změnili jste názor? Své předplatné můžete kdykoli před datem zrušení znovu aktivovat.",
+    "text": "Změnil jsi názor? Své předplatné můžeš kdykoli před datem zrušení znovu aktivovat.",
     "context": "Alert banner note encouraging reactivation",
     "sha256": "c94d5527"
   },

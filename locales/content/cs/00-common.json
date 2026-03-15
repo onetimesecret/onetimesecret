@@ -29,7 +29,7 @@
     "sha256": "f2350739"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Zadejte své heslo",
+    "text": "Zadej své heslo",
     "sha256": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
@@ -45,7 +45,7 @@
     "sha256": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Potvrďte své heslo",
+    "text": "Potvrď své heslo",
     "sha256": "bfd8c343"
   },
   "web.COMMON.header_settings": {
@@ -65,7 +65,7 @@
     "sha256": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Udržujte citlivé informace mimo protokoly chatu a e-maily. Sdílejte tajný odkaz, který je dostupný pouze jednou.",
+    "text": "Udržuj citlivé informace mimo protokoly chatu a e-maily. Sdílej tajný odkaz, který je dostupný pouze jednou.",
     "sha256": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
@@ -101,7 +101,7 @@
     "sha256": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Obsah tajemství vložte sem...",
+    "text": "Obsah tajemství vlož sem...",
     "sha256": "54630bab"
   },
   "web.COMMON.header_create_account": {
@@ -161,7 +161,7 @@
     "sha256": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Trvalé smazání tajemství ho odstraní ještě před jeho přečtením (klikněte pro potvrzení)",
+    "text": "Trvalé smazání tajemství ho odstraní ještě před jeho přečtením (klikni pro potvrzení)",
     "sha256": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
@@ -169,27 +169,27 @@
     "sha256": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Zkontrolujte svůj e-mail",
+    "text": "Zkontroluj svůj e-mail",
     "sha256": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Klikněte pro zobrazení →",
+    "text": "Klikni pro zobrazení →",
     "sha256": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Pokračujte pro ověření vašeho účtu:",
+    "text": "Pokračuj pro ověření tvého účtu:",
     "sha256": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "Nezadali jste nic ke sdílení",
+    "text": "Nezadal jsi nic ke sdílení",
     "sha256": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Zkontrolujte přístupovou frázi",
+    "text": "Zkontroluj přístupovou frázi",
     "sha256": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Zde zadejte přístupovou frázi",
+    "text": "Zde zadej přístupovou frázi",
     "sha256": "ee855dad"
   },
   "web.COMMON.view_secret": {
@@ -213,7 +213,7 @@
     "sha256": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Došlo k neočekávané chybě. Zkuste to prosím znovu.",
+    "text": "Došlo k neočekávané chybě. Zkus to prosím znovu.",
     "sha256": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
@@ -225,7 +225,7 @@
     "sha256": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Přihlaste se ke svému účtu",
+    "text": "Přihlas se ke svému účtu",
     "sha256": "62f1fe13"
   },
   "web.COMMON.sent_to": {
@@ -301,11 +301,11 @@
     "sha256": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Účet byl vytvořen. Prosím přihlaste se.",
+    "text": "Účet byl vytvořen. Prosím přihlas se.",
     "sha256": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Pokud účet s tímto e-mailem existuje, obdržíte ověřovací e-mail.",
+    "text": "Pokud účet s tímto e-mailem existuje, obdržíš ověřovací e-mail.",
     "sha256": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
@@ -313,11 +313,11 @@
     "sha256": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Prosím potvrďte",
+    "text": "Prosím potvrď",
     "sha256": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Opravdu chcete trvale smazat toto tajemství? Tuto akci nelze vrátit zpět.",
+    "text": "Opravdu chceš trvale smazat toto tajemství? Tuto akci nelze vrátit zpět.",
     "sha256": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
@@ -329,7 +329,7 @@
     "sha256": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Z bezpečnostních důvodů sdílejte tento odkaz odděleně od ostatních údajů.",
+    "text": "Z bezpečnostních důvodů sdílej tento odkaz odděleně od ostatních údajů.",
     "sha256": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -349,7 +349,7 @@
     "sha256": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Nelze ověřit účet, když jste již přihlášeni",
+    "text": "Nelze ověřit účet, když jsi již přihlášeni",
     "sha256": "f0a17c5f"
   },
   "web.COMMON.show_password": {
@@ -377,7 +377,7 @@
     "sha256": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "Zpracování vašeho požadavku",
+    "text": "Zpracování tvého požadavku",
     "sha256": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
@@ -465,7 +465,7 @@
     "sha256": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Stiskněte ESC pro zavření",
+    "text": "Stiskni ESC pro zavření",
     "sha256": "5aa83883"
   },
   "web.COMMON.enter": {
@@ -525,7 +525,7 @@
     "sha256": "d84ee92c"
   },
   "web.COMMON.confirm_password": {
-    "text": "Potvrďte heslo",
+    "text": "Potvrď heslo",
     "sha256": "5ac265f3"
   },
   "web.COMMON.new_password": {
@@ -653,11 +653,11 @@
     "sha256": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Zkontrolujte přístupovou frázi",
+    "text": "Zkontroluj přístupovou frázi",
     "sha256": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Stiskněte tlačítko kopírovat níže.",
+    "text": "Stiskni tlačítko kopírovat níže.",
     "sha256": "77fcf6fb"
   },
   "web.COMMON.external_link": {
@@ -749,7 +749,7 @@
     "sha256": "57330d93"
   },
   "web.LABELS.need_help": {
-    "text": "Potřebujete pomoc?",
+    "text": "Potřebuješ pomoc?",
     "sha256": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
@@ -1291,19 +1291,19 @@
     "sha256": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Sdílejte odkaz zamýšlenému příjemci",
+    "text": "Sdílej odkaz zamýšlenému příjemci",
     "sha256": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Sdílejte přístupovou frázi odděleně prostřednictvím bezpečného kanálu",
+    "text": "Sdílej přístupovou frázi odděleně prostřednictvím bezpečného kanálu",
     "sha256": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Pro sdílení citlivých informací použijte jiný bezpečný kanál",
+    "text": "Pro sdílení citlivých informací použij jiný bezpečný kanál",
     "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vždy si ověřte, že jste na oficiálních stránkách Onetime Secret. Podvodníci někdy vytvářejí falešné weby, které vypadají přesně jako Onetime Secret, aby ukradli vaše tajemství. Abyste se vyhnuli phishingovým útokům, zkontrolujte doménu před vytvořením nových odkazů.",
+    "text": "Vždy si ověř, že jsi na oficiálních stránkách Onetime Secret. Podvodníci někdy vytvářejí falešné weby, které vypadají přesně jako Onetime Secret, aby ukradli tvoje tajemství. Abyste se vyhnuli phishingovým útokům, zkontroluj doménu před vytvořením nových odkazů.",
     "sha256": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1311,7 +1311,7 @@
     "sha256": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "Vyberte si plán, který vyhovuje vašim potřebám. Všechny plány zahrnují neomezené sdílení tajemství a design zaměřený na soukromí.",
+    "text": "Vyber si plán, který vyhovuje tvým potřebám. Všechny plány zahrnují neomezené sdílení tajemství a design zaměřený na soukromí.",
     "sha256": "9204dff4"
   },
   "web.pricing.get_started_free": {
@@ -1323,7 +1323,7 @@
     "sha256": "983f3110"
   },
   "web.pricing.already_have_account": {
-    "text": "Již máte účet?",
+    "text": "Již máš účet?",
     "sha256": "e77fea93"
   },
   "web.pricing.sign_in": {
@@ -1331,7 +1331,7 @@
     "sha256": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
-    "text": "Doporučeno pro vás",
+    "text": "Doporučeno pro tě",
     "sha256": "00093fbd"
   },
   "web.COMMON.received": {
@@ -1355,7 +1355,7 @@
     "sha256": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
-    "text": "Vytvářejte a sdílejte tajemství se základními funkcemi. Není vyžadována platební karta.",
+    "text": "Vytvářej a sdílej tajemství se základními funkcemi. Není vyžadována platební karta.",
     "sha256": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {

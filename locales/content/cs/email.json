@@ -8,11 +8,11 @@
     "sha256": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} vám poslal/a tajemství",
+    "text": "%{sender_email} ti poslal/a tajemství",
     "sha256": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "vám poslal/a tajemství:",
+    "text": "ti poslal/a tajemství:",
     "sha256": "c0571266"
   },
   "email.secret_link.important_label": {
@@ -28,7 +28,7 @@
     "sha256": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Vítejte v %{product_name} - Prosím ověřte svůj e-mail",
+    "text": "Vítejte v %{product_name} - Prosím ověř svůj e-mail",
     "sha256": "96008c17"
   },
   "email.welcome.title": {
@@ -36,7 +36,7 @@
     "sha256": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Prosím ověřte svou e-mailovou adresu kliknutím na odkaz níže:",
+    "text": "Prosím ověř svou e-mailovou adresu kliknutím na odkaz níže:",
     "sha256": "e373dcee"
   },
   "email.welcome.verify_button": {
@@ -44,7 +44,7 @@
     "sha256": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "Nebo zkopírujte a vložte tento odkaz:",
+    "text": "Nebo zkopíruj a vlož tento odkaz:",
     "sha256": "88c72144"
   },
   "email.welcome.signature": {
@@ -52,7 +52,7 @@
     "sha256": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Tento e-mail byl odeslán na %{email_address}. Pokud jste si nevytvořili účet, můžete tuto zprávu klidně ignorovat.",
+    "text": "P.S. Tento e-mail byl odeslán na %{email_address}. Pokud jsi si nevytvořili účet, můžeš tuto zprávu klidně ignorovat.",
     "sha256": "05709148"
   },
   "email.password_request.subject": {
@@ -60,7 +60,7 @@
     "sha256": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Obnovte své heslo",
+    "text": "Obnov své heslo",
     "sha256": "0568c7b0"
   },
   "email.password_request.request_notice": {
@@ -72,11 +72,11 @@
     "sha256": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "Nebo zkopírujte a vložte tento odkaz:",
+    "text": "Nebo zkopíruj a vlož tento odkaz:",
     "sha256": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Pokud jste o obnovení hesla nepožádali, můžete tento e-mail klidně ignorovat.",
+    "text": "Pokud jsi o obnovení hesla nepožádali, můžeš tento e-mail klidně ignorovat.",
     "sha256": "fbb7eb2d"
   },
   "email.password_request.signature": {
@@ -96,7 +96,7 @@
     "sha256": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "Požádali jste o přihlašovací odkaz pro váš účet %{product_name}.",
+    "text": "Požádal jsi o přihlašovací odkaz pro tvůj účet %{product_name}.",
     "sha256": "3a34aa1f"
   },
   "email.magic_link.login_button": {
@@ -104,7 +104,7 @@
     "sha256": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "Nebo zkopírujte a vložte tento odkaz:",
+    "text": "Nebo zkopíruj a vlož tento odkaz:",
     "sha256": "88c72144"
   },
   "email.magic_link.expiration_notice": {
@@ -112,7 +112,7 @@
     "sha256": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Pokud jste o tento odkaz nepožádali, můžete tento e-mail klidně ignorovat.",
+    "text": "Pokud jsi o tento odkaz nepožádali, můžeš tento e-mail klidně ignorovat.",
     "sha256": "1863f5be"
   },
   "email.magic_link.signature": {
@@ -124,11 +124,11 @@
     "sha256": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "Obdrželi jste tajnou zprávu",
+    "text": "Obdržel jsi tajnou zprávu",
     "sha256": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "Obdrželi jste zabezpečenou zprávu:",
+    "text": "Obdržel jsi zabezpečenou zprávu:",
     "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
@@ -136,11 +136,11 @@
     "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Někdo vám poslal zabezpečenou zprávu prostřednictvím %{display_domain}.",
+    "text": "Někdo ti poslal zabezpečenou zprávu prostřednictvím %{display_domain}.",
     "sha256": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Pro zobrazení tajemství klikněte na odkaz níže:",
+    "text": "Pro zobrazení tajemství klikni na odkaz níže:",
     "sha256": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
@@ -164,15 +164,15 @@
     "sha256": "d01479b3"
   },
   "email.secret_revealed.subject": {
-    "text": "Vaše tajemství bylo zobrazeno",
+    "text": "Tvoje tajemství bylo zobrazeno",
     "sha256": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "Vaše tajemství bylo zobrazeno",
+    "text": "Tvoje tajemství bylo zobrazeno",
     "sha256": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Vaše tajemství bylo zobrazeno dne %{date}.",
+    "text": "Tvoje tajemství bylo zobrazeno dne %{date}.",
     "sha256": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
@@ -196,11 +196,11 @@
     "sha256": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Váš tajný odkaz brzy vyprší",
+    "text": "Tvůj tajný odkaz brzy vyprší",
     "sha256": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Váš tajný odkaz vyprší za %{time_remaining}",
+    "text": "Tvůj tajný odkaz vyprší za %{time_remaining}",
     "sha256": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
@@ -256,15 +256,15 @@
     "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "Byli jste pozváni do %{organization_name}",
+    "text": "Byl jsi pozván do %{organization_name}",
     "sha256": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Byli jste pozváni do %{organization_name}!",
+    "text": "Byl jsi pozván do %{organization_name}!",
     "sha256": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} vás pozval/a do \"%{organization_name}\" jako %{role_description}.",
+    "text": "%{inviter_email} tě pozval/a do \"%{organization_name}\" jako %{role_description}.",
     "sha256": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
@@ -272,7 +272,7 @@
     "sha256": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "Nebo zkopírujte a vložte tento odkaz:",
+    "text": "Nebo zkopíruj a vlož tento odkaz:",
     "sha256": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
@@ -280,7 +280,7 @@
     "sha256": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Pokud se nechcete připojit, můžete tento e-mail jednoduše ignorovat nebo pozvánku odmítnout.",
+    "text": "Pokud se nechceš připojit, můžeš tento e-mail jednoduše ignorovat nebo pozvánku odmítnout.",
     "sha256": "734882d2"
   },
   "email.organization_invitation.signature": {
@@ -288,7 +288,7 @@
     "sha256": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Tento e-mail byl odeslán na %{invited_email}. Pokud jste tuto pozvánku neočekávali, můžete tuto zprávu klidně ignorovat.",
+    "text": "P.S. Tento e-mail byl odeslán na %{invited_email}. Pokud jsi tuto pozvánku neočekávali, můžeš tuto zprávu klidně ignorovat.",
     "sha256": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
@@ -300,19 +300,19 @@
     "sha256": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "Vaše heslo bylo změněno (%{display_domain})",
+    "text": "Tvoje heslo bylo změněno (%{display_domain})",
     "sha256": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "Vaše heslo bylo změněno",
+    "text": "Tvoje heslo bylo změněno",
     "sha256": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "Vaše heslo pro %{product_name} bylo změněno dne %{date} v %{time}.",
+    "text": "Tvoje heslo pro %{product_name} bylo změněno dne %{date} v %{time}.",
     "sha256": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Pokud jste tuto změnu neprovedli, zabezpečte svůj účet okamžitě obnovením hesla a kontaktováním podpory.",
+    "text": "Pokud jsi tuto změnu neprovedli, zabezpečte svůj účet okamžitě obnovením hesla a kontaktováním podpory.",
     "sha256": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -320,19 +320,19 @@
     "sha256": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "Vaše e-mailová adresa byla změněna (%{display_domain})",
+    "text": "Tvoje e-mailová adresa byla změněna (%{display_domain})",
     "sha256": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "Vaše e-mailová adresa byla změněna",
+    "text": "Tvoje e-mailová adresa byla změněna",
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "E-mailová adresa vašeho účtu %{product_name} byla změněna na %{new_email_masked} dne %{date}.",
+    "text": "E-mailová adresa tvého účtu %{product_name} byla změněna na %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Pokud jste tuto změnu neprovedli, kontaktujte okamžitě podporu, protože váš účet může být kompromitován.",
+    "text": "Pokud jsi tuto změnu neprovedli, kontaktuj okamžitě podporu, protože tvůj účet může být kompromitován.",
     "sha256": "f505b562"
   },
   "email.email_changed.change_notice": {
@@ -408,15 +408,15 @@
     "sha256": ""
   },
   "email.email_change_confirmation.subject": {
-    "text": "Ověřte svou novou e-mailovou adresu (%{display_domain})",
+    "text": "Ověř svou novou e-mailovou adresu (%{display_domain})",
     "sha256": "6caae414"
   },
   "email.email_change_confirmation.title": {
-    "text": "Ověřte svou novou e-mailovou adresu",
+    "text": "Ověř svou novou e-mailovou adresu",
     "sha256": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Prosím ověřte tuto e-mailovou adresu pro dokončení změny vašeho účtu %{product_name}.",
+    "text": "Prosím ověř tuto e-mailovou adresu pro dokončení změny tvého účtu %{product_name}.",
     "sha256": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
@@ -432,7 +432,7 @@
     "sha256": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "Nebo zkopírujte a vložte tento odkaz:",
+    "text": "Nebo zkopíruj a vlož tento odkaz:",
     "sha256": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
@@ -460,11 +460,11 @@
     "sha256": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "Dvoufaktorové ověření bylo povoleno pro váš účet %{product_name} dne %{date}.",
+    "text": "Dvoufaktorové ověření bylo povoleno pro tvůj účet %{product_name} dne %{date}.",
     "sha256": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Váš účet je nyní bezpečnější. Při přihlášení budete muset zadat ověřovací kód z vaší autentizační aplikace.",
+    "text": "Tvůj účet je nyní bezpečnější. Při přihlášení budeš muset zadat ověřovací kód z tvojí autentizační aplikace.",
     "sha256": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
@@ -480,11 +480,11 @@
     "sha256": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "Dvoufaktorové ověření bylo zakázáno pro váš účet %{product_name} dne %{date}.",
+    "text": "Dvoufaktorové ověření bylo zakázáno pro tvůj účet %{product_name} dne %{date}.",
     "sha256": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Váš účet je nyní méně zabezpečený. Pokud jste tuto změnu neprovedli, zabezpečte svůj účet okamžitě.",
+    "text": "Tvůj účet je nyní méně zabezpečený. Pokud jsi tuto změnu neprovedli, zabezpečte svůj účet okamžitě.",
     "sha256": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
@@ -492,7 +492,7 @@
     "sha256": "f58154f7"
   },
   "email.new_login_alert.subject": {
-    "text": "Nové přihlášení k vašemu účtu (%{display_domain})",
+    "text": "Nové přihlášení k tvému účtu (%{display_domain})",
     "sha256": "a704f0bb"
   },
   "email.new_login_alert.title": {
@@ -500,7 +500,7 @@
     "sha256": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Bylo zjištěno nové přihlášení k vašemu účtu %{product_name} dne %{date} v %{time}.",
+    "text": "Bylo zjištěno nové přihlášení k tvému účtu %{product_name} dne %{date} v %{time}.",
     "sha256": "040f8f48"
   },
   "email.new_login_alert.device_label": {
@@ -516,7 +516,7 @@
     "sha256": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Pokud to nebyli vy, váš účet může být kompromitován.",
+    "text": "Pokud to nebyli ty, tvůj účet může být kompromitován.",
     "sha256": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
@@ -528,15 +528,15 @@
     "sha256": "f58154f7"
   },
   "email.member_removed.subject": {
-    "text": "Byli jste odebráni z %{organization_name}",
+    "text": "Byl jsi odebrán z %{organization_name}",
     "sha256": "9e35b86b"
   },
   "email.member_removed.title": {
-    "text": "Byli jste odebráni z %{organization_name}",
+    "text": "Byl jsi odebrán z %{organization_name}",
     "sha256": "6cf4ee6a"
   },
   "email.member_removed.body": {
-    "text": "Byli jste odebráni z organizace \"%{organization_name}\" na %{product_name}.",
+    "text": "Byl jsi odebrán z organizace \"%{organization_name}\" na %{product_name}.",
     "sha256": "d442beed"
   },
   "email.member_removed.signature": {
@@ -544,15 +544,15 @@
     "sha256": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Vaše role byla změněna v %{organization_name}",
+    "text": "Tvoje role byla změněna v %{organization_name}",
     "sha256": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "Vaše role byla změněna",
+    "text": "Tvoje role byla změněna",
     "sha256": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Vaše role v \"%{organization_name}\" byla změněna z %{old_role} na %{new_role}.",
+    "text": "Tvoje role v \"%{organization_name}\" byla změněna z %{old_role} na %{new_role}.",
     "sha256": "c2280c0c"
   },
   "email.role_changed.signature": {
@@ -616,7 +616,7 @@
     "sha256": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Nepodařilo se nám zpracovat vaši platbu za %{product_name}. Prosím aktualizujte svou platební metodu, abyste předešli přerušení služby.",
+    "text": "Nepodařilo se nám zpracovat vaši platbu za %{product_name}. Prosím aktualizuj svou platební metodu, abyste předešli přerušení služby.",
     "sha256": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
@@ -628,15 +628,15 @@
     "sha256": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "Vaše zkušební verze %{product_name} vyprší za %{days_remaining} dní",
+    "text": "Tvoje zkušební verze %{product_name} vyprší za %{days_remaining} dní",
     "sha256": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Vaše zkušební verze brzy končí",
+    "text": "Tvoje zkušební verze brzy končí",
     "sha256": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Vaše bezplatná zkušební verze %{product_name} vyprší za %{days_remaining} dní. Upgradujte nyní, abyste si zachovali přístup ke všem funkcím.",
+    "text": "Tvoje bezplatná zkušební verze %{product_name} vyprší za %{days_remaining} dní. Upgraduj nyní, abyste si zachovali přístup ke všem funkcím.",
     "sha256": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
@@ -648,7 +648,7 @@
     "sha256": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "Vaše předplatné %{product_name} bylo změněno",
+    "text": "Tvoje předplatné %{product_name} bylo změněno",
     "sha256": "c9b61a4d"
   },
   "email.subscription_changed.title": {
@@ -656,7 +656,7 @@
     "sha256": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "Vaše předplatné %{product_name} bylo změněno z %{old_plan} na %{new_plan}.",
+    "text": "Tvoje předplatné %{product_name} bylo změněno z %{old_plan} na %{new_plan}.",
     "sha256": "72f81a65"
   },
   "email.subscription_changed.effective_date": {

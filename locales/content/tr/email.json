@@ -252,7 +252,7 @@
     "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Secret Destek",
+    "text": "Secret Support",
     "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "%{product_name} hesabınızın e-posta adresi %{date} tarihinde %{new_email_masked} olarak değiştirildi.",
+    "text": "%{product_name} hesabınızın e-posta adresi %{new_email_masked} olarak değiştirildi.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {

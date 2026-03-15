@@ -569,7 +569,7 @@
     "sha256": "f97e9da0"
   },
   "web.COMMON.min_width_1024px": {
-    "text": "(amplada-mín: 1024px)",
+    "text": "(min-width: 1024px)",
     "sha256": "c8a306d0"
   },
   "web.COMMON.ctrl_enter": {

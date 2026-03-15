@@ -17,7 +17,7 @@
     "sha256": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Ustvari geslo",
+    "text": "Ustvarite geslo",
     "sha256": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
@@ -41,7 +41,7 @@
     "sha256": "71fddc05"
   },
   "web.COMMON.get_started_button": {
-    "text": "Začni",
+    "text": "Začnite",
     "sha256": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
@@ -53,7 +53,7 @@
     "sha256": "74a883a0"
   },
   "web.COMMON.submit_with": {
-    "text": "Pošlji",
+    "text": "Pošljite",
     "sha256": "155f816c"
   },
   "web.COMMON.submitting": {
@@ -77,11 +77,11 @@
     "sha256": "52728258"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Ustvari skrivno povezavo",
+    "text": "Ustvarite skrivno povezavo",
     "sha256": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Ali ustvari naključno geslo",
+    "text": "Ali ustvarite naključno geslo",
     "sha256": "8c1c764b"
   },
   "web.COMMON.secret_privacy_options": {
@@ -105,7 +105,7 @@
     "sha256": "54630bab"
   },
   "web.COMMON.header_create_account": {
-    "text": "Ustvari račun",
+    "text": "Ustvarite račun",
     "sha256": "0dffe234"
   },
   "web.COMMON.header_about": {
@@ -137,11 +137,11 @@
     "sha256": "4895f731"
   },
   "web.COMMON.word_edit": {
-    "text": "Uredi",
+    "text": "Uredite",
     "sha256": "464c4ffd"
   },
   "web.COMMON.word_save": {
-    "text": "Shrani",
+    "text": "Shranite",
     "sha256": "1509f561"
   },
   "web.COMMON.burn": {
@@ -157,7 +157,7 @@
     "sha256": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Trajno izbriši to skrivnost",
+    "text": "Trajno izbrišite to skrivnost",
     "sha256": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
@@ -193,7 +193,7 @@
     "sha256": "ee855dad"
   },
   "web.COMMON.view_secret": {
-    "text": "Prikaži skrivnost",
+    "text": "Prikažite skrivnost",
     "sha256": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
@@ -241,15 +241,15 @@
     "sha256": "e7cf3ef4"
   },
   "web.COMMON.field_password2": {
-    "text": "Potrdi geslo",
+    "text": "Potrdite geslo",
     "sha256": "c292210c"
   },
   "web.COMMON.button_create_account": {
-    "text": "Ustvari račun",
+    "text": "Ustvarite račun",
     "sha256": "0dffe234"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Deli skrivnost",
+    "text": "Delite skrivnost",
     "sha256": "5384461b"
   },
   "web.COMMON.title_home": {
@@ -269,15 +269,15 @@
     "sha256": "318c5ad5"
   },
   "web.COMMON.word_confirm": {
-    "text": "Potrdi",
+    "text": "Potrdite",
     "sha256": "eebdd24a"
   },
   "web.COMMON.word_cancel": {
-    "text": "Prekliči",
+    "text": "Prekličite",
     "sha256": "19766ed6"
   },
   "web.COMMON.word_continue": {
-    "text": "Nadaljuj",
+    "text": "Nadaljujte",
     "sha256": "31fbef16"
   },
   "web.COMMON.word_done": {
@@ -293,7 +293,7 @@
     "sha256": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Pošlji povratne informacije",
+    "text": "Pošljite povratne informacije",
     "sha256": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
@@ -309,7 +309,7 @@
     "sha256": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Trajno izbriši to skrivnost",
+    "text": "Trajno izbrišite to skrivnost",
     "sha256": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
@@ -321,7 +321,7 @@
     "sha256": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Da, trajno izbriši to skrivnost",
+    "text": "Da, trajno izbrišite to skrivnost",
     "sha256": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
@@ -337,7 +337,7 @@
     "sha256": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Ustvari dohodno",
+    "text": "Ustvarite dohodno",
     "sha256": "5bb95106"
   },
   "web.COMMON.faq_title": {
@@ -353,11 +353,11 @@
     "sha256": "f0a17c5f"
   },
   "web.COMMON.show_password": {
-    "text": "Prikaži geslo",
+    "text": "Prikažite geslo",
     "sha256": "6aeaa6a5"
   },
   "web.COMMON.hide_password": {
-    "text": "Skrij geslo",
+    "text": "Skrijte geslo",
     "sha256": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
@@ -381,7 +381,7 @@
     "sha256": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Ostani prijavljen 30 dni",
+    "text": "Ostanite prijavljeni 30 dni",
     "sha256": "6e069c11"
   },
   "web.COMMON.redirecting": {
@@ -389,7 +389,7 @@
     "sha256": "cd23991b"
   },
   "web.COMMON.continue": {
-    "text": "Nadaljuj",
+    "text": "Nadaljujte",
     "sha256": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
@@ -413,7 +413,7 @@
     "sha256": "8f6fb4eb"
   },
   "web.COMMON.manage": {
-    "text": "Upravljaj",
+    "text": "Upravljajte",
     "sha256": "5a234448"
   },
   "web.COMMON.loading": {
@@ -421,7 +421,7 @@
     "sha256": "47d2a515"
   },
   "web.COMMON.save_changes": {
-    "text": "Shrani spremembe",
+    "text": "Shranite spremembe",
     "sha256": "35322b5b"
   },
   "web.COMMON.saving": {
@@ -461,7 +461,7 @@
     "sha256": "324b134f"
   },
   "web.COMMON.remove": {
-    "text": "Odstrani",
+    "text": "Odstranite",
     "sha256": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
@@ -525,7 +525,7 @@
     "sha256": "d84ee92c"
   },
   "web.COMMON.confirm_password": {
-    "text": "Potrdi geslo",
+    "text": "Potrdite geslo",
     "sha256": "5ac265f3"
   },
   "web.COMMON.new_password": {
@@ -633,7 +633,7 @@
     "sha256": "00561207"
   },
   "web.COMMON.open_options": {
-    "text": "Odpri možnosti",
+    "text": "Odprite možnosti",
     "sha256": "3dc08503"
   },
   "web.COMMON.inactive": {
@@ -645,7 +645,7 @@
     "sha256": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Kopiraj skrivnost v odložišče",
+    "text": "Kopirajte skrivnost v odložišče",
     "sha256": "a2ceff6d"
   },
   "web.COMMON.secret_copied_to_clipboard": {
@@ -665,27 +665,27 @@
     "sha256": "a1b2c3d5"
   },
   "web.LABELS.view_toggle.show": {
-    "text": "Prikaži",
+    "text": "Prikažite",
     "sha256": "0df6f1ca"
   },
   "web.LABELS.view_toggle.hide": {
-    "text": "Skrij",
+    "text": "Skrijte",
     "sha256": "ac20a57b"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Prikaži več",
+    "text": "Prikažite več",
     "sha256": "ba8a80fd"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Prikaži manj",
+    "text": "Prikažite manj",
     "sha256": "0264d7b0"
   },
   "web.LABELS.enable": {
-    "text": "Omogoči",
+    "text": "Omogočite",
     "sha256": "5342e09f"
   },
   "web.LABELS.disable": {
-    "text": "Onemogoči",
+    "text": "Onemogočite",
     "sha256": "b7e3e4aa"
   },
   "web.LABELS.stats": {
@@ -709,7 +709,7 @@
     "sha256": "de996752"
   },
   "web.LABELS.close": {
-    "text": "Zapri",
+    "text": "Zaprite",
     "sha256": "7d9eb7ac"
   },
   "web.LABELS.loading": {
@@ -717,7 +717,7 @@
     "sha256": "47d2a515"
   },
   "web.LABELS.cancel": {
-    "text": "Prekliči",
+    "text": "Prekličite",
     "sha256": "19766ed6"
   },
   "web.LABELS.saving": {
@@ -729,11 +729,11 @@
     "sha256": "b5c120b3"
   },
   "web.LABELS.save": {
-    "text": "Shrani",
+    "text": "Shranite",
     "sha256": "1509f561"
   },
   "web.LABELS.save_all": {
-    "text": "Shrani vse",
+    "text": "Shranite vse",
     "sha256": "d3c54e39"
   },
   "web.LABELS.details": {
@@ -753,7 +753,7 @@
     "sha256": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Ustvari novo skrivnost",
+    "text": "Ustvarite novo skrivnost",
     "sha256": "311d266c"
   },
   "web.LABELS.actions": {
@@ -765,7 +765,7 @@
     "sha256": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "Kopiraj v odložišče",
+    "text": "Kopirajte v odložišče",
     "sha256": "b749e205"
   },
   "web.LABELS.receipts": {
@@ -773,7 +773,7 @@
     "sha256": "60a627df"
   },
   "web.LABELS.share": {
-    "text": "Deli",
+    "text": "Delite",
     "sha256": "29887a5f"
   },
   "web.LABELS.secret_link": {
@@ -781,7 +781,7 @@
     "sha256": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
-    "text": "Opusti",
+    "text": "Opustite",
     "sha256": "48845bff"
   },
   "web.LABELS.security_details": {
@@ -797,7 +797,7 @@
     "sha256": "48187543"
   },
   "web.LABELS.view": {
-    "text": "Prikaži",
+    "text": "Prikažite",
     "sha256": "dcc839a4"
   },
   "web.LABELS.views": {
@@ -809,7 +809,7 @@
     "sha256": "73758343"
   },
   "web.LABELS.view_progress": {
-    "text": "Prikaži napredek",
+    "text": "Prikažite napredek",
     "sha256": "6c072c1f"
   },
   "web.LABELS.help_section": {
@@ -837,19 +837,19 @@
     "sha256": "dfe95783"
   },
   "web.LABELS.refresh": {
-    "text": "Osveži",
+    "text": "Osvežite",
     "sha256": "0e916101"
   },
   "web.LABELS.reload": {
-    "text": "Ponovno naloži",
+    "text": "Ponovno naložite",
     "sha256": "bdc090ec"
   },
   "web.LABELS.filter": {
-    "text": "Filtriraj",
+    "text": "Filtrirajte",
     "sha256": "638e249f"
   },
   "web.LABELS.clear": {
-    "text": "Počisti",
+    "text": "Počistite",
     "sha256": "83b12c22"
   },
   "web.LABELS.caption_recent_secrets": {
@@ -857,19 +857,19 @@
     "sha256": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
-    "text": "Ustvari povezavo",
+    "text": "Ustvarite povezavo",
     "sha256": "cac74fdb"
   },
   "web.LABELS.create_link": {
-    "text": "Ustvari skrivno povezavo",
+    "text": "Ustvarite skrivno povezavo",
     "sha256": "a30a47b9"
   },
   "web.LABELS.create_request_short": {
-    "text": "Ustvari zahtevo",
+    "text": "Ustvarite zahtevo",
     "sha256": "71a0bd40"
   },
   "web.LABELS.create_request": {
-    "text": "Ustvari povezavo za zahtevo",
+    "text": "Ustvarite povezavo za zahtevo",
     "sha256": "190463dc"
   },
   "web.LABELS.related_settings": {
@@ -1038,19 +1038,19 @@
     "sha256": "e6c9e0e6"
   },
   "web.UNITS.ttl.time.day": {
-    "text": "dan | dni",
+    "text": "dan | dni | dni",
     "sha256": "6ac0d345"
   },
   "web.UNITS.ttl.time.hour": {
-    "text": "ura | ure",
+    "text": "ura | uri | ur",
     "sha256": "f4fef91b"
   },
   "web.UNITS.ttl.time.minute": {
-    "text": "minuta | minute",
+    "text": "minuta | minuti | minut",
     "sha256": "08d71a9f"
   },
   "web.UNITS.ttl.time.second": {
-    "text": "sekunda | sekunde",
+    "text": "sekunda | sekundi | sekund",
     "sha256": "e655e068"
   },
   "web.UNITS.ttl.noOptionsAvailable": {
@@ -1062,19 +1062,19 @@
     "sha256": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "dan preostane | dni preostane",
+    "text": "dan preostane | dni preostaneta | dni preostane",
     "sha256": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "ura preostane | ure preostanejo",
+    "text": "ura preostane | uri preostaneta | ur preostane",
     "sha256": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "minuta preostane | minute preostanejo",
+    "text": "minuta preostane | minuti preostaneta | minut preostane",
     "sha256": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "sekunda preostane | sekunde preostanejo",
+    "text": "sekunda preostane | sekundi preostaneta | sekund preostane",
     "sha256": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
@@ -1114,7 +1114,7 @@
     "sha256": "bcc0bcc9"
   },
   "web.TITLES.signup": {
-    "text": "Ustvari račun",
+    "text": "Ustvarite račun",
     "sha256": "0dffe234"
   },
   "web.TITLES.forgot_password": {
@@ -1122,7 +1122,7 @@
     "sha256": "fdfd41de"
   },
   "web.TITLES.reset_password": {
-    "text": "Ponastavi geslo",
+    "text": "Ponastavite geslo",
     "sha256": "4e70f1fd"
   },
   "web.TITLES.logout": {
@@ -1130,7 +1130,7 @@
     "sha256": "afbce8a6"
   },
   "web.TITLES.verify_account": {
-    "text": "Preveri račun",
+    "text": "Preverite račun",
     "sha256": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
@@ -1142,7 +1142,7 @@
     "sha256": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
-    "text": "Sprejmi povabilo",
+    "text": "Sprejmite povabilo",
     "sha256": "ce7cfeaf"
   },
   "web.TITLES.secret": {
@@ -1158,7 +1158,7 @@
     "sha256": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
-    "text": "Trajno izbriši skrivnost",
+    "text": "Trajno izbrišite skrivnost",
     "sha256": "28785b83"
   },
   "web.TITLES.dashboard": {
@@ -1174,11 +1174,11 @@
     "sha256": "6170ab94"
   },
   "web.TITLES.domain_add": {
-    "text": "Dodaj domeno",
+    "text": "Dodajte domeno",
     "sha256": "0f09df73"
   },
   "web.TITLES.domain_verify": {
-    "text": "Preveri domeno",
+    "text": "Preverite domeno",
     "sha256": "b416f537"
   },
   "web.TITLES.domain_brand": {
@@ -1222,7 +1222,7 @@
     "sha256": "78801183"
   },
   "web.TITLES.change_email": {
-    "text": "Spremeni e-pošto",
+    "text": "Spremenite e-pošto",
     "sha256": "18c3f2d5"
   },
   "web.TITLES.confirm_email_change": {
@@ -1234,7 +1234,7 @@
     "sha256": "8f6fb4eb"
   },
   "web.TITLES.change_password": {
-    "text": "Spremeni geslo",
+    "text": "Spremenite geslo",
     "sha256": "a949f462"
   },
   "web.TITLES.mfa_settings": {
@@ -1315,11 +1315,11 @@
     "sha256": "9204dff4"
   },
   "web.pricing.get_started_free": {
-    "text": "Začni brezplačno",
+    "text": "Začnite brezplačno",
     "sha256": "6bb5a4a7"
   },
   "web.pricing.start_trial": {
-    "text": "Začni",
+    "text": "Začnite",
     "sha256": "983f3110"
   },
   "web.pricing.already_have_account": {
@@ -1339,19 +1339,19 @@
     "sha256": "49f19bee"
   },
   "web.LABELS.add_note": {
-    "text": "Dodaj opombo...",
+    "text": "Dodajte opombo...",
     "sha256": "32738894"
   },
   "web.LABELS.edit_note": {
-    "text": "Uredi opombo",
+    "text": "Uredite opombo",
     "sha256": "299e604c"
   },
   "web.LABELS.add_memo": {
-    "text": "Dodaj memo...",
+    "text": "Dodajte memo...",
     "sha256": "02384c53"
   },
   "web.LABELS.edit_memo": {
-    "text": "Uredi memo",
+    "text": "Uredite memo",
     "sha256": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {

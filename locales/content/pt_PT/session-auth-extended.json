@@ -94,7 +94,7 @@
     "sha256": "9c170dda"
   },
   "web.auth.methods.password": {
-    "text": "Senha",
+    "text": "Palavra-passe",
     "sha256": "e7cf3ef4"
   },
   "web.auth.methods.magicLink": {
@@ -139,7 +139,7 @@
     "sha256": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Sem necessidade de senha — basta clicar no link no teu e-mail",
+    "text": "Sem necessidade de palavra-passe — basta clicar no link no teu e-mail",
     "sha256": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
@@ -348,7 +348,7 @@
     "sha256": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "Podes redefinir a tua senha em alternativa",
+    "text": "Podes redefinir a tua palavra-passe em alternativa",
     "sha256": "a98a3f9d"
   },
   "web.auth.sessions._guidance": {
@@ -496,11 +496,11 @@
     "sha256": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
-    "text": "Introduz a tua senha para desativar 2FA",
+    "text": "Introduz a tua palavra-passe para desativar 2FA",
     "sha256": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
-    "text": "Senha",
+    "text": "Palavra-passe",
     "sha256": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
@@ -548,7 +548,7 @@
     "sha256": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Previne acesso não autorizado mesmo se a tua senha for comprometida",
+    "text": "Previne acesso não autorizado mesmo se a tua palavra-passe for comprometida",
     "sha256": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
@@ -560,7 +560,7 @@
     "sha256": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
-    "text": "Introduz a tua senha",
+    "text": "Introduz a tua palavra-passe",
     "sha256": "c06bf967"
   },
   "web.auth.mfa.disabling": {

@@ -625,7 +625,7 @@
     "sha256": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Tạm được",
+    "text": "Tàm tạm",
     "sha256": "8b0d6190"
   },
   "web.COMMON.not_great": {
@@ -1062,19 +1062,19 @@
     "sha256": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "còn ngày | còn ngày",
+    "text": "ngày | ngày",
     "sha256": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "còn giờ | còn giờ",
+    "text": "giờ | giờ",
     "sha256": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "còn phút | còn phút",
+    "text": "phút | phút",
     "sha256": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "còn giây | còn giây",
+    "text": "giây | giây",
     "sha256": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {

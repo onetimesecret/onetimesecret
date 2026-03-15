@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "A %{product_name} fiókjához tartozó e-mail cím %{date} dátummal megváltozott erre: %{new_email_masked}.",
+    "text": "A %{product_name} fiókjához tartozó e-mail cím megváltozott erre: %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {

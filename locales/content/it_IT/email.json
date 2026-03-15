@@ -252,7 +252,7 @@
     "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Assistenza Secret",
+    "text": "Secret Support",
     "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "L'indirizzo email del tuo account %{product_name} è stato modificato in %{new_email_masked} il %{date}.",
+    "text": "L'indirizzo email del tuo account %{product_name} è stato modificato in %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {

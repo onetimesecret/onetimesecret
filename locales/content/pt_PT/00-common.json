@@ -17,11 +17,11 @@
     "sha256": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Gerar senha",
+    "text": "Gerar palavra-passe",
     "sha256": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Gerar senha está desativado quando o formulário é válido",
+    "text": "Gerar palavra-passe está desativado quando o formulário é válido",
     "sha256": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
@@ -29,7 +29,7 @@
     "sha256": "f2350739"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Introduz a tua senha",
+    "text": "Introduz a tua palavra-passe",
     "sha256": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
@@ -45,7 +45,7 @@
     "sha256": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Confirma a tua senha",
+    "text": "Confirma a tua palavra-passe",
     "sha256": "bfd8c343"
   },
   "web.COMMON.header_settings": {
@@ -73,7 +73,7 @@
     "sha256": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "mensagem confidencial,gerador de senhas,partilhar um segredo,onetime",
+    "text": "mensagem confidencial,gerador de palavras-passe,partilhar um segredo,onetime",
     "sha256": "52728258"
   },
   "web.COMMON.button_create_secret": {
@@ -81,7 +81,7 @@
     "sha256": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Ou gera uma senha aleatória",
+    "text": "Ou gera uma palavra-passe aleatória",
     "sha256": "8c1c764b"
   },
   "web.COMMON.secret_privacy_options": {
@@ -237,11 +237,11 @@
     "sha256": "969ccbd3"
   },
   "web.COMMON.field_password": {
-    "text": "Senha",
+    "text": "Palavra-passe",
     "sha256": "e7cf3ef4"
   },
   "web.COMMON.field_password2": {
-    "text": "Confirmar senha",
+    "text": "Confirmar palavra-passe",
     "sha256": "c292210c"
   },
   "web.COMMON.button_create_account": {
@@ -353,23 +353,23 @@
     "sha256": "f0a17c5f"
   },
   "web.COMMON.show_password": {
-    "text": "Mostrar senha",
+    "text": "Mostrar palavra-passe",
     "sha256": "6aeaa6a5"
   },
   "web.COMMON.hide_password": {
-    "text": "Ocultar senha",
+    "text": "Ocultar palavra-passe",
     "sha256": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "A senha deve ter pelo menos 8 caracteres",
+    "text": "A palavra-passe deve ter pelo menos 8 caracteres",
     "sha256": "e3b8d09d"
   },
   "web.COMMON.password_requirements": {
-    "text": "A senha deve ter pelo menos 8 caracteres",
+    "text": "A palavra-passe deve ter pelo menos 8 caracteres",
     "sha256": "e5054833"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "As senhas não coincidem",
+    "text": "As palavras-passe não coincidem",
     "sha256": "b6eb82cd"
   },
   "web.COMMON.form_field_required": {
@@ -525,11 +525,11 @@
     "sha256": "d84ee92c"
   },
   "web.COMMON.confirm_password": {
-    "text": "Confirmar senha",
+    "text": "Confirmar palavra-passe",
     "sha256": "5ac265f3"
   },
   "web.COMMON.new_password": {
-    "text": "Nova senha",
+    "text": "Nova palavra-passe",
     "sha256": "3dd9df44"
   },
   "web.COMMON.email_address": {
@@ -609,7 +609,7 @@
     "sha256": "1ff57a29"
   },
   "web.COMMON.password_strength": {
-    "text": "Força da senha:",
+    "text": "Força da palavra-passe:",
     "sha256": "663d6499"
   },
   "web.COMMON.great": {
@@ -1118,11 +1118,11 @@
     "sha256": "0dffe234"
   },
   "web.TITLES.forgot_password": {
-    "text": "Esqueceste a senha",
+    "text": "Esqueceste a palavra-passe",
     "sha256": "fdfd41de"
   },
   "web.TITLES.reset_password": {
-    "text": "Redefinir senha",
+    "text": "Redefinir palavra-passe",
     "sha256": "4e70f1fd"
   },
   "web.TITLES.logout": {
@@ -1234,7 +1234,7 @@
     "sha256": "8f6fb4eb"
   },
   "web.TITLES.change_password": {
-    "text": "Alterar senha",
+    "text": "Alterar palavra-passe",
     "sha256": "a949f462"
   },
   "web.TITLES.mfa_settings": {
@@ -1359,12 +1359,12 @@
     "sha256": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
-    "text": "Introduza a sua palavra-passe para continuar",
+    "text": "Introduz a tua palavra-passe para continuar",
     "context": "Prompt for password confirmation modal",
     "sha256": "09055357"
   },
   "web.COMMON.password_required_for_action": {
-    "text": "A sua palavra-passe é necessária para concluir esta ação",
+    "text": "A tua palavra-passe é necessária para concluir esta ação",
     "context": "Description for password confirmation modal",
     "sha256": "cc078766"
   },
@@ -1379,12 +1379,12 @@
     "sha256": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "Não foi possível processar o seu pedido neste momento",
+    "text": "Não foi possível processar o teu pedido neste momento",
     "context": "Error message for recoverable server errors",
     "sha256": "fb961f3f"
   },
   "web.COMMON.upgrade_description": {
-    "text": "Faça upgrade para desbloquear mais funcionalidades",
+    "text": "Faz upgrade para desbloquear mais funcionalidades",
     "context": "Description shown for free plan users encouraging upgrade",
     "sha256": "783f174c"
   }

@@ -12,7 +12,7 @@
     "sha256": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "Leg los, indem du dein erstes Geheimnis erstellst.",
+    "text": "Erstellen Sie Ihr erstes Geheimnis, um loszulegen.",
     "sha256": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {

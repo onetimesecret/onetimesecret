@@ -276,11 +276,11 @@
     "sha256": "b3032f1a"
   },
   "web.colonel.clickToReset": {
-    "text": "Klikněte pro reset",
+    "text": "Klikni pro reset",
     "sha256": "4b25034d"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Vyberte plán k testování",
+    "text": "Vyber plán k testování",
     "sha256": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
@@ -632,7 +632,7 @@
     "sha256": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Když odešlete zpětnou vazbu, uvidíme:",
+    "text": "Když odešli zpětnou vazbu, uvidíme:",
     "sha256": "fe77172e"
   }
 }

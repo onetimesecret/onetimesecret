@@ -250,6 +250,20 @@ Security messages MUST remain generic to prevent information disclosure. See `SE
 - Japanese (ja)
 - Chinese (zh)
 
+## Brand Names (Do Not Translate)
+
+The following terms are brand names and MUST be kept in English across all locales:
+
+- **Onetime Secret** - Product name
+- **One-Time Secret** - Product name (alternate form)
+- **Secret Support** - Support team name (used in email signatures)
+- **Identity Plus** - Subscription tier name
+- **Starlight** - Feature/component name
+
+Brand names MUST NOT be transliterated, translated, or adapted. They appear as-is regardless of the target language's script or conventions.
+
+When a brand name appears in a sentence, surrounding grammar (articles, prepositions, case markers) should be adapted to the target language while the brand name itself remains unchanged.
+
 ## Resources
 
 - **Security guidance:** `SECURITY-TRANSLATION-GUIDE.md`

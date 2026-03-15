@@ -625,7 +625,7 @@
     "sha256": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Āhua pai",
+    "text": "Āhua noa",
     "sha256": "8b0d6190"
   },
   "web.COMMON.not_great": {
@@ -1359,7 +1359,7 @@
     "sha256": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
-    "text": "Tāurua tō kupuhipa hei haere tonu",
+    "text": "Whakauru tō kupuhipa hei haere tonu",
     "context": "Prompt for password confirmation modal",
     "sha256": "09055357"
   },

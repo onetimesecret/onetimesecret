@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "%{product_name} 계정의 이메일 주소가 %{date}에 %{new_email_masked}(으)로 변경되었습니다.",
+    "text": "%{product_name} 계정의 이메일 주소가 %{new_email_masked}(으)로 변경되었습니다.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {

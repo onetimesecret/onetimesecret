@@ -1134,7 +1134,7 @@
     "sha256": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Dufaktora aŭtentigo",
+    "text": "Dufaktora aŭtentikigo",
     "sha256": "bc074b60"
   },
   "web.TITLES.email_login": {
@@ -1238,7 +1238,7 @@
     "sha256": "a949f462"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Dufaktora aŭtentigo",
+    "text": "Dufaktora aŭtentikigo",
     "sha256": "bc074b60"
   },
   "web.TITLES.active_sessions": {

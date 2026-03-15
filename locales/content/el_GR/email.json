@@ -252,7 +252,7 @@
     "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Υποστήριξη μυστικών",
+    "text": "Secret Support",
     "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Η διεύθυνση email του λογαριασμού σας στο %{product_name} άλλαξε σε %{new_email_masked} στις %{date}.",
+    "text": "Η διεύθυνση email του λογαριασμού σας στο %{product_name} άλλαξε σε %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {

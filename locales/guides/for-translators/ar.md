@@ -135,6 +135,7 @@ The Arabic translation aims to:
   - `كلمة المرور` for account passwords
   - `عبارة المرور` for secret protection
   - `سر` as the core concept
+- Keys ending in `_literal` (e.g., `onetime_secret_literal`) contain brand names that must remain in English exactly as-is
 
 ### 2. Context Awareness
 

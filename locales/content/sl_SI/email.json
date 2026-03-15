@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "E-poštni naslov za vaš račun %{product_name} je bil spremenjen na %{new_email_masked} dne %{date}.",
+    "text": "E-poštni naslov za vaš račun %{product_name} je bil spremenjen na %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {

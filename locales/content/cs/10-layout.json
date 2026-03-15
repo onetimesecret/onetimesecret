@@ -48,15 +48,15 @@
     "sha256": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Když odešlete zpětnou vazbu, uvidíme:",
+    "text": "Když odešli zpětnou vazbu, uvidíme:",
     "sha256": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Přečtěte si naše zásady ochrany osobních údajů",
+    "text": "Přečti si naše zásady ochrany osobních údajů",
     "sha256": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Zkontrolujte stav naší služby",
+    "text": "Zkontroluj stav naší služby",
     "sha256": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
@@ -84,7 +84,7 @@
     "sha256": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Přečtěte si naše nejnovější blogové příspěvky",
+    "text": "Přečti si naše nejnovější blogové příspěvky",
     "sha256": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
@@ -132,7 +132,7 @@
     "sha256": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Nedávno jsme přidali překlady. Našli jste chybu? {send-feedback}",
+    "text": "Nedávno jsme přidali překlady. Našel jsi chybu? {send-feedback}",
     "sha256": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
@@ -164,7 +164,7 @@
     "sha256": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Použijte tlačítko 'Zkopírovat do schránky' pro zkopírování celého tajemství. U delších tajemství se ujistěte, že jste zkopírovali celý obsah, než tuto stránku opustíte.",
+    "text": "Použij tlačítko 'Zkopírovat do schránky' pro zkopírování celého tajemství. U delších tajemství se ujistěte, že jsi zkopírovali celý obsah, než tuto stránku opustíte.",
     "sha256": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
@@ -172,7 +172,7 @@
     "sha256": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Odesílatel bude upozorněn, že jeho tajemství bylo zobrazeno, ale nesledujeme, kdo ho zobrazil ani z jakého místa. Vaše soukromí je chráněno.",
+    "text": "Odesílatel bude upozorněn, že jeho tajemství bylo zobrazeno, ale nesledujeme, kdo ho zobrazil ani z jakého místa. Tvoje soukromí je chráněno.",
     "sha256": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {

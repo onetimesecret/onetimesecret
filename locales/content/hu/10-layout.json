@@ -148,7 +148,7 @@
     "sha256": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Egy biztonságos üzenetet tekint meg, amelyet a Onetime Secret-en keresztül osztottak meg Önnel. Ez a tartalom csak egyszer jelenik meg, majd véglegesen törlődik szervereinkről.",
+    "text": "Egy biztonságos üzenetet tekint meg, amelyet az Onetime Secret-en keresztül osztottak meg Önnel. Ez a tartalom csak egyszer jelenik meg, majd véglegesen törlődik szervereinkről.",
     "sha256": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {

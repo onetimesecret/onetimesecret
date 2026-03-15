@@ -152,11 +152,11 @@
     "sha256": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "Ĉi tiu sekreto estas protektita per pasfrazo. La sendinto devus provizi ĝin al vi aparte.",
+    "text": "Ĉi tiu sekreto estas protektita per sekreta frazo. La sendinto devus provizi ĝin al vi aparte.",
     "sha256": ""
   },
   "email.incoming_secret.passphrase_label": {
-    "text": "Pasfrazo bezonata:",
+    "text": "Sekreta frazo bezonata:",
     "sha256": ""
   },
   "email.incoming_secret.sent_via": {
@@ -252,7 +252,7 @@
     "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Sekreta Subteno",
+    "text": "Secret Support",
     "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "La retpoŝta adreso por via konto %{product_name} estis ŝanĝita al %{new_email_masked} je %{date}.",
+    "text": "La retpoŝta adreso por via konto %{product_name} estis ŝanĝita al %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
@@ -452,15 +452,15 @@
     "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
-    "text": "Du-faktora aŭtentikigo ŝaltita (%{display_domain})",
+    "text": "Dufaktora aŭtentikigo ŝaltita (%{display_domain})",
     "sha256": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "Du-Faktora Aŭtentikigo Ŝaltita",
+    "text": "Dufaktora Aŭtentikigo Ŝaltita",
     "sha256": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "Du-faktora aŭtentikigo estis ŝaltita por via %{product_name}-konto je %{date}.",
+    "text": "Dufaktora aŭtentikigo estis ŝaltita por via %{product_name}-konto je %{date}.",
     "sha256": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
@@ -472,15 +472,15 @@
     "sha256": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "Du-faktora aŭtentikigo malŝaltita (%{display_domain})",
+    "text": "Dufaktora aŭtentikigo malŝaltita (%{display_domain})",
     "sha256": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "Du-Faktora Aŭtentikigo Malŝaltita",
+    "text": "Dufaktora Aŭtentikigo Malŝaltita",
     "sha256": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "Du-faktora aŭtentikigo estis malŝaltita por via %{product_name}-konto je %{date}.",
+    "text": "Dufaktora aŭtentikigo estis malŝaltita por via %{product_name}-konto je %{date}.",
     "sha256": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {

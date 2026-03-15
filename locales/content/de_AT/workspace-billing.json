@@ -32,7 +32,7 @@
     "sha256": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Verwalte dein Abonnement, Organisationen und Abrechnungseinstellungen",
+    "text": "Verwalten Sie Ihr Abonnement, Organisationen und Abrechnungseinstellungen",
     "sha256": "3995095c"
   },
   "web.billing.overview.title": {
@@ -40,7 +40,7 @@
     "sha256": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "Zeige und verwalte dein Abonnement und Zahlungsdetails",
+    "text": "Zeigen und verwalten Sie Ihr Abonnement und Zahlungsdetails",
     "sha256": "60e5a00e"
   },
   "web.billing.overview.billing_for_organization": {
@@ -144,7 +144,7 @@
     "sha256": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Erstelle eine Organisation, um deine Abrechnung und dein Abonnement zu verwalten",
+    "text": "Erstellen Sie eine Organisation, um Ihre Abrechnung und Ihr Abonnement zu verwalten",
     "sha256": "41e922d2"
   },
   "web.billing.overview.load_error": {
@@ -152,11 +152,11 @@
     "sha256": "d4e5f6a7"
   },
   "web.billing.overview.upgrade_success": {
-    "text": "Dein Plan wurde erfolgreich aktualisiert",
+    "text": "Ihr Plan wurde erfolgreich aktualisiert",
     "sha256": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
-    "text": "Dein neuer Plan ist jetzt aktiv. Danke für deinen Kauf.",
+    "text": "Ihr neuer Plan ist jetzt aktiv. Danke für Ihren Kauf.",
     "sha256": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
@@ -312,11 +312,11 @@
     "sha256": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Wähle den Plan, der zu deinen Bedürfnissen passt",
+    "text": "Wählen Sie den Plan, der zu Ihren Bedürfnissen passt",
     "sha256": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "Wähle den perfekten Plan für deine Organisation",
+    "text": "Wählen Sie den perfekten Plan für Ihre Organisation",
     "sha256": "308076f2"
   },
   "web.billing.plans.current": {
@@ -352,7 +352,7 @@
     "sha256": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Spare {percent}% mit jährlicher Abrechnung",
+    "text": "Sparen Sie {percent}% mit jährlicher Abrechnung",
     "sha256": "88c451f2"
   },
   "web.billing.plans.free_plan": {
@@ -408,7 +408,7 @@
     "sha256": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Wir freuen uns von dir zu hören. Lass uns wissen, wonach du suchst.",
+    "text": "Wir freuen uns von Ihnen zu hören. Lassen Sie uns wissen, wonach Sie suchen.",
     "sha256": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
@@ -448,7 +448,7 @@
     "sha256": "e5f6a7b8"
   },
   "web.billing.plans.change_immediate": {
-    "text": "Dein Plan wird sofort geändert.",
+    "text": "Ihr Plan wird sofort geändert.",
     "sha256": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
@@ -476,11 +476,11 @@
     "sha256": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Deine Funktionslimits werden sofort nach der Planänderung aktualisiert.",
+    "text": "Ihre Funktionslimits werden sofort nach der Planänderung aktualisiert.",
     "sha256": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "Planänderung fehlgeschlagen. Bitte versuche es erneut.",
+    "text": "Planänderung fehlgeschlagen. Bitte versuchen Sie es erneut.",
     "sha256": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
@@ -500,7 +500,7 @@
     "sha256": "8eb8ea81"
   },
   "web.billing.plans.credit_applies_heading": {
-    "text": "Wie dein Guthaben angerechnet wird:",
+    "text": "Wie Ihr Guthaben angerechnet wird:",
     "sha256": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
@@ -528,7 +528,7 @@
     "sha256": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "Zeige deinen Abrechnungsverlauf an und lade Rechnungen herunter",
+    "text": "Zeigen Sie Ihren Abrechnungsverlauf an und laden Sie Rechnungen herunter",
     "sha256": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
@@ -604,7 +604,7 @@
     "sha256": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "Du hast das Mitgliederlimit für dieses Team erreicht",
+    "text": "Sie haben das Mitgliederlimit für dieses Team erreicht",
     "sha256": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
@@ -652,7 +652,7 @@
     "sha256": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "Verwalte dein Abonnement, Zahlungsmethoden und Abrechnungsverlauf",
+    "text": "Verwalten Sie Ihr Abonnement, Zahlungsmethoden und Abrechnungsverlauf",
     "sha256": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
@@ -668,7 +668,7 @@
     "sha256": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Starte heute mit Identity Plus",
+    "text": "Starten Sie heute mit Identity Plus",
     "sha256": "cce4c7d7"
   },
   "web.billing.per_month": {
@@ -688,7 +688,7 @@
     "sha256": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "Klicke auf diesen Blitz, um für eigene Domains zu upgraden",
+    "text": "Klicken Sie auf diesen Blitz, um für eigene Domains zu upgraden",
     "sha256": "84cb4258"
   },
   "web.billing.maybe_later": {
@@ -720,7 +720,7 @@
     "sha256": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Upgrade für secrets.deinedomain.com",
+    "text": "Upgrade für secrets.ihredomain.com",
     "sha256": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
@@ -770,27 +770,27 @@
     "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
-    "text": "Bist du sicher, dass du dein {plan}-Abonnement kündigen möchtest?",
+    "text": "Sind Sie sicher, dass Sie Ihr {plan}-Abonnement kündigen möchten?",
     "sha256": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
-    "text": "Was passiert, wenn du kündigst:",
+    "text": "Was passiert, wenn Sie kündigen:",
     "sha256": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
-    "text": "Du behältst Zugang zu allen Funktionen bis {date}",
+    "text": "Sie behalten Zugang zu allen Funktionen bis {date}",
     "sha256": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "Du behältst Zugang bis zum Ende deines aktuellen Abrechnungszeitraums",
+    "text": "Sie behalten Zugang bis zum Ende Ihres aktuellen Abrechnungszeitraums",
     "sha256": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
-    "text": "Du wirst nicht mehr belastet",
+    "text": "Sie werden nicht mehr belastet",
     "sha256": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
-    "text": "Dein Konto wird auf den kostenlosen Plan zurückgestuft",
+    "text": "Ihr Konto wird auf den kostenlosen Plan zurückgestuft",
     "sha256": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
@@ -804,11 +804,11 @@
     "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "Dein Abonnement wurde gekündigt. Du behältst Zugang bis zum Ende deines Abrechnungszeitraums.",
+    "text": "Ihr Abonnement wurde gekündigt. Sie behalten Zugang bis zum Ende Ihres Abrechnungszeitraums.",
     "sha256": "e18fd9d5"
   },
   "web.billing.cancel.error": {
-    "text": "Abonnement konnte nicht gekündigt werden. Bitte versuche es erneut.",
+    "text": "Abonnement konnte nicht gekündigt werden. Bitte versuchen Sie es erneut.",
     "sha256": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
@@ -817,12 +817,12 @@
     "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "Dein Abonnement bleibt bis {date} aktiv. Du hast bis dahin weiterhin vollen Zugang zu allen Funktionen.",
+    "text": "Ihr Abonnement bleibt bis {date} aktiv. Sie haben bis dahin weiterhin vollen Zugang zu allen Funktionen.",
     "context": "Alert banner description explaining continued access",
     "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "Meinung geändert? Du kannst dein Abonnement jederzeit vor dem Kündigungsdatum reaktivieren.",
+    "text": "Meinung geändert? Sie können Ihr Abonnement jederzeit vor dem Kündigungsdatum reaktivieren.",
     "context": "Alert banner note encouraging reactivation",
     "sha256": "c94d5527"
   },

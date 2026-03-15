@@ -195,27 +195,27 @@
     "sha256": "0e24ec84"
   },
   "web.auth.change_password.title": {
-    "text": "Alterar senha",
+    "text": "Alterar palavra-passe",
     "sha256": "a949f462"
   },
   "web.auth.change_password.current_password": {
-    "text": "Senha atual",
+    "text": "Palavra-passe atual",
     "sha256": "8ac76099"
   },
   "web.auth.change_password.new_password": {
-    "text": "Nova senha",
+    "text": "Nova palavra-passe",
     "sha256": "7c451e0f"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "Confirmar nova senha",
+    "text": "Confirmar nova palavra-passe",
     "sha256": "642776c0"
   },
   "web.auth.change_password.success": {
-    "text": "A tua senha foi alterada com sucesso",
+    "text": "A tua palavra-passe foi alterada com sucesso",
     "sha256": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "Falha na alteração de senha. Por favor verifica a tua senha atual e tenta novamente.",
+    "text": "Falha na alteração de palavra-passe. Por favor verifica a tua palavra-passe atual e tenta novamente.",
     "sha256": "1aa11b3f"
   },
   "web.auth.close_account.title": {
@@ -231,7 +231,7 @@
     "sha256": "b44b1366"
   },
   "web.auth.close_account.password": {
-    "text": "Introduz a tua senha para confirmar",
+    "text": "Introduz a tua palavra-passe para confirmar",
     "sha256": "0aec03a6"
   },
   "web.auth.close_account.button": {
@@ -243,11 +243,11 @@
     "sha256": "19766ed6"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Solicitar redefinição de senha",
+    "text": "Solicitar redefinição de palavra-passe",
     "sha256": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Introduz o teu endereço de e-mail abaixo e enviar-te-emos um link para redefinir a tua senha",
+    "text": "Introduz o teu endereço de e-mail abaixo e enviar-te-emos um link para redefinir a tua palavra-passe",
     "sha256": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
@@ -255,16 +255,16 @@
     "sha256": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
-    "text": "Escolhe uma nova senha",
+    "text": "Escolhe uma nova palavra-passe",
     "context": "Password reset request flow - user requests a reset link",
     "sha256": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Por favor introduz a tua nova senha abaixo. Certifica-te de que é forte e única para proteger a tua conta.",
+    "text": "Por favor introduz a tua nova palavra-passe abaixo. Certifica-te de que é forte e única para proteger a tua conta.",
     "sha256": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Foi enviado um e-mail com um link para redefinir a senha da tua conta",
+    "text": "Foi enviado um e-mail com um link para redefinir a palavra-passe da tua conta",
     "sha256": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
@@ -333,7 +333,7 @@
     "sha256": "c5d54d87"
   },
   "web.auth.account.change_password": {
-    "text": "Alterar senha",
+    "text": "Alterar palavra-passe",
     "sha256": "a949f462"
   },
   "web.auth.account.close_account": {

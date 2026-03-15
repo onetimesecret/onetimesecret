@@ -203,6 +203,7 @@ Use this document as your primary reference when translating or reviewing Korean
 
 4. **Brand Terms**
    - Leave untranslated: "Onetime Secret", "OTS", "Identity Plus"
+   - Keys ending in `_literal` (e.g., `onetime_secret_literal`) contain brand names that must remain in English exactly as-is
 
 ---
 

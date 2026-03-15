@@ -476,7 +476,7 @@
     "sha256": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "ستتحدث حدود ميزاتك فوراً بعد تغيير الخطة.",
+    "text": "ستُحدَّث حدود ميزاتك فوراً بعد تغيير الخطة.",
     "sha256": "9cb09f73"
   },
   "web.billing.plans.change_failed": {

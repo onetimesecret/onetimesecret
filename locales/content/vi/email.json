@@ -252,7 +252,7 @@
     "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Hỗ trợ bí mật",
+    "text": "Secret Support",
     "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Địa chỉ email cho tài khoản %{product_name} của bạn đã được thay đổi thành %{new_email_masked} vào ngày %{date}.",
+    "text": "Địa chỉ email cho tài khoản %{product_name} của bạn đã được thay đổi thành %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {

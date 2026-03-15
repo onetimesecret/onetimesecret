@@ -56,19 +56,19 @@
     "sha256": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Redefine a tua senha (%{display_domain})",
+    "text": "Redefine a tua palavra-passe (%{display_domain})",
     "sha256": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Redefine a tua senha",
+    "text": "Redefine a tua palavra-passe",
     "sha256": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "Recebemos um pedido para redefinir a tua senha para %{product_name}.",
+    "text": "Recebemos um pedido para redefinir a tua palavra-passe para %{product_name}.",
     "sha256": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
-    "text": "Redefinir senha",
+    "text": "Redefinir palavra-passe",
     "sha256": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
@@ -76,7 +76,7 @@
     "sha256": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Se não pediste uma redefinição de senha, podes ignorar este e-mail com segurança.",
+    "text": "Se não pediste uma redefinição de palavra-passe, podes ignorar este e-mail com segurança.",
     "sha256": "fbb7eb2d"
   },
   "email.password_request.signature": {
@@ -252,7 +252,7 @@
     "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Suporte Secret",
+    "text": "Secret Support",
     "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
@@ -300,19 +300,19 @@
     "sha256": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "A tua senha foi alterada (%{display_domain})",
+    "text": "A tua palavra-passe foi alterada (%{display_domain})",
     "sha256": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "A tua senha foi alterada",
+    "text": "A tua palavra-passe foi alterada",
     "sha256": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "A tua senha para %{product_name} foi alterada em %{date} às %{time}.",
+    "text": "A tua palavra-passe para %{product_name} foi alterada em %{date} às %{time}.",
     "sha256": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Se não fizeste esta alteração, por favor protege a tua conta imediatamente redefinindo a tua senha e contactando o suporte.",
+    "text": "Se não fizeste esta alteração, por favor protege a tua conta imediatamente redefinindo a tua palavra-passe e contactando o suporte.",
     "sha256": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "O endereço de e-mail da tua conta %{product_name} foi alterado para %{new_email_masked} em %{date}.",
+    "text": "O endereço de e-mail da tua conta %{product_name} foi alterado para %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {

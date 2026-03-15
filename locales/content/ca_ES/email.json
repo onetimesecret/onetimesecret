@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "L'adreça de correu electrònic del teu compte de %{product_name} s'ha canviat a %{new_email_masked} el %{date}.",
+    "text": "L'adreça de correu electrònic del teu compte de %{product_name} s'ha canviat a %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {

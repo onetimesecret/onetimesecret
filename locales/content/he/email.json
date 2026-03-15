@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "כתובת הדוא״ל עבור חשבון %{product_name} שלך שונתה ל-%{new_email_masked} בתאריך %{date}.",
+    "text": "כתובת הדוא״ל עבור חשבון %{product_name} שלך שונתה ל-%{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
@@ -336,11 +336,11 @@
     "sha256": "f505b562"
   },
   "email.email_changed.change_notice": {
-    "text": "כתובת הדואר האלקטרוני בחשבון %{product_name} שלך שונתה.",
+    "text": "כתובת הדוא״ל בחשבון %{product_name} שלך שונתה.",
     "sha256": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
-    "text": "דואר אלקטרוני חדש:",
+    "text": "דוא״ל חדש:",
     "sha256": "0161371a"
   },
   "email.email_changed.changed_at_label": {
@@ -364,23 +364,23 @@
     "sha256": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "נ.ב. דואר אלקטרוני זה נשלח אל %{email_address} כדי להודיע לך על שינוי כתובת דואר אלקטרוני.",
+    "text": "נ.ב. דוא״ל זה נשלח אל %{email_address} כדי להודיע לך על שינוי כתובת דוא״ל.",
     "sha256": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "התבקש שינוי דואר אלקטרוני (%{display_domain})",
+    "text": "התבקש שינוי דוא״ל (%{display_domain})",
     "sha256": ""
   },
   "email.email_change_requested.title": {
-    "text": "התבקש שינוי דואר אלקטרוני",
+    "text": "התבקש שינוי דוא״ל",
     "sha256": ""
   },
   "email.email_change_requested.change_notice": {
-    "text": "התקבלה בקשה לשנות את כתובת הדואר האלקטרוני בחשבון %{product_name} שלך.",
+    "text": "התקבלה בקשה לשנות את כתובת הדוא״ל בחשבון %{product_name} שלך.",
     "sha256": ""
   },
   "email.email_change_requested.new_email_label": {
-    "text": "דואר אלקטרוני חדש מבוקש:",
+    "text": "דוא״ל חדש מבוקש:",
     "sha256": ""
   },
   "email.email_change_requested.requested_at_label": {
@@ -388,11 +388,11 @@
     "sha256": ""
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "אם הגשת בקשה זו, בדוק את הדואר האלקטרוני החדש שלך לקישור אישור. טרם בוצעו שינויים.",
+    "text": "אם הגשת בקשה זו, בדוק את הדוא״ל החדש שלך לקישור אישור. טרם בוצעו שינויים.",
     "sha256": ""
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "אם לא הגשת בקשה זו, באפשרותך להתעלם מדואר אלקטרוני זה. חשבונך לא שונה.",
+    "text": "אם לא הגשת בקשה זו, באפשרותך להתעלם מדוא״ל זה. חשבונך לא שונה.",
     "sha256": ""
   },
   "email.email_change_requested.contact_support": {
@@ -404,7 +404,7 @@
     "sha256": ""
   },
   "email.email_change_requested.postscript": {
-    "text": "נ.ב. דואר אלקטרוני זה נשלח אל %{email_address} כי התבקש שינוי דואר אלקטרוני לחשבונך.",
+    "text": "נ.ב. דוא״ל זה נשלח אל %{email_address} כי התבקש שינוי דוא״ל לחשבונך.",
     "sha256": ""
   },
   "email.email_change_confirmation.subject": {
@@ -424,11 +424,11 @@
     "sha256": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "התקבלה בקשה לשנות את כתובת הדואר האלקטרוני בחשבון %{product_name} שלך ל-%{new_email}.",
+    "text": "התקבלה בקשה לשנות את כתובת הדוא״ל בחשבון %{product_name} שלך ל-%{new_email}.",
     "sha256": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "אישור שינוי דואר אלקטרוני",
+    "text": "אישור שינוי דוא״ל",
     "sha256": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
@@ -440,7 +440,7 @@
     "sha256": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "אם לא ביקשת שינוי זה, באפשרותך להתעלם מדואר אלקטרוני זה. כתובת הדואר האלקטרוני שלך לא תשתנה.",
+    "text": "אם לא ביקשת שינוי זה, באפשרותך להתעלם מדוא״ל זה. כתובת הדוא״ל שלך לא תשתנה.",
     "sha256": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,7 +448,7 @@
     "sha256": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "נ.ב. דואר אלקטרוני זה נשלח אל %{email_address} כדי לאשר שינוי כתובת דואר אלקטרוני.",
+    "text": "נ.ב. דוא״ל זה נשלח אל %{email_address} כדי לאשר שינוי כתובת דוא״ל.",
     "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {

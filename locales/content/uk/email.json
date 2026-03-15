@@ -252,7 +252,7 @@
     "sha256": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Служба підтримки Secret",
+    "text": "Secret Support",
     "sha256": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Електронну адресу для Вашого облікового запису %{product_name} було змінено на %{new_email_masked} %{date}.",
+    "text": "Електронну адресу для Вашого облікового запису %{product_name} було змінено на %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
@@ -336,7 +336,7 @@
     "sha256": "f505b562"
   },
   "email.email_changed.change_notice": {
-    "text": "Адресу електронної пошти вашого облікового запису %{product_name} було змінено.",
+    "text": "Адресу електронної пошти Вашого облікового запису %{product_name} було змінено.",
     "sha256": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
@@ -348,11 +348,11 @@
     "sha256": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Якщо ви внесли цю зміну, подальших дій не потрібно.",
+    "text": "Якщо Ви внесли цю зміну, подальших дій не потрібно.",
     "sha256": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "Якщо ви не вносили цю зміну, ваш обліковий запис може бути скомпрометовано.",
+    "text": "Якщо Ви не вносили цю зміну, Ваш обліковий запис може бути скомпрометовано.",
     "sha256": "08f479fb"
   },
   "email.email_changed.contact_support": {
@@ -364,7 +364,7 @@
     "sha256": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "P.S. Цей лист надіслано на %{email_address}, щоб повідомити вас про зміну адреси електронної пошти.",
+    "text": "P.S. Цей лист надіслано на %{email_address}, щоб повідомити Вас про зміну адреси електронної пошти.",
     "sha256": "475cae37"
   },
   "email.email_change_requested.subject": {
@@ -376,7 +376,7 @@
     "sha256": ""
   },
   "email.email_change_requested.change_notice": {
-    "text": "Було зроблено запит на зміну адреси електронної пошти вашого облікового запису %{product_name}.",
+    "text": "Було зроблено запит на зміну адреси електронної пошти Вашого облікового запису %{product_name}.",
     "sha256": ""
   },
   "email.email_change_requested.new_email_label": {
@@ -388,11 +388,11 @@
     "sha256": ""
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Якщо ви зробили цей запит, перевірте нову електронну пошту на наявність посилання для підтвердження. Жодних змін ще не внесено.",
+    "text": "Якщо Ви зробили цей запит, перевірте нову електронну пошту на наявність посилання для підтвердження. Жодних змін ще не внесено.",
     "sha256": ""
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "Якщо ви не робили цього запиту, ви можете спокійно проігнорувати цей лист. Ваш обліковий запис не було змінено.",
+    "text": "Якщо Ви не робили цього запиту, Ви можете спокійно проігнорувати цей лист. Ваш обліковий запис не було змінено.",
     "sha256": ""
   },
   "email.email_change_requested.contact_support": {
@@ -404,7 +404,7 @@
     "sha256": ""
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. Цей лист надіслано на %{email_address}, оскільки було запитано зміну електронної пошти для вашого облікового запису.",
+    "text": "P.S. Цей лист надіслано на %{email_address}, оскільки було запитано зміну електронної пошти для Вашого облікового запису.",
     "sha256": ""
   },
   "email.email_change_confirmation.subject": {
@@ -424,7 +424,7 @@
     "sha256": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "Було зроблено запит на зміну адреси електронної пошти вашого облікового запису %{product_name} на %{new_email}.",
+    "text": "Було зроблено запит на зміну адреси електронної пошти Вашого облікового запису %{product_name} на %{new_email}.",
     "sha256": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
@@ -440,7 +440,7 @@
     "sha256": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "Якщо ви не запитували цю зміну, ви можете спокійно проігнорувати цей лист. Вашу адресу електронної пошти не буде змінено.",
+    "text": "Якщо Ви не запитували цю зміну, Ви можете спокійно проігнорувати цей лист. Вашу адресу електронної пошти не буде змінено.",
     "sha256": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {

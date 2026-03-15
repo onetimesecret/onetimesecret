@@ -1062,19 +1062,19 @@
     "sha256": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "剩余天 | 剩余天",
+    "text": "天 | 天",
     "sha256": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "剩余小时 | 剩余小时",
+    "text": "小时 | 小时",
     "sha256": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "剩余分钟 | 剩余分钟",
+    "text": "分钟 | 分钟",
     "sha256": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "剩余秒 | 剩余秒",
+    "text": "秒 | 秒",
     "sha256": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {

@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "您 %{product_name} 账户的邮箱地址已于 %{date} 更改为 %{new_email_masked}。",
+    "text": "您 %{product_name} 账户的邮箱地址已更改为 %{new_email_masked}。",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {

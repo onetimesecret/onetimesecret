@@ -88,7 +88,7 @@
     "sha256": "cbc4ef92"
   },
   "web.billing.plans.legacy_plan_info": {
-    "text": "기존 특별 가격이 적용된 플랜을 사용 중입니다.",
+    "text": "기존 특별 가격이 적용된 요금제을 사용 중입니다.",
     "sha256": "e9aa8bf0"
   },
   "web.billing.plans.early_supporter_plan": {
@@ -96,7 +96,7 @@
     "sha256": "f37cd0d9"
   },
   "web.billing.plans.legacy_plan_warning": {
-    "text": "플랜을 변경하면 기존 특별 가격이 상실됩니다. 이 작업은 되돌릴 수 없습니다.",
+    "text": "요금제을 변경하면 기존 특별 가격이 상실됩니다. 이 작업은 되돌릴 수 없습니다.",
     "sha256": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
@@ -444,7 +444,7 @@
     "sha256": "d8454436"
   },
   "web.billing.plans.load_error": {
-    "text": "플랜을 불러오지 못했습니다",
+    "text": "요금제을 불러오지 못했습니다",
     "sha256": "e5f6a7b8"
   },
   "web.billing.plans.change_immediate": {
@@ -556,11 +556,11 @@
     "sha256": "92d2d0ce"
   },
   "web.billing.invoices.no_invoices_description": {
-    "text": "유료 플랜으로 업그레이드하면 청구서가 여기에 표시됩니다",
+    "text": "유료 요금제으로 업그레이드하면 청구서가 여기에 표시됩니다",
     "sha256": "b2c3d4e5"
   },
   "web.billing.invoices.view_plans": {
-    "text": "플랜 보기",
+    "text": "요금제 보기",
     "sha256": "c3d4e5f6"
   },
   "web.billing.invoices.paid": {
@@ -724,7 +724,7 @@
     "sha256": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
-    "text": "모든 플랜에는 개인 정보 보호 기능과 무제한 공유 기능이 포함됩니다",
+    "text": "모든 요금제에는 개인 정보 보호 기능과 무제한 공유 기능이 포함됩니다",
     "sha256": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
@@ -892,15 +892,15 @@
     "sha256": "a1b2c3d4"
   },
   "web.billing.currency_migration.description": {
-    "text": "현재 구독은 {from}을(를) 사용합니다. 선택한 플랜은 {to}(으)로 청구됩니다. 구독을 새 통화로 전환해야 합니다.",
+    "text": "현재 구독은 {from}을(를) 사용합니다. 선택한 요금제은 {to}(으)로 청구됩니다. 구독을 새 통화로 전환해야 합니다.",
     "sha256": "b2c3d4e5"
   },
   "web.billing.currency_migration.current_plan": {
-    "text": "현재 플랜:",
+    "text": "현재 요금제:",
     "sha256": "c3d4e5f6"
   },
   "web.billing.currency_migration.new_plan": {
-    "text": "새 플랜:",
+    "text": "새 요금제:",
     "sha256": "d4e5f6a7"
   },
   "web.billing.currency_migration.current_period_ends": {
@@ -916,7 +916,7 @@
     "sha256": "a7b8c9d0"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "현재 플랜은 {date}까지 유지됩니다. 이후 새 플랜의 결제를 완료하게 됩니다.",
+    "text": "현재 요금제은 {date}까지 유지됩니다. 이후 새 요금제의 결제를 완료하게 됩니다.",
     "sha256": "b8c9d0e1"
   },
   "web.billing.currency_migration.immediate_title": {
@@ -924,7 +924,7 @@
     "sha256": "c9d0e1f2"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "현재 플랜이 즉시 취소됩니다. 미사용 기간에 대한 환불을 받고 새 플랜의 결제를 완료하게 됩니다.",
+    "text": "현재 요금제이 즉시 취소됩니다. 미사용 기간에 대한 환불을 받고 새 요금제의 결제를 완료하게 됩니다.",
     "sha256": "d0e1f2a3"
   },
   "web.billing.currency_migration.confirm": {
@@ -940,7 +940,7 @@
     "sha256": "a3b4c5d6"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "현재 플랜은 결제 기간이 끝날 때까지 유지됩니다. 이후 새 플랜의 결제를 완료하라는 안내를 받게 됩니다.",
+    "text": "현재 요금제은 결제 기간이 끝날 때까지 유지됩니다. 이후 새 요금제의 결제를 완료하라는 안내를 받게 됩니다.",
     "sha256": "b4c5d6e7"
   },
   "web.billing.currency_migration.warning_credit_balance": {
@@ -961,7 +961,7 @@
     "sha256": "f8a9b0c1"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "현재 플랜은 {date}에 종료됩니다. {plan} ({currency})으로의 전환을 완료하세요.",
+    "text": "현재 요금제은 {date}에 종료됩니다. {plan} ({currency})으로의 전환을 완료하세요.",
     "sha256": "a9b0c1d2"
   },
   "web.billing.currency_migration.complete_migration": {

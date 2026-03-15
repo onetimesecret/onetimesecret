@@ -122,6 +122,7 @@ These rules are critical for maintaining proper French conventions:
 3. **Adaptation culturelle** : Adapter les termes aux conventions locales si nécessaire.
 4. **Exactitude technique** : Veiller à ce que les termes relatifs à la sécurité soient traduits avec précision.
 5. **Ton** : Maintenir un ton professionnel mais direct.
+6. **Clés littérales** : Les clés se terminant par `_literal` (ex : `onetime_secret_literal`) contiennent des noms de marque qui doivent rester en anglais tels quels.
 
 ## Considérations particulières
 
