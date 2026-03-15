@@ -40,11 +40,12 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
         expect(result.auth_method).to eq('basic_auth')
       end
 
-      # Session contract — session must be {}, never nil
+      # Session contract — session must be a Hash, never nil
       include_examples 'a valid session contract'
 
-      it 'session is an empty hash' do
-        expect(result.session).to eq({})
+      it 'session contains no auth state (only org_context cache allowed)' do
+        non_cache_keys = result.session.keys.reject { |k| k.to_s.start_with?('org_context:') }
+        expect(non_cache_keys).to eq([])
       end
     end
 

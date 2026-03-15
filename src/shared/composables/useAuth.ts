@@ -664,6 +664,12 @@ export function useAuth() {
 
       // Success - show notification
       notificationsStore.show(validated.success, 'success', 'top');
+
+      // Refresh bootstrap state so has_password and other auth-related
+      // fields reflect the current server state. This matters when an
+      // SSO-only user sets a password for the first time.
+      await bootstrapStore.refresh();
+
       return true;
     });
 

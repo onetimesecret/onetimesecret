@@ -3,58 +3,15 @@
 # frozen_string_literal: true
 
 #
-# ==============================================================================
-# FEATURE: OMNIAUTH (EXTERNAL IDENTITY PROVIDERS)
-# ==============================================================================
+# SSO via external identity providers (OIDC, Entra ID, Google, GitHub).
+# Registers OmniAuth strategies at boot based on environment variables.
+# Each provider with valid credentials registers automatically.
 #
-# This feature enables single sign-on (SSO) via external identity providers
-# using the OpenID Connect (OIDC) protocol. Supports any OIDC-compliant
-# provider: Zitadel, Keycloak, Auth0, Okta, etc.
+# See: docs/authentication/omniauth-sso.md (full configuration guide)
+# See: hooks/omniauth.rb (callback hooks — provider-agnostic)
 #
-# OVERVIEW:
-# OmniAuth is a middleware-based authentication framework that provides a
-# standardized interface for multiple authentication providers. This feature
-# integrates rodauth-omniauth with the omniauth_openid_connect strategy.
-#
-# USER JOURNEY - SSO LOGIN:
-#
-# 1. USER INITIATES SSO LOGIN
-#    - User clicks "Login with SSO" button on login page
-#    - Browser POSTs to /auth/sso/oidc (or configured provider name)
-#    - OmniAuth redirects to identity provider's authorization endpoint
-#
-# 2. USER AUTHENTICATES AT IDENTITY PROVIDER
-#    - User sees identity provider login screen (e.g., Zitadel)
-#    - User enters credentials or uses existing session
-#    - Provider redirects back with authorization code
-#
-# 3. TOKEN EXCHANGE & CALLBACK
-#    - OmniAuth exchanges code for tokens at provider's token endpoint
-#    - Provider returns ID token with user claims
-#    - OmniAuth parses claims and populates omniauth_auth hash
-#
-# 4. ACCOUNT LINKING/CREATION (hooks/omniauth.rb)
-#    - account_from_omniauth finds existing account by email
-#    - If no account: new account created (if omniauth_create_account? true)
-#    - Identity record created in account_identities table
-#    - Session synced via after_omniauth_callback hook
-#
-# 5. AUTHENTICATED SESSION
-#    - User redirected to dashboard
-#    - Session populated with user data (same as regular login)
-#
-# CONFIGURATION:
-# Requires environment variables:
-#   - OIDC_ISSUER: Provider's issuer URL (for discovery)
-#   - OIDC_CLIENT_ID: OAuth client ID
-#   - OIDC_CLIENT_SECRET: OAuth client secret
-#   - OIDC_REDIRECT_URI: Callback URL (https://app/auth/sso/oidc/callback)
-#   - OIDC_ROUTE_NAME: Optional route path segment (default: 'oidc')
-#   - SSO_DISPLAY_NAME: Optional display name for button (e.g., 'Company SSO')
-#
-# ==============================================================================
 
-# Load the OpenID Connect strategy before configuring
+# Load the existing OIDC strategy unconditionally (always available)
 require 'omniauth_openid_connect'
 
 module Auth::Config::Features
@@ -83,9 +40,16 @@ module Auth::Config::Features
       #
       auth.omniauth_create_account? true
 
-      # Register OpenID Connect provider
-      # Uses discovery document from issuer URL for endpoint configuration
+      # Register providers — each is gated on its own env vars
       configure_oidc_provider(auth)
+      configure_entra_id_provider(auth)
+      configure_github_provider(auth)
+      configure_google_provider(auth)
+    end
+
+    # Returns names of env vars that are nil or empty.
+    def self.missing_env_vars(required)
+      required.select { |name| val = ENV.fetch(name, nil); val.nil? || val.empty? }
     end
 
     def self.configure_oidc_provider(auth)
@@ -98,19 +62,9 @@ module Auth::Config::Features
       client_secret = ENV.fetch('OIDC_CLIENT_SECRET', '') # Optional for PKCE-only flows
       redirect_uri  = ENV.fetch('OIDC_REDIRECT_URI', nil)
 
-      # Issue: The route name is configurable via OIDC_ROUTE_NAME env var. If someone sets
-      #        OIDC_ROUTE_NAME=google, the route becomes /auth/sso/google, but the frontend hardcodes /auth/sso/oidc.
-
-      #        Recommendation: Either:
-      #        - Expose the route name via bootstrap state, or
-      #        - Document that OIDC_ROUTE_NAME must stay oidc for frontend compatibility
       provider_name = ENV.fetch('OIDC_ROUTE_NAME', 'oidc').to_sym
 
-      # Validate required configuration - check for empty strings too
-      missing = []
-      missing << 'OIDC_ISSUER' if issuer.nil? || issuer.empty?
-      missing << 'OIDC_CLIENT_ID' if client_id.nil? || client_id.empty?
-
+      missing = missing_env_vars(%w[OIDC_ISSUER OIDC_CLIENT_ID])
       if missing.any?
         OT.le "[OmniAuth] Missing OIDC configuration: #{missing.join(', ')}"
         return
@@ -135,6 +89,98 @@ module Auth::Config::Features
         client_options: client_opts,
         discovery: true,
         pkce: true,
+      )
+    end
+
+    def self.configure_entra_id_provider(auth)
+      # NOTE: The name: option controls both the URL route segment AND the
+      # provider value stored in account_identities.provider column and
+      # returned in the auth hash. Default route name 'entra' means:
+      #   - Route: POST /auth/sso/entra, GET /auth/sso/entra/callback
+      #   - Auth hash: { provider: 'entra', ... }
+      #   - DB: account_identities.provider = 'entra'
+      # Without name: override, omniauth-entra-id defaults to 'entra_id'.
+      tenant_id     = ENV.fetch('ENTRA_TENANT_ID', nil)
+      client_id     = ENV.fetch('ENTRA_CLIENT_ID', nil)
+      client_secret = ENV.fetch('ENTRA_CLIENT_SECRET', nil)
+      redirect_uri  = ENV.fetch('ENTRA_REDIRECT_URI', nil)
+      provider_name = ENV.fetch('ENTRA_ROUTE_NAME', 'entra').to_sym
+      # For log message only; the frontend display_name comes from AuthConfig.sso_providers
+      display_name  = ENV.fetch('ENTRA_DISPLAY_NAME', 'Microsoft')
+
+      missing = missing_env_vars(%w[ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET])
+      if missing.any?
+        OT.le "[OmniAuth] Missing Entra ID configuration: #{missing.join(', ')}"
+        return
+      end
+
+      OT.li "[OmniAuth] Configuring Entra ID provider '#{provider_name}' (#{display_name}), client_id: #{client_id[0..8]}..."
+
+      require 'omniauth-entra-id'
+
+      auth.omniauth_provider(
+        :entra_id,
+        name: provider_name,
+        client_id: client_id,
+        client_secret: client_secret,
+        tenant_id: tenant_id,
+        redirect_uri: redirect_uri,
+        scope: 'openid profile email',
+      )
+    end
+
+    def self.configure_github_provider(auth)
+      client_id     = ENV.fetch('GITHUB_CLIENT_ID', nil)
+      client_secret = ENV.fetch('GITHUB_CLIENT_SECRET', nil)
+      redirect_uri  = ENV.fetch('GITHUB_REDIRECT_URI', nil)
+      provider_name = ENV.fetch('GITHUB_ROUTE_NAME', 'github').to_sym
+      display_name  = ENV.fetch('GITHUB_DISPLAY_NAME', 'GitHub')
+
+      missing = missing_env_vars(%w[GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET])
+      if missing.any?
+        OT.le "[OmniAuth] Missing GitHub configuration: #{missing.join(', ')}"
+        return
+      end
+
+      OT.li "[OmniAuth] Configuring GitHub provider '#{provider_name}' (#{display_name}), client_id: #{client_id[0..8]}..."
+
+      require 'omniauth-github'
+
+      auth.omniauth_provider(
+        :github,
+        name: provider_name,
+        client_id: client_id,
+        client_secret: client_secret,
+        redirect_uri: redirect_uri,
+        scope: 'user:email',
+      )
+    end
+
+    def self.configure_google_provider(auth)
+      client_id     = ENV.fetch('GOOGLE_CLIENT_ID', nil)
+      client_secret = ENV.fetch('GOOGLE_CLIENT_SECRET', nil)
+      redirect_uri  = ENV.fetch('GOOGLE_REDIRECT_URI', nil)
+      provider_name = ENV.fetch('GOOGLE_ROUTE_NAME', 'google').to_sym
+      display_name  = ENV.fetch('GOOGLE_DISPLAY_NAME', 'Google')
+
+      missing = missing_env_vars(%w[GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET])
+      if missing.any?
+        OT.le "[OmniAuth] Missing Google configuration: #{missing.join(', ')}"
+        return
+      end
+
+      OT.li "[OmniAuth] Configuring Google provider '#{provider_name}' (#{display_name}), client_id: #{client_id[0..8]}..."
+
+      require 'omniauth-google-oauth2'
+
+      auth.omniauth_provider(
+        :google_oauth2,
+        name: provider_name,
+        client_id: client_id,
+        client_secret: client_secret,
+        redirect_uri: redirect_uri,
+        scope: 'openid,email,profile',
+        prompt: 'select_account',
       )
     end
   end

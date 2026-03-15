@@ -31,6 +31,9 @@ gem 'rodauth-tools', '~> 0.3.1'
 # ActiveSupport APIs are used by application code. email_validator and
 # validate_url are also passengers from this chain.
 gem 'omniauth_openid_connect', '~> 0.8'
+gem 'omniauth-entra-id', '~> 3.1'
+gem 'omniauth-github', '~> 2.0'
+gem 'omniauth-google-oauth2', '~> 1.2'
 
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'

@@ -24,10 +24,14 @@ const mockFeatures = {
   omniAuthEnabled: ref(false),
 };
 
+// Mock providers list for getOmniAuthProviders()
+const mockProviders = ref<Array<{ route_name: string; display_name: string }>>([]);
+
 vi.mock('@/utils/features', () => ({
   isMagicLinksEnabled: () => mockFeatures.magicLinksEnabled.value,
   isWebAuthnEnabled: () => mockFeatures.webauthnEnabled.value,
   isOmniAuthEnabled: () => mockFeatures.omniAuthEnabled.value,
+  getOmniAuthProviders: () => mockProviders.value,
 }));
 
 // Mock child components
@@ -160,6 +164,7 @@ describe('AuthMethodSelector', () => {
     mockFeatures.magicLinksEnabled.value = false;
     mockFeatures.webauthnEnabled.value = false;
     mockFeatures.omniAuthEnabled.value = false;
+    mockProviders.value = [];
   });
 
   afterEach(() => {
@@ -395,6 +400,122 @@ describe('AuthMethodSelector', () => {
       const dividerText = wrapper.find('.divider-text');
       expect(dividerText.classes()).toContain('dark:bg-gray-800');
       expect(dividerText.classes()).toContain('dark:text-gray-400');
+    });
+  });
+
+  describe('Multi-Provider SSO Rendering', () => {
+    /**
+     * Tests that use the REAL AuthMethodSelector component (not the stub)
+     * to verify multi-provider rendering with v-for over ssoProviders.
+     */
+
+    // Mount the real component with mocked providers for multi-provider tests
+    const mountRealComponent = async (
+      bootstrapFeatures: Record<string, unknown>,
+      featureFlags: { magic?: boolean; webauthn?: boolean; omniauth?: boolean } = {}
+    ) => {
+      mockFeatures.magicLinksEnabled.value = featureFlags.magic ?? false;
+      mockFeatures.webauthnEnabled.value = featureFlags.webauthn ?? false;
+      mockFeatures.omniAuthEnabled.value = featureFlags.omniauth ?? true;
+
+      // Set mock providers from the bootstrap features (mirrors getOmniAuthProviders logic)
+      const omniauth = bootstrapFeatures.omniauth as Record<string, unknown> | undefined;
+      if (omniauth && omniauth.enabled && Array.isArray(omniauth.providers)) {
+        mockProviders.value = omniauth.providers as Array<{ route_name: string; display_name: string }>;
+      } else {
+        mockProviders.value = [];
+      }
+
+      // Use dynamic import for the real component
+      const { default: AuthMethodSelector } = await import(
+        '@/apps/session/components/AuthMethodSelector.vue'
+      );
+
+      const pinia = createTestingPinia({
+        createSpy: vi.fn,
+      });
+
+      const w = mount(AuthMethodSelector, {
+        props: { locale: 'en' },
+        global: {
+          plugins: [i18n, pinia],
+        },
+      });
+
+      // Allow computed properties to update
+      await w.vm.$nextTick();
+      return w;
+    };
+
+    it('renders one SsoButton per provider when multiple providers configured', async () => {
+      wrapper = await mountRealComponent({
+        omniauth: {
+          enabled: true,
+          providers: [
+            { route_name: 'entra', display_name: 'Microsoft' },
+            { route_name: 'google', display_name: 'Google' },
+            { route_name: 'github', display_name: 'GitHub' },
+          ],
+        },
+      });
+
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(3);
+    });
+
+    it('renders single SsoButton for single provider', async () => {
+      wrapper = await mountRealComponent({
+        omniauth: {
+          enabled: true,
+          providers: [
+            { route_name: 'oidc', display_name: 'Okta' },
+          ],
+        },
+      });
+
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(1);
+    });
+
+    it('renders no SsoButtons when providers array is empty', async () => {
+      wrapper = await mountRealComponent({
+        omniauth: {
+          enabled: true,
+          providers: [],
+        },
+      });
+
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(0);
+    });
+
+    it('renders no SsoButtons when providers array absent (no legacy fallback)', async () => {
+      wrapper = await mountRealComponent({
+        omniauth: {
+          enabled: true,
+          route_name: 'oidc',
+          display_name: 'Corporate SSO',
+        },
+      });
+
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(0);
+    });
+
+    it('shows divider and SSO section when omniAuth enabled with providers', async () => {
+      wrapper = await mountRealComponent({
+        omniauth: {
+          enabled: true,
+          providers: [
+            { route_name: 'entra', display_name: 'Microsoft' },
+            { route_name: 'google', display_name: 'Google' },
+          ],
+        },
+      });
+
+      expect(wrapper.text()).toContain('Or continue with');
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(2);
     });
   });
 

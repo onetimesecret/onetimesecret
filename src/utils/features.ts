@@ -68,6 +68,40 @@ export function isOmniAuthEnabled(): boolean {
 }
 
 /**
+ * Provider entry from bootstrap state
+ */
+export interface SsoProvider {
+  route_name: string;
+  display_name: string;
+}
+
+/**
+ * Returns the list of configured SSO providers from bootstrap state.
+ * Each provider has a route_name (for constructing /auth/sso/{route_name})
+ * and a display_name (for "Sign in with X" button text).
+ *
+ * Used by AuthMethodSelector and available for any component needing the
+ * configured provider list (e.g., account settings, admin views).
+ */
+export function getOmniAuthProviders(): SsoProvider[] {
+  if (typeof window === 'undefined') return [];
+
+  const features = getBootstrapValue('features');
+  const omniauth = features?.omniauth;
+
+  // Disabled or not configured
+  if (!omniauth || typeof omniauth === 'boolean') return [];
+  if (!omniauth.enabled) return [];
+
+  // Return providers array, or empty if not configured
+  if (Array.isArray(omniauth.providers) && omniauth.providers.length > 0) {
+    return omniauth.providers;
+  }
+
+  return [];
+}
+
+/**
  * Checks if authentication mode is 'full' (Rodauth with SQL db).
  * When mode is 'simple' (or undefined), security features like
  * password change, MFA, sessions, and passkeys are not available.
@@ -77,6 +111,17 @@ export function isFullAuthMode(): boolean {
 
   const authentication = getBootstrapValue('authentication');
   return authentication?.mode === 'full';
+}
+
+/**
+ * Checks if the current authenticated user has a password set.
+ * SSO-only accounts (Entra, Google, GitHub) return false.
+ * Used to hide password-based security settings for SSO-only users.
+ */
+export function hasPassword(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  return getBootstrapValue('has_password') === true;
 }
 
 /**

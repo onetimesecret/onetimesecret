@@ -1,6 +1,6 @@
 // src/apps/workspace/config/settings-navigation.ts
 
-import { isFullAuthMode, isWebAuthnEnabled } from '@/utils/features';
+import { hasPassword, isFullAuthMode, isWebAuthnEnabled } from '@/utils/features';
 import type { ComposerTranslation } from 'vue-i18n';
 
 /**
@@ -87,12 +87,14 @@ function getSecuritySection(t: ComposerTranslation): SettingsNavigationItem {
         to: '/account/settings/security/password',
         icon: { collection: 'heroicons', name: 'lock-closed-solid' },
         label: t('web.auth.change_password.title'),
+        visible: () => hasPassword(),
       },
       {
         id: 'mfa',
         to: '/account/settings/security/mfa',
         icon: { collection: 'heroicons', name: 'key-solid' },
         label: t('web.auth.mfa.title'),
+        visible: () => hasPassword(),
       },
       {
         id: 'sessions',
@@ -105,6 +107,7 @@ function getSecuritySection(t: ComposerTranslation): SettingsNavigationItem {
         to: '/account/settings/security/recovery-codes',
         icon: { collection: 'heroicons', name: 'document-text-solid' },
         label: t('web.auth.recovery_codes.title'),
+        visible: () => hasPassword(),
       },
       {
         id: 'passkeys',

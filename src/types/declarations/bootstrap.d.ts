@@ -105,6 +105,14 @@ export interface BootstrapPayload {
    */
   had_valid_session: boolean;
 
+  /**
+   * Whether the authenticated account has a password set.
+   * SSO-only accounts (Entra, Google, GitHub) have no password.
+   * Used to hide security settings (password change, MFA, recovery codes)
+   * that are irrelevant for SSO-only users.
+   */
+  has_password?: boolean;
+
   baseuri: string;
   cust: Customer | null;
   custid: string;
@@ -198,12 +206,11 @@ export interface BootstrapPayload {
      */
     omniauth?: boolean | {
       enabled: boolean;
-      /** Display name for the SSO provider (e.g., "Zitadel", "Okta") */
-      display_name?: string;
-      /** @deprecated Use display_name instead */
-      provider_name?: string;
-      /** OmniAuth strategy route name (e.g., "oidc", "saml", "google_oauth2") */
-      route_name?: string;
+      /** Configured SSO providers. Each entry has route_name and display_name. */
+      providers?: Array<{
+        route_name: string;
+        display_name: string;
+      }>;
     };
     /** @deprecated Use email_auth instead */
     magic_links?: boolean;

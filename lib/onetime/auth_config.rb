@@ -133,6 +133,9 @@ module Onetime
     # SSO display name (e.g., "Zitadel", "Okta", "Azure AD")
     # Used for "Sign in with X" button text
     # Returns nil if not configured (frontend will use generic "SSO")
+    #
+    # DEPRECATED: In multi-provider context, each provider carries its own
+    # display_name. Use sso_providers instead.
     def sso_display_name
       return nil unless omniauth_enabled?
 
@@ -148,10 +151,31 @@ module Onetime
     # OmniAuth route name for building the SSO callback URL
     # Defaults to 'oidc' if OIDC_ROUTE_NAME is not set
     # Used by frontend to construct /auth/sso/{route_name} paths
+    #
+    # DEPRECATED: Use sso_providers instead (returns array of providers
+    # each with their own route_name).
     def omniauth_route_name
       return nil unless omniauth_enabled?
 
       ENV.fetch('OIDC_ROUTE_NAME', 'oidc')
+    end
+
+    # All configured SSO providers, built dynamically from env var presence.
+    # Returns an array of hashes: [{ 'route_name' => 'oidc', 'display_name' => 'SSO' }, ...]
+    # Each entry corresponds to a provider whose required env vars are present.
+    # Returns empty array if omniauth is disabled or no providers are configured.
+    def sso_providers
+      return [] unless omniauth_enabled?
+
+      provider_definitions.filter_map do |defn|
+        next unless defn[:required_vars].all? { |var| env_present?(var) }
+
+        display = ENV.fetch(defn[:display_var], nil) || defn[:display_default]
+        {
+          'route_name' => ENV.fetch(defn[:route_var], defn[:route_default]),
+          'display_name' => display,
+        }
+      end
     end
 
     # DEPRECATED: Use email_auth_enabled?
@@ -175,6 +199,39 @@ module Onetime
       return false unless full_enabled?
 
       features.fetch(key, default)
+    end
+
+    # Provider definitions for sso_providers. Each entry defines the env
+    # vars that gate the provider and where to read its route/display names.
+    def provider_definitions
+      [
+        {
+          required_vars: %w[OIDC_ISSUER OIDC_CLIENT_ID],
+          route_var: 'OIDC_ROUTE_NAME', route_default: 'oidc',
+          display_var: 'OIDC_DISPLAY_NAME', display_default: sso_display_name || 'SSO',
+        },
+        {
+          required_vars: %w[ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET],
+          route_var: 'ENTRA_ROUTE_NAME', route_default: 'entra',
+          display_var: 'ENTRA_DISPLAY_NAME', display_default: 'Microsoft',
+        },
+        {
+          required_vars: %w[GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET],
+          route_var: 'GOOGLE_ROUTE_NAME', route_default: 'google',
+          display_var: 'GOOGLE_DISPLAY_NAME', display_default: 'Google',
+        },
+        {
+          required_vars: %w[GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET],
+          route_var: 'GITHUB_ROUTE_NAME', route_default: 'github',
+          display_var: 'GITHUB_DISPLAY_NAME', display_default: 'GitHub',
+        },
+      ]
+    end
+
+    # Check if an environment variable is present and non-empty
+    def env_present?(name)
+      val = ENV.fetch(name, nil)
+      !val.nil? && !val.empty?
     end
 
     def load_config

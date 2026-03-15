@@ -1,22 +1,36 @@
-# OmniAuth SSO Integration
+# SSO Configuration
 
-Single sign-on via external identity providers using OpenID Connect.
+**Status:** Active
+**Version:** 2.0 (2026-03-15)
+**Authentication Mode:** Full (Rodauth)
+
+---
 
 ## Overview
 
-OmniAuth enables authentication through external identity providers (IdPs) like Zitadel, Keycloak, Auth0, or Okta. Users authenticate at the IdP and are redirected back with verified identity claims.
+SSO enables authentication through external identity providers. Users authenticate at the IdP and are redirected back with verified identity claims.
+
+Two integration patterns are available:
+
+| Pattern | When to use | Env var prefix |
+|---------|------------|----------------|
+| **Generic OIDC** | Customer runs their own IdP (Zitadel, Keycloak, Auth0, Okta) | `OIDC_*` |
+| **Provider-specific** | Direct integration with a specific service | `ENTRA_*`, `GOOGLE_*`, `GITHUB_*` |
+
+Generic OIDC uses the `/.well-known/openid-configuration` discovery document. Provider-specific gems handle OAuth quirks (tenant models, non-standard scopes, token formats) so the operator doesn't have to.
+
+Multiple providers can be active simultaneously. Each provider that has its required env vars set will register automatically at boot. The frontend renders one button per configured provider.
 
 **Requirements:**
-- Full auth mode enabled (`AUTHENTICATION_MODE=full`)
+- `AUTHENTICATION_MODE=full`
 - SQL database with migrations applied
-- OIDC-compliant identity provider
+- At least one provider's credentials configured
 
 ## Quick Start
 
 ### 1. Run Migration
 
 ```bash
-# Note sequel requires a password, doesn't use pg_hba trust rules.
 sequel -m apps/web/auth/migrations $AUTH_DATABASE_URL_MIGRATIONS
 ```
 
@@ -25,7 +39,10 @@ Creates `account_identities` table for storing provider/uid links.
 ### 2. Set Environment Variables
 
 ```bash
+# Enable SSO
 export AUTH_SSO_ENABLED=true
+
+# Configure one or more providers (see Provider Configuration below)
 export OIDC_ISSUER=https://auth.example.com
 export OIDC_CLIENT_ID=your-client-id
 export OIDC_CLIENT_SECRET=your-client-secret
@@ -34,46 +51,86 @@ export OIDC_REDIRECT_URI=https://app.example.com/auth/sso/oidc/callback
 
 ### 3. Restart Application
 
-The feature loads automatically when `AUTH_SSO_ENABLED=true`.
+Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env vars are present.
 
 ## Environment Variables
 
+### Global
+
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `AUTH_SSO_ENABLED` | Yes | Set to `true` to enable |
-| `OIDC_ISSUER` | Yes | IdP's issuer URL (used for OIDC discovery) |
-| `OIDC_CLIENT_ID` | Yes | OAuth client ID from IdP |
-| `OIDC_CLIENT_SECRET` | Yes | OAuth client secret from IdP |
-| `OIDC_REDIRECT_URI` | Yes | Callback URL registered with IdP |
-| `OIDC_ROUTE_NAME` | No | Route path segment (default: `oidc`). **Must remain `oidc` for frontend compatibility.** |
-| `SSO_DISPLAY_NAME` | No | Button label (e.g., "Company SSO"). If not set, generic "SSO" is used. |
-| `ALLOWED_SIGNUP_DOMAIN` | No | Comma-separated list of allowed email domains for SSO signup (see Domain Restrictions) |
+| `AUTH_SSO_ENABLED` | Yes | `true` to enable SSO |
+| `SSO_DISPLAY_NAME` | No | Default button label for generic OIDC (e.g., "Company SSO") |
+| `ALLOWED_SIGNUP_DOMAIN` | No | Comma-separated allowed email domains for SSO signup |
+
+### Generic OIDC
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `OIDC_ISSUER` | Yes | Issuer URL (must serve `/.well-known/openid-configuration`) |
+| `OIDC_CLIENT_ID` | Yes | OAuth client ID |
+| `OIDC_CLIENT_SECRET` | No | OAuth client secret (empty for PKCE-only flows) |
+| `OIDC_REDIRECT_URI` | Yes | Callback: `https://{host}/auth/sso/oidc/callback` |
+| `OIDC_ROUTE_NAME` | No | URL segment (default: `oidc`) |
+
+### Microsoft Entra ID
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `ENTRA_TENANT_ID` | Yes | Directory (tenant) ID from Azure portal |
+| `ENTRA_CLIENT_ID` | Yes | Application (client) ID |
+| `ENTRA_CLIENT_SECRET` | Yes | Client secret value (not the secret ID) |
+| `ENTRA_REDIRECT_URI` | Yes | Callback: `https://{host}/auth/sso/entra/callback` |
+| `ENTRA_ROUTE_NAME` | No | URL segment (default: `entra`) |
+| `ENTRA_DISPLAY_NAME` | No | Button label (default: `Microsoft`) |
+
+### Google
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GOOGLE_CLIENT_ID` | Yes | OAuth 2.0 client ID |
+| `GOOGLE_CLIENT_SECRET` | Yes | OAuth 2.0 client secret |
+| `GOOGLE_REDIRECT_URI` | Yes | Callback: `https://{host}/auth/sso/google/callback` |
+| `GOOGLE_ROUTE_NAME` | No | URL segment (default: `google`) |
+| `GOOGLE_DISPLAY_NAME` | No | Button label (default: `Google`) |
+
+### GitHub
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GITHUB_CLIENT_ID` | Yes | OAuth App client ID |
+| `GITHUB_CLIENT_SECRET` | Yes | OAuth App client secret |
+| `GITHUB_REDIRECT_URI` | Yes | Callback: `https://{host}/auth/sso/github/callback` |
+| `GITHUB_ROUTE_NAME` | No | URL segment (default: `github`) |
+| `GITHUB_DISPLAY_NAME` | No | Button label (default: `GitHub`) |
 
 ## Routes
 
-With default configuration:
+Each configured provider registers two routes:
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/auth/sso/oidc` | Initiates SSO flow |
-| GET | `/auth/sso/oidc/callback` | Receives IdP response |
+| POST | `/auth/sso/{provider}` | Initiates SSO flow |
+| GET | `/auth/sso/{provider}/callback` | Receives IdP response |
+
+Where `{provider}` is the route name (`oidc`, `entra`, `google`, `github`, or custom).
 
 ## Authentication Flow
 
 ```
-User clicks "Login with SSO"
+User clicks "Login with {Provider}"
     │
     ▼
-POST /auth/sso/oidc
+POST /auth/sso/{provider}
     │
     ▼
-Redirect to IdP (with PKCE challenge)
+Redirect to IdP (with PKCE challenge + state)
     │
     ▼
 User authenticates at IdP
     │
     ▼
-IdP redirects to /auth/sso/oidc/callback
+IdP redirects to /auth/sso/{provider}/callback
     │
     ▼
 Token exchange (code → tokens)
@@ -81,386 +138,317 @@ Token exchange (code → tokens)
     ▼
 Account lookup by email
     ├─ Found → Link identity, sync session
-    └─ Not found → Create account, create Customer, sync session
+    └─ Not found → Create account + Customer + workspace, sync session
     │
     ▼
 Redirect to dashboard (authenticated)
 ```
 
+All hooks (`account_from_omniauth`, `before_omniauth_create_account`, etc.) are provider-agnostic. Adding a new provider does not require hook changes.
+
 ## Behavior
 
-**Account Matching:** Accounts are matched by email address. If an SSO user's email matches an existing password account, the identity is linked to that account.
+**Account Matching:** By email (case-insensitive). An SSO user whose email matches an existing password account gets their identity linked to that account.
 
-**Account Creation:** New accounts are created automatically for unrecognized emails. A Customer record and default workspace are created (same as regular signup).
+**Account Creation:** Automatic for unrecognized emails. Creates Customer record and default workspace.
 
-**Email Verification:** SSO accounts are auto-verified. The IdP handles email verification.
+**Multi-Provider:** One account can have multiple linked identities (e.g., OIDC + Entra). The `account_identities` table stores `(provider, uid)` pairs per account.
 
-**MFA:** Not enforced for SSO logins. The IdP is responsible for multi-factor authentication.
+**Email Verification:** SSO accounts are auto-verified. The IdP handles verification.
+
+**MFA:** Not enforced for SSO logins. The IdP is responsible for MFA.
 
 ## Provider Configuration
 
-### Zitadel
+### Generic OIDC (Zitadel, Keycloak, Auth0, Okta)
 
-1. Create a new application in Zitadel console
-2. Select "Web" application type
-3. Set authentication method to "PKCE"
-4. Configure redirect URIs:
-   - `https://your-app.com/auth/sso/oidc/callback`
-5. Enable scopes: `openid`, `email`, `profile`
-6. Copy Client ID and Client Secret
+Use this for any IdP that exposes `/.well-known/openid-configuration`.
 
-```bash
-export OIDC_ISSUER=https://auth.zitadel.example.com
-export OIDC_CLIENT_ID=123456789@your-project
-export OIDC_CLIENT_SECRET=secret-from-zitadel
-export OIDC_REDIRECT_URI=https://your-app.com/auth/sso/oidc/callback
-```
+#### Zitadel
 
-### Keycloak
-
-1. Create a new client in your realm
-2. Set Access Type to "confidential"
-3. Enable "Standard Flow"
-4. Add redirect URI
-5. Copy Client ID and Secret from Credentials tab
+1. Console → Applications → New → Web
+2. Authentication method: PKCE
+3. Redirect URI: `https://{host}/auth/sso/oidc/callback`
+4. Scopes: `openid`, `email`, `profile`
+5. Copy **Client ID** and **Client Secret**
 
 ```bash
-export OIDC_ISSUER=https://keycloak.example.com/realms/your-realm
-export OIDC_CLIENT_ID=your-client
-export OIDC_CLIENT_SECRET=secret-from-keycloak
-export OIDC_REDIRECT_URI=https://your-app.com/auth/sso/oidc/callback
+OIDC_ISSUER=https://auth.zitadel.example.com
+OIDC_CLIENT_ID=123456789@your-project
+OIDC_CLIENT_SECRET=secret-from-zitadel
+OIDC_REDIRECT_URI=https://your-app.com/auth/sso/oidc/callback
 ```
 
-### Auth0
+#### Keycloak
 
-1. Create a new "Regular Web Application"
-2. Configure Allowed Callback URLs
-3. Copy Domain, Client ID, and Client Secret
+1. Admin Console → Realm → Clients → Create
+2. Access Type: confidential, Standard Flow: enabled
+3. Redirect URI: `https://{host}/auth/sso/oidc/callback`
+4. Copy **Client ID** and **Secret** from Credentials tab
 
 ```bash
-export OIDC_ISSUER=https://your-tenant.auth0.com
-export OIDC_CLIENT_ID=your-client-id
-export OIDC_CLIENT_SECRET=your-client-secret
-export OIDC_REDIRECT_URI=https://your-app.com/auth/sso/oidc/callback
+OIDC_ISSUER=https://keycloak.example.com/realms/your-realm
+OIDC_CLIENT_ID=your-client
+OIDC_CLIENT_SECRET=secret-from-keycloak
+OIDC_REDIRECT_URI=https://your-app.com/auth/sso/oidc/callback
 ```
+
+#### Auth0
+
+1. Dashboard → Applications → Create → Regular Web Application
+2. Settings → Allowed Callback URLs: `https://{host}/auth/sso/oidc/callback`
+3. Copy **Domain**, **Client ID**, **Client Secret**
+
+```bash
+OIDC_ISSUER=https://your-tenant.auth0.com
+OIDC_CLIENT_ID=your-client-id
+OIDC_CLIENT_SECRET=your-client-secret
+OIDC_REDIRECT_URI=https://your-app.com/auth/sso/oidc/callback
+```
+
+### Microsoft Entra ID
+
+Uses the `omniauth-entra-id` gem. Handles Microsoft's tenant model and token format.
+
+#### Azure Portal Setup
+
+1. **Azure Portal** → Microsoft Entra ID → App registrations → New registration
+2. **Name**: e.g., "Onetime Secret SSO"
+3. **Supported account types**: Single tenant (or multi-tenant if needed)
+4. **Redirect URI**: Web → `https://{host}/auth/sso/entra/callback`
+5. Click **Register**
+
+Get the values:
+- **Application (client) ID** → `ENTRA_CLIENT_ID`
+- **Directory (tenant) ID** → `ENTRA_TENANT_ID`
+- Certificates & secrets → New client secret → copy **Value** (not Secret ID) → `ENTRA_CLIENT_SECRET`
+
+```bash
+ENTRA_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+ENTRA_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+ENTRA_CLIENT_SECRET=client-secret-value
+ENTRA_REDIRECT_URI=https://your-app.com/auth/sso/entra/callback
+```
+
+Note: Entra client secrets expire. Set a calendar reminder for rotation.
+
+### Google
+
+Uses the `omniauth-google-oauth2` gem.
+
+#### Google Cloud Console Setup
+
+1. **Google Cloud Console** → APIs & Services → Credentials → Create credentials → OAuth client ID
+2. **Application type**: Web application
+3. **Authorized redirect URIs**: `https://{host}/auth/sso/google/callback`
+4. Copy **Client ID** and **Client secret**
+
+```bash
+GOOGLE_CLIENT_ID=xxxxxxxxxxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxxxxxxx
+GOOGLE_REDIRECT_URI=https://your-app.com/auth/sso/google/callback
+```
+
+Requires: OAuth consent screen configured, `email` and `profile` scopes approved.
+
+### GitHub
+
+Uses the `omniauth-github` gem.
+
+#### GitHub Setup
+
+1. **GitHub** → Settings → Developer settings → OAuth Apps → New OAuth App
+2. **Authorization callback URL**: `https://{host}/auth/sso/github/callback`
+3. Copy **Client ID** and generate a **Client secret**
+
+```bash
+GITHUB_CLIENT_ID=Iv1.xxxxxxxxxxxx
+GITHUB_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+GITHUB_REDIRECT_URI=https://your-app.com/auth/sso/github/callback
+```
+
+Note: For GitHub Organizations, use GitHub Apps instead of OAuth Apps for finer-grained permissions.
+
+## Domain Restrictions
+
+Restrict which email domains can create accounts via SSO.
+
+```bash
+# Single domain
+ALLOWED_SIGNUP_DOMAIN=company.com
+
+# Multiple domains
+ALLOWED_SIGNUP_DOMAIN=company.com,subsidiary.com,partner.org
+```
+
+| Configuration | Behavior |
+|--------------|----------|
+| Not set or empty | All domains allowed (default) |
+| Set | Only listed domains can create new accounts |
+
+- Case-insensitive matching
+- Subdomains are NOT matched (`sub.company.com` does not match `company.com`)
+- Restrictions apply to **new account creation only** — existing linked accounts can still log in
+- Rejected attempts logged as `omniauth_domain_rejected` with obscured email
+- Error message is generic (allowed domains are never revealed to the user)
+
+### Existing user can't log in after domain restriction added
+
+Domain restrictions only affect **new account creation**. Existing accounts with linked SSO identities can still log in regardless of domain restrictions. To block existing users, remove their account or unlink their SSO identity from the `account_identities` table.
+
+## Self-Serve Configuration (Future)
+
+The current implementation is install-time only — env vars set at deploy, read at boot.
+
+A self-serve path is architecturally possible for credential management. OmniAuth's `setup` phase allows a per-request lambda to override strategy options (client_id, client_secret, tenant_id) with values loaded from the database.
+
+**What can be self-serve:**
+- Credentials for an already-registered strategy type
+- Per-organization IdP settings
+
+**What cannot be self-serve:**
+- Adding new strategy gems (requires rebuild/redeploy)
+- Registering new strategy types (Rack middleware is assembled at boot)
+
+The available provider types are fixed at deploy time (what's in the Gemfile). The credentials for each type can be made dynamic.
+
+This would require: a provider config model, encrypted secret storage, admin UI, and a connection validation flow. Not yet implemented.
 
 ## Frontend Integration
 
-The SSO button is integrated into the signin page when OmniAuth is enabled. The feature flag `isOmniAuthEnabled()` controls visibility.
+SSO buttons appear on the signin page when `AUTH_SSO_ENABLED=true`. The bootstrap payload includes a `providers` array, and `AuthMethodSelector.vue` renders one `SsoButton` per configured provider.
 
-### Vue Component
+Feature check: `isOmniAuthEnabled()` from `src/utils/features.ts`.
 
-The `SsoButton.vue` component handles SSO initiation:
-
-```vue
-<!-- src/apps/session/components/SsoButton.vue -->
-<script setup>
-const handleSsoLogin = () => {
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = '/auth/sso/oidc';
-
-  // CSRF token (required)
-  const csrfInput = document.createElement('input');
-  csrfInput.type = 'hidden';
-  csrfInput.name = 'shrimp';  // Project uses 'shrimp' as CSRF param name
-  csrfInput.value = csrfStore.shrimp;
-  form.appendChild(csrfInput);
-
-  document.body.appendChild(form);
-  form.submit();
-};
-</script>
-```
-
-### CSRF Protection
-
-OmniAuth routes (`/auth/sso/*`) use OAuth's built-in state parameter for CSRF protection instead of form tokens.
-
-**How it works:**
-1. **Request phase:** OmniAuth generates a random `state` value, stores it in session, and includes it in the authorization URL
-2. **Callback phase:** The IdP returns the `state`; OmniAuth validates it matches before processing
-
-**Implementation note:** Rack::Protection is configured to skip `/auth/sso/*` routes (see `lib/onetime/middleware/security.rb`). The frontend still includes the `shrimp` token for consistency, but it is not validated for SSO routes. This avoids conflicts between form-based CSRF and OAuth's built-in protection.
-
-### Feature Flag
-
-The SSO button only appears when:
-1. `AUTH_SSO_ENABLED=true` is set
-2. The bootstrap payload includes `features.omniauth: true`
-
-Check in Vue: `isOmniAuthEnabled()` from `src/utils/features.ts`
+CSRF protection for `/auth/sso/*` routes uses OAuth's state parameter, not form tokens. `Rack::Protection` is configured to skip these routes (see `lib/onetime/middleware/security.rb`).
 
 ### Static HTML (Custom Integrations)
 
-For non-Vue integrations:
+For non-Vue integrations, a plain form POST works:
 
 ```html
-<form method="POST" action="/auth/sso/oidc">
+<form method="POST" action="/auth/sso/{provider}">
   <button type="submit">Login with SSO</button>
 </form>
 ```
 
-Note: No CSRF token is required for SSO routes. OAuth's state parameter handles CSRF protection.
+No CSRF token required -- OAuth's state parameter handles CSRF protection for SSO routes.
 
 ## Database Schema
-
-The migration creates:
 
 ```sql
 CREATE TABLE account_identities (
   id BIGINT PRIMARY KEY,
   account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-  provider VARCHAR NOT NULL,
-  uid VARCHAR NOT NULL,
+  provider VARCHAR NOT NULL,  -- e.g. 'oidc', 'entra_id', 'google_oauth2', 'github'
+  uid VARCHAR NOT NULL,       -- IdP-specific subject identifier
   UNIQUE (provider, uid)
 );
 CREATE INDEX ON account_identities (account_id);
 ```
 
+The `provider` column stores the OmniAuth strategy name, which may differ from the route name (e.g., strategy `entra_id` at route `/auth/sso/entra`).
+
+## Error Handling
+
+```
+OmniAuth failure → omniauth_on_failure hook (logs to stderr + Auth::Logging)
+    → redirect to /signin?auth_error=sso_failed
+    → Frontend reads query param, displays localized error
+    → Query param cleared from URL
+```
+
+| `auth_error` Code | i18n Key | Meaning |
+|-------------------|----------|---------|
+| `sso_failed` | `web.login.errors.sso_failed` | General SSO failure |
+
 ## Troubleshooting
 
-### "Missing OIDC configuration"
+### "Missing OIDC configuration" / "Missing Entra ID configuration"
 
-Check that all required environment variables are set:
+Check required env vars are set and non-empty:
 ```bash
-echo $OIDC_ISSUER $OIDC_CLIENT_ID $OIDC_CLIENT_SECRET
+echo $OIDC_ISSUER $OIDC_CLIENT_ID    # for generic OIDC
+echo $ENTRA_TENANT_ID $ENTRA_CLIENT_ID $ENTRA_CLIENT_SECRET  # for Entra
 ```
 
 ### Callback returns error
 
-1. Verify redirect URI matches exactly (including trailing slash)
+1. Verify redirect URI matches exactly what's registered with the IdP (including trailing slash)
 2. Check IdP logs for detailed error
-3. Ensure client secret is correct
+3. Ensure client secret is correct and not expired (Entra secrets expire)
 
-### Discovery fails
+### OIDC discovery fails
 
-Test OIDC discovery endpoint:
 ```bash
 curl https://your-issuer/.well-known/openid-configuration
 ```
 
 ### Account not created
 
-Check application logs for errors during `after_omniauth_create_account` hook. Ensure Redis is accessible for Customer creation.
+Check logs for errors in `after_omniauth_create_account`. Ensure Redis/Valkey is accessible for Customer creation.
 
-## Deployment Modes
+### CSRF error on callback
 
-### Standalone/Self-hosted
-
-The current implementation supports a single OIDC provider configured via environment variables. This is ideal for:
-- Single-organization deployments
-- Self-hosted instances with one IdP
-- Development and testing
-
-**Constraint:** The frontend hardcodes `/auth/sso/oidc` as the SSO endpoint. Do not change `OIDC_ROUTE_NAME` from its default value `oidc`.
-
-### Multi-tenant (Future)
-
-Per-organization SSO (BYOIDC) is not yet implemented. When needed, this would require:
-- Organization SSO config stored in maindb (PostgreSQL)
-- Dynamic OmniAuth setup based on organization context
-- URL pattern like `/auth/sso/org/:org_extid/oidc`
-- Self-service admin UI for IdP configuration
-
-See industry patterns: WorkOS Organizations, Auth0 Organizations, Stripe Organizations.
-
-#### Recommended architecture for Multi-tenant
-
-```
-Customer A (Okta) ──┐
-                    ├──► Zitadel ──► OIDC ──► Onetime Secret
-Customer B (Azure) ─┘
-```
-
-Rather than:
-
-```
-Customer A (Okta)  ──► SAML ──► Onetime Secret
-Customer B (Azure) ──► OIDC ──► Onetime Secret
-```
-
-The Zitadel-as-broker approach is one protocol in your app, federation complexity handled by the IdP.
-
-## Domain Restrictions
-
-Optionally restrict which email domains can create accounts via SSO. Uses the same configuration as regular signup.
-
-### Configuration
-
-```bash
-# Single domain
-export ALLOWED_SIGNUP_DOMAIN=company.com
-
-# Multiple domains
-export ALLOWED_SIGNUP_DOMAIN=company.com,subsidiary.com,partner.org
-```
-
-### Behavior
-
-| Configuration | Behavior |
-|--------------|----------|
-| Not set or empty | All domains allowed (default) |
-| Single domain | Only that domain can create accounts |
-| Multiple domains | Any listed domain can create accounts |
-
-### Security Considerations
-
-- **Generic error messages:** Users from unauthorized domains see "Your email domain is not authorized for SSO signup" - the allowed domains are never revealed.
-- **Audit logging:** Rejected attempts are logged with event `omniauth_domain_rejected` including the obscured email and domain for security review.
-- **Case-insensitive:** Domain matching is case-insensitive (`COMPANY.COM` matches `company.com`).
-- **Subdomains not matched:** `sub.company.com` does NOT match `company.com` - add each subdomain explicitly if needed.
-- **Existing accounts:** Domain restrictions only apply to new account creation. Existing accounts with linked SSO identities can still log in regardless of domain restrictions.
-
-### Example: Enterprise Deployment
-
-```bash
-# Only employees from company.com can use SSO
-export ALLOWED_SIGNUP_DOMAIN=company.com
-
-# Include subsidiary and contractor domains
-export ALLOWED_SIGNUP_DOMAIN=company.com,subsidiary.com,contractors.company.com
-```
-
-### Troubleshooting Domain Restrictions
-
-**"Your email domain is not authorized for SSO signup"**
-
-1. Verify the user's email domain is in `ALLOWED_SIGNUP_DOMAIN`
-2. Check for typos (e.g., `comapny.com` vs `company.com`)
-3. Remember subdomains must be listed explicitly
-4. Check logs for `omniauth_domain_rejected` events
-
-**Existing user can't log in after domain restriction added**
-
-Domain restrictions only affect NEW account creation. If the user already has an account with a linked SSO identity, they can still log in. To block existing users, remove their account or unlink their SSO identity.
+If you see `encoded token is not a string`: the CSRF bypass for SSO routes is misconfigured. Check that `lib/onetime/middleware/security.rb` skips `/auth/sso/*` and that the `omniauth_request_validation_phase` hook is empty in `hooks/omniauth.rb`.
 
 ## Security Notes
 
-- PKCE is enabled by default for enhanced security
-- Discovery document is fetched from issuer URL
-- Email from IdP is trusted (no additional verification)
+- PKCE enabled by default (generic OIDC)
+- OAuth state parameter provides CSRF protection for the redirect flow
+- Email from IdP is trusted (no additional verification performed)
 - Sessions use same security settings as password auth
 - Domain restrictions validated before account creation
+- Client secrets should be rotated per provider's recommendations
 
-## Error Handling
-
-### Error Display Flow
-
-SSO errors (authentication failures, domain rejections, etc.) are displayed via the following flow:
-
-```
-OmniAuth failure callback
-    │
-    ▼
-omniauth_on_failure hook logs error to stderr and Auth::Logging
-    │
-    ▼
-Redirect to /signin?auth_error=sso_failed
-    │
-    ▼
-Frontend Login.vue reads query param, displays localized error
-    │
-    ▼
-Query param cleared from URL (prevents error on refresh)
-```
-
-The `auth_error` query param approach was chosen over flash messages because:
-- Vue frontend doesn't read server-side flash messages directly
-- Query params work reliably across the OAuth redirect chain
-- Error codes map to i18n keys for localized messages
-
-### Error Codes
-
-The `auth_error` query parameter maps to i18n keys in `locales/content/en/session-auth.json`:
-
-| Code | i18n Key | Meaning |
-|------|----------|---------|
-| `sso_failed` | `web.login.errors.sso_failed` | General SSO authentication failure |
-| `token_missing` | `web.login.errors.token_missing` | Magic link token not in URL |
-| `token_expired` | `web.login.errors.token_expired` | Magic link expired |
-| `token_invalid` | `web.login.errors.token_invalid` | Magic link token invalid |
-
-### Customizing Error Messages
-
-The `omniauth_failure_error_flash` configuration sets a default message (used for logging):
-
-```ruby
-# apps/web/auth/config/hooks/omniauth.rb
-auth.omniauth_failure_error_flash 'SSO authentication failed. Please try again or use password login.'
-```
-
-The actual user-facing message comes from the frontend i18n system based on the `auth_error` query param.
-
-## Files
+## Codebase Reference
 
 ### Backend
 
-| File | Purpose |
-|------|---------|
-| `apps/web/auth/config/features/omniauth.rb` | Rodauth feature configuration (routes, OIDC settings) |
-| `apps/web/auth/config/hooks/omniauth.rb` | Callback hooks (domain validation, account creation) |
-| `apps/web/auth/migrations/006_omniauth_identities.rb` | Database migration for identity linking |
-| `lib/onetime/auth_config.rb` | Feature flag method (`omniauth_enabled?`) |
-| `etc/defaults/auth.defaults.yaml` | Default configuration |
-| `apps/web/core/views/serializers/config_serializer.rb` | Exposes `omniauth` flag to frontend |
+| File | Role |
+|------|------|
+| `apps/web/auth/config/features/omniauth.rb` | Provider registration (one method per provider type) |
+| `apps/web/auth/config/hooks/omniauth.rb` | Callback hooks — provider-agnostic |
+| `apps/web/auth/config.rb` | Feature gating (`if omniauth_enabled?`) |
+| `apps/web/auth/migrations/006_omniauth_identities.rb` | Identity table migration |
+| `lib/onetime/auth_config.rb` | `omniauth_enabled?`, `sso_providers` |
+| `etc/defaults/auth.defaults.yaml` | Feature flag defaults |
+| `apps/web/core/views/serializers/config_serializer.rb` | `build_omniauth_config` → frontend bootstrap |
+| `lib/onetime/middleware/security.rb` | CSRF bypass for `/auth/sso/*` |
 
 ### Frontend
 
-| File | Purpose |
-|------|---------|
-| `src/apps/session/components/SsoButton.vue` | SSO login button component |
-| `src/apps/session/components/AuthMethodSelector.vue` | Integrates SSO with other auth methods |
-| `src/utils/features.ts` | `isOmniAuthEnabled()` feature detection |
-| `src/types/declarations/bootstrap.d.ts` | TypeScript types for `features.omniauth` |
+| File | Role |
+|------|------|
+| `src/apps/session/components/SsoButton.vue` | SSO login button (accepts provider props) |
+| `src/apps/session/components/AuthMethodSelector.vue` | Renders SSO buttons per provider |
+| `src/utils/features.ts` | `isOmniAuthEnabled()` |
 
 ### Tests
 
 | File | Coverage |
 |------|----------|
-| `apps/web/auth/spec/integration/omniauth_csrf_spec.rb` | CSRF token validation |
+| `apps/web/auth/spec/integration/omniauth_csrf_spec.rb` | CSRF configuration |
 | `apps/web/auth/spec/unit/omniauth_domain_validation_spec.rb` | Domain restriction logic |
-| `src/tests/apps/session/components/SsoButton.spec.ts` | Frontend component tests |
-| `src/tests/apps/session/components/AuthMethodSelector.spec.ts` | Integration with auth selector |
+| `apps/web/auth/spec/config/hooks/omniauth_spec.rb` | Email normalization |
 
 ## Testing
 
-### Manual Testing Checklist
-
-1. **Feature flag disabled:**
-   - [ ] SSO button should NOT appear on signin page
-   - [ ] POST to `/auth/sso/oidc` returns 404
-
-2. **Feature flag enabled (no IdP configured):**
-   - [ ] SSO button appears on signin page
-   - [ ] Clicking button shows configuration error
-
-3. **Fully configured:**
-   - [ ] SSO button redirects to IdP
-   - [ ] Successful auth creates account and redirects to dashboard
-   - [ ] Session is properly authenticated
-
-4. **Domain restrictions:**
-   - [ ] Allowed domain: account created successfully
-   - [ ] Disallowed domain: 403 error, generic message
-   - [ ] Check logs for `omniauth_domain_rejected` event
-
-### Running Tests
+See [OmniAuth Testing Guide](omniauth-testing.md) for local IdP setup and test procedures.
 
 ```bash
-# Backend unit tests (no Valkey required)
+# Backend
 bundle exec rspec apps/web/auth/spec/unit/omniauth_domain_validation_spec.rb
-
-# Backend integration tests (requires Valkey)
 bundle exec rspec apps/web/auth/spec/integration/omniauth_csrf_spec.rb
 
-# Frontend tests
+# Frontend
 pnpm test src/tests/apps/session/components/SsoButton.spec.ts
-pnpm test src/tests/apps/session/components/AuthMethodSelector.spec.ts
 ```
 
 ## See Also
 
+- [OmniAuth Testing Guide](omniauth-testing.md)
 - [Switching to Full Auth Mode](switching-to-full-mode.md)
-- [Rodauth OmniAuth](https://github.com/janko/rodauth-omniauth)
-- [OmniAuth OpenID Connect](https://github.com/omniauth/omniauth_openid_connect)
+- [rodauth-omniauth](https://github.com/janko/rodauth-omniauth)
+- [omniauth-entra-id](https://github.com/pond/omniauth-entra-id)
+- [omniauth_openid_connect](https://github.com/omniauth/omniauth_openid_connect)

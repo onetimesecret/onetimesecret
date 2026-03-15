@@ -120,6 +120,114 @@ module OmniAuthTestHelper
   def mock_oidc_failure(error_type = :invalid_credentials)
     OmniAuth.config.mock_auth[:oidc] = error_type
   end
+
+  # Mock a successful Entra ID authentication hash
+  # NOTE: Provider name is 'entra' (not 'entra_id') because configure_entra_id_provider
+  # uses name: :entra which overrides the gem's default 'entra_id' provider name.
+  # The name: option controls both the route segment and the auth hash provider value.
+  def mock_entra_success(email: 'user@contoso.onmicrosoft.com', name: 'Contoso User', uid: 'entra-uid-456')
+    OmniAuth.config.mock_auth[:entra] = OmniAuth::AuthHash.new({
+      provider: 'entra',
+      uid: uid,
+      info: {
+        email: email,
+        name: name,
+        email_verified: true,
+        first_name: name.split(' ').first,
+        last_name: name.split(' ').last,
+      },
+      credentials: {
+        token: 'mock_entra_access_token',
+        refresh_token: 'mock_entra_refresh_token',
+        expires_at: Time.now.to_i + 3600,
+        expires: true,
+      },
+      extra: {
+        raw_info: {
+          sub: uid,
+          email: email,
+          name: name,
+          email_verified: true,
+          oid: uid,
+          tid: 'mock-tenant-id',
+        },
+      },
+    })
+  end
+
+  # Mock a failed Entra ID authentication
+  # @param error_type [Symbol] :invalid_credentials, :access_denied, :timeout, etc.
+  def mock_entra_failure(error_type = :invalid_credentials)
+    OmniAuth.config.mock_auth[:entra] = error_type
+  end
+
+  # Mock a successful Google authentication hash
+  def mock_google_success(email: 'user@gmail.com', name: 'Google User', uid: 'google-uid-789')
+    OmniAuth.config.mock_auth[:google] = OmniAuth::AuthHash.new({
+      provider: 'google',
+      uid: uid,
+      info: {
+        email: email,
+        name: name,
+        email_verified: true,
+        first_name: name.split(' ').first,
+        last_name: name.split(' ').last,
+        image: "https://lh3.googleusercontent.com/a/default-user",
+      },
+      credentials: {
+        token: 'mock_google_access_token',
+        refresh_token: 'mock_google_refresh_token',
+        expires_at: Time.now.to_i + 3600,
+        expires: true,
+      },
+      extra: {
+        raw_info: {
+          sub: uid,
+          email: email,
+          name: name,
+          email_verified: true,
+        },
+      },
+    })
+  end
+
+  # Mock a failed Google authentication
+  # @param error_type [Symbol] :invalid_credentials, :access_denied, :timeout, etc.
+  def mock_google_failure(error_type = :invalid_credentials)
+    OmniAuth.config.mock_auth[:google] = error_type
+  end
+
+  # Mock a successful GitHub authentication hash
+  def mock_github_success(email: 'user@github.com', name: 'GitHub User', uid: 'github-uid-101', nickname: 'ghuser')
+    OmniAuth.config.mock_auth[:github] = OmniAuth::AuthHash.new({
+      provider: 'github',
+      uid: uid,
+      info: {
+        email: email,
+        name: name,
+        nickname: nickname,
+        image: "https://avatars.githubusercontent.com/u/#{uid}",
+      },
+      credentials: {
+        token: 'mock_github_access_token',
+        expires: false,
+      },
+      extra: {
+        raw_info: {
+          login: nickname,
+          id: uid.to_i,
+          email: email,
+          name: name,
+        },
+      },
+    })
+  end
+
+  # Mock a failed GitHub authentication
+  # @param error_type [Symbol] :invalid_credentials, :access_denied, :timeout, etc.
+  def mock_github_failure(error_type = :invalid_credentials)
+    OmniAuth.config.mock_auth[:github] = error_type
+  end
 end
 
 # RSpec configuration for automatic setup/teardown

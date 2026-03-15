@@ -231,7 +231,6 @@ GEM
     mcp (0.8.0)
       json-schema (>= 4.1)
     mini_mime (1.1.5)
-    mini_portile2 (2.8.9)
     minitest (5.27.0)
     multi_xml (0.8.1)
       bigdecimal (>= 3.1, < 5)
@@ -248,9 +247,6 @@ GEM
     net-smtp (0.5.1)
       net-protocol
     nio4r (2.7.5)
-    nokogiri (1.19.1)
-      mini_portile2 (~> 2.8.2)
-      racc (~> 1.4)
     nokogiri (1.19.1-aarch64-linux-gnu)
       racc (~> 1.4)
     nokogiri (1.19.1-aarch64-linux-musl)
@@ -267,6 +263,14 @@ GEM
       racc (~> 1.4)
     nokogiri (1.19.1-x86_64-linux-musl)
       racc (~> 1.4)
+    oauth2 (2.0.18)
+      faraday (>= 0.17.3, < 4.0)
+      jwt (>= 1.0, < 4.0)
+      logger (~> 1.2)
+      multi_xml (~> 0.5)
+      rack (>= 1.2, < 4)
+      snaky_hash (~> 2.0, >= 2.0.3)
+      version_gem (~> 1.1, >= 1.1.9)
     observer (0.1.2)
     oj (3.16.15)
       bigdecimal (>= 3.0)
@@ -276,6 +280,20 @@ GEM
       logger
       rack (>= 2.2.3)
       rack-protection
+    omniauth-entra-id (3.1.1)
+      jwt (>= 2.9.2)
+      omniauth-oauth2 (~> 1.8)
+    omniauth-github (2.0.1)
+      omniauth (~> 2.0)
+      omniauth-oauth2 (~> 1.8)
+    omniauth-google-oauth2 (1.2.2)
+      jwt (>= 2.9.2)
+      oauth2 (~> 2.0)
+      omniauth (~> 2.0)
+      omniauth-oauth2 (~> 1.8)
+    omniauth-oauth2 (1.9.0)
+      oauth2 (>= 2.0.2, < 3)
+      omniauth (~> 2.0)
     omniauth_openid_connect (0.8.0)
       omniauth (>= 1.9, < 3)
       openid_connect (~> 2.2)
@@ -471,6 +489,9 @@ GEM
     simplecov-html (0.13.2)
     simplecov_json_formatter (0.1.4)
     simpleidn (0.2.3)
+    snaky_hash (2.0.3)
+      hashie (>= 0.1.0, < 6)
+      version_gem (>= 1.1.8, < 3)
     solargraph (0.58.1)
       ast (~> 2.4.3)
       backport (~> 1.2)
@@ -497,8 +518,6 @@ GEM
     sorted_set (1.0.3)
       rbtree
       set (~> 1.0)
-    sqlite3 (2.9.0)
-      mini_portile2 (~> 2.8.0)
     sqlite3 (2.9.0-aarch64-linux-gnu)
     sqlite3 (2.9.0-aarch64-linux-musl)
     sqlite3 (2.9.0-arm-linux-gnu)
@@ -551,6 +570,7 @@ GEM
       activemodel (>= 3.0.0)
       public_suffix
     vcr (6.4.0)
+    version_gem (1.1.9)
     webauthn (3.4.3)
       android_key_attestation (~> 0.3.0)
       bindata (~> 2.4)
@@ -580,7 +600,6 @@ PLATFORMS
   arm-linux-gnu
   arm-linux-musl
   arm64-darwin
-  ruby
   x86_64-darwin
   x86_64-linux
   x86_64-linux-gnu
@@ -614,6 +633,9 @@ DEPENDENCIES
   logger
   mail
   mustache
+  omniauth-entra-id (~> 3.1)
+  omniauth-github (~> 2.0)
+  omniauth-google-oauth2 (~> 1.2)
   omniauth_openid_connect (~> 0.8)
   otto (~> 2.0.0)
   passforge (~> 1.1)
