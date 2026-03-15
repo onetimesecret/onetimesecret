@@ -3,6 +3,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { isMagicLinksEnabled, isOmniAuthEnabled, isWebAuthnEnabled } from '@/utils/features';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { ref, computed } from 'vue';
 
 import PasswordlessFirstSignIn from './PasswordlessFirstSignIn.vue';
@@ -10,6 +11,7 @@ import SignInForm from './SignInForm.vue';
 import SsoButton from './SsoButton.vue';
 
 const { t } = useI18n();
+const bootstrapStore = useBootstrapStore();
 
 export interface Props {
   locale?: string;
@@ -29,6 +31,22 @@ const emit = defineEmits<{
 const magicLinksEnabled = isMagicLinksEnabled();
 const webauthnEnabled = isWebAuthnEnabled();
 const omniAuthEnabled = isOmniAuthEnabled();
+
+// Extract SSO providers from bootstrap state
+const ssoProviders = computed(() => {
+  const omniauth = bootstrapStore.features?.omniauth;
+  if (typeof omniauth === 'object' && omniauth !== null && Array.isArray(omniauth.providers)) {
+    return omniauth.providers;
+  }
+  // Backward compatibility: single provider from legacy fields
+  if (typeof omniauth === 'object' && omniauth !== null && omniauth.enabled) {
+    return [{
+      route_name: omniauth.route_name || 'oidc',
+      display_name: omniauth.display_name || omniauth.provider_name || '',
+    }];
+  }
+  return [];
+});
 
 // Show passwordless-first UI when any passwordless method is enabled
 const hasPasswordlessMethods = computed(() => magicLinksEnabled || webauthnEnabled);
@@ -61,7 +79,7 @@ defineExpose({ currentMode });
       :locale="locale" />
 
     <!-- SSO section when OmniAuth is enabled -->
-    <template v-if="omniAuthEnabled">
+    <template v-if="omniAuthEnabled && ssoProviders.length > 0">
       <!-- Divider -->
       <div class="relative">
         <div class="absolute inset-0 flex items-center" aria-hidden="true">
@@ -74,8 +92,14 @@ defineExpose({ currentMode });
         </div>
       </div>
 
-      <!-- SSO Button -->
-      <SsoButton />
+      <!-- SSO Buttons — one per configured provider -->
+      <div class="space-y-3">
+        <SsoButton
+          v-for="provider in ssoProviders"
+          :key="provider.route_name"
+          :route-name="provider.route_name"
+          :display-name="provider.display_name" />
+      </div>
     </template>
   </div>
 </template>

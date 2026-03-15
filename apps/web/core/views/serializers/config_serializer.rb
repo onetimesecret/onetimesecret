@@ -118,21 +118,34 @@ module Core
         # Build OmniAuth configuration for frontend
         #
         # Returns false if disabled, or a hash with enabled status and
-        # optional display name for UI customization.
+        # a providers array for multi-provider SSO support.
+        #
+        # Each provider entry includes route_name (for POST URL) and
+        # display_name (for button label).
         #
         # @return [Boolean, Hash] false if disabled, otherwise config hash
         def build_omniauth_config
           return false unless Onetime.auth_config.omniauth_enabled?
 
-          config               = { 'enabled' => true }
-          display_name         = Onetime.auth_config.sso_display_name
-          config['route_name'] = Onetime.auth_config.omniauth_route_name
+          providers = Onetime.auth_config.sso_providers
 
-          # Send both keys for frontend compatibility during transition
-          # Frontend currently reads provider_name, will migrate to display_name
-          if display_name
-            config['display_name']  = display_name
-            config['provider_name'] = display_name
+          config = {
+            'enabled' => true,
+            'providers' => providers.map { |p|
+              {
+                'route_name' => p['route_name'].to_s,
+                'display_name' => p['display_name'].to_s,
+              }
+            },
+          }
+
+          # Backward-compatible single-provider fields for frontend transition
+          # TODO: Remove once frontend reads from providers array
+          if providers.any?
+            first = providers.first
+            config['route_name'] = first['route_name'].to_s
+            config['display_name'] = first['display_name'].to_s
+            config['provider_name'] = first['display_name'].to_s
           end
 
           config

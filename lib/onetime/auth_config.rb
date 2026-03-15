@@ -133,6 +133,9 @@ module Onetime
     # SSO display name (e.g., "Zitadel", "Okta", "Azure AD")
     # Used for "Sign in with X" button text
     # Returns nil if not configured (frontend will use generic "SSO")
+    #
+    # DEPRECATED: In multi-provider context, each provider carries its own
+    # display_name. Use sso_providers instead.
     def sso_display_name
       return nil unless omniauth_enabled?
 
@@ -148,10 +151,57 @@ module Onetime
     # OmniAuth route name for building the SSO callback URL
     # Defaults to 'oidc' if OIDC_ROUTE_NAME is not set
     # Used by frontend to construct /auth/sso/{route_name} paths
+    #
+    # DEPRECATED: Use sso_providers instead (returns array of providers
+    # each with their own route_name).
     def omniauth_route_name
       return nil unless omniauth_enabled?
 
       ENV.fetch('OIDC_ROUTE_NAME', 'oidc')
+    end
+
+    # All configured SSO providers, built dynamically from env var presence.
+    # Returns an array of hashes: [{ route_name: 'oidc', display_name: 'SSO' }, ...]
+    # Each entry corresponds to a provider whose required env vars are present.
+    # Returns empty array if omniauth is disabled or no providers are configured.
+    def sso_providers
+      return [] unless omniauth_enabled?
+
+      providers = []
+
+      # OIDC (generic OpenID Connect) — requires OIDC_ISSUER and OIDC_CLIENT_ID
+      if env_present?('OIDC_ISSUER') && env_present?('OIDC_CLIENT_ID')
+        providers << {
+          'route_name' => ENV.fetch('OIDC_ROUTE_NAME', 'oidc'),
+          'display_name' => ENV.fetch('OIDC_DISPLAY_NAME', nil) || sso_display_name || 'SSO',
+        }
+      end
+
+      # Entra ID (Microsoft) — requires ENTRA_TENANT_ID, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET
+      if env_present?('ENTRA_TENANT_ID') && env_present?('ENTRA_CLIENT_ID') && env_present?('ENTRA_CLIENT_SECRET')
+        providers << {
+          'route_name' => ENV.fetch('ENTRA_ROUTE_NAME', 'entra'),
+          'display_name' => ENV.fetch('ENTRA_DISPLAY_NAME', 'Microsoft'),
+        }
+      end
+
+      # Google — requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET
+      if env_present?('GOOGLE_CLIENT_ID') && env_present?('GOOGLE_CLIENT_SECRET')
+        providers << {
+          'route_name' => ENV.fetch('GOOGLE_ROUTE_NAME', 'google'),
+          'display_name' => ENV.fetch('GOOGLE_DISPLAY_NAME', 'Google'),
+        }
+      end
+
+      # GitHub — requires GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET
+      if env_present?('GITHUB_CLIENT_ID') && env_present?('GITHUB_CLIENT_SECRET')
+        providers << {
+          'route_name' => ENV.fetch('GITHUB_ROUTE_NAME', 'github'),
+          'display_name' => ENV.fetch('GITHUB_DISPLAY_NAME', 'GitHub'),
+        }
+      end
+
+      providers
     end
 
     # DEPRECATED: Use email_auth_enabled?
@@ -175,6 +225,12 @@ module Onetime
       return false unless full_enabled?
 
       features.fetch(key, default)
+    end
+
+    # Check if an environment variable is present and non-empty
+    def env_present?(name)
+      val = ENV.fetch(name, nil)
+      !val.nil? && !val.empty?
     end
 
     def load_config

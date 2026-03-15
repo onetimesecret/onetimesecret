@@ -108,3 +108,36 @@ result = with_omniauth_config(enabled: true, display_name: 'Zitadel') do
 end
 [result['display_name'], result['provider_name']]
 #=> ["Zitadel", "Zitadel"]
+
+## sso_providers returns string-keyed hashes (contract with ConfigSerializer)
+with_omniauth_config(enabled: true) do
+  providers = Onetime.auth_config.sso_providers
+  providers.empty? || providers.all? { |p| p.keys.all? { |k| k.is_a?(String) } }
+end
+#=> true
+
+## build_omniauth_config providers array has route_name and display_name strings
+result = with_omniauth_config(enabled: true) do
+  Core::Views::ConfigSerializer.send(:build_omniauth_config)
+end
+result['providers'].is_a?(Array)
+#=> true
+
+## build_omniauth_config provider entries use string keys
+result = with_omniauth_config(enabled: true) do
+  Core::Views::ConfigSerializer.send(:build_omniauth_config)
+end
+result['providers'].empty? || result['providers'].all? { |p| p.key?('route_name') && p.key?('display_name') }
+#=> true
+
+## ConfigSerializer reads sso_providers with string keys not symbol keys
+# This validates the contract: sso_providers returns {'route_name' => ...}
+# and build_omniauth_config accesses p['route_name'], not p[:route_name]
+with_omniauth_config(enabled: true) do
+  providers = Onetime.auth_config.sso_providers
+  next true if providers.empty?
+
+  # Verify string-key access returns non-nil values
+  providers.all? { |p| !p['route_name'].nil? && !p['display_name'].nil? }
+end
+#=> true

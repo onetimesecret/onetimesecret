@@ -398,6 +398,125 @@ describe('AuthMethodSelector', () => {
     });
   });
 
+  describe('Multi-Provider SSO Rendering', () => {
+    /**
+     * Tests that use the REAL AuthMethodSelector component (not the stub)
+     * to verify multi-provider rendering with v-for over ssoProviders.
+     */
+
+    // Import the real component for multi-provider tests
+    const mountRealComponent = async (
+      bootstrapFeatures: Record<string, unknown>,
+      featureFlags: { magic?: boolean; webauthn?: boolean; omniauth?: boolean } = {}
+    ) => {
+      mockFeatures.magicLinksEnabled.value = featureFlags.magic ?? false;
+      mockFeatures.webauthnEnabled.value = featureFlags.webauthn ?? false;
+      mockFeatures.omniAuthEnabled.value = featureFlags.omniauth ?? true;
+
+      // Use dynamic import for the real component
+      const { default: AuthMethodSelector } = await import(
+        '@/apps/session/components/AuthMethodSelector.vue'
+      );
+
+      const pinia = createTestingPinia({
+        createSpy: vi.fn,
+        initialState: {
+          bootstrap: {
+            features: bootstrapFeatures,
+          },
+        },
+      });
+
+      // Also set features directly on the store (setup stores may not
+      // always hydrate from initialState for nested ref values)
+      const { useBootstrapStore } = await import('@/shared/stores/bootstrapStore');
+      const store = useBootstrapStore(pinia);
+      (store as unknown as { features: Record<string, unknown> }).features = bootstrapFeatures;
+
+      const w = mount(AuthMethodSelector, {
+        props: { locale: 'en' },
+        global: {
+          plugins: [i18n, pinia],
+        },
+      });
+
+      // Allow computed properties to update
+      await w.vm.$nextTick();
+      return w;
+    };
+
+    it('renders one SsoButton per provider when multiple providers configured', async () => {
+      wrapper = await mountRealComponent({
+        omniauth: {
+          enabled: true,
+          providers: [
+            { route_name: 'entra', display_name: 'Microsoft' },
+            { route_name: 'google', display_name: 'Google' },
+            { route_name: 'github', display_name: 'GitHub' },
+          ],
+        },
+      });
+
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(3);
+    });
+
+    it('renders single SsoButton for single provider', async () => {
+      wrapper = await mountRealComponent({
+        omniauth: {
+          enabled: true,
+          providers: [
+            { route_name: 'oidc', display_name: 'Okta' },
+          ],
+        },
+      });
+
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(1);
+    });
+
+    it('renders no SsoButtons when providers array is empty', async () => {
+      wrapper = await mountRealComponent({
+        omniauth: {
+          enabled: true,
+          providers: [],
+        },
+      });
+
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(0);
+    });
+
+    it('falls back to legacy single-provider fields when providers array absent', async () => {
+      wrapper = await mountRealComponent({
+        omniauth: {
+          enabled: true,
+          route_name: 'oidc',
+          display_name: 'Corporate SSO',
+        },
+      });
+
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(1);
+    });
+
+    it('shows divider and SSO section when omniAuth enabled with providers', async () => {
+      wrapper = await mountRealComponent({
+        omniauth: {
+          enabled: true,
+          providers: [
+            { route_name: 'entra', display_name: 'Microsoft' },
+            { route_name: 'google', display_name: 'Google' },
+          ],
+        },
+      });
+
+      expect(wrapper.text()).toContain('Or continue with');
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(2);
+    });
+  });
+
   describe('Feature Flag Combinations', () => {
     const testCases = [
       {

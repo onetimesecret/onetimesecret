@@ -68,6 +68,48 @@ export function isOmniAuthEnabled(): boolean {
 }
 
 /**
+ * Provider entry from bootstrap state
+ */
+export interface SsoProvider {
+  route_name: string;
+  display_name: string;
+}
+
+/**
+ * Returns the list of configured SSO providers from bootstrap state.
+ * Each provider has a route_name (for constructing /auth/sso/{route_name})
+ * and a display_name (for "Sign in with X" button text).
+ *
+ * Falls back to the deprecated single-provider fields for backward compatibility.
+ */
+export function getOmniAuthProviders(): SsoProvider[] {
+  if (typeof window === 'undefined') return [];
+
+  const features = getBootstrapValue('features');
+  const omniauth = features?.omniauth;
+
+  // Disabled or not configured
+  if (!omniauth || typeof omniauth === 'boolean') return [];
+  if (!omniauth.enabled) return [];
+
+  // Multi-provider: use providers array if present
+  if (Array.isArray(omniauth.providers) && omniauth.providers.length > 0) {
+    return omniauth.providers;
+  }
+
+  // Backward compat: build single-entry array from deprecated fields
+  const routeName = omniauth.route_name;
+  if (routeName) {
+    return [{
+      route_name: routeName,
+      display_name: omniauth.display_name || omniauth.provider_name || 'SSO',
+    }];
+  }
+
+  return [];
+}
+
+/**
  * Checks if authentication mode is 'full' (Rodauth with SQL db).
  * When mode is 'simple' (or undefined), security features like
  * password change, MFA, sessions, and passkeys are not available.

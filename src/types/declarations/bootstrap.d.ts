@@ -198,11 +198,16 @@ export interface BootstrapPayload {
      */
     omniauth?: boolean | {
       enabled: boolean;
-      /** Display name for the SSO provider (e.g., "Zitadel", "Okta") */
+      /** Configured SSO providers. Each entry has route_name and display_name. */
+      providers?: Array<{
+        route_name: string;
+        display_name: string;
+      }>;
+      /** @deprecated Use providers array. Display name for the first SSO provider. */
       display_name?: string;
-      /** @deprecated Use display_name instead */
+      /** @deprecated Use providers array. */
       provider_name?: string;
-      /** OmniAuth strategy route name (e.g., "oidc", "saml", "google_oauth2") */
+      /** @deprecated Use providers array. OmniAuth strategy route name. */
       route_name?: string;
     };
     /** @deprecated Use email_auth instead */
