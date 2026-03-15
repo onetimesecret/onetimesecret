@@ -636,51 +636,51 @@
     "sha256": "02ccc074"
   },
   "web.settings.profile.confirm_email_change_title": {
-    "text": "Email Address Updated",
+    "text": "Kua Whakahoutia te Wāhitau Īmēra",
     "sha256": ""
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "Your email has been updated successfully. Please sign in with your new email address.",
+    "text": "Kua whakahoutia tō īmēra. Takiuru mā tō wāhitau īmēra hou.",
     "sha256": "e5f6a7b8"
   },
   "web.settings.profile.email_confirm_verifying": {
-    "text": "Verifying your new email address...",
+    "text": "E manatoko ana i tō wāhitau īmēra hou...",
     "sha256": "c9d0e1f2"
   },
   "web.settings.profile.email_confirm_error_title": {
-    "text": "Email Change Failed",
+    "text": "I Hapa te Huringa Īmēra",
     "sha256": ""
   },
   "web.settings.profile.email_confirm_invalid": {
-    "text": "This verification link is invalid or has expired.",
+    "text": "He muhu tēnei hononga manatoko, kua pau rānei.",
     "sha256": "a3b4c5d6"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
-    "text": "Back to Account Settings",
+    "text": "Hoki ki ngā Tautuhinga Pūkete",
     "sha256": "e7f8a9b0"
   },
   "web.settings.profile.redirecting_to_signin": {
-    "text": "Redirecting to sign in...",
+    "text": "E whakawhiti ana ki te takiuru...",
     "sha256": "c1d2e3f4"
   },
   "web.settings.profile.resend_confirmation": {
-    "text": "Resend confirmation email",
+    "text": "Tuku anō i te īmēra whakaū",
     "sha256": ""
   },
   "web.settings.profile.resend_confirmation_success": {
-    "text": "Confirmation email resent successfully.",
+    "text": "Kua tukuna anō te īmēra whakaū.",
     "sha256": ""
   },
   "web.settings.profile.resend_confirmation_sending": {
-    "text": "Sending...",
+    "text": "E tuku ana...",
     "sha256": ""
   },
   "web.settings.profile.email_change_pending": {
-    "text": "A verification email has been sent. Check your inbox and click the confirmation link.",
+    "text": "Kua tukuna he īmēra manatoko. Tirohia tō pouaka whakauru ka pāwhiria te hononga whakaū.",
     "sha256": ""
   },
   "web.settings.profile.didnt_receive_email": {
-    "text": "Didn't receive the email?",
+    "text": "Kāore i tae te īmēra?",
     "sha256": ""
   }
 }

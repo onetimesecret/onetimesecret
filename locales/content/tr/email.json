@@ -152,11 +152,11 @@
     "sha256": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "This secret is protected with a passphrase. The sender should provide it to you separately.",
+    "text": "Bu gizli mesaj bir güvenlik ifadesi ile korunmaktadır. Gönderenin bunu size ayrıca iletmesi gerekmektedir.",
     "sha256": ""
   },
   "email.incoming_secret.passphrase_label": {
-    "text": "Passphrase required:",
+    "text": "Güvenlik ifadesi gerekli:",
     "sha256": ""
   },
   "email.incoming_secret.sent_via": {
@@ -336,27 +336,27 @@
     "sha256": "f505b562"
   },
   "email.email_changed.change_notice": {
-    "text": "The email address on your %{product_name} account has been changed.",
+    "text": "%{product_name} hesabınızdaki e-posta adresi değiştirildi.",
     "sha256": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
-    "text": "New email:",
+    "text": "Yeni e-posta:",
     "sha256": "0161371a"
   },
   "email.email_changed.changed_at_label": {
-    "text": "Changed at:",
+    "text": "Değiştirilme zamanı:",
     "sha256": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "If you made this change, no further action is required.",
+    "text": "Bu değişikliği siz yaptıysanız, başka bir işlem yapmanız gerekmez.",
     "sha256": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "If you did not make this change, your account may be compromised.",
+    "text": "Bu değişikliği siz yapmadıysanız, hesabınız tehlikede olabilir.",
     "sha256": "08f479fb"
   },
   "email.email_changed.contact_support": {
-    "text": "Contact Support",
+    "text": "Destek ile İletişime Geçin",
     "sha256": "f8d47b82"
   },
   "email.email_changed.signature": {
@@ -364,39 +364,39 @@
     "sha256": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "P.S. This email was sent to %{email_address} to notify you of an email address change.",
+    "text": "Not: Bu e-posta, e-posta adresi değişikliği hakkında sizi bilgilendirmek için %{email_address} adresine gönderilmiştir.",
     "sha256": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "Email change requested (%{display_domain})",
+    "text": "E-posta değişikliği talep edildi (%{display_domain})",
     "sha256": ""
   },
   "email.email_change_requested.title": {
-    "text": "Email Change Requested",
+    "text": "E-posta Değişikliği Talep Edildi",
     "sha256": ""
   },
   "email.email_change_requested.change_notice": {
-    "text": "A request was made to change the email address on your %{product_name} account.",
+    "text": "%{product_name} hesabınızdaki e-posta adresini değiştirmek için bir talep yapıldı.",
     "sha256": ""
   },
   "email.email_change_requested.new_email_label": {
-    "text": "Requested new email:",
+    "text": "Talep edilen yeni e-posta:",
     "sha256": ""
   },
   "email.email_change_requested.requested_at_label": {
-    "text": "Requested at:",
+    "text": "Talep zamanı:",
     "sha256": ""
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "If you made this request, check your new email for a confirmation link. No changes have been made yet.",
+    "text": "Bu talebi siz yaptıysanız, onay bağlantısı için yeni e-postanızı kontrol edin. Henüz herhangi bir değişiklik yapılmadı.",
     "sha256": ""
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "If you did not make this request, you can safely ignore this email. Your account has not been changed.",
+    "text": "Bu talebi siz yapmadıysanız, bu e-postayı güvenle görmezden gelebilirsiniz. Hesabınızda herhangi bir değişiklik yapılmamıştır.",
     "sha256": ""
   },
   "email.email_change_requested.contact_support": {
-    "text": "Contact Support",
+    "text": "Destek ile İletişime Geçin",
     "sha256": ""
   },
   "email.email_change_requested.signature": {
@@ -404,7 +404,7 @@
     "sha256": ""
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. This email was sent to %{email_address} because an email change was requested for your account.",
+    "text": "Not: Bu e-posta, hesabınız için bir e-posta değişikliği talep edildiğinden %{email_address} adresine gönderilmiştir.",
     "sha256": ""
   },
   "email.email_change_confirmation.subject": {
@@ -424,11 +424,11 @@
     "sha256": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "A request was made to change the email address on your %{product_name} account to %{new_email}.",
+    "text": "%{product_name} hesabınızdaki e-posta adresini %{new_email} olarak değiştirmek için bir talep yapıldı.",
     "sha256": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "Confirm Email Change",
+    "text": "E-posta Değişikliğini Onaylayın",
     "sha256": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
@@ -436,11 +436,11 @@
     "sha256": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
-    "text": "This link will expire in %{hours} hours.",
+    "text": "Bu bağlantının süresi %{hours} saat içinde dolacaktır.",
     "sha256": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "If you did not request this change, you can safely ignore this email. Your email address will not be changed.",
+    "text": "Bu değişikliği talep etmediyseniz, bu e-postayı güvenle görmezden gelebilirsiniz. E-posta adresiniz değiştirilmeyecektir.",
     "sha256": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,7 +448,7 @@
     "sha256": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. This email was sent to %{email_address} to confirm an email address change.",
+    "text": "Not: Bu e-posta, e-posta adresi değişikliğini onaylamak için %{email_address} adresine gönderilmiştir.",
     "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {

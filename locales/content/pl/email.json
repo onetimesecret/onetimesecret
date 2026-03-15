@@ -152,11 +152,11 @@
     "sha256": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "This secret is protected with a passphrase. The sender should provide it to you separately.",
+    "text": "Ten sekret jest chroniony frazą dostępową. Nadawca powinien przekazać ją Ci osobno.",
     "sha256": ""
   },
   "email.incoming_secret.passphrase_label": {
-    "text": "Passphrase required:",
+    "text": "Wymagana fraza dostępowa:",
     "sha256": ""
   },
   "email.incoming_secret.sent_via": {
@@ -336,27 +336,27 @@
     "sha256": "f505b562"
   },
   "email.email_changed.change_notice": {
-    "text": "The email address on your %{product_name} account has been changed.",
+    "text": "Adres e-mail na Twoim koncie %{product_name} został zmieniony.",
     "sha256": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
-    "text": "New email:",
+    "text": "Nowy adres e-mail:",
     "sha256": "0161371a"
   },
   "email.email_changed.changed_at_label": {
-    "text": "Changed at:",
+    "text": "Zmieniono:",
     "sha256": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "If you made this change, no further action is required.",
+    "text": "Jeśli to Ty dokonałeś tej zmiany, nie musisz podejmować żadnych dodatkowych działań.",
     "sha256": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "If you did not make this change, your account may be compromised.",
+    "text": "Jeśli nie dokonywałeś tej zmiany, Twoje konto mogło zostać naruszone.",
     "sha256": "08f479fb"
   },
   "email.email_changed.contact_support": {
-    "text": "Contact Support",
+    "text": "Skontaktuj się z pomocą techniczną",
     "sha256": "f8d47b82"
   },
   "email.email_changed.signature": {
@@ -364,39 +364,39 @@
     "sha256": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "P.S. This email was sent to %{email_address} to notify you of an email address change.",
+    "text": "P.S. Ten e-mail został wysłany na adres %{email_address}, aby powiadomić Cię o zmianie adresu e-mail.",
     "sha256": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "Email change requested (%{display_domain})",
+    "text": "Żądanie zmiany adresu e-mail (%{display_domain})",
     "sha256": ""
   },
   "email.email_change_requested.title": {
-    "text": "Email Change Requested",
+    "text": "Żądanie zmiany adresu e-mail",
     "sha256": ""
   },
   "email.email_change_requested.change_notice": {
-    "text": "A request was made to change the email address on your %{product_name} account.",
+    "text": "Otrzymano żądanie zmiany adresu e-mail na Twoim koncie %{product_name}.",
     "sha256": ""
   },
   "email.email_change_requested.new_email_label": {
-    "text": "Requested new email:",
+    "text": "Żądany nowy adres e-mail:",
     "sha256": ""
   },
   "email.email_change_requested.requested_at_label": {
-    "text": "Requested at:",
+    "text": "Żądano:",
     "sha256": ""
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "If you made this request, check your new email for a confirmation link. No changes have been made yet.",
+    "text": "Jeśli to Ty złożyłeś to żądanie, sprawdź swój nowy adres e-mail w poszukiwaniu linku potwierdzającego. Żadne zmiany nie zostały jeszcze wprowadzone.",
     "sha256": ""
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "If you did not make this request, you can safely ignore this email. Your account has not been changed.",
+    "text": "Jeśli nie składałeś tego żądania, możesz bezpiecznie zignorować tę wiadomość. Twoje konto nie zostało zmienione.",
     "sha256": ""
   },
   "email.email_change_requested.contact_support": {
-    "text": "Contact Support",
+    "text": "Skontaktuj się z pomocą techniczną",
     "sha256": ""
   },
   "email.email_change_requested.signature": {
@@ -404,7 +404,7 @@
     "sha256": ""
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. This email was sent to %{email_address} because an email change was requested for your account.",
+    "text": "P.S. Ten e-mail został wysłany na adres %{email_address}, ponieważ złożono żądanie zmiany adresu e-mail na Twoim koncie.",
     "sha256": ""
   },
   "email.email_change_confirmation.subject": {
@@ -424,11 +424,11 @@
     "sha256": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "A request was made to change the email address on your %{product_name} account to %{new_email}.",
+    "text": "Otrzymano żądanie zmiany adresu e-mail na Twoim koncie %{product_name} na %{new_email}.",
     "sha256": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "Confirm Email Change",
+    "text": "Potwierdź zmianę adresu e-mail",
     "sha256": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
@@ -436,11 +436,11 @@
     "sha256": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
-    "text": "This link will expire in %{hours} hours.",
+    "text": "Ten link wygaśnie za %{hours} godzin.",
     "sha256": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "If you did not request this change, you can safely ignore this email. Your email address will not be changed.",
+    "text": "Jeśli nie prosiłeś o tę zmianę, możesz bezpiecznie zignorować tę wiadomość. Twój adres e-mail nie zostanie zmieniony.",
     "sha256": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,7 +448,7 @@
     "sha256": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. This email was sent to %{email_address} to confirm an email address change.",
+    "text": "P.S. Ten e-mail został wysłany na adres %{email_address} w celu potwierdzenia zmiany adresu e-mail.",
     "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {

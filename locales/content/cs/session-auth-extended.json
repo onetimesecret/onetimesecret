@@ -155,7 +155,7 @@
     "sha256": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Your session has expired. Please refresh the page and try again.",
+    "text": "Tvá relace vypršela. Obnov prosím stránku a zkus to znovu.",
     "sha256": "a7c3e901"
   },
   "web.auth.magicLink.loginFailed": {
@@ -203,7 +203,7 @@
     "sha256": "290cca44"
   },
   "web.auth.webauthn.passwordRequired": {
-    "text": "Password is required to set up a passkey",
+    "text": "Pro nastavení přístupového klíče je potřeba heslo",
     "sha256": "085bb238"
   },
   "web.auth.webauthn.authFailed": {
@@ -227,107 +227,107 @@
     "sha256": "3ea1c1a2"
   },
   "web.auth.passkeys.title": {
-    "text": "Passkeys",
+    "text": "Přístupové klíče",
     "context": "Title for passkey management section",
     "sha256": "c87ccdb4"
   },
   "web.auth.passkeys.description": {
-    "text": "Sign in with Face ID, Touch ID, Windows Hello, or security key",
+    "text": "Přihlas se pomocí Face ID, Touch ID, Windows Hello nebo bezpečnostního klíče",
     "context": "Description of passkey authentication",
     "sha256": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "Passkeys let you sign in securely without a password",
+    "text": "Přístupové klíče ti umožní bezpečné přihlášení bez hesla",
     "context": "Setup page description",
     "sha256": "85630bef"
   },
   "web.auth.passkeys.not_configured": {
-    "text": "Not configured",
+    "text": "Nenakonfigurováno",
     "context": "Status when no passkeys are registered",
     "sha256": "dd1841d2"
   },
   "web.auth.passkeys.count": {
-    "text": "{count} passkey registered | {count} passkeys registered",
+    "text": "{count} přístupový klíč registrován | {count} přístupové klíče registrovány",
     "context": "Number of registered passkeys",
     "sha256": "82e6681f"
   },
   "web.auth.passkeys.add_passkey": {
-    "text": "Add Passkey",
+    "text": "Přidat přístupový klíč",
     "context": "Button to add a new passkey",
     "sha256": "93713ad7"
   },
   "web.auth.passkeys.register_passkey": {
-    "text": "Register Passkey",
+    "text": "Registrovat přístupový klíč",
     "context": "Button to register a new passkey",
     "sha256": "26db6968"
   },
   "web.auth.passkeys.remove_passkey": {
-    "text": "Remove Passkey",
+    "text": "Odebrat přístupový klíč",
     "context": "Button to remove a passkey",
     "sha256": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "Are you sure you want to remove this passkey? You will no longer be able to sign in with it.",
+    "text": "Opravdu chceš odebrat tento přístupový klíč? Už se s ním nebudeš moci přihlásit.",
     "context": "Confirmation message for passkey removal",
     "sha256": "487ab72c"
   },
   "web.auth.passkeys.removed_success": {
-    "text": "Passkey removed successfully",
+    "text": "Přístupový klíč úspěšně odebrán",
     "context": "Success message after removing passkey",
     "sha256": "436c1050"
   },
   "web.auth.passkeys.registered_success": {
-    "text": "Passkey registered successfully",
+    "text": "Přístupový klíč úspěšně registrován",
     "context": "Success message after registering passkey",
     "sha256": "fbfb0713"
   },
   "web.auth.passkeys.no_passkeys": {
-    "text": "No passkeys registered",
+    "text": "Žádné přístupové klíče registrovány",
     "context": "Empty state when no passkeys exist",
     "sha256": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
-    "text": "Add a passkey to sign in more securely without entering a password",
+    "text": "Přidej přístupový klíč pro bezpečnější přihlášení bez zadávání hesla",
     "context": "Description for empty state",
     "sha256": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Passkey Name",
+    "text": "Název přístupového klíče",
     "context": "Label for passkey name field",
     "sha256": "22eefa67"
   },
   "web.auth.passkeys.created": {
-    "text": "Created",
+    "text": "Vytvořen",
     "context": "Label for creation date",
     "sha256": "d70b9e24"
   },
   "web.auth.passkeys.last_used": {
-    "text": "Last used: {time}",
+    "text": "Naposledy použit: {time}",
     "context": "Last used timestamp",
     "sha256": "e1af94fe"
   },
   "web.auth.passkeys.never_used": {
-    "text": "Never used",
+    "text": "Dosud nepoužit",
     "context": "Status when passkey has not been used",
     "sha256": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "More secure than passwords - resistant to phishing attacks",
+    "text": "Bezpečnější než hesla – odolný vůči phishingovým útokům",
     "context": "Passkey benefit",
     "sha256": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Fast and easy - just use your fingerprint, face, or security key",
+    "text": "Rychlý a snadný – stačí použít otisk prstu, obličej nebo bezpečnostní klíč",
     "context": "Passkey benefit",
     "sha256": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Synced across your devices when using platform authenticators",
+    "text": "Synchronizovaný napříč tvými zařízeními při použití platformových autentizátorů",
     "context": "Passkey benefit",
     "sha256": "7480c7ae"
   },
   "web.auth.passkeys.link_title": {
-    "text": "Passkeys",
+    "text": "Přístupové klíče",
     "context": "Navigation link title",
     "sha256": "c87ccdb4"
   },

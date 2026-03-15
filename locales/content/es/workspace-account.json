@@ -636,51 +636,51 @@
     "sha256": "02ccc074"
   },
   "web.settings.profile.confirm_email_change_title": {
-    "text": "Email Address Updated",
+    "text": "Dirección de correo electrónico actualizada",
     "sha256": ""
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "Your email has been updated successfully. Please sign in with your new email address.",
+    "text": "Tu correo electrónico ha sido actualizado correctamente. Por favor, inicia sesión con tu nueva dirección de correo electrónico.",
     "sha256": "e5f6a7b8"
   },
   "web.settings.profile.email_confirm_verifying": {
-    "text": "Verifying your new email address...",
+    "text": "Verificando tu nueva dirección de correo electrónico...",
     "sha256": "c9d0e1f2"
   },
   "web.settings.profile.email_confirm_error_title": {
-    "text": "Email Change Failed",
+    "text": "Error en el cambio de correo electrónico",
     "sha256": ""
   },
   "web.settings.profile.email_confirm_invalid": {
-    "text": "This verification link is invalid or has expired.",
+    "text": "Este enlace de verificación no es válido o ha expirado.",
     "sha256": "a3b4c5d6"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
-    "text": "Back to Account Settings",
+    "text": "Volver a la configuración de la cuenta",
     "sha256": "e7f8a9b0"
   },
   "web.settings.profile.redirecting_to_signin": {
-    "text": "Redirecting to sign in...",
+    "text": "Redirigiendo al inicio de sesión...",
     "sha256": "c1d2e3f4"
   },
   "web.settings.profile.resend_confirmation": {
-    "text": "Resend confirmation email",
+    "text": "Reenviar correo de confirmación",
     "sha256": ""
   },
   "web.settings.profile.resend_confirmation_success": {
-    "text": "Confirmation email resent successfully.",
+    "text": "Correo de confirmación reenviado correctamente.",
     "sha256": ""
   },
   "web.settings.profile.resend_confirmation_sending": {
-    "text": "Sending...",
+    "text": "Enviando...",
     "sha256": ""
   },
   "web.settings.profile.email_change_pending": {
-    "text": "A verification email has been sent. Check your inbox and click the confirmation link.",
+    "text": "Se ha enviado un correo de verificación. Revisa tu bandeja de entrada y haz clic en el enlace de confirmación.",
     "sha256": ""
   },
   "web.settings.profile.didnt_receive_email": {
-    "text": "Didn't receive the email?",
+    "text": "¿No recibiste el correo electrónico?",
     "sha256": ""
   }
 }

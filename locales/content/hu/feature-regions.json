@@ -140,23 +140,23 @@
     "sha256": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
-    "text": "Changing Regions",
+    "text": "Régióváltás",
     "sha256": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "Our policy is to never transfer data between regions. Each region operates as a completely independent environment.",
+    "text": "Irányelveink szerint soha nem továbbítunk adatokat régiók között. Minden régió teljesen független környezetként működik.",
     "sha256": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "To use a different region, create a new account there using the same email address associated with your billing contact email.",
+    "text": "Egy másik régió használatához hozzon létre ott egy új fiókot ugyanazzal az e-mail címmel, amely a számlázási kapcsolattartó e-mail címéhez van társítva.",
     "sha256": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "If your billing contact email differs from your Onetime Secret account email, use the billing contact email for the new region account to maintain your subscription benefits.",
+    "text": "Ha a számlázási kapcsolattartó e-mail címe eltér az Onetime Secret fiókjának e-mail címétől, használja a számlázási kapcsolattartó e-mail címét az új régiós fiókhoz az előfizetési előnyök megtartásához.",
     "sha256": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Your subscription benefits will automatically apply to any account created with your billing email address.",
+    "text": "Az előfizetési előnyök automatikusan érvényesek minden olyan fiókra, amelyet a számlázási e-mail címével hoztak létre.",
     "sha256": "5b2238b2"
   }
 }

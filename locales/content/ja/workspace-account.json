@@ -636,51 +636,51 @@
     "sha256": "02ccc074"
   },
   "web.settings.profile.confirm_email_change_title": {
-    "text": "Email Address Updated",
+    "text": "メールアドレスが更新されました",
     "sha256": ""
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "Your email has been updated successfully. Please sign in with your new email address.",
+    "text": "メールアドレスが正常に更新されました。新しいメールアドレスでログインしてください。",
     "sha256": "e5f6a7b8"
   },
   "web.settings.profile.email_confirm_verifying": {
-    "text": "Verifying your new email address...",
+    "text": "新しいメールアドレスを確認中...",
     "sha256": "c9d0e1f2"
   },
   "web.settings.profile.email_confirm_error_title": {
-    "text": "Email Change Failed",
+    "text": "メールアドレスの変更に失敗しました",
     "sha256": ""
   },
   "web.settings.profile.email_confirm_invalid": {
-    "text": "This verification link is invalid or has expired.",
+    "text": "この確認リンクは無効または期限切れです。",
     "sha256": "a3b4c5d6"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
-    "text": "Back to Account Settings",
+    "text": "アカウント設定に戻る",
     "sha256": "e7f8a9b0"
   },
   "web.settings.profile.redirecting_to_signin": {
-    "text": "Redirecting to sign in...",
+    "text": "ログインページにリダイレクト中...",
     "sha256": "c1d2e3f4"
   },
   "web.settings.profile.resend_confirmation": {
-    "text": "Resend confirmation email",
+    "text": "確認メールを再送信",
     "sha256": ""
   },
   "web.settings.profile.resend_confirmation_success": {
-    "text": "Confirmation email resent successfully.",
+    "text": "確認メールが再送信されました。",
     "sha256": ""
   },
   "web.settings.profile.resend_confirmation_sending": {
-    "text": "Sending...",
+    "text": "送信中...",
     "sha256": ""
   },
   "web.settings.profile.email_change_pending": {
-    "text": "A verification email has been sent. Check your inbox and click the confirmation link.",
+    "text": "確認メールが送信されました。受信トレイを確認し、確認リンクをクリックしてください。",
     "sha256": ""
   },
   "web.settings.profile.didnt_receive_email": {
-    "text": "Didn't receive the email?",
+    "text": "メールが届きませんか？",
     "sha256": ""
   }
 }

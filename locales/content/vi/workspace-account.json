@@ -636,51 +636,51 @@
     "sha256": "02ccc074"
   },
   "web.settings.profile.confirm_email_change_title": {
-    "text": "Email Address Updated",
+    "text": "Đã cập nhật địa chỉ email",
     "sha256": ""
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "Your email has been updated successfully. Please sign in with your new email address.",
+    "text": "Email của bạn đã được cập nhật thành công. Vui lòng đăng nhập bằng địa chỉ email mới.",
     "sha256": "e5f6a7b8"
   },
   "web.settings.profile.email_confirm_verifying": {
-    "text": "Verifying your new email address...",
+    "text": "Đang xác minh địa chỉ email mới...",
     "sha256": "c9d0e1f2"
   },
   "web.settings.profile.email_confirm_error_title": {
-    "text": "Email Change Failed",
+    "text": "Thay đổi email thất bại",
     "sha256": ""
   },
   "web.settings.profile.email_confirm_invalid": {
-    "text": "This verification link is invalid or has expired.",
+    "text": "Liên kết xác minh này không hợp lệ hoặc đã hết hạn.",
     "sha256": "a3b4c5d6"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
-    "text": "Back to Account Settings",
+    "text": "Quay lại cài đặt tài khoản",
     "sha256": "e7f8a9b0"
   },
   "web.settings.profile.redirecting_to_signin": {
-    "text": "Redirecting to sign in...",
+    "text": "Đang chuyển hướng đến trang đăng nhập...",
     "sha256": "c1d2e3f4"
   },
   "web.settings.profile.resend_confirmation": {
-    "text": "Resend confirmation email",
+    "text": "Gửi lại email xác nhận",
     "sha256": ""
   },
   "web.settings.profile.resend_confirmation_success": {
-    "text": "Confirmation email resent successfully.",
+    "text": "Đã gửi lại email xác nhận thành công.",
     "sha256": ""
   },
   "web.settings.profile.resend_confirmation_sending": {
-    "text": "Sending...",
+    "text": "Đang gửi...",
     "sha256": ""
   },
   "web.settings.profile.email_change_pending": {
-    "text": "A verification email has been sent. Check your inbox and click the confirmation link.",
+    "text": "Đã gửi email xác minh. Kiểm tra hộp thư đến và nhấp vào liên kết xác nhận.",
     "sha256": ""
   },
   "web.settings.profile.didnt_receive_email": {
-    "text": "Didn't receive the email?",
+    "text": "Không nhận được email?",
     "sha256": ""
   }
 }

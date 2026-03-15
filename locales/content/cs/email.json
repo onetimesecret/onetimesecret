@@ -152,11 +152,11 @@
     "sha256": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "This secret is protected with a passphrase. The sender should provide it to you separately.",
+    "text": "Toto tajemství je chráněno přístupovou frází. Odesílatel by ti ji měl poskytnout samostatně.",
     "sha256": ""
   },
   "email.incoming_secret.passphrase_label": {
-    "text": "Passphrase required:",
+    "text": "Vyžadována přístupová fráze:",
     "sha256": ""
   },
   "email.incoming_secret.sent_via": {
@@ -336,27 +336,27 @@
     "sha256": "f505b562"
   },
   "email.email_changed.change_notice": {
-    "text": "The email address on your %{product_name} account has been changed.",
+    "text": "E-mailová adresa tvého účtu %{product_name} byla změněna.",
     "sha256": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
-    "text": "New email:",
+    "text": "Nový e-mail:",
     "sha256": "0161371a"
   },
   "email.email_changed.changed_at_label": {
-    "text": "Changed at:",
+    "text": "Změněno:",
     "sha256": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "If you made this change, no further action is required.",
+    "text": "Pokud jsi tuto změnu provedl/a ty, není potřeba nic dalšího.",
     "sha256": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "If you did not make this change, your account may be compromised.",
+    "text": "Pokud jsi tuto změnu neprovedl/a, tvůj účet mohl být kompromitován.",
     "sha256": "08f479fb"
   },
   "email.email_changed.contact_support": {
-    "text": "Contact Support",
+    "text": "Kontaktovat podporu",
     "sha256": "f8d47b82"
   },
   "email.email_changed.signature": {
@@ -364,39 +364,39 @@
     "sha256": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "P.S. This email was sent to %{email_address} to notify you of an email address change.",
+    "text": "P.S. Tento e-mail byl odeslán na %{email_address} jako oznámení o změně e-mailové adresy.",
     "sha256": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "Email change requested (%{display_domain})",
+    "text": "Požadavek na změnu e-mailu (%{display_domain})",
     "sha256": ""
   },
   "email.email_change_requested.title": {
-    "text": "Email Change Requested",
+    "text": "Požadavek na změnu e-mailu",
     "sha256": ""
   },
   "email.email_change_requested.change_notice": {
-    "text": "A request was made to change the email address on your %{product_name} account.",
+    "text": "Byl podán požadavek na změnu e-mailové adresy tvého účtu %{product_name}.",
     "sha256": ""
   },
   "email.email_change_requested.new_email_label": {
-    "text": "Requested new email:",
+    "text": "Požadovaný nový e-mail:",
     "sha256": ""
   },
   "email.email_change_requested.requested_at_label": {
-    "text": "Requested at:",
+    "text": "Požadováno:",
     "sha256": ""
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "If you made this request, check your new email for a confirmation link. No changes have been made yet.",
+    "text": "Pokud jsi tento požadavek podal/a ty, zkontroluj svůj nový e-mail, kde najdeš potvrzovací odkaz. Zatím nebyly provedeny žádné změny.",
     "sha256": ""
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "If you did not make this request, you can safely ignore this email. Your account has not been changed.",
+    "text": "Pokud jsi tento požadavek nepodal/a, můžeš tento e-mail klidně ignorovat. Tvůj účet nebyl změněn.",
     "sha256": ""
   },
   "email.email_change_requested.contact_support": {
-    "text": "Contact Support",
+    "text": "Kontaktovat podporu",
     "sha256": ""
   },
   "email.email_change_requested.signature": {
@@ -404,7 +404,7 @@
     "sha256": ""
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. This email was sent to %{email_address} because an email change was requested for your account.",
+    "text": "P.S. Tento e-mail byl odeslán na %{email_address}, protože byl podán požadavek na změnu e-mailu tvého účtu.",
     "sha256": ""
   },
   "email.email_change_confirmation.subject": {
@@ -424,11 +424,11 @@
     "sha256": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "A request was made to change the email address on your %{product_name} account to %{new_email}.",
+    "text": "Byl podán požadavek na změnu e-mailové adresy tvého účtu %{product_name} na %{new_email}.",
     "sha256": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "Confirm Email Change",
+    "text": "Potvrdit změnu e-mailu",
     "sha256": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
@@ -436,11 +436,11 @@
     "sha256": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
-    "text": "This link will expire in %{hours} hours.",
+    "text": "Platnost tohoto odkazu vyprší za %{hours} hodin.",
     "sha256": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "If you did not request this change, you can safely ignore this email. Your email address will not be changed.",
+    "text": "Pokud jsi o tuto změnu nepožádal/a, můžeš tento e-mail klidně ignorovat. Tvá e-mailová adresa nebude změněna.",
     "sha256": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,7 +448,7 @@
     "sha256": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. This email was sent to %{email_address} to confirm an email address change.",
+    "text": "P.S. Tento e-mail byl odeslán na %{email_address} k potvrzení změny e-mailové adresy.",
     "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {

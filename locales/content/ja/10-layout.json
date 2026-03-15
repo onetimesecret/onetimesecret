@@ -100,11 +100,11 @@
     "sha256": "de4743c8"
   },
   "web.footer.product": {
-    "text": "Product",
+    "text": "製品",
     "sha256": "7f5540e9"
   },
   "web.footer.source_code_purveyor": {
-    "text": "Source Code",
+    "text": "ソースコード",
     "sha256": "29c5c68f"
   },
   "web.navigation.billing": {

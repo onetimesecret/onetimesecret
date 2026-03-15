@@ -140,23 +140,23 @@
     "sha256": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
-    "text": "Changing Regions",
+    "text": "Zmiana regionu",
     "sha256": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "Our policy is to never transfer data between regions. Each region operates as a completely independent environment.",
+    "text": "Nasza zasada to nigdy nie przesyłać danych między regionami. Każdy region działa jako całkowicie niezależne środowisko.",
     "sha256": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "To use a different region, create a new account there using the same email address associated with your billing contact email.",
+    "text": "Aby korzystać z innego regionu, utwórz tam nowe konto, używając tego samego adresu e-mail, który jest powiązany z Twoim adresem kontaktowym do rozliczeń.",
     "sha256": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "If your billing contact email differs from your Onetime Secret account email, use the billing contact email for the new region account to maintain your subscription benefits.",
+    "text": "Jeśli Twój adres e-mail do rozliczeń różni się od adresu e-mail konta Onetime Secret, użyj adresu e-mail do rozliczeń dla nowego konta w regionie, aby zachować korzyści z subskrypcji.",
     "sha256": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Your subscription benefits will automatically apply to any account created with your billing email address.",
+    "text": "Korzyści z Twojej subskrypcji zostaną automatycznie zastosowane do każdego konta utworzonego z Twoim adresem e-mail do rozliczeń.",
     "sha256": "5b2238b2"
   }
 }

@@ -152,11 +152,11 @@
     "sha256": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "This secret is protected with a passphrase. The sender should provide it to you separately.",
+    "text": "このシークレットはパスフレーズで保護されています。送信者から別途パスフレーズを受け取ってください。",
     "sha256": ""
   },
   "email.incoming_secret.passphrase_label": {
-    "text": "Passphrase required:",
+    "text": "パスフレーズが必要です:",
     "sha256": ""
   },
   "email.incoming_secret.sent_via": {
@@ -336,27 +336,27 @@
     "sha256": "f505b562"
   },
   "email.email_changed.change_notice": {
-    "text": "The email address on your %{product_name} account has been changed.",
+    "text": "%{product_name}アカウントのメールアドレスが変更されました。",
     "sha256": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
-    "text": "New email:",
+    "text": "新しいメールアドレス:",
     "sha256": "0161371a"
   },
   "email.email_changed.changed_at_label": {
-    "text": "Changed at:",
+    "text": "変更日時:",
     "sha256": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "If you made this change, no further action is required.",
+    "text": "この変更をご自身で行った場合、追加の操作は必要ありません。",
     "sha256": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "If you did not make this change, your account may be compromised.",
+    "text": "この変更に心当たりがない場合、アカウントが不正アクセスを受けている可能性があります。",
     "sha256": "08f479fb"
   },
   "email.email_changed.contact_support": {
-    "text": "Contact Support",
+    "text": "サポートに連絡",
     "sha256": "f8d47b82"
   },
   "email.email_changed.signature": {
@@ -364,39 +364,39 @@
     "sha256": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "P.S. This email was sent to %{email_address} to notify you of an email address change.",
+    "text": "追伸: このメールはメールアドレスの変更をお知らせするために%{email_address}宛てに送信されました。",
     "sha256": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "Email change requested (%{display_domain})",
+    "text": "メールアドレス変更リクエスト (%{display_domain})",
     "sha256": ""
   },
   "email.email_change_requested.title": {
-    "text": "Email Change Requested",
+    "text": "メールアドレス変更リクエスト",
     "sha256": ""
   },
   "email.email_change_requested.change_notice": {
-    "text": "A request was made to change the email address on your %{product_name} account.",
+    "text": "%{product_name}アカウントのメールアドレス変更リクエストがありました。",
     "sha256": ""
   },
   "email.email_change_requested.new_email_label": {
-    "text": "Requested new email:",
+    "text": "変更先のメールアドレス:",
     "sha256": ""
   },
   "email.email_change_requested.requested_at_label": {
-    "text": "Requested at:",
+    "text": "リクエスト日時:",
     "sha256": ""
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "If you made this request, check your new email for a confirmation link. No changes have been made yet.",
+    "text": "このリクエストをご自身で行った場合、新しいメールアドレスに届く確認リンクをご確認ください。まだ変更は適用されていません。",
     "sha256": ""
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "If you did not make this request, you can safely ignore this email. Your account has not been changed.",
+    "text": "このリクエストに心当たりがない場合、このメールは無視して問題ありません。アカウントは変更されていません。",
     "sha256": ""
   },
   "email.email_change_requested.contact_support": {
-    "text": "Contact Support",
+    "text": "サポートに連絡",
     "sha256": ""
   },
   "email.email_change_requested.signature": {
@@ -404,7 +404,7 @@
     "sha256": ""
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. This email was sent to %{email_address} because an email change was requested for your account.",
+    "text": "追伸: このメールは、アカウントのメールアドレス変更がリクエストされたため%{email_address}宛てに送信されました。",
     "sha256": ""
   },
   "email.email_change_confirmation.subject": {
@@ -424,11 +424,11 @@
     "sha256": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "A request was made to change the email address on your %{product_name} account to %{new_email}.",
+    "text": "%{product_name}アカウントのメールアドレスを%{new_email}に変更するリクエストがありました。",
     "sha256": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "Confirm Email Change",
+    "text": "メールアドレス変更を確認",
     "sha256": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
@@ -436,11 +436,11 @@
     "sha256": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
-    "text": "This link will expire in %{hours} hours.",
+    "text": "このリンクは%{hours}時間後に期限切れになります。",
     "sha256": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "If you did not request this change, you can safely ignore this email. Your email address will not be changed.",
+    "text": "この変更をリクエストしていない場合、このメールは無視して問題ありません。メールアドレスは変更されません。",
     "sha256": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,7 +448,7 @@
     "sha256": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. This email was sent to %{email_address} to confirm an email address change.",
+    "text": "追伸: このメールはメールアドレスの変更を確認するために%{email_address}宛てに送信されました。",
     "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {

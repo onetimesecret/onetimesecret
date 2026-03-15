@@ -636,51 +636,51 @@
     "sha256": "02ccc074"
   },
   "web.settings.profile.confirm_email_change_title": {
-    "text": "Email Address Updated",
+    "text": "E-mail cím frissítve",
     "sha256": ""
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "Your email has been updated successfully. Please sign in with your new email address.",
+    "text": "Az e-mail címe sikeresen frissítve. Kérjük, jelentkezzen be az új e-mail címével.",
     "sha256": "e5f6a7b8"
   },
   "web.settings.profile.email_confirm_verifying": {
-    "text": "Verifying your new email address...",
+    "text": "Az új e-mail cím ellenőrzése...",
     "sha256": "c9d0e1f2"
   },
   "web.settings.profile.email_confirm_error_title": {
-    "text": "Email Change Failed",
+    "text": "E-mail módosítás sikertelen",
     "sha256": ""
   },
   "web.settings.profile.email_confirm_invalid": {
-    "text": "This verification link is invalid or has expired.",
+    "text": "Ez az ellenőrzési hivatkozás érvénytelen vagy lejárt.",
     "sha256": "a3b4c5d6"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
-    "text": "Back to Account Settings",
+    "text": "Vissza a fiókbeállításokhoz",
     "sha256": "e7f8a9b0"
   },
   "web.settings.profile.redirecting_to_signin": {
-    "text": "Redirecting to sign in...",
+    "text": "Átirányítás a bejelentkezéshez...",
     "sha256": "c1d2e3f4"
   },
   "web.settings.profile.resend_confirmation": {
-    "text": "Resend confirmation email",
+    "text": "Megerősítő e-mail újraküldése",
     "sha256": ""
   },
   "web.settings.profile.resend_confirmation_success": {
-    "text": "Confirmation email resent successfully.",
+    "text": "A megerősítő e-mail sikeresen újraküldve.",
     "sha256": ""
   },
   "web.settings.profile.resend_confirmation_sending": {
-    "text": "Sending...",
+    "text": "Küldés...",
     "sha256": ""
   },
   "web.settings.profile.email_change_pending": {
-    "text": "A verification email has been sent. Check your inbox and click the confirmation link.",
+    "text": "Ellenőrző e-mail elküldve. Ellenőrizze a bejövő üzeneteit, és kattintson a megerősítő hivatkozásra.",
     "sha256": ""
   },
   "web.settings.profile.didnt_receive_email": {
-    "text": "Didn't receive the email?",
+    "text": "Nem kapta meg az e-mailt?",
     "sha256": ""
   }
 }

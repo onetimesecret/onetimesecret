@@ -152,11 +152,11 @@
     "sha256": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "This secret is protected with a passphrase. The sender should provide it to you separately.",
+    "text": "Ez a titok hozzáférési mondattal van védve. A küldőnek külön kell megadnia Önnek.",
     "sha256": ""
   },
   "email.incoming_secret.passphrase_label": {
-    "text": "Passphrase required:",
+    "text": "Hozzáférési mondat szükséges:",
     "sha256": ""
   },
   "email.incoming_secret.sent_via": {
@@ -240,7 +240,7 @@
     "sha256": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
-    "text": "Domain:",
+    "text": "Domén:",
     "sha256": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
@@ -336,27 +336,27 @@
     "sha256": "f505b562"
   },
   "email.email_changed.change_notice": {
-    "text": "The email address on your %{product_name} account has been changed.",
+    "text": "A %{product_name} fiókjához tartozó e-mail cím megváltozott.",
     "sha256": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
-    "text": "New email:",
+    "text": "Új e-mail:",
     "sha256": "0161371a"
   },
   "email.email_changed.changed_at_label": {
-    "text": "Changed at:",
+    "text": "Módosítva:",
     "sha256": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "If you made this change, no further action is required.",
+    "text": "Ha Ön hajtotta végre ezt a módosítást, nincs további teendője.",
     "sha256": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "If you did not make this change, your account may be compromised.",
+    "text": "Ha nem Ön hajtotta végre ezt a módosítást, fiókja feltörésre kerülhetett.",
     "sha256": "08f479fb"
   },
   "email.email_changed.contact_support": {
-    "text": "Contact Support",
+    "text": "Kapcsolatfelvétel a támogatással",
     "sha256": "f8d47b82"
   },
   "email.email_changed.signature": {
@@ -364,39 +364,39 @@
     "sha256": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "P.S. This email was sent to %{email_address} to notify you of an email address change.",
+    "text": "U.I. Ezt az e-mailt a %{email_address} címre küldtük, hogy értesítsük az e-mail cím változásáról.",
     "sha256": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "Email change requested (%{display_domain})",
+    "text": "E-mail módosítás kérelmezve (%{display_domain})",
     "sha256": ""
   },
   "email.email_change_requested.title": {
-    "text": "Email Change Requested",
+    "text": "E-mail módosítás kérelmezve",
     "sha256": ""
   },
   "email.email_change_requested.change_notice": {
-    "text": "A request was made to change the email address on your %{product_name} account.",
+    "text": "Kérelem érkezett a %{product_name} fiókjához tartozó e-mail cím módosítására.",
     "sha256": ""
   },
   "email.email_change_requested.new_email_label": {
-    "text": "Requested new email:",
+    "text": "Kért új e-mail:",
     "sha256": ""
   },
   "email.email_change_requested.requested_at_label": {
-    "text": "Requested at:",
+    "text": "Kérelmezve:",
     "sha256": ""
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "If you made this request, check your new email for a confirmation link. No changes have been made yet.",
+    "text": "Ha Ön kezdeményezte ezt a kérelmet, ellenőrizze az új e-mail fiókját a megerősítő hivatkozásért. Még nem történt módosítás.",
     "sha256": ""
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "If you did not make this request, you can safely ignore this email. Your account has not been changed.",
+    "text": "Ha nem Ön kezdeményezte ezt a kérelmet, nyugodtan figyelmen kívül hagyhatja ezt az e-mailt. Fiókja nem változott.",
     "sha256": ""
   },
   "email.email_change_requested.contact_support": {
-    "text": "Contact Support",
+    "text": "Kapcsolatfelvétel a támogatással",
     "sha256": ""
   },
   "email.email_change_requested.signature": {
@@ -404,7 +404,7 @@
     "sha256": ""
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. This email was sent to %{email_address} because an email change was requested for your account.",
+    "text": "U.I. Ezt az e-mailt a %{email_address} címre küldtük, mert e-mail módosítást kérelmeztek a fiókjához.",
     "sha256": ""
   },
   "email.email_change_confirmation.subject": {
@@ -424,11 +424,11 @@
     "sha256": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "A request was made to change the email address on your %{product_name} account to %{new_email}.",
+    "text": "Kérelem érkezett a %{product_name} fiókjához tartozó e-mail cím módosítására a következőre: %{new_email}.",
     "sha256": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "Confirm Email Change",
+    "text": "E-mail módosítás megerősítése",
     "sha256": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
@@ -436,11 +436,11 @@
     "sha256": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
-    "text": "This link will expire in %{hours} hours.",
+    "text": "Ez a hivatkozás %{hours} óra múlva lejár.",
     "sha256": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "If you did not request this change, you can safely ignore this email. Your email address will not be changed.",
+    "text": "Ha nem Ön kérte ezt a módosítást, nyugodtan figyelmen kívül hagyhatja ezt az e-mailt. Az e-mail címe nem változik meg.",
     "sha256": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,7 +448,7 @@
     "sha256": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. This email was sent to %{email_address} to confirm an email address change.",
+    "text": "U.I. Ezt az e-mailt a %{email_address} címre küldtük az e-mail cím módosításának megerősítéséhez.",
     "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {

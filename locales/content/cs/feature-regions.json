@@ -140,23 +140,23 @@
     "sha256": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
-    "text": "Changing Regions",
+    "text": "Změna regionu",
     "sha256": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "Our policy is to never transfer data between regions. Each region operates as a completely independent environment.",
+    "text": "Naší zásadou je nikdy nepřenášet data mezi regiony. Každý region funguje jako zcela nezávislé prostředí.",
     "sha256": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "To use a different region, create a new account there using the same email address associated with your billing contact email.",
+    "text": "Pro použití jiného regionu si tam vytvoř nový účet se stejnou e-mailovou adresou, která je spojena s tvým fakturačním kontaktním e-mailem.",
     "sha256": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "If your billing contact email differs from your Onetime Secret account email, use the billing contact email for the new region account to maintain your subscription benefits.",
+    "text": "Pokud se tvůj fakturační kontaktní e-mail liší od e-mailu tvého účtu Onetime Secret, použij fakturační kontaktní e-mail pro účet v novém regionu, aby se zachovaly výhody tvého předplatného.",
     "sha256": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Your subscription benefits will automatically apply to any account created with your billing email address.",
+    "text": "Výhody tvého předplatného se automaticky uplatní na jakýkoli účet vytvořený s tvou fakturační e-mailovou adresou.",
     "sha256": "5b2238b2"
   }
 }

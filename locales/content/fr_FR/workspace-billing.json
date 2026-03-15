@@ -1,10 +1,10 @@
 {
   "web.billing.subscription_synced_title": {
-    "text": "Subscription Synced",
+    "text": "Abonnement synchronisé",
     "sha256": "3086ef43"
   },
   "web.billing.subscription_synced_description": {
-    "text": "Your subscription benefits have been synced from another region.",
+    "text": "Les avantages de votre abonnement ont été synchronisés depuis une autre région.",
     "sha256": "a99b7a98"
   },
   "web.billing.upgrade.required": {
@@ -84,19 +84,19 @@
     "sha256": "2d0b195b"
   },
   "web.billing.overview.manage_subscription": {
-    "text": "Manage Subscription",
+    "text": "Gérer l'abonnement",
     "sha256": "cbc4ef92"
   },
   "web.billing.plans.legacy_plan_info": {
-    "text": "You're on a grandfathered plan with special pricing.",
+    "text": "Vous bénéficiez d'un forfait avec tarification spéciale maintenue.",
     "sha256": "e9aa8bf0"
   },
   "web.billing.plans.early_supporter_plan": {
-    "text": "Identity Plus (Early Supporter)",
+    "text": "Identity Plus (Soutien de la première heure)",
     "sha256": "f37cd0d9"
   },
   "web.billing.plans.legacy_plan_warning": {
-    "text": "Switching plans will forfeit your grandfathered rate. This cannot be undone.",
+    "text": "Changer de forfait entraînera la perte de votre tarif préférentiel. Cette action est irréversible.",
     "sha256": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
@@ -148,7 +148,7 @@
     "sha256": "41e922d2"
   },
   "web.billing.overview.load_error": {
-    "text": "Failed to load billing information",
+    "text": "Échec du chargement des informations de facturation",
     "sha256": "d4e5f6a7"
   },
   "web.billing.overview.upgrade_success": {
@@ -336,7 +336,7 @@
     "sha256": "d955b7e8"
   },
   "web.billing.plans.cancel_to_downgrade": {
-    "text": "Cancel to switch",
+    "text": "Annuler pour changer",
     "sha256": "1c4cda89"
   },
   "web.billing.plans.monthly": {
@@ -444,7 +444,7 @@
     "sha256": "d8454436"
   },
   "web.billing.plans.load_error": {
-    "text": "Failed to load plans",
+    "text": "Échec du chargement des forfaits",
     "sha256": "e5f6a7b8"
   },
   "web.billing.plans.change_immediate": {
@@ -548,7 +548,7 @@
     "sha256": "d6eafe82"
   },
   "web.billing.invoices.invoice_number": {
-    "text": "Invoice #",
+    "text": "Facture n°",
     "sha256": "a1c2d3e4"
   },
   "web.billing.invoices.no_invoices": {
@@ -556,11 +556,11 @@
     "sha256": "92d2d0ce"
   },
   "web.billing.invoices.no_invoices_description": {
-    "text": "Your invoices will appear here once you upgrade to a paid plan",
+    "text": "Vos factures apparaîtront ici une fois que vous aurez souscrit à un forfait payant",
     "sha256": "b2c3d4e5"
   },
   "web.billing.invoices.view_plans": {
-    "text": "View Plans",
+    "text": "Voir les forfaits",
     "sha256": "c3d4e5f6"
   },
   "web.billing.invoices.paid": {
@@ -580,15 +580,15 @@
     "sha256": "d2e16e61"
   },
   "web.billing.invoices.open": {
-    "text": "Open",
+    "text": "Ouverte",
     "sha256": "a2b3c4d5"
   },
   "web.billing.invoices.uncollectible": {
-    "text": "Uncollectible",
+    "text": "Irrécouvrable",
     "sha256": "b3c4d5e6"
   },
   "web.billing.invoices.void": {
-    "text": "Void",
+    "text": "Annulée",
     "sha256": "c4d5e6f7"
   },
   "web.billing.invoices.load_error": {
@@ -887,105 +887,105 @@
     "sha256": "158f558e"
   },
   "web.billing.currency_migration.title": {
-    "text": "Currency Change Required",
+    "text": "Changement de devise requis",
     "context": "Modal title when plan requires different currency than current subscription",
     "sha256": "a1b2c3d4"
   },
   "web.billing.currency_migration.description": {
-    "text": "Your current subscription uses {from}. The selected plan is billed in {to}. This requires migrating your subscription to the new currency.",
+    "text": "Votre abonnement actuel utilise {from}. Le forfait sélectionné est facturé en {to}. Cela nécessite la migration de votre abonnement vers la nouvelle devise.",
     "sha256": "b2c3d4e5"
   },
   "web.billing.currency_migration.current_plan": {
-    "text": "Current plan:",
+    "text": "Forfait actuel :",
     "sha256": "c3d4e5f6"
   },
   "web.billing.currency_migration.new_plan": {
-    "text": "New plan:",
+    "text": "Nouveau forfait :",
     "sha256": "d4e5f6a7"
   },
   "web.billing.currency_migration.current_period_ends": {
-    "text": "Current period ends:",
+    "text": "Fin de la période actuelle :",
     "sha256": "e5f6a7b8"
   },
   "web.billing.currency_migration.choose_timing": {
-    "text": "When should the switch happen?",
+    "text": "Quand le changement doit-il avoir lieu ?",
     "sha256": "f6a7b8c9"
   },
   "web.billing.currency_migration.graceful_title": {
-    "text": "Switch at end of billing period",
+    "text": "Changer à la fin de la période de facturation",
     "sha256": "a7b8c9d0"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "Your current plan stays active until {date}. After that, you'll complete checkout for your new plan.",
+    "text": "Votre forfait actuel reste actif jusqu'au {date}. Ensuite, vous compléterez le paiement pour votre nouveau forfait.",
     "sha256": "b8c9d0e1"
   },
   "web.billing.currency_migration.immediate_title": {
-    "text": "Switch immediately",
+    "text": "Changer immédiatement",
     "sha256": "c9d0e1f2"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Your current plan is cancelled now. You'll receive a refund for your unused time and complete checkout for the new plan.",
+    "text": "Votre forfait actuel est annulé maintenant. Vous recevrez un remboursement pour le temps non utilisé et compléterez le paiement pour le nouveau forfait.",
     "sha256": "d0e1f2a3"
   },
   "web.billing.currency_migration.confirm": {
-    "text": "Confirm Currency Change",
+    "text": "Confirmer le changement de devise",
     "sha256": "e1f2a3b4"
   },
   "web.billing.currency_migration.error": {
-    "text": "Currency migration failed. Please try again.",
+    "text": "La migration de devise a échoué. Veuillez réessayer.",
     "sha256": "f2a3b4c5"
   },
   "web.billing.currency_migration.success": {
-    "text": "Your subscription currency has been updated successfully.",
+    "text": "La devise de votre abonnement a été mise à jour avec succès.",
     "sha256": "a3b4c5d6"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "Your current plan will remain active until the end of the billing period. You'll be prompted to complete checkout for your new plan after that.",
+    "text": "Votre forfait actuel restera actif jusqu'à la fin de la période de facturation. Vous serez invité à compléter le paiement pour votre nouveau forfait ensuite.",
     "sha256": "b4c5d6e7"
   },
   "web.billing.currency_migration.warning_credit_balance": {
-    "text": "You have a credit balance in {currency} that cannot be transferred to the new currency.",
+    "text": "Vous avez un solde créditeur en {currency} qui ne peut pas être transféré vers la nouvelle devise.",
     "sha256": "c5d6e7f8"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "You have pending invoice items that will need to be resolved before migration.",
+    "text": "Vous avez des éléments de facturation en attente qui doivent être résolus avant la migration.",
     "sha256": "d6e7f8a9"
   },
   "web.billing.currency_migration.warning_coupons": {
-    "text": "Active coupons on your account may not be compatible with the new currency.",
+    "text": "Les coupons actifs sur votre compte pourraient ne pas être compatibles avec la nouvelle devise.",
     "sha256": "e7f8a9b0"
   },
   "web.billing.currency_migration.pending_title": {
-    "text": "Currency Migration Pending",
+    "text": "Migration de devise en attente",
     "context": "Banner heading when graceful migration is scheduled",
     "sha256": "f8a9b0c1"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "Your current plan ends on {date}. Complete your switch to {plan} ({currency}).",
+    "text": "Votre forfait actuel se termine le {date}. Complétez votre passage à {plan} ({currency}).",
     "sha256": "a9b0c1d2"
   },
   "web.billing.currency_migration.complete_migration": {
-    "text": "Complete Migration",
+    "text": "Compléter la migration",
     "context": "Button to start checkout for the new currency plan",
     "sha256": "b0c1d2e3"
   },
   "web.billing.checkout_session_failed": {
-    "text": "Failed to create checkout session",
+    "text": "Échec de la création de la session de paiement",
     "context": "Error when Stripe checkout session creation returns no URL",
     "sha256": "c1d2e3f4"
   },
   "web.billing.checkout_initiate_failed": {
-    "text": "Failed to initiate checkout",
+    "text": "Échec du lancement du paiement",
     "context": "Fallback error for checkout failures",
     "sha256": "d2e3f4a5"
   },
   "web.billing.plan_switch_success": {
-    "text": "Successfully switched to {plan}",
+    "text": "Passage au forfait {plan} effectué avec succès",
     "context": "Success message after plan change",
     "sha256": "e3f4a5b6"
   },
   "web.billing.plan_unavailable_region_mismatch": {
-    "text": "Available in your original subscription region only",
+    "text": "Disponible uniquement dans votre région d'abonnement d'origine",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "sha256": "f4a5b6c7"
   }

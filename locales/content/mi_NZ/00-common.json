@@ -441,7 +441,7 @@
     "sha256": "cc921aaa"
   },
   "web.COMMON.about": {
-    "text": "About",
+    "text": "Mō",
     "sha256": "d833339d"
   },
   "web.COMMON.status": {
@@ -877,7 +877,7 @@
     "sha256": "68574b20"
   },
   "web.LABELS.benefits": {
-    "text": "Benefits",
+    "text": "Ngā Painga",
     "context": "Section header for listing benefits",
     "sha256": "d5b67bc9"
   },
@@ -1226,7 +1226,7 @@
     "sha256": "18c3f2d5"
   },
   "web.TITLES.confirm_email_change": {
-    "text": "Confirm Email Change",
+    "text": "Whakaū te Huringa Īmēra",
     "sha256": "a1b2c3d4"
   },
   "web.TITLES.security_overview": {
@@ -1250,7 +1250,7 @@
     "sha256": "579c7f4e"
   },
   "web.TITLES.passkeys": {
-    "text": "Passkeys",
+    "text": "Ngā Kī Urunga",
     "context": "Page title for passkey management",
     "sha256": "c87ccdb4"
   },
@@ -1359,32 +1359,32 @@
     "sha256": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
-    "text": "Enter your password to continue",
+    "text": "Tāurua tō kupuhipa hei haere tonu",
     "context": "Prompt for password confirmation modal",
     "sha256": "09055357"
   },
   "web.COMMON.password_required_for_action": {
-    "text": "Your password is required to complete this action",
+    "text": "Me whai kupuhipa koe hei whakaoti i tēnei mahi",
     "context": "Description for password confirmation modal",
     "sha256": "cc078766"
   },
   "api.errors.unexpected_error": {
-    "text": "An unexpected error occurred",
+    "text": "He hapa ohorere i puta",
     "context": "Generic error message for unhandled exceptions in API",
     "sha256": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "Service temporarily unavailable. Please try again shortly.",
+    "text": "Kāore te ratonga e wātea ināianei. Ngana anō ā tērā wā poto.",
     "context": "Error message when database connection fails",
     "sha256": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "Unable to process your request at this time",
+    "text": "Kāore e taea te whakahaere i tō tono i tēnei wā",
     "context": "Error message for recoverable server errors",
     "sha256": "fb961f3f"
   },
   "web.COMMON.upgrade_description": {
-    "text": "Upgrade to unlock more features",
+    "text": "Whakapikinga hei whakatuwhera āhuatanga anō",
     "context": "Description shown for free plan users encouraging upgrade",
     "sha256": "783f174c"
   }

@@ -132,7 +132,7 @@
     "sha256": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Memo:",
+    "text": "Zaznamek:",
     "sha256": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
@@ -152,11 +152,11 @@
     "sha256": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "This secret is protected with a passphrase. The sender should provide it to you separately.",
+    "text": "Ta skrivnost je zaščitena s pristopno frazo. Pošiljatelj vam jo mora posredovati ločeno.",
     "sha256": ""
   },
   "email.incoming_secret.passphrase_label": {
-    "text": "Passphrase required:",
+    "text": "Pristopna fraza potrebna:",
     "sha256": ""
   },
   "email.incoming_secret.sent_via": {
@@ -336,27 +336,27 @@
     "sha256": "f505b562"
   },
   "email.email_changed.change_notice": {
-    "text": "The email address on your %{product_name} account has been changed.",
+    "text": "E-poštni naslov vašega računa %{product_name} je bil spremenjen.",
     "sha256": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
-    "text": "New email:",
+    "text": "Nov e-poštni naslov:",
     "sha256": "0161371a"
   },
   "email.email_changed.changed_at_label": {
-    "text": "Changed at:",
+    "text": "Spremenjeno ob:",
     "sha256": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "If you made this change, no further action is required.",
+    "text": "Če ste to spremembo naredili vi, nadaljnje ukrepanje ni potrebno.",
     "sha256": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "If you did not make this change, your account may be compromised.",
+    "text": "Če te spremembe niste naredili vi, je vaš račun morda ogrožen.",
     "sha256": "08f479fb"
   },
   "email.email_changed.contact_support": {
-    "text": "Contact Support",
+    "text": "Obrnite se na podporo",
     "sha256": "f8d47b82"
   },
   "email.email_changed.signature": {
@@ -364,39 +364,39 @@
     "sha256": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "P.S. This email was sent to %{email_address} to notify you of an email address change.",
+    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address}, da vas obvestimo o spremembi e-poštnega naslova.",
     "sha256": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "Email change requested (%{display_domain})",
+    "text": "Zahteva za spremembo e-pošte (%{display_domain})",
     "sha256": ""
   },
   "email.email_change_requested.title": {
-    "text": "Email Change Requested",
+    "text": "Zahteva za spremembo e-pošte",
     "sha256": ""
   },
   "email.email_change_requested.change_notice": {
-    "text": "A request was made to change the email address on your %{product_name} account.",
+    "text": "Prejeta je bila zahteva za spremembo e-poštnega naslova vašega računa %{product_name}.",
     "sha256": ""
   },
   "email.email_change_requested.new_email_label": {
-    "text": "Requested new email:",
+    "text": "Zahtevani nov e-poštni naslov:",
     "sha256": ""
   },
   "email.email_change_requested.requested_at_label": {
-    "text": "Requested at:",
+    "text": "Zahtevano ob:",
     "sha256": ""
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "If you made this request, check your new email for a confirmation link. No changes have been made yet.",
+    "text": "Če ste to zahtevo oddali vi, preverite nov e-poštni naslov za potrditveno povezavo. Spremembe še niso bile izvedene.",
     "sha256": ""
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "If you did not make this request, you can safely ignore this email. Your account has not been changed.",
+    "text": "Če te zahteve niste oddali vi, lahko to e-poštno sporočilo mirno prezrete. Vaš račun ni bil spremenjen.",
     "sha256": ""
   },
   "email.email_change_requested.contact_support": {
-    "text": "Contact Support",
+    "text": "Obrnite se na podporo",
     "sha256": ""
   },
   "email.email_change_requested.signature": {
@@ -404,7 +404,7 @@
     "sha256": ""
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. This email was sent to %{email_address} because an email change was requested for your account.",
+    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address}, ker je bila za vaš račun oddana zahteva za spremembo e-pošte.",
     "sha256": ""
   },
   "email.email_change_confirmation.subject": {
@@ -424,11 +424,11 @@
     "sha256": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "A request was made to change the email address on your %{product_name} account to %{new_email}.",
+    "text": "Prejeta je bila zahteva za spremembo e-poštnega naslova vašega računa %{product_name} na %{new_email}.",
     "sha256": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "Confirm Email Change",
+    "text": "Potrdite spremembo e-pošte",
     "sha256": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
@@ -436,11 +436,11 @@
     "sha256": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
-    "text": "This link will expire in %{hours} hours.",
+    "text": "Ta povezava poteče čez %{hours} ur.",
     "sha256": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "If you did not request this change, you can safely ignore this email. Your email address will not be changed.",
+    "text": "Če te spremembe niste zahtevali, lahko to e-poštno sporočilo mirno prezrete. Vaš e-poštni naslov ne bo spremenjen.",
     "sha256": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,7 +448,7 @@
     "sha256": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. This email was sent to %{email_address} to confirm an email address change.",
+    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address} za potrditev spremembe e-poštnega naslova.",
     "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {

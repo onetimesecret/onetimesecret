@@ -76,7 +76,7 @@
     "sha256": ""
   },
   "web.login.sign_in_with_provider": {
-    "text": "Sign in with {provider}",
+    "text": "Đăng nhập bằng {provider}",
     "sha256": "b8794f11"
   },
   "web.auth.sso.signing_in": {
@@ -88,19 +88,19 @@
     "sha256": ""
   },
   "web.login.errors.sso_failed": {
-    "text": "SSO authentication failed. Please try again or use password login.",
+    "text": "Xác thực SSO thất bại. Vui lòng thử lại hoặc đăng nhập bằng mật khẩu.",
     "sha256": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "The authentication link is incomplete. Please request a new sign-in link.",
+    "text": "Liên kết xác thực không đầy đủ. Vui lòng yêu cầu liên kết đăng nhập mới.",
     "sha256": "f4a10652"
   },
   "web.login.errors.token_expired": {
-    "text": "This sign-in link has expired. Please request a new one.",
+    "text": "Liên kết đăng nhập này đã hết hạn. Vui lòng yêu cầu liên kết mới.",
     "sha256": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "This sign-in link is invalid. Please request a new one.",
+    "text": "Liên kết đăng nhập này không hợp lệ. Vui lòng yêu cầu liên kết mới.",
     "sha256": "270c6401"
   },
   "web.signup.create_your_account": {

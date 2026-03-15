@@ -148,7 +148,7 @@
     "sha256": "935442d0"
   },
   "web.branding.heading_logo": {
-    "text": "{0} Logo",
+    "text": "{0} Logosu",
     "sha256": "3a3c98ed"
   },
   "web.branding.edge": {
@@ -168,7 +168,7 @@
     "sha256": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Upgrade your plan to customize branding for this domain.",
+    "text": "Bu alan adı için markalamayı özelleştirmek üzere planınızı yükseltin.",
     "sha256": "placeholder"
   }
 }

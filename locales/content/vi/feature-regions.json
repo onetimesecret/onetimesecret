@@ -140,23 +140,23 @@
     "sha256": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
-    "text": "Changing Regions",
+    "text": "Thay đổi khu vực",
     "sha256": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "Our policy is to never transfer data between regions. Each region operates as a completely independent environment.",
+    "text": "Chính sách của chúng tôi là không bao giờ chuyển dữ liệu giữa các khu vực. Mỗi khu vực hoạt động như một môi trường hoàn toàn độc lập.",
     "sha256": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "To use a different region, create a new account there using the same email address associated with your billing contact email.",
+    "text": "Để sử dụng khu vực khác, hãy tạo tài khoản mới ở đó bằng cùng địa chỉ email liên kết với email liên hệ thanh toán của bạn.",
     "sha256": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "If your billing contact email differs from your Onetime Secret account email, use the billing contact email for the new region account to maintain your subscription benefits.",
+    "text": "Nếu email liên hệ thanh toán khác với email tài khoản Onetime Secret, hãy sử dụng email liên hệ thanh toán cho tài khoản khu vực mới để duy trì quyền lợi đăng ký.",
     "sha256": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Your subscription benefits will automatically apply to any account created with your billing email address.",
+    "text": "Quyền lợi đăng ký của bạn sẽ tự động áp dụng cho bất kỳ tài khoản nào được tạo bằng địa chỉ email thanh toán.",
     "sha256": "5b2238b2"
   }
 }

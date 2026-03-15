@@ -144,7 +144,7 @@
     "sha256": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Powered by Onetime Secret",
+    "text": "Bereitgestellt von Onetime Secret",
     "sha256": "935442d0"
   },
   "web.branding.heading_logo": {
@@ -168,7 +168,7 @@
     "sha256": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Upgrade your plan to customize branding for this domain.",
+    "text": "Upgrade deinen Tarif, um das Branding für diese Domain anzupassen.",
     "sha256": "placeholder"
   }
 }

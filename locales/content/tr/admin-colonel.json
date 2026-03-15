@@ -4,7 +4,7 @@
     "sha256": "98ba1771"
   },
   "web.colonel.customer_verified_verified_not_verified_0": {
-    "text": "`+customer.verified ? `verified` : `not verified",
+    "text": "`+customer.verified ? `doğrulanmış` : `doğrulanmamış",
     "sha256": "52e93cc0"
   },
   "web.colonel.customers_details_counts_recent_customer_count_o_0": {

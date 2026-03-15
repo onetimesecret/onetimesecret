@@ -155,7 +155,7 @@
     "sha256": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Your session has expired. Please refresh the page and try again.",
+    "text": "セッションが期限切れになりました。ページを更新してもう一度お試しください。",
     "sha256": "a7c3e901"
   },
   "web.auth.magicLink.loginFailed": {
@@ -203,7 +203,7 @@
     "sha256": "290cca44"
   },
   "web.auth.webauthn.passwordRequired": {
-    "text": "Password is required to set up a passkey",
+    "text": "パスキーを設定するにはパスワードが必要です",
     "sha256": "085bb238"
   },
   "web.auth.webauthn.authFailed": {
@@ -227,107 +227,107 @@
     "sha256": "3ea1c1a2"
   },
   "web.auth.passkeys.title": {
-    "text": "Passkeys",
+    "text": "パスキー",
     "context": "Title for passkey management section",
     "sha256": "c87ccdb4"
   },
   "web.auth.passkeys.description": {
-    "text": "Sign in with Face ID, Touch ID, Windows Hello, or security key",
+    "text": "Face ID、Touch ID、Windows Hello、またはセキュリティキーでログイン",
     "context": "Description of passkey authentication",
     "sha256": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "Passkeys let you sign in securely without a password",
+    "text": "パスキーを使えばパスワードなしで安全にログインできます",
     "context": "Setup page description",
     "sha256": "85630bef"
   },
   "web.auth.passkeys.not_configured": {
-    "text": "Not configured",
+    "text": "未設定",
     "context": "Status when no passkeys are registered",
     "sha256": "dd1841d2"
   },
   "web.auth.passkeys.count": {
-    "text": "{count} passkey registered | {count} passkeys registered",
+    "text": "{count}個のパスキーが登録済み | {count}個のパスキーが登録済み",
     "context": "Number of registered passkeys",
     "sha256": "82e6681f"
   },
   "web.auth.passkeys.add_passkey": {
-    "text": "Add Passkey",
+    "text": "パスキーを追加",
     "context": "Button to add a new passkey",
     "sha256": "93713ad7"
   },
   "web.auth.passkeys.register_passkey": {
-    "text": "Register Passkey",
+    "text": "パスキーを登録",
     "context": "Button to register a new passkey",
     "sha256": "26db6968"
   },
   "web.auth.passkeys.remove_passkey": {
-    "text": "Remove Passkey",
+    "text": "パスキーを削除",
     "context": "Button to remove a passkey",
     "sha256": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "Are you sure you want to remove this passkey? You will no longer be able to sign in with it.",
+    "text": "このパスキーを削除してもよろしいですか？このパスキーではログインできなくなります。",
     "context": "Confirmation message for passkey removal",
     "sha256": "487ab72c"
   },
   "web.auth.passkeys.removed_success": {
-    "text": "Passkey removed successfully",
+    "text": "パスキーが削除されました",
     "context": "Success message after removing passkey",
     "sha256": "436c1050"
   },
   "web.auth.passkeys.registered_success": {
-    "text": "Passkey registered successfully",
+    "text": "パスキーが登録されました",
     "context": "Success message after registering passkey",
     "sha256": "fbfb0713"
   },
   "web.auth.passkeys.no_passkeys": {
-    "text": "No passkeys registered",
+    "text": "登録されたパスキーはありません",
     "context": "Empty state when no passkeys exist",
     "sha256": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
-    "text": "Add a passkey to sign in more securely without entering a password",
+    "text": "パスキーを追加して、パスワードなしでより安全にログインしましょう",
     "context": "Description for empty state",
     "sha256": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Passkey Name",
+    "text": "パスキー名",
     "context": "Label for passkey name field",
     "sha256": "22eefa67"
   },
   "web.auth.passkeys.created": {
-    "text": "Created",
+    "text": "作成日",
     "context": "Label for creation date",
     "sha256": "d70b9e24"
   },
   "web.auth.passkeys.last_used": {
-    "text": "Last used: {time}",
+    "text": "最終使用: {time}",
     "context": "Last used timestamp",
     "sha256": "e1af94fe"
   },
   "web.auth.passkeys.never_used": {
-    "text": "Never used",
+    "text": "未使用",
     "context": "Status when passkey has not been used",
     "sha256": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "More secure than passwords - resistant to phishing attacks",
+    "text": "パスワードより安全 - フィッシング攻撃に対する耐性があります",
     "context": "Passkey benefit",
     "sha256": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Fast and easy - just use your fingerprint, face, or security key",
+    "text": "高速で簡単 - 指紋、顔、またはセキュリティキーを使うだけ",
     "context": "Passkey benefit",
     "sha256": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Synced across your devices when using platform authenticators",
+    "text": "プラットフォーム認証を使用するとデバイス間で同期されます",
     "context": "Passkey benefit",
     "sha256": "7480c7ae"
   },
   "web.auth.passkeys.link_title": {
-    "text": "Passkeys",
+    "text": "パスキー",
     "context": "Navigation link title",
     "sha256": "c87ccdb4"
   },
