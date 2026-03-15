@@ -53,26 +53,26 @@ V1::ControllerBase::V1_RATE_LIMIT_MAX_READS
 ## TC-4: First request to /api/v1/share creates a rate limit counter key
 Familia.dbclient.flushdb
 @mock_request.post('/api/v1/share')
-keys = Familia.redis.keys('v1:ratelimit:create_secret:*')
+keys = Familia.dbclient.keys('v1:ratelimit:create_secret:*')
 keys.size
 #=> 1
 
 ## TC-5: Rate limit key has a TTL set (fixed window, not permanent)
-key = Familia.redis.keys('v1:ratelimit:create_secret:*').first
-ttl = Familia.redis.ttl(key)
+key = Familia.dbclient.keys('v1:ratelimit:create_secret:*').first
+ttl = Familia.dbclient.ttl(key)
 ttl > 0 && ttl <= 1200
 #=> true
 
 ## TC-6: Subsequent request increments the same counter (not a new key)
 @mock_request.post('/api/v1/share')
-count = Familia.redis.get(Familia.redis.keys('v1:ratelimit:create_secret:*').first).to_i
+count = Familia.dbclient.get(Familia.dbclient.keys('v1:ratelimit:create_secret:*').first).to_i
 count
 #=> 2
 
 ## TC-7: Generate endpoint uses the same create_secret rate limit bucket
 Familia.dbclient.flushdb
 @mock_request.post('/api/v1/generate')
-keys = Familia.redis.keys('v1:ratelimit:create_secret:*')
+keys = Familia.dbclient.keys('v1:ratelimit:create_secret:*')
 keys.size
 #=> 1
 
@@ -89,9 +89,9 @@ response.status
 ## TC-9: Request is rejected when counter exceeds limit
 # Artificially set counter to the max to trigger rate limiting
 key_pattern = 'v1:ratelimit:create_secret:*'
-key = Familia.redis.keys(key_pattern).first
-Familia.redis.set(key, V1::ControllerBase::V1_RATE_LIMIT_MAX_CREATES)
-Familia.redis.expire(key, 1200)
+key = Familia.dbclient.keys(key_pattern).first
+Familia.dbclient.set(key, V1::ControllerBase::V1_RATE_LIMIT_MAX_CREATES)
+Familia.dbclient.expire(key, 1200)
 response = @mock_request.post('/api/v1/generate')
 body = JSON.parse(response.body)
 body['message'].include?('Rate limit')
@@ -103,5 +103,5 @@ body['message'].include?('Rate limit')
 
 ## TC-10: Clean up rate limit keys after tests
 Familia.dbclient.flushdb
-Familia.redis.keys('v1:ratelimit:*').size
+Familia.dbclient.keys('v1:ratelimit:*').size
 #=> 0
