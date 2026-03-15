@@ -197,36 +197,31 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
   # =========================================================================
   # Email Validation Boundaries
   # =========================================================================
-  describe 'Email validation (format-only)' do
+  describe 'Email validation (Truemail)' do
     subject { V1BoundaryTestAction.new(session, customer, base_params) }
 
     it 'accepts standard email format' do
-      expect(subject.v1_valid_email?('user@example.com')).to be true
+      expect(subject.valid_email?('user@example.com')).to be true
     end
 
     it 'accepts email with subdomain' do
-      expect(subject.v1_valid_email?('user@mail.example.com')).to be true
+      expect(subject.valid_email?('user@mail.example.com')).to be true
     end
 
     it 'accepts email with plus addressing' do
-      expect(subject.v1_valid_email?('user+tag@example.com')).to be true
+      expect(subject.valid_email?('user+tag@example.com')).to be true
     end
 
     it 'rejects email without @' do
-      expect(subject.v1_valid_email?('userexample.com')).to be false
+      expect(subject.valid_email?('userexample.com')).to be false
     end
 
     it 'rejects email without domain' do
-      expect(subject.v1_valid_email?('user@')).to be false
+      expect(subject.valid_email?('user@')).to be false
     end
 
     it 'rejects empty string' do
-      expect(subject.v1_valid_email?('')).to be false
-    end
-
-    # V1 does format-only — disposable domains are accepted
-    it 'accepts disposable email domains (format-only, no MX check)' do
-      expect(subject.v1_valid_email?('test@mailinator.com')).to be true
+      expect(subject.valid_email?('')).to be false
     end
   end
 
@@ -267,18 +262,4 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
     end
   end
 
-  # =========================================================================
-  # Error Response Format
-  # =========================================================================
-  describe 'Error response format' do
-    # Error response format is verified in v1_response_contract_spec.rb.
-    # These tests confirm the V1-specific error methods produce the right shape.
-
-    it 'FormError produces {"message": "..."} via error_response' do
-      # FormError is caught by carefully() which calls handle_form_error()
-      # which calls error_response(msg) → sets status 404 and json {message: msg}
-      # This is already tested in v1_response_contract_spec.rb
-      expect(true).to be true # placeholder — see integration tests
-    end
-  end
 end

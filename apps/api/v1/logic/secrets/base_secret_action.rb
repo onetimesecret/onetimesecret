@@ -55,10 +55,9 @@ module V1::Logic
       # maxLength: 10000 documented in the OpenAPI definition.
       V1_MAX_SECRET_SIZE = 10_000
 
-      # Email validation regex - defined once to avoid recompilation on every call.
-      # TLD allows 2+ chars to support modern TLDs (.technology, .international)
-      # that would be silently dropped by the old {2,4} limit before reaching
-      # v1_valid_email? (RFC 5321) validation.
+      # Basic email shape check for parsing recipient input. Only used
+      # to extract email-shaped tokens from free-text input; actual
+      # validation is done by Truemail in validate_recipient.
       EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/
 
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
@@ -242,7 +241,10 @@ module V1::Logic
         return if recipient.empty?
         raise_form_error "An account is required to send emails." if cust.anonymous?
         recipient.each do |recip|
-          raise_form_error "Undeliverable email address: #{recip}" unless v1_valid_email?(recip)
+          # Use Truemail validation (same as rest of application) rather
+          # than regex-only v1_valid_email?. This is a security improvement
+          # over v0.23.4 behavior — email delivery should be validated.
+          raise_form_error "Undeliverable email address: #{recip}" unless valid_email?(recip)
         end
       end
 
