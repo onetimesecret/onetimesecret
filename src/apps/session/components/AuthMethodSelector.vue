@@ -2,8 +2,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { isMagicLinksEnabled, isOmniAuthEnabled, isWebAuthnEnabled } from '@/utils/features';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { isMagicLinksEnabled, isOmniAuthEnabled, isWebAuthnEnabled, getOmniAuthProviders } from '@/utils/features';
 import { ref, computed } from 'vue';
 
 import PasswordlessFirstSignIn from './PasswordlessFirstSignIn.vue';
@@ -11,7 +10,6 @@ import SignInForm from './SignInForm.vue';
 import SsoButton from './SsoButton.vue';
 
 const { t } = useI18n();
-const bootstrapStore = useBootstrapStore();
 
 export interface Props {
   locale?: string;
@@ -32,21 +30,8 @@ const magicLinksEnabled = isMagicLinksEnabled();
 const webauthnEnabled = isWebAuthnEnabled();
 const omniAuthEnabled = isOmniAuthEnabled();
 
-// Extract SSO providers from bootstrap state
-const ssoProviders = computed(() => {
-  const omniauth = bootstrapStore.features?.omniauth;
-  if (typeof omniauth === 'object' && omniauth !== null && Array.isArray(omniauth.providers)) {
-    return omniauth.providers;
-  }
-  // Backward compatibility: single provider from legacy fields
-  if (typeof omniauth === 'object' && omniauth !== null && omniauth.enabled) {
-    return [{
-      route_name: omniauth.route_name || 'oidc',
-      display_name: omniauth.display_name || omniauth.provider_name || '',
-    }];
-  }
-  return [];
-});
+// Extract SSO providers via feature utility
+const ssoProviders = computed(() => getOmniAuthProviders());
 
 // Show passwordless-first UI when any passwordless method is enabled
 const hasPasswordlessMethods = computed(() => magicLinksEnabled || webauthnEnabled);

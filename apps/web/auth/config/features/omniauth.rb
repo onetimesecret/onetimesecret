@@ -11,11 +11,8 @@
 # See: hooks/omniauth.rb (callback hooks — provider-agnostic)
 #
 
-# Load strategies before configuring
+# Load the existing OIDC strategy unconditionally (always available)
 require 'omniauth_openid_connect'
-require 'omniauth-entra-id'
-require 'omniauth-github'
-require 'omniauth-google-oauth2'
 
 module Auth::Config::Features
   module OmniAuth
@@ -60,12 +57,6 @@ module Auth::Config::Features
       client_secret = ENV.fetch('OIDC_CLIENT_SECRET', '') # Optional for PKCE-only flows
       redirect_uri  = ENV.fetch('OIDC_REDIRECT_URI', nil)
 
-      # Issue: The route name is configurable via OIDC_ROUTE_NAME env var. If someone sets
-      #        OIDC_ROUTE_NAME=google, the route becomes /auth/sso/google, but the frontend hardcodes /auth/sso/oidc.
-
-      #        Recommendation: Either:
-      #        - Expose the route name via bootstrap state, or
-      #        - Document that OIDC_ROUTE_NAME must stay oidc for frontend compatibility
       provider_name = ENV.fetch('OIDC_ROUTE_NAME', 'oidc').to_sym
 
       # Validate required configuration - check for empty strings too
@@ -113,6 +104,7 @@ module Auth::Config::Features
       client_secret = ENV.fetch('ENTRA_CLIENT_SECRET', nil)
       redirect_uri  = ENV.fetch('ENTRA_REDIRECT_URI', nil)
       provider_name = ENV.fetch('ENTRA_ROUTE_NAME', 'entra').to_sym
+      # For log message only; the frontend display_name comes from AuthConfig.sso_providers
       display_name  = ENV.fetch('ENTRA_DISPLAY_NAME', 'Microsoft')
 
       # Validate required configuration - check for empty strings too
@@ -127,6 +119,8 @@ module Auth::Config::Features
       end
 
       OT.li "[OmniAuth] Configuring Entra ID provider '#{provider_name}' (#{display_name}), client_id: #{client_id[0..8]}..."
+
+      require 'omniauth-entra-id'
 
       auth.omniauth_provider(
         :entra_id,
@@ -158,6 +152,8 @@ module Auth::Config::Features
 
       OT.li "[OmniAuth] Configuring GitHub provider '#{provider_name}' (#{display_name}), client_id: #{client_id[0..8]}..."
 
+      require 'omniauth-github'
+
       auth.omniauth_provider(
         :github,
         name: provider_name,
@@ -186,6 +182,8 @@ module Auth::Config::Features
       end
 
       OT.li "[OmniAuth] Configuring Google provider '#{provider_name}' (#{display_name}), client_id: #{client_id[0..8]}..."
+
+      require 'omniauth-google-oauth2'
 
       auth.omniauth_provider(
         :google_oauth2,

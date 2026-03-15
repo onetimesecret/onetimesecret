@@ -80,7 +80,8 @@ export interface SsoProvider {
  * Each provider has a route_name (for constructing /auth/sso/{route_name})
  * and a display_name (for "Sign in with X" button text).
  *
- * Falls back to the deprecated single-provider fields for backward compatibility.
+ * Used by AuthMethodSelector and available for any component needing the
+ * configured provider list (e.g., account settings, admin views).
  */
 export function getOmniAuthProviders(): SsoProvider[] {
   if (typeof window === 'undefined') return [];
@@ -92,18 +93,9 @@ export function getOmniAuthProviders(): SsoProvider[] {
   if (!omniauth || typeof omniauth === 'boolean') return [];
   if (!omniauth.enabled) return [];
 
-  // Multi-provider: use providers array if present
+  // Return providers array, or empty if not configured
   if (Array.isArray(omniauth.providers) && omniauth.providers.length > 0) {
     return omniauth.providers;
-  }
-
-  // Backward compat: build single-entry array from deprecated fields
-  const routeName = omniauth.route_name;
-  if (routeName) {
-    return [{
-      route_name: routeName,
-      display_name: omniauth.display_name || omniauth.provider_name || 'SSO',
-    }];
   }
 
   return [];

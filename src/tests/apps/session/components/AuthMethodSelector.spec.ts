@@ -24,10 +24,14 @@ const mockFeatures = {
   omniAuthEnabled: ref(false),
 };
 
+// Mock providers list for getOmniAuthProviders()
+const mockProviders = ref<Array<{ route_name: string; display_name: string }>>([]);
+
 vi.mock('@/utils/features', () => ({
   isMagicLinksEnabled: () => mockFeatures.magicLinksEnabled.value,
   isWebAuthnEnabled: () => mockFeatures.webauthnEnabled.value,
   isOmniAuthEnabled: () => mockFeatures.omniAuthEnabled.value,
+  getOmniAuthProviders: () => mockProviders.value,
 }));
 
 // Mock child components
@@ -160,6 +164,7 @@ describe('AuthMethodSelector', () => {
     mockFeatures.magicLinksEnabled.value = false;
     mockFeatures.webauthnEnabled.value = false;
     mockFeatures.omniAuthEnabled.value = false;
+    mockProviders.value = [];
   });
 
   afterEach(() => {
@@ -404,7 +409,7 @@ describe('AuthMethodSelector', () => {
      * to verify multi-provider rendering with v-for over ssoProviders.
      */
 
-    // Import the real component for multi-provider tests
+    // Mount the real component with mocked providers for multi-provider tests
     const mountRealComponent = async (
       bootstrapFeatures: Record<string, unknown>,
       featureFlags: { magic?: boolean; webauthn?: boolean; omniauth?: boolean } = {}
@@ -413,6 +418,14 @@ describe('AuthMethodSelector', () => {
       mockFeatures.webauthnEnabled.value = featureFlags.webauthn ?? false;
       mockFeatures.omniAuthEnabled.value = featureFlags.omniauth ?? true;
 
+      // Set mock providers from the bootstrap features (mirrors getOmniAuthProviders logic)
+      const omniauth = bootstrapFeatures.omniauth as Record<string, unknown> | undefined;
+      if (omniauth && omniauth.enabled && Array.isArray(omniauth.providers)) {
+        mockProviders.value = omniauth.providers as Array<{ route_name: string; display_name: string }>;
+      } else {
+        mockProviders.value = [];
+      }
+
       // Use dynamic import for the real component
       const { default: AuthMethodSelector } = await import(
         '@/apps/session/components/AuthMethodSelector.vue'
@@ -420,18 +433,7 @@ describe('AuthMethodSelector', () => {
 
       const pinia = createTestingPinia({
         createSpy: vi.fn,
-        initialState: {
-          bootstrap: {
-            features: bootstrapFeatures,
-          },
-        },
       });
-
-      // Also set features directly on the store (setup stores may not
-      // always hydrate from initialState for nested ref values)
-      const { useBootstrapStore } = await import('@/shared/stores/bootstrapStore');
-      const store = useBootstrapStore(pinia);
-      (store as unknown as { features: Record<string, unknown> }).features = bootstrapFeatures;
 
       const w = mount(AuthMethodSelector, {
         props: { locale: 'en' },
@@ -487,7 +489,7 @@ describe('AuthMethodSelector', () => {
       expect(ssoButtons.length).toBe(0);
     });
 
-    it('falls back to legacy single-provider fields when providers array absent', async () => {
+    it('renders no SsoButtons when providers array absent (no legacy fallback)', async () => {
       wrapper = await mountRealComponent({
         omniauth: {
           enabled: true,
@@ -497,7 +499,7 @@ describe('AuthMethodSelector', () => {
       });
 
       const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
-      expect(ssoButtons.length).toBe(1);
+      expect(ssoButtons.length).toBe(0);
     });
 
     it('shows divider and SSO section when omniAuth enabled with providers', async () => {

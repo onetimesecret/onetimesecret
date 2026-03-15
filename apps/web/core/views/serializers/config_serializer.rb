@@ -129,7 +129,7 @@ module Core
 
           providers = Onetime.auth_config.sso_providers
 
-          config = {
+          {
             'enabled' => true,
             'providers' => providers.map { |p|
               {
@@ -138,17 +138,6 @@ module Core
               }
             },
           }
-
-          # Backward-compatible single-provider fields for frontend transition
-          # TODO: Remove once frontend reads from providers array
-          if providers.any?
-            first = providers.first
-            config['route_name'] = first['route_name'].to_s
-            config['display_name'] = first['display_name'].to_s
-            config['provider_name'] = first['display_name'].to_s
-          end
-
-          config
         end
       end
 

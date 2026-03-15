@@ -203,12 +203,6 @@ export interface BootstrapPayload {
         route_name: string;
         display_name: string;
       }>;
-      /** @deprecated Use providers array. Display name for the first SSO provider. */
-      display_name?: string;
-      /** @deprecated Use providers array. */
-      provider_name?: string;
-      /** @deprecated Use providers array. OmniAuth strategy route name. */
-      route_name?: string;
     };
     /** @deprecated Use email_auth instead */
     magic_links?: boolean;
