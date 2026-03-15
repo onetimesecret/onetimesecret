@@ -152,6 +152,57 @@ result = V1::Controllers::Index.receipt_hsh(@receipt)
 result['updated'].is_a?(Integer)
 #=> true
 
+## Additive mapping (#2617): v0.24 'identifier' matches v0.23 'metadata_key'
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['identifier'] == result['metadata_key'] && !result['identifier'].nil?
+#=> true
+
+## Additive mapping (#2617): v0.24 'secret_identifier' matches v0.23 'secret_key'
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['secret_identifier'] == result['secret_key'] && !result['secret_identifier'].nil?
+#=> true
+
+## Additive mapping (#2617): v0.24 'has_passphrase' matches v0.23 'passphrase_required'
+result = V1::Controllers::Index.receipt_hsh(@receipt, passphrase_required: true)
+result['has_passphrase'] == result['passphrase_required']
+#=> true
+
+## Additive mapping (#2617): v0.24 'recipients' matches v0.23 'recipient'
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['recipients'] == result['recipient']
+#=> true
+
+## Additive mapping (#2617): v0.24 'receipt_ttl' matches v0.23 'metadata_ttl'
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['receipt_ttl'] == result['metadata_ttl'] && !result['receipt_ttl'].nil?
+#=> true
+
+## Additive mapping (#2617): v0.24 'receipt_url' matches v0.23 'metadata_url'
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+result['receipt_url'] == result['metadata_url']
+#=> true
+
+## Additive mapping (#2617): v0.24 'secret_value' matches v0.23 'value'
+result = V1::Controllers::Index.receipt_hsh(@receipt, value: 'my secret text')
+result['secret_value'] == result['value'] && result['secret_value'] == 'my secret text'
+#=> true
+
+## Additive mapping (#2617): secret_value absent when value not provided
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+!result.key?('value') && !result.key?('secret_value')
+#=> true
+
+## Additive mapping (#2617): has_passphrase absent when passphrase_required not provided
+result = V1::Controllers::Index.receipt_hsh(@receipt)
+!result.key?('passphrase_required') && !result.key?('has_passphrase')
+#=> true
+
+## Additive mapping (#2617): all seven v0.24 names present when all opts given
+result = V1::Controllers::Index.receipt_hsh(@receipt, value: 'test', passphrase_required: false, secret_ttl: 3600)
+v024_fields = %w[identifier secret_identifier has_passphrase recipients receipt_ttl receipt_url secret_value]
+v024_fields.all? { |f| result.key?(f) }
+#=> true
+
 # Teardown
 @receipt.destroy!
 @secret.destroy!

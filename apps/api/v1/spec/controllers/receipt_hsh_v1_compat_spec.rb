@@ -58,9 +58,10 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
       expect(result_with_pp['passphrase_required']).to eq(true)
     end
 
-    it 'maps recipients to recipient (singular)' do
+    it 'maps recipients to recipient (singular) and includes both keys' do
       expect(result).to have_key('recipient')
-      expect(result).not_to have_key('recipients')
+      expect(result).to have_key('recipients'), 'expected additive v0.24 key "recipients" (#2617)'
+      expect(result['recipients']).to eq(result['recipient'])
     end
 
     it 'maps receipt expiration to metadata_ttl' do
@@ -138,6 +139,70 @@ RSpec.describe V1::Controllers::ClassMethods, '#receipt_hsh V1 compat' do
         value: 'test', passphrase_required: false, secret_ttl: 3600)
       %w[metadata_key secret_key metadata_ttl metadata_url recipient value passphrase_required].each do |field|
         expect(result_full).to have_key(field), "expected V1 field '#{field}' to be present"
+      end
+    end
+  end
+
+  # ----------------------------------------------------------------
+  # Additive Field Mapping (#2617)
+  # ----------------------------------------------------------------
+  describe 'additive field mapping v0.23 + v0.24 (#2617)' do
+    let(:opts) { { value: 'the secret', passphrase_required: true, secret_ttl: 3600 } }
+
+    it 'emits all v0.24 field names alongside v0.23 names' do
+      %w[identifier secret_identifier has_passphrase recipients receipt_ttl receipt_url secret_value].each do |field|
+        expect(result).to have_key(field), "expected v0.24 field '#{field}' to be present"
+      end
+    end
+
+    it 'v0.24 identifier matches v0.23 metadata_key' do
+      expect(result['identifier']).to eq(result['metadata_key'])
+    end
+
+    it 'v0.24 secret_identifier matches v0.23 secret_key' do
+      expect(result['secret_identifier']).to eq(result['secret_key'])
+    end
+
+    it 'v0.24 has_passphrase matches v0.23 passphrase_required' do
+      expect(result['has_passphrase']).to eq(result['passphrase_required'])
+    end
+
+    it 'v0.24 recipients matches v0.23 recipient' do
+      expect(result['recipients']).to eq(result['recipient'])
+    end
+
+    it 'v0.24 receipt_ttl matches v0.23 metadata_ttl' do
+      expect(result['receipt_ttl']).to eq(result['metadata_ttl'])
+    end
+
+    it 'v0.24 receipt_url matches v0.23 metadata_url' do
+      expect(result['receipt_url']).to eq(result['metadata_url'])
+    end
+
+    it 'v0.24 secret_value matches v0.23 value' do
+      expect(result['secret_value']).to eq(result['value'])
+    end
+
+    context 'conditional fields absent when not provided' do
+      let(:opts) { {} }
+
+      it 'omits secret_value when value is not provided' do
+        expect(result).not_to have_key('value')
+        expect(result).not_to have_key('secret_value')
+      end
+
+      it 'omits has_passphrase when passphrase_required is not provided' do
+        expect(result).not_to have_key('passphrase_required')
+        expect(result).not_to have_key('has_passphrase')
+      end
+    end
+
+    context 'when state is received (secret_key deleted)' do
+      let(:base_hash) { super().merge('state' => 'revealed', 'received' => '1700000100', 'revealed' => '1700000100') }
+
+      it 'omits secret_identifier when secret_key is deleted' do
+        expect(result).not_to have_key('secret_key')
+        expect(result).not_to have_key('secret_identifier')
       end
     end
   end
