@@ -292,6 +292,10 @@ ALLOWED_SIGNUP_DOMAIN=company.com,subsidiary.com,partner.org
 - Rejected attempts logged as `omniauth_domain_rejected` with obscured email
 - Error message is generic (allowed domains are never revealed to the user)
 
+### Existing user can't log in after domain restriction added
+
+Domain restrictions only affect **new account creation**. Existing accounts with linked SSO identities can still log in regardless of domain restrictions. To block existing users, remove their account or unlink their SSO identity from the `account_identities` table.
+
 ## Self-Serve Configuration (Future)
 
 The current implementation is install-time only — env vars set at deploy, read at boot.
@@ -317,6 +321,18 @@ SSO buttons appear on the signin page when `AUTH_SSO_ENABLED=true`. The bootstra
 Feature check: `isOmniAuthEnabled()` from `src/utils/features.ts`.
 
 CSRF protection for `/auth/sso/*` routes uses OAuth's state parameter, not form tokens. `Rack::Protection` is configured to skip these routes (see `lib/onetime/middleware/security.rb`).
+
+### Static HTML (Custom Integrations)
+
+For non-Vue integrations, a plain form POST works:
+
+```html
+<form method="POST" action="/auth/sso/{provider}">
+  <button type="submit">Login with SSO</button>
+</form>
+```
+
+No CSRF token required -- OAuth's state parameter handles CSRF protection for SSO routes.
 
 ## Database Schema
 
