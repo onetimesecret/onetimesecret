@@ -63,7 +63,7 @@ describe('settings-navigation config', () => {
       expect(securityItem?.visible?.()).toBe(false);
     });
 
-    it('security section is hidden when user has no password (SSO-only)', () => {
+    it('security section is visible when isFullAuthMode() even without hasPassword() (SSO-only)', () => {
       mockedIsFullAuthMode.mockReturnValue(true);
       mockedHasPassword.mockReturnValue(false);
 
@@ -71,7 +71,7 @@ describe('settings-navigation config', () => {
       const accountSection = sections.find((s) => s.id === 'account');
       const securityItem = accountSection?.items.find((i) => i.id === 'security');
 
-      expect(securityItem?.visible?.()).toBe(false);
+      expect(securityItem?.visible?.()).toBe(true);
     });
 
     it('security item in flat navigation still carries visible callback', () => {
@@ -113,6 +113,20 @@ describe('settings-navigation config', () => {
       expect(securityItem).toBeDefined();
       expect(securityItem?.to).toBe('/account/settings/security');
     });
+
+    it('SettingsLayout-style filtering includes security for SSO-only users (full mode, no password)', () => {
+      mockedIsFullAuthMode.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(false);
+
+      const sections = getSettingsNavigationSections(t);
+      const visibleItems = sections.flatMap((section) =>
+        section.items.filter((item) => (item.visible ? item.visible() : true))
+      );
+      const securityItem = visibleItems.find((i) => i.id === 'security');
+
+      expect(securityItem).toBeDefined();
+      expect(securityItem?.to).toBe('/account/settings/security');
+    });
   });
 
   describe('Security section children', () => {
@@ -128,6 +142,53 @@ describe('settings-navigation config', () => {
       expect(childIds).toContain('mfa');
       expect(childIds).toContain('sessions');
       expect(childIds).toContain('recovery-codes');
+    });
+
+    it('password, mfa, recovery-codes children hidden when !hasPassword()', () => {
+      mockedIsFullAuthMode.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(false);
+
+      const items = getSettingsNavigation(t);
+      const securityItem = items.find((i) => i.id === 'security');
+      const children = securityItem?.children ?? [];
+
+      const passwordChild = children.find((c) => c.id === 'password');
+      const mfaChild = children.find((c) => c.id === 'mfa');
+      const recoveryChild = children.find((c) => c.id === 'recovery-codes');
+
+      expect(passwordChild?.visible?.()).toBe(false);
+      expect(mfaChild?.visible?.()).toBe(false);
+      expect(recoveryChild?.visible?.()).toBe(false);
+    });
+
+    it('password, mfa, recovery-codes children visible when hasPassword()', () => {
+      mockedIsFullAuthMode.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(true);
+
+      const items = getSettingsNavigation(t);
+      const securityItem = items.find((i) => i.id === 'security');
+      const children = securityItem?.children ?? [];
+
+      const passwordChild = children.find((c) => c.id === 'password');
+      const mfaChild = children.find((c) => c.id === 'mfa');
+      const recoveryChild = children.find((c) => c.id === 'recovery-codes');
+
+      expect(passwordChild?.visible?.()).toBe(true);
+      expect(mfaChild?.visible?.()).toBe(true);
+      expect(recoveryChild?.visible?.()).toBe(true);
+    });
+
+    it('sessions child visible when isFullAuthMode() regardless of hasPassword()', () => {
+      mockedIsFullAuthMode.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(false);
+
+      const items = getSettingsNavigation(t);
+      const securityItem = items.find((i) => i.id === 'security');
+      const sessionsChild = securityItem?.children?.find((c) => c.id === 'sessions');
+
+      // sessions has no visible callback — always visible when parent is visible
+      expect(sessionsChild).toBeDefined();
+      expect(sessionsChild?.visible).toBeUndefined();
     });
 
     it('passkeys child is visible only when WebAuthn is enabled', () => {

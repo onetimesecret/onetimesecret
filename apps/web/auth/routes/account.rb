@@ -30,6 +30,32 @@ module Auth
           .count
       end
 
+      # Builds the standard account info hash used by account endpoints.
+      # Queries MFA status, active sessions, and password presence.
+      def build_account_info(account, rodauth)
+        mfa_enabled          = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
+        recovery_codes_count = recovery_codes_count_for(account[:id])
+
+        active_sessions_count = rodauth.db[:account_active_session_keys]
+          .where(account_id: account[:id])
+          .count
+
+        has_password = rodauth.db[:account_password_hashes]
+          .where(id: account[:id]).count > 0
+
+        {
+          id: account[:id],
+          email: account[:email],
+          created_at: account[:created_at],
+          status: account[:status_id],
+          email_verified: account[:status_id] == VERIFIED_STATUS_ID,
+          has_password: has_password,
+          mfa_enabled: mfa_enabled,
+          recovery_codes_count: recovery_codes_count,
+          active_sessions_count: active_sessions_count,
+        }
+      end
+
       def handle_account_routes(r)
         # Account info endpoint (JSON extension support)
         r.get 'account.json' do
@@ -39,31 +65,7 @@ module Auth
             end
 
             account = require_valid_account
-
-            # Check if MFA features are enabled before calling methods
-            mfa_enabled          = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
-            recovery_codes_count = recovery_codes_count_for(account[:id])
-
-            # Get active sessions count
-            active_sessions_count = rodauth.db[:account_active_session_keys]
-              .where(account_id: account[:id])
-              .count
-
-            # Check if account has a password hash (SSO-only accounts do not)
-            has_password = rodauth.db[:account_password_hashes]
-              .where(id: account[:id]).count > 0
-
-            {
-              id: account[:id],
-              email: account[:email],
-              created_at: account[:created_at],
-              status: account[:status_id],
-              email_verified: account[:status_id] == VERIFIED_STATUS_ID,
-              has_password: has_password,
-              mfa_enabled: mfa_enabled,
-              recovery_codes_count: recovery_codes_count,
-              active_sessions_count: active_sessions_count,
-            }
+            build_account_info(account, rodauth)
           rescue StandardError => ex
             puts "Error: #{ex.class} - #{ex.message}"
             puts ex.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
@@ -126,31 +128,7 @@ module Auth
             end
 
             account = require_valid_account
-
-            # Check if MFA features are enabled before calling methods
-            mfa_enabled          = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
-            recovery_codes_count = recovery_codes_count_for(account[:id])
-
-            # Get active sessions count
-            active_sessions_count = rodauth.db[:account_active_session_keys]
-              .where(account_id: account[:id])
-              .count
-
-            # Check if account has a password hash (SSO-only accounts do not)
-            has_password = rodauth.db[:account_password_hashes]
-              .where(id: account[:id]).count > 0
-
-            {
-              id: account[:id],
-              email: account[:email],
-              created_at: account[:created_at],
-              status: account[:status_id],
-              email_verified: account[:status_id] == VERIFIED_STATUS_ID,
-              has_password: has_password,
-              mfa_enabled: mfa_enabled,
-              recovery_codes_count: recovery_codes_count,
-              active_sessions_count: active_sessions_count,
-            }
+            build_account_info(account, rodauth)
           rescue StandardError => ex
             puts "Error: #{ex.class} - #{ex.message}"
             puts ex.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
