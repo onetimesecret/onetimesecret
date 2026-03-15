@@ -201,7 +201,8 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
     subject { V1BoundaryTestAction.new(session, customer, base_params) }
 
     before do
-      # Override the global Truemail stub so real regex validation runs
+      # Override the global Truemail stub so real validation runs
+      # (uses :regex type per spec/config.test.yaml)
       allow(Truemail).to receive(:validate).and_call_original
     end
 

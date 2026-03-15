@@ -37,7 +37,7 @@ def with_version(version_string)
   temp_content['version'] = version_string
 
   # Write temporary package.json
-  File.write(package_json_path, JSON.generate(temp_content))
+  File.write(package_json_path, Oj.dump(temp_content, mode: :compat))
 
   Onetime::VERSION.load_config
   result = yield

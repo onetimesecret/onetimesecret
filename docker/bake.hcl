@@ -11,6 +11,7 @@
 #   docker buildx bake -f docker/bake.hcl \
 #     --set '*.args.VERSION=1.0.0' \
 #     --set '*.args.COMMIT_HASH=abc1234' \
+#     --set '*.args.ALLOW_DEV_VERSION=true' \
 #     ci
 #
 # Tagging:
