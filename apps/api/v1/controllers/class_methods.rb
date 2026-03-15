@@ -130,6 +130,7 @@ module V1
       #   recipients         -> recipient (singular, array)
       #   receipt_ttl        -> metadata_ttl (actual seconds remaining)
       #   secret_value       -> value
+      #   receipt_url        -> metadata_url (computed from share_domain + key)
       #   share_domain nil   -> '' (empty string, never null)
       #
       # Timestamp fallback:
@@ -138,7 +139,7 @@ module V1
       #
       # @param md [Receipt] The receipt object to process
       # @param opts [Hash] Options — :custid (email), :secret_ttl, :value,
-      #   :passphrase_required
+      #   :passphrase_required, :metadata_url (override computed URL)
       # @return [Hash] V1-shaped response hash with string keys
       #
       def receipt_hsh md, opts={}
@@ -198,6 +199,19 @@ module V1
 
         raw_state = hsh.key?('state') ? hsh['state'] : 'new'
 
+        # V1 compat: compute metadata_url (v0.23 name for receipt_url).
+        # Callers may pass :metadata_url when the logic layer already computed
+        # it; otherwise we derive it from config + share_domain + identifier.
+        v1_metadata_url = opts[:metadata_url]
+        if v1_metadata_url.nil? || v1_metadata_url.to_s.empty?
+          domain = hsh.fetch('share_domain', nil).to_s
+          domain = Onetime.conf.dig('site', 'host').to_s if domain.empty?
+          unless domain.empty?
+            scheme = Onetime.conf.dig('site', 'ssl') ? 'https://' : 'http://'
+            v1_metadata_url = "#{scheme}#{domain}/receipt/#{md.identifier}"
+          end
+        end
+
         ret = {
           'custid' => v1_custid,
           'metadata_key' => md.identifier,
@@ -205,6 +219,7 @@ module V1
           'ttl' => receipt_ttl, # static value from database hash field
           'metadata_ttl' => receipt_realttl, # actual number of seconds left to live
           'secret_ttl' => secret_realttl, # ditto, actual number
+          'metadata_url' => v1_metadata_url,
           'state' => translate_v1_state(raw_state),
           'updated' => hsh.fetch('updated', nil),
           'created' => hsh.fetch('created', nil),

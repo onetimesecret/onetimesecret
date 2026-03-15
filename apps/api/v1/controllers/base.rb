@@ -102,6 +102,59 @@ module V1
       error_response ex.message, hsh
     end
 
+    # V1 rate limiting [#2621]
+    #
+    # v0.23.x had rate limiting in the web layer; V1 reconstitution omitted
+    # it. This adds basic per-IP rate limiting for secret creation endpoints
+    # using Redis counters with a 20-minute fixed window, matching v0.23.x
+    # behavior. Rate limits are now enforced externally (infrastructure
+    # layer), so this is vestigial — preserved for V1 API contract only.
+    #
+    # Counts sourced from rel/0.23 etc/defaults/config.defaults.yaml:
+    #   create_secret: 1000, show_secret: 1000 (per 20-min window)
+    #
+    # Paid-plan exemptions: authenticated users with a non-anonymous plan
+    # bypass rate limits, matching v0.23.x behavior.
+    V1_RATE_LIMIT_WINDOW = 1200  # 20 minutes in seconds
+    V1_RATE_LIMIT_MAX_CREATES = 1000 # v0.23: limits.create_secret
+    V1_RATE_LIMIT_MAX_READS = 1000   # v0.23: limits.show_secret
+
+    # Lua script for atomic INCR + EXPIRE (prevents race condition
+    # where a crash between the two commands leaves a permanent key).
+    V1_RATE_LIMIT_LUA = <<~LUA.freeze
+      local c = redis.call('INCR', KEYS[1])
+      if tonumber(c) == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end
+      return c
+    LUA
+
+    def check_rate_limit!(event, max_count)
+      # Paid-plan exemption: skip rate limiting for authenticated paid users
+      return if cust && !cust.anonymous? && cust.planid.to_s != 'anonymous'
+
+      ip = req.client_ipaddress.to_s
+      return if ip.empty?
+
+      key = "v1:ratelimit:#{event}:#{ip}"
+      begin
+        # Atomic INCR + EXPIRE via Lua script to prevent race condition.
+        # Without atomicity, a crash between INCR and EXPIRE could leave
+        # a permanent key that never expires, causing permanent IP blocking.
+        count = Familia.redis.eval(
+          V1_RATE_LIMIT_LUA, keys: [key], argv: [V1_RATE_LIMIT_WINDOW]
+        )
+
+        if count > max_count
+          error_response "Rate limit exceeded. Please try again later."
+          return :limited
+        end
+      rescue StandardError => e
+        # Fail open: if Redis is down, don't block the request
+        OT.le "[V1 rate_limit] #{e.class}: #{e.message}"
+      end
+
+      nil
+    end
+
     def secret_not_found_response
       not_found_response "Unknown secret", :secret_key => req.params['key']
     end
