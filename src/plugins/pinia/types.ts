@@ -4,4 +4,5 @@ import { AxiosInstance } from 'axios';
 
 export interface PiniaPluginOptions {
   api?: AxiosInstance;
+  deviceLocale?: string;
 }

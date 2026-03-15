@@ -64,16 +64,16 @@ module Onetime
           # Map of locale codes to language names
           # This could be loaded from locale files in the future
           locale_names = {
-            'en' => 'English',
             'ar' => 'العربية',
             'bg' => 'Български',
             'ca_ES' => 'Català',
             'cs' => 'Čeština',
-            'da' => 'Dansk',
-            'da_DK' => 'Dansk (Danmark)',
+            'da_DK' => 'Dansk',
             'de' => 'Deutsch',
             'de_AT' => 'Deutsch (Österreich)',
             'el_GR' => 'Ελληνικά',
+            'en' => 'English',
+            'eo' => 'Esperanto',
             'es' => 'Español',
             'fr_CA' => 'Français (Canada)',
             'fr_FR' => 'Français (France)',
@@ -96,10 +96,21 @@ module Onetime
             'zh' => '中文',
           }
 
-          # Return only locales that are in OT.supported_locales
-          OT.supported_locales.to_h do |locale|
-            [locale, locale_names.fetch(locale, locale)]
+          # Build locale map from supported locales, adding primary
+          # language code entries for regional variants. This ensures
+          # that when Otto::Locale::Middleware extracts "it" from
+          # Accept-Language "it-IT", it finds a valid locale even
+          # though the canonical code is "it_IT".
+          locales = {}
+          OT.supported_locales.each do |locale|
+            locales[locale] = locale_names.fetch(locale, locale)
+
+            # Add primary language code fallback (e.g. "it" for "it_IT")
+            # only if no locale with that primary code is already present
+            primary = locale.split('_').first
+            locales[primary] ||= locales[locale] unless locales.key?(primary)
           end
+          locales
         end
 
         def configure(builder, application_context: nil)

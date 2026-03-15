@@ -160,7 +160,6 @@ internationalization:
   default_locale: str()
   fallback_locale: map(list(str()))
   locales: list(str())
-  incomplete: list(str())
 
 diagnostics:
   enabled: any(str(), bool())

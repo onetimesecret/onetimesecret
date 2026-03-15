@@ -58,6 +58,15 @@ export const useLanguageStore = defineStore('language', () => {
   function init(options?: StoreOptions) {
     if (_initialized.value) return getCurrentLocale.value;
 
+    if (options?.storageKey) {
+      storageKey.value = options.storageKey;
+    }
+
+    // Load supported locales BEFORE normalizing deviceLocale so that
+    // validateAndNormalizeLocale can match against the actual list
+    // (e.g. normalizing browser's "it-IT" to our "it_IT").
+    loadSupportedLocales();
+
     if (options?.deviceLocale) {
       try {
         deviceLocale.value = validateAndNormalizeLocale(options.deviceLocale);
@@ -65,9 +74,6 @@ export const useLanguageStore = defineStore('language', () => {
         console.warn(`Invalid device locale: ${options.deviceLocale}`, error);
         deviceLocale.value = null;
       }
-    }
-    if (options?.storageKey) {
-      storageKey.value = options.storageKey;
     }
 
     watch(
@@ -84,6 +90,8 @@ export const useLanguageStore = defineStore('language', () => {
 
   function initializeLocale() {
     try {
+      // supportedLocales is already loaded by init() before this runs,
+      // and deviceLocale is already normalized (e.g. "it-IT" → "it_IT").
       loadSupportedLocales();
 
       // Check for user preference first
@@ -96,15 +104,10 @@ export const useLanguageStore = defineStore('language', () => {
       storedLocale.value = loadStoredLocale();
       if (storedLocale.value && supportedLocales.value.includes(storedLocale.value)) {
         currentLocale.value = storedLocale.value;
-      } else if (deviceLocale.value) {
-        const primaryLocale = deviceLocale.value.split('-')[0];
-        if (supportedLocales.value.includes(primaryLocale)) {
-          currentLocale.value = primaryLocale;
-        } else if (supportedLocales.value.includes(deviceLocale.value)) {
-          currentLocale.value = deviceLocale.value;
-        } else {
-          currentLocale.value = DEFAULT_LOCALE;
-        }
+      } else if (deviceLocale.value && supportedLocales.value.includes(deviceLocale.value)) {
+        // deviceLocale was already normalized by validateAndNormalizeLocale
+        // in init(), so it matches the server's format (e.g. "it_IT")
+        currentLocale.value = deviceLocale.value;
       } else {
         currentLocale.value = DEFAULT_LOCALE;
       }
