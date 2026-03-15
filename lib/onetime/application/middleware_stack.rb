@@ -113,6 +113,17 @@ module Onetime
           locales
         end
 
+        # Normalize fallback_locale config keys from BCP 47 hyphens (fr-CA)
+        # to POSIX underscores (fr_CA) that Otto expects. Values are already
+        # in underscore format.
+        def normalize_fallback_keys(raw)
+          return nil unless raw.is_a?(Hash) && !raw.empty?
+
+          raw.each_with_object({}) do |(key, chain), normalized|
+            normalized[key.to_s.tr('-', '_')] = chain
+          end
+        end
+
         def configure(builder, application_context: nil)
           logger = Onetime.get_logger('App')
           logger.debug 'Configuring common middleware',
@@ -168,31 +179,19 @@ module Onetime
           builder.use Onetime::Middleware::EntitlementTestMode
 
           # Locale detection middleware (after session, before domain strategy)
-          # Sets env['otto.locale'] based on URL param, session, Accept-Language header
+          # Sets env['otto.locale'] based on URL param, session, Accept-Language header.
+          # Otto 2.0 handles exact region matching (fr-FR → fr_FR) and fallback
+          # chains natively via the fallback_locale option.
           logger.debug 'Setting up Locale detection middleware'
           available_locales = build_available_locales
+          fallback_locale = normalize_fallback_keys(OT.fallback_locale)
           builder.use Otto::Locale::Middleware,
             available_locales: available_locales,
             default_locale: OT.default_locale,
+            fallback_locale: fallback_locale,
             debug: OT.debug?
 
-          # Locale fallback middleware (after Otto, before I18n)
-          # Applies application-level fallback chains from config when Otto's
-          # initial detection resolved to a suboptimal locale. For example,
-          # Accept-Language "fr-CA" with no fr_CA available falls back through
-          # [fr_CA, fr_FR, en] to find the best available match.
-          require 'middleware/locale_fallback'
-          fallback_chains = OT.fallback_locale
-          if fallback_chains.is_a?(Hash) && !fallback_chains.empty?
-            logger.debug 'Setting up Locale fallback middleware',
-              { chains: fallback_chains.size }
-            builder.use ::Middleware::LocaleFallback,
-              fallback_chains: fallback_chains,
-              available_locales: available_locales,
-              default_locale: OT.default_locale
-          end
-
-          # I18n locale middleware (after Otto locale detection + fallback)
+          # I18n locale middleware (after Otto locale detection)
           # Sets I18n.locale for the request using env['otto.locale']
           require 'middleware/i18n_locale'
           builder.use ::Middleware::I18nLocale
