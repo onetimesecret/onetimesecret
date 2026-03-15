@@ -200,6 +200,16 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
   describe 'Email validation (Truemail)' do
     subject { V1BoundaryTestAction.new(session, customer, base_params) }
 
+    before do
+      # Override the global Truemail stub — use regex-only validation
+      # so invalid formats are actually rejected (no DNS/SMTP lookups).
+      Truemail.configure do |config|
+        config.verifier_email = 'verifier@example.com'
+        config.default_validation_type = :regex
+      end
+      allow(Truemail).to receive(:validate).and_call_original
+    end
+
     it 'accepts standard email format' do
       expect(subject.valid_email?('user@example.com')).to be true
     end
