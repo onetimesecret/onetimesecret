@@ -80,6 +80,7 @@ jobs:
           set: |
             main.tags=${{ env.OCI_IMAGE_NAME }}
             main.args.VERSION=ci-test
+            main.args.ALLOW_DEV_VERSION=true
 
       - name: Start Redis service
         run: |

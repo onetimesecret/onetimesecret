@@ -31,7 +31,7 @@ module Onetime
       package_json      = Familia::JsonSerializer.parse(File.read(package_json_path))
 
       # Split the version string into main version and pre-release parts
-      version_parts      = package_json['version'].split('-')
+      version_parts      = package_json['version'].split('-', 2)
       main_version_parts = version_parts[0].split('.')
 
       @version = {
