@@ -7,10 +7,10 @@
 # The calling spec must provide a `result` (via let or subject) that is a
 # StrategyResult (Otto::Security::Authentication::StrategyResult).
 #
-# The critical invariant: session is NEVER nil. BasicAuth returns {},
-# session-based strategies return the Rack session hash. Both must support
-# bracket access so downstream consumers (Logic::Base, RequestHelpers) can
-# safely index into session without raising.
+# When a Rack session is present, session must be non-nil and support
+# bracket access so downstream consumers (Logic::Base, RequestHelpers)
+# can safely index into it. For stateless BasicAuth calls (no Rack session
+# middleware), session is nil — those cases should NOT include this example.
 #
 # @example
 #   describe SomeAuthStrategy do

@@ -285,9 +285,10 @@ module Onetime
           if cust && valid_credentials
             OT.ld "[onetime_basic_auth] Authenticated '#{cust.objid}' via API key"
 
-            # Load organization context for API key auth
-            # Note: No session for stateless Basic auth, pass empty hash
-            session     = env['rack.session'] || {}
+            # Load organization context for API key auth.
+            # Use the real Rack session if present; nil for stateless calls.
+            # OrganizationLoader guards session access with `if session`.
+            session     = env['rack.session']
             org_context = load_organization_context(cust, session, env)
 
             # Build complete metadata hash, then splat it into success()
@@ -296,14 +297,11 @@ module Onetime
             )
 
             success(
-              session: session,  # Pass the real Rack session (SecureSessionHash),
-              # not a plain Hash. Otto's RouteAuthWrapper (line 131)
-              # writes result.session back to env['rack.session'],
-              # and rack-session's commit_session calls .options on it.
-              # A plain {} would crash with NoMethodError. See:
-              #   5c6339cac (changed to nil — broke [] access)
-              #   ed0670c30 (reverted to {} — broke .options/.id)
-              #   89b745ca4 (guarded .id calls — symptom fix)
+              session: session,  # nil when no Rack session middleware (stateless),
+              # SecureSessionHash when session middleware is present.
+              # Otto's RouteAuthWrapper skips env['rack.session'] overwrite
+              # when result.session is nil/falsy, preserving the original.
+              # Never pass a plain {} — it crashes rack-session's .options call.
               user: cust,
               auth_method: self.class.auth_method_name,
               **metadata_hash,
