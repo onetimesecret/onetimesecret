@@ -11,9 +11,9 @@ import { RECEIPT_SAFE_DUMP_FIELDS } from './receipt-safe-dump-fields';
 // Fields intentionally excluded from receiptBaseRecord.
 // Each entry MUST have a comment explaining why it is excluded.
 const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
-  // custid is only relevant in list/admin contexts, not in individual receipt parsing.
-  // It is added by receiptListRecord or handled server-side.
-  custid: 'Only used in list views; added by receiptListRecord or admin contexts',
+  // custid is sent by the backend but not consumed by any frontend component.
+  // useRecentSecrets.transformApiRecord() intentionally omits it from RecentSecretRecord.
+  custid: 'Backend-only field; not consumed by frontend components',
 
   // owner_id is an internal backend identifier not exposed to the frontend UI.
   owner_id: 'Internal backend identifier; not used by frontend',
