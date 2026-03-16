@@ -75,6 +75,7 @@ require_relative 'cli/customers/sync_auth_accounts_command'
 require_relative 'cli/customers/dates_command'
 require_relative 'cli/customers/purge_command'
 require_relative 'cli/customers_command'
+require_relative 'cli/apitoken_command'
 
 # Load migration CLI commands
 require_relative 'cli/migrations/backfill_email_hash_command'
