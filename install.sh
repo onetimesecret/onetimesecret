@@ -79,7 +79,7 @@ install_node() {
   for pkg in "pnpm-lock.yaml:pnpm:install --frozen-lockfile" "package-lock.json:npm:ci" "yarn.lock:yarn:install --frozen-lockfile"; do
     IFS=: read -r lockfile mgr flags <<< "$pkg"
     if [[ -f "$lockfile" ]]; then
-      has "$mgr" || die "$mgr not found but $lockfile exists — install $mgr first (see docs.onetimesecret.com/en/self-hosting/installation/)"
+      has "$mgr" || die "$mgr not found but $lockfile exists — install $mgr first (see https://docs.onetimesecret.com/en/self-hosting/installation/)"
       info "Installing node packages ($mgr)..."
       $mgr $flags
       return
@@ -159,8 +159,13 @@ cmd_init() {
   fi
 
   # Check Redis/Valkey availability before attempting install mark
+  redis_available=false
   if (has valkey-cli && valkey-cli ping &>/dev/null) || (has redis-cli && redis-cli ping &>/dev/null); then
-    if bundle exec bin/ots install mark > /dev/null; then
+    redis_available=true
+  fi
+
+  if [[ "$redis_available" == true ]]; then
+    if bundle exec bin/ots install mark; then
       info "Environment initialized (onetime:install:init_count incremented)"
     else
       warn "install mark failed (exit $?) — check bin/ots output for details"
