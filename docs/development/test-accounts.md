@@ -60,7 +60,21 @@ bin/ots customers --list
 
 Billing is only available in full auth mode. When billing is enabled, new accounts start at the free tier with default entitlements. The `apitoken` command notes this in its output.
 
-To test with a specific plan, assign it through the web UI or Stripe dashboard after account creation.
+Plans are assigned at the **Organization** level, not the Customer level. The entitlement system reads from `org.planid` — a Redis field on the Organization model. To test API behavior under a specific plan, set it directly via console:
+
+```bash
+bin/ots console
+```
+
+```ruby
+cust = Onetime::Customer.find_by_email('test@example.com')
+org = cust.organizations.first
+org.planid = 'identity_plus_v1'
+org.save
+org.can?('custom_domains')  # verify entitlements
+```
+
+Available plan IDs are defined in `etc/billing.yaml` under the `plans:` key (e.g., `free_v1`, `identity_v1`, `identity_plus_v1`). See `etc/examples/billing.example.yaml` for the full catalog structure.
 
 ## How Basic Auth Works
 
@@ -74,3 +88,5 @@ Authorization: Basic dGVzdEBleGFtcGxlLmNvbTprM2o4Zi4uLg==
 Routes that accept Basic Auth are marked with `auth=basicauth` (or `auth=sessionauth,basicauth` for dual-mode) in the route definitions under `apps/api/*/routes.txt`.
 
 Not all API endpoints accept Basic Auth. Token generation (`POST /apitoken`) requires session auth only.
+
+NOTE: The legacy customer.planid field still exists (used by the colonel API's UpdateUserPlan) but is only relevant for old pro-bono account migration — not for modern entitlement checks.
