@@ -18,12 +18,7 @@ categories:
       - 'enhancement'
   - title: 'Changed'
     labels:
-      - 'frontend'
-      - 'backend'
-      - 'containers'
-      - 'config'
-      - 'i18n'
-      - 'migrations'
+      - 'changed'
   - title: 'Deprecated'
     labels:
       - 'deprecated'
