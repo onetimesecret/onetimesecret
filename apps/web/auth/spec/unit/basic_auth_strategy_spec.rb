@@ -82,7 +82,8 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
     # -----------------------------------------------------------------
     context 'with valid credentials and a session-like object' do
       let(:mock_session) do
-        # Simulate a Rack SecureSessionHash (any object that is not a plain Hash)
+        # A plain hash suffices here — we only check object identity preservation,
+        # not the session interface (SecureSessionHash responds to .options/.id).
         {}
       end
 
