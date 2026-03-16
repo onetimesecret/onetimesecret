@@ -4,13 +4,17 @@
 # Full production deployment: Caddy TLS proxy, App, Valkey, RabbitMQ,
 # background workers, and scheduler.
 #
+# Uses pre-built images from Docker Hub. To pin a version:
+#   OTS_IMAGE_TAG=v0.24.6 docker compose up
+#
+# To build from source instead, use Docker Bake:
+#   docker buildx bake -f docker/bake.hcl all
+#
 # See docker/README.md for complete setup and usage documentation.
 
 services:
   proxy:
-    build:
-      context: ../..
-      dockerfile: docker/variants/caddy.dockerfile
+    image: caddy:2
     container_name: onetime-proxy
     depends_on:
       app:
@@ -39,9 +43,7 @@ services:
       - caddy-config:/config
 
   app:
-    build:
-      context: ../..
-      dockerfile: Dockerfile
+    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-latest}
     container_name: onetime-app
     depends_on:
       maindb:
@@ -141,9 +143,7 @@ services:
       start_period: 30s
 
   worker-email:
-    build:
-      context: ../..
-      dockerfile: Dockerfile
+    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-latest}
     container_name: onetime-worker-email
     depends_on:
       maindb:
@@ -176,13 +176,9 @@ services:
     networks:
       - onetime-network
     restart: unless-stopped
-    volumes:
-      - ../..:/app
 
   scheduler:
-    build:
-      context: ../..
-      dockerfile: Dockerfile
+    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-latest}
     container_name: onetime-scheduler
     depends_on:
       maindb:
@@ -204,8 +200,6 @@ services:
     networks:
       - onetime-network
     restart: unless-stopped
-    volumes:
-      - ../..:/app
 
 networks:
   onetime-network:
