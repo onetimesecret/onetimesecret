@@ -213,6 +213,23 @@ jobs:
           username: ${{ secrets.CUSTOM_REGISTRY_USERNAME }}
           password: ${{ secrets.CUSTOM_REGISTRY_PASSWORD }}
 
+      - name: Audit — resolved bake configuration
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
+          COMMIT_HASH: ${{ steps.commit.outputs.short_sha }}
+          EXTRA_TAGS: ${{ steps.version.outputs.extra_tags }}
+          PLATFORMS: ${{ inputs.platforms || 'linux/amd64' }}
+          REGISTRY_MODE: ${{ inputs.registry_target || 'public' }}
+          CUSTOM_REGISTRY: ${{ secrets.CUSTOM_REGISTRY_HOST }}
+        run: |
+          echo "::group::Bake resolved config (dry-run)"
+          docker buildx bake -f docker/bake.hcl --print ci 2>&1 || true
+          echo "::endgroup::"
+          echo "::group::package.json version in build context"
+          node -p "require('./package.json').version"
+          echo "::endgroup::"
+
       - name: Build and push with Bake
         uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
         env:
@@ -230,6 +247,38 @@ jobs:
           set: |
             *.args.VERSION=${{ steps.version.outputs.version }}
             *.args.COMMIT_HASH=${{ steps.commit.outputs.short_sha }}
+
+      - name: Audit — verify image version
+        if: success()
+        env:
+          BUILD_VERSION: ${{ steps.version.outputs.version }}
+          BUILD_IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
+          BUILD_EXTRA_TAGS: ${{ steps.version.outputs.extra_tags }}
+          REGISTRY_MODE: ${{ inputs.registry_target || 'public' }}
+          CUSTOM_REGISTRY: ${{ secrets.CUSTOM_REGISTRY_HOST }}
+        run: |
+          # Determine image reference to inspect
+          if [ "${REGISTRY_MODE}" = "custom" ] && [ -n "${CUSTOM_REGISTRY}" ]; then
+            REGISTRY_PREFIX="${CUSTOM_REGISTRY}/onetimesecret"
+          else
+            REGISTRY_PREFIX="ghcr.io/onetimesecret"
+          fi
+
+          # Use IMAGE_TAG if available (release builds), otherwise first EXTRA_TAG
+          if [ -n "${BUILD_IMAGE_TAG}" ]; then
+            IMAGE_REF="${REGISTRY_PREFIX}/onetimesecret:${BUILD_IMAGE_TAG}"
+          else
+            FIRST_TAG=$(echo "${BUILD_EXTRA_TAGS}" | cut -d',' -f1 | tr -d ' ')
+            IMAGE_REF="${REGISTRY_PREFIX}/onetimesecret:${FIRST_TAG}"
+          fi
+
+          echo "::group::Image version check (${IMAGE_REF})"
+          podman pull "${IMAGE_REF}" --quiet
+          ACTUAL_VERSION=$(podman run --rm --entrypoint cat "${IMAGE_REF}" package.json \
+            | grep -o '"version": "[^"]*"' || echo '"version": "UNKNOWN"')
+          echo "Expected: ${BUILD_VERSION}"
+          echo "Actual:   ${ACTUAL_VERSION}"
+          echo "::endgroup::"
 
       - name: Output build summary
         env:
