@@ -19,7 +19,7 @@ const receiptStateValues = [
 ] as const;
 
 /** Base receipt fields shared between list and detail views. */
-const receiptBaseRecord = z.object({
+export const receiptBaseRecord = z.object({
   identifier: z.string(),
   created: transforms.fromNumber.toDate,
   updated: transforms.fromNumber.toDate,
