@@ -40,7 +40,8 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
         expect(result.auth_method).to eq('basic_auth')
       end
 
-      # Session contract — session must be a Hash, never nil
+      # Session contract — session is non-nil when env['rack.session'] is present.
+      # Stateless calls (no rack.session in env) return nil; see context below.
       include_examples 'a valid session contract'
 
       it 'session contains no auth state (only org_context cache allowed)' do
@@ -82,9 +83,13 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
     # -----------------------------------------------------------------
     context 'with valid credentials and a session-like object' do
       let(:mock_session) do
-        # A plain hash suffices here — we only check object identity preservation,
-        # not the session interface (SecureSessionHash responds to .options/.id).
-        {}
+        # Use a test double that quacks like a SecureSessionHash —
+        # responds to [], []=, options, and id. This validates the strategy
+        # passes through the real session object, not a fabricated {}.
+        session = {}
+        session.define_singleton_method(:options) { {} }
+        session.define_singleton_method(:id) { 'test-session-id' }
+        session
       end
 
       let(:env_with_session) do

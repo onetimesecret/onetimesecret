@@ -301,7 +301,8 @@ module Onetime
               # SecureSessionHash when session middleware is present.
               # Otto's RouteAuthWrapper skips env['rack.session'] overwrite
               # when result.session is nil/falsy, preserving the original.
-              # Never pass a plain {} — it crashes rack-session's .options call.
+              # Don't fabricate a fallback {} here — rack-session's
+              # commit_session calls .options on the session object.
               user: cust,
               auth_method: self.class.auth_method_name,
               **metadata_hash,
