@@ -1,27 +1,62 @@
 // src/scripts/openapi/route-config.ts
 
 /**
- * Standardized error responses for reuse across all APIs
+ * Shared error response content schema.
+ *
+ * Matches the server's actual error shape across all API versions:
+ *   V1:  FormError#to_h  → { error, message, field }
+ *   V2+: error rescue    → { error, message, error_id }
+ *
+ * Only `message` is required — other fields are version/context dependent.
+ */
+const errorContent = {
+  'application/json': {
+    schema: {
+      type: 'object',
+      properties: {
+        error: { type: 'string', description: 'Error type identifier (e.g., "FormError")' },
+        message: { type: 'string', description: 'Human-readable error message' },
+        field: { type: 'string', description: 'Field that caused the error, if applicable' },
+        error_id: { type: 'string', description: 'Unique error tracking identifier' },
+      },
+      required: ['message'],
+    },
+  },
+};
+
+/**
+ * Standardized error responses for reuse across all APIs.
+ * Each includes a content schema matching the server's error envelope.
  */
 export const standardErrorResponses = {
   400: {
-    description: 'Bad Request - Invalid request parameters or body'
+    description: 'Bad Request - Invalid request parameters or body',
+    content: errorContent,
   },
   401: {
-    description: 'Unauthorized - Authentication required'
+    description: 'Unauthorized - Authentication required',
+    content: errorContent,
   },
   403: {
-    description: 'Forbidden - Insufficient permissions'
+    description: 'Forbidden - Insufficient permissions',
+    content: errorContent,
   },
   404: {
-    description: 'Not Found - Resource does not exist'
+    description: 'Not Found - Resource does not exist',
+    content: errorContent,
+  },
+  422: {
+    description: 'Unprocessable Entity - Validation failed',
+    content: errorContent,
   },
   429: {
-    description: 'Too Many Requests - Rate limit exceeded'
+    description: 'Too Many Requests - Rate limit exceeded',
+    content: errorContent,
   },
   500: {
-    description: 'Internal Server Error - Something went wrong'
-  }
+    description: 'Internal Server Error - Something went wrong',
+    content: errorContent,
+  },
 };
 
 /**

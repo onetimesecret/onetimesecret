@@ -2,6 +2,8 @@
 //
 // V1 response schema registry.
 
+import { z } from 'zod';
+
 import {
   v1ReceiptResponseSchema,
   v1ReceiptListResponseSchema,
@@ -9,11 +11,17 @@ import {
   v1BurnSecretResponseSchema,
 } from './secrets';
 
-// status and authcheck share the same shape as the V3 systemStatus schema
-import { systemStatusResponseSchema } from '../../v3/responses/meta';
+// V1 status returns {status, locale} without a `success` field.
+// V3 systemStatusResponseSchema requires `success`, so V1 needs its own schema.
+export const v1StatusResponseSchema = z.object({
+  status: z.string(),
+  locale: z.string(),
+});
+
+export type V1StatusResponse = z.infer<typeof v1StatusResponseSchema>;
 
 export const v1ResponseSchemas = {
-  v1Status: systemStatusResponseSchema,
+  v1Status: v1StatusResponseSchema,
   v1Receipt: v1ReceiptResponseSchema,
   v1ReceiptList: v1ReceiptListResponseSchema,
   v1SecretReveal: v1SecretRevealResponseSchema,
