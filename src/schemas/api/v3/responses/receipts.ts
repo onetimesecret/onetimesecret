@@ -19,12 +19,13 @@ const receiptStateValues = [
 ] as const;
 
 /** Base receipt fields shared between list and detail views. */
-const receiptBaseRecord = z.object({
+export const receiptBaseRecord = z.object({
   identifier: z.string(),
   created: transforms.fromNumber.toDate,
   updated: transforms.fromNumber.toDate,
   key: z.string(),
   shortid: z.string(),
+  secret_identifier: z.string().nullish(),
   secret_shortid: z.string().optional(),
   recipients: z.array(z.string()).or(z.string()).nullable().optional(),
   share_domain: z.string().nullable().optional(),
@@ -58,7 +59,6 @@ const receiptBaseRecord = z.object({
 
 /** Full receipt for single-record view (adds URL paths and expiration). */
 const receiptRecord = receiptBaseRecord.extend({
-  secret_identifier: z.string().nullish(),
   secret_state: z.enum(receiptStateValues).nullish(),
   natural_expiration: z.string(),
   expiration: transforms.fromNumber.toDate,
