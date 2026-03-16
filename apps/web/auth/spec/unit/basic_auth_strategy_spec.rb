@@ -50,6 +50,60 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
     end
 
     # -----------------------------------------------------------------
+    # Stateless call — no Rack session middleware (env has no rack.session)
+    # Regression test: ensures result.session is nil, not a plain {},
+    # which would crash Rack's session middleware (.options on Hash).
+    # -----------------------------------------------------------------
+    context 'with valid credentials and no rack.session in env' do
+      let(:env_no_session) do
+        encoded = Base64.strict_encode64("#{test_customer.email}:#{test_apikey}")
+        {
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_USER_AGENT' => 'Test/1.0',
+          'HTTP_AUTHORIZATION' => "Basic #{encoded}",
+        }
+      end
+
+      let(:result) { basic_auth_strategy.authenticate(env_no_session, nil) }
+
+      it 'authenticates successfully' do
+        expect(result).to be_a(Otto::Security::Authentication::StrategyResult)
+        expect(result.authenticated?).to be true
+      end
+
+      it 'returns nil session (not an empty Hash)' do
+        expect(result.session).to be_nil
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Session identity — when a real Rack session exists, the strategy
+    # must return the SAME object, not a replacement.
+    # -----------------------------------------------------------------
+    context 'with valid credentials and a session-like object' do
+      let(:mock_session) do
+        # Simulate a Rack SecureSessionHash (any object that is not a plain Hash)
+        {}
+      end
+
+      let(:env_with_session) do
+        encoded = Base64.strict_encode64("#{test_customer.email}:#{test_apikey}")
+        {
+          'rack.session' => mock_session,
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_USER_AGENT' => 'Test/1.0',
+          'HTTP_AUTHORIZATION' => "Basic #{encoded}",
+        }
+      end
+
+      let(:result) { basic_auth_strategy.authenticate(env_with_session, nil) }
+
+      it 'returns the exact same session object (identity check)' do
+        expect(result.session).to equal(mock_session)
+      end
+    end
+
+    # -----------------------------------------------------------------
     # Invalid API key (correct user, wrong key)
     # -----------------------------------------------------------------
     context 'with invalid API key' do
