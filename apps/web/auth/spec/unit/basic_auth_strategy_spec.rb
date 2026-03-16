@@ -40,12 +40,72 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
         expect(result.auth_method).to eq('basic_auth')
       end
 
-      # Session contract — session must be a Hash, never nil
+      # Session contract — session is non-nil when env['rack.session'] is present.
+      # Stateless calls (no rack.session in env) return nil; see context below.
       include_examples 'a valid session contract'
 
       it 'session contains no auth state (only org_context cache allowed)' do
         non_cache_keys = result.session.keys.reject { |k| k.to_s.start_with?('org_context:') }
         expect(non_cache_keys).to eq([])
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Stateless call — no Rack session middleware (env has no rack.session)
+    # Regression test: ensures result.session is nil, not a plain {},
+    # which would crash Rack's session middleware (.options on Hash).
+    # -----------------------------------------------------------------
+    context 'with valid credentials and no rack.session in env' do
+      let(:env_no_session) do
+        encoded = Base64.strict_encode64("#{test_customer.email}:#{test_apikey}")
+        {
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_USER_AGENT' => 'Test/1.0',
+          'HTTP_AUTHORIZATION' => "Basic #{encoded}",
+        }
+      end
+
+      let(:result) { basic_auth_strategy.authenticate(env_no_session, nil) }
+
+      it 'authenticates successfully' do
+        expect(result).to be_a(Otto::Security::Authentication::StrategyResult)
+        expect(result.authenticated?).to be true
+      end
+
+      it 'returns nil session (not an empty Hash)' do
+        expect(result.session).to be_nil
+      end
+    end
+
+    # -----------------------------------------------------------------
+    # Session identity — when a real Rack session exists, the strategy
+    # must return the SAME object, not a replacement.
+    # -----------------------------------------------------------------
+    context 'with valid credentials and a session-like object' do
+      let(:mock_session) do
+        # Use a test double that quacks like a SecureSessionHash —
+        # responds to [], []=, options, and id. This validates the strategy
+        # passes through the real session object, not a fabricated {}.
+        session = {}
+        session.define_singleton_method(:options) { {} }
+        session.define_singleton_method(:id) { 'test-session-id' }
+        session
+      end
+
+      let(:env_with_session) do
+        encoded = Base64.strict_encode64("#{test_customer.email}:#{test_apikey}")
+        {
+          'rack.session' => mock_session,
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_USER_AGENT' => 'Test/1.0',
+          'HTTP_AUTHORIZATION' => "Basic #{encoded}",
+        }
+      end
+
+      let(:result) { basic_auth_strategy.authenticate(env_with_session, nil) }
+
+      it 'returns the exact same session object (identity check)' do
+        expect(result.session).to equal(mock_session)
       end
     end
 
