@@ -47,7 +47,7 @@ The final image has Ruby but no Node. Use `cat` or `ruby`:
 
 ```bash
 docker run --rm --entrypoint cat \
-  $(docker images -q --filter 'label=org.opencontainers.image.title=Onetime Secret' | head -1) \
+  $(docker images -q --filter 'label=org.opencontainers.image.source=https://github.com/onetimesecret/onetimesecret' | head -1) \
   package.json | grep '"version"'
 ```
 

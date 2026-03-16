@@ -119,9 +119,7 @@ RUN set -eux && \
     PKG_VERSION=$(node -p "require('./package.json').version") && \
     if [ "${PKG_VERSION}" = "0.0.0-rc0" ] && [ -n "${VERSION}" ] && \
        [ "${VERSION}" != "dev" ] && [ "${VERSION}" != "0.0.0-rc0" ]; then \
-      node -e "var fs=require('fs'),p=JSON.parse(fs.readFileSync('package.json','utf8')); \
-        p.version=process.argv[1]; \
-        fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')" "${VERSION}" && \
+      yq -i -o json ".version = \"${VERSION}\"" package.json && \
       echo "NOTICE: package.json had placeholder; updated to ${VERSION} via build arg" >&2 && \
       PKG_VERSION="${VERSION}" ; \
     fi && \
