@@ -80,7 +80,7 @@ There are three ways to run the application for local development:
 [Overmind](https://github.com/DarthSim/overmind) runs backend, frontend, and worker from a single command using `Procfile.dev`:
 
 ```bash
-brew install overmind          # macOS (one-time)
+brew install overmind          # macOS
 ./install-dev.sh               # Link config files + install gems and packages (one-time per checkout)
 bin/dev                        # Start all processes
 ```
@@ -118,34 +118,21 @@ docker compose up
 
 See `docker-compose.yml` for available profiles (simple vs full stack) and `docker/README.md` for details.
 
-### Git JSON Merge Driver (Recommended)
+## Community & Support
 
-This repository uses a custom merge driver for locale JSON files to automatically resolve conflicts:
+[Latest Release](https://github.com/onetimesecret/onetimesecret/releases/latest) · [Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret) · [Build Status](https://github.com/onetimesecret/onetimesecret/actions) · [License](LICENSE)
 
-1. Install dependencies: `pnpm install`
-2. Configure Git (one-time setup):
-   ```bash
-   git config merge.json.driver "npx git-json-merge %A %O %B"
-   git config merge.json.name "Custom 3-way merge driver for JSON files"
-   ```
+- [Report an issue](https://github.com/onetimesecret/onetimesecret/issues)
+- [Security Statement](./SECURITY.md)
+- [Documentation](https://docs.onetimesecret.com) — usage and self-hosting guides; [`docs/`](./docs/) for developer docs
+- [Try it live](https://ca.onetimesecret.com/)
 
-The driver automatically resolves conflicts when multiple branches modify different keys in the same locale file. If a conflict cannot be resolved automatically (e.g., same key modified on both sides), Git falls back to standard conflict markers.
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/onetimesecret/onetimesecret/issues)
-- **Documentation**: Check `docs/` directory for detailed guides
-- **Security**: Review `SECURITY.md` for security considerations
-
-### Production Deployments
-
-See [Dockerfile](./Dockerfile)
 
 ## AI Development Assistance
 
 This version of Familia was developed with assistance from AI tools. The following tools provided significant help with architecture design, code generation, and documentation:
 
-- **Claude (Desktop, Code Max plan, Sonnet 4, Opus 4.1)** - Interactive development sessions, debugging, architecture design, code generation, and documentation
+- **Claude (Desktop, Code Max plan, Sonnet 4, Opus 4.6)** - Interactive development sessions, debugging, architecture design, code generation, and documentation
 - **Google Gemini** - Refactoring suggestions, code generation, and documentation.
 - **GitHub Copilot** - Code completion and refactoring assistance
 - **Qodo Merge Pro** - Code review and QA improvements
@@ -183,15 +170,3 @@ _Summarized, fetched, and collated by [Cohere Command R+](https://cohere.com/blo
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE.txt) file for details.
-
-## Community & Support
-
-[![Latest Release](https://img.shields.io/github/v/release/onetimesecret/onetimesecret)](https://github.com/onetimesecret/onetimesecret/releases/latest)
-[![Docker Pulls](https://img.shields.io/docker/pulls/onetimesecret/onetimesecret)](https://hub.docker.com/r/onetimesecret/onetimesecret)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/onetimesecret/onetimesecret/ci.yml)](https://github.com/onetimesecret/onetimesecret/actions)
-[![License](https://img.shields.io/github/license/onetimesecret/onetimesecret)](LICENSE)
-
-
-- [Report Issues](https://github.com/onetimesecret/onetimesecret/issues)
-- [Security Issues](mailto:security@onetimesecret.com) (email)
-- [Try it Live](https://ca.onetimesecret.com/)
