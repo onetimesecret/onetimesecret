@@ -4,17 +4,25 @@
 # Full production deployment: Caddy TLS proxy, App, Valkey, RabbitMQ,
 # background workers, and scheduler.
 #
-# Uses pre-built images from Docker Hub. To pin a version:
+# App uses pre-built images from Docker Hub. To pin a version:
 #   OTS_IMAGE_TAG=v0.24.6 docker compose up
 #
-# To build from source instead, use Docker Bake:
+# Caddy proxy requires building (plugins: ratelimit, security, transform-encoder):
+#   docker compose build proxy
+#
+# To build all services from source, use Docker Bake:
 #   docker buildx bake -f docker/bake.hcl all
 #
 # See docker/README.md for complete setup and usage documentation.
 
 services:
   proxy:
-    image: caddy:2
+    # Custom Caddy build required — the Caddyfile uses caddy-ratelimit,
+    # transform-encoder, and caddy-security plugins not in stock caddy:2.
+    # Build: docker buildx bake -f docker/bake.hcl caddy
+    build:
+      context: ../..
+      dockerfile: docker/variants/caddy.dockerfile
     container_name: onetime-proxy
     depends_on:
       app:
@@ -38,7 +46,7 @@ services:
       - '2019'
     restart: unless-stopped
     volumes:
-      - ../../etc/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../../etc/examples/Caddyfile-example:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
 
@@ -155,6 +163,7 @@ services:
     environment:
       - RACK_ENV=${RACK_ENV:-production}
       - VALKEY_URL=redis://maindb:6379/0
+      - AUTH_DATABASE_URL=sqlite://data/auth.db
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
     command:
       [
@@ -176,6 +185,8 @@ services:
     networks:
       - onetime-network
     restart: unless-stopped
+    volumes:
+      - ../../data:/app/data
 
   scheduler:
     image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-latest}
@@ -190,6 +201,7 @@ services:
     environment:
       - RACK_ENV=${RACK_ENV:-production}
       - VALKEY_URL=redis://maindb:6379/0
+      - AUTH_DATABASE_URL=sqlite://data/auth.db
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
     command: ['./bin/ots', 'jobs', 'scheduler', '--environment', 'production']
     logging:
@@ -200,6 +212,8 @@ services:
     networks:
       - onetime-network
     restart: unless-stopped
+    volumes:
+      - ../../data:/app/data
 
 networks:
   onetime-network:
