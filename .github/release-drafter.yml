@@ -109,4 +109,5 @@ template: |
 
   $CHANGES
 
-  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+  **Detailed changelog**: https://github.com/$OWNER/$REPOSITORY/blob/main/CHANGELOG.rst
+  **Full diff**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
