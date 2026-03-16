@@ -13,7 +13,7 @@ When you send sensitive info like passwords via email or chat, copies persist in
 ## Quick Start with Docker
 
 > [!IMPORTANT]
-> **Upgrading from v0.22.x?** See [Redis Migration Guide](./docs/redis-migration.md) for database consolidation options (optional until v1.0).
+> **Upgrading from v0.22 or v0.23?** See the [v0.23 Upgrade Guide](https://docs.onetimesecret.com/en/self-hosting/upgrading-v0-23/) and [v0.24 Upgrade Guide](https://docs.onetimesecret.com/en/self-hosting/upgrading-v0-24/) for migration steps.
 
 **1. Start Redis:**
 ```bash
@@ -35,34 +35,12 @@ docker run -p 3000:3000 -d \
   -e HOST=localhost:3000 \
   -e AUTH_REQUIRED=false \
   -e SSL=false \
-  onetimesecret/onetimesecret:v0.24.0
+  onetimesecret/onetimesecret:v0.24.6
 ```
 
 **3. Access:** http://localhost:3000
 
-### Upgrading to v0.24+
-
-> **For existing installations**: See the [Upgrading to v0.24 Guide](./docs/upgrading-to-v0.24.md) for what's changed and migration steps.
-
-Starting with v0.23, Onetime Secret uses Redis database 0 for all models by default (previously distributed across multiple databases). v0.24 continues this direction with Valkey support and additional infrastructure improvements.
-
-**New installations**: No action needed - automatically uses the optimized setup.
-
-**Existing installations**: See the [Redis Data Migration Guide](./docs/redis-migration.md) for migration options and timeline.
-
-
 ## Configuration
-
-### UI Controls
-
-**Disable Web Interface** (`UI_ENABLED=false`):
-- Shows minimal explanation page instead of full interface
-- Useful for maintenance or API-only deployments
-
-**Require Authentication** (`AUTH_REQUIRED=true`):
-- Homepage secret creation requires login
-- Maintains site navigation while restricting access
-
 
 ### Essential Settings
 
@@ -80,17 +58,7 @@ Key configuration areas:
 
 ### Environment Variables
 
-Common overrides:
-```bash
-HOST=your-domain.com
-SSL=true
-SECRET=your-secure-random-key
-REDIS_URL=redis://host:6379/0
-AUTH_REQUIRED=true
-PASSPHRASE_REQUIRED=true
-PASSWORD_GEN_LENGTH=8
-TTL_OPTIONS='1800 43200 86400 259200'  # 30m, 12h, 24h, 3d
-```
+See [.env.reference](./.env.reference)
 
 > **Important**: Generate a secure SECRET key and back it up safely:
 > ```bash
@@ -117,6 +85,7 @@ docker pull ghcr.io/onetimesecret/onetimesecret-lite:latest
 ```bash
 git clone https://github.com/onetimesecret/onetimesecret.git
 cd onetimesecret
+./install-dev.sh
 docker build -t onetimesecret .
 ```
 
@@ -176,17 +145,7 @@ overmind connect backend       # Attach for debugger/pry (Ctrl+b,d to detach)
 overmind restart frontend      # Restart a single process
 ```
 
-**Option B: Separate terminals**
-
-```bash
-# Terminal 1: Backend (Puma)
-bin/backend
-
-# Terminal 2: Frontend (Vite dev server with HMR)
-bin/frontend
-```
-
-**Option C: Production-style**
+**Option B: Production-style**
 
 Build the frontend and serve everything from the backend:
 ```bash

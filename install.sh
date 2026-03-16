@@ -158,10 +158,22 @@ cmd_init() {
     bin/ots queue init --force
   fi
 
-  if bundle exec bin/ots install mark > /dev/null 2>&1; then
-    info "Environment initialized (onetime:install:init_count incremented)"
+  # Check Redis/Valkey availability before attempting install mark
+  if (has valkey-cli && valkey-cli ping &>/dev/null) || (has redis-cli && redis-cli ping &>/dev/null); then
+    if bundle exec bin/ots install mark > /dev/null; then
+      info "Environment initialized (onetime:install:init_count incremented)"
+    else
+      warn "install mark failed (exit $?) — check bin/ots output for details"
+    fi
   else
     warn "Redis/Valkey not running — skipping install mark (run install.sh again after starting Valkey)"
+  fi
+
+  # Ensure puma config exists for the instructions below
+  if [[ ! -e "etc/puma.rb" && -f "etc/examples/puma.example.rb" ]]; then
+    [[ -L "etc/puma.rb" ]] && rm "etc/puma.rb"
+    cp etc/examples/puma.example.rb etc/puma.rb
+    info "Copied etc/examples/puma.example.rb -> etc/puma.rb"
   fi
 
   echo ""
