@@ -65,63 +65,9 @@ See [.env.reference](./.env.reference)
 > openssl rand -hex 32
 > ```
 
-## Installation Options
+## Installation
 
-### Docker Images
-
-**Pre-built images:**
-```bash
-# GitHub Container Registry
-docker pull ghcr.io/onetimesecret/onetimesecret:latest
-
-# Docker Hub
-docker pull onetimesecret/onetimesecret:latest
-
-# Lite version (smaller, optimized)
-docker pull ghcr.io/onetimesecret/onetimesecret-lite:latest
-```
-
-**Build locally:**
-```bash
-git clone https://github.com/onetimesecret/onetimesecret.git
-cd onetimesecret
-./install-dev.sh
-docker build -t onetimesecret .
-```
-
-### Manual Installation
-
-**System Requirements:**
-- Ruby 3.4.7+
-- Redis 5+ or Valkey 8+
-- Node.js 22+ and pnpm 10+ via Corepack (for building frontend)
-- 1GB RAM, 2 CPU cores minimum
-
-**Quick setup:**
-```bash
-git clone https://github.com/onetimesecret/onetimesecret.git
-cd onetimesecret
-./install.sh init    # Install deps, generate secrets, prepare .env
-# Review .env — set REDIS_URL (or VALKEY_URL) if not on localhost:6379
-pnpm run build
-RACK_ENV=production bundle exec puma -C etc/examples/puma.example.rb
-```
-
-> **Tip**: Run `./install.sh doctor` to check your environment for common issues.
-
-> **For detailed installation instructions**, including system setup, troubleshooting, and advanced configuration, see [INSTALL.md](./INSTALL.md).
-
-### Admin Setup
-
-Create your first admin (colonel) user via CLI:
-```bash
-bin/ots customers --create admin@example.com --role colonel
-```
-
-Or promote an existing user:
-```bash
-bin/ots role promote user@example.com --role colonel
-```
+For Docker, manual setup, and system requirements, see the [Self-Hosting Guide](https://docs.onetimesecret.com/en/self-hosting/) and [Installation Guide](https://docs.onetimesecret.com/en/self-hosting/installation/).
 
 ## Development
 

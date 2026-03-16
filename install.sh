@@ -79,7 +79,7 @@ install_node() {
   for pkg in "pnpm-lock.yaml:pnpm:install --frozen-lockfile" "package-lock.json:npm:ci" "yarn.lock:yarn:install --frozen-lockfile"; do
     IFS=: read -r lockfile mgr flags <<< "$pkg"
     if [[ -f "$lockfile" ]]; then
-      has "$mgr" || die "$mgr not found but $lockfile exists — install $mgr first (see INSTALL.md)"
+      has "$mgr" || die "$mgr not found but $lockfile exists — install $mgr first (see docs.onetimesecret.com/en/self-hosting/installation/)"
       info "Installing node packages ($mgr)..."
       $mgr $flags
       return

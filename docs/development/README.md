@@ -74,7 +74,7 @@ For HMR support, enable development mode in `etc/config.yaml`:
   :frontend_host: 'http://localhost:5173'
 ```
 
-See the [Installation Guide](../INSTALL.md) for additional configuration details.
+See the [Installation Guide](https://docs.onetimesecret.com/en/self-hosting/installation/) for additional configuration details.
 
 ### Vite Development Server Security
 
