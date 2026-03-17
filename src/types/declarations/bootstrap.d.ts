@@ -201,10 +201,10 @@ export interface BootstrapPayload {
     /** WebAuthn/passkey authentication */
     webauthn?: boolean;
     /**
-     * OmniAuth/SSO authentication via external identity providers.
+     * SSO authentication via external identity providers (Entra ID, Google, GitHub, etc.).
      * Can be boolean (false when disabled) or object with config when enabled.
      */
-    omniauth?: boolean | {
+    sso?: boolean | {
       enabled: boolean;
       /** Configured SSO providers. Each entry has route_name and display_name. */
       providers?: Array<{
@@ -212,6 +212,12 @@ export interface BootstrapPayload {
         display_name: string;
       }>;
     };
+    /**
+     * SSO-only mode. When true, password-based auth routes are disabled
+     * and the sign-in page shows only SSO provider buttons.
+     * This is a no-op when SSO is not enabled (sso feature is falsy).
+     */
+    sso_only?: boolean;
     /** @deprecated Use email_auth instead */
     magic_links?: boolean;
   };

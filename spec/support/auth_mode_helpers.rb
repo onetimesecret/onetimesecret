@@ -33,7 +33,8 @@ module AuthModeHelpers
       @mfa_enabled = options.fetch(:mfa_enabled, true)
       @email_auth_enabled = options.fetch(:email_auth_enabled, false)
       @webauthn_enabled = options.fetch(:webauthn_enabled, false)
-      @omniauth_enabled = options.fetch(:omniauth_enabled, false)  # OmniAuth disabled by default in tests
+      @sso_enabled = options.fetch(:sso_enabled, false)  # SSO disabled by default in tests
+      @sso_only_enabled = options.fetch(:sso_only_enabled, false)
       @omniauth_provider_name = options.fetch(:omniauth_provider_name, nil)
     end
 
@@ -82,12 +83,21 @@ module AuthModeHelpers
       @webauthn_enabled
     end
 
-    def omniauth_enabled?
-      @omniauth_enabled
+    def sso_enabled?
+      @sso_enabled
+    end
+
+    # DEPRECATED: Alias for sso_enabled? — retained for Rodauth integration
+    alias omniauth_enabled? sso_enabled?
+
+    def sso_only_enabled?
+      return false unless sso_enabled?
+
+      @sso_only_enabled
     end
 
     def omniauth_provider_name
-      return nil unless omniauth_enabled?
+      return nil unless sso_enabled?
 
       @omniauth_provider_name
     end
@@ -107,16 +117,16 @@ module AuthModeHelpers
       {}
     end
 
-    # SSO display name (nil unless omniauth is enabled and configured)
+    # SSO display name (nil unless SSO is enabled and configured)
     def sso_display_name
-      return nil unless omniauth_enabled?
+      return nil unless sso_enabled?
 
       @omniauth_provider_name
     end
 
     # OmniAuth route name for SSO callback URL
     def omniauth_route_name
-      return nil unless omniauth_enabled?
+      return nil unless sso_enabled?
 
       'oidc'
     end

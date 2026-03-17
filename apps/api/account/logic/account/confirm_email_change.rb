@@ -4,6 +4,7 @@
 
 require_relative '../base'
 require_relative '../../../../../lib/onetime/jobs/publisher'
+require 'onetime/logic/sso_only_gating'
 
 module AccountAPI::Logic
   module Account
@@ -11,6 +12,7 @@ module AccountAPI::Logic
 
     class ConfirmEmailChange < AccountAPI::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Logic::SsoOnlyGating
 
       attr_reader :secret
 
@@ -20,6 +22,8 @@ module AccountAPI::Logic
       end
 
       def raise_concerns
+        require_non_sso_only!
+
         raise OT::MissingSecret if @secret.nil?
         raise OT::MissingSecret unless @secret.exists?
         raise OT::MissingSecret if @secret.custid.to_s == 'anon'

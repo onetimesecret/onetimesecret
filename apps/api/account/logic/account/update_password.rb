@@ -2,9 +2,18 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/logic/sso_only_gating'
+
 module AccountAPI::Logic
   module Account
     class UpdatePassword < UpdateAccountField
+      include Onetime::Logic::SsoOnlyGating
+
+      def raise_concerns
+        require_non_sso_only!
+        super
+      end
+
       def process_params
         OT.ld "[UpdatePassword#process_params] param keys: #{params.keys.sort}"
         @password        = self.class.normalize_password(params['password']) # was currentp

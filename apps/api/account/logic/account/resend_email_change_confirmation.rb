@@ -4,6 +4,7 @@
 
 require_relative '../base'
 require_relative '../../../../../lib/onetime/jobs/publisher'
+require 'onetime/logic/sso_only_gating'
 
 module AccountAPI::Logic
   module Account
@@ -18,6 +19,7 @@ module AccountAPI::Logic
     #
     class ResendEmailChangeConfirmation < AccountAPI::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Logic::SsoOnlyGating
 
       MAX_RESENDS = 3
 
@@ -28,6 +30,8 @@ module AccountAPI::Logic
       end
 
       def raise_concerns
+        require_non_sso_only!
+
         raise_form_error('Authentication required', error_type: :unauthorized) if cust.anonymous?
 
         # Verify there is a pending email change

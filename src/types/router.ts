@@ -70,4 +70,9 @@ export interface RouteMeta {
   layoutProps?: Record<string, unknown>;
   scopesAvailable?: ScopesAvailable;
   requiresFeature?: 'signup' | 'signin';
+  /**
+   * When true, this route is blocked when SSO-only mode is active.
+   * The route guard redirects to '/signin' if isSsoOnlyMode() returns true.
+   */
+  ssoOnlyDisabled?: boolean;
 }
