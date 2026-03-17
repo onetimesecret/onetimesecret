@@ -93,6 +93,29 @@ is_initialized() {
   bundle exec bin/ots install check 2>/dev/null
 }
 
+redis_url() {
+  # Resolve VALKEY_URL -> REDIS_URL -> .env -> default (matches entrypoint.sh)
+  local url="${VALKEY_URL:-${REDIS_URL:-}}"
+  if [[ -z "$url" && -f .env ]]; then
+    url=$(sed -n -E "s/^[[:space:]]*(VALKEY_URL|REDIS_URL)[[:space:]]*=[[:space:]]*[\"']?([^\"'#[:space:]]*)[\"']?[[:space:]]*(#.*)?$/\2/p" .env 2>/dev/null | head -1)
+  fi
+  echo "${url:-redis://127.0.0.1:6379}"
+}
+
+redis_host_port() {
+  local url clean host port
+  url=$(redis_url)
+  clean="${url#redis://}"
+  clean="${clean#valkey://}"
+  if [[ "$clean" == *@* ]]; then
+    clean="${clean#*@}"
+  fi
+  host="${clean%%:*}"
+  port="${clean#*:}"
+  port="${port%%/*}"
+  echo "${host:-127.0.0.1}" "${port:-6379}"
+}
+
 auth_mode() {
   # Read from env or .env file, defaulting to simple
   local mode="${AUTHENTICATION_MODE:-}"
@@ -160,7 +183,9 @@ cmd_init() {
 
   # Check Redis/Valkey availability before attempting install mark
   redis_available=false
-  if (has valkey-cli && valkey-cli ping &>/dev/null) || (has redis-cli && redis-cli ping &>/dev/null); then
+  read -r rhost rport < <(redis_host_port)
+  if (has valkey-cli && valkey-cli -h "$rhost" -p "$rport" ping &>/dev/null) || \
+     (has redis-cli && redis-cli -h "$rhost" -p "$rport" ping &>/dev/null); then
     redis_available=true
   fi
 
@@ -168,7 +193,7 @@ cmd_init() {
     if bundle exec bin/ots install mark; then
       info "Environment initialized (onetime:install:init_count incremented)"
     else
-      warn "install mark failed (exit $?) — check bin/ots output for details"
+      warn "install mark failed (exit $?) — see errors above"
     fi
   else
     warn "Redis/Valkey not running — skipping install mark (run install.sh again after starting Valkey)"
@@ -209,12 +234,13 @@ cmd_doctor() {
   (check_version "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"') || true
   (check_version_major "Node" node .nvmrc 'node -v') || true
 
-  if has valkey-cli && valkey-cli ping &>/dev/null; then
-    info "Valkey responding"
-  elif has redis-cli && redis-cli ping &>/dev/null; then
-    info "Redis responding"
+  read -r rhost rport < <(redis_host_port)
+  if has valkey-cli && valkey-cli -h "$rhost" -p "$rport" ping &>/dev/null; then
+    info "Valkey responding ($rhost:$rport)"
+  elif has redis-cli && redis-cli -h "$rhost" -p "$rport" ping &>/dev/null; then
+    info "Redis responding ($rhost:$rport)"
   else
-    warn "Valkey/Redis not responding or not found"
+    warn "Valkey/Redis not responding at $rhost:$rport"
   fi
 
   if has overmind; then
