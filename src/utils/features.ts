@@ -26,6 +26,16 @@ export function isMagicLinksEnabled(): boolean {
 }
 
 /**
+ * Checks if MFA (TOTP + recovery codes) is enabled
+ */
+export function isMfaEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  return features?.mfa === true;
+}
+
+/**
  * Checks if WebAuthn authentication is enabled
  */
 export function isWebAuthnEnabled(): boolean {

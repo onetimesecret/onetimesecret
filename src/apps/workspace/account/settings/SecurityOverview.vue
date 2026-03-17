@@ -5,7 +5,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useAccount } from '@/shared/composables/useAccount';
-  import { isWebAuthnEnabled } from '@/utils/features';
+  import { isMfaEnabled, isWebAuthnEnabled } from '@/utils/features';
   import type { AccountInfo } from '@/types/auth';
   import { computed, onMounted, ref } from 'vue';
 
@@ -13,6 +13,7 @@
 
   // Feature toggles
   const showSessionsCard = ref(false);
+  const mfaFeatureEnabled = ref(isMfaEnabled());
   const webAuthnEnabled = ref(isWebAuthnEnabled());
   const { accountInfo, fetchAccountInfo } = useAccount();
 
@@ -32,12 +33,16 @@
   const securityScore = computed(() => {
     if (!accountInfo.value) return 0;
 
-    let score = 0;
-    if (accountInfo.value.email_verified) score += 25;
-    if (accountInfo.value.mfa_enabled) score += 50;
-    if (accountInfo.value.recovery_codes_count > 0) score += 25;
+    if (mfaFeatureEnabled.value) {
+      let score = 0;
+      if (accountInfo.value.email_verified) score += 25;
+      if (accountInfo.value.mfa_enabled) score += 50;
+      if (accountInfo.value.recovery_codes_count > 0) score += 25;
+      return score;
+    }
 
-    return score;
+    // When MFA is disabled, score based on available factors only
+    return accountInfo.value.email_verified ? 100 : 0;
   });
 
   const securityLevel = computed(() => {
@@ -134,7 +139,12 @@
   const securityCards = computed<SecurityCard[]>(() => {
     if (!accountInfo.value) return [];
 
-    const cards = buildCoreCards(accountInfo.value);
+    let cards = buildCoreCards(accountInfo.value);
+
+    // Hide MFA and recovery codes cards when MFA feature is disabled
+    if (!mfaFeatureEnabled.value) {
+      cards = cards.filter((c) => c.id !== 'mfa' && c.id !== 'recovery-codes');
+    }
 
     if (webAuthnEnabled.value) {
       cards.push(buildPasskeyCard(accountInfo.value));
