@@ -200,6 +200,7 @@ export const mockReceiptRecord: Receipt = {
   is_destroyed: false,
   is_expired: false,
   is_orphaned: false,
+  has_passphrase: false,
   shared: null,
   received: null,
   viewed: null,

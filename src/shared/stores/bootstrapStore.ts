@@ -477,14 +477,19 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     custom_domains.value = DEFAULTS.custom_domains;
   }
 
+  /**
+   * Server configuration fields (authentication, ui, features, regions,
+   * secret_options, diagnostics) are intentionally NOT reset here. These
+   * values are set by the server at startup (e.g. AUTH_SIGNUP=false) and
+   * don't change per-user. Resetting them to hardcoded DEFAULTS would
+   * replace server config with permissive defaults (signup: true), causing
+   * disabled features to briefly appear after logout in SPA navigation.
+   *
+   * These fields are re-hydrated on full page reload from the server's
+   * window.__BOOTSTRAP_STATE__ injection.
+   */
   function resetSettings(): void {
-    regions.value = DEFAULTS.regions;
-    available_jurisdictions.value = DEFAULTS.available_jurisdictions;
-    authentication.value = DEFAULTS.authentication;
-    secret_options.value = DEFAULTS.secret_options;
-    diagnostics.value = DEFAULTS.diagnostics;
-    ui.value = DEFAULTS.ui;
-    features.value = DEFAULTS.features;
+    // no-op: all fields in this group are server configuration
   }
 
   function resetDisplayAndMisc(): void {
