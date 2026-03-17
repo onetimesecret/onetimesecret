@@ -21,6 +21,7 @@ pnpm-debug.log*
 .continue/
 .devcontainer
 .history
+.hypothesis/
 .pnpm/
 .pnpm-store/
 .prompts/
