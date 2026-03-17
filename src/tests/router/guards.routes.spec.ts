@@ -104,8 +104,8 @@ describe('Router Guards', () => {
   it('should redirect authenticated users from auth routes', async () => {
     setupRouterGuards(router);
 
-    // Index 2: main guard (index 0 is custom-domain guard, index 1 is feature-check guard)
-    const guard = vi.mocked(router.beforeEach).mock.calls[2][0] as AuthGuard;
+    // Index 3: main guard (0=custom-domain, 1=feature-check, 2=sso-only, 3=main)
+    const guard = vi.mocked(router.beforeEach).mock.calls[3][0] as AuthGuard;
     const to: RouteLocationNormalized = {
       meta: { isAuthRoute: true },
       query: {},
@@ -129,8 +129,8 @@ describe('Router Guards', () => {
   it('should handle root path redirect for authenticated users', async () => {
     setupRouterGuards(router);
 
-    // Index 2: main guard (index 0 is custom-domain guard, index 1 is feature-check guard)
-    const guard = vi.mocked(router.beforeEach).mock.calls[2][0] as AuthGuard;
+    // Index 3: main guard (0=custom-domain, 1=feature-check, 2=sso-only, 3=main)
+    const guard = vi.mocked(router.beforeEach).mock.calls[3][0] as AuthGuard;
     const to: RouteLocationNormalized = {
       path: '/',
       query: {},
