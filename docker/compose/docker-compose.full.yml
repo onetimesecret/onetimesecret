@@ -4,10 +4,22 @@
 # Full production deployment: Caddy TLS proxy, App, Valkey, RabbitMQ,
 # background workers, and scheduler.
 #
+# App uses pre-built images from Docker Hub. To pin a version:
+#   OTS_IMAGE_TAG=v0.24.6 docker compose up
+#
+# Caddy proxy requires building (plugins: ratelimit, security, transform-encoder):
+#   docker compose build proxy
+#
+# To build all services from source, use Docker Bake:
+#   docker buildx bake -f docker/bake.hcl all
+#
 # See docker/README.md for complete setup and usage documentation.
 
 services:
   proxy:
+    # Custom Caddy build required — the Caddyfile uses caddy-ratelimit,
+    # transform-encoder, and caddy-security plugins not in stock caddy:2.
+    # Build: docker buildx bake -f docker/bake.hcl caddy
     build:
       context: ../..
       dockerfile: docker/variants/caddy.dockerfile
@@ -34,14 +46,12 @@ services:
       - '2019'
     restart: unless-stopped
     volumes:
-      - ../../etc/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../../etc/examples/Caddyfile-example:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
 
   app:
-    build:
-      context: ../..
-      dockerfile: Dockerfile
+    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-latest}
     container_name: onetime-app
     depends_on:
       maindb:
@@ -141,9 +151,7 @@ services:
       start_period: 30s
 
   worker-email:
-    build:
-      context: ../..
-      dockerfile: Dockerfile
+    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-latest}
     container_name: onetime-worker-email
     depends_on:
       maindb:
@@ -155,6 +163,7 @@ services:
     environment:
       - RACK_ENV=${RACK_ENV:-production}
       - VALKEY_URL=redis://maindb:6379/0
+      - AUTH_DATABASE_URL=sqlite://data/auth.db
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
     command:
       [
@@ -177,12 +186,10 @@ services:
       - onetime-network
     restart: unless-stopped
     volumes:
-      - ../..:/app
+      - ../../data:/app/data
 
   scheduler:
-    build:
-      context: ../..
-      dockerfile: Dockerfile
+    image: onetimesecret/onetimesecret:${OTS_IMAGE_TAG:-latest}
     container_name: onetime-scheduler
     depends_on:
       maindb:
@@ -194,6 +201,7 @@ services:
     environment:
       - RACK_ENV=${RACK_ENV:-production}
       - VALKEY_URL=redis://maindb:6379/0
+      - AUTH_DATABASE_URL=sqlite://data/auth.db
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
     command: ['./bin/ots', 'jobs', 'scheduler', '--environment', 'production']
     logging:
@@ -205,7 +213,7 @@ services:
       - onetime-network
     restart: unless-stopped
     volumes:
-      - ../..:/app
+      - ../../data:/app/data
 
 networks:
   onetime-network:
