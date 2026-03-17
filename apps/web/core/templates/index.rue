@@ -9,7 +9,14 @@ import { z } from 'zod';
 
 const schema = z.object({
   // ConfigSerializer fields
-  authentication: z.object({}).nullable(),
+  authentication: z.object({
+    enabled: z.boolean(),
+    signup: z.boolean(),
+    signin: z.boolean(),
+    autoverify: z.boolean(),
+    required: z.boolean(),
+    mode: z.enum(['simple', 'full']).optional(),
+  }).nullable(),
   d9s_enabled: z.boolean().nullable(),
   diagnostics: z.object({
     sentry: z.object({}).optional()
