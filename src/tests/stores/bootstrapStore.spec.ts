@@ -487,7 +487,7 @@ describe('bootstrapStore', () => {
       expect(store.custom_domains).toEqual([]);
     });
 
-    it('resets regions configuration to defaults', () => {
+    it('preserves regions configuration through reset (server config)', () => {
       store.update({
         regions: {
           identifier: 'EU',
@@ -499,12 +499,14 @@ describe('bootstrapStore', () => {
 
       store.$reset();
 
-      expect(store.regions.identifier).toBe('');
-      expect(store.regions.enabled).toBe(false);
-      expect(store.regions.jurisdictions).toEqual([]);
+      // Server config fields are NOT reset — they persist until next
+      // full page reload re-hydrates from window.__BOOTSTRAP_STATE__
+      expect(store.regions.identifier).toBe('EU');
+      expect(store.regions.enabled).toBe(true);
+      expect(store.regions.jurisdictions).toEqual(['EU', 'US']);
     });
 
-    it('resets authentication settings to defaults', () => {
+    it('preserves authentication settings through reset (server config)', () => {
       store.update({
         authentication: {
           enabled: false,
@@ -517,14 +519,15 @@ describe('bootstrapStore', () => {
 
       store.$reset();
 
-      expect(store.authentication.enabled).toBe(true);
-      expect(store.authentication.signup).toBe(true);
-      expect(store.authentication.signin).toBe(true);
-      expect(store.authentication.autoverify).toBe(false);
-      expect(store.authentication.required).toBe(false);
+      // Server config: retains the values set via update()
+      expect(store.authentication.enabled).toBe(false);
+      expect(store.authentication.signup).toBe(false);
+      expect(store.authentication.signin).toBe(false);
+      expect(store.authentication.autoverify).toBe(true);
+      expect(store.authentication.required).toBe(true);
     });
 
-    it('resets secret options to defaults', () => {
+    it('preserves secret options through reset (server config)', () => {
       store.update({
         secret_options: {
           default_ttl: 3600,
@@ -534,13 +537,12 @@ describe('bootstrapStore', () => {
 
       store.$reset();
 
-      expect(store.secret_options.default_ttl).toBe(604800);
-      expect(store.secret_options.ttl_options).toEqual([
-        300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000,
-      ]);
+      // Server config: retains the values set via update()
+      expect(store.secret_options.default_ttl).toBe(3600);
+      expect(store.secret_options.ttl_options).toEqual([60, 120]);
     });
 
-    it('resets UI configuration to defaults', () => {
+    it('preserves UI configuration through reset (server config)', () => {
       store.update({
         ui: {
           enabled: false,
@@ -551,9 +553,10 @@ describe('bootstrapStore', () => {
 
       store.$reset();
 
-      expect(store.ui.enabled).toBe(true);
-      expect(store.ui.header?.enabled).toBe(true);
-      expect(store.ui.footer_links?.enabled).toBe(false);
+      // Server config: retains the values set via update()
+      expect(store.ui.enabled).toBe(false);
+      expect(store.ui.header?.enabled).toBe(false);
+      expect(store.ui.footer_links?.enabled).toBe(true);
     });
 
     it('resets billing data to defaults', () => {
