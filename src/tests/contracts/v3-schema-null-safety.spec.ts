@@ -282,19 +282,17 @@ describe('V3 schema null-safety audit', () => {
     // Domain boolean fields
     const domainBooleans = extractBooleanFields(customDomainResponseSchema);
 
-    const domainRecordBareFields = [
-      'record.is_apex',
-      'record.verified',
-    ];
+    it('domain field "record.is_apex" uses bare z.boolean() and REJECTS null', () => {
+      const field = domainBooleans.find((b) => b.path === 'record.is_apex');
+      expect(field).toBeDefined();
+      expect(fieldAcceptsNull(field!.schema)).toBe(false);
+    });
 
-    it.each(domainRecordBareFields)(
-      'domain field "%s" uses bare z.boolean() and REJECTS null',
-      (fieldPath) => {
-        const field = domainBooleans.find((b) => b.path === fieldPath);
-        expect(field).toBeDefined();
-        expect(fieldAcceptsNull(field!.schema)).toBe(false);
-      }
-    );
+    it('domain field "record.verified" accepts null (coerces to false)', () => {
+      const field = domainBooleans.find((b) => b.path === 'record.verified');
+      expect(field).toBeDefined();
+      expect(fieldAcceptsNull(field!.schema)).toBe(true);
+    });
 
     // Jurisdiction boolean fields
     const jurisdictionBooleans = extractBooleanFields(jurisdictionResponseSchema);
