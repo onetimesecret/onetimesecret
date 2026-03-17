@@ -25,9 +25,10 @@ require_relative '../../operations/close_account'
 
 # Skip this test file gracefully if auth database is not available.
 # This happens when running tests without a PostgreSQL database configured.
+# NOTE: Do not use `exit` here — tryouts runs files in the same process,
+# so exit would kill the entire test batch.
 unless @db
-  warn "[SKIP] close_account_try.rb: Auth database not configured (full auth mode requires database)"
-  exit 0
+  raise "[SKIP] close_account_try.rb: Auth database not configured (full auth mode requires database)"
 end
 
 # Create a test account directly in the auth database
