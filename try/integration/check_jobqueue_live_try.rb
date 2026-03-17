@@ -75,14 +75,19 @@ class MockResponse
   end
 end
 
-# Save original config values so teardown can restore them
-@original_jobs_enabled = OT.conf.dig('jobs', 'enabled')
-@original_rabbitmq_url = OT.conf.dig('jobs', 'rabbitmq_url')
+# Save original frozen config so teardown can restore it
+@original_conf = OT.conf
 
-# Override config to enable jobs with the live broker URL
-OT.conf['jobs'] ||= {}
-OT.conf['jobs']['enabled'] = true
-OT.conf['jobs']['rabbitmq_url'] = @rabbitmq_url
+# The config is deep-frozen after boot, so we replace it with an
+# unfrozen shallow copy that has an unfrozen jobs hash pointing
+# at the live broker URL.
+jobs_override = (OT.conf['jobs'] || {}).dup
+jobs_override['enabled'] = true
+jobs_override['rabbitmq_url'] = @rabbitmq_url
+
+unfrozen_conf = OT.conf.dup
+unfrozen_conf['jobs'] = jobs_override
+Onetime.send(:conf=, unfrozen_conf)
 
 @controller = MockHealthController.new
 @result = @controller.test_check_jobqueue
@@ -108,6 +113,5 @@ OT.conf['jobs']['rabbitmq_url'] = @rabbitmq_url
 @result[:vhost].is_a?(String)
 #=> true
 
-# Restore original config values
-OT.conf['jobs']['enabled'] = @original_jobs_enabled
-OT.conf['jobs']['rabbitmq_url'] = @original_rabbitmq_url
+# Restore original frozen config
+Onetime.send(:conf=, @original_conf)
