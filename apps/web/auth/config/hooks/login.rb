@@ -52,29 +52,36 @@ module Auth::Config::Hooks
           correlation_id: correlation_id,
         )
 
-        # Step 1: Check MFA configuration state from database
-        # This queries the database directly for account_otp_keys and account_recovery_codes
-        mfa_state = Auth::Operations::MfaStateChecker.new(db).check(account_id)
+        # MFA detection: only run if the OTP feature is actually loaded.
+        # MFA features are conditionally enabled via Onetime.auth_config.mfa_enabled?
+        # in config.rb, so otp_auth_route and related methods may not exist.
+        mfa_decision = nil
 
-        Auth::Logging.log_auth_event(
-          :mfa_state_checked,
-          level: :debug,
-          account_id: account_id,
-          has_otp: mfa_state.has_otp_secret,
-          has_recovery: mfa_state.has_recovery_codes,
-          mfa_enabled: mfa_state.mfa_enabled?,
-          correlation_id: correlation_id,
-        )
+        if respond_to?(:otp_auth_route)
+          # Step 1: Check MFA configuration state from database
+          # This queries the database directly for account_otp_keys and account_recovery_codes
+          mfa_state = Auth::Operations::MfaStateChecker.new(db).check(account_id)
 
-        # Step 2: Make MFA requirement decision (pure function, no side effects)
-        # This accepts only primitive data and returns an immutable decision object
-        mfa_decision = Auth::Operations::DetectMfaRequirement.call(
-          account_id: account_id,
-          has_otp_secret: mfa_state.has_otp_secret,
-          has_recovery_codes: mfa_state.has_recovery_codes,
-        )
+          Auth::Logging.log_auth_event(
+            :mfa_state_checked,
+            level: :debug,
+            account_id: account_id,
+            has_otp: mfa_state.has_otp_secret,
+            has_recovery: mfa_state.has_recovery_codes,
+            mfa_enabled: mfa_state.mfa_enabled?,
+            correlation_id: correlation_id,
+          )
 
-        if mfa_decision.requires_mfa?
+          # Step 2: Make MFA requirement decision (pure function, no side effects)
+          # This accepts only primitive data and returns an immutable decision object
+          mfa_decision = Auth::Operations::DetectMfaRequirement.call(
+            account_id: account_id,
+            has_otp_secret: mfa_state.has_otp_secret,
+            has_recovery_codes: mfa_state.has_recovery_codes,
+          )
+        end
+
+        if mfa_decision&.requires_mfa?
           # Step 3a: MFA required - prepare session for MFA flow
           Auth::Logging.log_auth_event(
             :mfa_required,
@@ -116,9 +123,9 @@ module Auth::Config::Hooks
           Auth::Logging.log_auth_event(
             :session_sync_start,
             level: :info,
-            account_id: mfa_decision.account_id,
+            account_id: account_id,
             external_id: account[:external_id],
-            reason: mfa_decision.reason,
+            reason: mfa_decision&.reason || 'mfa_not_loaded',
             correlation_id: correlation_id,
             note: 'No MFA required',
           )
