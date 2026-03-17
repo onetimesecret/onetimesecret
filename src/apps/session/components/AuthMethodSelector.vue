@@ -29,13 +29,13 @@ const emit = defineEmits<{
 const magicLinksEnabled = isMagicLinksEnabled();
 const webauthnEnabled = isWebAuthnEnabled();
 const ssoEnabled = isSsoEnabled();
-const ssoOnly = isSsoOnlyMode();
+const ssoOnly = computed(() => isSsoOnlyMode());
 
 // Extract SSO providers via feature utility
 const ssoProviders = computed(() => getSsoProviders());
 
 // SSO-only mode: show only SSO buttons when both sso_only and sso are active
-const showSsoOnly = computed(() => ssoOnly && ssoEnabled && ssoProviders.value.length > 0);
+const showSsoOnly = computed(() => ssoOnly.value && ssoEnabled && ssoProviders.value.length > 0);
 
 // Show passwordless-first UI when any passwordless method is enabled
 const hasPasswordlessMethods = computed(() => magicLinksEnabled || webauthnEnabled);

@@ -146,8 +146,10 @@ module Onetime
     # Returns false if SSO itself is disabled (no-op guard).
     def sso_only_enabled?
       return false unless sso_enabled?
+      return false unless sso_config['sso_only'] == true
 
-      sso_config['sso_only'] == true
+      # Ensure at least one provider is actually configured
+      sso_providers.any?
     end
 
     # SSO display name (e.g., "Zitadel", "Okta", "Azure AD")
@@ -219,7 +221,7 @@ module Onetime
     # under features, so existing config files keep working.
     def sso_config
       section = full['sso']
-      return section if section.is_a?(Hash) && !section.empty?
+      return section if section.is_a?(Hash)
 
       # Legacy: sso_display_name was under features, sso_only read from ENV
       {

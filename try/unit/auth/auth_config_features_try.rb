@@ -135,9 +135,13 @@ cfg['mode'] = 'full'
 cfg['full']['features']['sso'] = true
 cfg['full']['sso'] ||= {}
 cfg['full']['sso']['sso_only'] = true
+ENV['OIDC_ISSUER'] = 'https://example.com'
+ENV['OIDC_CLIENT_ID'] = 'test-client'
 result = config.sso_only_enabled?
 cfg['full']['features']['sso'] = false
 cfg['full']['sso']['sso_only'] = false
+ENV.delete('OIDC_ISSUER')
+ENV.delete('OIDC_CLIENT_ID')
 result
 #=> true
 
