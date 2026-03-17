@@ -21,6 +21,7 @@ pnpm-debug.log*
 .continue/
 .devcontainer
 .history
+.hypothesis/
 .pnpm/
 .pnpm-store/
 .prompts/
@@ -55,7 +56,7 @@ public/doc
 # Files
 .DS_Store
 CLAUDE.md
-!.pr_agent.toml
+!.oci-build.json
 .github/*md
 .eslintcache
 .claude
