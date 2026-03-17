@@ -143,8 +143,8 @@ module Onetime
       owner_id.to_s == 'anon'
     end
 
-    def owner?(cust)
-      !anonymous? && (cust.is_a?(Onetime::Customer) ? cust.custid : cust).to_s == owner_id.to_s
+    def owner?(fobj)
+      fobj && !anonymous? && (fobj.objid == owner_id)
     end
 
     def valid?
@@ -157,10 +157,6 @@ module Onetime
 
     def load_owner
       Onetime::Customer.load owner_id
-    end
-
-    def owner?(fobj)
-      fobj && (fobj.objid == owner_id)
     end
 
     def load_secret
