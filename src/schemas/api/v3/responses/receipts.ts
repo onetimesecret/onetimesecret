@@ -33,7 +33,7 @@ export const receiptBaseRecord = z.object({
   receipt_ttl: z.number(),        // seconds
   lifespan: z.number(),           // seconds
   state: z.enum(receiptStateValues),
-  has_passphrase: z.boolean().nullish(),
+  has_passphrase: z.boolean().nullish().transform((v) => v ?? false),
 
   // Timestamp fields (Unix epoch → Date, or null)
   shared: transforms.fromNumber.toDateNullish,
