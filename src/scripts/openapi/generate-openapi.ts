@@ -220,24 +220,41 @@ function toSummary(leaf: string): string {
 }
 
 /**
- * Derive the tag from the API name and handler namespace.
+ * Derive the tag from the API name and the route path.
+ *
+ * Versioned APIs (v1, v2, v3, …) sub-group by the first path segment
+ * so that overlapping resource names like "secret" and "receipt" stay
+ * separated per version. Non-versioned APIs (account, colonel, domains,
+ * etc.) use the API name alone — the name itself is already a sufficient
+ * resource boundary.
+ *
+ * Examples:
+ *   ("v2", "/secret/conceal")       → "v2-secret"
+ *   ("v3", "/guest/secret/:id")     → "v3-guest"
+ *   ("v3", "/incoming/config")      → "v3-incoming"
+ *   ("v2", "/status")               → "v2-meta"
+ *   ("v1", "/share")                → "v1-meta"
+ *   ("colonel", "/secrets/:id")     → "colonel"
+ *   ("account", "/apitoken")        → "account"
  */
-function deriveTag(apiName: string, handler: string): string {
-  // Use the namespace segment before the leaf class as the tag
-  const parts = handler.split('::');
+function deriveTag(apiName: string, routePath: string): string {
+  // Only versioned APIs benefit from path-based sub-grouping.
+  // Non-versioned APIs are already namespaced by their API name.
+  const isVersioned = /^v\d+$/.test(apiName);
 
-  // For logic classes: V3::Logic::Secrets::ConcealSecret -> "Secrets"
-  // For controllers:  V1::Controllers::Index#method -> "V1"
-  if (parts.length >= 3) {
-    // Use second-to-last namespace segment
-    const namespace = parts[parts.length - 2];
-    // Skip generic namespaces
-    if (!['Logic', 'Controllers', 'Index'].includes(namespace)) {
-      return namespace.toLowerCase();
+  if (isVersioned) {
+    const segments = routePath.split('/').filter(Boolean);
+
+    if (segments.length > 1 && !segments[0].startsWith(':')) {
+      return `${apiName}-${segments[0]}`;
     }
+
+    // Top-level versioned endpoints (/status, /share) use -meta so
+    // the tag reads as a peer of v1-secret, v2-receipt, etc. rather
+    // than looking like a parent container for the whole version.
+    return `${apiName}-meta`;
   }
 
-  // Fallback to API name
   return apiName;
 }
 
@@ -482,7 +499,7 @@ function buildOperation(
 ): Record<string, unknown> {
   const leaf = getHandlerLeaf(route.handler);
   const operationId = toOperationId(leaf);
-  const tag = deriveTag(apiName, route.handler);
+  const tag = deriveTag(apiName, route.path);
   const isDeprecated = route.params.deprecated === 'true';
 
   // Make operationId unique by prefixing with apiName.
