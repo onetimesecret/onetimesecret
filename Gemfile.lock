@@ -524,7 +524,6 @@ GEM
       yard-solargraph (~> 0.1)
     sorted_set (1.1.0)
       rbtree
-      set (~> 1.0)
     sqlite3 (2.9.2)
       mini_portile2 (~> 2.8.0)
     sqlite3 (2.9.2-aarch64-linux-gnu)
