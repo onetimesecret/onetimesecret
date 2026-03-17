@@ -168,7 +168,7 @@ namespace :try do
   desc 'Run unit tryouts (includes security, feature, and app-colocated tests)'
   task :unit do
     patterns  = %w[try/unit try/system try/security try/features]
-    patterns += Dir.glob('apps/**/try').select { |p| Dir.exist?(p) }
+    patterns += Dir.glob('apps/**/try')
     paths     = patterns.uniq.select { |p| Dir.exist?(p) }.join(' ')
     sh "bundle exec tryouts --agent #{paths}" unless paths.empty?
   end
