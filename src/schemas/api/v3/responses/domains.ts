@@ -88,7 +88,7 @@ const customDomainRecord = z.object({
   tld: z.string(),
   sld: z.string(),
   is_apex: z.boolean(),
-  verified: z.boolean().nullable().transform((v) => v ?? false),
+  verified: z.boolean().nullable().transform((v) => v ?? false), // null before DNS validation completes
   txt_validation_host: z.string(),
   txt_validation_value: z.string(),
   vhost: vhostRecord.nullable(),

@@ -33,7 +33,7 @@ export const receiptBaseRecord = z.object({
   receipt_ttl: z.number(),        // seconds
   lifespan: z.number(),           // seconds
   state: z.enum(receiptStateValues),
-  has_passphrase: z.boolean().nullish().transform((v) => v ?? false),
+  has_passphrase: z.boolean().nullish().transform((v) => v ?? false), // null/undefined for consumed secrets
 
   // Timestamp fields (Unix epoch → Date, or null)
   shared: transforms.fromNumber.toDateNullish,
@@ -78,8 +78,8 @@ const receiptDetails = z.object({
   no_cache: z.boolean(),
   secret_realttl: z.number().nullable().optional(),
   view_count: z.number().nullable(),
-  has_passphrase: z.boolean().nullable().transform((v) => v ?? false),
-  can_decrypt: z.boolean().nullable().transform((v) => v ?? false),
+  has_passphrase: z.boolean().nullable().transform((v) => v ?? false), // null when secret is consumed/destroyed
+  can_decrypt: z.boolean().nullable().transform((v) => v ?? false),   // null when secret is consumed/destroyed
   secret_value: z.string().nullable().optional(),
   show_secret: z.boolean(),
   show_secret_link: z.boolean(),
