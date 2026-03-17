@@ -8,7 +8,7 @@ import { ref, computed } from 'vue';
 
 export interface Props {
   /**
-   * OmniAuth route name used to build the POST action URL.
+   * SSO route name used to build the POST action URL.
    * Corresponds to the `name:` option in auth.omniauth_provider.
    * Example: 'oidc', 'google', 'entra', 'github'
    */

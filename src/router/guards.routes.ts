@@ -5,6 +5,7 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { usePageTitle } from '@/shared/composables/usePageTitle';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useLanguageStore } from '@/shared/stores/languageStore';
+import { isSsoOnlyMode } from '@/utils/features';
 import { RouteLocationNormalized, Router } from 'vue-router';
 
 import { processQueryParams } from './queryParams.handler';
@@ -42,6 +43,12 @@ export async function setupRouterGuards(router: Router): Promise<void> {
   // Runs as a separate guard to keep complexity per-function within limits.
   router.beforeEach((to: RouteLocationNormalized) => {
     const redirect = handleDisabledAuthFeature(to);
+    return redirect ?? true;
+  });
+
+  // Block access to routes marked ssoOnlyDisabled when SSO-only mode is active.
+  router.beforeEach((to: RouteLocationNormalized) => {
+    const redirect = handleSsoOnlyRoute(to);
     return redirect ?? true;
   });
 
@@ -187,6 +194,23 @@ function handleDisabledAuthFeature(to: RouteLocationNormalized) {
   }
 
   return null;
+}
+
+/**
+ * Block access to routes marked with `meta.ssoOnlyDisabled: true`
+ * when SSO-only mode is active.
+ *
+ * Redirects to '/signin' so the user sees the SSO-only sign-in page.
+ */
+function handleSsoOnlyRoute(to: RouteLocationNormalized) {
+  if (!to.meta.ssoOnlyDisabled) return null;
+  if (!isSsoOnlyMode()) return null;
+
+  loggingService.debug(
+    '[RouterGuard] Redirecting - SSO-only mode blocks route:',
+    { path: to.path }
+  );
+  return { path: '/signin' };
 }
 
 function redirectToSignIn(from: RouteLocationNormalized) {

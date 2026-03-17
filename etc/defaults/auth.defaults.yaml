@@ -83,19 +83,31 @@ full:
     # WebAuthn: biometrics and security keys (default: OFF)
     webauthn: <%= ENV['AUTH_WEBAUTHN_ENABLED'] == 'true' %>
 
-    # OmniAuth: external identity providers via SSO (default: OFF)
+    # SSO: external identity providers via OmniAuth (default: OFF)
     # Master switch — individual providers are enabled by their own env vars:
     #   OIDC: OIDC_ISSUER, OIDC_CLIENT_ID
     #   Entra ID: ENTRA_TENANT_ID, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET
     #   Google: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
     #   GitHub: GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
-    omniauth: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
+    sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
 
+  # SSO configuration section
+  #
+  # Settings that control SSO behavior beyond the feature toggle.
+  # These are separate from `features` because they configure how SSO
+  # works rather than whether it's enabled.
+  sso:
     # SSO display name (shown on "Sign in with X" button)
     # DEPRECATED: Each provider now carries its own display name via
     # OIDC_DISPLAY_NAME, ENTRA_DISPLAY_NAME, GOOGLE_DISPLAY_NAME, etc.
     # Retained for backward compatibility with single-provider OIDC setups.
     sso_display_name: <%= ENV.fetch('SSO_DISPLAY_NAME', '') %>
+
+    # SSO-only mode: when true, disables password-based account management
+    # (destroy account, change password, change email). Users must manage
+    # their credentials through the SSO identity provider.
+    # Only effective when SSO is enabled (features.sso = true).
+    sso_only: <%= ENV['AUTH_SSO_ONLY'] == 'true' %>
 
   # Argon2 secret key (pepper) for password hashing defense-in-depth.
   # Folded into password hashes — if the hash database is compromised,

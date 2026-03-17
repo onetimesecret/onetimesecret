@@ -46,6 +46,7 @@
 
 require_relative '../base'
 require_relative '../../../../../lib/onetime/jobs/publisher'
+require 'onetime/logic/sso_only_gating'
 
 module AccountAPI::Logic
   module Account
@@ -53,6 +54,7 @@ module AccountAPI::Logic
 
     class RequestEmailChange < UpdateAccountField
       include Onetime::LoggerMethods
+      include Onetime::Logic::SsoOnlyGating
 
       # Per-customer rate limit: at most MAX_REQUESTS email change requests
       # within a 24-hour rolling window. Prevents billing API exhaustion via
@@ -60,6 +62,11 @@ module AccountAPI::Logic
       MAX_REQUESTS = 5
 
       attr_reader :new_email
+
+      def raise_concerns
+        require_non_sso_only!
+        super
+      end
 
       def process_params
         @password  = self.class.normalize_password(params['password'])

@@ -124,10 +124,32 @@ module Onetime
       feature_enabled?('webauthn', default: false)
     end
 
-    # Whether OmniAuth (external identity providers via OIDC) is enabled
+    # Whether SSO (external identity providers via OmniAuth) is enabled
     # Default: false
-    def omniauth_enabled?
-      feature_enabled?('omniauth', default: false)
+    #
+    # Supports both 'sso' (new) and 'omniauth' (legacy) feature keys
+    # so existing config files continue to work after the rename.
+    def sso_enabled?
+      feature_enabled?('sso', default: false) ||
+        feature_enabled?('omniauth', default: false)
+    end
+
+    # DEPRECATED: Use sso_enabled? — retained for Rodauth integration files
+    # that reference omniauth_enabled? (apps/web/auth/).
+    alias omniauth_enabled? sso_enabled?
+
+    # Whether SSO-only mode is active.
+    # When true, password-based account management is disabled (destroy
+    # account, change password, change email). Users must manage their
+    # credentials through the SSO identity provider.
+    #
+    # Returns false if SSO itself is disabled (no-op guard).
+    def sso_only_enabled?
+      return false unless sso_enabled?
+      return false unless sso_config['sso_only'] == true
+
+      # Ensure at least one provider is actually configured
+      sso_providers.any?
     end
 
     # SSO display name (e.g., "Zitadel", "Okta", "Azure AD")
@@ -137,9 +159,9 @@ module Onetime
     # DEPRECATED: In multi-provider context, each provider carries its own
     # display_name. Use sso_providers instead.
     def sso_display_name
-      return nil unless omniauth_enabled?
+      return nil unless sso_enabled?
 
-      name = features['sso_display_name']
+      name = sso_config['sso_display_name']
       name.to_s.strip.empty? ? nil : name
     end
 
@@ -155,7 +177,7 @@ module Onetime
     # DEPRECATED: Use sso_providers instead (returns array of providers
     # each with their own route_name).
     def omniauth_route_name
-      return nil unless omniauth_enabled?
+      return nil unless sso_enabled?
 
       ENV.fetch('OIDC_ROUTE_NAME', 'oidc')
     end
@@ -163,9 +185,9 @@ module Onetime
     # All configured SSO providers, built dynamically from env var presence.
     # Returns an array of hashes: [{ 'route_name' => 'oidc', 'display_name' => 'SSO' }, ...]
     # Each entry corresponds to a provider whose required env vars are present.
-    # Returns empty array if omniauth is disabled or no providers are configured.
+    # Returns empty array if SSO is disabled or no providers are configured.
     def sso_providers
-      return [] unless omniauth_enabled?
+      return [] unless sso_enabled?
 
       provider_definitions.filter_map do |defn|
         next unless defn[:required_vars].all? { |var| env_present?(var) }
@@ -192,6 +214,22 @@ module Onetime
 
     private
 
+    # SSO configuration section from full mode config.
+    # Contains sso_display_name and sso_only settings.
+    #
+    # Falls back to legacy layout where sso_display_name lived
+    # under features, so existing config files keep working.
+    def sso_config
+      section = full['sso']
+      return section if section.is_a?(Hash)
+
+      # Legacy: sso_display_name was under features, sso_only read from ENV
+      {
+        'sso_display_name' => features['sso_display_name'],
+        'sso_only' => ENV['AUTH_SSO_ONLY'] == 'true',
+      }
+    end
+
     # Generic helper to check if a feature is enabled in full mode.
     # Returns false if not in full mode, otherwise fetches the feature
     # flag from config, falling back to the provided default.
@@ -207,23 +245,31 @@ module Onetime
       [
         {
           required_vars: %w[OIDC_ISSUER OIDC_CLIENT_ID],
-          route_var: 'OIDC_ROUTE_NAME', route_default: 'oidc',
-          display_var: 'OIDC_DISPLAY_NAME', display_default: sso_display_name || 'SSO',
+          route_var: 'OIDC_ROUTE_NAME',
+          route_default: 'oidc',
+          display_var: 'OIDC_DISPLAY_NAME',
+          display_default: sso_display_name || 'SSO',
         },
         {
           required_vars: %w[ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET],
-          route_var: 'ENTRA_ROUTE_NAME', route_default: 'entra',
-          display_var: 'ENTRA_DISPLAY_NAME', display_default: 'Microsoft',
+          route_var: 'ENTRA_ROUTE_NAME',
+          route_default: 'entra',
+          display_var: 'ENTRA_DISPLAY_NAME',
+          display_default: 'Microsoft',
         },
         {
           required_vars: %w[GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET],
-          route_var: 'GOOGLE_ROUTE_NAME', route_default: 'google',
-          display_var: 'GOOGLE_DISPLAY_NAME', display_default: 'Google',
+          route_var: 'GOOGLE_ROUTE_NAME',
+          route_default: 'google',
+          display_var: 'GOOGLE_DISPLAY_NAME',
+          display_default: 'Google',
         },
         {
           required_vars: %w[GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET],
-          route_var: 'GITHUB_ROUTE_NAME', route_default: 'github',
-          display_var: 'GITHUB_DISPLAY_NAME', display_default: 'GitHub',
+          route_var: 'GITHUB_ROUTE_NAME',
+          route_default: 'github',
+          display_var: 'GITHUB_DISPLAY_NAME',
+          display_default: 'GitHub',
         },
       ]
     end

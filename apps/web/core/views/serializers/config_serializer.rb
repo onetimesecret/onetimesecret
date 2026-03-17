@@ -111,11 +111,12 @@ module Core
             'mfa' => Onetime.auth_config.mfa_enabled?,
             'email_auth' => Onetime.auth_config.email_auth_enabled?,
             'webauthn' => Onetime.auth_config.webauthn_enabled?,
-            'omniauth' => build_omniauth_config,
+            'sso' => build_sso_config,
+            'sso_only' => Onetime.auth_config.sso_only_enabled?,
           }
         end
 
-        # Build OmniAuth configuration for frontend
+        # Build SSO configuration for frontend
         #
         # Returns false if disabled, or a hash with enabled status and
         # a providers array for multi-provider SSO support.
@@ -124,19 +125,19 @@ module Core
         # display_name (for button label).
         #
         # @return [Boolean, Hash] false if disabled, otherwise config hash
-        def build_omniauth_config
-          return false unless Onetime.auth_config.omniauth_enabled?
+        def build_sso_config
+          return false unless Onetime.auth_config.sso_enabled?
 
           providers = Onetime.auth_config.sso_providers
 
           {
             'enabled' => true,
-            'providers' => providers.map { |p|
+            'providers' => providers.map do |p|
               {
                 'route_name' => p['route_name'].to_s,
                 'display_name' => p['display_name'].to_s,
               }
-            },
+            end,
           }
         end
       end

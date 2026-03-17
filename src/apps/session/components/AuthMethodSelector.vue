@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { isMagicLinksEnabled, isOmniAuthEnabled, isWebAuthnEnabled, getOmniAuthProviders } from '@/utils/features';
+import { isMagicLinksEnabled, isSsoEnabled, isWebAuthnEnabled, getSsoProviders, isSsoOnlyMode } from '@/utils/features';
 import { ref, computed } from 'vue';
 
 import PasswordlessFirstSignIn from './PasswordlessFirstSignIn.vue';
@@ -28,10 +28,14 @@ const emit = defineEmits<{
 // Check which methods are enabled
 const magicLinksEnabled = isMagicLinksEnabled();
 const webauthnEnabled = isWebAuthnEnabled();
-const omniAuthEnabled = isOmniAuthEnabled();
+const ssoEnabled = isSsoEnabled();
+const ssoOnly = computed(() => isSsoOnlyMode());
 
 // Extract SSO providers via feature utility
-const ssoProviders = computed(() => getOmniAuthProviders());
+const ssoProviders = computed(() => getSsoProviders());
+
+// SSO-only mode: show only SSO buttons when both sso_only and sso are active
+const showSsoOnly = computed(() => ssoOnly.value && ssoEnabled && ssoProviders.value.length > 0);
 
 // Show passwordless-first UI when any passwordless method is enabled
 const hasPasswordlessMethods = computed(() => magicLinksEnabled || webauthnEnabled);
@@ -50,34 +54,8 @@ defineExpose({ currentMode });
 
 <template>
   <div class="space-y-6">
-    <!-- Passwordless-first mode when any passwordless method is enabled -->
-    <PasswordlessFirstSignIn
-      v-if="hasPasswordlessMethods"
-      :locale="locale"
-      :magic-links-enabled="magicLinksEnabled"
-      :webauthn-enabled="webauthnEnabled"
-      @mode-change="handleModeChange" />
-
-    <!-- Password-only mode when no passwordless methods enabled -->
-    <SignInForm
-      v-else
-      :locale="locale" />
-
-    <!-- SSO section when OmniAuth is enabled -->
-    <template v-if="omniAuthEnabled && ssoProviders.length > 0">
-      <!-- Divider -->
-      <div class="relative">
-        <div class="absolute inset-0 flex items-center" aria-hidden="true">
-          <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
-        </div>
-        <div class="relative flex justify-center text-sm">
-          <span class="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-            {{ t('web.login.or_continue_with') }}
-          </span>
-        </div>
-      </div>
-
-      <!-- SSO Buttons — one per configured provider -->
+    <!-- SSO-only mode: render only SSO provider buttons -->
+    <template v-if="showSsoOnly">
       <div class="space-y-3">
         <SsoButton
           v-for="provider in ssoProviders"
@@ -85,6 +63,46 @@ defineExpose({ currentMode });
           :route-name="provider.route_name"
           :display-name="provider.display_name" />
       </div>
+    </template>
+
+    <!-- Standard auth mode: password/passwordless forms with optional SSO -->
+    <template v-else>
+      <!-- Passwordless-first mode when any passwordless method is enabled -->
+      <PasswordlessFirstSignIn
+        v-if="hasPasswordlessMethods"
+        :locale="locale"
+        :magic-links-enabled="magicLinksEnabled"
+        :webauthn-enabled="webauthnEnabled"
+        @mode-change="handleModeChange" />
+
+      <!-- Password-only mode when no passwordless methods enabled -->
+      <SignInForm
+        v-else
+        :locale="locale" />
+
+      <!-- SSO section when SSO is enabled -->
+      <template v-if="ssoEnabled && ssoProviders.length > 0">
+        <!-- Divider -->
+        <div class="relative">
+          <div class="absolute inset-0 flex items-center" aria-hidden="true">
+            <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+              {{ t('web.login.or_continue_with') }}
+            </span>
+          </div>
+        </div>
+
+        <!-- SSO Buttons — one per configured provider -->
+        <div class="space-y-3">
+          <SsoButton
+            v-for="provider in ssoProviders"
+            :key="provider.route_name"
+            :route-name="provider.route_name"
+            :display-name="provider.display_name" />
+        </div>
+      </template>
     </template>
   </div>
 </template>
