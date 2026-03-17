@@ -5,9 +5,10 @@
 # CLI command for generating and displaying Basic Auth API credentials.
 #
 # Usage:
-#   bin/ots apitoken user@example.com              # Regenerate token for existing customer
-#   bin/ots apitoken user@example.com --create      # Create customer if needed, then generate token
-#   bin/ots apitoken user@example.com --show        # Show existing token without regenerating
+#   bin/ots apitoken user@example.com                    # Regenerate token for existing customer
+#   bin/ots apitoken user@example.com --create            # Create new customer (errors if exists)
+#   bin/ots apitoken user@example.com --create-or-update  # Create if new, regenerate if existing
+#   bin/ots apitoken user@example.com --show              # Show existing token without regenerating
 #
 
 require 'base64'
@@ -39,6 +40,11 @@ module Onetime
         default: true,
         desc: 'Whether to mark created accounts as verified (default: true)'
 
+      option :create_or_update,
+        type: :boolean,
+        default: false,
+        desc: 'Create the customer if new, or regenerate token if existing'
+
       option :show,
         type: :boolean,
         default: false,
@@ -47,7 +53,7 @@ module Onetime
       # Valid roles in hierarchy order
       VALID_ROLES = %w[colonel admin staff customer].freeze
 
-      def call(email:, create: false, role: 'customer', password: nil, verified: true, show: false, **)
+      def call(email:, create: false, create_or_update: false, role: 'customer', password: nil, verified: true, show: false, **)
         boot_application!
 
         unless valid_email?(email)
@@ -55,7 +61,7 @@ module Onetime
           exit 1
         end
 
-        customer = resolve_customer(email, create, role, password, verified)
+        customer = resolve_customer(email, create, create_or_update, role, password, verified)
 
         if show
           show_existing_token(customer, email)
@@ -66,11 +72,22 @@ module Onetime
 
       private
 
-      # Find an existing customer or create one if --create was given.
-      def resolve_customer(email, create, role, password, verified)
+      # Find an existing customer or create one if --create or --create-or-update was given.
+      def resolve_customer(email, create, create_or_update, role, password, verified)
         if Onetime::Customer.email_exists?(email)
+          if create
+            obscured = OT::Utils.obscure_email(email)
+            puts "Error: Customer already exists: #{obscured}"
+            puts
+            puts 'To regenerate the API token for an existing customer:'
+            puts "  bin/ots apitoken #{email}"
+            puts
+            puts 'To create if new or regenerate if existing:'
+            puts "  bin/ots apitoken #{email} --create-or-update"
+            exit 1
+          end
           Onetime::Customer.find_by_email(email)
-        elsif create
+        elsif create || create_or_update
           create_customer(email, role, password, verified)
         else
           obscured = OT::Utils.obscure_email(email)
@@ -89,7 +106,7 @@ module Onetime
         token = customer.apitoken
         if token.to_s.empty?
           puts 'No API token exists for this customer.'
-          puts "Run without --show to generate one:"
+          puts 'Run without --show to generate one:'
           puts "  bin/ots apitoken #{email}"
           exit 1
         end
@@ -104,8 +121,8 @@ module Onetime
       end
 
       def display_credentials(email, token)
-        encoded = Base64.strict_encode64("#{email}:#{token}")
-        base_url = site_host
+        encoded  = Base64.strict_encode64("#{email}:#{token}")
+        base_url = base_uri
 
         puts "API Token: #{token}"
         puts "Authorization: Basic #{encoded}"
@@ -126,7 +143,7 @@ module Onetime
         end
 
         password ||= generate_secure_password
-        auth_mode = Onetime.auth_config.mode
+        auth_mode  = Onetime.auth_config.mode
         puts "Creating customer in #{auth_mode} auth mode..."
 
         customer = case auth_mode
@@ -232,16 +249,17 @@ module Onetime
         email.match?(/\A[^@\s]+@[^@\s]+\.[^@\s]+\z/)
       end
 
-      def site_host
-        OT.conf&.dig(:site, :host) || 'https://localhost:3000'
-      rescue StandardError
-        'https://localhost:3000'
+      def base_uri
+        host = OT.conf&.dig('site', 'host')
+        return 'https://localhost:3000' unless host
+
+        ssl    = OT.conf&.dig('site', 'ssl')
+        scheme = ssl ? 'https' : 'http'
+        "#{scheme}://#{host}"
       end
 
       def billing_enabled?
-        Onetime.billing_config&.enabled?
-      rescue StandardError
-        false
+        Onetime.billing_config&.enabled? || false
       end
     end
 
