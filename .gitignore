@@ -56,7 +56,7 @@ public/doc
 # Files
 .DS_Store
 CLAUDE.md
-!.pr_agent.toml
+!.oci-build.json
 .github/*md
 .eslintcache
 .claude
