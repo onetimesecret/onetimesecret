@@ -21,17 +21,17 @@ MockProduct = Data.define(:metadata)
 ## Test: format_amount converts cents to dollars
 helper = @helper_class.new
 helper.format_amount(1000, 'cad')
-#=> 'USD 10.00'
+#=> 'CAD 10.00'
 
 ## Test: format_amount handles zero
 helper = @helper_class.new
 helper.format_amount(0, 'cad')
-#=> 'USD 0.00'
+#=> 'CAD 0.00'
 
 ## Test: format_amount handles large amounts
 helper = @helper_class.new
 helper.format_amount(99_999, 'cad')
-#=> 'USD 999.99'
+#=> 'CAD 999.99'
 
 ## Test: format_amount handles nil amount
 helper = @helper_class.new
@@ -41,7 +41,7 @@ helper.format_amount(nil, 'cad')
 ## Test: format_amount handles nil currency
 helper = @helper_class.new
 helper.format_amount(1000, nil)
-#=> 'USD 10.00'
+#=> 'CAD 10.00'
 
 ## Test: format_amount uppercases currency
 helper = @helper_class.new
