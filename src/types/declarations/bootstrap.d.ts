@@ -192,6 +192,8 @@ export interface BootstrapPayload {
 
   features: {
     markdown: boolean;
+    /** Multi-factor authentication (TOTP + recovery codes) */
+    mfa?: boolean;
     /** Account lockout after failed login attempts */
     lockout?: boolean;
     /** Password complexity requirements enforcement */
