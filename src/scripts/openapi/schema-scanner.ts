@@ -314,8 +314,16 @@ const validModelKeys = new Set(Object.keys(modelSchemas));
 // Request keys must match the generator's REQUEST_SCHEMA_REGISTRY.
 // Defined here as a static set to avoid importing from the generator.
 const validRequestKeys = new Set([
+  'burnSecret',
   'concealSecret',
+  'createIncomingSecret',
   'generateSecret',
+  'listSecretStatus',
+  'receiveFeedback',
+  'revealSecret',
+  'showMultipleReceipts',
+  'updateReceipt',
+  'validateRecipient',
 ]);
 
 /**

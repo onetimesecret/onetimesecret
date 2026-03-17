@@ -33,9 +33,10 @@ describe('otto-routes-parser', () => {
       const route = makeRoute({ openapi_auth: 'basic,anonymous' });
       const result = getAuthRequirements(route);
 
+      // V1 tokens are normalized: basic→basicauth, anonymous→noauth
       expect(result).toEqual({
         required: true,
-        schemes: ['basic', 'anonymous'],
+        schemes: ['basicauth', 'noauth'],
       });
     });
 
@@ -99,7 +100,7 @@ describe('otto-routes-parser', () => {
 
       expect(result).toEqual({
         required: true,
-        schemes: ['basic'],
+        schemes: ['basicauth'],
         role: 'colonel',
       });
     });
@@ -110,7 +111,7 @@ describe('otto-routes-parser', () => {
 
       expect(result).toEqual({
         required: true,
-        schemes: ['basic'],
+        schemes: ['basicauth'],
       });
     });
   });
@@ -234,23 +235,23 @@ describe('otto-routes-parser', () => {
       }
     });
 
-    it('V1 routes with openapi_auth=basic,anonymous return both schemes', () => {
+    it('V1 routes with openapi_auth=basic,anonymous return normalized schemes', () => {
       const statusRoute = v1Routes.find(r => r.path === '/status');
       expect(statusRoute).toBeDefined();
 
       const result = getAuthRequirements(statusRoute!);
       expect(result.required).toBe(true);
-      expect(result.schemes).toContain('basic');
-      expect(result.schemes).toContain('anonymous');
+      expect(result.schemes).toContain('basicauth');
+      expect(result.schemes).toContain('noauth');
     });
 
-    it('V1 routes with openapi_auth=basic return only basic', () => {
+    it('V1 routes with openapi_auth=basic return only basicauth', () => {
       const authcheckRoute = v1Routes.find(r => r.path === '/authcheck');
       expect(authcheckRoute).toBeDefined();
 
       const result = getAuthRequirements(authcheckRoute!);
       expect(result.required).toBe(true);
-      expect(result.schemes).toEqual(['basic']);
+      expect(result.schemes).toEqual(['basicauth']);
     });
   });
 });

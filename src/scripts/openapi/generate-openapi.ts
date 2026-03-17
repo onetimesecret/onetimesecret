@@ -37,7 +37,18 @@ import { standardErrorResponses } from './route-config';
 import { scanSchemas, buildHandlerSchemaMap, type SchemaEntry, type ScanResult } from './schema-scanner';
 
 import { responseSchemas } from '@/schemas/api/v3/responses';
-import { concealSecretRequestSchema, generateSecretRequestSchema } from '@/schemas/api/v3/requests';
+import {
+  burnSecretRequestSchema,
+  concealSecretRequestSchema,
+  createIncomingSecretRequestSchema,
+  generateSecretRequestSchema,
+  listSecretStatusRequestSchema,
+  receiveFeedbackRequestSchema,
+  revealSecretRequestSchema,
+  showMultipleReceiptsRequestSchema,
+  updateReceiptRequestSchema,
+  validateRecipientRequestSchema,
+} from '@/schemas/api/v3/requests';
 
 // =============================================================================
 // Configuration
@@ -72,12 +83,31 @@ const scanResult = await scanSchemas();
 const handlerSchemaMap = buildHandlerSchemaMap(scanResult.entries);
 
 /**
- * Registry of request schemas, keyed by bare camelCase names
- * matching the `request:` values in Ruby SCHEMAS constants.
+ * Registry of request schemas, keyed by bare camelCase names.
+ *
+ * Keys match either:
+ *   1. Explicit `request:` values in Ruby SCHEMAS constants
+ *   2. Convention-derived keys from handler class names (PascalCase → camelCase)
+ *
+ * When a handler has no explicit `request:` declaration in Ruby, the generator
+ * falls back to convention-based lookup using the handler's leaf class name.
  */
 const REQUEST_SCHEMA_REGISTRY: Record<string, z.ZodType> = {
+  // Secrets
+  'burnSecret': burnSecretRequestSchema,
   'concealSecret': concealSecretRequestSchema,
   'generateSecret': generateSecretRequestSchema,
+  'listSecretStatus': listSecretStatusRequestSchema,
+  'revealSecret': revealSecretRequestSchema,
+  'updateReceipt': updateReceiptRequestSchema,
+  'showMultipleReceipts': showMultipleReceiptsRequestSchema,
+
+  // Incoming
+  'createIncomingSecret': createIncomingSecretRequestSchema,
+  'validateRecipient': validateRecipientRequestSchema,
+
+  // Feedback
+  'receiveFeedback': receiveFeedbackRequestSchema,
 };
 
 /**
@@ -109,17 +139,29 @@ function getResponseKey(entry: SchemaEntry): string | undefined {
 
 /**
  * Look up the request payload schema for a route handler.
+ *
+ * Resolution order:
+ *   1. Explicit `request:` key from the Ruby SCHEMAS constant
+ *   2. Convention-based: handler leaf name → camelCase → registry lookup
+ *
+ * The convention fallback covers handlers that have a matching request
+ * schema in TypeScript but no explicit `request:` declaration in Ruby.
  */
 function lookupRequestSchema(handler: string): z.ZodType | undefined {
   const normalized = handler.replace('#', '.');
   const entry = handlerSchemaMap.get(normalized)
     ?? handlerSchemaMap.get(getHandlerLeaf(normalized));
-  if (!entry) return undefined;
 
-  const requestKey = typeof entry.schema === 'string' ? undefined : entry.schema.request;
-  if (!requestKey) return undefined;
+  // Try explicit request key from SCHEMAS constant first
+  if (entry) {
+    const requestKey = typeof entry.schema === 'string' ? undefined : entry.schema.request;
+    if (requestKey) return REQUEST_SCHEMA_REGISTRY[requestKey];
+  }
 
-  return REQUEST_SCHEMA_REGISTRY[requestKey];
+  // Convention-based fallback: derive key from handler leaf name
+  const leaf = getHandlerLeaf(normalized);
+  const conventionKey = toOperationId(leaf);
+  return REQUEST_SCHEMA_REGISTRY[conventionKey];
 }
 
 // =============================================================================
@@ -300,6 +342,12 @@ function buildSecurity(route: OttoRoute): Array<Record<string, string[]>> | unde
     } else if (scheme === 'basicauth') {
       security.push({ basicAuth: [] });
     }
+    // 'noauth' in a mixed scheme list (e.g., basicauth,noauth) means
+    // the endpoint also accepts unauthenticated requests. In OpenAPI 3.1,
+    // an empty object {} in the security array means "no auth required".
+    else if (scheme === 'noauth') {
+      security.push({});
+    }
   }
 
   return security.length > 0 ? security : undefined;
@@ -410,12 +458,11 @@ function buildResponses(
 
   if (route.method !== 'GET' && route.method !== 'OPTIONS') {
     errorCodes.unshift(400);
+    errorCodes.push(422);
   }
   if (auth.required) {
     errorCodes.push(401);
-    if (auth.role) {
-      errorCodes.push(403);
-    }
+    errorCodes.push(403);
   }
   errorCodes.push(404);
 

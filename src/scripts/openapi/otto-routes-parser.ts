@@ -130,15 +130,27 @@ export function getAuthRequirements(route: OttoRoute): {
   // Parse comma-separated auth schemes: auth=sessionauth,basicauth
   const schemes = auth.split(',').map(s => s.trim());
 
+  // Normalize V1-era auth tokens to V2+ canonical names.
+  // V1 routes use openapi_auth=basic,anonymous; V2+ use auth=basicauth,noauth.
+  const schemeMap: Record<string, string> = {
+    'basic': 'basicauth',
+    'anonymous': 'noauth',
+  };
+
   // Check for role requirement: auth=role:colonel
   const roleScheme = schemes.find(s => s.startsWith('role:'));
   const role = roleScheme ? roleScheme.split(':')[1] : undefined;
 
-  // Filter out role from schemes
-  const authSchemes = schemes.filter(s => !s.startsWith('role:'));
+  // Filter out role from schemes, normalize V1 tokens
+  const authSchemes = schemes
+    .filter(s => !s.startsWith('role:'))
+    .map(s => schemeMap[s] ?? s);
+
+  // An endpoint with only 'noauth' is fully public
+  const realAuthSchemes = authSchemes.filter(s => s !== 'noauth');
 
   return {
-    required: authSchemes.length > 0,
+    required: realAuthSchemes.length > 0,
     schemes: authSchemes,
     role
   };

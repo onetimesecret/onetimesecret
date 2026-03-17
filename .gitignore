@@ -54,6 +54,7 @@ public/doc
 
 # Files
 .DS_Store
+CLAUDE.md
 !.pr_agent.toml
 .github/*md
 .eslintcache
