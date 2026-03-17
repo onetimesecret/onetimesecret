@@ -613,7 +613,7 @@ function processAllRoutes(
       routeCount++;
 
       if (VERBOSE) {
-        console.log(`    ${hasSchema ? '+' : ' '} ${route.method} ${openApiPath}`);
+        console.log(`    ${hasSchema ? ' ' : '?'} ${route.method} ${openApiPath}`);
       }
     }
   }
@@ -673,11 +673,6 @@ function printGapReport(result: ScanResult): void {
   }
 
   console.log(`Uncovered handlers (no SCHEMA): ${result.uncoveredHandlers.length}`);
-  if (VERBOSE) {
-    for (const handler of result.uncoveredHandlers) {
-      console.log(`  ${handler}`);
-    }
-  }
 }
 
 // =============================================================================
