@@ -1,13 +1,18 @@
 # .github/workflows/bump-api-docs.yml
 #
 # Bump.sh API documentation: deploy on merge, diff on PRs.
-# Follows the recommended workflow from https://docs.bump.sh/help/continuous-integration/github-actions/
+# Deploys v1/v2/v3 as branches within a single Bump.sh documentation,
+# letting readers toggle between API versions on one page.
+#
+# See: https://docs.bump.sh/help/continuous-integration/github-actions/
+#      https://docs.bump.sh/help/branching/
 #
 # Required GitHub Actions secrets:
-#   BUMP_TOKEN   — documentation private token (Settings > CI Deployment on Bump.sh)
+#   BUMP_TOKEN     — documentation private token (Settings > CI Deployment)
 #
-# Required GitHub Actions variable:
-#   BUMP_HUB_ID  — hub slug or id (found in hub settings on Bump.sh)
+# Required GitHub Actions variables:
+#   BUMP_DOC_SLUG          — public API doc slug (found in doc settings on Bump.sh)
+#   BUMP_INTERNAL_HUB_ID   — hub slug or id for the internal API (hub settings)
 #
 ---
 name: Check & deploy API documentation
@@ -30,35 +35,88 @@ permissions:
   pull-requests: write
 
 jobs:
+  # ── Public API versions (v1, v2, v3) ─────────────────────────────
+  # Each version deploys as a branch within a single Bump.sh doc.
   deploy-doc:
     if: ${{ github.event_name == 'push' }}
-    name: Deploy API documentation on Bump.sh
+    name: Deploy API ${{ matrix.version }} on Bump.sh
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - version: v1
+            file: docs/api/openapi.v1.json
+          - version: v2
+            file: docs/api/openapi.v2.json
+          - version: v3
+            file: docs/api/openapi.v3.json
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Deploy API documentation
         uses: bump-sh/github-action@8545e8c657d27de6f55da875473fa493da78bc4f # v1
         with:
-          hub: ${{ vars.BUMP_HUB_ID }}
+          doc: ${{ vars.BUMP_DOC_SLUG }}
           token: ${{ secrets.BUMP_TOKEN }}
-          file: docs/api/
-          filename_pattern: "openapi.{slug}"
+          branch: ${{ matrix.version }}
+          file: ${{ matrix.file }}
 
   api-diff:
     if: ${{ github.event_name == 'pull_request' }}
-    name: Check API diff on Bump.sh
+    name: Diff API ${{ matrix.version }} on Bump.sh
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - version: v1
+            file: docs/api/openapi.v1.json
+          - version: v2
+            file: docs/api/openapi.v2.json
+          - version: v3
+            file: docs/api/openapi.v3.json
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Comment pull request with API diff
         uses: bump-sh/github-action@8545e8c657d27de6f55da875473fa493da78bc4f # v1
         with:
-          hub: ${{ vars.BUMP_HUB_ID }}
+          doc: ${{ vars.BUMP_DOC_SLUG }}
           token: ${{ secrets.BUMP_TOKEN }}
-          file: docs/api/
-          filename_pattern: "openapi.{slug}"
+          branch: ${{ matrix.version }}
+          file: ${{ matrix.file }}
+          command: diff
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── Internal API ─────────────────────────────────────────────────
+  # Deploys to a separate hub, isolated from the public docs.
+  deploy-internal:
+    if: ${{ github.event_name == 'push' }}
+    name: Deploy internal API on Bump.sh
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Deploy internal API documentation
+        uses: bump-sh/github-action@8545e8c657d27de6f55da875473fa493da78bc4f # v1
+        with:
+          hub: ${{ vars.BUMP_INTERNAL_HUB_ID }}
+          token: ${{ secrets.BUMP_TOKEN }}
+          file: docs/api/openapi.internal.json
+
+  internal-diff:
+    if: ${{ github.event_name == 'pull_request' }}
+    name: Diff internal API on Bump.sh
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Comment pull request with internal API diff
+        uses: bump-sh/github-action@8545e8c657d27de6f55da875473fa493da78bc4f # v1
+        with:
+          hub: ${{ vars.BUMP_INTERNAL_HUB_ID }}
+          token: ${{ secrets.BUMP_TOKEN }}
+          file: docs/api/openapi.internal.json
           command: diff
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
