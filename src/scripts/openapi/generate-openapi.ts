@@ -17,6 +17,10 @@
  *   pnpm run openapi:generate                # Generate spec
  *   pnpm run openapi:generate -- --dry-run   # Preview without writing
  *   pnpm run openapi:generate -- --verbose    # Show per-route details
+ *   pnpm run openapi:generate -- --no-tags    # Omit OpenAPI tags from operations
+ *   pnpm run openapi:generate -- --sort path  # Sort paths lexicographically
+ *   pnpm run openapi:generate -- --sort method # Sort methods per REST convention
+ *   pnpm run openapi:generate -- --sort path,method  # Both
  */
 
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
@@ -57,6 +61,14 @@ import {
 const OUTPUT_DIR = join(process.cwd(), 'generated', 'openapi');
 const DRY_RUN = process.argv.includes('--dry-run');
 const VERBOSE = process.argv.includes('--verbose') || process.argv.includes('-v');
+const NO_TAGS = process.argv.includes('--no-tags');
+
+const SORT_ARG = (() => {
+  const idx = process.argv.indexOf('--sort');
+  return idx !== -1 ? (process.argv[idx + 1] ?? '').split(',') : [];
+})();
+const SORT_PATHS = SORT_ARG.includes('path');
+const SORT_METHODS = SORT_ARG.includes('method');
 
 // =============================================================================
 // API Mount Points
@@ -237,7 +249,7 @@ function toSummary(leaf: string): string {
  *   ("colonel", "/secrets/:id")     → "colonel"
  *   ("account", "/apitoken")        → "account"
  */
-function deriveTag(apiName: string, routePath: string): string {
+function _deriveTag(apiName: string, routePath: string): string {
   // Only versioned APIs benefit from path-based sub-grouping.
   // Non-versioned APIs are already namespaced by their API name.
   const isVersioned = /^v\d+$/.test(apiName);
@@ -499,7 +511,6 @@ function buildOperation(
 ): Record<string, unknown> {
   const leaf = getHandlerLeaf(route.handler);
   const operationId = toOperationId(leaf);
-  const tag = deriveTag(apiName, route.path);
   const isDeprecated = route.params.deprecated === 'true';
 
   // Make operationId unique by prefixing with apiName.
@@ -516,9 +527,12 @@ function buildOperation(
   const operation: Record<string, unknown> = {
     operationId: qualifiedOperationId,
     summary: toSummary(leaf),
-    tags: [tag],
     responses: buildResponses(route.handler, route),
   };
+
+  if (!NO_TAGS) {
+    operation.tags = [apiName];
+  }
 
   // Mark deprecated alias routes
   if (isDeprecated) {
@@ -600,10 +614,8 @@ function processAllRoutes(
       }
 
       const operation = buildOperation(route, apiName);
-      const tags = operation.tags as string[];
-      for (const tag of tags) {
-        tagSet.add(tag);
-      }
+      const opTags = (!NO_TAGS && operation.tags) ? operation.tags as string[] : [];
+      for (const tag of opTags) tagSet.add(tag);
 
       const hasSchema = !!lookupResponseSchemaKey(route.handler);
       if (hasSchema) schemaHits++;
@@ -621,6 +633,40 @@ function processAllRoutes(
   return { routeCount, schemaHits, tags: tagSet };
 }
 
+/** REST method weight for conventional ordering. */
+const METHOD_ORDER: Record<string, number> = {
+  get: 0, post: 1, put: 2, patch: 3, delete: 4, options: 5, head: 6,
+};
+
+/**
+ * Sort paths and/or methods in the document according to --sort flags.
+ */
+function sortPaths(doc: OpenAPIDocument): void {
+  if (!SORT_PATHS && !SORT_METHODS) return;
+
+  const pathKeys = SORT_PATHS
+    ? Object.keys(doc.paths).sort()
+    : Object.keys(doc.paths);
+
+  const sorted: typeof doc.paths = {};
+  for (const path of pathKeys) {
+    const entry = doc.paths[path];
+    if (SORT_METHODS) {
+      const methodKeys = Object.keys(entry).sort(
+        (a, b) => (METHOD_ORDER[a] ?? 99) - (METHOD_ORDER[b] ?? 99)
+      );
+      const reordered: Record<string, unknown> = {};
+      for (const m of methodKeys) {
+        reordered[m] = entry[m];
+      }
+      sorted[path] = reordered;
+    } else {
+      sorted[path] = entry;
+    }
+  }
+  doc.paths = sorted;
+}
+
 /**
  * Write the OpenAPI document to disk and print a summary.
  */
@@ -629,10 +675,14 @@ function writeAndSummarize(
   result: ProcessingResult,
   apiCount: number
 ): void {
-  doc.tags = Array.from(result.tags).sort().map(name => ({
-    name,
-    description: `${name.charAt(0).toUpperCase() + name.slice(1)} operations`,
-  }));
+  if (!NO_TAGS) {
+    doc.tags = Array.from(result.tags).sort().map(name => ({
+      name,
+      description: `${name.charAt(0).toUpperCase() + name.slice(1)} operations`,
+    }));
+  }
+
+  sortPaths(doc);
 
   const outputPath = join(OUTPUT_DIR, 'openapi.json');
 
@@ -650,7 +700,8 @@ function writeAndSummarize(
   console.log(`APIs:             ${apiCount}`);
   console.log(`Routes:           ${result.routeCount}`);
   console.log(`Schema coverage:  ${result.schemaHits}/${result.routeCount} (${pct}%)`);
-  console.log(`Tags:             ${result.tags.size}`);
+  console.log(`Tags:             ${NO_TAGS ? 0 : result.tags.size}`);
+  console.log(`Sort:             ${SORT_PATHS || SORT_METHODS ? SORT_ARG.join(',') : 'none'}`);
   console.log(`Output:           ${outputPath}`);
   console.log(DRY_RUN ? '\nDry run complete. No files written.' : '\nOpenAPI spec generated.');
 
