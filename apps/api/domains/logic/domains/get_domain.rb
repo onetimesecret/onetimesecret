@@ -7,6 +7,11 @@ require_relative '../base'
 
 module DomainsAPI::Logic
   module Domains
+    # Get Custom Domain
+    #
+    # @api Retrieves a custom domain by its external ID. Returns the
+    #   domain record and cluster configuration. Verifies ownership
+    #   through organization membership.
     class GetDomain < DomainsAPI::Logic::Base
       SCHEMAS = { response: 'customDomain' }.freeze
 

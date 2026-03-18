@@ -36,6 +36,7 @@
       "get": {
         "operationId": "v2_listReceipts",
         "summary": "List Receipts",
+        "description": "Lists receipts (metadata records) for secrets created within the last 30 days. Supports scoping by customer (default), organization, or custom domain. Returns each receipt's state, timestamps, and summary information.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -946,6 +947,7 @@
       "post": {
         "operationId": "v2_receipt_burnSecret",
         "summary": "Burn Secret",
+        "description": "Permanently destroys a secret before its expiration time. Requires the receipt identifier and a passphrase if one was set. Returns the updated receipt record with burn confirmation and related URLs.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -1596,6 +1598,7 @@
       "get": {
         "operationId": "v2_showReceipt",
         "summary": "Show Receipt",
+        "description": "Retrieves the receipt (metadata) for a previously created secret. Returns the receipt's state, share and burn URLs, expiration details, and recipient information. For generated secrets viewed shortly after creation, the generated value may be included. The receipt tracks whether the associated secret has been viewed, burned, or expired.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -2167,6 +2170,7 @@
       "patch": {
         "operationId": "v2_updateReceipt",
         "summary": "Update Receipt",
+        "description": "Updates a receipt's mutable fields. Currently supports setting the memo field (up to 500 characters). Only the receipt owner can perform updates. Returns the updated receipt record.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -2813,6 +2817,7 @@
       "get": {
         "operationId": "v2_private_listReceipts",
         "summary": "List Receipts",
+        "description": "Lists receipts (metadata records) for secrets created within the last 30 days. Supports scoping by customer (default), organization, or custom domain. Returns each receipt's state, timestamps, and summary information.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -3724,6 +3729,7 @@
       "post": {
         "operationId": "v2_private_burnSecret",
         "summary": "Burn Secret",
+        "description": "Permanently destroys a secret before its expiration time. Requires the receipt identifier and a passphrase if one was set. Returns the updated receipt record with burn confirmation and related URLs.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -4375,6 +4381,7 @@
       "get": {
         "operationId": "v2_private_showReceipt",
         "summary": "Show Receipt",
+        "description": "Retrieves the receipt (metadata) for a previously created secret. Returns the receipt's state, share and burn URLs, expiration details, and recipient information. For generated secrets viewed shortly after creation, the generated value may be included. The receipt tracks whether the associated secret has been viewed, burned, or expired.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -4947,6 +4954,7 @@
       "patch": {
         "operationId": "v2_private_updateReceipt",
         "summary": "Update Receipt",
+        "description": "Updates a receipt's mutable fields. Currently supports setting the memo field (up to 500 characters). Only the receipt owner can perform updates. Returns the updated receipt record.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -5594,6 +5602,7 @@
       "get": {
         "operationId": "v2_showSecret",
         "summary": "Show Secret",
+        "description": "Retrieves a secret's metadata and optionally its decrypted content. When called with continue=true and the correct passphrase, the secret value is returned and the secret is consumed. Without continue, returns only metadata such as whether a passphrase is required. The secret can only be viewed once.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -5864,6 +5873,7 @@
       "get": {
         "operationId": "v2_secret_showSecretStatus",
         "summary": "Show Secret Status",
+        "description": "Checks whether a secret exists and returns its current state without consuming it. Returns the secret's metadata including expiration details, or a state of \"unknown\" if the secret does not exist.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -6134,6 +6144,7 @@
       "post": {
         "operationId": "v2_listSecretStatus",
         "summary": "List Secret Status",
+        "description": "Retrieves the status of multiple secrets in a single request. Accepts a comma-separated list of secret identifiers and returns each secret's current state and metadata. Does not consume or reveal any secret values.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -6445,6 +6456,7 @@
       "post": {
         "operationId": "v2_secret_revealSecret",
         "summary": "Reveal Secret",
+        "description": "Retrieves and permanently reveals a secret's content. Requires the secret identifier, a passphrase if one was set, and a continue flag to confirm the reveal. The secret is destroyed immediately upon reveal and cannot be accessed again. Returns the decrypted secret value along with display metadata.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -6795,6 +6807,7 @@
       "post": {
         "operationId": "v2_generateSecret",
         "summary": "Generate Secret",
+        "description": "Creates a new secret with a randomly generated value. Accepts optional password generation parameters (length, character sets), TTL, recipient email, and share domain. Returns the receipt and secret records with share URLs.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -7392,6 +7405,7 @@
       "post": {
         "operationId": "v2_concealSecret",
         "summary": "Conceal Secret",
+        "description": "Creates a new secret from user-provided content. Accepts the secret value, an optional passphrase, TTL, recipient email, and share domain. Returns the receipt and secret records with share URLs.",
         "responses": {
           "200": {
             "description": "Successful response",

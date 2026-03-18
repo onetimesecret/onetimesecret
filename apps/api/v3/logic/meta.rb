@@ -11,6 +11,9 @@ require_relative '../../v2/logic/meta'
 
 module V3
   module Logic
+    # @api System metadata endpoints for health checks, version info, and
+    #   supported locale listings. These endpoints do not require
+    #   authentication.
     module Meta
       SCHEMAS = {
         system_status: { response: 'systemStatus' },

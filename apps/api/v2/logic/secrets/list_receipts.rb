@@ -8,6 +8,12 @@ module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
 
+    # List Receipts
+    #
+    # @api Lists receipts (metadata records) for secrets created within the
+    #   last 30 days. Supports scoping by customer (default), organization,
+    #   or custom domain. Returns each receipt's state, timestamps, and
+    #   summary information.
     class ListReceipts < V2::Logic::Base
       SCHEMAS = { response: 'receiptList' }.freeze
 

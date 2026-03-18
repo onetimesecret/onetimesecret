@@ -4,6 +4,11 @@
 
 module OrganizationAPI::Logic
   module Organizations
+    # Get Organization
+    #
+    # @api Retrieves an organization by its external ID. Returns the
+    #   organization details along with a list of all members and their
+    #   roles. Requires the requesting user to be a member.
     class GetOrganization < OrganizationAPI::Logic::Base
       SCHEMAS = { response: 'organization' }.freeze
 

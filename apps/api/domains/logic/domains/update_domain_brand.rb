@@ -7,6 +7,12 @@ require_relative '../base'
 
 module DomainsAPI::Logic
   module Domains
+    # Update Domain Brand Settings
+    #
+    # @api Updates brand settings for a custom domain including name,
+    #   tagline, primary color, font family, corner style, homepage URL,
+    #   and default TTL. Requires the custom_branding entitlement.
+    #   Returns the updated brand settings.
     class UpdateDomainBrand < DomainsAPI::Logic::Base
       SCHEMAS = { response: 'brandSettings' }.freeze
 

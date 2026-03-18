@@ -13,7 +13,10 @@ module V2
         get_supported_locales: { response: 'supportedLocales' },
       }.freeze
 
-      # Static methods that return system information
+      # Get Supported Locales
+      #
+      # @api Returns the list of supported locales and the default locale
+      #   for the application.
       def self.get_supported_locales(_req, _res)
         supported_locales = OT.supported_locales.map(&:to_s)
         default_locale    = OT.default_locale
@@ -25,6 +28,9 @@ module V2
         }
       end
 
+      # System Status
+      #
+      # @api Returns the current operational status of the system.
       def self.system_status(_req, _res)
         {
           success: true,
@@ -33,6 +39,10 @@ module V2
         }
       end
 
+      # System Version
+      #
+      # @api Returns the current application version as an array of
+      #   version components.
       def self.system_version(_req, _res)
         {
           success: true,

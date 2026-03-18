@@ -6,6 +6,11 @@ require_relative '../base'
 
 module V2::Logic
   module Incoming
+    # Validate Incoming Recipient
+    #
+    # @api Checks whether a recipient hash corresponds to a valid incoming
+    #   secrets recipient. Returns the hash and a boolean indicating
+    #   validity. Requires the incoming secrets feature to be enabled.
     class ValidateRecipient < V2::Logic::Base
       attr_reader :greenlighted, :recipient_hash, :is_valid
 

@@ -7,6 +7,10 @@ require_relative '../base'
 module ColonelAPI
   module Logic
     module Colonel
+      # Get Redis Metrics
+      #
+      # @api Returns the full Redis INFO output as a structured object
+      #   along with a server-side timestamp. Requires colonel role.
       class GetRedisMetrics < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'redisMetrics' }.freeze
 

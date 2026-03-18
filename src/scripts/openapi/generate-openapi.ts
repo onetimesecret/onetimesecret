@@ -311,7 +311,7 @@ function createDocument(target: SpecTarget): OpenAPIDocument {
     openapi: '3.1.0',
     info: {
       title: target.title,
-      version: '0.24.0',
+      version: new Date().toISOString().slice(0, 10),  // spec revision date, not API version
       description: target.description,
     },
     servers: openapiConfig.servers,
@@ -553,8 +553,17 @@ function buildOperation(
   const operation: Record<string, unknown> = {
     operationId: qualifiedOperationId,
     summary: toSummary(leaf),
-    responses: buildResponses(route.handler, route),
   };
+
+  // Add description from @api tag in Ruby class comment (if available)
+  const normalizedHandler = route.handler.replace('#', '.');
+  const descEntry = handlerSchemaMap.get(normalizedHandler)
+    ?? handlerSchemaMap.get(getHandlerLeaf(normalizedHandler));
+  if (descEntry?.description) {
+    operation.description = descEntry.description;
+  }
+
+  operation.responses = buildResponses(route.handler, route);
 
   if (!NO_TAGS) {
     operation.tags = [apiName];

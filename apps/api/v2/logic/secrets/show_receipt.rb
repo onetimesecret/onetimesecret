@@ -6,6 +6,13 @@ module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
 
+    # Show Receipt
+    #
+    # @api Retrieves the receipt (metadata) for a previously created secret.
+    #   Returns the receipt's state, share and burn URLs, expiration details,
+    #   and recipient information. For generated secrets viewed shortly after
+    #   creation, the generated value may be included. The receipt tracks
+    #   whether the associated secret has been viewed, burned, or expired.
     class ShowReceipt < V2::Logic::Base
       SCHEMAS = { response: 'receipt' }.freeze
 

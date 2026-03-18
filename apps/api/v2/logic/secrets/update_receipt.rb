@@ -4,6 +4,11 @@
 
 module V2::Logic
   module Secrets
+    # Update Receipt
+    #
+    # @api Updates a receipt's mutable fields. Currently supports setting
+    #   the memo field (up to 500 characters). Only the receipt owner
+    #   can perform updates. Returns the updated receipt record.
     class UpdateReceipt < V2::Logic::Base
       SCHEMAS = { response: 'receipt' }.freeze
 

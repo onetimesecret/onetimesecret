@@ -4,6 +4,12 @@
 
 module OrganizationAPI::Logic
   module Organizations
+    # Create Organization
+    #
+    # @api Creates a new organization with the given display name, optional
+    #   description, and optional contact email. Enforces plan-based
+    #   organization quotas when billing is enabled. Uses a distributed
+    #   lock to prevent race conditions during creation.
     class CreateOrganization < OrganizationAPI::Logic::Base
       SCHEMAS = { response: 'organization' }.freeze
 

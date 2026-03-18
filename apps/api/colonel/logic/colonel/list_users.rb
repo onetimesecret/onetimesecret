@@ -7,6 +7,12 @@ require_relative '../base'
 module ColonelAPI
   module Logic
     module Colonel
+      # List Users
+      #
+      # @api Returns a paginated list of all users with obscured emails,
+      #   roles, verification status, plan IDs, and secret counts. Supports
+      #   optional role filtering and pagination via page/per_page params.
+      #   Requires colonel role.
       class ListUsers < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'colonelUsers' }.freeze
 

@@ -6,6 +6,14 @@ module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
 
+    # Reveal Secret
+    #
+    # @api Retrieves and permanently reveals a secret's content. Requires
+    #   the secret identifier, a passphrase if one was set, and a continue
+    #   flag to confirm the reveal. The secret is destroyed immediately
+    #   upon reveal and cannot be accessed again. Returns the decrypted
+    #   secret value along with display metadata.
+    #
     # Very similar logic to ShowSecret, but with a few key differences
     # as required by the v2 API. The v1 API uses the original ShowSecret.
     #

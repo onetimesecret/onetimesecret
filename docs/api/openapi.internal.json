@@ -1030,6 +1030,7 @@
       "post": {
         "operationId": "account_generateAPIToken",
         "summary": "Generate A P I Token",
+        "description": "Regenerates the authenticated user's API token and returns the new token value. Requires an active session; anonymous users are rejected.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -1842,6 +1843,7 @@
       "get": {
         "operationId": "account_getAccount",
         "summary": "Get Account",
+        "description": "Retrieves the authenticated user's account details, including their API token and safe-dumped customer record.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -2139,6 +2141,7 @@
       "get": {
         "operationId": "account_getEntitlements",
         "summary": "Get Entitlements",
+        "description": "Returns entitlement definitions and plan-to-entitlement mappings. Includes a list of all entitlements with display names and categories, plan mappings with their associated entitlements, and a source indicator (\"stripe\" or \"local_config\") showing where plan data was loaded from.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -2436,6 +2439,7 @@
       "get": {
         "operationId": "colonel_getColonelInfo",
         "summary": "Get Colonel Info",
+        "description": "Returns the admin dashboard overview including recent customers, feedback (today, yesterday, older), aggregate counts for sessions, customers, secrets, receipts, and Redis memory info. Requires colonel role.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -2887,6 +2891,7 @@
       "get": {
         "operationId": "colonel_getColonelStats",
         "summary": "Get Colonel Stats",
+        "description": "Returns aggregate platform statistics including total customer, receipt, and secret counts. Requires colonel role.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -3146,6 +3151,7 @@
       "get": {
         "operationId": "colonel_getSystemSettings",
         "summary": "Get System Settings",
+        "description": "Returns the current system configuration organized by section: interface, secret options, authentication, emailer, mail, diagnostics, logging, billing, and features. Sensitive values such as API keys and webhook secrets are masked. Requires colonel role.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -4969,6 +4975,7 @@
       "get": {
         "operationId": "colonel_listSecrets",
         "summary": "List Secrets",
+        "description": "Returns a paginated list of all secrets with metadata including owner, state, creation time, expiration, lifespan, and whether ciphertext is present. Sorted by most recently created. Requires colonel role.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -5676,6 +5683,7 @@
       "get": {
         "operationId": "colonel_listUsers",
         "summary": "List Users",
+        "description": "Returns a paginated list of all users with obscured emails, roles, verification status, plan IDs, and secret counts. Supports optional role filtering and pagination via page/per_page params. Requires colonel role.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -6375,6 +6383,7 @@
       "get": {
         "operationId": "colonel_getDatabaseMetrics",
         "summary": "Get Database Metrics",
+        "description": "Returns Redis database metrics including per-database key counts with TTL averages, total keys, memory usage statistics, server info (version, uptime, connected clients), and model-level record counts. Requires colonel role.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -6689,6 +6698,7 @@
       "get": {
         "operationId": "colonel_getRedisMetrics",
         "summary": "Get Redis Metrics",
+        "description": "Returns the full Redis INFO output as a structured object along with a server-side timestamp. Requires colonel role.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -6881,6 +6891,7 @@
       "get": {
         "operationId": "colonel_getQueueMetrics",
         "summary": "Get Queue Metrics",
+        "description": "Returns RabbitMQ queue metrics including per-queue message counts and consumer counts, connection status, and an inferred worker health status (healthy, degraded, unhealthy, or unknown). Requires colonel role.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -7117,6 +7128,7 @@
       "get": {
         "operationId": "colonel_listBannedIPs",
         "summary": "List Banned I Ps",
+        "description": "Returns all banned IP addresses sorted by most recently banned, along with the requesting client's current IP address. Requires colonel role.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -7786,6 +7798,7 @@
       "get": {
         "operationId": "colonel_listCustomDomains",
         "summary": "List Custom Domains",
+        "description": "Returns a paginated list of all custom domains across all organizations, including verification state, brand settings, logo/icon presence, and the owning organization. Requires colonel role.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -8162,6 +8175,7 @@
       "get": {
         "operationId": "colonel_listOrganizations",
         "summary": "List Organizations",
+        "description": "Returns a paginated list of all organizations with billing and sync health details. Supports filtering by subscription status and sync status (synced, potentially_stale, unknown). Requires colonel role.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -8584,6 +8598,7 @@
       "post": {
         "operationId": "colonel_organizations_investigateOrganization",
         "summary": "Investigate Organization",
+        "description": "Investigates an organization's billing state by comparing local data against the actual Stripe subscription. Returns both local and Stripe-side state along with a comparison indicating whether they are in sync. Requires colonel role.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -9106,6 +9121,7 @@
       "get": {
         "operationId": "colonel_exportUsage",
         "summary": "Export Usage",
+        "description": "Returns usage statistics for a date range including daily breakdowns of secrets created and users registered, totals, secrets grouped by state, and daily averages. Date range defaults to the last 30 days and cannot exceed 365 days. Requires colonel role.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -9515,6 +9531,7 @@
       "post": {
         "operationId": "domains_addDomain",
         "summary": "Add Domain",
+        "description": "Registers a new custom domain for an organization. Validates the domain via PublicSuffix, checks for duplicates, and initiates SSL certificate provisioning. Returns the created domain record and sets it as the active domain context in the session.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -10317,6 +10334,7 @@
       "get": {
         "operationId": "domains_getDomain",
         "summary": "Get Domain",
+        "description": "Retrieves a custom domain by its external ID. Returns the domain record and cluster configuration. Verifies ownership through organization membership.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -10848,6 +10866,7 @@
       "post": {
         "operationId": "domains_verifyDomain",
         "summary": "Verify Domain",
+        "description": "Triggers DNS and SSL verification for a custom domain. Checks TXT record ownership and resolving status, then persists the updated verification state. Returns the refreshed domain record.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -11441,6 +11460,7 @@
       "put": {
         "operationId": "domains_updateDomainBrand",
         "summary": "Update Domain Brand",
+        "description": "Updates brand settings for a custom domain including name, tagline, primary color, font family, corner style, homepage URL, and default TTL. Requires the custom_branding entitlement. Returns the updated brand settings.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -11781,6 +11801,7 @@
       "get": {
         "operationId": "domains_getDomainBrand",
         "summary": "Get Domain Brand",
+        "description": "Retrieves the brand settings for a custom domain. Requires the custom_branding entitlement. Returns the brand configuration including name, tagline, colors, fonts, and homepage settings.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -13285,6 +13306,7 @@
       "get": {
         "operationId": "domains_listDomains",
         "summary": "List Domains",
+        "description": "Returns all custom domains for the user's organization, or for a specific organization if org_id is provided. Each domain includes its full record and the organization summary. Also returns cluster configuration details.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -13813,6 +13835,7 @@
       "get": {
         "operationId": "organizations_listOrganizations",
         "summary": "List Organizations",
+        "description": "Returns all organizations the authenticated user belongs to, including each organization's details, member count, and billing information.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -14145,6 +14168,7 @@
       "post": {
         "operationId": "organizations_createOrganization",
         "summary": "Create Organization",
+        "description": "Creates a new organization with the given display name, optional description, and optional contact email. Enforces plan-based organization quotas when billing is enabled. Uses a distributed lock to prevent race conditions during creation.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -14532,6 +14556,7 @@
       "get": {
         "operationId": "organizations_getOrganization",
         "summary": "Get Organization",
+        "description": "Retrieves an organization by its external ID. Returns the organization details along with a list of all members and their roles. Requires the requesting user to be a member.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -14866,6 +14891,7 @@
       "put": {
         "operationId": "organizations_updateOrganization",
         "summary": "Update Organization",
+        "description": "Updates an organization's display name, description, and/or billing email. When the billing email changes and a Stripe customer is linked, the email is synced to Stripe. Only the organization owner can perform this action.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -15262,6 +15288,7 @@
       "delete": {
         "operationId": "organizations_deleteOrganization",
         "summary": "Delete Organization",
+        "description": "Permanently deletes an organization, removing all member associations first. Only the organization owner can perform this action. Returns a confirmation of deletion.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -16347,6 +16374,7 @@
       "get": {
         "operationId": "organizations_listMembers",
         "summary": "List Members",
+        "description": "Returns all active members of an organization with their roles, join dates, and ownership status. Any organization member can view the list. Includes a flag indicating which entry is the current user.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -16558,6 +16586,7 @@
       "patch": {
         "operationId": "organizations_updateMemberRole",
         "summary": "Update Member Role",
+        "description": "Changes a member's role within an organization. Only organization owners can change roles. Valid target roles are \"member\" and \"admin\". Returns the updated member record with both the new and previous role.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -16831,6 +16860,7 @@
       "delete": {
         "operationId": "organizations_removeMember",
         "summary": "Remove Member",
+        "description": "Removes a member from an organization. Owners can remove admins and members; admins can only remove members. The owner cannot be removed (ownership must be transferred first), and you cannot remove yourself.",
         "responses": {
           "200": {
             "description": "Successful response",

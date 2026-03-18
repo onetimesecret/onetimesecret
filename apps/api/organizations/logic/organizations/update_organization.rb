@@ -6,7 +6,12 @@ require 'stripe'
 
 module OrganizationAPI::Logic
   module Organizations
-    # UpdateOrganization - Update organization settings including billing email
+    # Update Organization
+    #
+    # @api Updates an organization's display name, description, and/or
+    #   billing email. When the billing email changes and a Stripe customer
+    #   is linked, the email is synced to Stripe. Only the organization
+    #   owner can perform this action.
     #
     # When billing_email is updated and the organization has a linked Stripe
     # customer, this also updates the email in Stripe to keep them in sync.

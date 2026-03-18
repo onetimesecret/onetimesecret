@@ -4,7 +4,11 @@
 
 module OrganizationAPI::Logic
   module Members
-    # Update a member's role within an organization
+    # Update Member Role
+    #
+    # @api Changes a member's role within an organization. Only organization
+    #   owners can change roles. Valid target roles are "member" and "admin".
+    #   Returns the updated member record with both the new and previous role.
     #
     # PATCH /api/organizations/:extid/members/:member_extid/role
     #
