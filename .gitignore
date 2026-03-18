@@ -82,9 +82,10 @@ src/auto-imports.d.ts
 src/.eslintrc-auto-import.json
 *.pyc
 
-# Generated files (locales and types) - produced by sync/type-gen scripts
+# Generated files (locales, types, OpenAPI) - produced by sync/type-gen/openapi scripts
 generated/locales/*.json
 generated/types/*.d.ts
+generated/openapi/*.json
 generated/outputs
 
 scripts/api-validation/captures

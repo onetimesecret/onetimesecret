@@ -64,7 +64,7 @@ import { responseSchemas } from '@/schemas/api/v3/responses';
 // =============================================================================
 
 const SCRIPT_DIR = dirname(new URL(import.meta.url).pathname);
-const OUTPUT_DIR = join(process.cwd(), 'docs', 'api');
+const OUTPUT_DIR = join(process.cwd(), 'generated', 'openapi');
 const openapiConfig = JSON.parse(
   readFileSync(join(SCRIPT_DIR, 'openapi.config.json'), 'utf-8')
 ) as {

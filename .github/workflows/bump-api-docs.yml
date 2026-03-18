@@ -1,6 +1,12 @@
 # .github/workflows/bump-api-docs.yml
 #
-# Bump.sh API documentation: deploy on merge, diff on PRs.
+# Bump.sh API documentation: generate, deploy on merge, diff on PRs.
+#
+# Generates OpenAPI specs from Zod schemas (via pnpm openapi:generate) into
+# generated/openapi/, then deploys or diffs them on Bump.sh. The generated
+# files are ephemeral build artifacts — they are never committed to the repo.
+# Bump.sh is the single canonical source for published API documentation.
+#
 # Deploys v1/v2/v3 as branches within a single Bump.sh documentation,
 # letting readers toggle between API versions on one page.
 #
@@ -22,13 +28,17 @@ on:
     branches:
       - main
     paths:
-      - 'docs/api/openapi.*.json'
+      - 'src/schemas/**/*.ts'
+      - 'apps/api/*/routes.txt'
+      - 'src/scripts/openapi/**'
 
   pull_request:
     branches:
       - main
     paths:
-      - 'docs/api/openapi.*.json'
+      - 'src/schemas/**/*.ts'
+      - 'apps/api/*/routes.txt'
+      - 'src/scripts/openapi/**'
 
   workflow_dispatch:
 
@@ -37,10 +47,63 @@ permissions:
   pull-requests: write
 
 jobs:
+  # ── Generate OpenAPI specs from source ──────────────────────────────
+  generate:
+    name: Generate OpenAPI specs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '25'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate OpenAPI specifications
+        run: pnpm run openapi:generate
+
+      - name: Validate generated JSON
+        run: |
+          for file in generated/openapi/openapi.*.json; do
+            echo "Validating $file..."
+            if ! jq empty "$file" 2>/dev/null; then
+              echo "Invalid JSON in $file"
+              exit 1
+            fi
+            echo "Valid: $file"
+          done
+
+      - name: Upload generated specs
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-specs
+          path: generated/openapi/openapi.*.json
+          retention-days: 30
+
   # ── Public API versions (v1, v2, v3) ─────────────────────────────
   # Each version deploys as a Bump.sh branch (a version track, not a git branch)
   # within a single Bump.sh doc.
   deploy-doc:
+    needs: generate
     if: ${{ github.event_name != 'pull_request' }}
     name: Deploy API ${{ matrix.version }} on Bump.sh
     runs-on: ubuntu-latest
@@ -48,16 +111,20 @@ jobs:
       matrix:
         include:
           - version: v1
-            file: docs/api/openapi.v1.json
+            file: openapi.v1.json
           - version: v2
-            file: docs/api/openapi.v2.json
+            file: openapi.v2.json
           - version: v3
-            file: docs/api/openapi.v3.json
+            file: openapi.v3.json
     steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Download generated specs
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-specs
+
       - name: Install Bump.sh CLI
         run: npm install -g bump-cli@2.9.12
+
       - name: Deploy API documentation
         run: >
           bump deploy ${{ matrix.file }}
@@ -69,6 +136,7 @@ jobs:
           BUMP_TOKEN: ${{ secrets.BUMP_TOKEN }}
 
   api-diff:
+    needs: generate
     if: ${{ github.event_name == 'pull_request' }}
     name: Diff API ${{ matrix.version }} on Bump.sh
     runs-on: ubuntu-latest
@@ -76,16 +144,20 @@ jobs:
       matrix:
         include:
           - version: v1
-            file: docs/api/openapi.v1.json
+            file: openapi.v1.json
           - version: v2
-            file: docs/api/openapi.v2.json
+            file: openapi.v2.json
           - version: v3
-            file: docs/api/openapi.v3.json
+            file: openapi.v3.json
     steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Download generated specs
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-specs
+
       - name: Install Bump.sh CLI
         run: npm install -g bump-cli@2.9.12
+
       - name: Diff API documentation
         run: >
           bump diff ${{ matrix.file }}
@@ -101,17 +173,22 @@ jobs:
   # Bump.sh tokens are scoped per hub, so this uses its own token (BUMP_INTERNAL_TOKEN)
   # rather than the public API's BUMP_TOKEN.
   deploy-internal:
+    needs: generate
     if: ${{ github.event_name != 'pull_request' }}
     name: Deploy internal API on Bump.sh
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Download generated specs
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-specs
+
       - name: Install Bump.sh CLI
         run: npm install -g bump-cli@2.9.12
+
       - name: Deploy internal API documentation
         run: >
-          bump deploy docs/api/openapi.internal.json
+          bump deploy openapi.internal.json
           --hub "$BUMP_HUB"
           --doc "$BUMP_DOC"
           --token "$BUMP_TOKEN"
@@ -121,17 +198,22 @@ jobs:
           BUMP_TOKEN: ${{ secrets.BUMP_INTERNAL_TOKEN }}
 
   internal-diff:
+    needs: generate
     if: ${{ github.event_name == 'pull_request' }}
     name: Diff internal API on Bump.sh
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Download generated specs
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-specs
+
       - name: Install Bump.sh CLI
         run: npm install -g bump-cli@2.9.12
+
       - name: Diff internal API documentation
         run: >
-          bump diff docs/api/openapi.internal.json
+          bump diff openapi.internal.json
           --hub "$BUMP_HUB"
           --doc "$BUMP_DOC"
           --token "$BUMP_TOKEN"

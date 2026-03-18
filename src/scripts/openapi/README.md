@@ -23,13 +23,15 @@ pnpm run schemas:scan                              # Scan Ruby SCHEMA constants,
 The generator produces one self-contained OpenAPI 3.1 spec per API surface:
 
 ```
-docs/api/
+generated/openapi/
 ├── openapi.v1.json          # v1 routes (frozen — skipped unless --force)
 ├── openapi.v2.json          # v2 routes
 ├── openapi.v3.json          # v3 routes
 └── openapi.internal.json    # account + colonel + domains + organizations + invite
 ```
 
+These files are gitignored build artifacts — they are generated on demand and
+consumed by the Bump.sh workflow (`.github/workflows/bump-api-docs.yml`).
 Each spec is fully self-contained with its own schemas inlined per-operation.
 
 ## How it works
