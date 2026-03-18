@@ -86,7 +86,8 @@ handle string-encoded Redis values).
 - `generate-openapi.ts` — the generator script
 - `schema-scanner.ts` — scans Ruby source for `SCHEMA` constants, produces coverage reports
 - `otto-routes-parser.ts` — parses routes.txt into structured route metadata
-- `route-config.ts` — shared helpers (standardErrorResponses, mergeResponses)
+- `openapi.config.json` — declarative config: servers list and spec targets (v1, v2, v3, internal)
+- `route-config.ts` — shared helpers (standardErrorResponses, mergeResponses) and the SpecTarget type
 - `tests/test-parser.ts` — smoke tests for the routes parser
 - `tests/test-scanner.ts` — smoke tests for the schema scanner
 

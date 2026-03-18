@@ -6,6 +6,13 @@ module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
 
+    # Show Secret
+    #
+    # @api Retrieves a secret's metadata and optionally its decrypted content.
+    #   When called with continue=true and the correct passphrase, the secret
+    #   value is returned and the secret is consumed. Without continue, returns
+    #   only metadata such as whether a passphrase is required. The secret can
+    #   only be viewed once.
     class ShowSecret < V2::Logic::Base
       SCHEMAS = { response: 'secret' }.freeze
 

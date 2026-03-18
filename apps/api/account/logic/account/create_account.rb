@@ -4,6 +4,12 @@
 
 module AccountAPI::Logic
   module Account
+    # Create Account
+    #
+    # @api Creates a new user account with the provided email and password.
+    #   Returns a success response regardless of whether the account already
+    #   exists to prevent email enumeration. Sends a verification email to
+    #   new and unverified accounts.
     class CreateAccount < AccountAPI::Logic::Base
       SCHEMAS = { response: 'createAccount' }.freeze
 

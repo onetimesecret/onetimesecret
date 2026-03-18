@@ -8,6 +8,11 @@ module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
 
+    # Conceal Secret
+    #
+    # @api Creates a new secret from user-provided content. Accepts the secret
+    #   value, an optional passphrase, TTL, recipient email, and share domain.
+    #   Returns the receipt and secret records with share URLs.
     class ConcealSecret < BaseSecretAction
       SCHEMAS = { response: 'concealData', request: 'concealSecret' }.freeze
 

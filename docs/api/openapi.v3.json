@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Onetime Secret API v3",
-    "version": "0.24.0",
+    "version": "2026-03-18",
     "description": "Current REST API"
   },
   "servers": [
@@ -36,6 +36,7 @@
       "get": {
         "operationId": "v3_listReceipts",
         "summary": "List Receipts",
+        "description": "List receipts for the authenticated user's recent secrets. Returns receipts from the last 30 days, sorted by most recently updated. Supports scoping by organization or custom domain.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -946,6 +947,7 @@
       "get": {
         "operationId": "v3_showReceipt",
         "summary": "Show Receipt",
+        "description": "Retrieve a receipt with full details about a secret's lifecycle, including share and burn URLs, expiration, and current state. On first access, may include the generated secret value briefly.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -1516,6 +1518,7 @@
       "patch": {
         "operationId": "v3_updateReceipt",
         "summary": "Update Receipt",
+        "description": "Update the memo field on a receipt owned by the authenticated user. Returns the updated receipt record.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -2161,6 +2164,7 @@
       "post": {
         "operationId": "v3_receipt_burnSecret",
         "summary": "Burn Secret",
+        "description": "Permanently destroy a secret before it has been revealed. Requires a passphrase if one was set during creation. Returns the updated receipt confirming the secret has been burned.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -2810,6 +2814,7 @@
       "post": {
         "operationId": "v3_concealSecret",
         "summary": "Conceal Secret",
+        "description": "Store a user-provided secret value and return share metadata including a secret link for the recipient and a receipt link for the creator. The secret can only be retrieved once before it is permanently destroyed.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -3386,6 +3391,7 @@
       "post": {
         "operationId": "v3_generateSecret",
         "summary": "Generate Secret",
+        "description": "Generate a random secret value using configurable character sets and length, then return share metadata including a secret link and a receipt link. The generated value can only be retrieved once.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -3982,6 +3988,7 @@
       "get": {
         "operationId": "v3_showSecret",
         "summary": "Show Secret",
+        "description": "Return metadata about a secret without revealing its value. Includes state, expiration details, and whether a passphrase is required. Marks the secret as previewed on first access.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -4251,6 +4258,7 @@
       "post": {
         "operationId": "v3_secret_revealSecret",
         "summary": "Reveal Secret",
+        "description": "Retrieve and decrypt a secret value. The secret is permanently destroyed immediately after retrieval and cannot be accessed again. Requires a passphrase if one was set during creation. The secret owner is optionally notified when the secret is revealed.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -4600,6 +4608,7 @@
       "post": {
         "operationId": "v3_guest_concealSecret",
         "summary": "Conceal Secret",
+        "description": "Store a user-provided secret value and return share metadata including a secret link for the recipient and a receipt link for the creator. The secret can only be retrieved once before it is permanently destroyed.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -5110,6 +5119,7 @@
       "post": {
         "operationId": "v3_guest_generateSecret",
         "summary": "Generate Secret",
+        "description": "Generate a random secret value using configurable character sets and length, then return share metadata including a secret link and a receipt link. The generated value can only be retrieved once.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -5640,6 +5650,7 @@
       "get": {
         "operationId": "v3_guest_showSecret",
         "summary": "Show Secret",
+        "description": "Return metadata about a secret without revealing its value. Includes state, expiration details, and whether a passphrase is required. Marks the secret as previewed on first access.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -5843,6 +5854,7 @@
       "post": {
         "operationId": "v3_guest_revealSecret",
         "summary": "Reveal Secret",
+        "description": "Retrieve and decrypt a secret value. The secret is permanently destroyed immediately after retrieval and cannot be accessed again. Requires a passphrase if one was set during creation. The secret owner is optionally notified when the secret is revealed.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -6126,6 +6138,7 @@
       "get": {
         "operationId": "v3_guest_showReceipt",
         "summary": "Show Receipt",
+        "description": "Retrieve a receipt with full details about a secret's lifecycle, including share and burn URLs, expiration, and current state. On first access, may include the generated secret value briefly.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -6632,6 +6645,7 @@
       "post": {
         "operationId": "v3_guest_burnSecret",
         "summary": "Burn Secret",
+        "description": "Permanently destroy a secret before it has been revealed. Requires a passphrase if one was set during creation. Returns the updated receipt confirming the secret has been burned.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -7215,6 +7229,7 @@
       "post": {
         "operationId": "v3_showMultipleReceipts",
         "summary": "Show Multiple Receipts",
+        "description": "Retrieve multiple receipts in a single request by providing an array of receipt identifiers. Returns up to 25 receipts per request. Useful for checking the status of several secrets at once.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -8142,6 +8157,7 @@
       "get": {
         "operationId": "v3_secret_showSecretStatus",
         "summary": "Show Secret Status",
+        "description": "Check the current status of a secret by its identifier. Returns the secret's state and expiration details, or an unknown state if the secret does not exist.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -8345,6 +8361,7 @@
       "post": {
         "operationId": "v3_listSecretStatus",
         "summary": "List Secret Status",
+        "description": "Retrieve the status of multiple secrets in a single request. Accepts a comma-separated list of secret identifiers and returns their current state and metadata.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -8589,6 +8606,7 @@
       "get": {
         "operationId": "v3_getSupportedLocales",
         "summary": "Get Supported Locales",
+        "description": "System metadata endpoints for health checks, version info, and supported locale listings. These endpoints do not require authentication.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -8696,6 +8714,7 @@
       "get": {
         "operationId": "v3_systemStatus",
         "summary": "System Status",
+        "description": "System metadata endpoints for health checks, version info, and supported locale listings. These endpoints do not require authentication.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -8796,6 +8815,7 @@
       "get": {
         "operationId": "v3_systemVersion",
         "summary": "System Version",
+        "description": "System metadata endpoints for health checks, version info, and supported locale listings. These endpoints do not require authentication.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -8906,6 +8926,7 @@
       "post": {
         "operationId": "v3_receiveFeedback",
         "summary": "Receive Feedback",
+        "description": "Submit a feedback message. Accepts a text message with optional timezone and client version metadata. Available to both authenticated and anonymous users.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -9108,6 +9129,7 @@
       "get": {
         "operationId": "v3_getConfig",
         "summary": "Get Config",
+        "description": "Retrieve the incoming secrets feature configuration, including whether the feature is enabled, memo length limits, default TTL, and the list of available recipients identified by hash.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -9253,6 +9275,7 @@
       "post": {
         "operationId": "v3_createIncomingSecret",
         "summary": "Create Incoming Secret",
+        "description": "Create a secret destined for a pre-configured recipient and send them an email notification. The recipient is identified by a hash rather than a raw email address. Returns the receipt and secret metadata on success.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -9870,6 +9893,7 @@
       "post": {
         "operationId": "v3_validateRecipient",
         "summary": "Validate Recipient",
+        "description": "Validate whether a recipient hash corresponds to a configured incoming recipient. Returns true if the hash is recognized, false otherwise. Use this before submitting a secret creation request.",
         "responses": {
           "200": {
             "description": "Successful response",

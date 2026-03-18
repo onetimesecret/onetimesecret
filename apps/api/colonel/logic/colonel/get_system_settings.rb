@@ -7,6 +7,12 @@ require_relative '../base'
 module ColonelAPI
   module Logic
     module Colonel
+      # Get System Settings
+      #
+      # @api Returns the current system configuration organized by section:
+      #   interface, secret options, authentication, emailer, mail, diagnostics,
+      #   logging, billing, and features. Sensitive values such as API keys
+      #   and webhook secrets are masked. Requires colonel role.
       class GetSystemSettings < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'systemSettings' }.freeze
 

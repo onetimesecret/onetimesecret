@@ -4,6 +4,11 @@
 
 module OrganizationAPI::Logic
   module Organizations
+    # Delete Organization
+    #
+    # @api Permanently deletes an organization, removing all member
+    #   associations first. Only the organization owner can perform
+    #   this action. Returns a confirmation of deletion.
     class DeleteOrganization < OrganizationAPI::Logic::Base
       SCHEMAS = { response: 'organizationDelete' }.freeze
 

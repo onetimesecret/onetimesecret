@@ -7,6 +7,13 @@ require_relative '../../../../lib/onetime/jobs/publisher'
 
 module V2::Logic
   module Incoming
+    # Create Incoming Secret
+    #
+    # @api Creates a secret and sends it to a pre-configured recipient via
+    #   email notification. The recipient is specified by a hash identifier
+    #   rather than a raw email address. Accepts the secret content, an
+    #   optional memo, and the recipient hash. Requires the incoming secrets
+    #   feature to be enabled.
     class CreateIncomingSecret < V2::Logic::Base
       attr_reader :memo, :secret_value, :recipient_email, :recipient_hash, :ttl, :passphrase, :metadata, :secret, :greenlighted
 

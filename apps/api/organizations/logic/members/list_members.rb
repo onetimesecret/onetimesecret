@@ -4,7 +4,11 @@
 
 module OrganizationAPI::Logic
   module Members
-    # List all members of an organization with their roles
+    # List Members
+    #
+    # @api Returns all active members of an organization with their roles,
+    #   join dates, and ownership status. Any organization member can view
+    #   the list. Includes a flag indicating which entry is the current user.
     #
     # GET /api/organizations/:extid/members
     #

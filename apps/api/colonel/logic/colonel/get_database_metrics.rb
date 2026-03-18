@@ -7,6 +7,12 @@ require_relative '../base'
 module ColonelAPI
   module Logic
     module Colonel
+      # Get Database Metrics
+      #
+      # @api Returns Redis database metrics including per-database key counts
+      #   with TTL averages, total keys, memory usage statistics, server info
+      #   (version, uptime, connected clients), and model-level record counts.
+      #   Requires colonel role.
       class GetDatabaseMetrics < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'databaseMetrics' }.freeze
 

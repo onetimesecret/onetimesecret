@@ -6,6 +6,11 @@ module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
 
+    # Burn Secret
+    #
+    # @api Permanently destroys a secret before its expiration time. Requires
+    #   the receipt identifier and a passphrase if one was set. Returns the
+    #   updated receipt record with burn confirmation and related URLs.
     class BurnSecret < V2::Logic::Base
       include Onetime::LoggerMethods
 

@@ -4,6 +4,11 @@
 
 module OrganizationAPI::Logic
   module Organizations
+    # List Organizations
+    #
+    # @api Returns all organizations the authenticated user belongs to,
+    #   including each organization's details, member count, and billing
+    #   information.
     class ListOrganizations < OrganizationAPI::Logic::Base
       SCHEMAS = { response: 'organizationList' }.freeze
 

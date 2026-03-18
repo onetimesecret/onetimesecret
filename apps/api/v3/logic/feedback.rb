@@ -7,6 +7,9 @@ require_relative '../../../../lib/onetime/jobs/publisher'
 
 module V3
   module Logic
+    # @api Submit a feedback message. Accepts a text message with
+    #   optional timezone and client version metadata. Available to
+    #   both authenticated and anonymous users.
     class ReceiveFeedback < V3::Logic::Base
       SCHEMAS = { response: 'feedback' }.freeze
 

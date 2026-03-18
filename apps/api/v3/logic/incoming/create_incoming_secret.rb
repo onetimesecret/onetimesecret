@@ -30,6 +30,10 @@ module V3
       #     details: { memo: "...", recipient: "abc123..." }
       #   }
       #
+      # @api Create a secret destined for a pre-configured recipient and
+      #   send them an email notification. The recipient is identified by
+      #   a hash rather than a raw email address. Returns the receipt and
+      #   secret metadata on success.
       class CreateIncomingSecret < V3::Logic::Base
         include Onetime::LoggerMethods
 
