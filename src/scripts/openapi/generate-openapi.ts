@@ -23,24 +23,28 @@
  *   pnpm run openapi:generate -- --sort path,method  # Both
  */
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { dirname, join } from 'path';
 import { z } from 'zod';
 
 import {
-  parseAllApiRoutes,
-  toOpenAPIPath,
-  getPathParams,
   getAuthRequirements,
   getContentType,
+  getPathParams,
   getResponseType,
+  parseAllApiRoutes,
+  toOpenAPIPath,
   type OttoRoute,
 } from './otto-routes-parser';
 
-import { standardErrorResponses } from './route-config';
-import { scanSchemas, buildHandlerSchemaMap, type SchemaEntry, type ScanResult } from './schema-scanner';
+import { SPEC_TARGETS, standardErrorResponses, type SpecTarget } from './route-config';
+import {
+  buildHandlerSchemaMap,
+  scanSchemas,
+  type ScanResult,
+  type SchemaEntry,
+} from './schema-scanner';
 
-import { responseSchemas } from '@/schemas/api/v3/responses';
 import {
   burnSecretRequestSchema,
   concealSecretRequestSchema,
@@ -53,6 +57,7 @@ import {
   updateReceiptRequestSchema,
   validateRecipientRequestSchema,
 } from '@/schemas/api/v3/requests';
+import { responseSchemas } from '@/schemas/api/v3/responses';
 
 // =============================================================================
 // Configuration
@@ -79,51 +84,6 @@ const TARGET_ARG = (() => {
   const idx = process.argv.indexOf('--target');
   return idx !== -1 ? (process.argv[idx + 1] ?? '').split(',').filter(Boolean) : [];
 })();
-
-// =============================================================================
-// Spec Targets
-// =============================================================================
-
-interface SpecTarget {
-  id: string;
-  filename: string;
-  title: string;
-  description: string;
-  apiNames: string[];
-  frozen?: boolean;
-}
-
-const SPEC_TARGETS: SpecTarget[] = [
-  {
-    id: 'v1',
-    filename: 'openapi.v1.json',
-    title: 'Onetime Secret API v1',
-    description: 'Legacy REST API (frozen)',
-    apiNames: ['v1'],
-    frozen: true,
-  },
-  {
-    id: 'v2',
-    filename: 'openapi.v2.json',
-    title: 'Onetime Secret API v2',
-    description: 'REST API v2',
-    apiNames: ['v2'],
-  },
-  {
-    id: 'v3',
-    filename: 'openapi.v3.json',
-    title: 'Onetime Secret API v3',
-    description: 'Current REST API',
-    apiNames: ['v3'],
-  },
-  {
-    id: 'internal',
-    filename: 'openapi.internal.json',
-    title: 'Onetime Secret Internal API',
-    description: 'Internal API consumed by the Vue frontend',
-    apiNames: ['account', 'colonel', 'domains', 'organizations', 'invite'],
-  },
-];
 
 // =============================================================================
 // API Mount Points
@@ -161,20 +121,20 @@ const handlerSchemaMap = buildHandlerSchemaMap(scanResult.entries);
  */
 const REQUEST_SCHEMA_REGISTRY: Record<string, z.ZodType> = {
   // Secrets
-  'burnSecret': burnSecretRequestSchema,
-  'concealSecret': concealSecretRequestSchema,
-  'generateSecret': generateSecretRequestSchema,
-  'listSecretStatus': listSecretStatusRequestSchema,
-  'revealSecret': revealSecretRequestSchema,
-  'updateReceipt': updateReceiptRequestSchema,
-  'showMultipleReceipts': showMultipleReceiptsRequestSchema,
+  burnSecret: burnSecretRequestSchema,
+  concealSecret: concealSecretRequestSchema,
+  generateSecret: generateSecretRequestSchema,
+  listSecretStatus: listSecretStatusRequestSchema,
+  revealSecret: revealSecretRequestSchema,
+  updateReceipt: updateReceiptRequestSchema,
+  showMultipleReceipts: showMultipleReceiptsRequestSchema,
 
   // Incoming
-  'createIncomingSecret': createIncomingSecretRequestSchema,
-  'validateRecipient': validateRecipientRequestSchema,
+  createIncomingSecret: createIncomingSecretRequestSchema,
+  validateRecipient: validateRecipientRequestSchema,
 
   // Feedback
-  'receiveFeedback': receiveFeedbackRequestSchema,
+  receiveFeedback: receiveFeedbackRequestSchema,
 };
 
 /**
@@ -216,8 +176,8 @@ function getResponseKey(entry: SchemaEntry): string | undefined {
  */
 function lookupRequestSchema(handler: string): z.ZodType | undefined {
   const normalized = handler.replace('#', '.');
-  const entry = handlerSchemaMap.get(normalized)
-    ?? handlerSchemaMap.get(getHandlerLeaf(normalized));
+  const entry =
+    handlerSchemaMap.get(normalized) ?? handlerSchemaMap.get(getHandlerLeaf(normalized));
 
   // Try explicit request key from SCHEMAS constant first
   if (entry) {
@@ -262,7 +222,9 @@ function toOperationId(leaf: string): string {
   if (leaf.includes('_')) {
     return leaf
       .split('_')
-      .map((part, i) => i === 0 ? part.toLowerCase() : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .map((part, i) =>
+        i === 0 ? part.toLowerCase() : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+      )
       .join('');
   }
   // Handle PascalCase (V2/V3 style)
@@ -279,7 +241,7 @@ function toSummary(leaf: string): string {
   if (leaf.includes('_')) {
     return leaf
       .split('_')
-      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
       .join(' ');
   }
   // Handle PascalCase — insert space before each capital letter
@@ -311,7 +273,7 @@ function createDocument(target: SpecTarget): OpenAPIDocument {
     openapi: '3.1.0',
     info: {
       title: target.title,
-      version: new Date().toISOString().slice(0, 10),  // spec revision date, not API version
+      version: new Date().toISOString().slice(0, 10), // spec revision date, not API version
       description: target.description,
     },
     servers: openapiConfig.servers,
@@ -403,7 +365,7 @@ function buildSecurity(route: OttoRoute): Array<Record<string, string[]>> | unde
  * Build path parameters for a route.
  */
 function buildPathParameters(path: string): Array<Record<string, unknown>> {
-  return getPathParams(path).map(name => ({
+  return getPathParams(path).map((name) => ({
     name,
     in: 'path',
     required: true,
@@ -428,9 +390,7 @@ function buildRequestBody(route: OttoRoute): Record<string, unknown> | undefined
   const schema = lookupRequestSchema(route.handler);
   const contentType = getContentType(route);
   const isForm = contentType === 'form';
-  const mediaType = isForm
-    ? 'application/x-www-form-urlencoded'
-    : 'application/json';
+  const mediaType = isForm ? 'application/x-www-form-urlencoded' : 'application/json';
 
   // If we have a schema, emit it under the correct media type
   if (schema) {
@@ -463,10 +423,7 @@ function buildRequestBody(route: OttoRoute): Record<string, unknown> | undefined
 /**
  * Build the responses object for a route.
  */
-function buildResponses(
-  handler: string,
-  route: OttoRoute
-): Record<string, unknown> {
+function buildResponses(handler: string, route: OttoRoute): Record<string, unknown> {
   const responseType = getResponseType(route);
   const responses: Record<string, unknown> = {};
 
@@ -541,10 +498,7 @@ function qualifyOperationId(apiName: string, operationId: string, route: OttoRou
 /**
  * Build a single OpenAPI operation from an OttoRoute.
  */
-function buildOperation(
-  route: OttoRoute,
-  apiName: string
-): Record<string, unknown> {
+function buildOperation(route: OttoRoute, apiName: string): Record<string, unknown> {
   const leaf = getHandlerLeaf(route.handler);
   const operationId = toOperationId(leaf);
   const isDeprecated = route.params.deprecated === 'true';
@@ -557,8 +511,9 @@ function buildOperation(
 
   // Add description from @api tag in Ruby class comment (if available)
   const normalizedHandler = route.handler.replace('#', '.');
-  const descEntry = handlerSchemaMap.get(normalizedHandler)
-    ?? handlerSchemaMap.get(getHandlerLeaf(normalizedHandler));
+  const descEntry =
+    handlerSchemaMap.get(normalizedHandler) ??
+    handlerSchemaMap.get(getHandlerLeaf(normalizedHandler));
   if (descEntry?.description) {
     operation.description = descEntry.description;
   }
@@ -621,7 +576,7 @@ function filterRoutes(
   apiNames: string[]
 ): Record<string, { routes: OttoRoute[] }> {
   return Object.fromEntries(
-    apiNames.filter(name => name in allRoutes).map(name => [name, allRoutes[name]])
+    apiNames.filter((name) => name in allRoutes).map((name) => [name, allRoutes[name]])
   );
 }
 
@@ -711,7 +666,13 @@ function processAllRoutes(
 
 /** REST method weight for conventional ordering. */
 const METHOD_ORDER: Record<string, number> = {
-  get: 0, post: 1, put: 2, patch: 3, delete: 4, options: 5, head: 6,
+  get: 0,
+  post: 1,
+  put: 2,
+  patch: 3,
+  delete: 4,
+  options: 5,
+  head: 6,
 };
 
 /**
@@ -720,9 +681,7 @@ const METHOD_ORDER: Record<string, number> = {
 function sortPaths(doc: OpenAPIDocument): void {
   if (!SORT_PATHS && !SORT_METHODS) return;
 
-  const pathKeys = SORT_PATHS
-    ? Object.keys(doc.paths).sort()
-    : Object.keys(doc.paths);
+  const pathKeys = SORT_PATHS ? Object.keys(doc.paths).sort() : Object.keys(doc.paths);
 
   const sorted: typeof doc.paths = {};
   for (const path of pathKeys) {
@@ -753,10 +712,12 @@ function writeAndSummarize(
   target: SpecTarget
 ): string {
   if (!NO_TAGS) {
-    doc.tags = Array.from(result.tags).sort().map(name => ({
-      name,
-      description: `${name.charAt(0).toUpperCase() + name.slice(1)} operations`,
-    }));
+    doc.tags = Array.from(result.tags)
+      .sort()
+      .map((name) => ({
+        name,
+        description: `${name.charAt(0).toUpperCase() + name.slice(1)} operations`,
+      }));
   }
 
   sortPaths(doc);
@@ -771,10 +732,10 @@ function writeAndSummarize(
     writeFileSync(outputPath, JSON.stringify(doc, null, 2) + '\n');
   }
 
-  const pct = result.routeCount > 0
-    ? Math.round(result.schemaHits / result.routeCount * 100)
-    : 0;
-  console.log(`\n  ${target.id}: ${result.routeCount} routes, ${result.schemaHits} schemas (${pct}%) → ${target.filename}`);
+  const pct = result.routeCount > 0 ? Math.round((result.schemaHits / result.routeCount) * 100) : 0;
+  console.log(
+    `\n  ${target.id}: ${result.routeCount} routes, ${result.schemaHits} schemas (${pct}%) → ${target.filename}`
+  );
 
   return outputPath;
 }
@@ -835,7 +796,7 @@ function main(): void {
   }
 
   // Combined summary
-  const pct = totalRoutes > 0 ? Math.round(totalSchemaHits / totalRoutes * 100) : 0;
+  const pct = totalRoutes > 0 ? Math.round((totalSchemaHits / totalRoutes) * 100) : 0;
   console.log('\nSummary');
   console.log('───────────────────────');
   console.log(`Specs generated:  ${outputs.length}`);
