@@ -196,6 +196,15 @@ describe('customerRecord', () => {
       expect(result.contributor).toBe(true);
     });
   });
+
+  describe('feature_flags defaults', () => {
+    it('defaults feature_flags to empty object when missing', () => {
+      const { feature_flags, ...withoutFlags } = validCustomerBase;
+      const result = customerRecord.parse(withoutFlags);
+
+      expect(result.feature_flags).toEqual({});
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------
