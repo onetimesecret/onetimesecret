@@ -99,7 +99,7 @@ jobs:
   # ── Internal API ─────────────────────────────────────────────────
   # Deploys as a single document within its own hub, isolated from the public versioned docs.
   deploy-internal:
-    if: ${{ github.event_name != 'pull_request' && secrets.BUMP_INTERNAL_DOC_SLUG != '' }}
+    if: ${{ github.event_name != 'pull_request' }}
     name: Deploy internal API on Bump.sh
     runs-on: ubuntu-latest
     steps:
@@ -117,7 +117,7 @@ jobs:
           BUMP_TOKEN: ${{ secrets.BUMP_TOKEN }}
 
   internal-diff:
-    if: ${{ github.event_name == 'pull_request' && secrets.BUMP_INTERNAL_DOC_SLUG != '' }}
+    if: ${{ github.event_name == 'pull_request' }}
     name: Diff internal API on Bump.sh
     runs-on: ubuntu-latest
     steps:
