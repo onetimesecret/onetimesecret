@@ -16,7 +16,7 @@ import { z } from 'zod';
 const customerRoles = ['customer', 'colonel', 'recipient', 'user_deleted_self'] as const;
 
 /** Customer record as it appears in JSON responses. */
-const customerRecord = z.object({
+export const customerRecord = z.object({
   identifier: z.string(),
   created: transforms.fromNumber.toDate,
   updated: transforms.fromNumber.toDate,
@@ -27,10 +27,10 @@ const customerRecord = z.object({
   verified: z.boolean(),
   active: z.boolean(),
   contributor: z.boolean().optional(),
-  secrets_created: z.number().default(0),
-  secrets_burned: z.number().default(0),
-  secrets_shared: z.number().default(0),
-  emails_sent: z.number().default(0),
+  secrets_created: z.coerce.number().default(0),
+  secrets_burned: z.coerce.number().default(0),
+  secrets_shared: z.coerce.number().default(0),
+  emails_sent: z.coerce.number().default(0),
   last_login: transforms.fromNumber.toDateNullable,
   locale: z.string().nullable(),
   notify_on_reveal: z.boolean().default(false),
