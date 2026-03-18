@@ -55,7 +55,7 @@ jobs:
             file: docs/api/openapi.v3.json
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install Bump.sh CLI
         run: npm install -g bump-cli@2.9.12
       - name: Deploy API documentation
@@ -83,7 +83,7 @@ jobs:
             file: docs/api/openapi.v3.json
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install Bump.sh CLI
         run: npm install -g bump-cli@2.9.12
       - name: Diff API documentation
@@ -106,7 +106,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install Bump.sh CLI
         run: npm install -g bump-cli@2.9.12
       - name: Deploy internal API documentation
@@ -116,7 +116,7 @@ jobs:
           --doc "$BUMP_DOC"
           --token "$BUMP_TOKEN"
         env:
-          BUMP_HUB: ${{ vars.BUMP_INTERNAL_HUB_ID }}
+          BUMP_HUB: ${{ secrets.BUMP_INTERNAL_HUB_ID }}
           BUMP_DOC: ${{ secrets.BUMP_INTERNAL_DOC_SLUG }}
           BUMP_TOKEN: ${{ secrets.BUMP_INTERNAL_TOKEN }}
 
@@ -126,7 +126,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install Bump.sh CLI
         run: npm install -g bump-cli@2.9.12
       - name: Diff internal API documentation
@@ -136,6 +136,6 @@ jobs:
           --doc "$BUMP_DOC"
           --token "$BUMP_TOKEN"
         env:
-          BUMP_HUB: ${{ vars.BUMP_INTERNAL_HUB_ID }}
+          BUMP_HUB: ${{ secrets.BUMP_INTERNAL_HUB_ID }}
           BUMP_DOC: ${{ secrets.BUMP_INTERNAL_DOC_SLUG }}
           BUMP_TOKEN: ${{ secrets.BUMP_INTERNAL_TOKEN }}
