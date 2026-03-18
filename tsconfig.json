@@ -57,10 +57,10 @@
     "paths": {
       "@/*": ["./src/*"],
       "@tests/*": ["./src/tests/*"],
-      "@generated/*": ["./generated/*"]
+      "@generated/*": ["./generated/*"],
     },
     "typeRoots": ["./node_modules/@types", "./src/types"],
-    "types": ["jsdom", "node"]
+    "types": ["jsdom", "node"],
   },
   "include": [
     "src/auto-imports.d.ts",
@@ -70,7 +70,7 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "src/content/*.md",
-    "generated/types/*.d.ts"
+    "generated/types/*.d.ts",
   ],
-  "exclude": ["node_modules", "dist", "build", "src/tests/**", "public/web/dist"]
+  "exclude": ["node_modules", "dist", "build", "src/tests/**", "public/web/dist"],
 }

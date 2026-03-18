@@ -17,9 +17,13 @@
  *   pnpm run openapi:generate                # Generate spec
  *   pnpm run openapi:generate -- --dry-run   # Preview without writing
  *   pnpm run openapi:generate -- --verbose    # Show per-route details
+ *   pnpm run openapi:generate -- --no-tags    # Omit OpenAPI tags from operations
+ *   pnpm run openapi:generate -- --sort path  # Sort paths lexicographically
+ *   pnpm run openapi:generate -- --sort method # Sort methods per REST convention
+ *   pnpm run openapi:generate -- --sort path,method  # Both
  */
 
-import { writeFileSync, mkdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { z } from 'zod';
 
@@ -54,9 +58,72 @@ import {
 // Configuration
 // =============================================================================
 
-const OUTPUT_DIR = join(process.cwd(), 'generated', 'openapi');
+const SCRIPT_DIR = dirname(new URL(import.meta.url).pathname);
+const OUTPUT_DIR = join(process.cwd(), 'docs', 'api');
+const openapiConfig = JSON.parse(
+  readFileSync(join(SCRIPT_DIR, 'openapi.config.json'), 'utf-8')
+) as { servers: Array<{ url: string; description: string }> };
 const DRY_RUN = process.argv.includes('--dry-run');
 const VERBOSE = process.argv.includes('--verbose') || process.argv.includes('-v');
+const NO_TAGS = process.argv.includes('--no-tags');
+
+const SORT_ARG = (() => {
+  const idx = process.argv.indexOf('--sort');
+  return idx !== -1 ? (process.argv[idx + 1] ?? '').split(',').filter(Boolean) : [];
+})();
+const SORT_PATHS = SORT_ARG.includes('path');
+const SORT_METHODS = SORT_ARG.includes('method');
+
+const FORCE = process.argv.includes('--force');
+const TARGET_ARG = (() => {
+  const idx = process.argv.indexOf('--target');
+  return idx !== -1 ? (process.argv[idx + 1] ?? '').split(',').filter(Boolean) : [];
+})();
+
+// =============================================================================
+// Spec Targets
+// =============================================================================
+
+interface SpecTarget {
+  id: string;
+  filename: string;
+  title: string;
+  description: string;
+  apiNames: string[];
+  frozen?: boolean;
+}
+
+const SPEC_TARGETS: SpecTarget[] = [
+  {
+    id: 'v1',
+    filename: 'openapi.v1.json',
+    title: 'Onetime Secret API v1',
+    description: 'Legacy REST API (frozen)',
+    apiNames: ['v1'],
+    frozen: true,
+  },
+  {
+    id: 'v2',
+    filename: 'openapi.v2.json',
+    title: 'Onetime Secret API v2',
+    description: 'REST API v2',
+    apiNames: ['v2'],
+  },
+  {
+    id: 'v3',
+    filename: 'openapi.v3.json',
+    title: 'Onetime Secret API v3',
+    description: 'Current REST API',
+    apiNames: ['v3'],
+  },
+  {
+    id: 'internal',
+    filename: 'openapi.internal.json',
+    title: 'Onetime Secret Internal API',
+    description: 'Internal API consumed by the Vue frontend',
+    apiNames: ['account', 'colonel', 'domains', 'organizations', 'invite'],
+  },
+];
 
 // =============================================================================
 // API Mount Points
@@ -219,45 +286,6 @@ function toSummary(leaf: string): string {
   return leaf.replace(/([A-Z])/g, ' $1').trim();
 }
 
-/**
- * Derive the tag from the API name and the route path.
- *
- * Versioned APIs (v1, v2, v3, …) sub-group by the first path segment
- * so that overlapping resource names like "secret" and "receipt" stay
- * separated per version. Non-versioned APIs (account, colonel, domains,
- * etc.) use the API name alone — the name itself is already a sufficient
- * resource boundary.
- *
- * Examples:
- *   ("v2", "/secret/conceal")       → "v2-secret"
- *   ("v3", "/guest/secret/:id")     → "v3-guest"
- *   ("v3", "/incoming/config")      → "v3-incoming"
- *   ("v2", "/status")               → "v2-meta"
- *   ("v1", "/share")                → "v1-meta"
- *   ("colonel", "/secrets/:id")     → "colonel"
- *   ("account", "/apitoken")        → "account"
- */
-function deriveTag(apiName: string, routePath: string): string {
-  // Only versioned APIs benefit from path-based sub-grouping.
-  // Non-versioned APIs are already namespaced by their API name.
-  const isVersioned = /^v\d+$/.test(apiName);
-
-  if (isVersioned) {
-    const segments = routePath.split('/').filter(Boolean);
-
-    if (segments.length > 1 && !segments[0].startsWith(':')) {
-      return `${apiName}-${segments[0]}`;
-    }
-
-    // Top-level versioned endpoints (/status, /share) use -meta so
-    // the tag reads as a peer of v1-secret, v2-receipt, etc. rather
-    // than looking like a parent container for the whole version.
-    return `${apiName}-meta`;
-  }
-
-  return apiName;
-}
-
 // =============================================================================
 // OpenAPI Document Builder
 // =============================================================================
@@ -278,18 +306,15 @@ interface OpenAPIDocument {
   tags: Array<{ name: string; description: string }>;
 }
 
-function createDocument(): OpenAPIDocument {
+function createDocument(target: SpecTarget): OpenAPIDocument {
   return {
     openapi: '3.1.0',
     info: {
-      title: 'Onetime Secret API',
+      title: target.title,
       version: '0.24.0',
-      description: 'Auto-generated from Otto routes.txt and Zod v4 schemas.',
+      description: target.description,
     },
-    servers: [
-      { url: 'https://onetimesecret.com', description: 'Production' },
-      { url: 'http://localhost:3000', description: 'Development' },
-    ],
+    servers: openapiConfig.servers,
     paths: {},
     components: {
       securitySchemes: {
@@ -327,7 +352,7 @@ function createDocument(): OpenAPIDocument {
  * This project uses Zod v4 for all schemas.
  */
 function zodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
-  return z.toJSONSchema(schema, {
+  const jsonSchema = z.toJSONSchema(schema, {
     io: 'input',
     unrepresentable: 'any',
     override: (ctx) => {
@@ -339,6 +364,10 @@ function zodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
       }
     },
   });
+  // $schema is valid at document root but not in inline schemas.
+  // OpenAPI 3.1 inherits the JSON Schema dialect from the openapi field.
+  delete jsonSchema.$schema;
+  return jsonSchema;
 }
 
 /**
@@ -491,6 +520,25 @@ function buildResponses(
 }
 
 /**
+ * Build a qualified operationId that avoids collisions across routes
+ * sharing the same handler class (e.g. guest vs authenticated routes).
+ *
+ * Incorporates the first path segment when a grouping prefix exists
+ * (3+ segments, non-parameter first segment) or the route is deprecated.
+ */
+function qualifyOperationId(apiName: string, operationId: string, route: OttoRoute): string {
+  const isDeprecated = route.params.deprecated === 'true';
+  const segments = route.path.split('/').filter(Boolean);
+  const firstSegment = segments[0] ?? '';
+  const hasGroupingPrefix = segments.length >= 3 && firstSegment && !firstSegment.startsWith(':');
+
+  if ((isDeprecated || hasGroupingPrefix) && firstSegment) {
+    return `${apiName}_${firstSegment}_${operationId}`;
+  }
+  return `${apiName}_${operationId}`;
+}
+
+/**
  * Build a single OpenAPI operation from an OttoRoute.
  */
 function buildOperation(
@@ -499,26 +547,18 @@ function buildOperation(
 ): Record<string, unknown> {
   const leaf = getHandlerLeaf(route.handler);
   const operationId = toOperationId(leaf);
-  const tag = deriveTag(apiName, route.path);
   const isDeprecated = route.params.deprecated === 'true';
-
-  // Make operationId unique by prefixing with apiName.
-  // For deprecated alias routes, also incorporate the path prefix
-  // to avoid collisions with the canonical route's operationId.
-  let qualifiedOperationId = `${apiName}_${operationId}`;
-  if (isDeprecated) {
-    const pathPrefix = route.path.split('/').filter(Boolean)[0] ?? '';
-    if (pathPrefix) {
-      qualifiedOperationId = `${apiName}_${pathPrefix}_${operationId}`;
-    }
-  }
+  const qualifiedOperationId = qualifyOperationId(apiName, operationId, route);
 
   const operation: Record<string, unknown> = {
     operationId: qualifiedOperationId,
     summary: toSummary(leaf),
-    tags: [tag],
     responses: buildResponses(route.handler, route),
   };
+
+  if (!NO_TAGS) {
+    operation.tags = [apiName];
+  }
 
   // Mark deprecated alias routes
   if (isDeprecated) {
@@ -564,10 +604,49 @@ function buildOperation(
 // Processing
 // =============================================================================
 
+/**
+ * Filter routes to only those belonging to the given API names.
+ */
+function filterRoutes(
+  allRoutes: Record<string, { routes: OttoRoute[] }>,
+  apiNames: string[]
+): Record<string, { routes: OttoRoute[] }> {
+  return Object.fromEntries(
+    apiNames.filter(name => name in allRoutes).map(name => [name, allRoutes[name]])
+  );
+}
+
 interface ProcessingResult {
   routeCount: number;
   schemaHits: number;
   tags: Set<string>;
+}
+
+/**
+ * Disambiguate remaining operationId collisions (e.g. GET and POST
+ * on the same path sharing a handler) by appending the HTTP method.
+ */
+function deduplicateOperationId(
+  operation: Record<string, unknown>,
+  method: string,
+  seen: Set<string>
+): void {
+  const base = operation.operationId as string;
+  let opId = base;
+  let suffix = 0;
+  while (seen.has(opId)) {
+    opId = suffix === 0 ? `${base}_${method}` : `${base}_${method}_${suffix}`;
+    suffix++;
+  }
+  if (opId !== base) operation.operationId = opId;
+  seen.add(opId);
+}
+
+/** Collect tags from an operation into the document-level tag set. */
+function collectTags(operation: Record<string, unknown>, tagSet: Set<string>): void {
+  if (!NO_TAGS && operation.tags) {
+    for (const tag of operation.tags as string[]) tagSet.add(tag);
+  }
 }
 
 /**
@@ -580,6 +659,8 @@ function processAllRoutes(
   const tagSet = new Set<string>();
   let routeCount = 0;
   let schemaHits = 0;
+
+  const seenOperationIds = new Set<string>();
 
   for (const [apiName, parsed] of Object.entries(allRoutes)) {
     const mountPath = API_MOUNT_PATHS[apiName] || `/api/${apiName}`;
@@ -600,10 +681,8 @@ function processAllRoutes(
       }
 
       const operation = buildOperation(route, apiName);
-      const tags = operation.tags as string[];
-      for (const tag of tags) {
-        tagSet.add(tag);
-      }
+      deduplicateOperationId(operation, method, seenOperationIds);
+      collectTags(operation, tagSet);
 
       const hasSchema = !!lookupResponseSchemaKey(route.handler);
       if (hasSchema) schemaHits++;
@@ -621,20 +700,59 @@ function processAllRoutes(
   return { routeCount, schemaHits, tags: tagSet };
 }
 
+/** REST method weight for conventional ordering. */
+const METHOD_ORDER: Record<string, number> = {
+  get: 0, post: 1, put: 2, patch: 3, delete: 4, options: 5, head: 6,
+};
+
 /**
- * Write the OpenAPI document to disk and print a summary.
+ * Sort paths and/or methods in the document according to --sort flags.
+ */
+function sortPaths(doc: OpenAPIDocument): void {
+  if (!SORT_PATHS && !SORT_METHODS) return;
+
+  const pathKeys = SORT_PATHS
+    ? Object.keys(doc.paths).sort()
+    : Object.keys(doc.paths);
+
+  const sorted: typeof doc.paths = {};
+  for (const path of pathKeys) {
+    const entry = doc.paths[path];
+    if (SORT_METHODS) {
+      const methodKeys = Object.keys(entry).sort(
+        (a, b) => (METHOD_ORDER[a] ?? 99) - (METHOD_ORDER[b] ?? 99)
+      );
+      const reordered: Record<string, unknown> = {};
+      for (const m of methodKeys) {
+        reordered[m] = entry[m];
+      }
+      sorted[path] = reordered;
+    } else {
+      sorted[path] = entry;
+    }
+  }
+  doc.paths = sorted;
+}
+
+/**
+ * Write the OpenAPI document to disk and print a per-target summary.
+ * Returns the output path for the combined summary.
  */
 function writeAndSummarize(
   doc: OpenAPIDocument,
   result: ProcessingResult,
-  apiCount: number
-): void {
-  doc.tags = Array.from(result.tags).sort().map(name => ({
-    name,
-    description: `${name.charAt(0).toUpperCase() + name.slice(1)} operations`,
-  }));
+  target: SpecTarget
+): string {
+  if (!NO_TAGS) {
+    doc.tags = Array.from(result.tags).sort().map(name => ({
+      name,
+      description: `${name.charAt(0).toUpperCase() + name.slice(1)} operations`,
+    }));
+  }
 
-  const outputPath = join(OUTPUT_DIR, 'openapi.json');
+  sortPaths(doc);
+
+  const outputPath = join(OUTPUT_DIR, target.filename);
 
   if (!DRY_RUN) {
     const dir = dirname(outputPath);
@@ -644,18 +762,12 @@ function writeAndSummarize(
     writeFileSync(outputPath, JSON.stringify(doc, null, 2) + '\n');
   }
 
-  const pct = Math.round(result.schemaHits / result.routeCount * 100);
-  console.log('\nSummary');
-  console.log('───────────────────────');
-  console.log(`APIs:             ${apiCount}`);
-  console.log(`Routes:           ${result.routeCount}`);
-  console.log(`Schema coverage:  ${result.schemaHits}/${result.routeCount} (${pct}%)`);
-  console.log(`Tags:             ${result.tags.size}`);
-  console.log(`Output:           ${outputPath}`);
-  console.log(DRY_RUN ? '\nDry run complete. No files written.' : '\nOpenAPI spec generated.');
+  const pct = result.routeCount > 0
+    ? Math.round(result.schemaHits / result.routeCount * 100)
+    : 0;
+  console.log(`\n  ${target.id}: ${result.routeCount} routes, ${result.schemaHits} schemas (${pct}%) → ${target.filename}`);
 
-  // Gap report from scanner
-  printGapReport(scanResult);
+  return outputPath;
 }
 
 /**
@@ -680,16 +792,54 @@ function printGapReport(result: ScanResult): void {
 // =============================================================================
 
 function main(): void {
-  console.log('Generating OpenAPI 3.1 spec from routes.txt...\n');
+  console.log('Generating OpenAPI 3.1 specs from routes.txt...\n');
 
   if (DRY_RUN) {
     console.log('  [dry-run mode - no files will be written]\n');
   }
 
-  const doc = createDocument();
   const allRoutes = parseAllApiRoutes();
-  const result = processAllRoutes(doc, allRoutes);
-  writeAndSummarize(doc, result, Object.keys(allRoutes).length);
+  const outputs: string[] = [];
+  let totalRoutes = 0;
+  let totalSchemaHits = 0;
+
+  for (const target of SPEC_TARGETS) {
+    // Skip targets not in --target filter (when specified)
+    if (TARGET_ARG.length > 0 && !TARGET_ARG.includes(target.id)) {
+      continue;
+    }
+
+    // Skip frozen targets unless --force
+    if (target.frozen && !FORCE) {
+      console.log(`  ${target.id}: skipped (frozen — use --force to regenerate)`);
+      continue;
+    }
+
+    const doc = createDocument(target);
+    const filteredRoutes = filterRoutes(allRoutes, target.apiNames);
+    const result = processAllRoutes(doc, filteredRoutes);
+    const outputPath = writeAndSummarize(doc, result, target);
+
+    outputs.push(outputPath);
+    totalRoutes += result.routeCount;
+    totalSchemaHits += result.schemaHits;
+  }
+
+  // Combined summary
+  const pct = totalRoutes > 0 ? Math.round(totalSchemaHits / totalRoutes * 100) : 0;
+  console.log('\nSummary');
+  console.log('───────────────────────');
+  console.log(`Specs generated:  ${outputs.length}`);
+  console.log(`Total routes:     ${totalRoutes}`);
+  console.log(`Schema coverage:  ${totalSchemaHits}/${totalRoutes} (${pct}%)`);
+  console.log(`Sort:             ${SORT_PATHS || SORT_METHODS ? SORT_ARG.join(',') : 'none'}`);
+  for (const path of outputs) {
+    console.log(`  → ${path}`);
+  }
+  console.log(DRY_RUN ? '\nDry run complete. No files written.' : '\nOpenAPI specs generated.');
+
+  // Gap report from scanner
+  printGapReport(scanResult);
 }
 
 main();
