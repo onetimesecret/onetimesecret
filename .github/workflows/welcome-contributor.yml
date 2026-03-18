@@ -2,7 +2,7 @@
 ---
 # Onetime Secret Ops
 #
-# Welcomes first-time contributors when they open their first PR or issue.
+# Welcomes first-time contributors when they open their first PR.
 #
 # Documentation:
 # https://github.com/actions/first-interaction
@@ -20,8 +20,7 @@ name: Welcome Contributor
 on:
   pull_request_target:
     types: [opened]
-  issues:
-    types: [opened]
+
 jobs:
   welcome:
     runs-on: ubuntu-24.04
@@ -29,16 +28,14 @@ jobs:
       issues: write
       pull-requests: write
     steps:
+      - name: Let's play it cool, Tiny Elvis
+        run: sleep 180 # 3 minutes
+
       - uses: actions/first-interaction@3c71ce730280171fd1cfb57c00c774f8998586f7 # v1
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          issue-message: |
-            Thanks for opening this. I'll take a look and follow up here.
+          repo-token: ${{ secrets.MAINTAINER_PAT }}
 
-            – Delano
           pr-message: |
-            Thanks for the PR. I'll review it when I get a chance.
+            Thanks for the PR. I can usually review it within a day or two. Feel free to @ me and I'll respond sooner if I can.
 
-            Heads up: there's a fair amount of automated review activity on this repo (linting, security checks, etc). Take advantage of the feedback if it's useful, but don't feel obligated to address everything. I'll sort out what matters during review.
-
-            – Delano
+            Heads up: there's a fair amount of automated review activity on this repo (linting, security checks, etc). Take advantage of the feedback if it's useful, but no need to address everything. I'll sort it out during review.
