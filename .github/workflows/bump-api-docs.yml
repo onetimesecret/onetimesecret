@@ -38,7 +38,8 @@ permissions:
 
 jobs:
   # ── Public API versions (v1, v2, v3) ─────────────────────────────
-  # Each version deploys as a branch within a single Bump.sh doc.
+  # Each version deploys as a Bump.sh branch (a version track, not a git branch)
+  # within a single Bump.sh doc.
   deploy-doc:
     if: ${{ github.event_name != 'pull_request' }}
     name: Deploy API ${{ matrix.version }} on Bump.sh
@@ -96,7 +97,7 @@ jobs:
           BUMP_TOKEN: ${{ secrets.BUMP_TOKEN }}
 
   # ── Internal API ─────────────────────────────────────────────────
-  # Deploys as a standalone doc, isolated from the public versioned docs.
+  # Deploys as a single document within its own hub, isolated from the public versioned docs.
   deploy-internal:
     if: ${{ github.event_name != 'pull_request' && secrets.BUMP_INTERNAL_DOC_SLUG != '' }}
     name: Deploy internal API on Bump.sh
