@@ -1,0 +1,64 @@
+# .github/workflows/bump-api-docs.yml
+#
+# Bump.sh API documentation: deploy on merge, diff on PRs.
+# Follows the recommended workflow from https://docs.bump.sh/help/continuous-integration/github-actions/
+#
+# Required GitHub Actions secrets:
+#   BUMP_TOKEN   — documentation private token (Settings > CI Deployment on Bump.sh)
+#
+# Required GitHub Actions variable:
+#   BUMP_HUB_ID  — hub slug or id (found in hub settings on Bump.sh)
+#
+---
+name: Check & deploy API documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/api/openapi.*.json'
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'docs/api/openapi.*.json'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  deploy-doc:
+    if: ${{ github.event_name == 'push' }}
+    name: Deploy API documentation on Bump.sh
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Deploy API documentation
+        uses: bump-sh/github-action@v1
+        with:
+          hub: ${{ vars.BUMP_HUB_ID }}
+          token: ${{ secrets.BUMP_TOKEN }}
+          file: docs/api/
+          filename_pattern: "openapi.{slug}"
+
+  api-diff:
+    if: ${{ github.event_name == 'pull_request' }}
+    name: Check API diff on Bump.sh
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Comment pull request with API diff
+        uses: bump-sh/github-action@v1
+        with:
+          hub: ${{ vars.BUMP_HUB_ID }}
+          token: ${{ secrets.BUMP_TOKEN }}
+          file: docs/api/
+          filename_pattern: "openapi.{slug}"
+          command: diff
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
