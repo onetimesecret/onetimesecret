@@ -30,6 +30,8 @@ on:
     paths:
       - 'docs/api/openapi.*.json'
 
+  workflow_dispatch:
+
 permissions:
   contents: read
   pull-requests: write
@@ -38,7 +40,7 @@ jobs:
   # ── Public API versions (v1, v2, v3) ─────────────────────────────
   # Each version deploys as a branch within a single Bump.sh doc.
   deploy-doc:
-    if: ${{ github.event_name == 'push' }}
+    if: ${{ github.event_name != 'pull_request' }}
     name: Deploy API ${{ matrix.version }} on Bump.sh
     runs-on: ubuntu-latest
     strategy:
@@ -91,7 +93,7 @@ jobs:
   # ── Internal API ─────────────────────────────────────────────────
   # Deploys to a separate hub, isolated from the public docs.
   deploy-internal:
-    if: ${{ github.event_name == 'push' }}
+    if: ${{ github.event_name != 'pull_request' }}
     name: Deploy internal API on Bump.sh
     runs-on: ubuntu-latest
     steps:
