@@ -18,7 +18,7 @@
     "locales:hashes": "python3 locales/scripts/add_hashes.py",
     "locales:hashes:dry-run": "python3 locales/scripts/add_hashes.py --dry-run",
     "locales:sync": "python3 locales/scripts/build/compile.py --all --merged",
-    "openapi:generate": "tsx src/scripts/openapi/generate-openapi.ts --tags",
+    "openapi:generate": "tsx src/scripts/openapi/generate-openapi.ts",
     "schemas:scan": "tsx src/scripts/openapi/schema-scanner.ts",
     "schemas:json:generate": "tsx src/scripts/json-schema/generate.ts",
     "schemas:json:generate:dry-run": "tsx src/scripts/json-schema/generate.ts --dry-run",

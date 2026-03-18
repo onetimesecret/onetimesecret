@@ -71,7 +71,6 @@
     "src/**/*.vue",
     "src/content/*.md",
     "generated/types/*.d.ts",
-    "src/schemas/i18n/locale-omega.txt",
   ],
   "exclude": ["node_modules", "dist", "build", "src/tests/**", "public/web/dist"],
 }

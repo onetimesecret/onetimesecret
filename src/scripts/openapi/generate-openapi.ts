@@ -69,7 +69,7 @@ const NO_TAGS = process.argv.includes('--no-tags');
 
 const SORT_ARG = (() => {
   const idx = process.argv.indexOf('--sort');
-  return idx !== -1 ? (process.argv[idx + 1] ?? '').split(',') : [];
+  return idx !== -1 ? (process.argv[idx + 1] ?? '').split(',').filter(Boolean) : [];
 })();
 const SORT_PATHS = SORT_ARG.includes('path');
 const SORT_METHODS = SORT_ARG.includes('method');
@@ -631,11 +631,14 @@ function deduplicateOperationId(
   method: string,
   seen: Set<string>
 ): void {
-  let opId = operation.operationId as string;
-  if (seen.has(opId)) {
-    opId = `${opId}_${method}`;
-    operation.operationId = opId;
+  const base = operation.operationId as string;
+  let opId = base;
+  let suffix = 0;
+  while (seen.has(opId)) {
+    opId = suffix === 0 ? `${base}_${method}` : `${base}_${method}_${suffix}`;
+    suffix++;
   }
+  if (opId !== base) operation.operationId = opId;
   seen.add(opId);
 }
 
