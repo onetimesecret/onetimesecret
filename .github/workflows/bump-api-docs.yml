@@ -98,6 +98,8 @@ jobs:
 
   # ── Internal API ─────────────────────────────────────────────────
   # Deploys as a single document within its own hub, isolated from the public versioned docs.
+  # Bump.sh tokens are scoped per hub, so this uses its own token (BUMP_INTERNAL_TOKEN)
+  # rather than the public API's BUMP_TOKEN.
   deploy-internal:
     if: ${{ github.event_name != 'pull_request' }}
     name: Deploy internal API on Bump.sh
@@ -110,11 +112,13 @@ jobs:
       - name: Deploy internal API documentation
         run: >
           bump deploy docs/api/openapi.internal.json
+          --hub "$BUMP_HUB"
           --doc "$BUMP_DOC"
           --token "$BUMP_TOKEN"
         env:
+          BUMP_HUB: ${{ vars.BUMP_INTERNAL_HUB_ID }}
           BUMP_DOC: ${{ secrets.BUMP_INTERNAL_DOC_SLUG }}
-          BUMP_TOKEN: ${{ secrets.BUMP_TOKEN }}
+          BUMP_TOKEN: ${{ secrets.BUMP_INTERNAL_TOKEN }}
 
   internal-diff:
     if: ${{ github.event_name == 'pull_request' }}
@@ -128,8 +132,10 @@ jobs:
       - name: Diff internal API documentation
         run: >
           bump diff docs/api/openapi.internal.json
+          --hub "$BUMP_HUB"
           --doc "$BUMP_DOC"
           --token "$BUMP_TOKEN"
         env:
+          BUMP_HUB: ${{ vars.BUMP_INTERNAL_HUB_ID }}
           BUMP_DOC: ${{ secrets.BUMP_INTERNAL_DOC_SLUG }}
-          BUMP_TOKEN: ${{ secrets.BUMP_TOKEN }}
+          BUMP_TOKEN: ${{ secrets.BUMP_INTERNAL_TOKEN }}
