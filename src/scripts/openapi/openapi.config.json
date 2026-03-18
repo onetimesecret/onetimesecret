@@ -1,0 +1,10 @@
+{
+  "servers": [
+    { "url": "https://nz.onetimesecret.com", "description": "Aotearoa New Zealand" },
+    { "url": "https://ca.onetimesecret.com", "description": "Canada" },
+    { "url": "https://eu.onetimesecret.com", "description": "Europe" },
+    { "url": "https://uk.onetimesecret.com", "description": "United Kingdom" },
+    { "url": "https://us.onetimesecret.com", "description": "United States" },
+    { "url": "http://localhost:3000", "description": "Development" }
+  ]
+}

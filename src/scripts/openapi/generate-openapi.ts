@@ -23,7 +23,7 @@
  *   pnpm run openapi:generate -- --sort path,method  # Both
  */
 
-import { writeFileSync, mkdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { z } from 'zod';
 
@@ -58,7 +58,11 @@ import {
 // Configuration
 // =============================================================================
 
+const SCRIPT_DIR = dirname(new URL(import.meta.url).pathname);
 const OUTPUT_DIR = join(process.cwd(), 'generated', 'openapi');
+const openapiConfig = JSON.parse(
+  readFileSync(join(SCRIPT_DIR, 'openapi.config.json'), 'utf-8')
+) as { servers: Array<{ url: string; description: string }> };
 const DRY_RUN = process.argv.includes('--dry-run');
 const VERBOSE = process.argv.includes('--verbose') || process.argv.includes('-v');
 const NO_TAGS = process.argv.includes('--no-tags');
@@ -349,10 +353,7 @@ function createDocument(target: SpecTarget): OpenAPIDocument {
       version: '0.24.0',
       description: target.description,
     },
-    servers: [
-      { url: 'https://onetimesecret.com', description: 'Production' },
-      { url: 'http://localhost:3000', description: 'Development' },
-    ],
+    servers: openapiConfig.servers,
     paths: {},
     components: {
       securitySchemes: {
