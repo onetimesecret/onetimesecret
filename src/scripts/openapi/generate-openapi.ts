@@ -37,7 +37,7 @@ import {
   type OttoRoute,
 } from './otto-routes-parser';
 
-import { SPEC_TARGETS, standardErrorResponses, type SpecTarget } from './route-config';
+import { standardErrorResponses, type SpecTarget } from './route-config';
 import {
   buildHandlerSchemaMap,
   scanSchemas,
@@ -67,7 +67,11 @@ const SCRIPT_DIR = dirname(new URL(import.meta.url).pathname);
 const OUTPUT_DIR = join(process.cwd(), 'docs', 'api');
 const openapiConfig = JSON.parse(
   readFileSync(join(SCRIPT_DIR, 'openapi.config.json'), 'utf-8')
-) as { servers: Array<{ url: string; description: string }> };
+) as {
+  servers: Array<{ url: string; description: string }>;
+  specTargets: SpecTarget[];
+};
+const SPEC_TARGETS = openapiConfig.specTargets;
 const DRY_RUN = process.argv.includes('--dry-run');
 const VERBOSE = process.argv.includes('--verbose') || process.argv.includes('-v');
 const NO_TAGS = process.argv.includes('--no-tags');
