@@ -8,11 +8,11 @@
 #      https://docs.bump.sh/help/branching/
 #
 # Required GitHub Actions secrets:
-#   BUMP_TOKEN     — documentation private token (Settings > CI Deployment)
-#
-# Required GitHub Actions variables:
+#   BUMP_TOKEN             — documentation private token (Settings > CI Deployment)
 #   BUMP_DOC_SLUG          — public API doc slug (found in doc settings on Bump.sh)
-#   BUMP_INTERNAL_HUB_ID   — hub slug or id for the internal API (hub settings)
+#
+# Optional GitHub Actions secrets:
+#   BUMP_INTERNAL_DOC_SLUG — internal API doc slug (Settings > CI Deployment on Bump.sh)
 #
 ---
 name: Check & deploy API documentation
@@ -55,13 +55,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Install Bump.sh CLI
+        run: npm install -g bump-cli@2.9.12
       - name: Deploy API documentation
-        uses: bump-sh/github-action@8545e8c657d27de6f55da875473fa493da78bc4f # v1
-        with:
-          doc: ${{ vars.BUMP_DOC_SLUG }}
-          token: ${{ secrets.BUMP_TOKEN }}
-          branch: ${{ matrix.version }}
-          file: ${{ matrix.file }}
+        run: >
+          bump deploy ${{ matrix.file }}
+          --doc "$BUMP_DOC"
+          --branch ${{ matrix.version }}
+          --token "$BUMP_TOKEN"
+        env:
+          BUMP_DOC: ${{ secrets.BUMP_DOC_SLUG }}
+          BUMP_TOKEN: ${{ secrets.BUMP_TOKEN }}
 
   api-diff:
     if: ${{ github.event_name == 'pull_request' }}
@@ -79,46 +83,52 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - name: Comment pull request with API diff
-        uses: bump-sh/github-action@8545e8c657d27de6f55da875473fa493da78bc4f # v1
-        with:
-          doc: ${{ vars.BUMP_DOC_SLUG }}
-          token: ${{ secrets.BUMP_TOKEN }}
-          branch: ${{ matrix.version }}
-          file: ${{ matrix.file }}
-          command: diff
+      - name: Install Bump.sh CLI
+        run: npm install -g bump-cli@2.9.12
+      - name: Diff API documentation
+        run: >
+          bump diff ${{ matrix.file }}
+          --doc "$BUMP_DOC"
+          --branch ${{ matrix.version }}
+          --token "$BUMP_TOKEN"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUMP_DOC: ${{ secrets.BUMP_DOC_SLUG }}
+          BUMP_TOKEN: ${{ secrets.BUMP_TOKEN }}
 
   # ── Internal API ─────────────────────────────────────────────────
-  # Deploys to a separate hub, isolated from the public docs.
+  # Deploys as a standalone doc, isolated from the public versioned docs.
   deploy-internal:
-    if: ${{ github.event_name != 'pull_request' }}
+    if: ${{ github.event_name != 'pull_request' && secrets.BUMP_INTERNAL_DOC_SLUG != '' }}
     name: Deploy internal API on Bump.sh
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Install Bump.sh CLI
+        run: npm install -g bump-cli@2.9.12
       - name: Deploy internal API documentation
-        uses: bump-sh/github-action@8545e8c657d27de6f55da875473fa493da78bc4f # v1
-        with:
-          hub: ${{ vars.BUMP_INTERNAL_HUB_ID }}
-          token: ${{ secrets.BUMP_TOKEN }}
-          file: docs/api/openapi.internal.json
+        run: >
+          bump deploy docs/api/openapi.internal.json
+          --doc "$BUMP_DOC"
+          --token "$BUMP_TOKEN"
+        env:
+          BUMP_DOC: ${{ secrets.BUMP_INTERNAL_DOC_SLUG }}
+          BUMP_TOKEN: ${{ secrets.BUMP_TOKEN }}
 
   internal-diff:
-    if: ${{ github.event_name == 'pull_request' }}
+    if: ${{ github.event_name == 'pull_request' && secrets.BUMP_INTERNAL_DOC_SLUG != '' }}
     name: Diff internal API on Bump.sh
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - name: Comment pull request with internal API diff
-        uses: bump-sh/github-action@8545e8c657d27de6f55da875473fa493da78bc4f # v1
-        with:
-          hub: ${{ vars.BUMP_INTERNAL_HUB_ID }}
-          token: ${{ secrets.BUMP_TOKEN }}
-          file: docs/api/openapi.internal.json
-          command: diff
+      - name: Install Bump.sh CLI
+        run: npm install -g bump-cli@2.9.12
+      - name: Diff internal API documentation
+        run: >
+          bump diff docs/api/openapi.internal.json
+          --doc "$BUMP_DOC"
+          --token "$BUMP_TOKEN"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUMP_DOC: ${{ secrets.BUMP_INTERNAL_DOC_SLUG }}
+          BUMP_TOKEN: ${{ secrets.BUMP_TOKEN }}
