@@ -70,6 +70,57 @@ const SORT_ARG = (() => {
 const SORT_PATHS = SORT_ARG.includes('path');
 const SORT_METHODS = SORT_ARG.includes('method');
 
+const FORCE = process.argv.includes('--force');
+const TARGET_ARG = (() => {
+  const idx = process.argv.indexOf('--target');
+  return idx !== -1 ? (process.argv[idx + 1] ?? '').split(',').filter(Boolean) : [];
+})();
+
+// =============================================================================
+// Spec Targets
+// =============================================================================
+
+interface SpecTarget {
+  id: string;
+  filename: string;
+  title: string;
+  description: string;
+  apiNames: string[];
+  frozen?: boolean;
+}
+
+const SPEC_TARGETS: SpecTarget[] = [
+  {
+    id: 'v1',
+    filename: 'openapi.v1.json',
+    title: 'Onetime Secret API v1',
+    description: 'Legacy REST API (frozen)',
+    apiNames: ['v1'],
+    frozen: true,
+  },
+  {
+    id: 'v2',
+    filename: 'openapi.v2.json',
+    title: 'Onetime Secret API v2',
+    description: 'REST API v2',
+    apiNames: ['v2'],
+  },
+  {
+    id: 'v3',
+    filename: 'openapi.v3.json',
+    title: 'Onetime Secret API v3',
+    description: 'Current REST API',
+    apiNames: ['v3'],
+  },
+  {
+    id: 'internal',
+    filename: 'openapi.internal.json',
+    title: 'Onetime Secret Internal API',
+    description: 'Internal API consumed by the Vue frontend',
+    apiNames: ['account', 'colonel', 'domains', 'organizations', 'invite'],
+  },
+];
+
 // =============================================================================
 // API Mount Points
 // =============================================================================
@@ -290,13 +341,13 @@ interface OpenAPIDocument {
   tags: Array<{ name: string; description: string }>;
 }
 
-function createDocument(): OpenAPIDocument {
+function createDocument(target: SpecTarget): OpenAPIDocument {
   return {
     openapi: '3.1.0',
     info: {
-      title: 'Onetime Secret API',
+      title: target.title,
       version: '0.24.0',
-      description: 'Auto-generated from Otto routes.txt and Zod v4 schemas.',
+      description: target.description,
     },
     servers: [
       { url: 'https://onetimesecret.com', description: 'Production' },
@@ -578,6 +629,18 @@ function buildOperation(
 // Processing
 // =============================================================================
 
+/**
+ * Filter routes to only those belonging to the given API names.
+ */
+function filterRoutes(
+  allRoutes: Record<string, { routes: OttoRoute[] }>,
+  apiNames: string[]
+): Record<string, { routes: OttoRoute[] }> {
+  return Object.fromEntries(
+    apiNames.filter(name => name in allRoutes).map(name => [name, allRoutes[name]])
+  );
+}
+
 interface ProcessingResult {
   routeCount: number;
   schemaHits: number;
@@ -668,13 +731,14 @@ function sortPaths(doc: OpenAPIDocument): void {
 }
 
 /**
- * Write the OpenAPI document to disk and print a summary.
+ * Write the OpenAPI document to disk and print a per-target summary.
+ * Returns the output path for the combined summary.
  */
 function writeAndSummarize(
   doc: OpenAPIDocument,
   result: ProcessingResult,
-  apiCount: number
-): void {
+  target: SpecTarget
+): string {
   if (!NO_TAGS) {
     doc.tags = Array.from(result.tags).sort().map(name => ({
       name,
@@ -684,7 +748,7 @@ function writeAndSummarize(
 
   sortPaths(doc);
 
-  const outputPath = join(OUTPUT_DIR, 'openapi.json');
+  const outputPath = join(OUTPUT_DIR, target.filename);
 
   if (!DRY_RUN) {
     const dir = dirname(outputPath);
@@ -694,19 +758,12 @@ function writeAndSummarize(
     writeFileSync(outputPath, JSON.stringify(doc, null, 2) + '\n');
   }
 
-  const pct = Math.round(result.schemaHits / result.routeCount * 100);
-  console.log('\nSummary');
-  console.log('───────────────────────');
-  console.log(`APIs:             ${apiCount}`);
-  console.log(`Routes:           ${result.routeCount}`);
-  console.log(`Schema coverage:  ${result.schemaHits}/${result.routeCount} (${pct}%)`);
-  console.log(`Tags:             ${NO_TAGS ? 0 : result.tags.size}`);
-  console.log(`Sort:             ${SORT_PATHS || SORT_METHODS ? SORT_ARG.join(',') : 'none'}`);
-  console.log(`Output:           ${outputPath}`);
-  console.log(DRY_RUN ? '\nDry run complete. No files written.' : '\nOpenAPI spec generated.');
+  const pct = result.routeCount > 0
+    ? Math.round(result.schemaHits / result.routeCount * 100)
+    : 0;
+  console.log(`\n  ${target.id}: ${result.routeCount} routes, ${result.schemaHits} schemas (${pct}%) → ${target.filename}`);
 
-  // Gap report from scanner
-  printGapReport(scanResult);
+  return outputPath;
 }
 
 /**
@@ -731,16 +788,54 @@ function printGapReport(result: ScanResult): void {
 // =============================================================================
 
 function main(): void {
-  console.log('Generating OpenAPI 3.1 spec from routes.txt...\n');
+  console.log('Generating OpenAPI 3.1 specs from routes.txt...\n');
 
   if (DRY_RUN) {
     console.log('  [dry-run mode - no files will be written]\n');
   }
 
-  const doc = createDocument();
   const allRoutes = parseAllApiRoutes();
-  const result = processAllRoutes(doc, allRoutes);
-  writeAndSummarize(doc, result, Object.keys(allRoutes).length);
+  const outputs: string[] = [];
+  let totalRoutes = 0;
+  let totalSchemaHits = 0;
+
+  for (const target of SPEC_TARGETS) {
+    // Skip targets not in --target filter (when specified)
+    if (TARGET_ARG.length > 0 && !TARGET_ARG.includes(target.id)) {
+      continue;
+    }
+
+    // Skip frozen targets unless --force
+    if (target.frozen && !FORCE) {
+      console.log(`  ${target.id}: skipped (frozen — use --force to regenerate)`);
+      continue;
+    }
+
+    const doc = createDocument(target);
+    const filteredRoutes = filterRoutes(allRoutes, target.apiNames);
+    const result = processAllRoutes(doc, filteredRoutes);
+    const outputPath = writeAndSummarize(doc, result, target);
+
+    outputs.push(outputPath);
+    totalRoutes += result.routeCount;
+    totalSchemaHits += result.schemaHits;
+  }
+
+  // Combined summary
+  const pct = totalRoutes > 0 ? Math.round(totalSchemaHits / totalRoutes * 100) : 0;
+  console.log('\nSummary');
+  console.log('───────────────────────');
+  console.log(`Specs generated:  ${outputs.length}`);
+  console.log(`Total routes:     ${totalRoutes}`);
+  console.log(`Schema coverage:  ${totalSchemaHits}/${totalRoutes} (${pct}%)`);
+  console.log(`Sort:             ${SORT_PATHS || SORT_METHODS ? SORT_ARG.join(',') : 'none'}`);
+  for (const path of outputs) {
+    console.log(`  → ${path}`);
+  }
+  console.log(DRY_RUN ? '\nDry run complete. No files written.' : '\nOpenAPI specs generated.');
+
+  // Gap report from scanner
+  printGapReport(scanResult);
 }
 
 main();

@@ -5,7 +5,10 @@ Generates an OpenAPI 3.1 spec from Otto `routes.txt` files and Zod v4 schemas. N
 ## Usage
 
 ```bash
-pnpm run openapi:generate                         # Generate spec to generated/openapi/openapi.json
+pnpm run openapi:generate                         # Generate all non-frozen specs
+pnpm run openapi:generate -- --force              # Include frozen specs (v1)
+pnpm run openapi:generate -- --target v3          # Generate only v3 spec
+pnpm run openapi:generate -- --target v2,v3       # Generate v2 and v3 specs
 pnpm run openapi:generate -- --dry-run             # Preview without writing
 pnpm run openapi:generate -- --verbose             # Show per-route details (+ = has schema)
 pnpm run openapi:generate -- --no-tags             # Omit OpenAPI tags from operations
@@ -15,13 +18,27 @@ pnpm run openapi:generate -- --sort path,method     # Both
 pnpm run schemas:scan                              # Scan Ruby SCHEMA constants, print coverage gap report
 ```
 
+## Output
+
+The generator produces one self-contained OpenAPI 3.1 spec per API surface:
+
+```
+generated/openapi/
+├── openapi.v1.json          # v1 routes (frozen — skipped unless --force)
+├── openapi.v2.json          # v2 routes
+├── openapi.v3.json          # v3 routes
+└── openapi.internal.json    # account + colonel + domains + organizations + invite
+```
+
+Each spec is fully self-contained with its own schemas inlined per-operation.
+
 ## How it works
 
 1. `otto-routes-parser.ts` auto-discovers and parses all `apps/api/{name}/routes.txt`
 2. `schema-scanner.ts` scans Ruby logic classes and models for `SCHEMA` constants (configurable globs)
 3. `generate-openapi.ts` joins routes with scanned schemas, derives operationId/summary/tags from handler class names
 4. Matched schemas are converted via `z.toJSONSchema()` (Zod v4 native, JSON Schema 2020-12)
-5. Output is a single OpenAPI 3.1 JSON file with a gap report on stderr
+5. Output is one OpenAPI 3.1 JSON file per spec target, plus a gap report on stderr
 
 ## Terminology: V2/V3 are API versions, not Zod versions
 
