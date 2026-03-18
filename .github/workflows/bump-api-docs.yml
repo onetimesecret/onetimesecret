@@ -38,7 +38,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Deploy API documentation
-        uses: bump-sh/github-action@v1
+        uses: bump-sh/github-action@8545e8c657d27de6f55da875473fa493da78bc4f # v1
         with:
           hub: ${{ vars.BUMP_HUB_ID }}
           token: ${{ secrets.BUMP_TOKEN }}
@@ -53,7 +53,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Comment pull request with API diff
-        uses: bump-sh/github-action@v1
+        uses: bump-sh/github-action@8545e8c657d27de6f55da875473fa493da78bc4f # v1
         with:
           hub: ${{ vars.BUMP_HUB_ID }}
           token: ${{ secrets.BUMP_TOKEN }}
