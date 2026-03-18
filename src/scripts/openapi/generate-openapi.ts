@@ -59,7 +59,7 @@ import {
 // =============================================================================
 
 const SCRIPT_DIR = dirname(new URL(import.meta.url).pathname);
-const OUTPUT_DIR = join(process.cwd(), 'generated', 'openapi');
+const OUTPUT_DIR = join(process.cwd(), 'docs', 'api');
 const openapiConfig = JSON.parse(
   readFileSync(join(SCRIPT_DIR, 'openapi.config.json'), 'utf-8')
 ) as { servers: Array<{ url: string; description: string }> };
@@ -286,45 +286,6 @@ function toSummary(leaf: string): string {
   return leaf.replace(/([A-Z])/g, ' $1').trim();
 }
 
-/**
- * Derive the tag from the API name and the route path.
- *
- * Versioned APIs (v1, v2, v3, …) sub-group by the first path segment
- * so that overlapping resource names like "secret" and "receipt" stay
- * separated per version. Non-versioned APIs (account, colonel, domains,
- * etc.) use the API name alone — the name itself is already a sufficient
- * resource boundary.
- *
- * Examples:
- *   ("v2", "/secret/conceal")       → "v2-secret"
- *   ("v3", "/guest/secret/:id")     → "v3-guest"
- *   ("v3", "/incoming/config")      → "v3-incoming"
- *   ("v2", "/status")               → "v2-meta"
- *   ("v1", "/share")                → "v1-meta"
- *   ("colonel", "/secrets/:id")     → "colonel"
- *   ("account", "/apitoken")        → "account"
- */
-function _deriveTag(apiName: string, routePath: string): string {
-  // Only versioned APIs benefit from path-based sub-grouping.
-  // Non-versioned APIs are already namespaced by their API name.
-  const isVersioned = /^v\d+$/.test(apiName);
-
-  if (isVersioned) {
-    const segments = routePath.split('/').filter(Boolean);
-
-    if (segments.length > 1 && !segments[0].startsWith(':')) {
-      return `${apiName}-${segments[0]}`;
-    }
-
-    // Top-level versioned endpoints (/status, /share) use -meta so
-    // the tag reads as a peer of v1-secret, v2-receipt, etc. rather
-    // than looking like a parent container for the whole version.
-    return `${apiName}-meta`;
-  }
-
-  return apiName;
-}
-
 // =============================================================================
 // OpenAPI Document Builder
 // =============================================================================
@@ -391,7 +352,7 @@ function createDocument(target: SpecTarget): OpenAPIDocument {
  * This project uses Zod v4 for all schemas.
  */
 function zodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
-  return z.toJSONSchema(schema, {
+  const jsonSchema = z.toJSONSchema(schema, {
     io: 'input',
     unrepresentable: 'any',
     override: (ctx) => {
@@ -403,6 +364,10 @@ function zodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
       }
     },
   });
+  // $schema is valid at document root but not in inline schemas.
+  // OpenAPI 3.1 inherits the JSON Schema dialect from the openapi field.
+  delete jsonSchema.$schema;
+  return jsonSchema;
 }
 
 /**
@@ -555,6 +520,25 @@ function buildResponses(
 }
 
 /**
+ * Build a qualified operationId that avoids collisions across routes
+ * sharing the same handler class (e.g. guest vs authenticated routes).
+ *
+ * Incorporates the first path segment when a grouping prefix exists
+ * (3+ segments, non-parameter first segment) or the route is deprecated.
+ */
+function qualifyOperationId(apiName: string, operationId: string, route: OttoRoute): string {
+  const isDeprecated = route.params.deprecated === 'true';
+  const segments = route.path.split('/').filter(Boolean);
+  const firstSegment = segments[0] ?? '';
+  const hasGroupingPrefix = segments.length >= 3 && firstSegment && !firstSegment.startsWith(':');
+
+  if ((isDeprecated || hasGroupingPrefix) && firstSegment) {
+    return `${apiName}_${firstSegment}_${operationId}`;
+  }
+  return `${apiName}_${operationId}`;
+}
+
+/**
  * Build a single OpenAPI operation from an OttoRoute.
  */
 function buildOperation(
@@ -564,17 +548,7 @@ function buildOperation(
   const leaf = getHandlerLeaf(route.handler);
   const operationId = toOperationId(leaf);
   const isDeprecated = route.params.deprecated === 'true';
-
-  // Make operationId unique by prefixing with apiName.
-  // For deprecated alias routes, also incorporate the path prefix
-  // to avoid collisions with the canonical route's operationId.
-  let qualifiedOperationId = `${apiName}_${operationId}`;
-  if (isDeprecated) {
-    const pathPrefix = route.path.split('/').filter(Boolean)[0] ?? '';
-    if (pathPrefix) {
-      qualifiedOperationId = `${apiName}_${pathPrefix}_${operationId}`;
-    }
-  }
+  const qualifiedOperationId = qualifyOperationId(apiName, operationId, route);
 
   const operation: Record<string, unknown> = {
     operationId: qualifiedOperationId,
@@ -649,6 +623,30 @@ interface ProcessingResult {
 }
 
 /**
+ * Disambiguate remaining operationId collisions (e.g. GET and POST
+ * on the same path sharing a handler) by appending the HTTP method.
+ */
+function deduplicateOperationId(
+  operation: Record<string, unknown>,
+  method: string,
+  seen: Set<string>
+): void {
+  let opId = operation.operationId as string;
+  if (seen.has(opId)) {
+    opId = `${opId}_${method}`;
+    operation.operationId = opId;
+  }
+  seen.add(opId);
+}
+
+/** Collect tags from an operation into the document-level tag set. */
+function collectTags(operation: Record<string, unknown>, tagSet: Set<string>): void {
+  if (!NO_TAGS && operation.tags) {
+    for (const tag of operation.tags as string[]) tagSet.add(tag);
+  }
+}
+
+/**
  * Process all API routes into OpenAPI path entries on the document.
  */
 function processAllRoutes(
@@ -658,6 +656,8 @@ function processAllRoutes(
   const tagSet = new Set<string>();
   let routeCount = 0;
   let schemaHits = 0;
+
+  const seenOperationIds = new Set<string>();
 
   for (const [apiName, parsed] of Object.entries(allRoutes)) {
     const mountPath = API_MOUNT_PATHS[apiName] || `/api/${apiName}`;
@@ -678,8 +678,8 @@ function processAllRoutes(
       }
 
       const operation = buildOperation(route, apiName);
-      const opTags = (!NO_TAGS && operation.tags) ? operation.tags as string[] : [];
-      for (const tag of opTags) tagSet.add(tag);
+      deduplicateOperationId(operation, method, seenOperationIds);
+      collectTags(operation, tagSet);
 
       const hasSchema = !!lookupResponseSchemaKey(route.handler);
       if (hasSchema) schemaHits++;

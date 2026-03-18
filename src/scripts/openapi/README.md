@@ -23,7 +23,7 @@ pnpm run schemas:scan                              # Scan Ruby SCHEMA constants,
 The generator produces one self-contained OpenAPI 3.1 spec per API surface:
 
 ```
-generated/openapi/
+docs/api/
 ├── openapi.v1.json          # v1 routes (frozen — skipped unless --force)
 ├── openapi.v2.json          # v2 routes
 ├── openapi.v3.json          # v3 routes

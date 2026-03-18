@@ -85,7 +85,6 @@ src/.eslintrc-auto-import.json
 # Generated files (locales and types) - produced by sync/type-gen scripts
 generated/locales/*.json
 generated/types/*.d.ts
-generated/openapi
 generated/outputs
 
 scripts/api-validation/captures
