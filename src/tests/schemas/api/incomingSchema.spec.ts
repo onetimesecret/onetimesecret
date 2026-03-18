@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  entitlementErrorSchema,
   incomingConfigSchema,
   incomingSecretPayloadSchema,
   incomingSecretResponseSchema,
@@ -73,6 +74,52 @@ function buildResponse(overrides: {
       : { memo: 'Test memo', recipient: 'abc123def45678', ...overrides.details },
   };
 }
+
+describe('entitlementErrorSchema', () => {
+  it('accepts a full entitlement error response', () => {
+    const data = {
+      error: 'Feature requires incoming secrets entitlement',
+      entitlement: 'incoming_secrets',
+      current_plan: 'free_v1',
+      upgrade_to: 'identity_plus_v1',
+    };
+    const parsed = entitlementErrorSchema.parse(data);
+    expect(parsed.error).toBe('Feature requires incoming secrets entitlement');
+    expect(parsed.entitlement).toBe('incoming_secrets');
+    expect(parsed.current_plan).toBe('free_v1');
+    expect(parsed.upgrade_to).toBe('identity_plus_v1');
+  });
+
+  it('accepts response without current_plan and upgrade_to (after .compact)', () => {
+    const data = {
+      error: 'Feature requires incoming secrets entitlement',
+      entitlement: 'incoming_secrets',
+    };
+    const parsed = entitlementErrorSchema.parse(data);
+    expect(parsed.current_plan).toBeUndefined();
+    expect(parsed.upgrade_to).toBeUndefined();
+  });
+
+  it('accepts null for current_plan and upgrade_to', () => {
+    const data = {
+      error: 'Feature requires incoming secrets entitlement',
+      entitlement: 'incoming_secrets',
+      current_plan: null,
+      upgrade_to: null,
+    };
+    expect(() => entitlementErrorSchema.parse(data)).not.toThrow();
+  });
+
+  it('rejects missing error field', () => {
+    const data = { entitlement: 'incoming_secrets' };
+    expect(() => entitlementErrorSchema.parse(data)).toThrow();
+  });
+
+  it('rejects missing entitlement field', () => {
+    const data = { error: 'some error' };
+    expect(() => entitlementErrorSchema.parse(data)).toThrow();
+  });
+});
 
 describe('incomingSecretResponseSchema', () => {
   // Bug #2500: V3 safe_dump returns null for unset fields.
