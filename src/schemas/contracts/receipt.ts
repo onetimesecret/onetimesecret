@@ -10,19 +10,18 @@ import { z } from 'zod';
 /**
  * Receipt state values.
  *
- * STATE TERMINOLOGY MIGRATION:
- *   'viewed'   -> 'previewed'  (link accessed, confirmation shown)
- *   'received' -> 'revealed'   (secret content decrypted/consumed)
- *
- * API sends BOTH old and new values for backward compatibility.
+ * Contracts represent current fields. Shapes represent the wire format and
+ * so they are responsible for BOTH old and new values for backward
+ * compatibility. If a field for backwards campatability cannot be derived
+ * from the contract fields, then it needs to remain in the contract
  */
 export const receiptStateValues = [
   'new',
   'shared',
-  'received',   // @deprecated — use 'revealed'
+  // 'received',   // @deprecated — use 'revealed'
   'revealed',
   'burned',
-  'viewed',     // @deprecated — use 'previewed'
+  // 'viewed',     // @deprecated — use 'previewed'
   'previewed',
   'expired',
   'orphaned',
@@ -49,10 +48,10 @@ export type ReceiptState = (typeof receiptStateValues)[number];
 export const ReceiptState = {
   NEW: 'new',
   SHARED: 'shared',
-  RECEIVED: 'received',
+  // RECEIVED: 'received',
   REVEALED: 'revealed',
   BURNED: 'burned',
-  VIEWED: 'viewed',
+  // VIEWED: 'viewed',
   PREVIEWED: 'previewed',
   EXPIRED: 'expired',
   ORPHANED: 'orphaned',
@@ -87,8 +86,6 @@ export const receiptBaseCanonical = z.object({
   created: z.date(),
   updated: z.date(),
   shared: z.date().nullable(),
-  received: z.date().nullable(),      // @deprecated — use revealed
-  viewed: z.date().nullable(),        // @deprecated — use previewed
   previewed: z.date().nullable(),
   revealed: z.date().nullable(),
   burned: z.date().nullable(),
@@ -108,10 +105,8 @@ export const receiptBaseCanonical = z.object({
 
   // Boolean status flags
   has_passphrase: z.boolean().nullish(),
-  is_viewed: z.boolean(),             // @deprecated — use is_previewed
-  is_received: z.boolean(),           // @deprecated — use is_revealed
-  is_previewed: z.boolean().optional(),
-  is_revealed: z.boolean().optional(),
+  is_previewed: z.boolean(),
+  is_revealed: z.boolean(),
   is_burned: z.boolean(),
   is_destroyed: z.boolean(),
   is_expired: z.boolean(),
