@@ -31,22 +31,6 @@ module V3
         base.include Onetime::Logic::OrganizationContext
       end
 
-      # V3-specific serialization helper
-      #
-      # Converts Familia model to JSON hash with native types.
-      # Unlike v2's safe_dump which converts all primitives to strings,
-      # this preserves JSON types from Familia v2's native storage.
-      #
-      # @param model [Familia::Horreum] Model instance to serialize
-      # @return [Hash] JSON-serializable hash with native types
-      def json_dump(model)
-        return nil if model.nil?
-
-        # Familia v2 models store fields as JSON types already
-        # We just need to convert the model to a hash without string coercion
-        model.to_h
-      end
-
       # Transform v2 response data to v3 format
       #
       # V3 API changes:
