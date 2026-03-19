@@ -14,11 +14,13 @@
 #      https://docs.bump.sh/help/branching/
 #
 # Required GitHub Actions secrets:
-#   BUMP_TOKEN             — documentation private token (Settings > CI Deployment)
+#   BUMP_TOKEN             — public API documentation token (Settings > CI Deployment)
 #   BUMP_DOC_SLUG          — public API doc slug (found in doc settings on Bump.sh)
 #
-# Optional GitHub Actions secrets:
-#   BUMP_INTERNAL_DOC_SLUG — internal API doc slug (Settings > CI Deployment on Bump.sh)
+# Required for internal API docs (jobs run but fail if missing):
+#   BUMP_INTERNAL_TOKEN    — internal hub token (separate from public BUMP_TOKEN)
+#   BUMP_INTERNAL_HUB_ID   — internal hub ID on Bump.sh
+#   BUMP_INTERNAL_DOC_SLUG — internal API doc slug
 #
 ---
 name: Check & deploy API documentation
@@ -44,10 +46,12 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
+  # We don't need write permission b/c the bump CLI uses its own token for API
+  # updates, and we don't commit any generated files back to the repo. We only
+  # need read access to fetch the source code and generate the specs.
+  pull-requests: write
 
 jobs:
-  # ── Generate OpenAPI specs from source ──────────────────────────────
   generate:
     name: Generate OpenAPI specs
     runs-on: ubuntu-latest
@@ -56,7 +60,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: '.nvmrc'
 
@@ -68,7 +72,7 @@ jobs:
         run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
       - name: Setup pnpm cache
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -83,7 +87,13 @@ jobs:
 
       - name: Validate generated JSON
         run: |
-          for file in generated/openapi/openapi.*.json; do
+          shopt -s nullglob
+          files=(generated/openapi/openapi.*.json)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "ERROR: No OpenAPI spec files were generated"
+            exit 1
+          fi
+          for file in "${files[@]}"; do
             echo "Validating $file..."
             if ! jq empty "$file" 2>/dev/null; then
               echo "Invalid JSON in $file"
@@ -93,32 +103,21 @@ jobs:
           done
 
       - name: Upload generated specs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: openapi-specs
           path: generated/openapi/openapi.*.json
-          retention-days: 30
+          if-no-files-found: error
+          retention-days: 7
 
-  # ── Public API versions (v1, v2, v3) ─────────────────────────────
-  # Each version deploys as a Bump.sh branch (a version track, not a git branch)
-  # within a single Bump.sh doc.
-  deploy-doc:
+  deploy:
     needs: generate
     if: ${{ github.event_name != 'pull_request' }}
-    name: Deploy API ${{ matrix.version }} on Bump.sh
+    name: Deploy API docs on Bump.sh
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - version: v1
-            file: generated/openapi/openapi.v1.json
-          - version: v2
-            file: generated/openapi/openapi.v2.json
-          - version: v3
-            file: generated/openapi/openapi.v3.json
     steps:
       - name: Download generated specs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: openapi-specs
           path: generated/openapi
@@ -126,88 +125,38 @@ jobs:
       - name: Install Bump.sh CLI
         run: npm install -g bump-cli@2.9.12
 
-      - name: Deploy API documentation
-        run: >
-          bump deploy ${{ matrix.file }}
-          --doc "$BUMP_DOC"
-          --branch ${{ matrix.version }}
-          --token "$BUMP_TOKEN"
+      - name: Deploy public API versions
         env:
           BUMP_DOC: ${{ secrets.BUMP_DOC_SLUG }}
           BUMP_TOKEN: ${{ secrets.BUMP_TOKEN }}
+        run: |
+          for version in v1 v2 v3; do
+            echo "Deploying ${version}..."
+            bump deploy "generated/openapi/openapi.${version}.json" \
+              --doc "$BUMP_DOC" \
+              --branch "$version" \
+              --token "$BUMP_TOKEN"
+          done
 
-  api-diff:
-    needs: generate
-    if: ${{ github.event_name == 'pull_request' }}
-    name: Diff API ${{ matrix.version }} on Bump.sh
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - version: v1
-            file: generated/openapi/openapi.v1.json
-          - version: v2
-            file: generated/openapi/openapi.v2.json
-          - version: v3
-            file: generated/openapi/openapi.v3.json
-    steps:
-      - name: Download generated specs
-        uses: actions/download-artifact@v4
-        with:
-          name: openapi-specs
-          path: generated/openapi
-
-      - name: Install Bump.sh CLI
-        run: npm install -g bump-cli@2.9.12
-
-      - name: Diff API documentation
-        run: >
-          bump diff ${{ matrix.file }}
-          --doc "$BUMP_DOC"
-          --branch ${{ matrix.version }}
-          --token "$BUMP_TOKEN"
+      - name: Deploy internal API
         env:
-          BUMP_DOC: ${{ secrets.BUMP_DOC_SLUG }}
-          BUMP_TOKEN: ${{ secrets.BUMP_TOKEN }}
-
-  # ── Internal API ─────────────────────────────────────────────────
-  # Deploys as a single document within its own hub, isolated from the public versioned docs.
-  # Bump.sh tokens are scoped per hub, so this uses its own token (BUMP_INTERNAL_TOKEN)
-  # rather than the public API's BUMP_TOKEN.
-  deploy-internal:
-    needs: generate
-    if: ${{ github.event_name != 'pull_request' }}
-    name: Deploy internal API on Bump.sh
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download generated specs
-        uses: actions/download-artifact@v4
-        with:
-          name: openapi-specs
-          path: generated/openapi
-
-      - name: Install Bump.sh CLI
-        run: npm install -g bump-cli@2.9.12
-
-      - name: Deploy internal API documentation
+          BUMP_HUB: ${{ secrets.BUMP_INTERNAL_HUB_ID }}
+          BUMP_DOC: ${{ secrets.BUMP_INTERNAL_DOC_SLUG }}
+          BUMP_TOKEN: ${{ secrets.BUMP_INTERNAL_TOKEN }}
         run: >
           bump deploy generated/openapi/openapi.internal.json
           --hub "$BUMP_HUB"
           --doc "$BUMP_DOC"
           --token "$BUMP_TOKEN"
-        env:
-          BUMP_HUB: ${{ secrets.BUMP_INTERNAL_HUB_ID }}
-          BUMP_DOC: ${{ secrets.BUMP_INTERNAL_DOC_SLUG }}
-          BUMP_TOKEN: ${{ secrets.BUMP_INTERNAL_TOKEN }}
 
-  internal-diff:
+  diff:
     needs: generate
     if: ${{ github.event_name == 'pull_request' }}
-    name: Diff internal API on Bump.sh
+    name: Diff API docs on Bump.sh
     runs-on: ubuntu-latest
     steps:
       - name: Download generated specs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: openapi-specs
           path: generated/openapi
@@ -215,13 +164,26 @@ jobs:
       - name: Install Bump.sh CLI
         run: npm install -g bump-cli@2.9.12
 
-      - name: Diff internal API documentation
+      - name: Diff public API versions
+        env:
+          BUMP_DOC: ${{ secrets.BUMP_DOC_SLUG }}
+          BUMP_TOKEN: ${{ secrets.BUMP_TOKEN }}
+        run: |
+          for version in v1 v2 v3; do
+            echo "Diffing ${version}..."
+            bump diff "generated/openapi/openapi.${version}.json" \
+              --doc "$BUMP_DOC" \
+              --branch "$version" \
+              --token "$BUMP_TOKEN"
+          done
+
+      - name: Diff internal API
+        env:
+          BUMP_HUB: ${{ secrets.BUMP_INTERNAL_HUB_ID }}
+          BUMP_DOC: ${{ secrets.BUMP_INTERNAL_DOC_SLUG }}
+          BUMP_TOKEN: ${{ secrets.BUMP_INTERNAL_TOKEN }}
         run: >
           bump diff generated/openapi/openapi.internal.json
           --hub "$BUMP_HUB"
           --doc "$BUMP_DOC"
           --token "$BUMP_TOKEN"
-        env:
-          BUMP_HUB: ${{ secrets.BUMP_INTERNAL_HUB_ID }}
-          BUMP_DOC: ${{ secrets.BUMP_INTERNAL_DOC_SLUG }}
-          BUMP_TOKEN: ${{ secrets.BUMP_INTERNAL_TOKEN }}
