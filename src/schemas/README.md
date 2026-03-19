@@ -47,8 +47,8 @@ Both old and new values are sent for backward compatibility.
 All schemas export inferred types via `z.infer<>`:
 
 ```typescript
-import { secretCanonical, type SecretCanonical } from '@/schemas';
+import { secretSchema, type Secret } from '@/schemas';
 
-const secret = secretCanonical.parse(apiData);
-// secret is fully typed as SecretCanonical
+const secret = secretSchema.parse(apiData);
+// secret is fully typed as Secret
 ```
