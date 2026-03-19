@@ -27,7 +27,7 @@
       "id": "v3",
       "filename": "openapi.v3.json",
       "title": "API v3 (alpha)",
-      "description": "Our next-generation, work-in-progress API. Similar to v2 with JSON types and new endpoints, but still evolving. Although we use the v3 API to power our UI, it is not recommended for production use externally until we reach stable status. Subject to change without deprecation.",
+      "description": "Our next-generation API. Similar to v2 with JSON types and new endpoints, but still evolving. Although we use the v3 API to power our UI, it is not recommended for production use externally until we reach stable status. Subject to change without deprecation.",
       "apiNames": ["v3"]
     },
     {
