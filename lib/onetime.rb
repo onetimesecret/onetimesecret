@@ -92,13 +92,15 @@ trap('SIGINT') do
   # Cannot use semantic_logger from trap context - use direct STDERR
   warn 'Shutting down gracefully...'
   OT.with_diagnostics do
+    if defined?(Sentry) && Sentry.initialized?
       Sentry.close  # Attempt graceful shutdown with a short timeout
-    rescue ThreadError => ex
-      warn "Sentry shutdown interrupted: #{ex} (#{ex.class})"
-    rescue Sentry::Error, IOError, SystemCallError => ex
-      # Ignore Sentry-related/network errors during shutdown
-      warn "Error during shutdown: #{ex} (#{ex.class})"
-      warn(ex.backtrace&.join("\n")) if OT.debug?
+    end
+  rescue ThreadError => ex
+    warn "Sentry shutdown interrupted: #{ex} (#{ex.class})"
+  rescue IOError, SystemCallError => ex
+    # Ignore network errors during shutdown
+    warn "Error during shutdown: #{ex} (#{ex.class})"
+    warn(ex.backtrace&.join("\n")) if OT.debug?
   end
 
   # Re-raise signal to trigger default handler (ensures proper exit code 130)
