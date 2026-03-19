@@ -30,7 +30,42 @@ export const receiptStateValues = [
 
 export type ReceiptState = (typeof receiptStateValues)[number];
 
+/**
+ * Receipt state enum object.
+ *
+ * Using const object pattern over enum because:
+ * 1. Produces simpler runtime code (just a plain object vs IIFE)
+ * 2. Better tree-shaking since values can be inlined
+ * 3. Works naturally with Zod's z.enum()
+ *
+ * STATE TERMINOLOGY MIGRATION:
+ *   'viewed'   -> 'previewed'  (link accessed, confirmation shown)
+ *   'received' -> 'revealed'   (secret content decrypted/consumed)
+ *
+ * API sends BOTH old and new fields for backward compatibility.
+ * @deprecated VIEWED, RECEIVED, is_viewed, is_received, viewed, received
+ *             Use PREVIEWED, REVEALED, is_previewed, is_revealed, previewed, revealed
+ */
+export const ReceiptState = {
+  NEW: 'new',
+  SHARED: 'shared',
+  RECEIVED: 'received',
+  REVEALED: 'revealed',
+  BURNED: 'burned',
+  VIEWED: 'viewed',
+  PREVIEWED: 'previewed',
+  EXPIRED: 'expired',
+  ORPHANED: 'orphaned',
+} as const;
+
 export const receiptStateSchema = z.enum(receiptStateValues);
+
+/**
+ * Type guard for receipt state validation.
+ */
+export function isValidReceiptState(state: string): state is ReceiptState {
+  return receiptStateValues.includes(state as ReceiptState);
+}
 
 /**
  * Canonical receipt base record.

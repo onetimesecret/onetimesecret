@@ -10,35 +10,17 @@ import {
   secretBaseCanonical,
   secretCanonical,
   secretDetailsCanonical,
-  secretStateSchema as canonicalSecretStateSchema,
+  secretStateSchema,
+  secretStateValues,
+  SecretState,
+  isValidSecretState,
 } from '@/schemas/api/canonical/records';
 import { createModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
-/**
- * Secret state enum object.
- *
- * STATE TERMINOLOGY MIGRATION:
- *   'viewed'   -> 'previewed'  (link accessed, confirmation shown)
- *   'received' -> 'revealed'   (secret content decrypted/consumed)
- *
- * API sends BOTH old and new values for backward compatibility.
- * @deprecated VIEWED and RECEIVED - use PREVIEWED and REVEALED instead
- */
-export const SecretState = {
-  NEW: 'new',
-  RECEIVED: 'received',
-  REVEALED: 'revealed',
-  BURNED: 'burned',
-  VIEWED: 'viewed',
-  PREVIEWED: 'previewed',
-} as const;
-
-export type SecretState = (typeof SecretState)[keyof typeof SecretState];
-
-// Re-export canonical state schema
-export const secretStateSchema = canonicalSecretStateSchema;
+// Re-export from canonical
+export { SecretState, secretStateSchema, secretStateValues, isValidSecretState };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // V2 string transform overrides
