@@ -10,7 +10,7 @@
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { type CustomDomainResponse } from '@/schemas/api/v2/responses';
-  import { CustomDomain, CustomDomainProxy } from '@/schemas/models';
+  import { CustomDomain, CustomDomainProxy } from '@/schemas/shapes/v2';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
   import { useRoute } from 'vue-router';

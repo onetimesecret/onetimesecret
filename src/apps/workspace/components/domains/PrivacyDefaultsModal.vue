@@ -12,7 +12,7 @@
     TransitionRoot,
   } from '@headlessui/vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import type { BrandSettings } from '@/schemas/models';
+  import type { BrandSettings } from '@/schemas/shapes/v2';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
 
   const { t } = useI18n();

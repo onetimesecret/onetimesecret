@@ -14,7 +14,7 @@ import type {
   InvoiceStatus,
   MigrateCurrencyRequest,
   MigrateCurrencyResponse,
-} from '@/schemas/models/billing';
+} from '@/schemas/shapes/v2/billing';
 
 const $api = createApi();
 

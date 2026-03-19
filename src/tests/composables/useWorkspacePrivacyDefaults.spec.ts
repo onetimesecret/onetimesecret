@@ -5,7 +5,7 @@ import { ref, computed, nextTick } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import type { BrandSettings } from '@/schemas/models/custom-domain';
+import type { BrandSettings } from '@/schemas/shapes/v2/custom-domain';
 
 // Mock formatDuration
 const mockFormatDuration = vi.fn((seconds: number) => {

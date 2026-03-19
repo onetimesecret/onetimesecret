@@ -8,7 +8,7 @@ import type {
   CustomDomain,
   CustomDomainDetails,
   ImageProps,
-} from '@/schemas/models';
+} from '@/schemas/shapes/v2';
 import { loggingService } from '@/services/logging.service';
 import { AxiosError, AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';

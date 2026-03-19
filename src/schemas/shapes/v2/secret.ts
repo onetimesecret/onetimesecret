@@ -14,8 +14,8 @@ import {
   secretStateValues,
   SecretState,
   isValidSecretState,
-} from '@/schemas/api/canonical/records';
-import { createModelSchema } from '@/schemas/models/base';
+} from '@/schemas/contracts';
+import { createModelSchema } from '@/schemas/shapes/v2/base';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 

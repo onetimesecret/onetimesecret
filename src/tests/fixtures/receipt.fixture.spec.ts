@@ -1,7 +1,7 @@
 // src/tests/fixtures/receipt.fixture.spec.ts
 
-import { ReceiptState } from '@/schemas/models/receipt';
-import { SecretState } from '@/schemas/models/secret';
+import { ReceiptState } from '@/schemas/shapes/v2/receipt';
+import { SecretState } from '@/schemas/shapes/v2/secret';
 import { describe, expect, it } from 'vitest';
 
 import {

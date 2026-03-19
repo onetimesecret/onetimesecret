@@ -1,8 +1,8 @@
 <!-- src/shared/components/base/BaseUnknownSecret.vue -->
 
 <script setup lang="ts">
-  import type { BrandSettings } from '@/schemas/models/custom-domain/brand';
-  import { fontFamilyClasses, FontFamily } from '@/schemas/models/custom-domain/brand';
+  import type { BrandSettings } from '@/schemas/shapes/v2/custom-domain/brand';
+  import { fontFamilyClasses, FontFamily } from '@/schemas/shapes/v2/custom-domain/brand';
 
   export interface Props {
     branded?: boolean;

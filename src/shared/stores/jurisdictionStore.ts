@@ -2,7 +2,7 @@
 
 import { createError } from '@/shared/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import type { Jurisdiction, RegionsConfig } from '@/schemas/models';
+import type { Jurisdiction, RegionsConfig } from '@/schemas/shapes/v2';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { AxiosInstance } from 'axios';
 import type { PiniaCustomProperties } from 'pinia';

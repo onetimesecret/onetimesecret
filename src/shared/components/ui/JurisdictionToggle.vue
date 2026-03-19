@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useClickOutside } from '@/shared/composables/useClickOutside';
-  import type { Jurisdiction } from '@/schemas/models/jurisdiction';
+  import type { Jurisdiction } from '@/schemas/shapes/v2/jurisdiction';
   import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
   import { computed, ref } from 'vue';
 

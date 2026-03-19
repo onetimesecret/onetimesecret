@@ -7,7 +7,7 @@ import {
   type ConcealDataResponse,
   type SecretResponse,
 } from '@/schemas/api/v3/responses';
-import { type Secret, type SecretDetails, type SecretState } from '@/schemas/models/secret';
+import { type Secret, type SecretDetails, type SecretState } from '@/schemas/shapes/v2/secret';
 import { loggingService } from '@/services/logging.service';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';

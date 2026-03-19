@@ -37,12 +37,12 @@ import { z } from 'zod';
 // =============================================================================
 // Model Schemas
 // =============================================================================
-import { customerSchema } from './models/customer';
-import { customDomainSchema } from './models/custom-domain';
-import { secretSchema, secretDetailsSchema, secretStateSchema } from './models/secret';
-import { receiptSchema, receiptDetailsSchema, receiptStateSchema } from './models/receipt';
-import { feedbackSchema } from './models/feedback';
-import { organizationSchema } from './models/organization';
+import { customerSchema } from './shapes/v2/customer';
+import { customDomainSchema } from './shapes/v2/custom-domain';
+import { secretSchema, secretDetailsSchema, secretStateSchema } from './shapes/v2/secret';
+import { receiptSchema, receiptDetailsSchema, receiptStateSchema } from './shapes/v2/receipt';
+import { feedbackSchema } from './shapes/v2/feedback';
+import { organizationSchema } from './shapes/v2/organization';
 
 // =============================================================================
 // API v3 Schemas
