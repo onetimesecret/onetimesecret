@@ -15,7 +15,14 @@ module V2::Logic
     #   TTL, recipient email, and share domain. Returns the receipt and
     #   secret records with share URLs.
     class GenerateSecret < BaseSecretAction
+      include Onetime::Logic::GuestRouteGating
+
       SCHEMAS = { response: 'concealData', request: 'generateSecret' }.freeze
+
+      def raise_concerns
+        require_guest_route_enabled!(:generate)
+        super
+      end
 
       def process_secret
         @kind = 'generate'

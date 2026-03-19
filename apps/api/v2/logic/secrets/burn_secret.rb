@@ -13,6 +13,7 @@ module V2::Logic
     #   updated receipt record with burn confirmation and related URLs.
     class BurnSecret < V2::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Logic::GuestRouteGating
 
       SCHEMAS = { response: 'receipt' }.freeze
 
@@ -26,6 +27,7 @@ module V2::Logic
       end
 
       def raise_concerns
+        require_guest_route_enabled!(:burn)
         require_entitlement!('api_access')
         raise OT::MissingSecret if receipt.nil?
       end

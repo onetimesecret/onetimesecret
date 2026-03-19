@@ -12,15 +12,6 @@ require 'onetime/logic/base'
 module InviteAPI
   module Logic
     class Base < Onetime::Logic::Base
-      # Invite API-specific serialization helper
-      def json_dump(model)
-        return nil if model.nil?
-
-        model.to_h
-      end
-
-      alias safe_dump json_dump
-
       # Transform v2 response data to Invite API format
       def success_data
         v2_data  = super

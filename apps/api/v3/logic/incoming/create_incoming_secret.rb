@@ -14,7 +14,7 @@ module V3
       # recipients. The recipient receives an email notification.
       #
       # @example Request
-      #   POST /api/v3/incoming/secret
+      #   POST /api/incoming/secret
       #   {
       #     secret: {
       #       memo: "Password reset request",

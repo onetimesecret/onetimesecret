@@ -163,7 +163,7 @@ module V3
         # include ::V3::Logic::Base
       end
 
-      # List user's receipts (recent secrets - receipt/private)
+      # List user's receipts
       #
       # @api List receipts for the authenticated user's recent secrets.
       #   Returns receipts from the last 30 days, sorted by most recently
@@ -190,7 +190,7 @@ module V3
         end
       end
 
-      # Show receipt for a secret (receipt/private endpoints)
+      # Show receipt for a secret
       #
       # @api Retrieve a receipt with full details about a secret's lifecycle,
       #   including share and burn URLs, expiration, and current state. On

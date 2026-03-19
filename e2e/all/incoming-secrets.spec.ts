@@ -91,7 +91,7 @@ const MOCK_SUCCESS_RESPONSE = {
  * Helper to set up API mocking for incoming config endpoint
  */
 async function mockIncomingConfig(page: Page, configResponse: object) {
-  await page.route('**/api/v3/incoming/config', async (route) => {
+  await page.route('**/incoming/config', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -104,7 +104,7 @@ async function mockIncomingConfig(page: Page, configResponse: object) {
  * Helper to set up API mocking for incoming secret creation
  */
 async function mockIncomingSecretCreate(page: Page, response: object, status = 200) {
-  await page.route('**/api/v3/incoming/secret', async (route) => {
+  await page.route('**/incoming/secret', async (route) => {
     await route.fulfill({
       status,
       contentType: 'application/json',
@@ -270,7 +270,7 @@ test.describe('Incoming Secrets - Form Loading', () => {
   });
 
   test('handles API error gracefully when config fails to load', async ({ page }) => {
-    await page.route('**/api/v3/incoming/config', async (route) => {
+    await page.route('**/incoming/config', async (route) => {
       await route.fulfill({
         status: 500,
         contentType: 'application/json',
@@ -727,7 +727,7 @@ test.describe('Incoming Secrets - Error Handling', () => {
   });
 
   test('handles API error during submission gracefully', async ({ page }) => {
-    await page.route('**/api/v3/incoming/secret', async (route) => {
+    await page.route('**/incoming/secret', async (route) => {
       await route.fulfill({
         status: 500,
         contentType: 'application/json',
@@ -768,7 +768,7 @@ test.describe('Incoming Secrets - Error Handling', () => {
   });
 
   test('handles network timeout gracefully', async ({ page }) => {
-    await page.route('**/api/v3/incoming/secret', async (route) => {
+    await page.route('**/incoming/secret', async (route) => {
       // Simulate network delay/timeout
       await new Promise((resolve) => setTimeout(resolve, 10000));
       await route.abort('timedout');

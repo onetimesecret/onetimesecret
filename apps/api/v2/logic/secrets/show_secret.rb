@@ -14,6 +14,8 @@ module V2::Logic
     #   only metadata such as whether a passphrase is required. The secret can
     #   only be viewed once.
     class ShowSecret < V2::Logic::Base
+      include Onetime::Logic::GuestRouteGating
+
       SCHEMAS = { response: 'secret' }.freeze
 
       attr_reader :identifier,
@@ -39,6 +41,7 @@ module V2::Logic
       end
 
       def raise_concerns
+        require_guest_route_enabled!(:show)
         require_entitlement!('api_access')
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
       end
