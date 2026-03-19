@@ -27,7 +27,38 @@ export const secretStateValues = [
 
 export type SecretState = (typeof secretStateValues)[number];
 
+/**
+ * Secret state enum object.
+ *
+ * Using const object pattern over enum because:
+ * 1. Produces simpler runtime code (just a plain object vs IIFE)
+ * 2. Better tree-shaking since values can be inlined
+ * 3. Works naturally with Zod's z.enum()
+ *
+ * STATE TERMINOLOGY MIGRATION:
+ *   'viewed'   -> 'previewed'  (link accessed, confirmation shown)
+ *   'received' -> 'revealed'   (secret content decrypted/consumed)
+ *
+ * API sends BOTH old and new values for backward compatibility.
+ * @deprecated VIEWED and RECEIVED — use PREVIEWED and REVEALED instead
+ */
+export const SecretState = {
+  NEW: 'new',
+  RECEIVED: 'received',
+  REVEALED: 'revealed',
+  BURNED: 'burned',
+  VIEWED: 'viewed',
+  PREVIEWED: 'previewed',
+} as const;
+
 export const secretStateSchema = z.enum(secretStateValues);
+
+/**
+ * Type guard for secret state validation.
+ */
+export function isValidSecretState(state: string): state is SecretState {
+  return secretStateValues.includes(state as SecretState);
+}
 
 /**
  * Canonical secret base record.

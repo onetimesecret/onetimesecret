@@ -10,44 +10,17 @@ import {
   receiptBaseCanonical,
   receiptCanonical,
   receiptDetailsCanonical,
-  receiptStateSchema as canonicalReceiptStateSchema,
+  receiptStateSchema,
+  receiptStateValues,
+  ReceiptState,
+  isValidReceiptState,
 } from '@/schemas/api/canonical/records';
 import { createModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
-/**
- * Receipt state enum object.
- *
- * Using const object pattern over enum because:
- * 1. Produces simpler runtime code (just a plain object vs IIFE)
- * 2. Better tree-shaking since values can be inlined
- * 3. Works naturally with Zod's z.enum()
- *
- * STATE TERMINOLOGY MIGRATION:
- *   'viewed'   -> 'previewed'  (link accessed, confirmation shown)
- *   'received' -> 'revealed'   (secret content decrypted/consumed)
- *
- * API sends BOTH old and new fields for backward compatibility.
- * @deprecated VIEWED, RECEIVED, is_viewed, is_received, viewed, received
- *             Use PREVIEWED, REVEALED, is_previewed, is_revealed, previewed, revealed
- */
-export const ReceiptState = {
-  NEW: 'new',
-  SHARED: 'shared',
-  RECEIVED: 'received',
-  REVEALED: 'revealed',
-  BURNED: 'burned',
-  VIEWED: 'viewed',
-  PREVIEWED: 'previewed',
-  EXPIRED: 'expired',
-  ORPHANED: 'orphaned',
-} as const;
-
-export type ReceiptState = (typeof ReceiptState)[keyof typeof ReceiptState];
-
-// Re-export canonical state schema
-export const receiptStateSchema = canonicalReceiptStateSchema;
+// Re-export from canonical (ReceiptState is both a const object and a type)
+export { ReceiptState, receiptStateSchema, receiptStateValues, isValidReceiptState };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // V2 transform overrides
@@ -55,7 +28,9 @@ export const receiptStateSchema = canonicalReceiptStateSchema;
 
 /**
  * V2 timestamp field overrides.
- * V2 sends timestamps as strings or secondsToDate for created/updated.
+ *
+ * created/updated come as numbers (Unix epoch seconds) from the backend.
+ * Other timestamps (shared, received, etc.) come as strings.
  */
 const v2TimestampOverrides = {
   created: transforms.fromNumber.secondsToDate,
@@ -92,7 +67,7 @@ const v2NumberOverrides = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Record schemas (V2 wire format: canonical + string transforms)
+// Record schemas (V2 wire format: canonical + transforms)
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -163,7 +138,3 @@ export const receiptDetailsSchema = receiptDetailsCanonical.extend({
 
 export type Receipt = z.infer<typeof receiptSchema>;
 export type ReceiptDetails = z.infer<typeof receiptDetailsSchema>;
-
-export function isValidReceiptState(state: string): state is ReceiptState {
-  return Object.values(ReceiptState).includes(state as ReceiptState);
-}
