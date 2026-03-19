@@ -140,8 +140,14 @@ module Onetime
       def require_entitlement!(entitlement)
         entitlement = entitlement.to_s
 
-        # No org context means no entitlement check (public endpoints)
-        return true unless org
+        # Fail-closed: org context required for entitlement checks.
+        # OrganizationLoader self-heals, so nil org indicates a system issue.
+        unless org
+          raise Onetime::EntitlementRequired.new(
+            entitlement,
+            message: 'Unable to verify entitlements (organization context unavailable)',
+          )
+        end
 
         # Check if org has the entitlement
         return true if org.can?(entitlement)
