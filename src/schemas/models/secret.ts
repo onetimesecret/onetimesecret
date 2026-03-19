@@ -1,66 +1,86 @@
 // src/schemas/models/secret.ts
+//
+// V2 wire-format schemas for secrets.
+// Derives from canonical schemas, adding V2-specific string transforms.
+//
+// V2 API sends data as Redis-serialized strings; these transforms convert
+// to the correct output types.
 
+import {
+  secretBaseCanonical,
+  secretCanonical,
+  secretDetailsCanonical,
+  secretStateSchema as canonicalSecretStateSchema,
+} from '@/schemas/api/canonical/records';
 import { createModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 /**
- * @fileoverview Secret schema with standardized transformations
+ * Secret state enum object.
  *
- * Key improvements:
- * 1. Consistent use of transforms for type conversion
- * 2. Standardized response schema pattern
- * 3. Clear type boundaries
- */
-
-/**
- * STATE TERMINOLOGY MIGRATION REFERENCE (Secret)
- * ==============================================
- * Legacy -> New field mappings:
- *   State values:
- *     'viewed'   -> 'previewed'  (link accessed, confirmation shown)
- *     'received' -> 'revealed'   (secret content decrypted/consumed)
+ * STATE TERMINOLOGY MIGRATION:
+ *   'viewed'   -> 'previewed'  (link accessed, confirmation shown)
+ *   'received' -> 'revealed'   (secret content decrypted/consumed)
  *
  * API sends BOTH old and new values for backward compatibility.
  * @deprecated VIEWED and RECEIVED - use PREVIEWED and REVEALED instead
  */
 export const SecretState = {
   NEW: 'new',
-  RECEIVED: 'received',     // @deprecated - use REVEALED
-  REVEALED: 'revealed',     // NEW: secret content was decrypted/consumed
+  RECEIVED: 'received',
+  REVEALED: 'revealed',
   BURNED: 'burned',
-  VIEWED: 'viewed',         // @deprecated - use PREVIEWED
-  PREVIEWED: 'previewed',   // NEW: secret link accessed, confirmation shown
+  VIEWED: 'viewed',
+  PREVIEWED: 'previewed',
 } as const;
 
 export type SecretState = (typeof SecretState)[keyof typeof SecretState];
 
-// Create reusable schema for the state
-export const secretStateSchema = z.enum(Object.values(SecretState) as [string, ...string[]]);
+// Re-export canonical state schema
+export const secretStateSchema = canonicalSecretStateSchema;
 
-// Base schema for core fields
-const secretBaseSchema = z.object({
-  identifier: z.string(),
-  key: z.string(),
-  shortid: z.string(),
-  state: secretStateSchema,
+// ─────────────────────────────────────────────────────────────────────────────
+// V2 string transform overrides
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * V2 wire format overrides.
+ * V2 sends booleans/numbers as strings from Redis.
+ */
+const v2StringOverrides = {
   has_passphrase: transforms.fromString.boolean,
   verification: transforms.fromString.boolean,
-  secret_value: z.string().optional(), // optional for preview/confirmation page
-});
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Record schemas (V2 wire format: canonical + string transforms)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * V2 secret base schema.
+ *
+ * Derives from canonical, adds V2 string transforms.
+ * Uses createModelSchema to add identifier, created, updated from base.
+ */
+const secretBaseSchema = secretBaseCanonical.extend(v2StringOverrides);
 
 // List view schema (stripped down version)
 export const secretResponsesSchema = createModelSchema(secretBaseSchema.shape).strip();
 
-// Full secret schema with all fields
+// Full secret schema with TTL fields
 export const secretSchema = createModelSchema({
-  ...secretBaseSchema.shape,
+  ...secretCanonical.extend(v2StringOverrides).shape,
   secret_ttl: transforms.fromString.number,
   lifespan: transforms.fromString.number,
 }).strip();
 
-// Details schema with explicit typing
-export const secretDetailsSchema = z.object({
+/**
+ * V2 secret details.
+ *
+ * Derives from canonical, adds V2 string transforms.
+ */
+export const secretDetailsSchema = secretDetailsCanonical.extend({
   continue: transforms.fromString.boolean,
   is_owner: transforms.fromString.boolean,
   show_secret: transforms.fromString.boolean,
@@ -69,35 +89,10 @@ export const secretDetailsSchema = z.object({
   one_liner: transforms.fromString.boolean.nullable(),
 });
 
-// Export types
+// ─────────────────────────────────────────────────────────────────────────────
+// Type exports
+// ─────────────────────────────────────────────────────────────────────────────
+
 export type Secret = z.infer<typeof secretSchema>;
 export type SecretDetails = z.infer<typeof secretDetailsSchema>;
 export type SecretList = z.infer<typeof secretResponsesSchema>;
-
-/**
- * CHANGELOG
- * ═══════════════════════
- *
- * [2025-03-03] CHANGE
- * ────────────────────────
- * secret_ttl: number | null → number
- * lifespan: string | null → number
- *
- * transform:
- *   transforms.fromString.number.nullable() → transforms.fromString.number
- *   z.string().nullable() → transforms.fromString.number
- *
- * why: Removed nullable handling for consistent numeric
- *      operations. Standardized TTL and lifespan to
- *      numeric format.
- *
- * [2024-12-31] BREAKING
- * ────────────────────────
- * lifespan: string → string | null
- *
- * transform:
- *   string().transforms.ttlToNaturalLanguage().optional()
- *   → string().nullable()
- *
- * why: Server now handles TTL transformation
- */
