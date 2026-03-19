@@ -13,7 +13,7 @@ module V3
       # submitting the full secret creation request.
       #
       # @example Request
-      #   POST /api/v3/incoming/validate
+      #   POST /api/meta/incoming/validate
       #   { recipient: "abc123..." }
       #
       # @example Response

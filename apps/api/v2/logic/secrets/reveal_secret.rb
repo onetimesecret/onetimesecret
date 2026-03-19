@@ -29,6 +29,7 @@ module V2::Logic
     #
     class RevealSecret < V2::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Logic::GuestRouteGating
 
       SCHEMAS = { response: 'secret' }.freeze
 
@@ -55,6 +56,7 @@ module V2::Logic
       end
 
       def raise_concerns
+        require_guest_route_enabled!(:reveal)
         require_entitlement!('api_access')
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
       end

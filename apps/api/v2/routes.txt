@@ -6,24 +6,32 @@
 # V2 API returns string values for all fields.
 
 # Receipts (creator-facing secret metadata)
-GET    /receipt/recent                            V2::Logic::Secrets::ListReceipts response=json auth=basicauth
-POST   /receipt/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=basicauth,noauth
-GET    /receipt/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=basicauth,noauth
-PATCH  /receipt/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=basicauth,noauth
+GET    /receipt/recent                            V2::Logic::Secrets::ListReceipts response=json auth=sessionauth,basicauth
+POST   /receipt/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=sessionauth,basicauth,noauth
+GET    /receipt/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=sessionauth,basicauth,noauth
+PATCH  /receipt/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=sessionauth,basicauth,noauth
 
 # Legacy aliases — use /receipt/ paths instead
-GET    /private/recent                            V2::Logic::Secrets::ListReceipts response=json auth=basicauth deprecated=true
-POST   /private/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=basicauth,noauth deprecated=true
-GET    /private/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=basicauth,noauth deprecated=true
-PATCH  /private/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=basicauth,noauth deprecated=true
+GET    /private/recent                            V2::Logic::Secrets::ListReceipts response=json auth=sessionauth,basicauth deprecated=true
+POST   /private/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=sessionauth,basicauth,noauth deprecated=true
+GET    /private/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=sessionauth,basicauth,noauth deprecated=true
+PATCH  /private/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=sessionauth,basicauth,noauth deprecated=true
 
 # Secrets - Public (Anonymous allowed)
-GET    /secret/:identifier                        V2::Logic::Secrets::ShowSecret response=json auth=basicauth,noauth
-GET    /secret/:identifier/status                 V2::Logic::Secrets::ShowSecretStatus response=json auth=basicauth,noauth
-POST   /secret/status                             V2::Logic::Secrets::ListSecretStatus response=json auth=basicauth,noauth
-POST   /secret/:identifier/reveal                 V2::Logic::Secrets::RevealSecret response=json auth=basicauth,noauth
-POST   /secret/generate                           V2::Logic::Secrets::GenerateSecret response=json auth=basicauth,noauth
-POST   /secret/conceal                            V2::Logic::Secrets::ConcealSecret response=json auth=basicauth,noauth
+GET    /secret/:identifier                        V2::Logic::Secrets::ShowSecret response=json auth=sessionauth,basicauth,noauth
+GET    /secret/:identifier/status                 V2::Logic::Secrets::ShowSecretStatus response=json auth=sessionauth,basicauth,noauth
+POST   /secret/status                             V2::Logic::Secrets::ListSecretStatus response=json auth=sessionauth,basicauth,noauth
+POST   /secret/:identifier/reveal                 V2::Logic::Secrets::RevealSecret response=json auth=sessionauth,basicauth,noauth
+POST   /secret/generate                           V2::Logic::Secrets::GenerateSecret response=json auth=sessionauth,basicauth,noauth
+POST   /secret/conceal                            V2::Logic::Secrets::ConcealSecret response=json auth=sessionauth,basicauth,noauth
+
+# Guest routes (anonymous access with GuestRouteGating)
+POST   /guest/secret/conceal                      V2::Logic::Secrets::ConcealSecret response=json auth=noauth
+POST   /guest/secret/generate                     V2::Logic::Secrets::GenerateSecret response=json auth=noauth
+GET    /guest/secret/:identifier                  V2::Logic::Secrets::ShowSecret response=json auth=noauth
+POST   /guest/secret/:identifier/reveal           V2::Logic::Secrets::RevealSecret response=json auth=noauth
+GET    /guest/receipt/:identifier                 V2::Logic::Secrets::ShowReceipt response=json auth=noauth
+POST   /guest/receipt/:identifier/burn            V2::Logic::Secrets::BurnSecret response=json auth=noauth
 
 # OPTIONS preflight for CORS (public)
 OPTIONS /secret/generate                          V2::Logic::Secrets::GenerateSecret response=json

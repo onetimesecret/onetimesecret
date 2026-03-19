@@ -152,7 +152,7 @@ describe('incomingStore', () => {
 
   describe('loadConfig()', () => {
     it('loads and validates config from API', async () => {
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: mockConfig,
       });
 
@@ -165,7 +165,7 @@ describe('incomingStore', () => {
     it('clears configError before loading', async () => {
       store.configError = 'Previous error';
 
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: mockConfig,
       });
 
@@ -175,7 +175,7 @@ describe('incomingStore', () => {
     });
 
     it('updates computed getters after loading config', async () => {
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: mockConfig,
       });
 
@@ -188,7 +188,7 @@ describe('incomingStore', () => {
     });
 
     it('validates response with Zod schema', async () => {
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: mockConfig,
       });
 
@@ -205,7 +205,7 @@ describe('incomingStore', () => {
         recipients: [],
       };
 
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: disabledConfig,
       });
 
@@ -218,13 +218,13 @@ describe('incomingStore', () => {
 
   describe('loadConfig() - Error Handling', () => {
     it('throws on network error', async () => {
-      axiosMock.onGet('/api/v3/incoming/config').networkError();
+      axiosMock.onGet('/incoming/config').networkError();
 
       await expect(store.loadConfig()).rejects.toThrow();
     });
 
     it('throws on 500 server error', async () => {
-      axiosMock.onGet('/api/v3/incoming/config').reply(500, {
+      axiosMock.onGet('/incoming/config').reply(500, {
         message: 'Internal server error',
       });
 
@@ -232,7 +232,7 @@ describe('incomingStore', () => {
     });
 
     it('throws on 403 forbidden', async () => {
-      axiosMock.onGet('/api/v3/incoming/config').reply(403, {
+      axiosMock.onGet('/incoming/config').reply(403, {
         message: 'Access denied',
       });
 
@@ -240,7 +240,7 @@ describe('incomingStore', () => {
     });
 
     it('throws on Zod validation failure with invalid data', async () => {
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: { invalid: 'data' },
       });
 
@@ -248,7 +248,7 @@ describe('incomingStore', () => {
     });
 
     it('throws when recipients have invalid structure', async () => {
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: {
           enabled: true,
           memo_max_length: 50,
@@ -261,7 +261,7 @@ describe('incomingStore', () => {
 
     it('preserves previous config state on error', async () => {
       // First load valid config
-      axiosMock.onGet('/api/v3/incoming/config').replyOnce(200, {
+      axiosMock.onGet('/incoming/config').replyOnce(200, {
         config: mockConfig,
       });
       await store.loadConfig();
@@ -269,7 +269,7 @@ describe('incomingStore', () => {
       const previousConfig = store.config;
 
       // Second call fails
-      axiosMock.onGet('/api/v3/incoming/config').networkError();
+      axiosMock.onGet('/incoming/config').networkError();
 
       await expect(store.loadConfig()).rejects.toThrow();
 
@@ -281,14 +281,14 @@ describe('incomingStore', () => {
   describe('createIncomingSecret()', () => {
     beforeEach(async () => {
       // Load config first so feature is enabled
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: mockConfig,
       });
       await store.loadConfig();
     });
 
     it('creates secret with valid payload', async () => {
-      axiosMock.onPost('/api/v3/incoming/secret').reply(200, mockSecretResponse);
+      axiosMock.onPost('/incoming/secret').reply(200, mockSecretResponse);
 
       const payload = {
         secret: 'my secret value',
@@ -305,7 +305,7 @@ describe('incomingStore', () => {
     });
 
     it('sends correct payload structure to API', async () => {
-      axiosMock.onPost('/api/v3/incoming/secret').reply(200, mockSecretResponse);
+      axiosMock.onPost('/incoming/secret').reply(200, mockSecretResponse);
 
       const payload = {
         secret: 'my secret value',
@@ -322,7 +322,7 @@ describe('incomingStore', () => {
     });
 
     it('validates response with Zod schema', async () => {
-      axiosMock.onPost('/api/v3/incoming/secret').reply(200, mockSecretResponse);
+      axiosMock.onPost('/incoming/secret').reply(200, mockSecretResponse);
 
       const payload = {
         secret: 'my secret value',
@@ -335,7 +335,7 @@ describe('incomingStore', () => {
     });
 
     it('works without optional memo', async () => {
-      axiosMock.onPost('/api/v3/incoming/secret').reply(200, mockSecretResponse);
+      axiosMock.onPost('/incoming/secret').reply(200, mockSecretResponse);
 
       const payload = {
         secret: 'my secret value',
@@ -364,7 +364,7 @@ describe('incomingStore', () => {
     });
 
     it('throws when config has enabled: false', async () => {
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: { enabled: false, memo_max_length: 50, recipients: [] },
       });
       await store.loadConfig();
@@ -398,14 +398,14 @@ describe('incomingStore', () => {
 
   describe('createIncomingSecret() - Error Handling', () => {
     beforeEach(async () => {
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: mockConfig,
       });
       await store.loadConfig();
     });
 
     it('throws on network error', async () => {
-      axiosMock.onPost('/api/v3/incoming/secret').networkError();
+      axiosMock.onPost('/incoming/secret').networkError();
 
       const payload = {
         secret: 'my secret value',
@@ -416,7 +416,7 @@ describe('incomingStore', () => {
     });
 
     it('throws on 400 bad request', async () => {
-      axiosMock.onPost('/api/v3/incoming/secret').reply(400, {
+      axiosMock.onPost('/incoming/secret').reply(400, {
         message: 'Invalid recipient',
       });
 
@@ -429,7 +429,7 @@ describe('incomingStore', () => {
     });
 
     it('throws on Zod validation failure', async () => {
-      axiosMock.onPost('/api/v3/incoming/secret').reply(200, {
+      axiosMock.onPost('/incoming/secret').reply(200, {
         invalid: 'response structure',
       });
 
@@ -445,7 +445,7 @@ describe('incomingStore', () => {
   describe('clear()', () => {
     beforeEach(async () => {
       // Setup store with data
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: mockConfig,
       });
       await store.loadConfig();
@@ -486,7 +486,7 @@ describe('incomingStore', () => {
   describe('$reset()', () => {
     beforeEach(async () => {
       // Setup store with data
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: mockConfig,
       });
       await store.loadConfig();
@@ -529,7 +529,7 @@ describe('incomingStore', () => {
     it('isFeatureEnabled reflects config.enabled', async () => {
       expect(store.isFeatureEnabled).toBe(false);
 
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: { ...mockConfig, enabled: true },
       });
       await store.loadConfig();
@@ -540,7 +540,7 @@ describe('incomingStore', () => {
     it('memoMaxLength reflects config.memo_max_length', async () => {
       expect(store.memoMaxLength).toBe(50); // default
 
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: { ...mockConfig, memo_max_length: 200 },
       });
       await store.loadConfig();
@@ -551,7 +551,7 @@ describe('incomingStore', () => {
     it('recipients reflects config.recipients', async () => {
       expect(store.recipients).toEqual([]);
 
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: mockConfig,
       });
       await store.loadConfig();
@@ -563,7 +563,7 @@ describe('incomingStore', () => {
     it('defaultTtl reflects config.default_ttl', async () => {
       expect(store.defaultTtl).toBeUndefined();
 
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: { ...mockConfig, default_ttl: 3600 },
       });
       await store.loadConfig();
@@ -578,7 +578,7 @@ describe('incomingStore', () => {
         recipients: [],
       };
 
-      axiosMock.onGet('/api/v3/incoming/config').reply(200, {
+      axiosMock.onGet('/incoming/config').reply(200, {
         config: configWithoutTtl,
       });
       await store.loadConfig();

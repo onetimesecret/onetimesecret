@@ -2,11 +2,11 @@
 #
 # frozen_string_literal: true
 
-# Rack-level HTTP integration tests for V3 incoming routes.
+# Rack-level HTTP integration tests for Meta API incoming routes.
 # Tests the following endpoints via Rack::MockRequest:
-# - GET  /api/v3/incoming/config
-# - POST /api/v3/incoming/validate
-# - POST /api/v3/incoming/secret
+# - GET  /incoming/config
+# - POST /incoming/validate
+# - POST /incoming/secret
 #
 # All incoming routes use auth=noauth and are accessible to anonymous callers.
 # Tests cover both the disabled (default) and enabled feature paths.
@@ -69,37 +69,37 @@ end
 
 # --- Tests with feature disabled (default) ---
 
-## GET /api/v3/incoming/config returns 200 even when feature is disabled
+## GET /incoming/config returns 200 even when feature is disabled
 clear_cookies
-get '/api/v3/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
+get '/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
 last_response.status
 #=> 200
 
-## GET /api/v3/incoming/config response includes config key when disabled
+## GET /incoming/config response includes config key when disabled
 clear_cookies
-get '/api/v3/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
+get '/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
 body = JSON.parse(last_response.body)
 body.key?('config')
 #=> true
 
-## GET /api/v3/incoming/config reports enabled:false when feature is disabled
+## GET /incoming/config reports enabled:false when feature is disabled
 clear_cookies
-get '/api/v3/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
+get '/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
 body = JSON.parse(last_response.body)
 body.dig('config', 'enabled')
 #=> false
 
-## POST /api/v3/incoming/validate returns non-5xx when feature disabled
+## POST /incoming/validate returns non-5xx when feature disabled
 clear_cookies
-post '/api/v3/incoming/validate',
+post '/incoming/validate',
   { recipient: 'anyhash' }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 last_response.status < 500
 #=> true
 
-## POST /api/v3/incoming/secret returns non-5xx when feature disabled
+## POST /incoming/secret returns non-5xx when feature disabled
 clear_cookies
-post '/api/v3/incoming/secret',
+post '/incoming/secret',
   { secret: { secret: 'content', recipient: 'hash', memo: '' } }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 last_response.status < 500
@@ -107,113 +107,113 @@ last_response.status < 500
 
 # --- Tests with feature enabled ---
 
-## GET /api/v3/incoming/config returns 200 with enabled:true when feature is on
+## GET /incoming/config returns 200 with enabled:true when feature is on
 @test_recipient_hash = enable_incoming_for_routes(@test_recipient_email)
 clear_cookies
-get '/api/v3/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
+get '/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
 body = JSON.parse(last_response.body)
 body.dig('config', 'enabled')
 #=> true
 
-## GET /api/v3/incoming/config includes recipients array with hash and name (no email)
+## GET /incoming/config includes recipients array with hash and name (no email)
 @test_recipient_hash = enable_incoming_for_routes(@test_recipient_email)
 clear_cookies
-get '/api/v3/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
+get '/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
 body = JSON.parse(last_response.body)
 recipients = body.dig('config', 'recipients')
 recipients.is_a?(Array) && !recipients.empty?
 #=> true
 
-## GET /api/v3/incoming/config recipients have hash and name keys
+## GET /incoming/config recipients have hash and name keys
 @test_recipient_hash = enable_incoming_for_routes(@test_recipient_email)
 clear_cookies
-get '/api/v3/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
+get '/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
 body = JSON.parse(last_response.body)
 first = body.dig('config', 'recipients', 0)
 first.key?('hash') && first.key?('name')
 #=> true
 
-## GET /api/v3/incoming/config recipients do not expose email addresses
+## GET /incoming/config recipients do not expose email addresses
 @test_recipient_hash = enable_incoming_for_routes(@test_recipient_email)
 clear_cookies
-get '/api/v3/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
+get '/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
 body = JSON.parse(last_response.body)
 first = body.dig('config', 'recipients', 0)
 # Should not contain email — only hash and name
 !first.key?('email')
 #=> true
 
-## GET /api/v3/incoming/config includes memo_max_length
+## GET /incoming/config includes memo_max_length
 @test_recipient_hash = enable_incoming_for_routes(@test_recipient_email)
 clear_cookies
-get '/api/v3/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
+get '/incoming/config', {}, { 'HTTP_ACCEPT' => 'application/json' }
 body = JSON.parse(last_response.body)
 body.dig('config', 'memo_max_length').is_a?(Integer)
 #=> true
 
-## POST /api/v3/incoming/validate returns 200 with valid:true for known hash
+## POST /incoming/validate returns 200 with valid:true for known hash
 @test_recipient_hash = enable_incoming_for_routes(@test_recipient_email)
 clear_cookies
-post '/api/v3/incoming/validate',
+post '/incoming/validate',
   { recipient: @test_recipient_hash }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 body = JSON.parse(last_response.body)
 body['valid']
 #=> true
 
-## POST /api/v3/incoming/validate returns valid:false for unknown hash
+## POST /incoming/validate returns valid:false for unknown hash
 @test_recipient_hash = enable_incoming_for_routes(@test_recipient_email)
 clear_cookies
-post '/api/v3/incoming/validate',
+post '/incoming/validate',
   { recipient: 'nonexistent_hash_xyz' }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 body = JSON.parse(last_response.body)
 body['valid']
 #=> false
 
-## POST /api/v3/incoming/validate returns recipient hash in response (not email)
+## POST /incoming/validate returns recipient hash in response (not email)
 @test_recipient_hash = enable_incoming_for_routes(@test_recipient_email)
 clear_cookies
-post '/api/v3/incoming/validate',
+post '/incoming/validate',
   { recipient: @test_recipient_hash }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 body = JSON.parse(last_response.body)
 body['recipient'] == @test_recipient_hash
 #=> true
 
-## POST /api/v3/incoming/secret returns 200 with valid payload
+## POST /incoming/secret returns 200 with valid payload
 @test_recipient_hash = enable_incoming_for_routes(@test_recipient_email)
 clear_cookies
-post '/api/v3/incoming/secret',
+post '/incoming/secret',
   { secret: { secret: 'the actual secret', recipient: @test_recipient_hash, memo: '' } }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 last_response.status
 #=> 200
 
-## POST /api/v3/incoming/secret response includes record with receipt key
+## POST /incoming/secret response includes record with receipt key
 @test_recipient_hash = enable_incoming_for_routes(@test_recipient_email)
 clear_cookies
-post '/api/v3/incoming/secret',
+post '/incoming/secret',
   { secret: { secret: 'another secret value', recipient: @test_recipient_hash, memo: 'test' } }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 body = JSON.parse(last_response.body)
 body.dig('record', 'receipt').is_a?(Hash)
 #=> true
 
-## POST /api/v3/incoming/secret response includes record with secret key
+## POST /incoming/secret response includes record with secret key
 @test_recipient_hash = enable_incoming_for_routes(@test_recipient_email)
 clear_cookies
-post '/api/v3/incoming/secret',
+post '/incoming/secret',
   { secret: { secret: 'secret for secret key check', recipient: @test_recipient_hash } }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 body = JSON.parse(last_response.body)
 body.dig('record', 'secret').is_a?(Hash)
 #=> true
 
-## POST /api/v3/incoming/secret works without memo (optional field)
+## POST /incoming/secret works without memo (optional field)
 @test_recipient_hash = enable_incoming_for_routes(@test_recipient_email)
 clear_cookies
-post '/api/v3/incoming/secret',
+post '/incoming/secret',
   { secret: { secret: 'secret without memo', recipient: @test_recipient_hash } }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 last_response.status

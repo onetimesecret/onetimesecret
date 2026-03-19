@@ -1,0 +1,24 @@
+# apps/api/incoming/routes.txt
+#
+# Otto Routes - Incoming API (Anonymous secret submission)
+#
+# The Incoming API provides anonymous secret submission to pre-configured
+# recipients. This is a deployment-specific feature that operates independently
+# of the versioned secrets API (V2/V3).
+#
+# Mounted at: /incoming
+#
+# Note: These routes delegate to V3::Logic classes for implementation.
+# This avoids code duplication while separating the URL namespace.
+
+# Incoming secrets - anonymous submission to pre-configured recipients
+#
+# The incoming feature allows anonymous users to send encrypted secrets
+# to pre-configured recipients. This is useful for:
+# - Bug bounty programs
+# - Security reporting
+# - Anonymous tips
+#
+GET    /config                           V3::Logic::Incoming::GetConfig response=json auth=noauth
+POST   /secret                           V3::Logic::Incoming::CreateIncomingSecret response=json auth=noauth
+POST   /validate                         V3::Logic::Incoming::ValidateRecipient response=json auth=noauth

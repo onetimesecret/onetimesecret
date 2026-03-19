@@ -9,7 +9,6 @@
 # Key differences from v2:
 # 1. Native JSON types (numbers, booleans, null) instead of string-serialized values
 # 2. Pure REST semantics - no "success" field (use HTTP status codes)
-# 3. Modern naming - "user_id" instead of "custid"
 #
 # V3 classes include this module to inherit v2 business logic while
 # transforming responses to follow v3 API conventions.
@@ -48,17 +47,10 @@ module V3
         model.to_h
       end
 
-      # Override safe_dump to use JSON types in v3
-      #
-      # This allows v3 logic classes to inherit from v2 but get JSON serialization
-      # without modifying v2 behavior.
-      alias safe_dump json_dump
-
       # Transform v2 response data to v3 format
       #
       # V3 API changes:
       # - Remove "success" field (use HTTP status codes)
-      # - Rename "custid" to "user_id" (modern naming)
       #
       # @return [Hash] v3-formatted response data
       def success_data
@@ -71,13 +63,6 @@ module V3
         # Remove success field (v3 uses HTTP status codes)
         v3_data.delete(:success)
         v3_data.delete('success')
-
-        # Rename custid to user_id (modern naming)
-        if v3_data.key?(:custid)
-          v3_data[:user_id] = v3_data.delete(:custid)
-        elsif v3_data.key?('custid')
-          v3_data['user_id'] = v3_data.delete('custid')
-        end
 
         v3_data
       end

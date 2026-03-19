@@ -39,7 +39,7 @@ import { storeToRefs } from 'pinia';
   const emit = defineEmits(['feedback-sent']);
 
   const { isSubmitting, error, success, submitForm } = useFormSubmission({
-    url: '/api/v3/feedback',
+    url: '/api/meta/feedback',
     successMessage: t('web.LABELS.feedback_received'),
     onSuccess: (data: unknown) => {
       console.debug('Feedback sent:', data);
