@@ -44,7 +44,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
 
 jobs:
   # ── Generate OpenAPI specs from source ──────────────────────────────
@@ -58,7 +58,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '25'
+          node-version-file: '.nvmrc'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
@@ -79,7 +79,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate OpenAPI specifications
-        run: pnpm run openapi:generate
+        run: pnpm run openapi:generate -- --force
 
       - name: Validate generated JSON
         run: |
@@ -121,7 +121,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: openapi-specs
-          path: .
+          path: generated/openapi
 
       - name: Install Bump.sh CLI
         run: npm install -g bump-cli@2.9.12
@@ -155,7 +155,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: openapi-specs
-          path: .
+          path: generated/openapi
 
       - name: Install Bump.sh CLI
         run: npm install -g bump-cli@2.9.12
@@ -184,7 +184,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: openapi-specs
-          path: .
+          path: generated/openapi
 
       - name: Install Bump.sh CLI
         run: npm install -g bump-cli@2.9.12
@@ -210,7 +210,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: openapi-specs
-          path: .
+          path: generated/openapi
 
       - name: Install Bump.sh CLI
         run: npm install -g bump-cli@2.9.12
