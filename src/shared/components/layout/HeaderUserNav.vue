@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { Customer } from '@/schemas/models';
+  import { Customer } from '@/schemas/shapes/v2';
 
   defineProps<{
     cust: Customer;

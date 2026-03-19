@@ -9,7 +9,7 @@ import {
   publicSecretOptionsSchema,
   publicAuthenticationSchema,
   type SecretOptions,
-} from '@/schemas/models/public';
+} from '@/schemas/shapes/v2/public';
 
 describe('publicSecretOptionsSchema', () => {
   describe('default values', () => {

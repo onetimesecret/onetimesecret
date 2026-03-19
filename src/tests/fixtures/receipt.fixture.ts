@@ -1,8 +1,8 @@
 // src/tests/fixtures/receipt.fixture.ts
 
-import { ReceiptState } from '@/schemas/models/receipt';
-import { Secret, SecretState } from '@/schemas/models/secret';
-import type { Receipt, ReceiptDetails } from '@/schemas/models/receipt';
+import { ReceiptState } from '@/schemas/shapes/v2/receipt';
+import { Secret, SecretState } from '@/schemas/shapes/v2/secret';
+import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v2/receipt';
 
 // =============================================================================
 // NEW TERMINOLOGY FIXTURES (previewed/revealed)

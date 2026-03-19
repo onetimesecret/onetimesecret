@@ -2,7 +2,7 @@
 
 import { createI18nInstance } from '@/i18n';
 import { ApplicationError } from '@/schemas';
-import { ImageProps, type BrandSettings } from '@/schemas/models';
+import { ImageProps, type BrandSettings } from '@/schemas/shapes/v2';
 import { useNotificationsStore } from '@/shared/stores';
 import { useBrandStore } from '@/shared/stores/brandStore';
 import { useDomainsStore } from '@/shared/stores/domainsStore';

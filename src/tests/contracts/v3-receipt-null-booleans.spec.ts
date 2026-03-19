@@ -7,7 +7,7 @@
 // V2 model schema's behavior. Tests FAIL until the fix is applied.
 
 import { receiptBaseRecord, receiptResponseSchema } from '@/schemas/api/v3/responses/receipts';
-import { receiptDetailsSchema } from '@/schemas/models/receipt';
+import { receiptDetailsSchema } from '@/schemas/shapes/v2/receipt';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 

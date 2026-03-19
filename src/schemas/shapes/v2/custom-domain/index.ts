@@ -4,7 +4,7 @@ export * from './brand';
 export * from './vhost';
 
 // src/schemas/models/custom-domain.ts
-import { createModelSchema } from '@/schemas/models/base';
+import { createModelSchema } from '@/schemas/shapes/v2/base';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 

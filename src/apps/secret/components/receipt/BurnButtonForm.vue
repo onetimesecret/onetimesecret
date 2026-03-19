@@ -6,7 +6,7 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useReceipt } from '@/shared/composables/useReceipt';
-  import type { Receipt, ReceiptDetails } from '@/schemas/models';
+  import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v2';
   import { ref, onMounted, onUnmounted } from 'vue';
 
   const { t } = useI18n();

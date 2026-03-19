@@ -1,7 +1,7 @@
 // src/shared/stores/brandStore.ts
 
 import { responseSchemas } from '@/schemas/api/v3/responses';
-import type { BrandSettings, ImageProps } from '@/schemas/models';
+import type { BrandSettings, ImageProps } from '@/schemas/shapes/v2';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { inject, ref } from 'vue';

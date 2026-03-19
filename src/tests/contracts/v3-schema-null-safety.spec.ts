@@ -25,7 +25,7 @@ import {
   customDomainResponseSchema,
   jurisdictionResponseSchema,
 } from '@/schemas/api/v3/responses/domains';
-import { receiptDetailsSchema } from '@/schemas/models/receipt';
+import { receiptDetailsSchema } from '@/schemas/shapes/v2/receipt';
 import { parseBoolean } from '@/utils/parse/index';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';

@@ -1,6 +1,6 @@
 // src/tests/fixtures/domains.fixture.ts
 
-import type { CustomDomain } from '@/schemas/models';
+import type { CustomDomain } from '@/schemas/shapes/v2';
 
 const BASE_DOMAIN = {
   identifier: '',

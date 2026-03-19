@@ -1,6 +1,6 @@
 // src/schemas/api/account/endpoints/recent.ts
 
-import { receiptBaseSchema } from '@/schemas/models';
+import { receiptBaseSchema } from '@/schemas/shapes/v2';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 

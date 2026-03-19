@@ -4,8 +4,8 @@
 
 import { createApiResponseSchema, createApiListResponseSchema } from '@/schemas/api/base';
 import { concealDataSchema } from './content/secrets';
-import { secretResponsesSchema } from '@/schemas/models';
-import { secretDetailsSchema, secretSchema } from '@/schemas/models/secret';
+import { secretResponsesSchema } from '@/schemas/shapes/v2';
+import { secretDetailsSchema, secretSchema } from '@/schemas/shapes/v2/secret';
 import { z } from 'zod';
 
 export const concealDataResponseSchema = createApiResponseSchema(concealDataSchema);

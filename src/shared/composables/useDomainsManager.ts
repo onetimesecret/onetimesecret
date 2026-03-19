@@ -3,7 +3,7 @@
 import { AsyncHandlerOptions, createError, useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { useDomainContext } from '@/shared/composables/useDomainContext';
 import { ApplicationError } from '@/schemas/errors';
-import type { CustomDomain } from '@/schemas/models';
+import type { CustomDomain } from '@/schemas/shapes/v2';
 import { useDomainsStore, useNotificationsStore } from '@/shared/stores';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';

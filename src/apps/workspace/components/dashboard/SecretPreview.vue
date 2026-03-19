@@ -3,13 +3,13 @@
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BaseSecretDisplay from '@/apps/secret/components/branded/BaseSecretDisplay.vue';
-import { BrandSettings, ImageProps } from '@/schemas/models';
+import { BrandSettings, ImageProps } from '@/schemas/shapes/v2';
 import {
 CornerStyle,
 FontFamily,
 cornerStyleClasses,
 fontFamilyClasses
-} from '@/schemas/models/custom-domain/brand';
+} from '@/schemas/shapes/v2/custom-domain/brand';
 import { computed, ref } from 'vue';
 import { Composer, useI18n } from 'vue-i18n';
 

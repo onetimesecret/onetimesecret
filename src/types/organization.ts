@@ -3,7 +3,7 @@
 /**
  * Organization management type definitions
  *
- * Types are derived from Zod schemas in @/schemas/models/organization.
+ * Types are derived from Zod schemas in @/schemas/shapes/v2/organization.
  * This file re-exports them and provides runtime constants for convenience.
  */
 
@@ -33,7 +33,7 @@ export {
   type OrganizationRole,
   type UpdateMemberRolePayload,
   type UpdateOrganizationPayload,
-} from '@/schemas/models/organization';
+} from '@/schemas/shapes/v2/organization';
 
 /**
  * Runtime constants for organization entitlements
@@ -91,7 +91,7 @@ export const INVITATION_STATUSES = {
 /**
  * Display helpers
  */
-import type { Organization } from '@/schemas/models/organization';
+import type { Organization } from '@/schemas/shapes/v2/organization';
 
 export function getOrganizationLabel(org: Organization): string {
   return org.display_name;

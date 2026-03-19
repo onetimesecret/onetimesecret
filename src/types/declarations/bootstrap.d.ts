@@ -7,7 +7,7 @@ import {
   Locale,
   RegionsConfig,
   SecretOptions,
-} from '@/schemas/models';
+} from '@/schemas/shapes/v2';
 import { Stripe } from 'stripe';
 import { FallbackLocale } from 'vue-i18n';
 

@@ -15,7 +15,7 @@ export {
   sentryConfigSchema,
   type DiagnosticsConfig,
   type SentryConfig,
-} from '@/schemas/models/diagnostics';
+} from '@/schemas/shapes/v2/diagnostics';
 
 // Re-export Sentry types for consumers that need them
 export type { Integration, ErrorEvent } from '@sentry/core';

@@ -7,7 +7,7 @@ import type {
   Customer,
   RegionsConfig,
   SecretOptions,
-} from '@/schemas/models';
+} from '@/schemas/shapes/v2';
 import { getBootstrapSnapshot } from '@/services/bootstrap.service';
 import type {
   BootstrapPayload,

@@ -1,8 +1,9 @@
-// src/schemas/models/index.ts
+// src/schemas/shapes/v2/index.ts
+//
+// V2 wire-format shapes (Redis-serialized strings → typed output).
 
 /**
- * Primary models
- *
+ * Primary shapes
  */
 export * from './auth';
 export * from './base';
@@ -16,9 +17,8 @@ export * from './public';
 export * from './secret';
 
 /**
- * Secondary models have a relation to primaries.
- *
+ * Secondary shapes (have relations to primaries)
  */
-export * from '../api/account/endpoints/account';
+export * from '../../api/account/endpoints/account';
 export * from './custom-domain/index';
 export * from './receipt';

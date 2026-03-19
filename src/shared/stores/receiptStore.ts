@@ -3,7 +3,7 @@
 import { createError } from '@/shared/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/v3/responses';
-import { Receipt, ReceiptDetails } from '@/schemas/models/receipt';
+import { Receipt, ReceiptDetails } from '@/schemas/shapes/v2/receipt';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';

@@ -5,7 +5,7 @@
  * Defines request/response schemas for organization management endpoints
  */
 
-import { organizationMemberSchema, organizationSchema } from '@/schemas/models/organization';
+import { organizationMemberSchema, organizationSchema } from '@/schemas/shapes/v2/organization';
 import { z } from 'zod';
 
 /**
