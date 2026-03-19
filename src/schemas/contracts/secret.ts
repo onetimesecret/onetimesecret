@@ -74,6 +74,12 @@ export const secretBaseCanonical = z.object({
   has_passphrase: z.boolean(),
   verification: z.boolean(),
   secret_value: z.string().optional(),
+
+  // State boolean fields
+  is_previewed: z.boolean().optional(),
+  is_revealed: z.boolean().optional(),
+  is_viewed: z.boolean().optional(),    // @deprecated — use is_previewed
+  is_received: z.boolean().optional(),  // @deprecated — use is_revealed
 });
 
 /**

@@ -79,6 +79,10 @@ export const receiptBaseCanonical = z.object({
   shortid: z.string(),
   state: receiptStateSchema,
 
+  // Ownership
+  custid: z.string().optional(),
+  owner_id: z.string().optional(),
+
   // Timestamps (all Date output, nullable for unset)
   created: z.date(),
   updated: z.date(),
