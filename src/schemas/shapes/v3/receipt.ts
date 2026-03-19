@@ -14,19 +14,19 @@ import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// V3 timestamp transforms
+// V3 wire-format overrides
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Timestamp field overrides for V3 wire format.
  * V3 sends timestamps as Unix epoch numbers; these transform to Date objects.
+ *
+ * V3 is the clean API — no deprecated field aliases.
  */
 const v3TimestampOverrides = {
   created: transforms.fromNumber.toDate,
   updated: transforms.fromNumber.toDate,
   shared: transforms.fromNumber.toDateNullish,
-  received: transforms.fromNumber.toDateNullish,
-  viewed: transforms.fromNumber.toDateNullish,
   previewed: transforms.fromNumber.toDateNullish,
   revealed: transforms.fromNumber.toDateNullish,
   burned: transforms.fromNumber.toDateNullish,

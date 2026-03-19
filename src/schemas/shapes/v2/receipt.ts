@@ -10,17 +10,45 @@ import {
   receiptBaseCanonical,
   receiptCanonical,
   receiptDetailsCanonical,
-  receiptStateSchema,
-  receiptStateValues,
-  ReceiptState,
-  isValidReceiptState,
+  receiptStateValues as canonicalStateValues,
+  ReceiptState as CanonicalReceiptState,
 } from '@/schemas/contracts';
 import { createModelSchema } from '@/schemas/shapes/v2/base';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
-// Re-export from canonical (ReceiptState is both a const object and a type)
-export { ReceiptState, receiptStateSchema, receiptStateValues, isValidReceiptState };
+// ─────────────────────────────────────────────────────────────────────────────
+// V2 state values (includes deprecated aliases for backward compatibility)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * V2 receipt state values — extends canonical with deprecated aliases.
+ */
+export const receiptStateValues = [
+  ...canonicalStateValues,
+  'received', // @deprecated — use 'revealed'
+  'viewed', // @deprecated — use 'previewed'
+] as const;
+
+export type ReceiptState = (typeof receiptStateValues)[number];
+
+/**
+ * V2 receipt state enum object — extends canonical with deprecated aliases.
+ */
+export const ReceiptState = {
+  ...CanonicalReceiptState,
+  RECEIVED: 'received', // @deprecated — use REVEALED
+  VIEWED: 'viewed', // @deprecated — use PREVIEWED
+} as const;
+
+export const receiptStateSchema = z.enum(receiptStateValues);
+
+/**
+ * Type guard for V2 receipt state validation (includes deprecated values).
+ */
+export function isValidReceiptState(state: string): state is ReceiptState {
+  return receiptStateValues.includes(state as ReceiptState);
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // V2 transform overrides
