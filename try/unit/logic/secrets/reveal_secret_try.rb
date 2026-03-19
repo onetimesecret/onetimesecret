@@ -44,7 +44,7 @@ class MockRequest
 end
 
 @sess = MockSession.new
-@strategy_result = MockStrategyResult.new(session: @sess, user: @cust)
+@strategy_result = MockStrategyResult.authenticated(@cust, session: @sess)
 
 ## Can create a RevealSecret logic with all arguments
 params = {}
