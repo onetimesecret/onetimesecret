@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-# Rack-level HTTP integration tests for Meta API incoming routes.
+# Rack-level HTTP integration tests for Incoming Secrets API routes.
 # Tests the following endpoints via Rack::MockRequest:
 # - GET  /incoming/config
 # - POST /incoming/validate
