@@ -111,11 +111,11 @@ jobs:
       matrix:
         include:
           - version: v1
-            file: openapi.v1.json
+            file: generated/openapi/openapi.v1.json
           - version: v2
-            file: openapi.v2.json
+            file: generated/openapi/openapi.v2.json
           - version: v3
-            file: openapi.v3.json
+            file: generated/openapi/openapi.v3.json
     steps:
       - name: Download generated specs
         uses: actions/download-artifact@v4
@@ -145,11 +145,11 @@ jobs:
       matrix:
         include:
           - version: v1
-            file: openapi.v1.json
+            file: generated/openapi/openapi.v1.json
           - version: v2
-            file: openapi.v2.json
+            file: generated/openapi/openapi.v2.json
           - version: v3
-            file: openapi.v3.json
+            file: generated/openapi/openapi.v3.json
     steps:
       - name: Download generated specs
         uses: actions/download-artifact@v4
@@ -191,7 +191,7 @@ jobs:
 
       - name: Deploy internal API documentation
         run: >
-          bump deploy openapi.internal.json
+          bump deploy generated/openapi/openapi.internal.json
           --hub "$BUMP_HUB"
           --doc "$BUMP_DOC"
           --token "$BUMP_TOKEN"
@@ -217,7 +217,7 @@ jobs:
 
       - name: Diff internal API documentation
         run: >
-          bump diff openapi.internal.json
+          bump diff generated/openapi/openapi.internal.json
           --hub "$BUMP_HUB"
           --doc "$BUMP_DOC"
           --token "$BUMP_TOKEN"
