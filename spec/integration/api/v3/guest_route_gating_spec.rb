@@ -579,10 +579,11 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       expect(V3::Logic::Secrets::ShowReceipt.ancestors).to include(Onetime::Logic::GuestRouteGating)
     end
 
-    it 'V2 classes do NOT include GuestRouteGating' do
-      # V2 classes should not have guest route gating
-      expect(V2::Logic::Secrets::ConcealSecret.ancestors).not_to include(Onetime::Logic::GuestRouteGating)
-      expect(V2::Logic::Secrets::GenerateSecret.ancestors).not_to include(Onetime::Logic::GuestRouteGating)
+    it 'V2 classes ALSO include GuestRouteGating (unified with V3)' do
+      # V2 classes now include GuestRouteGating for consistent guest route behavior
+      # This was unified as part of the API v2/v3 consolidation (#2711)
+      expect(V2::Logic::Secrets::ConcealSecret.ancestors).to include(Onetime::Logic::GuestRouteGating)
+      expect(V2::Logic::Secrets::GenerateSecret.ancestors).to include(Onetime::Logic::GuestRouteGating)
     end
   end
 end
