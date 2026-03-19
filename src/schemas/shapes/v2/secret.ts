@@ -10,17 +10,45 @@ import {
   secretBaseCanonical,
   secretCanonical,
   secretDetailsCanonical,
-  secretStateSchema,
-  secretStateValues,
-  SecretState,
-  isValidSecretState,
+  secretStateValues as canonicalStateValues,
+  SecretState as CanonicalSecretState,
 } from '@/schemas/contracts';
 import { createModelSchema } from '@/schemas/shapes/v2/base';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
-// Re-export from canonical
-export { SecretState, secretStateSchema, secretStateValues, isValidSecretState };
+// ─────────────────────────────────────────────────────────────────────────────
+// V2 state values (includes deprecated aliases for backward compatibility)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * V2 secret state values — extends canonical with deprecated aliases.
+ */
+export const secretStateValues = [
+  ...canonicalStateValues,
+  'received', // @deprecated — use 'revealed'
+  'viewed', // @deprecated — use 'previewed'
+] as const;
+
+export type SecretState = (typeof secretStateValues)[number];
+
+/**
+ * V2 secret state enum object — extends canonical with deprecated aliases.
+ */
+export const SecretState = {
+  ...CanonicalSecretState,
+  RECEIVED: 'received', // @deprecated — use REVEALED
+  VIEWED: 'viewed', // @deprecated — use PREVIEWED
+} as const;
+
+export const secretStateSchema = z.enum(secretStateValues);
+
+/**
+ * Type guard for V2 secret state validation (includes deprecated values).
+ */
+export function isValidSecretState(state: string): state is SecretState {
+  return secretStateValues.includes(state as SecretState);
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // V2 string transform overrides
@@ -33,6 +61,16 @@ export { SecretState, secretStateSchema, secretStateValues, isValidSecretState }
 const v2StringOverrides = {
   has_passphrase: transforms.fromString.boolean,
   verification: transforms.fromString.boolean,
+  is_previewed: transforms.fromString.boolean,
+  is_revealed: transforms.fromString.boolean,
+};
+
+/**
+ * Deprecated boolean field overrides for backward compatibility.
+ */
+const v2DeprecatedBooleanOverrides = {
+  is_viewed: transforms.fromString.boolean, // @deprecated — use is_previewed
+  is_received: transforms.fromString.boolean, // @deprecated — use is_revealed
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -45,14 +83,20 @@ const v2StringOverrides = {
  * Derives from canonical, adds V2 string transforms.
  * Uses createModelSchema to add identifier, created, updated from base.
  */
-const secretBaseSchema = secretBaseCanonical.extend(v2StringOverrides);
+const secretBaseSchema = secretBaseCanonical.extend({
+  ...v2StringOverrides,
+  ...v2DeprecatedBooleanOverrides,
+});
 
 // List view schema (stripped down version)
 export const secretResponsesSchema = createModelSchema(secretBaseSchema.shape).strip();
 
 // Full secret schema with TTL fields
 export const secretSchema = createModelSchema({
-  ...secretCanonical.extend(v2StringOverrides).shape,
+  ...secretCanonical.extend({
+    ...v2StringOverrides,
+    ...v2DeprecatedBooleanOverrides,
+  }).shape,
   secret_ttl: transforms.fromString.number,
   lifespan: transforms.fromString.number,
 }).strip();
