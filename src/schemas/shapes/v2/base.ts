@@ -1,11 +1,26 @@
-// src/schemas/models/base.ts
+// src/schemas/shapes/v2/base.ts
+
+/**
+ * V2 API base model schemas and factory functions.
+ *
+ * These schemas handle V2 API wire format where timestamps and other
+ * values are encoded as strings (Redis serialization format). The
+ * transforms convert these strings to proper TypeScript types.
+ *
+ * @module shapes/v2/base
+ * @category Shapes
+ * @see {@link transforms} - String-to-type conversion utilities
+ */
 
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 /**
- * Base Model Schema
- * Maps to Ruby's base model class and defines common model attributes
+ * Base model schema for V2 API records.
+ *
+ * Maps to Ruby's base model class and defines common model attributes.
+ * V2 API sends timestamps as string-encoded Unix timestamps which are
+ * transformed to Date objects.
  *
  * Design Decisions:
  *
@@ -24,6 +39,23 @@ import { z } from 'zod';
  *    - Handles Redis string -> proper type conversion
  *    - Uses consistent transform patterns
  *    - Maintains type safety across boundaries
+ *
+ * @category Shapes
+ *
+ * @example
+ * ```typescript
+ * // Parse V2 API response with string timestamps
+ * const record = baseModelSchema.parse({
+ *   identifier: 'abc123',
+ *   created: '1609459200',  // String Unix timestamp
+ *   updated: '1609545600',
+ * });
+ *
+ * console.log(record.created instanceof Date);  // true
+ * console.log(record.created.toISOString());    // "2021-01-01T00:00:00.000Z"
+ *
+ * type BaseModel = z.infer<typeof baseModelSchema>;
+ * ```
  */
 export const baseModelSchema = z.object({
   identifier: z.string(),
@@ -31,24 +63,45 @@ export const baseModelSchema = z.object({
   updated: transforms.fromString.date,
 });
 
-// Type helper for base model fields
+/** TypeScript type for base model fields. */
 export type BaseModel = z.infer<typeof baseModelSchema>;
 
 /**
- * Helper to extend base model schema
- * Takes a ZodRawShape following Zod's builder pattern conventions:
+ * Factory function to create V2 model schemas extending the base.
  *
- * Example:
- * ```
+ * Takes a ZodRawShape following Zod's builder pattern conventions.
+ * All created schemas automatically include identifier, created, and
+ * updated fields with appropriate V2 string transforms.
+ *
+ * @typeParam T - Shape of additional fields to add to the base model
+ * @param fields - Zod field definitions to extend the base model with
+ * @returns A Zod object schema with base model fields plus custom fields
+ *
+ * @category Shapes
+ *
+ * @example
+ * ```typescript
+ * // Create a user schema with base model fields
  * export const userSchema = createModelSchema({
  *   name: z.string(),
- *   email: z.email()
- * })
- * ```
+ *   email: z.email(),
+ *   role: z.enum(['admin', 'user']),
+ * });
  *
- * This matches Zod's own API design (e.g., z.object()) and provides more
- * flexibility while reducing boilerplate. For reusable schemas, you can
- * still create named constants from the result (i.e. `userSchema`)
+ * // Parse API response
+ * const user = userSchema.parse({
+ *   identifier: 'user123',
+ *   created: '1609459200',
+ *   updated: '1609459200',
+ *   name: 'Alice',
+ *   email: 'alice@example.com',
+ *   role: 'admin',
+ * });
+ *
+ * // Derive TypeScript type
+ * type User = z.infer<typeof userSchema>;
+ * // { identifier: string; created: Date; updated: Date; name: string; email: string; role: 'admin' | 'user' }
+ * ```
  */
 export const createModelSchema = <T extends z.ZodRawShape>(fields: T) =>
   baseModelSchema.extend(fields);

@@ -118,8 +118,8 @@ export function isValidSecretState(state: string): state is SecretState {
  * No transforms - those are version-specific in shapes.
  *
  * @category Contracts
- * @see {@link "shapes/v2/secret".secretBaseRecord} - V2 wire format
- * @see {@link "shapes/v3/secret".secretBaseRecord} - V3 wire format
+ * @see {@link "shapes/v2/secret".secretSchema} - V2 wire format
+ * @see {@link "shapes/v3/secret".secretRecord} - V3 wire format
  *
  * @example
  * ```typescript
@@ -191,7 +191,7 @@ export const secretWithTimestampsCanonical = secretCanonical.extend({
  * Metadata returned alongside secret records for display logic.
  *
  * @category Contracts
- * @see {@link "shapes/v2/secret".secretDetails} - V2 wire format
+ * @see {@link "shapes/v2/secret".secretDetailsSchema} - V2 wire format
  *
  * @example
  * ```typescript

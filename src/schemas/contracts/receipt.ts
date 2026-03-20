@@ -1,19 +1,47 @@
-// src/schemas/api/canonical/records/receipt.ts
+// src/schemas/contracts/receipt.ts
 //
 // Canonical receipt record schema — field names and output types only.
 // Version-specific schemas (V2, V3) extend this with wire-format transforms.
 //
 // This schema owns the field contract. V2/V3 own the encoding.
 
+/**
+ * Receipt record contracts defining field names and output types.
+ *
+ * Receipts track the lifecycle of secrets: creation, sharing, viewing,
+ * and destruction. These canonical schemas define the "what" (field names
+ * and final types) without the "how" (wire-format transforms).
+ *
+ * Version-specific shapes in `shapes/v2/receipt.ts` and `shapes/v3/receipt.ts`
+ * extend these with appropriate transforms for each API version.
+ *
+ * @module contracts/receipt
+ * @category Contracts
+ * @see {@link "shapes/v2/receipt"} - V2 wire format with string transforms
+ * @see {@link "shapes/v3/receipt"} - V3 wire format with number-to-Date transforms
+ */
+
 import { z } from 'zod';
 
 /**
- * Receipt state values.
+ * Receipt state values as a const tuple.
  *
  * Contracts represent current fields. Shapes represent the wire format and
  * so they are responsible for BOTH old and new values for backward
- * compatibility. If a field for backwards campatability cannot be derived
- * from the contract fields, then it needs to remain in the contract
+ * compatibility. If a field for backwards compatibility cannot be derived
+ * from the contract fields, then it needs to remain in the contract.
+ *
+ * @category Contracts
+ * @example
+ * ```typescript
+ * // Use with Zod enum
+ * const stateSchema = z.enum(receiptStateValues);
+ *
+ * // Type narrowing
+ * if (receiptStateValues.includes(value as ReceiptState)) {
+ *   // value is ReceiptState
+ * }
+ * ```
  */
 export const receiptStateValues = [
   'new',
@@ -30,7 +58,7 @@ export const receiptStateValues = [
 export type ReceiptState = (typeof receiptStateValues)[number];
 
 /**
- * Receipt state enum object.
+ * Receipt state enum object for runtime state checks.
  *
  * Using const object pattern over enum because:
  * 1. Produces simpler runtime code (just a plain object vs IIFE)
@@ -42,8 +70,31 @@ export type ReceiptState = (typeof receiptStateValues)[number];
  *   'received' -> 'revealed'   (secret content decrypted/consumed)
  *
  * API sends BOTH old and new fields for backward compatibility.
- * @deprecated VIEWED, RECEIVED, is_viewed, is_received, viewed, received
+ *
+ * @category Contracts
+ * @deprecated VIEWED, RECEIVED, is_viewed, is_received, viewed, received -
  *             Use PREVIEWED, REVEALED, is_previewed, is_revealed, previewed, revealed
+ *
+ * @example
+ * ```typescript
+ * if (receipt.state === ReceiptState.REVEALED) {
+ *   // Secret has been revealed
+ * }
+ *
+ * // Lifecycle progression
+ * switch (receipt.state) {
+ *   case ReceiptState.NEW:
+ *     return 'Created';
+ *   case ReceiptState.SHARED:
+ *     return 'Shared';
+ *   case ReceiptState.REVEALED:
+ *     return 'Viewed';
+ *   case ReceiptState.BURNED:
+ *     return 'Destroyed';
+ *   case ReceiptState.EXPIRED:
+ *     return 'Expired';
+ * }
+ * ```
  */
 export const ReceiptState = {
   NEW: 'new',
@@ -57,20 +108,59 @@ export const ReceiptState = {
   ORPHANED: 'orphaned',
 } as const;
 
+/**
+ * Zod schema for validating receipt state values.
+ *
+ * @category Contracts
+ */
 export const receiptStateSchema = z.enum(receiptStateValues);
 
 /**
- * Type guard for receipt state validation.
+ * Type guard for runtime receipt state validation.
+ *
+ * @param state - String to validate
+ * @returns True if state is a valid ReceiptState value
+ *
+ * @category Contracts
+ * @example
+ * ```typescript
+ * const userInput = 'revealed';
+ * if (isValidReceiptState(userInput)) {
+ *   // userInput is now typed as ReceiptState
+ *   console.log(`Valid state: ${userInput}`);
+ * }
+ * ```
  */
 export function isValidReceiptState(state: string): state is ReceiptState {
   return receiptStateValues.includes(state as ReceiptState);
 }
 
 /**
- * Canonical receipt base record.
+ * Canonical receipt base record contract.
  *
  * Defines field names and output types (post-parse).
- * No transforms — those are version-specific.
+ * No transforms - those are version-specific in shapes.
+ *
+ * Receipts are ownership tokens that track a secret's lifecycle:
+ * - Timestamps for creation, sharing, viewing, and destruction
+ * - TTL fields for expiration management
+ * - Boolean flags for state checks in components
+ *
+ * @category Contracts
+ * @see {@link "shapes/v2/receipt".receiptSchema} - V2 wire format
+ * @see {@link "shapes/v3/receipt".receiptRecord} - V3 wire format
+ *
+ * @example
+ * ```typescript
+ * // Extend in version-specific shapes
+ * const receiptBaseV3 = receiptBaseCanonical.extend({
+ *   created: transforms.fromNumber.toDate,
+ *   updated: transforms.fromNumber.toDate,
+ * });
+ *
+ * // Derive TypeScript type
+ * type ReceiptBase = z.infer<typeof receiptBaseCanonical>;
+ * ```
  */
 export const receiptBaseCanonical = z.object({
   identifier: z.string(),
@@ -118,7 +208,20 @@ export const receiptBaseCanonical = z.object({
 });
 
 /**
- * Canonical full receipt record (single-record view with URLs and expiration).
+ * Canonical full receipt record with URLs and expiration.
+ *
+ * Single-record view that includes sharing URLs and expiration details
+ * for display in the receipt confirmation page.
+ *
+ * @category Contracts
+ * @see {@link receiptBaseCanonical} - Base record without URLs
+ *
+ * @example
+ * ```typescript
+ * const receipt = receiptCanonical.parse(apiResponse);
+ * console.log(`Share link: ${receipt.share_url}`);
+ * console.log(`Expires: ${receipt.natural_expiration}`);
+ * ```
  */
 export const receiptCanonical = receiptBaseCanonical.extend({
   secret_state: receiptStateSchema.nullish(),
@@ -134,7 +237,21 @@ export const receiptCanonical = receiptBaseCanonical.extend({
 });
 
 /**
- * Canonical receipt details (metadata alongside the record).
+ * Canonical receipt details contract.
+ *
+ * Metadata returned alongside receipt records for display logic.
+ * Controls visibility of secret content, links, and status indicators.
+ *
+ * @category Contracts
+ * @see {@link "shapes/v2/receipt".receiptDetails} - V2 wire format
+ *
+ * @example
+ * ```typescript
+ * const details = receiptDetailsCanonical.parse(apiResponse.details);
+ * if (details.show_secret && details.can_decrypt) {
+ *   // Display the secret content
+ * }
+ * ```
  */
 export const receiptDetailsCanonical = z.object({
   type: z.literal('record'),
@@ -155,7 +272,19 @@ export const receiptDetailsCanonical = z.object({
 });
 
 /**
- * Canonical receipt list details.
+ * Canonical receipt list details contract.
+ *
+ * Metadata for paginated receipt list responses.
+ *
+ * @category Contracts
+ *
+ * @example
+ * ```typescript
+ * const listDetails = receiptListDetailsCanonical.parse(apiResponse.details);
+ * if (listDetails.has_items) {
+ *   // Display the receipt list
+ * }
+ * ```
  */
 export const receiptListDetailsCanonical = z.object({
   type: z.string(),
@@ -167,15 +296,40 @@ export const receiptListDetailsCanonical = z.object({
 });
 
 /**
- * Canonical receipt list record (base + show_recipients).
+ * Canonical receipt list record contract.
+ *
+ * Base receipt extended with `show_recipients` for list display.
+ *
+ * @category Contracts
+ * @see {@link receiptBaseCanonical} - Base record
+ *
+ * @example
+ * ```typescript
+ * const receipts = z.array(receiptListCanonical).parse(apiResponse.records);
+ * receipts.forEach(receipt => {
+ *   console.log(`${receipt.shortid}: ${receipt.state}`);
+ * });
+ * ```
  */
 export const receiptListCanonical = receiptBaseCanonical.extend({
   show_recipients: z.boolean(),
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
 // Type exports
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** TypeScript type for base receipt record. */
 export type ReceiptBaseCanonical = z.infer<typeof receiptBaseCanonical>;
+
+/** TypeScript type for full receipt record with URLs. */
 export type ReceiptCanonical = z.infer<typeof receiptCanonical>;
+
+/** TypeScript type for receipt details metadata. */
 export type ReceiptDetailsCanonical = z.infer<typeof receiptDetailsCanonical>;
+
+/** TypeScript type for receipt list details metadata. */
 export type ReceiptListDetailsCanonical = z.infer<typeof receiptListDetailsCanonical>;
+
+/** TypeScript type for receipt list record. */
 export type ReceiptListCanonical = z.infer<typeof receiptListCanonical>;
