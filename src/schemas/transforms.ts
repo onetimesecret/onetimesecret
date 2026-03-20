@@ -164,43 +164,143 @@ export const transforms = {
     optionalEmail: z.preprocess((val) => (val === '' ? undefined : val), z.email().optional()),
   },
 
+  /**
+   * Transforms for converting numeric values from V3 API responses.
+   *
+   * V3 API returns timestamps as Unix epoch numbers (seconds since 1970).
+   * These transforms use z.transform() to preserve type information for
+   * JSON Schema generation while still converting to Date objects.
+   *
+   * @category Transforms
+   * @see {@link transforms.fromString} - For V2 API string-encoded timestamps
+   */
   fromNumber: {
+    /**
+     * Converts Unix timestamp (seconds) to Date using preprocess.
+     *
+     * @deprecated Prefer `toDate` which uses transform() for better JSON Schema support.
+     *
+     * @example
+     * ```typescript
+     * const schema = z.object({ ts: transforms.fromNumber.secondsToDate });
+     * schema.parse({ ts: 1609459200 }); // { ts: Date(2021-01-01) }
+     * ```
+     */
     secondsToDate: z.preprocess((val) => new Date((val as number) * 1000), z.date()),
 
     /**
-     * V3 API timestamp transforms (Wire → Domain):
-     *   Wire:   z.number()           validates input (Unix epoch seconds)
-     *   Domain: .transform(→ Date)   coerces for Pinia stores & components
-     *   Docs:   io:"input"           JSON Schema documents "number", not Date
+     * Converts Unix timestamp (seconds) to Date, requiring a valid number.
+     *
+     * V3 API timestamp transform (Wire to Domain):
+     * - Wire: z.number() validates input (Unix epoch seconds)
+     * - Domain: .transform() coerces to Date for Pinia stores and components
+     * - Docs: io:"input" makes JSON Schema document "number", not Date
      *
      * Uses .transform() instead of .preprocess() so that z.toJSONSchema()
      * with io:"input" sees the typed input (number), not unknown.
      *
-     * V2 schemas should continue using transforms.fromString.date which
-     * handles string-encoded timestamps from the V2 API.
+     * @example
+     * ```typescript
+     * const schema = z.object({ created: transforms.fromNumber.toDate });
+     * schema.parse({ created: 1609459200 }); // { created: Date(2021-01-01) }
      *
-     * Note: V2/V3 refer to Onetime Secret API versions, not Zod versions.
+     * type Created = z.infer<typeof schema>; // { created: Date }
+     * ```
      */
     toDate: z.number().transform((v) => new Date(v * 1000)),
+
+    /**
+     * Converts Unix timestamp to Date, allowing null.
+     *
+     * @example
+     * ```typescript
+     * const schema = z.object({ updated: transforms.fromNumber.toDateNullable });
+     * schema.parse({ updated: 1609459200 }); // { updated: Date }
+     * schema.parse({ updated: null });       // { updated: null }
+     *
+     * type Updated = z.infer<typeof schema>; // { updated: Date | null }
+     * ```
+     */
     toDateNullable: z
       .number()
       .nullable()
       .transform((v) => (v === null ? null : new Date(v * 1000))),
+
+    /**
+     * Converts Unix timestamp to Date, allowing undefined.
+     *
+     * @example
+     * ```typescript
+     * const schema = z.object({ deleted: transforms.fromNumber.toDateOptional });
+     * schema.parse({ deleted: 1609459200 }); // { deleted: Date }
+     * schema.parse({ deleted: undefined });  // { deleted: undefined }
+     * schema.parse({});                      // { deleted: undefined }
+     *
+     * type Deleted = z.infer<typeof schema>; // { deleted?: Date | undefined }
+     * ```
+     */
     toDateOptional: z
       .number()
       .optional()
       .transform((v) => (v === undefined ? undefined : new Date(v * 1000))),
-    /** Accepts number, null, or undefined; normalizes to Date | null.
-     *  Collapses undefined → null so consumers get a simpler union. */
+
+    /**
+     * Converts Unix timestamp to Date, accepting null or undefined.
+     *
+     * Collapses undefined to null so consumers get a simpler union (Date | null)
+     * instead of (Date | null | undefined).
+     *
+     * @example
+     * ```typescript
+     * const schema = z.object({ viewed: transforms.fromNumber.toDateNullish });
+     * schema.parse({ viewed: 1609459200 }); // { viewed: Date }
+     * schema.parse({ viewed: null });       // { viewed: null }
+     * schema.parse({ viewed: undefined });  // { viewed: null }
+     *
+     * type Viewed = z.infer<typeof schema>; // { viewed: Date | null }
+     * ```
+     */
     toDateNullish: z
       .number()
       .nullish()
       .transform((v) => (v == null ? null : new Date(v * 1000))),
   },
 
+  /**
+   * Transforms for handling nested object structures in API responses.
+   *
+   * @category Transforms
+   */
   fromObject: {
     /**
-     * Transforms API nested objects using consistent preprocessing pattern
+     * Preprocesses nested objects with fallback to empty object.
+     *
+     * Handles cases where API returns null/undefined for optional nested objects.
+     * Ensures the schema always receives a valid object to parse.
+     *
+     * @typeParam T - The Zod schema type for the nested object
+     * @param schema - The Zod schema to apply after preprocessing
+     * @returns A preprocessed schema that handles null/undefined gracefully
+     *
+     * @example
+     * ```typescript
+     * const userSchema = z.object({
+     *   name: z.string(),
+     *   settings: transforms.fromObject.nested(
+     *     z.object({
+     *       theme: z.string().default('light'),
+     *       notifications: z.boolean().default(true),
+     *     })
+     *   ),
+     * });
+     *
+     * // Works with nested object
+     * userSchema.parse({ name: 'Alice', settings: { theme: 'dark' } });
+     *
+     * // Falls back to empty object (defaults apply)
+     * userSchema.parse({ name: 'Bob', settings: null });
+     * // Result: { name: 'Bob', settings: { theme: 'light', notifications: true } }
+     * ```
      */
     nested: <T extends z.ZodType>(schema: T) => z.preprocess(parseNestedObject, schema),
   },
