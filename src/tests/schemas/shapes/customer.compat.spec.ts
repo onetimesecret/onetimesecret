@@ -70,9 +70,9 @@ describe('V2 Wire -> V3 Schema (Forward Compatibility)', () => {
       }
     });
 
-    it('FAILS: V3 rejects V2 string numbers', () => {
+    it('V3 coerces V2 string numbers (no counter field errors)', () => {
       // V2 sends counter fields as strings
-      // V3 expects native numbers
+      // V3 uses z.coerce.number() per #2699 for resilience - no rejection
       const canonical = createCanonicalCustomer({
         secrets_created: 100,
         emails_sent: 50,
@@ -82,15 +82,17 @@ describe('V2 Wire -> V3 Schema (Forward Compatibility)', () => {
       expect(typeof v2Wire.secrets_created).toBe('string');
       expect(typeof v2Wire.emails_sent).toBe('string');
 
-      // V3 schema rejects string counter fields
+      // V3 schema parsing fails due to other fields (timestamps, booleans)
+      // but counter fields are NOT rejected thanks to z.coerce.number()
       const result = v3CustomerSchema.safeParse(v2Wire);
       expect(result.success).toBe(false);
       if (!result.success) {
+        // Counter fields should NOT appear in errors (they are coerced)
         const numberErrors = result.error.issues.filter(
           (i) =>
             i.path.includes('secrets_created') || i.path.includes('emails_sent')
         );
-        expect(numberErrors.length).toBeGreaterThan(0);
+        expect(numberErrors.length).toBe(0);
       }
     });
   });
@@ -421,7 +423,7 @@ describe('Compatibility Summary', () => {
         'created/updated (string->number)': 'INCOMPATIBLE - V3 expects number',
         'last_login (string->number)': 'INCOMPATIBLE - V3 expects number',
         'verified/active (string->boolean)': 'INCOMPATIBLE - V3 expects boolean',
-        'counter fields (string->number)': 'INCOMPATIBLE - V3 expects number',
+        'counter fields (string->number)': 'COMPATIBLE - V3 uses z.coerce.number() per #2699',
         'null timestamps': 'COMPATIBLE - both use null',
         'feature_flags': 'COMPATIBLE - Record<string, boolean>',
       },
