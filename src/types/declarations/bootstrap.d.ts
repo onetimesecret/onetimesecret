@@ -129,28 +129,21 @@ export interface BootstrapPayload {
   default_locale: Locale;
 
   /**
-   * Date display format preference.
-   * - 'locale': Browser-native locale formatting (toLocaleDateString)
-   * - 'iso8601': yyyy-MM-dd
-   * - 'us': MM/dd/yyyy
-   * - 'eu': dd/MM/yyyy
-   * - 'eu-dot': dd.MM.yyyy
-   * - 'uk': dd MMM yyyy
-   * - 'long': MMMM d, yyyy
+   * Date display format preference. Controls both date-only and date+time
+   * display unless datetime_format is explicitly set.
+   *
+   * - 'locale': Browser-native locale formatting (default)
+   * - 'iso8601', 'us', 'eu', 'eu-dot', 'uk', 'long': regional presets
    * - Any other string: a raw date-fns format pattern
    */
   date_format: string;
 
   /**
-   * DateTime display format preference.
-   * - 'locale': Browser-native locale formatting (toLocaleString)
-   * - 'iso8601': yyyy-MM-dd HH:mm
-   * - 'us': MM/dd/yyyy h:mm a
-   * - 'eu': dd/MM/yyyy HH:mm
-   * - 'eu-dot': dd.MM.yyyy HH:mm
-   * - 'uk': dd MMM yyyy HH:mm
-   * - 'long': MMMM d, yyyy h:mm a
-   * - Any other string: a raw date-fns format pattern
+   * Optional override for date+time contexts. When set to 'locale' (the
+   * default), datetime display falls back to the date_format setting.
+   * Only set this when you need date-only and date+time to differ.
+   *
+   * Accepts the same values as date_format.
    */
   datetime_format: string;
 

@@ -83,16 +83,16 @@ export const formatISODateTime = (date: Date): string => format(date, 'yyyy-MM-d
  *
  *  Keyword   | Date           | DateTime                | Region
  *  ----------|----------------|-------------------------|---------------------------
- *  iso8601   | 2026-03-21     | 2026-03-21 14:30        | International / technical
- *  us        | 03/21/2026     | 03/21/2026 2:30 PM      | United States
+ *  iso8601   | 2026-03-21     | 2026-03-21 14:30:00     | International / technical
+ *  us        | 03/21/2026     | 03/21/2026 2:30:00 PM   | United States
  *  eu        | 21/03/2026     | 21/03/2026 14:30        | Most of Europe (slash)
  *  eu-dot    | 21.03.2026     | 21.03.2026 14:30        | Germany, Austria, CH, etc.
  *  uk        | 21 Mar 2026    | 21 Mar 2026 14:30       | UK / Commonwealth
  *  long      | March 21, 2026 | March 21, 2026 2:30 PM  | Formal / editorial
  */
 const DATE_FORMAT_PRESETS: Record<string, { date: string; datetime: string }> = {
-  iso8601:  { date: 'yyyy-MM-dd',    datetime: 'yyyy-MM-dd HH:mm' },
-  us:       { date: 'MM/dd/yyyy',    datetime: 'MM/dd/yyyy h:mm a' },
+  iso8601:  { date: 'yyyy-MM-dd',    datetime: 'yyyy-MM-dd HH:mm:ss' },
+  us:       { date: 'MM/dd/yyyy',    datetime: 'MM/dd/yyyy h:mm:ss a' },
   eu:       { date: 'dd/MM/yyyy',    datetime: 'dd/MM/yyyy HH:mm' },
   'eu-dot': { date: 'dd.MM.yyyy',    datetime: 'dd.MM.yyyy HH:mm' },
   uk:       { date: 'dd MMM yyyy',   datetime: 'dd MMM yyyy HH:mm' },
@@ -133,7 +133,13 @@ export const formatDisplayDate = (date: Date): string => {
 };
 
 /**
- * Format a Date as a date+time string, respecting the configured datetime_format.
+ * Format a Date as a date+time string.
+ *
+ * Resolution order:
+ * 1. datetime_format (if explicitly set to something other than 'locale')
+ * 2. date_format (uses its datetime variant — so a single `date_format: eu`
+ *    controls both date-only and datetime display)
+ * 3. Falls back to browser-native toLocaleString()
  *
  * Accepts:
  * - 'locale' (default): browser-native toLocaleString()
@@ -143,14 +149,23 @@ export const formatDisplayDate = (date: Date): string => {
  * @see https://date-fns.org/docs/format
  */
 export const formatDisplayDateTime = (date: Date): string => {
-  const setting = getBootstrapValue('datetime_format') ?? 'locale';
-  const pattern = resolveFormatPattern(setting, 'datetime');
+  const datetimeSetting = getBootstrapValue('datetime_format') ?? 'locale';
+
+  // If datetime_format is explicitly configured, use it directly
+  if (datetimeSetting !== 'locale') {
+    const pattern = resolveFormatPattern(datetimeSetting, 'datetime');
+    return pattern ? format(date, pattern) : date.toLocaleString();
+  }
+
+  // Fall back to date_format's datetime variant (so `date_format: eu` covers both)
+  const dateSetting = getBootstrapValue('date_format') ?? 'locale';
+  const pattern = resolveFormatPattern(dateSetting, 'datetime');
   return pattern ? format(date, pattern) : date.toLocaleString();
 };
 
 /**
  * Format a date value (seconds/string) to a display string,
- * respecting the configured datetime_format.
+ * respecting the configured datetime_format (or date_format fallback).
  */
 export const formatDate = (val: unknown): string => {
   const date = parseDateValue(val);

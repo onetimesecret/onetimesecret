@@ -635,11 +635,13 @@ internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
   default_locale: <%= ENV['I18N_DEFAULT_LOCALE'] || 'en' %>
   # Date/time display format. Accepts a preset keyword or a date-fns pattern.
+  # Setting date_format alone controls both date-only and date+time display.
+  # Set datetime_format only if you need a different format for date+time contexts.
   #
   # Presets:
   #   locale  - browser-native formatting (default)
-  #   iso8601 - 2026-03-21 / 2026-03-21 14:30
-  #   us      - 03/21/2026 / 03/21/2026 2:30 PM
+  #   iso8601 - 2026-03-21 / 2026-03-21 14:30:00
+  #   us      - 03/21/2026 / 03/21/2026 2:30:00 PM
   #   eu      - 21/03/2026 / 21/03/2026 14:30
   #   eu-dot  - 21.03.2026 / 21.03.2026 14:30
   #   uk      - 21 Mar 2026 / 21 Mar 2026 14:30
