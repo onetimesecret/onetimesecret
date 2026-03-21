@@ -39,7 +39,14 @@ module Core
           # Load the CustomDomain object
           custom_domain             = Onetime::CustomDomain.from_display_domain(output['display_domain'])
           output['domain_id']       = custom_domain&.domainid
-          output['domain_branding'] = (custom_domain&.brand&.hgetall || {}).to_h
+          branding_hash             = (custom_domain&.brand&.hgetall || {}).to_h
+          # Coerce boolean fields from Redis strings to native booleans
+          Onetime::CustomDomain::BrandSettingsConstants::BOOLEAN_FIELDS.each do |field|
+            next unless branding_hash.key?(field)
+
+            branding_hash[field] = Onetime::CustomDomain::BrandSettings.coerce_boolean(branding_hash[field])
+          end
+          output['domain_branding'] = branding_hash
 
           domain_locale           = output['domain_branding'].fetch('locale', nil)
           output['domain_locale'] = domain_locale
