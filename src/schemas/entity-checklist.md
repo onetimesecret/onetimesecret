@@ -12,7 +12,7 @@ Reference implementation: `receipt`
 | customer | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **DONE** |
 | organization | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **DONE** |
 | organization_membership | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **DONE** |
-| custom_domain | | | | | | | Tier 3 |
+| custom_domain | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **DONE** |
 
 **Tiers by complexity:**
 - Tier 1: V2 exists, simple structure
