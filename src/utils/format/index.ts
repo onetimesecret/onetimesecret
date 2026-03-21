@@ -64,14 +64,14 @@ export function ttlToNaturalLanguage(val: unknown): string | null {
 }
 
 /**
- * Format a Date object as ISO8601 date only: yyyy/MM/dd
+ * Format a Date object as ISO8601 date only: yyyy-MM-dd
  */
-export const formatISODate = (date: Date): string => format(date, 'yyyy/MM/dd');
+export const formatISODate = (date: Date): string => format(date, 'yyyy-MM-dd');
 
 /**
- * Format a Date object as ISO8601 date and time: yyyy/MM/dd HH:mm:ss
+ * Format a Date object as ISO8601 date and time: yyyy-MM-dd HH:mm:ss
  */
-export const formatISODateTime = (date: Date): string => format(date, 'yyyy/MM/dd HH:mm:ss');
+export const formatISODateTime = (date: Date): string => format(date, 'yyyy-MM-dd HH:mm:ss');
 
 /**
  * Format a date value (seconds/string) to ISO8601 date and time string

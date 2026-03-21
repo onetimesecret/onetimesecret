@@ -256,7 +256,7 @@ describe('BillingOverview', () => {
       const y = expectedDate.getFullYear();
       const m = String(expectedDate.getMonth() + 1).padStart(2, '0');
       const d = String(expectedDate.getDate()).padStart(2, '0');
-      expect(billingDateEl.text()).toContain(`${y}/${m}/${d}`);
+      expect(billingDateEl.text()).toContain(`${y}-${m}-${d}`);
     });
 
     it('does not display next billing date when subscription has no period_end', async () => {

@@ -53,4 +53,4 @@ export const parseDateValue = (val: unknown): Date | null => {
   return null;
 };
 
-export const formatLocalDateTime = (date: Date): string => format(date, 'yyyy/MM/dd HH:mm:ss');
+export const formatLocalDateTime = (date: Date): string => format(date, 'yyyy-MM-dd HH:mm:ss');
