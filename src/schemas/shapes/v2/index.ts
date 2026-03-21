@@ -8,8 +8,10 @@
 export * from './base';
 export * from './customer';
 export * from './feedback';
-export * from './secret';
+export * from './organization';
+export * from './organization-membership';
 export * from './receipt';
+export * from './secret';
 export * from './custom-domain/index';
 
 /**
