@@ -37,9 +37,9 @@ describe('Receipt Fixtures Integrity', () => {
         expectedSecretShortkey: 'secret-burned-abc123',
       },
       {
-        name: 'Received Receipt Record',
+        name: 'Revealed Receipt Record', // V3 canonical (replaces Received)
         record: mockReceivedReceiptRecord,
-        expectedState: ReceiptState.RECEIVED,
+        expectedState: 'revealed', // V3 canonical (replaces ReceiptState.RECEIVED)
         expectedSecretKey: 'secret-received-key-123',
         expectedSecretShortkey: 'secret-received-abc123',
       },
@@ -110,12 +110,12 @@ describe('Receipt Fixtures Integrity', () => {
       expect(mockReceiptRecent.details.notreceived).toHaveLength(1);
     });
 
-    it('received records have unique and correct keys', () => {
+    it('revealed records have unique and correct keys', () => {
       const receivedRecords = mockReceiptRecent.details.received;
 
       expect(receivedRecords[0].key).toBe('received-receipt-1');
       expect(receivedRecords[0].shortid).toBe('rcv-short-1');
-      expect(receivedRecords[0].state).toBe(ReceiptState.RECEIVED);
+      expect(receivedRecords[0].state).toBe('revealed'); // V3 canonical
     });
 
     it('not received record has correct keys', () => {
