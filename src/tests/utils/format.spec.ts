@@ -1,7 +1,7 @@
 // src/tests/utils/format.spec.ts
 
-import { ttlToNaturalLanguage } from '@/utils/format/index';
-import { describe, expect, it } from 'vitest';
+import { formatDate, formatRelativeTime, ttlToNaturalLanguage } from '@/utils/format/index';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('ttlToNaturalLanguage', () => {
   describe('null/undefined/negative inputs', () => {
@@ -302,6 +302,173 @@ describe('ttlToNaturalLanguage', () => {
     it('31535999s vs 31536000s boundary (months to years)', () => {
       expect(ttlToNaturalLanguage(31535999)).toBe('12 months from now');
       expect(ttlToNaturalLanguage(31536000)).toBe('1 year from now');
+    });
+  });
+});
+
+// -----------------------------------------------------------------------------
+// formatDate
+// -----------------------------------------------------------------------------
+
+describe('formatDate', () => {
+  // All stored timestamps are UTC; tests verify correct parsing and formatting
+  beforeEach(() => {
+    vi.stubEnv('TZ', 'UTC');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  describe('valid date inputs', () => {
+    it('formats Unix timestamp (seconds) to locale string', () => {
+      const result = formatDate(1609459200); // 2021-01-01T00:00:00Z
+      expect(result).toContain('2021');
+      expect(result).toMatch(/1[\/\-]1|Jan/); // Jan 1 in various locale formats
+    });
+
+    it('formats Unix timestamp string to locale string', () => {
+      const result = formatDate('1609459200'); // 2021-01-01T00:00:00Z
+      expect(result).toContain('2021');
+    });
+
+    it('formats Date object to locale string', () => {
+      const date = new Date('2021-06-15T12:00:00Z');
+      const result = formatDate(date);
+      expect(result).toContain('2021');
+      expect(result).toMatch(/6[\/\-]15|Jun|15/); // June 15 in various formats
+    });
+
+    it('formats ISO date string', () => {
+      const result = formatDate('2021-06-15T12:00:00Z');
+      expect(result).toContain('2021');
+    });
+  });
+
+  describe('invalid/empty inputs return empty string', () => {
+    it('returns empty string for null', () => {
+      expect(formatDate(null)).toBe('');
+    });
+
+    it('returns empty string for undefined', () => {
+      expect(formatDate(undefined)).toBe('');
+    });
+
+    it('returns empty string for empty string', () => {
+      expect(formatDate('')).toBe('');
+    });
+
+    it('returns empty string for invalid date string', () => {
+      expect(formatDate('not-a-date')).toBe('');
+    });
+
+    it('returns empty string for invalid Date object', () => {
+      expect(formatDate(new Date('invalid'))).toBe('');
+    });
+  });
+});
+
+// -----------------------------------------------------------------------------
+// formatRelativeTime
+// -----------------------------------------------------------------------------
+
+describe('formatRelativeTime', () => {
+  const NOW = new Date('2021-06-15T12:00:00Z');
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  describe('undefined input', () => {
+    it('returns empty string for undefined', () => {
+      expect(formatRelativeTime(undefined)).toBe('');
+    });
+  });
+
+  describe('just now (< 60 seconds ago)', () => {
+    it('returns "just now" for 0 seconds ago', () => {
+      expect(formatRelativeTime(NOW)).toBe('just now');
+    });
+
+    it('returns "just now" for 30 seconds ago', () => {
+      const date = new Date(NOW.getTime() - 30 * 1000);
+      expect(formatRelativeTime(date)).toBe('just now');
+    });
+
+    it('returns "just now" for 59 seconds ago', () => {
+      const date = new Date(NOW.getTime() - 59 * 1000);
+      expect(formatRelativeTime(date)).toBe('just now');
+    });
+  });
+
+  describe('minutes ago (60s - 3599s)', () => {
+    it('returns "1 minutes ago" for exactly 60 seconds', () => {
+      const date = new Date(NOW.getTime() - 60 * 1000);
+      expect(formatRelativeTime(date)).toBe('1 minutes ago');
+    });
+
+    it('returns "2 minutes ago" for 120 seconds', () => {
+      const date = new Date(NOW.getTime() - 120 * 1000);
+      expect(formatRelativeTime(date)).toBe('2 minutes ago');
+    });
+
+    it('returns "59 minutes ago" for 3540 seconds', () => {
+      const date = new Date(NOW.getTime() - 3540 * 1000);
+      expect(formatRelativeTime(date)).toBe('59 minutes ago');
+    });
+
+    it('returns "59 minutes ago" for 3599 seconds (boundary)', () => {
+      const date = new Date(NOW.getTime() - 3599 * 1000);
+      expect(formatRelativeTime(date)).toBe('59 minutes ago');
+    });
+  });
+
+  describe('hours ago (3600s - 86399s)', () => {
+    it('returns "1 hours ago" for exactly 3600 seconds', () => {
+      const date = new Date(NOW.getTime() - 3600 * 1000);
+      expect(formatRelativeTime(date)).toBe('1 hours ago');
+    });
+
+    it('returns "2 hours ago" for 7200 seconds', () => {
+      const date = new Date(NOW.getTime() - 7200 * 1000);
+      expect(formatRelativeTime(date)).toBe('2 hours ago');
+    });
+
+    it('returns "23 hours ago" for 82800 seconds', () => {
+      const date = new Date(NOW.getTime() - 82800 * 1000);
+      expect(formatRelativeTime(date)).toBe('23 hours ago');
+    });
+
+    it('returns "23 hours ago" for 86399 seconds (boundary)', () => {
+      const date = new Date(NOW.getTime() - 86399 * 1000);
+      expect(formatRelativeTime(date)).toBe('23 hours ago');
+    });
+  });
+
+  describe('days ago (>= 86400s)', () => {
+    it('returns "1 days ago" for exactly 86400 seconds', () => {
+      const date = new Date(NOW.getTime() - 86400 * 1000);
+      expect(formatRelativeTime(date)).toBe('1 days ago');
+    });
+
+    it('returns "2 days ago" for 172800 seconds', () => {
+      const date = new Date(NOW.getTime() - 172800 * 1000);
+      expect(formatRelativeTime(date)).toBe('2 days ago');
+    });
+
+    it('returns "7 days ago" for one week', () => {
+      const date = new Date(NOW.getTime() - 7 * 86400 * 1000);
+      expect(formatRelativeTime(date)).toBe('7 days ago');
+    });
+
+    it('returns "30 days ago" for one month', () => {
+      const date = new Date(NOW.getTime() - 30 * 86400 * 1000);
+      expect(formatRelativeTime(date)).toBe('30 days ago');
     });
   });
 });
