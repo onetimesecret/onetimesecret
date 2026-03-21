@@ -63,8 +63,8 @@ export * from './shapes/v2/feedback';
 export * from './shapes/v2/receipt';
 export * from './shapes/v2/secret';
 
-// Configuration schemas
-export * from './config';
+// Configuration schemas (contracts)
+export * from './contracts/config';
 
 // Domain-specific models and endpoints
 export * from './api/v2/responses/content/secrets';

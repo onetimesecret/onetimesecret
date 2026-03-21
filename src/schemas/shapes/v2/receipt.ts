@@ -1,4 +1,4 @@
-// src/schemas/models/receipt.ts
+// src/schemas/shapes/v2/receipt.ts
 //
 // V2 wire-format schemas for receipts.
 // Derives from canonical schemas, adding V2-specific string transforms.

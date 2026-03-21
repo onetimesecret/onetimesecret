@@ -1,6 +1,7 @@
-// src/schemas/api/canonical/records/index.ts
+// src/schemas/contracts/index.ts
 //
-// Barrel exports for canonical record schemas.
+// Contract schemas for data validation at system boundaries.
 
+export * from './config';
 export * from './receipt';
 export * from './secret';

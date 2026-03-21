@@ -3,7 +3,7 @@
 /**
  * Authentication and account management type definitions
  *
- * Types are derived from Zod schemas in @/schemas/shapes/v2/auth.
+ * Types are derived from Zod schemas in @/schemas/shapes/auth.
  * Schemas are the source of truth - do not add manual interfaces here.
  */
 
@@ -22,4 +22,4 @@ export {
   type RecoveryCode,
   type AccountInfo,
   type MfaStatus,
-} from '@/schemas/shapes/v2/auth';
+} from '@/schemas/shapes/auth';

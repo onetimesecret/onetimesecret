@@ -1,24 +1,26 @@
 // src/schemas/shapes/v2/index.ts
 //
-// V2 wire-format shapes (Redis-serialized strings → typed output).
+// V2 API shapes (secrets, receipts, customers, feedback).
 
 /**
- * Primary shapes
+ * V2 API entity shapes
  */
-export * from './auth';
 export * from './base';
-export * from './billing';
 export * from './customer';
-export * from './diagnostics';
 export * from './feedback';
-export * from './jurisdiction';
-export * from './organization';
-export * from './public';
 export * from './secret';
+export * from './receipt';
+export * from './custom-domain/index';
 
 /**
- * Secondary shapes (have relations to primaries)
+ * Re-exports from sibling shape directories (backward compatibility)
+ */
+export * from '../account';
+export * from '../auth';
+export * from '../config';
+export * from '../organizations';
+
+/**
+ * API endpoint re-exports
  */
 export * from '../../api/account/endpoints/account';
-export * from './custom-domain/index';
-export * from './receipt';

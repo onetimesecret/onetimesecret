@@ -1,4 +1,4 @@
-// src/schemas/models/feedback.ts
+// src/schemas/shapes/v2/feedback.ts
 
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
