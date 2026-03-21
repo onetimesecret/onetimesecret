@@ -7,7 +7,7 @@ import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } fro
 import { BillingService } from '@/services/billing.service';
 import { classifyError } from '@/schemas/errors';
 import type { CurrencyConflictError, MigrationMode } from '@/schemas/models/billing';
-import { formatISODate } from '@/utils/format';
+import { formatDisplayDate } from '@/utils/format';
 import { computed, ref, watch } from 'vue';
 
 const { t } = useI18n();
@@ -42,7 +42,7 @@ const details = computed(() => props.conflict?.details ?? null);
 
 const formattedPeriodEnd = computed(() => {
   if (!details.value?.current_plan?.current_period_end) return null;
-  return formatISODate(new Date(details.value.current_plan.current_period_end * 1000));
+  return formatDisplayDate(new Date(details.value.current_plan.current_period_end * 1000));
 });
 
 const existingCurrencyUpper = computed(() =>

@@ -6,7 +6,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
 import { useMembersManager } from '@/shared/composables/useMembersManager';
 import type { OrganizationMember, OrganizationRole } from '@/types/organization';
-import { formatISODate } from '@/utils/format';
+import { formatDisplayDate } from '@/utils/format';
 import { useConfirmDialog } from '@vueuse/core';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -64,7 +64,7 @@ const handleRemoveClick = async (member: OrganizationMember) => {
   memberToRemove.value = null;
 };
 
-const formatDate = (timestamp: number): string => formatISODate(new Date(timestamp * 1000));
+const formatDate = (timestamp: number): string => formatDisplayDate(new Date(timestamp * 1000));
 
 const getRoleBadgeClasses = (role: OrganizationRole): string => {
   const baseClasses =

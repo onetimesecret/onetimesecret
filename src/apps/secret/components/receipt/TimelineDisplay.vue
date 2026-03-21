@@ -6,7 +6,7 @@
   import { useSecretExpiration } from '@/shared/composables/useSecretExpiration';
   import type { Receipt, ReceiptDetails } from '@/schemas/models';
   import { formatDistanceToNow } from 'date-fns';
-  import { formatISODateTime } from '@/utils/format';
+  import { formatDisplayDateTime } from '@/utils/format';
   import { computed } from 'vue';
 
 const { t } = useI18n();
@@ -69,7 +69,7 @@ const { t } = useI18n();
           <time
             :datetime="record.created.toISOString()"
             class="text-sm text-gray-700 dark:text-gray-300">
-            {{ formatISODateTime(record.created) }}
+            {{ formatDisplayDateTime(record.created) }}
           </time>
           <p
             class="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
@@ -108,7 +108,7 @@ const { t } = useI18n();
           <time
             :datetime="record.received?.toISOString()"
             class="text-sm text-gray-700 dark:text-gray-300">
-            {{ record.received ? formatISODateTime(record.received) : '' }}
+            {{ record.received ? formatDisplayDateTime(record.received) : '' }}
           </time>
           <p
             v-if="record.received"
@@ -142,7 +142,7 @@ const { t } = useI18n();
           <time
             :datetime="record.burned?.toISOString()"
             class="text-sm text-gray-700 dark:text-gray-300">
-            {{ record.burned ? formatISODateTime(record.burned) : '' }}
+            {{ record.burned ? formatDisplayDateTime(record.burned) : '' }}
           </time>
           <p
             v-if="record.burned"
@@ -203,7 +203,7 @@ const { t } = useI18n();
           <time
             :datetime="expirationDate.toISOString()"
             class="mt-2 block text-sm text-gray-700 dark:text-gray-300">
-            {{ formatISODateTime(expirationDate) }}
+            {{ formatDisplayDateTime(expirationDate) }}
           </time>
           <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
             {{ timeRemaining }}

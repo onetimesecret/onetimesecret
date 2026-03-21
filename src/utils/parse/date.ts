@@ -1,7 +1,5 @@
 // src/utils/parse/date.ts
 
-import { format } from 'date-fns';
-
 /**
  * Date parsing utilities handling timestamps and date strings.
  * Converts various date formats to Date objects with validation.
@@ -53,4 +51,3 @@ export const parseDateValue = (val: unknown): Date | null => {
   return null;
 };
 
-export const formatLocalDateTime = (date: Date): string => format(date, 'yyyy-MM-dd HH:mm:ss');

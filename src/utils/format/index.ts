@@ -1,6 +1,7 @@
 // src/utils/format/index.ts
 
 import { format } from 'date-fns';
+import { getBootstrapValue } from '@/services/bootstrap.service';
 import { parseDateValue } from '../parse/date';
 
 /**
@@ -64,6 +65,14 @@ export function ttlToNaturalLanguage(val: unknown): string | null {
 }
 
 /**
+ * Returns the configured date format preference.
+ * Falls back to 'locale' (browser-native) when not configured.
+ */
+function getDateFormat(): string {
+  return getBootstrapValue('date_format') ?? 'locale';
+}
+
+/**
  * Format a Date object as ISO8601 date only: yyyy-MM-dd
  */
 export const formatISODate = (date: Date): string => format(date, 'yyyy-MM-dd');
@@ -74,11 +83,36 @@ export const formatISODate = (date: Date): string => format(date, 'yyyy-MM-dd');
 export const formatISODateTime = (date: Date): string => format(date, 'yyyy-MM-dd HH:mm:ss');
 
 /**
- * Format a date value (seconds/string) to ISO8601 date and time string
+ * Format a Date as a date-only string, respecting the configured date_format.
+ * - 'locale': Browser-native locale formatting
+ * - 'iso8601': yyyy-MM-dd
+ */
+export const formatDisplayDate = (date: Date): string => {
+  if (getDateFormat() === 'iso8601') {
+    return formatISODate(date);
+  }
+  return date.toLocaleDateString();
+};
+
+/**
+ * Format a Date as a date+time string, respecting the configured date_format.
+ * - 'locale': Browser-native locale formatting
+ * - 'iso8601': yyyy-MM-dd HH:mm:ss
+ */
+export const formatDisplayDateTime = (date: Date): string => {
+  if (getDateFormat() === 'iso8601') {
+    return formatISODateTime(date);
+  }
+  return date.toLocaleString();
+};
+
+/**
+ * Format a date value (seconds/string) to a display string,
+ * respecting the configured date_format.
  */
 export const formatDate = (val: unknown): string => {
   const date = parseDateValue(val);
-  return date ? formatISODateTime(date) : '';
+  return date ? formatDisplayDateTime(date) : '';
 };
 
 /**

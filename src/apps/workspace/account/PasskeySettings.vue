@@ -6,7 +6,7 @@
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import PasswordConfirmModal from '@/shared/components/modals/PasswordConfirmModal.vue';
   import { useWebAuthn } from '@/shared/composables/useWebAuthn';
-  import { formatISODateTime } from '@/utils/format';
+  import { formatDisplayDateTime } from '@/utils/format';
   import { onMounted, ref, watch } from 'vue';
 
   const { t } = useI18n();
@@ -85,7 +85,7 @@
   // Format date for display
   const formatDate = (dateString: string | null): string => {
     if (!dateString) return t('web.auth.passkeys.never_used');
-    return formatISODateTime(new Date(dateString));
+    return formatDisplayDateTime(new Date(dateString));
   };
 </script>
 

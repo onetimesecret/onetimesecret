@@ -27,7 +27,7 @@ import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/billing';
 // LAUNCH: Identity-only - CreateInvitationPayload hidden until team features enabled
 import type { /* CreateInvitationPayload, */ Organization, OrganizationInvitation } from '@/types/organization';
-import { formatISODate } from '@/utils/format';
+import { formatDisplayDate } from '@/utils/format';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 // LAUNCH: Identity-only - zod hidden until team features enabled (used for invite form validation)
@@ -386,7 +386,7 @@ const handleRevokeInvitation = async (token: string) => {
   }
 };
 
-const formatDate = (timestamp: number): string => formatISODate(new Date(timestamp * 1000));
+const formatDate = (timestamp: number): string => formatDisplayDate(new Date(timestamp * 1000));
 
 const formatTimeRemaining = (expiresAt: number): string => {
   const now = Math.floor(Date.now() / 1000);

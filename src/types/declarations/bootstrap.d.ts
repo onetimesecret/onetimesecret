@@ -128,6 +128,13 @@ export interface BootstrapPayload {
   fallback_locale: FallbackLocale;
   default_locale: Locale;
 
+  /**
+   * Date display format preference.
+   * - 'locale': Browser-native locale formatting (toLocaleString / Intl.DateTimeFormat)
+   * - 'iso8601': ISO 8601 format (yyyy-MM-dd / yyyy-MM-dd HH:mm:ss)
+   */
+  date_format: 'locale' | 'iso8601';
+
   ot_version: string;
   ot_version_long: string;
   billing_enabled?: boolean;

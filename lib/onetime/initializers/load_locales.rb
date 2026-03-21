@@ -57,6 +57,9 @@ module Onetime
         # Load locale definitions from filesystem
         locales_defs = load_locale_definitions(supported_locales, default_locale)
 
+        # Read date format preference (default: 'locale' for browser-native formatting)
+        date_format = i18n.fetch('date_format', 'locale')
+
         # Set runtime state
         Onetime::Runtime.internationalization = Onetime::Runtime::Internationalization.new(
           enabled: i18n_enabled,
@@ -64,6 +67,7 @@ module Onetime
           default_locale: default_locale,
           fallback_locale: fallback_locale,
           locales: locales_defs,
+          date_format: date_format,
         )
 
         elapsed = (OT.now_in_μs - start_time) / 1000.0

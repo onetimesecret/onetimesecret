@@ -21,6 +21,7 @@ module Core
         output['fallback_locale']   = OT.fallback_locale
         output['supported_locales'] = OT.supported_locales
         output['i18n_enabled']      = OT.i18n_enabled
+        output['date_format']       = OT.date_format
 
         output
       end
@@ -36,6 +37,7 @@ module Core
             'fallback_locale' => nil,
             'supported_locales' => [],
             'i18n_enabled' => nil,
+            'date_format' => 'locale',
           }
         end
       end

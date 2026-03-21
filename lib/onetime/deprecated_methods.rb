@@ -48,6 +48,10 @@ module Onetime
     Runtime.internationalization.locales
   end
 
+  def self.date_format
+    Runtime.internationalization.date_format
+  end
+
   # Infrastructure runtime state accessors
   def self.database_pool
     Runtime.infrastructure.database_pool

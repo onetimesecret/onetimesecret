@@ -14,7 +14,7 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { PaymentMethod } from '@/types/billing';
 import { getPlanDisplayName, isLegacyPlan } from '@/types/billing';
 import type { Organization } from '@/types/organization';
-import { formatISODate } from '@/utils/format';
+import { formatDisplayDate } from '@/utils/format';
 import { computed, onMounted, ref, watch } from 'vue';
 
 const { t } = useI18n();
@@ -112,7 +112,7 @@ const loadOrganizationData = async (extid: string) => {
 
 const _formatCardBrand = (brand: string): string => brand.charAt(0).toUpperCase() + brand.slice(1);
 
-const formatNextBillingDate = (date: Date): string => formatISODate(date);
+const formatNextBillingDate = (date: Date): string => formatDisplayDate(date);
 
 const daysUntilBilling = computed(() => {
   if (!nextBillingDate.value) return null;

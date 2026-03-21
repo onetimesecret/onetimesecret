@@ -17,6 +17,7 @@ module Onetime
       :default_locale,      # Default locale code (e.g., 'en')
       :fallback_locale,     # Fallback locale when translation missing
       :locales,             # Hash of loaded locale definitions
+      :date_format,         # Date display format: 'locale', 'iso8601'
     ) do
       # Factory method for default state
       #
@@ -29,6 +30,7 @@ module Onetime
           default_locale: 'en',
           fallback_locale: 'en',
           locales: {},
+          date_format: 'locale',
         )
       end
 

@@ -3,7 +3,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import { formatISODate } from '@/utils/format';
+import { formatDisplayDate } from '@/utils/format';
 import { computed } from 'vue';
 
 const { t } = useI18n();
@@ -20,7 +20,7 @@ const emit = defineEmits<{
 }>();
 
 const formattedDate = computed(() =>
-  formatISODate(new Date(props.effectiveDate * 1000))
+  formatDisplayDate(new Date(props.effectiveDate * 1000))
 );
 
 const currencyUpper = computed(() => props.targetCurrency.toUpperCase());

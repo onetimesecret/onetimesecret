@@ -49,6 +49,7 @@ const DEFAULTS: BootstrapPayload = {
   supported_locales: [],
   fallback_locale: 'en',
   default_locale: { code: 'en', name: 'English', enabled: true },
+  date_format: 'locale',
 
   // Site configuration
   baseuri: '',
@@ -231,6 +232,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   const supported_locales = ref<Locale[]>(DEFAULTS.supported_locales);
   const fallback_locale = ref<FallbackLocale>(DEFAULTS.fallback_locale);
   const default_locale = ref<Locale>(DEFAULTS.default_locale);
+  const date_format = ref<BootstrapPayload['date_format']>(DEFAULTS.date_format);
 
   // Site configuration
   const baseuri = ref<string>(DEFAULTS.baseuri);
@@ -351,6 +353,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     updateIfDefined(supported_locales, data.supported_locales);
     updateIfDefined(fallback_locale, data.fallback_locale);
     updateIfDefined(default_locale, data.default_locale);
+    updateIfDefined(date_format, data.date_format);
   }
 
   function hydrateSiteConfig(data: Partial<BootstrapPayload>): void {
@@ -445,6 +448,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     supported_locales.value = DEFAULTS.supported_locales;
     fallback_locale.value = DEFAULTS.fallback_locale;
     default_locale.value = DEFAULTS.default_locale;
+    date_format.value = DEFAULTS.date_format;
   }
 
   function resetSiteConfig(): void {
@@ -626,6 +630,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     supported_locales,
     fallback_locale,
     default_locale,
+    date_format,
 
     // State - Site configuration
     baseuri,

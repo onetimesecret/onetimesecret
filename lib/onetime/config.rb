@@ -94,6 +94,7 @@ module Onetime
         'internationalization' => {
           'enabled' => false,
           'default_locale' => 'en',
+          'date_format' => 'locale',
         },
         'mail' => {},
         'diagnostics' => {
