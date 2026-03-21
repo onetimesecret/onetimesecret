@@ -1,4 +1,4 @@
-// src/schemas/config/section/mail.ts
+// src/schemas/contracts/config/section/mail.ts
 
 /**
  * Mail Configuration Schema

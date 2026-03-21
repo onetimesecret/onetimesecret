@@ -1,4 +1,4 @@
-// src/schemas/config/section/site.ts
+// src/schemas/contracts/config/section/site.ts
 
 /**
  * Site Configuration Schema

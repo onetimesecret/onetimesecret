@@ -1,4 +1,4 @@
-// src/schemas/config/billing.ts
+// src/schemas/contracts/config/billing.ts
 
 /**
  * Billing Configuration Schema
@@ -14,7 +14,7 @@
  *
  * Usage:
  * ```typescript
- * import { BillingConfigSchema, type BillingConfig } from '@/schemas/config/billing';
+ * import { BillingConfigSchema, type BillingConfig } from '@/schemas/contracts/config/billing';
  *
  * const config = BillingConfigSchema.parse(yamlData);
  * const canUseDomains = config.entitlements.custom_domains;

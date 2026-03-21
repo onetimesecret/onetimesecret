@@ -1,4 +1,4 @@
-// src/schemas/config/section/ui.ts
+// src/schemas/contracts/config/section/ui.ts
 
 /**
  * User Interface Configuration Schema

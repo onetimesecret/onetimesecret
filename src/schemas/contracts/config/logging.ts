@@ -1,4 +1,4 @@
-// src/schemas/config/logging.ts
+// src/schemas/contracts/config/logging.ts
 
 /**
  * Logging Configuration Schema

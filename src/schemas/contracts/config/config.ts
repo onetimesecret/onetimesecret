@@ -1,4 +1,4 @@
-// src/schemas/config/config.ts
+// src/schemas/contracts/config/config.ts
 
 /**
  * Application Configuration Schema

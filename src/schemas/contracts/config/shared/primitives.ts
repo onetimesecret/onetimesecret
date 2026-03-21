@@ -1,4 +1,4 @@
-// src/schemas/config/shared/primitives.ts
+// src/schemas/contracts/config/shared/primitives.ts
 
 import { z } from 'zod';
 

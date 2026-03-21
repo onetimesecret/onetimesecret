@@ -1,4 +1,4 @@
-// src/schemas/config/section/features.ts
+// src/schemas/contracts/config/section/features.ts
 
 /**
  * Features Configuration Schema
