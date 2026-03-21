@@ -67,10 +67,20 @@ module Onetime
           config.allowed_unescaped_variables = ['vite_assets_html']
 
           # Schema directory for JSON Schema validation files
-          # Note: Rhales 0.5.4 does not support <schema src="..."> external references.
-          # This setting configures where SchemaValidator middleware looks for
           # {template_name}.json files used for runtime validation.
           config.schemas_dir = File.join(OT::HOME, 'src', 'schemas')
+
+          # External schema references (Rhales 0.6.0+)
+          # Enables <schema src="..."> in .rue templates for single-source-of-truth patterns.
+          # Resolution order: template-relative first, then search paths in order.
+          config.schema_search_paths = [
+            File.join(OT::HOME, 'src', 'schemas', 'rhales'),
+          ]
+
+          # Use esbuild bundling for external schemas with imports
+          # Required when external .ts files import from other modules (e.g., zod)
+          config.schema_use_tsx_import = true
+          config.schema_tsconfig_path  = File.join(OT::HOME, 'tsconfig.json')
         end
       end
     end
