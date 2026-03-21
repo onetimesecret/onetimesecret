@@ -1,9 +1,12 @@
 // src/schemas/api/v3/responses/organizations.ts
 //
-// V3 JSON wire-format schemas for organization and member endpoints.
-// Timestamps use transforms.fromNumber.toDate so that .parse() returns
-// Date objects for the frontend while io:"input" still documents them
-// as numbers in OpenAPI.
+// V3 API response schemas for organization and member endpoints.
+//
+// NOTE: These schemas are response-specific, not entity shapes.
+// organizationRecord here includes response fields (entitlements, limits, domain_count)
+// not present in the canonical organization entity. memberRecord is a flattened
+// projection with computed fields (is_owner, is_current_user).
+// This is intentional — responses can extend entities with computed/context data.
 
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
@@ -39,7 +42,8 @@ const organizationRecord = z.object({
   description: z.string().nullish(),
   contact_email: z.string().nullish(),
   billing_email: z.string().nullish(),
-  is_default: z.boolean(),
+  // Backend may send null for is_default; transform to false for safety
+  is_default: z.boolean().nullish().transform((v) => v ?? false),
   created: transforms.fromNumber.toDate,
   updated: transforms.fromNumber.toDate,
   owner_extid: z.string().nullish(),

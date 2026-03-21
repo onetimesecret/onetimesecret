@@ -2,7 +2,7 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/v3/responses';
-import type { Customer } from '@/schemas/shapes/v2/customer';
+import type { CustomerRecord } from '@/schemas/shapes/v3/customer';
 import { loggingService } from '@/services/logging.service';
 import { createError } from '@/shared/composables/useAsyncHandler';
 import { AxiosInstance } from 'axios';
@@ -14,14 +14,14 @@ import { computed, handleError, inject, ref } from 'vue';
  */
 export type CustomerStore = {
   // State
-  currentCustomer: Customer | null;
+  currentCustomer: CustomerRecord | null;
   abortController: AbortController | null;
   _initialized: boolean;
 
   // Actions
   abort: () => void;
   fetch: () => Promise<void>;
-  updateCustomer: (updates: Partial<Customer>) => Promise<void>;
+  updateCustomer: (updates: Partial<CustomerRecord>) => Promise<void>;
   $reset: () => void;
 } & PiniaCustomProperties;
 
@@ -33,7 +33,7 @@ export const useCustomerStore = defineStore('customer', () => {
   const $api = inject('api') as AxiosInstance;
 
   // State
-  const currentCustomer = ref<Customer | null>(null);
+  const currentCustomer = ref<CustomerRecord | null>(null);
   const abortController = ref<AbortController | null>(null);
   const _initialized = ref(false);
 
@@ -81,7 +81,7 @@ export const useCustomerStore = defineStore('customer', () => {
       signal: abortController.value.signal,
     });
     const validated = responseSchemas.customer.parse(response.data);
-    currentCustomer.value = validated.record as Customer;
+    currentCustomer.value = validated.record as CustomerRecord;
   }
 
   /**
@@ -89,7 +89,7 @@ export const useCustomerStore = defineStore('customer', () => {
    * @param updates - Partial customer data to update.
    * @throws Will handle and set any errors encountered during the API call.
    */
-  async function updateCustomer(updates: Partial<Customer>) {
+  async function updateCustomer(updates: Partial<CustomerRecord>) {
     if (!currentCustomer.value?.objid) {
       // Use handleError instead of throwing directly
       throw createError('No current customer to update', 'human', 'error');
@@ -100,7 +100,7 @@ export const useCustomerStore = defineStore('customer', () => {
       updates
     );
     const validated = responseSchemas.customer.parse(response.data);
-    currentCustomer.value = validated.record as Customer;
+    currentCustomer.value = validated.record as CustomerRecord;
   }
 
   /**

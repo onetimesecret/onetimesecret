@@ -23,6 +23,25 @@ const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
 
   // show_recipients is a computed display flag added by receiptListRecord and receiptDetails.
   show_recipients: 'Display flag added in receiptListRecord and receiptDetails, not base',
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DEPRECATED FIELD ALIASES (V3 clean API exclusions)
+  // ─────────────────────────────────────────────────────────────────────────────
+  // V3 is the "clean" API without deprecated field aliases. Backend sends these
+  // for V2 backward compatibility, but V3 clients should use canonical names.
+  // See: lib/onetime/models/receipt/features/safe_dump_fields.rb lines 94-97
+
+  // Deprecated timestamp field aliases (use 'previewed' instead)
+  viewed: 'V3 clean API: use canonical "previewed" timestamp instead',
+
+  // Deprecated timestamp field aliases (use 'revealed' instead)
+  received: 'V3 clean API: use canonical "revealed" timestamp instead',
+
+  // Deprecated boolean aliases (use 'is_previewed' instead)
+  is_viewed: 'V3 clean API: use canonical "is_previewed" instead',
+
+  // Deprecated boolean aliases (use 'is_revealed' instead)
+  is_received: 'V3 clean API: use canonical "is_revealed" instead',
 };
 
 describe('Receipt schema contract (safe_dump_fields)', () => {
