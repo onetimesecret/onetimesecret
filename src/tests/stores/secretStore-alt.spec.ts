@@ -12,7 +12,7 @@ import {
   mockSecretRevealed,
 } from '../fixtures/receipt.fixture';
 import { setupTestPinia } from '../setup';
-import { setupWindowState, setupEmptyWindowState } from '../setupWindow';
+import { setupBootstrapMock, baseBootstrap } from '../setup-bootstrap';
 import AxiosMockAdapter from 'axios-mock-adapter';
 
 /**
@@ -107,9 +107,8 @@ describe('secretStore', () => {
   let useSecretStore;
 
   beforeEach(async () => {
-    // Set up window state first, before Pinia setup
-    const windowMock = setupEmptyWindowState();
-    vi.stubGlobal('window', windowMock);
+    // Setup bootstrap state with modern fixture (minimal state for this test)
+    setupBootstrapMock({ initialState: baseBootstrap });
 
     // Use the utility function to get app and other testing setup
     const setup = await setupTestPinia();

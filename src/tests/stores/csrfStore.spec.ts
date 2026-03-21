@@ -1,7 +1,7 @@
 // src/tests/stores/csrfStore.spec.ts
 
 import { setupTestPinia } from '../setup';
-import { setupWindowState } from '../setupWindow';
+import { setupBootstrapMock, baseBootstrap } from '../setup-bootstrap';
 
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -228,7 +228,8 @@ describe('CSRF Store', () => {
 
   describe('General coverage', () => {
     beforeEach(async () => {
-      vi.stubGlobal('window', setupWindowState()); // defaults to window fixture
+      // Setup bootstrap state with modern fixture (has shrimp: 'test-csrf-token')
+      setupBootstrapMock({ initialState: baseBootstrap });
 
       // Initialize the store
       store = useCsrfStore();

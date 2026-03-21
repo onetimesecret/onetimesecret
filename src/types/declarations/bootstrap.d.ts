@@ -1,5 +1,23 @@
 // src/types/declarations/bootstrap.d.ts
 
+/**
+ * Schema imports for bootstrap payload types.
+ *
+ * All imports currently use v2 shapes. Migration to v3 shapes requires:
+ *
+ * 1. Customer → CustomerRecord: V3 uses native types (number timestamps → Date),
+ *    but bootstrap stores expect the output type. Would need Zod parsing integration.
+ *
+ * 2. BrandSettings → BrandSettingsRecord: V3 has required boolean fields (via Zod
+ *    defaults), but bootstrapStore uses `{} as BrandSettings` which requires all
+ *    fields optional. V2 uses `.partial()` making all fields optional.
+ *
+ * 3. Config shapes (AuthenticationSettings, RegionsConfig, SecretOptions, Locale):
+ *    These are re-exported from shapes/config and i18n modules. No v3 equivalents
+ *    exist since they're configuration shapes, not entity shapes.
+ *
+ * TODO(#2686): Migrate to v3 shapes once bootstrap parsing integrates Zod validation.
+ */
 import {
   AuthenticationSettings,
   BrandSettings,
