@@ -635,6 +635,7 @@ internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
   default_locale: <%= ENV['I18N_DEFAULT_LOCALE'] || 'en' %>
   date_format: <%= ENV['I18N_DATE_FORMAT'] || 'locale' %>
+  datetime_format: <%= ENV['I18N_DATETIME_FORMAT'] || 'locale' %>
   fallback_locale:
     ca: [ca_ES, en]
     ca-ES: [ca_ES, en]

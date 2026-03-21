@@ -65,14 +65,6 @@ export function ttlToNaturalLanguage(val: unknown): string | null {
 }
 
 /**
- * Returns the configured date format preference.
- * Falls back to 'locale' (browser-native) when not configured.
- */
-function getDateFormat(): string {
-  return getBootstrapValue('date_format') ?? 'locale';
-}
-
-/**
  * Format a Date object as ISO8601 date only: yyyy-MM-dd
  */
 export const formatISODate = (date: Date): string => format(date, 'yyyy-MM-dd');
@@ -83,32 +75,60 @@ export const formatISODate = (date: Date): string => format(date, 'yyyy-MM-dd');
 export const formatISODateTime = (date: Date): string => format(date, 'yyyy-MM-dd HH:mm:ss');
 
 /**
+ * Apply a format setting to a Date.
+ *
+ * @param date - The Date to format
+ * @param setting - One of:
+ *   - 'locale': browser-native formatting via the provided fallback
+ *   - 'iso8601': ISO 8601 with the provided pattern
+ *   - any other string: a date-fns format pattern (e.g. 'dd/MM/yyyy')
+ * @param isoPattern - The ISO 8601 pattern to use when setting is 'iso8601'
+ * @param localeFn - Function that produces the browser-native string
+ */
+function applyDateFormat(
+  date: Date,
+  setting: string,
+  isoPattern: string,
+  localeFn: (d: Date) => string,
+): string {
+  if (setting === 'locale') return localeFn(date);
+  if (setting === 'iso8601') return format(date, isoPattern);
+  return format(date, setting);
+}
+
+/**
  * Format a Date as a date-only string, respecting the configured date_format.
- * - 'locale': Browser-native locale formatting
+ *
+ * Accepts:
+ * - 'locale' (default): browser-native toLocaleDateString()
  * - 'iso8601': yyyy-MM-dd
+ * - A date-fns format pattern: e.g. 'dd/MM/yyyy', 'MMM d, yyyy', 'EEEE, MMMM do yyyy'
+ *
+ * @see https://date-fns.org/docs/format
  */
 export const formatDisplayDate = (date: Date): string => {
-  if (getDateFormat() === 'iso8601') {
-    return formatISODate(date);
-  }
-  return date.toLocaleDateString();
+  const setting = getBootstrapValue('date_format') ?? 'locale';
+  return applyDateFormat(date, setting, 'yyyy-MM-dd', (d) => d.toLocaleDateString());
 };
 
 /**
- * Format a Date as a date+time string, respecting the configured date_format.
- * - 'locale': Browser-native locale formatting
+ * Format a Date as a date+time string, respecting the configured datetime_format.
+ *
+ * Accepts:
+ * - 'locale' (default): browser-native toLocaleString()
  * - 'iso8601': yyyy-MM-dd HH:mm:ss
+ * - A date-fns format pattern: e.g. 'dd/MM/yyyy HH:mm:ss', 'MMM d, yyyy h:mm a'
+ *
+ * @see https://date-fns.org/docs/format
  */
 export const formatDisplayDateTime = (date: Date): string => {
-  if (getDateFormat() === 'iso8601') {
-    return formatISODateTime(date);
-  }
-  return date.toLocaleString();
+  const setting = getBootstrapValue('datetime_format') ?? 'locale';
+  return applyDateFormat(date, setting, 'yyyy-MM-dd HH:mm:ss', (d) => d.toLocaleString());
 };
 
 /**
  * Format a date value (seconds/string) to a display string,
- * respecting the configured date_format.
+ * respecting the configured datetime_format.
  */
 export const formatDate = (val: unknown): string => {
   const date = parseDateValue(val);

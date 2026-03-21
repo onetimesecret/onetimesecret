@@ -130,10 +130,19 @@ export interface BootstrapPayload {
 
   /**
    * Date display format preference.
-   * - 'locale': Browser-native locale formatting (toLocaleString / Intl.DateTimeFormat)
-   * - 'iso8601': ISO 8601 format (yyyy-MM-dd / yyyy-MM-dd HH:mm:ss)
+   * - 'locale': Browser-native locale formatting (toLocaleDateString)
+   * - 'iso8601': ISO 8601 format (yyyy-MM-dd)
+   * - Any other string: date-fns format pattern (e.g. 'dd/MM/yyyy', 'MMM d, yyyy')
    */
-  date_format: 'locale' | 'iso8601';
+  date_format: string;
+
+  /**
+   * DateTime display format preference.
+   * - 'locale': Browser-native locale formatting (toLocaleString)
+   * - 'iso8601': ISO 8601 format (yyyy-MM-dd HH:mm:ss)
+   * - Any other string: date-fns format pattern (e.g. 'dd/MM/yyyy HH:mm:ss')
+   */
+  datetime_format: string;
 
   ot_version: string;
   ot_version_long: string;

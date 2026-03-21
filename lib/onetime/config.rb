@@ -95,6 +95,7 @@ module Onetime
           'enabled' => false,
           'default_locale' => 'en',
           'date_format' => 'locale',
+          'datetime_format' => 'locale',
         },
         'mail' => {},
         'diagnostics' => {
