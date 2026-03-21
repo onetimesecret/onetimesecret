@@ -3,5 +3,10 @@
 // Contract schemas for data validation at system boundaries.
 
 export * from './config';
+export * from './custom-domain';
+export * from './customer';
+export * from './feedback';
+export * from './organization';
+export * from './organization-membership';
 export * from './receipt';
 export * from './secret';
