@@ -94,7 +94,7 @@ site:
       # These links appear in the footer of each page
       footer_links:
         # Global toggle to enable/disable all footer links
-        enabled: <%= ENV['FOOTER_LINKS'] == 'true' || false %>
+        enabled: <%= ENV['FOOTER_LINKS'] != 'false' %>
         # Organized groups of links
         groups:
           - name: legal

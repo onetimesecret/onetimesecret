@@ -26,7 +26,7 @@
   const { t, locale } = useI18n();
   const route = useRoute();
   const bootstrapStore = useBootstrapStore();
-  const { ot_version, ot_version_long, domains_enabled, support_host } = storeToRefs(bootstrapStore);
+  const { ot_version, ot_version_long, domains_enabled, support_host, ui } = storeToRefs(bootstrapStore);
 
   // Store instances for counts
   const receiptListStore = useReceiptListStore();
@@ -179,7 +179,7 @@
     <div class="container mx-auto max-w-4xl px-4">
       <!-- Footer Links Section -->
       <div
-        v-if="displayFooterLinks"
+        v-if="displayFooterLinks && ui?.footer_links?.enabled !== false"
         class="mb-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
         <template
           v-for="link in footerLinks"
