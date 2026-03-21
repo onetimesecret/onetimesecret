@@ -889,11 +889,11 @@ describe('V3 List Schemas', () => {
     it('parses list details with both received and notreceived arrays', () => {
       const receivedWire = createV3WireReceiptBase(createCanonicalReceiptBase({
         state: 'revealed',
-        identifier: 'rcpt:received1',
+        identifier: 'x1y2z3a4b5c6',
       }));
       const notReceivedWire = createV3WireReceiptBase(createCanonicalReceiptBase({
         state: 'new',
-        identifier: 'rcpt:pending1',
+        identifier: 'm9n8o7p6q5r4',
       }));
 
       const wire = {
@@ -911,8 +911,8 @@ describe('V3 List Schemas', () => {
 
       expect(parsed.received).toHaveLength(1);
       expect(parsed.notreceived).toHaveLength(1);
-      expect(parsed.received![0].identifier).toBe('rcpt:received1');
-      expect(parsed.notreceived![0].identifier).toBe('rcpt:pending1');
+      expect(parsed.received![0].identifier).toBe('x1y2z3a4b5c6');
+      expect(parsed.notreceived![0].identifier).toBe('m9n8o7p6q5r4');
     });
 
     it('handles nullish scope fields', () => {
