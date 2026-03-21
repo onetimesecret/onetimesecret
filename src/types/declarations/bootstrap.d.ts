@@ -131,16 +131,26 @@ export interface BootstrapPayload {
   /**
    * Date display format preference.
    * - 'locale': Browser-native locale formatting (toLocaleDateString)
-   * - 'iso8601': ISO 8601 format (yyyy-MM-dd)
-   * - Any other string: date-fns format pattern (e.g. 'dd/MM/yyyy', 'MMM d, yyyy')
+   * - 'iso8601': yyyy-MM-dd
+   * - 'us': MM/dd/yyyy
+   * - 'eu': dd/MM/yyyy
+   * - 'eu-dot': dd.MM.yyyy
+   * - 'uk': dd MMM yyyy
+   * - 'long': MMMM d, yyyy
+   * - Any other string: a raw date-fns format pattern
    */
   date_format: string;
 
   /**
    * DateTime display format preference.
    * - 'locale': Browser-native locale formatting (toLocaleString)
-   * - 'iso8601': ISO 8601 format (yyyy-MM-dd HH:mm:ss)
-   * - Any other string: date-fns format pattern (e.g. 'dd/MM/yyyy HH:mm:ss')
+   * - 'iso8601': yyyy-MM-dd HH:mm
+   * - 'us': MM/dd/yyyy h:mm a
+   * - 'eu': dd/MM/yyyy HH:mm
+   * - 'eu-dot': dd.MM.yyyy HH:mm
+   * - 'uk': dd MMM yyyy HH:mm
+   * - 'long': MMMM d, yyyy h:mm a
+   * - Any other string: a raw date-fns format pattern
    */
   datetime_format: string;
 

@@ -75,25 +75,45 @@ export const formatISODate = (date: Date): string => format(date, 'yyyy-MM-dd');
 export const formatISODateTime = (date: Date): string => format(date, 'yyyy-MM-dd HH:mm:ss');
 
 /**
- * Apply a format setting to a Date.
+ * Regional date format presets.
  *
- * @param date - The Date to format
- * @param setting - One of:
- *   - 'locale': browser-native formatting via the provided fallback
- *   - 'iso8601': ISO 8601 with the provided pattern
- *   - any other string: a date-fns format pattern (e.g. 'dd/MM/yyyy')
- * @param isoPattern - The ISO 8601 pattern to use when setting is 'iso8601'
- * @param localeFn - Function that produces the browser-native string
+ * These shorthand keywords resolve to date-fns format patterns so that
+ * operators don't need to memorize token syntax. Each entry provides a
+ * date-only pattern and a date+time pattern.
+ *
+ *  Keyword   | Date           | DateTime                | Region
+ *  ----------|----------------|-------------------------|---------------------------
+ *  iso8601   | 2026-03-21     | 2026-03-21 14:30        | International / technical
+ *  us        | 03/21/2026     | 03/21/2026 2:30 PM      | United States
+ *  eu        | 21/03/2026     | 21/03/2026 14:30        | Most of Europe (slash)
+ *  eu-dot    | 21.03.2026     | 21.03.2026 14:30        | Germany, Austria, CH, etc.
+ *  uk        | 21 Mar 2026    | 21 Mar 2026 14:30       | UK / Commonwealth
+ *  long      | March 21, 2026 | March 21, 2026 2:30 PM  | Formal / editorial
  */
-function applyDateFormat(
-  date: Date,
+const DATE_FORMAT_PRESETS: Record<string, { date: string; datetime: string }> = {
+  iso8601:  { date: 'yyyy-MM-dd',    datetime: 'yyyy-MM-dd HH:mm' },
+  us:       { date: 'MM/dd/yyyy',    datetime: 'MM/dd/yyyy h:mm a' },
+  eu:       { date: 'dd/MM/yyyy',    datetime: 'dd/MM/yyyy HH:mm' },
+  'eu-dot': { date: 'dd.MM.yyyy',    datetime: 'dd.MM.yyyy HH:mm' },
+  uk:       { date: 'dd MMM yyyy',   datetime: 'dd MMM yyyy HH:mm' },
+  long:     { date: 'MMMM d, yyyy',  datetime: 'MMMM d, yyyy h:mm a' },
+};
+
+/**
+ * Resolve a format setting to a date-fns pattern string.
+ *
+ * @param setting - 'locale', a preset keyword, or a raw date-fns pattern
+ * @param variant - Whether to resolve the 'date' or 'datetime' pattern
+ * @returns The resolved pattern, or null when 'locale' (caller uses browser-native)
+ */
+function resolveFormatPattern(
   setting: string,
-  isoPattern: string,
-  localeFn: (d: Date) => string,
-): string {
-  if (setting === 'locale') return localeFn(date);
-  if (setting === 'iso8601') return format(date, isoPattern);
-  return format(date, setting);
+  variant: 'date' | 'datetime',
+): string | null {
+  if (setting === 'locale') return null;
+  const preset = DATE_FORMAT_PRESETS[setting];
+  if (preset) return preset[variant];
+  return setting; // raw date-fns pattern
 }
 
 /**
@@ -101,14 +121,15 @@ function applyDateFormat(
  *
  * Accepts:
  * - 'locale' (default): browser-native toLocaleDateString()
- * - 'iso8601': yyyy-MM-dd
- * - A date-fns format pattern: e.g. 'dd/MM/yyyy', 'MMM d, yyyy', 'EEEE, MMMM do yyyy'
+ * - A preset keyword: 'iso8601', 'us', 'eu', 'eu-dot', 'uk', 'long'
+ * - A date-fns format pattern: e.g. 'dd/MM/yyyy', 'EEEE, MMMM do yyyy'
  *
  * @see https://date-fns.org/docs/format
  */
 export const formatDisplayDate = (date: Date): string => {
   const setting = getBootstrapValue('date_format') ?? 'locale';
-  return applyDateFormat(date, setting, 'yyyy-MM-dd', (d) => d.toLocaleDateString());
+  const pattern = resolveFormatPattern(setting, 'date');
+  return pattern ? format(date, pattern) : date.toLocaleDateString();
 };
 
 /**
@@ -116,14 +137,15 @@ export const formatDisplayDate = (date: Date): string => {
  *
  * Accepts:
  * - 'locale' (default): browser-native toLocaleString()
- * - 'iso8601': yyyy-MM-dd HH:mm:ss
+ * - A preset keyword: 'iso8601', 'us', 'eu', 'eu-dot', 'uk', 'long'
  * - A date-fns format pattern: e.g. 'dd/MM/yyyy HH:mm:ss', 'MMM d, yyyy h:mm a'
  *
  * @see https://date-fns.org/docs/format
  */
 export const formatDisplayDateTime = (date: Date): string => {
   const setting = getBootstrapValue('datetime_format') ?? 'locale';
-  return applyDateFormat(date, setting, 'yyyy-MM-dd HH:mm:ss', (d) => d.toLocaleString());
+  const pattern = resolveFormatPattern(setting, 'datetime');
+  return pattern ? format(date, pattern) : date.toLocaleString();
 };
 
 /**

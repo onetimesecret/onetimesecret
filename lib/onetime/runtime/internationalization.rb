@@ -17,8 +17,8 @@ module Onetime
       :default_locale,      # Default locale code (e.g., 'en')
       :fallback_locale,     # Fallback locale when translation missing
       :locales,             # Hash of loaded locale definitions
-      :date_format,         # Date display format: 'locale', 'iso8601', or a date-fns pattern (e.g. 'dd/MM/yyyy')
-      :datetime_format,     # DateTime display format: 'locale', 'iso8601', or a date-fns pattern (e.g. 'dd/MM/yyyy HH:mm:ss')
+      :date_format,         # Date display format: 'locale', 'iso8601', 'us', 'eu', 'eu-dot', 'uk', 'long', or a date-fns pattern
+      :datetime_format,     # DateTime display format: same keywords as date_format, or a date-fns pattern
     ) do
       # Factory method for default state
       #
