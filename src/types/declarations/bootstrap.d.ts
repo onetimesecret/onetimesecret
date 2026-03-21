@@ -20,12 +20,25 @@ import { DiagnosticsConfig } from '../diagnostics';
  * each time a full page load is performed.
  *
  * The corresponding Ruby backend code can be found in:
- * lib/onetime/app/web/views/base.rb
+ * apps/web/core/views/serializers/
  *
  * Implementation:
- * - Backend injects data via JSON <script> tag in the HTML header
+ * - Backend serializers produce data (see SerializerRegistry)
+ * - Rhales injects via JSON <script> tag in the HTML header
  * - Properties are added to window.__BOOTSTRAP_STATE__
  * - This declaration file enables TypeScript type checking and IDE support
+ *
+ * Schema Principle:
+ * Bootstrap is internal communication between our backend and frontend —
+ * we have 100% control over both sides. Therefore:
+ * - Use modern v3 shapes with native types (boolean, number, Date)
+ * - No string-encoded booleans or legacy field names
+ * - No backwards compatibility layers or deprecation shims
+ * - Keep fields current; remove unused fields promptly
+ *
+ * When adding/modifying fields, update both:
+ * - This file (frontend types)
+ * - The relevant serializer in apps/web/core/views/serializers/
  */
 
 type Message = { type: 'success' | 'error' | 'info'; content: string };
