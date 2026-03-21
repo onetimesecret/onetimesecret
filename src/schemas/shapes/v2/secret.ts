@@ -1,4 +1,4 @@
-// src/schemas/models/secret.ts
+// src/schemas/shapes/v2/secret.ts
 //
 // V2 wire-format schemas for secrets.
 // Derives from canonical schemas, adding V2-specific string transforms.

@@ -5,7 +5,7 @@
 
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import OnetimeSecretIcon from '@/shared/components/icons/OnetimeSecretIcon.vue';
-  import type { Jurisdiction } from '@/schemas/shapes/v2/jurisdiction';
+  import type { Jurisdiction } from '@/schemas/shapes/config/jurisdiction';
   import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
   import type { LogoConfig } from '@/types/ui/layouts';
   import { onKeyStroke, useEventListener } from '@vueuse/core';

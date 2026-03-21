@@ -42,7 +42,7 @@ import { customDomainSchema } from './shapes/v2/custom-domain';
 import { secretSchema, secretDetailsSchema, secretStateSchema } from './shapes/v2/secret';
 import { receiptSchema, receiptDetailsSchema, receiptStateSchema } from './shapes/v2/receipt';
 import { feedbackSchema } from './shapes/v2/feedback';
-import { organizationSchema } from './shapes/v2/organization';
+import { organizationSchema } from './shapes/organizations/organization';
 
 // =============================================================================
 // API v3 Schemas

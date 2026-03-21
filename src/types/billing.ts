@@ -3,7 +3,7 @@
 /**
  * Billing and subscription type definitions
  *
- * Types are derived from Zod schemas in @/schemas/shapes/v2/billing.
+ * Types are derived from Zod schemas in @/schemas/shapes/account/billing.
  * This file re-exports them and provides helper functions for display.
  */
 
@@ -29,7 +29,7 @@ export {
   type PlanType,
   type Subscription,
   type SubscriptionStatus,
-} from '@/schemas/shapes/v2/billing';
+} from '@/schemas/shapes/account/billing';
 
 /**
  * Legacy plan detection
@@ -72,7 +72,7 @@ export function getLegacyPlanInfo(
 /**
  * Display helpers
  */
-import type { InvoiceStatus, PlanType, SubscriptionStatus } from '@/schemas/shapes/v2/billing';
+import type { InvoiceStatus, PlanType, SubscriptionStatus } from '@/schemas/shapes/account/billing';
 import type { ComposerTranslation } from 'vue-i18n';
 
 export function getPlanLabel(planType: PlanType | string): string {

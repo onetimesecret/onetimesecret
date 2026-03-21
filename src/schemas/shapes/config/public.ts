@@ -1,4 +1,4 @@
-// src/schemas/models/public.ts
+// src/schemas/shapes/config/public.ts
 
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';

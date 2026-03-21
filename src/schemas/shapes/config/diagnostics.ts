@@ -1,4 +1,4 @@
-// src/schemas/models/diagnostics.ts
+// src/schemas/shapes/config/diagnostics.ts
 
 /**
  * Runtime Diagnostics Configuration Schema
