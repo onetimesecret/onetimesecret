@@ -1,4 +1,4 @@
-// src/schemas/models/billing.ts
+// src/schemas/shapes/account/billing.ts
 
 /**
  * Billing Zod schemas and derived types

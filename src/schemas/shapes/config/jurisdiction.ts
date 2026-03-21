@@ -1,4 +1,4 @@
-// src/schemas/models/jurisdiction.ts
+// src/schemas/shapes/config/jurisdiction.ts
 
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';

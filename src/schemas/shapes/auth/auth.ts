@@ -1,4 +1,4 @@
-// src/schemas/models/auth.ts
+// src/schemas/shapes/auth/auth.ts
 
 /**
  * Authentication Zod schemas and derived types

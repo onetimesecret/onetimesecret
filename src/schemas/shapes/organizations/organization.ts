@@ -1,4 +1,4 @@
-// src/schemas/models/organization.ts
+// src/schemas/shapes/organizations/organization.ts
 
 /**
  * Organization Zod schemas and derived types

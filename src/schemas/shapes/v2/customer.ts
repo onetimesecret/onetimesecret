@@ -1,4 +1,4 @@
-// src/schemas/models/customer.ts
+// src/schemas/shapes/v2/customer.ts
 
 import { transforms } from '@/schemas/transforms';
 import { withFeatureFlags } from '@/schemas/utils/feature_flags';

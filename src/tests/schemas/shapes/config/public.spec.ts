@@ -1,4 +1,4 @@
-// src/tests/schemas/models/public.spec.ts
+// src/tests/schemas/shapes/config/public.spec.ts
 
 //
 // Tests for publicSecretOptionsSchema covering various configurations
@@ -9,7 +9,7 @@ import {
   publicSecretOptionsSchema,
   publicAuthenticationSchema,
   type SecretOptions,
-} from '@/schemas/shapes/v2/public';
+} from '@/schemas/shapes/config/public';
 
 describe('publicSecretOptionsSchema', () => {
   describe('default values', () => {
