@@ -1,115 +1,73 @@
 // src/types/declarations/bootstrap.d.ts
+//
+// TypeScript declarations for server-injected bootstrap state.
+//
+// UI-specific types (Footer, Header, Message, etc.) are derived from the Zod
+// schema at @/schemas/bootstrap.schema.ts using z.infer<>.
+//
+// Shared entity types (Customer, BrandSettings, etc.) continue to use v2 shapes
+// for compatibility with the rest of the codebase.
 
-/**
- * Schema imports for bootstrap payload types.
- *
- * All imports currently use v2 shapes. Migration to v3 shapes requires:
- *
- * 1. Customer → CustomerRecord: V3 uses native types (number timestamps → Date),
- *    but bootstrap stores expect the output type. Would need Zod parsing integration.
- *
- * 2. BrandSettings → BrandSettingsRecord: V3 has required boolean fields (via Zod
- *    defaults), but bootstrapStore uses `{} as BrandSettings` which requires all
- *    fields optional. V2 uses `.partial()` making all fields optional.
- *
- * 3. Config shapes (AuthenticationSettings, RegionsConfig, SecretOptions, Locale):
- *    These are re-exported from shapes/config and i18n modules. No v3 equivalents
- *    exist since they're configuration shapes, not entity shapes.
- *
- * TODO(#2686): Migrate to v3 shapes once bootstrap parsing integrates Zod validation.
- */
+// Re-export UI types from the Zod schema (single source of truth)
+export type {
+  FooterLink,
+  FooterGroup,
+  FooterLinksConfig,
+  HeaderLogo,
+  HeaderBranding,
+  HeaderNavigation,
+  HeaderConfig,
+  UiInterface,
+  LocaleInfo,
+  Message,
+  DevelopmentConfig,
+  SSOProvider,
+  SSOConfig,
+  Features,
+  Organization,
+} from '@/schemas/bootstrap.schema';
+
+// Re-export validation utilities
+export {
+  bootstrapUiSchema,
+  parseBootstrapUi,
+  BOOTSTRAP_UI_DEFAULTS,
+} from '@/schemas/bootstrap.schema';
+
+// Import shared types from v2 shapes (these have complex transforms)
 import {
   AuthenticationSettings,
   BrandSettings,
   Customer,
-  Locale,
   RegionsConfig,
   SecretOptions,
 } from '@/schemas/shapes/v2';
+import type { Locale } from '@/schemas/i18n/locale';
 import { Stripe } from 'stripe';
 import { FallbackLocale } from 'vue-i18n';
 
 import { DiagnosticsConfig } from '../diagnostics';
 
+// Re-export for backward compatibility
+export type {
+  AuthenticationSettings,
+  BrandSettings,
+  Customer,
+  RegionsConfig,
+  SecretOptions,
+};
+export type { DiagnosticsConfig };
+
 /**
- * TypeScript declarations for custom window properties injected by
- * the Ruby backend. These properties are used to pass data from the
- * backend to the frontend. The properties are added to the window object
- * each time a full page load is performed.
+ * BootstrapPayload is the canonical type for server-injected state.
  *
- * The corresponding Ruby backend code can be found in:
+ * This interface uses:
+ * - UI types from @/schemas/bootstrap.schema (FooterLinksConfig, UiInterface, etc.)
+ * - Entity types from @/schemas/shapes/v2 (Customer, BrandSettings, etc.)
+ * - Config types from @/types/diagnostics (DiagnosticsConfig)
+ *
+ * The corresponding Ruby backend code is in:
  * apps/web/core/views/serializers/
- *
- * Implementation:
- * - Backend serializers produce data (see SerializerRegistry)
- * - Rhales injects via JSON <script> tag in the HTML header
- * - Properties are added to window.__BOOTSTRAP_STATE__
- * - This declaration file enables TypeScript type checking and IDE support
- *
- * Schema Principle:
- * Bootstrap is internal communication between our backend and frontend —
- * we have 100% control over both sides. Therefore:
- * - Use modern v3 shapes with native types (boolean, number, Date)
- * - No string-encoded booleans or legacy field names
- * - No backwards compatibility layers or deprecation shims
- * - Keep fields current; remove unused fields promptly
- *
- * When adding/modifying fields, update both:
- * - This file (frontend types)
- * - The relevant serializer in apps/web/core/views/serializers/
- */
-
-type Message = { type: 'success' | 'error' | 'info'; content: string };
-
-export interface FooterLink {
-  text?: string;
-  i18n_key?: string;
-  url: string;
-  external?: boolean;
-  icon?: string;
-}
-
-export interface FooterGroup {
-  name?: string;
-  i18n_key?: string;
-  links: FooterLink[];
-}
-
-export interface FooterLinksConfig {
-  enabled: boolean;
-  groups: FooterGroup[];
-}
-
-export interface HeaderLogo {
-  url: string;
-  alt: string;
-  link_to: string;
-}
-
-export interface HeaderBranding {
-  logo: HeaderLogo;
-  site_name?: string;
-}
-
-export interface HeaderNavigation {
-  enabled: boolean;
-}
-
-export interface HeaderConfig {
-  enabled: boolean;
-  branding?: HeaderBranding;
-  navigation?: HeaderNavigation;
-}
-
-export interface UiInterface {
-  enabled: boolean;
-  header?: HeaderConfig;
-  footer_links?: FooterLinksConfig;
-}
-
-/**
- * BootstrapPayload is the canonical type name for server-injected state.
- * BootstrapPayload is preserved as an alias for backwards compatibility.
  */
 export interface BootstrapPayload {
   apitoken?: string;
@@ -195,7 +153,7 @@ export interface BootstrapPayload {
   support_host: string;
   stripe_customer?: Stripe.Customer;
   stripe_subscriptions?: Stripe.Subscriptions[];
-  authentication: AuthenticationSettings; // TODO: May need to offer default values
+  authentication: AuthenticationSettings;
   secret_options: SecretOptions;
 
   regions: RegionsConfig;
@@ -228,53 +186,18 @@ export interface BootstrapPayload {
   /** User's preferred domain context from session (server-side preference) */
   domain_context?: string | null;
 
-  messages: Message[];
+  // UI types from schema
+  messages: import('@/schemas/bootstrap.schema').Message[];
 
   d9s_enabled: boolean;
   diagnostics: DiagnosticsConfig;
 
   /** Development mode configuration */
-  development?: {
-    enabled: boolean;
-    /** When true, enables domain context override feature in Colonel */
-    domain_context_enabled: boolean;
-  };
+  development?: import('@/schemas/bootstrap.schema').DevelopmentConfig;
 
-  features: {
-    markdown: boolean;
-    /** Multi-factor authentication (TOTP + recovery codes) */
-    mfa?: boolean;
-    /** Account lockout after failed login attempts */
-    lockout?: boolean;
-    /** Password complexity requirements enforcement */
-    password_requirements?: boolean;
-    /** Email-based authentication (magic links) */
-    email_auth?: boolean;
-    /** WebAuthn/passkey authentication */
-    webauthn?: boolean;
-    /**
-     * SSO authentication via external identity providers (Entra ID, Google, GitHub, etc.).
-     * Can be boolean (false when disabled) or object with config when enabled.
-     */
-    sso?: boolean | {
-      enabled: boolean;
-      /** Configured SSO providers. Each entry has route_name and display_name. */
-      providers?: Array<{
-        route_name: string;
-        display_name: string;
-      }>;
-    };
-    /**
-     * SSO-only mode. When true, password-based auth routes are disabled
-     * and the sign-in page shows only SSO provider buttons.
-     * This is a no-op when SSO is not enabled (sso feature is falsy).
-     */
-    sso_only?: boolean;
-    /** @deprecated Use email_auth instead */
-    magic_links?: boolean;
-  };
+  features: import('@/schemas/bootstrap.schema').Features;
 
-  ui: UiInterface;
+  ui: import('@/schemas/bootstrap.schema').UiInterface;
 
   /**
    * Entitlement test mode (colonel only)
@@ -288,24 +211,5 @@ export interface BootstrapPayload {
    * Current user's organization (when authenticated)
    * Populated by OrganizationSerializer from OrganizationLoader context
    */
-  organization?: {
-    /** Internal organization ID (use for store lookups, Vue :key) */
-    id: string;
-    /** External organization ID (use for API paths, URLs) */
-    extid: string;
-    /** Display name for the organization */
-    display_name: string;
-    /** Whether this is the user's default workspace */
-    is_default: boolean;
-    /** Plan identifier for entitlement checks */
-    planid?: string | null;
-    /** Current user's role in this organization */
-    current_user_role?: 'owner' | 'admin' | 'member' | null;
-  } | null;
+  organization?: import('@/schemas/bootstrap.schema').Organization;
 }
-
-/**
- * BootstrapPayload is the preferred type name for server-injected state.
- * Alias for BootstrapPayload - use either interchangeably.
- */
-export type BootstrapPayload = BootstrapPayload;

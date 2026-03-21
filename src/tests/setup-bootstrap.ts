@@ -19,15 +19,26 @@ import { vi } from 'vitest';
  * Use this as a foundation and override specific properties as needed.
  */
 export const baseBootstrap: BootstrapPayload = {
+  // Authentication state
   authenticated: false,
   awaiting_mfa: false,
   had_valid_session: false,
-  baseuri: 'https://test.onetimesecret.com',
+  has_password: false,
+
+  // User identity (empty for anonymous)
   cust: null,
   custid: '',
-  domains_enabled: false,
   email: '',
+  customer_since: undefined,
+
+  // API access (optional)
+  apitoken: undefined,
+
+  // URLs and hosts
+  baseuri: 'https://test.onetimesecret.com',
   frontend_host: 'https://test.onetimesecret.com',
+  site_host: 'test.onetimesecret.com',
+  support_host: 'support.onetimesecret.com',
 
   // i18n
   i18n_enabled: true,
@@ -44,12 +55,12 @@ export const baseBootstrap: BootstrapPayload = {
   // Feature flags
   billing_enabled: true,
   regions_enabled: false,
+  domains_enabled: false,
 
   // Security
   shrimp: 'test-csrf-token',
 
   // Domain configuration
-  site_host: 'test.onetimesecret.com',
   canonical_domain: 'test.onetimesecret.com',
   domain_strategy: 'canonical',
   domain_id: '',
@@ -65,6 +76,14 @@ export const baseBootstrap: BootstrapPayload = {
     primary_color: '#36454F',
   },
   domain_logo: null,
+  domain_context: undefined,
+  custom_domains: undefined,
+
+  // Homepage mode (null = normal, 'external' | 'internal' for special modes)
+  homepage_mode: undefined,
+
+  // Global banner (optional HTML content)
+  global_banner: undefined,
 
   // Authentication settings
   authentication: {
@@ -109,6 +128,20 @@ export const baseBootstrap: BootstrapPayload = {
   ui: {
     enabled: true,
   },
+
+  // Development mode configuration (optional)
+  development: undefined,
+
+  // Organization (optional, only for authenticated users)
+  organization: undefined,
+
+  // Entitlement testing (colonel only)
+  entitlement_test_planid: undefined,
+  entitlement_test_plan_name: undefined,
+
+  // Stripe billing (optional, loaded separately)
+  stripe_customer: undefined,
+  stripe_subscriptions: undefined,
 };
 
 /**

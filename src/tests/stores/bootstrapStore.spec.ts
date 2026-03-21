@@ -891,4 +891,55 @@ describe('bootstrapStore', () => {
       expect(store.organization?.planid).toBe('enterprise');
     });
   });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SCHEMA CONSISTENCY TESTS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  describe('Schema Consistency', () => {
+    /**
+     * The bootstrap schema (bootstrap.schema.ts) defines BOOTSTRAP_UI_DEFAULTS
+     * for UI-specific fields. The store DEFAULTS must remain consistent with
+     * these schema defaults for overlapping fields.
+     *
+     * This test ensures the two sources don't drift apart.
+     */
+    it('store DEFAULTS match schema BOOTSTRAP_UI_DEFAULTS for overlapping fields', async () => {
+      const { BOOTSTRAP_UI_DEFAULTS } = await import('@/schemas/bootstrap.schema');
+
+      // Create fresh store to verify initial DEFAULTS
+      await setupTestPinia();
+      const freshStore = useBootstrapStore();
+
+      // UI configuration
+      expect(freshStore.ui.enabled).toBe(BOOTSTRAP_UI_DEFAULTS.ui.enabled);
+
+      // Messages (both should default to empty array)
+      expect(freshStore.messages).toEqual(BOOTSTRAP_UI_DEFAULTS.messages);
+
+      // Features
+      expect(freshStore.features.markdown).toBe(BOOTSTRAP_UI_DEFAULTS.features.markdown);
+
+      // Locale defaults
+      expect(freshStore.default_locale).toBe(BOOTSTRAP_UI_DEFAULTS.default_locale);
+      expect(freshStore.supported_locales).toEqual(BOOTSTRAP_UI_DEFAULTS.supported_locales);
+
+      // Development (both undefined by default)
+      expect(freshStore.development).toBe(BOOTSTRAP_UI_DEFAULTS.development);
+
+      // Organization (both undefined by default)
+      expect(freshStore.organization).toBe(BOOTSTRAP_UI_DEFAULTS.organization);
+    });
+
+    it('schema defaults represent valid BootstrapPayload subset', async () => {
+      const { BOOTSTRAP_UI_DEFAULTS, bootstrapUiSchema } = await import(
+        '@/schemas/bootstrap.schema'
+      );
+
+      // Parsing an empty object should produce the same defaults
+      const parsedDefaults = bootstrapUiSchema.parse({});
+
+      expect(parsedDefaults).toEqual(BOOTSTRAP_UI_DEFAULTS);
+    });
+  });
 });
