@@ -440,6 +440,30 @@ describe('Boolean Edge Cases', () => {
       const parsed = secretSchema.parse(wire);
       expect(parsed.has_passphrase).toBe(expected);
     });
+
+    it('V2 parseBoolean coerces null to false', () => {
+      const wire = createV2WireSecret(createCanonicalSecretWithTimestamps());
+      (wire as Record<string, unknown>).has_passphrase = null;
+
+      const parsed = secretSchema.parse(wire);
+      expect(parsed.has_passphrase).toBe(false);
+    });
+
+    it('V2 parseBoolean coerces undefined to false', () => {
+      const wire = createV2WireSecret(createCanonicalSecretWithTimestamps());
+      (wire as Record<string, unknown>).has_passphrase = undefined;
+
+      const parsed = secretSchema.parse(wire);
+      expect(parsed.has_passphrase).toBe(false);
+    });
+
+    it('V2 parseBoolean coerces empty string to false', () => {
+      const wire = createV2WireSecret(createCanonicalSecretWithTimestamps());
+      (wire as Record<string, unknown>).has_passphrase = '';
+
+      const parsed = secretSchema.parse(wire);
+      expect(parsed.has_passphrase).toBe(false);
+    });
   });
 
   describe('V3 native boolean', () => {
@@ -452,6 +476,86 @@ describe('Boolean Edge Cases', () => {
 
       const parsed = secretRecord.parse(wire);
       expect(parsed.has_passphrase).toBe(expected);
+    });
+
+    it('V3 rejects null for has_passphrase (strict boolean)', () => {
+      const wire = createV3WireSecret(createCanonicalSecretWithTimestamps());
+      (wire as Record<string, unknown>).has_passphrase = null;
+
+      // V3 secret schema expects native boolean, not nullable
+      expect(() => secretRecord.parse(wire)).toThrow();
+    });
+  });
+
+  describe('null vs false distinction in roundtrip', () => {
+    it('V2 explicit false roundtrips to false', () => {
+      const canonical = createCanonicalSecretWithTimestamps({ has_passphrase: false });
+      const wire = createV2WireSecret(canonical);
+      const parsed = secretSchema.parse(wire);
+
+      expect(parsed.has_passphrase).toBe(false);
+      expect(typeof parsed.has_passphrase).toBe('boolean');
+    });
+
+    it('V2 explicit true roundtrips to true', () => {
+      const canonical = createCanonicalSecretWithTimestamps({ has_passphrase: true });
+      const wire = createV2WireSecret(canonical);
+      const parsed = secretSchema.parse(wire);
+
+      expect(parsed.has_passphrase).toBe(true);
+      expect(typeof parsed.has_passphrase).toBe('boolean');
+    });
+
+    it('V3 explicit false roundtrips to false', () => {
+      const canonical = createCanonicalSecretWithTimestamps({ has_passphrase: false });
+      const wire = createV3WireSecret(canonical);
+      const parsed = secretRecord.parse(wire);
+
+      expect(parsed.has_passphrase).toBe(false);
+      expect(typeof parsed.has_passphrase).toBe('boolean');
+    });
+
+    it('V3 explicit true roundtrips to true', () => {
+      const canonical = createCanonicalSecretWithTimestamps({ has_passphrase: true });
+      const wire = createV3WireSecret(canonical);
+      const parsed = secretRecord.parse(wire);
+
+      expect(parsed.has_passphrase).toBe(true);
+      expect(typeof parsed.has_passphrase).toBe('boolean');
+    });
+
+    it('V2 all boolean fields roundtrip with explicit false', () => {
+      const canonical = createCanonicalSecretWithTimestamps({
+        has_passphrase: false,
+        verification: false,
+        is_previewed: false,
+        is_revealed: false,
+      });
+      const wire = createV2WireSecret(canonical);
+      const parsed = secretSchema.parse(wire);
+
+      // All should be boolean false, not null
+      expect(parsed.has_passphrase).toStrictEqual(false);
+      expect(parsed.verification).toStrictEqual(false);
+      expect(parsed.is_previewed).toStrictEqual(false);
+      expect(parsed.is_revealed).toStrictEqual(false);
+    });
+
+    it('V3 all boolean fields roundtrip with explicit false', () => {
+      const canonical = createCanonicalSecretWithTimestamps({
+        has_passphrase: false,
+        verification: false,
+        is_previewed: false,
+        is_revealed: false,
+      });
+      const wire = createV3WireSecret(canonical);
+      const parsed = secretRecord.parse(wire);
+
+      // All should be boolean false, not null
+      expect(parsed.has_passphrase).toStrictEqual(false);
+      expect(parsed.verification).toStrictEqual(false);
+      expect(parsed.is_previewed).toStrictEqual(false);
+      expect(parsed.is_revealed).toStrictEqual(false);
     });
   });
 });
