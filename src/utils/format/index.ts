@@ -1,5 +1,6 @@
 // src/utils/format/index.ts
 
+import { format } from 'date-fns';
 import { parseDateValue } from '../parse/date';
 
 /**
@@ -63,11 +64,21 @@ export function ttlToNaturalLanguage(val: unknown): string | null {
 }
 
 /**
- * Format a date value (seconds/string) to localized string
+ * Format a Date object as ISO8601 date only: yyyy/MM/dd
+ */
+export const formatISODate = (date: Date): string => format(date, 'yyyy/MM/dd');
+
+/**
+ * Format a Date object as ISO8601 date and time: yyyy/MM/dd HH:mm:ss
+ */
+export const formatISODateTime = (date: Date): string => format(date, 'yyyy/MM/dd HH:mm:ss');
+
+/**
+ * Format a date value (seconds/string) to ISO8601 date and time string
  */
 export const formatDate = (val: unknown): string => {
   const date = parseDateValue(val);
-  return date?.toLocaleString() ?? '';
+  return date ? formatISODateTime(date) : '';
 };
 
 /**

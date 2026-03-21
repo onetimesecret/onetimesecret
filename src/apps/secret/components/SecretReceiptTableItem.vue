@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { type ReceiptRecords } from '@/schemas/api/account/endpoints/recent';
-import { formatRelativeTime } from '@/utils/format'
+import { formatRelativeTime, formatISODateTime } from '@/utils/format'
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 const { t } = useI18n();
@@ -78,7 +78,7 @@ const statusIcon = computed(() => {
       <!-- Date Information -->
       <span
         class="text-xs text-gray-500 dark:text-gray-400"
-        :title="secretReceipt.updated.toLocaleString()">
+        :title="formatISODateTime(secretReceipt.updated)">
         {{ formattedDate }}
       </span>
     </div>

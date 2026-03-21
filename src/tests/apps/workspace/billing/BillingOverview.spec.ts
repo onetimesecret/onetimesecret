@@ -253,10 +253,10 @@ describe('BillingOverview', () => {
       expect(billingDateEl.text()).toContain('Next Billing Date');
 
       const expectedDate = new Date(defaultOverviewResponse.subscription!.period_end * 1000);
-      const formattedDate = new Intl.DateTimeFormat('en-US', {
-        month: 'long', day: 'numeric', year: 'numeric',
-      }).format(expectedDate);
-      expect(billingDateEl.text()).toContain(formattedDate);
+      const y = expectedDate.getFullYear();
+      const m = String(expectedDate.getMonth() + 1).padStart(2, '0');
+      const d = String(expectedDate.getDate()).padStart(2, '0');
+      expect(billingDateEl.text()).toContain(`${y}/${m}/${d}`);
     });
 
     it('does not display next billing date when subscription has no period_end', async () => {

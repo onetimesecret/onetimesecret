@@ -51,15 +51,9 @@ export const parseDateValue = (val: unknown): Date | null => {
   return null;
 };
 
-export const formatLocalDateTime = (date: Date): string =>
-  date.toLocaleString(undefined, {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
+import { format } from 'date-fns';
+
+export const formatLocalDateTime = (date: Date): string => format(date, 'yyyy/MM/dd HH:mm:ss');
 
 // original:
 // export const parseDateValue = (val: unknown): Date | null => {

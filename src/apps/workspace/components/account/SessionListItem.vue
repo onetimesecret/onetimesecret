@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import type { Session } from '@/types/auth';
+import { formatISODate } from '@/utils/format';
 import { computed } from 'vue';
 
 const { t } = useI18n();
@@ -45,11 +46,11 @@ const lastActiveFormatted = computed(() => {
   if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
   if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
 
-  return date.toLocaleDateString();
+  return formatISODate(date);
 });
 
 // Format creation time
-const createdFormatted = computed(() => new Date(props.session.created_at).toLocaleDateString());
+const createdFormatted = computed(() => formatISODate(new Date(props.session.created_at)));
 
 const handleRemove = () => {
   emit('remove', props.session.id);

@@ -11,6 +11,7 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useAccountStore } from '@/shared/stores/accountStore';
   import { storeToRefs } from 'pinia';
+  import { formatISODate } from '@/utils/format';
   import { computed, onMounted, ref } from 'vue';
 
   const { t } = useI18n();
@@ -25,7 +26,7 @@
 
   const accountCreatedDate = computed(() => {
     if (!accountInfo.value?.created_at) return '';
-    return new Date(accountInfo.value.created_at).toLocaleDateString();
+    return formatISODate(new Date(accountInfo.value.created_at));
   });
 
   const emailVerificationStatus = computed(() => {

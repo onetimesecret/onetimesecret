@@ -7,6 +7,7 @@
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useAccount } from '@/shared/composables/useAccount';
   import { useMfa } from '@/shared/composables/useMfa';
+  import { formatISODateTime } from '@/utils/format';
   import { onMounted, ref } from 'vue';
 
   const { t } = useI18n();
@@ -144,7 +145,7 @@
                 class="mt-4 text-sm text-gray-600 dark:text-gray-400">
                 {{
                   t('web.auth.mfa.last_used', {
-                    time: new Date(mfaStatus.last_used_at).toLocaleString(),
+                    time: formatISODateTime(new Date(mfaStatus.last_used_at)),
                   })
                 }}
               </div>

@@ -10,6 +10,7 @@ import { classifyError } from '@/schemas/errors';
 import { BillingService, type StripeInvoice } from '@/services/billing.service';
 import type { InvoiceStatus } from '@/types/billing';
 import { formatCurrency } from '@/types/billing';
+import { formatISODate } from '@/utils/format';
 import { computed, onMounted, ref } from 'vue';
 
 const { t } = useI18n();
@@ -22,11 +23,7 @@ const invoices = ref<StripeInvoice[]>([]);
 const isLoading = ref(false);
 const error = ref('');
 
-const formatDate = (timestamp: number): string => new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(new Date(timestamp * 1000));
+const formatDate = (timestamp: number): string => formatISODate(new Date(timestamp * 1000));
 
 const getStatusBadgeClass = (status: InvoiceStatus): string => {
   const classes: Record<string, string> = {
