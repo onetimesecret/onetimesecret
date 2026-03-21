@@ -1,4 +1,4 @@
-// src/schemas/config/section/index.ts
+// src/schemas/contracts/config/section/index.ts
 
 /**
  * Configuration Section Schemas

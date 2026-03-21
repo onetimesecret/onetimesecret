@@ -1,4 +1,4 @@
-// src/schemas/config/section/storage.ts
+// src/schemas/contracts/config/section/storage.ts
 
 /**
  * Storage Configuration Schema

@@ -1,4 +1,4 @@
-// src/schemas/config/section/diagnostics.ts
+// src/schemas/contracts/config/section/diagnostics.ts
 
 /**
  * Diagnostics Configuration Schema

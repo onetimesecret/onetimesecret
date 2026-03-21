@@ -1,4 +1,4 @@
-// src/schemas/config/section/secret_options.ts
+// src/schemas/contracts/config/section/secret_options.ts
 
 /**
  * Secret Options Configuration Schema

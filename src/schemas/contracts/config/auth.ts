@@ -1,4 +1,4 @@
-// src/schemas/config/auth.ts
+// src/schemas/contracts/config/auth.ts
 
 /**
  * Authentication Configuration Schema

@@ -1,4 +1,4 @@
-// src/schemas/config/section/development.ts
+// src/schemas/contracts/config/section/development.ts
 
 /**
  * Development Configuration Schema

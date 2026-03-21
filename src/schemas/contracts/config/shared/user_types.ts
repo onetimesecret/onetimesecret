@@ -1,4 +1,4 @@
-// src/schemas/config/shared/user_types.ts
+// src/schemas/contracts/config/shared/user_types.ts
 
 /**
  * User Types

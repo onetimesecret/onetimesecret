@@ -1,4 +1,4 @@
-// src/schemas/config/section/limits.ts
+// src/schemas/contracts/config/section/limits.ts
 
 /**
  * Rate Limits Configuration Schema

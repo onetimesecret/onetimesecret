@@ -1,4 +1,4 @@
-// src/schemas/config/section/capabilities.ts
+// src/schemas/contracts/config/section/capabilities.ts
 
 /**
  * Capabilities Configuration Schema

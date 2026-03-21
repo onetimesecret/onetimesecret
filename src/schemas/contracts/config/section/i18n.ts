@@ -1,4 +1,4 @@
-// src/schemas/config/section/i18n.ts
+// src/schemas/contracts/config/section/i18n.ts
 
 /**
  * Internationalization Configuration Schema

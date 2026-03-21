@@ -4,7 +4,7 @@
  * Colonel (Admin) API Endpoint Schemas
  *
  * This file contains schemas for the colonel/admin API endpoints.
- * Config-related schemas are imported from @/schemas/config/config.ts
+ * Config-related schemas are imported from @/schemas/contracts/config/config.ts
  */
 
 import { feedbackSchema } from '@/schemas/shapes/v2';
@@ -12,7 +12,7 @@ import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // Import system settings schemas from config
-import { systemSettingsDetailsSchema, systemSettingsSchema } from '@/schemas/config/config';
+import { systemSettingsDetailsSchema, systemSettingsSchema } from '@/schemas/contracts/config/config';
 
 // Re-export for backward compatibility
 export { systemSettingsDetailsSchema, systemSettingsSchema };
