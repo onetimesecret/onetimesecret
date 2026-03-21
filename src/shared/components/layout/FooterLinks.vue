@@ -19,7 +19,7 @@
   // Filter out groups that have no valid links (all URLs empty/missing)
   const linkGroups = computed(() =>
     (footerConfig.value?.groups || []).filter(group =>
-      group.links?.some(link => link.url && link.url.trim())
+      group.links?.some(link => link.url?.trim())
     )
   );
 </script>
