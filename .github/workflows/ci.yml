@@ -84,7 +84,7 @@ jobs:
           ./.github/scripts/detect-ci-flags.sh "$DISPATCH_RUN_ALL"
 
       - name: Detect file changes
-        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3.0.3
         id: filter
         with:
           filters: |
