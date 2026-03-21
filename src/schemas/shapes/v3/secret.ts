@@ -2,6 +2,19 @@
 //
 // V3 wire-format shapes for secrets.
 // Derives from contracts, adding V3-specific timestamp transforms (number → Date).
+//
+// DEPRECATED FIELD EXCLUSIONS (V3 clean API decision):
+// The backend sends deprecated boolean aliases (is_viewed, is_received) for V2
+// backward compatibility, but V3 intentionally excludes them:
+//
+//   Backend sends    | V3 uses (canonical)
+//   -----------------+---------------------
+//   is_viewed        | is_previewed
+//   is_received      | is_revealed
+//
+// V3 clients should use the canonical field names. The deprecated aliases
+// exist only for V2 transition support.
+// See: lib/onetime/models/secret/features/safe_dump_fields.rb
 
 import {
   secretBaseCanonical,

@@ -12,6 +12,22 @@ import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // ─────────────────────────────────────────────────────────────────────────────
+// V3 role re-exports (canonical values only — no deprecated aliases)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * V3 customer role values — canonical only.
+ *
+ * V3 is the clean API. Re-exports canonical role values from contracts.
+ */
+export {
+  customerRoleValues,
+  customerRoleSchema,
+  CustomerRole,
+  isValidCustomerRole,
+} from '@/schemas/contracts';
+
+// ─────────────────────────────────────────────────────────────────────────────
 // V3 wire-format overrides
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -99,11 +115,12 @@ export const customerRecord = customerCanonical.extend({
   // Role enum (re-declare for explicit wire format)
   role: customerRoleSchema,
 
-  // Counter fields with defaults (V3 sends native numbers)
-  secrets_created: z.number().default(0),
-  secrets_burned: z.number().default(0),
-  secrets_shared: z.number().default(0),
-  emails_sent: z.number().default(0),
+  // Counter fields with defaults (V3 sends native numbers, coerce for resilience)
+  // Uses z.coerce.number() per #2699 to handle edge cases where API sends strings
+  secrets_created: z.coerce.number().default(0),
+  secrets_burned: z.coerce.number().default(0),
+  secrets_shared: z.coerce.number().default(0),
+  emails_sent: z.coerce.number().default(0),
 
   // Boolean fields (V3 sends native booleans)
   verified: z.boolean(),

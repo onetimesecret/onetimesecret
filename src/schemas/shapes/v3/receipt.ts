@@ -9,9 +9,25 @@ import {
   receiptDetailsCanonical,
   receiptListDetailsCanonical,
   receiptListCanonical,
+  receiptStateValues,
+  receiptStateSchema,
+  ReceiptState,
+  isValidReceiptState,
 } from '@/schemas/contracts';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// V3 state re-exports (canonical values only — no deprecated aliases)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * V3 receipt state values — canonical only, no deprecated aliases.
+ *
+ * V3 is the clean API. Deprecated state values ('received', 'viewed')
+ * are NOT included. Use 'revealed' and 'previewed' instead.
+ */
+export { receiptStateValues, receiptStateSchema, ReceiptState, isValidReceiptState };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // V3 wire-format overrides
