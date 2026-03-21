@@ -52,14 +52,14 @@ export function createCanonicalReceiptBase(
   overrides?: Partial<ReceiptBaseCanonical>
 ): ReceiptBaseCanonical {
   return {
-    identifier: 'rcpt:test123abc',
-    key: 'key_abc123xyz',
-    shortid: 'abc123',
+    identifier: 'r7k9m2x4p1q8',
+    key: 'r7k9m2x4p1q8',
+    shortid: 'r7k9m2x4',
     state: 'new' as ReceiptState,
 
     // Ownership
-    custid: 'cust:user@example.com',
-    owner_id: 'owner:12345',
+    custid: 'user@example.com',
+    owner_id: 'c4st0m3r12ab',
 
     // Timestamps (round seconds)
     created: BASE_TIMESTAMP,
@@ -77,8 +77,8 @@ export function createCanonicalReceiptBase(
     lifespan: 86400,
 
     // Related secret
-    secret_shortid: 'sec123',
-    secret_identifier: 'sec:secret123abc',
+    secret_shortid: 's3cr3t12',
+    secret_identifier: 's3cr3t123abc',
 
     // Recipients and sharing
     recipients: ['recipient@example.com'],
