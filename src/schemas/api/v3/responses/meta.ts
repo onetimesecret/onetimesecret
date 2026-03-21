@@ -6,19 +6,16 @@
 import { z } from 'zod';
 
 export const systemStatusResponseSchema = z.object({
-  success: z.boolean(),
   status: z.string(),
   locale: z.string(),
 });
 
 export const systemVersionResponseSchema = z.object({
-  success: z.boolean(),
   version: z.array(z.union([z.string(), z.number()])),
   locale: z.string(),
 });
 
 export const supportedLocalesResponseSchema = z.object({
-  success: z.boolean(),
   locales: z.array(z.string()),
   default_locale: z.string(),
   locale: z.string(),
