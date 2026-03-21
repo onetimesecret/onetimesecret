@@ -157,8 +157,10 @@ export const mockReceiptRecordRaw = {
   receipt_url: 'https://example.com/receipt/abc123',
   burn_url: 'https://example.com/burn/abc123',
   identifier: 'test-identifier',
-  is_viewed: false,
-  is_received: false,
+  is_viewed: false,      // @deprecated V2 — use is_previewed
+  is_received: false,    // @deprecated V2 — use is_revealed
+  is_previewed: false,   // V3 canonical
+  is_revealed: false,    // V3 canonical
   is_burned: false,
   is_destroyed: false,
   is_expired: false,
@@ -178,6 +180,7 @@ export const mockReceiptRecordRaw = {
 };
 
 // Transformed format (after V3 Zod parse) - used for assertions
+// NOTE: V3 schema strips deprecated fields (is_viewed, is_received, received, viewed)
 export const mockReceiptRecord: Receipt = {
   key: 'testkey123',
   shortid: 'abc123',
@@ -194,18 +197,16 @@ export const mockReceiptRecord: Receipt = {
   receipt_url: 'https://example.com/receipt/abc123',
   burn_url: 'https://example.com/burn/abc123',
   identifier: 'test-identifier',
-  is_viewed: false,
-  is_received: false,
+  is_previewed: false,   // V3 canonical (replaces is_viewed)
+  is_revealed: false,    // V3 canonical (replaces is_received)
   is_burned: false,
   is_destroyed: false,
   is_expired: false,
   is_orphaned: false,
   has_passphrase: false,
   shared: null,
-  received: null,
-  viewed: null,
-  previewed: null,
-  revealed: null,
+  previewed: null,       // V3 canonical (replaces viewed)
+  revealed: null,        // V3 canonical (replaces received)
   burned: null,
   created: new Date(1735142814 * 1000),
   updated: new Date(1735204014 * 1000),
@@ -295,11 +296,11 @@ export const mockReceivedReceiptRecord: Receipt = {
   ...mockReceiptRecord,
   key: 'receivedkey',
   shortid: 'rcv123',
-  state: ReceiptState.RECEIVED,
-  received: new Date(1735142814 * 1000),
+  state: 'revealed', // V3 canonical (replaces ReceiptState.RECEIVED)
+  revealed: new Date(1735142814 * 1000), // V3 canonical (replaces received)
   secret_identifier: 'secret-received-key-123',
   secret_shortid: 'secret-received-abc123',
-  is_received: true,
+  is_revealed: true, // V3 canonical (replaces is_received)
 };
 
 export const mockReceivedReceiptDetails: ReceiptDetails = {
@@ -389,7 +390,7 @@ export const mockReceiptRecentDetails = {
       shortid: 'rcv-short-1',
       custid: 'user-789',
       owner_id: 'user-789',
-      state: ReceiptState.RECEIVED,
+      state: 'revealed', // V3 canonical (replaces V2 ReceiptState.RECEIVED)
       secret_shortid: 'sec-rcv-1',
       secret_identifier: 'secret-received-1',
       secret_ttl: 1800,
@@ -478,6 +479,8 @@ export const mockSecretRecordRaw = {
   secret_value: 'test-secret',
   secret_ttl: 86400,
   lifespan: 86400,
+  is_previewed: false,       // V3 canonical boolean (replaces deprecated is_viewed)
+  is_revealed: false,        // V3 canonical boolean (replaces deprecated is_received)
 };
 
 // Transformed format (after Zod V3 parse) — used for assertions
@@ -493,6 +496,8 @@ export const mockSecretRecord: Secret = {
   secret_value: 'test-secret',
   secret_ttl: 86400,
   lifespan: 86400,
+  is_previewed: false,
+  is_revealed: false,
 };
 
 export const mockBurnedSecretRecord: Secret | null = null;
