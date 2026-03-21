@@ -1,30 +1,43 @@
 // src/schemas/shapes/v2/customer.ts
+//
+// V2 wire-format shapes for customers.
+// Derives from contracts, adding V2-specific string transforms.
+//
+// V2 API sends data as Redis-serialized strings; these transforms convert
+// to the correct output types.
 
+import { customerRoleSchema } from '@/schemas/contracts';
 import { transforms } from '@/schemas/transforms';
 import { withFeatureFlags } from '@/schemas/utils/feature_flags';
 import { z } from 'zod';
 
 import { createModelSchema } from './base';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// V2 role re-exports (canonical values from contracts)
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
- * @fileoverview Customer schema with simplified type boundaries
+ * V2 customer role values.
  *
- * Key improvements:
- * 1. Unified transformation layer using base transforms
- * 2. Clearer type flow from API to frontend
- * 3. Simplified schema structure
+ * Re-exports canonical role values from contracts (no V2-specific aliases).
  */
+export {
+  customerRoleValues,
+  customerRoleSchema,
+  CustomerRole,
+  isValidCustomerRole,
+} from '@/schemas/contracts';
 
-// Role enum matching Ruby model
-export const CustomerRole = {
-  CUSTOMER: 'customer',
-  COLONEL: 'colonel',
-  RECIPIENT: 'recipient',
-  USER_DELETED_SELF: 'user_deleted_self',
-} as const;
+// ─────────────────────────────────────────────────────────────────────────────
+// V2 customer schema
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Customer schema with unified transformations
+ * V2 customer schema with unified transformations.
+ *
+ * Transforms string-encoded values from V2 API/Redis to typed values.
+ * Uses createModelSchema to add identifier, created, updated from base.
  */
 export const customerSchema = withFeatureFlags(
   createModelSchema({
@@ -32,12 +45,7 @@ export const customerSchema = withFeatureFlags(
     objid: z.string(),
     extid: z.string(),
 
-    role: z.enum([
-      CustomerRole.CUSTOMER,
-      CustomerRole.COLONEL,
-      CustomerRole.RECIPIENT,
-      CustomerRole.USER_DELETED_SELF,
-    ]),
+    role: customerRoleSchema,
     email: z.email(),
 
     // Boolean fields from API

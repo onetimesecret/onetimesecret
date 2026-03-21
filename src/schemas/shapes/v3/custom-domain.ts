@@ -67,7 +67,11 @@ export const imagePropsRecord = imagePropsCanonical;
 /**
  * V3 vhost record.
  *
- * Extends contract with V3 timestamp transforms for date fields.
+ * Extends contract with timestamp transforms for date fields.
+ *
+ * IMPORTANT: Vhost data comes verbatim from Approximated API, which returns
+ * timestamps as strings (ISO 8601 or similar), NOT Unix epoch numbers.
+ * Therefore we use fromString transforms here, not fromNumber.
  *
  * @example
  * ```typescript
@@ -75,7 +79,7 @@ export const imagePropsRecord = imagePropsCanonical;
  *   status: 'active',
  *   has_ssl: true,
  *   is_resolving: true,
- *   last_monitored_unix: 1609459200,
+ *   last_monitored_unix: '2021-01-01T00:00:00Z',
  * });
  *
  * console.log(vhost.last_monitored_unix instanceof Date); // true
@@ -87,11 +91,11 @@ export const vhostRecord = vhostCanonical.extend({
   has_ssl: z.boolean().optional(),
   is_resolving: z.boolean().optional(),
 
-  // Timestamp transforms for date fields
-  created_at: transforms.fromNumber.toDateOptional,
-  last_monitored_unix: transforms.fromNumber.toDateOptional,
-  ssl_active_from: transforms.fromNumber.toDateNullable,
-  ssl_active_until: transforms.fromNumber.toDateNullable,
+  // Approximated API sends timestamps as strings, not numbers
+  created_at: transforms.fromString.date.optional(),
+  last_monitored_unix: transforms.fromString.date.optional(),
+  ssl_active_from: transforms.fromString.dateNullable,
+  ssl_active_until: transforms.fromString.dateNullable,
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
