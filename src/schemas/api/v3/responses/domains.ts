@@ -17,7 +17,7 @@ import { z } from 'zod';
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Custom domain details (proxy/cluster info). */
-const customDomainDetails = z.object({
+export const customDomainDetailsSchema = z.object({
   cluster: z
     .object({
       type: z.string().nullable().optional(),
@@ -55,8 +55,8 @@ const jurisdictionDetails = z.object({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const brandSettingsResponseSchema = createApiResponseSchema(brandSettingsRecord);
-export const customDomainResponseSchema = createApiResponseSchema(customDomainRecord, customDomainDetails);
-export const customDomainListResponseSchema = createApiListResponseSchema(customDomainRecord, customDomainDetails);
+export const customDomainResponseSchema = createApiResponseSchema(customDomainRecord, customDomainDetailsSchema);
+export const customDomainListResponseSchema = createApiListResponseSchema(customDomainRecord, customDomainDetailsSchema);
 export const imagePropsResponseSchema = createApiResponseSchema(imagePropsRecord);
 export const jurisdictionResponseSchema = createApiResponseSchema(jurisdictionRecord, jurisdictionDetails);
 
@@ -65,6 +65,7 @@ export const jurisdictionResponseSchema = createApiResponseSchema(jurisdictionRe
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type BrandSettingsResponse = z.infer<typeof brandSettingsResponseSchema>;
+export type CustomDomainDetails = z.infer<typeof customDomainDetailsSchema>;
 export type CustomDomainResponse = z.infer<typeof customDomainResponseSchema>;
 export type CustomDomainListResponse = z.infer<typeof customDomainListResponseSchema>;
 export type ImagePropsResponse = z.infer<typeof imagePropsResponseSchema>;
