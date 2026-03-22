@@ -26,7 +26,7 @@
   const { t, locale } = useI18n();
   const route = useRoute();
   const bootstrapStore = useBootstrapStore();
-  const { ot_version, ot_version_long, domains_enabled, support_host } = storeToRefs(bootstrapStore);
+  const { ot_version, ot_version_long, domains_enabled, support_host, ui } = storeToRefs(bootstrapStore);
 
   // Store instances for counts
   const receiptListStore = useReceiptListStore();
@@ -83,36 +83,60 @@
     return items;
   });
 
-  // Standard SaaS footer links for authenticated users
+  // Workspace footer links — configurable via footer_links.groups[name=workspace]
+  // Falls back to computed URLs based on support_host when not configured
   const docsBase = computed(() => {
     const host = support_host.value;
     return host ? `https://${host}` : '';
   });
 
-  // Use the current locale for documentation links (fallback to 'en')
   const docsLocale = computed(() => {
     const lang = locale.value;
-    // Documentation sites typically use base language codes
     return lang?.split(/[-_]/)[0] || 'en';
   });
 
-  const footerLinks = computed((): FooterLink[] => [
+  // Look for a "workspace" group in the footer_links config
+  const workspaceGroup = computed(() =>
+    ui.value?.footer_links?.groups?.find(g => g.name === 'workspace')
+  );
+
+  // Default links when no workspace group is configured
+  const defaultLinks: { i18nKey: string; href: () => string; external: () => boolean }[] = [
     {
-      label: t('web.footer.api_docs'),
-      href: `${docsBase.value}/${docsLocale.value}/rest-api/`,
-      external: !!docsBase.value,
+      i18nKey: 'web.footer.api_docs',
+      href: () => `${docsBase.value}/${docsLocale.value}/rest-api/`,
+      external: () => !!docsBase.value,
     },
     {
-      label: t('web.footer.branding_guide'),
-      href: `${docsBase.value}/${docsLocale.value}/custom-domains/brand-guide/`,
-      external: !!docsBase.value,
+      i18nKey: 'web.footer.branding_guide',
+      href: () => `${docsBase.value}/${docsLocale.value}/custom-domains/brand-guide/`,
+      external: () => !!docsBase.value,
     },
     {
-      label: t('web.TITLES.feedback'),
-      href: '/feedback',
-      external: false,
+      i18nKey: 'web.TITLES.feedback',
+      href: () => '/feedback',
+      external: () => false,
     },
-  ]);
+  ];
+
+  const footerLinks = computed((): FooterLink[] => {
+    const group = workspaceGroup.value;
+    if (group?.links?.length) {
+      return group.links
+        .filter(link => link.url?.trim())
+        .map((link, index) => ({
+          label: link.i18n_key ? t(link.i18n_key) : (link.text || ''),
+          href: link.url!,
+          external: link.external ?? defaultLinks[index]?.external() ?? false,
+        }));
+    }
+    // Fallback to computed defaults
+    return defaultLinks.map(def => ({
+      label: t(def.i18nKey),
+      href: def.href(),
+      external: def.external(),
+    }));
+  });
 
   // Check if a route is active
   const isActiveRoute = (path: string): boolean => {
@@ -179,7 +203,7 @@
     <div class="container mx-auto max-w-4xl px-4">
       <!-- Footer Links Section -->
       <div
-        v-if="displayFooterLinks"
+        v-if="displayFooterLinks && ui?.footer_links?.enabled !== false"
         class="mb-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
         <template
           v-for="link in footerLinks"
