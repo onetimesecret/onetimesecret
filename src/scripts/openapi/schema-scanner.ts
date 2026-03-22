@@ -36,8 +36,56 @@ import { loadPrism, Visitor } from '@ruby/prism';
 // uses plain classes without a shared type hierarchy we can import).
 // The visitor callbacks receive untyped nodes — see @ruby/prism's nodes.js.
 import { parseAllApiRoutes } from './otto-routes-parser';
-import { responseSchemas } from '@/schemas/api/v3/responses';
+import { responseSchemas as v1ResponseSchemas } from '@/schemas/api/v1/responses/registry';
+import { responseSchemas as v2ResponseSchemas } from '@/schemas/api/v2/responses/registry';
+import { responseSchemas as v3ResponseSchemas } from '@/schemas/api/v3/responses/registry';
+import { responseSchemas as internalResponseSchemas } from '@/schemas/api/internal/responses/registry';
 import { modelSchemas } from '@/schemas/registry';
+
+// Version-aware registry selection for schema validation.
+// Each API version validates against its own registry, eliminating the need
+// to spread V1 schemas into V3 just to satisfy a monolithic validator.
+type ResponseSchemaRegistry =
+  | typeof v1ResponseSchemas
+  | typeof v2ResponseSchemas
+  | typeof v3ResponseSchemas
+  | typeof internalResponseSchemas;
+
+const registryByVersion: Record<string, ResponseSchemaRegistry> = {
+  v1: v1ResponseSchemas,
+  v2: v2ResponseSchemas,
+  v3: v3ResponseSchemas,
+  internal: internalResponseSchemas,
+};
+
+// Internal API prefixes that map to the internal registry
+const INTERNAL_API_PREFIXES = ['AccountAPI', 'ColonelAPI', 'DomainsAPI', 'OrganizationAPI', 'InviteAPI'];
+
+/**
+ * Extract API version from a Ruby class name.
+ * "V3::Logic::Secrets::ConcealSecret" → "v3"
+ * "ColonelAPI::Logic::Colonel::GetColonelInfo" → "internal"
+ * "Onetime::CustomDomain" → null (model, no version prefix)
+ */
+function extractVersion(className: string): string | null {
+  // Check for versioned APIs (V1, V2, V3)
+  const versionMatch = className.match(/^(V\d+)::/i);
+  if (versionMatch) return versionMatch[1].toLowerCase();
+
+  // Check for internal API prefixes
+  const prefix = className.split('::')[0];
+  if (INTERNAL_API_PREFIXES.includes(prefix)) return 'internal';
+
+  return null;
+}
+
+/**
+ * Get the response schema registry for a given version.
+ * Falls back to v3 for unknown versions (models, etc.)
+ */
+function getRegistryForVersion(version: string | null): ResponseSchemaRegistry {
+  return version ? (registryByVersion[version] ?? v3ResponseSchemas) : v3ResponseSchemas;
+}
 
 // =============================================================================
 // Configuration
@@ -393,7 +441,6 @@ export function buildHandlerSchemaMap(entries: SchemaEntry[]): Map<string, Schem
 // Schema Validation
 // =============================================================================
 
-const validResponseKeys = new Set(Object.keys(responseSchemas));
 const validModelKeys = new Set(Object.keys(modelSchemas));
 
 // Request keys must match the generator's REQUEST_SCHEMA_REGISTRY.
@@ -413,21 +460,29 @@ const validRequestKeys = new Set([
 
 /**
  * Check whether a schema key resolves to a known schema of the given type.
+ * For response schemas, validates against the version-appropriate registry.
  */
-function isValidKey(key: string, type: 'model' | 'response' | 'request'): boolean {
+function isValidKey(
+  key: string,
+  type: 'model' | 'response' | 'request',
+  version?: string | null
+): boolean {
   if (type === 'model') return validModelKeys.has(key);
   if (type === 'request') return validRequestKeys.has(key);
-  return validResponseKeys.has(key);
+  // Response validation: use version-specific registry
+  const registry = getRegistryForVersion(version ?? null);
+  return key in registry;
 }
 
 /**
  * Check whether all schema keys in an entry resolve to known schemas.
- * Each key type validates against its own registry.
+ * Response keys validate against the registry matching the entry's API version.
  */
 function isEntryCovered(entry: SchemaEntry): boolean {
   const { model, response, request } = entry.schema;
+  const version = extractVersion(entry.className);
   if (model && !isValidKey(model, 'model')) return false;
-  if (response && !isValidKey(response, 'response')) return false;
+  if (response && !isValidKey(response, 'response', version)) return false;
   if (request && !isValidKey(request, 'request')) return false;
   return true;
 }

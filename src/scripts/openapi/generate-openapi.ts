@@ -60,18 +60,20 @@ import {
 import { responseSchemas as v1ResponseSchemas } from '@/schemas/api/v1/responses/registry';
 import { responseSchemas as v2ResponseSchemas } from '@/schemas/api/v2/responses/registry';
 import { responseSchemas as v3ResponseSchemas } from '@/schemas/api/v3/responses/registry';
+import { responseSchemas as internalResponseSchemas } from '@/schemas/api/internal/responses/registry';
 
 // Version-aware registry selection
 type ResponseSchemaRegistry =
   | typeof v1ResponseSchemas
   | typeof v2ResponseSchemas
-  | typeof v3ResponseSchemas;
+  | typeof v3ResponseSchemas
+  | typeof internalResponseSchemas;
 
 const registryByVersion: Record<string, ResponseSchemaRegistry> = {
   v1: v1ResponseSchemas,
   v2: v2ResponseSchemas,
   v3: v3ResponseSchemas,
-  internal: v3ResponseSchemas, // Internal uses V3 registry
+  internal: internalResponseSchemas,
 };
 
 function getResponseRegistry(apiName: string): ResponseSchemaRegistry {

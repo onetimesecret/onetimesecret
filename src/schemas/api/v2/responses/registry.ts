@@ -17,21 +17,7 @@ import {
   resetPasswordRequestResponseSchema,
   resetPasswordResponseSchema,
 } from './auth';
-import {
-  colonelInfoResponseSchema,
-  colonelStatsResponseSchema,
-  colonelUsersResponseSchema,
-  colonelSecretsResponseSchema,
-  colonelCustomDomainsResponseSchema,
-  colonelOrganizationsResponseSchema,
-  investigateOrganizationResponseSchema,
-  databaseMetricsResponseSchema,
-  redisMetricsResponseSchema,
-  bannedIPsResponseSchema,
-  usageExportResponseSchema,
-  queueMetricsResponseSchema,
-  systemSettingsResponseSchema,
-} from './colonel';
+// Colonel schemas moved to internal registry (see @/schemas/api/internal/responses)
 import { csrfResponseSchema } from './csrf';
 import {
   brandSettingsResponseSchema,
@@ -51,14 +37,7 @@ import {
   incomingSecretResponseSchema,
   validateRecipientEnvelopeSchema,
 } from './incoming';
-import {
-  organizationResponseSchema,
-  organizationsResponseSchema,
-  orgDeleteResponseSchema,
-  membersResponseSchema,
-  memberResponseSchema,
-  memberDeleteResponseSchema,
-} from './organizations';
+// Organization schemas moved to internal registry (see @/schemas/api/internal/responses)
 import { receiptResponseSchema, receiptListResponseSchema } from './receipts';
 import {
   concealDataResponseSchema,
@@ -73,21 +52,6 @@ export const responseSchemas = {
   apiToken: apiTokenResponseSchema,
   checkAuth: checkAuthResponseSchema,
   customer: customerResponseSchema,
-
-  // Colonel / admin
-  colonelInfo: colonelInfoResponseSchema,
-  colonelStats: colonelStatsResponseSchema,
-  colonelUsers: colonelUsersResponseSchema,
-  colonelSecrets: colonelSecretsResponseSchema,
-  customDomains: colonelCustomDomainsResponseSchema,
-  colonelOrganizations: colonelOrganizationsResponseSchema,
-  investigateOrganization: investigateOrganizationResponseSchema,
-  databaseMetrics: databaseMetricsResponseSchema,
-  redisMetrics: redisMetricsResponseSchema,
-  bannedIPs: bannedIPsResponseSchema,
-  usageExport: usageExportResponseSchema,
-  queueMetrics: queueMetricsResponseSchema,
-  systemSettings: systemSettingsResponseSchema,
 
   // Secrets
   concealData: concealDataResponseSchema,
@@ -104,14 +68,6 @@ export const responseSchemas = {
   // Receipts
   receipt: receiptResponseSchema,
   receiptList: receiptListResponseSchema,
-
-  // Organizations
-  organization: organizationResponseSchema,
-  organizationList: organizationsResponseSchema,
-  organizationDelete: orgDeleteResponseSchema,
-  memberList: membersResponseSchema,
-  member: memberResponseSchema,
-  memberDelete: memberDeleteResponseSchema,
 
   // Incoming
   incomingConfig: incomingConfigResponseSchema,
