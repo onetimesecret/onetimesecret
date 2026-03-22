@@ -78,6 +78,12 @@ interface BootstrapState extends BootstrapPayload {
  *    - Hydration uses $patch() instead of individual ref updates
  *    - Reset preserves server config fields automatically
  *
+ *    Note on $reset(): The built-in $reset() method only works automatically
+ *    with Options Stores. For Setup Stores, you must implement $reset manually
+ *    (typically via a plugin or custom action) because Pinia cannot infer the
+ *    initial state from a function's returned refs. This is a genuine advantage
+ *    of Options Stores for teams prioritizing state reset functionality.
+ *
  * 2. Schema-derived defaults for logged-out state
  *    - Store is always in a valid state
  *    - $reset() restores initial DEFAULTS (does NOT preserve server config)
