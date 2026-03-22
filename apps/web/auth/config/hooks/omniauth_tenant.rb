@@ -1,0 +1,289 @@
+# apps/web/auth/config/hooks/omniauth_tenant.rb
+#
+# frozen_string_literal: true
+
+#
+# Runtime SSO credential injection for multi-tenant configurations.
+#
+# This hook resolves tenant-specific SSO credentials from the Host header
+# and injects them into the OmniAuth strategy before authentication begins.
+# It enables organizations to configure their own IdP connections without
+# requiring platform environment variables.
+#
+# Flow:
+#   1. Host header -> CustomDomain lookup
+#   2. CustomDomain -> Organization -> OrgSsoConfig
+#   3. OrgSsoConfig -> omniauth strategy.options injection
+#
+# Security Model:
+#   - Tenant context stored in session during request phase
+#   - Callback validates tenant context matches (prevents redirect attacks)
+#   - Missing tenant config can either fall back to platform credentials
+#     or reject the request based on `allow_platform_fallback_for_tenants`
+#
+# See: docs/authentication/omniauth-sso.md (full configuration guide)
+# See: lib/onetime/models/org_sso_config.rb (tenant SSO config model)
+#
+
+module Auth::Config::Hooks
+  module OmniAuthTenant
+    # Module reference for calling helper methods from within Rodauth blocks
+    HELPERS = self
+
+    def self.configure(auth)
+      # ========================================================================
+      # HOOK: OmniAuth Setup - Runtime Credential Injection
+      # ========================================================================
+      #
+      # USER JOURNEY CONTEXT:
+      # This hook fires BEFORE the OmniAuth request phase, allowing us to
+      # inject tenant-specific credentials into the strategy. The strategy
+      # has already been selected based on the URL path (e.g., /auth/sso/oidc).
+      #
+      # NOTE: OmniAuth strategies are registered at boot with platform defaults.
+      # This hook overrides those defaults at runtime for tenant-specific flows.
+      #
+      auth.omniauth_setup do
+        host = request.host
+
+        Auth::Logging.log_auth_event(
+          :omniauth_tenant_resolution_start,
+          level: :debug,
+          host: host,
+          path: request.path,
+          ip: request.ip,
+        )
+
+        # Attempt to resolve tenant from custom domain
+        custom_domain = HELPERS.resolve_custom_domain(host)
+
+        unless custom_domain
+          # No custom domain found - check if we should allow platform fallback
+          HELPERS.handle_missing_tenant_config(host, self)
+          next # Continue with platform defaults (if allowed)
+        end
+
+        # Look up organization's SSO configuration
+        org_config = Onetime::OrgSsoConfig.find_by_org_id(custom_domain.org_id)
+
+        unless org_config&.enabled?
+          Auth::Logging.log_auth_event(
+            :omniauth_tenant_sso_not_enabled,
+            level: :info,
+            host: host,
+            org_id: custom_domain.org_id,
+          )
+
+          # Check if we should fall back to platform credentials
+          HELPERS.handle_missing_tenant_config(host, self)
+          next # Continue with platform defaults (if allowed)
+        end
+
+        # Store tenant context in session for callback validation
+        # This prevents an attacker from initiating auth on domain A
+        # then redirecting callback to domain B.
+        session[:omniauth_tenant_org_id] = custom_domain.org_id
+        session[:omniauth_tenant_host]   = host
+
+        Auth::Logging.log_auth_event(
+          :omniauth_tenant_credentials_injecting,
+          level: :info,
+          host: host,
+          org_id: custom_domain.org_id,
+          provider_type: org_config.provider_type,
+        )
+
+        # Inject organization-specific credentials into strategy
+        HELPERS.inject_org_credentials(org_config, request)
+      end
+
+      # ========================================================================
+      # HOOK: Before OmniAuth Callback - Tenant Context Validation
+      # ========================================================================
+      #
+      # USER JOURNEY CONTEXT:
+      # This hook fires at the very start of callback processing.
+      # We validate that the callback is arriving at the same tenant that
+      # initiated the auth request. This prevents cross-tenant redirect attacks.
+      #
+      # The existing before_omniauth_callback_route hook (in omniauth.rb) runs
+      # after this one. This hook is specifically for tenant validation.
+      #
+      auth.before_omniauth_callback_route do
+        expected_org_id = session.delete(:omniauth_tenant_org_id)
+        expected_host   = session.delete(:omniauth_tenant_host)
+
+        # If no tenant context was stored, this was a platform-level auth
+        # (no tenant credentials were injected). Allow it to proceed.
+        next unless expected_org_id
+
+        # Resolve current request's tenant context
+        current_domain = HELPERS.resolve_custom_domain(request.host)
+
+        # Validate tenant context matches
+        if current_domain&.org_id != expected_org_id
+          Auth::Logging.log_auth_event(
+            :omniauth_tenant_mismatch,
+            level: :warn,
+            expected_org_id: expected_org_id,
+            expected_host: expected_host,
+            actual_host: request.host,
+            actual_org_id: current_domain&.org_id,
+            ip: request.ip,
+          )
+
+          throw_error_status(403, 'tenant_mismatch', 'Authentication context mismatch')
+        end
+
+        Auth::Logging.log_auth_event(
+          :omniauth_tenant_callback_validated,
+          level: :debug,
+          org_id: expected_org_id,
+          host: request.host,
+        )
+      end
+    end
+
+    # ==========================================================================
+    # Helper Methods
+    # ==========================================================================
+    #
+    # These are module methods called via HELPERS constant from Rodauth blocks.
+    # They cannot access Rodauth instance methods directly - pass needed objects.
+    #
+
+    # Resolve custom domain from hostname.
+    # Returns nil if no custom domain mapping exists.
+    #
+    # @param host [String] Request hostname
+    # @return [Onetime::CustomDomain, nil]
+    def self.resolve_custom_domain(host)
+      return nil if host.to_s.empty?
+
+      Onetime::CustomDomain.load_by_display_domain(host)
+    rescue Redis::BaseError => ex
+      Auth::Logging.log_auth_event(
+        :omniauth_tenant_resolution_error,
+        level: :error,
+        host: host,
+        error: ex.message,
+      )
+      nil
+    end
+
+    # Handle requests where no tenant SSO config is available.
+    # Either allows fallback to platform credentials or rejects.
+    #
+    # Configured via site.sso.allow_platform_fallback_for_tenants
+    #
+    # @param host [String] Request hostname for logging
+    # @param rodauth [Rodauth] Rodauth instance (for throw_error_status)
+    # @raise [Rodauth::Error] if fallback not allowed
+    def self.handle_missing_tenant_config(host, rodauth)
+      # Check platform configuration for fallback policy
+      allow_fallback = OT.conf.dig('site', 'sso', 'allow_platform_fallback_for_tenants')
+
+      # Default to true for backward compatibility - existing platforms
+      # without tenant configs should continue working with ENV-based creds.
+      allow_fallback = true if allow_fallback.nil?
+
+      if allow_fallback
+        Auth::Logging.log_auth_event(
+          :omniauth_tenant_fallback_to_platform,
+          level: :debug,
+          host: host,
+        )
+        return # Continue with platform defaults
+      end
+
+      Auth::Logging.log_auth_event(
+        :omniauth_tenant_no_config,
+        level: :warn,
+        host: host,
+      )
+
+      rodauth.throw_error_status(403, 'sso_not_configured', 'SSO not configured for this domain')
+    end
+
+    # Inject organization credentials into the OmniAuth strategy.
+    #
+    # Accesses the strategy from request.env['omniauth.strategy'] and
+    # merges in the organization's OAuth configuration.
+    #
+    # @param org_config [Onetime::OrgSsoConfig] The org's SSO configuration
+    # @param request [Rack::Request] The current request
+    def self.inject_org_credentials(org_config, request)
+      strategy = request.env['omniauth.strategy']
+      return unless strategy
+
+      options = org_config.to_omniauth_options
+
+      # Extract the strategy-specific options (excluding :strategy and :name keys
+      # which are used for provider registration, not runtime configuration)
+      _strategy_type = options.delete(:strategy)
+      _strategy_name = options.delete(:name)
+
+      # Verify we're injecting into the correct strategy type
+      # The URL path determines which strategy is used (/auth/sso/oidc, etc.)
+      # We should verify compatibility, but for now we trust the admin configured correctly.
+
+      Auth::Logging.log_auth_event(
+        :omniauth_strategy_options_merging,
+        level: :debug,
+        strategy_class: strategy.class.name,
+        options_keys: options.keys.join(','),
+      )
+
+      # Merge tenant options into strategy
+      # This modifies the strategy's options hash in place
+      merge_strategy_options(strategy, options)
+
+      # For OIDC strategies, clear memoized discovery data
+      # The strategy may have cached the discovery document and client
+      # from boot-time configuration; we need fresh instances.
+      clear_oidc_memoization(strategy)
+    end
+
+    # Merge options into the strategy, handling nested client_options.
+    #
+    # @param strategy [OmniAuth::Strategy] The active strategy
+    # @param options [Hash] Options to merge
+    def self.merge_strategy_options(strategy, options)
+      options.each do |key, value|
+        if key == :client_options && value.is_a?(Hash)
+          # Deep merge client_options for OIDC
+          strategy.options[:client_options] ||= {}
+          value.each do |client_key, client_value|
+            strategy.options[:client_options][client_key] = client_value
+          end
+        else
+          strategy.options[key] = value
+        end
+      end
+    end
+
+    # Clear memoized OIDC discovery data on the strategy.
+    #
+    # OmniAuth::Strategies::OpenIDConnect memoizes @config (discovery doc)
+    # and @client (OpenIDConnect::Client instance). When we inject new
+    # credentials at runtime, these cached objects have stale data.
+    #
+    # @param strategy [OmniAuth::Strategy] The active strategy
+    def self.clear_oidc_memoization(strategy)
+      # Only clear for OIDC-based strategies
+      return unless strategy.respond_to?(:options) &&
+                    strategy.options[:discovery] == true
+
+      # Clear memoized instance variables if they exist
+      # This forces the strategy to re-fetch discovery and re-create client
+      strategy.instance_variable_set(:@config, nil) if strategy.instance_variable_defined?(:@config)
+      strategy.instance_variable_set(:@client, nil) if strategy.instance_variable_defined?(:@client)
+
+      Auth::Logging.log_auth_event(
+        :omniauth_oidc_memoization_cleared,
+        level: :debug,
+        strategy_class: strategy.class.name,
+      )
+    end
+  end
+end
