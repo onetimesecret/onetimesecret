@@ -1,6 +1,6 @@
 // src/tests/setup-env.ts
 
-import type { BootstrapPayload } from '@/types/declarations/bootstrap';
+import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 
 // Handle known race condition in vue-i18n during test teardown.
 // When jsdom tears down, async renders may still try to access window.
@@ -18,7 +18,7 @@ if (typeof process !== 'undefined') {
   });
 }
 
-(window as BootstrapPayload).__BOOTSTRAP_STATE__ = {
+(window as BootstrapPayload).__BOOTSTRAP_ME__ = {
   supported_locales: ['en', 'fr_CA', 'de_AT'],
   fallback_locale: 'en',
   default_locale: 'en',

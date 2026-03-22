@@ -46,7 +46,7 @@ describe('CSRF Store', () => {
    * bootstrapStore on page load. The csrfStore then synchronizes with this
    * value during initialization.
    *
-   * Flow: Backend session[:csrf] -> window.__BOOTSTRAP_STATE__.shrimp -> bootstrapStore -> csrfStore
+   * Flow: Backend session[:csrf] -> window.__BOOTSTRAP_ME__.shrimp -> bootstrapStore -> csrfStore
    */
   describe('Initialization', () => {
     it('initializes with empty shrimp when bootstrap.shrimp is not available', () => {
@@ -243,7 +243,7 @@ describe('CSRF Store', () => {
       store.updateShrimp(newShrimp);
 
       expect(store.shrimp).toBe(newShrimp); // Shrimp should update
-      const bootstrapState = (window as Window & { __BOOTSTRAP_STATE__?: { shrimp?: string } }).__BOOTSTRAP_STATE__;
+      const bootstrapState = (window as Window & { __BOOTSTRAP_ME__?: { shrimp?: string } }).__BOOTSTRAP_ME__;
       expect(bootstrapState?.shrimp).not.toBe(newShrimp); // Window.shrimp should not change
       expect(store.isValid).toBe(initialValidity); // Validity should not change
     });

@@ -6,7 +6,7 @@
   import SecretDisplayHelpContent from '@/apps/secret/components/SecretDisplayHelpContent.vue';
   import { useClipboard } from '@/shared/composables/useClipboard';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { Secret, SecretDetails } from '@/schemas/shapes/v2';
+  import type { SecretRecord as Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { computed } from 'vue';
 
   import BaseSecretDisplay from './BaseSecretDisplay.vue';
@@ -14,8 +14,8 @@
   const { t } = useI18n();
   const bootstrapStore = useBootstrapStore();
   const signinEnabled = computed(
-    () => bootstrapStore.authentication.enabled
-      && bootstrapStore.authentication.signin
+    () => bootstrapStore.authentication?.enabled
+      && bootstrapStore.authentication?.signin
   );
 
   interface Props {

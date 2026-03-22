@@ -83,21 +83,22 @@ export const receiptDetails = receiptDetailsCanonical.extend({
 });
 
 /**
- * V3 receipt list details.
- *
- * Extends contract with arrays of receipt records for categorized display.
- */
-export const receiptListDetails = receiptListDetailsCanonical.extend({
-  received: z.array(receiptBaseRecord).optional(),
-  notreceived: z.array(receiptBaseRecord).optional(),
-});
-
-/**
  * V3 receipt list record (base + show_recipients).
  */
 export const receiptListRecord = receiptListCanonical.extend({
   ...v3TimestampOverrides,
   has_passphrase: z.boolean().nullish().transform((v) => v ?? false),
+});
+
+/**
+ * V3 receipt list details.
+ *
+ * Extends contract with arrays of receipt records for categorized display.
+ * Uses receiptListRecord (not receiptBaseRecord) because the API includes show_recipients.
+ */
+export const receiptListDetails = receiptListDetailsCanonical.extend({
+  received: z.array(receiptListRecord).optional(),
+  notreceived: z.array(receiptListRecord).optional(),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

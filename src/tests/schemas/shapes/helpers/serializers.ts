@@ -13,6 +13,7 @@ import type {
   ReceiptBaseCanonical,
   ReceiptCanonical,
   ReceiptDetailsCanonical,
+  ReceiptListCanonical,
   SecretBaseCanonical,
   SecretCanonical,
   SecretWithTimestampsCanonical,
@@ -23,7 +24,7 @@ import type {
   FeedbackDetailsCanonical,
 } from '@/schemas/contracts/feedback';
 import type { receiptBaseSchema, receiptSchema, receiptDetailsSchema } from '@/schemas/shapes/v2/receipt';
-import type { receiptBaseRecord, receiptRecord, receiptDetails } from '@/schemas/shapes/v3/receipt';
+import type { receiptBaseRecord, receiptRecord, receiptDetails, receiptListRecord } from '@/schemas/shapes/v3/receipt';
 import type { secretResponsesSchema, secretSchema, secretDetailsSchema } from '@/schemas/shapes/v2/secret';
 import type { secretBaseRecord, secretRecord, secretDetails } from '@/schemas/shapes/v3/secret';
 import type { feedbackSchema, feedbackDetailsSchema } from '@/schemas/shapes/v2/feedback';
@@ -42,6 +43,7 @@ export type V2WireReceiptDetails = z.input<typeof receiptDetailsSchema>;
 export type V3WireReceiptBase = z.input<typeof receiptBaseRecord>;
 export type V3WireReceipt = z.input<typeof receiptRecord>;
 export type V3WireReceiptDetails = z.input<typeof receiptDetails>;
+export type V3WireReceiptListRecord = z.input<typeof receiptListRecord>;
 
 // Secret wire format types
 export type V2WireSecretBase = z.input<typeof secretResponsesSchema>;
@@ -312,6 +314,18 @@ export function toV3WireReceipt(canonical: ReceiptCanonical): V3WireReceipt {
     receipt_url: canonical.receipt_url,
     burn_url: canonical.burn_url,
   } as V3WireReceipt;
+}
+
+/**
+ * Converts canonical receipt list record to V3 wire format.
+ * Extends base with show_recipients field required for list display.
+ */
+export function toV3WireReceiptListRecord(canonical: ReceiptListCanonical): V3WireReceiptListRecord {
+  const base = toV3WireReceiptBase(canonical);
+  return {
+    ...base,
+    show_recipients: canonical.show_recipients,
+  } as V3WireReceiptListRecord;
 }
 
 /**

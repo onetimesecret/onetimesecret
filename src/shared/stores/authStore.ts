@@ -404,8 +404,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     $reset();
 
-    // Reset bootstrapStore to typed defaults - single source of truth
-    bootstrapStore.$reset();
+    // Reset bootstrapStore user state while preserving server config
+    bootstrapStore.resetForLogout();
 
     deleteCookie('sess');
     deleteCookie('locale');

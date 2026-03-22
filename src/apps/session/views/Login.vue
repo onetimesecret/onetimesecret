@@ -19,7 +19,7 @@ const languageStore = useLanguageStore();
 const bootstrapStore = useBootstrapStore();
 const { authentication } = storeToRefs(bootstrapStore);
 const signupEnabled = computed(
-  () => authentication.value.enabled && authentication.value.signup
+  () => authentication.value?.enabled && authentication.value?.signup
 );
 
 // Handle auth errors passed via query params (from SSO/magic link failures)

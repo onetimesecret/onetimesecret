@@ -120,7 +120,7 @@ See `docker-compose.yml` for available profiles (simple vs full stack) and `dock
 
 ## Community & Support
 
-[Latest Release](https://github.com/onetimesecret/onetimesecret/releases/latest) · [Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret) · [Build Status](https://github.com/onetimesecret/onetimesecret/actions) · [License](LICENSE)
+[Latest Release](https://github.com/onetimesecret/onetimesecret/releases/latest) · [Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret) · [Build Status](https://github.com/onetimesecret/onetimesecret/actions) · [License](LICENSE.txt)
 
 - [Report an issue](https://github.com/onetimesecret/onetimesecret/issues)
 - [Security Statement](./SECURITY.md)

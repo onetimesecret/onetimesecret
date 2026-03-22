@@ -69,9 +69,8 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
 
   function init(options?: StoreOptions) {
     if (_initialized.value) return;
-    let config: RegionsConfig | null;
-
-    config = options?.regions ?? bootstrapRegions.value;
+    const config: RegionsConfig | null | undefined =
+      options?.regions ?? bootstrapRegions?.value;
 
     if (!config) {
       enabled.value = false;

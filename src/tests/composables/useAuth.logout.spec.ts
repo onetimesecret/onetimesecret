@@ -216,13 +216,13 @@ describe('useAuth logout flow — no brand flash', () => {
       expect(bootstrapStore.domain_logo).toBeNull();
     });
 
-    it('full logout resets domain_branding to empty defaults', async () => {
-      expect(bootstrapStore.domain_branding.primary_color).toBe('#ff6600');
+    it('full logout resets domain_branding to null', async () => {
+      expect(bootstrapStore.domain_branding?.primary_color).toBe('#ff6600');
 
       await authStore.logout();
 
-      // domain_branding reverts to DEFAULTS (empty BrandSettings)
-      expect(bootstrapStore.domain_branding).not.toHaveProperty('primary_color');
+      // domain_branding reverts to DEFAULTS (null per schema default)
+      expect(bootstrapStore.domain_branding).toBeNull();
     });
 
     it('full logout resets authenticated to null', async () => {

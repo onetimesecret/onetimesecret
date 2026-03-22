@@ -17,6 +17,8 @@ const i18nSchema = z.object({
   fallback_locale: z.record(z.string(), z.union([z.array(z.string()), z.string()])),
   locales: z.array(z.string()).default([]),
   incomplete: z.array(z.string()).default([]),
+  date_format: z.string().default('locale'),
+  datetime_format: z.string().default('locale'),
 });
 
 export { i18nSchema };

@@ -829,7 +829,7 @@ test.describe('Scope Switcher - Edge Cases', () => {
 
     // Check window state for domains
     const hasDomains = await page.evaluate(() => {
-      const state = (window as any).__BOOTSTRAP_STATE__;
+      const state = (window as any).__BOOTSTRAP_ME__;
       return state?.domains_enabled && (state?.custom_domains?.length || 0) > 0;
     });
 

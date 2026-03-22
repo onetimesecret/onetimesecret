@@ -7,6 +7,7 @@ import type {
   ReceiptBaseCanonical,
   ReceiptCanonical,
   ReceiptDetailsCanonical,
+  ReceiptListCanonical,
   ReceiptState,
 } from '@/schemas/contracts';
 import {
@@ -16,12 +17,14 @@ import {
   toV3WireReceiptBase,
   toV3WireReceipt,
   toV3WireReceiptDetails,
+  toV3WireReceiptListRecord,
   type V2WireReceiptBase,
   type V2WireReceipt,
   type V2WireReceiptDetails,
   type V3WireReceiptBase,
   type V3WireReceipt,
   type V3WireReceiptDetails,
+  type V3WireReceiptListRecord,
 } from '../helpers/serializers';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -312,6 +315,29 @@ export function createV3WireReceiptDetails(
   canonical?: ReceiptDetailsCanonical
 ): V3WireReceiptDetails {
   return toV3WireReceiptDetails(canonical ?? createCanonicalReceiptDetails());
+}
+
+/**
+ * Creates a canonical receipt list record with show_recipients.
+ * Extends base with show_recipients field required for list display.
+ */
+export function createCanonicalReceiptListRecord(
+  overrides?: Partial<ReceiptListCanonical>
+): ReceiptListCanonical {
+  return {
+    ...createCanonicalReceiptBase(overrides),
+    show_recipients: true,
+    ...overrides,
+  };
+}
+
+/**
+ * Creates V3 wire receipt list record from canonical.
+ */
+export function createV3WireReceiptListRecord(
+  canonical?: ReceiptListCanonical
+): V3WireReceiptListRecord {
+  return toV3WireReceiptListRecord(canonical ?? createCanonicalReceiptListRecord());
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

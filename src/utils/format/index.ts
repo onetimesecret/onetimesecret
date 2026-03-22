@@ -1,6 +1,27 @@
 // src/utils/format/index.ts
 
+import { format } from 'date-fns';
+import { getBootstrapValue } from '@/services/bootstrap.service';
 import { parseDateValue } from '../parse/date';
+
+// Track patterns that have already warned to avoid console spam
+const warnedPatterns = new Set<string>();
+
+/**
+ * Safely format a date with a date-fns pattern, falling back on error.
+ * Invalid patterns will log a warning once and use the fallback.
+ */
+const safeFormat = (date: Date, pattern: string, fallback: () => string): string => {
+  try {
+    return format(date, pattern);
+  } catch (e) {
+    if (!warnedPatterns.has(pattern)) {
+      warnedPatterns.add(pattern);
+      console.warn(`Invalid date format pattern "${pattern}", using fallback.`, e);
+    }
+    return fallback();
+  }
+};
 
 /**
  * Time duration formatting utilities.
@@ -63,11 +84,117 @@ export function ttlToNaturalLanguage(val: unknown): string | null {
 }
 
 /**
- * Format a date value (seconds/string) to localized string
+ * Format a Date object as ISO8601 date only: yyyy-MM-dd
+ */
+export const formatISODate = (date: Date): string => format(date, 'yyyy-MM-dd');
+
+/**
+ * Format a Date object as ISO8601 date and time: yyyy-MM-dd HH:mm:ss
+ */
+export const formatISODateTime = (date: Date): string => format(date, 'yyyy-MM-dd HH:mm:ss');
+
+/**
+ * Regional date format presets.
+ *
+ * These shorthand keywords resolve to date-fns format patterns so that
+ * operators don't need to memorize token syntax. Each entry provides a
+ * date-only pattern and a date+time pattern.
+ *
+ *  Keyword   | Date           | DateTime                | Region
+ *  ----------|----------------|-------------------------|---------------------------
+ *  iso8601   | 2026-03-21     | 2026-03-21 14:30:00     | International / technical
+ *  us        | 03/21/2026     | 03/21/2026 2:30:00 PM   | United States
+ *  eu        | 21/03/2026     | 21/03/2026 14:30        | Most of Europe (slash)
+ *  eu-dot    | 21.03.2026     | 21.03.2026 14:30        | Germany, Austria, CH, etc.
+ *  uk        | 21 Mar 2026    | 21 Mar 2026 14:30       | UK / Commonwealth
+ *  long      | March 21, 2026 | March 21, 2026 2:30 PM  | Formal / editorial
+ */
+const DATE_FORMAT_PRESETS: Record<string, { date: string; datetime: string }> = {
+  iso8601:  { date: 'yyyy-MM-dd',    datetime: 'yyyy-MM-dd HH:mm:ss' },
+  us:       { date: 'MM/dd/yyyy',    datetime: 'MM/dd/yyyy h:mm:ss a' },
+  eu:       { date: 'dd/MM/yyyy',    datetime: 'dd/MM/yyyy HH:mm' },
+  'eu-dot': { date: 'dd.MM.yyyy',    datetime: 'dd.MM.yyyy HH:mm' },
+  uk:       { date: 'dd MMM yyyy',   datetime: 'dd MMM yyyy HH:mm' },
+  long:     { date: 'MMMM d, yyyy',  datetime: 'MMMM d, yyyy h:mm a' },
+};
+
+/**
+ * Resolve a format setting to a date-fns pattern string.
+ *
+ * @param setting - 'locale', a preset keyword, or a raw date-fns pattern
+ * @param variant - Whether to resolve the 'date' or 'datetime' pattern
+ * @returns The resolved pattern, or null when 'locale' (caller uses browser-native)
+ */
+function resolveFormatPattern(
+  setting: string,
+  variant: 'date' | 'datetime',
+): string | null {
+  if (setting === 'locale') return null;
+  const preset = DATE_FORMAT_PRESETS[setting];
+  if (preset) return preset[variant];
+  return setting; // raw date-fns pattern
+}
+
+/**
+ * Format a Date as a date-only string, respecting the configured date_format.
+ *
+ * Accepts:
+ * - 'locale' (default): browser-native toLocaleDateString()
+ * - A preset keyword: 'iso8601', 'us', 'eu', 'eu-dot', 'uk', 'long'
+ * - A date-fns format pattern: e.g. 'dd/MM/yyyy', 'EEEE, MMMM do yyyy'
+ *
+ * @see https://date-fns.org/docs/format
+ */
+export const formatDisplayDate = (date: Date): string => {
+  const setting = getBootstrapValue('date_format') ?? 'locale';
+  const pattern = resolveFormatPattern(setting, 'date');
+  return pattern
+    ? safeFormat(date, pattern, () => date.toLocaleDateString())
+    : date.toLocaleDateString();
+};
+
+/**
+ * Format a Date as a date+time string.
+ *
+ * Resolution order:
+ * 1. datetime_format (if explicitly set to something other than 'locale')
+ * 2. date_format (uses its datetime variant — so a single `date_format: eu`
+ *    controls both date-only and datetime display)
+ * 3. Falls back to browser-native toLocaleString()
+ *
+ * Accepts:
+ * - 'locale' (default): browser-native toLocaleString()
+ * - A preset keyword: 'iso8601', 'us', 'eu', 'eu-dot', 'uk', 'long'
+ * - A date-fns format pattern: e.g. 'dd/MM/yyyy HH:mm:ss', 'MMM d, yyyy h:mm a'
+ *
+ * @see https://date-fns.org/docs/format
+ */
+export const formatDisplayDateTime = (date: Date): string => {
+  const datetimeSetting = getBootstrapValue('datetime_format') ?? 'locale';
+
+  // If datetime_format is explicitly configured, use it directly
+  if (datetimeSetting !== 'locale') {
+    const pattern = resolveFormatPattern(datetimeSetting, 'datetime');
+    return pattern
+      ? safeFormat(date, pattern, () => date.toLocaleString())
+      : date.toLocaleString();
+  }
+
+  // Fall back to date_format's datetime variant (so `date_format: eu` covers both)
+  const dateSetting = getBootstrapValue('date_format') ?? 'locale';
+  const pattern = resolveFormatPattern(dateSetting, 'datetime');
+  return pattern
+    ? safeFormat(date, pattern, () => date.toLocaleString())
+    : date.toLocaleString();
+};
+
+/**
+ * Format a date value (seconds/string) to a display string,
+ * respecting the configured datetime_format (or date_format fallback).
  */
 export const formatDate = (val: unknown): string => {
   const date = parseDateValue(val);
-  return date?.toLocaleString() ?? '';
+  return date ? formatDisplayDateTime(date) : '';
 };
 
 /**
