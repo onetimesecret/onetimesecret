@@ -7,6 +7,7 @@ import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } fro
 import { BillingService, type Plan as BillingPlan, type PlanChangePreviewResponse } from '@/services/billing.service';
 import { formatCurrency } from '@/types/billing';
 import { classifyError } from '@/schemas/errors';
+import { formatDisplayDate } from '@/utils/format';
 import { computed, ref, watch } from 'vue';
 
 const { t } = useI18n();
@@ -61,11 +62,7 @@ const confirmButtonLabel = computed(() =>
 
 const formattedNextBillingDate = computed(() => {
   if (!preview.value?.next_billing_date) return null;
-  return new Date(preview.value.next_billing_date * 1000).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  return formatDisplayDate(new Date(preview.value.next_billing_date * 1000));
 });
 
 // Check if API returns the new breakdown fields

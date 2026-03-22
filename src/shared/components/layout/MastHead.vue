@@ -207,10 +207,10 @@
         </template>
 
         <template v-else>
-          <template v-if="authentication.enabled">
+          <template v-if="authentication?.enabled">
             <!-- prettier-ignore-attribute class -->
             <router-link
-              v-if="authentication.signup"
+              v-if="authentication?.signup"
               to="/signup"
               :title="t('web.homepage.signup_individual_and_business_plans')"
               class="font-bold text-gray-600 transition-colors duration-200
@@ -219,7 +219,7 @@
               {{ t('web.COMMON.header_create_account') }}
             </router-link>
             <span
-              v-if="authentication.signup && authentication.signin"
+              v-if="authentication?.signup && authentication?.signin"
               class="text-gray-400"
               aria-hidden="true"
               role="separator">
@@ -227,7 +227,7 @@
             </span>
             <!-- prettier-ignore-attribute class -->
             <router-link
-              v-if="authentication.signin"
+              v-if="authentication?.signin"
               to="/signin"
               :title="t('web.homepage.log_in_to_onetime_secret')"
               class="text-gray-600 transition-colors duration-200

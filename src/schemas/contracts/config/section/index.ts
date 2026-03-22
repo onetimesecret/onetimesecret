@@ -12,6 +12,7 @@ export * from './development';
 export * from './diagnostics';
 export * from './features';
 export * from './i18n';
+export * from './jurisdiction';
 export * from './limits';
 export * from './mail';
 export * from './secret_options';

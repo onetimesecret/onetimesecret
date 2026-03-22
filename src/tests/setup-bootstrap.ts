@@ -1,216 +1,37 @@
 // src/tests/setup-bootstrap.ts
-
 //
 // Test utilities for bootstrap state mocking.
 // Provides a unified approach using createTestingPinia and typed fixtures.
+//
+// Fixtures are defined in fixtures/bootstrap.fixture.ts and re-exported here
+// for backward compatibility.
 
-import type { Customer } from '@/schemas/shapes/v2';
-import type { BootstrapPayload } from '@/types/declarations/bootstrap';
+import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 import { createTestingPinia, type TestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { vi } from 'vitest';
 
-// ============================================================================
-// FIXTURES: Pre-configured bootstrap states for common test scenarios
-// ============================================================================
+// Import and re-export fixtures for backward compatibility
+import {
+  mockCustomer,
+  baseBootstrap,
+  authenticatedBootstrap,
+  anonymousBootstrap,
+  mfaPendingBootstrap,
+  colonelBootstrap,
+  customDomainsBootstrap,
+  standaloneBootstrap,
+} from '@/tests/fixtures/bootstrap.fixture';
 
-/**
- * Base fixture with sensible defaults for all BootstrapPayload properties.
- * Use this as a foundation and override specific properties as needed.
- */
-export const baseBootstrap: BootstrapPayload = {
-  authenticated: false,
-  awaiting_mfa: false,
-  had_valid_session: false,
-  baseuri: 'https://test.onetimesecret.com',
-  cust: null,
-  custid: '',
-  domains_enabled: false,
-  email: '',
-  frontend_host: 'https://test.onetimesecret.com',
-
-  // i18n
-  i18n_enabled: true,
-  locale: 'en',
-  supported_locales: ['en', 'es', 'fr', 'de'],
-  fallback_locale: 'en',
-  default_locale: 'en',
-
-  // Version info
-  ot_version: '0.20.0',
-  ot_version_long: '0.20.0 (test)',
-  ruby_version: 'ruby-335',
-
-  // Feature flags
-  billing_enabled: true,
-  regions_enabled: false,
-
-  // Security
-  shrimp: 'test-csrf-token',
-
-  // Domain configuration
-  site_host: 'test.onetimesecret.com',
-  canonical_domain: 'test.onetimesecret.com',
-  domain_strategy: 'canonical',
-  domain_id: '',
-  display_domain: 'test.onetimesecret.com',
-  domain_branding: {
-    allow_public_homepage: false,
-    button_text_light: true,
-    corner_style: 'rounded',
-    font_family: 'sans',
-    instructions_post_reveal: '',
-    instructions_pre_reveal: '',
-    instructions_reveal: '',
-    primary_color: '#36454F',
-  },
-  domain_logo: null,
-
-  // Authentication settings
-  authentication: {
-    enabled: true,
-    signup: true,
-    signin: true,
-    autoverify: false,
-    required: false,
-    mode: 'simple',
-  },
-
-  // Secret options
-  secret_options: {
-    default_ttl: 604800.0,
-    ttl_options: [60, 3600, 86400, 604800, 1209600, 2592000],
-  },
-
-  // Regions
-  regions: {
-    identifier: 'US',
-    enabled: false,
-    current_jurisdiction: 'US',
-    jurisdictions: [],
-  },
-  available_jurisdictions: ['US'],
-
-  // UI
-  enjoyTheVue: true,
-  messages: [],
-  d9s_enabled: false,
-  diagnostics: {
-    sentry: {
-      enabled: false,
-      dsn: '',
-      logErrors: true,
-      trackComponents: true,
-    },
-  },
-  features: {
-    markdown: true,
-  },
-  ui: {
-    enabled: true,
-  },
-};
-
-/**
- * Customer fixture for authenticated states.
- */
-export const mockCustomer: Customer = {
-  identifier: 'cust_ext_123',
-  objid: 'cust_obj_123',
-  extid: 'cust_ext_123',
-  email: 'test@example.com',
-  role: 'customer',
-  verified: true,
-  created: new Date(),
-  updated: new Date(),
-  feature_flags: { beta: false },
-  secrets_created: 10,
-  secrets_burned: 2,
-  secrets_shared: 5,
-  emails_sent: 3,
-  active: true,
-  locale: 'en',
-  last_login: null,
-  notify_on_reveal: false,
-};
-
-/**
- * Authenticated user bootstrap state.
- * User is fully authenticated with customer data.
- */
-export const authenticatedBootstrap: BootstrapPayload = {
-  ...baseBootstrap,
-  authenticated: true,
-  awaiting_mfa: false,
-  had_valid_session: true,
-  cust: mockCustomer,
-  custid: mockCustomer.extid,
-  email: mockCustomer.email,
-};
-
-/**
- * Anonymous user bootstrap state.
- * User is not authenticated, no customer data.
- */
-export const anonymousBootstrap: BootstrapPayload = {
-  ...baseBootstrap,
-  authenticated: false,
-  awaiting_mfa: false,
-  had_valid_session: false,
-  cust: null,
-  custid: '',
-  email: '',
-};
-
-/**
- * MFA pending bootstrap state.
- * User has passed first factor but needs to complete MFA.
- */
-export const mfaPendingBootstrap: BootstrapPayload = {
-  ...baseBootstrap,
-  authenticated: false,
-  awaiting_mfa: true,
-  had_valid_session: true,
-  cust: mockCustomer,
-  custid: mockCustomer.extid,
-  email: mockCustomer.email,
-};
-
-/**
- * Colonel (admin) user bootstrap state.
- * Authenticated user with admin privileges and test mode capabilities.
- */
-export const colonelBootstrap: BootstrapPayload = {
-  ...authenticatedBootstrap,
-  cust: {
-    ...mockCustomer,
-    role: 'colonel',
-  },
-  entitlement_test_planid: null,
-  entitlement_test_plan_name: null,
-  development: {
-    enabled: true,
-    domain_context_enabled: true,
-  },
-};
-
-/**
- * Custom domains enabled bootstrap state.
- * Authenticated user with custom domain features enabled.
- */
-export const customDomainsBootstrap: BootstrapPayload = {
-  ...authenticatedBootstrap,
-  domains_enabled: true,
-  custom_domains: ['acme.example.com', 'widgets.example.com'],
-};
-
-/**
- * Billing disabled bootstrap state (standalone mode).
- * For testing self-hosted/standalone deployments.
- */
-export const standaloneBootstrap: BootstrapPayload = {
-  ...authenticatedBootstrap,
-  billing_enabled: false,
+export {
+  mockCustomer,
+  baseBootstrap,
+  authenticatedBootstrap,
+  anonymousBootstrap,
+  mfaPendingBootstrap,
+  colonelBootstrap,
+  customDomainsBootstrap,
+  standaloneBootstrap,
 };
 
 // ============================================================================
@@ -337,14 +158,14 @@ export function setupBootstrapMock(options: BootstrapMockOptions = {}): Bootstra
   });
   setActivePinia(pinia);
 
-  // Set up window.__BOOTSTRAP_STATE__ for components that access it directly
-  (window as any).__BOOTSTRAP_STATE__ = bootstrapState;
+  // Set up window.__BOOTSTRAP_ME__ for components that access it directly
+  (window as any).__BOOTSTRAP_ME__ = bootstrapState;
 
   // Helper to update state mid-test
   const updateState = (updates: Partial<BootstrapPayload>) => {
     Object.assign(bootstrapState, updates);
     // Also update window object for direct access
-    (window as any).__BOOTSTRAP_STATE__ = bootstrapState;
+    (window as any).__BOOTSTRAP_ME__ = bootstrapState;
   };
 
   return {

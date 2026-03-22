@@ -4,8 +4,9 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useSecretExpiration } from '@/shared/composables/useSecretExpiration';
-  import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v2';
+  import type { ReceiptRecord as Receipt, ReceiptDetails } from '@/schemas/shapes/v3/receipt';
   import { formatDistanceToNow } from 'date-fns';
+  import { formatDisplayDateTime } from '@/utils/format';
   import { computed } from 'vue';
 
 const { t } = useI18n();
@@ -22,7 +23,7 @@ const { t } = useI18n();
     props.record.expiration_in_seconds ?? 0
   );
 
-  const showExpiration = computed(() => !props.record.is_burned && !props.record.is_received);
+  const showExpiration = computed(() => !props.record.is_burned && !props.record.is_revealed);
   const showFaded = computed(() => expirationState.value === 'expired' || !showExpiration.value);
 
   // Helper function for consistent time formatting
@@ -68,7 +69,7 @@ const { t } = useI18n();
           <time
             :datetime="record.created.toISOString()"
             class="text-sm text-gray-700 dark:text-gray-300">
-            {{ record.created.toLocaleString() }}
+            {{ formatDisplayDateTime(record.created) }}
           </time>
           <p
             class="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
@@ -79,7 +80,7 @@ const { t } = useI18n();
 
       <!-- Received (if applicable) -->
       <div
-        v-if="record.is_received"
+        v-if="record.is_revealed"
         class="group flex gap-4">
         <!-- prettier-ignore-attribute class -->
         <div
@@ -105,14 +106,14 @@ const { t } = useI18n();
             {{ t('web.STATUS.received') }}
           </p>
           <time
-            :datetime="record.received?.toISOString()"
+            :datetime="record.revealed?.toISOString()"
             class="text-sm text-gray-700 dark:text-gray-300">
-            {{ record.received?.toLocaleString() }}
+            {{ record.revealed ? formatDisplayDateTime(record.revealed) : '' }}
           </time>
           <p
-            v-if="record.received"
+            v-if="record.revealed"
             class="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
-            {{ formatTimeAgo(record.received) }}
+            {{ formatTimeAgo(record.revealed) }}
           </p>
         </div>
       </div>
@@ -141,7 +142,7 @@ const { t } = useI18n();
           <time
             :datetime="record.burned?.toISOString()"
             class="text-sm text-gray-700 dark:text-gray-300">
-            {{ record.burned?.toLocaleString() }}
+            {{ record.burned ? formatDisplayDateTime(record.burned) : '' }}
           </time>
           <p
             v-if="record.burned"
@@ -202,7 +203,7 @@ const { t } = useI18n();
           <time
             :datetime="expirationDate.toISOString()"
             class="mt-2 block text-sm text-gray-700 dark:text-gray-300">
-            {{ expirationDate.toLocaleString() }}
+            {{ formatDisplayDateTime(expirationDate) }}
           </time>
           <p class="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
             {{ timeRemaining }}

@@ -282,7 +282,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
 
         processed_config = Onetime::Config.after_load(raw_config)
         expect(processed_config['internationalization']['enabled']).to be(false)
-        expect(processed_config['internationalization'].keys).to eq(['enabled', 'default_locale'])
+        expect(processed_config['internationalization'].keys).to eq(['enabled', 'default_locale', 'date_format', 'datetime_format'])
       end
     end
 

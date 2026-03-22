@@ -35,6 +35,7 @@ module Core
         if output['authenticated']
           output['custid']         = cust.custid
           output['email']          = cust.email
+          # customer_since: Formatted date string (e.g., "Mar 21, 2026") - matches Zod schema z.string()
           output['customer_since'] = OT::Utils::TimeUtils.epochdom(cust.created) if cust.created
           output['has_password']   = account_has_password?(sess)
 
@@ -89,7 +90,7 @@ module Core
           db = Auth::Database.connection
           return false unless db
 
-          db[:account_password_hashes].where(id: account_id).count > 0
+          db[:account_password_hashes].where(id: account_id).any?
         rescue StandardError
           false
         end

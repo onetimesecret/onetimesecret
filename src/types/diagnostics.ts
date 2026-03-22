@@ -3,19 +3,20 @@
 /**
  * Runtime Diagnostics Configuration Types
  *
- * Re-exports from the schema definition. The schema provides both validation
- * and type inference for Sentry configuration passed from Ruby backend to
- * Vue frontend.
+ * Bootstrap payload types come from contracts/bootstrap.ts (single source of truth).
+ * Sentry SDK types come from shapes for SDK integration.
  *
- * @see src/schemas/shapes/config/diagnostics.ts for the authoritative schema
+ * @see src/schemas/contracts/bootstrap.ts for bootstrap payload schema
+ * @see src/schemas/shapes/config/diagnostics.ts for Sentry SDK integration
  */
 
+// Bootstrap payload types (what Ruby sends to frontend)
 export {
-  diagnosticsConfigSchema,
+  diagnosticsSchema,
   sentryConfigSchema,
   type DiagnosticsConfig,
   type SentryConfig,
-} from '@/schemas/shapes/config/diagnostics';
+} from '@/schemas/contracts/bootstrap';
 
 // Re-export Sentry types for consumers that need them
 export type { Integration, ErrorEvent } from '@sentry/core';

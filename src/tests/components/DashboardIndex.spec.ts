@@ -148,7 +148,7 @@ describe('DashboardIndex', () => {
       expect(wrapper.find('[data-testid="privacy-bar"]').exists()).toBe(true);
     }, 10000);
 
-    it('hides privacy bar when domain context is not active', async () => {
+    it('shows privacy bar even when domain context is not active', async () => {
       mockDomainContextState.isContextActive = false;
 
       const DashboardIndex = await getComponent();
@@ -156,7 +156,8 @@ describe('DashboardIndex', () => {
 
       await flushPromises();
 
-      expect(wrapper.find('[data-testid="privacy-bar"]').exists()).toBe(false);
+      // Privacy bar is always rendered (controls TTL/passphrase for all users)
+      expect(wrapper.find('[data-testid="privacy-bar"]').exists()).toBe(true);
     });
 
     it('shows privacy bar for canonical domain', async () => {

@@ -27,7 +27,7 @@ import { test, expect } from '@playwright/test';
  *
  * 1. **Option A: Use test fixtures** (recommended for CI)
  *    - Configure test data in your backend test setup
- *    - Mock window.__BOOTSTRAP_STATE__ to include custom domains
+ *    - Mock window.__BOOTSTRAP_ME__ to include custom domains
  *
  * 2. **Option B: Manual setup** (for local development)
  *    ```bash
@@ -193,9 +193,9 @@ test.describe('Domain Context - Consultant Workflow', () => {
     await page.goto('/');
 
     await page.evaluate(() => {
-      if (window.__BOOTSTRAP_STATE__) {
-        window.__BOOTSTRAP_STATE__.custom_domains = [];
-        window.__BOOTSTRAP_STATE__.domains_enabled = false;
+      if (window.__BOOTSTRAP_ME__) {
+        window.__BOOTSTRAP_ME__.custom_domains = [];
+        window.__BOOTSTRAP_ME__.domains_enabled = false;
       }
     });
 
@@ -216,7 +216,7 @@ test.describe('Domain Context - Consultant Workflow', () => {
 
     // Check that sessionStorage key exists (if user has custom domains)
     const hasDomainContext = await page.evaluate(() => {
-      const customDomains = window.__BOOTSTRAP_STATE__?.custom_domains || [];
+      const customDomains = window.__BOOTSTRAP_ME__?.custom_domains || [];
       const hasCustomDomains = customDomains.length > 0;
 
       if (hasCustomDomains) {

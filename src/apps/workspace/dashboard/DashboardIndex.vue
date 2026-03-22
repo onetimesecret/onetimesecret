@@ -6,11 +6,7 @@
   import WorkspaceSecretForm from '@/apps/workspace/components/forms/WorkspaceSecretForm.vue';
   import UpgradeBanner from '@/apps/workspace/dashboard/components/UpgradeBanner.vue';
   import { loggingService } from '@/services/logging.service';
-  import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { computed, ref } from 'vue';
-
-  // Domain context management
-  const { isContextActive } = useDomainContext();
 
   // Form ref for accessing exposed state
   const secretFormRef = ref<InstanceType<typeof WorkspaceSecretForm> | null>(null);
@@ -53,7 +49,6 @@
 
     <!-- Privacy Options Bar (interactive chips for TTL and passphrase) -->
     <PrivacyOptionsBar
-      v-if="isContextActive"
       :current-ttl="currentTtl"
       :current-passphrase="currentPassphrase"
       :is-submitting="isSubmitting"

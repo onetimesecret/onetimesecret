@@ -23,8 +23,8 @@ interface EnableDiagnosticsOptions {
   // Display domain. This is the domain the user is interacting with, not
   // the Sentry domain. Same meaning as `display_domain`.
   host: string;
-  // Sentry configuration from backend
-  config: DiagnosticsConfig;
+  // Sentry configuration from backend (caller must ensure non-null)
+  config: NonNullable<DiagnosticsConfig>;
   // Vue Router instance for route tracking
   router: Router;
 }

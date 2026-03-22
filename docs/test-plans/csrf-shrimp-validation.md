@@ -26,7 +26,7 @@ The frontend components must use `name='shrimp'` in form submissions, not `name=
 
 ```
 Backend session[:csrf]
-    -> Serialized to window.__BOOTSTRAP_STATE__.shrimp
+    -> Serialized to window.__BOOTSTRAP_ME__.shrimp
     -> bootstrapStore.shrimp
     -> csrfStore.shrimp
     -> Form hidden input (name="shrimp")
@@ -74,7 +74,7 @@ Backend session[:csrf]
 **Test case at line 253:**
 ```ruby
 it 'delivers CSRF via shrimp in serialized state (not meta tag)' do
-  # CSRF is delivered via window.__BOOTSTRAP_STATE__.shrimp and X-CSRF-Token header
+  # CSRF is delivered via window.__BOOTSTRAP_ME__.shrimp and X-CSRF-Token header
   expect(state_data).to have_key('shrimp')
 end
 ```
@@ -113,7 +113,7 @@ end
 ### Prerequisites
 1. OmniAuth/OIDC configured with valid provider credentials
 2. Environment variables set: `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_URI`
-3. `features.omniauth` enabled in bootstrap state
+3. `features.sso` enabled in bootstrap state
 
 ### Test Procedure
 
@@ -129,7 +129,7 @@ end
 3. **Inspect bootstrap state (DevTools Console)**
    ```javascript
    // Before app consumes it
-   window.__BOOTSTRAP_STATE__.shrimp
+   window.__BOOTSTRAP_ME__.shrimp
    // Should return a non-empty string token
    ```
 
@@ -203,7 +203,7 @@ site:
 ## Troubleshooting
 
 ### SSO button not appearing
-- Verify `window.__BOOTSTRAP_STATE__.features.omniauth === true`
+- Verify `window.__BOOTSTRAP_ME__.features.sso === true`
 - Check OIDC environment variables are set
 - Review server logs for OmniAuth configuration errors
 

@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import type { FooterLinksConfig } from '@/types/declarations/bootstrap';
+  import type { FooterLinksConfig } from '@/schemas/contracts/bootstrap';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
 
@@ -16,12 +16,17 @@
 
   const isEnabled = computed((): boolean => footerConfig.value?.enabled === true);
 
-  const linkGroups = computed(() => footerConfig.value?.groups || []);
+  // Filter out groups that have no valid links (all URLs empty/missing)
+  const linkGroups = computed(() =>
+    (footerConfig.value?.groups || []).filter(group =>
+      group.links?.some(link => link.url?.trim())
+    )
+  );
 </script>
 
 <template>
   <div
-    v-if="isEnabled"
+    v-if="isEnabled && linkGroups.length > 0"
     class="flex w-full justify-center border-t border-gray-200 pt-8 dark:border-gray-700">
     <!-- prettier-ignore-attribute class -->
     <div

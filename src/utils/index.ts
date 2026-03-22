@@ -4,6 +4,7 @@ export * from './color-utils';
 export * from './format';
 export * from './parse';
 export * from './redirect';
+export * from './url';
 
 const detectPlatform = (ua: string = window.navigator.userAgent): 'safari' | 'edge' => {
   ua = ua.toLowerCase();

@@ -23,6 +23,7 @@ import {
   createCanonicalReceiptBase,
   createCanonicalReceipt,
   createCanonicalReceiptDetails,
+  createCanonicalReceiptListRecord,
   createSharedReceipt,
   createPreviewedReceipt,
   createRevealedReceipt,
@@ -36,6 +37,7 @@ import {
   createV3WireReceiptBase,
   createV3WireReceipt,
   createV3WireReceiptDetails,
+  createV3WireReceiptListRecord,
   compareCanonicalReceiptBase,
   compareCanonicalReceipt,
 } from './fixtures/receipt.fixtures';
@@ -863,7 +865,7 @@ describe('V3 List Schemas', () => {
     });
 
     it('parses list details with received receipts', () => {
-      const receiptWire = createV3WireReceiptBase(createCanonicalReceiptBase({
+      const receiptWire = createV3WireReceiptListRecord(createCanonicalReceiptListRecord({
         state: 'revealed',
         is_revealed: true,
       }));
@@ -887,11 +889,11 @@ describe('V3 List Schemas', () => {
     });
 
     it('parses list details with both received and notreceived arrays', () => {
-      const receivedWire = createV3WireReceiptBase(createCanonicalReceiptBase({
+      const receivedWire = createV3WireReceiptListRecord(createCanonicalReceiptListRecord({
         state: 'revealed',
         identifier: 'x1y2z3a4b5c6',
       }));
-      const notReceivedWire = createV3WireReceiptBase(createCanonicalReceiptBase({
+      const notReceivedWire = createV3WireReceiptListRecord(createCanonicalReceiptListRecord({
         state: 'new',
         identifier: 'm9n8o7p6q5r4',
       }));

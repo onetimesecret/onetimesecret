@@ -36,9 +36,9 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@ea73ddb198f027c31d496ef5749cf297fe1a0695
+        uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
         with:
-          ruby-version: '3.4.8'
+          ruby-version: '3.4.9'
           bundler-cache: true
 
       - name: Set up Node.js

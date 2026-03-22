@@ -182,7 +182,7 @@ GEM
       reline (>= 0.4.2)
     jaro_winkler (1.7.0)
     jmespath (1.6.2)
-    json (2.19.1)
+    json (2.19.2)
     json-jwt (1.17.0)
       activesupport (>= 4.2)
       aes_key_wrap

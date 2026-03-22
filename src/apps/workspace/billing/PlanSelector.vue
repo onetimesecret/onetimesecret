@@ -19,6 +19,7 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { BillingInterval } from '@/types/billing';
 import { isLegacyPlan, getPlanDisplayName } from '@/types/billing';
 import type { Organization } from '@/types/organization';
+import { formatDisplayDate } from '@/utils/format';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -62,11 +63,7 @@ const isCancelScheduled = computed(() => subscriptionStatus.value?.cancel_at_per
 const cancelAtFormatted = computed(() => {
   const cancelAt = subscriptionStatus.value?.cancel_at;
   if (!cancelAt) return null;
-  return new Date(cancelAt * 1000).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  return formatDisplayDate(new Date(cancelAt * 1000));
 });
 
 // Plan change modal state
