@@ -6,7 +6,7 @@
   import SecretDisplayHelpContent from '@/apps/secret/components/SecretDisplayHelpContent.vue';
   import { useClipboard } from '@/shared/composables/useClipboard';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { Secret, SecretDetails } from '@/schemas/shapes/v2';
+  import { SecretRecord, SecretDetails } from '@/schemas/shapes/v3';
   import { computed } from 'vue';
 
   import BaseSecretDisplay from './BaseSecretDisplay.vue';
@@ -19,7 +19,7 @@
   );
 
   interface Props {
-    record: Secret | null;
+    record: SecretRecord | null;
     details: SecretDetails | null;
     submissionStatus?: {
       status: 'idle' | 'submitting' | 'success' | 'error';

@@ -2,7 +2,8 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import { Secret, SecretDetails, brandSettingschema } from '@/schemas/shapes/v2';
+  import { SecretRecord, SecretDetails } from '@/schemas/shapes/v3';
+  import { brandSettingschema } from '@/schemas/shapes/v2';
   import {
     CornerStyle,
     FontFamily,
@@ -16,7 +17,7 @@
 
   interface Props {
     secretIdentifier: string;
-    record: Secret | null;
+    record: SecretRecord | null;
     details: SecretDetails | null;
     domainId: string;
     isSubmitting: boolean;

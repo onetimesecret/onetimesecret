@@ -28,7 +28,7 @@ const linkTitle = computed(() => {
   if (props.secretReceipt.is_destroyed) {
     return t('web.STATUS.expired');
   }
-  if (props.secretReceipt.is_received) {
+  if (props.secretReceipt.is_revealed) {
     return t('web.COMMON.received');
   }
   return '';
@@ -49,7 +49,7 @@ const formattedDate = computed(() =>
 const statusIcon = computed(() => {
   if (props.secretReceipt.is_destroyed) return 'x-mark';
   if (props.secretReceipt.is_burned) return 'fire';
-  if (props.secretReceipt.is_received) return 'check';
+  if (props.secretReceipt.is_revealed) return 'check';
   return 'lock-closed-16-solid';
 });
 

@@ -1,14 +1,14 @@
 // src/schemas/api/account/endpoints/recent.ts
 
-import { receiptBaseSchema } from '@/schemas/shapes/v2';
+import { receiptBaseRecord } from '@/schemas/shapes/v3';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // Receipt shape in list view
-// NOTE: Boolean state fields (is_viewed, is_received, etc.) come from receiptBaseSchema.
+// NOTE: Boolean state fields (is_previewed, is_revealed, etc.) come from V3 receiptBaseRecord.
 // These fields come from Receipt#safe_dump in the backend
 // (lib/onetime/models/receipt/features/safe_dump_fields.rb)
-export const receiptRecordsSchema = receiptBaseSchema.extend({
+export const receiptRecordsSchema = receiptBaseRecord.extend({
   custid: z.string().nullish(),
   owner_id: z.string().nullish(),
   // Override base schema's secret_ttl to handle both string and number from API
