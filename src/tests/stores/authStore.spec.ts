@@ -1,6 +1,6 @@
 // src/tests/stores/authStore.spec.ts
 
-import { Customer } from '@/schemas/models';
+import { Customer } from '@/schemas/shapes/v2';
 import { AUTH_CHECK_CONFIG, useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { createApi } from '@/api';

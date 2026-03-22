@@ -1,8 +1,8 @@
 // src/shared/stores/receiptListStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import type { ReceiptRecords, ReceiptRecordsDetails } from '@/schemas/api/account/endpoints/recent';
 import { responseSchemas } from '@/schemas/api/v3/responses';
+import type { ReceiptListRecord, ReceiptListDetails } from '@/schemas/shapes/v3/receipt';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
@@ -26,8 +26,8 @@ export interface FetchListOptions {
 export type ReceiptListStore = {
   // State
   _initialized: boolean;
-  records: ReceiptRecords[];
-  details: ReceiptRecordsDetails | null;
+  records: ReceiptListRecord[];
+  details: ReceiptListDetails | null;
   count: number | null;
   currentScope: FetchListOptions['scope'];
   scopeLabel: string | null;
@@ -54,8 +54,8 @@ export const useReceiptListStore = defineStore('receiptList', () => {
 
   // State
   const _initialized = ref(false);
-  const records: Ref<ReceiptRecords[] | null> = ref(null);
-  const details: Ref<ReceiptRecordsDetails | null> = ref(null);
+  const records: Ref<ReceiptListRecord[] | null> = ref(null);
+  const details: Ref<ReceiptListDetails | null> = ref(null);
   const count = ref<number | null>(null);
   const currentScope = ref<FetchListOptions['scope']>(undefined);
   const scopeLabel = ref<string | null>(null);
@@ -97,13 +97,13 @@ export const useReceiptListStore = defineStore('receiptList', () => {
       timestamp,
       responseCount: response.data?.count,
       responseRecordsLength: response.data?.records?.length ?? 0,
-      firstThreeIds: response.data?.records?.slice(0, 3).map((r: ReceiptRecords) => r.shortid),
+      firstThreeIds: response.data?.records?.slice(0, 3).map((r: ReceiptListRecord) => r.shortid),
     });
 
     const validated = responseSchemas.receiptList.parse(response.data);
 
     records.value = validated.records ?? [];
-    details.value = (validated.details ?? {}) as ReceiptRecordsDetails;
+    details.value = (validated.details ?? {}) as ReceiptListDetails;
     count.value = validated.count ?? 0;
     currentScope.value = options.scope;
     scopeLabel.value = validated.details?.scope_label ?? null;

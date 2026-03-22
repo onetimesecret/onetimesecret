@@ -52,24 +52,24 @@
 // Exports organized by architectural layer
 // Base schemas and utilities
 export * from './api/base';
-export * from './models/base';
+export * from './shapes/v2/base';
 
 // Error Flynn
 export * from './errors/index';
 
 // Core domain models
-export * from './models/customer';
-export * from './models/feedback';
-export * from './models/receipt';
-export * from './models/secret';
+export * from './shapes/v2/customer';
+export * from './shapes/v2/feedback';
+export * from './shapes/v2/receipt';
+export * from './shapes/v2/secret';
 
-// Configuration schemas
-export * from './config';
+// Configuration schemas (contracts)
+export * from './contracts/config';
 
 // Domain-specific models and endpoints
 export * from './api/v2/responses/content/secrets';
 export * from './api/account/endpoints/colonel';
-export * from './models/custom-domain/index';
+export * from './shapes/v2/custom-domain/index';
 
 // API response types
 export type {
@@ -89,7 +89,7 @@ export type {
 export type { ColonelInfoDetails } from './api/account/endpoints/colonel';
 
 // Core model types
-export type { BaseModel, CustomDomain, Customer, Feedback, Receipt, Secret } from './models';
+export type { BaseModel, CustomDomain, Customer, Feedback, Receipt, Secret } from './shapes/v2';
 
 export * from './i18n';
 

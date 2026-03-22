@@ -7,7 +7,7 @@
  * and type inference for Sentry configuration passed from Ruby backend to
  * Vue frontend.
  *
- * @see src/schemas/models/diagnostics.ts for the authoritative schema
+ * @see src/schemas/shapes/config/diagnostics.ts for the authoritative schema
  */
 
 export {
@@ -15,7 +15,7 @@ export {
   sentryConfigSchema,
   type DiagnosticsConfig,
   type SentryConfig,
-} from '@/schemas/models/diagnostics';
+} from '@/schemas/shapes/config/diagnostics';
 
 // Re-export Sentry types for consumers that need them
 export type { Integration, ErrorEvent } from '@sentry/core';

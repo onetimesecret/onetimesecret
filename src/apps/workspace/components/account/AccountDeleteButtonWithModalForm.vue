@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import { useFormSubmission } from '@/shared/composables/useFormSubmission';
-import { Customer } from '@/schemas/models';
+import { Customer } from '@/schemas/shapes/v2';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { ref } from 'vue';

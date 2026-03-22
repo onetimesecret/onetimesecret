@@ -6,7 +6,7 @@
   import SecretDisplayHelpContent from '@/apps/secret/components/SecretDisplayHelpContent.vue';
   import { useClipboard } from '@/shared/composables/useClipboard';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { Secret, SecretDetails } from '@/schemas/models';
+  import { Secret, SecretDetails } from '@/schemas/shapes/v2';
   import { computed } from 'vue';
 
   import BaseSecretDisplay from './BaseSecretDisplay.vue';

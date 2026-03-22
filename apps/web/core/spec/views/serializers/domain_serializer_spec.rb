@@ -143,5 +143,163 @@ RSpec.describe Core::Views::DomainSerializer do
       result = described_class.serialize(view_vars)
       expect(result['domain_strategy']).to eq(:canonical)
     end
+
+    context 'when domain_strategy is :custom' do
+      # These tests verify that domain_branding boolean fields are native JSON booleans,
+      # not string-encoded values like "true" or "false".
+      #
+      # Background: Redis hgetall returns all values as strings. The serializer must
+      # coerce boolean fields to native booleans for frontend V3 schema compatibility.
+      #
+      # Boolean fields to test:
+      #   - button_text_light
+      #   - allow_public_homepage
+      #   - allow_public_api
+      #   - passphrase_required
+      #   - notify_enabled
+
+      let(:custom_display_domain) { 'secrets.example.com' }
+
+      # Simulate Redis hgetall returning string values (the actual bug scenario)
+      let(:brand_hash_from_redis) do
+        {
+          'primary_color' => '#FF5733',
+          'font_family' => 'sans',
+          'corner_style' => 'rounded',
+          'locale' => 'en',
+          'button_text_light' => 'true',
+          'allow_public_homepage' => 'false',
+          'allow_public_api' => 'true',
+          'passphrase_required' => 'false',
+          'notify_enabled' => 'true',
+        }
+      end
+
+      let(:brand_double) do
+        instance_double('Familia::Horreum::ClassMethods::Hashkey', hgetall: brand_hash_from_redis)
+      end
+
+      let(:logo_double) do
+        instance_double('Familia::Horreum::ClassMethods::Hashkey', :[] => nil)
+      end
+
+      let(:custom_domain) do
+        instance_double(
+          Onetime::CustomDomain,
+          domainid: 'domain123',
+          extid: 'ext456',
+          brand: brand_double,
+          logo: logo_double
+        )
+      end
+
+      let(:custom_domain_view_vars) do
+        {
+          'authenticated' => false,
+          'cust' => customer,
+          'sess' => session,
+          'features' => { 'domains' => { 'enabled' => false } },
+          'domain_strategy' => :custom,
+          'display_domain' => custom_display_domain,
+        }
+      end
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .with(custom_display_domain)
+          .and_return(custom_domain)
+      end
+
+      describe 'domain_branding boolean field types' do
+        # These tests should FAIL initially (TDD red phase) because the current
+        # implementation at domain_serializer.rb:42 does:
+        #   output['domain_branding'] = (custom_domain&.brand&.hgetall || {}).to_h
+        # which passes Redis strings directly without coercion.
+
+        it 'returns button_text_light as a native boolean, not a string' do
+          result = described_class.serialize(custom_domain_view_vars)
+          branding = result['domain_branding']
+
+          expect(branding['button_text_light']).to be(true),
+            "Expected button_text_light to be boolean true, got #{branding['button_text_light'].inspect} (#{branding['button_text_light'].class})"
+        end
+
+        it 'returns allow_public_homepage as a native boolean, not a string' do
+          result = described_class.serialize(custom_domain_view_vars)
+          branding = result['domain_branding']
+
+          expect(branding['allow_public_homepage']).to be(false),
+            "Expected allow_public_homepage to be boolean false, got #{branding['allow_public_homepage'].inspect} (#{branding['allow_public_homepage'].class})"
+        end
+
+        it 'returns allow_public_api as a native boolean, not a string' do
+          result = described_class.serialize(custom_domain_view_vars)
+          branding = result['domain_branding']
+
+          expect(branding['allow_public_api']).to be(true),
+            "Expected allow_public_api to be boolean true, got #{branding['allow_public_api'].inspect} (#{branding['allow_public_api'].class})"
+        end
+
+        it 'returns passphrase_required as a native boolean, not a string' do
+          result = described_class.serialize(custom_domain_view_vars)
+          branding = result['domain_branding']
+
+          expect(branding['passphrase_required']).to be(false),
+            "Expected passphrase_required to be boolean false, got #{branding['passphrase_required'].inspect} (#{branding['passphrase_required'].class})"
+        end
+
+        it 'returns notify_enabled as a native boolean, not a string' do
+          result = described_class.serialize(custom_domain_view_vars)
+          branding = result['domain_branding']
+
+          expect(branding['notify_enabled']).to be(true),
+            "Expected notify_enabled to be boolean true, got #{branding['notify_enabled'].inspect} (#{branding['notify_enabled'].class})"
+        end
+
+        it 'preserves non-boolean fields as strings' do
+          result = described_class.serialize(custom_domain_view_vars)
+          branding = result['domain_branding']
+
+          # String fields should remain strings
+          expect(branding['primary_color']).to eq('#FF5733')
+          expect(branding['font_family']).to eq('sans')
+          expect(branding['corner_style']).to eq('rounded')
+          expect(branding['locale']).to eq('en')
+        end
+      end
+
+      describe 'domain_branding with mixed boolean representations' do
+        # Test that the coercion handles various boolean representations
+
+        context 'when Redis returns actual boolean values (from JSON deserialization)' do
+          let(:brand_hash_from_redis) do
+            {
+              'button_text_light' => true,
+              'allow_public_homepage' => false,
+            }
+          end
+
+          it 'preserves native boolean values' do
+            result = described_class.serialize(custom_domain_view_vars)
+            branding = result['domain_branding']
+
+            expect(branding['button_text_light']).to be(true)
+            expect(branding['allow_public_homepage']).to be(false)
+          end
+        end
+
+        context 'when boolean fields are missing from Redis' do
+          let(:brand_hash_from_redis) do
+            {
+              'primary_color' => '#FF5733',
+            }
+          end
+
+          it 'does not raise errors for missing boolean fields' do
+            expect { described_class.serialize(custom_domain_view_vars) }.not_to raise_error
+          end
+        end
+      end
+    end
   end
 end

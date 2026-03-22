@@ -8,8 +8,8 @@ import {
   customDomainSchema,
   jurisdictionDetailsSchema,
   jurisdictionSchema,
-} from '@/schemas/models';
-import { brandSettingschema, imagePropsSchema } from '@/schemas/models/custom-domain/brand';
+} from '@/schemas/shapes/v2';
+import { brandSettingschema, imagePropsSchema } from '@/schemas/shapes/v2/custom-domain/brand';
 import { z } from 'zod';
 
 export const brandSettingsResponseSchema = createApiResponseSchema(brandSettingschema);

@@ -1,7 +1,7 @@
 // src/tests/stores/organizationStore.spec.ts
 
 import { setupTestPinia } from '../setup';
-import { setupWindowState } from '../setupWindow';
+import { setupBootstrapMock, baseBootstrap } from '../setup-bootstrap';
 
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
@@ -38,7 +38,8 @@ describe('Organization Store', () => {
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock;
 
-    vi.stubGlobal('window', setupWindowState());
+    // Setup bootstrap state with modern fixture
+    setupBootstrapMock({ initialState: baseBootstrap });
     store = useOrganizationStore();
   });
 

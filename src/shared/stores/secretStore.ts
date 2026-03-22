@@ -7,7 +7,8 @@ import {
   type ConcealDataResponse,
   type SecretResponse,
 } from '@/schemas/api/v3/responses';
-import { type Secret, type SecretDetails, type SecretState } from '@/schemas/models/secret';
+import type { SecretState } from '@/schemas/contracts';
+import type { SecretRecord, SecretDetails } from '@/schemas/shapes/v3/secret';
 import { loggingService } from '@/services/logging.service';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
@@ -29,7 +30,7 @@ interface StoreOptions extends PiniaPluginOptions {}
  */
 export type SecretStore = {
   // State
-  record: Secret | null;
+  record: SecretRecord | null;
   details: SecretDetails | null;
   status: SecretState | null;
   apiMode: ApiMode;
@@ -56,7 +57,7 @@ export const useSecretStore = defineStore('secrets', () => {
   const $api = inject('api') as AxiosInstance;
 
   // State
-  const record = ref<Secret | null>(null);
+  const record = ref<SecretRecord | null>(null);
   const details = ref<SecretDetails | null>(null);
   const status = ref<SecretState | null>(null);
   const apiMode = ref<ApiMode>('authenticated');

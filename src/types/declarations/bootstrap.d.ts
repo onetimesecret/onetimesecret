@@ -1,5 +1,23 @@
 // src/types/declarations/bootstrap.d.ts
 
+/**
+ * Schema imports for bootstrap payload types.
+ *
+ * All imports currently use v2 shapes. Migration to v3 shapes requires:
+ *
+ * 1. Customer → CustomerRecord: V3 uses native types (number timestamps → Date),
+ *    but bootstrap stores expect the output type. Would need Zod parsing integration.
+ *
+ * 2. BrandSettings → BrandSettingsRecord: V3 has required boolean fields (via Zod
+ *    defaults), but bootstrapStore uses `{} as BrandSettings` which requires all
+ *    fields optional. V2 uses `.partial()` making all fields optional.
+ *
+ * 3. Config shapes (AuthenticationSettings, RegionsConfig, SecretOptions, Locale):
+ *    These are re-exported from shapes/config and i18n modules. No v3 equivalents
+ *    exist since they're configuration shapes, not entity shapes.
+ *
+ * TODO(#2686): Migrate to v3 shapes once bootstrap parsing integrates Zod validation.
+ */
 import {
   AuthenticationSettings,
   BrandSettings,
@@ -7,7 +25,7 @@ import {
   Locale,
   RegionsConfig,
   SecretOptions,
-} from '@/schemas/models';
+} from '@/schemas/shapes/v2';
 import { Stripe } from 'stripe';
 import { FallbackLocale } from 'vue-i18n';
 
@@ -20,12 +38,25 @@ import { DiagnosticsConfig } from '../diagnostics';
  * each time a full page load is performed.
  *
  * The corresponding Ruby backend code can be found in:
- * lib/onetime/app/web/views/base.rb
+ * apps/web/core/views/serializers/
  *
  * Implementation:
- * - Backend injects data via JSON <script> tag in the HTML header
+ * - Backend serializers produce data (see SerializerRegistry)
+ * - Rhales injects via JSON <script> tag in the HTML header
  * - Properties are added to window.__BOOTSTRAP_STATE__
  * - This declaration file enables TypeScript type checking and IDE support
+ *
+ * Schema Principle:
+ * Bootstrap is internal communication between our backend and frontend —
+ * we have 100% control over both sides. Therefore:
+ * - Use modern v3 shapes with native types (boolean, number, Date)
+ * - No string-encoded booleans or legacy field names
+ * - No backwards compatibility layers or deprecation shims
+ * - Keep fields current; remove unused fields promptly
+ *
+ * When adding/modifying fields, update both:
+ * - This file (frontend types)
+ * - The relevant serializer in apps/web/core/views/serializers/
  */
 
 type Message = { type: 'success' | 'error' | 'info'; content: string };

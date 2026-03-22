@@ -8,7 +8,7 @@ import {
   apiTokenSchema,
   checkAuthDetailsSchema,
 } from '@/schemas/api/account/endpoints/account';
-import { customerSchema } from '@/schemas/models';
+import { customerSchema } from '@/schemas/shapes/v2';
 import { z } from 'zod';
 
 export const accountResponseSchema = createApiResponseSchema(accountSchema);

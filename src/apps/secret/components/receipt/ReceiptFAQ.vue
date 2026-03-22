@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import { Receipt, ReceiptDetails } from '@/schemas/models';
+  import { Receipt, ReceiptDetails } from '@/schemas/shapes/v2';
 
   const { t } = useI18n();
 

@@ -4,7 +4,7 @@
 // Test utilities for bootstrap state mocking.
 // Provides a unified approach using createTestingPinia and typed fixtures.
 
-import type { Customer } from '@/schemas/models';
+import type { Customer } from '@/schemas/shapes/v2';
 import type { BootstrapPayload } from '@/types/declarations/bootstrap';
 import { createTestingPinia, type TestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';

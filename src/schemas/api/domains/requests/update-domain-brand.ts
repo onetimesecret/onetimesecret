@@ -6,7 +6,7 @@
 // Transport wrapper: Ruby handler reads params['brand'], so the
 // request body nests brand settings under a `brand` key.
 
-import { brandSettingschema } from '@/schemas/models/custom-domain/brand';
+import { brandSettingschema } from '@/schemas/shapes/v2/custom-domain/brand';
 import { z } from 'zod';
 
 export const updateDomainBrandRequestSchema = z.object({

@@ -12,7 +12,7 @@ import {
 } from './secrets';
 
 // V1 status returns {status, locale} without a `success` field.
-// V3 systemStatusResponseSchema requires `success`, so V1 needs its own schema.
+// V1 has its own schema for documentation purposes (separate API version).
 export const v1StatusResponseSchema = z.object({
   status: z.string(),
   locale: z.string(),

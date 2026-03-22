@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import type { BrandSettings } from '@/schemas/models';
+  import type { BrandSettings } from '@/schemas/shapes/v2';
   import {
     CornerStyle,
     cornerStyleDisplayMap,
@@ -14,7 +14,7 @@
     FontFamily,
     fontIconMap,
     fontOptions,
-  } from '@/schemas/models/custom-domain/brand';
+  } from '@/schemas/shapes/v2/custom-domain/brand';
   import { computed } from 'vue';
   import { useI18n, Composer } from 'vue-i18n';
 

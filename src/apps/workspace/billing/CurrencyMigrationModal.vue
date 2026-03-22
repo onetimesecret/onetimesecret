@@ -6,7 +6,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { BillingService } from '@/services/billing.service';
 import { classifyError } from '@/schemas/errors';
-import type { CurrencyConflictError, MigrationMode } from '@/schemas/models/billing';
+import type { CurrencyConflictError, MigrationMode } from '@/schemas/shapes/account/billing';
 import { computed, ref, watch } from 'vue';
 
 const { t } = useI18n();

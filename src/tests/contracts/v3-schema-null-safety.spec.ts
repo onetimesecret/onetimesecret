@@ -25,7 +25,7 @@ import {
   customDomainResponseSchema,
   jurisdictionResponseSchema,
 } from '@/schemas/api/v3/responses/domains';
-import { receiptDetailsSchema } from '@/schemas/models/receipt';
+import { receiptDetailsSchema } from '@/schemas/shapes/v2/receipt';
 import { parseBoolean } from '@/utils/parse/index';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
@@ -143,7 +143,9 @@ describe('V3 schema null-safety audit', () => {
     it('identifies all boolean fields in receipt response schema', () => {
       const paths = receiptBooleans.map((b) => b.path);
       // These are the fields we know exist in the receipt schemas
-      expect(paths).toContain('record.is_viewed');
+      // V3 uses canonical names: is_previewed, is_revealed (not is_viewed, is_received)
+      expect(paths).toContain('record.is_previewed');
+      expect(paths).toContain('record.is_revealed');
       expect(paths).toContain('record.is_burned');
       expect(paths).toContain('record.is_destroyed');
       expect(paths).toContain('record.is_expired');
@@ -194,9 +196,10 @@ describe('V3 schema null-safety audit', () => {
     );
 
     // Receipt record-level boolean fields
+    // V3 uses canonical names: is_previewed, is_revealed (not is_viewed, is_received)
     const receiptRecordBareFields = [
-      'is_viewed',
-      'is_received',
+      'is_previewed',
+      'is_revealed',
       'is_burned',
       'is_destroyed',
       'is_expired',
@@ -273,10 +276,11 @@ describe('V3 schema null-safety audit', () => {
     // Organization boolean fields
     const orgBooleans = extractBooleanFields(organizationResponseSchema);
 
-    it('organization record field "is_default" uses bare z.boolean() and REJECTS null', () => {
+    it('organization record field "is_default" accepts null (coerces to false)', () => {
+      // V3 schema uses z.boolean().nullish().transform((v) => v ?? false)
       const field = orgBooleans.find((b) => b.path === 'record.is_default');
       expect(field).toBeDefined();
-      expect(fieldAcceptsNull(field!.schema)).toBe(false);
+      expect(fieldAcceptsNull(field!.schema)).toBe(true);
     });
 
     // Domain boolean fields
@@ -288,10 +292,11 @@ describe('V3 schema null-safety audit', () => {
       expect(fieldAcceptsNull(field!.schema)).toBe(false);
     });
 
-    it('domain field "record.verified" accepts null (coerces to false)', () => {
+    it('domain field "record.verified" rejects null (uses default instead)', () => {
+      // V3 schema uses z.boolean().default(false), which rejects null
       const field = domainBooleans.find((b) => b.path === 'record.verified');
       expect(field).toBeDefined();
-      expect(fieldAcceptsNull(field!.schema)).toBe(true);
+      expect(fieldAcceptsNull(field!.schema)).toBe(false);
     });
 
     // Jurisdiction boolean fields
@@ -470,6 +475,12 @@ describe('V3 schema null-safety audit', () => {
     it('V3 secret response schema accepts payload when all details booleans are proper booleans', () => {
       const validPayload = {
         ...secretDetailsPayloadWithNulls,
+        record: {
+          ...secretDetailsPayloadWithNulls.record,
+          // V3 requires canonical boolean fields is_previewed and is_revealed
+          is_previewed: false,
+          is_revealed: false,
+        },
         details: {
           continue: true,
           is_owner: false,
@@ -902,9 +913,9 @@ describe('V3 schema null-safety audit', () => {
 
       if (!result.success) {
         const issueFields = result.error.issues.map((i) => i.path.join('.'));
-        // These use bare z.boolean() and should reject null
-        expect(issueFields).toContain('is_viewed');
-        expect(issueFields).toContain('is_received');
+        // V3 uses canonical names: is_previewed, is_revealed (not is_viewed, is_received)
+        expect(issueFields).toContain('is_previewed');
+        expect(issueFields).toContain('is_revealed');
         expect(issueFields).toContain('is_burned');
         expect(issueFields).toContain('is_destroyed');
         expect(issueFields).toContain('is_expired');

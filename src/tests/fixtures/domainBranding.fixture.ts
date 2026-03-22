@@ -1,6 +1,6 @@
 // src/tests/fixtures/domainBranding.fixture.ts
 
-import type { BrandSettings } from '@/schemas/models/custom-domain';
+import type { BrandSettings } from '@/schemas/shapes/v2/custom-domain';
 
 export const mockDefaultBranding: BrandSettings = {
   primary_color: '#007bff',

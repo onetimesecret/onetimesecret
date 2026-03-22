@@ -1,6 +1,6 @@
 // src/shared/composables/useRecentSecrets.ts
 
-import type { ReceiptRecords } from '@/schemas/api/account/endpoints/recent';
+import type { ReceiptListRecord } from '@/schemas/shapes/v3/receipt';
 import type { ApplicationError } from '@/schemas/errors';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
@@ -14,7 +14,7 @@ import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
 /**
  * Unified record type for recent secrets display.
- * Abstracts differences between local (LocalReceipt) and API (ReceiptRecords) sources.
+ * Abstracts differences between local (LocalReceipt) and API (ReceiptListRecord) sources.
  *
  * Uses canonical terminology matching backend Receipt model:
  * - isPreviewed: secret link was accessed (confirmation page shown)
@@ -51,7 +51,7 @@ export interface RecentSecretRecord {
   /** Original source data for advanced usage */
   source: 'local' | 'api';
   /** Original record for type-specific operations */
-  originalRecord: LocalReceipt | ReceiptRecords;
+  originalRecord: LocalReceipt | ReceiptListRecord;
   /** Optional user-defined memo for identifying the secret */
   memo?: string;
 }
@@ -125,7 +125,7 @@ function transformLocalRecord(receipt: LocalReceipt): RecentSecretRecord {
 /**
  * Extract identifier fields from API record with defaults
  */
-function extractApiRecordIds(record: ReceiptRecords) {
+function extractApiRecordIds(record: ReceiptListRecord) {
   // Use full identifier for API operations, shortid for display
   const id = record.identifier ?? record.shortid ?? '';
   const secretId = record.secret_identifier ?? record.secret_shortid ?? '';
@@ -135,9 +135,9 @@ function extractApiRecordIds(record: ReceiptRecords) {
 }
 
 /**
- * Transform a ReceiptRecords (API) to unified RecentSecretRecord
+ * Transform a ReceiptListRecord (API) to unified RecentSecretRecord
  */
-function transformApiRecord(record: ReceiptRecords): RecentSecretRecord {
+function transformApiRecord(record: ReceiptListRecord): RecentSecretRecord {
   const { id, secretId, extid, shortid } = extractApiRecordIds(record);
   const createdAt = record.created instanceof Date ? record.created : new Date();
   // NOTE: is_destroyed is true for revealed, burned, expired, or orphaned states.
