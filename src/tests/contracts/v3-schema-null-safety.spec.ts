@@ -18,9 +18,7 @@ import {
 import {
   accountResponseSchema,
 } from '@/schemas/api/v3/responses/account';
-import {
-  organizationResponseSchema,
-} from '@/schemas/api/v3/responses/organizations';
+// Organization schemas moved to internal registry (no longer V3 public API)
 import {
   customDomainResponseSchema,
   jurisdictionResponseSchema,
@@ -273,15 +271,7 @@ describe('V3 schema null-safety audit', () => {
       }
     );
 
-    // Organization boolean fields
-    const orgBooleans = extractBooleanFields(organizationResponseSchema);
-
-    it('organization record field "is_default" accepts null (coerces to false)', () => {
-      // V3 schema uses z.boolean().nullish().transform((v) => v ?? false)
-      const field = orgBooleans.find((b) => b.path === 'record.is_default');
-      expect(field).toBeDefined();
-      expect(fieldAcceptsNull(field!.schema)).toBe(true);
-    });
+    // Organization schemas moved to internal registry (no longer V3 public API)
 
     // Domain boolean fields
     const domainBooleans = extractBooleanFields(customDomainResponseSchema);
