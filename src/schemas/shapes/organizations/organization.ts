@@ -29,6 +29,7 @@
 
 import { z } from 'zod';
 
+import { membershipRoleSchema } from '@/schemas/contracts/organization-membership';
 import { lenientExtIdSchema, lenientObjIdSchema } from '@/types/identifiers';
 
 /**
@@ -44,8 +45,11 @@ export type OrganizationLimits = z.infer<typeof organizationLimitsSchema>;
 
 /**
  * Organization role schema
+ *
+ * Re-exported from contracts for backwards compatibility.
+ * New code should import directly from @/schemas/contracts/organization-membership.
  */
-export const organizationRoleSchema = z.enum(['owner', 'admin', 'member']);
+export const organizationRoleSchema = membershipRoleSchema;
 
 export type OrganizationRole = z.infer<typeof organizationRoleSchema>;
 
