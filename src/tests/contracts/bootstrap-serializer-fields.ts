@@ -71,6 +71,8 @@ export const I18N_SERIALIZER_FIELDS = [
   'fallback_locale',
   'supported_locales',
   'i18n_enabled',
+  'date_format',
+  'datetime_format',
 ] as const;
 
 // ============================================================================

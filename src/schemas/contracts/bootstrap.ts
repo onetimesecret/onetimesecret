@@ -364,6 +364,9 @@ export const bootstrapSchema = z.object({
   fallback_locale: z.string().default('en'),
   supported_locales: z.array(z.string()).default([]),
   i18n_enabled: z.boolean().default(true),
+  // Date/time display format: 'locale', 'iso8601', 'us', 'eu', 'eu-dot', 'uk', 'long', or date-fns pattern
+  date_format: z.string().default('locale'),
+  datetime_format: z.string().default('locale'),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // MessagesSerializer fields
