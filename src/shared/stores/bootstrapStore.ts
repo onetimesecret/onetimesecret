@@ -163,27 +163,33 @@ export const useBootstrapStore = defineStore('bootstrap', {
         return { isInitialized: true };
       }
 
-      const snapshot = getBootstrapSnapshot();
+      try {
+        const snapshot = getBootstrapSnapshot();
 
-      if (!snapshot) {
-        console.debug('[BootstrapStore.init] No bootstrap data available, using defaults');
+        if (!snapshot) {
+          console.debug('[BootstrapStore.init] No bootstrap data available, using defaults');
+          this._initialized = true;
+          return { isInitialized: true };
+        }
+
+        // Hydrate all state from snapshot using functional $patch
+        // (functional form avoids _DeepPartial type issues with complex Stripe types)
+        // Filter out undefined values to match previous updateIfDefined behavior
+        this.$patch((state) => {
+          Object.assign(state, filterDefined(snapshot));
+          state._initialized = true;
+        });
+
+        console.debug('[BootstrapStore.init] Initialized from snapshot:', {
+          authenticated: this.authenticated,
+          locale: this.locale,
+          email: this.email,
+        });
+      } catch (error) {
+        // Fallback to defaults if snapshot parsing or hydration fails
+        console.error('[BootstrapStore.init] Failed to initialize from snapshot, using defaults:', error);
         this._initialized = true;
-        return { isInitialized: true };
       }
-
-      // Hydrate all state from snapshot using functional $patch
-      // (functional form avoids _DeepPartial type issues with complex Stripe types)
-      // Filter out undefined values to match previous updateIfDefined behavior
-      this.$patch((state) => {
-        Object.assign(state, filterDefined(snapshot));
-        state._initialized = true;
-      });
-
-      console.debug('[BootstrapStore.init] Initialized from snapshot:', {
-        authenticated: this.authenticated,
-        locale: this.locale,
-        email: this.email,
-      });
 
       return { isInitialized: true };
     },

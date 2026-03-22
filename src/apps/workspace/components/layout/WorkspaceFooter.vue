@@ -119,15 +119,18 @@
     },
   ];
 
+  // Helper to infer if a URL is external based on scheme
+  const isExternalUrl = (url: string): boolean => /^https?:\/\//i.test(url);
+
   const footerLinks = computed((): FooterLink[] => {
     const group = workspaceGroup.value;
     if (group?.links?.length) {
       return group.links
         .filter(link => link.url?.trim())
-        .map((link, index) => ({
+        .map((link) => ({
           label: link.i18n_key ? t(link.i18n_key) : (link.text || ''),
           href: link.url!,
-          external: link.external ?? defaultLinks[index]?.external() ?? false,
+          external: link.external ?? isExternalUrl(link.url!),
         }));
     }
     // Fallback to computed defaults

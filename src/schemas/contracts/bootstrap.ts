@@ -91,6 +91,39 @@ export const headerConfigSchema = z.object({
   navigation: headerNavigationSchema.optional(),
 });
 
+/**
+ * UI interface configuration schema controlling header and footer display.
+ *
+ * @example
+ * // Minimal configuration (uses defaults)
+ * const ui = { enabled: true };
+ *
+ * @example
+ * // Full configuration with custom branding and footer links
+ * const ui = {
+ *   enabled: true,
+ *   header: {
+ *     enabled: true,
+ *     branding: {
+ *       logo: { url: '/images/logo.svg', alt: 'Company Logo', link_to: '/' },
+ *       site_name: 'My Secret Sharing App',
+ *     },
+ *     navigation: { enabled: true },
+ *   },
+ *   footer_links: {
+ *     enabled: true,
+ *     groups: [
+ *       {
+ *         name: 'workspace',
+ *         links: [
+ *           { text: 'API Docs', url: 'https://docs.example.com/api', external: true },
+ *           { i18n_key: 'web.footer.privacy', url: '/privacy' },
+ *         ],
+ *       },
+ *     ],
+ *   },
+ * };
+ */
 export const uiInterfaceSchema = z.object({
   enabled: z.boolean().default(true),
   header: headerConfigSchema.optional(),

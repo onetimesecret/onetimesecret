@@ -41,20 +41,21 @@ test.describe('SSO Form Submission', () => {
     await page.goto('/signin');
     await page.waitForLoadState('networkidle');
 
-    // Check if OmniAuth is enabled via bootstrap state
-    const omniAuthEnabled = await page.evaluate(() => {
-      type BootstrapState = { features?: { omniauth?: boolean } } | undefined;
+    // Check if SSO is enabled via bootstrap state
+    const ssoEnabled = await page.evaluate(() => {
+      type BootstrapState = { features?: { sso?: boolean | object } } | undefined;
       const state = (window as Window & { __BOOTSTRAP_ME__?: BootstrapState | true }).__BOOTSTRAP_ME__;
       // Bootstrap state may be consumed (set to true) or still an object
       if (state === true || state === undefined) {
         // Check if the SSO button is visible as fallback
         return document.querySelector('[data-testid="sso-button"]') !== null;
       }
-      return state.features?.omniauth === true;
+      // features.sso can be a boolean or an ssoConfig object
+      return !!state.features?.sso;
     });
 
-    if (!omniAuthEnabled) {
-      test.skip(true, 'OmniAuth is not enabled in this environment');
+    if (!ssoEnabled) {
+      test.skip(true, 'SSO is not enabled in this environment');
       return;
     }
 

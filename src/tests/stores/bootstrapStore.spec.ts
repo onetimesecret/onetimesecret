@@ -1566,5 +1566,32 @@ describe('bootstrapStore', () => {
 
       expect(mockGetBootstrapSnapshot).toHaveBeenCalledTimes(1);
     });
+
+    it('falls back to defaults when getBootstrapSnapshot throws', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const parseError = new Error('Parse error');
+      mockGetBootstrapSnapshot.mockImplementation(() => {
+        throw parseError;
+      });
+
+      const result = store.init();
+
+      // Should still be initialized
+      expect(result.isInitialized).toBe(true);
+      expect(store.isInitialized).toBe(true);
+
+      // Should have default values
+      expect(store.authenticated).toBe(false);
+      expect(store.cust).toBeNull();
+      expect(store.email).toBe('');
+
+      // Should log the error
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[BootstrapStore.init] Failed to initialize from snapshot, using defaults:',
+        parseError
+      );
+
+      consoleSpy.mockRestore();
+    });
   });
 });
