@@ -27,6 +27,7 @@ import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/billing';
 // LAUNCH: Identity-only - CreateInvitationPayload hidden until team features enabled
 import type { /* CreateInvitationPayload, */ Organization, OrganizationInvitation } from '@/types/organization';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in template
 import { formatDisplayDate } from '@/utils/format';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -385,8 +386,6 @@ const handleRevokeInvitation = async (token: string) => {
     error.value = t('web.organizations.invitations.revoke_error');
   }
 };
-
-const formatDate = (timestamp: number): string => formatDisplayDate(new Date(timestamp * 1000));
 
 const formatTimeRemaining = (expiresAt: number): string => {
   const now = Math.floor(Date.now() / 1000);
@@ -853,7 +852,7 @@ watch(orgId, async (newOrgId, oldOrgId) => {
                         {{ t('web.organizations.invitations.status.pending') }}
                       </span>
                       <span class="text-xs text-gray-500 dark:text-gray-400">
-                        {{ t('web.organizations.invitations.invited_at') }} {{ formatDate(invitation.invited_at) }}
+                        {{ t('web.organizations.invitations.invited_at') }} {{ formatDisplayDate(new Date(invitation.invited_at * 1000)) }}
                       </span>
                       <span class="text-xs text-gray-500 dark:text-gray-400">·</span>
                       <span class="text-xs text-gray-500 dark:text-gray-400">

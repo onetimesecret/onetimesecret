@@ -17,6 +17,8 @@ RSpec.describe "Internationalization config" do
             supported_locales: [],
             default_locale: 'en',
             fallback_locale: 'en',
+            date_format: 'locale',
+            datetime_format: 'locale',
             locales: nil
           )
         end
@@ -45,6 +47,8 @@ RSpec.describe "Internationalization config" do
             supported_locales: ['en'],
             default_locale: 'en',
             fallback_locale: 'en',
+            date_format: 'locale',
+            datetime_format: 'locale',
             locales: {'en' => {greeting: 'Hello'}}
           )
         end
@@ -81,6 +85,8 @@ RSpec.describe "Internationalization config" do
             supported_locales: %w[en fr_FR de_AT],
             default_locale: 'fr_FR',
             fallback_locale: {'fr-CA': %w[fr_CA fr_FR en], default: ['en']},
+            date_format: 'locale',
+            datetime_format: 'locale',
             locales: {
               'en' => {greeting: 'Hello'},
               'fr_FR' => {greeting: 'Bonjour'},
