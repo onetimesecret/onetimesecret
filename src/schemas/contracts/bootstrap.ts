@@ -147,7 +147,7 @@ const authenticationSettingsInner = z.object({
   mode: z.enum(['simple', 'full']).optional(),
 });
 
-export const authenticationSettingsSchema = authenticationSettingsInner.nullable();
+export const authenticationSettingsSchema = authenticationSettingsInner;
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SSO SCHEMAS
