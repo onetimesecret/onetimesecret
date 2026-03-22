@@ -31,6 +31,8 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
           }
         }
       },
+      date_format: 'locale',
+      datetime_format: 'locale',
     )
 
     # Save original config for restoration in after(:all)

@@ -36,6 +36,8 @@ RSpec.describe 'Simple Mode Configuration', type: :integration do
       default_locale: 'en',
       fallback_locale: 'en',
       locales: { 'en' => { code: 'en', name: 'English' } },
+      date_format: 'locale',
+      datetime_format: 'locale',
     )
 
     # Force app loading by calling app method
