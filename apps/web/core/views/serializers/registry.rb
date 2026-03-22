@@ -17,7 +17,7 @@ require 'onetime/logger_methods'
 # - Use native types (true/false, integers, ISO timestamps) not string encodings
 # - No backwards compatibility layers or legacy field names
 # - Keep fields current; remove unused fields promptly
-# - Frontend types: src/schemas/contracts/bootstrap.ts
+# - Frontend types: src/schemas/contracts/bootstrap.ts (via z.infer)
 #
 # For this use case, module methods are preferable because:
 #

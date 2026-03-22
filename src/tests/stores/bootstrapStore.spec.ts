@@ -596,12 +596,16 @@ describe('bootstrapStore', () => {
     });
 
     it('preserves regions configuration through reset (server config)', () => {
+      const jurisdictions = [
+        { identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true },
+        { identifier: 'US', display_name: 'United States', domain: 'us.example.com', icon: { collection: 'flags', name: 'us' }, enabled: true },
+      ];
       store.update({
         regions: {
           identifier: 'EU',
           enabled: true,
           current_jurisdiction: 'EU',
-          jurisdictions: ['EU', 'US'],
+          jurisdictions,
         },
       });
 
@@ -610,7 +614,7 @@ describe('bootstrapStore', () => {
       // Server config fields are NOT reset
       expect(store.regions?.identifier).toBe('EU');
       expect(store.regions?.enabled).toBe(true);
-      expect(store.regions?.jurisdictions).toEqual(['EU', 'US']);
+      expect(store.regions?.jurisdictions).toEqual(jurisdictions);
     });
 
     it('preserves authentication settings through reset (server config)', () => {
@@ -1426,18 +1430,23 @@ describe('bootstrapStore', () => {
     });
 
     it('updates deeply nested regions configuration', () => {
+      const jurisdictions = [
+        { identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true },
+        { identifier: 'US', display_name: 'United States', domain: 'us.example.com', icon: { collection: 'flags', name: 'us' }, enabled: true },
+        { identifier: 'CA', display_name: 'Canada', domain: 'ca.example.com', icon: { collection: 'flags', name: 'ca' }, enabled: true },
+      ];
       const regionsConfig = {
         identifier: 'EU',
         enabled: true,
         current_jurisdiction: 'EU',
-        jurisdictions: ['EU', 'US', 'CA'],
+        jurisdictions,
       };
 
       store.update({ regions: regionsConfig });
 
       expect(store.regions?.identifier).toBe('EU');
       expect(store.regions?.jurisdictions).toHaveLength(3);
-      expect(store.regions?.jurisdictions).toContain('CA');
+      expect(store.regions?.jurisdictions?.find(j => j.identifier === 'CA')).toBeDefined();
     });
 
     it('replaces entire nested object on update (not deep merge)', () => {
