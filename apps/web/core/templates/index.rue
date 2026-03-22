@@ -1,13 +1,12 @@
-<schema src="bootstrap.rhales.ts" lang="js-zod" version="2" window="__BOOTSTRAP_STATE__">
+<schema src="bootstrap.ts" lang="js-zod" version="2" window="__BOOTSTRAP_STATE__">
 <!-- External schema reference (Rhales 0.6.0+)
-     Source: src/schemas/rhales/bootstrap.rhales.ts
+     Source: src/schemas/contracts/bootstrap.ts
 
      After modifying the external schema, regenerate JSON schemas:
        pnpm run build:schemas
 
-     The external schema is the single source of truth for bootstrap
-     payload validation. See src/schemas/rhales/bootstrap.rhales.ts
-     for the full Zod schema definition. -->
+     This file is the SINGLE SOURCE OF TRUTH for bootstrap payload schema.
+     TypeScript types and Rhales validation both derive from this schema. -->
 </schema>
 
 

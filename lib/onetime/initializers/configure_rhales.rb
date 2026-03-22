@@ -74,7 +74,7 @@ module Onetime
           # Enables <schema src="..."> in .rue templates for single-source-of-truth patterns.
           # Resolution order: template-relative first, then search paths in order.
           config.schema_search_paths = [
-            File.join(OT::HOME, 'src', 'schemas', 'rhales'),
+            File.join(OT::HOME, 'src', 'schemas', 'contracts'),
           ]
 
           # Use esbuild bundling for external schemas with imports

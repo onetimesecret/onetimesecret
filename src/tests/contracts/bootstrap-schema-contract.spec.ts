@@ -15,7 +15,7 @@ import {
   featuresSchema,
   organizationSchema,
   BOOTSTRAP_UI_DEFAULTS,
-} from '@/schemas/bootstrap.schema';
+} from '@/schemas/contracts/bootstrap';
 import {
   ALL_SERIALIZER_FIELDS,
   ALL_BOOTSTRAP_FIELDS,

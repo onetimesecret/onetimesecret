@@ -905,7 +905,7 @@ describe('bootstrapStore', () => {
      * This test ensures the two sources don't drift apart.
      */
     it('store DEFAULTS match schema BOOTSTRAP_UI_DEFAULTS for overlapping fields', async () => {
-      const { BOOTSTRAP_UI_DEFAULTS } = await import('@/schemas/bootstrap.schema');
+      const { BOOTSTRAP_UI_DEFAULTS } = await import('@/schemas/contracts/bootstrap');
 
       // Create fresh store to verify initial DEFAULTS
       await setupTestPinia();
@@ -933,7 +933,7 @@ describe('bootstrapStore', () => {
 
     it('schema defaults represent valid BootstrapPayload subset', async () => {
       const { BOOTSTRAP_UI_DEFAULTS, bootstrapUiSchema } = await import(
-        '@/schemas/bootstrap.schema'
+        '@/schemas/contracts/bootstrap'
       );
 
       // Parsing an empty object should produce the same defaults

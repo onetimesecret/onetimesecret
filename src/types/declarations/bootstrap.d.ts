@@ -3,7 +3,7 @@
 // TypeScript declarations for server-injected bootstrap state.
 //
 // UI-specific types (Footer, Header, Message, etc.) are derived from the Zod
-// schema at @/schemas/bootstrap.schema.ts using z.infer<>.
+// schema at @/schemas/contracts/bootstrap using z.infer<>.
 //
 // Shared entity types (Customer, BrandSettings, etc.) continue to use v2 shapes
 // for compatibility with the rest of the codebase.
@@ -25,14 +25,14 @@ export type {
   SSOConfig,
   Features,
   Organization,
-} from '@/schemas/bootstrap.schema';
+} from '@/schemas/contracts/bootstrap';
 
 // Re-export validation utilities
 export {
   bootstrapUiSchema,
   parseBootstrapUi,
   BOOTSTRAP_UI_DEFAULTS,
-} from '@/schemas/bootstrap.schema';
+} from '@/schemas/contracts/bootstrap';
 
 // Import shared types from v2 shapes (these have complex transforms)
 import {
@@ -62,7 +62,7 @@ export type { DiagnosticsConfig };
  * BootstrapPayload is the canonical type for server-injected state.
  *
  * This interface uses:
- * - UI types from @/schemas/bootstrap.schema (FooterLinksConfig, UiInterface, etc.)
+ * - UI types from @/schemas/contracts/bootstrap (FooterLinksConfig, UiInterface, etc.)
  * - Entity types from @/schemas/shapes/v2 (Customer, BrandSettings, etc.)
  * - Config types from @/types/diagnostics (DiagnosticsConfig)
  *
@@ -187,17 +187,17 @@ export interface BootstrapPayload {
   domain_context?: string | null;
 
   // UI types from schema
-  messages: import('@/schemas/bootstrap.schema').Message[];
+  messages: import('@/schemas/contracts/bootstrap').Message[];
 
   d9s_enabled: boolean;
   diagnostics: DiagnosticsConfig;
 
   /** Development mode configuration */
-  development?: import('@/schemas/bootstrap.schema').DevelopmentConfig;
+  development?: import('@/schemas/contracts/bootstrap').DevelopmentConfig;
 
-  features: import('@/schemas/bootstrap.schema').Features;
+  features: import('@/schemas/contracts/bootstrap').Features;
 
-  ui: import('@/schemas/bootstrap.schema').UiInterface;
+  ui: import('@/schemas/contracts/bootstrap').UiInterface;
 
   /**
    * Entitlement test mode (colonel only)
@@ -211,5 +211,5 @@ export interface BootstrapPayload {
    * Current user's organization (when authenticated)
    * Populated by OrganizationSerializer from OrganizationLoader context
    */
-  organization?: import('@/schemas/bootstrap.schema').Organization;
+  organization?: import('@/schemas/contracts/bootstrap').Organization;
 }
