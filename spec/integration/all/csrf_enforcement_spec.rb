@@ -448,14 +448,14 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
       expect(set_cookie).not_to be_nil, 'Expected Set-Cookie header from GET /signin'
       session_cookie = set_cookie.split(';').first
 
-      # Step 2: Parse the HTML to extract shrimp from __BOOTSTRAP_STATE__
+      # Step 2: Parse the HTML to extract shrimp from __BOOTSTRAP_ME__
       doc = Nokogiri::HTML(get_response.body)
       state_script = doc.css('script[type="application/json"]').first
       expect(state_script).not_to be_nil, 'Expected <script type="application/json"> in signin page'
 
       state_data = JSON.parse(state_script.content)
       shrimp = state_data['shrimp']
-      expect(shrimp).not_to be_nil, 'Expected shrimp in __BOOTSTRAP_STATE__'
+      expect(shrimp).not_to be_nil, 'Expected shrimp in __BOOTSTRAP_ME__'
       expect(shrimp).not_to be_empty, 'Expected non-empty shrimp token'
 
       # Step 3: POST /signin with session cookie + extracted shrimp

@@ -158,14 +158,14 @@ export function setupBootstrapMock(options: BootstrapMockOptions = {}): Bootstra
   });
   setActivePinia(pinia);
 
-  // Set up window.__BOOTSTRAP_STATE__ for components that access it directly
-  (window as any).__BOOTSTRAP_STATE__ = bootstrapState;
+  // Set up window.__BOOTSTRAP_ME__ for components that access it directly
+  (window as any).__BOOTSTRAP_ME__ = bootstrapState;
 
   // Helper to update state mid-test
   const updateState = (updates: Partial<BootstrapPayload>) => {
     Object.assign(bootstrapState, updates);
     // Also update window object for direct access
-    (window as any).__BOOTSTRAP_STATE__ = bootstrapState;
+    (window as any).__BOOTSTRAP_ME__ = bootstrapState;
   };
 
   return {

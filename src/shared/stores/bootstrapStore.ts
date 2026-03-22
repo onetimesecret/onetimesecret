@@ -179,7 +179,7 @@ function updateIfDefined<T>(target: Ref<T>, value: T | undefined): void {
  *    - $reset() returns to known good defaults
  *
  * 3. Single source of truth
- *    - No more window.__BOOTSTRAP_STATE__ vs reactiveState synchronization
+ *    - No more window.__BOOTSTRAP_ME__ vs reactiveState synchronization
  *    - All access goes through this store after initialization
  *
  * Lifecycle:
@@ -495,7 +495,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
    * disabled features to briefly appear after logout in SPA navigation.
    *
    * These fields are re-hydrated on full page reload from the server's
-   * window.__BOOTSTRAP_STATE__ injection.
+   * window.__BOOTSTRAP_ME__ injection.
    */
   function resetSettings(): void {
     // no-op: all fields in this group are server configuration

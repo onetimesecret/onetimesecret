@@ -5,7 +5,7 @@ import { getBootstrapValue } from '@/services/bootstrap.service';
 /**
  * Feature detection utilities for checking enabled authentication methods
  * Features are configured on the backend via environment variables and
- * exposed through window.__BOOTSTRAP_STATE__, accessed via bootstrap.service.ts
+ * exposed through window.__BOOTSTRAP_ME__, accessed via bootstrap.service.ts
  */
 
 export interface AuthFeatures {

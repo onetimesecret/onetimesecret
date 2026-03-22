@@ -500,7 +500,7 @@ describe('bootstrapStore', () => {
       store.$reset();
 
       // Server config fields are NOT reset — they persist until next
-      // full page reload re-hydrates from window.__BOOTSTRAP_STATE__
+      // full page reload re-hydrates from window.__BOOTSTRAP_ME__
       expect(store.regions.identifier).toBe('EU');
       expect(store.regions.enabled).toBe(true);
       expect(store.regions.jurisdictions).toEqual(['EU', 'US']);

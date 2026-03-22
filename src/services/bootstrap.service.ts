@@ -10,7 +10,7 @@ import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
  * the Vue app and Pinia are fully set up.
  *
  * Lifecycle:
- * 1. Server injects state into window.__BOOTSTRAP_STATE__
+ * 1. Server injects state into window.__BOOTSTRAP_ME__
  * 2. consumeBootstrapData() reads and deletes it (prevents memory leaks)
  * 3. getBootstrapValue() provides key access during initialization
  * 4. bootstrapStore.init() hydrates from getBootstrapSnapshot()
@@ -21,14 +21,14 @@ import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
  * - appInitializer.ts (lines 43-46): diagnostics, d9s_enabled, display_domain
  */
 
-const BOOTSTRAP_KEY = '__BOOTSTRAP_STATE__' as const;
+const BOOTSTRAP_KEY = '__BOOTSTRAP_ME__' as const;
 
 // Internal storage after consumption
 let bootstrapSnapshot: Partial<BootstrapPayload> | null = null;
 let consumed = false;
 
 /**
- * Reads window.__BOOTSTRAP_STATE__, stores it internally, and deletes
+ * Reads window.__BOOTSTRAP_ME__, stores it internally, and deletes
  * the window property to prevent memory leaks and signal consumption.
  *
  * This function should be called once during app initialization, before
@@ -77,7 +77,7 @@ export function consumeBootstrapData(): Partial<BootstrapPayload> | null {
  * Gets a single value from bootstrap state.
  * Works both before and after consumption.
  *
- * Pre-consumption: reads from window.__BOOTSTRAP_STATE__
+ * Pre-consumption: reads from window.__BOOTSTRAP_ME__
  * Post-consumption: reads from internal snapshot
  *
  * @param key - The BootstrapPayload property to retrieve

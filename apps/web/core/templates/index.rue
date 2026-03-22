@@ -1,4 +1,4 @@
-<schema src="bootstrap.ts" lang="js-zod" version="2" window="__BOOTSTRAP_STATE__">
+<schema src="bootstrap.ts" lang="js-zod" version="2" window="__BOOTSTRAP_ME__">
 <!-- External schema reference (Rhales 0.6.0+)
      Source: src/schemas/contracts/bootstrap.ts
 

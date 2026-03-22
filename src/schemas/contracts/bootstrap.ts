@@ -2,7 +2,7 @@
 //
 // Single source of truth for bootstrap payload schema.
 //
-// This schema defines the contract for window.__BOOTSTRAP_STATE__ data
+// This schema defines the contract for window.__BOOTSTRAP_ME__ data
 // injected by the Ruby backend. It is used by:
 // - Rhales for server-side validation (via <schema src="..."> in index.rue)
 // - TypeScript for client-side type inference
@@ -288,7 +288,7 @@ export type Passphrase = z.infer<typeof passphraseSchema>;
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Bootstrap payload schema for window.__BOOTSTRAP_STATE__.
+ * Bootstrap payload schema for window.__BOOTSTRAP_ME__.
  *
  * This schema validates the complete payload injected by Ruby serializers:
  * - ConfigSerializer fields
@@ -400,7 +400,7 @@ export const bootstrapSchema = z.object({
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * BootstrapPayload - the contract type for window.__BOOTSTRAP_STATE__.
+ * BootstrapPayload - the contract type for window.__BOOTSTRAP_ME__.
  *
  * Derived directly from the schema. All nested types are canonical contracts.
  */
