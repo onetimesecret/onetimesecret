@@ -4,15 +4,15 @@
 // Derives from contracts, adding V3-specific timestamp transforms (number → Date).
 
 import {
-  receiptBaseCanonical,
-  receiptCanonical,
-  receiptDetailsCanonical,
-  receiptListDetailsCanonical,
-  receiptListCanonical,
-  receiptStateValues,
-  receiptStateSchema,
-  ReceiptState,
-  isValidReceiptState,
+    ReceiptState,
+    isValidReceiptState,
+    receiptBaseCanonical,
+    receiptCanonical,
+    receiptDetailsCanonical,
+    receiptListCanonical,
+    receiptListDetailsCanonical,
+    receiptStateSchema,
+    receiptStateValues,
 } from '@/schemas/contracts';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
@@ -27,7 +27,7 @@ import { z } from 'zod';
  * V3 is the clean API. Deprecated state values ('received', 'viewed')
  * are NOT included. Use 'revealed' and 'previewed' instead.
  */
-export { receiptStateValues, receiptStateSchema, ReceiptState, isValidReceiptState };
+export { ReceiptState, isValidReceiptState, receiptStateSchema, receiptStateValues };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // V3 wire-format overrides
