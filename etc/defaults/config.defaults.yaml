@@ -137,15 +137,15 @@ site:
               - text: API Docs
                 i18n_key: web.footer.api_docs
                 url: <%= ENV['WORKSPACE_API_DOCS_URL'] %>
-                external: <%= ENV['WORKSPACE_API_DOCS_EXTERNAL'] || true %>
+                external: <%= ENV['WORKSPACE_API_DOCS_EXTERNAL'] != 'false' %>
               - text: Branding Guide
                 i18n_key: web.footer.branding_guide
                 url: <%= ENV['WORKSPACE_BRANDING_GUIDE_URL'] %>
-                external: <%= ENV['WORKSPACE_BRANDING_GUIDE_EXTERNAL'] || true %>
+                external: <%= ENV['WORKSPACE_BRANDING_GUIDE_EXTERNAL'] != 'false' %>
               - text: Feedback
                 i18n_key: web.TITLES.feedback
                 url: <%= ENV['WORKSPACE_FEEDBACK_URL'] || '/feedback' %>
-                external: <%= ENV['WORKSPACE_FEEDBACK_EXTERNAL'] || false %>
+                external: <%= ENV['WORKSPACE_FEEDBACK_EXTERNAL'] == 'true' %>
     # Controls whether the API endpoints are available. When disabled, the API
     # is completely disabled. Requests to /api/* will return 404.
     api:
