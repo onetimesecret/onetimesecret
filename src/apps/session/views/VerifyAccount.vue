@@ -13,10 +13,10 @@
   const bootstrapStore = useBootstrapStore();
   const { authentication } = bootstrapStore;
   const signupEnabled = computed(
-    () => authentication.enabled && authentication.signup
+    () => authentication?.enabled && authentication?.signup
   );
   const signinEnabled = computed(
-    () => authentication.enabled && authentication.signin
+    () => authentication?.enabled && authentication?.signin
   );
 
   const verificationKey = ref<string>('');

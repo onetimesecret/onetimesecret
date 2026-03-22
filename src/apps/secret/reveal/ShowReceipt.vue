@@ -36,7 +36,7 @@
     record.value?.expiration_in_seconds ?? 0
   );
 
-  const isAvailable = computed(() => !(record.value?.is_destroyed || record.value?.is_burned || record.value?.is_received));
+  const isAvailable = computed(() => !(record.value?.is_destroyed || record.value?.is_burned || record.value?.is_revealed));
 
   const goBack = () => {
     window.history.back();
@@ -122,7 +122,7 @@
               v-if="isAvailable"
               :record="record"
               :details="details"
-              :is-initial-view="!record.is_viewed" />
+              :is-initial-view="!record.is_previewed" />
           </section>
 
           <!-- Recipients Section -->
