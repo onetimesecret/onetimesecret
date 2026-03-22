@@ -71,13 +71,13 @@ export const footerLinksConfigSchema = z.object({
 });
 
 export const headerLogoSchema = z.object({
-  url: z.string(),
-  alt: z.string(),
-  link_to: z.string(),
+  url: z.string().default(''),
+  alt: z.string().default(''),
+  link_to: z.string().default('/'),
 });
 
 export const headerBrandingSchema = z.object({
-  logo: headerLogoSchema,
+  logo: headerLogoSchema.default(headerLogoSchema.parse({})),
   site_name: z.string().optional(),
 });
 
@@ -101,16 +101,20 @@ export const uiInterfaceSchema = z.object({
 // AUTHENTICATION SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export const authenticationSettingsSchema = z
-  .object({
-    enabled: z.boolean(),
-    signup: z.boolean(),
-    signin: z.boolean(),
-    autoverify: z.boolean(),
-    required: z.boolean(),
-    mode: z.enum(['simple', 'full']).optional(),
-  })
-  .nullable();
+/**
+ * Inner authentication settings schema with defaults.
+ * Separated from nullable wrapper to enable schema.parse({}) for defaults.
+ */
+const authenticationSettingsInner = z.object({
+  enabled: z.boolean().default(true),
+  signup: z.boolean().default(true),
+  signin: z.boolean().default(true),
+  autoverify: z.boolean().default(false),
+  required: z.boolean().default(false),
+  mode: z.enum(['simple', 'full']).optional(),
+});
+
+export const authenticationSettingsSchema = authenticationSettingsInner.nullable();
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SSO SCHEMAS
@@ -122,8 +126,8 @@ export const ssoProviderSchema = z.object({
 });
 
 export const ssoConfigSchema = z.object({
-  enabled: z.boolean(),
-  providers: z.array(ssoProviderSchema).optional(),
+  enabled: z.boolean().default(false),
+  providers: z.array(ssoProviderSchema).default([]),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -210,13 +214,16 @@ export const sentryConfigSchema = z.object({
 });
 
 /**
+ * Inner diagnostics schema with defaults.
+ */
+const diagnosticsInner = z.object({
+  sentry: sentryConfigSchema.default(sentryConfigSchema.parse({})),
+});
+
+/**
  * Diagnostics configuration for bootstrap payload.
  */
-export const diagnosticsSchema = z
-  .object({
-    sentry: sentryConfigSchema.optional(),
-  })
-  .nullable();
+export const diagnosticsSchema = diagnosticsInner.nullable();
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // DEVELOPMENT SCHEMA
@@ -231,6 +238,9 @@ export const developmentConfigSchema = z.object({
 // ORGANIZATION SCHEMA
 // ═══════════════════════════════════════════════════════════════════════════════
 
+/**
+ * Organization schema - nullable since not all users have organizations.
+ */
 export const organizationSchema = z
   .object({
     id: z.string(),
@@ -302,75 +312,75 @@ export const bootstrapSchema = z.object({
   // ─────────────────────────────────────────────────────────────────────────────
   // ConfigSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
-  authentication: authenticationSettingsSchema,
-  d9s_enabled: z.boolean(),
-  diagnostics: diagnosticsSchema,
-  domains_enabled: z.boolean(),
-  features: featuresSchema,
-  frontend_development: z.boolean(),
-  frontend_host: z.string(),
-  billing_enabled: z.boolean(),
+  authentication: authenticationSettingsSchema.default(authenticationSettingsInner.parse({})),
+  d9s_enabled: z.boolean().default(false),
+  diagnostics: diagnosticsSchema.default(diagnosticsInner.parse({})),
+  domains_enabled: z.boolean().default(false),
+  features: featuresSchema.default(featuresSchema.parse({})),
+  frontend_development: z.boolean().default(false),
+  frontend_host: z.string().default(''),
+  billing_enabled: z.boolean().default(false),
   regions: regionsConfigSchema.optional(),
-  regions_enabled: z.boolean(),
-  secret_options: secretOptionsSchema,
-  site_host: z.string(),
-  support_host: z.string(),
-  ui: uiInterfaceSchema,
-  available_jurisdictions: z.array(z.string()),
+  regions_enabled: z.boolean().default(false),
+  secret_options: secretOptionsSchema.default(secretOptionsSchema.parse({})),
+  site_host: z.string().default(''),
+  support_host: z.string().default(''),
+  ui: uiInterfaceSchema.default(uiInterfaceSchema.parse({})),
+  available_jurisdictions: z.array(z.string()).default([]),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // AuthenticationSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
   apitoken: z.string().optional(),
-  authenticated: z.boolean(),
-  awaiting_mfa: z.boolean().optional(),
-  had_valid_session: z.boolean(),
-  has_password: z.boolean().optional(),
-  custid: z.string(),
-  cust: customerCanonical.nullable(),
-  email: z.string(),
+  authenticated: z.boolean().default(false),
+  awaiting_mfa: z.boolean().optional().default(false),
+  had_valid_session: z.boolean().default(false),
+  has_password: z.boolean().optional().default(false),
+  custid: z.string().default(''),
+  cust: customerCanonical.nullable().default(null),
+  email: z.string().default(''),
   // customer_since: formatted date string (e.g., "Mar 21, 2026") from Ruby epochdom()
   customer_since: z.string().optional(),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // DomainSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
-  baseuri: z.string(),
-  canonical_domain: z.string(),
-  custom_domains: z.array(z.string()).optional(),
-  display_domain: z.string(),
-  domain_branding: brandSettingsCanonical.nullable(),
-  domain_context: z.string().nullish(),
-  domain_id: z.string(),
-  domain_locale: z.string().nullable(),
-  domain_logo: z.string().nullable(),
-  domain_strategy: domainStrategySchema,
+  baseuri: z.string().default(''),
+  canonical_domain: z.string().default(''),
+  custom_domains: z.array(z.string()).optional().default([]),
+  display_domain: z.string().default(''),
+  domain_branding: brandSettingsCanonical.nullable().default(null),
+  domain_context: z.string().nullish().default(null),
+  domain_id: z.string().default(''),
+  domain_locale: z.string().nullable().default(null),
+  domain_logo: z.string().nullable().default(null),
+  domain_strategy: domainStrategySchema.default('canonical'),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // I18nSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
-  locale: z.string(),
-  default_locale: z.string(),
-  fallback_locale: z.string(),
-  supported_locales: z.array(z.string()),
-  i18n_enabled: z.boolean(),
+  locale: z.string().default('en'),
+  default_locale: z.string().default('en'),
+  fallback_locale: z.string().default('en'),
+  supported_locales: z.array(z.string()).default([]),
+  i18n_enabled: z.boolean().default(true),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // MessagesSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
-  messages: z.array(messageSchema).nullable(),
-  global_banner: z.string().nullable(),
+  messages: z.array(messageSchema).nullable().default([]),
+  global_banner: z.string().nullable().default(null),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // SystemSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
-  ot_version: z.string(),
-  ot_version_long: z.string(),
-  ruby_version: z.string(),
-  shrimp: z.string(),
-  nonce: z.string().nullable(),
-  homepage_mode: z.string().nullable(),
-  enjoyTheVue: z.boolean(),
+  ot_version: z.string().default(''),
+  ot_version_long: z.string().default(''),
+  ruby_version: z.string().default(''),
+  shrimp: z.string().default(''),
+  nonce: z.string().nullable().default(null),
+  homepage_mode: z.string().nullable().default(null),
+  enjoyTheVue: z.boolean().default(false),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // OrganizationSerializer fields

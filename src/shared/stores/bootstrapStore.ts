@@ -2,16 +2,17 @@
 
 import type { Locale } from '@/schemas/i18n/locale';
 import { getBootstrapSnapshot } from '@/services/bootstrap.service';
-import type {
-  AuthenticationSettings,
-  BrandSettings,
-  BootstrapPayload,
-  Customer,
-  FooterLinksConfig,
-  HeaderConfig,
-  RegionsConfig,
-  SecretOptions,
-  UiInterface,
+import {
+  bootstrapSchema,
+  type AuthenticationSettings,
+  type BrandSettings,
+  type BootstrapPayload,
+  type Customer,
+  type FooterLinksConfig,
+  type HeaderConfig,
+  type RegionsConfig,
+  type SecretOptions,
+  type UiInterface,
 } from '@/schemas/contracts/bootstrap';
 import type { DiagnosticsConfig } from '@/types/diagnostics';
 import { defineStore } from 'pinia';
@@ -21,137 +22,15 @@ import type { FallbackLocale } from 'vue-i18n';
 /**
  * Default values for logged-out / initial state.
  *
- * These defaults represent the minimal state needed for a non-authenticated
- * user. When the user logs out, the store resets to these values.
+ * Derived from bootstrapSchema.parse({}) - the schema is the single source
+ * of truth for default values. This ensures consistency between:
+ * - Server-side Rhales validation
+ * - Client-side TypeScript types
+ * - Store defaults
  *
- * Type-safe defaults ensure the store always has valid values even before
- * server data is hydrated.
+ * When the user logs out, the store resets to these values.
  */
-const DEFAULTS: BootstrapPayload = {
-  // Authentication state
-  authenticated: false,
-  awaiting_mfa: false,
-  had_valid_session: false,
-  has_password: false,
-
-  // User identity (null/empty when logged out)
-  cust: null,
-  custid: '',
-  email: '',
-  customer_since: undefined,
-  apitoken: undefined,
-
-  // Locale settings
-  i18n_enabled: true,
-  locale: 'en',
-  supported_locales: [],
-  fallback_locale: 'en',
-  default_locale: { code: 'en', name: 'English', enabled: true },
-  date_format: 'locale',
-  datetime_format: 'locale',
-
-  // Site configuration
-  baseuri: '',
-  frontend_host: '',
-  site_host: '',
-  support_host: '',
-  ot_version: '',
-  ot_version_long: '',
-  ruby_version: '',
-  shrimp: '',
-
-  // Feature flags
-  billing_enabled: false,
-  regions_enabled: false,
-  domains_enabled: false,
-  d9s_enabled: false,
-  enjoyTheVue: false,
-
-  // Domain configuration
-  canonical_domain: '',
-  domain_strategy: 'canonical',
-  domain_id: '',
-  display_domain: '',
-  domain_branding: {} as BrandSettings,
-  domain_logo: null,
-  domain_context: null,
-  custom_domains: [],
-
-  // Regions configuration
-  regions: {
-    identifier: '',
-    enabled: false,
-    current_jurisdiction: '',
-    jurisdictions: [],
-  },
-  available_jurisdictions: [],
-
-  // Authentication settings
-  authentication: {
-    enabled: true,
-    signup: true,
-    signin: true,
-    autoverify: false,
-    required: false,
-  },
-
-  // Secret options
-  secret_options: {
-    default_ttl: 604800,
-    ttl_options: [300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000],
-  },
-
-  // Diagnostics
-  diagnostics: {
-    sentry: {
-      dsn: '',
-      enabled: false,
-      logErrors: true,
-      trackComponents: true,
-    },
-  },
-
-  // UI configuration
-  ui: {
-    enabled: true,
-    header: {
-      enabled: true,
-    },
-    footer_links: {
-      enabled: false,
-      groups: [],
-    },
-  },
-
-  // Features
-  features: {
-    markdown: false,
-  },
-
-  // Messages
-  messages: [],
-
-  // Homepage and banner
-  homepage_mode: null,
-  global_banner: null,
-  nonce: null,
-  domain_locale: null,
-  frontend_development: false,
-
-  // Development mode
-  development: undefined,
-
-  // Stripe (billing)
-  stripe_customer: undefined,
-  stripe_subscriptions: undefined,
-
-  // Entitlement testing (colonel)
-  entitlement_test_planid: undefined,
-  entitlement_test_plan_name: undefined,
-
-  // Organization
-  organization: undefined,
-};
+const DEFAULTS: BootstrapPayload = bootstrapSchema.parse({});
 
 /**
  * Helper to conditionally update a ref if the source value is defined.

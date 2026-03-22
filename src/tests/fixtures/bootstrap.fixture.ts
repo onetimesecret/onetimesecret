@@ -2,9 +2,18 @@
 //
 // Bootstrap payload fixtures for testing.
 // These provide pre-configured states for common test scenarios.
+//
+// Fixtures derive from bootstrapSchema.parse({}) to ensure consistency
+// with the canonical schema defaults, then override with test-specific values.
 
-import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
+import { bootstrapSchema, type BootstrapPayload } from '@/schemas/contracts/bootstrap';
 import type { CustomerCanonical } from '@/schemas/contracts/customer';
+
+/**
+ * Schema-derived defaults - the canonical baseline.
+ * Use this when you need pure schema defaults without test customizations.
+ */
+export const schemaDefaults: BootstrapPayload = bootstrapSchema.parse({});
 
 // =============================================================================
 // CUSTOMER FIXTURE
@@ -41,54 +50,36 @@ export const mockCustomer: CustomerCanonical = {
  * Base fixture with sensible defaults for all BootstrapPayload properties.
  * Use this as a foundation and override specific properties as needed.
  *
+ * Derives from schemaDefaults (bootstrapSchema.parse({})) and overrides
+ * with test-specific values like URLs, version info, and feature flags.
+ *
  * This is the canonical test fixture — all scenario fixtures derive from it.
  */
 export const baseBootstrap: BootstrapPayload = {
-  // Authentication state
-  authenticated: false,
-  awaiting_mfa: false,
-  had_valid_session: false,
-  has_password: false,
+  ...schemaDefaults,
 
-  // User identity (empty for anonymous)
-  cust: null,
-  custid: '',
-  email: '',
-  customer_since: undefined,
-
-  // API access (optional)
-  apitoken: undefined,
-
-  // URLs and hosts
+  // Test-specific URLs and hosts
   baseuri: 'https://test.onetimesecret.com',
   frontend_host: 'https://test.onetimesecret.com',
   site_host: 'test.onetimesecret.com',
   support_host: 'support.onetimesecret.com',
 
-  // i18n
-  i18n_enabled: true,
-  locale: 'en',
+  // Test locales
   supported_locales: ['en', 'es', 'fr', 'de'],
-  fallback_locale: 'en',
-  default_locale: 'en',
 
-  // Version info
+  // Test version info
   ot_version: '0.20.0',
   ot_version_long: '0.20.0 (test)',
   ruby_version: 'ruby-335',
 
-  // Feature flags
+  // Enable billing for most tests
   billing_enabled: true,
-  regions_enabled: false,
-  domains_enabled: false,
 
-  // Security
+  // Test CSRF token
   shrimp: 'test-csrf-token',
 
-  // Domain configuration
+  // Test domain configuration
   canonical_domain: 'test.onetimesecret.com',
-  domain_strategy: 'canonical',
-  domain_id: '',
   display_domain: 'test.onetimesecret.com',
   domain_branding: {
     allow_public_homepage: false,
@@ -100,33 +91,14 @@ export const baseBootstrap: BootstrapPayload = {
     instructions_reveal: '',
     primary_color: '#36454F',
   },
-  domain_logo: null,
-  domain_context: undefined,
-  custom_domains: undefined,
 
-  // Homepage mode (null = normal, 'external' | 'internal' for special modes)
-  homepage_mode: undefined,
-
-  // Global banner (optional HTML content)
-  global_banner: undefined,
-
-  // Authentication settings
+  // Test auth settings with explicit mode
   authentication: {
-    enabled: true,
-    signup: true,
-    signin: true,
-    autoverify: false,
-    required: false,
+    ...schemaDefaults.authentication,
     mode: 'simple',
   },
 
-  // Secret options
-  secret_options: {
-    default_ttl: 604800.0,
-    ttl_options: [60, 3600, 86400, 604800, 1209600, 2592000],
-  },
-
-  // Regions
+  // Test region configuration
   regions: {
     identifier: 'US',
     enabled: false,
@@ -135,38 +107,28 @@ export const baseBootstrap: BootstrapPayload = {
   },
   available_jurisdictions: ['US'],
 
-  // UI
+  // Enable enjoyTheVue for tests
   enjoyTheVue: true,
-  messages: [],
-  d9s_enabled: false,
-  diagnostics: {
-    sentry: {
-      enabled: false,
-      dsn: '',
-      logErrors: true,
-      trackComponents: true,
-    },
-  },
+
+  // Enable markdown in tests
   features: {
+    ...schemaDefaults.features,
     markdown: true,
   },
-  ui: {
-    enabled: true,
-  },
 
-  // Development mode configuration (optional)
+  // Explicitly include optional fields for test key enumeration
+  // These are undefined but need to be present for Object.keys() in tests
+  customer_since: undefined,
   development: undefined,
-
-  // Organization (optional, only for authenticated users)
   organization: undefined,
-
-  // Entitlement testing (colonel only)
   entitlement_test_planid: undefined,
   entitlement_test_plan_name: undefined,
-
-  // Stripe billing (optional, loaded separately)
-  stripe_customer: undefined,
-  stripe_subscriptions: undefined,
+  nonce: null,
+  homepage_mode: null,
+  global_banner: null,
+  domain_context: null,
+  domain_locale: null,
+  frontend_development: false,
 };
 
 // =============================================================================
