@@ -128,6 +128,25 @@ export interface BootstrapPayload {
   fallback_locale: FallbackLocale;
   default_locale: Locale;
 
+  /**
+   * Date display format preference. Controls both date-only and date+time
+   * display unless datetime_format is explicitly set.
+   *
+   * - 'locale': Browser-native locale formatting (default)
+   * - 'iso8601', 'us', 'eu', 'eu-dot', 'uk', 'long': regional presets
+   * - Any other string: a raw date-fns format pattern
+   */
+  date_format: string;
+
+  /**
+   * Optional override for date+time contexts. When set to 'locale' (the
+   * default), datetime display falls back to the date_format setting.
+   * Only set this when you need date-only and date+time to differ.
+   *
+   * Accepts the same values as date_format.
+   */
+  datetime_format: string;
+
   ot_version: string;
   ot_version_long: string;
   billing_enabled?: boolean;

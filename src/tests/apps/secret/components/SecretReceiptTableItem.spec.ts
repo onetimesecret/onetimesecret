@@ -10,9 +10,10 @@ vi.mock('vue-i18n', () => ({
   })),
 }));
 
-// Mock formatRelativeTime
+// Mock format utilities
 vi.mock('@/utils/format', () => ({
   formatRelativeTime: vi.fn(() => '2 hours ago'),
+  formatDisplayDateTime: vi.fn(() => '2026-03-21 14:30:00'),
 }));
 
 // Stub RouterLink to avoid router dependency
@@ -65,6 +66,7 @@ describe('SecretReceiptTableItem', () => {
 
     vi.doMock('@/utils/format', () => ({
       formatRelativeTime: vi.fn(() => '2 hours ago'),
+      formatDisplayDateTime: vi.fn(() => '2026-03-21 14:30:00'),
     }));
 
     const mod = await import(

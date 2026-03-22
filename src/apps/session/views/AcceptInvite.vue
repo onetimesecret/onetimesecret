@@ -10,6 +10,7 @@
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { formatDisplayDate } from '@/utils/format';
   import { inject, onMounted, ref, computed } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import type { AxiosInstance } from 'axios';
@@ -172,11 +173,7 @@
     }
   };
 
-  const formatDate = (timestamp: number): string => new Date(timestamp * 1000).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+  const formatDate = (timestamp: number): string => formatDisplayDate(new Date(timestamp * 1000));
 </script>
 
 <template>
