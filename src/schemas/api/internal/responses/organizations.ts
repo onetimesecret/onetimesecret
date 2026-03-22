@@ -1,6 +1,7 @@
-// src/schemas/api/v2/responses/organizations.ts
+// src/schemas/api/internal/responses/organizations.ts
 //
 // Response schemas for organization and member endpoints.
+// These are internal-only and consumed by the Vue frontend.
 
 import { z } from 'zod';
 import {

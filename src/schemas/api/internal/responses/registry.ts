@@ -8,7 +8,7 @@
 
 import { z } from 'zod';
 
-// Colonel (admin) schemas
+// Colonel (admin) schemas — internal-only
 import {
   colonelInfoResponseSchema,
   colonelStatsResponseSchema,
@@ -23,9 +23,9 @@ import {
   usageExportResponseSchema,
   queueMetricsResponseSchema,
   systemSettingsResponseSchema,
-} from '@/schemas/api/v2/responses/colonel';
+} from './colonel';
 
-// Organization schemas
+// Organization schemas — internal-only
 import {
   organizationResponseSchema,
   organizationsResponseSchema,
@@ -33,7 +33,7 @@ import {
   membersResponseSchema,
   memberResponseSchema,
   memberDeleteResponseSchema,
-} from '@/schemas/api/v2/responses/organizations';
+} from './organizations';
 
 // Account schemas (shared with V2/V3 public APIs)
 import {

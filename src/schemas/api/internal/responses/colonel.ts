@@ -1,6 +1,7 @@
-// src/schemas/api/v2/responses/colonel.ts
+// src/schemas/api/internal/responses/colonel.ts
 //
 // Response schemas for colonel (admin) endpoints.
+// These are internal-only and consumed by the Vue frontend.
 
 import { createApiResponseSchema } from '@/schemas/api/base';
 import {
