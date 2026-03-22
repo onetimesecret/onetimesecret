@@ -1,12 +1,12 @@
 // src/shared/stores/brandStore.ts
 
 import { responseSchemas } from '@/schemas/api/v3/responses';
-import type { BrandSettings, ImageProps } from '@/schemas/models';
+import type { BrandSettingsRecord, ImagePropsRecord } from '@/schemas/shapes/v3/custom-domain';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { inject, ref } from 'vue';
 
-const defaultBranding: BrandSettings = {
+const defaultBranding: BrandSettingsRecord = {
   primary_color: '#dc4a22',
   font_family: 'sans',
   corner_style: 'rounded',
@@ -16,13 +16,15 @@ const defaultBranding: BrandSettings = {
   instructions_reveal: '',
   allow_public_api: false,
   allow_public_homepage: false,
+  passphrase_required: false,
+  notify_enabled: false,
 };
 
 /* eslint max-lines-per-function: off */
 export const useBrandStore = defineStore('brand', () => {
   const $api = inject('api') as AxiosInstance;
-  const settings = ref<Record<string, BrandSettings>>({});
-  const logos = ref<Record<string, ImageProps>>({});
+  const settings = ref<Record<string, BrandSettingsRecord>>({});
+  const logos = ref<Record<string, ImagePropsRecord>>({});
   const _initialized = ref(false);
 
   /* Reset primaryColor by passing undefined through primary_color field validator
@@ -38,14 +40,14 @@ export const useBrandStore = defineStore('brand', () => {
     _initialized.value = true;
   }
 
-  async function fetchSettings(domainId: string): Promise<BrandSettings> {
+  async function fetchSettings(domainId: string): Promise<BrandSettingsRecord> {
     const response = await $api.get(`/api/domains/${domainId}/brand`);
     const validated = responseSchemas.brandSettings.parse(response.data);
     settings.value[domainId] = validated.record;
     return validated.record;
   }
 
-  async function updateSettings(domainId: string, updates: Partial<BrandSettings>) {
+  async function updateSettings(domainId: string, updates: Partial<BrandSettingsRecord>) {
     const formattedUpdates = {
       ...updates,
       primary_color: updates.primary_color?.toLowerCase(),
@@ -86,18 +88,18 @@ export const useBrandStore = defineStore('brand', () => {
     delete logos.value[domainId];
   }
 
-  function getSettings(domainId: string): BrandSettings {
+  function getSettings(domainId: string): BrandSettingsRecord {
     return {
       ...defaultBranding,
       ...settings.value[domainId],
     };
   }
 
-  function getLogo(domainId: string): ImageProps | null {
+  function getLogo(domainId: string): ImagePropsRecord | null {
     return logos.value[domainId] || null;
   }
 
-  function compareSettings(domainId: string, newSettings: BrandSettings) {
+  function compareSettings(domainId: string, newSettings: BrandSettingsRecord) {
     return isEqual(settings.value[domainId], newSettings);
   }
 
@@ -114,8 +116,8 @@ export const useBrandStore = defineStore('brand', () => {
   };
 });
 
-function isEqual(a: BrandSettings, b: BrandSettings): boolean {
-  const keys: (keyof BrandSettings)[] = [
+function isEqual(a: BrandSettingsRecord, b: BrandSettingsRecord): boolean {
+  const keys: (keyof BrandSettingsRecord)[] = [
     'primary_color',
     'font_family',
     'corner_style',
@@ -125,6 +127,8 @@ function isEqual(a: BrandSettings, b: BrandSettings): boolean {
     'instructions_reveal',
     'allow_public_api',
     'allow_public_homepage',
+    'passphrase_required',
+    'notify_enabled',
   ];
 
   return keys.every((key) => a[key] === b[key]);

@@ -5,7 +5,7 @@
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { CustomDomainResponse } from '@/schemas/api/v2/responses';
-import { CustomDomain, CustomDomainProxy } from '@/schemas/models/custom-domain';
+import { CustomDomain, CustomDomainProxy } from '@/schemas/shapes/v2/custom-domain';
 import { computed, ref } from 'vue';
 
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';

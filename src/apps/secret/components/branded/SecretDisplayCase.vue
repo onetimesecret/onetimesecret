@@ -4,18 +4,19 @@
   import { useI18n } from 'vue-i18n';
   import BaseSecretDisplay from '@/apps/secret/components/branded/BaseSecretDisplay.vue';
   import { useClipboard } from '@/shared/composables/useClipboard';
-  import { Secret, SecretDetails, brandSettingschema } from '@/schemas/models';
+  import { SecretRecord, SecretDetails } from '@/schemas/shapes/v3';
+  import { brandSettingschema } from '@/schemas/shapes/v2';
   import {
     CornerStyle,
     FontFamily,
     cornerStyleClasses,
     fontFamilyClasses
-  } from '@/schemas/models/custom-domain/brand';
+  } from '@/schemas/shapes/v2/custom-domain/brand';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { ref, computed } from 'vue';
 
   interface Props {
-    record: Secret | null;
+    record: SecretRecord | null;
     details: SecretDetails | null;
     domainId: string;
     submissionStatus?: {

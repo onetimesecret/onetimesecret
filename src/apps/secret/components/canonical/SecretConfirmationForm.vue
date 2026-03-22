@@ -4,12 +4,12 @@
   import { useI18n } from 'vue-i18n';
   import NeedHelpModal from '@/shared/components/modals/NeedHelpModal.vue';
   import SecretRecipientHelpContent from '@/apps/secret/components/SecretRecipientHelpContent.vue';
-  import { Secret, SecretDetails } from '@/schemas/models';
+  import { SecretRecord, SecretDetails } from '@/schemas/shapes/v3';
   import { ref, computed } from 'vue';
 
   interface Props {
     secretIdentifier: string;
-    record: Secret | null;
+    record: SecretRecord | null;
     details: SecretDetails | null;
     isSubmitting: boolean;
     error: unknown;

@@ -1,5 +1,23 @@
 // src/scripts/openapi/route-config.ts
 
+// =============================================================================
+// Types
+// =============================================================================
+
+export interface SpecTarget {
+  id: string;
+  filename: string;
+  title: string;
+  description: string;
+  apiNames: string[];
+  frozen?: boolean;
+}
+
+
+// =============================================================================
+// Error Responses
+// =============================================================================
+
 /**
  * Shared error response content schema.
  *

@@ -9,8 +9,8 @@ require 'spec_helper'
 # This method is defined in Onetime::Logic::Base and is used to gate
 # access to protected API endpoints based on organization entitlements.
 #
-# The method:
-# - Returns true if no organization context (anonymous/public access)
+# The method (fail-closed behavior):
+# - Raises EntitlementRequired if no organization context (system issue)
 # - Returns true if the organization has the requested entitlement
 # - Raises EntitlementRequired if the organization lacks the entitlement
 #
@@ -37,8 +37,14 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
       def require_entitlement!(entitlement)
         entitlement = entitlement.to_s
 
-        # No org context means no entitlement check (public endpoints)
-        return true unless org
+        # Fail-closed: org context required for entitlement checks.
+        # OrganizationLoader self-heals, so nil org indicates a system issue.
+        unless org
+          raise Onetime::EntitlementRequired.new(
+            entitlement,
+            message: 'Unable to verify entitlements (organization context unavailable)',
+          )
+        end
 
         # Check if org has the entitlement
         return true if org.can?(entitlement)
@@ -66,19 +72,33 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
     )
   end
 
-  describe 'when org is nil (public/anonymous access)' do
+  describe 'when org is nil (fail-closed behavior)' do
     subject(:logic) { test_class.new(nil) }
 
-    it 'returns true without checking entitlements' do
-      expect(logic.require_entitlement!('api_access')).to be true
+    it 'raises EntitlementRequired (fail-closed)' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::EntitlementRequired)
     end
 
-    it 'does not raise an error' do
-      expect { logic.require_entitlement!('api_access') }.not_to raise_error
+    it 'includes the entitlement name in the error' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.entitlement).to eq('api_access')
+        end
     end
 
-    it 'accepts symbol entitlement names' do
-      expect(logic.require_entitlement!(:api_access)).to be true
+    it 'includes a descriptive message about missing org context' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.message).to include('organization context unavailable')
+        end
+    end
+
+    it 'works with symbol entitlement names' do
+      expect { logic.require_entitlement!(:api_access) }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.entitlement).to eq('api_access')
+        end
     end
   end
 

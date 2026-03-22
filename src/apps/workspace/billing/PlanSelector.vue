@@ -13,12 +13,13 @@ import CurrencyMigrationModal from './CurrencyMigrationModal.vue';
 import PendingMigrationBanner from './PendingMigrationBanner.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
-import type { CurrencyConflictError } from '@/schemas/models/billing';
+import type { CurrencyConflictError } from '@/schemas/shapes/account/billing';
 import { BillingService, extractCurrencyConflict, type Plan as BillingPlan, type SubscriptionStatusResponse } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { BillingInterval } from '@/types/billing';
 import { isLegacyPlan, getPlanDisplayName } from '@/types/billing';
 import type { Organization } from '@/types/organization';
+import { formatDisplayDate } from '@/utils/format';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -62,11 +63,7 @@ const isCancelScheduled = computed(() => subscriptionStatus.value?.cancel_at_per
 const cancelAtFormatted = computed(() => {
   const cancelAt = subscriptionStatus.value?.cancel_at;
   if (!cancelAt) return null;
-  return new Date(cancelAt * 1000).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  return formatDisplayDate(new Date(cancelAt * 1000));
 });
 
 // Plan change modal state

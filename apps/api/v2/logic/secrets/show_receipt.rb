@@ -6,7 +6,16 @@ module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
 
+    # Show Receipt
+    #
+    # @api Retrieves the receipt (metadata) for a previously created secret.
+    #   Returns the receipt's state, share and burn URLs, expiration details,
+    #   and recipient information. For generated secrets viewed shortly after
+    #   creation, the generated value may be included. The receipt tracks
+    #   whether the associated secret has been viewed, burned, or expired.
     class ShowReceipt < V2::Logic::Base
+      include Onetime::Logic::GuestRouteGating
+
       SCHEMAS = { response: 'receipt' }.freeze
 
       # Working variables
@@ -55,6 +64,7 @@ module V2::Logic
       end
 
       def raise_concerns
+        require_guest_route_enabled!(:receipt)
         require_entitlement!('api_access')
         raise OT::MissingSecret, "identifier: #{identifier}" if receipt.nil?
       end
@@ -256,8 +266,8 @@ module V2::Logic
           no_cache: no_cache,
           secret_realttl: secret_realttl,
           view_count: view_count,
-          has_passphrase: has_passphrase,
-          can_decrypt: can_decrypt,
+          has_passphrase: has_passphrase || false,
+          can_decrypt: can_decrypt || false,
           secret_value: secret_value,
           show_secret: show_secret,
           show_secret_link: show_secret_link,

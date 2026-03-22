@@ -6,7 +6,8 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { BillingService } from '@/services/billing.service';
 import { classifyError } from '@/schemas/errors';
-import type { CurrencyConflictError, MigrationMode } from '@/schemas/models/billing';
+import type { CurrencyConflictError, MigrationMode } from '@/schemas/shapes/account/billing';
+import { formatDisplayDate } from '@/utils/format';
 import { computed, ref, watch } from 'vue';
 
 const { t } = useI18n();
@@ -41,11 +42,7 @@ const details = computed(() => props.conflict?.details ?? null);
 
 const formattedPeriodEnd = computed(() => {
   if (!details.value?.current_plan?.current_period_end) return null;
-  return new Date(details.value.current_plan.current_period_end * 1000).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  return formatDisplayDate(new Date(details.value.current_plan.current_period_end * 1000));
 });
 
 const existingCurrencyUpper = computed(() =>

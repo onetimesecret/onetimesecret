@@ -4,6 +4,11 @@
 
 module AccountAPI::Logic
   module Account
+    # Generate API Token
+    #
+    # @api Regenerates the authenticated user's API token and returns
+    #   the new token value. Requires an active session; anonymous
+    #   users are rejected.
     class GenerateAPIToken < AccountAPI::Logic::Base
       SCHEMAS = { response: 'apiToken' }.freeze
 

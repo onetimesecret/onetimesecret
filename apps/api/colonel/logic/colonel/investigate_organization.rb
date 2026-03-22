@@ -8,8 +8,12 @@ require_relative '../../../../../apps/web/billing/lib/billing_service'
 module ColonelAPI
   module Logic
     module Colonel
-      # Investigates an organization's billing state by comparing local data
-      # against the actual Stripe subscription.
+      # Investigate Organization
+      #
+      # @api Investigates an organization's billing state by comparing local
+      #   data against the actual Stripe subscription. Returns both local and
+      #   Stripe-side state along with a comparison indicating whether they
+      #   are in sync. Requires colonel role.
       #
       # This allows admins to verify sync health on-demand for any organization,
       # regardless of the computed sync_status.

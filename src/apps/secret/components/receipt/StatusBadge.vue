@@ -4,12 +4,12 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useSecretExpiration } from '@/shared/composables/useSecretExpiration';
-  import { type Receipt, ReceiptState, receiptStateSchema } from '@/schemas/models';
+  import { type ReceiptRecord, ReceiptState, receiptStateSchema } from '@/schemas/shapes/v3';
   import { getDisplayStatus, type DisplayStatus, getStatusText } from '@/utils/status';
   import { computed, watchEffect } from 'vue';
 
   interface Props {
-    record: Receipt;
+    record: ReceiptRecord;
   }
 
   const props = defineProps<Props>();

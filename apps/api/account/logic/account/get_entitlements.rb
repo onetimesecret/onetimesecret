@@ -8,6 +8,11 @@ module AccountAPI::Logic
   module Account
     # Get Entitlements API
     #
+    # @api Returns entitlement definitions and plan-to-entitlement mappings.
+    #   Includes a list of all entitlements with display names and categories,
+    #   plan mappings with their associated entitlements, and a source indicator
+    #   ("stripe" or "local_config") showing where plan data was loaded from.
+    #
     # Returns entitlement definitions and plan-to-entitlement mappings for the frontend.
     # Uses Stripe-synced plan cache with fallback to billing.yaml config.
     #

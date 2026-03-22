@@ -6,7 +6,6 @@ import { createAppRouter } from '@/router';
 import { setupRouterGuards } from '@/router/guards.routes';
 import { consumeBootstrapData, getBootstrapValue } from '@/services/bootstrap.service';
 import { loggingService } from '@/services/logging.service';
-import type { DiagnosticsConfig } from '@/types/diagnostics';
 import { AxiosInstance } from 'axios';
 import { createPinia } from 'pinia';
 import { App, Plugin } from 'vue';
@@ -66,7 +65,7 @@ function initializeApp(app: App, options: AppInitializerOptions = {}) {
 
     const diagnosticsPlugin = createDiagnostics({
       host,
-      config: diagnostics as DiagnosticsConfig,
+      config: diagnostics!, // checked above: `if (d9sEnabled && diagnostics)`
       router,
     });
 

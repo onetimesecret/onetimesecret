@@ -1,6 +1,6 @@
 // src/shared/composables/useDomainStatus.ts
 
-import type { CustomDomain } from '@/schemas/models';
+import type { CustomDomain } from '@/schemas/shapes/v2';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 

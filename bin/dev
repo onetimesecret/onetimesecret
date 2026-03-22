@@ -65,6 +65,14 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Source .env via .env.sh so file values override inherited shell variables.
+# Without this, exported vars in the parent shell (e.g. AUTH_SIGNUP=true)
+# silently win over .env because overmind's built-in .env loader skips
+# variables that already exist in the environment.
+if [ -f .env.sh ]; then
+  source .env.sh
+fi
+
 # Ensure PORT is a valid integer (Overmind fails if empty or invalid)
 # --port flag takes precedence over PORT env var, then falls back to 7143
 PORT="${PORT_OVERRIDE:-${PORT:-7143}}"

@@ -57,6 +57,7 @@ export interface SchemaEntry {
   className: string;     // e.g. "V3::Logic::Secrets::ConcealSecret" or "V3::Logic::Meta.system_status"
   filePath: string;      // relative path to the .rb file
   schema: { model?: string; request?: string; response?: string };
+  description?: string;  // @api tag description from class/module comments
 }
 
 export interface ScanResult {
@@ -186,24 +187,35 @@ class SchemaVisitor extends Visitor {
   private scope: string[] = [];
   public entries: SchemaEntry[] = [];
   private filePath: string;
+  private comments: any[];
+  private source: string;
+  private descriptionStack: (string | undefined)[] = [];
 
-  constructor(filePath: string) {
+  constructor(filePath: string, comments: any[] = [], source: string = '') {
     super();
     this.filePath = filePath;
+    this.comments = comments;
+    this.source = source;
   }
 
   override visitModuleNode(node: any): void {
     const segments = resolveConstantPath(node.constantPath);
+    const description = this.findApiDescription(node);
+    this.descriptionStack.push(description);
     this.scope.push(...segments);
     super.visitModuleNode(node);
     this.scope.splice(this.scope.length - segments.length, segments.length);
+    this.descriptionStack.pop();
   }
 
   override visitClassNode(node: any): void {
     const segments = resolveConstantPath(node.constantPath);
+    const description = this.findApiDescription(node);
+    this.descriptionStack.push(description);
     this.scope.push(...segments);
     super.visitClassNode(node);
     this.scope.splice(this.scope.length - segments.length, segments.length);
+    this.descriptionStack.pop();
   }
 
   override visitConstantWriteNode(node: any): void {
@@ -217,6 +229,7 @@ class SchemaVisitor extends Visitor {
     const fqcn = this.scope.join('::');
     const value = unwrapFreeze(node.value);
     const nodeName = value.constructor.name;
+    const description = this.descriptionStack[this.descriptionStack.length - 1];
 
     // Form 1: SCHEMA = 'models/secret'
     if (nodeName === 'StringNode') {
@@ -226,6 +239,7 @@ class SchemaVisitor extends Visitor {
           className: fqcn,
           filePath: this.filePath,
           schema: { model: str },
+          ...(description && { description }),
         });
       }
       return;
@@ -241,6 +255,7 @@ class SchemaVisitor extends Visitor {
             className: `${fqcn}.${methodName}`,
             filePath: this.filePath,
             schema,
+            ...(description && { description }),
           });
         }
       } else {
@@ -249,9 +264,79 @@ class SchemaVisitor extends Visitor {
           className: fqcn,
           filePath: this.filePath,
           schema: extractFlatSchema(value),
+          ...(description && { description }),
         });
       }
     }
+  }
+
+  /**
+   * Find the @api description from comments preceding a class/module node.
+   * Uses Prism's flat comment array, correlating by byte offset.
+   */
+  private findApiDescription(node: any): string | undefined {
+    if (this.comments.length === 0) return undefined;
+
+    const nodeStart = node.location.startOffset;
+
+    // Find comments preceding this node, nearest first
+    const preceding = this.comments
+      .filter((c: any) => c.location.startOffset + c.location.length <= nodeStart)
+      .sort((a: any, b: any) => b.location.startOffset - a.location.startOffset);
+
+    if (preceding.length === 0) return undefined;
+
+    // Collect the contiguous comment block immediately before the node
+    const block: string[] = [];
+    let expectedBefore = nodeStart;
+
+    for (const comment of preceding) {
+      const commentEnd = comment.location.startOffset + comment.location.length;
+      const gap = this.source.slice(commentEnd, expectedBefore);
+      // Allow only single-newline gaps (with optional leading spaces on the same line).
+      // A blank line (two consecutive newlines) breaks the association — in Ruby
+      // convention, a blank line between a comment and a class means the comment
+      // is not documenting that class.
+      if (!/^\s*$/.test(gap) || /\n\s*\n/.test(gap)) break;
+
+      const text = this.source.slice(comment.location.startOffset, commentEnd);
+      block.unshift(text);
+      expectedBefore = comment.location.startOffset;
+    }
+
+    return this.parseApiTag(block);
+  }
+
+  /**
+   * Parse a block of comment lines for an @api tag.
+   * Joins continuation lines (indented by 2+ spaces) into the description.
+   *
+   * Example input:
+   *   ["# Conceal a secret", "#", "# @api Store a secret value.",
+   *    "#   The secret is encrypted at rest."]
+   * → "Store a secret value. The secret is encrypted at rest."
+   */
+  private parseApiTag(commentLines: string[]): string | undefined {
+    let description: string | undefined;
+    let collecting = false;
+
+    for (const line of commentLines) {
+      // Strip leading # and optional single space
+      const stripped = line.replace(/^#\s?/, '');
+
+      if (stripped.startsWith('@api ')) {
+        collecting = true;
+        description = stripped.slice(5).trim();
+      } else if (collecting && /^\s{2,}/.test(stripped)) {
+        // Continuation line (indented by 2+ spaces after #)
+        const continuation = stripped.trim();
+        description = description ? description + ' ' + continuation : continuation;
+      } else if (collecting) {
+        collecting = false;
+      }
+    }
+
+    return description || undefined;
   }
 }
 
@@ -269,7 +354,7 @@ function scanRubyFile(filePath: string, projectRoot: string, parse: ParseFn): Sc
   const relPath = relative(projectRoot, filePath);
 
   const result = parse(content);
-  const visitor = new SchemaVisitor(relPath);
+  const visitor = new SchemaVisitor(relPath, result.comments ?? [], content);
   visitor.visit(result.value);
 
   return visitor.entries;

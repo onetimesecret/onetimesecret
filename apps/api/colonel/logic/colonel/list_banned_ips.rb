@@ -7,6 +7,11 @@ require_relative '../base'
 module ColonelAPI
   module Logic
     module Colonel
+      # List Banned IPs
+      #
+      # @api Returns all banned IP addresses sorted by most recently banned,
+      #   along with the requesting client's current IP address. Requires
+      #   colonel role.
       class ListBannedIPs < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'bannedIPs' }.freeze
 

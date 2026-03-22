@@ -41,20 +41,21 @@ test.describe('SSO Form Submission', () => {
     await page.goto('/signin');
     await page.waitForLoadState('networkidle');
 
-    // Check if OmniAuth is enabled via bootstrap state
-    const omniAuthEnabled = await page.evaluate(() => {
-      type BootstrapState = { features?: { omniauth?: boolean } } | undefined;
-      const state = (window as Window & { __BOOTSTRAP_STATE__?: BootstrapState | true }).__BOOTSTRAP_STATE__;
+    // Check if SSO is enabled via bootstrap state
+    const ssoEnabled = await page.evaluate(() => {
+      type BootstrapState = { features?: { sso?: boolean | object } } | undefined;
+      const state = (window as Window & { __BOOTSTRAP_ME__?: BootstrapState | true }).__BOOTSTRAP_ME__;
       // Bootstrap state may be consumed (set to true) or still an object
       if (state === true || state === undefined) {
         // Check if the SSO button is visible as fallback
         return document.querySelector('[data-testid="sso-button"]') !== null;
       }
-      return state.features?.omniauth === true;
+      // features.sso can be a boolean or an ssoConfig object
+      return !!state.features?.sso;
     });
 
-    if (!omniAuthEnabled) {
-      test.skip(true, 'OmniAuth is not enabled in this environment');
+    if (!ssoEnabled) {
+      test.skip(true, 'SSO is not enabled in this environment');
       return;
     }
 
@@ -134,7 +135,7 @@ test.describe('SSO Form Submission', () => {
     // Get the shrimp value from bootstrap state before it's consumed
     // Note: Bootstrap state may already be consumed by the app
     const shrimpFromBootstrap = await page.evaluate(() => {
-      const state = (window as Window & { __BOOTSTRAP_STATE__?: { shrimp?: string } | true }).__BOOTSTRAP_STATE__;
+      const state = (window as Window & { __BOOTSTRAP_ME__?: { shrimp?: string } | true }).__BOOTSTRAP_ME__;
 
       // If state is still an object, extract shrimp
       if (state && typeof state === 'object' && 'shrimp' in state) {

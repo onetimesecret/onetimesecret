@@ -6,6 +6,11 @@ require_relative '../base'
 
 module V2::Logic
   module Incoming
+    # Get Incoming Config
+    #
+    # @api Retrieves the configuration for the incoming secrets feature,
+    #   including whether it is enabled, the memo character limit, default
+    #   TTL, and the list of available recipients (as hashed identifiers).
     class GetConfig < V2::Logic::Base
       attr_reader :greenlighted, :config_data
 

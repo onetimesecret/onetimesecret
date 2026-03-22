@@ -12,8 +12,8 @@ import {
   receiptStateSchema,
   receiptBaseSchema,
   receiptSchema,
-} from '@/schemas/models/receipt';
-import { SecretState, secretStateSchema } from '@/schemas/models/secret';
+} from '@/schemas/shapes/v2/receipt';
+import { SecretState, secretStateSchema } from '@/schemas/shapes/v2/secret';
 
 describe('Receipt State Terminology Rename', () => {
   describe('ReceiptState enum values', () => {

@@ -7,6 +7,12 @@ require_relative '../base'
 module ColonelAPI
   module Logic
     module Colonel
+      # List Secrets
+      #
+      # @api Returns a paginated list of all secrets with metadata including
+      #   owner, state, creation time, expiration, lifespan, and whether
+      #   ciphertext is present. Sorted by most recently created. Requires
+      #   colonel role.
       class ListSecrets < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'colonelSecrets' }.freeze
 

@@ -2,12 +2,12 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import { Receipt, ReceiptDetails } from '@/schemas/models';
+  import { ReceiptRecord, ReceiptDetails } from '@/schemas/shapes/v3';
 
   const { t } = useI18n();
 
   interface Props {
-    record: Receipt;
+    record: ReceiptRecord;
     details: ReceiptDetails;
   }
 

@@ -35,9 +35,11 @@ vi.mock('@/apps/workspace/layouts/SettingsLayout.vue', () => ({
   },
 }));
 
-// Mock isWebAuthnEnabled feature flag
+// Mock feature flags
+const mockMfaEnabled = ref(true);
 const mockWebAuthnEnabled = ref(true);
 vi.mock('@/utils/features', () => ({
+  isMfaEnabled: () => mockMfaEnabled.value,
   isWebAuthnEnabled: () => mockWebAuthnEnabled.value,
 }));
 
@@ -141,6 +143,7 @@ describe('SecurityOverview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset mocks
+    mockMfaEnabled.value = true;
     mockWebAuthnEnabled.value = true;
     mockAccountInfo.value = {
       email_verified: true,
@@ -464,6 +467,24 @@ describe('SecurityOverview', () => {
     });
   });
 
+  describe('MFA Feature Flag', () => {
+    it('hides MFA and recovery codes cards when MFA feature is disabled', () => {
+      mockMfaEnabled.value = false;
+      wrapper = mountComponent();
+
+      expect(findCardByIcon('key-solid')).toBeUndefined();
+      expect(findCardByIcon('document-text-solid')).toBeUndefined();
+    });
+
+    it('shows MFA and recovery codes cards when MFA feature is enabled', () => {
+      mockMfaEnabled.value = true;
+      wrapper = mountComponent();
+
+      expect(findCardByIcon('key-solid')).toBeDefined();
+      expect(findCardByIcon('document-text-solid')).toBeDefined();
+    });
+  });
+
   describe('Total Card Count', () => {
     it('renders 3 cards when WebAuthn is disabled', () => {
       mockWebAuthnEnabled.value = false;
@@ -477,6 +498,22 @@ describe('SecurityOverview', () => {
       wrapper = mountComponent();
 
       expect(wrapper.findAll('.grid > div').length).toBe(4);
+    });
+
+    it('renders 1 card when both MFA and WebAuthn are disabled', () => {
+      mockMfaEnabled.value = false;
+      mockWebAuthnEnabled.value = false;
+      wrapper = mountComponent();
+
+      expect(wrapper.findAll('.grid > div').length).toBe(1);
+    });
+
+    it('renders 2 cards when MFA is disabled but WebAuthn is enabled', () => {
+      mockMfaEnabled.value = false;
+      mockWebAuthnEnabled.value = true;
+      wrapper = mountComponent();
+
+      expect(wrapper.findAll('.grid > div').length).toBe(2);
     });
   });
 });

@@ -31,5 +31,11 @@ declare module 'vue-router' {
      * and redirects to '/' if the feature is disabled.
      */
     requiresFeature?: 'signup' | 'signin';
+
+    /**
+     * When true, this route is blocked when SSO-only mode is active.
+     * The route guard redirects to '/signin' if isSsoOnlyMode() returns true.
+     */
+    ssoOnlyDisabled?: boolean;
   }
 }

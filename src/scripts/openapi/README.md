@@ -5,11 +5,34 @@ Generates an OpenAPI 3.1 spec from Otto `routes.txt` files and Zod v4 schemas. N
 ## Usage
 
 ```bash
-pnpm run openapi:generate              # Generate spec to generated/openapi/openapi.json
-pnpm run openapi:generate -- --dry-run  # Preview without writing
-pnpm run openapi:generate -- --verbose  # Show per-route details (+ = has schema)
-pnpm run schemas:scan                   # Scan Ruby SCHEMA constants, print coverage gap report
+pnpm run openapi:generate                         # Generate all non-frozen specs
+pnpm run openapi:generate -- --force              # Include frozen specs (v1)
+pnpm run openapi:generate -- --target v3          # Generate only v3 spec
+pnpm run openapi:generate -- --target v2,v3       # Generate v2 and v3 specs
+pnpm run openapi:generate -- --dry-run             # Preview without writing
+pnpm run openapi:generate -- --verbose             # Show per-route details (+ = has schema)
+pnpm run openapi:generate -- --no-tags             # Omit OpenAPI tags from operations
+pnpm run openapi:generate -- --sort path           # Sort paths lexicographically
+pnpm run openapi:generate -- --sort method          # Sort methods per REST convention (GET, POST, PUT, PATCH, DELETE)
+pnpm run openapi:generate -- --sort path,method     # Both
+pnpm run schemas:scan                              # Scan Ruby SCHEMA constants, print coverage gap report
 ```
+
+## Output
+
+The generator produces one self-contained OpenAPI 3.1 spec per API surface:
+
+```
+generated/openapi/
+├── openapi.v1.json          # v1 routes (frozen — skipped unless --force)
+├── openapi.v2.json          # v2 routes
+├── openapi.v3.json          # v3 routes
+└── openapi.internal.json    # account + colonel + domains + organizations + invite
+```
+
+These files are gitignored build artifacts — they are generated on demand and
+consumed by the Bump.sh workflow (`.github/workflows/bump-api-docs.yml`).
+Each spec is fully self-contained with its own schemas inlined per-operation.
 
 ## How it works
 
@@ -17,7 +40,7 @@ pnpm run schemas:scan                   # Scan Ruby SCHEMA constants, print cove
 2. `schema-scanner.ts` scans Ruby logic classes and models for `SCHEMA` constants (configurable globs)
 3. `generate-openapi.ts` joins routes with scanned schemas, derives operationId/summary/tags from handler class names
 4. Matched schemas are converted via `z.toJSONSchema()` (Zod v4 native, JSON Schema 2020-12)
-5. Output is a single OpenAPI 3.1 JSON file with a gap report on stderr
+5. Output is one OpenAPI 3.1 JSON file per spec target, plus a gap report on stderr
 
 ## Terminology: V2/V3 are API versions, not Zod versions
 
@@ -65,7 +88,8 @@ handle string-encoded Redis values).
 - `generate-openapi.ts` — the generator script
 - `schema-scanner.ts` — scans Ruby source for `SCHEMA` constants, produces coverage reports
 - `otto-routes-parser.ts` — parses routes.txt into structured route metadata
-- `route-config.ts` — shared helpers (standardErrorResponses, mergeResponses)
+- `openapi.config.json` — declarative config: servers list and spec targets (v1, v2, v3, internal)
+- `route-config.ts` — shared helpers (standardErrorResponses, mergeResponses) and the SpecTarget type
 - `tests/test-parser.ts` — smoke tests for the routes parser
 - `tests/test-scanner.ts` — smoke tests for the schema scanner
 
@@ -85,3 +109,41 @@ SCHEMA = 'models/secret'.freeze
 ```
 
 Each key type validates against its own registry: `response` keys against `responseSchemas` (`src/schemas/api/v3/responses.ts`), `request` keys against `REQUEST_SCHEMA_REGISTRY` (`src/scripts/openapi/generate-openapi.ts`), and `model` keys against `modelSchemas` (`src/schemas/registry.ts`). Run `pnpm run schemas:scan` to verify coverage.
+
+## Adding operation descriptions
+
+Add `@api` tags to Ruby handler class comments to enrich the generated OpenAPI spec with human-readable descriptions. The schema scanner (which already walks every class node via `@ruby/prism`) extracts these tags and passes them through to the generator.
+
+```ruby
+# Conceal a secret (create from user-provided value)
+#
+# @api Store a secret value and receive a one-time share link. The secret
+#   is encrypted at rest and can only be retrieved once. Optionally
+#   protect with a passphrase or set a shorter TTL.
+class ConcealSecret < V2::Logic::Secrets::ConcealSecret
+  SCHEMAS = { response: 'concealData', request: 'concealSecret' }.freeze
+```
+
+Comments without the `@api` prefix are implementation notes for Ruby developers and are ignored by the scanner. Continuation lines (indented `#   ...`) are joined into the description.
+
+This produces:
+
+```json
+{
+  "operationId": "v3_concealSecret",
+  "summary": "Conceal Secret",
+  "description": "Store a secret value and receive a one-time share link. The secret is encrypted at rest and can only be retrieved once. Optionally protect with a passphrase or set a shorter TTL."
+}
+```
+
+### Tag reference
+
+| Tag | OpenAPI field | Example |
+|-----|---------------|---------|
+| `@api` | `operation.description` | `@api Store a secret and receive a share link.` |
+
+Only `@api` is supported initially. Additional tags (e.g. `@api-param`, `@api-example`, `@api-since`) may be added as the pipeline matures.
+
+### Design notes
+
+This convention is inspired by [SwaggerYard](https://github.com/livingsocial/swagger_yard) (YARD tags → OpenAPI) and [apiDoc](https://apidocjs.com/) (inline `@api*` annotations → docs), adapted for the non-Rails Prism-based pipeline already in use here. The `@api` prefix was chosen to avoid collision with YARD's `@param`/`@return` namespace, should YARD ever be used for Ruby-side documentation.

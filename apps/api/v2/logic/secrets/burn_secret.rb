@@ -6,8 +6,14 @@ module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
 
+    # Burn Secret
+    #
+    # @api Permanently destroys a secret before its expiration time. Requires
+    #   the receipt identifier and a passphrase if one was set. Returns the
+    #   updated receipt record with burn confirmation and related URLs.
     class BurnSecret < V2::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Logic::GuestRouteGating
 
       SCHEMAS = { response: 'receipt' }.freeze
 
@@ -21,6 +27,7 @@ module V2::Logic
       end
 
       def raise_concerns
+        require_guest_route_enabled!(:burn)
         require_entitlement!('api_access')
         raise OT::MissingSecret if receipt.nil?
       end

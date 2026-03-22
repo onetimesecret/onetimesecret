@@ -49,8 +49,8 @@
           name="exclamation-circle-16-solid"
           class="size-6 text-red-500 dark:text-red-400" />
         <p class="text-base font-medium text-red-800 dark:text-red-200">
-          <template v-if="record?.is_received">
-            {{ t('web.secrets.viewed_on_record_received', [record?.received]) }}
+          <template v-if="record?.is_revealed">
+            {{ t('web.secrets.viewed_on_record_received', [record?.revealed]) }}
           </template>
           <template v-else-if="record?.is_burned">
             {{ t('web.secrets.deleted_on_record_burned', [record?.burned]) }}

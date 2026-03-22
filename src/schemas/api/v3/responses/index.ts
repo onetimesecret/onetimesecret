@@ -174,7 +174,7 @@ export type { AccountResponse, ApiTokenResponse, CheckAuthResponse, CustomerResp
 export type { LoginResponse, CreateAccountResponse, LogoutResponse, ResetPasswordRequestResponse, ResetPasswordResponse } from './auth';
 export type { ColonelInfoResponse, ColonelStatsResponse, ColonelUsersResponse, ColonelSecretsResponse, CustomDomainsResponse, ColonelOrganizationsResponse, InvestigateOrganizationResponse, DatabaseMetricsResponse, RedisMetricsResponse, BannedIPsResponse, UsageExportResponse, QueueMetricsResponse, SystemSettingsResponse } from './colonel';
 export type { CsrfResponse } from './csrf';
-export type { BrandSettingsResponse, CustomDomainResponse, CustomDomainListResponse, ImagePropsResponse, JurisdictionResponse } from './domains';
+export type { BrandSettingsResponse, CustomDomainDetails, CustomDomainResponse, CustomDomainListResponse, ImagePropsResponse, JurisdictionResponse } from './domains';
 export type { FeedbackResponse } from './feedback';
 export type { IncomingConfigResponse, IncomingSecretResponse, ValidateRecipientResponse } from './incoming';
 export type { OrganizationResponse, OrganizationListResponse, OrganizationDeleteResponse, MemberListResponse, MemberResponse, MemberDeleteResponse } from './organizations';

@@ -12,7 +12,7 @@ import {
   mockSecretResponse,
 } from '../fixtures/receipt.fixture';
 import { setupTestPinia } from '../setup';
-import { setupWindowState } from '../setupWindow';
+import { setupBootstrapMock, baseBootstrap } from '../setup-bootstrap';
 
 describe('secretStore', () => {
   let axiosMock: AxiosMockAdapter | null;
@@ -31,8 +31,8 @@ describe('secretStore', () => {
     // Create mock adapter
     axiosMock = new AxiosMockAdapter(api);
 
-    const windowMock = setupWindowState({ shrimp: undefined });
-    vi.stubGlobal('window', windowMock);
+    // Setup bootstrap state with modern fixture (shrimp defaults to 'test-csrf-token')
+    setupBootstrapMock({ initialState: { ...baseBootstrap, shrimp: '' } });
 
     // Initialize store
     store = useSecretStore();

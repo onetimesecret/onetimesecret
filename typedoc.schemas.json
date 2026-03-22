@@ -1,0 +1,14 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/schemas/index.ts"],
+  "entryPointStrategy": "expand",
+  "out": "generated/docs/schemas",
+  "name": "Onetime Secret Schema Documentation",
+  "readme": "src/schemas/README.md",
+  "categorizeByGroup": true,
+  "categoryOrder": ["Contracts", "Shapes", "Transforms", "API", "Utils", "*"],
+  "excludeExternals": true,
+  "excludePrivate": true,
+  "plugin": ["typedoc-plugin-zod", "typedoc-plugin-mdn-links"],
+  "tsconfig": "tsconfig.json"
+}

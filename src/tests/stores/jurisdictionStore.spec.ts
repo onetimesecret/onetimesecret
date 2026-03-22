@@ -1,7 +1,7 @@
 // src/tests/stores/jurisdictionStore.spec.ts
 
 import { ApiError, ApplicationError } from '@/schemas';
-import type { Jurisdiction, RegionsConfig } from '@/schemas/models';
+import type { Jurisdiction, RegionsConfig } from '@/schemas/shapes/v2';
 import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
 import { createTestingPinia } from '@pinia/testing';
 import { beforeEach, describe, expect, it } from 'vitest';

@@ -134,14 +134,29 @@ module Onetime
       # Require that the organization has a specific entitlement.
       # Raises EntitlementRequired with upgrade path if check fails.
       #
+      # For anonymous users (noauth routes), entitlement checks are skipped.
+      # Guest route gating (GuestRouteGating concern) handles access control
+      # for anonymous requests separately.
+      #
       # @param entitlement [String, Symbol] The entitlement to check
       # @raise [Onetime::EntitlementRequired] If org lacks the entitlement
       # @return [true] If entitlement check passes
       def require_entitlement!(entitlement)
         entitlement = entitlement.to_s
 
-        # No org context means no entitlement check (public endpoints)
-        return true unless org
+        # Anonymous users don't have org context by design (NoAuthStrategy
+        # returns {} for org_context). Guest route gating handles access
+        # control for anonymous requests, so we skip entitlement checks here.
+        return true if cust&.anonymous?
+
+        # Fail-closed: org context required for authenticated entitlement checks.
+        # OrganizationLoader self-heals, so nil org indicates a system issue.
+        unless org
+          raise Onetime::EntitlementRequired.new(
+            entitlement,
+            message: 'Unable to verify entitlements (organization context unavailable)',
+          )
+        end
 
         # Check if org has the entitlement
         return true if org.can?(entitlement)

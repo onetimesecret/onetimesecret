@@ -2,9 +2,13 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/logic/sso_only_gating'
+
 module AccountAPI::Logic
   module Account
     class DestroyAccount < AccountAPI::Logic::Base
+      include Onetime::Logic::SsoOnlyGating
+
       attr_reader :raised_concerns_was_called, :greenlighted
 
       def process_params
@@ -15,6 +19,8 @@ module AccountAPI::Logic
       end
 
       def raise_concerns
+        require_non_sso_only!
+
         @raised_concerns_was_called = true
 
         if @confirmation&.empty?

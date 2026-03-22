@@ -7,6 +7,12 @@ require_relative '../base'
 module ColonelAPI
   module Logic
     module Colonel
+      # Export Usage
+      #
+      # @api Returns usage statistics for a date range including daily
+      #   breakdowns of secrets created and users registered, totals,
+      #   secrets grouped by state, and daily averages. Date range defaults
+      #   to the last 30 days and cannot exceed 365 days. Requires colonel role.
       class ExportUsage < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'usageExport' }.freeze
 

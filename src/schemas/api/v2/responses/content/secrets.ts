@@ -3,7 +3,7 @@
 // Response content shapes for the secrets domain — the data
 // that handler endpoints produce before envelope wrapping.
 
-import { receiptBaseSchema, secretSchema } from '@/schemas/models';
+import { receiptBaseSchema, secretSchema } from '@/schemas/shapes/v2';
 import { z } from 'zod';
 
 /**

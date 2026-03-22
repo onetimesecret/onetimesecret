@@ -7,7 +7,7 @@ import {
   receiptRecordsDetailsSchema,
   receiptRecordsSchema,
 } from '@/schemas/api/account/endpoints/recent';
-import { receiptDetailsSchema, receiptSchema } from '@/schemas/models/receipt';
+import { receiptDetailsSchema, receiptSchema } from '@/schemas/shapes/v2/receipt';
 import { z } from 'zod';
 
 export const receiptResponseSchema = createApiResponseSchema(receiptSchema, receiptDetailsSchema);

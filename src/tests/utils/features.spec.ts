@@ -4,7 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   isMagicLinksEnabled,
   isWebAuthnEnabled,
-  isOmniAuthEnabled,
+  isSsoEnabled,
+  isSsoOnlyMode,
   isLockoutEnabled,
   isPasswordRequirementsEnabled,
   hasPasswordlessMethods,
@@ -277,101 +278,101 @@ describe('features utility', () => {
     });
   });
 
-  describe('isOmniAuthEnabled', () => {
+  describe('isSsoEnabled', () => {
     describe('boolean form', () => {
-      it('returns true when omniauth feature is enabled (boolean true)', () => {
-        getBootstrapValueMock.mockReturnValue({ omniauth: true });
+      it('returns true when sso feature is enabled (boolean true)', () => {
+        getBootstrapValueMock.mockReturnValue({ sso: true });
 
-        const result = isOmniAuthEnabled();
+        const result = isSsoEnabled();
 
         expect(result).toBe(true);
         expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
       });
 
-      it('returns false when omniauth feature is disabled (boolean false)', () => {
-        getBootstrapValueMock.mockReturnValue({ omniauth: false });
+      it('returns false when sso feature is disabled (boolean false)', () => {
+        getBootstrapValueMock.mockReturnValue({ sso: false });
 
-        const result = isOmniAuthEnabled();
+        const result = isSsoEnabled();
 
         expect(result).toBe(false);
       });
 
-      it('returns false when omniauth is truthy but not exactly true', () => {
-        getBootstrapValueMock.mockReturnValue({ omniauth: 'yes' });
+      it('returns false when sso is truthy but not exactly true', () => {
+        getBootstrapValueMock.mockReturnValue({ sso: 'yes' });
 
-        const result = isOmniAuthEnabled();
+        const result = isSsoEnabled();
 
         expect(result).toBe(false);
       });
     });
 
     describe('object form', () => {
-      it('returns true when omniauth is object with enabled: true', () => {
+      it('returns true when sso is object with enabled: true', () => {
         getBootstrapValueMock.mockReturnValue({
-          omniauth: { enabled: true },
+          sso: { enabled: true },
         });
 
-        const result = isOmniAuthEnabled();
+        const result = isSsoEnabled();
 
         expect(result).toBe(true);
       });
 
-      it('returns true when omniauth is object with enabled: true and provider_name', () => {
+      it('returns true when sso is object with enabled: true and provider_name', () => {
         getBootstrapValueMock.mockReturnValue({
-          omniauth: { enabled: true, provider_name: 'Okta' },
+          sso: { enabled: true, provider_name: 'Okta' },
         });
 
-        const result = isOmniAuthEnabled();
+        const result = isSsoEnabled();
 
         expect(result).toBe(true);
       });
 
-      it('returns false when omniauth is object with enabled: false', () => {
+      it('returns false when sso is object with enabled: false', () => {
         getBootstrapValueMock.mockReturnValue({
-          omniauth: { enabled: false },
+          sso: { enabled: false },
         });
 
-        const result = isOmniAuthEnabled();
+        const result = isSsoEnabled();
 
         expect(result).toBe(false);
       });
 
-      it('returns false when omniauth is object with enabled: false and provider_name', () => {
+      it('returns false when sso is object with enabled: false and provider_name', () => {
         getBootstrapValueMock.mockReturnValue({
-          omniauth: { enabled: false, provider_name: 'Okta' },
+          sso: { enabled: false, provider_name: 'Okta' },
         });
 
-        const result = isOmniAuthEnabled();
+        const result = isSsoEnabled();
 
         expect(result).toBe(false);
       });
 
-      it('returns false when omniauth is object without enabled property', () => {
+      it('returns false when sso is object without enabled property', () => {
         getBootstrapValueMock.mockReturnValue({
-          omniauth: { provider_name: 'Okta' },
+          sso: { provider_name: 'Okta' },
         });
 
-        const result = isOmniAuthEnabled();
+        const result = isSsoEnabled();
 
         expect(result).toBe(false);
       });
 
-      it('returns false when omniauth is empty object', () => {
+      it('returns false when sso is empty object', () => {
         getBootstrapValueMock.mockReturnValue({
-          omniauth: {},
+          sso: {},
         });
 
-        const result = isOmniAuthEnabled();
+        const result = isSsoEnabled();
 
         expect(result).toBe(false);
       });
     });
 
     describe('edge cases', () => {
-      it('returns false when omniauth feature is undefined', () => {
+      it('returns false when sso feature is undefined', () => {
         getBootstrapValueMock.mockReturnValue({});
 
-        const result = isOmniAuthEnabled();
+        const result = isSsoEnabled();
 
         expect(result).toBe(false);
       });
@@ -379,43 +380,96 @@ describe('features utility', () => {
       it('returns false when features object is undefined', () => {
         getBootstrapValueMock.mockReturnValue(undefined);
 
-        const result = isOmniAuthEnabled();
+        const result = isSsoEnabled();
 
         expect(result).toBe(false);
       });
 
-      it('returns false when omniauth is null', () => {
-        getBootstrapValueMock.mockReturnValue({ omniauth: null });
+      it('returns false when sso is null', () => {
+        getBootstrapValueMock.mockReturnValue({ sso: null });
 
-        const result = isOmniAuthEnabled();
+        const result = isSsoEnabled();
 
         expect(result).toBe(false);
       });
     });
   });
 
+  describe('isSsoOnlyMode', () => {
+    it('returns true when sso_only is true', () => {
+      getBootstrapValueMock.mockReturnValue({ sso_only: true });
+
+      const result = isSsoOnlyMode();
+
+      expect(result).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when sso_only is false', () => {
+      getBootstrapValueMock.mockReturnValue({ sso_only: false });
+
+      const result = isSsoOnlyMode();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when sso_only is undefined', () => {
+      getBootstrapValueMock.mockReturnValue({});
+
+      const result = isSsoOnlyMode();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when features object is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      const result = isSsoOnlyMode();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when sso_only is truthy but not exactly true', () => {
+      getBootstrapValueMock.mockReturnValue({ sso_only: 'yes' });
+
+      const result = isSsoOnlyMode();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when sso_only is null', () => {
+      getBootstrapValueMock.mockReturnValue({ sso_only: null });
+
+      const result = isSsoOnlyMode();
+
+      expect(result).toBe(false);
+    });
+  });
+
   describe('getAuthFeatures', () => {
     it('returns correct object when all features enabled', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn: true, magic_links: true, omniauth: true });
+      getBootstrapValueMock.mockReturnValue({ webauthn: true, magic_links: true, sso: true, sso_only: true });
 
       const result = getAuthFeatures();
 
       expect(result).toEqual({
         magicLinksEnabled: true,
         webauthnEnabled: true,
-        omniAuthEnabled: true,
+        ssoEnabled: true,
+        ssoOnly: true,
       });
     });
 
     it('returns correct object when no features enabled', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn: false, magic_links: false, omniauth: false });
+      getBootstrapValueMock.mockReturnValue({ webauthn: false, magic_links: false, sso: false, sso_only: false });
 
       const result = getAuthFeatures();
 
       expect(result).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: false,
-        omniAuthEnabled: false,
+        ssoEnabled: false,
+        ssoOnly: false,
       });
     });
 
@@ -427,39 +481,42 @@ describe('features utility', () => {
       expect(result).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: false,
-        omniAuthEnabled: false,
+        ssoEnabled: false,
+        ssoOnly: false,
       });
     });
 
     it('returns correct object with mixed enabled states', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn: true, magic_links: false, omniauth: true });
+      getBootstrapValueMock.mockReturnValue({ webauthn: true, magic_links: false, sso: true });
 
       const result = getAuthFeatures();
 
       expect(result).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: true,
-        omniAuthEnabled: true,
+        ssoEnabled: true,
+        ssoOnly: false,
       });
     });
 
-    it('returns correct object with only omniauth enabled', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn: false, magic_links: false, omniauth: true });
+    it('returns correct object with only sso enabled', () => {
+      getBootstrapValueMock.mockReturnValue({ webauthn: false, magic_links: false, sso: true });
 
       const result = getAuthFeatures();
 
       expect(result).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: false,
-        omniAuthEnabled: true,
+        ssoEnabled: true,
+        ssoOnly: false,
       });
     });
 
-    it('returns correct object with omniauth as object with enabled: true', () => {
+    it('returns correct object with sso as object with enabled: true', () => {
       getBootstrapValueMock.mockReturnValue({
         webauthn: false,
         magic_links: false,
-        omniauth: { enabled: true, provider_name: 'Zitadel' },
+        sso: { enabled: true, provider_name: 'Zitadel' },
       });
 
       const result = getAuthFeatures();
@@ -467,15 +524,16 @@ describe('features utility', () => {
       expect(result).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: false,
-        omniAuthEnabled: true,
+        ssoEnabled: true,
+        ssoOnly: false,
       });
     });
 
-    it('returns correct object with omniauth as object with enabled: false', () => {
+    it('returns correct object with sso as object with enabled: false', () => {
       getBootstrapValueMock.mockReturnValue({
         webauthn: true,
         magic_links: true,
-        omniauth: { enabled: false },
+        sso: { enabled: false },
       });
 
       const result = getAuthFeatures();
@@ -483,7 +541,26 @@ describe('features utility', () => {
       expect(result).toEqual({
         magicLinksEnabled: true,
         webauthnEnabled: true,
-        omniAuthEnabled: false,
+        ssoEnabled: false,
+        ssoOnly: false,
+      });
+    });
+
+    it('returns ssoOnly true when sso_only flag is set', () => {
+      getBootstrapValueMock.mockReturnValue({
+        webauthn: false,
+        magic_links: false,
+        sso: { enabled: true },
+        sso_only: true,
+      });
+
+      const result = getAuthFeatures();
+
+      expect(result).toEqual({
+        magicLinksEnabled: false,
+        webauthnEnabled: false,
+        ssoEnabled: true,
+        ssoOnly: true,
       });
     });
   });
@@ -528,8 +605,13 @@ describe('features utility', () => {
       expect(result).toBe(false);
     });
 
-    it('isOmniAuthEnabled returns false when window is undefined', () => {
-      const result = isOmniAuthEnabled();
+    it('isSsoEnabled returns false when window is undefined', () => {
+      const result = isSsoEnabled();
+      expect(result).toBe(false);
+    });
+
+    it('isSsoOnlyMode returns false when window is undefined', () => {
+      const result = isSsoOnlyMode();
       expect(result).toBe(false);
     });
 
@@ -538,7 +620,8 @@ describe('features utility', () => {
       expect(result).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: false,
-        omniAuthEnabled: false,
+        ssoEnabled: false,
+        ssoOnly: false,
       });
     });
   });

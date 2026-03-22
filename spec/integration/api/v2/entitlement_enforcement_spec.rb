@@ -54,8 +54,9 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
   # @param params [Hash] The params hash for the logic class
   # @param org [Object] Mock organization (or nil for anonymous)
   # @param customer [Object] Mock customer (optional)
+  # @param auth_method [String] Auth method for strategy_result (default: 'basicauth')
   # @return [Object] The logic instance
-  def create_logic(logic_class, params:, org:, customer: nil)
+  def create_logic(logic_class, params:, org:, customer: nil, auth_method: 'basicauth')
     customer ||= mock_customer
     session = mock_session
 
@@ -63,6 +64,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
     allow(strategy_result).to receive(:session).and_return(session)
     allow(strategy_result).to receive(:user).and_return(customer)
     allow(strategy_result).to receive(:metadata).and_return({ organization: org })
+    allow(strategy_result).to receive(:auth_method).and_return(auth_method)
 
     logic = logic_class.new(strategy_result, params)
 
@@ -179,7 +181,16 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
       it 'does not raise EntitlementRequired (passes through)' do
         _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
-        logic = create_logic(logic_class, params: { 'identifier' => secret.identifier }, org: nil)
+        # Anonymous customers have no org context - must pass anonymous: true
+        # and auth_method: 'noauth' for guest route gating
+        anon_customer = mock_customer(anonymous: true)
+        logic = create_logic(
+          logic_class,
+          params: { 'identifier' => secret.identifier },
+          org: nil,
+          customer: anon_customer,
+          auth_method: 'noauth',
+        )
         logic.process_params
 
         # Anonymous requests should pass the entitlement check

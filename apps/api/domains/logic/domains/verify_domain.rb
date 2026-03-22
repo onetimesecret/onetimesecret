@@ -9,6 +9,11 @@ require_relative 'get_domain'
 
 module DomainsAPI::Logic
   module Domains
+    # Verify Custom Domain
+    #
+    # @api Triggers DNS and SSL verification for a custom domain. Checks
+    #   TXT record ownership and resolving status, then persists the
+    #   updated verification state. Returns the refreshed domain record.
     class VerifyDomain < GetDomain
       SCHEMAS = { response: 'customDomain' }.freeze
 

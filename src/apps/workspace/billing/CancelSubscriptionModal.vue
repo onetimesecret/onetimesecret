@@ -6,6 +6,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { BillingService } from '@/services/billing.service';
 import { classifyError } from '@/schemas/errors';
+import { formatDisplayDate } from '@/utils/format';
 import { computed, ref } from 'vue';
 
 const { t } = useI18n();
@@ -29,11 +30,7 @@ const error = ref('');
 
 const formattedPeriodEnd = computed(() => {
   if (!props.periodEnd) return null;
-  return new Date(props.periodEnd * 1000).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  return formatDisplayDate(new Date(props.periodEnd * 1000));
 });
 
 const handleCancel = async () => {

@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SecretReceiptTableItem from '@/apps/secret/components/SecretReceiptTableItem.vue';
-  import { ReceiptRecords } from '@/schemas/api/account/endpoints/recent';
+  import type { ReceiptListRecord } from '@/schemas/shapes/v3';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { storeToRefs } from 'pinia';
   import { ref } from 'vue';
@@ -12,8 +12,8 @@
   const { t } = useI18n();
 
   interface Props {
-    notReceived: ReceiptRecords[];
-    received: ReceiptRecords[];
+    notReceived: ReceiptListRecord[];
+    received: ReceiptListRecord[];
     isLoading: boolean;
   }
 
@@ -27,13 +27,13 @@
   const copiedItemKey = ref<string | null>(null);
 
   // Create shareable link for an item
-  const getShareLink = (item: ReceiptRecords) => {
+  const getShareLink = (item: ReceiptListRecord) => {
     const share_domain = item.share_domain ?? site_host.value;
     return `https://${share_domain}/secret/${item.secret_shortid}`;
   };
 
   // Handle copying link to clipboard
-  const handleCopy = async (item: ReceiptRecords) => {
+  const handleCopy = async (item: ReceiptListRecord) => {
     try {
       await navigator.clipboard.writeText(getShareLink(item));
       copiedItemKey.value = item.identifier ?? null;

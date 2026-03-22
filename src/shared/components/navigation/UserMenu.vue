@@ -31,7 +31,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useTheme } from '@/shared/composables/useTheme';
 import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
-import { Customer } from '@/schemas/models';
+import { Customer } from '@/schemas/shapes/v2';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import PlanTestModal from '@/shared/components/modals/PlanTestModal.vue';
 import { storeToRefs } from 'pinia';

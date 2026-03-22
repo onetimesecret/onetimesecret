@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import DomainVerificationInfo from '@/apps/workspace/components/domains/DomainVerificationInfo.vue';
-  import type { CustomDomain } from '@/schemas/models/custom-domain';
+  import type { CustomDomain } from '@/schemas/shapes/v2/custom-domain';
   import { formatDistanceToNow } from 'date-fns';
 
 const { t } = useI18n();

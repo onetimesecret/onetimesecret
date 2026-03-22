@@ -111,18 +111,18 @@ export default [
       'no-restricted-globals': [
         'error',
         {
-          name: '__BOOTSTRAP_STATE__',
+          name: '__BOOTSTRAP_ME__',
           message: 'Use bootstrapStore instead of direct window access',
         },
       ],
-      // Prevent window.__BOOTSTRAP_STATE__ access pattern
+      // Prevent window.__BOOTSTRAP_ME__ access pattern
       // Allowed only in: bootstrap.service.ts, global.d.ts, window.d.ts
       'no-restricted-syntax': [
         'error',
         {
-          selector: 'MemberExpression[object.name="window"][property.name="__BOOTSTRAP_STATE__"]',
+          selector: 'MemberExpression[object.name="window"][property.name="__BOOTSTRAP_ME__"]',
           message:
-            'Direct window.__BOOTSTRAP_STATE__ access is prohibited. ' +
+            'Direct window.__BOOTSTRAP_ME__ access is prohibited. ' +
             'Use bootstrapStore or bootstrap.service.ts instead.',
         },
       ],
@@ -427,7 +427,7 @@ export default [
 
   /**
    * Bootstrap State Access Exception
-   * These files are allowed to access window.__BOOTSTRAP_STATE__ directly
+   * These files are allowed to access window.__BOOTSTRAP_ME__ directly
    */
   {
     files: [

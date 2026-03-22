@@ -7,6 +7,10 @@ require_relative '../base'
 module ColonelAPI
   module Logic
     module Colonel
+      # Get Colonel Stats
+      #
+      # @api Returns aggregate platform statistics including total customer,
+      #   receipt, and secret counts. Requires colonel role.
       class GetColonelStats < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'colonelStats' }.freeze
 

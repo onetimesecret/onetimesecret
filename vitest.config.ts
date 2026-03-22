@@ -45,7 +45,6 @@ export default defineConfig({
       'src/tests/setup-stores.ts',
       'src/tests/setup-components.ts',
       'src/tests/setup.ts',
-      'src/tests/setupWindow.ts',
       'src/tests/setupRouter.ts',
     ],
     sequence: {

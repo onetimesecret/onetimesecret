@@ -79,7 +79,7 @@ export const useIncomingStore = defineStore('incoming', () => {
    */
   const loadConfig = async () => {
     configError.value = null;
-    const response = await $api.get('/api/v3/incoming/config');
+    const response = await $api.get('/incoming/config');
     const validated = incomingConfigSchema.parse(response.data.config);
     config.value = validated;
     return validated;
@@ -98,7 +98,7 @@ export const useIncomingStore = defineStore('incoming', () => {
       throw new Error('Incoming secrets feature is not enabled');
     }
 
-    const response = await $api.post('/api/v3/incoming/secret', {
+    const response = await $api.post('/incoming/secret', {
       secret: payload,
     });
 

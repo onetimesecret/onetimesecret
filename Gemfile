@@ -19,7 +19,7 @@ source 'https://rubygems.org/'
 # ====================================
 
 gem 'otto', '~> 2.0.0'
-gem 'rhales', '~> 0.5.4'
+gem 'rhales', '~> 0.6.0'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
 gem 'rodauth-omniauth', '~> 0.4'
@@ -30,10 +30,10 @@ gem 'rodauth-tools', '~> 0.3.1'
 # openid_connect → activemodel, rack-oauth2, json-jwt, swd, webfinger). No
 # ActiveSupport APIs are used by application code. email_validator and
 # validate_url are also passengers from this chain.
-gem 'omniauth_openid_connect', '~> 0.8'
 gem 'omniauth-entra-id', '~> 3.1'
 gem 'omniauth-github', '~> 2.0'
 gem 'omniauth-google-oauth2', '~> 1.2'
+gem 'omniauth_openid_connect', '~> 0.8'
 
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'

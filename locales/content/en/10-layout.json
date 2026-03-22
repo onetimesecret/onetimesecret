@@ -79,6 +79,10 @@
     "text": "Resources",
     "sha256": "e89b30aa"
   },
+  "web.footer.workspace": {
+    "text": "Workspace",
+    "sha256": "87bb59ba"
+  },
   "web.footer.blog": {
     "text": "Blog",
     "sha256": "8c6bc099"

@@ -28,7 +28,7 @@ import { expect, Page, test } from '@playwright/test';
 declare global {
   interface Window {
     captureHistoryEntry?: (url: string) => void;
-    __BOOTSTRAP_STATE__?: {
+    __BOOTSTRAP_ME__?: {
       authenticated?: boolean;
       cust?: unknown;
       [key: string]: unknown;
@@ -741,7 +741,7 @@ test.describe('Opaque Identifier Pattern - Regression Prevention', () => {
 
     // Check that organizations in window state have both id and extid
     const stateCheck = await page.evaluate(() => {
-      const state = window.__BOOTSTRAP_STATE__;
+      const state = window.__BOOTSTRAP_ME__;
       if (!state) return { valid: false, error: 'No state' };
 
       // Check organization structure if available
