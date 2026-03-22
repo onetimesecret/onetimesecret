@@ -50,4 +50,3 @@ export const parseDateValue = (val: unknown): Date | null => {
 
   return null;
 };
-
