@@ -10,8 +10,17 @@
 //
 // After modifying this schema, run: `pnpm run build:schemas` to regenerate
 // the JSON schemas used by Rhales middleware.
+//
+// Architecture: This contract defines canonical types (no transforms).
+// Ruby serializers send already-typed data, so no wire-format coercion needed.
 
+import type { Stripe } from 'stripe';
 import { z } from 'zod';
+
+// Import canonical schemas from contracts (NOT shapes, which have transforms)
+import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
+import { brandSettingsCanonical } from '@/schemas/contracts/custom-domain';
+import { customerCanonical } from '@/schemas/contracts/customer';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // LOCALE SCHEMAS
@@ -134,12 +143,78 @@ export const featuresSchema = z.object({
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DIAGNOSTICS SCHEMA
+// SECRET OPTIONS SCHEMA (canonical, no transforms)
 // ═══════════════════════════════════════════════════════════════════════════════
 
+/**
+ * Character set options for password generation.
+ */
+export const characterSetsSchema = z.object({
+  uppercase: z.boolean().default(true),
+  lowercase: z.boolean().default(true),
+  numbers: z.boolean().default(true),
+  symbols: z.boolean().default(false),
+  exclude_ambiguous: z.boolean().default(true),
+});
+
+/**
+ * Password generation settings.
+ */
+export const passwordGenerationSchema = z.object({
+  default_length: z.number().int().min(4).max(128).default(12),
+  length_options: z.array(z.number().int().min(4).max(128)).default([8, 12, 16, 20, 24, 32]),
+  character_sets: characterSetsSchema.optional(),
+});
+
+/**
+ * Passphrase settings.
+ */
+export const passphraseSchema = z.object({
+  required: z.boolean().default(false),
+  minimum_length: z.number().int().min(1).max(256).default(8),
+  maximum_length: z.number().int().min(8).max(1024).default(128),
+  enforce_complexity: z.boolean().default(false),
+});
+
+/**
+ * Canonical secret options schema for bootstrap payload.
+ * No transforms - Ruby serializers send already-typed data.
+ */
+export const secretOptionsSchema = z.object({
+  default_ttl: z.number().int().positive().default(604800),
+  ttl_options: z
+    .array(z.number().int().positive().min(60).max(2592000))
+    .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
+  passphrase: passphraseSchema.optional(),
+  password_generation: passwordGenerationSchema.optional(),
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DIAGNOSTICS SCHEMA (bootstrap-specific flat structure)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Sentry configuration for bootstrap payload.
+ * Flat structure - differs from config YAML which has defaults/backend/frontend.
+ */
+export const sentryConfigSchema = z.object({
+  dsn: z.string().default(''),
+  enabled: z.boolean().default(false),
+  debug: z.boolean().optional(),
+  environment: z.string().optional(),
+  release: z.string().optional(),
+  tracesSampleRate: z.number().optional(),
+  maxBreadcrumbs: z.number().optional(),
+  logErrors: z.boolean().default(true),
+  trackComponents: z.boolean().default(true),
+});
+
+/**
+ * Diagnostics configuration for bootstrap payload.
+ */
 export const diagnosticsSchema = z
   .object({
-    sentry: z.object({}).optional(),
+    sentry: sentryConfigSchema.optional(),
   })
   .nullable();
 
@@ -168,7 +243,13 @@ export const organizationSchema = z
   .nullable();
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// EXPORTED TYPES (derived from sub-schemas)
+// DOMAIN STRATEGY
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const domainStrategySchema = z.enum(['canonical', 'subdomain', 'custom', 'invalid']);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPORTED TYPES (derived from sub-schemas defined in this file)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export type LocaleInfo = z.infer<typeof localeInfoSchema>;
@@ -187,6 +268,20 @@ export type SSOConfig = z.infer<typeof ssoConfigSchema>;
 export type Features = z.infer<typeof featuresSchema>;
 export type DevelopmentConfig = z.infer<typeof developmentConfigSchema>;
 export type Organization = z.infer<typeof organizationSchema>;
+export type DomainStrategy = z.infer<typeof domainStrategySchema>;
+
+// Re-export types from contracts
+export type { RegionsConfig } from '@/schemas/contracts/config/section/jurisdiction';
+export type { BrandSettingsCanonical as BrandSettings } from '@/schemas/contracts/custom-domain';
+export type { CustomerCanonical as Customer } from '@/schemas/contracts/customer';
+
+// Types derived from local schemas
+export type SecretOptions = z.infer<typeof secretOptionsSchema>;
+export type SentryConfig = z.infer<typeof sentryConfigSchema>;
+export type DiagnosticsConfig = z.infer<typeof diagnosticsSchema>;
+export type CharacterSets = z.infer<typeof characterSetsSchema>;
+export type PasswordGeneration = z.infer<typeof passwordGenerationSchema>;
+export type Passphrase = z.infer<typeof passphraseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // BOOTSTRAP PAYLOAD SCHEMA (full payload for Rhales validation)
@@ -208,43 +303,48 @@ export const bootstrapSchema = z.object({
   // ConfigSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
   authentication: authenticationSettingsSchema,
-  d9s_enabled: z.boolean().nullable(),
+  d9s_enabled: z.boolean(),
   diagnostics: diagnosticsSchema,
-  domains: z.object({}).optional(),
   domains_enabled: z.boolean(),
   features: featuresSchema,
   frontend_development: z.boolean(),
   frontend_host: z.string(),
   billing_enabled: z.boolean(),
-  regions: z.object({}).optional(),
+  regions: regionsConfigSchema.optional(),
   regions_enabled: z.boolean(),
-  secret_options: z.object({}),
+  secret_options: secretOptionsSchema,
   site_host: z.string(),
+  support_host: z.string(),
   ui: uiInterfaceSchema,
+  available_jurisdictions: z.array(z.string()),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // AuthenticationSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
+  apitoken: z.string().optional(),
   authenticated: z.boolean(),
   awaiting_mfa: z.boolean().optional(),
   had_valid_session: z.boolean(),
-  custid: z.string().nullable(),
-  cust: z.object({}).nullable(),
-  email: z.string().nullable(),
+  has_password: z.boolean().optional(),
+  custid: z.string(),
+  cust: customerCanonical.nullable(),
+  email: z.string(),
   // customer_since: formatted date string (e.g., "Mar 21, 2026") from Ruby epochdom()
-  customer_since: z.string().nullable(),
+  customer_since: z.string().optional(),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // DomainSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
-  canonical_domain: z.string().nullable(),
-  custom_domains: z.array(z.string()).nullable(),
-  display_domain: z.string().nullable(),
-  domain_branding: z.object({}).nullable(),
-  domain_id: z.string().nullable(),
+  baseuri: z.string(),
+  canonical_domain: z.string(),
+  custom_domains: z.array(z.string()).optional(),
+  display_domain: z.string(),
+  domain_branding: brandSettingsCanonical.nullable(),
+  domain_context: z.string().nullish(),
+  domain_id: z.string(),
   domain_locale: z.string().nullable(),
-  domain_logo: z.object({}).nullable(),
-  domain_strategy: z.string().nullable(),
+  domain_logo: z.string().nullable(),
+  domain_strategy: domainStrategySchema,
 
   // ─────────────────────────────────────────────────────────────────────────────
   // I18nSerializer fields
@@ -267,9 +367,10 @@ export const bootstrapSchema = z.object({
   ot_version: z.string(),
   ot_version_long: z.string(),
   ruby_version: z.string(),
-  shrimp: z.string().nullable(),
+  shrimp: z.string(),
   nonce: z.string().nullable(),
   homepage_mode: z.string().nullable(),
+  enjoyTheVue: z.boolean(),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // OrganizationSerializer fields
@@ -277,45 +378,32 @@ export const bootstrapSchema = z.object({
   organization: organizationSchema.optional(),
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // Billing/Stripe fields
+  // ─────────────────────────────────────────────────────────────────────────────
+  stripe_customer: z.custom<Stripe.Customer>().optional(),
+  stripe_subscriptions: z.array(z.custom<Stripe.Subscription>()).optional(),
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Entitlement test mode (colonel only)
+  // ─────────────────────────────────────────────────────────────────────────────
+  entitlement_test_planid: z.string().nullish(),
+  entitlement_test_plan_name: z.string().nullish(),
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // Development
   // ─────────────────────────────────────────────────────────────────────────────
   development: developmentConfigSchema.optional(),
-
-  // Note: page_title, description, keywords, baseuri, no_cache, and vite_assets_html
-  // are template-only props and not included in window.__BOOTSTRAP_STATE__
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// PARTIAL SCHEMA FOR UI VALIDATION
+// BOOTSTRAP PAYLOAD TYPE
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Partial schema for validating UI-specific portions of bootstrap.
- * Used by frontend code that only needs UI fields.
+ * BootstrapPayload - the contract type for window.__BOOTSTRAP_STATE__.
+ *
+ * Derived directly from the schema. All nested types are canonical contracts.
  */
-export const bootstrapUiSchema = z.object({
-  ui: uiInterfaceSchema.default({ enabled: true }),
-  messages: z.array(messageSchema).default([]),
-  features: featuresSchema.default({ markdown: false }),
-  development: developmentConfigSchema.optional(),
-  organization: organizationSchema.optional(),
-  supported_locales: z.array(z.string()).default([]),
-  default_locale: z.string().default('en'),
-});
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// EXPORTS
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/** Parse UI portions of bootstrap payload with defaults. */
-export function parseBootstrapUi(data: unknown) {
-  return bootstrapUiSchema.parse(data);
-}
-
-/** Default values for UI portions of bootstrap. */
-export const BOOTSTRAP_UI_DEFAULTS = bootstrapUiSchema.parse({});
-
-/** Full BootstrapPayload type for TypeScript. */
 export type BootstrapPayload = z.infer<typeof bootstrapSchema>;
 
 /** Input type before defaults are applied. */

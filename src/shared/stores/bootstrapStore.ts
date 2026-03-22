@@ -1,20 +1,18 @@
 // src/shared/stores/bootstrapStore.ts
 
 import type { Locale } from '@/schemas/i18n/locale';
+import { getBootstrapSnapshot } from '@/services/bootstrap.service';
 import type {
   AuthenticationSettings,
   BrandSettings,
-  Customer,
-  RegionsConfig,
-  SecretOptions,
-} from '@/schemas/shapes/v2';
-import { getBootstrapSnapshot } from '@/services/bootstrap.service';
-import type {
   BootstrapPayload,
+  Customer,
   FooterLinksConfig,
   HeaderConfig,
+  RegionsConfig,
+  SecretOptions,
   UiInterface,
-} from '@/types/declarations/bootstrap';
+} from '@/schemas/contracts/bootstrap';
 import type { DiagnosticsConfig } from '@/types/diagnostics';
 import { defineStore } from 'pinia';
 import { computed, Ref, ref } from 'vue';
@@ -135,7 +133,10 @@ const DEFAULTS: BootstrapPayload = {
 
   // Homepage and banner
   homepage_mode: null,
-  global_banner: undefined,
+  global_banner: null,
+  nonce: null,
+  domain_locale: null,
+  frontend_development: false,
 
   // Development mode
   development: undefined,
@@ -216,7 +217,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
 
   // Authentication state
   const authenticated = ref<boolean>(DEFAULTS.authenticated);
-  const awaiting_mfa = ref<boolean>(DEFAULTS.awaiting_mfa);
+  const awaiting_mfa = ref<boolean>(DEFAULTS.awaiting_mfa ?? false);
   const had_valid_session = ref<boolean>(DEFAULTS.had_valid_session);
   const has_password = ref<boolean>(DEFAULTS.has_password ?? false);
 
@@ -258,23 +259,23 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   const domain_strategy = ref<BootstrapPayload['domain_strategy']>(DEFAULTS.domain_strategy);
   const domain_id = ref<string>(DEFAULTS.domain_id);
   const display_domain = ref<string>(DEFAULTS.display_domain);
-  const domain_branding = ref<BrandSettings>(DEFAULTS.domain_branding);
+  const domain_branding = ref<BrandSettings | null>(DEFAULTS.domain_branding);
   const domain_logo = ref<string | null>(DEFAULTS.domain_logo);
-  const domain_context = ref<string | null>(DEFAULTS.domain_context ?? null as string | null);
+  const domain_context = ref<string | null>(DEFAULTS.domain_context ?? null);
   const custom_domains = ref<string[] | undefined>(DEFAULTS.custom_domains);
 
   // Regions configuration
-  const regions = ref<RegionsConfig>(DEFAULTS.regions);
+  const regions = ref<RegionsConfig | undefined>(DEFAULTS.regions);
   const available_jurisdictions = ref<string[]>(DEFAULTS.available_jurisdictions);
 
   // Authentication settings
-  const authentication = ref<AuthenticationSettings>(DEFAULTS.authentication);
+  const authentication = ref<AuthenticationSettings | null>(DEFAULTS.authentication);
 
   // Secret options
   const secret_options = ref<SecretOptions>(DEFAULTS.secret_options);
 
   // Diagnostics
-  const diagnostics = ref<DiagnosticsConfig>(DEFAULTS.diagnostics);
+  const diagnostics = ref<DiagnosticsConfig | null>(DEFAULTS.diagnostics);
 
   // UI configuration
   const ui = ref<UiInterface>(DEFAULTS.ui);
@@ -287,7 +288,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
 
   // Homepage and banner
   const homepage_mode = ref<BootstrapPayload['homepage_mode']>(DEFAULTS.homepage_mode);
-  const global_banner = ref<string | undefined>(DEFAULTS.global_banner);
+  const global_banner = ref<string | null>(DEFAULTS.global_banner);
 
   // Development mode
   const development = ref<BootstrapPayload['development']>(DEFAULTS.development);
@@ -432,7 +433,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
 
   function resetAuthState(): void {
     authenticated.value = DEFAULTS.authenticated;
-    awaiting_mfa.value = DEFAULTS.awaiting_mfa;
+    awaiting_mfa.value = DEFAULTS.awaiting_mfa ?? false;
     had_valid_session.value = DEFAULTS.had_valid_session;
     has_password.value = DEFAULTS.has_password ?? false;
   }

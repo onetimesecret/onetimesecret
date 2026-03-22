@@ -1,6 +1,6 @@
 // src/services/bootstrap.service.ts
 
-import type { BootstrapPayload } from '@/types/declarations/bootstrap';
+import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 
 /**
  * Bootstrap Service - Pre-Pinia State Access
@@ -59,17 +59,18 @@ export function consumeBootstrapData(): Partial<BootstrapPayload> | null {
 
   // Store snapshot and replace with marker (true = consumed successfully)
   // This allows memory to be reclaimed while preserving a testable marker
-  bootstrapSnapshot = { ...state };
+  const snapshot: Partial<BootstrapPayload> = { ...state };
+  bootstrapSnapshot = snapshot;
   (window as unknown as Record<string, unknown>)[BOOTSTRAP_KEY] = true;
   consumed = true;
 
   console.debug('[BootstrapService] Consumed bootstrap data:', {
-    authenticated: bootstrapSnapshot.authenticated,
-    locale: bootstrapSnapshot.locale,
-    keysCount: Object.keys(bootstrapSnapshot).length,
+    authenticated: snapshot.authenticated,
+    locale: snapshot.locale,
+    keysCount: Object.keys(snapshot).length,
   });
 
-  return bootstrapSnapshot;
+  return snapshot;
 }
 
 /**

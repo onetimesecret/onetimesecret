@@ -5,7 +5,7 @@
 // Provides a unified approach using createTestingPinia and typed fixtures.
 
 import type { Customer } from '@/schemas/shapes/v2';
-import type { BootstrapPayload } from '@/types/declarations/bootstrap';
+import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 import { createTestingPinia, type TestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { vi } from 'vitest';

@@ -185,7 +185,7 @@ function handleDisabledAuthFeature(to: RouteLocationNormalized) {
   const bootstrapStore = useBootstrapStore();
   const { authentication } = bootstrapStore;
 
-  if (!authentication.enabled || !authentication[feature]) {
+  if (!authentication?.enabled || !authentication[feature]) {
     loggingService.debug(
       '[RouterGuard] Redirecting - auth feature disabled:',
       { feature, path: to.path }

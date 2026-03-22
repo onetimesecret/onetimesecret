@@ -14,7 +14,7 @@ import {
   baseBootstrap,
   mockCustomer,
 } from '../setup-bootstrap';
-import type { BootstrapPayload } from '@/types/declarations/bootstrap';
+import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 
 // Mock the bootstrap service
 vi.mock('@/services/bootstrap.service', () => ({
@@ -905,7 +905,7 @@ describe('bootstrapStore', () => {
      * This test ensures the two sources don't drift apart.
      */
     it('store DEFAULTS match schema BOOTSTRAP_UI_DEFAULTS for overlapping fields', async () => {
-      const { BOOTSTRAP_UI_DEFAULTS } = await import('@/schemas/contracts/bootstrap');
+      const { BOOTSTRAP_UI_DEFAULTS } = await import('@/tests/contracts/bootstrap-test-schema');
 
       // Create fresh store to verify initial DEFAULTS
       await setupTestPinia();
@@ -933,7 +933,7 @@ describe('bootstrapStore', () => {
 
     it('schema defaults represent valid BootstrapPayload subset', async () => {
       const { BOOTSTRAP_UI_DEFAULTS, bootstrapUiSchema } = await import(
-        '@/schemas/contracts/bootstrap'
+        '@/tests/contracts/bootstrap-test-schema'
       );
 
       // Parsing an empty object should produce the same defaults

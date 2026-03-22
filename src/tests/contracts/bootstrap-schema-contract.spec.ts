@@ -9,13 +9,9 @@
 // - Undocumented fields (field exists but not in contract)
 
 import { describe, expect, it } from 'vitest';
-import type { BootstrapPayload } from '@/types/declarations/bootstrap';
-import {
-  bootstrapUiSchema,
-  featuresSchema,
-  organizationSchema,
-  BOOTSTRAP_UI_DEFAULTS,
-} from '@/schemas/contracts/bootstrap';
+import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
+import { featuresSchema, organizationSchema } from '@/schemas/contracts/bootstrap';
+import { bootstrapUiSchema, BOOTSTRAP_UI_DEFAULTS } from './bootstrap-test-schema';
 import {
   ALL_SERIALIZER_FIELDS,
   ALL_BOOTSTRAP_FIELDS,
