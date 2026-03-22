@@ -1,6 +1,6 @@
 // src/types/declarations/global.d.ts
 
-import { BootstrapPayload } from './bootstrap';
+import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 
 declare global {
   interface Window {
