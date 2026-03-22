@@ -1,4 +1,4 @@
-// src/schemas/api/organizations/endpoints/index.ts
+// src/schemas/api/organizations/responses/index.ts
 
 /**
  * Organizations API endpoints index

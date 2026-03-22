@@ -24,7 +24,7 @@ import {
   type EmailChangeConfirmResponse,
   type EmailChangeResendResponse,
   type BillingRedirect,
-} from '@/schemas/api/auth/endpoints/auth';
+} from '@/schemas/api/auth/responses/auth';
 import {
   loginResponseSchema,
   createAccountResponseSchema,
@@ -37,7 +37,7 @@ import {
   emailChangeRequestResponseSchema,
   emailChangeConfirmResponseSchema,
   emailChangeResendResponseSchema,
-} from '@/schemas/api/auth/endpoints/auth';
+} from '@/schemas/api/auth/responses/auth';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';

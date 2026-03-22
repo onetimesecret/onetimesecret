@@ -10,7 +10,7 @@
  * - Secure error message mapping to prevent information disclosure
  */
 
-import { otpSetupResponseSchema } from '@/schemas/api/auth/endpoints/auth';
+import { otpSetupResponseSchema } from '@/schemas/api/auth/responses/auth';
 import type { OtpSetupData } from '@/types/auth';
 import QRCode from 'qrcode';
 

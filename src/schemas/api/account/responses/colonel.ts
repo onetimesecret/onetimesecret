@@ -1,4 +1,4 @@
-// src/schemas/api/account/endpoints/colonel.ts
+// src/schemas/api/account/responses/colonel.ts
 
 /**
  * Colonel (Admin) API Endpoint Schemas

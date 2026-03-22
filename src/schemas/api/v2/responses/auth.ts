@@ -9,7 +9,7 @@ import {
   logoutResponseSchema,
   resetPasswordRequestResponseSchema,
   resetPasswordResponseSchema,
-} from '@/schemas/api/auth/endpoints/auth';
+} from '@/schemas/api/auth/responses/auth';
 
 // Re-export the schemas under consistent names for the registry
 export {

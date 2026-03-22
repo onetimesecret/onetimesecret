@@ -18,7 +18,7 @@ import {
   type ColonelOrganizationsFilters,
   type InvestigateOrganizationResult,
   type QueueMetrics,
-} from '@/schemas/api/account/endpoints/colonel';
+} from '@/schemas/api/account/responses/colonel';
 import { type SystemSettingsDetails } from '@/schemas/contracts/config';
 import { responseSchemas } from '@/schemas/api/internal/responses';
 import { AxiosInstance } from 'axios';

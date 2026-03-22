@@ -1,4 +1,4 @@
-// src/schemas/api/account/endpoints/account.ts
+// src/schemas/api/account/responses/account.ts
 
 import { customerSchema } from '@/schemas/shapes/v2/customer';
 import { transforms } from '@/schemas/transforms';

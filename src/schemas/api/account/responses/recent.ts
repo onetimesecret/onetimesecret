@@ -1,4 +1,4 @@
-// src/schemas/api/account/endpoints/recent.ts
+// src/schemas/api/account/responses/recent.ts
 
 import { receiptBaseSchema } from '@/schemas/shapes/v2';
 import { transforms } from '@/schemas/transforms';

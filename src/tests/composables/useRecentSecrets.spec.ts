@@ -1,6 +1,6 @@
 // src/tests/composables/useRecentSecrets.spec.ts
 
-import type { ReceiptRecords } from '@/schemas/api/account/endpoints/recent';
+import type { ReceiptRecords } from '@/schemas/api/account/responses/recent';
 import type { LocalReceipt } from '@/types/ui/local-receipt';
 import { createTestingPinia } from '@pinia/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

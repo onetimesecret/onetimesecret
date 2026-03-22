@@ -24,4 +24,4 @@ export * from '../organizations';
 /**
  * API endpoint re-exports
  */
-export * from '../../api/account/endpoints/account';
+export * from '../../api/account/responses/account';

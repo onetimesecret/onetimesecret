@@ -1,4 +1,4 @@
-// src/schemas/api/auth/endpoints/auth.ts
+// src/schemas/api/auth/responses/auth.ts
 
 import { z } from 'zod';
 

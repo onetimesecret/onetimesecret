@@ -6,7 +6,7 @@ import { createApiResponseSchema, createApiListResponseSchema } from '@/schemas/
 import {
   receiptRecordsDetailsSchema,
   receiptRecordsSchema,
-} from '@/schemas/api/account/endpoints/recent';
+} from '@/schemas/api/account/responses/recent';
 import { receiptDetailsSchema, receiptSchema } from '@/schemas/shapes/v2/receipt';
 import { z } from 'zod';
 

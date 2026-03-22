@@ -17,7 +17,7 @@ import {
   colonelOrganizationsDetailsSchema,
   investigateOrganizationResultSchema,
   queueMetricsDetailsSchema,
-} from '@/schemas/api/account/endpoints/colonel';
+} from '@/schemas/api/account/responses/colonel';
 import { z } from 'zod';
 
 export const colonelInfoResponseSchema = createApiResponseSchema(z.object({}), colonelInfoDetailsSchema);

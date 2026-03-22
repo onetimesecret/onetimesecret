@@ -10,7 +10,7 @@ import {
   membersResponseSchema,
   memberResponseSchema,
   memberDeleteResponseSchema,
-} from '@/schemas/api/organizations/endpoints/organizations';
+} from '@/schemas/api/organizations/responses/organizations';
 
 // Re-export — these are full response schemas defined in the organizations module
 export {

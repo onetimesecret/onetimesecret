@@ -7,7 +7,7 @@ import {
   accountSchema,
   apiTokenSchema,
   checkAuthDetailsSchema,
-} from '@/schemas/api/account/endpoints/account';
+} from '@/schemas/api/account/responses/account';
 import { customerSchema } from '@/schemas/shapes/v2';
 import { z } from 'zod';
 

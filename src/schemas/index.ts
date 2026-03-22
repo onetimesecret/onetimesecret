@@ -68,7 +68,7 @@ export * from './contracts/config';
 
 // Domain-specific models and endpoints
 export * from './api/v2/responses/content/secrets';
-export * from './api/account/endpoints/colonel';
+export * from './api/account/responses/colonel';
 export * from './shapes/v2/custom-domain/index';
 
 // API response types
@@ -86,7 +86,7 @@ export type {
   SecretResponse,
 } from './api/v2/responses';
 
-export type { ColonelInfoDetails } from './api/account/endpoints/colonel';
+export type { ColonelInfoDetails } from './api/account/responses/colonel';
 
 // Core model types
 export type { BaseModel, CustomDomain, Customer, Feedback, Receipt, Secret } from './shapes/v2';

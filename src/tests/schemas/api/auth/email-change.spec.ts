@@ -9,7 +9,7 @@ import {
   emailChangeRequestResponseSchema,
   emailChangeConfirmResponseSchema,
   isAuthError,
-} from '@/schemas/api/auth/endpoints/auth';
+} from '@/schemas/api/auth/responses/auth';
 
 describe('emailChangeRequestResponseSchema', () => {
   describe('success responses', () => {
