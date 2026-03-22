@@ -12,12 +12,13 @@
  * secrets, domains, and receipts. These canonical schemas define the "what"
  * (field names and final types) without the "how" (wire-format transforms).
  *
- * Version-specific shapes in `shapes/v2/organization.ts` and `shapes/v3/organization.ts`
- * extend these with appropriate transforms for each API version.
+ * Version-specific shapes extend these with appropriate transforms:
+ * - V2: shapes/organizations/organization.ts (API response with computed fields)
+ * - V3: shapes/v3/organization.ts (extends canonical with native type transforms)
  *
  * @module contracts/organization
  * @category Contracts
- * @see {@link "shapes/v2/organization"} - V2 wire format with string transforms
+ * @see {@link "shapes/organizations/organization"} - V2 API response shapes
  * @see {@link "shapes/v3/organization"} - V3 wire format with native types
  */
 
@@ -45,7 +46,7 @@ import { z } from 'zod';
  * via Familia v2 participates_in declarations, not stored in the schema.
  *
  * @category Contracts
- * @see {@link "shapes/v2/organization".organizationSchema} - V2 wire format
+ * @see {@link "shapes/organizations/organization".organizationSchema} - V2 API response
  * @see {@link "shapes/v3/organization".organizationRecord} - V3 wire format
  *
  * @example

@@ -8,7 +8,6 @@
 //
 // Architecture:
 // - contracts/organization.ts: Canonical field names (identifier, owner_id)
-// - shapes/v2/organization.ts: V2 core model with string transforms
 // - shapes/v3/organization.ts: V3 wire format extending canonical contract
 // - This file: V2 API response schemas with additional fields (entitlements, members, etc.)
 //
