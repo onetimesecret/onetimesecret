@@ -80,7 +80,8 @@ interface BootstrapState extends BootstrapPayload {
  *
  * 2. Schema-derived defaults for logged-out state
  *    - Store is always in a valid state
- *    - $reset() returns to known good defaults (preserving server config)
+ *    - $reset() restores initial DEFAULTS (does NOT preserve server config)
+ *    - resetForLogout() resets user state while preserving server config
  *
  * 3. Single source of truth
  *    - No more window.__BOOTSTRAP_ME__ vs reactiveState synchronization

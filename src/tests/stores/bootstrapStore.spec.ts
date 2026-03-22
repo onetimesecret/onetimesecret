@@ -505,7 +505,12 @@ describe('bootstrapStore', () => {
         authentication: { enabled: false, signup: false },
         ui: { enabled: false },
         features: { markdown: true },
-        regions: { identifier: 'EU', enabled: true, current_jurisdiction: 'EU', jurisdictions: ['EU'] },
+        regions: {
+          identifier: 'EU',
+          enabled: true,
+          current_jurisdiction: 'EU',
+          jurisdictions: [{ identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true }],
+        },
       });
 
       store.$reset();
@@ -673,11 +678,13 @@ describe('bootstrapStore', () => {
 
     it('preserves diagnostics configuration through reset (server config)', () => {
       const diagnosticsConfig = {
-        enabled: true,
-        domains: true,
-        regions: true,
-        entitlements: true,
-        locales: true,
+        sentry: {
+          dsn: 'https://test@sentry.io/123',
+          enabled: true,
+          debug: false,
+          logErrors: true,
+          trackComponents: true,
+        },
       };
 
       store.update({ diagnostics: diagnosticsConfig });
@@ -1160,13 +1167,19 @@ describe('bootstrapStore', () => {
 
     it('preserves all server config fields together through resetForLogout', () => {
       // Set up all server config fields
+      const sentryConfig = { dsn: 'https://test@sentry.io/123', enabled: true, logErrors: true, trackComponents: true };
       store.update({
         authentication: { enabled: false, signup: false, signin: true },
         ui: { enabled: false, header: { enabled: false } },
         features: { markdown: false },
-        regions: { identifier: 'EU', enabled: true, current_jurisdiction: 'EU', jurisdictions: ['EU'] },
+        regions: {
+          identifier: 'EU',
+          enabled: true,
+          current_jurisdiction: 'EU',
+          jurisdictions: [{ identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true }],
+        },
         secret_options: { default_ttl: 7200, ttl_options: [300, 600] },
-        diagnostics: { enabled: true },
+        diagnostics: { sentry: sentryConfig },
       });
 
       store.resetForLogout();
@@ -1177,7 +1190,7 @@ describe('bootstrapStore', () => {
       expect(store.features.markdown).toBe(false);
       expect(store.regions?.identifier).toBe('EU');
       expect(store.secret_options.default_ttl).toBe(7200);
-      expect(store.diagnostics?.enabled).toBe(true);
+      expect(store.diagnostics?.sentry?.enabled).toBe(true);
     });
 
     it('clears user-specific fields while preserving server config', () => {

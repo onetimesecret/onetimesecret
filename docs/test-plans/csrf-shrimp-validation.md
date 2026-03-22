@@ -113,7 +113,7 @@ end
 ### Prerequisites
 1. OmniAuth/OIDC configured with valid provider credentials
 2. Environment variables set: `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_URI`
-3. `features.omniauth` enabled in bootstrap state
+3. `features.sso` enabled in bootstrap state
 
 ### Test Procedure
 
@@ -203,7 +203,7 @@ site:
 ## Troubleshooting
 
 ### SSO button not appearing
-- Verify `window.__BOOTSTRAP_ME__.features.omniauth === true`
+- Verify `window.__BOOTSTRAP_ME__.features.sso === true`
 - Check OIDC environment variables are set
 - Review server logs for OmniAuth configuration errors
 

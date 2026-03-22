@@ -6,16 +6,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount, VueWrapper } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import { ref } from 'vue';
+import { isExternalUrl } from '@/utils/url';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Unit tests for isExternalUrl helper (pure function)
+// Unit tests for isExternalUrl helper (imported from @/utils/url)
 // ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Replicated from WorkspaceFooter.vue for unit testing.
- * Helper to infer if a URL is external based on scheme.
- */
-const isExternalUrl = (url: string): boolean => /^https?:\/\//i.test(url);
 
 describe('isExternalUrl helper', () => {
   describe('external URLs (https://)', () => {

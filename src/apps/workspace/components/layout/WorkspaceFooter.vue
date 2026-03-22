@@ -12,6 +12,7 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
   import type { LayoutProps } from '@/types/ui/layouts';
+  import { isExternalUrl } from '@/utils/url';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
   import { useRoute } from 'vue-router';
@@ -118,9 +119,6 @@
       external: () => false,
     },
   ];
-
-  // Helper to infer if a URL is external based on scheme
-  const isExternalUrl = (url: string): boolean => /^https?:\/\//i.test(url);
 
   const footerLinks = computed((): FooterLink[] => {
     const group = workspaceGroup.value;
