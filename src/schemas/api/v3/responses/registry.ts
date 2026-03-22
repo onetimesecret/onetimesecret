@@ -15,38 +15,38 @@ import {
   customerResponseSchema,
 } from './account';
 import {
-  loginResponseSchema,
   createAccountResponseSchema,
+  loginResponseSchema,
   logoutResponseSchema,
   resetPasswordRequestResponseSchema,
   resetPasswordResponseSchema,
 } from './auth';
 // Colonel schemas moved to internal registry (see @/schemas/api/internal/responses)
-import { csrfResponseSchema } from './csrf';
+// CSRF handled via dedicated endpoint, not in response registry
 import {
   brandSettingsResponseSchema,
-  customDomainResponseSchema,
   customDomainListResponseSchema,
+  customDomainResponseSchema,
   imagePropsResponseSchema,
   jurisdictionResponseSchema,
 } from './domains';
 import { feedbackResponseSchema } from './feedback';
 import {
-  systemStatusResponseSchema,
-  systemVersionResponseSchema,
-  supportedLocalesResponseSchema,
-} from './meta';
-import {
   incomingConfigResponseSchema,
   incomingSecretResponseSchema,
   validateRecipientEnvelopeSchema,
 } from './incoming';
+import {
+  supportedLocalesResponseSchema,
+  systemStatusResponseSchema,
+  systemVersionResponseSchema,
+} from './meta';
 // Organization schemas moved to internal registry (see @/schemas/api/internal/responses)
-import { receiptResponseSchema, receiptListResponseSchema } from './receipts';
+import { receiptListResponseSchema, receiptResponseSchema } from './receipts';
 import {
   concealDataResponseSchema,
-  secretResponseSchema,
   secretListResponseSchema,
+  secretResponseSchema,
 } from './secrets';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -90,9 +90,6 @@ export const responseSchemas = {
 
   // Feedback
   feedback: feedbackResponseSchema,
-
-  // CSRF
-  csrf: csrfResponseSchema,
 
   // Authentication (Rodauth-compatible)
   login: loginResponseSchema,
