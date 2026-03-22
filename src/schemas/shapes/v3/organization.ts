@@ -61,7 +61,8 @@ export const organizationRecord = organizationCanonical.extend({
   // V3 sends native types, but add defaults for optional fields
   description: z.string().nullable().default(null),
   contact_email: z.string().nullable().default(null),
-  is_default: z.boolean().default(false),
+  // Backend may send null for is_default; transform to false for safety
+  is_default: z.boolean().nullish().transform((v) => v ?? false),
   planid: z.string().default('free'),
 });
 

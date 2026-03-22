@@ -2,12 +2,16 @@
 //
 // V3 API response schemas for organization and member endpoints.
 //
-// NOTE: These schemas are response-specific, not entity shapes.
-// organizationRecord here includes response fields (entitlements, limits, domain_count)
-// not present in the canonical organization entity. memberRecord is a flattened
-// projection with computed fields (is_owner, is_current_user).
-// This is intentional — responses can extend entities with computed/context data.
+// Architecture: contract → shapes → api responses
+// - organizationRecord from shapes/v3/organization extends organizationCanonical
+// - Response schemas extend the shape with API-specific fields (entitlements, limits, etc.)
+//
+// Response-specific fields not in the canonical contract:
+// - member_count, current_user_role: computed at request time
+// - entitlements, limits, domain_count: billing/plan data
+// - billing_email: response-only alias
 
+import { organizationRecord as baseOrganizationRecord } from '@/schemas/shapes/v3/organization';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
@@ -34,22 +38,19 @@ const organizationLimits = z.object({
   custom_domains: z.number().optional(),
 });
 
-/** Organization record with all IDs and timestamps as plain strings/numbers. */
-const organizationRecord = z.object({
-  id: z.string(),
-  extid: z.string(),
-  display_name: z.string(),
-  description: z.string().nullish(),
-  contact_email: z.string().nullish(),
-  billing_email: z.string().nullish(),
-  // Backend may send null for is_default; transform to false for safety
-  is_default: z.boolean().nullish().transform((v) => v ?? false),
-  created: transforms.fromNumber.toDate,
-  updated: transforms.fromNumber.toDate,
-  owner_extid: z.string().nullish(),
+/**
+ * V3 organization response record.
+ *
+ * Extends the V3 organization shape with response-specific computed/billing fields.
+ * Uses canonical field names from contract (identifier, owner_id).
+ */
+const organizationRecord = baseOrganizationRecord.extend({
+  // Response-only computed fields
   member_count: z.number().int().min(0).nullish(),
   current_user_role: z.enum(organizationRoles).nullish(),
-  planid: z.string().nullish(),
+
+  // Billing/plan fields (not in canonical contract)
+  billing_email: z.string().nullish(),
   entitlements: z.array(z.enum(entitlements)).nullish(),
   limits: organizationLimits.nullish(),
   domain_count: z.number().int().min(0).nullish(),

@@ -1,7 +1,24 @@
 // src/schemas/shapes/organizations/organization.ts
+//
+// V2 API response schemas for organization management endpoints.
+//
+// NOTE: This file defines V2 API response shapes, not canonical contracts.
+// Field names here match V2 API wire format (id, owner_extid, etc.),
+// which differs from canonical contract names (identifier, owner_id).
+//
+// Architecture:
+// - contracts/organization.ts: Canonical field names (identifier, owner_id)
+// - shapes/v2/organization.ts: V2 core model with string transforms
+// - shapes/v3/organization.ts: V3 wire format extending canonical contract
+// - This file: V2 API response schemas with additional fields (entitlements, members, etc.)
+//
+// The V2 API backend intentionally maps:
+// - objid -> id (for Vue :key compatibility)
+// - owner_id -> owner_extid (opaque identifier pattern)
+// See apps/api/organizations/logic/base.rb#serialize_organization
 
 /**
- * Organization Zod schemas and derived types
+ * Organization Zod schemas and derived types for V2 API responses.
  *
  * Schemas are the source of truth for organization data structures.
  * Types are inferred from schemas using z.infer<>.
