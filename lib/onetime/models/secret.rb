@@ -70,8 +70,12 @@ module Onetime
       Onetime::Customer.load owner_id
     end
 
+    def anonymous?
+      owner_id.to_s == 'anon'
+    end
+
     def owner?(fobj)
-      fobj && !fobj.anonymous? && (fobj.objid == owner_id)
+      fobj && !anonymous? && (fobj.objid == owner_id)
     end
 
     def older_than?(seconds)
