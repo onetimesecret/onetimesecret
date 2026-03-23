@@ -188,3 +188,24 @@ export type {
   StripeMetadataSchema,
   PlanId,
 } from './billing';
+
+// ============================================================================
+// Public API Response Schemas (config data serialized to JSON)
+// ============================================================================
+export {
+  publicSecretOptionsSchema,
+  publicAuthenticationSchema,
+  publicFeaturesSchema,
+  publicSettingsSchema,
+} from './public';
+
+export type {
+  PublicSecretOptions,
+  PublicAuthenticationSettings,
+  PublicSettings,
+  PublicFeatures,
+  // Backward compatibility aliases
+  SecretOptions,
+  AuthenticationSettings,
+  Features,
+} from './public';

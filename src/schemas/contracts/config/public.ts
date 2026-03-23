@@ -1,19 +1,22 @@
-// src/schemas/shapes/config/public.ts
+// src/schemas/contracts/config/public.ts
+
+/**
+ * Public API Configuration Response Schemas
+ *
+ * These schemas validate public settings API responses where values are
+ * native types (boolean, number) from Ruby/YAML serialized to JSON.
+ *
+ * NOTE: These are distinct from the YAML config section schemas which
+ * validate backend configuration file structure.
+ */
 
 import { z } from 'zod';
 
 /**
  * Public API Secret Options Schema
  *
- * This schema validates public settings API responses where values are
- * native types (boolean, number) from Ruby/YAML serialized to JSON.
- *
- * NOTE: This is distinct from config/section/secret_options.ts which validates
- * backend YAML configuration structure.
- *
  * @example Validate and parse the data
  *    const parsedSecretOptions: SecretOptions = publicSecretOptionsSchema.parse(receivedSecretOptions);
- *
  */
 export const publicSecretOptionsSchema = z.object({
   /**
@@ -93,16 +96,13 @@ export const publicSecretOptionsSchema = z.object({
 /**
  * Inferred TypeScript type for SecretOptions
  */
-export type SecretOptions = z.infer<typeof publicSecretOptionsSchema>;
+export type PublicSecretOptions = z.infer<typeof publicSecretOptionsSchema>;
 
 /**
  * Public API Authentication Schema
  *
  * This schema validates public settings API responses where boolean
  * values are native types from Ruby/YAML serialized to JSON.
- *
- * NOTE: This is distinct from config/section/site.ts:siteAuthenticationSchema
- * which validates backend YAML configuration structure.
  */
 export const publicAuthenticationSchema = z.object({
   /**
@@ -139,7 +139,7 @@ export const publicAuthenticationSchema = z.object({
 /**
  * Inferred TypeScript type for Authentication
  */
-export type AuthenticationSettings = z.infer<typeof publicAuthenticationSchema>;
+export type PublicAuthenticationSettings = z.infer<typeof publicAuthenticationSchema>;
 
 /**
  * Schema for the :jurisdiction section
@@ -205,9 +205,6 @@ const supportSchema = z.object({
  *
  * This schema validates public settings API responses for feature flags
  * where boolean values are native types from Ruby/YAML serialized to JSON.
- *
- * NOTE: This is distinct from config/section/features.ts:featuresSchema
- * which validates backend YAML configuration structure.
  */
 export const publicFeaturesSchema = z.object({
   regions: regionsSchema,
@@ -237,4 +234,9 @@ export type PublicSettings = z.infer<typeof publicSettingsSchema>;
 /**
  * Inferred TypeScript type for Features
  */
-export type Features = z.infer<typeof publicFeaturesSchema>;
+export type PublicFeatures = z.infer<typeof publicFeaturesSchema>;
+
+// Backward compatibility type aliases
+export type SecretOptions = PublicSecretOptions;
+export type AuthenticationSettings = PublicAuthenticationSettings;
+export type Features = PublicFeatures;
