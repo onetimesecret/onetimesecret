@@ -4,11 +4,14 @@
 
 export {
   brandSettingsResponseSchema,
+  customDomainDetailsSchema,
   customDomainResponseSchema,
   customDomainListResponseSchema,
   imagePropsResponseSchema,
   jurisdictionResponseSchema,
   type BrandSettingsResponse,
+  type CustomDomainDetails,
+  type CustomDomainProxy,
   type CustomDomainResponse,
   type CustomDomainListResponse,
   type ImagePropsResponse,

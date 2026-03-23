@@ -1,16 +1,33 @@
-// src/schemas/shapes/v3/custom-domain.ts
+// src/schemas/shapes/v3/custom-domain/index.ts
 //
 // V3 wire-format shapes for custom domains.
 // Derives from contracts, adding V3-specific transforms (number -> Date, native types).
 
-import {
-  brandSettingsCanonical,
-  customDomainCanonical,
-  imagePropsCanonical,
-  vhostCanonical,
-} from '@/schemas/contracts';
+import { customDomainCanonical } from '@/schemas/contracts';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
+
+import { brandSettingsRecord } from './brand';
+import { vhostRecord } from './vhost';
+
+export * from './brand';
+export * from './vhost';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Domain strategy constants
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Domain strategy values for routing decisions.
+ */
+export const DomainStrategyValues = {
+  CANONICAL: 'canonical',
+  SUBDOMAIN: 'subdomain',
+  CUSTOM: 'custom',
+  INVALID: 'invalid',
+} as const;
+
+export type DomainStrategy = (typeof DomainStrategyValues)[keyof typeof DomainStrategyValues];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // V3 wire-format overrides
@@ -24,81 +41,6 @@ const v3TimestampOverrides = {
   created: transforms.fromNumber.toDate,
   updated: transforms.fromNumber.toDate,
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// V3 brand settings shape
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * V3 brand settings record.
- *
- * V3 sends native types - booleans are native, no string transforms needed.
- * Extends contract with defaults for optional fields.
- *
- * @example
- * ```typescript
- * const brand = brandSettingsRecord.parse({
- *   primary_color: '#dc4a22',
- *   font_family: 'sans',
- *   button_text_light: false,
- * });
- * ```
- */
-export const brandSettingsRecord = brandSettingsCanonical.extend({
-  // V3 sends native booleans, add defaults
-  button_text_light: z.boolean().default(false),
-  allow_public_homepage: z.boolean().default(false),
-  allow_public_api: z.boolean().default(false),
-  passphrase_required: z.boolean().default(false),
-  notify_enabled: z.boolean().default(false),
-});
-
-/**
- * V3 image properties record.
- *
- * Image metadata for logo and icon fields.
- */
-export const imagePropsRecord = imagePropsCanonical;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// V3 vhost shape
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * V3 vhost record.
- *
- * Extends contract with timestamp transforms for date fields.
- *
- * IMPORTANT: Vhost data comes verbatim from Approximated API, which returns
- * timestamps as strings (ISO 8601 or similar), NOT Unix epoch numbers.
- * Therefore we use fromString transforms here, not fromNumber.
- *
- * @example
- * ```typescript
- * const vhost = vhostRecord.parse({
- *   status: 'active',
- *   has_ssl: true,
- *   is_resolving: true,
- *   last_monitored_unix: '2021-01-01T00:00:00Z',
- * });
- *
- * console.log(vhost.last_monitored_unix instanceof Date); // true
- * ```
- */
-export const vhostRecord = vhostCanonical.extend({
-  // V3 sends booleans as native types
-  apx_hit: z.boolean().optional(),
-  has_ssl: z.boolean().optional(),
-  is_resolving: z.boolean().optional(),
-
-  // Approximated API sends timestamps as strings, not numbers
-  // All timestamp fields are optional - external API may omit them,
-  // and historical data may predate these fields.
-  created_at: transforms.fromString.date.optional(),
-  last_monitored_unix: transforms.fromString.date.optional(),
-  ssl_active_from: transforms.fromString.dateNullable.optional(),
-  ssl_active_until: transforms.fromString.dateNullable.optional(),
-});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // V3 custom domain shape
@@ -165,15 +107,6 @@ export const customDomainRecord = customDomainCanonical.extend({
 // ─────────────────────────────────────────────────────────────────────────────
 // Type exports
 // ─────────────────────────────────────────────────────────────────────────────
-
-/** TypeScript type for V3 brand settings record. */
-export type BrandSettingsRecord = z.infer<typeof brandSettingsRecord>;
-
-/** TypeScript type for V3 image properties record. */
-export type ImagePropsRecord = z.infer<typeof imagePropsRecord>;
-
-/** TypeScript type for V3 vhost record. */
-export type VHostRecord = z.infer<typeof vhostRecord>;
 
 /** TypeScript type for V3 custom domain record. */
 export type CustomDomainRecord = z.infer<typeof customDomainRecord>;

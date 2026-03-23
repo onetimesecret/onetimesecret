@@ -71,32 +71,5 @@ export const customDomainSchema = createModelSchema({
   // a consistent shape regardless of API response variations.
 }).strip();
 
-/**
- * Input schema for domain proxy configuration from API
- * Used for managing domain routing/infrastructure via Approximated.
- * Always null when DOMAINS_ENABLED is false.
- */
-const customDomainProxySchema = z
-  .object({
-    type: z.string().nullable().optional(),
-    proxy_ip: z.string().nullable().optional(),
-    proxy_name: z.string().nullable().optional(),
-    proxy_host: z.string().nullable().optional(),
-    vhost_target: z.string().nullable().optional(),
-    validation_strategy: z.string().nullable().optional(),
-  })
-  .strip()
-  .optional()
-  .nullable();
-
-export const customDomainDetailsSchema = z.object({
-  cluster: customDomainProxySchema,
-  /** Domain context returned by AddDomain - indicates which domain should be active in session */
-  domain_context: z.string().optional().nullable(),
-});
-
-export type CustomDomainProxy = z.infer<typeof customDomainProxySchema>;
-
 // Export types
 export type CustomDomain = z.infer<typeof customDomainSchema>;
-export type CustomDomainDetails = z.infer<typeof customDomainDetailsSchema>;
