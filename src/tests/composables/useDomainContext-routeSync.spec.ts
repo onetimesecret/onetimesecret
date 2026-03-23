@@ -24,7 +24,7 @@ const mockDomainsStoreState = {
 };
 
 const mockOrganizationStoreState = {
-  currentOrganization: null as { id: string } | null,
+  currentOrganization: null as { objid: string } | null,
 };
 
 vi.mock('@/shared/stores/domainsStore', () => ({
@@ -93,7 +93,7 @@ describe('useDomainContext route synchronization', () => {
     mockDomainsStoreState.domains = [];
     mockDomainsStoreState.fetchList.mockReset();
     mockDomainsStoreState.fetchList.mockResolvedValue(undefined);
-    mockOrganizationStoreState.currentOrganization = { id: 'org-test-123' };
+    mockOrganizationStoreState.currentOrganization = { objid: 'org-test-123' };
 
     const { __resetDomainContextForTesting } = await import(
       '@/shared/composables/useDomainContext'
