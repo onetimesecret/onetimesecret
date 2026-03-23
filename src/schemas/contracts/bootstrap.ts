@@ -276,7 +276,7 @@ export const developmentConfigSchema = z.object({
  */
 export const organizationSchema = z
   .object({
-    id: z.string(),
+    objid: z.string(),
     extid: z.string(),
     display_name: z.string(),
     is_default: z.boolean(),

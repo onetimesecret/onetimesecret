@@ -468,11 +468,11 @@ export const useOrganizationStore = defineStore('organization', () => {
       // This prevents overwriting user-selected organization with bootstrap default
       if (bootstrapOrg && !currentOrganization.value) {
         // Convert bootstrap org format to Organization type
-        // Bootstrap provides minimal fields (id, extid, display_name, is_default, planid, current_user_role)
+        // Bootstrap provides minimal fields (objid, extid, display_name, is_default, planid, current_user_role)
         // Full data comes from fetchOrganization
         currentOrganization.value = {
           identifier: bootstrapOrg.extid, // Use extid as identifier until full fetch
-          objid: bootstrapOrg.id, // Bootstrap 'id' maps to canonical 'objid'
+          objid: bootstrapOrg.objid,
           extid: bootstrapOrg.extid,
           display_name: bootstrapOrg.display_name,
           description: null,
@@ -486,7 +486,7 @@ export const useOrganizationStore = defineStore('organization', () => {
           updated: new Date(),
         } as Organization;
 
-        loggingService.debug('[organizationStore] Initialized from bootstrap', { objid: bootstrapOrg.id });
+        loggingService.debug('[organizationStore] Initialized from bootstrap', { objid: bootstrapOrg.objid });
       }
     },
     { immediate: true }
