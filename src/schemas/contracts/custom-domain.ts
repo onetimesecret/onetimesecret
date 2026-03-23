@@ -265,7 +265,7 @@ export const vhostCanonical = z
  *
  * @category Contracts
  * @see {@link "shapes/v2/custom-domain".customDomainSchema} - V2 wire format
- * @see {@link "shapes/v3/custom-domain".customDomainRecord} - V3 wire format
+ * @see {@link "shapes/v3/custom-domain".customDomainSchema} - V3 wire format
  *
  * @example
  * ```typescript

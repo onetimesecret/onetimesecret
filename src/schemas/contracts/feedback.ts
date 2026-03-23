@@ -35,7 +35,7 @@ import { z } from 'zod';
  *
  * @category Contracts
  * @see {@link "shapes/v2/feedback".feedbackSchema} - V2 wire format
- * @see {@link "shapes/v3/feedback".feedbackRecord} - V3 wire format
+ * @see {@link "shapes/v3/feedback".feedbackSchema} - V3 wire format
  *
  * @example
  * ```typescript

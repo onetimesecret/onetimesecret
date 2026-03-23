@@ -160,7 +160,7 @@ export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
  *
  * @category Contracts
  * @see {@link "shapes/v2/customer".customerSchema} - V2 wire format
- * @see {@link "shapes/v3/customer".customerRecord} - V3 wire format
+ * @see {@link "shapes/v3/customer".customerSchema} - V3 wire format
  *
  * @example
  * ```typescript

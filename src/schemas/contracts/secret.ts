@@ -119,7 +119,7 @@ export function isValidSecretState(state: string): state is SecretState {
  *
  * @category Contracts
  * @see {@link "shapes/v2/secret".secretSchema} - V2 wire format
- * @see {@link "shapes/v3/secret".secretRecord} - V3 wire format
+ * @see {@link "shapes/v3/secret".secretSchema} - V3 wire format
  *
  * @example
  * ```typescript

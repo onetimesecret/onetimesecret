@@ -148,7 +148,7 @@ export function isValidReceiptState(state: string): state is ReceiptState {
  *
  * @category Contracts
  * @see {@link "shapes/v2/receipt".receiptSchema} - V2 wire format
- * @see {@link "shapes/v3/receipt".receiptRecord} - V3 wire format
+ * @see {@link "shapes/v3/receipt".receiptSchema} - V3 wire format
  *
  * @example
  * ```typescript
