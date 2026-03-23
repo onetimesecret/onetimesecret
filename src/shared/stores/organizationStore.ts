@@ -471,7 +471,6 @@ export const useOrganizationStore = defineStore('organization', () => {
         // Bootstrap provides minimal fields (objid, extid, display_name, is_default, planid, current_user_role)
         // Full data comes from fetchOrganization
         currentOrganization.value = {
-          identifier: bootstrapOrg.extid, // Use extid as identifier until full fetch
           objid: bootstrapOrg.objid,
           extid: bootstrapOrg.extid,
           display_name: bootstrapOrg.display_name,

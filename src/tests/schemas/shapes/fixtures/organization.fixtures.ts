@@ -33,7 +33,6 @@ export function createCanonicalOrganization(
   overrides?: Partial<OrganizationCanonical>
 ): OrganizationCanonical {
   return {
-    identifier: 'acme-corp',
     objid: 'org123abc456',
     extid: 'on%org123abc456',
     display_name: 'Acme Corporation',
@@ -60,7 +59,6 @@ export function createDefaultOrganization(
   overrides?: Partial<OrganizationCanonical>
 ): OrganizationCanonical {
   return createCanonicalOrganization({
-    identifier: 'personal-workspace',
     objid: 'org_default_123',
     extid: 'on%org_default_123',
     display_name: 'Personal Workspace',
@@ -77,7 +75,6 @@ export function createPaidOrganization(
   overrides?: Partial<OrganizationCanonical>
 ): OrganizationCanonical {
   return createCanonicalOrganization({
-    identifier: 'enterprise-org',
     objid: 'org_enterprise_456',
     extid: 'on%org_enterprise_456',
     display_name: 'Enterprise Organization',
@@ -94,7 +91,6 @@ export function createMinimalOrganization(
   overrides?: Partial<OrganizationCanonical>
 ): OrganizationCanonical {
   return createCanonicalOrganization({
-    identifier: 'minimal-org',
     objid: 'org_minimal_789',
     extid: 'on%org_minimal_789',
     display_name: 'Minimal Org',
@@ -111,7 +107,6 @@ export function createOlderOrganization(
   overrides?: Partial<OrganizationCanonical>
 ): OrganizationCanonical {
   return createCanonicalOrganization({
-    identifier: 'older-org',
     objid: 'org_older_abc',
     extid: 'on%org_older_abc',
     display_name: 'Older Organization',
@@ -207,7 +202,6 @@ export function compareCanonicalOrganization(
 
   // String fields
   const stringFields = [
-    'identifier',
     'objid',
     'extid',
     'display_name',

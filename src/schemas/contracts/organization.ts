@@ -43,9 +43,6 @@ import { z } from 'zod';
  * @category Contracts
  */
 export const organizationCanonical = z.object({
-  /** Unique identifier (internal format, used in URLs). */
-  identifier: z.string(),
-
   /** Object ID (internal UUID, primary key). */
   objid: z.string(),
 
