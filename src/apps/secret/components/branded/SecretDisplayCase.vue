@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import BaseSecretDisplay from '@/apps/secret/components/branded/BaseSecretDisplay.vue';
   import { useClipboard } from '@/shared/composables/useClipboard';
-  import type { SecretRecord as Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
+  import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { brandSettingschema } from '@/schemas/shapes/v2';
   import {
     CornerStyle,

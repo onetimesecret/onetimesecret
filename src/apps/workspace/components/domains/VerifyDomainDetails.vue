@@ -4,8 +4,8 @@
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
-import { CustomDomainProxy, CustomDomainResponse } from '@/schemas/api/v2/responses';
-import { CustomDomain } from '@/schemas/shapes/v2/custom-domain';
+import { CustomDomainProxy, type CustomDomainResponse } from '@/schemas/api/v3/responses/domains';
+import { type CustomDomain } from '@/schemas/shapes/v3/custom-domain';
 import { computed, ref } from 'vue';
 
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';

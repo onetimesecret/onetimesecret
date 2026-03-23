@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import type { SecretRecord as Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
+  import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { brandSettingschema } from '@/schemas/shapes/v2';
   import {
     CornerStyle,

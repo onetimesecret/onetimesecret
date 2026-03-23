@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useSecretExpiration } from '@/shared/composables/useSecretExpiration';
-  import type { ReceiptRecord as Receipt, ReceiptDetails } from '@/schemas/shapes/v3/receipt';
+  import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v3/receipt';
   import { formatDistanceToNow } from 'date-fns';
   import { formatDisplayDateTime } from '@/utils/format';
   import { computed } from 'vue';

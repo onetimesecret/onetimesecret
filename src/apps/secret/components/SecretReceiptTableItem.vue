@@ -3,14 +3,14 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import type { ReceiptListRecord } from '@/schemas/shapes/v3/receipt';
+import type { ReceiptList } from '@/schemas/shapes/v3/receipt';
 import { formatRelativeTime, formatDisplayDateTime } from '@/utils/format'
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 const { t } = useI18n();
 
 interface Props {
-  secretReceipt: ReceiptListRecord;
+  secretReceipt: ReceiptList;
 }
 
 const props = defineProps<Props>();
