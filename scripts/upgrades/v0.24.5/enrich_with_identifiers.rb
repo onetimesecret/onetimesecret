@@ -195,8 +195,8 @@ class IdentifierEnricher
   # Running the enricher multiple times produces identical objids for the same record.
   #
   # @param timestamp_seconds [Numeric] Unix timestamp (created field)
-  # @param seed_key [String] Original v1 key for deterministic derivation
-  def generate_uuid_v7_from(timestamp_seconds, seed_key: nil)
+  # @param seed_key [String] Original v1 key for deterministic derivation (required)
+  def generate_uuid_v7_from(timestamp_seconds, seed_key:)
     # Convert to milliseconds (UUID v7 uses 48-bit ms timestamp)
     timestamp_ms = (timestamp_seconds.to_f * 1000).to_i
 
@@ -205,13 +205,8 @@ class IdentifierEnricher
 
     # Generate deterministic random bytes from seed_key + timestamp
     # This ensures idempotency: same input always produces same objid
-    if seed_key
-      seed_material = "#{seed_key}:#{timestamp_seconds}"
-      random_bytes = Digest::SHA256.digest(seed_material)[0, 10]
-    else
-      # Fallback to non-deterministic for backwards compatibility
-      random_bytes = SecureRandom.random_bytes(10)
-    end
+    seed_material = "#{seed_key}:#{timestamp_seconds}"
+    random_bytes = Digest::SHA256.digest(seed_material)[0, 10]
 
     # Build UUID v7 format:
     # xxxxxxxx-xxxx-7xxx-yxxx-xxxxxxxxxxxx
