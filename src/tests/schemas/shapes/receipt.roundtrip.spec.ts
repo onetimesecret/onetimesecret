@@ -564,56 +564,53 @@ describe('Timestamp Edge Cases', () => {
   });
 
   describe('millisecond vs second detection', () => {
-    // Note: parseDateValue is used for nullable timestamps (shared, received, etc.)
-    // via transforms.fromString.dateNullable. The created/updated fields use
-    // transforms.fromNumber.secondsToDate which always assumes seconds.
+    // V2 uses transforms.fromString.dateNullable — expects string input.
+    // V3 uses transforms.fromNumber.toDateNullish — expects numeric input.
+    // These tests verify the correct format is enforced for each version.
 
-    it('parseDateValue treats values > 10 digits as milliseconds (via nullable field)', () => {
-      // 13-digit timestamp (milliseconds) - e.g., 1705312800000
-      const msTimestamp = 1705312800000; // 2024-01-15T10:00:00.000Z
-      const expectedDate = new Date(msTimestamp);
-
-      // parseDateValue is used for nullable timestamp fields like 'shared'
-      const canonical = createCanonicalReceiptBase();
-      const v2Wire = createV2WireReceiptBase(canonical);
-      // Simulate millisecond timestamp in nullable field
-      (v2Wire as Record<string, unknown>).shared = msTimestamp;
-
-      const parsed = receiptBaseSchema.parse(v2Wire);
-      expectDatesEqual(parsed.shared, expectedDate, 'shared');
-    });
-
-    it('parseDateValue treats values <= 10 digits as seconds (via nullable field)', () => {
-      // 10-digit timestamp (seconds) - e.g., 1705312800
-      const secTimestamp = 1705312800; // 2024-01-15T10:00:00.000Z
-      const expectedDate = new Date(secTimestamp * 1000);
-
-      const canonical = createCanonicalReceiptBase();
-      const v2Wire = createV2WireReceiptBase(canonical);
-      // Simulate second timestamp in nullable field
-      (v2Wire as Record<string, unknown>).shared = secTimestamp;
-
-      const parsed = receiptBaseSchema.parse(v2Wire);
-      expectDatesEqual(parsed.shared, expectedDate, 'shared');
-    });
-
-    it.each([
-      [9999999999, 'seconds', new Date(9999999999 * 1000)], // 10 digits, max before ms detection
-      [10000000000, 'milliseconds', new Date(10000000000)], // 11 digits, treated as ms
-      [1705312800, 'seconds', new Date(1705312800 * 1000)], // typical 10-digit timestamp
-      [1705312800000, 'milliseconds', new Date(1705312800000)], // typical 13-digit timestamp
-    ])(
-      'parseDateValue: timestamp %d is detected as %s',
-      (timestamp, _unit, expectedDate) => {
-        // Test via nullable 'shared' field which uses parseDateValue
+    describe('V2 rejects numeric timestamps for nullable fields', () => {
+      it('rejects millisecond timestamp (number) for shared field', () => {
+        const msTimestamp = 1705312800000;
         const canonical = createCanonicalReceiptBase();
         const v2Wire = createV2WireReceiptBase(canonical);
-        (v2Wire as Record<string, unknown>).shared = timestamp;
+        (v2Wire as Record<string, unknown>).shared = msTimestamp;
 
-        const parsed = receiptBaseSchema.parse(v2Wire);
+        expect(() => receiptBaseSchema.parse(v2Wire)).toThrow();
+      });
+
+      it('rejects second timestamp (number) for shared field', () => {
+        const secTimestamp = 1705312800;
+        const canonical = createCanonicalReceiptBase();
+        const v2Wire = createV2WireReceiptBase(canonical);
+        (v2Wire as Record<string, unknown>).shared = secTimestamp;
+
+        expect(() => receiptBaseSchema.parse(v2Wire)).toThrow();
+      });
+    });
+
+    describe('V3 accepts numeric timestamps for nullable fields', () => {
+      it('parses second timestamp for shared field (V3 assumes seconds)', () => {
+        const secTimestamp = 1705312800;
+        // V3 transforms.fromNumber.toDateNullish multiplies by 1000 (assumes seconds)
+        const expectedDate = new Date(secTimestamp * 1000);
+
+        const canonical = createCanonicalReceiptBase();
+        const v3Wire = createV3WireReceiptBase(canonical);
+        (v3Wire as Record<string, unknown>).shared = secTimestamp;
+
+        const parsed = receiptBaseRecord.parse(v3Wire);
         expectDatesEqual(parsed.shared, expectedDate, 'shared');
-      }
-    );
+      });
+
+      it('parses null timestamp for shared field', () => {
+        const canonical = createCanonicalReceiptBase();
+        const v3Wire = createV3WireReceiptBase(canonical);
+        (v3Wire as Record<string, unknown>).shared = null;
+
+        const parsed = receiptBaseRecord.parse(v3Wire);
+        expect(parsed.shared).toBeNull();
+      });
+    });
 
     it('created/updated always treat numbers as seconds (no detection)', () => {
       // created/updated use transforms.fromNumber.secondsToDate

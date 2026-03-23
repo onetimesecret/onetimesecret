@@ -143,12 +143,12 @@ describe('V2 Feedback Round-Trip', () => {
       expect(parsed.received).toBe(true);
     });
 
-    it('handles undefined received', () => {
+    it('handles missing received field as false', () => {
       const wire = {};
       const parsed = v2FeedbackDetailsSchema.parse(wire);
 
-      // Optional field defaults to undefined
-      expect(parsed.received).toBeUndefined();
+      // Missing boolean field defaults to false via transform
+      expect(parsed.received).toBe(false);
     });
 
     it('transforms string "true" to boolean true', () => {

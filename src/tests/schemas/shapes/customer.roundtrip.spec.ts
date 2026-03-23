@@ -320,13 +320,12 @@ describe('V2 Customer Default Values', () => {
 
 describe('V2 Customer Transform Behavior', () => {
   describe('boolean transforms', () => {
+    // V2 only accepts string-encoded booleans
     it.each([
       ['true', true],
       ['false', false],
       ['1', true],
       ['0', false],
-      [true, true],
-      [false, false],
     ])('transforms %p to %s for verified field', (input, expected) => {
       const wire = createV2WireCustomer(createCanonicalCustomer());
       (wire as Record<string, unknown>).verified = input;
@@ -338,12 +337,11 @@ describe('V2 Customer Transform Behavior', () => {
   });
 
   describe('number transforms', () => {
+    // V2 only accepts string-encoded numbers
     it.each([
       ['0', 0],
       ['42', 42],
       ['1000', 1000],
-      [0, 0],
-      [42, 42],
     ])('transforms %p to %s for secrets_created', (input, expected) => {
       const wire = createV2WireCustomer(createCanonicalCustomer());
       (wire as Record<string, unknown>).secrets_created = input;

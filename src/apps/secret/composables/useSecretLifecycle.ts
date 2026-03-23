@@ -8,6 +8,7 @@ export type SecretState =
   | 'loading'
   | 'passphrase'
   | 'ready'
+  | 'previewed'
   | 'revealed'
   | 'burned'
   | 'expired'
@@ -43,7 +44,7 @@ export function useSecretLifecycle(secretKey: string) {
       if (record.state === 'burned') {
         state.value = 'burned';
       } else if (record.state === 'previewed') {
-        state.value = 'revealed';
+        state.value = 'previewed';
       } else if (record.has_passphrase) {
         state.value = 'passphrase';
       } else {

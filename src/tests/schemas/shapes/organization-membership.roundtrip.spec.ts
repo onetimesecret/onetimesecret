@@ -505,13 +505,12 @@ describe('V2 Organization Membership Default Values', () => {
 
 describe('V2 Organization Membership Transform Behavior', () => {
   describe('boolean transforms', () => {
+    // V2 only accepts string-encoded booleans
     it.each([
       ['true', true],
       ['false', false],
       ['1', true],
       ['0', false],
-      [true, true],
-      [false, false],
     ])('transforms %p to %p for expired', (input, expected) => {
       const wire = createV2WireOrganizationMembership(
         createCanonicalOrganizationMembership()
@@ -525,12 +524,11 @@ describe('V2 Organization Membership Transform Behavior', () => {
   });
 
   describe('number transforms', () => {
+    // V2 only accepts string-encoded numbers
     it.each([
       ['0', 0],
       ['1', 1],
       ['5', 5],
-      [0, 0],
-      [10, 10],
     ])('transforms %p to %p for resend_count', (input, expected) => {
       const wire = createV2WireOrganizationMembership(
         createCanonicalOrganizationMembership()

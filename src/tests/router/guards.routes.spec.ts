@@ -12,6 +12,7 @@ import {
 
 import {
   AuthValidator,
+  handleSsoOnlyRoute,
   setupRouterGuards,
   validateAuthentication,
 } from '@/router/guards.routes';
@@ -516,9 +517,7 @@ describe('Router Guards', () => {
   });
 
   describe('SSO-only mode guard (handleSsoOnlyRoute)', () => {
-    // Guard index 2: (0=custom-domain, 1=feature-check, 2=sso-only, 3=main)
-    const getGuard = (router: Router): FeatureGuard =>
-      vi.mocked(router.beforeEach).mock.calls[2][0] as FeatureGuard;
+    // Direct unit tests for handleSsoOnlyRoute — no router registration needed.
 
     const makeRoute = (overrides: Partial<RouteLocationNormalized> = {}): RouteLocationNormalized => ({
       meta: {},
@@ -538,86 +537,74 @@ describe('Router Guards', () => {
     });
 
     it('should pass through routes without ssoOnlyDisabled meta', () => {
-      setupRouterGuards(router);
-      const guard = getGuard(router);
       const to = makeRoute({ meta: {} });
 
-      const result = guard(to);
-      expect(result).toBe(true);
+      const result = handleSsoOnlyRoute(to);
+      expect(result).toBeNull();
     });
 
     it('should pass through ssoOnlyDisabled routes when SSO-only mode is inactive', () => {
       vi.mocked(isSsoOnlyMode).mockReturnValue(false);
 
-      setupRouterGuards(router);
-      const guard = getGuard(router);
       const to = makeRoute({
         meta: { ssoOnlyDisabled: true },
         path: '/signup',
         name: 'Sign Up',
       });
 
-      const result = guard(to);
-      expect(result).toBe(true);
+      const result = handleSsoOnlyRoute(to);
+      expect(result).toBeNull();
     });
 
     it('should redirect ssoOnlyDisabled routes to /signin when SSO-only mode is active', () => {
       vi.mocked(isSsoOnlyMode).mockReturnValue(true);
 
-      setupRouterGuards(router);
-      const guard = getGuard(router);
       const to = makeRoute({
         meta: { ssoOnlyDisabled: true },
         path: '/signup',
         name: 'Sign Up',
       });
 
-      const result = guard(to);
+      const result = handleSsoOnlyRoute(to);
       expect(result).toEqual({ path: '/signin' });
     });
 
     it('should NOT redirect /signin to itself (prevents infinite loop)', () => {
       vi.mocked(isSsoOnlyMode).mockReturnValue(true);
 
-      setupRouterGuards(router);
-      const guard = getGuard(router);
       const to = makeRoute({
         meta: { ssoOnlyDisabled: true },
         path: '/signin',
         name: 'Sign In',
       });
 
-      const result = guard(to);
-      expect(result).toBe(true);
+      const result = handleSsoOnlyRoute(to);
+      expect(result).toBeNull();
     });
 
     it('should redirect /forgot when SSO-only mode is active', () => {
       vi.mocked(isSsoOnlyMode).mockReturnValue(true);
 
-      setupRouterGuards(router);
-      const guard = getGuard(router);
       const to = makeRoute({
         meta: { ssoOnlyDisabled: true },
         path: '/forgot',
         name: 'Forgot Password',
       });
 
-      const result = guard(to);
+      const result = handleSsoOnlyRoute(to);
       expect(result).toEqual({ path: '/signin' });
     });
 
     it('should redirect /reset-password when SSO-only mode is active', () => {
       vi.mocked(isSsoOnlyMode).mockReturnValue(true);
 
-      setupRouterGuards(router);
-      const guard = getGuard(router);
       const to = makeRoute({
         meta: { ssoOnlyDisabled: true },
         path: '/reset-password',
         name: 'Reset Password',
       });
 
-      const result = guard(to);
+      const result = handleSsoOnlyRoute(to);
       expect(result).toEqual({ path: '/signin' });
     });
   });

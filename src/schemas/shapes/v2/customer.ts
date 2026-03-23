@@ -24,9 +24,9 @@ import { withFeatureFlags } from '@/schemas/utils/feature_flags';
  * Re-exports canonical role values from contracts (no V2-specific aliases).
  */
 export {
-  customerRoleValues,
-  customerRoleSchema,
   CustomerRole,
+  customerRoleSchema,
+  customerRoleValues,
   isValidCustomerRole,
 } from '@/schemas/contracts';
 
@@ -100,22 +100,24 @@ const v2CounterOverrides = {
  * ```
  */
 export const customerSchema = withFeatureFlags(
-  customerCanonical.extend({
-    // V2 wire-format overrides
-    ...v2TimestampOverrides,
-    ...v2BooleanOverrides,
-    ...v2CounterOverrides,
+  customerCanonical
+    .extend({
+      // V2 wire-format overrides
+      ...v2TimestampOverrides,
+      ...v2BooleanOverrides,
+      ...v2CounterOverrides,
 
-    // Role uses shared schema (no transform needed)
-    role: customerRoleSchema,
-  }).strict()
+      // Role uses shared schema (no transform needed)
+      role: customerRoleSchema,
+    })
+    .strict()
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Type exports
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { z } from 'zod';
+import { z } from 'zod';
 
 /** TypeScript type for V2 customer record. */
 export type Customer = z.infer<typeof customerSchema>;

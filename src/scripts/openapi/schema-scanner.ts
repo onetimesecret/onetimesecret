@@ -471,7 +471,7 @@ function isValidKey(
   if (type === 'request') return validRequestKeys.has(key);
   // Response validation: use version-specific registry
   const registry = getRegistryForVersion(version ?? null);
-  return key in registry;
+  return Object.hasOwn(registry, key);
 }
 
 /**

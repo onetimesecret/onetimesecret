@@ -135,14 +135,14 @@ describe('JSON Schema generation round-trip', () => {
     expect(wrapped.$id).toMatch(/\.schema\.json$/);
   });
 
-  it('date fields in model schemas serialize as string/date-time (via override)', () => {
-    // Models use z.preprocess(parseDateValue, z.date()) — the override hook
-    // in generate.ts maps z.date() to { type: "string", format: "date-time" }.
+  it('date fields in model schemas serialize as string (via transform)', () => {
+    // V2 schemas use z.string().transform() for date fields, which serializes
+    // to { type: 'string' } in JSON Schema (transform logic is runtime-only).
     const customerSchema = generateJsonSchema(schemaRegistry['models/customer']);
     const props = customerSchema.properties as Record<string, Record<string, unknown>>;
     // customerSchema has created/updated fields
-    expect(props.created).toEqual({ type: 'string', format: 'date-time' });
-    expect(props.updated).toEqual({ type: 'string', format: 'date-time' });
+    expect(props.created).toEqual({ type: 'string' });
+    expect(props.updated).toEqual({ type: 'string' });
   });
 });
 
@@ -161,10 +161,10 @@ describe('registry.toJsonSchema vs generator parity', () => {
     }
   });
 
-  it('at least some schemas contain z.date() (sanity check)', () => {
-    // If this drops to 0, either all schemas stopped using z.date()
-    // or toJsonSchema gained the override hook (both worth investigating).
-    expect(schemasWithDates.length).toBeGreaterThan(0);
+  it('no schemas contain z.date() (using transform pattern instead)', () => {
+    // All V2 schemas now use z.string().transform() instead of z.date(),
+    // so toJsonSchema works without throwing. This is intentional.
+    expect(schemasWithDates.length).toBe(0);
   });
 
   it('toJsonSchema throws on schemas containing z.date() (known limitation)', () => {

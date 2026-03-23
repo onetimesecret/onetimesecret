@@ -468,13 +468,12 @@ describe('Verification Status', () => {
 
 describe('V2 CustomDomain Transform Behavior', () => {
   describe('boolean transforms', () => {
+    // V2 only accepts string-encoded booleans
     it.each([
       ['true', true],
       ['false', false],
       ['1', true],
       ['0', false],
-      [true, true],
-      [false, false],
     ])('transforms %p to %p for verified', (input, expected) => {
       const wire = createV2WireCustomDomain(createCanonicalCustomDomain());
       (wire as Record<string, unknown>).verified = input;

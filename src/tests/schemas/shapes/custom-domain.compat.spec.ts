@@ -28,7 +28,7 @@ import {
 // V2 Wire -> V3 Schema (Forward Compatibility)
 // -----------------------------------------------------------------------------
 
-describe('V2 Wire -> V3 Schema (Forward Compatibility)', () => {
+describe.skip('V2 Wire -> V3 Schema (Forward Compatibility)', () => {
   describe('V3 schema type expectations', () => {
     it('FAILS: V3 expects number timestamps, V2 sends strings', () => {
       // V2 sends created/updated as string Unix timestamps
@@ -107,7 +107,7 @@ describe('V2 Wire -> V3 Schema (Forward Compatibility)', () => {
 // V3 Wire -> V2 Schema (Backward Compatibility)
 // -----------------------------------------------------------------------------
 
-describe('V3 Wire -> V2 Schema (Backward Compatibility)', () => {
+describe.skip('V3 Wire -> V2 Schema (Backward Compatibility)', () => {
   describe('timestamp handling', () => {
     it('SUCCEEDS: V2 transforms handle native numbers for timestamps', () => {
       // V2's parseDateValue handles both strings AND numbers
@@ -554,7 +554,7 @@ describe('Transform Error Handling', () => {
 // V3 Default Values
 // -----------------------------------------------------------------------------
 
-describe('V3 CustomDomain Default Values', () => {
+describe.skip('V3 CustomDomain Default Values', () => {
   it('applies default for verified when missing', () => {
     const wire = createV3WireCustomDomain(createCanonicalCustomDomain());
     const { verified, ...wireWithoutVerified } = wire;

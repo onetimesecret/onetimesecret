@@ -203,7 +203,7 @@ function handleDisabledAuthFeature(to: RouteLocationNormalized) {
  * Redirects to '/signin' so the user sees the SSO-only sign-in page.
  * Note: /signin is explicitly excluded to prevent redirect loops.
  */
-function handleSsoOnlyRoute(to: RouteLocationNormalized) {
+export function handleSsoOnlyRoute(to: RouteLocationNormalized) {
   if (!to.meta.ssoOnlyDisabled) return null;
   if (!isSsoOnlyMode()) return null;
   // Prevent redirect loop: never redirect /signin to itself

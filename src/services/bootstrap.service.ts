@@ -28,8 +28,8 @@ let bootstrapSnapshot: Partial<BootstrapPayload> | null = null;
 let consumed = false;
 
 /**
- * Reads window.__BOOTSTRAP_ME__, stores it internally, and deletes
- * the window property to prevent memory leaks and signal consumption.
+ * Reads window.__BOOTSTRAP_ME__, stores it internally, and replaces
+ * the window property with a `true` marker to signal consumption.
  *
  * This function should be called once during app initialization, before
  * Pinia is installed but after the DOM is ready.

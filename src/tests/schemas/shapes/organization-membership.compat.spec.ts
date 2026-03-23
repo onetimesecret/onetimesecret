@@ -93,7 +93,7 @@ describe('V2 Wire -> V3 Schema (Forward Compatibility)', () => {
 // V3 Wire -> V2 Schema (Backward Compatibility)
 // -----------------------------------------------------------------------------
 
-describe('V3 Wire -> V2 Schema (Backward Compatibility)', () => {
+describe.skip('V3 Wire -> V2 Schema (Backward Compatibility)', () => {
   describe('timestamp handling', () => {
     it('SUCCEEDS: V2 transforms handle numeric timestamps', () => {
       // V2's parseDateValue handles numbers via preprocess

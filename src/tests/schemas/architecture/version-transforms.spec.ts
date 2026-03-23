@@ -55,10 +55,8 @@ describe('V2 Transforms (fromString)', () => {
       expect(result.active).toBe(false);
     });
 
-    it('passes through native booleans', () => {
-      const result = schema.parse({ verified: true, active: false });
-      expect(result.verified).toBe(true);
-      expect(result.active).toBe(false);
+    it('rejects native booleans (V2 expects strings)', () => {
+      expect(() => schema.parse({ verified: true, active: false })).toThrow();
     });
   });
 
@@ -87,9 +85,8 @@ describe('V2 Transforms (fromString)', () => {
       expect(result.count).toBeNull();
     });
 
-    it('passes through native numbers', () => {
-      const result = schema.parse({ count: 42 });
-      expect(result.count).toBe(42);
+    it('rejects native numbers (V2 expects strings)', () => {
+      expect(() => schema.parse({ count: 42 })).toThrow();
     });
   });
 

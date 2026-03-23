@@ -1108,7 +1108,8 @@ function toV2WireVHost(canonical: VHostCanonical): V2WireVHost {
     result.created_at = canonical.created_at.toISOString();
   }
   if (canonical.last_monitored_unix !== undefined) {
-    result.last_monitored_unix = numberToString(dateToEpochSeconds(canonical.last_monitored_unix)!);
+    // V2 schema uses fromNumber.secondsToDate — expects number, not string
+    result.last_monitored_unix = dateToEpochSeconds(canonical.last_monitored_unix)!;
   }
   if (canonical.ssl_active_from !== undefined) {
     result.ssl_active_from = canonical.ssl_active_from !== null

@@ -383,9 +383,9 @@ describe('transforms.fromString.boolean', () => {
     expect(schema.parse({ active: null }).active).toBe(false);
   });
 
-  it('rejects undefined (use .optional() for optional fields)', () => {
-    // V2 wire format doesn't have undefined - use .optional() for optional fields
-    expect(() => schema.parse({ active: undefined })).toThrow();
+  it('coerces undefined to false', () => {
+    // Missing fields in wire format should default to false
+    expect(schema.parse({ active: undefined }).active).toBe(false);
   });
 
   it('rejects actual booleans (V2 wire format is strings)', () => {

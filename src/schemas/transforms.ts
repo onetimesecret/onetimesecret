@@ -10,7 +10,7 @@ import { z } from 'zod';
  * These transforms handle the conversion of wire-format data (strings from APIs/Redis)
  * into typed domain values (Date, number, boolean) for use in Vue components and Pinia stores.
  *
- * Uses z.preprocess() over z.coerce() because:
+ * Uses z.string().transform() over z.coerce() because:
  *
  * 1. Explicit handling of null/undefined/empty strings
  * 2. Support for Redis bool formats ("0"/"1", "true"/"false")
@@ -57,7 +57,7 @@ export const transforms = {
    * Transforms for converting string-encoded values from V2 API responses.
    *
    * V2 API returns most values as strings (timestamps, numbers, booleans).
-   * These transforms use z.preprocess() to convert before validation.
+   * These transforms use z.string().transform() to convert after type validation.
    *
    * @category Transforms
    */
@@ -142,7 +142,7 @@ export const transforms = {
      * Parses string booleans from Redis/API formats.
      *
      * Truthy: "true", "1"
-     * Falsy: "false", "0", "", null
+     * Falsy: "false", "0", "", null, undefined
      *
      * Uses transform() instead of preprocess() so that z.toJSONSchema() with
      * io:"input" correctly reports the wire type (string) rather than unknown.
@@ -156,11 +156,12 @@ export const transforms = {
      * schema.parse({ active: "0" });     // { active: false }
      * schema.parse({ active: "" });      // { active: false }
      * schema.parse({ active: null });    // { active: false }
+     * schema.parse({ active: undefined });// { active: false }
      * ```
      */
     boolean: z
       .string()
-      .nullable()
+      .nullish()
       .transform((val): boolean => val === 'true' || val === '1'),
 
     /**
