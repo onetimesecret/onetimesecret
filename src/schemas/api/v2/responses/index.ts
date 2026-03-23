@@ -9,5 +9,6 @@ export * from './domains';
 export * from './incoming';
 export * from './meta';
 export * from './receipts';
+export * from './recent';
 export * from './registry';
 export * from './secrets';
