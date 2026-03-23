@@ -11,7 +11,11 @@ module OrganizationAPI::Logic
   module SsoConfig
     # Test SSO Connection
     #
-    # @api Tests SSO credentials by validating they can reach the IdP.
+    # @api Tests SSO configuration by validating IdP reachability and
+    #   discovery document availability. This does NOT perform an actual
+    #   OAuth flow or validate client credentials - it only confirms
+    #   the IdP endpoint is accessible and properly configured.
+    #
     #   Uses credentials from request body (not stored config) to allow
     #   testing before saving. Does not persist anything.
     #

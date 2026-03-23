@@ -704,7 +704,7 @@
     "sha256": "a1b2c3d4"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Verify your credentials can reach the identity provider before saving",
+    "text": "Verify the identity provider is reachable (does not validate credentials)",
     "sha256": "b2c3d4e5"
   },
   "web.organizations.sso.test_button": {
