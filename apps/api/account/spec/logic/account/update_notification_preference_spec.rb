@@ -92,7 +92,7 @@ RSpec.describe AccountAPI::Logic::Account::UpdateNotificationPreference do
       end
 
       it 'raises form error for anonymous user' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /Not authenticated/)
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /Authentication required/)
       end
     end
 

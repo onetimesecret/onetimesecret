@@ -181,6 +181,10 @@ module Onetime
       end
 
       def resolve_anonymous_identity(request, _env)
+        logger.debug '[IdentityResolution] Resolved anonymous identity',
+          ip: request.ip,
+          path: request.path_info
+
         {
           user: build_anonymous_user(request),
           source: 'anonymous',

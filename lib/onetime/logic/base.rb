@@ -57,6 +57,12 @@ module Onetime
         # Use locale passed from controller (request context), fall back to params, then default
         @locale = locale || @params['locale'] || OT.default_locale
 
+        # Log anonymous context for transition monitoring (#2733)
+        if @cust.nil?
+          OT.ld "[#{self.class}] Initializing with anonymous context",
+            auth_method: strategy_result.auth_method
+        end
+
         # Extract organization and team context from StrategyResult metadata
         extract_organization_context(strategy_result)
 
@@ -148,7 +154,7 @@ module Onetime
         # returns {} for org_context). Guest route gating handles access
         # control for anonymous requests, so we skip entitlement checks here.
         # nil cust indicates anonymous (no Customer.anonymous singleton).
-        return true if cust.nil? || cust.anonymous?
+        return true if anonymous_user?
 
         # Fail-closed: org context required for authenticated entitlement checks.
         # OrganizationLoader self-heals, so nil org indicates a system issue.

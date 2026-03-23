@@ -154,11 +154,9 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
   end
 
   describe '#raise_concerns' do
-    # Note: The base class (Logic::Base) always ensures @cust is not nil by
-    # setting it to Onetime::Customer.anonymous if strategy_result.user is nil.
-    # Therefore, raise_concerns in this class is effectively a no-op since it
-    # only acts when @cust.nil?. The actual authentication error handling
-    # happens in #process via the success? check.
+    # Note: Anonymous users have @cust = nil (PR #2733 removed Customer.anonymous).
+    # The raise_concerns method handles the nil case by checking anonymous_user?.
+    # Actual authentication error handling happens in #process via success? check.
 
     context 'when customer exists and authenticated' do
       before do

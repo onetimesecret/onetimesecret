@@ -162,7 +162,7 @@ RSpec.describe 'Session-only restricted routes', type: :integration do
         logic = AccountAPI::Logic::Account::UpdateDomainContext.new(
           anon_result, { 'domain' => 'example.com' }
         )
-        expect { logic.raise_concerns }.to raise_error(OT::Unauthorized)
+        expect { logic.raise_concerns }.to raise_error(OT::FormError, /Authentication required/)
       end
 
       it 'session writes on empty BasicAuth hash are ephemeral' do

@@ -92,7 +92,7 @@ module Onetime
       #
       # Routes: auth=noauth
       # Access: Everyone (including authenticated)
-      # User: Customer.anonymous or authenticated Customer
+      # User: nil (anonymous) or authenticated Customer
       class NoAuthStrategy < Otto::Security::AuthStrategy
         include Helpers
         include Onetime::Application::OrganizationLoader
@@ -115,6 +115,10 @@ module Onetime
           org_context = if cust && !cust.anonymous?
                           load_organization_context(cust, session, env)
                         else
+                          # Log anonymous access for transition monitoring (#2733)
+                          OT.ld '[NoAuthStrategy] Anonymous access',
+                            path: env['PATH_INFO'],
+                            ip: env['REMOTE_ADDR']
                           {}
                         end
 
@@ -143,15 +147,25 @@ module Onetime
 
         def authenticate(env, _requirement)
           session = env['rack.session']
-          return failure('[SESSION_MISSING] No session available') unless session
+          unless session
+            OT.ld '[BaseSessionAuth] Anonymous attempted authenticated route (no session)',
+              path: env['PATH_INFO'],
+              ip: env['REMOTE_ADDR']
+            return failure('[SESSION_MISSING] No session available')
+          end
 
           # Check if session is authenticated
           unless session['authenticated'] == true
+            OT.ld '[BaseSessionAuth] Anonymous attempted authenticated route (not authenticated)',
+              path: env['PATH_INFO'],
+              ip: env['REMOTE_ADDR']
             return failure('[SESSION_NOT_AUTHENTICATED] Not authenticated')
           end
 
           external_id = session['external_id']
           if external_id.to_s.empty?
+            OT.ld '[BaseSessionAuth] Session missing identity',
+              path: env['PATH_INFO']
             return failure('[IDENTITY_MISSING] No identity in session')
           end
 

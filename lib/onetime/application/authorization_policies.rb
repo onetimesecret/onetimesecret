@@ -26,6 +26,17 @@
 module Onetime
   module Application
     module AuthorizationPolicies
+      # Check if the current user is anonymous (nil or anonymous flag set)
+      #
+      # This is the canonical way to check for anonymous users across the
+      # codebase. It consolidates the pattern `cust.nil? || cust.anonymous?`
+      # into a single method.
+      #
+      # @return [Boolean] true if user is nil or has anonymous? flag set
+      def anonymous_user?
+        cust.nil? || cust.anonymous?
+      end
+
       # Check if user has a system-level role
       #
       # System roles (not resource-specific):
@@ -35,7 +46,7 @@ module Onetime
       # @param role [String, Symbol] Role name to check
       # @return [Boolean] true if user has the role
       def has_system_role?(role)
-        return false if cust.nil? || cust.anonymous?
+        return false if anonymous_user?
 
         case role.to_s
         when 'colonel'
@@ -53,9 +64,7 @@ module Onetime
       #
       # @raise [FormError] If user is anonymous
       def verify_authenticated!
-        if cust.nil? || cust.anonymous?
-          raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized)
-        end
+        raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if anonymous_user?
       end
 
       # Verify user has at least one of the specified roles/permissions

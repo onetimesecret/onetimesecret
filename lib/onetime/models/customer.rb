@@ -11,26 +11,22 @@ require_relative 'features'
 module Onetime
   # Customer
   #
-  # IMPORTANT API CHANGES:
-  # Previously, anonymous users were identified by custid='anon'.
-  # Now we use user_type='anonymous' as the primary indicator.
+  # ANONYMOUS USER HANDLING (PR #2733):
+  # Anonymous/unauthenticated requests now use `cust = nil` instead of a
+  # Customer.anonymous singleton. This simplifies authorization logic:
+  #   - Check `cust.nil? || cust.anonymous?` or use `anonymous_user?(cust)` helper
+  #   - The `anonymous?` method checks `role == 'anonymous'`
+  #   - Historical data compatibility: Receipt/Secret check `owner_id == 'anon'`
   #
   # USAGE:
   # - Authenticated: Customer.create!(custid, email)
-  # - Anonymous: Customer.anonymous
-  # - Explicit: Customer.new(custid: 'email', user_type: 'authenticated')
-  #
-  # AVOID: Customer.new('email@example.com') - creates anonymous user with email
+  # - Anonymous: nil (no Customer object)
   #
   # STATES:
-  # - anonymous?: user_type == 'anonymous' || custid == 'anon'
+  # - anonymous?: role == 'anonymous'
   # - verified?: authenticated + verified == 'true'
   # - active?: verified + role == 'customer'
   # - pending?: authenticated + !verified + role == 'customer'
-  #
-  # The init method sets user_type: 'anonymous' by default to maintain
-  # backwards compatibility, but business logic should use the explicit
-  # factory methods above to avoid state inconsistencies.
   #
   # Opaque Identifier Pattern (OWASP IDOR Prevention):
   # Uses dual-ID system to prevent enumeration attacks in URLs/APIs.
@@ -159,6 +155,9 @@ module Onetime
       objid
     end
 
+    # Checks if this customer has the anonymous role. Previously also checked
+    # custid == 'anon' sentinel, but that detection was removed in favor of
+    # explicit nil checks at call sites (cust.nil? || cust.anonymous?).
     def anonymous?
       role.to_s.eql?('anonymous')
     end
