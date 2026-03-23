@@ -42,6 +42,8 @@ module Onetime
           {
             ip: env['REMOTE_ADDR'],
             user_agent: env['HTTP_USER_AGENT'],
+            domain_strategy: env['onetime.domain_strategy'],
+            display_domain: env['onetime.display_domain'],
           }.merge(additional)
         end
       end
