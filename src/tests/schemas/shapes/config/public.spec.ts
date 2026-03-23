@@ -100,10 +100,10 @@ describe('publicSecretOptionsSchema', () => {
       expect(result.passphrase?.enforce_complexity).toBe(false); // default
     });
 
-    it('handles string boolean for required field (fromString transform)', () => {
+    it('accepts native boolean for required field', () => {
       const result = publicSecretOptionsSchema.parse({
         passphrase: {
-          required: 'true' as unknown as boolean,
+          required: true,
         },
       });
 
@@ -271,13 +271,13 @@ describe('publicAuthenticationSchema', () => {
     expect(result.required).toBe(false);
   });
 
-  it('handles string booleans from environment variables', () => {
+  it('accepts native boolean values from serialized config', () => {
     const result = publicAuthenticationSchema.parse({
-      enabled: 'true' as unknown as boolean,
-      signup: 'false' as unknown as boolean,
-      signin: 'true' as unknown as boolean,
-      autoverify: 'false' as unknown as boolean,
-      required: 'true' as unknown as boolean,
+      enabled: true,
+      signup: false,
+      signin: true,
+      autoverify: false,
+      required: true,
     });
 
     expect(result.enabled).toBe(true);

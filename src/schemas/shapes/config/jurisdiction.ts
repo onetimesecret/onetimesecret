@@ -1,12 +1,11 @@
 // src/schemas/shapes/config/jurisdiction.ts
 
-import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 /**
- * @fileoverview Jurisdiction and region schemas with standardized transformations
+ * @fileoverview Jurisdiction and region schemas for config.yaml settings
  *
- * We use these schemas for the settings defined in etc/config.yaml.
+ * Config data comes from Ruby/YAML serialized to JSON with native types.
  */
 
 // Jurisdiction schema
@@ -18,7 +17,7 @@ export const jurisdictionSchema = z.object({
     collection: z.string(),
     name: z.string(),
   }),
-  enabled: transforms.fromString.boolean.default(true),
+  enabled: z.boolean().default(true),
 });
 
 // Region schema shares same shape as jurisdiction
@@ -27,15 +26,15 @@ export const regionSchema = jurisdictionSchema;
 // Config schema for region/jurisdiction settings
 export const regionsConfigSchema = z.object({
   identifier: z.string().min(2).max(24),
-  enabled: transforms.fromString.boolean,
+  enabled: z.boolean(),
   current_jurisdiction: z.string(),
   jurisdictions: z.array(jurisdictionSchema),
 });
 
 // Details schema for jurisdiction-specific metadata
 export const jurisdictionDetailsSchema = z.object({
-  is_default: transforms.fromString.boolean,
-  is_current: transforms.fromString.boolean,
+  is_default: z.boolean(),
+  is_current: z.boolean(),
 });
 
 // Export types

@@ -1,14 +1,12 @@
 // src/schemas/shapes/config/public.ts
 
-import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 /**
  * Public API Secret Options Schema
  *
- * This schema is for parsing public settings API responses where values may
- * be stringified from environment variables. Uses transforms.fromString.*
- * for automatic string-to-type coercion.
+ * This schema validates public settings API responses where values are
+ * native types (boolean, number) from Ruby/YAML serialized to JSON.
  *
  * NOTE: This is distinct from config/section/secret_options.ts which validates
  * backend YAML configuration structure.
@@ -22,12 +20,7 @@ export const publicSecretOptionsSchema = z.object({
    * Default Time-To-Live (TTL) for secrets in seconds
    * Default: 604800 (7 days in seconds)
    */
-  default_ttl: z
-    .number()
-    .int()
-    .positive()
-    .default(604800)
-    .transform((val) => transforms.fromString.number.parse(val)),
+  default_ttl: z.number().int().positive().default(604800),
 
   /**
    * Available TTL options for secret creation (in seconds)
@@ -37,7 +30,6 @@ export const publicSecretOptionsSchema = z.object({
    */
   ttl_options: z
     .array(z.number().int().positive().min(60).max(2592000))
-    .transform((arr) => arr.map((val) => transforms.fromString.number.parse(val)))
     .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
 
   /**
@@ -48,7 +40,7 @@ export const publicSecretOptionsSchema = z.object({
       /**
        * Whether passphrases are required for all secrets
        */
-      required: transforms.fromString.boolean.default(false),
+      required: z.boolean().default(false),
 
       /**
        * Minimum length required for passphrases
@@ -63,7 +55,7 @@ export const publicSecretOptionsSchema = z.object({
       /**
        * Whether to enforce complexity requirements
        */
-      enforce_complexity: transforms.fromString.boolean.default(false),
+      enforce_complexity: z.boolean().default(false),
     })
     .optional(),
 
@@ -87,11 +79,11 @@ export const publicSecretOptionsSchema = z.object({
        */
       character_sets: z
         .object({
-          uppercase: transforms.fromString.boolean.default(true),
-          lowercase: transforms.fromString.boolean.default(true),
-          numbers: transforms.fromString.boolean.default(true),
-          symbols: transforms.fromString.boolean.default(false),
-          exclude_ambiguous: transforms.fromString.boolean.default(true),
+          uppercase: z.boolean().default(true),
+          lowercase: z.boolean().default(true),
+          numbers: z.boolean().default(true),
+          symbols: z.boolean().default(false),
+          exclude_ambiguous: z.boolean().default(true),
         })
         .optional(),
     })
@@ -106,8 +98,8 @@ export type SecretOptions = z.infer<typeof publicSecretOptionsSchema>;
 /**
  * Public API Authentication Schema
  *
- * This schema is for parsing public settings API responses where boolean
- * values may be stringified. Uses transforms.fromString.boolean for coercion.
+ * This schema validates public settings API responses where boolean
+ * values are native types from Ruby/YAML serialized to JSON.
  *
  * NOTE: This is distinct from config/section/site.ts:siteAuthenticationSchema
  * which validates backend YAML configuration structure.
@@ -116,27 +108,27 @@ export const publicAuthenticationSchema = z.object({
   /**
    * Flag to enable or disable authentication
    */
-  enabled: transforms.fromString.boolean,
+  enabled: z.boolean(),
 
   /**
    * Flag to allow or disallow user sign-up
    */
-  signup: transforms.fromString.boolean,
+  signup: z.boolean(),
 
   /**
    * Flag to allow or disallow user sign-in
    */
-  signin: transforms.fromString.boolean,
+  signin: z.boolean(),
 
   /**
    * Flag to enable or disable automatic verification
    */
-  autoverify: transforms.fromString.boolean,
+  autoverify: z.boolean(),
 
   /**
    * Flag to enable or disable homepage secret form when not logged in.
    */
-  required: transforms.fromString.boolean,
+  required: z.boolean(),
 
   /**
    * Authentication mode: 'simple' (Redis-only) or 'full' (Rodauth with SQL db)
@@ -163,7 +155,7 @@ const jurisdictionSchema = z.object({
  * Schema for the :regions section
  */
 const regionsSchema = z.object({
-  enabled: transforms.fromString.boolean,
+  enabled: z.boolean(),
   current_jurisdiction: z.string().optional(),
   jurisdictions: z.array(jurisdictionSchema).optional(),
 });
@@ -186,7 +178,7 @@ const clusterSchema = z
  * Schema for the :domains section
  */
 const domainsSchema = z.object({
-  enabled: transforms.fromString.boolean,
+  enabled: z.boolean(),
   default: z.string().optional(),
   cluster: clusterSchema,
 });
@@ -211,8 +203,8 @@ const supportSchema = z.object({
 /**
  * Public API Features Schema
  *
- * This schema is for parsing public settings API responses for feature flags.
- * Uses transforms.fromString.boolean for stringified boolean coercion.
+ * This schema validates public settings API responses for feature flags
+ * where boolean values are native types from Ruby/YAML serialized to JSON.
  *
  * NOTE: This is distinct from config/section/features.ts:featuresSchema
  * which validates backend YAML configuration structure.
@@ -228,7 +220,7 @@ export const publicFeaturesSchema = z.object({
 export const publicSettingsSchema = z
   .object({
     host: z.string(),
-    ssl: transforms.fromString.boolean,
+    ssl: z.boolean(),
     authentication: publicAuthenticationSchema,
     // secret: z.string(),
     authenticity: authenticitySchema,
