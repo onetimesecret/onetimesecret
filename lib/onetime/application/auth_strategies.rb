@@ -6,52 +6,34 @@
 # Centralized authentication strategies for Onetime applications.
 # All applications (Web Core, V2 API, etc.) use these shared strategy classes.
 #
+# Structure:
+#   auth_strategies/
+#     helpers.rb                    - Shared helper methods
+#     no_auth_strategy.rb           - Public access (auth=noauth)
+#     base_session_auth_strategy.rb - Abstract base for session auth
+#     session_auth_strategy.rb      - Authenticated sessions (auth=sessionauth)
+#     basic_auth_strategy.rb        - HTTP Basic Auth (auth=basicauth)
+#
 # Keep this code in sync with:
 # @see docs/architecture/authentication.md#authstrategies
 #
 # All dependent modules and references: `rg -t ruby -t markdown authstrategies`
+
+require_relative 'organization_loader'
+require_relative 'auth_strategies/helpers'
+require_relative 'auth_strategies/no_auth_strategy'
+require_relative 'auth_strategies/base_session_auth_strategy'
+require_relative 'auth_strategies/session_auth_strategy'
+require_relative 'auth_strategies/basic_auth_strategy'
 
 module Onetime
   module Application
     module AuthStrategies
       extend self
 
-      # Shared helper methods for authentication strategies
-      module Helpers
-        # Loads customer from session if authenticated
-        #
-        # @param session [Hash] Rack session
-        # @return [Onetime::Customer, nil] Customer if found, nil otherwise
-        def load_user_from_session(session)
-          return nil unless session
-          return nil unless session['authenticated'] == true
-
-          external_id = session['external_id']
-          return nil if external_id.to_s.empty?
-
-          Onetime::Customer.find_by_extid(external_id)
-        rescue StandardError => ex
-          OT.le "[auth_strategy] Failed to load customer: #{ex.message}"
-          OT.ld ex.backtrace.first(3).join("\n")
-          nil
-        end
-
-        # Builds standard metadata hash from env
-        #
-        # @param env [Hash] Rack environment
-        # @param additional [Hash] Additional metadata to merge
-        # @return [Hash] Metadata hash
-        def build_metadata(env, additional = {})
-          {
-            ip: env['REMOTE_ADDR'],
-            user_agent: env['HTTP_USER_AGENT'],
-          }.merge(additional)
-        end
-      end
-
       # Can users create and use accounts?
       #
-      # Boot-time capability decision — called once during strategy
+      # Boot-time capability decision - called once during strategy
       # registration to determine whether to register sessionauth and
       # basicauth strategies with Otto. Uses strict `== true` because
       # enabling account capabilities is an explicit opt-in.
@@ -86,235 +68,6 @@ module Onetime
       # @param otto [Otto] Otto router instance
       def register_basic_auth(otto)
         otto.add_auth_strategy('basicauth', BasicAuthStrategy.new)
-      end
-
-      # Public strategy - allows all requests, loads customer from session if available
-      #
-      # Routes: auth=noauth
-      # Access: Everyone (including authenticated)
-      # User: Customer.anonymous or authenticated Customer
-      class NoAuthStrategy < Otto::Security::AuthStrategy
-        include Helpers
-        include Onetime::Application::OrganizationLoader
-
-        @auth_method_name = 'noauth'
-
-        class << self
-          attr_reader :auth_method_name
-        end
-
-        def authenticate(env, _requirement)
-          session = env['rack.session']
-
-          # Try session first, then fall back to anonymous. Basic auth is
-          # handled by a separate strategy in the route chain (routes.txt),
-          # not here — this strategy only checks session state.
-          cust = load_user_from_session(session) || Onetime::Customer.anonymous
-
-          # Load organization context if user is authenticated
-          org_context = if cust && !cust.anonymous?
-                          load_organization_context(cust, session, env)
-                        else
-                          {}
-                        end
-
-          success(
-            session: session,
-            user: cust.anonymous? ? nil : cust,  # Pass nil for anonymous users
-            auth_method: self.class.auth_method_name,
-            **build_metadata(env, { organization_context: org_context }),
-          )
-        end
-      end
-
-      # Base strategy for authenticated routes
-      #
-      # Provides common authentication logic for session-based auth.
-      # Subclasses can override `additional_checks` for role/permission validation.
-      class BaseSessionAuthStrategy < Otto::Security::AuthStrategy
-        include Helpers
-        include Onetime::Application::OrganizationLoader
-
-        @auth_method_name = nil
-
-        class << self
-          attr_reader :auth_method_name
-        end
-
-        def authenticate(env, _requirement)
-          session = env['rack.session']
-          return failure('[SESSION_MISSING] No session available') unless session
-
-          # Check if session is authenticated
-          unless session['authenticated'] == true
-            return failure('[SESSION_NOT_AUTHENTICATED] Not authenticated')
-          end
-
-          external_id = session['external_id']
-          if external_id.to_s.empty?
-            return failure('[IDENTITY_MISSING] No identity in session')
-          end
-
-          # Load customer
-          cust = Onetime::Customer.load_by_extid_or_email(external_id)
-          return failure('[CUSTOMER_NOT_FOUND] Customer not found') unless cust
-
-          # Perform additional checks (role, permissions, etc.)
-          check_result = additional_checks(cust, env)
-          return check_result if check_result.is_a?(Otto::Security::Authentication::AuthFailure)
-
-          log_success(cust)
-
-          # Load organization and team context
-          org_context = load_organization_context(cust, session, env)
-
-          # Build complete metadata hash, then splat it into success()
-          metadata_hash = build_metadata(env, additional_metadata(cust)).merge(
-            organization_context: org_context,
-          )
-
-          success(
-            session: session,
-            user: cust,
-            auth_method: self.class.auth_method_name,
-            **metadata_hash,
-          )
-        end
-
-        protected
-
-        # Override in subclasses to add role/permission checks
-        #
-        # @param cust [Onetime::Customer] Authenticated customer
-        # @param env [Hash] Rack environment
-        # @return [Otto::Security::Authentication::AuthFailure, nil] Failure if check fails, nil if passes
-        def additional_checks(_cust, _env)
-          nil
-        end
-
-        # Override in subclasses to add metadata
-        #
-        # @param cust [Onetime::Customer] Authenticated customer
-        # @return [Hash] Additional metadata for StrategyResult
-        def additional_metadata(_cust)
-          {}
-        end
-
-        # Override in subclasses to customize success logging
-        #
-        # @param cust [Onetime::Customer] Authenticated customer
-        def log_success(cust)
-          OT.ld "[onetime_authenticated] Authenticated '#{cust.objid}'"
-        end
-      end
-
-      # Authenticated strategy - requires valid session with authenticated customer
-      #
-      # Routes: auth=sessionauth
-      # Access: Authenticated users only
-      # User: Authenticated Customer
-      # Roles: Provides customer role(s) for Otto's role-based authorization (role= option)
-      class SessionAuthStrategy < BaseSessionAuthStrategy
-        @auth_method_name = 'sessionauth'
-
-        protected
-
-        def additional_metadata(cust)
-          # Provide roles as array for Otto's role= parameter support
-          # Otto's RouteAuthWrapper#extract_user_roles looks for metadata[:user_roles]
-          { user_roles: [cust.role.to_s] }
-        end
-      end
-
-      # Basic auth strategy - HTTP Basic Authentication
-      #
-      # Routes: auth=basicauth
-      # Access: Valid API credentials via Authorization header
-      # User: Customer associated with API credentials
-      #
-      # Security: Uses constant-time comparison for both username and API key
-      # to prevent timing attacks that could enumerate valid usernames.
-      class BasicAuthStrategy < Otto::Security::AuthStrategy
-        include Helpers
-        include Onetime::Application::OrganizationLoader
-
-        @auth_method_name = 'basic_auth'
-
-        class << self
-          attr_reader :auth_method_name
-        end
-
-        def authenticate(env, _requirement)
-          # Extract credentials from Authorization header
-          auth_header = env['HTTP_AUTHORIZATION']
-          return failure('[AUTH_HEADER_MISSING] No authorization header') unless auth_header
-
-          # Parse Basic auth
-          unless auth_header.start_with?('Basic ')
-            return failure('[AUTH_TYPE_INVALID] Invalid authorization type')
-          end
-
-          # Decode credentials
-          encoded          = auth_header.sub('Basic ', '')
-          decoded          = Base64.decode64(encoded)
-          username, apikey = decoded.split(':', 2)
-
-          return failure('[CREDENTIALS_FORMAT_INVALID] Invalid credentials format') unless username && apikey
-
-          # Load customer by custid (may be nil)
-          cust = Onetime::Customer.load_by_extid_or_email(username)
-
-          # Timing attack mitigation:
-          # To prevent username enumeration via timing analysis, we ensure that
-          # authentication takes the same amount of time whether the user exists or not.
-          #
-          # Strategy:
-          # 1. Use a dummy customer with a real BCrypt hash when user doesn't exist
-          # 2. Always perform BCrypt password comparison (expensive operation)
-          # 3. Both paths execute identical cryptographic operations
-          #
-          # The dummy customer has a pre-computed BCrypt hash, so passphrase?()
-          # performs the same ~280ms BCrypt comparison for both existing and
-          # non-existing users, making timing analysis ineffective.
-          target_cust = cust || Onetime::Customer.dummy
-
-          # Validate API key using constant-time comparison (apitoken?)
-          valid_credentials = target_cust.apitoken?(apikey)
-
-          # Only succeed if we have a real customer AND valid credentials
-          if cust && valid_credentials
-            OT.ld "[onetime_basic_auth] Authenticated '#{cust.objid}' via API key"
-
-            # Load organization context for API key auth.
-            # Use the real Rack session if present; nil for stateless calls.
-            # OrganizationLoader guards session access with `if session`.
-            session     = env['rack.session']
-            org_context = load_organization_context(cust, session, env)
-
-            # Build complete metadata hash, then splat it into success()
-            metadata_hash = build_metadata(env, { auth_type: 'basic' }).merge(
-              organization_context: org_context,
-            )
-
-            success(
-              session: session,  # nil when no Rack session middleware (stateless),
-              # SecureSessionHash when session middleware is present.
-              # Otto's RouteAuthWrapper skips env['rack.session'] overwrite
-              # when result.session is nil/falsy, preserving the original.
-              # Don't fabricate a fallback {} here — rack-session's
-              # commit_session calls .options on the session object.
-              user: cust,
-              auth_method: self.class.auth_method_name,
-              **metadata_hash,
-            )
-          else
-            # Return generic error for both cases:
-            # 1. User doesn't exist (cust is nil)
-            # 2. Invalid credentials (valid_credentials is false)
-            # The timing is identical in both cases due to our mitigation strategy
-            failure('[CREDENTIALS_INVALID] Invalid credentials')
-          end
-        end
       end
     end
   end
