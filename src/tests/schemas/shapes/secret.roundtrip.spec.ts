@@ -12,9 +12,9 @@ import {
   secretResponsesSchema,
 } from '@/schemas/shapes/v2/secret';
 import {
-  secretBaseRecord,
-  secretRecord,
-  secretDetails,
+  secretBaseSchema as secretBaseRecord,
+  secretSchema as secretRecord,
+  secretDetailsSchema as secretDetails,
 } from '@/schemas/shapes/v3/secret';
 import {
   createCanonicalSecretBase,

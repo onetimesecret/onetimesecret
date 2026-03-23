@@ -3,12 +3,12 @@
 // Contract snapshot tests that verify the frontend Zod schema declares
 // all fields the backend sends. Prevents silent field stripping (issue #2685).
 
-import { receiptBaseRecord } from '@/schemas/api/v3/responses/receipts';
+import { receiptBaseSchema } from '@/schemas/shapes/v3/receipt';
 import { describe, expect, it } from 'vitest';
 
 import { RECEIPT_SAFE_DUMP_FIELDS } from './receipt-safe-dump-fields';
 
-// Fields intentionally excluded from receiptBaseRecord.
+// Fields intentionally excluded from receiptBaseSchema.
 // Each entry MUST have a comment explaining why it is excluded.
 const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
   // custid is sent by the backend but not consumed by any frontend component.
@@ -45,7 +45,7 @@ const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
 };
 
 describe('Receipt schema contract (safe_dump_fields)', () => {
-  const schemaKeys = Object.keys(receiptBaseRecord.shape);
+  const schemaKeys = Object.keys(receiptBaseSchema.shape);
 
   describe('field completeness', () => {
     // For each backend field, verify the Zod schema declares it
@@ -55,7 +55,7 @@ describe('Receipt schema contract (safe_dump_fields)', () => {
     );
 
     it.each(backendFields)(
-      'receiptBaseRecord declares backend field "%s"',
+      'receiptBaseSchema declares backend field "%s"',
       (field) => {
         expect(schemaKeys).toContain(field);
       }
@@ -81,7 +81,7 @@ describe('Receipt schema contract (safe_dump_fields)', () => {
 
   describe('strict parsing (no unknown fields)', () => {
     // Build a realistic receipt payload containing ALL safe_dump fields.
-    // Parsing through receiptBaseRecord.strict() should succeed, confirming
+    // Parsing through receiptBaseSchema.strict() should succeed, confirming
     // the schema does not reject any fields the backend sends.
     //
     // Fields in INTENTIONAL_EXCLUSIONS are included here because the backend
@@ -129,7 +129,7 @@ describe('Receipt schema contract (safe_dump_fields)', () => {
     it('parses a full backend payload without errors (passthrough mode)', () => {
       // passthrough keeps extra fields (the intentionally excluded ones)
       // so the parse focuses on whether declared fields are correct.
-      const result = receiptBaseRecord.passthrough().safeParse(realisticPayload);
+      const result = receiptBaseSchema.passthrough().safeParse(realisticPayload);
       expect(result.success).toBe(true);
     });
 
@@ -140,7 +140,7 @@ describe('Receipt schema contract (safe_dump_fields)', () => {
       for (const key of Object.keys(INTENTIONAL_EXCLUSIONS)) {
         delete declaredOnly[key];
       }
-      const result = receiptBaseRecord.strict().safeParse(declaredOnly);
+      const result = receiptBaseSchema.strict().safeParse(declaredOnly);
       if (!result.success) {
         // Surface the Zod issues for easier debugging
         expect(result.error.issues).toEqual([]);

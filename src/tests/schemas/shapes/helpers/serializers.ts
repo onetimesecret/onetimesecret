@@ -24,11 +24,11 @@ import type {
   FeedbackDetailsCanonical,
 } from '@/schemas/contracts/feedback';
 import type { receiptBaseSchema, receiptSchema, receiptDetailsSchema } from '@/schemas/shapes/v2/receipt';
-import type { receiptBaseRecord, receiptRecord, receiptDetails, receiptListRecord } from '@/schemas/shapes/v3/receipt';
+import type { receiptBaseSchema as v3ReceiptBaseSchema, receiptSchema as v3ReceiptSchema, receiptDetailsSchema as v3ReceiptDetailsSchema, receiptListSchema as v3ReceiptListSchema } from '@/schemas/shapes/v3/receipt';
 import type { secretResponsesSchema, secretSchema, secretDetailsSchema } from '@/schemas/shapes/v2/secret';
-import type { secretBaseRecord, secretRecord, secretDetails } from '@/schemas/shapes/v3/secret';
+import type { secretBaseSchema as v3SecretBaseSchema, secretSchema as v3SecretSchema, secretDetailsSchema as v3SecretDetailsSchema } from '@/schemas/shapes/v3/secret';
 import type { feedbackSchema, feedbackDetailsSchema } from '@/schemas/shapes/v2/feedback';
-import type { feedbackRecord, feedbackDetails } from '@/schemas/shapes/v3/feedback';
+import type { feedbackSchema as v3FeedbackSchema, feedbackDetailsSchema as v3FeedbackDetailsSchema } from '@/schemas/shapes/v3/feedback';
 import type { customerSchema } from '@/schemas/shapes/v2/customer';
 import type { CustomerCanonical } from '@/schemas/contracts';
 
@@ -40,26 +40,26 @@ export type V2WireReceiptBase = z.input<typeof receiptBaseSchema>;
 export type V2WireReceipt = z.input<typeof receiptSchema>;
 export type V2WireReceiptDetails = z.input<typeof receiptDetailsSchema>;
 
-export type V3WireReceiptBase = z.input<typeof receiptBaseRecord>;
-export type V3WireReceipt = z.input<typeof receiptRecord>;
-export type V3WireReceiptDetails = z.input<typeof receiptDetails>;
-export type V3WireReceiptListRecord = z.input<typeof receiptListRecord>;
+export type V3WireReceiptBase = z.input<typeof v3ReceiptBaseSchema>;
+export type V3WireReceipt = z.input<typeof v3ReceiptSchema>;
+export type V3WireReceiptDetails = z.input<typeof v3ReceiptDetailsSchema>;
+export type V3WireReceiptList = z.input<typeof v3ReceiptListSchema>;
 
 // Secret wire format types
 export type V2WireSecretBase = z.input<typeof secretResponsesSchema>;
 export type V2WireSecret = z.input<typeof secretSchema>;
 export type V2WireSecretDetails = z.input<typeof secretDetailsSchema>;
 
-export type V3WireSecretBase = z.input<typeof secretBaseRecord>;
-export type V3WireSecret = z.input<typeof secretRecord>;
-export type V3WireSecretDetails = z.input<typeof secretDetails>;
+export type V3WireSecretBase = z.input<typeof v3SecretBaseSchema>;
+export type V3WireSecret = z.input<typeof v3SecretSchema>;
+export type V3WireSecretDetails = z.input<typeof v3SecretDetailsSchema>;
 
 // Feedback wire format types
 export type V2WireFeedback = z.input<typeof feedbackSchema>;
 export type V2WireFeedbackDetails = z.input<typeof feedbackDetailsSchema>;
 
-export type V3WireFeedback = z.input<typeof feedbackRecord>;
-export type V3WireFeedbackDetails = z.input<typeof feedbackDetails>;
+export type V3WireFeedback = z.input<typeof v3FeedbackSchema>;
+export type V3WireFeedbackDetails = z.input<typeof v3FeedbackDetailsSchema>;
 
 // Customer wire format types
 export type V2WireCustomer = z.input<typeof customerSchema>;

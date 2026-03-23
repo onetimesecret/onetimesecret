@@ -10,7 +10,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { customerSchema as v2CustomerSchema } from '@/schemas/shapes/v2/customer';
-import { customerRecord as v3CustomerSchema } from '@/schemas/shapes/v3/customer';
+import { customerSchema as v3CustomerSchema } from '@/schemas/shapes/v3/customer';
 import {
   createCanonicalCustomer,
   createColonelCustomer,

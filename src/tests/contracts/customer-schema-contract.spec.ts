@@ -3,12 +3,12 @@
 // Contract snapshot tests that verify the frontend Zod schema declares
 // all fields the backend sends. Prevents silent field stripping (issue #2685).
 
-import { customerRecord } from '@/schemas/shapes/v3/customer';
+import { customerSchema } from '@/schemas/shapes/v3/customer';
 import { describe, expect, it } from 'vitest';
 
 import { CUSTOMER_SAFE_DUMP_FIELDS } from './customer-safe-dump-fields';
 
-// Fields intentionally excluded from customerRecord.
+// Fields intentionally excluded from customerSchema.
 // Each entry MUST have a comment explaining why it is excluded.
 const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
   // Currently no intentional exclusions for customer schema.
@@ -27,7 +27,7 @@ const FRONTEND_ONLY_FIELDS: Record<string, string> = {
 };
 
 describe('Customer schema contract (safe_dump_fields)', () => {
-  const schemaKeys = Object.keys(customerRecord.shape);
+  const schemaKeys = Object.keys(customerSchema.shape);
 
   describe('field completeness', () => {
     // For each backend field, verify the Zod schema declares it
@@ -37,7 +37,7 @@ describe('Customer schema contract (safe_dump_fields)', () => {
     );
 
     it.each(backendFields)(
-      'customerRecord declares backend field "%s"',
+      'customerSchema declares backend field "%s"',
       (field) => {
         expect(schemaKeys).toContain(field);
       }
@@ -73,7 +73,7 @@ describe('Customer schema contract (safe_dump_fields)', () => {
 
   describe('strict parsing (no unknown fields)', () => {
     // Build a realistic customer payload containing ALL safe_dump fields.
-    // Parsing through customerRecord.strict() should succeed, confirming
+    // Parsing through customerSchema.strict() should succeed, confirming
     // the schema does not reject any fields the backend sends.
     //
     // Fields in INTENTIONAL_EXCLUSIONS are included here because the backend
@@ -106,7 +106,7 @@ describe('Customer schema contract (safe_dump_fields)', () => {
     it('parses a full backend payload without errors (passthrough mode)', () => {
       // passthrough keeps extra fields (the intentionally excluded ones)
       // so the parse focuses on whether declared fields are correct.
-      const result = customerRecord.passthrough().safeParse(realisticPayload);
+      const result = customerSchema.passthrough().safeParse(realisticPayload);
       expect(result.success).toBe(true);
     });
 
@@ -117,7 +117,7 @@ describe('Customer schema contract (safe_dump_fields)', () => {
       for (const key of Object.keys(INTENTIONAL_EXCLUSIONS)) {
         delete declaredOnly[key];
       }
-      const result = customerRecord.strict().safeParse(declaredOnly);
+      const result = customerSchema.strict().safeParse(declaredOnly);
       if (!result.success) {
         // Surface the Zod issues for easier debugging
         expect(result.error.issues).toEqual([]);

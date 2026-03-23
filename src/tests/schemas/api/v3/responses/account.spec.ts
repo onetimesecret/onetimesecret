@@ -10,10 +10,10 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  customerRecord,
   accountResponseSchema,
   customerResponseSchema,
 } from '@/schemas/api/v3/responses/account';
+import { customerSchema as customerRecord } from '@/schemas/shapes/v3/customer';
 
 // ---------------------------------------------------------------------------
 // Helpers

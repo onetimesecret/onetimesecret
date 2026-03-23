@@ -14,8 +14,8 @@ import {
   secretDetailsSchema as v2SecretDetailsSchema,
 } from '@/schemas/shapes/v2/secret';
 import {
-  secretRecord as v3SecretSchema,
-  secretDetails as v3SecretDetailsSchema,
+  secretSchema as v3SecretSchema,
+  secretDetailsSchema as v3SecretDetailsSchema,
 } from '@/schemas/shapes/v3/secret';
 import {
   createCanonicalSecretWithTimestamps,

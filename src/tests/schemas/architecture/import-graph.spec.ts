@@ -271,24 +271,31 @@ describe('Shapes Contract Import Audit', () => {
 // -----------------------------------------------------------------------------
 
 describe('Transforms Module', () => {
-  const transformsPath = join(SRC_DIR, 'transforms.ts');
+  const transformsDir = join(SRC_DIR, 'transforms');
+  const indexPath = join(transformsDir, 'index.ts');
+  const fromStringPath = join(transformsDir, 'from-string.ts');
+  const fromNumberPath = join(transformsDir, 'from-number.ts');
 
-  it('transforms.ts exists', () => {
-    expect(existsSync(transformsPath)).toBe(true);
+  it('transforms directory exists with index.ts', () => {
+    expect(existsSync(indexPath)).toBe(true);
   });
 
-  it('exports fromString transforms', () => {
-    const content = readFileSync(transformsPath, 'utf-8');
-    expect(content).toContain('fromString:');
+  it('index.ts exports fromString and fromNumber', () => {
+    const content = readFileSync(indexPath, 'utf-8');
+    expect(content).toContain('fromString');
+    expect(content).toContain('fromNumber');
+  });
+
+  it('from-string.ts exports string transforms', () => {
+    const content = readFileSync(fromStringPath, 'utf-8');
     expect(content).toContain('boolean:');
     expect(content).toContain('number:');
     expect(content).toContain('date:');
     expect(content).toContain('dateNullable:');
   });
 
-  it('exports fromNumber transforms', () => {
-    const content = readFileSync(transformsPath, 'utf-8');
-    expect(content).toContain('fromNumber:');
+  it('from-number.ts exports number transforms', () => {
+    const content = readFileSync(fromNumberPath, 'utf-8');
     expect(content).toContain('toDate:');
     expect(content).toContain('toDateNullable:');
     expect(content).toContain('toDateOptional:');

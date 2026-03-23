@@ -11,7 +11,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { customDomainSchema as v2CustomDomainSchema } from '@/schemas/shapes/v2/custom-domain';
-import { customDomainRecord as v3CustomDomainSchema } from '@/schemas/shapes/v3/custom-domain';
+import { customDomainSchema as v3CustomDomainSchema } from '@/schemas/shapes/v3/custom-domain';
 import {
   createCanonicalCustomDomain,
   createVerifiedDomain,

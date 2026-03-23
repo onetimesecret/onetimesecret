@@ -3,12 +3,12 @@
 // Contract snapshot tests that verify the frontend Zod schema declares
 // all fields the backend sends. Prevents silent field stripping (issue #2685).
 
-import { customDomainRecord } from '@/schemas/shapes/v3/custom-domain';
+import { customDomainSchema } from '@/schemas/shapes/v3/custom-domain';
 import { describe, expect, it } from 'vitest';
 
 import { CUSTOM_DOMAIN_SAFE_DUMP_FIELDS } from './custom-domain-safe-dump-fields';
 
-// Fields intentionally excluded from customDomainRecord.
+// Fields intentionally excluded from customDomainSchema.
 // Each entry MUST have a comment explaining why it is excluded.
 const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
   // No intentional exclusions for V3 custom domain schema.
@@ -16,7 +16,7 @@ const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
 };
 
 describe('CustomDomain schema contract (safe_dump_fields)', () => {
-  const schemaKeys = Object.keys(customDomainRecord.shape);
+  const schemaKeys = Object.keys(customDomainSchema.shape);
 
   describe('field completeness', () => {
     // For each backend field, verify the Zod schema declares it
@@ -26,7 +26,7 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
     );
 
     it.each(backendFields)(
-      'customDomainRecord declares backend field "%s"',
+      'customDomainSchema declares backend field "%s"',
       (field) => {
         expect(schemaKeys).toContain(field);
       }
@@ -52,7 +52,7 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
 
   describe('strict parsing (no unknown fields)', () => {
     // Build a realistic custom domain payload containing ALL safe_dump fields.
-    // Parsing through customDomainRecord.strict() should succeed, confirming
+    // Parsing through customDomainSchema.strict() should succeed, confirming
     // the schema does not reject any fields the backend sends.
     //
     // Fields in INTENTIONAL_EXCLUSIONS are included here because the backend
@@ -102,7 +102,7 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
     it('parses a full backend payload without errors (passthrough mode)', () => {
       // passthrough keeps extra fields (the intentionally excluded ones)
       // so the parse focuses on whether declared fields are correct.
-      const result = customDomainRecord.passthrough().safeParse(realisticPayload);
+      const result = customDomainSchema.passthrough().safeParse(realisticPayload);
       expect(result.success).toBe(true);
     });
 
@@ -113,7 +113,7 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
       for (const key of Object.keys(INTENTIONAL_EXCLUSIONS)) {
         delete declaredOnly[key];
       }
-      const result = customDomainRecord.strict().safeParse(declaredOnly);
+      const result = customDomainSchema.strict().safeParse(declaredOnly);
       if (!result.success) {
         // Surface the Zod issues for easier debugging
         expect(result.error.issues).toEqual([]);

@@ -15,9 +15,9 @@ import {
   receiptDetailsSchema as v2ReceiptDetailsSchema,
 } from '@/schemas/shapes/v2/receipt';
 import {
-  receiptBaseRecord as v3ReceiptBaseSchema,
-  receiptRecord as v3ReceiptSchema,
-  receiptDetails as v3ReceiptDetailsSchema,
+  receiptBaseSchema as v3ReceiptBaseSchema,
+  receiptSchema as v3ReceiptSchema,
+  receiptDetailsSchema as v3ReceiptDetailsSchema,
 } from '@/schemas/shapes/v3/receipt';
 import {
   createCanonicalReceiptBase,

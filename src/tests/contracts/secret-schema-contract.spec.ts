@@ -3,12 +3,12 @@
 // Contract snapshot tests that verify the frontend Zod schema declares
 // all fields the backend sends. Prevents silent field stripping (issue #2685).
 
-import { secretRecord } from '@/schemas/shapes/v3/secret';
+import { secretSchema } from '@/schemas/shapes/v3/secret';
 import { describe, expect, it } from 'vitest';
 
 import { SECRET_SAFE_DUMP_FIELDS } from './secret-safe-dump-fields';
 
-// Fields intentionally excluded from secretRecord.
+// Fields intentionally excluded from secretSchema.
 // Each entry MUST have a comment explaining why it is excluded.
 const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
   // ─────────────────────────────────────────────────────────────────────────────
@@ -26,7 +26,7 @@ const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
 };
 
 describe('Secret schema contract (safe_dump_fields)', () => {
-  const schemaKeys = Object.keys(secretRecord.shape);
+  const schemaKeys = Object.keys(secretSchema.shape);
 
   describe('field completeness', () => {
     // For each backend field, verify the Zod schema declares it
@@ -36,7 +36,7 @@ describe('Secret schema contract (safe_dump_fields)', () => {
     );
 
     it.each(backendFields)(
-      'secretRecord declares backend field "%s"',
+      'secretSchema declares backend field "%s"',
       (field) => {
         expect(schemaKeys).toContain(field);
       }
@@ -62,7 +62,7 @@ describe('Secret schema contract (safe_dump_fields)', () => {
 
   describe('strict parsing (no unknown fields)', () => {
     // Build a realistic secret payload containing ALL safe_dump fields.
-    // Parsing through secretRecord.strict() should succeed, confirming
+    // Parsing through secretSchema.strict() should succeed, confirming
     // the schema does not reject any fields the backend sends.
     //
     // Fields in INTENTIONAL_EXCLUSIONS are included here because the backend
@@ -90,7 +90,7 @@ describe('Secret schema contract (safe_dump_fields)', () => {
     it('parses a full backend payload without errors (passthrough mode)', () => {
       // passthrough keeps extra fields (the intentionally excluded ones)
       // so the parse focuses on whether declared fields are correct.
-      const result = secretRecord.passthrough().safeParse(realisticPayload);
+      const result = secretSchema.passthrough().safeParse(realisticPayload);
       expect(result.success).toBe(true);
     });
 
@@ -101,7 +101,7 @@ describe('Secret schema contract (safe_dump_fields)', () => {
       for (const key of Object.keys(INTENTIONAL_EXCLUSIONS)) {
         delete declaredOnly[key];
       }
-      const result = secretRecord.strict().safeParse(declaredOnly);
+      const result = secretSchema.strict().safeParse(declaredOnly);
       if (!result.success) {
         // Surface the Zod issues for easier debugging
         expect(result.error.issues).toEqual([]);

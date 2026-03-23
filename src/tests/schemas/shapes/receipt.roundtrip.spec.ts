@@ -13,11 +13,11 @@ import {
   receiptStateValues,
 } from '@/schemas/shapes/v2/receipt';
 import {
-  receiptBaseRecord,
-  receiptRecord,
-  receiptDetails,
-  receiptListDetails,
-  receiptListRecord,
+  receiptBaseSchema as receiptBaseRecord,
+  receiptSchema as receiptRecord,
+  receiptDetailsSchema as receiptDetails,
+  receiptListDetailsSchema as receiptListDetails,
+  receiptListSchema as receiptListRecord,
 } from '@/schemas/shapes/v3/receipt';
 import {
   createCanonicalReceiptBase,

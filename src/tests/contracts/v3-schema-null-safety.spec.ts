@@ -17,7 +17,8 @@
 //
 // These tests verify null-safety across both wire formats.
 
-import { receiptResponseSchema, receiptBaseRecord } from '@/schemas/api/v3/responses/receipts';
+import { receiptResponseSchema } from '@/schemas/api/v3/responses/receipts';
+import { receiptBaseSchema } from '@/schemas/shapes/v3/receipt';
 import {
   secretResponseSchema,
 } from '@/schemas/api/v3/responses/secrets';
@@ -827,11 +828,11 @@ describe('V3 schema null-safety audit', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // 7. receiptBaseRecord null-safety for is_* boolean flags
+  // 7. receiptBaseSchema null-safety for is_* boolean flags
   // ---------------------------------------------------------------------------
 
-  describe('receiptBaseRecord boolean flags with null values', () => {
-    // The receiptBaseRecord is used for list views. When iterating receipts,
+  describe('receiptBaseSchema boolean flags with null values', () => {
+    // The receiptBaseSchema is used for list views. When iterating receipts,
     // some may reference destroyed secrets. Test that the is_* flags on
     // the record itself handle null correctly.
 
@@ -869,8 +870,8 @@ describe('V3 schema null-safety audit', () => {
       is_orphaned: null,
     };
 
-    it('receiptBaseRecord REJECTS null for bare z.boolean() is_* fields', () => {
-      const result = receiptBaseRecord.safeParse(basePayloadWithNullBooleans);
+    it('receiptBaseSchema REJECTS null for bare z.boolean() is_* fields', () => {
+      const result = receiptBaseSchema.safeParse(basePayloadWithNullBooleans);
       expect(result.success).toBe(false);
 
       if (!result.success) {
@@ -885,7 +886,7 @@ describe('V3 schema null-safety audit', () => {
       }
     });
 
-    it('receiptBaseRecord accepts payload when is_* fields are proper booleans', () => {
+    it('receiptBaseSchema accepts payload when is_* fields are proper booleans', () => {
       const validPayload = {
         ...basePayloadWithNullBooleans,
         is_viewed: false,
@@ -898,7 +899,7 @@ describe('V3 schema null-safety audit', () => {
         is_orphaned: false,
       };
 
-      const result = receiptBaseRecord.passthrough().safeParse(validPayload);
+      const result = receiptBaseSchema.passthrough().safeParse(validPayload);
       if (!result.success) {
         expect(result.error.issues).toEqual([]);
       }
