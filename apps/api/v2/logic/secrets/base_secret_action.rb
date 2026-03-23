@@ -200,7 +200,7 @@ module V2::Logic
       def validate_recipient
         return if recipient.empty?
 
-        raise_form_error 'An account is required to send emails.', field: 'recipient', error_type: 'requires_account' if cust.anonymous?
+        raise_form_error 'An account is required to send emails.', field: 'recipient', error_type: 'requires_account' if cust.nil? || cust.anonymous?
         recipient.each do |recip|
           raise_form_error "Undeliverable email address: #{recip}", field: 'recipient', error_type: 'invalid_email' unless valid_email?(recip)
         end
@@ -295,7 +295,7 @@ module V2::Logic
         # This enables domain owners to see activity on their branded links
         scope_fields << :domain_id if index_receipt_to_domain
 
-        unless cust.anonymous?
+        unless cust.nil? || cust.anonymous?
           cust.add_receipt receipt
           cust.increment_field :secrets_created
 

@@ -152,7 +152,7 @@ module V3
 
         def update_customer_stats
           # Update customer stats if not anonymous
-          unless cust.anonymous?
+          unless cust.nil? || cust.anonymous?
             cust.add_receipt receipt
             cust.increment_field :secrets_created
           end

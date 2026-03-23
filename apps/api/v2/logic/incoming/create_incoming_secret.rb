@@ -144,7 +144,7 @@ module V2::Logic
 
       def update_customer_stats
         # Update customer stats if not anonymous
-        unless cust.anonymous?
+        unless cust.nil? || cust.anonymous?
           cust.add_metadata metadata
           cust.increment_field :secrets_created
         end

@@ -20,7 +20,7 @@ module AccountAPI::Logic
 
       def raise_concerns
         authenticated = @sess['authenticated'] == true
-        return unless !authenticated || cust.anonymous?
+        return unless !authenticated || cust.nil? || cust.anonymous?
 
         raise_form_error "Sorry, we don't support that"
       end

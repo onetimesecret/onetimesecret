@@ -154,7 +154,7 @@ RSpec.describe 'Session-only restricted routes', type: :integration do
       it 'rejects anonymous customers (BasicAuth degenerate case)' do
         anon_result = build_strategy_result(
           session: {},
-          user: Onetime::Customer.anonymous,
+          user: nil, # Anonymous users have nil customer
           auth_method: 'basic_auth',
           strategy_name: 'BasicAuthStrategy',
           metadata: {},

@@ -65,7 +65,6 @@ export type V3WireFeedbackDetails = z.input<typeof v3FeedbackDetailsSchema>;
 export type V2WireCustomer = z.input<typeof customerSchema>;
 // V3 customer uses native types (numbers and booleans directly)
 export type V3WireCustomer = {
-  identifier: string;
   created: number;
   updated: number;
   objid: string;
@@ -590,7 +589,6 @@ export function toV3WireFeedbackDetails(canonical: FeedbackDetailsCanonical): V3
  */
 export function toV2WireCustomer(canonical: CustomerCanonical): V2WireCustomer {
   return {
-    identifier: canonical.identifier,
     objid: canonical.objid,
     extid: canonical.extid,
     role: canonical.role,
@@ -642,7 +640,6 @@ export function toV2WireCustomer(canonical: CustomerCanonical): V2WireCustomer {
  */
 export function toV3WireCustomer(canonical: CustomerCanonical): V3WireCustomer {
   return {
-    identifier: canonical.identifier,
     objid: canonical.objid,
     extid: canonical.extid,
     role: canonical.role,
@@ -1023,7 +1020,6 @@ export type V3WireBrandSettings = {
  *   - nested objects: V2 wire format
  */
 export type V2WireCustomDomain = {
-  identifier: string;
   created: string;
   updated: string;
   domainid: string;
@@ -1053,7 +1049,6 @@ export type V2WireCustomDomain = {
  *   - nested objects: V3 wire format
  */
 export type V3WireCustomDomain = {
-  identifier: string;
   created: number;
   updated: number;
   domainid: string;
@@ -1194,7 +1189,6 @@ export function toV2WireCustomDomain(
   canonical: CustomDomainCanonical
 ): V2WireCustomDomain {
   return {
-    identifier: canonical.identifier,
     domainid: canonical.domainid,
     extid: canonical.extid,
     custid: canonical.custid,
@@ -1339,7 +1333,6 @@ export function toV3WireCustomDomain(
   canonical: CustomDomainCanonical
 ): V3WireCustomDomain {
   return {
-    identifier: canonical.identifier,
     domainid: canonical.domainid,
     extid: canonical.extid,
     custid: canonical.custid,

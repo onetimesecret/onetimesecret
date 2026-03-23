@@ -160,7 +160,7 @@ module Onetime
     end
 
     def anonymous?
-      role.to_s.eql?('anonymous') || custid.to_s.eql?('anon')
+      role.to_s.eql?('anonymous')
     end
 
     def obscure_email
@@ -266,13 +266,6 @@ module Onetime
 
       def count
         instances.count # e.g. zcard dbkey
-      end
-
-      def anonymous
-        @anonymous ||= begin
-          anon = new(role: 'customer', custid: 'anon', objid: 'anon', extid: 'anon')
-          anon.freeze
-        end
       end
 
       # Create a dummy customer with realistic passphrase for timing consistency.

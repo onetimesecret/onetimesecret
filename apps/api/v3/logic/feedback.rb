@@ -53,7 +53,7 @@ module V3
 
       def format_feedback_message
         # Use extid for authenticated users, session-based identifier for anonymous
-        identifier = if cust.anonymous?
+        identifier = if cust.nil? || cust.anonymous?
                        # Generate short identifier from session for anonymous users
                        sess_id = sess.respond_to?(:id) ? sess.id&.public_id : sess.object_id.to_s(16)
                        "anon:#{sess_id.to_s[0, 8]}"

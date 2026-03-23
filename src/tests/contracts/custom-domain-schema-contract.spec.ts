@@ -61,7 +61,6 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
     // from the excluded fields.
 
     const realisticPayload: Record<string, unknown> = {
-      identifier: 'secrets.example.com',
       extid: 'cd1a2b3c4d',
       domainid: '01234567-89ab-cdef-0123-456789abcdef',
       display_domain: 'secrets.example.com',

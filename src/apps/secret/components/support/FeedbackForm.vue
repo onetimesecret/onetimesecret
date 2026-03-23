@@ -170,7 +170,7 @@
         </h3>
         <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
           <li
-            v-if="cust && cust.identifier !== 'anon'"
+            v-if="cust"
             class="flex items-center">
             <svg
               class="mr-2 size-4 text-brand-500"

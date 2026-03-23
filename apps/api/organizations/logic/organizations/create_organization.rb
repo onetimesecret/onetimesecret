@@ -23,7 +23,7 @@ module OrganizationAPI::Logic
 
       def raise_concerns
         # Require authenticated user
-        raise_form_error('Authentication required', field: 'user_id', error_type: :unauthorized) if cust.anonymous?
+        verify_authenticated!
 
         # Validate display_name (basic validation before quota check)
         if display_name.empty?

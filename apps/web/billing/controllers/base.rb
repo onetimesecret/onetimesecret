@@ -106,13 +106,13 @@ module Billing
         user = req.user
         return user if user.is_a?(Onetime::Customer)
 
-        Onetime::Customer.anonymous
+        nil # Anonymous - return nil
       rescue StandardError => ex
         billing_logger.error 'Failed to load customer',
           {
             exception: ex,
           }
-        Onetime::Customer.anonymous
+        nil # Error recovery - treat as anonymous
       end
 
       # Checks if the request accepts JSON responses
@@ -155,7 +155,7 @@ module Billing
       # @return [void]
       def ensure_customer_has_workspace
         billing_logger.debug '[ensure_customer_has_workspace] Checking customer workspace'
-        return if cust.anonymous?
+        return if cust.nil? || cust.anonymous?
 
         # Use Familia v2 auto-generated reverse collection method for O(1) lookup
         return if cust.organization_instances.any?

@@ -54,32 +54,30 @@ OT.boot! :test, false
 @cust.dbkey
 #=> "customer:#{@objid}:object"
 
-## Can "create" an anonymous user (more like simulate)
-@anonymous = Onetime::Customer.anonymous
-@anonymous.role
-#=> 'customer'
-
-## Anonymous is a Customer class
-@anonymous.class
-#=> Onetime::Customer
-
-## Anonymous knows it's anonymous
-@anonymous.anonymous?
+## Customer.dummy is frozen (used for timing-safe comparisons)
+@dummy = Onetime::Customer.dummy
+@dummy.frozen?
 #=> true
 
-## Anonymous is frozen in time
-@anonymous.frozen?
+## Customer.dummy has role='anon' (for timing attacks prevention)
+@dummy.role
+#=> 'anon'
+
+## anonymous? returns true when role is 'anonymous'
+anon_cust = Onetime::Customer.new(role: 'anonymous')
+anon_cust.anonymous?
 #=> true
 
-## Anonymous doesn't exist
-#@anonymous.destroy!
-@anonymous.exists?
+## anonymous? returns false when role is 'customer' (even if custid='anon')
+# NOTE: custid='anon' no longer makes a customer anonymous - only role matters
+regular_cust = Onetime::Customer.new(role: 'customer', custid: 'anon')
+regular_cust.anonymous?
 #=> false
 
-## Trying to save anonymous raises hell on earth
-@anonymous.save
+## Trying to save anonymous customer raises Onetime::Problem
+anon_cust = Onetime::Customer.new(role: 'anonymous')
+anon_cust.save
 #=!> Onetime::Problem
-#=!> "Anonymous cannot be saved Onetime::Customer customer:#{@objid}:object"
 
 ## Object name and dbkey are no longer equivalent.
 ## This is a reference back to Familia v0.10.2 era which

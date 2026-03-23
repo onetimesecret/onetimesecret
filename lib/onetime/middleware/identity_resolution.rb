@@ -248,8 +248,8 @@ module Onetime
       end
 
       def build_anonymous_user(_request)
-        # Return static, frozen anonymous customer
-        Onetime::Customer.anonymous
+        # Return nil for anonymous users
+        nil
       end
 
       def full_authenticated?(session)

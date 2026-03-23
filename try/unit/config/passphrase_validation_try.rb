@@ -24,11 +24,11 @@ class TestSecretAction < V2::Logic::Secrets::BaseSecretAction
   end
 
   def cust
-    Onetime::Customer.anonymous
+    nil # Anonymous users have nil cust
   end
 
   def plan
-    Onetime::Customer.anonymous.plan
+    nil # Anonymous users have nil plan
   end
 
   # Override the validate_passphrase method to use test config

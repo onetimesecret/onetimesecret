@@ -75,10 +75,10 @@ module Onetime
       private
 
       def load_current_customer
-        return Onetime::Customer.anonymous unless authenticated?
+        return nil unless authenticated?
 
         customer = Onetime::Customer.find_by_extid(session['external_id'])
-        return Onetime::Customer.anonymous unless customer
+        return nil unless customer
 
         # Update cached session data if it changed
         session['role']      = customer.role if session['role'] != customer.role

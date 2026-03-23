@@ -70,7 +70,7 @@ module Onetime
       #
       # @return [Boolean] True if this is a guest context
       def guest_context?
-        cust.anonymous? && strategy_result&.auth_method == 'noauth'
+        (cust.nil? || cust.anonymous?) && strategy_result&.auth_method == 'noauth'
       end
 
       # Get the guest routes configuration from the site config.

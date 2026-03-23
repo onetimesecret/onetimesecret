@@ -162,7 +162,7 @@ import { storeToRefs } from 'pinia';
         {{ t('web.feedback.when_you_submit_feedback_well_see') }}
       </h3>
       <ul class="space-y-1">
-        <li v-if="cust && cust.identifier != 'anon'">
+        <li v-if="cust">
           • {{ t('web.account.customer_id') }}: {{ cust.email }}
         </li>
         <li>

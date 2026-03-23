@@ -4,7 +4,6 @@ export * from './brand';
 export * from './vhost';
 
 // src/schemas/models/custom-domain.ts
-import { createModelSchema } from '@/schemas/shapes/v2/base';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
@@ -27,7 +26,10 @@ export type DomainStrategy = (typeof DomainStrategyValues)[keyof typeof DomainSt
  * - Validates domain parts
  * - Handles nested objects (vhost, brand)
  */
-export const customDomainSchema = createModelSchema({
+export const customDomainSchema = z.object({
+  // Timestamps (from base model)
+  created: transforms.fromString.date,
+  updated: transforms.fromString.date,
   // Core identifiers
   domainid: z.string(),
   extid: z.string(),

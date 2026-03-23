@@ -26,7 +26,6 @@ import {
  */
 export interface CustomDomainCanonical {
   // Identity fields
-  identifier: string;
   domainid: string;
   extid: string;
 
@@ -170,7 +169,6 @@ export function createCanonicalCustomDomain(
 ): CustomDomainCanonical {
   return {
     // Identity fields - use realistic identifier formats
-    identifier: 'cd12ab34cd56',
     domainid: 'cd12ab34cd56',
     extid: 'cd12ab34cd56',
 
@@ -218,7 +216,6 @@ export function createVerifiedDomain(
   overrides?: Partial<CustomDomainCanonical>
 ): CustomDomainCanonical {
   return createCanonicalCustomDomain({
-    identifier: 'cd_verified12',
     domainid: 'cd_verified12',
     extid: 'cd_verified12',
     verified: true,
@@ -237,7 +234,6 @@ export function createPendingDomain(
   overrides?: Partial<CustomDomainCanonical>
 ): CustomDomainCanonical {
   return createCanonicalCustomDomain({
-    identifier: 'cd_pending123',
     domainid: 'cd_pending123',
     extid: 'cd_pending123',
     verified: false,
@@ -254,7 +250,6 @@ export function createSubdomainDomain(
   overrides?: Partial<CustomDomainCanonical>
 ): CustomDomainCanonical {
   return createCanonicalCustomDomain({
-    identifier: 'cd_subdomain1',
     domainid: 'cd_subdomain1',
     extid: 'cd_subdomain1',
     display_domain: 'secrets.example.com',
@@ -276,7 +271,6 @@ export function createApexDomain(
   overrides?: Partial<CustomDomainCanonical>
 ): CustomDomainCanonical {
   return createCanonicalCustomDomain({
-    identifier: 'cd_apex12345',
     domainid: 'cd_apex12345',
     extid: 'cd_apex12345',
     display_domain: 'example.com',
@@ -298,7 +292,6 @@ export function createBrandedDomain(
   overrides?: Partial<CustomDomainCanonical>
 ): CustomDomainCanonical {
   return createCanonicalCustomDomain({
-    identifier: 'cd_branded12',
     domainid: 'cd_branded12',
     extid: 'cd_branded12',
     brand: createCanonicalBrandSettings({
@@ -321,7 +314,6 @@ export function createComplexTldDomain(
   overrides?: Partial<CustomDomainCanonical>
 ): CustomDomainCanonical {
   return createCanonicalCustomDomain({
-    identifier: 'cd_couk12345',
     domainid: 'cd_couk12345',
     extid: 'cd_couk12345',
     display_domain: 'secrets.example.co.uk',
@@ -343,7 +335,6 @@ export function createMinimalDomain(
   overrides?: Partial<CustomDomainCanonical>
 ): CustomDomainCanonical {
   return createCanonicalCustomDomain({
-    identifier: 'cd_minimal12',
     domainid: 'cd_minimal12',
     extid: 'cd_minimal12',
     custid: null,
@@ -362,7 +353,6 @@ export function createOldDomain(
   overrides?: Partial<CustomDomainCanonical>
 ): CustomDomainCanonical {
   return createCanonicalCustomDomain({
-    identifier: 'cd_old1234ab',
     domainid: 'cd_old1234ab',
     extid: 'cd_old1234ab',
     display_domain: 'legacy.example.com',
@@ -411,7 +401,6 @@ export function compareCanonicalCustomDomain(
 
   // String/primitive fields
   const primitiveFields = [
-    'identifier',
     'domainid',
     'extid',
     'custid',

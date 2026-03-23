@@ -180,9 +180,6 @@ export const customerCanonical = z.object({
   // Identity fields
   // ─────────────────────────────────────────────────────────────────────────
 
-  /** Unique identifier (internal format, used in URLs). */
-  identifier: z.string(),
-
   /** Object ID (internal UUID, primary key). */
   objid: z.string(),
 

@@ -44,8 +44,8 @@ module AccountAPI::Logic
         OT.ld "[UpdateLocale#perform_update] Setting locale: #{new_locale}"
         sess['locale'] = new_locale
 
-        # Only update customer record if authenticated
-        unless cust.anonymous?
+        # Only update customer record if authenticated (not anonymous)
+        unless cust.nil? || cust.anonymous?
           cust.locale!(new_locale)
         end
       end
@@ -55,7 +55,7 @@ module AccountAPI::Logic
       end
 
       def log_update
-        if cust.anonymous?
+        if cust.nil? || cust.anonymous?
           OT.info "[update-locale] Anonymous session locale updated sid/#{session_sid} old/#{old_locale} new/#{new_locale}"
         else
           OT.info "[update-locale] Customer locale updated cid/#{cust.objid} r/#{cust.role} sid/#{session_sid} old/#{old_locale} new/#{new_locale}"

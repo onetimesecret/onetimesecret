@@ -106,10 +106,10 @@ module Onetime
         def authenticate(env, _requirement)
           session = env['rack.session']
 
-          # Try session first, then fall back to anonymous. Basic auth is
+          # Try session first, then nil for anonymous. Basic auth is
           # handled by a separate strategy in the route chain (routes.txt),
           # not here — this strategy only checks session state.
-          cust = load_user_from_session(session) || Onetime::Customer.anonymous
+          cust = load_user_from_session(session)
 
           # Load organization context if user is authenticated
           org_context = if cust && !cust.anonymous?
@@ -120,7 +120,7 @@ module Onetime
 
           success(
             session: session,
-            user: cust.anonymous? ? nil : cust,  # Pass nil for anonymous users
+            user: cust,  # nil for anonymous users
             auth_method: self.class.auth_method_name,
             **build_metadata(env, { organization_context: org_context }),
           )

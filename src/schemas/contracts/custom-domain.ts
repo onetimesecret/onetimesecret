@@ -285,9 +285,6 @@ export const customDomainCanonical = z.object({
   // Identity fields
   // ─────────────────────────────────────────────────────────────────────────
 
-  /** Unique identifier (internal format, used in URLs). */
-  identifier: z.string(),
-
   /** Domain ID (internal UUID, primary key). Alias for objid. */
   domainid: z.string(),
 

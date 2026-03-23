@@ -6,7 +6,7 @@
 #
 # The `authorized` method (base.rb:48-91) has three code paths:
 #   1. Credentials provided (Basic Auth) - validates customer + apitoken
-#   2. No credentials, allow_anonymous=true - sets @cust to Customer.anonymous
+#   2. No credentials, allow_anonymous=true - @cust stays nil
 #   3. No credentials, allow_anonymous=false - raises OT::Unauthorized
 #
 # The existing controller specs in index_spec.rb stub out `authorized`
@@ -37,7 +37,7 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
     }
   end
 
-  let(:anonymous_customer) { Onetime::Customer.anonymous }
+  # Anonymous users have nil cust - no Customer.anonymous singleton
 
   before do
     allow(request).to receive(:env).and_return(env)
@@ -66,7 +66,7 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
   # ------------------------------------------------------------------
   describe '#authorized (method behavior)' do
     context 'path 1: no credentials, allow_anonymous=true' do
-      it 'sets @cust to Customer.anonymous and yields' do
+      it 'leaves @cust as nil and yields' do
         yielded = false
 
         app.authorized(true) do
@@ -74,8 +74,7 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
         end
 
         expect(yielded).to be true
-        expect(app.cust).to eq(anonymous_customer)
-        expect(app.cust.anonymous?).to be true
+        expect(app.cust).to be_nil
       end
     end
 
@@ -219,10 +218,10 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
         app.status
       end
 
-      it 'sets cust to anonymous' do
+      it 'leaves cust as nil for anonymous' do
         allow(app).to receive(:json)
         app.status
-        expect(app.cust).to be_anonymous
+        expect(app.cust).to be_nil
       end
     end
 
@@ -244,10 +243,10 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
         allow(described_class).to receive(:receipt_hsh).and_return({ 'metadata_key' => 'rcpt_anon' })
       end
 
-      it 'succeeds without credentials and uses anonymous customer' do
+      it 'succeeds without credentials with nil customer' do
         allow(app).to receive(:json)
         app.share
-        expect(app.cust).to be_anonymous
+        expect(app.cust).to be_nil
       end
     end
 
@@ -273,7 +272,7 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
       it 'succeeds without credentials' do
         allow(app).to receive(:json)
         app.generate
-        expect(app.cust).to be_anonymous
+        expect(app.cust).to be_nil
       end
     end
 
@@ -298,7 +297,7 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
       it 'succeeds without credentials' do
         allow(app).to receive(:json)
         app.create
-        expect(app.cust).to be_anonymous
+        expect(app.cust).to be_nil
       end
     end
 
@@ -316,7 +315,7 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
       it 'reaches the controller block without credentials' do
         allow(app).to receive(:secret_not_found_response)
         app.show_secret
-        expect(app.cust).to be_anonymous
+        expect(app.cust).to be_nil
       end
     end
 
@@ -343,7 +342,7 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
       it 'succeeds without credentials' do
         allow(app).to receive(:json)
         app.show_receipt
-        expect(app.cust).to be_anonymous
+        expect(app.cust).to be_nil
       end
     end
   end

@@ -65,7 +65,7 @@ module Core::Logic
       def raise_concerns
         return unless @cust.nil?
 
-        @cust ||= Onetime::Customer.anonymous
+        # cust stays nil - error raised before we need it
         raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
       end
 

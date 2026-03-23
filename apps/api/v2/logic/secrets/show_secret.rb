@@ -104,7 +104,7 @@ module V2::Logic
       private
 
       def verify_owner(owner)
-        if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
+        if cust.nil? || cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
           owner.verified    = true
           owner.verified_by = 'email'
           owner.save

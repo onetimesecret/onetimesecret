@@ -521,15 +521,6 @@ describe('Transform Error Handling', () => {
   });
 
   describe('required field validation', () => {
-    it('rejects missing identifier', () => {
-      const wire = createV2WireCustomDomain(createCanonicalCustomDomain());
-      const { identifier, ...wireWithoutIdentifier } = wire;
-
-      const result = v2CustomDomainSchema.safeParse(wireWithoutIdentifier);
-
-      expect(result.success).toBe(false);
-    });
-
     it('rejects missing display_domain', () => {
       const wire = createV2WireCustomDomain(createCanonicalCustomDomain());
       const { display_domain, ...wireWithoutDomain } = wire;

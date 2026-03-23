@@ -29,7 +29,7 @@ module OrganizationAPI::Logic
       end
 
       def raise_concerns
-        raise_form_error('Authentication required', error_type: :unauthorized) if cust.anonymous?
+        verify_authenticated!
 
         @organization = load_organization(@extid)
         verify_organization_member(@organization)

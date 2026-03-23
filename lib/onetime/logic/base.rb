@@ -9,6 +9,7 @@ require 'onetime/mail'
 require 'onetime/refinements/stripe_refinements'
 require 'onetime/logic/organization_context'
 require 'onetime/security/input_sanitizers'
+require 'onetime/application/authorization_policies'
 
 module Onetime
   module Logic
@@ -30,6 +31,7 @@ module Onetime
     class Base
       include Onetime::Logic::OrganizationContext
       include Onetime::Security::InputSanitizers
+      include Onetime::Application::AuthorizationPolicies
 
       attr_reader :context,
         :sess,
@@ -62,9 +64,7 @@ module Onetime
         process_settings
 
         # Handle user model instances properly
-        if @cust.nil?
-          @cust = Onetime::Customer.anonymous
-        elsif @cust.is_a?(String)
+        if @cust.is_a?(String)
           OT.li "[#{self.class}] Friendly reminder to pass in a Customer instance instead of a objid"
           @cust = Onetime::Customer.load(@cust)
         end
@@ -147,7 +147,8 @@ module Onetime
         # Anonymous users don't have org context by design (NoAuthStrategy
         # returns {} for org_context). Guest route gating handles access
         # control for anonymous requests, so we skip entitlement checks here.
-        return true if cust&.anonymous?
+        # nil cust indicates anonymous (no Customer.anonymous singleton).
+        return true if cust.nil? || cust.anonymous?
 
         # Fail-closed: org context required for authenticated entitlement checks.
         # OrganizationLoader self-heals, so nil org indicates a system issue.

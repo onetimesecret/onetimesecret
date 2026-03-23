@@ -20,9 +20,10 @@ module Core
 
         output['authenticated'] = view_vars['authenticated']
         output['awaiting_mfa']  = view_vars['awaiting_mfa'] || false
-        cust                    = view_vars['cust'] || Onetime::Customer.anonymous
+        cust                    = view_vars['cust']
 
-        output['cust'] = cust.safe_dump
+        # For anonymous users (nil cust), provide minimal anonymous representation
+        output['cust'] = cust ? cust.safe_dump : anonymous_safe_dump
 
         # Check if there was a valid session at the time of this response
         # This is crucial for error pages where authenticated=false but the user
@@ -93,6 +94,32 @@ module Core
           db[:account_password_hashes].where(id: account_id).any?
         rescue StandardError
           false
+        end
+
+        # Provides minimal safe_dump representation for anonymous users
+        #
+        # When cust is nil (anonymous), we provide a minimal structure matching
+        # the Customer.safe_dump format that the frontend expects.
+        #
+        # @return [Hash] Minimal anonymous customer representation
+        def anonymous_safe_dump
+          {
+            'objid' => nil,
+            'extid' => nil,
+            'email' => nil,
+            'role' => 'anonymous',
+            'verified' => false,
+            'last_login' => nil,
+            'locale' => nil,
+            'updated' => nil,
+            'created' => nil,
+            'secrets_created' => '0',
+            'secrets_burned' => '0',
+            'secrets_shared' => '0',
+            'emails_sent' => '0',
+            'active' => false,
+            'notify_on_reveal' => false,
+          }
         end
 
         # Resolve test plan name from Billing::Plan cache or config

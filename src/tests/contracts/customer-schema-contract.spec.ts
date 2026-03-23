@@ -82,7 +82,6 @@ describe('Customer schema contract (safe_dump_fields)', () => {
     // from the excluded fields.
 
     const realisticPayload: Record<string, unknown> = {
-      identifier: 'cust123abc',
       objid: '01234567-89ab-cdef-0123-456789abcdef',
       extid: 'ur1a2b3c4d',
       email: 'user@example.com',
