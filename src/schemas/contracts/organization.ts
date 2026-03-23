@@ -13,12 +13,11 @@
  *
  * This file contains:
  * - organizationCanonical: Canonical field names matching Ruby model
- * - organizationV2ContractSchema: V2 API wire format (different field names)
  * - Supporting schemas: limits, entitlements, invitations, members, payloads
  *
  * @module contracts/organization
  * @category Contracts
- * @see {@link "shapes/organizations/organization"} - V2 shapes with transforms
+ * @see {@link "shapes/organizations/organization"} - Shapes with transforms
  */
 
 import { z } from 'zod';
@@ -40,9 +39,6 @@ import { z } from 'zod';
  * - Contact: contact_email (primary billing/contact)
  * - Status: is_default (auto-created workspace flag), planid
  * - Timestamps: created, updated (Unix epoch seconds)
- *
- * Note: V2 API uses different field names (id, owner_extid) for Vue compatibility.
- * See organizationV2ContractSchema for the V2 wire format.
  *
  * @category Contracts
  */
@@ -89,7 +85,7 @@ export const organizationCanonical = z.object({
 export type OrganizationCanonical = z.infer<typeof organizationCanonical>;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// V2 API contracts (wire format definitions)
+// Supporting schemas
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { membershipRoleSchema } from '@/schemas/contracts/organization-membership';
@@ -149,38 +145,6 @@ export type Entitlement = z.infer<typeof entitlementSchema>;
 export const invitationStatusSchema = z.enum(['pending', 'accepted', 'declined', 'expired']);
 
 export type InvitationStatus = z.infer<typeof invitationStatusSchema>;
-
-/**
- * Organization V2 contract schema
- *
- * Wire format for V2 API responses.
- * Timestamps are coercible numbers (Unix epoch seconds).
- *
- * ID Fields:
- * - id: ObjId - Internal database ID (use for Vue :key, store lookups)
- * - extid: ExtId - External identifier (use for URLs, API paths)
- * - owner_extid: ExtId - External ID of the organization owner
- */
-export const organizationV2ContractSchema = z.object({
-  id: lenientObjIdSchema,
-  extid: lenientExtIdSchema,
-  display_name: z.string().min(1).max(100),
-  description: z.string().max(500).nullish(),
-  contact_email: z.email().nullish(),
-  billing_email: z.email().nullish(),
-  is_default: z.boolean().nullish(),
-  created: z.coerce.number(),
-  updated: z.coerce.number(),
-  owner_extid: lenientExtIdSchema.nullish(),
-  member_count: z.number().int().min(0).nullish(),
-  current_user_role: organizationRoleSchema.nullish(),
-  planid: z.string().nullish(),
-  entitlements: z.array(entitlementSchema).nullish(),
-  limits: organizationLimitsSchema.nullish(),
-  domain_count: z.number().int().min(0).nullish(),
-});
-
-export type OrganizationV2Contract = z.infer<typeof organizationV2ContractSchema>;
 
 /**
  * Create organization request payload schema

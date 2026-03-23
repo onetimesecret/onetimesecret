@@ -13,6 +13,7 @@
 import { customerCanonical, customerRoleSchema } from '@/schemas/contracts';
 import { transforms } from '@/schemas/transforms';
 import { withFeatureFlags } from '@/schemas/utils/feature_flags';
+import { z } from 'zod';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // V2 role re-exports (canonical values from contracts)
@@ -116,8 +117,6 @@ export const customerSchema = withFeatureFlags(
 // ─────────────────────────────────────────────────────────────────────────────
 // Type exports
 // ─────────────────────────────────────────────────────────────────────────────
-
-import { z } from 'zod';
 
 /** TypeScript type for V2 customer record. */
 export type Customer = z.infer<typeof customerSchema>;
