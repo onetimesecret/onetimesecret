@@ -8,4 +8,4 @@
 // - Integer timestamps (not Date objects)
 // - String-encoded fields from Redis
 
-export * from './receipt';
+export * from './secret';

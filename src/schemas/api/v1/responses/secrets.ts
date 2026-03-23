@@ -13,7 +13,7 @@
 // compatibility, but the response schema makes them required since the backend
 // always includes them.
 
-import { v1ReceiptSchema } from '@/schemas/shapes/v1/receipt';
+import { v1ReceiptSchema } from '@/schemas/shapes/v1/secret';
 import { z } from 'zod';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -38,13 +38,19 @@ export const v1ReceiptResponseSchema = v1ReceiptSchema.extend({
   updated: z.number().int().nullable(),
 
   // v0.24 additive fields are required in actual responses
-  identifier: z.string()
+  identifier: z
+    .string()
     .describe('v0.24 name for metadata_key. Prefer this field for new integrations.'),
-  recipients: z.array(z.string())
-    .describe('v0.24 name for recipient.'),
-  receipt_ttl: z.number().int().nullable()
+  recipients: z.array(z.string()).describe('v0.24 name for recipient.'),
+  receipt_ttl: z
+    .number()
+    .int()
+    .nullable()
     .describe('v0.24 name for metadata_ttl. Seconds remaining before expiry.'),
-  receipt_url: z.string().nullable().optional()
+  receipt_url: z
+    .string()
+    .nullable()
+    .optional()
     .describe('v0.24 name for metadata_url. URL to view the receipt.'),
 });
 
