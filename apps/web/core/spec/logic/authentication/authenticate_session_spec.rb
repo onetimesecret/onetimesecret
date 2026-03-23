@@ -89,7 +89,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
     # Stub customer lookup - use a lambda so we can override in tests
     allow(Onetime::Customer).to receive(:find_by_email).and_return(customer)
-    allow(Onetime::Customer).to receive(:anonymous).and_return(anonymous_customer)
+    # Note: Customer.anonymous singleton removed in PR #2733 - anonymous users have cust=nil
 
     # Stub logging on the class so it works before subject is created
     allow_any_instance_of(described_class).to receive(:auth_logger).and_return(mock_logger)

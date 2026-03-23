@@ -92,10 +92,9 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
       get '/bootstrap/me'
       data = JSON.parse(last_response.body)
       expect(data['cust']).to be_a(Hash)
-      # Anonymous customer has specific structure from safe_dump
-      # Uses extid (external ID) for public identification
+      # Anonymous users get anonymous_safe_dump with nil extid (PR #2733)
       expect(data['cust']).to include('extid')
-      expect(data['cust']['extid']).to eq('anon')
+      expect(data['cust']['extid']).to be_nil
     end
 
     it 'returns custid as nil for anonymous user' do
