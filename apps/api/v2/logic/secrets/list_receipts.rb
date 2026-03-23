@@ -106,8 +106,8 @@ module V2::Logic
             'since' => since,
             'now' => now,
             'has_items' => has_items,
-            'received' => received,
-            'notreceived' => notreceived,
+            'revealed_receipts' => received,
+            'pending_receipts' => notreceived,
           },
         }
       end

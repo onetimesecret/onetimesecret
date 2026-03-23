@@ -383,7 +383,7 @@ export const mockReceiptRecentDetails = {
   since: 1735142814,
   now: 1735204014,        // V3: Unix epoch number, not ISO string
   has_items: true,
-  received: [
+  revealed_receipts: [
     {
       identifier: 'received-receipt-1',
       key: 'received-receipt-1',
@@ -421,7 +421,7 @@ export const mockReceiptRecentDetails = {
       kind: 'conceal',
     },
   ],
-  notreceived: [
+  pending_receipts: [
     {
       identifier: 'not-received-receipt-1',
       key: 'not-received-receipt-1',

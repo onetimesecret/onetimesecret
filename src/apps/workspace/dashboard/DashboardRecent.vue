@@ -29,9 +29,9 @@
   const showToast = ref(false);
   const toastMessage = ref('');
 
-  // Add computed properties for received and not received items
-  const receivedItems = computed(() => details.value?.received ?? []);
-  const notReceivedItems = computed(() => details.value?.notreceived ?? []);
+  // Add computed properties for revealed and pending receipts
+  const revealedReceipts = computed(() => details.value?.revealed_receipts ?? []);
+  const pendingReceipts = computed(() => details.value?.pending_receipts ?? []);
 
   // Method to force refresh
   const handleRefresh = async () => {
@@ -118,8 +118,8 @@
           aria-live="polite">
           <SecretReceiptTable
             v-if="recordCount > 0"
-            :not-received="notReceivedItems"
-            :received="receivedItems"
+            :pending-receipts="pendingReceipts"
+            :revealed-receipts="revealedReceipts"
             :is-loading="isLoading"
             :aria-labelledby="'dashboard-recent-heading'" />
           <EmptyState

@@ -106,24 +106,24 @@ describe('Receipt Fixtures Integrity', () => {
     it('has correct structure', () => {
       expect(mockReceiptRecent.details).toBeTruthy();
       expect(mockReceiptRecent.details.type).toBe('list');
-      expect(mockReceiptRecent.details.received).toHaveLength(1);
-      expect(mockReceiptRecent.details.notreceived).toHaveLength(1);
+      expect(mockReceiptRecent.details.revealed_receipts).toHaveLength(1);
+      expect(mockReceiptRecent.details.pending_receipts).toHaveLength(1);
     });
 
     it('revealed records have unique and correct keys', () => {
-      const receivedRecords = mockReceiptRecent.details.received;
+      const receivedRecords = mockReceiptRecent.details.revealed_receipts;
 
       expect(receivedRecords[0].key).toBe('received-receipt-1');
       expect(receivedRecords[0].shortid).toBe('rcv-short-1');
       expect(receivedRecords[0].state).toBe('revealed'); // V3 canonical
     });
 
-    it('not received record has correct keys', () => {
-      const notReceivedRecord = mockReceiptRecent.details.notreceived[0];
+    it('pending receipt has correct keys', () => {
+      const pendingReceipt = mockReceiptRecent.details.pending_receipts[0];
 
-      expect(notReceivedRecord.key).toBe('not-received-receipt-1');
-      expect(notReceivedRecord.shortid).toBe('nrcv-short-1');
-      expect(notReceivedRecord.state).toBe(ReceiptState.NEW);
+      expect(pendingReceipt.key).toBe('not-received-receipt-1');
+      expect(pendingReceipt.shortid).toBe('nrcv-short-1');
+      expect(pendingReceipt.state).toBe(ReceiptState.NEW);
     });
   });
 
@@ -176,14 +176,14 @@ describe('Receipt Fixtures Integrity', () => {
     it('receipt records match their corresponding secret records', () => {
       const verificationCases = [
         {
-          receiptRecord: mockReceiptRecent.details.received[0],
+          receiptRecord: mockReceiptRecent.details.revealed_receipts[0],
           secretRecord: {
             key: 'sec-rcv-1',
             shortid: 'rcv-short-1',
           },
         },
         {
-          receiptRecord: mockReceiptRecent.details.notreceived[0],
+          receiptRecord: mockReceiptRecent.details.pending_receipts[0],
           secretRecord: {
             key: 'sec-nrcv-1',
             shortid: 'nrcv-short-1',
@@ -201,8 +201,8 @@ describe('Receipt Fixtures Integrity', () => {
   describe('Receipt Records Validation', () => {
     it('validates receipt timestamps', () => {
       const records = [
-        ...mockReceiptRecent.details.received,
-        ...mockReceiptRecent.details.notreceived,
+        ...mockReceiptRecent.details.revealed_receipts,
+        ...mockReceiptRecent.details.pending_receipts,
       ];
 
       records.forEach((record) => {
@@ -216,8 +216,8 @@ describe('Receipt Fixtures Integrity', () => {
 
     it('validates required fields are present', () => {
       const records = [
-        ...mockReceiptRecent.details.received,
-        ...mockReceiptRecent.details.notreceived,
+        ...mockReceiptRecent.details.revealed_receipts,
+        ...mockReceiptRecent.details.pending_receipts,
       ];
 
       records.forEach((record) => {

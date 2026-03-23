@@ -860,11 +860,11 @@ describe('V3 List Schemas', () => {
       expect(parsed.type).toBe('list');
       expect(parsed.scope).toBe('all');
       expect(parsed.has_items).toBe(false);
-      expect(parsed.received).toBeUndefined();
-      expect(parsed.notreceived).toBeUndefined();
+      expect(parsed.revealed_receipts).toBeUndefined();
+      expect(parsed.pending_receipts).toBeUndefined();
     });
 
-    it('parses list details with received receipts', () => {
+    it('parses list details with revealed receipts', () => {
       const receiptWire = createV3WireReceiptListRecord(createCanonicalReceiptListRecord({
         state: 'revealed',
         is_revealed: true,
@@ -877,23 +877,23 @@ describe('V3 List Schemas', () => {
         since: 1705315200,
         now: Math.floor(Date.now() / 1000),
         has_items: true,
-        received: [receiptWire],
+        revealed_receipts: [receiptWire],
       };
 
       const parsed = receiptListDetails.parse(wire);
 
       expect(parsed.has_items).toBe(true);
-      expect(parsed.received).toHaveLength(1);
-      expect(parsed.received![0].state).toBe('revealed');
-      expect(parsed.received![0].is_revealed).toBe(true);
+      expect(parsed.revealed_receipts).toHaveLength(1);
+      expect(parsed.revealed_receipts![0].state).toBe('revealed');
+      expect(parsed.revealed_receipts![0].is_revealed).toBe(true);
     });
 
-    it('parses list details with both received and notreceived arrays', () => {
-      const receivedWire = createV3WireReceiptListRecord(createCanonicalReceiptListRecord({
+    it('parses list details with both revealed and pending receipt arrays', () => {
+      const revealedWire = createV3WireReceiptListRecord(createCanonicalReceiptListRecord({
         state: 'revealed',
         identifier: 'x1y2z3a4b5c6',
       }));
-      const notReceivedWire = createV3WireReceiptListRecord(createCanonicalReceiptListRecord({
+      const pendingWire = createV3WireReceiptListRecord(createCanonicalReceiptListRecord({
         state: 'new',
         identifier: 'm9n8o7p6q5r4',
       }));
@@ -905,16 +905,16 @@ describe('V3 List Schemas', () => {
         since: 1705315200,
         now: Math.floor(Date.now() / 1000),
         has_items: true,
-        received: [receivedWire],
-        notreceived: [notReceivedWire],
+        revealed_receipts: [revealedWire],
+        pending_receipts: [pendingWire],
       };
 
       const parsed = receiptListDetails.parse(wire);
 
-      expect(parsed.received).toHaveLength(1);
-      expect(parsed.notreceived).toHaveLength(1);
-      expect(parsed.received![0].identifier).toBe('x1y2z3a4b5c6');
-      expect(parsed.notreceived![0].identifier).toBe('m9n8o7p6q5r4');
+      expect(parsed.revealed_receipts).toHaveLength(1);
+      expect(parsed.pending_receipts).toHaveLength(1);
+      expect(parsed.revealed_receipts![0].identifier).toBe('x1y2z3a4b5c6');
+      expect(parsed.pending_receipts![0].identifier).toBe('m9n8o7p6q5r4');
     });
 
     it('handles nullish scope fields', () => {

@@ -97,8 +97,8 @@ export const receiptListRecord = receiptListCanonical.extend({
  * Uses receiptListRecord (not receiptBaseRecord) because the API includes show_recipients.
  */
 export const receiptListDetails = receiptListDetailsCanonical.extend({
-  received: z.array(receiptListRecord).optional(),
-  notreceived: z.array(receiptListRecord).optional(),
+  revealed_receipts: z.array(receiptListRecord).optional(),
+  pending_receipts: z.array(receiptListRecord).optional(),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

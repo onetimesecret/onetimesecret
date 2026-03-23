@@ -55,8 +55,8 @@ module V1::Logic
             since: since,
             now: now,
             has_items: has_items,
-            received: received.map(&:safe_dump),
-            notreceived: notreceived.map(&:safe_dump),
+            revealed_receipts: received.map(&:safe_dump),
+            pending_receipts: notreceived.map(&:safe_dump),
           },
         }
       end
