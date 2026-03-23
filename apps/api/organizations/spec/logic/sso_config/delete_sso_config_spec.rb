@@ -162,19 +162,14 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::DeleteSsoConfig do
       logic.raise_concerns
     end
 
-    it 'includes user_id' do
+    it 'includes success flag' do
       result = logic.process
-      expect(result[:user_id]).to eq('ext-cust-123')
+      expect(result[:success]).to be true
     end
 
-    it 'includes deleted flag' do
+    it 'includes message' do
       result = logic.process
-      expect(result[:deleted]).to be true
-    end
-
-    it 'includes extid' do
-      result = logic.process
-      expect(result[:extid]).to eq('ext-org-123')
+      expect(result[:message]).to eq('SSO configuration deleted for organization ext-org-123')
     end
   end
 

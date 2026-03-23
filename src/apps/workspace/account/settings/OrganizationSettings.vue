@@ -7,6 +7,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 // LAUNCH: Identity-only - MembersTable hidden until team features enabled
 // import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
 import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
+import SsoConfigForm from '@/apps/workspace/components/organizations/SsoConfigForm.vue';
 import EmptyState from '@/shared/components/ui/EmptyState.vue';
 // LAUNCH: Identity-only - EntitlementUpgradePrompt hidden until team features enabled
 // import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
@@ -34,18 +35,20 @@ import { useRoute, useRouter } from 'vue-router';
 // LAUNCH: Identity-only - zod hidden until team features enabled (used for invite form validation)
 // import { z } from 'zod';
 
-type TabType = 'general' | 'members' | 'domains' | 'subscription';
+type TabType = 'general' | 'members' | 'domains' | 'subscription' | 'sso';
 
 // URL tab names map to internal tab names
 // URL: team -> internal: members
 // URL: settings -> internal: general
 // URL: subscription -> internal: subscription (renamed from billing for clarity)
+// URL: sso -> internal: sso
 const URL_TO_TAB: Record<string, TabType> = {
   team: 'members',
   domains: 'domains',
   subscription: 'subscription',
   billing: 'subscription', // backwards compatibility for old URLs
   settings: 'general',
+  sso: 'sso',
 };
 
 const TAB_TO_URL: Record<TabType, string> = {
@@ -53,6 +56,7 @@ const TAB_TO_URL: Record<TabType, string> = {
   domains: 'domains',
   subscription: 'subscription',
   general: 'settings',
+  sso: 'sso',
 };
 
 const props = withDefaults(defineProps<{
@@ -539,6 +543,18 @@ watch(orgId, async (newOrgId, oldOrgId) => {
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.subscription') }}
+          </button>
+          <!-- SSO tab - single sign-on configuration -->
+          <button
+            data-testid="org-tab-sso"
+            @click="setActiveTab('sso')"
+            :class="[
+              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              activeTab === 'sso'
+                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+            ]">
+            {{ t('web.organizations.tabs.sso') }}
           </button>
           <!-- Settings tab - infrequently changed fields -->
           <button
@@ -1193,6 +1209,39 @@ watch(orgId, async (newOrgId, oldOrgId) => {
               </div>
             </div>
           </template>
+        </section>
+
+        <!-- SSO Tab -->
+        <section
+          v-if="activeTab === 'sso'"
+          data-testid="org-section-sso"
+          class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+          <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+            <div class="flex items-center gap-3">
+              <div class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
+                <OIcon
+                  collection="heroicons"
+                  name="shield-check"
+                  class="size-5 text-brand-600 dark:text-brand-400"
+                  aria-hidden="true" />
+              </div>
+              <div>
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                  {{ t('web.organizations.sso.title') }}
+                </h3>
+                <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                  {{ t('web.organizations.sso.description') }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-6">
+            <SsoConfigForm
+              :org-ext-id="orgId"
+              @saved="success = t('web.organizations.sso.update_success')"
+              @deleted="success = t('web.organizations.sso.delete_success')" />
+          </div>
         </section>
       </div>
     </div>

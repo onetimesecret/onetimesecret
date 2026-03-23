@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/models/org_sso_config'
+require_relative 'serializers'
 
 module OrganizationAPI::Logic
   module SsoConfig
@@ -22,9 +23,11 @@ module OrganizationAPI::Logic
     # - allowed_domains: Optional. Array of allowed email domains
     # - enabled: Optional. Boolean to enable/disable SSO (default: false)
     #
-    # Response includes the updated config with masked client_secret.
+    # Response includes the updated config with masked client_secret_masked.
     #
     class UpdateSsoConfig < OrganizationAPI::Logic::Base
+      include Serializers
+
       VALID_PROVIDER_TYPES = Onetime::OrgSsoConfig::PROVIDER_TYPES.freeze
 
       attr_reader :organization, :sso_config, :existing_config
@@ -207,49 +210,6 @@ module OrganizationAPI::Logic
         return '' unless url.start_with?('https://')
 
         url
-      end
-
-      # Serialize SSO config for API response with masked secrets
-      #
-      # @param config [Onetime::OrgSsoConfig] SSO config to serialize
-      # @return [Hash] Serialized config with masked client_secret
-      def serialize_sso_config(config)
-        {
-          org_id: config.org_id,
-          provider_type: config.provider_type,
-          display_name: config.display_name,
-          enabled: config.enabled?,
-          client_id: reveal_or_nil(config.client_id),
-          client_secret: mask_secret(config.client_secret),
-          tenant_id: config.tenant_id,
-          issuer: config.issuer,
-          allowed_domains: config.allowed_domains,
-        }
-      end
-
-      # Reveal encrypted field value or return nil
-      def reveal_or_nil(concealed)
-        return nil if concealed.nil?
-
-        concealed.reveal { it }
-      rescue StandardError
-        nil
-      end
-
-      # Mask a secret value, showing only last 4 characters
-      def mask_secret(concealed)
-        return nil if concealed.nil?
-
-        plaintext = concealed.reveal { it }
-        return nil if plaintext.nil? || plaintext.empty?
-
-        if plaintext.length <= 4
-          '••••••••'
-        else
-          '••••••••' + plaintext[-4..]
-        end
-      rescue StandardError
-        nil
       end
     end
   end

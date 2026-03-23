@@ -202,7 +202,15 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::GetSsoConfig do
     it 'masks client_secret showing only last 4 chars' do
       result = logic.process
       # "super-secret-value" -> last 4 chars are "alue"
-      expect(result[:record][:client_secret]).to eq('••••••••alue')
+      expect(result[:record][:client_secret_masked]).to eq('••••••••alue')
+    end
+
+    it 'includes timestamps as Unix integers' do
+      result = logic.process
+      record = result[:record]
+
+      expect(record[:created_at]).to be_a(Integer)
+      expect(record[:updated_at]).to be_a(Integer)
     end
   end
 
@@ -233,14 +241,14 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::GetSsoConfig do
 
       it 'returns only mask without revealing any characters' do
         result = logic.process
-        expect(result[:record][:client_secret]).to eq('••••••••')
+        expect(result[:record][:client_secret_masked]).to eq('••••••••')
       end
     end
 
     context 'when client_secret is nil' do
       it 'returns nil' do
         result = logic.process
-        expect(result[:record][:client_secret]).to be_nil
+        expect(result[:record][:client_secret_masked]).to be_nil
       end
     end
   end

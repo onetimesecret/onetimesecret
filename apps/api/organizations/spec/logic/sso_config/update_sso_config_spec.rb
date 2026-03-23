@@ -380,13 +380,21 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::UpdateSsoConfig do
       result = logic.process
       expect(result[:record]).to have_key(:org_id)
       expect(result[:record]).to have_key(:provider_type)
-      expect(result[:record]).to have_key(:client_secret)
+      expect(result[:record]).to have_key(:client_secret_masked)
     end
 
     it 'masks client_secret in response' do
       result = logic.process
       # "client-secret-456" -> last 4 chars are "-456"
-      expect(result[:record][:client_secret]).to eq('••••••••-456')
+      expect(result[:record][:client_secret_masked]).to eq('••••••••-456')
+    end
+
+    it 'includes timestamps as Unix integers' do
+      result = logic.process
+      record = result[:record]
+
+      expect(record[:created_at]).to be_a(Integer)
+      expect(record[:updated_at]).to be_a(Integer)
     end
   end
 

@@ -91,6 +91,10 @@ module Onetime
     # Empty or nil means no domain restriction.
     field :allowed_domains_json
 
+    # Timestamps for audit and API responses (Unix epoch integers)
+    field :created
+    field :updated
+
     # O(1) lookup index: org_id -> org_id (value is same as key since org_id
     # is the identifier). This enables fast existence checks without loading
     # the full config.

@@ -61,9 +61,8 @@ module OrganizationAPI::Logic
 
       def success_data
         {
-          user_id: cust.extid,
-          deleted: true,
-          extid: @extid,
+          success: true,
+          message: "SSO configuration deleted for organization #{@extid}",
         }
       end
 
