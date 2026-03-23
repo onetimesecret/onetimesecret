@@ -7,8 +7,8 @@ import { customDomainCanonical } from '@/schemas/contracts';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
-import { brandSettingsRecord } from './brand';
-import { vhostRecord } from './vhost';
+import { brandSettingsSchema } from './brand';
+import { vhostSchema } from './vhost';
 
 export * from './brand';
 export * from './vhost';
@@ -47,7 +47,7 @@ const v3TimestampOverrides = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * V3 custom domain record.
+ * V3 custom domain schema.
  *
  * Derives from contract, adds V3 wire-format transforms:
  * - Timestamps: number (Unix epoch seconds) -> Date
@@ -58,7 +58,7 @@ const v3TimestampOverrides = {
  *
  * @example
  * ```typescript
- * const domain = customDomainRecord.parse({
+ * const domain = customDomainSchema.parse({
  *   identifier: 'secrets.example.com',
  *   domainid: '01234567-89ab-cdef-0123-456789abcdef',
  *   extid: 'cd1a2b3c4d',
@@ -83,7 +83,7 @@ const v3TimestampOverrides = {
  * console.log(domain.verified); // true (native boolean)
  * ```
  */
-export const customDomainRecord = customDomainCanonical.extend({
+export const customDomainSchema = customDomainCanonical.extend({
   // Wire-format overrides
   ...v3TimestampOverrides,
 
@@ -93,8 +93,8 @@ export const customDomainRecord = customDomainCanonical.extend({
   resolving: z.boolean().optional().default(false),
 
   // Nested objects with V3 transforms
-  vhost: transforms.fromObject.nested(vhostRecord.passthrough().strip()).nullable().default(null),
-  brand: transforms.fromObject.nested(brandSettingsRecord.passthrough().strip()).nullable().default(null),
+  vhost: transforms.fromObject.nested(vhostSchema.passthrough().strip()).nullable().default(null),
+  brand: transforms.fromObject.nested(brandSettingsSchema.passthrough().strip()).nullable().default(null),
 
   // Optional fields with defaults
   org_id: z.string().optional(),
@@ -108,5 +108,5 @@ export const customDomainRecord = customDomainCanonical.extend({
 // Type exports
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** TypeScript type for V3 custom domain record. */
-export type CustomDomainRecord = z.infer<typeof customDomainRecord>;
+/** TypeScript type for V3 custom domain. */
+export type CustomDomain = z.infer<typeof customDomainSchema>;

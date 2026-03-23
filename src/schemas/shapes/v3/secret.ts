@@ -21,7 +21,7 @@ import {
   secretCanonical,
   secretDetailsCanonical,
 } from '@/schemas/contracts';
-import { receiptBaseRecord } from '@/schemas/shapes/v3/receipt';
+import { receiptBaseSchema } from '@/schemas/shapes/v3/receipt';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
@@ -30,19 +30,19 @@ import { z } from 'zod';
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * V3 secret base record.
+ * V3 secret base schema.
  *
  * Derives from contract, adds V3 timestamp transforms (number → Date).
  */
-export const secretBaseRecord = secretBaseCanonical.extend({
+export const secretBaseSchema = secretBaseCanonical.extend({
   created: transforms.fromNumber.toDate,
   updated: transforms.fromNumber.toDate,
 });
 
 /**
- * V3 full secret record with TTL fields.
+ * V3 full secret schema with TTL fields.
  */
-export const secretRecord = secretCanonical.extend({
+export const secretSchema = secretCanonical.extend({
   created: transforms.fromNumber.toDate,
   updated: transforms.fromNumber.toDate,
 });
@@ -52,14 +52,14 @@ export const secretRecord = secretCanonical.extend({
  *
  * Uses contract directly — all fields are native JSON types in V3.
  */
-export const secretDetails = secretDetailsCanonical;
+export const secretDetailsSchema = secretDetailsCanonical;
 
 /**
  * Combined receipt + secret returned by POST /api/v3/conceal and /api/v3/generate.
  */
-export const concealDataRecord = z.object({
-  receipt: receiptBaseRecord,
-  secret: secretRecord,
+export const concealDataSchema = z.object({
+  receipt: receiptBaseSchema,
+  secret: secretSchema,
   share_domain: z.string().nullable(),
 });
 
@@ -67,7 +67,7 @@ export const concealDataRecord = z.object({
 // Type exports
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type SecretBaseRecord = z.infer<typeof secretBaseRecord>;
-export type SecretRecord = z.infer<typeof secretRecord>;
-export type SecretDetails = z.infer<typeof secretDetails>;
-export type ConcealDataRecord = z.infer<typeof concealDataRecord>;
+export type SecretBase = z.infer<typeof secretBaseSchema>;
+export type Secret = z.infer<typeof secretSchema>;
+export type SecretDetails = z.infer<typeof secretDetailsSchema>;
+export type ConcealData = z.infer<typeof concealDataSchema>;

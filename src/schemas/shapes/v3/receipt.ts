@@ -53,20 +53,20 @@ const v3TimestampOverrides = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * V3 receipt base record.
+ * V3 receipt base schema.
  *
  * Derives from contract, adds V3 timestamp transforms (number → Date).
  * Also applies null → false transform for has_passphrase (null for consumed secrets).
  */
-export const receiptBaseRecord = receiptBaseCanonical.extend({
+export const receiptBaseSchema = receiptBaseCanonical.extend({
   ...v3TimestampOverrides,
   has_passphrase: z.boolean().nullish().transform((v) => v ?? false),
 });
 
 /**
- * V3 full receipt record (single-record view with URLs and expiration).
+ * V3 full receipt schema (single-record view with URLs and expiration).
  */
-export const receiptRecord = receiptCanonical.extend({
+export const receiptSchema = receiptCanonical.extend({
   ...v3TimestampOverrides,
   has_passphrase: z.boolean().nullish().transform((v) => v ?? false),
   expiration: transforms.fromNumber.toDate,
@@ -77,15 +77,15 @@ export const receiptRecord = receiptCanonical.extend({
  *
  * Adds null → false transforms for nullable boolean fields.
  */
-export const receiptDetails = receiptDetailsCanonical.extend({
+export const receiptDetailsSchema = receiptDetailsCanonical.extend({
   has_passphrase: z.boolean().nullable().transform((v) => v ?? false),
   can_decrypt: z.boolean().nullable().transform((v) => v ?? false),
 });
 
 /**
- * V3 receipt list record (base + show_recipients).
+ * V3 receipt list schema (base + show_recipients).
  */
-export const receiptListRecord = receiptListCanonical.extend({
+export const receiptListSchema = receiptListCanonical.extend({
   ...v3TimestampOverrides,
   has_passphrase: z.boolean().nullish().transform((v) => v ?? false),
 });
@@ -94,19 +94,19 @@ export const receiptListRecord = receiptListCanonical.extend({
  * V3 receipt list details.
  *
  * Extends contract with arrays of receipt records for categorized display.
- * Uses receiptListRecord (not receiptBaseRecord) because the API includes show_recipients.
+ * Uses receiptListSchema (not receiptBaseSchema) because the API includes show_recipients.
  */
-export const receiptListDetails = receiptListDetailsCanonical.extend({
-  revealed_receipts: z.array(receiptListRecord).optional(),
-  pending_receipts: z.array(receiptListRecord).optional(),
+export const receiptListDetailsSchema = receiptListDetailsCanonical.extend({
+  revealed_receipts: z.array(receiptListSchema).optional(),
+  pending_receipts: z.array(receiptListSchema).optional(),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Type exports
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type ReceiptBaseRecord = z.infer<typeof receiptBaseRecord>;
-export type ReceiptRecord = z.infer<typeof receiptRecord>;
-export type ReceiptDetails = z.infer<typeof receiptDetails>;
-export type ReceiptListDetails = z.infer<typeof receiptListDetails>;
-export type ReceiptListRecord = z.infer<typeof receiptListRecord>;
+export type ReceiptBase = z.infer<typeof receiptBaseSchema>;
+export type Receipt = z.infer<typeof receiptSchema>;
+export type ReceiptDetails = z.infer<typeof receiptDetailsSchema>;
+export type ReceiptListDetails = z.infer<typeof receiptListDetailsSchema>;
+export type ReceiptList = z.infer<typeof receiptListSchema>;

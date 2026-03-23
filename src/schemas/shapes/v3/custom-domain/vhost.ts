@@ -12,7 +12,7 @@ import { z } from 'zod';
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * V3 vhost record.
+ * V3 vhost schema.
  *
  * Extends contract with timestamp transforms for date fields.
  *
@@ -22,7 +22,7 @@ import { z } from 'zod';
  *
  * @example
  * ```typescript
- * const vhost = vhostRecord.parse({
+ * const vhost = vhostSchema.parse({
  *   status: 'active',
  *   has_ssl: true,
  *   is_resolving: true,
@@ -32,7 +32,7 @@ import { z } from 'zod';
  * console.log(vhost.last_monitored_unix instanceof Date); // true
  * ```
  */
-export const vhostRecord = vhostCanonical.extend({
+export const vhostSchema = vhostCanonical.extend({
   // V3 sends booleans as native types
   apx_hit: z.boolean().optional(),
   has_ssl: z.boolean().optional(),
@@ -51,5 +51,5 @@ export const vhostRecord = vhostCanonical.extend({
 // Type exports
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** TypeScript type for V3 vhost record. */
-export type VHostRecord = z.infer<typeof vhostRecord>;
+/** TypeScript type for V3 vhost. */
+export type VHost = z.infer<typeof vhostSchema>;

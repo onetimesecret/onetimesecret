@@ -71,7 +71,7 @@ const v3FeatureFlagsOverride = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * V3 customer record.
+ * V3 customer schema.
  *
  * Derives from contract, adds V3 wire-format transforms:
  * - Timestamps: number (Unix epoch seconds) -> Date
@@ -83,7 +83,7 @@ const v3FeatureFlagsOverride = {
  *
  * @example
  * ```typescript
- * const customer = customerRecord.parse({
+ * const customer = customerSchema.parse({
  *   identifier: 'cust123',
  *   objid: '01234567-89ab-cdef-0123-456789abcdef',
  *   extid: 'ur1a2b3c4d',
@@ -107,7 +107,7 @@ const v3FeatureFlagsOverride = {
  * console.log(customer.last_login instanceof Date); // true
  * ```
  */
-export const customerRecord = customerCanonical.extend({
+export const customerSchema = customerCanonical.extend({
   // Wire-format overrides
   ...v3TimestampOverrides,
   ...v3FeatureFlagsOverride,
@@ -136,5 +136,5 @@ export const customerRecord = customerCanonical.extend({
 // Type exports
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** TypeScript type for V3 customer record. */
-export type CustomerRecord = z.infer<typeof customerRecord>;
+/** TypeScript type for V3 customer. */
+export type Customer = z.infer<typeof customerSchema>;

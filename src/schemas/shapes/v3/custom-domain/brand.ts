@@ -14,21 +14,21 @@ import { z } from 'zod';
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * V3 brand settings record.
+ * V3 brand settings schema.
  *
  * V3 sends native types - booleans are native, no string transforms needed.
  * Extends contract with defaults for optional fields.
  *
  * @example
  * ```typescript
- * const brand = brandSettingsRecord.parse({
+ * const brand = brandSettingsSchema.parse({
  *   primary_color: '#dc4a22',
  *   font_family: 'sans',
  *   button_text_light: false,
  * });
  * ```
  */
-export const brandSettingsRecord = brandSettingsCanonical.extend({
+export const brandSettingsSchema = brandSettingsCanonical.extend({
   // V3 sends native booleans, add defaults
   button_text_light: z.boolean().default(false),
   allow_public_homepage: z.boolean().default(false),
@@ -38,18 +38,18 @@ export const brandSettingsRecord = brandSettingsCanonical.extend({
 });
 
 /**
- * V3 image properties record.
+ * V3 image properties schema.
  *
  * Image metadata for logo and icon fields.
  */
-export const imagePropsRecord = imagePropsCanonical;
+export const imagePropsSchema = imagePropsCanonical;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Type exports
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** TypeScript type for V3 brand settings record. */
-export type BrandSettingsRecord = z.infer<typeof brandSettingsRecord>;
+/** TypeScript type for V3 brand settings. */
+export type BrandSettings = z.infer<typeof brandSettingsSchema>;
 
-/** TypeScript type for V3 image properties record. */
-export type ImagePropsRecord = z.infer<typeof imagePropsRecord>;
+/** TypeScript type for V3 image properties. */
+export type ImageProps = z.infer<typeof imagePropsSchema>;

@@ -21,9 +21,6 @@ export const feedbackSchema = feedbackCanonical.extend({
   stamp: transforms.fromNumber.toDate,
 });
 
-/** @deprecated Use feedbackSchema for consistency with other v3 shapes */
-export const feedbackRecord = feedbackSchema;
-
 /**
  * V3 feedback details.
  *
@@ -37,16 +34,9 @@ export const feedbackDetailsSchema = feedbackDetailsCanonical.extend({
     .transform((v) => v ?? false),
 });
 
-/** @deprecated Use feedbackDetailsSchema for consistency */
-export const feedbackDetails = feedbackDetailsSchema;
-
 // -----------------------------------------------------------------------------
 // Type exports
 // -----------------------------------------------------------------------------
 
-export type FeedbackRecord = z.infer<typeof feedbackSchema>;
-export type FeedbackDetailsRecord = z.infer<typeof feedbackDetailsSchema>;
-
-// Convenience aliases
-export type Feedback = FeedbackRecord;
-export type FeedbackDetails = FeedbackDetailsRecord;
+export type Feedback = z.infer<typeof feedbackSchema>;
+export type FeedbackDetails = z.infer<typeof feedbackDetailsSchema>;
