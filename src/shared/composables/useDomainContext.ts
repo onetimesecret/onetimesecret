@@ -144,7 +144,7 @@ function createDomainFetcher(
   return async (): Promise<boolean> => {
     const { domainsEnabled } = getConfig();
     if (!domainsEnabled) return true;
-    const orgId = organizationStore.currentOrganization?.id;
+    const orgId = organizationStore.currentOrganization?.objid;
     if (!orgId) {
       console.debug('[useDomainContext] Skipping fetch: no currentOrganization set yet');
       return false;
@@ -253,7 +253,7 @@ export function useDomainContext() {
   if (!watcherInitialized) {
     watcherInitialized = true;
     watch(
-      () => organizationStore.currentOrganization?.id,
+      () => organizationStore.currentOrganization?.objid,
       async (newOrgId, oldOrgId) => {
         if (newOrgId && newOrgId !== oldOrgId) {
           const isCurrentRequest = await fetchDomainsForOrganization();
