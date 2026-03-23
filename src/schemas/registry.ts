@@ -41,7 +41,7 @@ import { customerSchema } from './shapes/v2/customer';
 import { customDomainSchema } from './shapes/v2/custom-domain';
 import { secretSchema, secretDetailsSchema, secretStateSchema } from './shapes/v2/secret';
 import { receiptSchema, receiptDetailsSchema, receiptStateSchema } from './shapes/v2/receipt';
-import { feedbackSchema } from './shapes/v2/feedback';
+import { feedbackSchema } from './shapes/v3/feedback';
 import { organizationSchema } from './shapes/organizations/organization';
 
 // =============================================================================

@@ -7,7 +7,7 @@
  * Config-related schemas are imported from @/schemas/contracts/config/config.ts
  */
 
-import { feedbackSchema } from '@/schemas/shapes/v2';
+import { feedbackSchema } from '@/schemas/shapes/v3/feedback';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 

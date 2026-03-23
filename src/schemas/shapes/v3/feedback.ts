@@ -17,9 +17,12 @@ import { z } from 'zod';
  * Derives from contract, adds V3 timestamp transform (number -> Date).
  * V3 API sends timestamps as Unix epoch seconds.
  */
-export const feedbackRecord = feedbackCanonical.extend({
+export const feedbackSchema = feedbackCanonical.extend({
   stamp: transforms.fromNumber.toDate,
 });
+
+/** @deprecated Use feedbackSchema for consistency with other v3 shapes */
+export const feedbackRecord = feedbackSchema;
 
 /**
  * V3 feedback details.
@@ -27,16 +30,23 @@ export const feedbackRecord = feedbackCanonical.extend({
  * Adds null -> false transform for the received boolean field.
  * Handles cases where the API returns null for unset acknowledgment status.
  */
-export const feedbackDetails = feedbackDetailsCanonical.extend({
+export const feedbackDetailsSchema = feedbackDetailsCanonical.extend({
   received: z
     .boolean()
     .nullable()
     .transform((v) => v ?? false),
 });
 
+/** @deprecated Use feedbackDetailsSchema for consistency */
+export const feedbackDetails = feedbackDetailsSchema;
+
 // -----------------------------------------------------------------------------
 // Type exports
 // -----------------------------------------------------------------------------
 
-export type FeedbackRecord = z.infer<typeof feedbackRecord>;
-export type FeedbackDetails = z.infer<typeof feedbackDetails>;
+export type FeedbackRecord = z.infer<typeof feedbackSchema>;
+export type FeedbackDetailsRecord = z.infer<typeof feedbackDetailsSchema>;
+
+// Convenience aliases
+export type Feedback = FeedbackRecord;
+export type FeedbackDetails = FeedbackDetailsRecord;

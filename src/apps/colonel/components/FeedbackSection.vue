@@ -1,7 +1,7 @@
 <!-- src/apps/colonel/components/FeedbackSection.vue -->
 
 <script setup lang="ts">
-import { Feedback } from '@/schemas/shapes/v2/feedback'
+import { Feedback } from '@/schemas/shapes/v3/feedback'
 defineProps<{
   title: string;
   count?: number;

@@ -4,14 +4,14 @@
 // Wraps shapes from shapes/v3/ in API envelopes.
 
 import { createApiResponseSchema } from '@/schemas/api/base';
-import { feedbackRecord, feedbackDetails } from '@/schemas/shapes/v3/feedback';
+import { feedbackSchema, feedbackDetailsSchema } from '@/schemas/shapes/v3/feedback';
 import { z } from 'zod';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Envelope-wrapped response schemas
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const feedbackResponseSchema = createApiResponseSchema(feedbackRecord, feedbackDetails);
+export const feedbackResponseSchema = createApiResponseSchema(feedbackSchema, feedbackDetailsSchema);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Type exports
