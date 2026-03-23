@@ -2,7 +2,7 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/v3/responses';
-import type { ReceiptListRecord, ReceiptListDetails } from '@/schemas/shapes/v3/receipt';
+import type { ReceiptList, ReceiptListDetails } from '@/schemas/shapes/v3/receipt';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
@@ -26,7 +26,7 @@ export interface FetchListOptions {
 export type ReceiptListStore = {
   // State
   _initialized: boolean;
-  records: ReceiptListRecord[];
+  records: ReceiptList[];
   details: ReceiptListDetails | null;
   count: number | null;
   currentScope: FetchListOptions['scope'];
@@ -54,7 +54,7 @@ export const useReceiptListStore = defineStore('receiptList', () => {
 
   // State
   const _initialized = ref(false);
-  const records: Ref<ReceiptListRecord[] | null> = ref(null);
+  const records: Ref<ReceiptList[] | null> = ref(null);
   const details: Ref<ReceiptListDetails | null> = ref(null);
   const count = ref<number | null>(null);
   const currentScope = ref<FetchListOptions['scope']>(undefined);
@@ -97,7 +97,7 @@ export const useReceiptListStore = defineStore('receiptList', () => {
       timestamp,
       responseCount: response.data?.count,
       responseRecordsLength: response.data?.records?.length ?? 0,
-      firstThreeIds: response.data?.records?.slice(0, 3).map((r: ReceiptListRecord) => r.shortid),
+      firstThreeIds: response.data?.records?.slice(0, 3).map((r: ReceiptList) => r.shortid),
     });
 
     const validated = responseSchemas.receiptList.parse(response.data);

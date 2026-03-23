@@ -3,7 +3,7 @@
 import { createError } from '@/shared/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/v3/responses';
-import type { ReceiptRecord, ReceiptDetails } from '@/schemas/shapes/v3/receipt';
+import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v3/receipt';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
@@ -44,7 +44,7 @@ interface StoreOptions extends PiniaPluginOptions {}
  */
 export type ReceiptStore = {
   // State
-  record: ReceiptRecord | null;
+  record: Receipt | null;
   details: ReceiptDetails | null;
   apiMode: ApiMode;
   _initialized: boolean;
@@ -66,7 +66,7 @@ export const useReceiptStore = defineStore('receipt', () => {
   const $api = inject('api') as AxiosInstance;
 
   // State
-  const record = ref<ReceiptRecord | null>(null);
+  const record = ref<Receipt | null>(null);
   const details = ref<ReceiptDetails | null>(null);
   const _initialized = ref(false);
   const apiMode = ref<ApiMode>('authenticated');

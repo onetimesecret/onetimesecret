@@ -4,9 +4,9 @@ import { PiniaPluginOptions } from '@/plugins/pinia';
 import { UpdateDomainBrandRequest } from '@/schemas/api/domains/requests';
 import { responseSchemas, type CustomDomainDetails } from '@/schemas/api/v3/responses';
 import type {
-  BrandSettingsRecord,
-  CustomDomainRecord,
-  ImagePropsRecord,
+  BrandSettings,
+  CustomDomain,
+  ImageProps,
 } from '@/schemas/shapes/v3';
 import { loggingService } from '@/services/logging.service';
 import { AxiosError, AxiosInstance } from 'axios';
@@ -35,7 +35,7 @@ export type DomainsStore = {
   // State
   _initialized: boolean;
   _currentOrgId: string | null;
-  records: CustomDomainRecord[];
+  records: CustomDomain[];
   details: CustomDomainDetails | null;
   count: number | null;
 
@@ -44,23 +44,23 @@ export type DomainsStore = {
   initialized: boolean;
 
   // Actions
-  addDomain: (domain: string, orgId?: string) => Promise<{ record: CustomDomainRecord; details?: CustomDomainDetails }>;
+  addDomain: (domain: string, orgId?: string) => Promise<{ record: CustomDomain; details?: CustomDomainDetails }>;
   fetchList: () => Promise<void>;
-  getDomain: (extid: string) => Promise<CustomDomainRecord>;
-  verifyDomain: (extid: string) => Promise<CustomDomainRecord>;
+  getDomain: (extid: string) => Promise<CustomDomain>;
+  verifyDomain: (extid: string) => Promise<CustomDomain>;
   deleteDomain: (extid: string) => Promise<void>;
 
   uploadLogo: (extid: string, file: File) => Promise<void>;
-  fetchLogo: (extid: string) => Promise<ImagePropsRecord>;
+  fetchLogo: (extid: string) => Promise<ImageProps>;
   removeLogo: (extid: string) => Promise<void>;
 
   refreshRecords: (options?: RefreshRecordsOptions) => Promise<void>;
-  getBrandSettings: (extid: string) => Promise<BrandSettingsRecord>;
+  getBrandSettings: (extid: string) => Promise<BrandSettings>;
   updateDomainBrand: (
     extid: string,
     brandUpdate: UpdateDomainBrandRequest
-  ) => Promise<CustomDomainRecord>;
-  updateBrandSettings: (extid: string, settings: Partial<BrandSettingsRecord>) => Promise<BrandSettingsRecord>;
+  ) => Promise<CustomDomain>;
+  updateBrandSettings: (extid: string, settings: Partial<BrandSettings>) => Promise<BrandSettings>;
 
   reset: () => void;
 } & PiniaCustomProperties;
@@ -72,7 +72,7 @@ export const useDomainsStore = defineStore('domains', () => {
   // State
   const _initialized = ref(false);
   const _currentOrgId = ref<string | null>(null);
-  const records: Ref<CustomDomainRecord[] | null> = ref(null);
+  const records: Ref<CustomDomain[] | null> = ref(null);
   const details: Ref<CustomDomainDetails | null> = ref(null);
   const count = ref<number | null>(null);
 
@@ -152,7 +152,7 @@ export const useDomainsStore = defineStore('domains', () => {
     return validated.record;
   }
 
-  async function fetchLogo(extid: string): Promise<ImagePropsRecord | null> {
+  async function fetchLogo(extid: string): Promise<ImageProps | null> {
     try {
       const response = await $api.get(`/api/domains/${extid}/logo`);
       // Use the existing schema to validate the response
@@ -209,7 +209,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * Get brand settings for a domain
    */
   // Ensure getBrandSettings always returns valid data
-  async function getBrandSettings(extid: string): Promise<BrandSettingsRecord> {
+  async function getBrandSettings(extid: string): Promise<BrandSettings> {
     const response = await $api.get(`/api/domains/${extid}/brand`);
     const validated = responseSchemas.brandSettings.parse(response.data);
     return validated.record;
@@ -218,7 +218,7 @@ export const useDomainsStore = defineStore('domains', () => {
   /**
    * Update brand settings for a domain
    */
-  async function updateBrandSettings(extid: string, settings: Partial<BrandSettingsRecord>) {
+  async function updateBrandSettings(extid: string, settings: Partial<BrandSettings>) {
     const response = await $api.put(`/api/domains/${extid}/brand`, {
       brand: settings,
     });

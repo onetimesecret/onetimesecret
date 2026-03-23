@@ -2,7 +2,7 @@
 
 import { createI18nInstance } from '@/i18n';
 import { ApplicationError } from '@/schemas';
-import { type BrandSettingsRecord, type ImagePropsRecord } from '@/schemas/shapes/v3';
+import { type BrandSettings, type ImageProps } from '@/schemas/shapes/v3';
 import { useNotificationsStore } from '@/shared/stores';
 import { useBrandStore } from '@/shared/stores/brandStore';
 import { useDomainsStore } from '@/shared/stores/domainsStore';
@@ -39,9 +39,9 @@ export function useBranding(domainId?: string) {
   const error = ref<ApplicationError | null>(null);
 
   const { composer, setLocale } = createI18nInstance();
-  const brandSettings = ref<BrandSettingsRecord>(store.getSettings(domainId || ''));
-  const originalSettings = ref<BrandSettingsRecord | null>(null);
-  const logoImage = ref<ImagePropsRecord | null>(null);
+  const brandSettings = ref<BrandSettings>(store.getSettings(domainId || ''));
+  const originalSettings = ref<BrandSettings | null>(null);
+  const logoImage = ref<ImageProps | null>(null);
 
   /**
    * Resolve extid from either an extid or display_domain.
@@ -135,7 +135,7 @@ export function useBranding(domainId?: string) {
   const hasUnsavedChanges = computed(() => {
     if (!originalSettings.value) return false;
     return !Object.entries(brandSettings.value).every(
-      ([key, value]) => originalSettings.value?.[key as keyof BrandSettingsRecord] === value
+      ([key, value]) => originalSettings.value?.[key as keyof BrandSettings] === value
     );
   });
 
@@ -163,7 +163,7 @@ export function useBranding(domainId?: string) {
    * @param targetDomain - Optional display domain override (for use when composable
    *                       is called at setup time but needs to save to different domains)
    */
-  const saveBranding = (updates: Partial<BrandSettingsRecord>, targetDomain?: string) =>
+  const saveBranding = (updates: Partial<BrandSettings>, targetDomain?: string) =>
     wrap(async () => {
       const effectiveDomain = targetDomain || domainId;
       if (!effectiveDomain) return;

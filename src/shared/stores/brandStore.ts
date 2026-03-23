@@ -1,12 +1,12 @@
 // src/shared/stores/brandStore.ts
 
 import { responseSchemas } from '@/schemas/api/v3/responses';
-import type { BrandSettingsRecord, ImagePropsRecord } from '@/schemas/shapes/v3/custom-domain';
+import type { BrandSettings, ImageProps } from '@/schemas/shapes/v3/custom-domain';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { inject, ref } from 'vue';
 
-const defaultBranding: BrandSettingsRecord = {
+const defaultBranding: BrandSettings = {
   primary_color: '#dc4a22',
   font_family: 'sans',
   corner_style: 'rounded',
@@ -23,8 +23,8 @@ const defaultBranding: BrandSettingsRecord = {
 /* eslint max-lines-per-function: off */
 export const useBrandStore = defineStore('brand', () => {
   const $api = inject('api') as AxiosInstance;
-  const settings = ref<Record<string, BrandSettingsRecord>>({});
-  const logos = ref<Record<string, ImagePropsRecord>>({});
+  const settings = ref<Record<string, BrandSettings>>({});
+  const logos = ref<Record<string, ImageProps>>({});
   const _initialized = ref(false);
 
   /* Reset primaryColor by passing undefined through primary_color field validator
@@ -40,14 +40,14 @@ export const useBrandStore = defineStore('brand', () => {
     _initialized.value = true;
   }
 
-  async function fetchSettings(domainId: string): Promise<BrandSettingsRecord> {
+  async function fetchSettings(domainId: string): Promise<BrandSettings> {
     const response = await $api.get(`/api/domains/${domainId}/brand`);
     const validated = responseSchemas.brandSettings.parse(response.data);
     settings.value[domainId] = validated.record;
     return validated.record;
   }
 
-  async function updateSettings(domainId: string, updates: Partial<BrandSettingsRecord>) {
+  async function updateSettings(domainId: string, updates: Partial<BrandSettings>) {
     const formattedUpdates = {
       ...updates,
       primary_color: updates.primary_color?.toLowerCase(),
@@ -88,18 +88,18 @@ export const useBrandStore = defineStore('brand', () => {
     delete logos.value[domainId];
   }
 
-  function getSettings(domainId: string): BrandSettingsRecord {
+  function getSettings(domainId: string): BrandSettings {
     return {
       ...defaultBranding,
       ...settings.value[domainId],
     };
   }
 
-  function getLogo(domainId: string): ImagePropsRecord | null {
+  function getLogo(domainId: string): ImageProps | null {
     return logos.value[domainId] || null;
   }
 
-  function compareSettings(domainId: string, newSettings: BrandSettingsRecord) {
+  function compareSettings(domainId: string, newSettings: BrandSettings) {
     return isEqual(settings.value[domainId], newSettings);
   }
 
@@ -116,8 +116,8 @@ export const useBrandStore = defineStore('brand', () => {
   };
 });
 
-function isEqual(a: BrandSettingsRecord, b: BrandSettingsRecord): boolean {
-  const keys: (keyof BrandSettingsRecord)[] = [
+function isEqual(a: BrandSettings, b: BrandSettings): boolean {
+  const keys: (keyof BrandSettings)[] = [
     'primary_color',
     'font_family',
     'corner_style',

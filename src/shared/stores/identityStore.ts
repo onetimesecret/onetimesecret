@@ -1,8 +1,8 @@
 // src/shared/stores/identityStore.ts
 
 import {
-  brandSettingsRecord,
-  type BrandSettingsRecord as BrandSettings,
+  brandSettingsSchema,
+  type BrandSettings,
 } from '@/schemas/shapes/v3/custom-domain';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, toRefs, watch } from 'vue';
@@ -41,7 +41,7 @@ interface IdentityState {
  * Zod validator for primary color field
  * Ensures color values conform to brand schema requirements
  */
-const primaryColorValidator = brandSettingsRecord.shape.primary_color;
+const primaryColorValidator = brandSettingsSchema.shape.primary_color;
 
 /**
  * Manages product identity state including domain context and branding
@@ -71,7 +71,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
    * Handles validation and default values for branding fields
    */
   function getInitialState(): IdentityState {
-    const brand = brandSettingsRecord.parse(domain_branding.value ?? {});
+    const brand = brandSettingsSchema.parse(domain_branding.value ?? {});
 
     // Parse with fallback values
     const primaryColor =
@@ -97,7 +97,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
 
   // Watch for domain branding changes to update derived state
   watch(domain_branding, (newBranding) => {
-    const brand = brandSettingsRecord.parse(newBranding ?? {});
+    const brand = brandSettingsSchema.parse(newBranding ?? {});
     state.brand = brand;
     state.primaryColor =
       primaryColorValidator.parse(brand.primary_color) ?? DEFAULT_PRIMARY_COLOR;
