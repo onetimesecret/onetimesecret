@@ -92,10 +92,12 @@ export const vhostRecord = vhostCanonical.extend({
   is_resolving: z.boolean().optional(),
 
   // Approximated API sends timestamps as strings, not numbers
+  // All timestamp fields are optional - external API may omit them,
+  // and historical data may predate these fields.
   created_at: transforms.fromString.date.optional(),
   last_monitored_unix: transforms.fromString.date.optional(),
-  ssl_active_from: transforms.fromString.dateNullable,
-  ssl_active_until: transforms.fromString.dateNullable,
+  ssl_active_from: transforms.fromString.dateNullable.optional(),
+  ssl_active_until: transforms.fromString.dateNullable.optional(),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

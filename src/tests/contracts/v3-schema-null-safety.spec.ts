@@ -1,15 +1,21 @@
 // src/tests/contracts/v3-schema-null-safety.spec.ts
 //
-// Contract tests for V3 Zod schema null-safety on boolean fields.
+// Contract tests for schema null-safety on boolean fields (V2 and V3).
 //
 // Problem: The Ruby backend sends `null` for boolean fields like
 // `has_passphrase` and `can_decrypt` when a secret is destroyed/consumed
-// (secret.nil?). V2 model schemas use `transforms.fromString.boolean`
-// which preprocesses via `parseBoolean` (null -> false). V3 response
-// schemas use bare `z.boolean()` which rejects null at parse time.
+// (secret.nil?).
 //
-// These tests document the CURRENT broken behavior and will verify
-// the fix once applied. They do NOT modify any schemas.
+// Wire format differences:
+// - V2: Booleans come as STRINGS ('true'/'false'/'1'/'0' or null)
+//   Transform: z.string().nullish().transform(val => val === 'true' || val === '1')
+//   Accepts string | null | undefined, outputs boolean
+//
+// - V3: Booleans come as NATIVE JSON types (true/false/null)
+//   Schema: z.boolean().nullable() or z.boolean().nullish()
+//   Accepts boolean | null, outputs boolean | null
+//
+// These tests verify null-safety across both wire formats.
 
 import { receiptResponseSchema, receiptBaseRecord } from '@/schemas/api/v3/responses/receipts';
 import {
@@ -529,30 +535,33 @@ describe('V3 schema null-safety audit', () => {
   // ---------------------------------------------------------------------------
 
   describe('V2 vs V3 null handling comparison (receipt details)', () => {
-    // The V2 receiptDetailsSchema uses transforms.fromString.boolean which
-    // preprocesses via parseBoolean. parseBoolean(null) returns false.
-    // The V3 receipt details uses bare z.boolean() which rejects null.
+    // V2 receiptDetailsSchema uses transforms.fromString.boolean which is:
+    //   z.string().nullish().transform(val => val === 'true' || val === '1')
+    // This accepts string | null | undefined, NOT native booleans.
+    // V3 receipt details uses bare z.boolean() which accepts native booleans.
 
-    const nullBooleanDetailsPayload = {
+    // V2 wire format: boolean fields are strings ('true'/'false'/'1'/'0')
+    // null is accepted for nullish fields like has_passphrase/can_decrypt
+    const v2WireFormatPayload = {
       type: 'record' as const,
-      display_lines: 1,
-      no_cache: true,
+      display_lines: '1',  // V2 sends numbers as strings
+      no_cache: 'true',    // V2 sends booleans as strings
       secret_realttl: null,
       view_count: null,
-      has_passphrase: null,
+      has_passphrase: null,  // null is valid for nullish fields
       can_decrypt: null,
       secret_value: null,
-      show_secret: false,
-      show_secret_link: false,
-      show_receipt_link: true,
-      show_receipt: true,
-      show_recipients: true,
-      is_orphaned: false,
-      is_expired: false,
+      show_secret: 'false',
+      show_secret_link: 'false',
+      show_receipt_link: 'true',
+      show_receipt: 'true',
+      show_recipients: 'true',
+      is_orphaned: 'false',
+      is_expired: 'false',
     };
 
     it('V2 receiptDetailsSchema ACCEPTS null for has_passphrase (coerces to false)', () => {
-      const result = receiptDetailsSchema.safeParse(nullBooleanDetailsPayload);
+      const result = receiptDetailsSchema.safeParse(v2WireFormatPayload);
 
       // V2 schema uses transforms.fromString.boolean -> parseBoolean -> null becomes false
       if (!result.success) {
@@ -567,7 +576,7 @@ describe('V3 schema null-safety audit', () => {
     });
 
     it('V2 receiptDetailsSchema coerces null has_passphrase to false', () => {
-      const result = receiptDetailsSchema.safeParse(nullBooleanDetailsPayload);
+      const result = receiptDetailsSchema.safeParse(v2WireFormatPayload);
       expect(result.success).toBe(true);
 
       if (result.success) {
@@ -576,17 +585,34 @@ describe('V3 schema null-safety audit', () => {
       }
     });
 
-    it('V3 receipt details accepts the same null payload that V2 accepts', () => {
+    it('V3 receipt details accepts null booleans with V3 native-type payload', () => {
+      // V3 wire format: native JSON types (numbers, booleans, null)
+      // V3 receipt details should handle null for has_passphrase/can_decrypt
+      const v3NativePayload = {
+        type: 'record' as const,
+        display_lines: 1,         // V3: native number
+        no_cache: true,           // V3: native boolean
+        secret_realttl: null,
+        view_count: null,
+        has_passphrase: null,     // null for consumed secrets
+        can_decrypt: null,
+        secret_value: null,
+        show_secret: false,       // V3: native boolean
+        show_secret_link: false,
+        show_receipt_link: true,
+        show_receipt: true,
+        show_recipients: true,
+        is_orphaned: false,
+        is_expired: false,
+      };
+
       // Extract V3 receipt details from the actual response schema
       const v3ReceiptDetails = (
         receiptResponseSchema.shape.details as z.ZodOptional<z.ZodObject<any>>
       ).unwrap();
 
-      const v3Result = v3ReceiptDetails.safeParse(nullBooleanDetailsPayload);
-      const v2Result = receiptDetailsSchema.safeParse(nullBooleanDetailsPayload);
+      const v3Result = v3ReceiptDetails.safeParse(v3NativePayload);
 
-      // Desired: both V2 and V3 accept the payload
-      expect(v2Result.success).toBe(true);
       if (!v3Result.success) {
         expect(v3Result.error.issues).toEqual([]);
       }
@@ -594,11 +620,12 @@ describe('V3 schema null-safety audit', () => {
     });
 
     it('V2 schema handles all null-coercion cases that V3 does not', () => {
-      // Test with ALL boolean fields set to null to see which V2 coerces
-      const allNullBooleans = {
+      // Test with ALL boolean fields set to null to see which V2 coerces.
+      // V2 wire format: numbers/booleans come as strings, null is valid for nullish fields.
+      const v2AllNullBooleans = {
         type: 'record' as const,
-        display_lines: 1,
-        no_cache: null,
+        display_lines: '1',  // V2 wire format: numbers as strings
+        no_cache: null,      // null is valid for z.string().nullish()
         secret_realttl: null,
         view_count: null,
         has_passphrase: null,
@@ -613,8 +640,8 @@ describe('V3 schema null-safety audit', () => {
         is_expired: null,
       };
 
-      const v2Result = receiptDetailsSchema.safeParse(allNullBooleans);
-      // V2 should accept all of these because parseBoolean(null) -> false
+      const v2Result = receiptDetailsSchema.safeParse(v2AllNullBooleans);
+      // V2 accepts null for string-based boolean transform: null → false
       expect(v2Result.success).toBe(true);
 
       if (v2Result.success) {
@@ -691,44 +718,47 @@ describe('V3 schema null-safety audit', () => {
     });
   });
 
-  describe('transforms.fromString.boolean via z.preprocess', () => {
-    // The V2 transform wraps parseBoolean in z.preprocess
-    // Verify the full pipeline works with z.preprocess(parseBoolean, z.boolean())
-
-    const v2BooleanSchema = z.preprocess(parseBoolean, z.boolean());
+  describe('z.preprocess(parseBoolean, z.boolean()) pattern', () => {
+    // NOTE: This tests a HYPOTHETICAL preprocess-based approach, not the actual
+    // transforms.fromString.boolean implementation. The actual V2 transform uses:
+    //   z.string().nullish().transform(val => val === 'true' || val === '1')
+    // which expects string input, not any type.
+    //
+    // This preprocess pattern accepts ANY input type and coerces to boolean:
+    const preprocessBooleanSchema = z.preprocess(parseBoolean, z.boolean());
 
     it('accepts and coerces null to false', () => {
-      const result = v2BooleanSchema.safeParse(null);
+      const result = preprocessBooleanSchema.safeParse(null);
       expect(result.success).toBe(true);
       if (result.success) expect(result.data).toBe(false);
     });
 
     it('accepts and coerces undefined to false', () => {
-      const result = v2BooleanSchema.safeParse(undefined);
+      const result = preprocessBooleanSchema.safeParse(undefined);
       expect(result.success).toBe(true);
       if (result.success) expect(result.data).toBe(false);
     });
 
     it('accepts and coerces "true" to true', () => {
-      const result = v2BooleanSchema.safeParse('true');
+      const result = preprocessBooleanSchema.safeParse('true');
       expect(result.success).toBe(true);
       if (result.success) expect(result.data).toBe(true);
     });
 
     it('accepts and coerces "false" to false', () => {
-      const result = v2BooleanSchema.safeParse('false');
+      const result = preprocessBooleanSchema.safeParse('false');
       expect(result.success).toBe(true);
       if (result.success) expect(result.data).toBe(false);
     });
 
     it('accepts true as true', () => {
-      const result = v2BooleanSchema.safeParse(true);
+      const result = preprocessBooleanSchema.safeParse(true);
       expect(result.success).toBe(true);
       if (result.success) expect(result.data).toBe(true);
     });
 
     it('accepts false as false', () => {
-      const result = v2BooleanSchema.safeParse(false);
+      const result = preprocessBooleanSchema.safeParse(false);
       expect(result.success).toBe(true);
       if (result.success) expect(result.data).toBe(false);
     });

@@ -90,52 +90,57 @@ export type CornerStyle = (typeof cornerStyleValues)[number];
  *
  * @category Contracts
  */
-export const brandSettingsCanonical = z.object({
-  /** Primary brand color (hex format, e.g., #dc4a22). */
-  primary_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/i).default('#dc4a22'),
+export const brandSettingsCanonical = z
+  .object({
+    /** Primary brand color (hex format, e.g., #dc4a22). */
+    primary_color: z
+      .string()
+      .regex(/^#[0-9A-Fa-f]{6}$/i)
+      .default('#dc4a22'),
 
-  /** Legacy color field (deprecated). */
-  colour: z.string().optional(),
+    /** Legacy color field (deprecated). */
+    colour: z.string().optional(),
 
-  /** Instructions shown before secret reveal. */
-  instructions_pre_reveal: z.string().nullish(),
+    /** Instructions shown before secret reveal. */
+    instructions_pre_reveal: z.string().nullish(),
 
-  /** Instructions shown during secret reveal. */
-  instructions_reveal: z.string().nullish(),
+    /** Instructions shown during secret reveal. */
+    instructions_reveal: z.string().nullish(),
 
-  /** Instructions shown after secret reveal. */
-  instructions_post_reveal: z.string().nullish(),
+    /** Instructions shown after secret reveal. */
+    instructions_post_reveal: z.string().nullish(),
 
-  /** Brand description. */
-  description: z.string().optional(),
+    /** Brand description. */
+    description: z.string().optional(),
 
-  /** Whether button text should be light colored. */
-  button_text_light: z.boolean().default(false),
+    /** Whether button text should be light colored. */
+    button_text_light: z.boolean().default(false),
 
-  /** Whether public homepage is allowed. */
-  allow_public_homepage: z.boolean().default(false),
+    /** Whether public homepage is allowed. */
+    allow_public_homepage: z.boolean().default(false),
 
-  /** Whether public API access is allowed. */
-  allow_public_api: z.boolean().default(false),
+    /** Whether public API access is allowed. */
+    allow_public_api: z.boolean().default(false),
 
-  /** Font family for the interface. */
-  font_family: z.enum(fontFamilyValues).default('sans'),
+    /** Font family for the interface. */
+    font_family: z.enum(fontFamilyValues).default('sans'),
 
-  /** Corner style for UI elements. */
-  corner_style: z.enum(cornerStyleValues).default('rounded'),
+    /** Corner style for UI elements. */
+    corner_style: z.enum(cornerStyleValues).default('rounded'),
 
-  /** Locale/language code. */
-  locale: z.string().default('en'),
+    /** Locale/language code. */
+    locale: z.string().default('en'),
 
-  /** Default TTL for secrets (seconds). */
-  default_ttl: z.number().nullish(),
+    /** Default TTL for secrets (seconds). */
+    default_ttl: z.number().nullish(),
 
-  /** Whether passphrase is required by default. */
-  passphrase_required: z.boolean().default(false),
+    /** Whether passphrase is required by default. */
+    passphrase_required: z.boolean().default(false),
 
-  /** Whether email notifications are enabled by default. */
-  notify_enabled: z.boolean().default(false),
-}).partial();
+    /** Whether email notifications are enabled by default. */
+    notify_enabled: z.boolean().default(false),
+  })
+  .partial();
 
 /**
  * Canonical image properties contract.
@@ -144,28 +149,30 @@ export const brandSettingsCanonical = z.object({
  *
  * @category Contracts
  */
-export const imagePropsCanonical = z.object({
-  /** Base64 encoded image data. */
-  encoded: z.string().optional(),
+export const imagePropsCanonical = z
+  .object({
+    /** Base64 encoded image data. */
+    encoded: z.string().optional(),
 
-  /** MIME content type (e.g., image/png). */
-  content_type: z.string().optional(),
+    /** MIME content type (e.g., image/png). */
+    content_type: z.string().optional(),
 
-  /** Original filename. */
-  filename: z.string().optional(),
+    /** Original filename. */
+    filename: z.string().optional(),
 
-  /** File size in bytes. */
-  bytes: z.number().optional(),
+    /** File size in bytes. */
+    bytes: z.number().optional(),
 
-  /** Image width in pixels. */
-  width: z.number().optional(),
+    /** Image width in pixels. */
+    width: z.number().optional(),
 
-  /** Image height in pixels. */
-  height: z.number().optional(),
+    /** Image height in pixels. */
+    height: z.number().optional(),
 
-  /** Width/height aspect ratio. */
-  ratio: z.number().optional(),
-}).partial();
+    /** Width/height aspect ratio. */
+    ratio: z.number().optional(),
+  })
+  .partial();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // VHost canonical schema
@@ -175,61 +182,64 @@ export const imagePropsCanonical = z.object({
  * Canonical vhost (virtual host) contract.
  *
  * VHost contains DNS and SSL monitoring data from the domain proxy service.
+ * Documents the information sent back by Approximated.
  *
  * @category Contracts
  */
-export const vhostCanonical = z.object({
-  /** Proxy service ID. */
-  id: z.number().optional(),
+export const vhostCanonical = z
+  .object({
+    /** Proxy service ID. */
+    id: z.number().optional(),
 
-  /** Current vhost status. */
-  status: z.string().optional(),
+    /** Current vhost status. */
+    status: z.string().optional(),
 
-  /** Incoming address for the domain. */
-  incoming_address: z.string().optional(),
+    /** Incoming address for the domain. */
+    incoming_address: z.string().optional(),
 
-  /** Target backend address. */
-  target_address: z.string().optional(),
+    /** Target backend address. */
+    target_address: z.string().optional(),
 
-  /** Target ports configuration. */
-  target_ports: z.string().optional(),
+    /** Target ports configuration. */
+    target_ports: z.string().optional(),
 
-  /** Whether the domain is being served by the proxy. */
-  apx_hit: z.boolean().optional(),
+    /** Whether the domain is being served by the proxy. */
+    apx_hit: z.boolean().optional(),
 
-  /** Whether SSL is active. */
-  has_ssl: z.boolean().optional(),
+    /** Whether SSL is active. */
+    has_ssl: z.boolean().optional(),
 
-  /** Whether DNS is resolving correctly. */
-  is_resolving: z.boolean().optional(),
+    /** Whether DNS is resolving correctly. */
+    is_resolving: z.boolean().optional(),
 
-  /** Vhost creation timestamp. */
-  created_at: z.date().optional(),
+    /** Vhost creation timestamp. */
+    created_at: z.date().optional(),
 
-  /** Last monitoring check timestamp. */
-  last_monitored_unix: z.date().optional(),
+    /** Last monitoring check timestamp. */
+    last_monitored_unix: z.date().optional(),
 
-  /** SSL certificate start date. */
-  ssl_active_from: z.date().nullable(),
+    /** SSL certificate start date. Optional - external API may omit. */
+    ssl_active_from: z.date().nullish(),
 
-  /** SSL certificate expiration date. */
-  ssl_active_until: z.date().nullable(),
+    /** SSL certificate expiration date. Optional - external API may omit. */
+    ssl_active_until: z.date().nullish(),
 
-  /** Where DNS currently points. */
-  dns_pointed_at: z.string().optional(),
+    /** Where DNS currently points. */
+    dns_pointed_at: z.string().optional(),
 
-  /** Keep-host header setting. */
-  keep_host: z.string().nullable(),
+    /** Keep-host header setting. */
+    keep_host: z.string().nullable(),
 
-  /** Human-readable last monitored time. */
-  last_monitored_humanized: z.string().optional(),
+    /** Human-readable last monitored time. */
+    last_monitored_humanized: z.string().optional(),
 
-  /** Status message from proxy service. */
-  status_message: z.string().optional(),
+    /** Status message from proxy service. */
+    status_message: z.string().optional(),
 
-  /** User-facing status message. */
-  user_message: z.string().optional(),
-}).partial();
+    /** User-facing status message. */
+    user_message: z.string().optional(),
+  })
+  .partial();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Custom domain canonical schema

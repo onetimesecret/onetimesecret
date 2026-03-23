@@ -7,11 +7,11 @@
 // to the correct output types.
 
 import {
+  ReceiptState as CanonicalReceiptState,
+  receiptStateValues as canonicalStateValues,
   receiptBaseCanonical,
   receiptCanonical,
   receiptDetailsCanonical,
-  receiptStateValues as canonicalStateValues,
-  ReceiptState as CanonicalReceiptState,
 } from '@/schemas/contracts';
 import { createModelSchema } from '@/schemas/shapes/v2/base';
 import { transforms } from '@/schemas/transforms';

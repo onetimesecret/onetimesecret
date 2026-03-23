@@ -22,12 +22,7 @@ export type PlanType = z.infer<typeof planTypeSchema>;
 /**
  * Subscription status schema
  */
-export const subscriptionStatusSchema = z.enum([
-  'active',
-  'inactive',
-  'past_due',
-  'canceled',
-]);
+export const subscriptionStatusSchema = z.enum(['active', 'inactive', 'past_due', 'canceled']);
 
 export type SubscriptionStatus = z.infer<typeof subscriptionStatusSchema>;
 
@@ -35,9 +30,14 @@ export type SubscriptionStatus = z.infer<typeof subscriptionStatusSchema>;
  * Invoice status schema
  */
 export const invoiceStatusSchema = z.enum([
-  'draft', 'open', 'paid', 'uncollectible', 'void',
+  'draft',
+  'open',
+  'paid',
+  'uncollectible',
+  'void',
   // Legacy/mapped statuses used in UI
-  'pending', 'failed',
+  'pending',
+  'failed',
 ]);
 
 export type InvoiceStatus = z.infer<typeof invoiceStatusSchema>;
@@ -167,16 +167,20 @@ export const currencyConflictErrorSchema = z.object({
   details: z.object({
     existing_currency: z.string(),
     requested_currency: z.string(),
-    current_plan: z.object({
-      name: z.string(),
-      price_formatted: z.string(),
-      current_period_end: z.number(),
-    }).nullable(),
-    requested_plan: z.object({
-      name: z.string(),
-      price_formatted: z.string(),
-      price_id: z.string(),
-    }).nullable(),
+    current_plan: z
+      .object({
+        name: z.string(),
+        price_formatted: z.string(),
+        current_period_end: z.number(),
+      })
+      .nullable(),
+    requested_plan: z
+      .object({
+        name: z.string(),
+        price_formatted: z.string(),
+        price_id: z.string(),
+      })
+      .nullable(),
     warnings: currencyMigrationWarningsSchema,
   }),
 });
