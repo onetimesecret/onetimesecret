@@ -13,14 +13,17 @@
 # Options:
 #   --input-dir=DIR    Input directory with dump files (default: data/upgrades/v0.24.0)
 #   --output-dir=DIR   Output directory (default: results, overwrites in place)
-#   --dry-run          Show what would be generated without writing
+#   --execute          Actually write changes (default: dry-run)
 #
 # Input: data/upgrades/v0.24.0/{model}/{model}_dump.jsonl
 # Output: data/upgrades/v0.24.0/{model}/{model}_dump.jsonl (enriched with objid, extid)
 #
 # For :object records with 'created' field:
-#   - objid: UUIDv7 generated from created timestamp
+#   - objid: UUIDv7 generated deterministically from created timestamp + original key
 #   - extid: Derived from objid using model-specific prefix
+#
+# IDEMPOTENT: Running this script multiple times produces identical objids because
+# the random bytes in UUIDv7 are derived from SHA256(original_key + timestamp).
 #
 # Key renames:
 #   - customer:{id}:metadata → customer:{id}:receipts
@@ -173,9 +176,10 @@ class IdentifierEnricher
 
   def enrich_record!(record, prefix)
     created_timestamp = record['created']
+    original_key = record['key']
 
-    # Generate UUIDv7 from created timestamp
-    objid = generate_uuid_v7_from(created_timestamp)
+    # Generate UUIDv7 from created timestamp + original key (deterministic)
+    objid = generate_uuid_v7_from(created_timestamp, seed_key: original_key)
 
     # Derive extid from objid
     extid = derive_extid_from_uuid(objid, prefix: prefix)
@@ -187,17 +191,27 @@ class IdentifierEnricher
   # Generate UUID v7 from Unix timestamp (seconds)
   # Standalone implementation to avoid external dependencies
   #
-  # Note: Records sharing the same second will have random (not deterministic)
-  # sort order within that second. Sub-second precision not preserved.
-  def generate_uuid_v7_from(timestamp_seconds)
+  # IDEMPOTENT: Uses deterministic random bytes derived from v1_key + timestamp.
+  # Running the enricher multiple times produces identical objids for the same record.
+  #
+  # @param timestamp_seconds [Numeric] Unix timestamp (created field)
+  # @param seed_key [String] Original v1 key for deterministic derivation
+  def generate_uuid_v7_from(timestamp_seconds, seed_key: nil)
     # Convert to milliseconds (UUID v7 uses 48-bit ms timestamp)
     timestamp_ms = (timestamp_seconds.to_f * 1000).to_i
 
     # Encode timestamp as 48-bit hex (12 hex chars)
     hex = timestamp_ms.to_s(16).rjust(12, '0')
 
-    # Generate random parts
-    random_bytes = SecureRandom.random_bytes(10)
+    # Generate deterministic random bytes from seed_key + timestamp
+    # This ensures idempotency: same input always produces same objid
+    if seed_key
+      seed_material = "#{seed_key}:#{timestamp_seconds}"
+      random_bytes = Digest::SHA256.digest(seed_material)[0, 10]
+    else
+      # Fallback to non-deterministic for backwards compatibility
+      random_bytes = SecureRandom.random_bytes(10)
+    end
 
     # Build UUID v7 format:
     # xxxxxxxx-xxxx-7xxx-yxxx-xxxxxxxxxxxx
@@ -261,7 +275,7 @@ def parse_args(args)
   options = {
     input_dir: DEFAULT_DATA_DIR,
     output_dir: DEFAULT_DATA_DIR,
-    dry_run: false,
+    dry_run: true,
   }
 
   args.each do |arg|
@@ -270,8 +284,8 @@ def parse_args(args)
       options[:input_dir] = Regexp.last_match(1)
     when /^--output-dir=(.+)$/
       options[:output_dir] = Regexp.last_match(1)
-    when '--dry-run'
-      options[:dry_run] = true
+    when '--execute'
+      options[:dry_run] = false
     when '--help', '-h'
       puts <<~HELP
         Usage: ruby scripts/migrations/jan24/enrich_with_identifiers.rb [OPTIONS]
@@ -281,7 +295,7 @@ def parse_args(args)
         Options:
           --input-dir=DIR    Input directory (default: data/upgrades/v0.24.0)
           --output-dir=DIR   Output directory (default: data/upgrades/v0.24.0)
-          --dry-run          Preview without writing
+          --execute          Actually write changes (default: dry-run)
           --help             Show this help
 
         Input files (from dump_keys.rb):
