@@ -1,4 +1,5 @@
 // src/schemas/contracts/feedback.ts
+// @see src/tests/schemas/shapes/feedback.compat.spec.ts - Test fixtures
 //
 // Canonical feedback record schema - field names and output types only.
 // Version-specific schemas (V2, V3) extend this with wire-format transforms.

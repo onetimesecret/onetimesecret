@@ -1,4 +1,5 @@
 // src/schemas/contracts/customer.ts
+// @see src/tests/contracts/customer-schema-contract.spec.ts - Contract tests
 //
 // Canonical customer record schema - field names and output types only.
 // Version-specific schemas (V2, V3) extend this with wire-format transforms.

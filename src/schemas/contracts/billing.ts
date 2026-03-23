@@ -1,4 +1,6 @@
 // src/schemas/contracts/billing.ts
+// @see src/tests/types/billing-helpers.spec.ts - Test fixtures for billing types
+// @see src/tests/services/billing.service.spec.ts - Integration tests
 
 /**
  * Billing Zod schemas and derived types - Contract definitions

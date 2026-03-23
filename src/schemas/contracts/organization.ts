@@ -40,6 +40,7 @@ import { z } from 'zod';
  * - Status: is_default (auto-created workspace flag), planid
  * - Timestamps: created, updated (Unix epoch seconds)
  *
+ * @see src/tests/stores/organizationStore.spec.ts - Test fixtures for this schema
  * @category Contracts
  */
 export const organizationCanonical = z.object({
@@ -177,6 +178,8 @@ export type UpdateOrganizationPayload = z.infer<typeof updateOrganizationPayload
  * - id: ObjId - Internal invitation ID (for store lookups)
  * - organization_id: ExtId - External org ID (backend returns org.extid)
  * - invited_by: ObjId - Internal ID of the user who sent the invitation
+ *
+ * @see src/tests/stores/organizationStore.spec.ts - Test fixtures for this schema
  */
 export const organizationInvitationContractSchema = z.object({
   id: lenientObjIdSchema,

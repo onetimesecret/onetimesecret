@@ -1,4 +1,5 @@
 // src/schemas/contracts/custom-domain.ts
+// @see src/tests/composables/useDomainsManager.spec.ts - Test fixtures for domain schema
 //
 // Canonical custom domain record schema - field names and output types only.
 // Version-specific schemas (V2, V3) extend this with wire-format transforms.

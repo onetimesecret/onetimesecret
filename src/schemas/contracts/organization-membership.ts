@@ -1,4 +1,5 @@
 // src/schemas/contracts/organization-membership.ts
+// @see src/tests/stores/membersStore.spec.ts - Test fixtures for membership schema
 //
 // Canonical organization membership record schema - field names and output types only.
 // Version-specific schemas (V2, V3) extend this with wire-format transforms.

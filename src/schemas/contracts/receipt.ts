@@ -1,4 +1,5 @@
 // src/schemas/contracts/receipt.ts
+// @see src/tests/stores/receiptStore.spec.ts - Test fixtures for receipt schema
 //
 // Canonical receipt record schema — field names and output types only.
 // Version-specific schemas (V2, V3) extend this with wire-format transforms.

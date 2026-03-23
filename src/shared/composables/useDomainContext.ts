@@ -136,7 +136,10 @@ async function persistDomainContext(
   }
 }
 
-/** Create domain fetcher for an organization store */
+/**
+ * Create domain fetcher for an organization store.
+ * @see src/tests/composables/useDomainContext.spec.ts - Test fixtures (mock uses objid)
+ */
 function createDomainFetcher(
   organizationStore: ReturnType<typeof useOrganizationStore>,
   domainsStore: ReturnType<typeof useDomainsStore>

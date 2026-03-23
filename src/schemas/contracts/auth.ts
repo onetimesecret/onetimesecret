@@ -1,4 +1,5 @@
 // src/schemas/contracts/auth.ts
+// @see src/tests/stores/authStore.spec.ts - Test fixtures for auth schema
 
 /**
  * Authentication Zod schemas and derived types

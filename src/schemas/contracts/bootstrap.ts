@@ -1,4 +1,5 @@
 // src/schemas/contracts/bootstrap.ts
+// @see src/tests/stores/bootstrapStore.spec.ts - Test fixtures for this schema
 //
 // Single source of truth for bootstrap payload schema.
 //

@@ -1,4 +1,5 @@
 // src/shared/stores/organizationStore.ts
+// @see src/tests/stores/organizationStore.spec.ts - Test fixtures for Organization schema
 
 import {
   organizationResponseSchema,
