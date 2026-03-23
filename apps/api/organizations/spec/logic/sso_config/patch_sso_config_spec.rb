@@ -1,11 +1,11 @@
-# apps/api/organizations/spec/logic/sso_config/update_sso_config_spec.rb
+# apps/api/organizations/spec/logic/sso_config/patch_sso_config_spec.rb
 #
 # frozen_string_literal: true
 
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require 'organizations/logic'
 
-RSpec.describe OrganizationAPI::Logic::SsoConfig::UpdateSsoConfig do
+RSpec.describe OrganizationAPI::Logic::SsoConfig::PatchSsoConfig do
   # Configure Familia encryption for testing
   before(:all) do
     key_v1 = 'test_encryption_key_32bytes_ok!!'
@@ -329,7 +329,7 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::UpdateSsoConfig do
         expect(existing_config.client_secret.reveal { it }).to eq('client-secret-456')
       end
 
-      context 'when client_secret is not provided' do
+      context 'when client_secret is not provided (PATCH semantics)' do
         let(:params) { valid_entra_params.merge('client_secret' => '') }
         subject(:logic) { described_class.new(strategy_result, params) }
 
@@ -341,6 +341,182 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::UpdateSsoConfig do
         it 'preserves existing client_secret' do
           logic.process
           expect(existing_config.client_secret.reveal { it }).to eq('old-secret')
+        end
+      end
+
+      context 'when display_name is empty (PATCH semantics)' do
+        let(:params) { valid_entra_params.merge('display_name' => '') }
+        subject(:logic) { described_class.new(strategy_result, params) }
+
+        before do
+          logic.raise_concerns
+        end
+
+        it 'preserves existing display_name' do
+          logic.process
+          expect(existing_config.display_name).to eq('Old Name')
+        end
+      end
+
+      context 'when tenant_id is empty (PATCH semantics)' do
+        let(:params) { valid_entra_params.merge('tenant_id' => '') }
+        subject(:logic) { described_class.new(strategy_result, params) }
+
+        before do
+          logic.raise_concerns
+        end
+
+        it 'preserves existing tenant_id' do
+          logic.process
+          expect(existing_config.tenant_id).to eq('old-tenant')
+        end
+      end
+
+      # Provider switching tests document intentional PATCH semantics:
+      # When switching providers, provider-specific fields from the old provider
+      # are preserved rather than cleared. This is intentional behavior that
+      # allows reverting to the old provider without re-entering credentials.
+      context 'when switching provider from entra_id to google (PATCH semantics)' do
+        let(:params) do
+          {
+            'extid' => 'ext-org-123',
+            'provider_type' => 'google',
+            'client_id' => 'new-google-client-id',
+            'client_secret' => 'new-google-secret',
+            'allowed_domains' => ['google-domain.com'],
+            'enabled' => true,
+          }
+        end
+        subject(:logic) { described_class.new(strategy_result, params) }
+
+        before do
+          logic.raise_concerns
+        end
+
+        it 'preserves tenant_id from previous entra_id config (intentional PATCH semantics)' do
+          logic.process
+          expect(existing_config.provider_type).to eq('google')
+          # tenant_id is preserved even though Google provider does not use it
+          # This is intentional: allows reverting to entra_id without re-entering tenant_id
+          expect(existing_config.tenant_id).to eq('old-tenant')
+        end
+      end
+
+      context 'when switching provider from oidc to entra_id (PATCH semantics)' do
+        let(:existing_config) do
+          config = Onetime::OrgSsoConfig.new(
+            org_id: 'org-123',
+            provider_type: 'oidc',
+            display_name: 'OIDC Provider',
+            enabled: 'false',
+          )
+          config.client_id = 'old-client-id'
+          config.client_secret = 'old-secret'
+          config.issuer = 'https://auth.example.com'
+          config.define_singleton_method(:save) { true }
+          config
+        end
+
+        let(:params) do
+          {
+            'extid' => 'ext-org-123',
+            'provider_type' => 'entra_id',
+            'client_id' => 'entra-client-id',
+            'client_secret' => 'entra-secret',
+            'tenant_id' => 'new-tenant-id',
+            'allowed_domains' => ['contoso.com'],
+            'enabled' => true,
+          }
+        end
+        subject(:logic) { described_class.new(strategy_result, params) }
+
+        before do
+          logic.raise_concerns
+        end
+
+        it 'preserves issuer from previous oidc config (intentional PATCH semantics)' do
+          logic.process
+          expect(existing_config.provider_type).to eq('entra_id')
+          # issuer is preserved even though Entra ID provider does not use it
+          # This is intentional: allows reverting to oidc without re-entering issuer URL
+          expect(existing_config.issuer).to eq('https://auth.example.com')
+        end
+      end
+
+      # allowed_domains tests document the PUT-like behavior within PATCH:
+      # Unlike other optional fields, allowed_domains always replaces the
+      # existing value rather than merging or preserving when empty.
+      context 'when allowed_domains is empty array (replaces existing)' do
+        let(:existing_config) do
+          config = Onetime::OrgSsoConfig.new(
+            org_id: 'org-123',
+            provider_type: 'entra_id',
+            display_name: 'Old Name',
+            tenant_id: 'old-tenant',
+            enabled: 'false',
+          )
+          config.client_id = 'old-client-id'
+          config.client_secret = 'old-secret'
+          config.allowed_domains = ['existing.com', 'old-domain.com']
+          config.define_singleton_method(:save) { true }
+          config
+        end
+
+        let(:params) do
+          valid_entra_params.merge('allowed_domains' => [])
+        end
+        subject(:logic) { described_class.new(strategy_result, params) }
+
+        before do
+          logic.raise_concerns
+        end
+
+        it 'clears existing allowed_domains (PUT semantics for this field)' do
+          logic.process
+          # Unlike other optional fields, allowed_domains uses PUT semantics:
+          # an empty array explicitly clears the existing domains
+          expect(existing_config.allowed_domains).to eq([])
+        end
+      end
+
+      context 'when allowed_domains is omitted (nil)' do
+        let(:existing_config) do
+          config = Onetime::OrgSsoConfig.new(
+            org_id: 'org-123',
+            provider_type: 'entra_id',
+            display_name: 'Old Name',
+            tenant_id: 'old-tenant',
+            enabled: 'false',
+          )
+          config.client_id = 'old-client-id'
+          config.client_secret = 'old-secret'
+          config.allowed_domains = ['existing.com', 'old-domain.com']
+          config.define_singleton_method(:save) { true }
+          config
+        end
+
+        let(:params) do
+          {
+            'extid' => 'ext-org-123',
+            'provider_type' => 'entra_id',
+            'client_id' => 'client-id-123',
+            'client_secret' => 'client-secret-456',
+            'tenant_id' => 'tenant-uuid-789',
+            # allowed_domains intentionally omitted (nil)
+            'enabled' => true,
+          }
+        end
+        subject(:logic) { described_class.new(strategy_result, params) }
+
+        before do
+          logic.raise_concerns
+        end
+
+        it 'replaces with empty array when omitted (PUT semantics for this field)' do
+          logic.process
+          # Note: omitting allowed_domains results in empty array, not preservation
+          # This is consistent PUT-like behavior for the allowed_domains field
+          expect(existing_config.allowed_domains).to eq([])
         end
       end
     end

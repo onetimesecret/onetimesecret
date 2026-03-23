@@ -3,9 +3,10 @@
 // Request/response schemas for SSO configuration API endpoints.
 //
 // Endpoints:
-// - GET /api/organizations/:org_extid/sso-config
-// - PUT /api/organizations/:org_extid/sso-config
-// - DELETE /api/organizations/:org_extid/sso-config
+// - GET /api/organizations/:org_extid/sso
+// - PUT /api/organizations/:org_extid/sso (full replacement)
+// - PATCH /api/organizations/:org_extid/sso (partial update)
+// - DELETE /api/organizations/:org_extid/sso
 
 import { z } from 'zod';
 import { createApiResponseSchema } from '@/schemas/api/base';
@@ -13,10 +14,12 @@ import {
   orgSsoConfigSchema,
   createOrUpdateSsoConfigPayloadSchema,
   createOrUpdateSsoConfigPayloadStrictSchema,
+  patchSsoConfigPayloadSchema,
+  putSsoConfigPayloadStrictSchema,
 } from '@/schemas/shapes/organizations/org-sso-config';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GET /api/organizations/:org_extid/sso-config
+// GET /api/organizations/:org_extid/sso
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -40,35 +43,89 @@ export const getSsoConfigResponseSchema = createApiResponseSchema(orgSsoConfigSc
 export type GetSsoConfigResponse = z.infer<typeof getSsoConfigResponseSchema>;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PUT /api/organizations/:org_extid/sso-config
+// PUT /api/organizations/:org_extid/sso (full replacement)
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Request body for creating or updating SSO configuration.
+ * Request body for PUT (full replacement) of SSO configuration.
  *
- * Uses the base payload schema for form binding.
- * For strict validation (provider-specific requirements), use
- * createOrUpdateSsoConfigRequestStrictSchema.
+ * PUT semantics: the request body IS the new state.
+ * - Required fields: provider_type, client_id, client_secret, display_name
+ * - Optional fields: tenant_id, issuer, allowed_domains, enabled
+ * - Provider-specific validation:
+ *   - entra_id requires tenant_id
+ *   - oidc requires issuer (valid URL)
+ *
+ * Uses strict validation for provider-specific requirements.
+ */
+export const putSsoConfigRequestSchema = putSsoConfigPayloadStrictSchema;
+
+export type PutSsoConfigRequest = z.infer<typeof putSsoConfigRequestSchema>;
+
+/**
+ * Response schema for PUT SSO configuration.
+ *
+ * Returns the replaced SSO config with masked credentials.
+ */
+export const putSsoConfigResponseSchema = createApiResponseSchema(orgSsoConfigSchema);
+
+export type PutSsoConfigResponse = z.infer<typeof putSsoConfigResponseSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PATCH /api/organizations/:org_extid/sso (partial update)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Request body for PATCH (partial update) of SSO configuration.
+ *
+ * PATCH semantics: only provided fields are updated.
+ * - All fields are optional (true partial update)
+ * - Omitted fields preserve existing values
+ * - client_secret is optional (preserves existing if omitted)
+ *
+ * Fields:
+ * - provider_type: optional enum ('oidc' | 'entra_id' | 'google' | 'github')
+ * - client_id: optional string
+ * - client_secret: optional string
+ * - display_name: optional string
+ * - tenant_id: optional string (for Entra ID)
+ * - issuer: optional string URL (for OIDC)
+ * - allowed_domains: optional array of strings
+ * - enabled: optional boolean
+ */
+export const patchSsoConfigRequestSchema = patchSsoConfigPayloadSchema;
+
+export type PatchSsoConfigRequest = z.infer<typeof patchSsoConfigRequestSchema>;
+
+/**
+ * Response schema for PATCH SSO configuration.
+ *
+ * Returns the updated SSO config with masked credentials.
+ */
+export const patchSsoConfigResponseSchema = createApiResponseSchema(orgSsoConfigSchema);
+
+export type PatchSsoConfigResponse = z.infer<typeof patchSsoConfigResponseSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Legacy aliases (deprecated, use verb-specific schemas)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @deprecated Use putSsoConfigRequestSchema or patchSsoConfigRequestSchema
  */
 export const createOrUpdateSsoConfigRequestSchema = createOrUpdateSsoConfigPayloadSchema;
 
 export type CreateOrUpdateSsoConfigRequest = z.infer<typeof createOrUpdateSsoConfigRequestSchema>;
 
 /**
- * Request body with strict provider-specific validation.
- *
- * Enforces:
- * - tenant_id required for entra_id provider
- * - issuer required for oidc provider
+ * @deprecated Use putSsoConfigRequestSchema
  */
 export const createOrUpdateSsoConfigRequestStrictSchema = createOrUpdateSsoConfigPayloadStrictSchema;
 
 export type CreateOrUpdateSsoConfigRequestStrict = z.infer<typeof createOrUpdateSsoConfigRequestStrictSchema>;
 
 /**
- * Response schema for creating/updating SSO configuration.
- *
- * Returns the updated SSO config with masked credentials.
+ * @deprecated Use putSsoConfigResponseSchema or patchSsoConfigResponseSchema
  */
 export const createOrUpdateSsoConfigResponseSchema = createApiResponseSchema(orgSsoConfigSchema);
 

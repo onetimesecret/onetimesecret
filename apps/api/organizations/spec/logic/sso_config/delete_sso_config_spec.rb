@@ -115,7 +115,7 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::DeleteSsoConfig do
       before do
         allow(Onetime::Organization).to receive(:find_by_extid).with('ext-org-123').and_return(organization)
         allow(organization).to receive(:owner?).with(customer).and_return(true)
-        allow(Onetime::OrgSsoConfig).to receive(:exists_for_org?).with('org-123').and_return(false)
+        allow(Onetime::OrgSsoConfig).to receive(:find_by_org_id).with('org-123').and_return(nil)
       end
 
       it 'raises not found error' do
@@ -127,10 +127,17 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::DeleteSsoConfig do
   end
 
   describe '#process' do
+    let(:existing_config) do
+      instance_double(
+        Onetime::OrgSsoConfig,
+        provider_type: 'entra_id',
+      )
+    end
+
     before do
       allow(Onetime::Organization).to receive(:find_by_extid).with('ext-org-123').and_return(organization)
       allow(organization).to receive(:owner?).with(customer).and_return(true)
-      allow(Onetime::OrgSsoConfig).to receive(:exists_for_org?).with('org-123').and_return(true)
+      allow(Onetime::OrgSsoConfig).to receive(:find_by_org_id).with('org-123').and_return(existing_config)
       # Call raise_concerns to set up instance variables before process
       logic.raise_concerns
     end
@@ -140,12 +147,12 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::DeleteSsoConfig do
       logic.process
     end
 
-    it 'logs the deletion' do
+    it 'logs the deletion with audit event' do
       allow(Onetime::OrgSsoConfig).to receive(:delete_for_org!).and_return(true)
 
       expect(OT).to receive(:info).with(
-        '[DeleteSsoConfig] SSO config deleted for org ext-org-123',
-        hash_including(org_extid: 'ext-org-123', user_extid: 'ext-cust-123'),
+        '[SSO_AUDIT] sso_config_deleted',
+        anything,
       )
 
       logic.process
@@ -153,10 +160,17 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::DeleteSsoConfig do
   end
 
   describe '#success_data' do
+    let(:existing_config) do
+      instance_double(
+        Onetime::OrgSsoConfig,
+        provider_type: 'entra_id',
+      )
+    end
+
     before do
       allow(Onetime::Organization).to receive(:find_by_extid).with('ext-org-123').and_return(organization)
       allow(organization).to receive(:owner?).with(customer).and_return(true)
-      allow(Onetime::OrgSsoConfig).to receive(:exists_for_org?).with('org-123').and_return(true)
+      allow(Onetime::OrgSsoConfig).to receive(:find_by_org_id).with('org-123').and_return(existing_config)
       allow(Onetime::OrgSsoConfig).to receive(:delete_for_org!).with('org-123').and_return(true)
       # Call raise_concerns to set up instance variables before process
       logic.raise_concerns

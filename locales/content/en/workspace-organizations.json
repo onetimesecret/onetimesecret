@@ -699,6 +699,34 @@
     "text": "Failed to delete SSO configuration",
     "sha256": "f2a3b4c5"
   },
+  "web.organizations.sso.test_connection": {
+    "text": "Test Connection",
+    "sha256": "a1b2c3d4"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Verify your credentials can reach the identity provider before saving",
+    "sha256": "b2c3d4e5"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Test Connection",
+    "sha256": "c3d4e5f6"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Testing...",
+    "sha256": "d4e5f6a7"
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Failed to test connection",
+    "sha256": "e5f6a7b8"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Authorization Endpoint",
+    "sha256": "f6a7b8c9"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Missing Fields",
+    "sha256": "a7b8c9d1"
+  },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Wrong Account",
     "sha256": "80c8ffa7"

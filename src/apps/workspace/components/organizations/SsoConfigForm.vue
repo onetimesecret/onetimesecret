@@ -6,7 +6,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { classifyError } from '@/schemas/errors';
-import { SsoService } from '@/services/sso.service';
+import { SsoService, type TestSsoConnectionResponse } from '@/services/sso.service';
 import type { OrgSsoConfig, SsoProviderType } from '@/schemas/shapes/organizations/org-sso-config';
 import type { CreateOrUpdateSsoConfigRequest } from '@/schemas/api/organizations/requests/sso-config';
 
@@ -49,10 +49,15 @@ const providerOptions: { value: SsoProviderType; label: string; description: str
 const isLoading = ref(true);
 const isSaving = ref(false);
 const isDeleting = ref(false);
+const isTesting = ref(false);
 const showDeleteConfirm = ref(false);
 const error = ref('');
 const success = ref('');
 const fieldErrors = ref<Record<string, string>>({});
+
+// Connection test state
+const testResult = ref<TestSsoConnectionResponse | null>(null);
+const testError = ref('');
 
 // Existing config (null if no config exists)
 const existingConfig = ref<OrgSsoConfig | null>(null);
@@ -107,6 +112,60 @@ const clientSecretPlaceholder = computed(() => {
   }
   return t('web.organizations.sso.client_secret_placeholder');
 });
+
+// Computed: can test connection (has required fields for testing)
+const canTestConnection = computed(() => {
+  if (!formData.value.client_id.trim()) return false;
+
+  // Provider-specific requirements for testing
+  if (requiresTenantId.value && !formData.value.tenant_id?.trim()) return false;
+  if (requiresIssuer.value && !formData.value.issuer?.trim()) return false;
+
+  return true;
+});
+
+// Test connection
+const handleTestConnection = async () => {
+  if (!canTestConnection.value || isTesting.value) return;
+
+  isTesting.value = true;
+  testResult.value = null;
+  testError.value = '';
+  error.value = '';
+  success.value = '';
+
+  try {
+    const payload = {
+      provider_type: formData.value.provider_type,
+      client_id: formData.value.client_id.trim(),
+      tenant_id: requiresTenantId.value ? formData.value.tenant_id?.trim() : undefined,
+      issuer: requiresIssuer.value ? formData.value.issuer?.trim() : undefined,
+    };
+
+    testResult.value = await SsoService.testConnection(props.orgExtId, payload);
+
+    if (testResult.value.success) {
+      success.value = testResult.value.message;
+    } else {
+      testError.value = testResult.value.message;
+    }
+  } catch (err) {
+    const classified = classifyError(err);
+    testError.value = classified.message || t('web.organizations.sso.test_error');
+    console.error('[SsoConfigForm] Error testing connection:', err);
+  } finally {
+    isTesting.value = false;
+  }
+};
+
+// Clear test result when form data changes
+watch(
+  () => [formData.value.provider_type, formData.value.client_id, formData.value.tenant_id, formData.value.issuer],
+  () => {
+    testResult.value = null;
+    testError.value = '';
+  }
+);
 
 // Load existing config
 const loadConfig = async () => {
@@ -502,6 +561,138 @@ aria-hidden="true">*</span>
           aria-describedby="issuer-hint"
           :aria-invalid="!!fieldErrors.issuer"
           class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+      </div>
+
+      <!-- Test Connection -->
+      <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <h4 class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ t('web.organizations.sso.test_connection') }}
+            </h4>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {{ t('web.organizations.sso.test_connection_hint') }}
+            </p>
+          </div>
+          <button
+            type="button"
+            @click="handleTestConnection"
+            :disabled="!canTestConnection || isTesting || isSaving"
+            class="ml-4 inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-gray-100 dark:ring-gray-500 dark:hover:bg-gray-500">
+            <OIcon
+              v-if="isTesting"
+              collection="heroicons"
+              name="arrow-path"
+              class="size-4 animate-spin"
+              aria-hidden="true" />
+            <OIcon
+              v-else
+              collection="heroicons"
+              name="signal"
+              class="size-4"
+              aria-hidden="true" />
+            {{ isTesting ? t('web.organizations.sso.testing') : t('web.organizations.sso.test_button') }}
+          </button>
+        </div>
+
+        <!-- Test Result -->
+        <div
+          v-if="testResult || testError"
+          class="mt-4">
+          <!-- Success Result -->
+          <div
+            v-if="testResult?.success"
+            class="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
+            <div class="flex">
+              <OIcon
+                collection="heroicons"
+                name="check-circle-solid"
+                class="size-5 text-green-400"
+                aria-hidden="true" />
+              <div class="ml-3">
+                <h5 class="text-sm font-medium text-green-800 dark:text-green-200">
+                  {{ testResult.message }}
+                </h5>
+                <div
+                  v-if="testResult.details"
+                  class="mt-2 text-sm text-green-700 dark:text-green-300">
+                  <dl class="space-y-1">
+                    <div v-if="testResult.details.issuer" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.organizations.sso.issuer') }}:</dt>
+                      <dd class="truncate">{{ testResult.details.issuer }}</dd>
+                    </div>
+                    <div v-if="testResult.details.authorization_endpoint" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.organizations.sso.auth_endpoint') }}:</dt>
+                      <dd class="truncate">{{ testResult.details.authorization_endpoint }}</dd>
+                    </div>
+                    <div v-if="testResult.details.note" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.COMMON.note') }}:</dt>
+                      <dd>{{ testResult.details.note }}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Failure Result -->
+          <div
+            v-else-if="testResult && !testResult.success"
+            class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+            <div class="flex">
+              <OIcon
+                collection="heroicons"
+                name="x-circle-solid"
+                class="size-5 text-red-400"
+                aria-hidden="true" />
+              <div class="ml-3">
+                <h5 class="text-sm font-medium text-red-800 dark:text-red-200">
+                  {{ testResult.message }}
+                </h5>
+                <div
+                  v-if="testResult.details"
+                  class="mt-2 text-sm text-red-700 dark:text-red-300">
+                  <dl class="space-y-1">
+                    <div v-if="testResult.details.error_code" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.COMMON.error_code') }}:</dt>
+                      <dd>{{ testResult.details.error_code }}</dd>
+                    </div>
+                    <div v-if="testResult.details.http_status" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.COMMON.http_status') }}:</dt>
+                      <dd>{{ testResult.details.http_status }}</dd>
+                    </div>
+                    <div v-if="testResult.details.description" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.COMMON.details') }}:</dt>
+                      <dd>{{ testResult.details.description }}</dd>
+                    </div>
+                    <div v-if="testResult.details.missing_fields?.length" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.organizations.sso.missing_fields') }}:</dt>
+                      <dd>{{ testResult.details.missing_fields.join(', ') }}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error (exception) -->
+          <div
+            v-else-if="testError"
+            class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+            <div class="flex">
+              <OIcon
+                collection="heroicons"
+                name="exclamation-triangle-solid"
+                class="size-5 text-red-400"
+                aria-hidden="true" />
+              <div class="ml-3">
+                <p class="text-sm font-medium text-red-800 dark:text-red-200">
+                  {{ testError }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Domain Allowlist -->

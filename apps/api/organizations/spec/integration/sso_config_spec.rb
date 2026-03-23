@@ -131,7 +131,7 @@ RSpec.describe 'SSO Config API Integration', type: :request do
 
     context 'when creating new config' do
       before do
-        allow_any_instance_of(OrganizationAPI::Logic::SsoConfig::UpdateSsoConfig)
+        allow_any_instance_of(OrganizationAPI::Logic::SsoConfig::PutSsoConfig)
           .to receive(:cust).and_return(customer)
         allow(Onetime::Organization).to receive(:find_by_extid).with('ext-org-123').and_return(organization)
         allow(organization).to receive(:owner?).with(customer).and_return(true)

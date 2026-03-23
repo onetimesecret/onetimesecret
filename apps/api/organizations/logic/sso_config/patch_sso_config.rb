@@ -1,32 +1,35 @@
-# apps/api/organizations/logic/sso_config/update_sso_config.rb
+# apps/api/organizations/logic/sso_config/patch_sso_config.rb
 #
 # frozen_string_literal: true
 
 require 'onetime/models/org_sso_config'
 require_relative 'serializers'
+require_relative 'audit_logger'
 
 module OrganizationAPI::Logic
   module SsoConfig
-    # Update (or Create) SSO Configuration
+    # PATCH SSO Configuration (partial update)
     #
-    # @api Creates or updates the SSO configuration for an organization.
-    #   Uses PUT semantics: creates if not exists, updates if exists.
+    # @api Partially updates the SSO configuration for an organization.
+    #   Uses PATCH semantics: only provided fields are updated, empty values
+    #   preserve existing data.
     #   Requires the requesting user to be an organization owner.
     #
     # Request body:
     # - provider_type: Required. One of: oidc, entra_id, google, github
     # - client_id: Required. OAuth client ID
-    # - client_secret: Required for create, optional for update (preserves existing if omitted)
-    # - tenant_id: Required for entra_id provider
-    # - issuer: Required for oidc provider
-    # - display_name: Optional. Human-readable name
+    # - client_secret: Optional for update (preserves existing if empty)
+    # - tenant_id: Required for entra_id provider (preserves existing if empty)
+    # - issuer: Required for oidc provider (preserves existing if empty)
+    # - display_name: Optional. Human-readable name (preserves existing if empty)
     # - allowed_domains: Optional. Array of allowed email domains
     # - enabled: Optional. Boolean to enable/disable SSO (default: false)
     #
     # Response includes the updated config with masked client_secret_masked.
     #
-    class UpdateSsoConfig < OrganizationAPI::Logic::Base
+    class PatchSsoConfig < OrganizationAPI::Logic::Base
       include Serializers
+      include AuditLogger
 
       VALID_PROVIDER_TYPES = Onetime::OrgSsoConfig::PROVIDER_TYPES.freeze
 
@@ -71,23 +74,34 @@ module OrganizationAPI::Logic
       end
 
       def process
-        OT.ld "[UpdateSsoConfig] Updating SSO config for organization #{@extid} by user #{cust.extid}"
+        OT.ld "[PatchSsoConfig] Patching SSO config for organization #{@extid} by user #{cust.extid}"
+
+        # Track enabled state change for audit
+        was_enabled = @existing_config&.enabled?
 
         if @existing_config
+          # Compute changes before updating
+          changes = compute_sso_changes(@existing_config, params)
           update_existing_config
+          log_sso_audit_event(
+            event: :sso_config_updated,
+            org: @organization,
+            actor: cust,
+            provider_type: @provider_type,
+            changes: changes,
+          )
         else
           create_new_config
+          log_sso_audit_event(
+            event: :sso_config_created,
+            org: @organization,
+            actor: cust,
+            provider_type: @provider_type,
+          )
         end
 
-        # Log audit trail
-        action = @existing_config ? 'updated' : 'created'
-        OT.info "[UpdateSsoConfig] SSO config #{action} for org #{@extid}",
-          {
-            org_extid: @extid,
-            provider_type: @provider_type,
-            enabled: @enabled,
-            user_extid: cust.extid,
-          }
+        # Log enabled state change if it occurred
+        log_enabled_state_change(was_enabled, @enabled)
 
         success_data
       end
@@ -137,11 +151,17 @@ module OrganizationAPI::Logic
       def validate_provider_specific_fields
         case @provider_type
         when 'oidc'
-          if @issuer.to_s.empty?
+          # For PATCH: require issuer if creating new config or if existing config has no issuer
+          missing_issuer = @issuer.to_s.empty? &&
+                           (@existing_config.nil? || @existing_config.issuer.to_s.empty?)
+          if missing_issuer
             raise_form_error('Issuer URL is required for OIDC provider', field: :issuer, error_type: :missing)
           end
         when 'entra_id'
-          if @tenant_id.to_s.empty?
+          # For PATCH: require tenant_id if creating new config or if existing config has no tenant_id
+          missing_tenant = @tenant_id.to_s.empty? &&
+                           (@existing_config.nil? || @existing_config.tenant_id.to_s.empty?)
+          if missing_tenant
             raise_form_error('Tenant ID is required for Entra ID provider', field: :tenant_id, error_type: :missing)
           end
         end
@@ -161,10 +181,26 @@ module OrganizationAPI::Logic
         )
       end
 
+      # Updates an existing SSO config with PATCH semantics.
+      #
+      # PATCH Semantics:
+      # - Most optional fields (display_name, tenant_id, issuer, client_secret)
+      #   are preserved when empty/omitted, allowing partial updates.
+      # - Provider-specific fields are preserved on provider switch. For example,
+      #   switching from entra_id to google preserves tenant_id, and switching
+      #   from oidc to entra_id preserves issuer. This is intentional behavior
+      #   that allows reverting to the previous provider without re-entering
+      #   credentials.
+      #
+      # Exception - allowed_domains uses PUT semantics:
+      # - An empty array explicitly clears all existing domains
+      # - Omitting the field results in an empty array (not preservation)
+      # - This differs from other optional fields to support explicit domain clearing
+      #
       def update_existing_config
         @sso_config = @existing_config
 
-        # Update fields
+        # PATCH semantics: only update fields that are provided (non-empty)
         @sso_config.provider_type = @provider_type
         @sso_config.display_name  = @display_name unless @display_name.to_s.empty?
         @sso_config.client_id     = @client_id
@@ -175,7 +211,7 @@ module OrganizationAPI::Logic
         # Only update client_secret if provided (preserves existing otherwise)
         @sso_config.client_secret = @client_secret unless @client_secret.to_s.empty?
 
-        # Update allowed_domains
+        # allowed_domains uses PUT semantics: always replaces (see comment above)
         @sso_config.allowed_domains = @allowed_domains
 
         @sso_config.save
@@ -210,6 +246,32 @@ module OrganizationAPI::Logic
         return '' unless url.start_with?('https://')
 
         url
+      end
+
+      # Log enabled/disabled state change if it occurred.
+      #
+      # @param was_enabled [Boolean, nil] Previous enabled state (nil if new config)
+      # @param is_enabled [Boolean] New enabled state
+      def log_enabled_state_change(was_enabled, is_enabled)
+        # Skip if no change (both false, or both true)
+        return if was_enabled == is_enabled
+
+        # Log when SSO is enabled (new config or was disabled)
+        if is_enabled && (was_enabled.nil? || was_enabled == false)
+          log_sso_audit_event(
+            event: :sso_config_enabled,
+            org: @organization,
+            actor: cust,
+            provider_type: @provider_type,
+          )
+        elsif was_enabled == true && !is_enabled
+          log_sso_audit_event(
+            event: :sso_config_disabled,
+            org: @organization,
+            actor: cust,
+            provider_type: @provider_type,
+          )
+        end
       end
     end
   end

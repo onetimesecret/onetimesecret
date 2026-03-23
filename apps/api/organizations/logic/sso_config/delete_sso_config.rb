@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/models/org_sso_config'
+require_relative 'audit_logger'
 
 module OrganizationAPI::Logic
   module SsoConfig
@@ -17,7 +18,9 @@ module OrganizationAPI::Logic
     # authentication or another configured method.
     #
     class DeleteSsoConfig < OrganizationAPI::Logic::Base
-      attr_reader :organization
+      include AuditLogger
+
+      attr_reader :organization, :deleted_provider_type
 
       def process_params
         @extid = sanitize_identifier(params['extid'])
@@ -36,10 +39,13 @@ module OrganizationAPI::Logic
         # Verify user is owner (SSO config is sensitive)
         verify_organization_owner(@organization)
 
-        # Verify config exists
-        unless Onetime::OrgSsoConfig.exists_for_org?(@organization.objid)
+        # Verify config exists and capture provider_type for audit
+        existing_config = Onetime::OrgSsoConfig.find_by_org_id(@organization.objid)
+        unless existing_config
           raise_not_found("SSO configuration not found for organization: #{@extid}")
         end
+
+        @deleted_provider_type = existing_config.provider_type
       end
 
       def process
@@ -49,11 +55,12 @@ module OrganizationAPI::Logic
         deleted = Onetime::OrgSsoConfig.delete_for_org!(@organization.objid)
 
         if deleted
-          OT.info "[DeleteSsoConfig] SSO config deleted for org #{@extid}",
-            {
-              org_extid: @extid,
-              user_extid: cust.extid,
-            }
+          log_sso_audit_event(
+            event: :sso_config_deleted,
+            org: @organization,
+            actor: cust,
+            provider_type: @deleted_provider_type,
+          )
         end
 
         success_data

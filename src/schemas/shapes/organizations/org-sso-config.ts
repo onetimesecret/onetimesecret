@@ -10,8 +10,6 @@
 import {
   orgSsoConfigCanonical,
   ssoProviderTypeSchema,
-  createOrUpdateSsoConfigPayloadSchema,
-  createOrUpdateSsoConfigPayloadStrictSchema,
 } from '@/schemas/contracts/org-sso-config';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
@@ -96,11 +94,10 @@ export const orgSsoConfigSummarySchema = z.object({
 
 export type OrgSsoConfigSummary = z.infer<typeof orgSsoConfigSummarySchema>;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Re-export payload schemas for convenience
-// ─────────────────────────────────────────────────────────────────────────────
-
-export {
-  createOrUpdateSsoConfigPayloadSchema,
-  createOrUpdateSsoConfigPayloadStrictSchema,
-};
+// Note: All payload schemas are re-exported via `export * from '@/schemas/contracts/org-sso-config'` above.
+// This includes:
+// - createOrUpdateSsoConfigPayloadSchema (legacy, for backwards compatibility)
+// - createOrUpdateSsoConfigPayloadStrictSchema (legacy)
+// - patchSsoConfigPayloadSchema (PATCH - all fields optional)
+// - putSsoConfigPayloadSchema (PUT - required fields enforced)
+// - putSsoConfigPayloadStrictSchema (PUT with provider-specific validation)

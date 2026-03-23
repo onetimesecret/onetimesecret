@@ -202,3 +202,113 @@ export const createOrUpdateSsoConfigPayloadStrictSchema = createOrUpdateSsoConfi
 );
 
 export type CreateOrUpdateSsoConfigPayloadStrict = z.infer<typeof createOrUpdateSsoConfigPayloadStrictSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PATCH payload schema (partial update - all fields optional)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * PATCH SSO configuration request payload schema.
+ *
+ * All fields are optional for partial update semantics.
+ * Only provided fields are updated; omitted fields preserve existing values.
+ *
+ * @category Contracts
+ */
+export const patchSsoConfigPayloadSchema = z.object({
+  /** SSO provider type (oidc, entra_id, google, github). */
+  provider_type: ssoProviderTypeSchema.optional(),
+
+  /** Human-readable name for UI display. */
+  display_name: z.string().min(1, 'Display name is required').max(100, 'Display name is too long').optional(),
+
+  /** OAuth client ID. */
+  client_id: z.string().min(1, 'Client ID is required').optional(),
+
+  /**
+   * OAuth client secret.
+   * Optional for update - omit to preserve existing secret.
+   */
+  client_secret: z.string().optional(),
+
+  /** Azure AD tenant ID (required for Entra ID provider). */
+  tenant_id: z.string().optional(),
+
+  /** OIDC issuer URL (required for OIDC provider). */
+  issuer: z.string().url('Issuer must be a valid URL').optional(),
+
+  /** Email domain allowlist. Empty array means no restriction. */
+  allowed_domains: z.array(z.string()).optional(),
+
+  /** Whether SSO is enabled. */
+  enabled: z.boolean().optional(),
+});
+
+export type PatchSsoConfigPayload = z.infer<typeof patchSsoConfigPayloadSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PUT payload schema (full replacement - required fields enforced)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * PUT SSO configuration request payload schema.
+ *
+ * Full replacement semantics - client_secret is always required.
+ * The request body IS the new state.
+ *
+ * @category Contracts
+ */
+export const putSsoConfigPayloadSchema = z.object({
+  /** SSO provider type (oidc, entra_id, google, github). */
+  provider_type: ssoProviderTypeSchema,
+
+  /** Human-readable name for UI display. */
+  display_name: z.string().min(1, 'Display name is required').max(100, 'Display name is too long'),
+
+  /** OAuth client ID. */
+  client_id: z.string().min(1, 'Client ID is required'),
+
+  /** OAuth client secret. Required for PUT (full replacement). */
+  client_secret: z.string().min(1, 'Client secret is required'),
+
+  /** Azure AD tenant ID (required for Entra ID provider). */
+  tenant_id: z.string().optional(),
+
+  /** OIDC issuer URL (required for OIDC provider). */
+  issuer: z.string().url('Issuer must be a valid URL').optional(),
+
+  /** Email domain allowlist. Empty array means no restriction. */
+  allowed_domains: z.array(z.string()).optional(),
+
+  /** Whether SSO is enabled. Defaults to false. */
+  enabled: z.boolean().optional(),
+});
+
+/**
+ * PUT SSO config payload with provider-specific validation.
+ *
+ * - Entra ID requires tenant_id
+ * - OIDC requires issuer
+ */
+export const putSsoConfigPayloadStrictSchema = putSsoConfigPayloadSchema.superRefine(
+  (data, ctx) => {
+    if (data.provider_type === 'entra_id' && !data.tenant_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'tenant_id is required for Entra ID provider',
+        path: ['tenant_id'],
+      });
+    }
+
+    if (data.provider_type === 'oidc' && !data.issuer) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'issuer is required for OIDC provider',
+        path: ['issuer'],
+      });
+    }
+  }
+);
+
+export type PutSsoConfigPayload = z.infer<typeof putSsoConfigPayloadSchema>;
+export type PutSsoConfigPayloadStrict = z.infer<typeof putSsoConfigPayloadStrictSchema>;
