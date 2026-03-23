@@ -343,6 +343,7 @@ class CustomerTransformer
       dump: v2_dump_b64,
       objid: objid,
       extid: v2_fields['extid'],
+      created: v1_record[:created] || v1_fields['created']&.to_i,
     }
   end
 
