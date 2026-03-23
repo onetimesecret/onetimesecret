@@ -106,7 +106,7 @@ module Onetime
         def authenticate(env, _requirement)
           session = env['rack.session']
 
-          # Try session first, then nil for anonymous. Basic auth is
+          # Try session first, then fall back to anonymous. Basic auth is
           # handled by a separate strategy in the route chain (routes.txt),
           # not here — this strategy only checks session state.
           cust = load_user_from_session(session)
