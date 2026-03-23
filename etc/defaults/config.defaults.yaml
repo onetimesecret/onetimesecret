@@ -848,3 +848,17 @@ development:
   # @see lib/onetime/application/auth_strategies/dev_basic_auth_strategy.rb
   # @see https://github.com/onetimesecret/onetimesecret/issues/2735
   devbasicauth: <%= ENV['DEV_BASIC_AUTH'] == 'true' %>
+  # DEVELOPMENT TOOL: Session Auth for browser-based dev workflows
+  #
+  # Enables the devsessionauth strategy which validates sessions belong to dev users.
+  # Works with dev_*@dev.local users created by devbasicauth or dev login forms.
+  #
+  # SECURITY: Blocked in production (raises SecurityError on registration).
+  #
+  # USAGE:
+  #   1. Create a dev user via devbasicauth or dev login endpoint
+  #   2. Routes with auth=devsessionauth validate the session belongs to a dev user
+  #
+  # @see lib/onetime/application/auth_strategies/dev_session_auth_strategy.rb
+  # @see https://github.com/onetimesecret/onetimesecret/issues/2735
+  devsessionauth: <%= ENV['DEV_SESSION_AUTH'] == 'true' %>

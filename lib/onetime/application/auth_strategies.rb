@@ -8,12 +8,13 @@
 #
 # Structure:
 #   auth_strategies/
-#     helpers.rb                    - Shared helper methods
-#     no_auth_strategy.rb           - Public access (auth=noauth)
-#     base_session_auth_strategy.rb - Abstract base for session auth
-#     session_auth_strategy.rb      - Authenticated sessions (auth=sessionauth)
-#     basic_auth_strategy.rb        - HTTP Basic Auth (auth=basicauth)
-#     dev_basic_auth_strategy.rb    - Development-only Basic Auth (auth=devbasicauth)
+#     helpers.rb                      - Shared helper methods
+#     no_auth_strategy.rb             - Public access (auth=noauth)
+#     base_session_auth_strategy.rb   - Abstract base for session auth
+#     session_auth_strategy.rb        - Authenticated sessions (auth=sessionauth)
+#     basic_auth_strategy.rb          - HTTP Basic Auth (auth=basicauth)
+#     dev_basic_auth_strategy.rb      - Development-only Basic Auth (auth=devbasicauth)
+#     dev_session_auth_strategy.rb    - Development-only Session Auth (auth=devsessionauth)
 #
 # Keep this code in sync with:
 # @see docs/architecture/authentication.md#authstrategies
@@ -27,6 +28,7 @@ require_relative 'auth_strategies/base_session_auth_strategy'
 require_relative 'auth_strategies/session_auth_strategy'
 require_relative 'auth_strategies/basic_auth_strategy'
 require_relative 'auth_strategies/dev_basic_auth_strategy'
+require_relative 'auth_strategies/dev_session_auth_strategy'
 
 module Onetime
   module Application
@@ -108,6 +110,36 @@ module Onetime
         DevBasicAuthStrategy.production_guard!
         otto.add_auth_strategy('devbasicauth', DevBasicAuthStrategy.new)
         OT.li "[auth_strategies] Registered devbasicauth (TTL: #{DevBasicAuthStrategy::DEV_CUSTOMER_TTL / 3600}h)"
+      end
+
+      # Check if development session auth is enabled
+      #
+      # Checks config first, falls back to DEV_SESSION_AUTH env var.
+      # Config example: `devsessionauth: <%= ENV['DEV_SESSION_AUTH'] == 'true' %>`
+      #
+      # @return [Boolean] true if enabled via config or env var
+      def dev_session_auth_enabled?
+        # Config takes precedence (supports ERB: <%= ENV['DEV_SESSION_AUTH'] == 'true' %>)
+        config_value = OT.conf&.dig('development', 'devsessionauth')
+        return config_value if [true, false].include?(config_value)
+
+        # Fallback to env var directly
+        ENV['DEV_SESSION_AUTH'] == 'true'
+      end
+
+      # Registers development-only Session Auth strategy (opt-in, non-production only)
+      #
+      # Validates that authenticated sessions belong to dev_* users.
+      # BLOCKED in production environments.
+      #
+      # @param otto [Otto] Otto router instance
+      # @raise [SecurityError] if called in production
+      # @see DevSessionAuthStrategy
+      # @see https://github.com/onetimesecret/onetimesecret/issues/2735
+      def register_dev_session_auth(otto)
+        DevSessionAuthStrategy.production_guard!
+        otto.add_auth_strategy('devsessionauth', DevSessionAuthStrategy.new)
+        OT.li '[auth_strategies] Registered devsessionauth'
       end
     end
   end
