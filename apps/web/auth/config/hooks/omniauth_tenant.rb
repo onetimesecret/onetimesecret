@@ -30,6 +30,15 @@ module Auth::Config::Hooks
     # Module reference for calling helper methods from within Rodauth blocks
     HELPERS = self
 
+    # Map OrgSsoConfig provider_type symbols to OmniAuth strategy class names.
+    # Used to validate that credentials are being injected into the correct strategy.
+    STRATEGY_CLASS_MAP = {
+      openid_connect: %w[OmniAuth::Strategies::OpenIDConnect],
+      entra_id: %w[OmniAuth::Strategies::EntraId OmniAuth::Strategies::AzureActivedirectoryV2],
+      google_oauth2: %w[OmniAuth::Strategies::GoogleOauth2],
+      github: %w[OmniAuth::Strategies::GitHub],
+    }.freeze
+
     def self.configure(auth)
       # ========================================================================
       # HOOK: OmniAuth Setup - Runtime Credential Injection
@@ -212,6 +221,7 @@ module Auth::Config::Hooks
     #
     # @param org_config [Onetime::OrgSsoConfig] The org's SSO configuration
     # @param request [Rack::Request] The current request
+    # @raise [Onetime::Problem] if strategy type doesn't match configuration
     def self.inject_org_credentials(org_config, request)
       strategy = request.env['omniauth.strategy']
       return unless strategy
@@ -220,12 +230,22 @@ module Auth::Config::Hooks
 
       # Extract the strategy-specific options (excluding :strategy and :name keys
       # which are used for provider registration, not runtime configuration)
-      _strategy_type = options.delete(:strategy)
-      _strategy_name = options.delete(:name)
+      expected_strategy = options.delete(:strategy)
+      _strategy_name    = options.delete(:name)
 
-      # Verify we're injecting into the correct strategy type
-      # The URL path determines which strategy is used (/auth/sso/oidc, etc.)
-      # We should verify compatibility, but for now we trust the admin configured correctly.
+      # Validate strategy type matches configuration to prevent credential injection
+      # into wrong strategy (e.g., Google credentials into OIDC strategy)
+      unless strategy_matches?(strategy, expected_strategy)
+        Auth::Logging.log_auth_event(
+          :omniauth_strategy_mismatch,
+          level: :warn,
+          expected_strategy: expected_strategy,
+          actual_strategy: strategy.class.name,
+          org_id: org_config.org_id,
+          provider_type: org_config.provider_type,
+        )
+        raise Onetime::Problem, "SSO provider mismatch: organization configured #{org_config.provider_type}, but request is for #{strategy.class.name}"
+      end
 
       Auth::Logging.log_auth_event(
         :omniauth_strategy_options_merging,
@@ -242,6 +262,20 @@ module Auth::Config::Hooks
       # The strategy may have cached the discovery document and client
       # from boot-time configuration; we need fresh instances.
       clear_oidc_memoization(strategy)
+    end
+
+    # Check if the active OmniAuth strategy matches the expected type.
+    #
+    # @param strategy [OmniAuth::Strategy] The active strategy instance
+    # @param expected_type [Symbol] Expected strategy type from OrgSsoConfig
+    # @return [Boolean] true if strategy class matches expected type
+    def self.strategy_matches?(strategy, expected_type)
+      return false unless strategy && expected_type
+
+      expected_classes = STRATEGY_CLASS_MAP[expected_type]
+      return false unless expected_classes
+
+      expected_classes.include?(strategy.class.name)
     end
 
     # Merge options into the strategy, handling nested client_options.

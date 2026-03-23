@@ -304,16 +304,22 @@ module Onetime
         # Set allowed domains (handles array conversion)
         config.allowed_domains = attrs[:allowed_domains] if attrs.key?(:allowed_domains)
 
-        config.save
-
-        # Update the lookup index
-        configs_by_org[org_id] = org_id
+        # Atomic save + index update using Redis MULTI/EXEC
+        # Prevents race condition where config exists but index doesn't (or vice versa)
+        Familia.redis.multi do |txn|
+          # Save config fields to Redis hash
+          txn.hmset(config.rediskey, *config.to_h.flatten)
+          # Add to instances sorted set for enumeration
+          txn.zadd(instances.rediskey, Time.now.to_f, org_id)
+          # Update the lookup index
+          txn.hset(configs_by_org.rediskey, org_id, org_id)
+        end
 
         config
       end
 
       # Delete SSO config for an organization.
-      # Removes from both the config storage and the lookup index.
+      # Removes from both the config storage and the lookup index atomically.
       #
       # @param org_id [String] Organization objid
       # @return [Boolean] true if deleted, false if not found
@@ -323,11 +329,16 @@ module Onetime
         config = find_by_org_id(org_id)
         return false unless config
 
-        # Remove from lookup index
-        configs_by_org.delete(org_id)
-
-        # Delete the config record
-        config.destroy!
+        # Atomic delete using Redis MULTI/EXEC
+        # Prevents race condition where index is removed but config remains (or vice versa)
+        Familia.redis.multi do |txn|
+          # Delete the config hash
+          txn.del(config.rediskey)
+          # Remove from instances sorted set
+          txn.zrem(instances.rediskey, org_id)
+          # Remove from lookup index
+          txn.hdel(configs_by_org.rediskey, org_id)
+        end
 
         true
       end
