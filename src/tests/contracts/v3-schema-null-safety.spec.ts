@@ -718,67 +718,9 @@ describe('V3 schema null-safety audit', () => {
     });
   });
 
-  describe('z.preprocess(parseBoolean, z.boolean()) pattern', () => {
-    // NOTE: This tests a HYPOTHETICAL preprocess-based approach, not the actual
-    // transforms.fromString.boolean implementation. The actual V2 transform uses:
-    //   z.string().nullish().transform(val => val === 'true' || val === '1')
-    // which expects string input, not any type.
-    //
-    // This preprocess pattern accepts ANY input type and coerces to boolean:
-    const preprocessBooleanSchema = z.preprocess(parseBoolean, z.boolean());
-
-    it('accepts and coerces null to false', () => {
-      const result = preprocessBooleanSchema.safeParse(null);
-      expect(result.success).toBe(true);
-      if (result.success) expect(result.data).toBe(false);
-    });
-
-    it('accepts and coerces undefined to false', () => {
-      const result = preprocessBooleanSchema.safeParse(undefined);
-      expect(result.success).toBe(true);
-      if (result.success) expect(result.data).toBe(false);
-    });
-
-    it('accepts and coerces "true" to true', () => {
-      const result = preprocessBooleanSchema.safeParse('true');
-      expect(result.success).toBe(true);
-      if (result.success) expect(result.data).toBe(true);
-    });
-
-    it('accepts and coerces "false" to false', () => {
-      const result = preprocessBooleanSchema.safeParse('false');
-      expect(result.success).toBe(true);
-      if (result.success) expect(result.data).toBe(false);
-    });
-
-    it('accepts true as true', () => {
-      const result = preprocessBooleanSchema.safeParse(true);
-      expect(result.success).toBe(true);
-      if (result.success) expect(result.data).toBe(true);
-    });
-
-    it('accepts false as false', () => {
-      const result = preprocessBooleanSchema.safeParse(false);
-      expect(result.success).toBe(true);
-      if (result.success) expect(result.data).toBe(false);
-    });
-
-    // Contrast with bare z.boolean()
-    it('bare z.boolean() rejects null', () => {
-      const result = z.boolean().safeParse(null);
-      expect(result.success).toBe(false);
-    });
-
-    it('bare z.boolean() rejects undefined', () => {
-      const result = z.boolean().safeParse(undefined);
-      expect(result.success).toBe(false);
-    });
-
-    it('bare z.boolean() rejects string "true"', () => {
-      const result = z.boolean().safeParse('true');
-      expect(result.success).toBe(false);
-    });
-  });
+  // NOTE: transforms.fromString.boolean coverage is in transforms.spec.ts
+  // The old z.preprocess(parseBoolean, ...) pattern was replaced with
+  // z.string().nullish().transform() - see transforms.spec.ts for full coverage.
 
   // ---------------------------------------------------------------------------
   // 6. Defense-in-depth pattern test (the fix pattern)
