@@ -58,76 +58,76 @@ end
 
 ## build_sso_config returns false when SSO is disabled
 with_sso_config(enabled: false) do
-  Core::Views::ConfigSerializer.send(:build_sso_config)
+  Core::Views::ConfigSerializer.send(:build_sso_config, {})
 end
 #=> false
 
 ## build_sso_config returns hash with enabled true when SSO is enabled
 result = with_sso_config(enabled: true) do
-  Core::Views::ConfigSerializer.send(:build_sso_config)
+  Core::Views::ConfigSerializer.send(:build_sso_config, {})
 end
 result['enabled']
 #=> true
 
 ## build_sso_config omits display_name when not configured
 result = with_sso_config(enabled: true, display_name: '') do
-  Core::Views::ConfigSerializer.send(:build_sso_config)
+  Core::Views::ConfigSerializer.send(:build_sso_config, {})
 end
 result.key?('display_name')
 #=> false
 
 ## build_sso_config omits display_name when whitespace-only
 result = with_sso_config(enabled: true, display_name: '   ') do
-  Core::Views::ConfigSerializer.send(:build_sso_config)
+  Core::Views::ConfigSerializer.send(:build_sso_config, {})
 end
 result.key?('display_name')
 #=> false
 
 ## build_sso_config includes display_name in provider entry when configured
 result = with_sso_config(enabled: true, display_name: 'Zitadel') do
-  Core::Views::ConfigSerializer.send(:build_sso_config)
+  Core::Views::ConfigSerializer.send(:build_sso_config, {})
 end
 result['providers'].first['display_name']
 #=> "Zitadel"
 
 ## build_sso_config returns correct structure with provider display_name
 result = with_sso_config(enabled: true, display_name: 'Okta') do
-  Core::Views::ConfigSerializer.send(:build_sso_config)
+  Core::Views::ConfigSerializer.send(:build_sso_config, {})
 end
 [result['enabled'], result['providers'].first['display_name']]
 #=> [true, "Okta"]
 
 ## build_feature_flags includes sso as false when disabled
 result = with_sso_config(enabled: false) do
-  Core::Views::ConfigSerializer.send(:build_feature_flags)
+  Core::Views::ConfigSerializer.send(:build_feature_flags, {})
 end
 result['sso']
 #=> false
 
 ## build_feature_flags includes sso hash when enabled
 result = with_sso_config(enabled: true, display_name: 'Azure AD') do
-  Core::Views::ConfigSerializer.send(:build_feature_flags)
+  Core::Views::ConfigSerializer.send(:build_feature_flags, {})
 end
 [result['sso']['enabled'], result['sso']['providers'].first['display_name']]
 #=> [true, "Azure AD"]
 
 ## build_feature_flags includes sso_only key
 result = with_sso_config(enabled: false) do
-  Core::Views::ConfigSerializer.send(:build_feature_flags)
+  Core::Views::ConfigSerializer.send(:build_feature_flags, {})
 end
 result.key?('sso_only')
 #=> true
 
 ## build_sso_config provider entry includes route_name
 result = with_sso_config(enabled: true, display_name: 'Okta') do
-  Core::Views::ConfigSerializer.send(:build_sso_config)
+  Core::Views::ConfigSerializer.send(:build_sso_config, {})
 end
 result['providers'].first['route_name']
 #=> "oidc"
 
 ## build_sso_config provider entry has both route_name and display_name
 result = with_sso_config(enabled: true, display_name: 'Zitadel') do
-  Core::Views::ConfigSerializer.send(:build_sso_config)
+  Core::Views::ConfigSerializer.send(:build_sso_config, {})
 end
 [result['providers'].first['route_name'], result['providers'].first['display_name']]
 #=> ["oidc", "Zitadel"]
@@ -141,14 +141,14 @@ end
 
 ## build_sso_config providers array has route_name and display_name strings
 result = with_sso_config(enabled: true) do
-  Core::Views::ConfigSerializer.send(:build_sso_config)
+  Core::Views::ConfigSerializer.send(:build_sso_config, {})
 end
 result['providers'].is_a?(Array)
 #=> true
 
 ## build_sso_config provider entries use string keys
 result = with_sso_config(enabled: true) do
-  Core::Views::ConfigSerializer.send(:build_sso_config)
+  Core::Views::ConfigSerializer.send(:build_sso_config, {})
 end
 result['providers'].empty? || result['providers'].all? { |p| p.key?('route_name') && p.key?('display_name') }
 #=> true
