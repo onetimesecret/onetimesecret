@@ -304,7 +304,7 @@ describe('Bootstrap Zod schema validation', () => {
   describe('organizationSchema', () => {
     it('accepts valid organization object', () => {
       const org = {
-        id: 'org_obj_123',
+        objid: 'org_obj_123',
         extid: 'org_ext_123',
         display_name: 'ACME Corp',
         is_default: false,
@@ -323,7 +323,7 @@ describe('Bootstrap Zod schema validation', () => {
 
     it('accepts organization with null planid', () => {
       const org = {
-        id: 'org_obj_123',
+        objid: 'org_obj_123',
         extid: 'org_ext_123',
         display_name: 'ACME Corp',
         is_default: true,
@@ -337,7 +337,7 @@ describe('Bootstrap Zod schema validation', () => {
 
     it('validates role enum', () => {
       const orgWithInvalidRole = {
-        id: 'org_obj_123',
+        objid: 'org_obj_123',
         extid: 'org_ext_123',
         display_name: 'ACME Corp',
         is_default: false,
@@ -394,7 +394,7 @@ describe('Bootstrap realistic payload parsing', () => {
         },
       },
       organization: {
-        id: 'org_123',
+        objid: 'org_123',
         extid: 'org_ext_123',
         display_name: 'ACME Corp',
         is_default: false,

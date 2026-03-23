@@ -21,25 +21,31 @@ import type { Organization } from '@/types/organization';
 
 // Mock organization data with branded types
 const mockOrganization: Organization = {
-  id: toObjId('550e8400-e29b-41d4-a716-446655440000'),
+  objid: toObjId('550e8400-e29b-41d4-a716-446655440000'),
   extid: toExtId('on8a7b9c'),
   display_name: 'Test Organization',
   description: 'Test description',
+  owner_id: 'cust_789',
+  contact_email: null,
   is_default: false,
-  created_at: new Date('2024-01-01'),
-  updated_at: new Date('2024-01-01'),
+  planid: 'free',
+  created: new Date('2024-01-01'),
+  updated: new Date('2024-01-01'),
 };
 
 const mockOrganizations: Organization[] = [
   mockOrganization,
   {
-    id: toObjId('660f9500-f39c-52e5-b827-557766551111'),
+    objid: toObjId('660f9500-f39c-52e5-b827-557766551111'),
     extid: toExtId('on9c8d7e'),
     display_name: 'Second Organization',
     description: null,
+    owner_id: 'cust_789',
+    contact_email: null,
     is_default: true,
-    created_at: new Date('2024-02-01'),
-    updated_at: new Date('2024-02-01'),
+    planid: 'free',
+    created: new Date('2024-02-01'),
+    updated: new Date('2024-02-01'),
   },
 ];
 
@@ -218,7 +224,7 @@ describe('Identifier Navigation Pattern', () => {
 
       const emitted = wrapper.emitted('navigate');
       // Should NOT be the internal UUID
-      expect(emitted?.[0]?.[0]).not.toBe(mockOrganization.id);
+      expect(emitted?.[0]?.[0]).not.toBe(mockOrganization.objid);
     });
   });
 
@@ -257,7 +263,7 @@ describe('Identifier Navigation Pattern', () => {
 
       // Should NOT contain the internal UUID
       expect(url).not.toContain('550e8400');
-      expect(url).not.toContain(mockOrganization.id as string);
+      expect(url).not.toContain(mockOrganization.objid as string);
     });
   });
 
@@ -313,8 +319,8 @@ describe('Identifier Navigation Pattern', () => {
         <ul>
           <li
             v-for="org in organizations"
-            :key="org.id"
-            :data-id="org.id"
+            :key="org.objid"
+            :data-id="org.objid"
             :data-extid="org.extid"
           >
             {{ org.display_name }}
@@ -334,13 +340,13 @@ describe('Identifier Navigation Pattern', () => {
       const items = wrapper.findAll('li');
       expect(items).toHaveLength(2);
 
-      // Verify the component uses internal id for :key
+      // Verify the component uses internal objid for :key
       // The data-id attribute reflects what's used in :key
-      expect(items[0].attributes('data-id')).toBe(mockOrganizations[0].id);
-      expect(items[1].attributes('data-id')).toBe(mockOrganizations[1].id);
+      expect(items[0].attributes('data-id')).toBe(mockOrganizations[0].objid);
+      expect(items[1].attributes('data-id')).toBe(mockOrganizations[1].objid);
     });
 
-    it('distinguishes between id (for :key) and extid (for URLs)', () => {
+    it('distinguishes between objid (for :key) and extid (for URLs)', () => {
       const wrapper = mount(ListComponent, {
         props: { organizations: mockOrganizations },
         global: {
@@ -350,7 +356,7 @@ describe('Identifier Navigation Pattern', () => {
 
       const items = wrapper.findAll('li');
 
-      // id should be UUID format (internal)
+      // objid should be UUID format (internal)
       expect(items[0].attributes('data-id')).toMatch(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       );
@@ -366,11 +372,11 @@ describe('Identifier Navigation Pattern', () => {
       const org = mockOrganization;
 
       // At runtime, both are strings
-      expect(typeof org.id).toBe('string');
+      expect(typeof org.objid).toBe('string');
       expect(typeof org.extid).toBe('string');
 
       // But they have different formats
-      expect(org.id).toMatch(
+      expect(org.objid).toMatch(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       );
       expect(org.extid).toMatch(/^on[a-z0-9]+$/i);
@@ -453,13 +459,13 @@ describe('Identifier Navigation Pattern', () => {
       );
     });
 
-    it('never includes internal id in any URL paths', () => {
+    it('never includes internal objid in any URL paths', () => {
       const wrapper = mount(UrlBuilderComponent, {
         props: { organization: mockOrganization },
         global: { plugins: [i18n] },
       });
 
-      const internalId = mockOrganization.id as string;
+      const internalId = mockOrganization.objid as string;
 
       expect(wrapper.find('[data-testid="view-link"]').attributes('href')).not.toContain(
         internalId

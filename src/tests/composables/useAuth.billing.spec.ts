@@ -40,12 +40,20 @@ vi.mock('@/services/logging.service', () => ({
 
 /**
  * Factory for creating mock Organization objects
+ *
+ * V3 Schema fields:
+ * - objid: Internal UUID (primary key)
+ * - extid: External ID (user-facing, format: on%<id>s)
+ * - owner_id: Owner's Customer objid
  */
 function createMockOrganization(overrides: Partial<Organization> = {}): Organization {
   return {
-    id: 'org_123' as Organization['id'],
+    objid: 'org_obj_123',
     extid: 'on1234abc' as Organization['extid'],
+    owner_id: 'cust_obj_456',
+    contact_email: 'contact@example.com',
     display_name: 'Test Organization',
+    description: null,
     is_default: true,
     created: new Date(),
     updated: new Date(),

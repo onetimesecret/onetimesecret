@@ -35,12 +35,16 @@ vi.mock('@/services/billing.service', () => ({
 
 // Lightweight org shape for store mock (not full Organization type)
 const mockOrganization = {
-  id: 'org_123', extid: 'on1abc123', display_name: 'Test Organization',
+  objid: 'org_123', extid: 'on1abc123', display_name: 'Test Organization',
+  description: null, owner_id: 'cust_456', contact_email: 'test@example.com',
   planid: 'identity_plus_v1_monthly', entitlements: ['api_access'], limits: { teams: 1 }, is_default: true,
+  created: new Date('2024-01-01'), updated: new Date('2024-01-01'),
 };
 const mockFreeOrganization = {
-  id: 'org_456', extid: 'on2def456', display_name: 'Free Org',
+  objid: 'org_456', extid: 'on2def456', display_name: 'Free Org',
+  description: null, owner_id: 'cust_789', contact_email: 'free@example.com',
   planid: '', entitlements: [] as string[], limits: { teams: 0 }, is_default: false,
+  created: new Date('2024-01-01'), updated: new Date('2024-01-01'),
 };
 
 type MockOrg = typeof mockOrganization;
