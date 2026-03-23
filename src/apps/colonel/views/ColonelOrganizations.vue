@@ -15,7 +15,7 @@
   import type {
     ColonelOrganization,
     InvestigateOrganizationResult,
-  } from '@/schemas/api/account/endpoints/colonel';
+  } from '@/schemas/api/account/responses/colonel';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';

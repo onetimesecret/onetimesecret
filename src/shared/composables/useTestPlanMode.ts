@@ -25,7 +25,7 @@ export function useTestPlanMode() {
   /**
    * Get test plan ID from bootstrap store
    */
-  const testPlanId = computed(() => entitlement_test_planid.value || null);
+  const testPlanId = computed(() => entitlement_test_planid?.value || null);
 
   /**
    * Check if test mode is active
@@ -40,12 +40,12 @@ export function useTestPlanMode() {
   /**
    * Get test plan name from bootstrap store
    */
-  const testPlanName = computed(() => entitlement_test_plan_name.value ?? null);
+  const testPlanName = computed(() => entitlement_test_plan_name?.value ?? null);
 
   /**
    * Get actual organization plan ID (not the test override)
    */
-  const actualPlanId = computed(() => organization.value?.planid);
+  const actualPlanId = computed(() => organization?.value?.planid);
 
   return {
     isTestModeActive,

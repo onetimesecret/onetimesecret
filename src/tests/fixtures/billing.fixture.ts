@@ -280,11 +280,17 @@ export const mockSubscriptionStatuses = {
 
 /**
  * Factory for creating mock organizations with billing data
+ *
+ * V3 Schema fields:
+ * - objid: Internal UUID (primary key)
+ * - extid: External ID (user-facing, format: on%<id>s)
+ * - owner_id: Owner's Customer objid
  */
 export function createMockOrganization(overrides: Partial<Organization> = {}): Organization {
   return {
-    id: 'org_obj_123' as ObjId,
+    objid: 'org_obj_123' as ObjId,
     extid: 'org_ext_123' as ExtId,
+    owner_id: 'cust_obj_456',
     display_name: 'Test Organization',
     description: 'A test organization',
     contact_email: 'contact@example.com',
@@ -292,7 +298,6 @@ export function createMockOrganization(overrides: Partial<Organization> = {}): O
     is_default: true,
     created: new Date('2024-01-01'),
     updated: new Date('2024-01-01'),
-    owner_extid: 'cust_ext_456' as ExtId,
     member_count: 5,
     current_user_role: 'owner',
     planid: 'identity_plus_v1_monthly',

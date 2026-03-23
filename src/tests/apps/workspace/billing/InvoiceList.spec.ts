@@ -65,7 +65,12 @@ vi.mock('@/services/billing.service', () => ({
 
 // Mock organizationStore
 const mockOrganizations = vi.fn(() => [
-  { id: 'org_1', extid: 'org_ext_1', display_name: 'Test Org' },
+  {
+    objid: 'org_1', extid: 'org_ext_1', display_name: 'Test Org',
+    description: null, owner_id: 'cust_1', contact_email: 'test@example.com',
+    planid: 'identity_plus_v1_monthly', is_default: true,
+    created: new Date('2024-01-01'), updated: new Date('2024-01-01'),
+  },
 ]);
 const mockFetchOrganizations = vi.fn();
 
@@ -153,7 +158,12 @@ describe('InvoiceList', () => {
     mockListInvoices.mockReset();
     mockFetchOrganizations.mockReset();
     mockOrganizations.mockReturnValue([
-      { id: 'org_1', extid: 'org_ext_1', display_name: 'Test Org' },
+      {
+        objid: 'org_1', extid: 'org_ext_1', display_name: 'Test Org',
+        description: null, owner_id: 'cust_1', contact_email: 'test@example.com',
+        planid: 'identity_plus_v1_monthly', is_default: true,
+        created: new Date('2024-01-01'), updated: new Date('2024-01-01'),
+      },
     ]);
   });
 

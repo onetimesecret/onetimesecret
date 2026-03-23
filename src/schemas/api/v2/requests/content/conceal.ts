@@ -4,7 +4,7 @@
 // since they are obviously highly correlated with the conceal payload. For now,
 // we will keep this simple and just define the payload schema here and keep it
 // copacetic via diligence and testing.
-//import { receiptSchema, secretSchema } from '@/schemas/models';
+//import { receiptSchema, secretSchema } from '@/schemas/shapes/v2';
 
 import { z } from 'zod';
 

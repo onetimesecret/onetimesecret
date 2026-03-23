@@ -57,7 +57,7 @@ module Core
         # @return [Hash] Serialized organization data
         def serialize_organization(org, cust)
           {
-            'id' => org.objid,
+            'objid' => org.objid,
             'extid' => org.extid,
             'display_name' => org.display_name,
             'is_default' => org.is_default || false,

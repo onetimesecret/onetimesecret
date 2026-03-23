@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import APIKeyCard from '@/apps/workspace/components/account/APIKeyCard.vue';
   import { useFormSubmission } from '@/shared/composables/useFormSubmission';
-  import { responseSchemas } from '@/schemas/api/v2/responses';
+  import { responseSchemas } from '@/schemas/api/v3/responses';
   import { useCsrfStore } from '@/shared/stores/csrfStore';
   import { ref, watch } from 'vue';
 

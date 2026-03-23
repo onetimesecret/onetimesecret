@@ -72,7 +72,7 @@ describe('AcceptInvite', () => {
 
   const mockInvitation = {
     organization_name: 'Acme Corp',
-    organization_id: 'org-123',
+    organization_id: 'on%orgacme123', // ExtId format for organization reference
     email: 'invitee@example.com',
     role: 'member',
     invited_by_email: 'admin@acme.com',

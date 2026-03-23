@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import CopyButton from '@/shared/components/ui/CopyButton.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import type { Receipt, ReceiptDetails } from '@/schemas/models';
+  import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v3/receipt';
   import { ref } from 'vue';
 
   const { t } = useI18n();

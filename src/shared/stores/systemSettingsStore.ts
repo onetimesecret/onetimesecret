@@ -1,8 +1,8 @@
 // src/shared/stores/systemSettingsStore.ts
 
-import { systemSettingsSchema } from '@/schemas/api/account/endpoints/colonel';
-import { type SystemSettingsDetails } from '@/schemas/config';
-import { responseSchemas } from '@/schemas/api/v3/responses';
+import { systemSettingsSchema } from '@/schemas/api/account/responses/colonel';
+import { type SystemSettingsDetails } from '@/schemas/contracts/config';
+import { responseSchemas } from '@/schemas/api/internal/responses';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';

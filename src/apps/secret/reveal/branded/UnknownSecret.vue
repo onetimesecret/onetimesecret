@@ -3,8 +3,8 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import BaseUnknownSecret from '@/shared/components/base/BaseUnknownSecret.vue';
-  import type { BrandSettings } from '@/schemas/models/custom-domain/brand';
-  import { fontFamilyClasses, FontFamily } from '@/schemas/models/custom-domain/brand';
+  import type { BrandSettings } from '@/schemas/shapes/v2/custom-domain/brand';
+  import { fontFamilyClasses, FontFamily } from '@/schemas/shapes/v2/custom-domain/brand';
 
 const { t } = useI18n();
 

@@ -13,7 +13,7 @@ import CurrencyMigrationModal from './CurrencyMigrationModal.vue';
 import PendingMigrationBanner from './PendingMigrationBanner.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
-import type { CurrencyConflictError } from '@/schemas/models/billing';
+import type { CurrencyConflictError } from '@/schemas/shapes/account/billing';
 import { BillingService, extractCurrencyConflict, type Plan as BillingPlan, type SubscriptionStatusResponse } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { BillingInterval } from '@/types/billing';

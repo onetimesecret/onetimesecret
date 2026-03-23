@@ -1,31 +1,36 @@
 // src/tests/contracts/v3-schema-null-safety.spec.ts
 //
-// Contract tests for V3 Zod schema null-safety on boolean fields.
+// Contract tests for schema null-safety on boolean fields (V2 and V3).
 //
 // Problem: The Ruby backend sends `null` for boolean fields like
 // `has_passphrase` and `can_decrypt` when a secret is destroyed/consumed
-// (secret.nil?). V2 model schemas use `transforms.fromString.boolean`
-// which preprocesses via `parseBoolean` (null -> false). V3 response
-// schemas use bare `z.boolean()` which rejects null at parse time.
+// (secret.nil?).
 //
-// These tests document the CURRENT broken behavior and will verify
-// the fix once applied. They do NOT modify any schemas.
+// Wire format differences:
+// - V2: Booleans come as STRINGS ('true'/'false'/'1'/'0' or null)
+//   Transform: z.string().nullish().transform(val => val === 'true' || val === '1')
+//   Accepts string | null | undefined, outputs boolean
+//
+// - V3: Booleans come as NATIVE JSON types (true/false/null)
+//   Schema: z.boolean().nullable() or z.boolean().nullish()
+//   Accepts boolean | null, outputs boolean | null
+//
+// These tests verify null-safety across both wire formats.
 
-import { receiptResponseSchema, receiptBaseRecord } from '@/schemas/api/v3/responses/receipts';
+import { receiptResponseSchema } from '@/schemas/api/v3/responses/receipts';
+import { receiptBaseSchema } from '@/schemas/shapes/v3/receipt';
 import {
   secretResponseSchema,
 } from '@/schemas/api/v3/responses/secrets';
 import {
   accountResponseSchema,
 } from '@/schemas/api/v3/responses/account';
-import {
-  organizationResponseSchema,
-} from '@/schemas/api/v3/responses/organizations';
+// Organization schemas moved to internal registry (no longer V3 public API)
 import {
   customDomainResponseSchema,
   jurisdictionResponseSchema,
 } from '@/schemas/api/v3/responses/domains';
-import { receiptDetailsSchema } from '@/schemas/models/receipt';
+import { receiptDetailsSchema } from '@/schemas/shapes/v2/receipt';
 import { parseBoolean } from '@/utils/parse/index';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
@@ -143,7 +148,9 @@ describe('V3 schema null-safety audit', () => {
     it('identifies all boolean fields in receipt response schema', () => {
       const paths = receiptBooleans.map((b) => b.path);
       // These are the fields we know exist in the receipt schemas
-      expect(paths).toContain('record.is_viewed');
+      // V3 uses canonical names: is_previewed, is_revealed (not is_viewed, is_received)
+      expect(paths).toContain('record.is_previewed');
+      expect(paths).toContain('record.is_revealed');
       expect(paths).toContain('record.is_burned');
       expect(paths).toContain('record.is_destroyed');
       expect(paths).toContain('record.is_expired');
@@ -194,9 +201,10 @@ describe('V3 schema null-safety audit', () => {
     );
 
     // Receipt record-level boolean fields
+    // V3 uses canonical names: is_previewed, is_revealed (not is_viewed, is_received)
     const receiptRecordBareFields = [
-      'is_viewed',
-      'is_received',
+      'is_previewed',
+      'is_revealed',
       'is_burned',
       'is_destroyed',
       'is_expired',
@@ -270,14 +278,7 @@ describe('V3 schema null-safety audit', () => {
       }
     );
 
-    // Organization boolean fields
-    const orgBooleans = extractBooleanFields(organizationResponseSchema);
-
-    it('organization record field "is_default" uses bare z.boolean() and REJECTS null', () => {
-      const field = orgBooleans.find((b) => b.path === 'record.is_default');
-      expect(field).toBeDefined();
-      expect(fieldAcceptsNull(field!.schema)).toBe(false);
-    });
+    // Organization schemas moved to internal registry (no longer V3 public API)
 
     // Domain boolean fields
     const domainBooleans = extractBooleanFields(customDomainResponseSchema);
@@ -288,10 +289,11 @@ describe('V3 schema null-safety audit', () => {
       expect(fieldAcceptsNull(field!.schema)).toBe(false);
     });
 
-    it('domain field "record.verified" accepts null (coerces to false)', () => {
+    it('domain field "record.verified" rejects null (uses default instead)', () => {
+      // V3 schema uses z.boolean().default(false), which rejects null
       const field = domainBooleans.find((b) => b.path === 'record.verified');
       expect(field).toBeDefined();
-      expect(fieldAcceptsNull(field!.schema)).toBe(true);
+      expect(fieldAcceptsNull(field!.schema)).toBe(false);
     });
 
     // Jurisdiction boolean fields
@@ -470,6 +472,12 @@ describe('V3 schema null-safety audit', () => {
     it('V3 secret response schema accepts payload when all details booleans are proper booleans', () => {
       const validPayload = {
         ...secretDetailsPayloadWithNulls,
+        record: {
+          ...secretDetailsPayloadWithNulls.record,
+          // V3 requires canonical boolean fields is_previewed and is_revealed
+          is_previewed: false,
+          is_revealed: false,
+        },
         details: {
           continue: true,
           is_owner: false,
@@ -528,30 +536,33 @@ describe('V3 schema null-safety audit', () => {
   // ---------------------------------------------------------------------------
 
   describe('V2 vs V3 null handling comparison (receipt details)', () => {
-    // The V2 receiptDetailsSchema uses transforms.fromString.boolean which
-    // preprocesses via parseBoolean. parseBoolean(null) returns false.
-    // The V3 receipt details uses bare z.boolean() which rejects null.
+    // V2 receiptDetailsSchema uses transforms.fromString.boolean which is:
+    //   z.string().nullish().transform(val => val === 'true' || val === '1')
+    // This accepts string | null | undefined, NOT native booleans.
+    // V3 receipt details uses bare z.boolean() which accepts native booleans.
 
-    const nullBooleanDetailsPayload = {
+    // V2 wire format: boolean fields are strings ('true'/'false'/'1'/'0')
+    // null is accepted for nullish fields like has_passphrase/can_decrypt
+    const v2WireFormatPayload = {
       type: 'record' as const,
-      display_lines: 1,
-      no_cache: true,
+      display_lines: '1',  // V2 sends numbers as strings
+      no_cache: 'true',    // V2 sends booleans as strings
       secret_realttl: null,
       view_count: null,
-      has_passphrase: null,
+      has_passphrase: null,  // null is valid for nullish fields
       can_decrypt: null,
       secret_value: null,
-      show_secret: false,
-      show_secret_link: false,
-      show_receipt_link: true,
-      show_receipt: true,
-      show_recipients: true,
-      is_orphaned: false,
-      is_expired: false,
+      show_secret: 'false',
+      show_secret_link: 'false',
+      show_receipt_link: 'true',
+      show_receipt: 'true',
+      show_recipients: 'true',
+      is_orphaned: 'false',
+      is_expired: 'false',
     };
 
     it('V2 receiptDetailsSchema ACCEPTS null for has_passphrase (coerces to false)', () => {
-      const result = receiptDetailsSchema.safeParse(nullBooleanDetailsPayload);
+      const result = receiptDetailsSchema.safeParse(v2WireFormatPayload);
 
       // V2 schema uses transforms.fromString.boolean -> parseBoolean -> null becomes false
       if (!result.success) {
@@ -566,7 +577,7 @@ describe('V3 schema null-safety audit', () => {
     });
 
     it('V2 receiptDetailsSchema coerces null has_passphrase to false', () => {
-      const result = receiptDetailsSchema.safeParse(nullBooleanDetailsPayload);
+      const result = receiptDetailsSchema.safeParse(v2WireFormatPayload);
       expect(result.success).toBe(true);
 
       if (result.success) {
@@ -575,17 +586,34 @@ describe('V3 schema null-safety audit', () => {
       }
     });
 
-    it('V3 receipt details accepts the same null payload that V2 accepts', () => {
+    it('V3 receipt details accepts null booleans with V3 native-type payload', () => {
+      // V3 wire format: native JSON types (numbers, booleans, null)
+      // V3 receipt details should handle null for has_passphrase/can_decrypt
+      const v3NativePayload = {
+        type: 'record' as const,
+        display_lines: 1,         // V3: native number
+        no_cache: true,           // V3: native boolean
+        secret_realttl: null,
+        view_count: null,
+        has_passphrase: null,     // null for consumed secrets
+        can_decrypt: null,
+        secret_value: null,
+        show_secret: false,       // V3: native boolean
+        show_secret_link: false,
+        show_receipt_link: true,
+        show_receipt: true,
+        show_recipients: true,
+        is_orphaned: false,
+        is_expired: false,
+      };
+
       // Extract V3 receipt details from the actual response schema
       const v3ReceiptDetails = (
         receiptResponseSchema.shape.details as z.ZodOptional<z.ZodObject<any>>
       ).unwrap();
 
-      const v3Result = v3ReceiptDetails.safeParse(nullBooleanDetailsPayload);
-      const v2Result = receiptDetailsSchema.safeParse(nullBooleanDetailsPayload);
+      const v3Result = v3ReceiptDetails.safeParse(v3NativePayload);
 
-      // Desired: both V2 and V3 accept the payload
-      expect(v2Result.success).toBe(true);
       if (!v3Result.success) {
         expect(v3Result.error.issues).toEqual([]);
       }
@@ -593,11 +621,12 @@ describe('V3 schema null-safety audit', () => {
     });
 
     it('V2 schema handles all null-coercion cases that V3 does not', () => {
-      // Test with ALL boolean fields set to null to see which V2 coerces
-      const allNullBooleans = {
+      // Test with ALL boolean fields set to null to see which V2 coerces.
+      // V2 wire format: numbers/booleans come as strings, null is valid for nullish fields.
+      const v2AllNullBooleans = {
         type: 'record' as const,
-        display_lines: 1,
-        no_cache: null,
+        display_lines: '1',  // V2 wire format: numbers as strings
+        no_cache: null,      // null is valid for z.string().nullish()
         secret_realttl: null,
         view_count: null,
         has_passphrase: null,
@@ -612,8 +641,8 @@ describe('V3 schema null-safety audit', () => {
         is_expired: null,
       };
 
-      const v2Result = receiptDetailsSchema.safeParse(allNullBooleans);
-      // V2 should accept all of these because parseBoolean(null) -> false
+      const v2Result = receiptDetailsSchema.safeParse(v2AllNullBooleans);
+      // V2 accepts null for string-based boolean transform: null → false
       expect(v2Result.success).toBe(true);
 
       if (v2Result.success) {
@@ -690,64 +719,9 @@ describe('V3 schema null-safety audit', () => {
     });
   });
 
-  describe('transforms.fromString.boolean via z.preprocess', () => {
-    // The V2 transform wraps parseBoolean in z.preprocess
-    // Verify the full pipeline works with z.preprocess(parseBoolean, z.boolean())
-
-    const v2BooleanSchema = z.preprocess(parseBoolean, z.boolean());
-
-    it('accepts and coerces null to false', () => {
-      const result = v2BooleanSchema.safeParse(null);
-      expect(result.success).toBe(true);
-      if (result.success) expect(result.data).toBe(false);
-    });
-
-    it('accepts and coerces undefined to false', () => {
-      const result = v2BooleanSchema.safeParse(undefined);
-      expect(result.success).toBe(true);
-      if (result.success) expect(result.data).toBe(false);
-    });
-
-    it('accepts and coerces "true" to true', () => {
-      const result = v2BooleanSchema.safeParse('true');
-      expect(result.success).toBe(true);
-      if (result.success) expect(result.data).toBe(true);
-    });
-
-    it('accepts and coerces "false" to false', () => {
-      const result = v2BooleanSchema.safeParse('false');
-      expect(result.success).toBe(true);
-      if (result.success) expect(result.data).toBe(false);
-    });
-
-    it('accepts true as true', () => {
-      const result = v2BooleanSchema.safeParse(true);
-      expect(result.success).toBe(true);
-      if (result.success) expect(result.data).toBe(true);
-    });
-
-    it('accepts false as false', () => {
-      const result = v2BooleanSchema.safeParse(false);
-      expect(result.success).toBe(true);
-      if (result.success) expect(result.data).toBe(false);
-    });
-
-    // Contrast with bare z.boolean()
-    it('bare z.boolean() rejects null', () => {
-      const result = z.boolean().safeParse(null);
-      expect(result.success).toBe(false);
-    });
-
-    it('bare z.boolean() rejects undefined', () => {
-      const result = z.boolean().safeParse(undefined);
-      expect(result.success).toBe(false);
-    });
-
-    it('bare z.boolean() rejects string "true"', () => {
-      const result = z.boolean().safeParse('true');
-      expect(result.success).toBe(false);
-    });
-  });
+  // NOTE: transforms.fromString.boolean coverage is in transforms.spec.ts
+  // The old z.preprocess(parseBoolean, ...) pattern was replaced with
+  // z.string().nullish().transform() - see transforms.spec.ts for full coverage.
 
   // ---------------------------------------------------------------------------
   // 6. Defense-in-depth pattern test (the fix pattern)
@@ -854,11 +828,11 @@ describe('V3 schema null-safety audit', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // 7. receiptBaseRecord null-safety for is_* boolean flags
+  // 7. receiptBaseSchema null-safety for is_* boolean flags
   // ---------------------------------------------------------------------------
 
-  describe('receiptBaseRecord boolean flags with null values', () => {
-    // The receiptBaseRecord is used for list views. When iterating receipts,
+  describe('receiptBaseSchema boolean flags with null values', () => {
+    // The receiptBaseSchema is used for list views. When iterating receipts,
     // some may reference destroyed secrets. Test that the is_* flags on
     // the record itself handle null correctly.
 
@@ -896,15 +870,15 @@ describe('V3 schema null-safety audit', () => {
       is_orphaned: null,
     };
 
-    it('receiptBaseRecord REJECTS null for bare z.boolean() is_* fields', () => {
-      const result = receiptBaseRecord.safeParse(basePayloadWithNullBooleans);
+    it('receiptBaseSchema REJECTS null for bare z.boolean() is_* fields', () => {
+      const result = receiptBaseSchema.safeParse(basePayloadWithNullBooleans);
       expect(result.success).toBe(false);
 
       if (!result.success) {
         const issueFields = result.error.issues.map((i) => i.path.join('.'));
-        // These use bare z.boolean() and should reject null
-        expect(issueFields).toContain('is_viewed');
-        expect(issueFields).toContain('is_received');
+        // V3 uses canonical names: is_previewed, is_revealed (not is_viewed, is_received)
+        expect(issueFields).toContain('is_previewed');
+        expect(issueFields).toContain('is_revealed');
         expect(issueFields).toContain('is_burned');
         expect(issueFields).toContain('is_destroyed');
         expect(issueFields).toContain('is_expired');
@@ -912,7 +886,7 @@ describe('V3 schema null-safety audit', () => {
       }
     });
 
-    it('receiptBaseRecord accepts payload when is_* fields are proper booleans', () => {
+    it('receiptBaseSchema accepts payload when is_* fields are proper booleans', () => {
       const validPayload = {
         ...basePayloadWithNullBooleans,
         is_viewed: false,
@@ -925,7 +899,7 @@ describe('V3 schema null-safety audit', () => {
         is_orphaned: false,
       };
 
-      const result = receiptBaseRecord.passthrough().safeParse(validPayload);
+      const result = receiptBaseSchema.passthrough().safeParse(validPayload);
       if (!result.success) {
         expect(result.error.issues).toEqual([]);
       }

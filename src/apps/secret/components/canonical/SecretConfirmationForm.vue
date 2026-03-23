@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import NeedHelpModal from '@/shared/components/modals/NeedHelpModal.vue';
   import SecretRecipientHelpContent from '@/apps/secret/components/SecretRecipientHelpContent.vue';
-  import { Secret, SecretDetails } from '@/schemas/models';
+  import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { ref, computed } from 'vue';
 
   interface Props {

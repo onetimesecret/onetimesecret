@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SecretReceiptTableItem from '@/apps/secret/components/SecretReceiptTableItem.vue';
-  import { ReceiptRecords } from '@/schemas/api/account/endpoints/recent';
+  import type { ReceiptList } from '@/schemas/shapes/v3/receipt';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { storeToRefs } from 'pinia';
   import { ref } from 'vue';
@@ -12,8 +12,8 @@
   const { t } = useI18n();
 
   interface Props {
-    notReceived: ReceiptRecords[];
-    received: ReceiptRecords[];
+    pendingReceipts: ReceiptList[];
+    revealedReceipts: ReceiptList[];
     isLoading: boolean;
   }
 
@@ -27,13 +27,13 @@
   const copiedItemKey = ref<string | null>(null);
 
   // Create shareable link for an item
-  const getShareLink = (item: ReceiptRecords) => {
+  const getShareLink = (item: ReceiptList) => {
     const share_domain = item.share_domain ?? site_host.value;
     return `https://${share_domain}/secret/${item.secret_shortid}`;
   };
 
   // Handle copying link to clipboard
-  const handleCopy = async (item: ReceiptRecords) => {
+  const handleCopy = async (item: ReceiptList) => {
     try {
       await navigator.clipboard.writeText(getShareLink(item));
       copiedItemKey.value = item.identifier ?? null;
@@ -63,11 +63,11 @@
     <template v-else>
       <section
         class="mb-8"
-        aria-labelledby="not-received-heading">
-        <!-- Table with not received secrets -->
+        aria-labelledby="pending-receipts-heading">
+        <!-- Table with pending receipts (not yet revealed) -->
         <!-- prettier-ignore-attribute class -->
         <div
-          v-if="notReceived && notReceived.length > 0"
+          v-if="pendingReceipts && pendingReceipts.length > 0"
           class="relative overflow-hidden rounded-lg border border-gray-200/60 bg-white/60 shadow-sm
             backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
           <div class="overflow-x-auto">
@@ -103,7 +103,7 @@
               <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                 <!-- prettier-ignore-attribute class -->
                 <tr
-                  v-for="item in notReceived"
+                  v-for="item in pendingReceipts"
                   :key="item.identifier ?? item.shortid ?? undefined"
                   class="group border-b border-gray-200 transition-all duration-200
                     hover:bg-gray-50/80 dark:border-gray-700 dark:hover:bg-slate-800/70">
@@ -237,20 +237,20 @@
         </div>
       </section>
 
-      <!-- Received Secrets Section -->
+      <!-- Revealed Receipts Section -->
       <section
         class="mb-8"
-        aria-labelledby="received-heading">
+        aria-labelledby="revealed-receipts-heading">
         <h3
-          id="received-heading"
+          id="revealed-receipts-heading"
           class="mb-4 text-lg font-medium text-gray-600 dark:text-gray-300">
           {{ t('web.dashboard.title_received') }}
         </h3>
 
-        <!-- Table with received secrets -->
+        <!-- Table with revealed receipts -->
         <!-- prettier-ignore-attribute class -->
         <div
-          v-if="received && received.length > 0"
+          v-if="revealedReceipts && revealedReceipts.length > 0"
           class="relative overflow-hidden rounded-lg border border-gray-200/60 bg-white/60 shadow-sm
             backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
           <div class="overflow-x-auto">
@@ -286,7 +286,7 @@
               <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                 <!-- prettier-ignore-attribute class -->
                 <tr
-                  v-for="item in received"
+                  v-for="item in revealedReceipts"
                   :key="item.identifier ?? item.shortid ?? undefined"
                   class="group border-b border-gray-200 transition-all duration-200
                     hover:bg-gray-50/80 dark:border-gray-700 dark:hover:bg-slate-800/70">

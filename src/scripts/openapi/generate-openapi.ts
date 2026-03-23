@@ -57,7 +57,28 @@ import {
   updateReceiptRequestSchema,
   validateRecipientRequestSchema,
 } from '@/schemas/api/v3/requests';
-import { responseSchemas } from '@/schemas/api/v3/responses';
+import { responseSchemas as v1ResponseSchemas } from '@/schemas/api/v1/responses/registry';
+import { responseSchemas as v2ResponseSchemas } from '@/schemas/api/v2/responses/registry';
+import { responseSchemas as v3ResponseSchemas } from '@/schemas/api/v3/responses/registry';
+import { responseSchemas as internalResponseSchemas } from '@/schemas/api/internal/responses/registry';
+
+// Version-aware registry selection
+type ResponseSchemaRegistry =
+  | typeof v1ResponseSchemas
+  | typeof v2ResponseSchemas
+  | typeof v3ResponseSchemas
+  | typeof internalResponseSchemas;
+
+const registryByVersion: Record<string, ResponseSchemaRegistry> = {
+  v1: v1ResponseSchemas,
+  v2: v2ResponseSchemas,
+  v3: v3ResponseSchemas,
+  internal: internalResponseSchemas,
+};
+
+function getResponseRegistry(apiName: string): ResponseSchemaRegistry {
+  return registryByVersion[apiName] ?? v3ResponseSchemas;
+}
 
 // =============================================================================
 // Configuration
@@ -427,9 +448,12 @@ function buildRequestBody(route: OttoRoute): Record<string, unknown> | undefined
 /**
  * Build the responses object for a route.
  */
-function buildResponses(handler: string, route: OttoRoute): Record<string, unknown> {
+function buildResponses(handler: string, route: OttoRoute, apiName: string): Record<string, unknown> {
   const responseType = getResponseType(route);
   const responses: Record<string, unknown> = {};
+
+  // Version-aware registry selection
+  const responseSchemas = getResponseRegistry(apiName);
 
   // Determine success response via scanner lookup against responseSchemas
   const schemaKey = lookupResponseSchemaKey(handler);
@@ -522,7 +546,7 @@ function buildOperation(route: OttoRoute, apiName: string): Record<string, unkno
     operation.description = descEntry.description;
   }
 
-  operation.responses = buildResponses(route.handler, route);
+  operation.responses = buildResponses(route.handler, route, apiName);
 
   if (!NO_TAGS) {
     operation.tags = [apiName];

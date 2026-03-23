@@ -3,12 +3,12 @@
 // Contract snapshot tests that verify the frontend Zod schema declares
 // all fields the backend sends. Prevents silent field stripping (issue #2685).
 
-import { receiptBaseRecord } from '@/schemas/api/v3/responses/receipts';
+import { receiptBaseSchema } from '@/schemas/shapes/v3/receipt';
 import { describe, expect, it } from 'vitest';
 
 import { RECEIPT_SAFE_DUMP_FIELDS } from './receipt-safe-dump-fields';
 
-// Fields intentionally excluded from receiptBaseRecord.
+// Fields intentionally excluded from receiptBaseSchema.
 // Each entry MUST have a comment explaining why it is excluded.
 const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
   // custid is sent by the backend but not consumed by any frontend component.
@@ -23,10 +23,29 @@ const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
 
   // show_recipients is a computed display flag added by receiptListRecord and receiptDetails.
   show_recipients: 'Display flag added in receiptListRecord and receiptDetails, not base',
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DEPRECATED FIELD ALIASES (V3 clean API exclusions)
+  // ─────────────────────────────────────────────────────────────────────────────
+  // V3 is the "clean" API without deprecated field aliases. Backend sends these
+  // for V2 backward compatibility, but V3 clients should use canonical names.
+  // See: lib/onetime/models/receipt/features/safe_dump_fields.rb lines 94-97
+
+  // Deprecated timestamp field aliases (use 'previewed' instead)
+  viewed: 'V3 clean API: use canonical "previewed" timestamp instead',
+
+  // Deprecated timestamp field aliases (use 'revealed' instead)
+  received: 'V3 clean API: use canonical "revealed" timestamp instead',
+
+  // Deprecated boolean aliases (use 'is_previewed' instead)
+  is_viewed: 'V3 clean API: use canonical "is_previewed" instead',
+
+  // Deprecated boolean aliases (use 'is_revealed' instead)
+  is_received: 'V3 clean API: use canonical "is_revealed" instead',
 };
 
 describe('Receipt schema contract (safe_dump_fields)', () => {
-  const schemaKeys = Object.keys(receiptBaseRecord.shape);
+  const schemaKeys = Object.keys(receiptBaseSchema.shape);
 
   describe('field completeness', () => {
     // For each backend field, verify the Zod schema declares it
@@ -36,7 +55,7 @@ describe('Receipt schema contract (safe_dump_fields)', () => {
     );
 
     it.each(backendFields)(
-      'receiptBaseRecord declares backend field "%s"',
+      'receiptBaseSchema declares backend field "%s"',
       (field) => {
         expect(schemaKeys).toContain(field);
       }
@@ -62,7 +81,7 @@ describe('Receipt schema contract (safe_dump_fields)', () => {
 
   describe('strict parsing (no unknown fields)', () => {
     // Build a realistic receipt payload containing ALL safe_dump fields.
-    // Parsing through receiptBaseRecord.strict() should succeed, confirming
+    // Parsing through receiptBaseSchema.strict() should succeed, confirming
     // the schema does not reject any fields the backend sends.
     //
     // Fields in INTENTIONAL_EXCLUSIONS are included here because the backend
@@ -110,7 +129,7 @@ describe('Receipt schema contract (safe_dump_fields)', () => {
     it('parses a full backend payload without errors (passthrough mode)', () => {
       // passthrough keeps extra fields (the intentionally excluded ones)
       // so the parse focuses on whether declared fields are correct.
-      const result = receiptBaseRecord.passthrough().safeParse(realisticPayload);
+      const result = receiptBaseSchema.passthrough().safeParse(realisticPayload);
       expect(result.success).toBe(true);
     });
 
@@ -121,7 +140,7 @@ describe('Receipt schema contract (safe_dump_fields)', () => {
       for (const key of Object.keys(INTENTIONAL_EXCLUSIONS)) {
         delete declaredOnly[key];
       }
-      const result = receiptBaseRecord.strict().safeParse(declaredOnly);
+      const result = receiptBaseSchema.strict().safeParse(declaredOnly);
       if (!result.success) {
         // Surface the Zod issues for easier debugging
         expect(result.error.issues).toEqual([]);

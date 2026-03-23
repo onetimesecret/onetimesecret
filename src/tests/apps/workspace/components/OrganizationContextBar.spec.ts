@@ -37,10 +37,16 @@ describe('OrganizationContextBar', () => {
   let wrapper: VueWrapper;
 
   const mockOrganization = {
-    extid: 'org_123',
-    name: 'Test Organization',
-    created: Date.now(),
     objid: 'obj_123',
+    extid: 'org_123',
+    display_name: 'Test Organization',
+    description: null,
+    owner_id: 'cust_456',
+    contact_email: null,
+    is_default: false,
+    planid: 'free',
+    created: Date.now(),
+    updated: Date.now(),
   };
 
   beforeEach(() => {

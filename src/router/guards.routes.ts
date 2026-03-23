@@ -185,7 +185,7 @@ function handleDisabledAuthFeature(to: RouteLocationNormalized) {
   const bootstrapStore = useBootstrapStore();
   const { authentication } = bootstrapStore;
 
-  if (!authentication.enabled || !authentication[feature]) {
+  if (!authentication?.enabled || !authentication[feature]) {
     loggingService.debug(
       '[RouterGuard] Redirecting - auth feature disabled:',
       { feature, path: to.path }
@@ -201,10 +201,13 @@ function handleDisabledAuthFeature(to: RouteLocationNormalized) {
  * when SSO-only mode is active.
  *
  * Redirects to '/signin' so the user sees the SSO-only sign-in page.
+ * Note: /signin is explicitly excluded to prevent redirect loops.
  */
-function handleSsoOnlyRoute(to: RouteLocationNormalized) {
+export function handleSsoOnlyRoute(to: RouteLocationNormalized) {
   if (!to.meta.ssoOnlyDisabled) return null;
   if (!isSsoOnlyMode()) return null;
+  // Prevent redirect loop: never redirect /signin to itself
+  if (to.path === '/signin') return null;
 
   loggingService.debug(
     '[RouterGuard] Redirecting - SSO-only mode blocks route:',

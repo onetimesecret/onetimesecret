@@ -4,90 +4,45 @@
 // object. Consumers use this as a typed registry for Zod parsing.
 
 import { z } from 'zod';
+import { apiTokenResponseSchema } from './account';
 import {
-  accountResponseSchema,
-  apiTokenResponseSchema,
-  checkAuthResponseSchema,
-  customerResponseSchema,
-} from './account';
-import {
-  loginResponseSchema,
   createAccountResponseSchema,
+  loginResponseSchema,
   logoutResponseSchema,
   resetPasswordRequestResponseSchema,
   resetPasswordResponseSchema,
 } from './auth';
-import {
-  colonelInfoResponseSchema,
-  colonelStatsResponseSchema,
-  colonelUsersResponseSchema,
-  colonelSecretsResponseSchema,
-  colonelCustomDomainsResponseSchema,
-  colonelOrganizationsResponseSchema,
-  investigateOrganizationResponseSchema,
-  databaseMetricsResponseSchema,
-  redisMetricsResponseSchema,
-  bannedIPsResponseSchema,
-  usageExportResponseSchema,
-  queueMetricsResponseSchema,
-  systemSettingsResponseSchema,
-} from './colonel';
-import { csrfResponseSchema } from './csrf';
+// Colonel schemas moved to internal registry (see @/schemas/api/internal/responses)
+// CSRF handled via dedicated endpoint, not in response registry
 import {
   brandSettingsResponseSchema,
-  customDomainResponseSchema,
   customDomainListResponseSchema,
+  customDomainResponseSchema,
   imagePropsResponseSchema,
   jurisdictionResponseSchema,
 } from './domains';
-import { feedbackResponseSchema } from './feedback';
-import {
-  systemStatusResponseSchema,
-  systemVersionResponseSchema,
-  supportedLocalesResponseSchema,
-} from './meta';
 import {
   incomingConfigResponseSchema,
   incomingSecretResponseSchema,
   validateRecipientEnvelopeSchema,
 } from './incoming';
 import {
-  organizationResponseSchema,
-  organizationsResponseSchema,
-  orgDeleteResponseSchema,
-  membersResponseSchema,
-  memberResponseSchema,
-  memberDeleteResponseSchema,
-} from './organizations';
-import { receiptResponseSchema, receiptListResponseSchema } from './receipts';
+  supportedLocalesResponseSchema,
+  systemStatusResponseSchema,
+  systemVersionResponseSchema,
+} from './meta';
+// Organization schemas moved to internal registry (see @/schemas/api/internal/responses)
+import { receiptListResponseSchema, receiptResponseSchema } from './receipts';
 import {
   concealDataResponseSchema,
-  secretResponseSchema,
   secretListResponseSchema,
+  secretResponseSchema,
 } from './secrets';
 
 // Single source of truth for response schemas
 export const responseSchemas = {
   // Account
-  account: accountResponseSchema,
   apiToken: apiTokenResponseSchema,
-  checkAuth: checkAuthResponseSchema,
-  customer: customerResponseSchema,
-
-  // Colonel / admin
-  colonelInfo: colonelInfoResponseSchema,
-  colonelStats: colonelStatsResponseSchema,
-  colonelUsers: colonelUsersResponseSchema,
-  colonelSecrets: colonelSecretsResponseSchema,
-  customDomains: colonelCustomDomainsResponseSchema,
-  colonelOrganizations: colonelOrganizationsResponseSchema,
-  investigateOrganization: investigateOrganizationResponseSchema,
-  databaseMetrics: databaseMetricsResponseSchema,
-  redisMetrics: redisMetricsResponseSchema,
-  bannedIPs: bannedIPsResponseSchema,
-  usageExport: usageExportResponseSchema,
-  queueMetrics: queueMetricsResponseSchema,
-  systemSettings: systemSettingsResponseSchema,
 
   // Secrets
   concealData: concealDataResponseSchema,
@@ -105,14 +60,6 @@ export const responseSchemas = {
   receipt: receiptResponseSchema,
   receiptList: receiptListResponseSchema,
 
-  // Organizations
-  organization: organizationResponseSchema,
-  organizationList: organizationsResponseSchema,
-  organizationDelete: orgDeleteResponseSchema,
-  memberList: membersResponseSchema,
-  member: memberResponseSchema,
-  memberDelete: memberDeleteResponseSchema,
-
   // Incoming
   incomingConfig: incomingConfigResponseSchema,
   incomingSecret: incomingSecretResponseSchema,
@@ -122,12 +69,6 @@ export const responseSchemas = {
   systemStatus: systemStatusResponseSchema,
   systemVersion: systemVersionResponseSchema,
   supportedLocales: supportedLocalesResponseSchema,
-
-  // Feedback
-  feedback: feedbackResponseSchema,
-
-  // CSRF
-  csrf: csrfResponseSchema,
 
   // Authentication (Rodauth-compatible)
   login: loginResponseSchema,

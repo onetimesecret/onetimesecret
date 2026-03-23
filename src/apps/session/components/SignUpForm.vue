@@ -5,7 +5,7 @@
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { Jurisdiction } from '@/schemas/models';
+import { Jurisdiction } from '@/schemas/shapes/v2';
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 

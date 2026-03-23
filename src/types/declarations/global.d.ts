@@ -1,11 +1,11 @@
 // src/types/declarations/global.d.ts
 
-import { BootstrapPayload } from './bootstrap';
+import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 
 declare global {
   interface Window {
     /** Server-injected bootstrap state (consumed by bootstrap.service.ts) */
-    __BOOTSTRAP_STATE__?: BootstrapPayload;
+    __BOOTSTRAP_ME__?: BootstrapPayload;
 
     __VUE_DEVTOOLS_GLOBAL_HOOK__?: {
       enabled: boolean;

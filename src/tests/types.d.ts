@@ -1,6 +1,7 @@
 // src/tests/types.d.ts
 
-import type { CustomDomain, CustomDomainDetails } from '@/schemas/models';
+import type { CustomDomainDetails } from '@/schemas/api/v2/responses';
+import type { CustomDomain } from '@/schemas/shapes/v2';
 import type { Mock } from 'vitest';
 import type { ComputedRef, Ref } from 'vue';
 

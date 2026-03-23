@@ -6,8 +6,9 @@
 // for has_passphrase and can_decrypt (coercing to false), matching the
 // V2 model schema's behavior. Tests FAIL until the fix is applied.
 
-import { receiptBaseRecord, receiptResponseSchema } from '@/schemas/api/v3/responses/receipts';
-import { receiptDetailsSchema } from '@/schemas/models/receipt';
+import { receiptResponseSchema } from '@/schemas/api/v3/responses/receipts';
+import { receiptBaseSchema } from '@/schemas/shapes/v3/receipt';
+import { receiptDetailsSchema } from '@/schemas/shapes/v2/receipt';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
@@ -56,7 +57,7 @@ const consumedSecretDetails = {
   show_recipients: false,
 };
 
-/** Realistic receiptBaseRecord payload with null for has_passphrase. */
+/** Realistic receiptBaseSchema payload with null for has_passphrase. */
 const baseRecordWithNullPassphrase = {
   identifier: 'abc123def456',
   created: 1735142814,
@@ -142,21 +143,21 @@ describe('V3 receiptDetails null-boolean fix (#2686)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// V3 receiptBaseRecord — null boolean test
+// V3 receiptBaseSchema — null boolean test
 // ---------------------------------------------------------------------------
 
-describe('V3 receiptBaseRecord null-boolean fix (#2686)', () => {
+describe('V3 receiptBaseSchema null-boolean fix (#2686)', () => {
   it('accepts has_passphrase: null in base record', () => {
-    const result = receiptBaseRecord.passthrough().safeParse(baseRecordWithNullPassphrase);
+    const result = receiptBaseSchema.passthrough().safeParse(baseRecordWithNullPassphrase);
 
     // Desired: has_passphrase accepts null (backend sends null for consumed secrets)
     expect(result.success).toBe(true);
   });
 
-  describe('baseline: receiptBaseRecord accepts boolean values', () => {
+  describe('baseline: receiptBaseSchema accepts boolean values', () => {
     it('parses has_passphrase: false in base record', () => {
       const payload = { ...baseRecordWithNullPassphrase, has_passphrase: false };
-      const result = receiptBaseRecord.passthrough().safeParse(payload);
+      const result = receiptBaseSchema.passthrough().safeParse(payload);
       if (!result.success) {
         expect(result.error.issues).toEqual([]);
       }
@@ -165,7 +166,7 @@ describe('V3 receiptBaseRecord null-boolean fix (#2686)', () => {
 
     it('parses has_passphrase: undefined (omitted) in base record', () => {
       const { has_passphrase: _, ...payloadWithout } = baseRecordWithNullPassphrase;
-      const result = receiptBaseRecord.passthrough().safeParse(payloadWithout);
+      const result = receiptBaseSchema.passthrough().safeParse(payloadWithout);
       if (!result.success) {
         expect(result.error.issues).toEqual([]);
       }

@@ -69,8 +69,8 @@ describe('receiptListStore', () => {
           since: 3600 * 24 * 7,
           now: Math.floor(Date.now() / 1000),  // V3: Unix epoch seconds
           has_items: false,
-          received: [],
-          notreceived: [],
+          revealed_receipts: [],
+          pending_receipts: [],
         },
       };
 
@@ -81,8 +81,8 @@ describe('receiptListStore', () => {
 
       expect(store.count).toBe(0);
       expect(store.records).toHaveLength(0);
-      expect(store.details?.received).toHaveLength(0);
-      expect(store.details?.notreceived).toHaveLength(0);
+      expect(store.details?.revealed_receipts).toHaveLength(0);
+      expect(store.details?.pending_receipts).toHaveLength(0);
       // isLoading property not exposed by store
     });
   });

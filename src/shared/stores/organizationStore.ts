@@ -1,4 +1,5 @@
 // src/shared/stores/organizationStore.ts
+// @see src/tests/stores/organizationStore.spec.ts - Test fixtures for Organization schema
 
 import {
   organizationResponseSchema,
@@ -83,7 +84,7 @@ export const useOrganizationStore = defineStore('organization', () => {
   const getOrganizationById = computed(
     () =>
       (orgId: string): Organization | undefined =>
-        organizations.value.find((o) => o.id === orgId)
+        organizations.value.find((o) => o.objid === orgId)
   );
 
   const isInitialized = computed(() => _initialized.value);
@@ -149,8 +150,8 @@ export const useOrganizationStore = defineStore('organization', () => {
       const validated = organizationResponseSchema.parse(response.data);
       currentOrganization.value = validated.record;
 
-      // Update in organizations array if exists (use returned id for matching)
-      const index = organizations.value.findIndex((o) => o.id === validated.record.id);
+      // Update in organizations array if exists (use returned objid for matching)
+      const index = organizations.value.findIndex((o) => o.objid === validated.record.objid);
       if (index !== -1) {
         organizations.value[index] = validated.record;
       } else {
@@ -202,14 +203,14 @@ export const useOrganizationStore = defineStore('organization', () => {
 
       const orgData = organizationResponseSchema.parse(response.data);
 
-      // Update in organizations array (use returned id for matching)
-      const index = organizations.value.findIndex((o) => o.id === orgData.record.id);
+      // Update in organizations array (use returned objid for matching)
+      const index = organizations.value.findIndex((o) => o.objid === orgData.record.objid);
       if (index !== -1) {
         organizations.value[index] = orgData.record;
       }
 
       // Update currentOrganization if it's the same organization
-      if (currentOrganization.value?.id === orgData.record.id) {
+      if (currentOrganization.value?.objid === orgData.record.objid) {
         currentOrganization.value = orgData.record;
       }
 
@@ -232,12 +233,12 @@ export const useOrganizationStore = defineStore('organization', () => {
       const orgToDelete = organizations.value.find((o) => o.extid === extid);
       await $api.delete(`/api/organizations/${extid}`);
 
-      // Remove from organizations array using internal ID (always present)
+      // Remove from organizations array using internal objid (always present)
       if (orgToDelete) {
-        organizations.value = organizations.value.filter((o) => o.id !== orgToDelete.id);
+        organizations.value = organizations.value.filter((o) => o.objid !== orgToDelete.objid);
 
         // Clear currentOrganization if it's the deleted organization
-        if (currentOrganization.value?.id === orgToDelete.id) {
+        if (currentOrganization.value?.objid === orgToDelete.objid) {
           currentOrganization.value = null;
         }
       }
@@ -418,7 +419,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     const savedOrgId = loadPersistedOrgId();
     if (savedOrgId) {
       const savedOrg = organizations.value.find(
-        (o) => o.id === savedOrgId || o.extid === savedOrgId
+        (o) => o.objid === savedOrgId || o.extid === savedOrgId
       );
       if (savedOrg) return savedOrg;
     }
@@ -429,7 +430,7 @@ export const useOrganizationStore = defineStore('organization', () => {
 
   // Watch currentOrganization and persist to sessionStorage
   watch(
-    () => currentOrganization.value?.id,
+    () => currentOrganization.value?.objid,
     (newOrgId) => {
       persistOrgId(newOrgId ?? null);
     }
@@ -468,20 +469,24 @@ export const useOrganizationStore = defineStore('organization', () => {
       // This prevents overwriting user-selected organization with bootstrap default
       if (bootstrapOrg && !currentOrganization.value) {
         // Convert bootstrap org format to Organization type
-        // Bootstrap provides minimal fields; full data comes from fetchOrganization
+        // Bootstrap provides minimal fields (objid, extid, display_name, is_default, planid, current_user_role)
+        // Full data comes from fetchOrganization
         currentOrganization.value = {
-          id: bootstrapOrg.id,
+          objid: bootstrapOrg.objid,
           extid: bootstrapOrg.extid,
           display_name: bootstrapOrg.display_name,
+          description: null,
+          owner_id: '',
+          contact_email: null,
           is_default: bootstrapOrg.is_default,
-          planid: bootstrapOrg.planid ?? null,
+          planid: bootstrapOrg.planid ?? 'free',
           current_user_role: bootstrapOrg.current_user_role ?? null,
           // These fields will be populated when full org is fetched
           created: new Date(),
           updated: new Date(),
         } as Organization;
 
-        loggingService.debug('[organizationStore] Initialized from bootstrap', { id: bootstrapOrg.id });
+        loggingService.debug('[organizationStore] Initialized from bootstrap', { objid: bootstrapOrg.objid });
       }
     },
     { immediate: true }

@@ -1,7 +1,7 @@
 // src/shared/stores/brandStore.ts
 
 import { responseSchemas } from '@/schemas/api/v3/responses';
-import type { BrandSettings, ImageProps } from '@/schemas/models';
+import type { BrandSettings, ImageProps } from '@/schemas/shapes/v3/custom-domain';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { inject, ref } from 'vue';
@@ -16,6 +16,8 @@ const defaultBranding: BrandSettings = {
   instructions_reveal: '',
   allow_public_api: false,
   allow_public_homepage: false,
+  passphrase_required: false,
+  notify_enabled: false,
 };
 
 /* eslint max-lines-per-function: off */
@@ -125,6 +127,8 @@ function isEqual(a: BrandSettings, b: BrandSettings): boolean {
     'instructions_reveal',
     'allow_public_api',
     'allow_public_homepage',
+    'passphrase_required',
+    'notify_enabled',
   ];
 
   return keys.every((key) => a[key] === b[key]);

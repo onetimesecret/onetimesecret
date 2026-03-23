@@ -9,7 +9,6 @@
   import SecretReceiptTable from '@/apps/secret/components/SecretReceiptTable.vue';
   import ToastNotification from '@/shared/components/ui/ToastNotification.vue';
   import { useReceiptList } from '@/shared/composables/useReceiptList';
-  import { ReceiptRecords } from '@/schemas/api/account/endpoints/recent';
   import { onMounted, computed, ref, onBeforeUnmount } from 'vue';
 
   // Define props
@@ -30,20 +29,9 @@
   const showToast = ref(false);
   const toastMessage = ref('');
 
-  // Add computed properties for received and not received items
-  const receivedItems = computed(() => {
-    if (details.value) {
-      return details.value.received;
-    }
-    return [] as ReceiptRecords[];
-  });
-
-  const notReceivedItems = computed(() => {
-    if (details.value) {
-      return details.value.notreceived;
-    }
-    return [] as ReceiptRecords[];
-  });
+  // Add computed properties for revealed and pending receipts
+  const revealedReceipts = computed(() => details.value?.revealed_receipts ?? []);
+  const pendingReceipts = computed(() => details.value?.pending_receipts ?? []);
 
   // Method to force refresh
   const handleRefresh = async () => {
@@ -130,8 +118,8 @@
           aria-live="polite">
           <SecretReceiptTable
             v-if="recordCount > 0"
-            :not-received="notReceivedItems"
-            :received="receivedItems"
+            :pending-receipts="pendingReceipts"
+            :revealed-receipts="revealedReceipts"
             :is-loading="isLoading"
             :aria-labelledby="'dashboard-recent-heading'" />
           <EmptyState

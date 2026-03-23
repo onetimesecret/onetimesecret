@@ -11,6 +11,14 @@ require 'onetime/logger_methods'
 # of serializers in the correct order. It uses Ruby's TSort module to handle dependency
 # ordering.
 #
+# Schema Principle:
+# Bootstrap data is internal communication between backend and frontend — we control
+# both sides completely. Therefore:
+# - Use native types (true/false, integers, ISO timestamps) not string encodings
+# - No backwards compatibility layers or legacy field names
+# - Keep fields current; remove unused fields promptly
+# - Frontend types: src/schemas/contracts/bootstrap.ts (via z.infer)
+#
 # For this use case, module methods are preferable because:
 #
 # 1. Serializers perform a simple transformation without needing state

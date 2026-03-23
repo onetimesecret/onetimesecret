@@ -13,7 +13,7 @@ const mockDomainsStoreState = {
 };
 
 const mockOrganizationStoreState = {
-  currentOrganization: null as { id: string } | null,
+  currentOrganization: null as { objid: string } | null,
 };
 
 // Mock stores
@@ -99,7 +99,7 @@ describe('useDomainContext', () => {
     mockDomainsStoreState.fetchList.mockResolvedValue(undefined);
     // Set a default organization - required for domain context initialization
     // when domains_enabled is true (domain context depends on org being set)
-    mockOrganizationStoreState.currentOrganization = { id: 'org-test-123' };
+    mockOrganizationStoreState.currentOrganization = { objid: 'org-test-123' };
 
     // Reset module-level singleton state in the composable
     // This must happen AFTER vi.resetModules() so we reset the fresh module instance
@@ -645,7 +645,7 @@ describe('useDomainContext', () => {
 
       // Start with domains for org 1
       setMockDomains(['org1-domain.example.com']);
-      mockOrganizationStoreState.currentOrganization = { id: 'org-1' };
+      mockOrganizationStoreState.currentOrganization = { objid: 'org-1' };
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
@@ -667,7 +667,7 @@ describe('useDomainContext', () => {
 
       // Set up for org 1
       setMockDomains(['org1-domain.example.com', 'shared-domain.example.com']);
-      mockOrganizationStoreState.currentOrganization = { id: 'org-1' };
+      mockOrganizationStoreState.currentOrganization = { objid: 'org-1' };
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, setContext } = useDomainContext();
@@ -682,7 +682,7 @@ describe('useDomainContext', () => {
 
       // Simulate org switch - org2 has different domains
       setMockDomains(['org2-domain.example.com']);
-      mockOrganizationStoreState.currentOrganization = { id: 'org-2' };
+      mockOrganizationStoreState.currentOrganization = { objid: 'org-2' };
 
       // Trigger the watcher manually since we're mocking
       await nextTick();
@@ -705,7 +705,7 @@ describe('useDomainContext', () => {
 
       // Set up initial state with organization
       setMockDomains(['initial-domain.example.com']);
-      mockOrganizationStoreState.currentOrganization = { id: 'org-1' };
+      mockOrganizationStoreState.currentOrganization = { objid: 'org-1' };
 
       // Track fetch calls
       let fetchCallCount = 0;
@@ -785,7 +785,7 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      mockOrganizationStoreState.currentOrganization = { id: 'org-1' };
+      mockOrganizationStoreState.currentOrganization = { objid: 'org-1' };
       setMockDomains(['test-domain.example.com']);
 
       // Mock fetchList to throw error

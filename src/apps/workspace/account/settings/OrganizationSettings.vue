@@ -251,7 +251,7 @@ const loadBilling = async () => {
       if (overview.subscription && overview.plan) {
         subscription.value = {
           id: overview.subscription.id,
-          org_id: organization.value.id,
+          org_id: organization.value.objid,
           plan_type: overview.plan.tier as any,
           status: overview.subscription.status as any,
           teams_limit: overview.plan.limits.teams || 0,

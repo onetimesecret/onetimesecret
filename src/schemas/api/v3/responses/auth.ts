@@ -9,7 +9,7 @@ import {
   logoutResponseSchema,
   resetPasswordRequestResponseSchema,
   resetPasswordResponseSchema,
-} from '@/schemas/api/auth/endpoints/auth';
+} from '@/schemas/api/auth/responses/auth';
 import { z } from 'zod';
 
 export {

@@ -54,7 +54,7 @@ import {
   type OtpVerifyResponse,
   type RecoveryCodesResponse,
   type MfaStatusResponse,
-} from '@/schemas/api/auth/endpoints/auth';
+} from '@/schemas/api/auth/responses/auth';
 import type { ApplicationError } from '@/schemas/errors';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import type { OtpSetupData, MfaStatus } from '@/types/auth';

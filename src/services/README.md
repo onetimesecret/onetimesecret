@@ -52,7 +52,7 @@ should now go through:
 1. `bootstrap.service.ts` - For pre-Pinia access (Phase 0)
 2. `bootstrapStore.ts` - For reactive Pinia access (Phase 1)
 
-Direct access to `window.__BOOTSTRAP_STATE__` is prohibited by ESLint rule.
+Direct access to `window.__BOOTSTRAP_ME__` is prohibited by ESLint rule.
 The ESLint configuration includes exceptions for:
 - `bootstrap.service.ts` (the only authorized accessor)
 - Type declaration files (`global.d.ts`, `window.d.ts`)

@@ -12,6 +12,7 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
   import type { LayoutProps } from '@/types/ui/layouts';
+  import { isExternalUrl } from '@/utils/url';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
   import { useRoute } from 'vue-router';
@@ -124,10 +125,10 @@
     if (group?.links?.length) {
       return group.links
         .filter(link => link.url?.trim())
-        .map((link, index) => ({
+        .map((link) => ({
           label: link.i18n_key ? t(link.i18n_key) : (link.text || ''),
           href: link.url!,
-          external: link.external ?? defaultLinks[index]?.external() ?? false,
+          external: link.external ?? isExternalUrl(link.url!),
         }));
     }
     // Fallback to computed defaults

@@ -76,8 +76,9 @@ vi.mock('@/schemas/errors', () => ({
 
 // Store mocks
 const mockOrganization = {
-  id: 'org_123',
+  objid: 'org_123',
   extid: 'on1abc123',
+  owner_id: 'cust_456',
   display_name: 'Test Organization',
   description: 'A test organization',
   contact_email: 'billing@example.com',

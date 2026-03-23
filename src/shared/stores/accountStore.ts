@@ -1,6 +1,6 @@
 // src/shared/stores/accountStore.ts
 
-import type { Account } from '@/schemas/api/account/endpoints/account';
+import type { Account } from '@/schemas/api/account/responses/account';
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';

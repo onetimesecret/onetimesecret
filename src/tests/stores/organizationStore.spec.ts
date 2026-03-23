@@ -1,7 +1,7 @@
 // src/tests/stores/organizationStore.spec.ts
 
 import { setupTestPinia } from '../setup';
-import { setupWindowState } from '../setupWindow';
+import { setupBootstrapMock, baseBootstrap } from '../setup-bootstrap';
 
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
@@ -14,10 +14,13 @@ describe('Organization Store', () => {
 
   // Raw API response format (Unix timestamps)
   const mockOrganizationRaw = {
-    id: 'org-123',
+    objid: 'org-123',
     extid: 'on123abc',
     display_name: 'Test Organization',
     description: 'A test organization',
+    owner_id: 'cust-456',
+    contact_email: 'admin@test.com',
+    planid: 'free',
     is_default: false,
     created: Math.floor(new Date('2024-01-01T00:00:00Z').getTime() / 1000),
     updated: Math.floor(new Date('2024-01-01T00:00:00Z').getTime() / 1000),
@@ -25,10 +28,13 @@ describe('Organization Store', () => {
 
   // Transformed format (Date objects) for expectations
   const mockOrganization: Organization = {
-    id: 'org-123',
+    objid: 'org-123',
     extid: 'on123abc',
     display_name: 'Test Organization',
     description: 'A test organization',
+    owner_id: 'cust-456',
+    contact_email: 'admin@test.com',
+    planid: 'free',
     is_default: false,
     created: new Date('2024-01-01T00:00:00Z'),
     updated: new Date('2024-01-01T00:00:00Z'),
@@ -38,7 +44,8 @@ describe('Organization Store', () => {
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock;
 
-    vi.stubGlobal('window', setupWindowState());
+    // Setup bootstrap state with modern fixture
+    setupBootstrapMock({ initialState: baseBootstrap });
     store = useOrganizationStore();
   });
 

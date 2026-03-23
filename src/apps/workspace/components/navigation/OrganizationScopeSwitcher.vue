@@ -96,19 +96,19 @@ const hasPaidPlan = (org: Organization): boolean => {
  * Get initials for organization avatar (first letter)
  */
 const getOrganizationInitial = (org: Organization): string =>
-  (org.display_name || org.id || 'O').charAt(0).toUpperCase();
+  (org.display_name || org.objid || 'O').charAt(0).toUpperCase();
 
 /**
  * Get display name for organization
  */
 const getOrganizationDisplayName = (org: Organization): string =>
-  org.display_name || org.id || t('web.organizations.organization');
+  org.display_name || org.objid || t('web.organizations.organization');
 
 /**
  * Check if an organization is the currently selected one
  */
 const isCurrentOrganization = (org: Organization): boolean =>
-  currentOrganization.value?.id === org.id;
+  currentOrganization.value?.objid === org.objid;
 
 /**
  * Handle organization selection with optional navigation
@@ -127,7 +127,7 @@ const selectOrganization = (org: Organization): void => {
   if (switchTarget === 'same') {
     // Stay on current route pattern, replace :extid with new org's extid
     if (!org.extid) {
-      console.warn('[OrganizationScopeSwitcher] Cannot navigate: org missing extid', org.id);
+      console.warn('[OrganizationScopeSwitcher] Cannot navigate: org missing extid', org.objid);
       return;
     }
     const matchedRoute = route.matched[route.matched.length - 1];
@@ -138,7 +138,7 @@ const selectOrganization = (org: Organization): void => {
   } else if (switchTarget.includes(':extid')) {
     // Path with :extid placeholder - replace and navigate
     if (!org.extid) {
-      console.warn('[OrganizationScopeSwitcher] Cannot navigate: org missing extid', org.id);
+      console.warn('[OrganizationScopeSwitcher] Cannot navigate: org missing extid', org.objid);
       return;
     }
     const newPath = switchTarget.replace(':extid', org.extid);
@@ -156,7 +156,7 @@ const navigateToManageOrganization = (org: Organization, event: MouseEvent): voi
   event.stopPropagation(); // Prevent row selection when clicking gear
   if (!org.extid) {
     // Cannot navigate without extid - gear icon should be hidden for these orgs
-    console.warn('[OrganizationScopeSwitcher] Cannot navigate: org missing extid', org.id);
+    console.warn('[OrganizationScopeSwitcher] Cannot navigate: org missing extid', org.objid);
     return;
   }
   router.push(`/org/${org.extid}`);
@@ -254,7 +254,7 @@ const navigateToManageOrganizations = (): void => {
         <!-- Organization Options -->
         <MenuItem
           v-for="org in visibleOrganizations"
-          :key="org.id"
+          :key="org.objid"
           v-slot="{ active }"
           @click="selectOrganization(org)">
           <button

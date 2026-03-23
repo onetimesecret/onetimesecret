@@ -1,25 +1,19 @@
 // src/schemas/api/v2/responses/domains.ts
 //
-// Response schemas for custom domain, jurisdiction, brand, and image endpoints.
+// V2 re-exports domain response schemas from the canonical location.
 
-import { createApiResponseSchema, createApiListResponseSchema } from '@/schemas/api/base';
-import {
+export {
+  brandSettingsResponseSchema,
   customDomainDetailsSchema,
-  customDomainSchema,
-  jurisdictionDetailsSchema,
-  jurisdictionSchema,
-} from '@/schemas/models';
-import { brandSettingschema, imagePropsSchema } from '@/schemas/models/custom-domain/brand';
-import { z } from 'zod';
-
-export const brandSettingsResponseSchema = createApiResponseSchema(brandSettingschema);
-export const customDomainResponseSchema = createApiResponseSchema(customDomainSchema, customDomainDetailsSchema);
-export const customDomainListResponseSchema = createApiListResponseSchema(customDomainSchema, customDomainDetailsSchema);
-export const imagePropsResponseSchema = createApiResponseSchema(imagePropsSchema);
-export const jurisdictionResponseSchema = createApiResponseSchema(jurisdictionSchema, jurisdictionDetailsSchema);
-
-export type BrandSettingsResponse = z.infer<typeof brandSettingsResponseSchema>;
-export type CustomDomainResponse = z.infer<typeof customDomainResponseSchema>;
-export type CustomDomainListResponse = z.infer<typeof customDomainListResponseSchema>;
-export type ImagePropsResponse = z.infer<typeof imagePropsResponseSchema>;
-export type JurisdictionResponse = z.infer<typeof jurisdictionResponseSchema>;
+  customDomainResponseSchema,
+  customDomainListResponseSchema,
+  imagePropsResponseSchema,
+  jurisdictionResponseSchema,
+  type BrandSettingsResponse,
+  type CustomDomainDetails,
+  type CustomDomainProxy,
+  type CustomDomainResponse,
+  type CustomDomainListResponse,
+  type ImagePropsResponse,
+  type JurisdictionResponse,
+} from '@/schemas/api/domains/responses/domains';

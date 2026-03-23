@@ -83,7 +83,7 @@ describe('ScopeSwitcher Navigation', () => {
      * Helper to simulate organization selection with navigation logic.
      * This mirrors the logic in OrganizationScopeSwitcher.vue selectOrganization()
      */
-    function simulateOrgSwitch(org: { id: string; extid?: string }, switchTarget?: string) {
+    function simulateOrgSwitch(org: { objid: string; extid?: string }, switchTarget?: string) {
       mockOrganizationStore.setCurrentOrganization(org);
 
       if (!switchTarget) {
@@ -113,7 +113,7 @@ describe('ScopeSwitcher Navigation', () => {
     }
 
     it('does not navigate when onOrgSwitch is undefined', () => {
-      const org = { id: 'org1', extid: 'xyz789' };
+      const org = { objid: 'org1', extid: 'xyz789' };
       simulateOrgSwitch(org, undefined);
 
       expect(mockOrganizationStore.setCurrentOrganization).toHaveBeenCalledWith(org);
@@ -122,7 +122,7 @@ describe('ScopeSwitcher Navigation', () => {
 
     it('navigates to same route pattern when onOrgSwitch is "same"', () => {
       mockRoute.matched = [{ path: '/org/:extid' }];
-      const org = { id: 'org1', extid: 'neworg456' };
+      const org = { objid: 'org1', extid: 'neworg456' };
 
       simulateOrgSwitch(org, 'same');
 
@@ -130,7 +130,7 @@ describe('ScopeSwitcher Navigation', () => {
     });
 
     it('replaces :extid in custom path when onOrgSwitch contains :extid', () => {
-      const org = { id: 'org1', extid: 'neworg456' };
+      const org = { objid: 'org1', extid: 'neworg456' };
 
       simulateOrgSwitch(org, '/billing/org/:extid/invoices');
 
@@ -138,7 +138,7 @@ describe('ScopeSwitcher Navigation', () => {
     });
 
     it('navigates directly when onOrgSwitch is a static path', () => {
-      const org = { id: 'org1', extid: 'neworg456' };
+      const org = { objid: 'org1', extid: 'neworg456' };
 
       simulateOrgSwitch(org, '/dashboard');
 
@@ -147,7 +147,7 @@ describe('ScopeSwitcher Navigation', () => {
 
     it('does not navigate when org is missing extid with "same" target', () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const org = { id: 'org1' }; // No extid
+      const org = { objid: 'org1' }; // No extid
 
       simulateOrgSwitch(org, 'same');
 
@@ -158,7 +158,7 @@ describe('ScopeSwitcher Navigation', () => {
 
     it('does not navigate when org is missing extid with :extid path', () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const org = { id: 'org1' }; // No extid
+      const org = { objid: 'org1' }; // No extid
 
       simulateOrgSwitch(org, '/org/:extid');
 
@@ -168,7 +168,7 @@ describe('ScopeSwitcher Navigation', () => {
     });
 
     it('navigates with static path even when org is missing extid', () => {
-      const org = { id: 'org1' }; // No extid
+      const org = { objid: 'org1' }; // No extid
 
       simulateOrgSwitch(org, '/dashboard');
 

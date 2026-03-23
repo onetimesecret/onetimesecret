@@ -1,6 +1,6 @@
 // src/utils/status.ts
 
-import { ReceiptState, isValidReceiptState } from '@/schemas/models';
+import { ReceiptState, isValidReceiptState } from '@/schemas/shapes/v2';
 import type { Composer } from 'vue-i18n';
 
 /**

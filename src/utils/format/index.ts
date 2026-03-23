@@ -4,6 +4,25 @@ import { format } from 'date-fns';
 import { getBootstrapValue } from '@/services/bootstrap.service';
 import { parseDateValue } from '../parse/date';
 
+// Track patterns that have already warned to avoid console spam
+const warnedPatterns = new Set<string>();
+
+/**
+ * Safely format a date with a date-fns pattern, falling back on error.
+ * Invalid patterns will log a warning once and use the fallback.
+ */
+const safeFormat = (date: Date, pattern: string, fallback: () => string): string => {
+  try {
+    return format(date, pattern);
+  } catch (e) {
+    if (!warnedPatterns.has(pattern)) {
+      warnedPatterns.add(pattern);
+      console.warn(`Invalid date format pattern "${pattern}", using fallback.`, e);
+    }
+    return fallback();
+  }
+};
+
 /**
  * Time duration formatting utilities.
  * Converts numeric durations to human-readable strings.
@@ -129,7 +148,9 @@ function resolveFormatPattern(
 export const formatDisplayDate = (date: Date): string => {
   const setting = getBootstrapValue('date_format') ?? 'locale';
   const pattern = resolveFormatPattern(setting, 'date');
-  return pattern ? format(date, pattern) : date.toLocaleDateString();
+  return pattern
+    ? safeFormat(date, pattern, () => date.toLocaleDateString())
+    : date.toLocaleDateString();
 };
 
 /**
@@ -154,13 +175,17 @@ export const formatDisplayDateTime = (date: Date): string => {
   // If datetime_format is explicitly configured, use it directly
   if (datetimeSetting !== 'locale') {
     const pattern = resolveFormatPattern(datetimeSetting, 'datetime');
-    return pattern ? format(date, pattern) : date.toLocaleString();
+    return pattern
+      ? safeFormat(date, pattern, () => date.toLocaleString())
+      : date.toLocaleString();
   }
 
   // Fall back to date_format's datetime variant (so `date_format: eu` covers both)
   const dateSetting = getBootstrapValue('date_format') ?? 'locale';
   const pattern = resolveFormatPattern(dateSetting, 'datetime');
-  return pattern ? format(date, pattern) : date.toLocaleString();
+  return pattern
+    ? safeFormat(date, pattern, () => date.toLocaleString())
+    : date.toLocaleString();
 };
 
 /**

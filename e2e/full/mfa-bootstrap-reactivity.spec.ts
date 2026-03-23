@@ -44,7 +44,7 @@ interface BootstrapState {
 
 declare global {
   interface Window {
-    __BOOTSTRAP_STATE__?: BootstrapState;
+    __BOOTSTRAP_ME__?: BootstrapState;
   }
 }
 
@@ -85,12 +85,12 @@ async function generateTotpCode(_secret: string): Promise<string> {
 async function _getBootstrapState(page: Page): Promise<BootstrapState | null> {
   return page.evaluate(() => {
     // Check if state exists on window (before consumption by bootstrap service)
-    if (window.__BOOTSTRAP_STATE__) {
+    if (window.__BOOTSTRAP_ME__) {
       return {
-        authenticated: window.__BOOTSTRAP_STATE__.authenticated,
-        awaiting_mfa: window.__BOOTSTRAP_STATE__.awaiting_mfa,
-        email: window.__BOOTSTRAP_STATE__.email,
-        custid: window.__BOOTSTRAP_STATE__.custid,
+        authenticated: window.__BOOTSTRAP_ME__.authenticated,
+        awaiting_mfa: window.__BOOTSTRAP_ME__.awaiting_mfa,
+        email: window.__BOOTSTRAP_ME__.email,
+        custid: window.__BOOTSTRAP_ME__.custid,
       };
     }
     return null;

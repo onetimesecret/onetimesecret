@@ -1,39 +1,29 @@
 // src/schemas/api/v1/responses/index.ts
 //
-// V1 response schema registry.
+// V1 response schema barrel exports.
 
-import { z } from 'zod';
+// ─────────────────────────────────────────────────────────────────────────────
+// Registry re-export (single source of truth for schema lookup)
+// ─────────────────────────────────────────────────────────────────────────────
 
-import {
-  v1ReceiptResponseSchema,
-  v1ReceiptListResponseSchema,
-  v1SecretRevealResponseSchema,
-  v1BurnSecretResponseSchema,
-} from './secrets';
+export {
+  responseSchemas,
+  v1ResponseSchemas,
+  v1StatusResponseSchema,
+  type V1StatusResponse,
+  type ResponseTypes,
+} from './registry';
 
-// V1 status returns {status, locale} without a `success` field.
-// V3 systemStatusResponseSchema requires `success`, so V1 needs its own schema.
-export const v1StatusResponseSchema = z.object({
-  status: z.string(),
-  locale: z.string(),
-});
-
-export type V1StatusResponse = z.infer<typeof v1StatusResponseSchema>;
-
-export const v1ResponseSchemas = {
-  v1Status: v1StatusResponseSchema,
-  v1Receipt: v1ReceiptResponseSchema,
-  v1ReceiptList: v1ReceiptListResponseSchema,
-  v1SecretReveal: v1SecretRevealResponseSchema,
-  v1BurnSecret: v1BurnSecretResponseSchema,
-} as const;
+// ─────────────────────────────────────────────────────────────────────────────
+// Schema re-exports from domain modules
+// ─────────────────────────────────────────────────────────────────────────────
 
 export {
   v1ReceiptResponseSchema,
   v1ReceiptListResponseSchema,
   v1SecretRevealResponseSchema,
   v1BurnSecretResponseSchema,
-};
+} from './secrets';
 
 export type {
   V1ReceiptResponse,

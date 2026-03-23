@@ -2,7 +2,7 @@
 
 import { createError } from '@/shared/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import type { Jurisdiction, RegionsConfig } from '@/schemas/models';
+import type { Jurisdiction, RegionsConfig } from '@/schemas/shapes/v2';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { AxiosInstance } from 'axios';
 import type { PiniaCustomProperties } from 'pinia';
@@ -69,9 +69,8 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
 
   function init(options?: StoreOptions) {
     if (_initialized.value) return;
-    let config: RegionsConfig | null;
-
-    config = options?.regions ?? bootstrapRegions.value;
+    const config: RegionsConfig | null | undefined =
+      options?.regions ?? bootstrapRegions?.value;
 
     if (!config) {
       enabled.value = false;
