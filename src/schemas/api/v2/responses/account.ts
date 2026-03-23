@@ -1,6 +1,7 @@
 // src/schemas/api/v2/responses/account.ts
 //
-// Response schemas for account-related endpoints.
+// V2 response schemas for account endpoints.
+// Wraps the shared account/customer schemas in API response envelopes.
 
 import { createApiResponseSchema } from '@/schemas/api/base';
 import {
@@ -8,13 +9,24 @@ import {
   apiTokenSchema,
   checkAuthDetailsSchema,
 } from '@/schemas/api/account/responses/account';
-import { customerSchema } from '@/schemas/shapes/v2';
+import { customerSchema } from '@/schemas/shapes/v2/customer';
 import { z } from 'zod';
+
+// -----------------------------------------------------------------------------
+// Response schemas
+// -----------------------------------------------------------------------------
 
 export const accountResponseSchema = createApiResponseSchema(accountSchema);
 export const apiTokenResponseSchema = createApiResponseSchema(apiTokenSchema);
-export const checkAuthResponseSchema = createApiResponseSchema(customerSchema, checkAuthDetailsSchema);
-export const customerResponseSchema = createApiResponseSchema(customerSchema, checkAuthDetailsSchema);
+export const checkAuthResponseSchema = createApiResponseSchema(
+  z.object({}),
+  checkAuthDetailsSchema
+);
+export const customerResponseSchema = createApiResponseSchema(customerSchema);
+
+// -----------------------------------------------------------------------------
+// Type exports
+// -----------------------------------------------------------------------------
 
 export type AccountResponse = z.infer<typeof accountResponseSchema>;
 export type ApiTokenResponse = z.infer<typeof apiTokenResponseSchema>;

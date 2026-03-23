@@ -22,12 +22,6 @@ export { responseSchemas, type ResponseTypes } from './registry';
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type {
-  AccountResponse,
-  ApiTokenResponse,
-  CheckAuthResponse,
-  CustomerResponse,
-} from './account';
-export type {
   CreateAccountResponse,
   LoginResponse,
   LogoutResponse,
@@ -42,6 +36,12 @@ export type {
   ImagePropsResponse,
   JurisdictionResponse,
 } from './domains';
+export type {
+  AccountResponse,
+  ApiTokenResponse,
+  CheckAuthResponse,
+  CustomerResponse,
+} from './account';
 export type { FeedbackResponse } from './feedback';
 export type {
   IncomingConfigResponse,

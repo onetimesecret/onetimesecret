@@ -4,12 +4,7 @@
 // object. Consumers use this as a typed registry for Zod parsing.
 
 import { z } from 'zod';
-import {
-  accountResponseSchema,
-  apiTokenResponseSchema,
-  checkAuthResponseSchema,
-  customerResponseSchema,
-} from './account';
+import { apiTokenResponseSchema } from './account';
 import {
   createAccountResponseSchema,
   loginResponseSchema,
@@ -26,7 +21,6 @@ import {
   imagePropsResponseSchema,
   jurisdictionResponseSchema,
 } from './domains';
-import { feedbackResponseSchema } from './feedback';
 import {
   incomingConfigResponseSchema,
   incomingSecretResponseSchema,
@@ -48,10 +42,7 @@ import {
 // Single source of truth for response schemas
 export const responseSchemas = {
   // Account
-  account: accountResponseSchema,
   apiToken: apiTokenResponseSchema,
-  checkAuth: checkAuthResponseSchema,
-  customer: customerResponseSchema,
 
   // Secrets
   concealData: concealDataResponseSchema,
@@ -78,9 +69,6 @@ export const responseSchemas = {
   systemStatus: systemStatusResponseSchema,
   systemVersion: systemVersionResponseSchema,
   supportedLocales: supportedLocalesResponseSchema,
-
-  // Feedback
-  feedback: feedbackResponseSchema,
 
   // Authentication (Rodauth-compatible)
   login: loginResponseSchema,
