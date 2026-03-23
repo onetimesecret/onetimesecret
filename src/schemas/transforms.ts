@@ -1,7 +1,7 @@
 // src/schemas/transforms.ts
 
 import { ttlToNaturalLanguage } from '@/utils/format/index';
-import { parseBoolean, parseDateValue, parseNumber, parseNestedObject } from '@/utils/parse/index';
+import { parseDateValue, parseNestedObject } from '@/utils/parse/index';
 import { z } from 'zod';
 
 /**
@@ -66,7 +66,10 @@ export const transforms = {
      * Parses string timestamps to Date, allowing null.
      *
      * Handles Unix timestamps (seconds or milliseconds) and ISO date strings.
-     * Returns null for empty strings, null, or undefined input.
+     * Returns null for empty strings or null input.
+     *
+     * Uses transform() instead of preprocess() so that z.toJSONSchema() with
+     * io:"input" correctly reports the wire type (string) rather than unknown.
      *
      * @example
      * ```typescript
@@ -76,13 +79,22 @@ export const transforms = {
      * schema.parse({ updated: null });          // { updated: null }
      * ```
      */
-    dateNullable: z.preprocess(parseDateValue, z.date().nullable()),
+    dateNullable: z
+      .string()
+      .nullable()
+      .transform((val): Date | null => {
+        if (val === null || val === '') return null;
+        return parseDateValue(val) as Date | null;
+      }),
 
     /**
      * Parses string timestamps to Date, requiring a valid date.
      *
      * Handles Unix timestamps (seconds or milliseconds) and ISO date strings.
      * Throws ZodError if the value cannot be parsed to a valid Date.
+     *
+     * Uses transform() instead of preprocess() so that z.toJSONSchema() with
+     * io:"input" correctly reports the wire type (string) rather than unknown.
      *
      * @example
      * ```typescript
@@ -92,15 +104,21 @@ export const transforms = {
      * schema.parse({ created: "" });                     // throws ZodError
      * ```
      */
-    date: z.preprocess(
-      parseDateValue,
-      z.date().refine((val): val is Date => val !== null, 'Valid date is required')
-    ),
+    date: z
+      .string()
+      .transform((val): Date => {
+        const date = parseDateValue(val);
+        if (!date) throw new Error('Valid date is required');
+        return date;
+      }),
 
     /**
      * Parses string numbers to number, allowing null.
      *
-     * Returns null for empty strings, null, undefined, or NaN results.
+     * Returns null for empty strings or unparseable values.
+     *
+     * Uses transform() instead of preprocess() so that z.toJSONSchema() with
+     * io:"input" correctly reports the wire type (string) rather than unknown.
      *
      * @example
      * ```typescript
@@ -111,13 +129,23 @@ export const transforms = {
      * schema.parse({ count: "abc" });   // { count: null }
      * ```
      */
-    number: z.preprocess(parseNumber, z.number().nullable()),
+    number: z
+      .string()
+      .nullable()
+      .transform((val): number | null => {
+        if (val === null || val === '') return null;
+        const num = Number(val);
+        return isNaN(num) ? null : num;
+      }),
 
     /**
      * Parses string booleans from Redis/API formats.
      *
      * Truthy: "true", "1"
-     * Falsy: "false", "0", "", null, undefined
+     * Falsy: "false", "0", "", null
+     *
+     * Uses transform() instead of preprocess() so that z.toJSONSchema() with
+     * io:"input" correctly reports the wire type (string) rather than unknown.
      *
      * @example
      * ```typescript
@@ -127,25 +155,38 @@ export const transforms = {
      * schema.parse({ active: "false" }); // { active: false }
      * schema.parse({ active: "0" });     // { active: false }
      * schema.parse({ active: "" });      // { active: false }
+     * schema.parse({ active: null });    // { active: false }
      * ```
      */
-    boolean: z.preprocess(parseBoolean, z.boolean()),
+    boolean: z
+      .string()
+      .nullable()
+      .transform((val): boolean => val === 'true' || val === '1'),
 
     /**
      * Converts TTL seconds to human-readable duration string.
      *
-     * Input is TTL in seconds; output is formatted like "2 hours from now".
-     * Preserves pre-formatted strings that contain non-numeric characters.
+     * Input is TTL in seconds as a string; output is formatted like "2 hours from now".
+     * Returns null for empty strings or invalid values.
+     *
+     * Uses transform() instead of preprocess() so that z.toJSONSchema() with
+     * io:"input" correctly reports the wire type (string) rather than unknown.
      *
      * @example
      * ```typescript
      * const schema = z.object({ expiresIn: transforms.fromString.ttlToNaturalLanguage });
-     * schema.parse({ expiresIn: 3600 });   // { expiresIn: "1 hour from now" }
-     * schema.parse({ expiresIn: 86400 });  // { expiresIn: "1 day from now" }
-     * schema.parse({ expiresIn: -1 });     // { expiresIn: null }
+     * schema.parse({ expiresIn: "3600" });   // { expiresIn: "1 hour from now" }
+     * schema.parse({ expiresIn: "86400" });  // { expiresIn: "1 day from now" }
+     * schema.parse({ expiresIn: "-1" });     // { expiresIn: null }
      * ```
      */
-    ttlToNaturalLanguage: z.preprocess(ttlToNaturalLanguage, z.string().nullable()),
+    ttlToNaturalLanguage: z
+      .string()
+      .nullable()
+      .transform((val): string | null => {
+        if (val === null || val === '') return null;
+        return ttlToNaturalLanguage(val);
+      }),
 
     /**
      * Transforms empty strings to undefined for optional email fields.
@@ -153,15 +194,22 @@ export const transforms = {
      * Useful for form inputs where an empty string should mean "no email"
      * rather than failing email validation.
      *
+     * Uses transform() instead of preprocess() so that z.toJSONSchema() with
+     * io:"input" correctly reports the wire type (string) rather than unknown.
+     *
      * @example
      * ```typescript
      * const schema = z.object({ email: transforms.fromString.optionalEmail });
      * schema.parse({ email: "test@example.com" }); // { email: "test@example.com" }
      * schema.parse({ email: "" });                 // { email: undefined }
-     * schema.parse({ email: "invalid" });          // throws ZodError
+     * schema.parse({ email: "invalid" });          // validates as email
      * ```
      */
-    optionalEmail: z.preprocess((val) => (val === '' ? undefined : val), z.email().optional()),
+    optionalEmail: z
+      .string()
+      .optional()
+      .transform((val) => (val === '' ? undefined : val))
+      .pipe(z.email().optional()),
   },
 
   /**
@@ -176,9 +224,10 @@ export const transforms = {
    */
   fromNumber: {
     /**
-     * Converts Unix timestamp (seconds) to Date using preprocess.
+     * Converts Unix timestamp (seconds) to Date.
      *
-     * @deprecated Prefer `toDate` which uses transform() for better JSON Schema support.
+     * Uses transform() so that z.toJSONSchema() with io:"input" correctly
+     * reports the wire type (number) rather than unknown.
      *
      * @example
      * ```typescript
@@ -186,7 +235,7 @@ export const transforms = {
      * schema.parse({ ts: 1609459200 }); // { ts: Date(2021-01-01) }
      * ```
      */
-    secondsToDate: z.preprocess((val) => new Date((val as number) * 1000), z.date()),
+    secondsToDate: z.number().transform((val) => new Date(val * 1000)),
 
     /**
      * Converts Unix timestamp (seconds) to Date, requiring a valid number.
