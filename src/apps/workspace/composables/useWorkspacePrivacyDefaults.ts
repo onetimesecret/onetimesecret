@@ -10,7 +10,7 @@
  * For custom domains, returns domain-specific brand settings.
  */
 
-import type { BrandSettings } from '@/schemas/shapes/v2';
+import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
 import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';

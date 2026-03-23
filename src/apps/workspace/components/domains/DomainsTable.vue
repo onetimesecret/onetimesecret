@@ -6,7 +6,7 @@
   import DomainsTableActionsCell from '@/apps/workspace/components/dashboard/DomainsTableActionsCell.vue';
   import DomainsTableDomainCell from '@/apps/workspace/components/dashboard/DomainsTableDomainCell.vue';
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
-  import type { CustomDomain } from '@/schemas/shapes/v2/custom-domain';
+  import type { CustomDomain } from '@/schemas/shapes/v3/custom-domain';
   import { useConfirmDialog } from '@vueuse/core';
 
   const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
@@ -70,10 +70,12 @@ const { t } = useI18n();
     emit('toggle-homepage', domain);
 
     // Update local domain state after successful API call
+    // Type assertion needed: brand fields are optional in wire format but
+    // v3 schema applies defaults during parsing. Optimistic update preserves existing values.
     domain.brand = {
       ...domain.brand,
       allow_public_homepage: !domain.brand?.allow_public_homepage,
-    };
+    } as typeof domain.brand;
   };
 </script>
 

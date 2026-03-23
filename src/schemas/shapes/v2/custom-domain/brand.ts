@@ -1,76 +1,47 @@
-// src/schemas/models/custom-domain/brand.ts
+// src/schemas/shapes/v2/custom-domain/brand.ts
+//
+// V2 wire-format shapes for brand settings.
+// Uses string transforms for boolean fields (V2 sends "true"/"false" strings).
 
 import { localeSchema } from '@/schemas/i18n/locale';
 import { transforms } from '@/schemas/transforms';
+import { fontFamilyValues, cornerStyleValues } from '@/schemas/contracts';
 import { z } from 'zod';
 
+// Re-export UI helpers from shared location for backward compatibility.
+// Note: FontFamily and CornerStyle are both const objects and type aliases
+// (via declaration merging), so a single export covers both value and type usage.
+export {
+  CornerStyle,
+  cornerStyleClasses,
+  cornerStyleDisplayMap,
+  cornerStyleIconMap,
+  cornerStyleOptions,
+  FontFamily,
+  fontDisplayMap,
+  fontFamilyClasses,
+  fontIconMap,
+  fontOptions,
+} from '@/shared/utils/brand-helpers';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// V2 brand settings schema
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
- * @fileoverview Brand settings schema for API transformation boundaries
+ * V2 brand settings schema.
  *
- * Model Organization:
- * While Brand is a nested model of Domain, it exists as a separate file because:
- * 1. It has distinct validation rules and complex type definitions
- * 2. It maintains separation of concerns and code organization
- * 3. It allows direct imports of Brand-specific logic where needed
- * 4. It keeps Domain model focused on core domain logic
+ * V2 sends booleans as strings ("true"/"false"), so we use string transforms.
+ * All fields are partial (optional) for PATCH-style updates.
  *
+ * @example
+ * ```typescript
+ * const brand = brandSettingschema.parse({
+ *   primary_color: '#dc4a22',
+ *   button_text_light: 'false', // V2 sends as string
+ * });
+ * ```
  */
-
-// 1. Base enums
-enum FontFamily {
-  SANS = 'sans',
-  SERIF = 'serif',
-  MONO = 'mono',
-}
-
-enum CornerStyle {
-  ROUNDED = 'rounded',
-  PILL = 'pill',
-  SQUARE = 'square',
-}
-
-// 2. Options arrays
-const fontOptions = Object.values(FontFamily) as [string, ...string[]];
-const cornerStyleOptions = Object.values(CornerStyle) as [string, ...string[]];
-
-// 3. Display maps
-const fontDisplayMap: Record<FontFamily, string> = {
-  [FontFamily.SANS]: 'Sans Serif',
-  [FontFamily.SERIF]: 'Serif',
-  [FontFamily.MONO]: 'Monospace',
-};
-
-export const fontFamilyClasses: Record<FontFamily, string> = {
-  [FontFamily.SANS]: 'font-sans',
-  [FontFamily.SERIF]: 'font-serif',
-  [FontFamily.MONO]: 'font-mono',
-};
-
-export const cornerStyleClasses: Record<CornerStyle, string> = {
-  [CornerStyle.ROUNDED]: 'rounded-md',
-  [CornerStyle.PILL]: 'rounded-xl',
-  [CornerStyle.SQUARE]: 'rounded-none',
-};
-
-const cornerStyleDisplayMap: Record<CornerStyle, string> = {
-  [CornerStyle.ROUNDED]: 'Rounded',
-  [CornerStyle.PILL]: 'Pill Shape',
-  [CornerStyle.SQUARE]: 'Square',
-};
-
-// 4. Icon maps
-const fontIconMap: Record<FontFamily, string> = {
-  [FontFamily.SANS]: 'ph-text-aa-bold',
-  [FontFamily.SERIF]: 'ph-text-t-bold',
-  [FontFamily.MONO]: 'ph-code',
-};
-
-const cornerStyleIconMap: Record<CornerStyle, string> = {
-  [CornerStyle.ROUNDED]: 'tabler-border-corner-rounded',
-  [CornerStyle.PILL]: 'tabler-border-corner-pill',
-  [CornerStyle.SQUARE]: 'tabler-border-corner-square',
-};
-
 export const brandSettingschema = z
   .object({
     primary_color: z
@@ -85,15 +56,20 @@ export const brandSettingschema = z
     button_text_light: transforms.fromString.boolean.default(false),
     allow_public_homepage: transforms.fromString.boolean.default(false),
     allow_public_api: transforms.fromString.boolean.default(false),
-    font_family: z.enum(fontOptions).default(FontFamily.SANS),
-    corner_style: z.enum(cornerStyleOptions).default(CornerStyle.ROUNDED),
+    font_family: z.enum(fontFamilyValues).default('sans'),
+    corner_style: z.enum(cornerStyleValues).default('rounded'),
     locale: localeSchema.default('en'),
     default_ttl: transforms.fromString.number.nullish(),
     passphrase_required: transforms.fromString.boolean.default(false),
     notify_enabled: transforms.fromString.boolean.default(false),
   })
-  .partial(); // Makes all fields optional;
+  .partial(); // Makes all fields optional
 
+/**
+ * V2 image properties schema.
+ *
+ * Image metadata for logo and icon fields. V2 sends numeric fields as strings.
+ */
 export const imagePropsSchema = z
   .object({
     encoded: z.string().optional(),
@@ -106,16 +82,12 @@ export const imagePropsSchema = z
   })
   .partial(); // Makes all fields optional
 
-export type BrandSettings = z.infer<typeof brandSettingschema>;
-export type ImageProps = z.infer<typeof imagePropsSchema>;
+// ─────────────────────────────────────────────────────────────────────────────
+// Type exports
+// ─────────────────────────────────────────────────────────────────────────────
 
-export {
-  CornerStyle,
-  cornerStyleDisplayMap,
-  cornerStyleIconMap,
-  cornerStyleOptions,
-  fontDisplayMap,
-  FontFamily,
-  fontIconMap,
-  fontOptions,
-};
+/** TypeScript type for V2 brand settings. */
+export type BrandSettings = z.infer<typeof brandSettingschema>;
+
+/** TypeScript type for V2 image properties. */
+export type ImageProps = z.infer<typeof imagePropsSchema>;
