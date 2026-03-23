@@ -4,9 +4,10 @@ Zod schemas for validating and transforming data between Vue frontend and Ruby/R
 
 ## Architecture
 
-- **Contracts** (`contracts/`): Canonical field names and output types
+- **Contracts** (`contracts/`): Canonical field names and output types (version-agnostic)
 - **Shapes** (`shapes/v2/`, `shapes/v3/`): Wire-format specific transforms
 - **Transforms** (`transforms.ts`): Centralized conversion utilities
+- **API** (`api/`): Request/response schemas wrapping shapes or contracts
 
 ## Data Flow
 

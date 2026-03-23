@@ -6,12 +6,10 @@
  * V2 API entity shapes
  */
 export * from './base';
+export * from './custom-domain/index';
 export * from './customer';
-export * from './feedback';
-export * from './organization-membership';
 export * from './receipt';
 export * from './secret';
-export * from './custom-domain/index';
 
 /**
  * Re-exports from sibling shape directories (backward compatibility)
