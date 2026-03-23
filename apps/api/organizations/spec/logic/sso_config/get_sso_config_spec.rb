@@ -212,6 +212,18 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::GetSsoConfig do
       expect(record[:created_at]).to be_a(Integer)
       expect(record[:updated_at]).to be_a(Integer)
     end
+
+    it 'includes non-zero timestamps when config has timestamps set' do
+      # Set timestamps on the config to simulate a properly created config
+      sso_config.created = 1700000000
+      sso_config.updated = 1700000000
+
+      result = logic.process
+      record = result[:record]
+
+      expect(record[:created_at]).to be > 0
+      expect(record[:updated_at]).to be > 0
+    end
   end
 
   describe 'secret masking' do

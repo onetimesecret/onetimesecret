@@ -308,6 +308,11 @@ module Onetime
         # Set allowed domains (handles array conversion)
         config.allowed_domains = attrs[:allowed_domains] if attrs.key?(:allowed_domains)
 
+        # Initialize timestamps
+        now            = Familia.now.to_i
+        config.created = now
+        config.updated = now
+
         # Atomic save + index update using Redis MULTI/EXEC
         # Prevents race condition where config exists but index doesn't (or vice versa)
         Familia.redis.multi do |txn|

@@ -214,6 +214,9 @@ module OrganizationAPI::Logic
         # allowed_domains uses PUT semantics: always replaces (see comment above)
         @sso_config.allowed_domains = @allowed_domains
 
+        # Update timestamp for partial update
+        @sso_config.updated = Familia.now.to_i
+
         @sso_config.save
       end
 

@@ -71,7 +71,7 @@ export const SsoService = {
    * @returns SSO configuration or null if not configured
    */
   async getConfig(orgExtId: string): Promise<SsoConfigResponse> {
-    const response = await $api.get(`/api/v2/organizations/${orgExtId}/sso-config`);
+    const response = await $api.get(`/api/organizations/${orgExtId}/sso`);
     return response.data;
   },
 
@@ -86,7 +86,7 @@ export const SsoService = {
     orgExtId: string,
     payload: CreateOrUpdateSsoConfigRequest
   ): Promise<SsoConfigResponse> {
-    const response = await $api.put(`/api/v2/organizations/${orgExtId}/sso-config`, payload);
+    const response = await $api.put(`/api/organizations/${orgExtId}/sso`, payload);
     return response.data;
   },
 
@@ -97,7 +97,7 @@ export const SsoService = {
    * @returns Deletion confirmation
    */
   async deleteConfig(orgExtId: string): Promise<DeleteSsoConfigResponse> {
-    const response = await $api.delete(`/api/v2/organizations/${orgExtId}/sso-config`);
+    const response = await $api.delete(`/api/organizations/${orgExtId}/sso`);
     return response.data;
   },
 

@@ -329,6 +329,16 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::PatchSsoConfig do
         expect(existing_config.client_secret.reveal { it }).to eq('client-secret-456')
       end
 
+      it 'updates the updated timestamp' do
+        # Set an old timestamp first
+        existing_config.updated = 1000000000
+
+        logic.process
+
+        # After update, updated timestamp should be current (greater than old value)
+        expect(existing_config.updated.to_i).to be > 1000000000
+      end
+
       context 'when client_secret is not provided (PATCH semantics)' do
         let(:params) { valid_entra_params.merge('client_secret' => '') }
         subject(:logic) { described_class.new(strategy_result, params) }
@@ -571,6 +581,18 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::PatchSsoConfig do
 
       expect(record[:created_at]).to be_a(Integer)
       expect(record[:updated_at]).to be_a(Integer)
+    end
+
+    it 'includes non-zero timestamps' do
+      # Set timestamps to simulate create! initialization
+      sso_config.created = Familia.now.to_i
+      sso_config.updated = Familia.now.to_i
+
+      result = logic.process
+      record = result[:record]
+
+      expect(record[:created_at]).to be > 0
+      expect(record[:updated_at]).to be > 0
     end
   end
 

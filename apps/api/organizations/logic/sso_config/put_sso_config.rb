@@ -183,6 +183,9 @@ module OrganizationAPI::Logic
         @sso_config.allowed_domains = @allowed_domains # Empty array clears the field
         @sso_config.enabled         = @enabled.to_s
 
+        # Update timestamp for replacement
+        @sso_config.updated = Familia.now.to_i
+
         @sso_config.save
       end
 
