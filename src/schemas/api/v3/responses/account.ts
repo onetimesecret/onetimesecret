@@ -9,7 +9,7 @@ import {
   apiTokenSchema,
   checkAuthDetailsSchema,
 } from '@/schemas/api/account/responses/account';
-import { customerRecord } from '@/schemas/shapes/v3/customer';
+import { customerSchema } from '@/schemas/shapes/v3/customer';
 import { z } from 'zod';
 
 // -----------------------------------------------------------------------------
@@ -22,7 +22,7 @@ export const checkAuthResponseSchema = createApiResponseSchema(
   z.object({}),
   checkAuthDetailsSchema
 );
-export const customerResponseSchema = createApiResponseSchema(customerRecord);
+export const customerResponseSchema = createApiResponseSchema(customerSchema);
 
 // -----------------------------------------------------------------------------
 // Type exports

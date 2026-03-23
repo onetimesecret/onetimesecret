@@ -5,10 +5,10 @@
 
 import { createApiResponseSchema, createApiListResponseSchema } from '@/schemas/api/base';
 import {
-  secretBaseRecord,
-  secretRecord,
-  secretDetails,
-  concealDataRecord,
+  secretBaseSchema,
+  secretSchema,
+  secretDetailsSchema,
+  concealDataSchema,
 } from '@/schemas/shapes/v3/secret';
 import { z } from 'zod';
 
@@ -16,9 +16,9 @@ import { z } from 'zod';
 // Envelope-wrapped response schemas
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const concealDataResponseSchema = createApiResponseSchema(concealDataRecord);
-export const secretResponseSchema = createApiResponseSchema(secretRecord, secretDetails);
-export const secretListResponseSchema = createApiListResponseSchema(secretBaseRecord);
+export const concealDataResponseSchema = createApiResponseSchema(concealDataSchema);
+export const secretResponseSchema = createApiResponseSchema(secretSchema, secretDetailsSchema);
+export const secretListResponseSchema = createApiListResponseSchema(secretBaseSchema);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Type exports

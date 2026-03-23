@@ -6,9 +6,9 @@
 
 import { createApiResponseSchema, createApiListResponseSchema } from '@/schemas/api/base';
 import {
-  brandSettingsRecord,
-  customDomainRecord,
-  imagePropsRecord,
+  brandSettingsSchema,
+  customDomainSchema,
+  imagePropsSchema,
 } from '@/schemas/shapes/v3/custom-domain';
 import { z } from 'zod';
 
@@ -54,10 +54,10 @@ const jurisdictionDetails = z.object({
 // Envelope-wrapped response schemas
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const brandSettingsResponseSchema = createApiResponseSchema(brandSettingsRecord);
-export const customDomainResponseSchema = createApiResponseSchema(customDomainRecord, customDomainDetailsSchema);
-export const customDomainListResponseSchema = createApiListResponseSchema(customDomainRecord, customDomainDetailsSchema);
-export const imagePropsResponseSchema = createApiResponseSchema(imagePropsRecord);
+export const brandSettingsResponseSchema = createApiResponseSchema(brandSettingsSchema);
+export const customDomainResponseSchema = createApiResponseSchema(customDomainSchema, customDomainDetailsSchema);
+export const customDomainListResponseSchema = createApiListResponseSchema(customDomainSchema, customDomainDetailsSchema);
+export const imagePropsResponseSchema = createApiResponseSchema(imagePropsSchema);
 export const jurisdictionResponseSchema = createApiResponseSchema(jurisdictionRecord, jurisdictionDetails);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -66,6 +66,7 @@ export const jurisdictionResponseSchema = createApiResponseSchema(jurisdictionRe
 
 export type BrandSettingsResponse = z.infer<typeof brandSettingsResponseSchema>;
 export type CustomDomainDetails = z.infer<typeof customDomainDetailsSchema>;
+export type CustomDomainProxy = CustomDomainDetails['cluster'];
 export type CustomDomainResponse = z.infer<typeof customDomainResponseSchema>;
 export type CustomDomainListResponse = z.infer<typeof customDomainListResponseSchema>;
 export type ImagePropsResponse = z.infer<typeof imagePropsResponseSchema>;

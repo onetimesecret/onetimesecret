@@ -5,22 +5,19 @@
 
 import { createApiResponseSchema, createApiListResponseSchema } from '@/schemas/api/base';
 import {
-  receiptRecord,
-  receiptDetails,
-  receiptListRecord,
-  receiptListDetails,
+  receiptSchema,
+  receiptDetailsSchema,
+  receiptListSchema,
+  receiptListDetailsSchema,
 } from '@/schemas/shapes/v3/receipt';
 import { z } from 'zod';
-
-// Re-export shapes for consumers that import from responses
-export { receiptBaseRecord } from '@/schemas/shapes/v3/receipt';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Envelope-wrapped response schemas
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const receiptResponseSchema = createApiResponseSchema(receiptRecord, receiptDetails);
-export const receiptListResponseSchema = createApiListResponseSchema(receiptListRecord, receiptListDetails);
+export const receiptResponseSchema = createApiResponseSchema(receiptSchema, receiptDetailsSchema);
+export const receiptListResponseSchema = createApiListResponseSchema(receiptListSchema, receiptListDetailsSchema);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Type exports
