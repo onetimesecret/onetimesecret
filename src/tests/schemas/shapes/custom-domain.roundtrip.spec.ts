@@ -41,7 +41,7 @@ import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // Inline V3 schema for testing (mirrors V3 response schema structure)
-const v3BrandSettingsRecord = z
+const v3BrandSettingsSchema = z
   .object({
     primary_color: z.string().default('#dc4a22'),
     colour: z.string().optional(),
@@ -61,7 +61,7 @@ const v3BrandSettingsRecord = z
   })
   .partial();
 
-const v3VhostRecord = z
+const v3VhostSchema = z
   .object({
     target_address: z.string().optional(),
     target_ports: z.string().optional(),
@@ -93,8 +93,8 @@ const v3CustomDomainSchema = z.object({
   verified: z.boolean(),
   txt_validation_host: z.string(),
   txt_validation_value: z.string(),
-  vhost: v3VhostRecord.nullable(),
-  brand: v3BrandSettingsRecord.nullable(),
+  vhost: v3VhostSchema.nullable(),
+  brand: v3BrandSettingsSchema.nullable(),
 });
 
 // -----------------------------------------------------------------------------
@@ -275,7 +275,7 @@ describe('V2 CustomDomain Round-Trip', () => {
 // -----------------------------------------------------------------------------
 
 describe('V3 CustomDomain Round-Trip', () => {
-  describe('customDomainRecord', () => {
+  describe('v3CustomDomainSchema', () => {
     it('round-trips a standard custom domain', () => {
       const canonical = createCanonicalCustomDomain();
       const v3Wire = createV3WireCustomDomain(canonical);

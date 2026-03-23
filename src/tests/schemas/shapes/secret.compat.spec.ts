@@ -31,7 +31,7 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('V2 Wire → V3 Schema (Forward Compatibility)', () => {
-  describe('secretRecord', () => {
+  describe('v3SecretSchema', () => {
     it('FAILS: V3 rejects V2 string-encoded booleans', () => {
       const canonical = createCanonicalSecretWithTimestamps({
         has_passphrase: true,

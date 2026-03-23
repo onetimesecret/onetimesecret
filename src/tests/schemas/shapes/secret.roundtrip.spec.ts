@@ -8,13 +8,13 @@
 import { describe, it, expect } from 'vitest';
 import {
   secretSchema,
-  secretDetailsSchema,
+  secretDetailsSchema as v2SecretDetailsSchema,
   secretResponsesSchema,
 } from '@/schemas/shapes/v2/secret';
 import {
-  secretBaseSchema as secretBaseRecord,
-  secretSchema as secretRecord,
-  secretDetailsSchema as secretDetails,
+  secretBaseSchema as v3SecretBaseSchema,
+  secretSchema as v3SecretSchema,
+  secretDetailsSchema as v3SecretDetailsSchema,
 } from '@/schemas/shapes/v3/secret';
 import {
   createCanonicalSecretBase,
@@ -195,11 +195,11 @@ describe('V2 Secret Round-Trip', () => {
     });
   });
 
-  describe('secretDetailsSchema', () => {
+  describe('v2SecretDetailsSchema', () => {
     it('round-trips secret details', () => {
       const canonical = createCanonicalSecretDetails();
       const wire = createV2WireSecretDetails(canonical);
-      const parsed = secretDetailsSchema.parse(wire);
+      const parsed = v2SecretDetailsSchema.parse(wire);
 
       expect(parsed.continue).toBe(canonical.continue);
       expect(parsed.is_owner).toBe(canonical.is_owner);
@@ -213,7 +213,7 @@ describe('V2 Secret Round-Trip', () => {
         one_liner: null,
       });
       const wire = createV2WireSecretDetails(canonical);
-      const parsed = secretDetailsSchema.parse(wire);
+      const parsed = v2SecretDetailsSchema.parse(wire);
 
       expect(parsed.one_liner).toBeNull();
     });
@@ -223,7 +223,7 @@ describe('V2 Secret Round-Trip', () => {
         one_liner: true,
       });
       const wire = createV2WireSecretDetails(canonical);
-      const parsed = secretDetailsSchema.parse(wire);
+      const parsed = v2SecretDetailsSchema.parse(wire);
 
       expect(parsed.one_liner).toBe(true);
     });
@@ -233,7 +233,7 @@ describe('V2 Secret Round-Trip', () => {
         one_liner: false,
       });
       const wire = createV2WireSecretDetails(canonical);
-      const parsed = secretDetailsSchema.parse(wire);
+      const parsed = v2SecretDetailsSchema.parse(wire);
 
       expect(parsed.one_liner).toBe(false);
     });
@@ -279,11 +279,11 @@ describe('V2 Secret Round-Trip', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('V3 Secret Round-Trip', () => {
-  describe('secretRecord', () => {
+  describe('v3SecretSchema', () => {
     it('round-trips a new secret', () => {
       const canonical = createCanonicalSecretWithTimestamps();
       const wire = createV3WireSecret(canonical);
-      const parsed = secretRecord.parse(wire);
+      const parsed = v3SecretSchema.parse(wire);
 
       // Core fields
       expect(parsed.identifier).toBe(canonical.identifier);
@@ -312,7 +312,7 @@ describe('V3 Secret Round-Trip', () => {
         updated: new Date('2024-02-20T16:45:00.000Z'),
       });
       const wire = createV3WireSecret(canonical);
-      const parsed = secretRecord.parse(wire);
+      const parsed = v3SecretSchema.parse(wire);
 
       expectDatesEqual(parsed.created, canonical.created, 'created');
       expectDatesEqual(parsed.updated, canonical.updated, 'updated');
@@ -326,7 +326,7 @@ describe('V3 Secret Round-Trip', () => {
         is_revealed: false,
       });
       const wire = createV3WireSecret(canonical);
-      const parsed = secretRecord.parse(wire);
+      const parsed = v3SecretSchema.parse(wire);
 
       expect(parsed.has_passphrase).toBe(true);
       expect(parsed.verification).toBe(false);
@@ -340,7 +340,7 @@ describe('V3 Secret Round-Trip', () => {
         lifespan: 259200,
       });
       const wire = createV3WireSecret(canonical);
-      const parsed = secretRecord.parse(wire);
+      const parsed = v3SecretSchema.parse(wire);
 
       expect(parsed.secret_ttl).toBe(14400);
       expect(parsed.lifespan).toBe(259200);
@@ -351,17 +351,17 @@ describe('V3 Secret Round-Trip', () => {
         secret_value: 'Revealed secret content',
       });
       const wire = createV3WireSecret(canonical);
-      const parsed = secretRecord.parse(wire);
+      const parsed = v3SecretSchema.parse(wire);
 
       expect(parsed.secret_value).toBe('Revealed secret content');
     });
   });
 
-  describe('secretBaseRecord', () => {
-    it('round-trips base without TTL (via secretRecord)', () => {
+  describe('v3SecretBaseSchema', () => {
+    it('round-trips base without TTL (via v3SecretSchema)', () => {
       const canonical = createCanonicalSecretWithTimestamps();
       const wire = createV3WireSecretBase(canonical);
-      const parsed = secretBaseRecord.parse(wire);
+      const parsed = v3SecretBaseSchema.parse(wire);
 
       expect(parsed.identifier).toBe(canonical.identifier);
       expect(parsed.state).toBe(canonical.state);
@@ -375,7 +375,7 @@ describe('V3 Secret Round-Trip', () => {
         updated: new Date('2024-01-15T10:00:00.000Z'),
       });
       const wire = createV3WireSecretBase(canonical);
-      const parsed = secretBaseRecord.parse(wire);
+      const parsed = v3SecretBaseSchema.parse(wire);
 
       // Round-trip should preserve exact timestamp
       expect(parsed.created.getTime()).toBe(canonical.created.getTime());
@@ -383,11 +383,11 @@ describe('V3 Secret Round-Trip', () => {
     });
   });
 
-  describe('secretDetails', () => {
+  describe('v3SecretDetailsSchema', () => {
     it('uses contract directly (no transforms)', () => {
       const canonical = createCanonicalSecretDetails();
       const wire = createV3WireSecretDetails(canonical);
-      const parsed = secretDetails.parse(wire);
+      const parsed = v3SecretDetailsSchema.parse(wire);
 
       expect(parsed.continue).toBe(canonical.continue);
       expect(parsed.is_owner).toBe(canonical.is_owner);
@@ -401,9 +401,9 @@ describe('V3 Secret Round-Trip', () => {
       const withTrue = createCanonicalSecretDetails({ one_liner: true });
       const withFalse = createCanonicalSecretDetails({ one_liner: false });
 
-      expect(secretDetails.parse(createV3WireSecretDetails(withNull)).one_liner).toBeNull();
-      expect(secretDetails.parse(createV3WireSecretDetails(withTrue)).one_liner).toBe(true);
-      expect(secretDetails.parse(createV3WireSecretDetails(withFalse)).one_liner).toBe(false);
+      expect(v3SecretDetailsSchema.parse(createV3WireSecretDetails(withNull)).one_liner).toBeNull();
+      expect(v3SecretDetailsSchema.parse(createV3WireSecretDetails(withTrue)).one_liner).toBe(true);
+      expect(v3SecretDetailsSchema.parse(createV3WireSecretDetails(withFalse)).one_liner).toBe(false);
     });
   });
 
@@ -415,7 +415,7 @@ describe('V3 Secret Round-Trip', () => {
       ['burned', createCanonicalSecretWithTimestamps({ ...createBurnedSecret() })],
     ] as const)('round-trips %s state', (expectedState, canonical) => {
       const wire = createV3WireSecret(canonical);
-      const parsed = secretRecord.parse(wire);
+      const parsed = v3SecretSchema.parse(wire);
 
       expect(parsed.state).toBe(expectedState);
     });
@@ -474,7 +474,7 @@ describe('Boolean Edge Cases', () => {
       const wire = createV3WireSecret(createCanonicalSecretWithTimestamps());
       (wire as Record<string, unknown>).has_passphrase = input;
 
-      const parsed = secretRecord.parse(wire);
+      const parsed = v3SecretSchema.parse(wire);
       expect(parsed.has_passphrase).toBe(expected);
     });
 
@@ -483,7 +483,7 @@ describe('Boolean Edge Cases', () => {
       (wire as Record<string, unknown>).has_passphrase = null;
 
       // V3 secret schema expects native boolean, not nullable
-      expect(() => secretRecord.parse(wire)).toThrow();
+      expect(() => v3SecretSchema.parse(wire)).toThrow();
     });
   });
 
@@ -509,7 +509,7 @@ describe('Boolean Edge Cases', () => {
     it('V3 explicit false roundtrips to false', () => {
       const canonical = createCanonicalSecretWithTimestamps({ has_passphrase: false });
       const wire = createV3WireSecret(canonical);
-      const parsed = secretRecord.parse(wire);
+      const parsed = v3SecretSchema.parse(wire);
 
       expect(parsed.has_passphrase).toBe(false);
       expect(typeof parsed.has_passphrase).toBe('boolean');
@@ -518,7 +518,7 @@ describe('Boolean Edge Cases', () => {
     it('V3 explicit true roundtrips to true', () => {
       const canonical = createCanonicalSecretWithTimestamps({ has_passphrase: true });
       const wire = createV3WireSecret(canonical);
-      const parsed = secretRecord.parse(wire);
+      const parsed = v3SecretSchema.parse(wire);
 
       expect(parsed.has_passphrase).toBe(true);
       expect(typeof parsed.has_passphrase).toBe('boolean');
@@ -549,7 +549,7 @@ describe('Boolean Edge Cases', () => {
         is_revealed: false,
       });
       const wire = createV3WireSecret(canonical);
-      const parsed = secretRecord.parse(wire);
+      const parsed = v3SecretSchema.parse(wire);
 
       // All should be boolean false, not null
       expect(parsed.has_passphrase).toStrictEqual(false);
@@ -594,7 +594,7 @@ describe('Number Edge Cases', () => {
       const wire = createV3WireSecret(createCanonicalSecretWithTimestamps());
       (wire as Record<string, unknown>).secret_ttl = input;
 
-      const parsed = secretRecord.parse(wire);
+      const parsed = v3SecretSchema.parse(wire);
       expect(parsed.secret_ttl).toBe(expected);
     });
   });

@@ -9,15 +9,15 @@ import { describe, it, expect } from 'vitest';
 import {
   receiptBaseSchema,
   receiptSchema,
-  receiptDetailsSchema,
+  receiptDetailsSchema as v2ReceiptDetailsSchema,
   receiptStateValues,
 } from '@/schemas/shapes/v2/receipt';
 import {
-  receiptBaseSchema as receiptBaseRecord,
-  receiptSchema as receiptRecord,
-  receiptDetailsSchema as receiptDetails,
-  receiptListDetailsSchema as receiptListDetails,
-  receiptListSchema as receiptListRecord,
+  receiptBaseSchema as v3ReceiptBaseSchema,
+  receiptSchema as v3ReceiptSchema,
+  receiptDetailsSchema as v3ReceiptDetailsSchema,
+  receiptListDetailsSchema as v3ReceiptListDetailsSchema,
+  receiptListSchema as v3ReceiptListSchema,
 } from '@/schemas/shapes/v3/receipt';
 import {
   createCanonicalReceiptBase,
@@ -180,11 +180,11 @@ describe('V2 Receipt Round-Trip', () => {
     });
   });
 
-  describe('receiptDetailsSchema', () => {
+  describe('v2ReceiptDetailsSchema', () => {
     it('round-trips receipt details', () => {
       const canonical = createCanonicalReceiptDetails();
       const wire = createV2WireReceiptDetails(canonical);
-      const parsed = receiptDetailsSchema.parse(wire);
+      const parsed = v2ReceiptDetailsSchema.parse(wire);
 
       expect(parsed.type).toBe('record');
       expect(parsed.display_lines).toBe(canonical.display_lines);
@@ -200,7 +200,7 @@ describe('V2 Receipt Round-Trip', () => {
         secret_value: null,
       });
       const wire = createV2WireReceiptDetails(canonical);
-      const parsed = receiptDetailsSchema.parse(wire);
+      const parsed = v2ReceiptDetailsSchema.parse(wire);
 
       expect(parsed.view_count).toBeNull();
       expect(parsed.secret_value).toBeNull();
@@ -240,11 +240,11 @@ describe('V2 Receipt Round-Trip', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('V3 Receipt Round-Trip', () => {
-  describe('receiptBaseRecord', () => {
+  describe('v3ReceiptBaseSchema', () => {
     it('round-trips a new receipt', () => {
       const canonical = createCanonicalReceiptBase();
       const wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(wire);
+      const parsed = v3ReceiptBaseSchema.parse(wire);
 
       // Core fields
       expect(parsed.identifier).toBe(canonical.identifier);
@@ -279,7 +279,7 @@ describe('V3 Receipt Round-Trip', () => {
         burned: null,
       });
       const wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(wire);
+      const parsed = v3ReceiptBaseSchema.parse(wire);
 
       expectDatesEqual(parsed.shared, canonical.shared, 'shared');
       expectDatesEqual(parsed.previewed, canonical.previewed, 'previewed');
@@ -292,18 +292,18 @@ describe('V3 Receipt Round-Trip', () => {
         has_passphrase: null,
       });
       const wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(wire);
+      const parsed = v3ReceiptBaseSchema.parse(wire);
 
       // V3 transforms null → false for has_passphrase
       expect(parsed.has_passphrase).toBe(false);
     });
   });
 
-  describe('receiptRecord (full receipt)', () => {
+  describe('v3ReceiptSchema (full receipt)', () => {
     it('round-trips a full receipt with URLs', () => {
       const canonical = createCanonicalReceipt();
       const wire = createV3WireReceipt(canonical);
-      const parsed = receiptRecord.parse(wire);
+      const parsed = v3ReceiptSchema.parse(wire);
 
       // URL fields
       expect(parsed.share_url).toBe(canonical.share_url);
@@ -316,11 +316,11 @@ describe('V3 Receipt Round-Trip', () => {
     });
   });
 
-  describe('receiptDetails', () => {
+  describe('v3ReceiptDetailsSchema', () => {
     it('round-trips receipt details', () => {
       const canonical = createCanonicalReceiptDetails();
       const wire = createV3WireReceiptDetails(canonical);
-      const parsed = receiptDetails.parse(wire);
+      const parsed = v3ReceiptDetailsSchema.parse(wire);
 
       expect(parsed.type).toBe('record');
       expect(parsed.display_lines).toBe(canonical.display_lines);
@@ -334,7 +334,7 @@ describe('V3 Receipt Round-Trip', () => {
         can_decrypt: null,
       });
       const wire = createV3WireReceiptDetails(canonical);
-      const parsed = receiptDetails.parse(wire);
+      const parsed = v3ReceiptDetailsSchema.parse(wire);
 
       // V3 transforms null → false
       expect(parsed.has_passphrase).toBe(false);
@@ -356,7 +356,7 @@ describe('V3 Receipt Round-Trip', () => {
     it.each(stateFactories)('round-trips %s receipt', (name, factory) => {
       const canonical = factory();
       const wire = createV3WireReceipt(canonical);
-      const parsed = receiptRecord.parse(wire);
+      const parsed = v3ReceiptSchema.parse(wire);
 
       expect(parsed.state).toBe(canonical.state);
     });
@@ -513,7 +513,7 @@ describe('Timestamp Edge Cases', () => {
 
       // V3 round-trip
       const v3Wire = createV3WireReceiptBase(canonical);
-      const v3Parsed = receiptBaseRecord.parse(v3Wire);
+      const v3Parsed = v3ReceiptBaseSchema.parse(v3Wire);
       expect(v3Parsed.created.getTime()).toBe(priorToEpoch.getTime());
     });
 
@@ -545,7 +545,7 @@ describe('Timestamp Edge Cases', () => {
 
       // V3 round-trip
       const v3Wire = createV3WireReceiptBase(canonical);
-      const v3Parsed = receiptBaseRecord.parse(v3Wire);
+      const v3Parsed = v3ReceiptBaseSchema.parse(v3Wire);
       expect(v3Parsed.created.getTime()).toBe(y2k38.getTime());
     });
 
@@ -558,7 +558,7 @@ describe('Timestamp Edge Cases', () => {
       });
 
       const v3Wire = createV3WireReceiptBase(canonical);
-      const v3Parsed = receiptBaseRecord.parse(v3Wire);
+      const v3Parsed = v3ReceiptBaseSchema.parse(v3Wire);
       expect(v3Parsed.created.getTime()).toBe(year2100.getTime());
     });
   });
@@ -598,7 +598,7 @@ describe('Timestamp Edge Cases', () => {
         const v3Wire = createV3WireReceiptBase(canonical);
         (v3Wire as Record<string, unknown>).shared = secTimestamp;
 
-        const parsed = receiptBaseRecord.parse(v3Wire);
+        const parsed = v3ReceiptBaseSchema.parse(v3Wire);
         expectDatesEqual(parsed.shared, expectedDate, 'shared');
       });
 
@@ -607,7 +607,7 @@ describe('Timestamp Edge Cases', () => {
         const v3Wire = createV3WireReceiptBase(canonical);
         (v3Wire as Record<string, unknown>).shared = null;
 
-        const parsed = receiptBaseRecord.parse(v3Wire);
+        const parsed = v3ReceiptBaseSchema.parse(v3Wire);
         expect(parsed.shared).toBeNull();
       });
     });
@@ -658,7 +658,7 @@ describe('Edge Cases', () => {
       const v3Wire = createV3WireReceiptBase(canonical);
 
       const v2Parsed = receiptBaseSchema.parse(v2Wire);
-      const v3Parsed = receiptBaseRecord.parse(v3Wire);
+      const v3Parsed = v3ReceiptBaseSchema.parse(v3Wire);
 
       // Both should produce the same timestamp
       expect(v2Parsed.created.getTime()).toBe(v3Parsed.created.getTime());
@@ -672,7 +672,7 @@ describe('Edge Cases', () => {
       });
 
       const v3Wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(v3Wire);
+      const parsed = v3ReceiptBaseSchema.parse(v3Wire);
 
       expect(parsed.created.getTime()).toBe(0);
       expect(parsed.updated.getTime()).toBe(0);
@@ -686,7 +686,7 @@ describe('Edge Cases', () => {
       });
 
       const v3Wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(v3Wire);
+      const parsed = v3ReceiptBaseSchema.parse(v3Wire);
 
       expect(parsed.created.getTime()).toBe(farFuture.getTime());
     });
@@ -698,7 +698,7 @@ describe('Edge Cases', () => {
         recipients: [],
       });
       const wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(wire);
+      const parsed = v3ReceiptBaseSchema.parse(wire);
 
       expect(parsed.recipients).toEqual([]);
     });
@@ -708,7 +708,7 @@ describe('Edge Cases', () => {
         recipients: ['a@example.com', 'b@example.com', 'c@example.com'],
       });
       const wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(wire);
+      const parsed = v3ReceiptBaseSchema.parse(wire);
 
       expect(parsed.recipients).toEqual(['a@example.com', 'b@example.com', 'c@example.com']);
     });
@@ -718,7 +718,7 @@ describe('Edge Cases', () => {
         recipients: null,
       });
       const wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(wire);
+      const parsed = v3ReceiptBaseSchema.parse(wire);
 
       expect(parsed.recipients).toBeNull();
     });
@@ -729,7 +729,7 @@ describe('Edge Cases', () => {
       const wire = createV3WireReceiptBase(createCanonicalReceiptBase());
       (wire as Record<string, unknown>).recipients = 'single@example.com';
 
-      const parsed = receiptBaseRecord.parse(wire);
+      const parsed = v3ReceiptBaseSchema.parse(wire);
 
       expect(parsed.recipients).toBe('single@example.com');
     });
@@ -739,7 +739,7 @@ describe('Edge Cases', () => {
         recipients: ['only@example.com'],
       });
       const wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(wire);
+      const parsed = v3ReceiptBaseSchema.parse(wire);
 
       expect(parsed.recipients).toEqual(['only@example.com']);
       expect(Array.isArray(parsed.recipients)).toBe(true);
@@ -752,7 +752,7 @@ describe('Edge Cases', () => {
         kind: 'generate',
       });
       const wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(wire);
+      const parsed = v3ReceiptBaseSchema.parse(wire);
 
       expect(parsed.kind).toBe('generate');
     });
@@ -762,7 +762,7 @@ describe('Edge Cases', () => {
         kind: 'conceal',
       });
       const wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(wire);
+      const parsed = v3ReceiptBaseSchema.parse(wire);
 
       expect(parsed.kind).toBe('conceal');
     });
@@ -772,7 +772,7 @@ describe('Edge Cases', () => {
         kind: '',
       });
       const wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(wire);
+      const parsed = v3ReceiptBaseSchema.parse(wire);
 
       expect(parsed.kind).toBe('');
     });
@@ -782,7 +782,7 @@ describe('Edge Cases', () => {
         kind: null,
       });
       const wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(wire);
+      const parsed = v3ReceiptBaseSchema.parse(wire);
 
       expect(parsed.kind).toBeNull();
     });
@@ -792,7 +792,7 @@ describe('Edge Cases', () => {
         kind: undefined,
       });
       const wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(wire);
+      const parsed = v3ReceiptBaseSchema.parse(wire);
 
       expect(parsed.kind).toBeUndefined();
     });
@@ -801,7 +801,7 @@ describe('Edge Cases', () => {
       const wire = createV3WireReceiptBase(createCanonicalReceiptBase());
       (wire as Record<string, unknown>).kind = 'invalid_kind';
 
-      const result = receiptBaseRecord.safeParse(wire);
+      const result = v3ReceiptBaseSchema.safeParse(wire);
 
       expect(result.success).toBe(false);
     });
@@ -815,7 +815,7 @@ describe('Edge Cases', () => {
         memo: undefined,
       });
       const wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(wire);
+      const parsed = v3ReceiptBaseSchema.parse(wire);
 
       // These should remain undefined/absent
       expect(parsed.custid).toBeUndefined();
@@ -828,7 +828,7 @@ describe('Edge Cases', () => {
         share_domain: null,
       });
       const wire = createV3WireReceiptBase(canonical);
-      const parsed = receiptBaseRecord.parse(wire);
+      const parsed = v3ReceiptBaseSchema.parse(wire);
 
       expect(parsed.memo).toBeNull();
       expect(parsed.share_domain).toBeNull();
@@ -841,7 +841,7 @@ describe('Edge Cases', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('V3 List Schemas', () => {
-  describe('receiptListDetails', () => {
+  describe('v3ReceiptListDetailsSchema', () => {
     it('parses empty list details', () => {
       const wire = {
         type: 'list',
@@ -852,7 +852,7 @@ describe('V3 List Schemas', () => {
         has_items: false,
       };
 
-      const parsed = receiptListDetails.parse(wire);
+      const parsed = v3ReceiptListDetailsSchema.parse(wire);
 
       expect(parsed.type).toBe('list');
       expect(parsed.scope).toBe('all');
@@ -877,7 +877,7 @@ describe('V3 List Schemas', () => {
         revealed_receipts: [receiptWire],
       };
 
-      const parsed = receiptListDetails.parse(wire);
+      const parsed = v3ReceiptListDetailsSchema.parse(wire);
 
       expect(parsed.has_items).toBe(true);
       expect(parsed.revealed_receipts).toHaveLength(1);
@@ -906,7 +906,7 @@ describe('V3 List Schemas', () => {
         pending_receipts: [pendingWire],
       };
 
-      const parsed = receiptListDetails.parse(wire);
+      const parsed = v3ReceiptListDetailsSchema.parse(wire);
 
       expect(parsed.revealed_receipts).toHaveLength(1);
       expect(parsed.pending_receipts).toHaveLength(1);
@@ -924,14 +924,14 @@ describe('V3 List Schemas', () => {
         has_items: false,
       };
 
-      const parsed = receiptListDetails.parse(wire);
+      const parsed = v3ReceiptListDetailsSchema.parse(wire);
 
       expect(parsed.scope).toBeUndefined();
       expect(parsed.scope_label).toBeNull();
     });
   });
 
-  describe('receiptListRecord', () => {
+  describe('v3ReceiptListSchema', () => {
     it('parses a receipt list record with show_recipients', () => {
       const canonical = createCanonicalReceiptBase({
         recipients: ['test@example.com'],
@@ -941,7 +941,7 @@ describe('V3 List Schemas', () => {
         show_recipients: true,
       };
 
-      const parsed = receiptListRecord.parse(wire);
+      const parsed = v3ReceiptListSchema.parse(wire);
 
       expect(parsed.show_recipients).toBe(true);
       expect(parsed.recipients).toEqual(['test@example.com']);
@@ -954,7 +954,7 @@ describe('V3 List Schemas', () => {
         has_passphrase: null,
       };
 
-      const parsed = receiptListRecord.parse(wire);
+      const parsed = v3ReceiptListSchema.parse(wire);
 
       // V3 transforms null → false for has_passphrase
       expect(parsed.has_passphrase).toBe(false);
@@ -967,7 +967,7 @@ describe('V3 List Schemas', () => {
         has_passphrase: true,
       };
 
-      const parsed = receiptListRecord.parse(wire);
+      const parsed = v3ReceiptListSchema.parse(wire);
 
       expect(parsed.has_passphrase).toBe(true);
     });

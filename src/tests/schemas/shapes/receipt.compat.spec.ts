@@ -36,7 +36,7 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('V2 Wire → V3 Schema (Forward Compatibility)', () => {
-  describe('receiptBaseRecord', () => {
+  describe('v3ReceiptBaseSchema', () => {
     it('FAILS: V3 expects number timestamps, V2 sends strings for shared/received/etc', () => {
       const canonical = createCanonicalReceiptBase({
         shared: new Date('2024-01-15T11:00:00.000Z'),
