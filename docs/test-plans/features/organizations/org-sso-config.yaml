@@ -1,0 +1,631 @@
+# docs/test-plans/features/organizations/org-sso-config.yaml
+---
+# LLM-Optimized Test Cases: Organization SSO Configuration
+# Schema version: 1.0.0
+#
+# Tests the runtime SSO configuration feature:
+# - CRUD operations for SSO config (GET/PUT/PATCH/DELETE)
+# - Test connection to identity providers
+# - Multi-tenant credential injection via Host header
+# - Provider-specific validation (Entra ID, Google, GitHub, OIDC)
+# - SSRF protection for issuer URLs
+
+suite:
+  id: org-sso-config
+  name: Organization SSO Configuration
+  feature: Runtime SSO configuration for organizations
+  issue: https://github.com/onetimesecret/onetimesecret/issues/2730
+  tags: [organizations, sso, oauth, oidc, security]
+  priority: critical
+  notes: |
+    AGENT EXECUTION REQUIREMENTS:
+    - ALL tests must be executed. Do not skip tests.
+    - For SSO tests, you need an organization with owner access.
+    - Test connection tests require valid provider credentials (may skip in CI).
+    - SSRF protection tests use crafted URLs - do not attempt real requests.
+
+# Data-testid Attribute Reference:
+#   - data-testid="sso-config-form"           : SSO configuration form
+#   - data-testid="provider-select"           : Provider type dropdown
+#   - data-testid="client-id-input"           : Client ID input
+#   - data-testid="client-secret-input"       : Client Secret input
+#   - data-testid="tenant-id-input"           : Tenant ID input (Entra ID)
+#   - data-testid="issuer-url-input"          : Issuer URL input (OIDC)
+#   - data-testid="domain-list"               : Allowed domains list
+#   - data-testid="add-domain-btn"            : Add domain button
+#   - data-testid="test-connection-btn"       : Test connection button
+#   - data-testid="save-sso-btn"              : Save configuration button
+#   - data-testid="delete-sso-btn"            : Delete configuration button
+#   - data-testid="sso-status-badge"          : SSO enabled/disabled badge
+
+definitions:
+  users:
+    org_owner: &user_org_owner
+      auth: logged_in
+      user_type: owner
+      description: User who owns the organization
+
+    org_member: &user_org_member
+      auth: logged_in
+      user_type: member
+      description: Regular organization member (non-owner)
+
+  fixtures:
+    organization: &fixture_org
+      type: organization
+      props:
+        name: SSO Test Corp
+        display_name: SSO Test Corp
+
+    sso_config_entra: &fixture_sso_entra
+      type: org_sso_config
+      props:
+        provider_type: entra_id
+        client_id: test-client-id
+        client_secret: test-secret-value
+        tenant_id: test-tenant-id
+        enabled: true
+
+    sso_config_oidc: &fixture_sso_oidc
+      type: org_sso_config
+      props:
+        provider_type: oidc
+        client_id: test-client-id
+        client_secret: test-secret-value
+        issuer: https://idp.example.com
+
+tests:
+  # ===========================================================================
+  # SECTION 1: SSO Configuration CRUD
+  # ===========================================================================
+
+  - id: SSO-001
+    intent: Organization owner can view SSO configuration page
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: /org/{{org.extid}}/settings/sso
+    action:
+      type: none
+    verify:
+      - SSO configuration form is visible
+      - Provider selector shows available options (Entra ID, Google, GitHub, OIDC)
+      - Form fields are empty for unconfigured org
+      - selector: "[data-testid='sso-config-form']"
+        assertion: visible
+      - selector: "[data-testid='provider-select']"
+        assertion: visible
+    priority: critical
+    severity: blocker
+    type: functional
+    covers:
+      - SsoConfigForm.vue
+      - GET /api/v2/org/:extid/sso
+
+  - id: SSO-002
+    intent: Organization owner can save new Entra ID SSO configuration with PUT
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: /org/{{org.extid}}/settings/sso
+    action:
+      type: submit
+      element: "[data-testid='sso-config-form']"
+      data:
+        provider_type: entra_id
+        client_id: my-client-id
+        client_secret: my-secret-value
+        tenant_id: my-tenant-id
+        enabled: true
+    verify:
+      - Success message "SSO configuration saved" appears
+      - Form retains entered values after save
+      - Client secret field shows masked value (dots)
+      - GET /api/v2/org/:extid/sso returns provider_type=entra_id, client_id, tenant_id, enabled=true
+      - API response masks client_secret as dots
+    priority: critical
+    severity: blocker
+    type: functional
+    covers:
+      - SsoConfigForm.vue
+      - PUT /api/v2/org/:extid/sso
+      - OrgSsoConfig model
+
+  - id: SSO-003
+    intent: PATCH preserves existing client_secret when field is empty
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+        - <<: *fixture_sso_entra
+          capture_as: config
+    target: /org/{{org.extid}}/settings/sso
+    action:
+      type: submit
+      element: "[data-testid='sso-config-form']"
+      data:
+        client_id: updated-client-id
+        # client_secret intentionally omitted
+    verify:
+      - Success message appears
+      - Client ID is updated to "updated-client-id"
+      - Client secret remains unchanged (verified via test connection)
+      - GET /api/v2/org/:extid/sso returns updated client_id with masked secret
+    priority: high
+    severity: major
+    type: functional
+    covers:
+      - PATCH /api/v2/org/:extid/sso
+      - patch_sso_config.rb field preservation
+
+  - id: SSO-004
+    intent: Organization owner can delete SSO configuration
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+        - <<: *fixture_sso_entra
+          capture_as: config
+    target: /org/{{org.extid}}/settings/sso
+    action:
+      type: click
+      element: "[data-testid='delete-sso-btn']"
+    verify:
+      - Confirmation dialog appears before deletion
+      - Success message "SSO configuration deleted" after confirm
+      - Form resets to unconfigured state
+      - GET /api/v2/org/:extid/sso returns 404
+    postconditions:
+      - SSO config no longer exists
+      - SSO login disabled for organization
+    priority: high
+    severity: major
+    type: functional
+    covers:
+      - SsoConfigForm.vue
+      - DELETE /api/v2/org/:extid/sso
+
+  # ===========================================================================
+  # SECTION 2: Provider-Specific Configuration
+  # ===========================================================================
+
+  - id: SSO-005
+    intent: Entra ID requires tenant_id field
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: /org/{{org.extid}}/settings/sso
+    action:
+      type: submit
+      element: "[data-testid='sso-config-form']"
+      data:
+        provider_type: entra_id
+        client_id: my-client-id
+        client_secret: my-secret
+        # tenant_id intentionally omitted
+    verify:
+      - Validation error for missing tenant_id
+      - Form is not submitted
+      - Tenant ID field highlighted as required
+    priority: high
+    type: error
+    covers:
+      - SsoConfigForm.vue validation
+      - Provider-specific field requirements
+
+  - id: SSO-006
+    intent: Generic OIDC requires issuer URL
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: /org/{{org.extid}}/settings/sso
+    action:
+      type: submit
+      element: "[data-testid='sso-config-form']"
+      data:
+        provider_type: oidc
+        client_id: my-client-id
+        client_secret: my-secret
+        # issuer intentionally omitted
+    verify:
+      - Validation error for missing issuer URL
+      - Form is not submitted
+      - Issuer URL field highlighted as required
+    priority: high
+    type: error
+    covers:
+      - SsoConfigForm.vue validation
+      - OIDC provider requirements
+
+  - id: SSO-007
+    intent: Google SSO configuration uses google provider type
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: /org/{{org.extid}}/settings/sso
+    action:
+      type: submit
+      element: "[data-testid='sso-config-form']"
+      data:
+        provider_type: google
+        client_id: google-client-id.apps.googleusercontent.com
+        client_secret: google-secret
+        enabled: true
+    verify:
+      - Success message appears
+      - No tenant_id or issuer fields required
+      - GET /api/v2/org/:extid/sso returns provider_type=google with correct client_id
+    priority: high
+    type: functional
+    covers:
+      - Google provider configuration
+      - PUT /api/v2/org/:extid/sso
+
+  # ===========================================================================
+  # SECTION 3: Test Connection
+  # ===========================================================================
+
+  - id: SSO-008
+    intent: Test connection validates credentials before saving
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: /org/{{org.extid}}/settings/sso
+    action:
+      type: click
+      element: "[data-testid='test-connection-btn']"
+      data:
+        provider_type: entra_id
+        client_id: valid-client-id
+        client_secret: valid-secret
+        tenant_id: valid-tenant-id
+    verify:
+      - Loading spinner appears on test button
+      - Success message "Connection successful" or error with details
+      - Test does not save configuration
+    priority: high
+    type: functional
+    covers:
+      - SsoConfigForm.vue testConnection
+      - POST /api/v2/org/:extid/sso/test
+      - test_connection.rb
+    notes: Requires valid credentials to pass; invalid credentials should show error.
+
+  - id: SSO-009
+    intent: Test connection shows meaningful error for invalid credentials
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: /org/{{org.extid}}/settings/sso
+    action:
+      type: click
+      element: "[data-testid='test-connection-btn']"
+      data:
+        provider_type: entra_id
+        client_id: invalid-client
+        client_secret: invalid-secret
+        tenant_id: invalid-tenant
+    verify:
+      - Error message appears with provider-specific details
+      - Error is actionable (e.g., "Invalid client credentials")
+      - Form remains editable for correction
+    priority: high
+    type: error
+    covers:
+      - test_connection.rb error handling
+      - SsoConfigForm.vue error display
+
+  # ===========================================================================
+  # SECTION 4: Access Control
+  # ===========================================================================
+
+  - id: SSO-010
+    intent: Non-owner members cannot access SSO configuration
+    setup:
+      <<: *user_org_member
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: /org/{{org.extid}}/settings/sso
+    action:
+      type: none
+    verify:
+      - Access denied or redirected to organization dashboard
+      - SSO configuration form not visible
+      - GET /api/v2/org/:extid/sso returns 403 Forbidden
+    priority: critical
+    severity: blocker
+    type: security
+    covers:
+      - OrganizationSettings.vue access control
+      - API authorization
+
+  - id: SSO-011
+    intent: Non-owner cannot modify SSO configuration via API
+    setup:
+      <<: *user_org_member
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: API direct call
+    action:
+      type: none
+    verify:
+      - PUT /api/v2/org/:extid/sso returns 403 Forbidden for non-owner
+      - DELETE /api/v2/org/:extid/sso returns 403 Forbidden for non-owner
+    priority: critical
+    severity: blocker
+    type: security
+    covers:
+      - API authorization middleware
+
+  # ===========================================================================
+  # SECTION 5: Security - SSRF Protection
+  # ===========================================================================
+
+  - id: SSO-SEC-001
+    intent: SSRF protection blocks internal network URLs
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: /org/{{org.extid}}/settings/sso
+    action:
+      type: submit
+      element: "[data-testid='sso-config-form']"
+      data:
+        provider_type: oidc
+        client_id: test-client
+        client_secret: test-secret
+        issuer: http://127.0.0.1:8080/oauth
+    verify:
+      - Validation error for invalid issuer URL
+      - Error mentions security or invalid URL
+      - Configuration is not saved
+    priority: critical
+    severity: blocker
+    type: security
+    covers:
+      - ssrf_protection.rb
+      - Internal IP blocking
+
+  - id: SSO-SEC-002
+    intent: SSRF protection blocks localhost variations
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: /org/{{org.extid}}/settings/sso
+    action:
+      type: submit
+      element: "[data-testid='sso-config-form']"
+      data:
+        provider_type: oidc
+        client_id: test-client
+        client_secret: test-secret
+        issuer: http://localhost/oauth
+    verify:
+      - Validation error for localhost URL
+      - Configuration is not saved
+    priority: critical
+    severity: blocker
+    type: security
+    covers:
+      - ssrf_protection.rb localhost blocking
+
+  - id: SSO-SEC-003
+    intent: SSRF protection blocks private network ranges
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: API direct call
+    action:
+      type: none
+    verify:
+      - PUT with issuer=http://192.168.1.1/oauth returns 422
+      - PUT with issuer=http://10.0.0.1/oauth returns 422
+      - PUT with issuer=http://172.16.0.1/oauth returns 422
+    priority: critical
+    severity: blocker
+    type: security
+    covers:
+      - ssrf_protection.rb RFC1918 blocking
+
+  - id: SSO-SEC-004
+    intent: SSRF protection blocks DNS rebinding attempts
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: API direct call
+    action:
+      type: none
+    verify:
+      - PUT with issuer=http://localtest.me/oauth returns 422
+      - PUT with issuer=http://127.0.0.1.nip.io/oauth returns 422
+    priority: critical
+    severity: blocker
+    type: security
+    covers:
+      - ssrf_protection.rb DNS rebinding prevention
+    notes: localtest.me and nip.io resolve to localhost/private IPs
+
+  # ===========================================================================
+  # SECTION 6: Security - Secret Handling
+  # ===========================================================================
+
+  - id: SSO-SEC-005
+    intent: Client secret is masked in API responses
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+        - <<: *fixture_sso_entra
+          capture_as: config
+    target: API direct call
+    action:
+      type: none
+    verify:
+      - GET /api/v2/org/:extid/sso returns client_secret masked as dots
+      - Response includes client_id in plaintext
+    priority: critical
+    severity: blocker
+    type: security
+    covers:
+      - serializers.rb secret masking
+      - get_sso_config.rb
+
+  - id: SSO-SEC-006
+    intent: Client secret is encrypted at rest
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+        - <<: *fixture_sso_entra
+          capture_as: config
+    target: Database verification
+    action:
+      type: none
+    verify:
+      - Stored client_secret is not plaintext
+      - Value is Familia-encrypted (base64 + crypto prefix)
+    priority: critical
+    severity: blocker
+    type: security
+    covers:
+      - OrgSsoConfig model encryption
+      - Familia encrypted fields
+    notes: May require direct Redis/database inspection
+
+  # ===========================================================================
+  # SECTION 7: Multi-Tenant SSO Flow
+  # ===========================================================================
+
+  - id: SSO-MT-001
+    intent: Custom domain triggers tenant-specific SSO configuration
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+        - <<: *fixture_sso_entra
+          capture_as: config
+      state:
+        custom_domain: sso.example.com
+    target: https://sso.example.com/auth/entra_id
+    action:
+      type: none
+    verify:
+      - OmniAuth resolves tenant from Host header
+      - SSO credentials from org config are injected
+      - Redirect to Entra ID login with correct client_id
+    priority: critical
+    severity: blocker
+    type: integration
+    covers:
+      - omniauth_tenant.rb Host resolution
+      - Runtime credential injection
+    skip:
+      reason: Requires custom domain DNS setup
+      when: CI
+
+  - id: SSO-MT-002
+    intent: SSO callback returns user to organization context
+    setup:
+      auth: logged_out
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+        - <<: *fixture_sso_entra
+          capture_as: config
+    target: /auth/entra_id/callback
+    action:
+      type: none
+    verify:
+      - User authenticated via SSO
+      - Organization context set from tenant resolution
+      - User redirected to organization dashboard
+    priority: critical
+    severity: blocker
+    type: integration
+    covers:
+      - omniauth_tenant.rb callback handling
+      - Session organization context
+    skip:
+      reason: Requires real SSO provider callback
+      when: CI
+
+  # ===========================================================================
+  # SECTION 8: UI/UX Validation
+  # ===========================================================================
+
+  - id: SSO-UI-001
+    intent: Provider selection updates visible form fields
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: /org/{{org.extid}}/settings/sso
+    action:
+      type: click
+      element: "[data-testid='provider-select']"
+    verify:
+      - Selecting Entra ID shows tenant_id field
+      - Selecting Google hides tenant_id and issuer fields
+      - Selecting OIDC shows issuer field, hides tenant_id
+      - selector: "[data-testid='tenant-id-input']"
+        assertion: visible
+    priority: medium
+    type: ui
+    covers:
+      - SsoConfigForm.vue conditional fields
+
+  - id: SSO-UI-002
+    intent: Domain management allows adding and removing allowed domains
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+    target: /org/{{org.extid}}/settings/sso
+    action:
+      type: click
+      element: "[data-testid='add-domain-btn']"
+      data:
+        domain: example.com
+    verify:
+      - Domain input field accepts domain
+      - Added domain appears in list
+      - Domain can be removed with X button
+      - Multiple domains can be added
+      - selector: "[data-testid='domain-list']"
+        assertion: contains
+        value: example.com
+    priority: medium
+    type: ui
+    covers:
+      - SsoConfigForm.vue domain management
