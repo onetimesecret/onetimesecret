@@ -833,3 +833,32 @@ development:
   #   automatic retry with nil secret
   #
   allow_nil_global_secret: <%= ENV['ALLOW_NIL_GLOBAL_SECRET'] == 'true' || false %>
+  # DEVELOPMENT TOOL: Auto-provisioning Basic Auth for testing
+  #
+  # Enables the devbasicauth strategy which auto-creates ephemeral test users.
+  # Users require dev_ prefix on both username and apikey, and expire after 20h.
+  #
+  # SECURITY: Blocked in production (raises SecurityError on registration).
+  #
+  # USAGE:
+  #   curl -u dev_alice:dev_secretkey123 http://localhost:7143/api/v2/status
+  #
+  # The user dev_alice@dev.local is auto-created on first request.
+  #
+  # @see lib/onetime/application/auth_strategies/dev_basic_auth_strategy.rb
+  # @see https://github.com/onetimesecret/onetimesecret/issues/2735
+  devbasicauth: <%= ENV['DEV_BASIC_AUTH'] == 'true' %>
+  # DEVELOPMENT TOOL: Session Auth for browser-based dev workflows
+  #
+  # Enables the devsessionauth strategy which validates sessions belong to dev users.
+  # Works with dev_*@dev.local users created by devbasicauth or dev login forms.
+  #
+  # SECURITY: Blocked in production (raises SecurityError on registration).
+  #
+  # USAGE:
+  #   1. Create a dev user via devbasicauth or dev login endpoint
+  #   2. Routes with auth=devsessionauth validate the session belongs to a dev user
+  #
+  # @see lib/onetime/application/auth_strategies/dev_session_auth_strategy.rb
+  # @see https://github.com/onetimesecret/onetimesecret/issues/2735
+  devsessionauth: <%= ENV['DEV_SESSION_AUTH'] == 'true' %>

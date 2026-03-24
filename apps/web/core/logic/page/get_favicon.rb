@@ -18,9 +18,10 @@ module Core
       # stored in custom_domain.icon['encoded_favicon']. If not found, it
       # generates and caches one from the original icon.
       #
-      # Uses env vars set by DetectHost and DomainStrategy middlewares:
-      # - env['onetime.domain_strategy'] - Domain classification (:custom, :canonical, etc.)
-      # - env['onetime.display_domain'] - Normalized domain name
+      # Uses metadata set by DetectHost and DomainStrategy middlewares,
+      # passed through auth strategy result:
+      # - strategy_result.metadata[:domain_strategy] - Domain classification (:custom, :canonical, etc.)
+      # - strategy_result.metadata[:display_domain] - Normalized domain name
       #
       class GetFavicon < Core::Logic::Base
         attr_reader :custom_domain, :icon_data, :content_type, :content_length, :use_default
@@ -28,9 +29,10 @@ module Core
         FAVICON_SIZE = 32 # 32x32 pixels
 
         def process_params
-          # Get domain strategy determined by DomainStrategy middleware
-          domain_strategy = req.env['onetime.domain_strategy']
-          display_domain  = req.env['onetime.display_domain']
+          # Get domain strategy from auth metadata (set by DomainStrategy middleware,
+          # passed through auth strategy via build_metadata)
+          domain_strategy = strategy_result.metadata[:domain_strategy]
+          display_domain  = strategy_result.metadata[:display_domain]
 
           OT.ld "[GetFavicon] strategy=#{domain_strategy} domain=#{display_domain}"
 
@@ -128,7 +130,7 @@ module Core
 
         def serve_default_favicon
           # Read default favicon from public directory
-          favicon_path = File.join(OT.conf[:site][:public_dir] || 'public', 'favicon.ico')
+          favicon_path = File.join(OT.conf.dig('site', 'public_dir') || 'public/web', 'favicon.ico')
 
           if File.exist?(favicon_path)
             @icon_data      = File.binread(favicon_path)

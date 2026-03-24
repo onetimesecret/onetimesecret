@@ -39,7 +39,8 @@ module OrganizationAPI
       otto.add_auth_strategy('sessionauth', Onetime::Application::AuthStrategies::SessionAuthStrategy.new)
 
       # HTTP Basic Auth - require valid apikey and apisecretkey
-      otto.add_auth_strategy('basicauth', Onetime::Application::AuthStrategies::BasicAuthStrategy.new)
+      # Also auto-registers devbasicauth when DEV_BASIC_AUTH=true
+      Onetime::Application::AuthStrategies.register_basic_auth(otto)
     end
   end
 end
