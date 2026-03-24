@@ -526,7 +526,7 @@ RSpec.describe Onetime::CLI::WorkerCommand, type: :cli do
           rescue SystemExit
             # Expected
           end
-        }.to output(/rabbitmq\.example\.com:5672/).to_stderr
+        }.to output(a_string_including('rabbitmq.example.com:5672')).to_stderr
       end
     end
 
