@@ -3,9 +3,9 @@
 // Tests for FeedbackModalForm component, specifically verifying that customer
 // information (email) is only displayed for authenticated users (when objid is present).
 //
-// Context: PR #2736 fix - anonymous users receive anonymous_safe_dump with
-// objid: null, so we must check both cust and cust.objid before displaying
-// customer-specific information.
+// Context: PR #2733/2736 - anonymous users now receive cust: null (not an object
+// with null fields). Tests include both null cust and object-with-null-objid
+// cases for defensive coverage.
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -77,7 +77,7 @@ describe('FeedbackModalForm', () => {
     verified: true,
   };
 
-  // Anonymous customer representation (matches anonymous_safe_dump from backend)
+  // Edge case: object with null fields (defensive test, backend now sends null)
   const anonymousCustomer = {
     objid: null,
     extid: null,

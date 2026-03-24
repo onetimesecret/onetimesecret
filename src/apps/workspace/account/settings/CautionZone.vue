@@ -50,7 +50,7 @@
 
 
             <AccountDeleteButtonWithModalForm
-              v-if="cust"
+              v-if="cust && cust.objid"
               :cust="cust" />
           </div>
         </div>

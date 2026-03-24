@@ -130,6 +130,6 @@ req_error = Rack::Request.new(env_error)
 @view_error.serialized_data['authenticated']
 #=> false
 
-## Error recovery flow serializes customer data
+## Error recovery flow returns nil for anonymous customer
 @view_error.serialized_data['cust']
-#=:> Hash
+#=> nil

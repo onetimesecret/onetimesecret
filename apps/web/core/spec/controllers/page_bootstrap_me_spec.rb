@@ -88,13 +88,12 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
       expect(data['had_valid_session']).to be false
     end
 
-    it 'returns cust with anonymous customer data' do
+    it 'returns cust as null for anonymous users' do
       get '/bootstrap/me'
       data = JSON.parse(last_response.body)
-      expect(data['cust']).to be_a(Hash)
-      # Anonymous users get anonymous_safe_dump with nil extid (PR #2733)
-      expect(data['cust']).to include('extid')
-      expect(data['cust']['extid']).to be_nil
+      # Anonymous users get null cust to match frontend customerCanonical.nullable() schema
+      # (PR #2733) - cannot send object with nil fields since schema requires non-null objid
+      expect(data['cust']).to be_nil
     end
 
     it 'returns custid as nil for anonymous user' do
