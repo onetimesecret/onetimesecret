@@ -382,6 +382,50 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::PatchSsoConfig do
         end
       end
 
+      context 'when provider_type is omitted (PATCH semantics)' do
+        let(:params) do
+          {
+            'extid' => 'ext-org-123',
+            # provider_type intentionally omitted - should use existing
+            'display_name' => 'Updated Name',
+            'client_id' => 'new-client-id',
+            'client_secret' => 'new-secret',
+          }
+        end
+        subject(:logic) { described_class.new(strategy_result, params) }
+
+        before do
+          logic.raise_concerns
+        end
+
+        it 'uses existing provider_type when not provided' do
+          logic.process
+          expect(existing_config.provider_type).to eq('entra_id')
+        end
+      end
+
+      context 'when client_id is omitted (PATCH semantics)' do
+        let(:params) do
+          {
+            'extid' => 'ext-org-123',
+            'provider_type' => 'entra_id',
+            'display_name' => 'Updated Name',
+            # client_id intentionally omitted - should use existing
+            'client_secret' => 'new-secret',
+          }
+        end
+        subject(:logic) { described_class.new(strategy_result, params) }
+
+        before do
+          logic.raise_concerns
+        end
+
+        it 'uses existing client_id when not provided' do
+          logic.process
+          expect(existing_config.client_id.reveal { it }).to eq('old-client-id')
+        end
+      end
+
       context 'when enabled is omitted (PATCH semantics)' do
         let(:existing_config) do
           config = Onetime::OrgSsoConfig.new(

@@ -61,7 +61,11 @@ module OrganizationAPI::Logic
         changes = {}
 
         # Check safe fields - log old and new values
+        # Only compare fields that were actually provided in params to avoid
+        # false change reports for PATCH requests with partial updates
         SAFE_FIELDS.each do |field|
+          next unless field_provided?(new_params, field)
+
           old_value = extract_old_value(old_config, field)
           new_value = extract_new_value(new_params, field)
 
@@ -206,6 +210,19 @@ module OrganizationAPI::Logic
         rescue StandardError
           false
         end
+      end
+
+      # Check if a field key exists in params (either string or symbol key).
+      #
+      # This distinguishes between "field not sent" vs "field sent with nil/empty".
+      # Important for PATCH semantics where missing fields should not be treated
+      # as changes.
+      #
+      # @param params [Hash]
+      # @param field [String]
+      # @return [Boolean]
+      def field_provided?(params, field)
+        params.key?(field) || params.key?(field.to_sym)
       end
 
       # Check if a sensitive field was provided in params (non-empty).

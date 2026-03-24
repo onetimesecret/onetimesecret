@@ -17,14 +17,14 @@ module OrganizationAPI::Logic
     #   Requires the requesting user to be an organization owner.
     #
     # Request body:
-    # - provider_type: Required. One of: oidc, entra_id, google, github
-    # - client_id: Required. OAuth client ID
-    # - client_secret: Optional for update (preserves existing if empty)
-    # - tenant_id: Required for entra_id provider (preserves existing if empty)
-    # - issuer: Required for oidc provider (preserves existing if empty)
+    # - provider_type: Required for create, optional for update (uses existing if empty)
+    # - client_id: Required for create, optional for update (uses existing if empty)
+    # - client_secret: Required for create, optional for update (preserves existing if empty)
+    # - tenant_id: Required for entra_id provider on create (preserves existing if empty)
+    # - issuer: Required for oidc provider on create (preserves existing if empty)
     # - display_name: Optional. Human-readable name (preserves existing if empty)
-    # - allowed_domains: Optional. Array of allowed email domains
-    # - enabled: Optional. Boolean to enable/disable SSO (default: false)
+    # - allowed_domains: Optional. Array of allowed email domains (uses PUT semantics)
+    # - enabled: Optional. Boolean to enable/disable SSO (default: false, preserves existing if omitted)
     #
     # Response includes the updated config with masked client_secret_masked.
     #
@@ -135,7 +135,15 @@ module OrganizationAPI::Logic
       private
 
       def validate_provider_type
-        raise_form_error('Provider type is required', field: :provider_type, error_type: :missing) if @provider_type.to_s.empty?
+        # PATCH semantics: provider_type required for new configs, optional for updates
+        # When updating, fall back to existing value if not provided
+        if @provider_type.to_s.empty?
+          if @existing_config
+            @provider_type = @existing_config.provider_type
+          else
+            raise_form_error('Provider type is required', field: :provider_type, error_type: :missing)
+          end
+        end
 
         return if VALID_PROVIDER_TYPES.include?(@provider_type)
 
@@ -147,7 +155,15 @@ module OrganizationAPI::Logic
       end
 
       def validate_client_credentials
-        raise_form_error('Client ID is required', field: :client_id, error_type: :missing) if @client_id.to_s.empty?
+        # PATCH semantics: client_id required for new configs, optional for updates
+        # When updating, fall back to existing value if not provided
+        if @client_id.to_s.empty?
+          if @existing_config
+            @client_id = @existing_config.client_id
+          else
+            raise_form_error('Client ID is required', field: :client_id, error_type: :missing)
+          end
+        end
 
         # client_secret is required for new configs, optional for updates (preserves existing)
         if @existing_config.nil? && @client_secret.to_s.empty?

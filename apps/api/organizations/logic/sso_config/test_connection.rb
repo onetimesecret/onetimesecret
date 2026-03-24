@@ -286,7 +286,7 @@ module OrganizationAPI::Logic
         return true if host.end_with?('.local')
         return true if host.end_with?('.internal')
 
-        # Block private IP ranges
+        # Block private IP ranges (when host is a literal IP)
         begin
           require 'ipaddr'
           ip = IPAddr.new(host)
@@ -296,11 +296,37 @@ module OrganizationAPI::Logic
           return true if ip.private?
           return true if ip.link_local?
         rescue IPAddr::InvalidAddressError
-          # Not an IP address, proceed with hostname
-          false
+          # Not an IP address, continue to DNS resolution check
         end
 
+        # DNS rebinding protection: resolve hostname and check all IPs
+        # This prevents bypasses like 127.0.0.1.nip.io or localtest.me
+        return true if resolves_to_internal_ip?(host)
+
         false
+      end
+
+      # Resolves a hostname and checks if any resolved IP is internal.
+      # Returns true if the hostname resolves to a loopback, private,
+      # or link-local address.
+      def resolves_to_internal_ip?(hostname)
+        require 'resolv'
+        require 'ipaddr'
+
+        # Resolve all A and AAAA records
+        addresses = Resolv.getaddresses(hostname)
+
+        addresses.any? do |addr_str|
+          ip = IPAddr.new(addr_str)
+          ip.loopback? || ip.private? || ip.link_local?
+        rescue IPAddr::InvalidAddressError
+          # Skip malformed addresses
+          false
+        end
+      rescue Resolv::ResolvError, Resolv::ResolvTimeout
+        # DNS resolution failed - block as a precaution
+        # If we can't resolve the hostname, we shouldn't proceed with the request
+        true
       end
 
       def fetch_and_validate_discovery(url, provider_name)

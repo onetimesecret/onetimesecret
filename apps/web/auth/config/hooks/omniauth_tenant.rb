@@ -67,7 +67,19 @@ module Auth::Config::Hooks
         custom_domain = HELPERS.resolve_custom_domain(host)
 
         unless custom_domain
-          # No custom domain found - check if we should allow platform fallback
+          # Check if this is the platform's canonical domain.
+          # Canonical domain requests are platform-level, not tenant requests,
+          # so tenant fallback policy should not apply.
+          if HELPERS.canonical_domain?(host)
+            Auth::Logging.log_auth_event(
+              :omniauth_canonical_domain_request,
+              level: :debug,
+              host: host,
+            )
+            next # Continue with platform defaults
+          end
+
+          # Non-canonical domain with no custom domain mapping - apply tenant policy
           HELPERS.handle_missing_tenant_config(host, self)
           next # Continue with platform defaults (if allowed)
         end
@@ -178,6 +190,23 @@ module Auth::Config::Hooks
         error: ex.message,
       )
       nil
+    end
+
+    # Check if host is the platform's canonical domain.
+    #
+    # Platform-level requests (on the canonical domain) should not be subject
+    # to tenant fallback policy - they are not tenant requests at all.
+    #
+    # @param host [String] Request hostname
+    # @return [Boolean] true if host matches canonical domain
+    def self.canonical_domain?(host)
+      return false if host.to_s.empty?
+
+      canonical = Onetime::Middleware::DomainStrategy.canonical_domain
+      return false if canonical.nil?
+
+      # Normalize comparison (case-insensitive)
+      host.to_s.downcase == canonical.to_s.downcase
     end
 
     # Handle requests where no tenant SSO config is available.

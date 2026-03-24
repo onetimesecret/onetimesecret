@@ -252,6 +252,34 @@ RSpec.describe 'OmniAuth Tenant Resolution', type: :integration do
       end
     end
 
+    describe '.canonical_domain?' do
+      it 'returns false for empty host' do
+        expect(helpers.canonical_domain?(nil)).to be false
+        expect(helpers.canonical_domain?('')).to be false
+      end
+
+      it 'returns false when no canonical domain configured' do
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_domain).and_return(nil)
+        expect(helpers.canonical_domain?('example.com')).to be false
+      end
+
+      it 'returns true when host matches canonical domain' do
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_domain).and_return('onetimesecret.com')
+        expect(helpers.canonical_domain?('onetimesecret.com')).to be true
+      end
+
+      it 'returns false when host does not match canonical domain' do
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_domain).and_return('onetimesecret.com')
+        expect(helpers.canonical_domain?('tenant.example.com')).to be false
+      end
+
+      it 'is case-insensitive' do
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_domain).and_return('onetimesecret.com')
+        expect(helpers.canonical_domain?('ONETIMESECRET.COM')).to be true
+        expect(helpers.canonical_domain?('OneTimeSecret.COM')).to be true
+      end
+    end
+
     describe '.strategy_matches?' do
       it 'returns true for matching OIDC strategy' do
         mock_strategy = double('strategy', class: double(name: 'OmniAuth::Strategies::OpenIDConnect'))

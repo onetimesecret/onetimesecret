@@ -248,6 +248,43 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::AuditLogger do
         expect(changes.keys).not_to include('provider_type', 'display_name', 'enabled')
       end
     end
+
+    context 'with partial params (PATCH semantics)' do
+      it 'does not report changes for unprovided fields' do
+        # Only updating display_name, not touching enabled or provider_type
+        new_params = { 'display_name' => 'New Name' }
+        changes = logger.compute_sso_changes(existing_config, new_params)
+
+        # Should only include display_name change, not enabled (which would be
+        # falsely detected as changing from false to false if we didn't check
+        # field_provided?)
+        expect(changes.keys).to eq(['display_name'])
+        expect(changes['display_name']).to eq({ from: 'Old Name', to: 'New Name' })
+      end
+
+      it 'ignores enabled field when not provided in params' do
+        # Config has enabled: false, sending empty params should not detect
+        # any enabled change
+        new_params = {}
+        changes = logger.compute_sso_changes(existing_config, new_params)
+
+        expect(changes).to be_empty
+      end
+
+      it 'detects enabled change when explicitly provided as true' do
+        new_params = { 'enabled' => true }
+        changes = logger.compute_sso_changes(existing_config, new_params)
+
+        expect(changes['enabled']).to eq({ from: false, to: true })
+      end
+
+      it 'detects no change when enabled explicitly set to same value' do
+        new_params = { 'enabled' => false }
+        changes = logger.compute_sso_changes(existing_config, new_params)
+
+        expect(changes).not_to have_key('enabled')
+      end
+    end
   end
 
   describe 'sensitive fields constant' do

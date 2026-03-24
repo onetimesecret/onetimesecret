@@ -522,6 +522,107 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::TestConnection do
         expect(result[:details][:error_code]).to eq('invalid_issuer')
       end
     end
+
+    # DNS rebinding protection tests
+    context 'when hostname resolves to loopback IP (DNS rebinding)' do
+      let(:issuer_url) { 'https://rebind.example.com/auth' }
+
+      before do
+        # Simulate DNS rebinding service like nip.io resolving to 127.0.0.1
+        allow(Resolv).to receive(:getaddresses).with('rebind.example.com').and_return(['127.0.0.1'])
+        logic.raise_concerns
+      end
+
+      it 'rejects hostname that resolves to loopback' do
+        result = logic.process
+
+        expect(result[:success]).to be false
+        expect(result[:details][:error_code]).to eq('invalid_issuer')
+      end
+    end
+
+    context 'when hostname resolves to private IP (DNS rebinding)' do
+      let(:issuer_url) { 'https://internal.attacker.com/auth' }
+
+      before do
+        # Simulate DNS rebinding service resolving to private IP
+        allow(Resolv).to receive(:getaddresses).with('internal.attacker.com').and_return(['10.0.0.1'])
+        logic.raise_concerns
+      end
+
+      it 'rejects hostname that resolves to private IP' do
+        result = logic.process
+
+        expect(result[:success]).to be false
+        expect(result[:details][:error_code]).to eq('invalid_issuer')
+      end
+    end
+
+    context 'when hostname resolves to link-local IP' do
+      let(:issuer_url) { 'https://linklocal.attacker.com/auth' }
+
+      before do
+        # Simulate DNS rebinding service resolving to link-local address
+        allow(Resolv).to receive(:getaddresses).with('linklocal.attacker.com').and_return(['169.254.169.254'])
+        logic.raise_concerns
+      end
+
+      it 'rejects hostname that resolves to link-local (cloud metadata)' do
+        result = logic.process
+
+        expect(result[:success]).to be false
+        expect(result[:details][:error_code]).to eq('invalid_issuer')
+      end
+    end
+
+    context 'when hostname resolves to mixed public and private IPs' do
+      let(:issuer_url) { 'https://mixed.attacker.com/auth' }
+
+      before do
+        # If any resolved IP is internal, block the request
+        allow(Resolv).to receive(:getaddresses).with('mixed.attacker.com').and_return(['8.8.8.8', '192.168.1.1'])
+        logic.raise_concerns
+      end
+
+      it 'rejects if any resolved IP is internal' do
+        result = logic.process
+
+        expect(result[:success]).to be false
+        expect(result[:details][:error_code]).to eq('invalid_issuer')
+      end
+    end
+
+    context 'when DNS resolution fails' do
+      let(:issuer_url) { 'https://nonexistent.invalid/auth' }
+
+      before do
+        allow(Resolv).to receive(:getaddresses).with('nonexistent.invalid').and_raise(Resolv::ResolvError)
+        logic.raise_concerns
+      end
+
+      it 'blocks request when DNS fails (fail-closed)' do
+        result = logic.process
+
+        expect(result[:success]).to be false
+        expect(result[:details][:error_code]).to eq('invalid_issuer')
+      end
+    end
+
+    context 'when hostname resolves to IPv6 loopback' do
+      let(:issuer_url) { 'https://ipv6loop.attacker.com/auth' }
+
+      before do
+        allow(Resolv).to receive(:getaddresses).with('ipv6loop.attacker.com').and_return(['::1'])
+        logic.raise_concerns
+      end
+
+      it 'rejects hostname that resolves to IPv6 loopback' do
+        result = logic.process
+
+        expect(result[:success]).to be false
+        expect(result[:details][:error_code]).to eq('invalid_issuer')
+      end
+    end
   end
 
   describe 'error sanitization' do
