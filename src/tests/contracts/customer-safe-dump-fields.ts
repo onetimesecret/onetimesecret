@@ -8,7 +8,6 @@
 // preventing the class of bug where Zod silently strips fields.
 
 export const CUSTOMER_SAFE_DUMP_FIELDS = [
-  'identifier',
   'objid',
   'extid',
   'email',

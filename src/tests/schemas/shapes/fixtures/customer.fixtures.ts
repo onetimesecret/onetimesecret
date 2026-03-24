@@ -43,7 +43,6 @@ export function createCanonicalCustomer(
 ): CustomerCanonical {
   return {
     // Base model fields
-    identifier: 'c4st0m3r12ab',
     created: BASE_TIMESTAMP,
     updated: BASE_TIMESTAMP,
 
@@ -91,7 +90,6 @@ export function createColonelCustomer(
   overrides?: Partial<CustomerCanonical>
 ): CustomerCanonical {
   return createCanonicalCustomer({
-    identifier: 'c0l0n3l123ab',
     objid: 'c0l0n3l123ab',
     extid: 'ext_c0l0n3l123ab',
     role: 'colonel',
@@ -113,7 +111,6 @@ export function createRecipientCustomer(
   overrides?: Partial<CustomerCanonical>
 ): CustomerCanonical {
   return createCanonicalCustomer({
-    identifier: 'r3c1p13nt12ab',
     objid: 'r3c1p13nt12ab',
     extid: 'ext_r3c1p13nt12ab',
     role: 'recipient',
@@ -139,7 +136,6 @@ export function createDeletedCustomer(
   overrides?: Partial<CustomerCanonical>
 ): CustomerCanonical {
   return createCanonicalCustomer({
-    identifier: 'd3l3t3d123ab',
     objid: 'd3l3t3d123ab',
     extid: 'ext_d3l3t3d123ab',
     role: 'user_deleted_self',
@@ -280,7 +276,6 @@ export function compareCanonicalCustomer(
 
   // String/primitive fields
   const primitiveFields = [
-    'identifier',
     'objid',
     'extid',
     'role',

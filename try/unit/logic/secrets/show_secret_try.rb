@@ -215,6 +215,79 @@ logic.process
 logic.display_lines
 #=> 9
 
+# Anonymous User Tests (verify_owner flow with anonymous_user?)
+
+## anonymous_user? returns true for anonymous strategy result
+anon_sess = MockSession.new
+anon_strategy = MockStrategyResult.anonymous
+logic = Logic::Secrets::ShowSecret.new(anon_strategy, {}, 'en')
+logic.anonymous_user?
+#=> true
+
+## anonymous_user? returns false for authenticated strategy result
+auth_sess = MockSession.new
+auth_strategy = MockStrategyResult.authenticated(@cust, session: auth_sess)
+logic = Logic::Secrets::ShowSecret.new(auth_strategy, {}, 'en')
+logic.anonymous_user?
+#=> false
+
+## verify_owner succeeds for anonymous user with verification secret
+# Create an unverified owner for verification flow
+verify_email = generate_unique_test_email("verify_anon")
+@verify_owner = Onetime::Customer.create!(email: verify_email)
+@verify_owner.verified = false
+@verify_owner.save
+# Create a verification secret
+verify_receipt, verify_secret = Onetime::Receipt.spawn_pair(@verify_owner.custid, 3600, "verification content")
+verify_secret.verification = true
+verify_secret.save
+# Anonymous user should be able to verify
+anon_sess = MockSession.new
+anon_strategy = MockStrategyResult.new(session: anon_sess, user: nil, auth_method: 'anonymous')
+params = {
+  'identifier' => verify_secret.identifier,
+  'continue' => 'true'
+}
+logic = Logic::Secrets::ShowSecret.new(anon_strategy, params, 'en')
+logic.process
+# Owner should now be verified
+@verify_owner.refresh!
+[logic.show_secret, @verify_owner.verified?]
+#=> [true, true]
+
+## verify_owner fails for different authenticated user
+# Create owner and a different authenticated user
+owner_email = generate_unique_test_email("verify_owner")
+different_email = generate_unique_test_email("different_user")
+@owner_cust = Onetime::Customer.create!(email: owner_email)
+@owner_cust.verified = false
+@owner_cust.save
+@different_cust = Onetime::Customer.create!(email: different_email)
+@different_cust.verified = true
+@different_cust.save
+# Create verification secret for owner
+owner_receipt, owner_secret = Onetime::Receipt.spawn_pair(@owner_cust.custid, 3600, "owner verification")
+owner_secret.verification = true
+owner_secret.save
+# Different authenticated user tries to verify
+diff_sess = MockSession.new
+diff_strategy = MockStrategyResult.authenticated(@different_cust, session: diff_sess)
+params = {
+  'identifier' => owner_secret.identifier,
+  'continue' => 'true'
+}
+logic = Logic::Secrets::ShowSecret.new(diff_strategy, params, 'en')
+begin
+  logic.process
+  false
+rescue OT::FormError => e
+  e.message.include?("can't verify")
+end
+#=> true
+
 # Teardown
 @receipt.destroy!
 @cust.destroy!
+@verify_owner&.destroy!
+@owner_cust&.destroy!
+@different_cust&.destroy!

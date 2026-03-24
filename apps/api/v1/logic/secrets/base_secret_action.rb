@@ -239,7 +239,7 @@ module V1::Logic
 
       def validate_recipient
         return if recipient.empty?
-        raise_form_error "An account is required to send emails." if cust.anonymous?
+        raise_form_error "An account is required to send emails." if cust.nil? || cust.anonymous?
         recipient.each do |recip|
           # Use Truemail validation (same as rest of application) rather
           # than regex-only v1_valid_email?. This is a security improvement
@@ -376,7 +376,7 @@ module V1::Logic
       end
 
       def update_stats
-        unless cust.anonymous?
+        unless cust.nil? || cust.anonymous?
           cust.add_receipt receipt
           cust.increment_field :secrets_created # cust.secrets_created.increment
         end

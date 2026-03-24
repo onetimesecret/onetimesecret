@@ -19,10 +19,15 @@ module AccountAPI::Logic
       end
 
       def raise_concerns
-        authenticated = @sess['authenticated'] == true
-        return unless !authenticated || cust.anonymous?
+        # Requires both session authentication AND non-anonymous user.
+        # This endpoint is session-only (no BasicAuth) to ensure the user
+        # has an active browser session, not just valid API credentials.
+        session_authenticated = @sess['authenticated'] == true
+        unless session_authenticated
+          raise_form_error('Session authentication required', field: :session, error_type: :unauthorized)
+        end
 
-        raise_form_error "Sorry, we don't support that"
+        verify_authenticated!
       end
 
       def process

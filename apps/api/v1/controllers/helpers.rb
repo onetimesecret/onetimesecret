@@ -22,7 +22,7 @@ module V1
       redirect     ||= req.request_path unless app == :api
       content_type ||= 'text/html; charset=utf-8'
 
-      cust ||= Onetime::Customer.anonymous
+      # cust may be nil for anonymous requests
 
       # Prevent infinite redirect loops by checking if the request is a GET request.
       # Pages redirecting from a POST request can use the same page once.
@@ -43,7 +43,7 @@ module V1
 
       log_customer_activity
 
-      obscured = if cust.anonymous?
+      obscured = if cust.nil? || cust.anonymous?
         'anonymous'
       else
         OT::Utils.obscure_email(cust.email)
@@ -325,7 +325,7 @@ module V1
     # See lib/onetime/helpers/session_helpers.rb.
 
     def log_customer_activity
-      return if cust.anonymous?
+      return if cust.nil? || cust.anonymous?
 
       reqstr           = stringify_request_details(req)
       custref          = cust.obscure_email

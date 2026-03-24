@@ -54,7 +54,7 @@ module V1::Logic
           if verification
             if owner.nil?
               raise_form_error "Unable to verify account"
-            elsif cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
+            elsif cust.nil? || cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
               owner.verified! "true"
               # Skip for stateless auth (BasicAuth provides empty session)
               sess.clear unless sess.empty?

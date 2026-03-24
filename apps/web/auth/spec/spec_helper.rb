@@ -23,8 +23,6 @@
 # The OmniAuth OIDC strategy fetches the discovery document during provider
 # registration, so WebMock must be configured before the app boots.
 #
-# Note: Different config files may use different env var names for the same
-# feature (e.g., AUTH_SSO_ENABLED vs ENABLE_OMNIAUTH), so we set both.
 #
 MOCK_OIDC_ISSUER = 'https://mock-idp.example.com'
 
@@ -33,9 +31,7 @@ unless ENV['OIDC_ISSUER'].to_s.strip.length.positive?
   ENV['OIDC_CLIENT_ID'] = 'test-client-id'
   ENV['OIDC_CLIENT_SECRET'] = 'test-client-secret'
   ENV['OIDC_REDIRECT_URI'] = 'http://localhost:3000/auth/sso/oidc/callback'
-  # Enable OmniAuth feature - both env var names for compatibility
   ENV['AUTH_SSO_ENABLED'] = 'true'
-  ENV['ENABLE_OMNIAUTH'] = 'true'
   ENV['AUTHENTICATION_MODE'] ||= 'full'
 
   # Set up WebMock BEFORE loading any app code

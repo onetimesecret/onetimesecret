@@ -45,7 +45,7 @@ def create_mock_request(locale: 'en', user: nil, authenticated: true)
   session = { 'test_key' => 'test_value' }
   strategy_result = MockStrategyResult.new(
     session: session,
-    user: user || Onetime::Customer.anonymous,
+    user: user, # nil for anonymous
     authenticated: authenticated
   )
 
@@ -83,7 +83,7 @@ view.serialized_data['authenticated']
 #=> true
 
 ## Handles unauthenticated user correctly
-req = create_mock_request(locale: 'en', user: Onetime::Customer.anonymous, authenticated: false)
+req = create_mock_request(locale: 'en', user: nil, authenticated: false)
 view = Core::Views::VuePoint.new(req)
 view.serialized_data['authenticated']
 #=> false

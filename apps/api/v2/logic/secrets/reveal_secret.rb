@@ -96,7 +96,7 @@ module V2::Logic
                 }
               # Do not mark as received obviously
               raise_form_error I18n.t('web.COMMON.verification_not_valid', locale: @locale, default: 'Verification not valid')
-            elsif owner.anonymous?
+            elsif owner&.anonymous?
               secret_logger.error 'Invalid verification attempt - owner anonymous',
                 {
                   secret_identifier: secret.shortid,

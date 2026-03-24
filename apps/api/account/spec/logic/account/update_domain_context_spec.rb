@@ -103,8 +103,8 @@ RSpec.describe AccountAPI::Logic::Account::UpdateDomainContext do
         )
       end
 
-      it 'raises Unauthorized error' do
-        expect { logic.raise_concerns }.to raise_error(OT::Unauthorized, /Authentication required/)
+      it 'raises FormError with unauthorized type' do
+        expect { logic.raise_concerns }.to raise_error(OT::FormError, /Authentication required/)
       end
     end
 

@@ -89,7 +89,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
     # Stub customer lookup - use a lambda so we can override in tests
     allow(Onetime::Customer).to receive(:find_by_email).and_return(customer)
-    allow(Onetime::Customer).to receive(:anonymous).and_return(anonymous_customer)
+    # Note: Customer.anonymous singleton removed in PR #2733 - anonymous users have cust=nil
 
     # Stub logging on the class so it works before subject is created
     allow_any_instance_of(described_class).to receive(:auth_logger).and_return(mock_logger)
@@ -154,11 +154,9 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
   end
 
   describe '#raise_concerns' do
-    # Note: The base class (Logic::Base) always ensures @cust is not nil by
-    # setting it to Onetime::Customer.anonymous if strategy_result.user is nil.
-    # Therefore, raise_concerns in this class is effectively a no-op since it
-    # only acts when @cust.nil?. The actual authentication error handling
-    # happens in #process via the success? check.
+    # Note: Anonymous users have @cust = nil (PR #2733 removed Customer.anonymous).
+    # The raise_concerns method handles the nil case by checking anonymous_user?.
+    # Actual authentication error handling happens in #process via success? check.
 
     context 'when customer exists and authenticated' do
       before do

@@ -74,7 +74,7 @@ module V1
 
         elsif allow_anonymous
           # Anonymous path - only for routes that explicitly opt-in
-          @cust = Onetime::Customer.anonymous
+          # @cust stays nil for anonymous requests
 
           if OT.debug?
             ip_address = req.client_ipaddress.to_s
@@ -86,7 +86,8 @@ module V1
           raise OT::Unauthorized, 'Invalid credentials'
         end
 
-        raise OT::Unauthorized, 'Invalid credentials' if cust.nil?
+        # For authenticated paths, cust must be set (anonymous paths have nil cust)
+        raise OT::Unauthorized, 'Invalid credentials' if !allow_anonymous && cust.nil?
 
         yield
       end

@@ -326,11 +326,21 @@ class MockSession
   end
 
   def [](key)
-    nil
+    @data ||= {}
+    @data[key]
   end
 
   def []=(key, value)
-    value
+    @data ||= {}
+    @data[key] = value
+  end
+
+  def clear
+    @data = {}
+  end
+
+  def empty?
+    (@data || {}).empty?
   end
 end
 

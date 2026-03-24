@@ -13,8 +13,8 @@ OT.boot! :test, true
 ## Implementing models like Customer can define safe dump fields
 fields = Customer.safe_dump_fields
 # Check that essential fields are present (order-independent)
-# Note: custid is not a separate field, it's an alias for email in Customer
-[:identifier, :email, :role, :objid, :extid].all? { |f| fields.include?(f) }
+# Note: identifier was removed to avoid exposing internal IDs
+[:email, :role, :objid, :extid].all? { |f| fields.include?(f) }
 #=> true
 
 ## Implementing models like Customer can safely dump their fields

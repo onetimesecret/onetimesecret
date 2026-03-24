@@ -70,7 +70,6 @@ describe('V2 Customer Round-Trip', () => {
       const parsed = customerSchema.parse(wire);
 
       // Core fields
-      expect(parsed.identifier).toBe(canonical.identifier);
       expect(parsed.objid).toBe(canonical.objid);
       expect(parsed.extid).toBe(canonical.extid);
       expect(parsed.role).toBe(canonical.role);

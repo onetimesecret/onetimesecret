@@ -47,7 +47,7 @@ module Core
         # Extract session and customer from strategy_result or use fallback values
         if @strategy_result
           @sess = @strategy_result.session
-          @cust = @strategy_result.user || Onetime::Customer.anonymous
+          @cust = @strategy_result.user # nil for anonymous requests
         else
           # Error recovery: Otto didn't run, use direct session access
           @sess = begin
@@ -55,7 +55,7 @@ module Core
           rescue StandardError
             {}
           end
-          @cust = Onetime::Customer.anonymous
+          @cust = nil # Anonymous - no customer
         end
 
         # Extract locale from request environment

@@ -183,14 +183,14 @@ module Core
         user = req.user
         return user if user.is_a?(Onetime::Customer)
 
-        # Fallback to anonymous
-        Onetime::Customer.anonymous
+        # Anonymous - return nil
+        nil
       rescue StandardError => ex
         http_logger.error 'Failed to load customer',
           {
             exception: ex,
           }
-        Onetime::Customer.anonymous
+        nil # Error recovery - treat as anonymous
       end
 
       # session_auth_enforced? is inherited from SessionHelpers (included

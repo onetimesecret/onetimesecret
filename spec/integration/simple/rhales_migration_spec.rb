@@ -72,7 +72,7 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
   end
 
   let(:session) { { 'csrf' => 'test-csrf-token-12345' } }
-  let(:customer) { Onetime::Customer.anonymous }
+  let(:customer) { nil } # Anonymous users have nil customer
   let(:locale) { 'en' }
   let(:nonce) { SecureRandom.base64(32) }
 

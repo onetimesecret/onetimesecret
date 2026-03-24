@@ -41,9 +41,16 @@ module Onetime
       def require_guest_route_enabled!(operation)
         return true unless guest_context?
 
+        # Log guest route check for transition monitoring (#2733)
+        OT.ld '[GuestRouteGating] Checking guest access',
+          operation: operation,
+          cust_nil: cust.nil?,
+          auth_method: strategy_result&.auth_method
+
         config = guest_routes_config
 
         unless config['enabled']
+          OT.ld '[GuestRouteGating] Guest routes disabled globally'
           raise Onetime::GuestRoutesDisabled.new(
             'Guest API access is disabled',
             code: 'GUEST_ROUTES_DISABLED',
@@ -51,6 +58,8 @@ module Onetime
         end
 
         unless config[operation.to_s]
+          OT.ld '[GuestRouteGating] Guest operation disabled',
+            operation: operation
           raise Onetime::GuestRoutesDisabled.new(
             "Guest #{operation} is disabled",
             code: "GUEST_#{operation.to_s.upcase}_DISABLED",
@@ -70,7 +79,7 @@ module Onetime
       #
       # @return [Boolean] True if this is a guest context
       def guest_context?
-        cust.anonymous? && strategy_result&.auth_method == 'noauth'
+        anonymous_user? && strategy_result&.auth_method == 'noauth'
       end
 
       # Get the guest routes configuration from the site config.

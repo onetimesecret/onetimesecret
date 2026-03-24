@@ -81,9 +81,10 @@ context2 = @strategy.load_organization_context(@cust, @session, @env)
 context1[:organization]&.objid == context2[:organization]&.objid
 #=> true
 
-## Anonymous user: Returns empty context
+## Anonymous user with role 'anonymous': Returns empty context
 @session.clear
-context = @strategy.load_organization_context(Onetime::Customer.anonymous, @session, @env)
+anon_cust = Onetime::Customer.new(role: 'anonymous')
+context = @strategy.load_organization_context(anon_cust, @session, @env)
 context
 #=> {}
 

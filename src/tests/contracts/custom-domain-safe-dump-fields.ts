@@ -8,7 +8,6 @@
 // preventing the class of bug where Zod silently strips fields.
 
 export const CUSTOM_DOMAIN_SAFE_DUMP_FIELDS = [
-  'identifier',
   'extid',
   'domainid',
   'display_domain',

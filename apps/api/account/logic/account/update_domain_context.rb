@@ -47,7 +47,7 @@ module AccountAPI::Logic
 
       def raise_concerns
         # Require authentication - anonymous users cannot set domain context
-        raise OT::Unauthorized, 'Authentication required' if cust.anonymous?
+        verify_authenticated!
 
         field_specific_concerns
       end

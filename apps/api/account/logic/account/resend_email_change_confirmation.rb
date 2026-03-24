@@ -32,7 +32,7 @@ module AccountAPI::Logic
       def raise_concerns
         require_non_sso_only!
 
-        raise_form_error('Authentication required', error_type: :unauthorized) if cust.anonymous?
+        verify_authenticated!
 
         # Verify there is a pending email change
         pending_identifier = cust.pending_email_change.to_s

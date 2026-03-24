@@ -152,7 +152,7 @@ const { t } = useI18n();
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             <tr
               v-for="domain in domains"
-              :key="domain.identifier"
+              :key="domain.domainid"
               class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800">
               <!-- Domain & Status -->
               <td class="px-6 py-4">

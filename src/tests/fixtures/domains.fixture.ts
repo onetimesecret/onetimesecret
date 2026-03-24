@@ -3,7 +3,6 @@
 import type { CustomDomain } from '@/schemas/shapes/v2';
 
 const BASE_DOMAIN = {
-  identifier: '',
   domainid: '',
   extid: '',
   custid: 'cust-123',
@@ -41,8 +40,7 @@ const BRAND_DOMAIN2 = {
 export const mockDomainsRaw: Record<string, Record<string, unknown>> = {
   'domain-1': {
     ...BASE_DOMAIN,
-    identifier: 'domain-1',
-    domainid: 'did-1',
+    domainid: 'domain-1',
     extid: 'dm-ext-1',
     display_domain: 'example.com',
     base_domain: 'example.com',
@@ -59,8 +57,7 @@ export const mockDomainsRaw: Record<string, Record<string, unknown>> = {
   },
   'domain-2': {
     ...BASE_DOMAIN,
-    identifier: 'domain-2',
-    domainid: 'did-2',
+    domainid: 'domain-2',
     extid: 'dm-ext-2',
     display_domain: 'test.com',
     base_domain: 'test.com',
@@ -79,8 +76,7 @@ export const mockDomainsRaw: Record<string, Record<string, unknown>> = {
 export const mockDomains: Record<string, CustomDomain> = {
   'domain-1': {
     ...BASE_DOMAIN,
-    identifier: 'domain-1',
-    domainid: 'did-1',
+    domainid: 'domain-1',
     extid: 'dm-ext-1',
     display_domain: 'example.com',
     base_domain: 'example.com',
@@ -97,8 +93,7 @@ export const mockDomains: Record<string, CustomDomain> = {
   },
   'domain-2': {
     ...BASE_DOMAIN,
-    identifier: 'domain-2',
-    domainid: 'did-2',
+    domainid: 'domain-2',
     extid: 'dm-ext-2',
     display_domain: 'test.com',
     base_domain: 'test.com',
@@ -115,8 +110,7 @@ export const mockDomains: Record<string, CustomDomain> = {
 
 export const newDomainDataRaw = {
   ...BASE_DOMAIN,
-  identifier: 'domain-3',
-  domainid: 'did-3',
+  domainid: 'domain-3',
   extid: 'dm-ext-3',
   display_domain: 'new-domain.com',
   base_domain: 'new-domain.com',
@@ -132,8 +126,7 @@ export const newDomainDataRaw = {
 
 export const newDomainData: CustomDomain = {
   ...BASE_DOMAIN,
-  identifier: 'domain-3',
-  domainid: 'did-3',
+  domainid: 'domain-3',
   extid: 'dm-ext-3',
   display_domain: 'new-domain.com',
   base_domain: 'new-domain.com',

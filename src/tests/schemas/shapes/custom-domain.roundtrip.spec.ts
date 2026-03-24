@@ -78,7 +78,6 @@ const v3VhostRecord = z
   .partial();
 
 const v3CustomDomainSchema = z.object({
-  identifier: z.string(),
   created: transforms.fromNumber.toDate,
   updated: transforms.fromNumber.toDate,
   domainid: z.string(),
@@ -110,7 +109,6 @@ describe('V2 CustomDomain Round-Trip', () => {
       const parsed = v2CustomDomainSchema.parse(v2Wire);
 
       // Verify identity fields
-      expect(parsed.identifier).toBe(canonical.identifier);
       expect(parsed.domainid).toBe(canonical.domainid);
       expect(parsed.extid).toBe(canonical.extid);
       expect(parsed.custid).toBe(canonical.custid);
@@ -284,7 +282,6 @@ describe('V3 CustomDomain Round-Trip', () => {
       const parsed = v3CustomDomainSchema.parse(v3Wire);
 
       // Verify identity fields
-      expect(parsed.identifier).toBe(canonical.identifier);
       expect(parsed.domainid).toBe(canonical.domainid);
       expect(parsed.extid).toBe(canonical.extid);
 

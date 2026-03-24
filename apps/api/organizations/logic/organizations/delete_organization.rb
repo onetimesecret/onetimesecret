@@ -20,7 +20,7 @@ module OrganizationAPI::Logic
 
       def raise_concerns
         # Require authenticated user
-        raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
+        verify_authenticated!
 
         # Validate extid parameter
         raise_form_error('Organization ID required', field: :extid, error_type: :missing) if @extid.to_s.empty?

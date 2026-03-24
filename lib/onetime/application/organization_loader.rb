@@ -40,7 +40,7 @@ module Onetime
       # @param env [Hash] Rack environment
       # @return [Hash] Context hash with organization data
       def load_organization_context(customer, session, env)
-        return {} if customer.nil? || customer.anonymous?
+        return {} if customer.nil? || customer&.anonymous?
 
         # Check session cache first (only stores IDs, not full objects)
         cache_key = "org_context:#{customer.objid}"

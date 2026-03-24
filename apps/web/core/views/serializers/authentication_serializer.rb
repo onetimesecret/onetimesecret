@@ -20,9 +20,12 @@ module Core
 
         output['authenticated'] = view_vars['authenticated']
         output['awaiting_mfa']  = view_vars['awaiting_mfa'] || false
-        cust                    = view_vars['cust'] || Onetime::Customer.anonymous
+        cust                    = view_vars['cust']
 
-        output['cust'] = cust.safe_dump
+        # For anonymous users (nil cust), return null to match frontend schema.
+        # The customerCanonical schema requires non-null objid string, so we
+        # cannot return an object with nil fields - must be null or valid object.
+        output['cust'] = cust&.safe_dump
 
         # Check if there was a valid session at the time of this response
         # This is crucial for error pages where authenticated=false but the user

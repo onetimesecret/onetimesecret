@@ -31,10 +31,9 @@ describe('domainsStore', () => {
   describe('Initialization', () => {
     // V3 wire format: Unix epoch seconds for timestamps
     const mockNewDomainRaw = {
-      identifier: 'domain-123',
       created: 1735681545,     // Unix epoch seconds
       updated: 1735681545,
-      domainid: 'did-123',
+      domainid: 'domain-123',
       extid: 'dm-ext-123',
       custid: 'cust-123',
       display_domain: 'example.com',
@@ -70,12 +69,12 @@ describe('domainsStore', () => {
       const result = await store.addDomain('example.com');
 
       // After parse, timestamps become Dates — check structural match
-      expect(result.record.identifier).toBe('domain-123');
+      expect(result.record.domainid).toBe('domain-123');
       expect(result.record.created).toBeInstanceOf(Date);
       expect(result.details?.domain_context).toBe('example.com');
 
       expect(store.domains).toHaveLength(1);
-      expect(store.domains[0].identifier).toBe('domain-123');
+      expect(store.domains[0].domainid).toBe('domain-123');
 
       expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({
         domain: 'example.com',
@@ -91,7 +90,7 @@ describe('domainsStore', () => {
       });
 
       const result = await store.addDomain(newDomainData.display_domain);
-      expect(result.record.identifier).toBe(newDomainData.identifier);
+      expect(result.record.domainid).toBe(newDomainData.domainid);
       expect(result.record.created).toBeInstanceOf(Date);
       expect(result.details?.domain_context).toBe(newDomainData.display_domain);
     });
