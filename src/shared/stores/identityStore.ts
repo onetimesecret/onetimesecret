@@ -4,6 +4,7 @@ import {
   brandSettingsSchema,
   type BrandSettings,
 } from '@/schemas/shapes/v3/custom-domain';
+import { cornerStyleClasses, fontFamilyClasses } from '@/shared/utils/brand-helpers';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, toRefs, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -139,31 +140,17 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     domain_logo.value
   );
 
-  const cornerClass = computed(() => {
-    switch (state.brand?.corner_style) {
-      case 'rounded':
-        return 'rounded-md'; // Updated to match BaseSecretDisplay
-      case 'pill':
-        return 'rounded-xl'; // Updated to match BaseSecretDisplay
-      case 'square':
-        return 'rounded-none';
-      default:
-        return DEFAULT_CORNER_CLASS;
-    }
-  });
+  const cornerClass = computed(() =>
+    state.brand?.corner_style
+      ? cornerStyleClasses[state.brand.corner_style] ?? DEFAULT_CORNER_CLASS
+      : DEFAULT_CORNER_CLASS
+  );
 
-  const fontFamilyClass = computed(() => {
-    switch (state.brand?.font_family) {
-      case 'sans':
-        return 'font-sans';
-      case 'serif':
-        return 'font-serif';
-      case 'mono':
-        return 'font-mono';
-      default:
-        return '';
-    }
-  });
+  const fontFamilyClass = computed(() =>
+    state.brand?.font_family
+      ? fontFamilyClasses[state.brand.font_family] ?? ''
+      : ''
+  );
 
   const preRevealInstructions = computed(
     () => state.brand?.instructions_pre_reveal?.trim() || t('web.shared.pre_reveal_default')

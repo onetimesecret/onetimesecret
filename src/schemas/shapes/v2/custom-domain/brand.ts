@@ -34,9 +34,11 @@ export {
  * V2 sends booleans as strings ("true"/"false"), so we use string transforms.
  * All fields are partial (optional) for PATCH-style updates.
  *
+ * @deprecated Use brandSettingsSchema (correct spelling with capital S)
+ *
  * @example
  * ```typescript
- * const brand = brandSettingschema.parse({
+ * const brand = brandSettingsSchema.parse({
  *   primary_color: '#dc4a22',
  *   button_text_light: 'false', // V2 sends as string
  * });
@@ -91,3 +93,6 @@ export type BrandSettings = z.infer<typeof brandSettingschema>;
 
 /** TypeScript type for V2 image properties. */
 export type ImageProps = z.infer<typeof imagePropsSchema>;
+
+// Correct spelling alias for migration
+export { brandSettingschema as brandSettingsSchema };
