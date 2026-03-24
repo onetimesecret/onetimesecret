@@ -35,7 +35,7 @@ module Onetime
           cust = load_user_from_session(session)
 
           # Load organization context if user is authenticated
-          org_context = if cust && !cust.anonymous?  # cust is nil for anonymous
+          org_context = if cust
                           load_organization_context(cust, session, env)
                         else
                           {}
