@@ -30,21 +30,11 @@ module Onetime
         end
 
         def authenticate(env, _requirement)
-          # Extract credentials from Authorization header
-          auth_header = env['HTTP_AUTHORIZATION']
-          return failure('[AUTH_HEADER_MISSING] No authorization header') unless auth_header
+          # Extract and parse Basic Auth credentials
+          credentials = parse_basic_auth_credentials(env)
+          return credentials if credentials.is_a?(Otto::Security::Authentication::AuthFailure)
 
-          # Parse Basic auth
-          unless auth_header.start_with?('Basic ')
-            return failure('[AUTH_TYPE_INVALID] Invalid authorization type')
-          end
-
-          # Decode credentials
-          encoded          = auth_header.sub('Basic ', '')
-          decoded          = Base64.decode64(encoded)
-          username, apikey = decoded.split(':', 2)
-
-          return failure('[CREDENTIALS_FORMAT_INVALID] Invalid credentials format') unless username && apikey
+          username, apikey = credentials
 
           # Load customer by custid (may be nil)
           cust = Onetime::Customer.load_by_extid_or_email(username)
@@ -99,6 +89,33 @@ module Onetime
             # The timing is identical in both cases due to our mitigation strategy
             failure('[CREDENTIALS_INVALID] Invalid credentials')
           end
+        end
+
+        protected
+
+        # Parse Basic Auth credentials from Authorization header.
+        #
+        # Extracts and decodes the username:password pair from the HTTP
+        # Basic Auth header. Returns a failure AuthResult on any parsing
+        # error, or an array [username, apikey] on success.
+        #
+        # @param env [Hash] Rack environment
+        # @return [Array<String>, Otto::Security::Authentication::AuthFailure] [username, apikey] or failure result
+        def parse_basic_auth_credentials(env)
+          auth_header = env['HTTP_AUTHORIZATION']
+          return failure('[AUTH_HEADER_MISSING] No authorization header') unless auth_header
+
+          unless auth_header.start_with?('Basic ')
+            return failure('[AUTH_TYPE_INVALID] Invalid authorization type')
+          end
+
+          encoded          = auth_header.sub('Basic ', '')
+          decoded          = Base64.decode64(encoded)
+          username, apikey = decoded.split(':', 2)
+
+          return failure('[CREDENTIALS_FORMAT_INVALID] Invalid credentials format') unless username && apikey
+
+          [username, apikey]
         end
       end
     end

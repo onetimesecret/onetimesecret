@@ -88,7 +88,7 @@ module Onetime
       def dev_basic_auth_enabled?
         # Config takes precedence (supports ERB: <%= ENV['DEV_BASIC_AUTH'] == 'true' %>)
         config_value = OT.conf&.dig('development', 'devbasicauth')
-        return config_value if [true, false].include?(config_value)
+        return config_value == true if [true, false].include?(config_value)
 
         # Fallback to env var directly
         ENV['DEV_BASIC_AUTH'] == 'true'

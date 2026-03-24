@@ -67,19 +67,11 @@ module Onetime
             return failure('[DEV_AUTH_BLOCKED] Development auth disabled in production')
           end
 
-          # Extract credentials from Authorization header
-          auth_header = env['HTTP_AUTHORIZATION']
-          return failure('[AUTH_HEADER_MISSING] No authorization header') unless auth_header
+          # Extract and parse Basic Auth credentials (inherited from BasicAuthStrategy)
+          credentials = parse_basic_auth_credentials(env)
+          return credentials if credentials.is_a?(Otto::Security::Authentication::AuthFailure)
 
-          unless auth_header.start_with?('Basic ')
-            return failure('[AUTH_TYPE_INVALID] Invalid authorization type')
-          end
-
-          encoded          = auth_header.sub('Basic ', '')
-          decoded          = Base64.decode64(encoded)
-          username, apikey = decoded.split(':', 2)
-
-          return failure('[CREDENTIALS_FORMAT_INVALID] Invalid credentials format') unless username && apikey
+          username, apikey = credentials
 
           # Validate dev_ prefix on BOTH username and apikey
           unless valid_dev_credentials?(username, apikey)
@@ -89,13 +81,14 @@ module Onetime
           # Attempt to load or create the dev user
           cust = find_or_create_dev_customer(username, apikey)
 
-          unless cust
-            # Generic error to prevent enumeration
-            return failure('[CREDENTIALS_INVALID] Invalid credentials')
-          end
+          # Timing attack mitigation:
+          # Use dummy customer when cust is nil to ensure BCrypt comparison
+          # always runs, preventing timing-based enumeration of valid dev usernames.
+          target_cust       = cust || Onetime::Customer.dummy
+          valid_credentials = target_cust.apitoken?(apikey)
 
-          # Validate the apikey matches
-          unless cust.apitoken?(apikey)
+          # Only succeed if we have a real customer AND valid credentials
+          unless cust && valid_credentials
             return failure('[CREDENTIALS_INVALID] Invalid credentials')
           end
 
@@ -139,10 +132,18 @@ module Onetime
           # Create new ephemeral dev customer
           create_ephemeral_customer(dev_email, apikey)
         rescue Familia::RecordExistsError
-          # Race condition: another request created it
-          Onetime::Customer.find_by_email(dev_email)
+          # Race condition: another request created it concurrently.
+          # Retry lookup with validation to handle partial creation failures.
+          cust = Onetime::Customer.find_by_email(dev_email)
+          if cust&.exists?
+            OT.ld "[dev_basic_auth] Race condition resolved for #{dev_email}"
+            cust
+          else
+            OT.le "[dev_basic_auth] RecordExistsError but customer not found: #{dev_email}"
+            nil
+          end
         rescue StandardError => ex
-          OT.le "[dev_basic_auth] Failed to create dev customer: #{ex.message}"
+          OT.le "[dev_basic_auth] Failed: #{ex.class}: #{ex.message}"
           nil
         end
 

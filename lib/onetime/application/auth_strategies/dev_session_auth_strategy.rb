@@ -56,55 +56,14 @@ module Onetime
           end
         end
 
-        def authenticate(env, _requirement)
+        def authenticate(env, requirement)
           # Runtime guard (belt + suspenders with registration guard)
           if OT.production?
             return failure('[DEV_AUTH_BLOCKED] Development auth disabled in production')
           end
 
-          # Delegate to parent for basic session validation
-          session = env['rack.session']
-          return failure('[SESSION_MISSING] No session available') unless session
-
-          unless session['authenticated'] == true
-            return failure('[SESSION_NOT_AUTHENTICATED] Not authenticated')
-          end
-
-          external_id = session['external_id']
-          if external_id.to_s.empty?
-            return failure('[IDENTITY_MISSING] No identity in session')
-          end
-
-          # Load customer
-          cust = Onetime::Customer.load_by_extid_or_email(external_id)
-          return failure('[CUSTOMER_NOT_FOUND] Customer not found') unless cust
-
-          # Validate this is a dev user (email must start with dev_)
-          unless dev_user?(cust)
-            return failure('[DEV_USER_REQUIRED] Session does not belong to a dev user')
-          end
-
-          # Perform additional checks (role, permissions, etc.)
-          check_result = additional_checks(cust, env)
-          return check_result if check_result.is_a?(Otto::Security::Authentication::AuthFailure)
-
-          log_success(cust)
-
-          # Load organization context (dev users may still have org associations)
-          org_context = load_organization_context(cust, session, env)
-
-          # Build metadata with dev-specific flags
-          metadata_hash = build_metadata(env, additional_metadata(cust)).merge(
-            organization_context: org_context,
-            dev_user: true,
-          )
-
-          success(
-            session: session,
-            user: cust,
-            auth_method: self.class.auth_method_name,
-            **metadata_hash,
-          )
+          # Delegate all session validation and customer loading to parent
+          super
         end
 
         protected
@@ -117,8 +76,26 @@ module Onetime
           cust.email.to_s.start_with?(DEV_PREFIX)
         end
 
+        # Validate the customer is a dev user (email must start with dev_ prefix)
+        #
+        # @param cust [Onetime::Customer] Authenticated customer
+        # @param env [Hash] Rack environment
+        # @return [Otto::Security::Authentication::AuthFailure, nil] Failure if not dev user
+        def additional_checks(cust, _env)
+          return failure('[DEV_USER_REQUIRED] Session does not belong to a dev user') unless dev_user?(cust)
+
+          nil
+        end
+
+        # Add dev-specific metadata to the auth result
+        #
+        # @param cust [Onetime::Customer] Authenticated customer
+        # @return [Hash] Metadata including dev_user flag and user roles
         def additional_metadata(cust)
-          { user_roles: [cust.role.to_s] }
+          {
+            user_roles: [cust.role.to_s],
+            dev_user: true,
+          }
         end
 
         def log_success(cust)
