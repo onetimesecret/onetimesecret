@@ -110,14 +110,14 @@ receipt, secret = Onetime::Receipt.spawn_pair owner.objid, 3600, 'test secret'
 receipt.owner?(other)
 #=> false
 
-## Receipt#owner? returns falsy (nil) when fobj is nil
+## Receipt#owner? returns false when fobj is nil
 cust = Onetime::Customer.new
 cust.custid = "owner+test4#{Familia.now.to_i}@example.com"
 cust.role = 'customer'
 cust.save
 receipt, secret = Onetime::Receipt.spawn_pair cust.objid, 3600, 'test secret'
 receipt.owner?(nil)
-#=> nil
+#=> false
 
 # ----------------------------------------------------------------
 # Secret#owner? tests
@@ -154,14 +154,14 @@ receipt, secret = Onetime::Receipt.spawn_pair owner.objid, 3600, 'test secret'
 secret.owner?(other)
 #=> false
 
-## Secret#owner? returns falsy (nil) when fobj is nil
+## Secret#owner? returns false when fobj is nil
 cust = Onetime::Customer.new
 cust.custid = "secret+owner4#{Familia.now.to_i}@example.com"
 cust.role = 'customer'
 cust.save
 receipt, secret = Onetime::Receipt.spawn_pair cust.objid, 3600, 'test secret'
 secret.owner?(nil)
-#=> nil
+#=> false
 
 # ----------------------------------------------------------------
 # Consistency tests: Receipt and Secret behave identically
