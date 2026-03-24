@@ -75,7 +75,7 @@ const i18n = createI18n({
  * Tests the caution zone settings page that conditionally renders
  * the AccountDeleteButtonWithModalForm based on customer state.
  *
- * The v-if guard `cust && cust.objid` ensures:
+ * The v-if guard `cust?.objid` ensures:
  * - Delete button shows for authenticated users with valid objid
  * - Delete button hidden when cust is null (not logged in)
  * - Delete button hidden when cust.objid is null (anonymous user)

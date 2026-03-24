@@ -45,6 +45,18 @@ import { useBootstrapStore } from './bootstrapStore';
  *    - Access: All authorized pages
  *
  * ───────────────────────────────────────────────────────────────────────────────
+ * CUSTOMER OBJECT STATE
+ * ───────────────────────────────────────────────────────────────────────────────
+ *
+ * The `cust` object from bootstrapStore follows this pattern:
+ *
+ * - ANONYMOUS USER: `cust` is `null` (AuthenticationSerializer returns cust: null)
+ * - AUTHENTICATED USER: `cust` is a fully hydrated object with `objid`, `email`, etc.
+ *
+ * Template checks should use `v-if="cust?.objid"` to confirm authentication,
+ * as this handles both the null case and ensures the object is properly populated.
+ *
+ * ───────────────────────────────────────────────────────────────────────────────
  * STATE SYNCHRONIZATION (CRITICAL)
  * ───────────────────────────────────────────────────────────────────────────────
  *

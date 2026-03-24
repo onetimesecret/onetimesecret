@@ -169,8 +169,10 @@
           {{ t('web.feedback.when_you_submit_feedback_well_see') }}
         </h3>
         <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+          <!-- Authentication check: cust is null for anonymous users (via AuthenticationSerializer),
+               cust.objid confirms a fully hydrated customer object -->
           <li
-            v-if="cust && cust.objid"
+            v-if="cust?.objid"
             class="flex items-center">
             <svg
               class="mr-2 size-4 text-brand-500"
