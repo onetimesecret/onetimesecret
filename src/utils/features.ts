@@ -173,7 +173,7 @@ export function hasPasswordlessMethods(): boolean {
  * Checks if the organization switcher UI is enabled.
  * Organizations always exist (every customer has one for Stripe billing).
  * This controls whether the multi-org switcher is visible in navigation.
- * Default is OFF - requires explicit opt-in via SHOW_ORGANIZATION_SWITCHER=true.
+ * Default is OFF - requires explicit opt-in via ORGANIZATIONS_ENABLED=true.
  */
 export function isOrganizationSwitcherEnabled(): boolean {
   if (typeof window === 'undefined') return false;
