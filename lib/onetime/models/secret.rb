@@ -75,7 +75,7 @@ module Onetime
     end
 
     def owner?(fobj)
-      fobj && !anonymous? && (fobj.objid == owner_id)
+      !!(fobj && !anonymous? && (fobj.objid == owner_id))
     end
 
     def older_than?(seconds)
