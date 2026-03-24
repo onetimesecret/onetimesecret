@@ -101,6 +101,14 @@ describe('V2 Wire -> V3 Schema (Forward Compatibility)', () => {
 // -----------------------------------------------------------------------------
 // V3 Wire -> V2 Schema (Backward Compatibility)
 // -----------------------------------------------------------------------------
+//
+// INTENTIONALLY SKIPPED: Documents that V2 schemas can accept V3 wire data
+// (backward compatible). The "SUCCEEDS:" prefix indicates V2's flexible
+// preprocessors handle V3's native types. Kept as reference for migration
+// planning - V2 clients can safely receive V3 responses.
+//
+// Unskip when: verifying backward compatibility during rollout.
+// -----------------------------------------------------------------------------
 
 describe.skip('V3 Wire -> V2 Schema (Backward Compatibility)', () => {
   describe('timestamp handling', () => {
