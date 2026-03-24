@@ -119,6 +119,8 @@ module Core
         # @param view_vars [Hash] View variables with request context
         # @return [Hash] Feature flags for frontend consumption
         def build_feature_flags(view_vars)
+          features = view_vars['features'] || {}
+
           {
             'lockout' => Onetime.auth_config.lockout_enabled?,
             'password_requirements' => Onetime.auth_config.password_requirements_enabled?,
@@ -129,6 +131,7 @@ module Core
             'webauthn' => Onetime.auth_config.webauthn_enabled?,
             'sso' => build_sso_config(view_vars),
             'sso_only' => Onetime.auth_config.sso_only_enabled?,
+            'organization_switcher' => features.fetch('organization_switcher_enabled', false),
           }
         end
 

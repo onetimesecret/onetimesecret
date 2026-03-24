@@ -168,3 +168,14 @@ export function getAuthFeatures(): AuthFeatures {
 export function hasPasswordlessMethods(): boolean {
   return isMagicLinksEnabled() || isWebAuthnEnabled();
 }
+
+/**
+ * Checks if the organization switcher feature is enabled.
+ * Default is OFF - requires explicit opt-in via backend configuration.
+ */
+export function isOrganizationSwitcherEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  return features?.organization_switcher === true;
+}

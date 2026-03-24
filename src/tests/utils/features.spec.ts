@@ -10,6 +10,7 @@ import {
   isPasswordRequirementsEnabled,
   hasPasswordlessMethods,
   getAuthFeatures,
+  isOrganizationSwitcherEnabled,
 } from '@/utils/features';
 import { _resetForTesting } from '@/services/bootstrap.service';
 
@@ -565,6 +566,65 @@ describe('features utility', () => {
     });
   });
 
+  describe('isOrganizationSwitcherEnabled', () => {
+    it('returns true when organization_switcher feature is enabled', () => {
+      getBootstrapValueMock.mockReturnValue({ organization_switcher: true });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when organization_switcher feature is disabled', () => {
+      getBootstrapValueMock.mockReturnValue({ organization_switcher: false });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organization_switcher feature is undefined', () => {
+      getBootstrapValueMock.mockReturnValue({});
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when features object is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organization_switcher is truthy but not exactly true', () => {
+      getBootstrapValueMock.mockReturnValue({ organization_switcher: 'yes' });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organization_switcher is null', () => {
+      getBootstrapValueMock.mockReturnValue({ organization_switcher: null });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organization_switcher is 1 (number)', () => {
+      getBootstrapValueMock.mockReturnValue({ organization_switcher: 1 });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+  });
+
   describe('SSR safety (window undefined)', () => {
     // Store original window reference
     const originalWindow = global.window;
@@ -623,6 +683,11 @@ describe('features utility', () => {
         ssoEnabled: false,
         ssoOnly: false,
       });
+    });
+
+    it('isOrganizationSwitcherEnabled returns false when window is undefined', () => {
+      const result = isOrganizationSwitcherEnabled();
+      expect(result).toBe(false);
     });
   });
 });

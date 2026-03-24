@@ -397,6 +397,10 @@ features:
       # Port for standalone mode (Caddy's ask directive points here)
       port: <%= ENV['ACME_PORT'] || '12020' %>
 
+  # Organization Switcher Feature
+  # Shows the organization switcher UI component. Default OFF.
+  organization_switcher_enabled: <%= ENV['SHOW_ORGANIZATION_SWITCHER'] == 'true' %>
+
 # Main Database Configuration
 redis:
   # Redis/Valkey connection URI - Compatible with Redis, Valkey, and other

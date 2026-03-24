@@ -21,6 +21,12 @@ vi.mock('vue-router', () => ({
   useRoute: () => mockRoute,
 }));
 
+// Mock feature flag - default to enabled so existing tests pass
+const mockIsOrganizationSwitcherEnabled = vi.fn(() => true);
+vi.mock('@/utils/features', () => ({
+  isOrganizationSwitcherEnabled: () => mockIsOrganizationSwitcherEnabled(),
+}));
+
 // Single top-level import - no need for dynamic imports since mock is hoisted
 import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
 
@@ -28,6 +34,8 @@ describe('useScopeSwitcherVisibility', () => {
   beforeEach(() => {
     // Reset mock route to default state
     mockRoute.meta = {};
+    // Default feature flag to enabled for existing tests
+    mockIsOrganizationSwitcherEnabled.mockReturnValue(true);
     vi.clearAllMocks();
   });
 
@@ -329,6 +337,74 @@ describe('useScopeSwitcherVisibility', () => {
       expect(lockOrgSwitcher.value).toBe(true);
       expect(showDomainSwitcher.value).toBe(false);
       expect(lockDomainSwitcher.value).toBe(false);
+    });
+  });
+
+  describe('organization switcher feature flag', () => {
+    it('showOrgSwitcher is false when feature flag is OFF regardless of route meta', () => {
+      mockIsOrganizationSwitcherEnabled.mockReturnValue(false);
+      mockRoute.meta = { scopesAvailable: { organization: 'show' } };
+
+      const { showOrgSwitcher } = useScopeSwitcherVisibility();
+
+      expect(showOrgSwitcher.value).toBe(false);
+    });
+
+    it('showOrgSwitcher is false when feature flag is OFF even with organization locked', () => {
+      mockIsOrganizationSwitcherEnabled.mockReturnValue(false);
+      mockRoute.meta = { scopesAvailable: { organization: 'locked' } };
+
+      const { showOrgSwitcher } = useScopeSwitcherVisibility();
+
+      expect(showOrgSwitcher.value).toBe(false);
+    });
+
+    it('showOrgSwitcher respects route meta when feature flag is ON', () => {
+      mockIsOrganizationSwitcherEnabled.mockReturnValue(true);
+      mockRoute.meta = { scopesAvailable: { organization: 'show' } };
+
+      const { showOrgSwitcher } = useScopeSwitcherVisibility();
+
+      expect(showOrgSwitcher.value).toBe(true);
+    });
+
+    it('showOrgSwitcher is false when feature flag is ON but route meta hides it', () => {
+      mockIsOrganizationSwitcherEnabled.mockReturnValue(true);
+      mockRoute.meta = { scopesAvailable: { organization: 'hide' } };
+
+      const { showOrgSwitcher } = useScopeSwitcherVisibility();
+
+      expect(showOrgSwitcher.value).toBe(false);
+    });
+
+    it('visibility.organization still reflects route meta when feature flag is OFF', () => {
+      mockIsOrganizationSwitcherEnabled.mockReturnValue(false);
+      mockRoute.meta = { scopesAvailable: { organization: 'show' } };
+
+      const { visibility } = useScopeSwitcherVisibility();
+
+      // visibility reflects route meta, but showOrgSwitcher is gated by feature flag
+      expect(visibility.value.organization).toBe('show');
+    });
+
+    it('lockOrgSwitcher is unaffected by feature flag', () => {
+      mockIsOrganizationSwitcherEnabled.mockReturnValue(false);
+      mockRoute.meta = { scopesAvailable: { organization: 'locked' } };
+
+      const { lockOrgSwitcher } = useScopeSwitcherVisibility();
+
+      // lockOrgSwitcher is independent of feature flag
+      expect(lockOrgSwitcher.value).toBe(true);
+    });
+
+    it('domain switcher is unaffected by organization feature flag', () => {
+      mockIsOrganizationSwitcherEnabled.mockReturnValue(false);
+      mockRoute.meta = { scopesAvailable: { organization: 'show', domain: 'show' } };
+
+      const { showOrgSwitcher, showDomainSwitcher } = useScopeSwitcherVisibility();
+
+      expect(showOrgSwitcher.value).toBe(false);
+      expect(showDomainSwitcher.value).toBe(true);
     });
   });
 });
