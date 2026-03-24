@@ -73,14 +73,12 @@ module OrganizationAPI::Logic
           }
         end
 
-        # Check sensitive fields - only log that they changed
+        # Check sensitive fields - only log that they changed, not their values.
+        # We intentionally don't compare old vs new values for sensitive fields
+        # since that would require decrypting them. Instead, we log a change
+        # whenever a new value is provided in the params.
         SENSITIVE_FIELDS.each do |field|
-          sensitive_field_present?(old_config, field)
-          new_present = sensitive_field_provided?(new_params, field)
-
-          # For sensitive fields, we only care if a new value was provided
-          # (indicating an update), not the actual values
-          if new_present
+          if sensitive_field_provided?(new_params, field)
             changes[field] = { changed: true }
           end
         end

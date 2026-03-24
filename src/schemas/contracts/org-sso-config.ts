@@ -128,7 +128,7 @@ export type OrgSsoConfigCanonical = z.infer<typeof orgSsoConfigCanonical>;
 /**
  * Create or update SSO configuration request payload schema.
  *
- * Used for PUT /api/organizations/:org_id/sso-config
+ * Used for PUT /api/organizations/:org_id/sso
  *
  * Fields:
  * - provider_type: Required, one of the supported providers

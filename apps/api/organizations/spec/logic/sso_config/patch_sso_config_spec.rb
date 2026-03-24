@@ -382,6 +382,44 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::PatchSsoConfig do
         end
       end
 
+      context 'when enabled is omitted (PATCH semantics)' do
+        let(:existing_config) do
+          config = Onetime::OrgSsoConfig.new(
+            org_id: 'org-123',
+            provider_type: 'entra_id',
+            display_name: 'Old Name',
+            tenant_id: 'old-tenant',
+            enabled: 'true', # SSO is currently enabled
+          )
+          config.client_id = 'old-client-id'
+          config.client_secret = 'old-secret'
+          config.define_singleton_method(:save) { true }
+          config
+        end
+
+        let(:params) do
+          {
+            'extid' => 'ext-org-123',
+            'provider_type' => 'entra_id',
+            'client_id' => 'client-id-123',
+            'client_secret' => 'client-secret-456',
+            'tenant_id' => 'tenant-uuid-789',
+            # 'enabled' intentionally omitted (nil) - should preserve existing
+          }
+        end
+        subject(:logic) { described_class.new(strategy_result, params) }
+
+        before do
+          logic.raise_concerns
+        end
+
+        it 'preserves existing enabled state when not provided' do
+          logic.process
+          # enabled was 'true' before and should remain 'true' since we didn't provide it
+          expect(existing_config.enabled).to eq('true')
+        end
+      end
+
       # Provider switching tests document intentional PATCH semantics:
       # When switching providers, provider-specific fields from the old provider
       # are preserved rather than cleared. This is intentional behavior that
@@ -613,6 +651,84 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::PatchSsoConfig do
         OT::FormError,
         'Issuer URL is required for OIDC provider',
       )
+    end
+  end
+
+  describe 'SSRF protection' do
+    before do
+      allow(Onetime::Organization).to receive(:find_by_extid).and_return(organization)
+      allow(organization).to receive(:owner?).and_return(true)
+      allow(Onetime::OrgSsoConfig).to receive(:find_by_org_id).and_return(nil)
+    end
+
+    context 'when issuer points to localhost' do
+      let(:params) { valid_oidc_params.merge('issuer' => 'https://localhost/auth') }
+      subject(:logic) { described_class.new(strategy_result, params) }
+
+      it 'rejects localhost as invalid issuer' do
+        expect { logic.raise_concerns }.to raise_error(
+          OT::FormError,
+          'Issuer URL must be a valid HTTPS URL pointing to a public host',
+        )
+      end
+    end
+
+    context 'when issuer points to 127.0.0.1' do
+      let(:params) { valid_oidc_params.merge('issuer' => 'https://127.0.0.1/auth') }
+      subject(:logic) { described_class.new(strategy_result, params) }
+
+      it 'rejects loopback IP as invalid issuer' do
+        expect { logic.raise_concerns }.to raise_error(
+          OT::FormError,
+          'Issuer URL must be a valid HTTPS URL pointing to a public host',
+        )
+      end
+    end
+
+    context 'when issuer points to private network (192.168.x.x)' do
+      let(:params) { valid_oidc_params.merge('issuer' => 'https://192.168.1.1/auth') }
+      subject(:logic) { described_class.new(strategy_result, params) }
+
+      it 'rejects private IP as invalid issuer' do
+        expect { logic.raise_concerns }.to raise_error(
+          OT::FormError,
+          'Issuer URL must be a valid HTTPS URL pointing to a public host',
+        )
+      end
+    end
+
+    context 'when issuer points to private network (10.x.x.x)' do
+      let(:params) { valid_oidc_params.merge('issuer' => 'https://10.0.0.1/auth') }
+      subject(:logic) { described_class.new(strategy_result, params) }
+
+      it 'rejects private IP as invalid issuer' do
+        expect { logic.raise_concerns }.to raise_error(
+          OT::FormError,
+          'Issuer URL must be a valid HTTPS URL pointing to a public host',
+        )
+      end
+    end
+
+    context 'when issuer points to .local domain' do
+      let(:params) { valid_oidc_params.merge('issuer' => 'https://auth.local/auth') }
+      subject(:logic) { described_class.new(strategy_result, params) }
+
+      it 'rejects .local domain as invalid issuer' do
+        expect { logic.raise_concerns }.to raise_error(
+          OT::FormError,
+          'Issuer URL must be a valid HTTPS URL pointing to a public host',
+        )
+      end
+    end
+
+    context 'when issuer is a valid public URL' do
+      let(:params) { valid_oidc_params.merge('issuer' => 'https://auth.example.com') }
+      subject(:logic) { described_class.new(strategy_result, params) }
+
+      it 'accepts valid public issuer URL' do
+        # Should not raise SSRF error - would succeed or fail for other reasons
+        expect { logic.raise_concerns }.not_to raise_error
+      end
     end
   end
 end

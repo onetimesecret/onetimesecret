@@ -132,7 +132,7 @@ export const createOrUpdateSsoConfigResponseSchema = createApiResponseSchema(org
 export type CreateOrUpdateSsoConfigResponse = z.infer<typeof createOrUpdateSsoConfigResponseSchema>;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DELETE /api/organizations/:org_extid/sso-config
+// DELETE /api/organizations/:org_extid/sso
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**

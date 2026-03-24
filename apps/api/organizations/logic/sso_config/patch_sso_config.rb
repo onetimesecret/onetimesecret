@@ -5,6 +5,7 @@
 require 'onetime/models/org_sso_config'
 require_relative 'serializers'
 require_relative 'audit_logger'
+require_relative 'ssrf_protection'
 
 module OrganizationAPI::Logic
   module SsoConfig
@@ -30,6 +31,7 @@ module OrganizationAPI::Logic
     class PatchSsoConfig < OrganizationAPI::Logic::Base
       include Serializers
       include AuditLogger
+      include SsrfProtection
 
       VALID_PROVIDER_TYPES = Onetime::OrgSsoConfig::PROVIDER_TYPES.freeze
 
@@ -44,7 +46,10 @@ module OrganizationAPI::Logic
         @tenant_id       = sanitize_plain_text(params['tenant_id'])
         @issuer          = sanitize_url(params['issuer'])
         @allowed_domains = parse_allowed_domains(params['allowed_domains'])
-        @enabled         = parse_boolean(params['enabled'])
+
+        # Track whether enabled was explicitly provided (for PATCH semantics)
+        @enabled_provided = !params['enabled'].nil?
+        @enabled          = parse_boolean(params['enabled'])
       end
 
       def raise_concerns
@@ -101,7 +106,9 @@ module OrganizationAPI::Logic
         end
 
         # Log enabled state change if it occurred
-        log_enabled_state_change(was_enabled, @enabled)
+        # Use actual state after update (which may be unchanged if enabled wasn't provided)
+        current_enabled = @sso_config.enabled?
+        log_enabled_state_change(was_enabled, current_enabled)
 
         success_data
       end
@@ -157,6 +164,16 @@ module OrganizationAPI::Logic
           if missing_issuer
             raise_form_error('Issuer URL is required for OIDC provider', field: :issuer, error_type: :missing)
           end
+
+          # SSRF prevention: validate issuer URL host is not internal/private
+          # Only validate if a new issuer is being provided (not empty)
+          if !@issuer.to_s.empty? && !valid_issuer_host?(@issuer)
+            raise_form_error(
+              'Issuer URL must be a valid HTTPS URL pointing to a public host',
+              field: :issuer,
+              error_type: :invalid,
+            )
+          end
         when 'entra_id'
           # For PATCH: require tenant_id if creating new config or if existing config has no tenant_id
           missing_tenant = @tenant_id.to_s.empty? &&
@@ -206,7 +223,7 @@ module OrganizationAPI::Logic
         @sso_config.client_id     = @client_id
         @sso_config.tenant_id     = @tenant_id unless @tenant_id.to_s.empty?
         @sso_config.issuer        = @issuer unless @issuer.to_s.empty?
-        @sso_config.enabled       = @enabled.to_s
+        @sso_config.enabled       = @enabled.to_s if @enabled_provided
 
         # Only update client_secret if provided (preserves existing otherwise)
         @sso_config.client_secret = @client_secret unless @client_secret.to_s.empty?

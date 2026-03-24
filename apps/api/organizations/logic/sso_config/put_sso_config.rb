@@ -5,6 +5,7 @@
 require 'onetime/models/org_sso_config'
 require_relative 'serializers'
 require_relative 'audit_logger'
+require_relative 'ssrf_protection'
 
 module OrganizationAPI::Logic
   module SsoConfig
@@ -30,6 +31,7 @@ module OrganizationAPI::Logic
     class PutSsoConfig < OrganizationAPI::Logic::Base
       include Serializers
       include AuditLogger
+      include SsrfProtection
 
       VALID_PROVIDER_TYPES = Onetime::OrgSsoConfig::PROVIDER_TYPES.freeze
 
@@ -148,6 +150,15 @@ module OrganizationAPI::Logic
         when 'oidc'
           if @issuer.to_s.empty?
             raise_form_error('Issuer URL is required for OIDC provider', field: :issuer, error_type: :missing)
+          end
+
+          # SSRF prevention: validate issuer URL host is not internal/private
+          unless valid_issuer_host?(@issuer)
+            raise_form_error(
+              'Issuer URL must be a valid HTTPS URL pointing to a public host',
+              field: :issuer,
+              error_type: :invalid,
+            )
           end
         when 'entra_id'
           if @tenant_id.to_s.empty?

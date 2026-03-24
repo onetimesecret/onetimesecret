@@ -448,4 +448,93 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::PutSsoConfig do
       )
     end
   end
+
+  describe 'SSRF prevention' do
+    before do
+      allow(Onetime::Organization).to receive(:find_by_extid).and_return(organization)
+      allow(organization).to receive(:owner?).and_return(true)
+      allow(Onetime::OrgSsoConfig).to receive(:find_by_org_id).and_return(nil)
+    end
+
+    context 'when issuer points to localhost' do
+      let(:params) { valid_oidc_params.merge('issuer' => 'https://localhost/auth') }
+      subject(:logic) { described_class.new(strategy_result, params) }
+
+      it 'rejects localhost as invalid issuer' do
+        expect { logic.raise_concerns }.to raise_error(
+          OT::FormError,
+          'Issuer URL must be a valid HTTPS URL pointing to a public host',
+        )
+      end
+    end
+
+    context 'when issuer points to private IP (127.0.0.1)' do
+      let(:params) { valid_oidc_params.merge('issuer' => 'https://127.0.0.1/auth') }
+      subject(:logic) { described_class.new(strategy_result, params) }
+
+      it 'rejects loopback IP as invalid issuer' do
+        expect { logic.raise_concerns }.to raise_error(
+          OT::FormError,
+          'Issuer URL must be a valid HTTPS URL pointing to a public host',
+        )
+      end
+    end
+
+    context 'when issuer points to private IP range (10.x.x.x)' do
+      let(:params) { valid_oidc_params.merge('issuer' => 'https://10.0.0.1/auth') }
+      subject(:logic) { described_class.new(strategy_result, params) }
+
+      it 'rejects private IP as invalid issuer' do
+        expect { logic.raise_concerns }.to raise_error(
+          OT::FormError,
+          'Issuer URL must be a valid HTTPS URL pointing to a public host',
+        )
+      end
+    end
+
+    context 'when issuer points to private IP range (192.168.x.x)' do
+      let(:params) { valid_oidc_params.merge('issuer' => 'https://192.168.1.1/auth') }
+      subject(:logic) { described_class.new(strategy_result, params) }
+
+      it 'rejects private IP as invalid issuer' do
+        expect { logic.raise_concerns }.to raise_error(
+          OT::FormError,
+          'Issuer URL must be a valid HTTPS URL pointing to a public host',
+        )
+      end
+    end
+
+    context 'when issuer has .local domain' do
+      let(:params) { valid_oidc_params.merge('issuer' => 'https://myserver.local/auth') }
+      subject(:logic) { described_class.new(strategy_result, params) }
+
+      it 'rejects .local domain as invalid issuer' do
+        expect { logic.raise_concerns }.to raise_error(
+          OT::FormError,
+          'Issuer URL must be a valid HTTPS URL pointing to a public host',
+        )
+      end
+    end
+
+    context 'when issuer has .internal domain' do
+      let(:params) { valid_oidc_params.merge('issuer' => 'https://auth.internal/') }
+      subject(:logic) { described_class.new(strategy_result, params) }
+
+      it 'rejects .internal domain as invalid issuer' do
+        expect { logic.raise_concerns }.to raise_error(
+          OT::FormError,
+          'Issuer URL must be a valid HTTPS URL pointing to a public host',
+        )
+      end
+    end
+
+    context 'when issuer is a valid public URL' do
+      let(:params) { valid_oidc_params.merge('issuer' => 'https://auth.example.com') }
+      subject(:logic) { described_class.new(strategy_result, params) }
+
+      it 'accepts the issuer URL' do
+        expect { logic.raise_concerns }.not_to raise_error
+      end
+    end
+  end
 end

@@ -39,13 +39,6 @@ module OrganizationAPI::Logic
       # Read timeout in seconds
       READ_TIMEOUT = 10
 
-      # Allowed IdP domains for non-OIDC providers (SSRF prevention)
-      ALLOWED_IDP_DOMAINS = {
-        'entra_id' => ['login.microsoftonline.com'],
-        'google' => ['accounts.google.com'],
-        'github' => [],  # GitHub has no discovery, format validation only
-      }.freeze
-
       # Required fields in OIDC discovery document
       REQUIRED_OIDC_FIELDS = %w[
         authorization_endpoint

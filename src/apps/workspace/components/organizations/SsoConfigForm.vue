@@ -8,7 +8,23 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { classifyError } from '@/schemas/errors';
 import { SsoService, type TestSsoConnectionResponse } from '@/services/sso.service';
 import type { OrgSsoConfig, SsoProviderType } from '@/schemas/shapes/organizations/org-sso-config';
-import type { CreateOrUpdateSsoConfigRequest } from '@/schemas/api/organizations/requests/sso-config';
+import type { PatchSsoConfigRequest } from '@/schemas/api/organizations/requests/sso-config';
+
+/**
+ * Internal form state type.
+ * Required fields are non-optional for form validation; client_secret is optional
+ * (omit to preserve existing when editing).
+ */
+interface SsoConfigFormData {
+  provider_type: SsoProviderType;
+  display_name: string;
+  client_id: string;
+  client_secret?: string;
+  tenant_id?: string;
+  issuer?: string;
+  allowed_domains: string[];
+  enabled: boolean;
+}
 
 const props = defineProps<{
   orgExtId: string;
@@ -62,8 +78,8 @@ const testError = ref('');
 // Existing config (null if no config exists)
 const existingConfig = ref<OrgSsoConfig | null>(null);
 
-// Form data
-const formData = ref<CreateOrUpdateSsoConfigRequest>({
+// Form data - internal state with required fields; saveConfig auto-selects PUT/PATCH
+const formData = ref<SsoConfigFormData>({
   provider_type: 'entra_id',
   display_name: '',
   client_id: '',
@@ -212,7 +228,8 @@ const handleSave = async () => {
 
   try {
     // Prepare payload - only include client_secret if provided
-    const payload: CreateOrUpdateSsoConfigRequest = {
+    // saveConfig auto-selects PUT (with secret) or PATCH (without secret)
+    const payload: PatchSsoConfigRequest = {
       provider_type: formData.value.provider_type,
       display_name: formData.value.display_name.trim(),
       client_id: formData.value.client_id.trim(),

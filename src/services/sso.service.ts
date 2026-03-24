@@ -9,10 +9,12 @@
 
 import { createApi } from '@/api';
 import type {
-  CreateOrUpdateSsoConfigRequest,
+  PutSsoConfigRequest,
+  PatchSsoConfigRequest,
   DeleteSsoConfigResponse,
 } from '@/schemas/api/organizations/requests/sso-config';
 import type { OrgSsoConfig, SsoProviderType } from '@/schemas/shapes/organizations/org-sso-config';
+import type { AxiosError } from 'axios';
 
 const $api = createApi();
 
@@ -68,15 +70,64 @@ export const SsoService = {
    * Get SSO configuration for an organization
    *
    * @param orgExtId - Organization external ID
-   * @returns SSO configuration or null if not configured
+   * @returns SSO configuration or { record: null } if not configured
    */
   async getConfig(orgExtId: string): Promise<SsoConfigResponse> {
-    const response = await $api.get(`/api/organizations/${orgExtId}/sso`);
+    try {
+      const response = await $api.get(`/api/organizations/${orgExtId}/sso`);
+      return response.data;
+    } catch (error: unknown) {
+      // Handle 404 (no SSO config exists) by returning { record: null }
+      // This matches the SsoConfigResponse type and expected behavior
+      if ((error as AxiosError).response?.status === 404) {
+        return { record: null };
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Create SSO configuration for an organization (full replacement)
+   *
+   * Uses PUT semantics: the request body IS the new state.
+   * client_secret is required for full replacement.
+   *
+   * @param orgExtId - Organization external ID
+   * @param payload - Full SSO configuration data including client_secret
+   * @returns Updated SSO configuration
+   */
+  async putConfig(
+    orgExtId: string,
+    payload: PutSsoConfigRequest
+  ): Promise<SsoConfigResponse> {
+    const response = await $api.put(`/api/organizations/${orgExtId}/sso`, payload);
+    return response.data;
+  },
+
+  /**
+   * Update SSO configuration for an organization (partial update)
+   *
+   * Uses PATCH semantics: only provided fields are updated.
+   * client_secret is optional; omit to preserve existing secret.
+   *
+   * @param orgExtId - Organization external ID
+   * @param payload - Partial SSO configuration data
+   * @returns Updated SSO configuration
+   */
+  async patchConfig(
+    orgExtId: string,
+    payload: PatchSsoConfigRequest
+  ): Promise<SsoConfigResponse> {
+    const response = await $api.patch(`/api/organizations/${orgExtId}/sso`, payload);
     return response.data;
   },
 
   /**
    * Create or update SSO configuration for an organization
+   *
+   * Automatically selects PUT or PATCH based on payload:
+   * - If client_secret is provided and non-empty: uses PUT (full replacement)
+   * - If client_secret is omitted or empty: uses PATCH (partial update)
    *
    * @param orgExtId - Organization external ID
    * @param payload - SSO configuration data
@@ -84,10 +135,17 @@ export const SsoService = {
    */
   async saveConfig(
     orgExtId: string,
-    payload: CreateOrUpdateSsoConfigRequest
+    payload: PutSsoConfigRequest | PatchSsoConfigRequest
   ): Promise<SsoConfigResponse> {
-    const response = await $api.put(`/api/organizations/${orgExtId}/sso`, payload);
-    return response.data;
+    // Use PUT when client_secret is provided (full replacement)
+    // Use PATCH when client_secret is omitted (preserve existing secret)
+    const hasClientSecret = 'client_secret' in payload && payload.client_secret && payload.client_secret.length > 0;
+
+    if (hasClientSecret) {
+      return this.putConfig(orgExtId, payload as PutSsoConfigRequest);
+    } else {
+      return this.patchConfig(orgExtId, payload as PatchSsoConfigRequest);
+    }
   },
 
   /**
