@@ -37,7 +37,7 @@ function isDevOrTest(): boolean {
  * - Throws ZodError immediately for fast feedback
  *
  * In production:
- * - Logs error to console (integrate with Sentry via loggingService)
+ * - Logs error to console (Sentry integration tracked in #2755)
  * - Returns { ok: false } for explicit failure handling
  *
  * @example
