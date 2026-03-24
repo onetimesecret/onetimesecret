@@ -15,12 +15,24 @@ vi.mock('@/shared/components/navigation/DomainContextSwitcher.vue', () => ({
   },
 }));
 
+vi.mock('@/apps/workspace/components/navigation/OrganizationScopeSwitcher.vue', () => ({
+  default: {
+    name: 'OrganizationScopeSwitcher',
+    template: '<div class="org-switcher" :data-locked="locked">Org Switcher</div>',
+    props: ['locked'],
+  },
+}));
+
 // Mock useScopeSwitcherVisibility composable
+const mockShowOrgSwitcher = ref(true);
+const mockLockOrgSwitcher = ref(false);
 const mockShowDomainSwitcher = ref(true);
 const mockLockDomainSwitcher = ref(false);
 
 vi.mock('@/shared/composables/useScopeSwitcherVisibility', () => ({
   useScopeSwitcherVisibility: () => ({
+    showOrgSwitcher: mockShowOrgSwitcher,
+    lockOrgSwitcher: mockLockOrgSwitcher,
     showDomainSwitcher: mockShowDomainSwitcher,
     lockDomainSwitcher: mockLockDomainSwitcher,
   }),
@@ -52,6 +64,8 @@ describe('OrganizationContextBar', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset composable mocks to defaults
+    mockShowOrgSwitcher.value = true;
+    mockLockOrgSwitcher.value = false;
     mockShowDomainSwitcher.value = true;
     mockLockDomainSwitcher.value = false;
   });
