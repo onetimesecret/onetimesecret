@@ -14,6 +14,14 @@ module OrganizationAPI::Logic
     # discovery fetches metadata from the issuer URL, so we must validate
     # that the URL does not point to internal/private networks.
     #
+    # Limitations:
+    # - DNS rebinding attacks are NOT prevented. The URL is validated at parse
+    #   time, not at request time. A malicious DNS server could return a safe
+    #   IP during validation, then switch to an internal IP when OmniAuth
+    #   actually fetches the metadata. Mitigating this requires DNS pinning
+    #   or resolving the hostname and validating the resolved IP immediately
+    #   before use, which is beyond the scope of this module.
+    #
     # Usage:
     #   include SsrfProtection
     #   # Then call valid_issuer_host?(url) to validate

@@ -247,5 +247,77 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::SsrfProtection do
         expect(protector.internal_host?('172.32.0.1')).to be false
       end
     end
+
+    context 'with IPv6-mapped IPv4 addresses' do
+      it 'returns true for IPv6-mapped loopback ::ffff:127.0.0.1' do
+        # IPv6-mapped IPv4 addresses can bypass naive IPv4-only checks
+        expect(protector.internal_host?('::ffff:127.0.0.1')).to be true
+      end
+
+      it 'returns true for IPv6-mapped private ::ffff:10.0.0.1' do
+        expect(protector.internal_host?('::ffff:10.0.0.1')).to be true
+      end
+
+      it 'returns true for IPv6-mapped private ::ffff:192.168.1.1' do
+        expect(protector.internal_host?('::ffff:192.168.1.1')).to be true
+      end
+
+      it 'returns true for IPv6-mapped private ::ffff:172.16.0.1' do
+        expect(protector.internal_host?('::ffff:172.16.0.1')).to be true
+      end
+    end
+
+    context 'with cloud metadata IP addresses' do
+      it 'returns true for AWS/GCP metadata IP 169.254.169.254' do
+        # Cloud metadata endpoint - must be blocked to prevent credential theft
+        expect(protector.internal_host?('169.254.169.254')).to be true
+      end
+
+      it 'returns true for link-local metadata range 169.254.0.1' do
+        expect(protector.internal_host?('169.254.0.1')).to be true
+      end
+    end
+  end
+
+  describe '#valid_issuer_host?' do
+    context 'with URLs containing credentials' do
+      it 'accepts URL with embedded credentials (URI parsing extracts host correctly)' do
+        # URIs with credentials like https://user:pass@host are valid syntax
+        # The host extraction works correctly, so validation depends on the host itself
+        # Note: Whether to allow embedded credentials is a policy decision;
+        # currently we only validate the host, not the userinfo component
+        expect(protector.valid_issuer_host?('https://user:pass@login.microsoftonline.com')).to be true
+      end
+
+      it 'rejects URL with credentials pointing to internal host' do
+        # Even with credentials, internal hosts must be rejected
+        expect(protector.valid_issuer_host?('https://user:pass@localhost')).to be false
+      end
+
+      it 'rejects URL with credentials pointing to private IP' do
+        expect(protector.valid_issuer_host?('https://admin:secret@192.168.1.1/auth')).to be false
+      end
+    end
+
+    context 'with cloud metadata URLs' do
+      it 'rejects AWS/GCP metadata endpoint' do
+        # Critical SSRF vector for cloud credential theft
+        expect(protector.valid_issuer_host?('https://169.254.169.254/latest/meta-data/')).to be false
+      end
+
+      it 'rejects Azure metadata endpoint (link-local)' do
+        expect(protector.valid_issuer_host?('https://169.254.169.254/metadata/instance')).to be false
+      end
+    end
+
+    context 'with IPv6-mapped IPv4 URLs' do
+      it 'rejects IPv6-mapped loopback' do
+        expect(protector.valid_issuer_host?('https://[::ffff:127.0.0.1]/auth')).to be false
+      end
+
+      it 'rejects IPv6-mapped private network' do
+        expect(protector.valid_issuer_host?('https://[::ffff:10.0.0.1]/auth')).to be false
+      end
+    end
   end
 end

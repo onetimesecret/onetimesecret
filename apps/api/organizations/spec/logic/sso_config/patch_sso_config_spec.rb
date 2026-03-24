@@ -420,6 +420,52 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::PatchSsoConfig do
         end
       end
 
+      context 'when enabled is explicitly set to false (PATCH semantics)' do
+        let(:existing_config) do
+          config = Onetime::OrgSsoConfig.new(
+            org_id: 'org-123',
+            provider_type: 'entra_id',
+            display_name: 'Old Name',
+            tenant_id: 'old-tenant',
+            enabled: 'true', # SSO is currently enabled
+          )
+          config.client_id = 'old-client-id'
+          config.client_secret = 'old-secret'
+          config.define_singleton_method(:save) { true }
+          config
+        end
+
+        let(:params) do
+          {
+            'extid' => 'ext-org-123',
+            'provider_type' => 'entra_id',
+            'client_id' => 'client-id-123',
+            'client_secret' => 'client-secret-456',
+            'tenant_id' => 'tenant-uuid-789',
+            'enabled' => false, # Explicitly disable SSO
+          }
+        end
+        subject(:logic) { described_class.new(strategy_result, params) }
+
+        before do
+          logic.raise_concerns
+        end
+
+        it 'disables SSO when enabled is explicitly false' do
+          logic.process
+          # Explicit false should override existing 'true' and disable SSO
+          expect(existing_config.enabled).to eq('false')
+        end
+
+        it 'distinguishes explicit false from omitted field' do
+          # This test documents the semantic difference:
+          # - omitted (nil): preserve existing state
+          # - explicit false: disable SSO
+          logic.process
+          expect(existing_config.enabled).not_to eq('true')
+        end
+      end
+
       # Provider switching tests document intentional PATCH semantics:
       # When switching providers, provider-specific fields from the old provider
       # are preserved rather than cleared. This is intentional behavior that

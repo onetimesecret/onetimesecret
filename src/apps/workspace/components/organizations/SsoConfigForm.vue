@@ -206,12 +206,11 @@ const loadConfig = async () => {
       };
     }
   } catch (err) {
+    // 404 is handled by SsoService.getConfig (returns { record: null })
+    // Any error reaching here is a real failure
     const classified = classifyError(err);
-    // 404 is expected when no config exists
-    if (classified.code !== 404) {
-      error.value = classified.message || t('web.organizations.sso.load_error');
-      console.error('[SsoConfigForm] Error loading config:', err);
-    }
+    error.value = classified.message || t('web.organizations.sso.load_error');
+    console.error('[SsoConfigForm] Error loading config:', err);
   } finally {
     isLoading.value = false;
   }

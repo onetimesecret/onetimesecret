@@ -14,7 +14,7 @@ import type {
   DeleteSsoConfigResponse,
 } from '@/schemas/api/organizations/requests/sso-config';
 import type { OrgSsoConfig, SsoProviderType } from '@/schemas/shapes/organizations/org-sso-config';
-import type { AxiosError } from 'axios';
+import axios from 'axios';
 
 const $api = createApi();
 
@@ -79,7 +79,7 @@ export const SsoService = {
     } catch (error: unknown) {
       // Handle 404 (no SSO config exists) by returning { record: null }
       // This matches the SsoConfigResponse type and expected behavior
-      if ((error as AxiosError).response?.status === 404) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
         return { record: null };
       }
       throw error;

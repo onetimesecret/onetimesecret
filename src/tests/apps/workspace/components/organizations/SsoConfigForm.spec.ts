@@ -586,5 +586,32 @@ describe('SsoConfigForm', () => {
       // Check emitted events
       expect(wrapper.emitted('saved')).toBeTruthy();
     });
+
+    it('displays error message when save fails with network error', async () => {
+      mockGetConfig.mockResolvedValue({ record: mockExistingConfig });
+      wrapper = await mountComponent();
+
+      // Mock saveConfig to reject with network error
+      const networkError = new Error('Network connection failed');
+      mockSaveConfig.mockRejectedValueOnce(networkError);
+
+      // Update a field to trigger form submission
+      const displayNameInput = wrapper.find('#sso-display-name');
+      await displayNameInput.setValue('Updated SSO');
+      await flushPromises();
+
+      // Submit form
+      const form = wrapper.find('form');
+      await form.trigger('submit.prevent');
+      await flushPromises();
+
+      // Verify error message is displayed via BasicFormAlerts
+      const alertsComponent = wrapper.find('.form-alerts');
+      expect(alertsComponent.exists()).toBe(true);
+      expect(alertsComponent.attributes('data-error')).toBe('Network connection failed');
+
+      // Verify saved event was NOT emitted
+      expect(wrapper.emitted('saved')).toBeFalsy();
+    });
   });
 });
