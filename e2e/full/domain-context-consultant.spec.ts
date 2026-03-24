@@ -53,14 +53,22 @@ import { test, expect } from '@playwright/test';
  *
  * ## Current Implementation Status
  *
- * As of Phase 4, the following are implemented:
+ * All components are implemented:
  * - useDomainContext composable with sessionStorage persistence
  * - Domain context indicator in SecretForm
  * - Reactive context updates in form
- * - DomainContextSwitcher component (not yet implemented)
+ * - DomainContextSwitcher: src/shared/components/navigation/DomainContextSwitcher.vue
+ *   (Production dropdown with HeadlessUI Menu, route-aware navigation, i18n)
+ * - Colonel override tool: src/apps/colonel/components/DomainContextSwitcher.vue
+ *   (Admin tool for simulating arbitrary domains - different purpose)
  *
- * This test focuses on what IS implemented. When DomainContextSwitcher is added,
- * extend this test to include context switching interactions.
+ * ## Test Blockers
+ *
+ * Most tests are skipped due to backend setup requirements, NOT missing components.
+ * To enable tests:
+ * 1. Configure test user with custom domains in backend fixtures
+ * 2. Set up test authentication flow
+ * 3. Mock window.__BOOTSTRAP_ME__ with custom_domains array
  */
 
 test.describe('Domain Context - Consultant Workflow', () => {
@@ -130,7 +138,10 @@ test.describe('Domain Context - Consultant Workflow', () => {
      * Validates that domain context persists in sessionStorage and survives
      * page navigation within the same browser session.
      *
-     * SKIP REASON: Requires backend setup and context switcher component.
+     * SKIP REASON: Requires backend test fixtures with custom domains.
+     * DomainContextSwitcher component exists - see navigation/DomainContextSwitcher.vue
+     *
+     * UNIT TEST COVERAGE: sessionStorage persistence tested in useDomainContext.spec.ts
      */
 
     // TODO: Login as user with custom domains
@@ -232,10 +243,14 @@ test.describe('Domain Context - Consultant Workflow', () => {
 
   test.skip('context switcher allows changing between domains', async ({ page }) => {
     /**
-     * Tests the DomainContextSwitcher component (when implemented).
+     * Tests the DomainContextSwitcher dropdown interaction.
+     * Component: src/shared/components/navigation/DomainContextSwitcher.vue
      *
-     * SKIP REASON: DomainContextSwitcher component not yet implemented.
-     * Enable this test in Phase 5 when the switcher UI is added.
+     * SKIP REASON: Requires backend test fixtures with custom domains.
+     * Component is implemented with data-testid="domain-context-switcher".
+     *
+     * UNIT TEST COVERAGE: This scenario cannot be unit tested due to Vitest
+     * mock limitations (see src/tests/components/SecretFormDomainContext.spec.ts)
      */
 
     // TODO: Login as user with multiple custom domains
@@ -263,9 +278,13 @@ test.describe('Domain Context - Consultant Workflow', () => {
 
   test.skip('context indicator updates when switching domains', async ({ page }) => {
     /**
-     * Validates real-time reactivity when context changes.
+     * Validates real-time reactivity when context changes via DomainContextSwitcher.
      *
-     * SKIP REASON: Requires context switcher component.
+     * SKIP REASON: Requires backend test fixtures with custom domains.
+     * Component exists at src/shared/components/navigation/DomainContextSwitcher.vue
+     *
+     * UNIT TEST COVERAGE: Reactivity tested in useDomainContext.spec.ts.
+     * Component-level reactivity cannot be unit tested (Vitest mock limitation).
      */
 
     // TODO: Login as user with multiple custom domains
@@ -289,9 +308,13 @@ test.describe('Domain Context - Consultant Workflow', () => {
 
   test.skip('canonical domain shows Personal label', async ({ page }) => {
     /**
-     * Validates that the canonical domain displays as "Personal".
+     * Validates that the canonical domain displays as "Personal" with gray styling.
      *
-     * SKIP REASON: Requires context switcher to switch to canonical domain.
+     * SKIP REASON: Requires backend test fixtures with custom domains.
+     * DomainContextSwitcher exists and supports canonical domain selection.
+     *
+     * MISSING COVERAGE: Icon verification (user-circle vs building-office).
+     * Consider adding: expect(indicator.html()).toContain('user-circle');
      */
 
     // TODO: Login as user with custom domains

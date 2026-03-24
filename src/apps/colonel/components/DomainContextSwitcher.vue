@@ -1,5 +1,25 @@
 <!-- src/apps/colonel/components/DomainContextSwitcher.vue -->
 
+<!--
+  Domain Context Override Tool (Colonel/Admin)
+
+  Admin tool for simulating any custom domain without DNS setup. Allows entering
+  arbitrary domain names to test branding and domain-specific behavior.
+
+  This is NOT the production domain switcher. For the user-facing dropdown that
+  switches between a user's actual custom domains, see:
+    src/shared/components/navigation/DomainContextSwitcher.vue
+
+  Key differences from production switcher:
+  - Text input for arbitrary domains (not limited to user's domains)
+  - No integration with useDomainContext composable
+  - Direct sessionStorage manipulation
+  - Used in Colonel admin panel only
+
+  Both components share the same sessionStorage key ('domainContext') so changes
+  made here affect the production context indicator.
+-->
+
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';

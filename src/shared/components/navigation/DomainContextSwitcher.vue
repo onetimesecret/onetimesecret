@@ -1,18 +1,25 @@
 <!-- src/shared/components/navigation/DomainContextSwitcher.vue -->
 
 <!--
-  Domain Context Switcher Component
+  Domain Context Switcher Component (Production)
 
-  Allows consultants to switch between their custom domains in the workspace header.
+  User-facing dropdown for switching between custom domains in the workspace header.
   Only visible when user has multiple domains configured.
 
   Key behaviors:
   - Shows current domain context with visual indicator
   - Dropdown menu with all available domains
   - Persists selection via useDomainContext composable
+  - Route-aware navigation (updates URL when switching domains)
   - Compact header-friendly design
 
   Uses HeadlessUI Menu for accessible keyboard navigation and focus management.
+
+  Related component:
+    src/apps/colonel/components/DomainContextSwitcher.vue
+    - Admin tool for simulating arbitrary domains (not limited to user's domains)
+    - Used for testing branding without DNS setup
+    - Both share the same sessionStorage key ('domainContext')
 -->
 
 <script setup lang="ts">

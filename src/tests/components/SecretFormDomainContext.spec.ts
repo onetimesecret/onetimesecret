@@ -138,9 +138,14 @@ describe('SecretForm - Domain Context Integration', () => {
     });
 
     it.skip('displays correct domain name for custom domain', () => {
-      // SKIP: Reactive mock computed properties don't propagate to template bindings
-      // The template uses {{ currentContext.displayName }} which evaluates at render time
-      // E2E tests will cover this with real composable
+      // SKIP: Reactive mock computed properties don't propagate to template bindings.
+      // The template uses {{ currentContext.displayName }} which evaluates at render time.
+      // Vitest module mocks capture values at import time; changing mockCurrentContext.value
+      // after mount doesn't trigger Vue reactivity.
+      //
+      // E2E COVERAGE: e2e/full/domain-context-consultant.spec.ts
+      //   - "displays domain context indicator for user with custom domains" (line 72)
+      // STATUS: E2E test exists but skipped pending backend test fixtures
       mockCurrentContext.value = {
         domain: 'acme.example.com',
         displayName: 'acme.example.com',
@@ -158,7 +163,11 @@ describe('SecretForm - Domain Context Integration', () => {
     });
 
     it.skip('displays "Personal" for canonical domain', () => {
-      // SKIP: Same issue - mock doesn't propagate to template interpolations
+      // SKIP: Same Vitest mock limitation - values captured at import time.
+      //
+      // E2E COVERAGE: e2e/full/domain-context-consultant.spec.ts
+      //   - "canonical domain shows Personal label" (line 290)
+      // STATUS: E2E test exists but skipped pending DomainContextSwitcher integration
       mockCurrentContext.value = {
         domain: 'onetimesecret.com',
         displayName: 'Personal',
@@ -198,9 +207,13 @@ describe('SecretForm - Domain Context Integration', () => {
     });
 
     it.skip('applies canonical domain styling for canonical context', () => {
-      // SKIP: Reactive mock values don't properly propagate to :class bindings in templates
-      // The :class binding checks currentContext.isCanonical at render time
-      // This requires E2E testing with real state management
+      // SKIP: Vitest mock limitation - :class bindings evaluate at render time with
+      // captured mock values, not reactively updated values.
+      //
+      // E2E COVERAGE: e2e/full/domain-context-consultant.spec.ts
+      //   - "context indicator shows correct styling for custom domain" (line 104)
+      //   - "canonical domain shows Personal label" (line 290) - checks gray styling
+      // STATUS: E2E tests exist but skipped pending backend fixtures
       mockIsContextActive.value = true;
       mockCurrentContext.value = {
         domain: 'onetimesecret.com',
@@ -239,7 +252,10 @@ describe('SecretForm - Domain Context Integration', () => {
     });
 
     it.skip('displays correct icon for canonical domain', () => {
-      // SKIP: Same issue as above - reactive mocks don't propagate to template conditionals
+      // SKIP: Same Vitest mock limitation - template conditionals use captured values.
+      //
+      // E2E COVERAGE: No direct E2E test for icon verification exists.
+      // MISSING: Consider adding icon assertion to "canonical domain shows Personal label"
       mockIsContextActive.value = true;
       mockCurrentContext.value = {
         domain: 'onetimesecret.com',
@@ -319,9 +335,15 @@ describe('SecretForm - Domain Context Integration', () => {
     });
 
     it.skip('reactively updates when currentContext changes', async () => {
-      // This test is skipped because reactive mocking of composable state is complex
-      // The actual reactivity is tested in the composable unit tests
-      // Integration testing should cover this workflow
+      // SKIP: Vitest module mocks don't participate in Vue's reactivity system.
+      // Reactivity is tested in useDomainContext.spec.ts composable tests.
+      //
+      // E2E COVERAGE: e2e/full/domain-context-consultant.spec.ts
+      //   - "context indicator updates when switching domains" (line 264)
+      //   - "context switcher allows changing between domains" (line 233)
+      // STATUS: E2E tests exist but skipped pending DomainContextSwitcher - component
+      // exists at src/shared/components/navigation/DomainContextSwitcher.vue, tests
+      // can be enabled once backend fixtures are configured
 
       const mockUpdateField = vi.fn();
 

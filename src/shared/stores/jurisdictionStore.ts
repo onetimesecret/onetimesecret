@@ -113,7 +113,9 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
     const jurisdiction = jurisdictions.value.find((j) => j.identifier === identifier);
 
     if (!jurisdiction) {
-      throw createError(`Jurisdiction "${identifier}" not found`, 'technical', 'error');
+      throw createError(`Jurisdiction "${identifier}" not found`, 'technical', 'error', {
+        identifier,
+      });
     }
     return jurisdiction;
   }

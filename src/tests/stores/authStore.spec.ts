@@ -247,42 +247,53 @@ describe('authStore', () => {
       expect(store.lastCheckTime).not.toBeNull();
     });
 
-    it.skip('tracks failure count accurately', async () => {
+    it('tracks failure count accurately', async () => {
       store.$patch({ isAuthenticated: true });
 
-      axiosMock.onGet('/auth/validate').reply(500);
+      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(500);
 
       await store.checkWindowStatus();
       expect(store.failureCount).toBe(1);
     });
 
-    it.skip('resets failure count after successful check', async () => {
+    it('resets failure count after successful check', async () => {
       store.$patch({ isAuthenticated: true });
       store.failureCount = 2;
 
-      axiosMock.onGet('/auth/validate').reply(200, {
-        details: { authenticated: true },
+      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
+        authenticated: true,
+        cust: mockCustomer,
+        shrimp: 'tempura',
       });
 
       await store.checkWindowStatus();
       expect(store.failureCount).toBe(0);
     });
 
-    it.skip('forces logout after MAX_FAILURES consecutive failures', async () => {
+    it('forces logout after MAX_FAILURES consecutive failures', async () => {
       store.$patch({ isAuthenticated: true });
-      const logoutSpy = vi.spyOn(store, 'logout');
 
       // Configure mock to fail, with a specific error response
-      axiosMock.onGet('/auth/validate').reply(() => [500, { error: 'Auth check failed' }]);
+      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(() => [500, { error: 'Auth check failed' }]);
 
-      // Simulate MAX_FAILURES consecutive failures
-      for (let i = 0; i < AUTH_CHECK_CONFIG.MAX_FAILURES; i++) {
+      // Simulate MAX_FAILURES-1 consecutive failures (no logout yet)
+      for (let i = 0; i < AUTH_CHECK_CONFIG.MAX_FAILURES - 1; i++) {
         await store.checkWindowStatus();
         // Re-authenticate between checks for testing
         store.$patch({ isAuthenticated: true });
       }
 
-      expect(logoutSpy).toHaveBeenCalled();
+      // Verify we're still authenticated before the final failure
+      expect(store.isAuthenticated).toBe(true);
+      expect(store.failureCount).toBe(AUTH_CHECK_CONFIG.MAX_FAILURES - 1);
+
+      // Final failure should trigger logout (sets isAuthenticated to null via $reset)
+      await store.checkWindowStatus();
+
+      // After logout, isAuthenticated should be null (from $reset)
+      expect(store.isAuthenticated).toBeNull();
+      expect(store.failureCount).toBeNull();
+      expect(store.authCheckTimer).toBeNull();
     });
   });
 
@@ -335,7 +346,7 @@ describe('authStore', () => {
     });
 
     // Test the happy path for comparison
-    it.skip('succeeds with valid response', async () => {
+    it('succeeds with valid response', async () => {
       // Set initial authenticated state
       store.$patch({ isAuthenticated: true });
 
@@ -799,7 +810,7 @@ describe('authStore', () => {
       expect(store.failureCount).toBe(1);
     });
 
-    it.skip('recovers from temporary network failures', async () => {
+    it('recovers from temporary network failures', async () => {
       store.$patch({ isAuthenticated: true });
 
       store.failureCount = 1; // Simulate previous failure
