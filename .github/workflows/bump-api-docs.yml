@@ -7,20 +7,41 @@
 # files are ephemeral build artifacts — they are never committed to the repo.
 # Bump.sh is the single canonical source for published API documentation.
 #
-# Deploys v1/v2/v3 as branches within a single Bump.sh documentation,
-# letting readers toggle between API versions on one page.
+# Architecture: Hub with three separate API documents (v1, v2, v3).
+# Each API version is a distinct document in the hub, not a branch.
+# Git branches (main/develop) track deployment environments within each API:
+#   - Deploys use --branch with the git ref (main or develop)
+#   - Diffs compare PR changes against the target branch's deployed docs
+#   - Other branches skip deploy/diff (generate job still runs for validation)
 #
 # See: https://docs.bump.sh/help/continuous-integration/github-actions/
-#      https://docs.bump.sh/help/branching/
+#      https://docs.bump.sh/help/hubs/
 #
-# Required GitHub Actions secrets:
-#   BUMP_TOKEN             — public API documentation token (Settings > CI Deployment)
-#   BUMP_DOC_SLUG          — public API doc slug (found in doc settings on Bump.sh)
+# Required GitHub Actions secrets (public APIs):
+#   BUMP_TOKEN             — hub token with deploy access (Settings > CI Deployment)
+#   BUMP_HUB_ID            — public hub ID on Bump.sh
+#   BUMP_V1_DOC_SLUG       — doc slug for v1 API
+#   BUMP_V2_DOC_SLUG       — doc slug for v2 API
+#   BUMP_V3_DOC_SLUG       — doc slug for v3 API
 #
 # Required for internal API docs (jobs run but fail if missing):
 #   BUMP_INTERNAL_TOKEN    — internal hub token (separate from public BUMP_TOKEN)
 #   BUMP_INTERNAL_HUB_ID   — internal hub ID on Bump.sh
 #   BUMP_INTERNAL_DOC_SLUG — internal API doc slug
+#
+# Setting secrets via gh CLI (omit --body to enter interactively, keeps tokens out of shell history):
+#   gh secret set BUMP_TOKEN
+#   gh secret set BUMP_HUB_ID --body "your-hub-id"
+#   gh secret set BUMP_V1_DOC_SLUG --body "your-v1-slug"
+#   gh secret set BUMP_V2_DOC_SLUG --body "your-v2-slug"
+#   gh secret set BUMP_V3_DOC_SLUG --body "your-v3-slug"
+#   gh secret set BUMP_INTERNAL_TOKEN
+#   gh secret set BUMP_INTERNAL_HUB_ID --body "your-internal-hub-id"
+#   gh secret set BUMP_INTERNAL_DOC_SLUG --body "your-internal-slug"
+#
+# List/delete secrets:
+#   gh secret list
+#   gh secret delete BUMP_DOC_SLUG  # remove legacy single-doc secret
 #
 ---
 name: Check & deploy API documentation
@@ -112,7 +133,8 @@ jobs:
 
   deploy:
     needs: generate
-    if: ${{ github.event_name != 'pull_request' }}
+    # Only deploy from main or develop; skip other branches (e.g., workflow_dispatch from feature branch)
+    if: ${{ github.event_name != 'pull_request' && (github.ref_name == 'main' || github.ref_name == 'develop') }}
     name: Deploy API docs on Bump.sh
     runs-on: ubuntu-latest
     steps:
@@ -125,33 +147,53 @@ jobs:
       - name: Install Bump.sh CLI
         run: npm install -g bump-cli@2.9.12
 
-      - name: Deploy public API versions
+      - name: Deploy public API versions to hub
         env:
-          BUMP_DOC: ${{ secrets.BUMP_DOC_SLUG }}
+          BUMP_HUB: ${{ secrets.BUMP_HUB_ID }}
           BUMP_TOKEN: ${{ secrets.BUMP_TOKEN }}
+          BUMP_BRANCH: ${{ github.ref_name }}
+          V1_DOC: ${{ secrets.BUMP_V1_DOC_SLUG }}
+          V2_DOC: ${{ secrets.BUMP_V2_DOC_SLUG }}
+          V3_DOC: ${{ secrets.BUMP_V3_DOC_SLUG }}
         run: |
-          for version in v1 v2 v3; do
-            echo "Deploying ${version}..."
-            bump deploy "generated/openapi/openapi.${version}.json" \
-              --doc "$BUMP_DOC" \
-              --branch "$version" \
-              --token "$BUMP_TOKEN"
-          done
+          echo "Deploying v1 API to branch ${BUMP_BRANCH}..."
+          bump deploy "generated/openapi/openapi.v1.json" \
+            --hub "$BUMP_HUB" \
+            --doc "$V1_DOC" \
+            --branch "$BUMP_BRANCH" \
+            --token "$BUMP_TOKEN"
+
+          echo "Deploying v2 API to branch ${BUMP_BRANCH}..."
+          bump deploy "generated/openapi/openapi.v2.json" \
+            --hub "$BUMP_HUB" \
+            --doc "$V2_DOC" \
+            --branch "$BUMP_BRANCH" \
+            --token "$BUMP_TOKEN"
+
+          echo "Deploying v3 API to branch ${BUMP_BRANCH}..."
+          bump deploy "generated/openapi/openapi.v3.json" \
+            --hub "$BUMP_HUB" \
+            --doc "$V3_DOC" \
+            --branch "$BUMP_BRANCH" \
+            --token "$BUMP_TOKEN"
 
       - name: Deploy internal API
         env:
           BUMP_HUB: ${{ secrets.BUMP_INTERNAL_HUB_ID }}
           BUMP_DOC: ${{ secrets.BUMP_INTERNAL_DOC_SLUG }}
           BUMP_TOKEN: ${{ secrets.BUMP_INTERNAL_TOKEN }}
+          BUMP_BRANCH: ${{ github.ref_name }}
         run: >
           bump deploy generated/openapi/openapi.internal.json
           --hub "$BUMP_HUB"
           --doc "$BUMP_DOC"
+          --branch "$BUMP_BRANCH"
           --token "$BUMP_TOKEN"
 
   diff:
     needs: generate
-    if: ${{ github.event_name == 'pull_request' }}
+    # Diff runs on PRs; compares against the target branch's deployed docs
+    if: ${{ github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'develop') }}
     name: Diff API docs on Bump.sh
     runs-on: ubuntu-latest
     steps:
@@ -166,24 +208,43 @@ jobs:
 
       - name: Diff public API versions
         env:
-          BUMP_DOC: ${{ secrets.BUMP_DOC_SLUG }}
+          BUMP_HUB: ${{ secrets.BUMP_HUB_ID }}
           BUMP_TOKEN: ${{ secrets.BUMP_TOKEN }}
+          BUMP_BRANCH: ${{ github.base_ref }}
+          V1_DOC: ${{ secrets.BUMP_V1_DOC_SLUG }}
+          V2_DOC: ${{ secrets.BUMP_V2_DOC_SLUG }}
+          V3_DOC: ${{ secrets.BUMP_V3_DOC_SLUG }}
         run: |
-          for version in v1 v2 v3; do
-            echo "Diffing ${version}..."
-            bump diff "generated/openapi/openapi.${version}.json" \
-              --doc "$BUMP_DOC" \
-              --branch "$version" \
-              --token "$BUMP_TOKEN"
-          done
+          echo "Diffing v1 API against ${BUMP_BRANCH}..."
+          bump diff "generated/openapi/openapi.v1.json" \
+            --hub "$BUMP_HUB" \
+            --doc "$V1_DOC" \
+            --branch "$BUMP_BRANCH" \
+            --token "$BUMP_TOKEN"
+
+          echo "Diffing v2 API against ${BUMP_BRANCH}..."
+          bump diff "generated/openapi/openapi.v2.json" \
+            --hub "$BUMP_HUB" \
+            --doc "$V2_DOC" \
+            --branch "$BUMP_BRANCH" \
+            --token "$BUMP_TOKEN"
+
+          echo "Diffing v3 API against ${BUMP_BRANCH}..."
+          bump diff "generated/openapi/openapi.v3.json" \
+            --hub "$BUMP_HUB" \
+            --doc "$V3_DOC" \
+            --branch "$BUMP_BRANCH" \
+            --token "$BUMP_TOKEN"
 
       - name: Diff internal API
         env:
           BUMP_HUB: ${{ secrets.BUMP_INTERNAL_HUB_ID }}
           BUMP_DOC: ${{ secrets.BUMP_INTERNAL_DOC_SLUG }}
           BUMP_TOKEN: ${{ secrets.BUMP_INTERNAL_TOKEN }}
+          BUMP_BRANCH: ${{ github.base_ref }}
         run: >
           bump diff generated/openapi/openapi.internal.json
           --hub "$BUMP_HUB"
           --doc "$BUMP_DOC"
+          --branch "$BUMP_BRANCH"
           --token "$BUMP_TOKEN"
