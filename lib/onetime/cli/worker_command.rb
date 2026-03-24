@@ -93,20 +93,20 @@ module Onetime
           # Declare exchanges and queues
           declare_infrastructure
 
+          if worker_classes.empty?
+            if check
+              warn 'Check failed: No worker classes found'
+            else
+              Onetime.workers_logger.error('No worker classes found')
+            end
+            exit EXIT_GENERAL_ERROR
+          end
+
           # Handle --check mode: validate and exit
           if check
-            if worker_classes.empty?
-              warn 'Check failed: No worker classes found'
-              exit EXIT_GENERAL_ERROR
-            end
             puts "Config OK: #{worker_classes.size} worker(s) ready"
             puts "Workers: #{worker_classes.map(&:name).join(', ')}"
             exit EXIT_SUCCESS
-          end
-
-          if worker_classes.empty?
-            Onetime.workers_logger.error('No worker classes found')
-            exit EXIT_GENERAL_ERROR
           end
 
           Onetime.workers_logger.info("Starting #{worker_classes.size} worker(s) with concurrency #{concurrency}")
@@ -132,7 +132,7 @@ module Onetime
         def preflight_check!
           parsed = parse_amqp_url(@amqp_url)
           host   = parsed[:host]
-          port   = parsed[:port] || 5672
+          port   = parsed[:port]
 
           Socket.tcp(host, port, connect_timeout: 2).close
         rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Errno::ETIMEDOUT, SocketError => ex

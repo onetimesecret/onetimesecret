@@ -505,23 +505,16 @@ RSpec.describe Onetime::CLI::WorkerCommand, type: :cli do
       it 'outputs actionable error message with fix suggestions when connection refused' do
         allow(Socket).to receive(:tcp).and_raise(Errno::ECONNREFUSED.new('Connection refused'))
 
-        stderr_output = nil
         expect {
           begin
             command.send(:preflight_check!)
           rescue SystemExit
             # Expected
           end
-        }.to output(/ERROR: Cannot connect to RabbitMQ/).to_stderr
-
-        # Verify the stderr contains helpful fix suggestions
-        expect {
-          begin
-            command.send(:preflight_check!)
-          rescue SystemExit
-            # Expected
-          end
-        }.to output(/brew services start rabbitmq/).to_stderr
+        }.to output(
+          a_string_including('ERROR: Cannot connect to RabbitMQ')
+          .and(a_string_including('brew services start rabbitmq'))
+        ).to_stderr
       end
 
       it 'includes host and port in error message' do
@@ -766,6 +759,14 @@ RSpec.describe Onetime::CLI::WorkerCommand, type: :cli do
 
     it 'uses port 5671 for amqps:// URLs when specified' do
       command.instance_variable_set(:@amqp_url, 'amqps://user:pass@rabbitmq.example.com:5671/vhost')
+
+      expect(Socket).to receive(:tcp).with('rabbitmq.example.com', 5671, connect_timeout: 2).and_return(mock_socket)
+
+      command.send(:preflight_check!)
+    end
+
+    it 'defaults to port 5671 for amqps:// URLs when port is not specified' do
+      command.instance_variable_set(:@amqp_url, 'amqps://user:pass@rabbitmq.example.com/vhost')
 
       expect(Socket).to receive(:tcp).with('rabbitmq.example.com', 5671, connect_timeout: 2).and_return(mock_socket)
 
