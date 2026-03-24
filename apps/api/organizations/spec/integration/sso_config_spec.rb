@@ -169,4 +169,130 @@ RSpec.describe 'SSO Config API Integration', type: :request do
       end
     end
   end
+
+  # Integration test for PUT/PATCH lifecycle
+  #
+  # This test verifies that:
+  # 1. PUT creates config with client_secret
+  # 2. PATCH updates display_name without providing client_secret (preserves existing secret)
+  # 3. The secret is still usable after PATCH (verifying preservation)
+  #
+  # This tests the real Logic layer classes in sequence, without HTTP routing,
+  # to validate the PUT -> PATCH workflow for client_secret preservation.
+  describe 'PUT/PATCH lifecycle: client_secret preservation' do
+    let(:original_secret) { 'initial-super-secret-value' }
+    let(:updated_display_name) { 'Updated SSO Display Name' }
+
+    let(:put_params) do
+      {
+        'extid' => 'ext-org-123',
+        'provider_type' => 'entra_id',
+        'display_name' => 'Contoso SSO',
+        'client_id' => 'client-id-123',
+        'client_secret' => original_secret,
+        'tenant_id' => 'tenant-uuid-789',
+        'allowed_domains' => ['contoso.com'],
+        'enabled' => true,
+      }
+    end
+
+    let(:patch_params) do
+      {
+        'extid' => 'ext-org-123',
+        'provider_type' => 'entra_id',
+        'display_name' => updated_display_name,
+        'client_id' => 'client-id-123',
+        'client_secret' => '', # Empty - should preserve existing secret
+        'tenant_id' => 'tenant-uuid-789',
+        'allowed_domains' => ['contoso.com'],
+        'enabled' => true,
+      }
+    end
+
+    let(:session) { { 'csrf' => 'test-csrf-token' } }
+
+    let(:strategy_result) do
+      double('StrategyResult',
+        session: session,
+        user: customer,
+        authenticated?: true,
+        metadata: {},
+      )
+    end
+
+    # Shared mutable config instance to track state across PUT -> PATCH
+    let(:shared_config) do
+      Onetime::OrgSsoConfig.new(
+        org_id: 'org-123',
+        provider_type: 'entra_id',
+        display_name: 'Contoso SSO',
+        tenant_id: 'tenant-uuid-789',
+        enabled: 'true',
+      )
+    end
+
+    before do
+      allow(Onetime::Organization).to receive(:find_by_extid).with('ext-org-123').and_return(organization)
+      allow(organization).to receive(:owner?).with(customer).and_return(true)
+    end
+
+    it 'preserves client_secret through PUT -> PATCH -> verification cycle' do
+      # Phase 1: PUT creates config with client_secret
+      allow(Onetime::OrgSsoConfig).to receive(:find_by_org_id).with('org-123').and_return(nil)
+
+      put_logic = OrganizationAPI::Logic::SsoConfig::PutSsoConfig.new(strategy_result, put_params)
+
+      # Stub create! to return shared_config and simulate creation
+      allow(Onetime::OrgSsoConfig).to receive(:create!) do |params|
+        shared_config.client_id = params[:client_id]
+        shared_config.client_secret = params[:client_secret]
+        shared_config.allowed_domains = params[:allowed_domains]
+        shared_config.define_singleton_method(:save) { true }
+        shared_config
+      end
+
+      put_logic.raise_concerns
+      put_result = put_logic.process
+
+      # Verify PUT created the secret
+      expect(shared_config.client_secret.reveal { it }).to eq(original_secret)
+      expect(shared_config.display_name).to eq('Contoso SSO')
+
+      # Phase 2: PATCH updates display_name without client_secret
+      allow(Onetime::OrgSsoConfig).to receive(:find_by_org_id).with('org-123').and_return(shared_config)
+      allow(shared_config).to receive(:save).and_return(true)
+
+      patch_logic = OrganizationAPI::Logic::SsoConfig::PatchSsoConfig.new(strategy_result, patch_params)
+      patch_logic.raise_concerns
+      patch_result = patch_logic.process
+
+      # Verify PATCH updated display_name
+      expect(shared_config.display_name).to eq(updated_display_name)
+
+      # Phase 3: Verify client_secret was preserved (not overwritten)
+      revealed_secret = shared_config.client_secret.reveal { it }
+      expect(revealed_secret).to eq(original_secret)
+      expect(revealed_secret).not_to be_empty
+    end
+
+    it 'allows updating client_secret when explicitly provided in PATCH' do
+      new_secret = 'brand-new-rotated-secret'
+
+      # Setup: config already exists with original secret
+      shared_config.client_id = 'client-id-123'
+      shared_config.client_secret = original_secret
+      shared_config.allowed_domains = ['contoso.com']
+      allow(shared_config).to receive(:save).and_return(true)
+
+      allow(Onetime::OrgSsoConfig).to receive(:find_by_org_id).with('org-123').and_return(shared_config)
+
+      patch_with_new_secret = patch_params.merge('client_secret' => new_secret)
+      patch_logic = OrganizationAPI::Logic::SsoConfig::PatchSsoConfig.new(strategy_result, patch_with_new_secret)
+      patch_logic.raise_concerns
+      patch_logic.process
+
+      # Verify secret was rotated
+      expect(shared_config.client_secret.reveal { it }).to eq(new_secret)
+    end
+  end
 end
