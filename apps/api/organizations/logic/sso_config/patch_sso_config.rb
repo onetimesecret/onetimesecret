@@ -23,7 +23,7 @@ module OrganizationAPI::Logic
     # - tenant_id: Required for entra_id provider on create (preserves existing if empty)
     # - issuer: Required for oidc provider on create (preserves existing if empty)
     # - display_name: Optional. Human-readable name (preserves existing if empty)
-    # - allowed_domains: Optional. Array of allowed email domains (uses PUT semantics)
+    # - allowed_domains: Optional. Array of allowed email domains (preserves existing if omitted)
     # - enabled: Optional. Boolean to enable/disable SSO (default: false, preserves existing if omitted)
     #
     # Response includes the updated config with masked client_secret_masked.
@@ -38,14 +38,16 @@ module OrganizationAPI::Logic
       attr_reader :organization, :sso_config, :existing_config
 
       def process_params
-        @extid           = sanitize_identifier(params['extid'])
-        @provider_type   = sanitize_plain_text(params['provider_type'])
-        @display_name    = sanitize_plain_text(params['display_name'])
-        @client_id       = params['client_id'].to_s.strip
-        @client_secret   = params['client_secret'].to_s.strip
-        @tenant_id       = sanitize_plain_text(params['tenant_id'])
-        @issuer          = sanitize_url(params['issuer'])
-        @allowed_domains = parse_allowed_domains(params['allowed_domains'])
+        @extid                    = sanitize_identifier(params['extid'])
+        @provider_type            = sanitize_plain_text(params['provider_type'])
+        @display_name             = sanitize_plain_text(params['display_name'])
+        @client_id                = params['client_id'].to_s.strip
+        @client_secret            = params['client_secret'].to_s.strip
+        @tenant_id                = sanitize_plain_text(params['tenant_id'])
+        @issuer                   = sanitize_url(params['issuer'])
+        # Track whether allowed_domains was explicitly provided (for PATCH semantics)
+        @allowed_domains_provided = params.key?('allowed_domains')
+        @allowed_domains          = parse_allowed_domains(params['allowed_domains'])
 
         # Track whether enabled was explicitly provided (for PATCH semantics)
         @enabled_provided = !params['enabled'].nil?
@@ -217,18 +219,18 @@ module OrganizationAPI::Logic
       # Updates an existing SSO config with PATCH semantics.
       #
       # PATCH Semantics:
-      # - Most optional fields (display_name, tenant_id, issuer, client_secret)
-      #   are preserved when empty/omitted, allowing partial updates.
+      # - Optional fields (display_name, tenant_id, issuer, client_secret, allowed_domains)
+      #   are preserved when omitted, allowing partial updates.
       # - Provider-specific fields are preserved on provider switch. For example,
       #   switching from entra_id to google preserves tenant_id, and switching
       #   from oidc to entra_id preserves issuer. This is intentional behavior
       #   that allows reverting to the previous provider without re-entering
       #   credentials.
       #
-      # Exception - allowed_domains uses PUT semantics:
-      # - An empty array explicitly clears all existing domains
-      # - Omitting the field results in an empty array (not preservation)
-      # - This differs from other optional fields to support explicit domain clearing
+      # allowed_domains behavior:
+      # - When omitted: preserves existing domains (true PATCH semantics)
+      # - When provided as []: explicitly clears all existing domains
+      # - When provided with values: replaces with new values
       #
       def update_existing_config
         @sso_config = @existing_config
@@ -244,8 +246,10 @@ module OrganizationAPI::Logic
         # Only update client_secret if provided (preserves existing otherwise)
         @sso_config.client_secret = @client_secret unless @client_secret.to_s.empty?
 
-        # allowed_domains uses PUT semantics: always replaces (see comment above)
-        @sso_config.allowed_domains = @allowed_domains
+        # Only update allowed_domains if explicitly provided in the request.
+        # When provided, uses PUT semantics (empty array clears existing domains).
+        # When omitted, preserves existing domains.
+        @sso_config.allowed_domains = @allowed_domains if @allowed_domains_provided
 
         # Update timestamp for partial update
         @sso_config.updated = Familia.now.to_i

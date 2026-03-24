@@ -196,8 +196,8 @@ module Core
 
           custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
           custom_domain&.org_id
-        rescue Redis::BaseError
-          # Log but don't fail - fall back to platform config
+        rescue Redis::BaseError => ex
+          OT.le "[ConfigSerializer] Redis error resolving org_id for domain=#{display_domain}: #{ex.class}"
           nil
         end
 
