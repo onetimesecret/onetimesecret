@@ -132,7 +132,7 @@ RSpec.describe Onetime::Application::AuthStrategies::NoAuthStrategy, type: :inte
     # Source comment accuracy
     # -----------------------------------------------------------------
     context 'source documentation' do
-      let(:source_file) { File.read(File.expand_path('../../../../../lib/onetime/application/auth_strategies.rb', __dir__)) }
+      let(:source_file) { File.read(File.expand_path('../../../../../lib/onetime/application/auth_strategies/no_auth_strategy.rb', __dir__)) }
 
       it 'comment says "Try session first, then fall back to anonymous" (no mention of Basic auth handling here)' do
         # The NoAuthStrategy comment must describe its own scope accurately:
