@@ -25,9 +25,9 @@ require 'argon2'
 RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
   include Rack::Test::Methods
 
-  # Rack::Test requires an `app` method
+  # Rack::Test requires an `app` method - memoize to avoid state corruption
   def app
-    Onetime::Application::Registry.generate_rack_url_map
+    @app ||= Onetime::Application::Registry.generate_rack_url_map
   end
 
   # Access auth database for direct assertions

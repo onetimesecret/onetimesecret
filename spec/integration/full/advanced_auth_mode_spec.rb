@@ -35,7 +35,7 @@ RSpec.describe 'Full Authentication Mode', type: :integration do
   end
 
   def app
-    Onetime::Application::Registry.generate_rack_url_map
+    @app ||= Onetime::Application::Registry.generate_rack_url_map
   end
 
   # Override ensure_csrf_token to fetch fresh token for each request
