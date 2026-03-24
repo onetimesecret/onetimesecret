@@ -16,16 +16,18 @@ module Onetime
         #
         # Returns a hash with keys: :host, :port, :user, :password, :vhost, :scheme
         def parse_amqp_url(url)
-          uri      = URI.parse(url)
-          raw_path = uri.path&.sub(%r{^/}, '')
-          vhost    = raw_path.nil? || raw_path.empty? ? '/' : raw_path
+          uri          = URI.parse(url)
+          raw_path     = uri.path&.sub(%r{^/}, '')
+          vhost        = raw_path.nil? || raw_path.empty? ? '/' : raw_path
+          scheme       = uri.scheme || 'amqp'
+          default_port = scheme == 'amqps' ? 5671 : 5672
           {
             host: uri.host || 'localhost',
-            port: uri.port || 5672,
+            port: uri.port || default_port,
             user: uri.user || 'guest',
             password: uri.password || 'guest',
             vhost: vhost,
-            scheme: uri.scheme || 'amqp',
+            scheme: scheme,
           }
         end
 
