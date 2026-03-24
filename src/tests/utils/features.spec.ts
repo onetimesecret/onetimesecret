@@ -567,8 +567,8 @@ describe('features utility', () => {
   });
 
   describe('isOrganizationSwitcherEnabled', () => {
-    it('returns true when organization_switcher feature is enabled', () => {
-      getBootstrapValueMock.mockReturnValue({ organization_switcher: true });
+    it('returns true when organizations.enabled is true', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { enabled: true } });
 
       const result = isOrganizationSwitcherEnabled();
 
@@ -576,15 +576,23 @@ describe('features utility', () => {
       expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
     });
 
-    it('returns false when organization_switcher feature is disabled', () => {
-      getBootstrapValueMock.mockReturnValue({ organization_switcher: false });
+    it('returns false when organizations.enabled is false', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { enabled: false } });
 
       const result = isOrganizationSwitcherEnabled();
 
       expect(result).toBe(false);
     });
 
-    it('returns false when organization_switcher feature is undefined', () => {
+    it('returns false when organizations object is empty', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: {} });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations is undefined', () => {
       getBootstrapValueMock.mockReturnValue({});
 
       const result = isOrganizationSwitcherEnabled();
@@ -600,24 +608,24 @@ describe('features utility', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when organization_switcher is truthy but not exactly true', () => {
-      getBootstrapValueMock.mockReturnValue({ organization_switcher: 'yes' });
+    it('returns false when organizations.enabled is truthy but not exactly true', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { enabled: 'yes' } });
 
       const result = isOrganizationSwitcherEnabled();
 
       expect(result).toBe(false);
     });
 
-    it('returns false when organization_switcher is null', () => {
-      getBootstrapValueMock.mockReturnValue({ organization_switcher: null });
+    it('returns false when organizations.enabled is null', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { enabled: null } });
 
       const result = isOrganizationSwitcherEnabled();
 
       expect(result).toBe(false);
     });
 
-    it('returns false when organization_switcher is 1 (number)', () => {
-      getBootstrapValueMock.mockReturnValue({ organization_switcher: 1 });
+    it('returns false when organizations.enabled is 1 (number)', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { enabled: 1 } });
 
       const result = isOrganizationSwitcherEnabled();
 

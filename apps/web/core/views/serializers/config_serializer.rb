@@ -131,7 +131,9 @@ module Core
             'webauthn' => Onetime.auth_config.webauthn_enabled?,
             'sso' => build_sso_config(view_vars),
             'sso_only' => Onetime.auth_config.sso_only_enabled?,
-            'organization_switcher' => features.fetch('organization_switcher_enabled', false),
+            'organizations' => {
+              'enabled' => features.dig('organizations', 'enabled') || false,
+            },
           }
         end
 

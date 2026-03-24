@@ -179,7 +179,9 @@ export const featuresSchema = z.object({
   sso: z.union([z.boolean(), ssoConfigSchema]).optional(),
   sso_only: z.boolean().optional(),
   magic_links: z.boolean().optional(),
-  organization_switcher: z.boolean().optional().default(false),
+  organizations: z.object({
+    enabled: z.boolean().default(false),
+  }).optional().default({ enabled: false }),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
