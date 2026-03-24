@@ -6,6 +6,7 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'timeout'
+require_relative 'ssrf_protection'
 
 module OrganizationAPI::Logic
   module SsoConfig
@@ -33,6 +34,8 @@ module OrganizationAPI::Logic
     # - details: Provider-specific information or error details
     #
     class TestConnection < OrganizationAPI::Logic::Base
+      include SsrfProtection
+
       # Connection timeout in seconds
       CONNECTION_TIMEOUT = 10
 
@@ -261,72 +264,6 @@ module OrganizationAPI::Logic
         # Normalize issuer URL
         base = issuer.to_s.chomp('/')
         "#{base}/.well-known/openid-configuration"
-      end
-
-      def valid_issuer_host?(url)
-        uri = URI.parse(url)
-
-        # Must be HTTPS
-        return false unless uri.scheme == 'https'
-
-        # Must have a host
-        return false if uri.host.nil? || uri.host.empty?
-
-        # Prevent localhost/internal IPs (SSRF)
-        return false if internal_host?(uri.host)
-
-        true
-      rescue URI::InvalidURIError
-        false
-      end
-
-      def internal_host?(host)
-        # Block localhost and common internal hostnames
-        return true if host == 'localhost'
-        return true if host.end_with?('.local')
-        return true if host.end_with?('.internal')
-
-        # Block private IP ranges (when host is a literal IP)
-        begin
-          require 'ipaddr'
-          ip = IPAddr.new(host)
-
-          # Check for loopback, private, or link-local addresses
-          return true if ip.loopback?
-          return true if ip.private?
-          return true if ip.link_local?
-        rescue IPAddr::InvalidAddressError
-          # Not an IP address, continue to DNS resolution check
-        end
-
-        # DNS rebinding protection: resolve hostname and check all IPs
-        # This prevents bypasses like 127.0.0.1.nip.io or localtest.me
-        return true if resolves_to_internal_ip?(host)
-
-        false
-      end
-
-      # Resolves a hostname and checks if any resolved IP is internal.
-      # Returns true if the hostname resolves to a loopback, private,
-      # or link-local address.
-      def resolves_to_internal_ip?(hostname)
-        require 'resolv'
-        require 'ipaddr'
-
-        # Resolve all A and AAAA records
-        addresses = Resolv.getaddresses(hostname)
-
-        addresses.any? do |addr_str|
-          ip = IPAddr.new(addr_str)
-          ip.loopback? || ip.private? || ip.link_local?
-        rescue IPAddr::InvalidAddressError
-          # Skip malformed addresses
-          false
-        end
-      rescue Resolv::ResolvError, Resolv::ResolvTimeout
-        # DNS resolution failed - block as a precaution
-        # If we can't resolve the hostname, we shouldn't proceed with the request
-        true
       end
 
       def fetch_and_validate_discovery(url, provider_name)

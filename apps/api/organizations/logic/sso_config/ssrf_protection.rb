@@ -4,6 +4,7 @@
 
 require 'uri'
 require 'ipaddr'
+require 'resolv'
 
 module OrganizationAPI::Logic
   module SsoConfig
@@ -14,13 +15,17 @@ module OrganizationAPI::Logic
     # discovery fetches metadata from the issuer URL, so we must validate
     # that the URL does not point to internal/private networks.
     #
-    # Limitations:
-    # - DNS rebinding attacks are NOT prevented. The URL is validated at parse
-    #   time, not at request time. A malicious DNS server could return a safe
-    #   IP during validation, then switch to an internal IP when OmniAuth
-    #   actually fetches the metadata. Mitigating this requires DNS pinning
-    #   or resolving the hostname and validating the resolved IP immediately
-    #   before use, which is beyond the scope of this module.
+    # Protection includes:
+    # - Blocking literal internal IPs (loopback, private, link-local)
+    # - Blocking internal hostnames (localhost, .local, .internal)
+    # - DNS rebinding protection via hostname resolution check
+    #
+    # Note on DNS rebinding: While we resolve hostnames at validation time,
+    # a sophisticated attacker could still exploit DNS rebinding by returning
+    # a safe IP during our check, then switching to an internal IP during
+    # the actual OmniAuth request (if sufficient time passes). Full mitigation
+    # would require DNS pinning at the HTTP client level, which is beyond
+    # the scope of this module.
     #
     # Usage:
     #   include SsrfProtection
@@ -58,7 +63,7 @@ module OrganizationAPI::Logic
         return true if host.end_with?('.local')
         return true if host.end_with?('.internal')
 
-        # Block private IP ranges
+        # Block private IP ranges (when host is a literal IP)
         begin
           ip = IPAddr.new(host)
 
@@ -67,11 +72,38 @@ module OrganizationAPI::Logic
           return true if ip.private?
           return true if ip.link_local?
         rescue IPAddr::InvalidAddressError
-          # Not an IP address, proceed with hostname
-          false
+          # Not an IP address, continue to DNS resolution check
         end
 
+        # DNS rebinding protection: resolve hostname and check all IPs
+        # This prevents bypasses like 127.0.0.1.nip.io or localtest.me
+        return true if resolves_to_internal_ip?(host)
+
         false
+      end
+
+      # Resolves a hostname and checks if any resolved IP is internal.
+      #
+      # Returns true if the hostname resolves to a loopback, private,
+      # or link-local address.
+      #
+      # @param hostname [String] The hostname to resolve
+      # @return [Boolean] true if any resolved IP is internal
+      def resolves_to_internal_ip?(hostname)
+        # Resolve all A and AAAA records
+        addresses = Resolv.getaddresses(hostname)
+
+        addresses.any? do |addr_str|
+          ip = IPAddr.new(addr_str)
+          ip.loopback? || ip.private? || ip.link_local?
+        rescue IPAddr::InvalidAddressError
+          # Skip malformed addresses
+          false
+        end
+      rescue Resolv::ResolvError, Resolv::ResolvTimeout
+        # DNS resolution failed - block as a precaution
+        # If we can't resolve the hostname, we shouldn't proceed
+        true
       end
     end
   end

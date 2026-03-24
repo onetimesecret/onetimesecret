@@ -11,7 +11,7 @@ module OrganizationAPI::Logic
     #
     # @api Removes the SSO configuration for an organization.
     #   Requires the requesting user to be an organization owner.
-    #   Returns 204 No Content on success.
+    #   Returns 200 with JSON confirmation on success.
     #
     # After deletion, organization members will no longer be able to
     # authenticate via SSO. They must use standard email/password
