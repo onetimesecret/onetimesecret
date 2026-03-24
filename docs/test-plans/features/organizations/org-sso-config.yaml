@@ -125,8 +125,13 @@ tests:
       - Success message "SSO configuration saved" appears
       - Form retains entered values after save
       - Client secret field shows masked value (dots)
-      - GET /api/v2/org/:extid/sso returns provider_type=entra_id, client_id, tenant_id, enabled=true
-      - API response masks client_secret as dots
+      - api: GET /api/v2/org/{{org.extid}}/sso
+        assert:
+          provider_type: entra_id
+          client_id: my-client-id
+          client_secret: "••••••••"
+          tenant_id: my-tenant-id
+          enabled: true
     priority: critical
     severity: blocker
     type: functional
@@ -155,7 +160,10 @@ tests:
       - Success message appears
       - Client ID is updated to "updated-client-id"
       - Client secret remains unchanged (verified via test connection)
-      - GET /api/v2/org/:extid/sso returns updated client_id with masked secret
+      - api: GET /api/v2/org/{{org.extid}}/sso
+        assert:
+          client_id: updated-client-id
+          client_secret: "••••••••"
     priority: high
     severity: major
     type: functional
@@ -180,7 +188,9 @@ tests:
       - Confirmation dialog appears before deletion
       - Success message "SSO configuration deleted" after confirm
       - Form resets to unconfigured state
-      - GET /api/v2/org/:extid/sso returns 404
+      - api: GET /api/v2/org/{{org.extid}}/sso
+        assert:
+          status: 404
     postconditions:
       - SSO config no longer exists
       - SSO login disabled for organization
@@ -266,7 +276,10 @@ tests:
     verify:
       - Success message appears
       - No tenant_id or issuer fields required
-      - GET /api/v2/org/:extid/sso returns provider_type=google with correct client_id
+      - api: GET /api/v2/org/{{org.extid}}/sso
+        assert:
+          provider_type: google
+          client_id: google-client-id.apps.googleusercontent.com
     priority: high
     type: functional
     covers:
@@ -348,7 +361,9 @@ tests:
     verify:
       - Access denied or redirected to organization dashboard
       - SSO configuration form not visible
-      - GET /api/v2/org/:extid/sso returns 403 Forbidden
+      - api: GET /api/v2/org/{{org.extid}}/sso
+        assert:
+          status: 403
     priority: critical
     severity: blocker
     type: security
@@ -367,8 +382,15 @@ tests:
     action:
       type: none
     verify:
-      - PUT /api/v2/org/:extid/sso returns 403 Forbidden for non-owner
-      - DELETE /api/v2/org/:extid/sso returns 403 Forbidden for non-owner
+      - api: PUT /api/v2/org/{{org.extid}}/sso
+        body:
+          provider_type: entra_id
+          client_id: malicious-client
+        assert:
+          status: 403
+      - api: DELETE /api/v2/org/{{org.extid}}/sso
+        assert:
+          status: 403
     priority: critical
     severity: blocker
     type: security
@@ -442,9 +464,24 @@ tests:
     action:
       type: none
     verify:
-      - PUT with issuer=http://192.168.1.1/oauth returns 422
-      - PUT with issuer=http://10.0.0.1/oauth returns 422
-      - PUT with issuer=http://172.16.0.1/oauth returns 422
+      - api: PUT /api/v2/org/{{org.extid}}/sso
+        body:
+          provider_type: oidc
+          issuer: http://192.168.1.1/oauth
+        assert:
+          status: 422
+      - api: PUT /api/v2/org/{{org.extid}}/sso
+        body:
+          provider_type: oidc
+          issuer: http://10.0.0.1/oauth
+        assert:
+          status: 422
+      - api: PUT /api/v2/org/{{org.extid}}/sso
+        body:
+          provider_type: oidc
+          issuer: http://172.16.0.1/oauth
+        assert:
+          status: 422
     priority: critical
     severity: blocker
     type: security
@@ -462,8 +499,18 @@ tests:
     action:
       type: none
     verify:
-      - PUT with issuer=http://localtest.me/oauth returns 422
-      - PUT with issuer=http://127.0.0.1.nip.io/oauth returns 422
+      - api: PUT /api/v2/org/{{org.extid}}/sso
+        body:
+          provider_type: oidc
+          issuer: http://localtest.me/oauth
+        assert:
+          status: 422
+      - api: PUT /api/v2/org/{{org.extid}}/sso
+        body:
+          provider_type: oidc
+          issuer: http://127.0.0.1.nip.io/oauth
+        assert:
+          status: 422
     priority: critical
     severity: blocker
     type: security
@@ -488,8 +535,10 @@ tests:
     action:
       type: none
     verify:
-      - GET /api/v2/org/:extid/sso returns client_secret masked as dots
-      - Response includes client_id in plaintext
+      - api: GET /api/v2/org/{{org.extid}}/sso
+        assert:
+          client_secret: "••••••••"
+          client_id: test-client-id
     priority: critical
     severity: blocker
     type: security
