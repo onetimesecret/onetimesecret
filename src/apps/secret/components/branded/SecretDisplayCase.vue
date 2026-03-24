@@ -5,15 +5,12 @@
   import BaseSecretDisplay from '@/apps/secret/components/branded/BaseSecretDisplay.vue';
   import { useClipboard } from '@/shared/composables/useClipboard';
   import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
-  import { brandSettingschema } from '@/schemas/shapes/v2';
-  import {
-    CornerStyle,
-    FontFamily,
-    cornerStyleClasses,
-    fontFamilyClasses
-  } from '@/schemas/shapes/v2/custom-domain/brand';
+  import { brandSettingsSchema } from '@/schemas/shapes/v3/custom-domain';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { ref, computed } from 'vue';
+
+  // Default brand settings for when no custom branding is configured
+  const defaultBrandSettings = brandSettingsSchema.parse({});
 
   interface Props {
     record: Secret | null;
@@ -32,21 +29,10 @@
   const isRevealed = computed(() => !!props.record?.secret_value && props.record.secret_value !== '');
 
   const productIdentity = useProductIdentity();
-  const brandSettings = productIdentity.brand; // Not reactive
-  const defaultBranding = brandSettingschema.parse({});
-  const safeBrandSettings = computed(() =>
-    brandSettings ? brandSettingschema.parse(brandSettings) : defaultBranding
-  );
 
-  const cornerClass = computed(() => {
-    const style = safeBrandSettings.value?.corner_style as CornerStyle | undefined;
-    return cornerStyleClasses[style ?? CornerStyle.ROUNDED];
-  });
-
-  const fontFamilyClass = computed(() => {
-    const font = safeBrandSettings.value?.font_family as FontFamily | undefined;
-    return fontFamilyClasses[font ?? FontFamily.SANS];
-  });
+  // Use computed properties directly from identityStore (already parsed with v3 schema)
+  const cornerClass = computed(() => productIdentity.cornerClass);
+  const fontFamilyClass = computed(() => productIdentity.fontFamilyClass);
 
   const alertClasses = computed(() => ({
     'mb-4 p-4 rounded-md': true,
@@ -91,7 +77,7 @@
   <BaseSecretDisplay
     :default-title="t('web.secrets.you_have_a_message')"
     :preview-i18n="i18n"
-    :domain-branding="safeBrandSettings"
+    :domain-branding="productIdentity.brand ?? defaultBrandSettings"
     :corner-class="cornerClass"
     :font-class="fontFamilyClass"
     :is-revealed="isRevealed">
@@ -204,8 +190,8 @@
         class="inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium text-brand-700 shadow-sm transition-colors duration-150 ease-in-out hover:shadow focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-brand-100"
         :class="[fontFamilyClass, cornerClass]"
         :style="{
-          backgroundColor: brandSettings?.primary_color ??' #dc4a22',
-          color: (brandSettings?.button_text_light ?? true) ? '#ffffff' : '#000000'
+          backgroundColor: productIdentity.primaryColor,
+          color: productIdentity.buttonTextLight ? '#ffffff' : '#000000'
         }"
         aria-live="polite"
         :aria-label="isCopied ? t('web.COMMON.secret_copied_to_clipboard') : t('web.COMMON.copy_secret_to_clipboard')"

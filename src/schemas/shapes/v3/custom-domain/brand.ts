@@ -9,6 +9,22 @@ import {
 } from '@/schemas/contracts';
 import { z } from 'zod';
 
+// Re-export UI helpers from shared location.
+// Note: FontFamily and CornerStyle are both const objects and type aliases
+// (via declaration merging), so a single export covers both value and type usage.
+export {
+  CornerStyle,
+  cornerStyleClasses,
+  cornerStyleDisplayMap,
+  cornerStyleIconMap,
+  cornerStyleOptions,
+  FontFamily,
+  fontDisplayMap,
+  fontFamilyClasses,
+  fontIconMap,
+  fontOptions,
+} from '@/shared/utils/brand-helpers';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // V3 brand settings shape
 // ─────────────────────────────────────────────────────────────────────────────

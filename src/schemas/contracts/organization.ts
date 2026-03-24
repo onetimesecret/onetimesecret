@@ -56,8 +56,8 @@ export const organizationCanonical = z.object({
   /** Organization description (optional). */
   description: z.string().nullable(),
 
-  /** Owner's Customer objid. */
-  owner_id: z.string(),
+  /** Owner's Customer objid (nullish: bootstrap payload omits this field). */
+  owner_id: z.string().nullish(),
 
   /** Primary billing/contact email (optional). */
   contact_email: z.string().nullable(),

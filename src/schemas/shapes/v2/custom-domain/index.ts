@@ -1,4 +1,4 @@
-// src/schemas/models/custom-domain/index.ts
+// src/schemas/shapes/v2/custom-domain/index.ts
 
 export * from './brand';
 export * from './vhost';

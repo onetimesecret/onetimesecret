@@ -8,7 +8,6 @@
  */
 
 import { feedbackSchema } from '@/schemas/shapes/v3/feedback';
-import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // Import system settings schemas from config
@@ -28,9 +27,9 @@ export { systemSettingsDetailsSchema, systemSettingsSchema };
 export const recentCustomerSchema = z.object({
   custid: z.string(), // Not always an email address (e.g. GLOBAL for new installs)
   colonel: z.boolean(),
-  secrets_created: transforms.fromString.number,
-  secrets_shared: transforms.fromString.number,
-  emails_sent: transforms.fromString.number,
+  secrets_created: z.number(),
+  secrets_shared: z.number(),
+  emails_sent: z.number(),
   verified: z.boolean(),
   stamp: z.string(),
 });
@@ -44,14 +43,14 @@ export const colonelUserSchema = z.object({
   email: z.string(),
   role: z.string(),
   verified: z.boolean(),
-  created: transforms.fromString.number,
+  created: z.number(),
   created_human: z.string(),
-  last_login: transforms.fromString.number.nullable(),
+  last_login: z.number().nullable(),
   last_login_human: z.string(),
   planid: z.string().nullable(),
   secrets_count: z.number(),
-  secrets_created: transforms.fromString.number,
-  secrets_shared: transforms.fromString.number,
+  secrets_created: z.number(),
+  secrets_shared: z.number(),
 });
 
 /**
@@ -81,11 +80,11 @@ export const colonelSecretSchema = z.object({
   shortid: z.string(),
   owner_id: z.string().nullable(),
   state: z.string(),
-  created: transforms.fromString.number,
+  created: z.number(),
   created_human: z.string(),
-  expiration: transforms.fromString.number.nullable(),
+  expiration: z.number().nullable(),
   expiration_human: z.string().nullable(),
-  lifespan: transforms.fromString.number.nullable(),
+  lifespan: z.number().nullable(),
   receipt_id: z.string().nullable(),
   age: z.number(),
   has_ciphertext: z.boolean(),
@@ -158,7 +157,7 @@ export const bannedIPSchema = z.object({
   ip_address: z.string(),
   reason: z.string().nullable(),
   banned_by: z.string().nullable(),
-  banned_at: transforms.fromString.number,
+  banned_at: z.number(),
 });
 
 /**
@@ -236,13 +235,13 @@ export const colonelCustomDomainsDetailsSchema = z.object({
  */
 export const colonelStatsDetailsSchema = z.object({
   counts: z.object({
-    customer_count: transforms.fromString.number,
-    emails_sent: transforms.fromString.number,
-    receipt_count: transforms.fromString.number,
-    secret_count: transforms.fromString.number,
-    secrets_created: transforms.fromString.number,
-    secrets_shared: transforms.fromString.number,
-    session_count: transforms.fromString.number,
+    customer_count: z.number(),
+    emails_sent: z.number(),
+    receipt_count: z.number(),
+    secret_count: z.number(),
+    secrets_created: z.number(),
+    secrets_shared: z.number(),
+    session_count: z.number(),
   }),
 });
 
@@ -254,18 +253,18 @@ export const colonelInfoDetailsSchema = z.object({
   dbclient_info: z.string().optional().default(''),
   billing_enabled: z.boolean().optional().default(false),
   counts: z.object({
-    customer_count: transforms.fromString.number,
-    emails_sent: transforms.fromString.number,
-    feedback_count: transforms.fromString.number,
-    receipt_count: transforms.fromString.number,
-    older_feedback_count: transforms.fromString.number,
-    recent_customer_count: transforms.fromString.number,
-    secret_count: transforms.fromString.number,
-    secrets_created: transforms.fromString.number,
-    secrets_shared: transforms.fromString.number,
-    session_count: transforms.fromString.number,
-    today_feedback_count: transforms.fromString.number,
-    yesterday_feedback_count: transforms.fromString.number,
+    customer_count: z.number(),
+    emails_sent: z.number(),
+    feedback_count: z.number(),
+    receipt_count: z.number(),
+    older_feedback_count: z.number(),
+    recent_customer_count: z.number(),
+    secret_count: z.number(),
+    secrets_created: z.number(),
+    secrets_shared: z.number(),
+    session_count: z.number(),
+    today_feedback_count: z.number(),
+    yesterday_feedback_count: z.number(),
   }),
 });
 

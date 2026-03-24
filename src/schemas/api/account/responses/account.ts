@@ -1,7 +1,6 @@
 // src/schemas/api/account/responses/account.ts
 
 import { customerSchema } from '@/schemas/shapes/v3/customer';
-import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 /**
@@ -34,7 +33,7 @@ export type CheckAuthDetails = z.infer<typeof checkAuthDetailsSchema>;
  */
 export const apiTokenSchema = z.object({
   apitoken: z.string(),
-  active: transforms.fromString.boolean,
+  active: z.boolean(),
 });
 
 export type ApiToken = z.infer<typeof apiTokenSchema>;

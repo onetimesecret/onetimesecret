@@ -12,9 +12,8 @@
       "id": "v1",
       "filename": "openapi.v1.json",
       "title": "API v1 (Legacy)",
-      "description": "Our legacy REST API, which is now frozen and in maintenance mode. Originally designed in the 2010s, requests are form encoded and responses are JSON with a simple, flat structure. Not recommended for new integrations. Receives only critical bug fixes and security patches.",
-      "apiNames": ["v1"],
-      "frozen": true
+      "description": "Our legacy REST API, which is in maintenance mode. Originally designed in the 2010s, requests are form encoded and responses are JSON with a simple, flat structure. Not recommended for new integrations. Receives only critical bug fixes and security patches.",
+      "apiNames": ["v1"]
     },
     {
       "id": "v2",

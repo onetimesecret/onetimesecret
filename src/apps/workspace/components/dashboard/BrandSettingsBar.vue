@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import type { BrandSettings } from '@/schemas/shapes/v2';
+  import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
   import {
     CornerStyle,
     cornerStyleDisplayMap,
@@ -14,7 +14,9 @@
     FontFamily,
     fontIconMap,
     fontOptions,
-  } from '@/schemas/shapes/v2/custom-domain/brand';
+    type CornerStyle as CornerStyleType,
+    type FontFamily as FontFamilyType,
+  } from '@/shared/utils/brand-helpers';
   import { computed } from 'vue';
   import { useI18n, Composer } from 'vue-i18n';
 
@@ -79,7 +81,7 @@
             <div class="flex shrink-0 items-center gap-2">
               <CycleButton
                 :model-value="modelValue.corner_style"
-                @update:model-value="(value) => updateBrandSetting('corner_style', value)"
+                @update:model-value="(value) => updateBrandSetting('corner_style', value as CornerStyleType)"
                 :default-value="CornerStyle.ROUNDED"
                 :options="cornerStyleOptions"
                 :label="t('web.branding.corner_style')"
@@ -87,7 +89,7 @@
                 :icon-map="cornerStyleIconMap" />
               <CycleButton
                 :model-value="modelValue.font_family"
-                @update:model-value="(value) => updateBrandSetting('font_family', value)"
+                @update:model-value="(value) => updateBrandSetting('font_family', value as FontFamilyType)"
                 :default-value="FontFamily.SANS"
                 :options="fontOptions"
                 :label="t('web.branding.font_family')"

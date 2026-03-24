@@ -169,9 +169,9 @@ export const receiptBaseCanonical = z.object({
   shortid: z.string(),
   state: receiptStateSchema,
 
-  // Ownership
-  custid: z.string().optional(),
-  owner_id: z.string().optional(),
+  // Ownership (nullish: anonymous secrets have null/undefined custid/owner_id)
+  custid: z.string().nullish(),
+  owner_id: z.string().nullish(),
 
   // Timestamps (all Date output, nullable for unset)
   created: z.date(),

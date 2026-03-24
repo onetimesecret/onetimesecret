@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 // src/scripts/openapi/generate-openapi.ts
 
 /**
@@ -14,13 +15,13 @@
  * 4. Emits OpenAPI 3.1 JSON (uses JSON Schema 2020-12 natively)
  *
  * Usage:
- *   pnpm run openapi:generate                # Generate spec
- *   pnpm run openapi:generate -- --dry-run   # Preview without writing
- *   pnpm run openapi:generate -- --verbose    # Show per-route details
- *   pnpm run openapi:generate -- --no-tags    # Omit OpenAPI tags from operations
- *   pnpm run openapi:generate -- --sort path  # Sort paths lexicographically
+ *   pnpm run openapi:generate                  # Generate spec
+ *   pnpm run openapi:generate -- --dry-run     # Preview without writing
+ *   pnpm run openapi:generate -- --verbose     # Show per-route details
+ *   pnpm run openapi:generate -- --no-tags     # Omit OpenAPI tags from operations
+ *   pnpm run openapi:generate -- --sort path   # Sort paths lexicographically
  *   pnpm run openapi:generate -- --sort method # Sort methods per REST convention
- *   pnpm run openapi:generate -- --sort path,method  # Both
+ *   pnpm run openapi:generate -- --sort path,method
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
@@ -45,6 +46,9 @@ import {
   type SchemaEntry,
 } from './schema-scanner';
 
+import { responseSchemas as internalResponseSchemas } from '@/schemas/api/internal/responses/registry';
+import { responseSchemas as v1ResponseSchemas } from '@/schemas/api/v1/responses/registry';
+import { responseSchemas as v2ResponseSchemas } from '@/schemas/api/v2/responses/registry';
 import {
   burnSecretRequestSchema,
   concealSecretRequestSchema,
@@ -57,10 +61,7 @@ import {
   updateReceiptRequestSchema,
   validateRecipientRequestSchema,
 } from '@/schemas/api/v3/requests';
-import { responseSchemas as v1ResponseSchemas } from '@/schemas/api/v1/responses/registry';
-import { responseSchemas as v2ResponseSchemas } from '@/schemas/api/v2/responses/registry';
 import { responseSchemas as v3ResponseSchemas } from '@/schemas/api/v3/responses/registry';
-import { responseSchemas as internalResponseSchemas } from '@/schemas/api/internal/responses/registry';
 
 // Version-aware registry selection
 type ResponseSchemaRegistry =
@@ -104,7 +105,6 @@ const SORT_ARG = (() => {
 const SORT_PATHS = SORT_ARG.includes('path');
 const SORT_METHODS = SORT_ARG.includes('method');
 
-const FORCE = process.argv.includes('--force');
 const TARGET_ARG = (() => {
   const idx = process.argv.indexOf('--target');
   return idx !== -1 ? (process.argv[idx + 1] ?? '').split(',').filter(Boolean) : [];
@@ -448,7 +448,11 @@ function buildRequestBody(route: OttoRoute): Record<string, unknown> | undefined
 /**
  * Build the responses object for a route.
  */
-function buildResponses(handler: string, route: OttoRoute, apiName: string): Record<string, unknown> {
+function buildResponses(
+  handler: string,
+  route: OttoRoute,
+  apiName: string
+): Record<string, unknown> {
   const responseType = getResponseType(route);
   const responses: Record<string, unknown> = {};
 
@@ -804,12 +808,6 @@ function main(): void {
   for (const target of SPEC_TARGETS) {
     // Skip targets not in --target filter (when specified)
     if (TARGET_ARG.length > 0 && !TARGET_ARG.includes(target.id)) {
-      continue;
-    }
-
-    // Skip frozen targets unless --force
-    if (target.frozen && !FORCE) {
-      console.log(`  ${target.id}: skipped (frozen — use --force to regenerate)`);
       continue;
     }
 
