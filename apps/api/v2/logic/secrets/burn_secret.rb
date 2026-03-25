@@ -11,6 +11,20 @@ module V2::Logic
     # @api Permanently destroys a secret before its expiration time. Requires
     #   the receipt identifier and a passphrase if one was set. Returns the
     #   updated receipt record with burn confirmation and related URLs.
+    #
+    # SECURITY NOTE: Ownership Not Required
+    # =====================================
+    # This endpoint intentionally does NOT check ownership. Any user (or anonymous
+    # visitor) with the receipt identifier can burn a secret. This is by-design for
+    # the one-time secret sharing model:
+    #
+    # - The receipt URL is the credential for accessing/burning the secret
+    # - Secrets are meant to be burned by the recipient, not the creator
+    # - Passphrase protection provides an additional layer if needed
+    # - The secret creator shares the receipt URL and trusts the recipient
+    #
+    # If ownership-restricted burning is desired, use the owner-facing burn
+    # endpoint on the receipt page (which requires session authentication).
     class BurnSecret < V2::Logic::Base
       include Onetime::LoggerMethods
       include Onetime::Logic::GuestRouteGating
