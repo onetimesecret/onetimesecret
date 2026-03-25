@@ -110,7 +110,9 @@ module AccountAPI::Logic
       end
 
       def success_data
-        { user_id: cust.extid, email: cust.email, role: customer_role }
+        # Security: Use obscured email to prevent email enumeration.
+        # Returning the exact email would confirm account existence.
+        { user_id: cust.extid, email: cust.obscure_email, role: customer_role }
       end
 
       private
