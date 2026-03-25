@@ -179,9 +179,9 @@ describe('useWebAuthn', () => {
         webauthn_login_challenge_hmac: 'hmac',
       });
 
-      // Simulate user cancellation
-      const cancelError = new Error('User cancelled');
-      cancelError.name = 'NotAllowedError';
+      // Simulate user cancellation — must be a DOMException (not Error) because
+      // the composable checks `err instanceof DOMException`
+      const cancelError = new DOMException('User cancelled', 'NotAllowedError');
       startAuthenticationMock.mockRejectedValue(cancelError);
 
       const { authenticateWebAuthn, error } = useWebAuthn();
@@ -409,8 +409,8 @@ describe('useWebAuthn', () => {
         webauthn_setup_challenge_hmac: 'hmac',
       });
 
-      const cancelError = new Error('User cancelled');
-      cancelError.name = 'NotAllowedError';
+      // Must be a DOMException — the composable checks `err instanceof DOMException`
+      const cancelError = new DOMException('User cancelled', 'NotAllowedError');
       startRegistrationMock.mockRejectedValue(cancelError);
 
       const { registerWebAuthn, error } = useWebAuthn();

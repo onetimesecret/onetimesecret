@@ -61,8 +61,16 @@ module ColonelAPI
         def scan_user_secrets
           secrets = []
 
-          # Use the user's receipts sorted set (user-scoped index)
-          user.receipts.revmembers(count: MAX_ITEMS).each do |receipt_id|
+          # Use the user's receipts sorted set (user-scoped index).
+          # Rescue sorted set errors gracefully — the key may not exist
+          # or the Redis state may be inconsistent for this user.
+          receipt_ids = begin
+            user.receipts.revmembers(MAX_ITEMS)
+          rescue StandardError
+            []
+          end
+
+          receipt_ids.each do |receipt_id|
             receipt = Onetime::Receipt.load(receipt_id)
             next unless receipt&.exists?
 
@@ -90,8 +98,13 @@ module ColonelAPI
         def scan_user_receipts
           receipt_list = []
 
-          # Use the user's receipts sorted set directly (already user-scoped)
-          user.receipts.revmembers(count: MAX_ITEMS).each do |receipt_id|
+          receipt_ids = begin
+            user.receipts.revmembers(MAX_ITEMS)
+          rescue StandardError
+            []
+          end
+
+          receipt_ids.each do |receipt_id|
             receipt = Onetime::Receipt.load(receipt_id)
             next unless receipt&.exists?
 

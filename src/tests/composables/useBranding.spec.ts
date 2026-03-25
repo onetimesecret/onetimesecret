@@ -48,6 +48,15 @@ vi.mock('@/i18n', () => ({
   }),
 }));
 
+// The composable calls useI18n() directly from vue-i18n, which requires
+// an active Vue component setup context. Mock it to avoid the
+// "Must be called at the top of a setup function" error.
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
 vi.mock('@/shared/composables/useAsyncHandler', () => ({
   useAsyncHandler: () => ({
     wrap: vi.fn(async (fn) => await fn()),
