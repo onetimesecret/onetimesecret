@@ -218,6 +218,7 @@ module V2::Logic
         validate_domain_access(@share_domain)
       end
 
+      # @sync src/schemas/contracts/config/public.ts — passphrase options
       def validate_passphrase
         # Get passphrase configuration
         passphrase_config = OT.conf.dig('site', 'secret_options', 'passphrase') || {}

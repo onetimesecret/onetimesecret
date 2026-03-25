@@ -73,9 +73,11 @@ The server-wide `AUTHENTICATION_MODE` setting controls V1 behavior:
   This is intentional — v0.24 uses a more secure identifier algorithm.
   `secret_shortkey` (burn responses) is 8 chars (was 6). Clients must treat
   keys as opaque, variable-length strings.
-- **Passphrase minimum**: Configurable via `site.secret_options.passphrase.minimum_length`
-  (v0.23 hardcoded 8 chars). The lower bound is acceptable; operators can
-  raise it via config if their security policy requires longer passphrases.
+- **Passphrase minimum**: Configurable via `site.secret_options.passphrase.minimum_length`.
+  When set, V1 now enforces the configured minimum (changed in v0.24.1).
+  When unset (nil), no minimum is enforced — preserving backward compatibility
+  for callers sending short passphrases. Fresh installs have no minimum by
+  default; operators can opt-in to enforcement via config.
 - **`shrimp` field removed**: v0.23 included a `shrimp` CSRF token in error
   responses. v0.24 omits it — V1 uses Basic Auth exclusively, so the
   session-based CSRF token was never part of the API contract.
