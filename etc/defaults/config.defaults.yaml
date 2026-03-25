@@ -176,7 +176,7 @@ site:
       # Require users to enter a passphrase when creating secrets
       required: <%= ENV['PASSPHRASE_REQUIRED'] == 'true' || false %>
       # Minimum number of characters required for passphrases
-      minimum_length: <%= ENV['PASSPHRASE_MIN_LENGTH'] || 8 %>
+      minimum_length: <%= ENV['PASSPHRASE_MIN_LENGTH'] || nil %>
       # Maximum number of characters allowed for passphrases
       maximum_length: <%= ENV['PASSPHRASE_MAX_LENGTH'] || 128 %>
       # Enforce complexity requirements (uppercase, lowercase, numbers, symbols)

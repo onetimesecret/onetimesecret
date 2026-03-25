@@ -44,12 +44,18 @@ module V1::Logic
       V1_MIN_TTL = 60        # 1 minute, matching v0.23.4
       V1_MAX_TTL = 2_592_000 # 30 days (30 * 86400)
 
-      # Passphrase: v0.23.4 had no enforced minimum for V1 API consumers.
-      # The config-driven minimum_length (often 8) is for the web UI only;
-      # V1 API hard-codes nil here so no minimum is ever enforced,
-      # preserving backward compatibility for callers sending short
-      # passphrases (e.g. "1234"). Config cannot override this value.
-      V1_PASSPHRASE_MIN_LENGTH = nil
+      # Passphrase minimum length: config-driven with nil fallback [#2758]
+      #
+      # When the operator sets `site.secret_options.passphrase.minimum_length`
+      # in config, V1 now respects that value. When unset (nil), no minimum
+      # is enforced — preserving backward compatibility for callers sending
+      # short passphrases (e.g. "1234").
+      #
+      # This changed in v0.24.1: prior versions hard-coded nil here, ignoring
+      # any operator config. Now operators can opt-in to enforcement.
+      def self.passphrase_min_length
+        OT.conf.dig('site', 'secret_options', 'passphrase', 'minimum_length')&.to_i
+      end
 
       # Max secret size: 10_000 characters matches the API spec's
       # maxLength: 10000 documented in the OpenAPI definition.
@@ -260,15 +266,13 @@ module V1::Logic
         validate_domain_access(@share_domain)
       end
 
+      # @sync src/schemas/contracts/config/public.ts — passphrase options
       def validate_passphrase
-        # V1-specific passphrase validation [#2621]
+        # V1 passphrase validation [#2758]
         #
-        # V1 preserves v0.23.4 behavior: passphrases are always optional
-        # and have no minimum length enforced via the API. The config-driven
-        # minimum_length (often 8) is for the web UI; V1 API consumers
-        # relied on being able to send short passphrases (e.g. "1234").
-        #
-        # Only the maximum length and required flag are checked from config.
+        # When the operator sets minimum_length in config, V1 now enforces it.
+        # When unset (nil), no minimum is enforced — preserving backward
+        # compatibility for callers sending short passphrases.
         passphrase_config = OT.conf.dig('site', 'secret_options', 'passphrase') || {}
 
         # Check if passphrase is required (defaults to false for V1 compat)
@@ -279,9 +283,8 @@ module V1::Logic
         # Skip further validation if no passphrase provided
         return if passphrase.to_s.empty?
 
-        # V1 uses its own minimum length (nil = no minimum) instead of
-        # the config value, preserving v0.23.4 backward compatibility.
-        min_length = V1_PASSPHRASE_MIN_LENGTH
+        # Config-driven minimum length; nil means no enforcement
+        min_length = self.class.passphrase_min_length
         if min_length && passphrase.length < min_length
           raise_form_error "Passphrase must be at least #{min_length} characters long"
         end
