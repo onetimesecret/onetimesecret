@@ -95,7 +95,7 @@ describe('publicSecretOptionsSchema', () => {
       });
 
       expect(result.passphrase?.required).toBe(true);
-      expect(result.passphrase?.minimum_length).toBeUndefined(); // opt-in, no default
+      expect(result.passphrase?.minimum_length).toBe(4); // default
       expect(result.passphrase?.maximum_length).toBe(128); // default
       expect(result.passphrase?.enforce_complexity).toBe(false); // default
     });
