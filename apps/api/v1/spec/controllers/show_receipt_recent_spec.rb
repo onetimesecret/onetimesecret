@@ -63,6 +63,8 @@ RSpec.describe V1::Controllers::Index, '#show_receipt_recent' do
       allow(V1::Logic::Secrets::ShowReceiptList).to receive(:new)
         .with(session, customer, request.params, 'en')
         .and_return(logic)
+      allow(logic).to receive(:domain_strategy=)
+      allow(logic).to receive(:display_domain=)
       allow(logic).to receive(:raise_concerns)
       allow(logic).to receive(:process)
     end

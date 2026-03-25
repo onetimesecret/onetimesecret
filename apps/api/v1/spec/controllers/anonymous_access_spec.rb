@@ -236,6 +236,8 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
 
       before do
         allow(V1::Logic::Secrets::ConcealSecret).to receive(:new).and_return(logic)
+        allow(logic).to receive(:domain_strategy=)
+        allow(logic).to receive(:display_domain=)
         allow(logic).to receive(:raise_concerns)
         allow(logic).to receive(:process)
         allow(logic).to receive(:secret).and_return(secret)
@@ -261,6 +263,8 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
 
       before do
         allow(V1::Logic::Secrets::GenerateSecret).to receive(:new).and_return(logic)
+        allow(logic).to receive(:domain_strategy=)
+        allow(logic).to receive(:display_domain=)
         allow(logic).to receive(:raise_concerns)
         allow(logic).to receive(:process)
         allow(logic).to receive(:secret).and_return(secret)
@@ -287,6 +291,8 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
 
       before do
         allow(V1::Logic::Secrets::ConcealSecret).to receive(:new).and_return(logic)
+        allow(logic).to receive(:domain_strategy=)
+        allow(logic).to receive(:display_domain=)
         allow(logic).to receive(:raise_concerns)
         allow(logic).to receive(:process)
         allow(logic).to receive(:secret).and_return(secret)
@@ -307,6 +313,8 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
       before do
         allow(request).to receive(:params).and_return({ 'key' => 'secret_abc' })
         allow(V1::Logic::Secrets::ShowSecret).to receive(:new).and_return(logic)
+        allow(logic).to receive(:domain_strategy=)
+        allow(logic).to receive(:display_domain=)
         allow(logic).to receive(:raise_concerns)
         allow(logic).to receive(:process)
         allow(logic).to receive(:show_secret).and_return(false)
@@ -330,6 +338,8 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
       before do
         allow(request).to receive(:params).and_return({ 'key' => 'rcpt_key' })
         allow(V1::Logic::Secrets::ShowReceipt).to receive(:new).and_return(logic)
+        allow(logic).to receive(:domain_strategy=)
+        allow(logic).to receive(:display_domain=)
         allow(logic).to receive(:raise_concerns)
         allow(logic).to receive(:process)
         allow(logic).to receive(:show_secret).and_return(false)

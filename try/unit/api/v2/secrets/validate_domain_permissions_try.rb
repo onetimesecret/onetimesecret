@@ -36,9 +36,16 @@ def set_public_homepage(domain, enabled)
 end
 
 # Helper to create a mock ConcealSecret logic instance for testing
-def create_test_logic(customer, share_domain_value: nil, domain_strategy: nil)
+#
+# Passes domain_strategy and display_domain through metadata so that
+# Logic::Base#initialize -> extract_domain_context exercises the real
+# init chain (instead of setting attributes after construction).
+def create_test_logic(customer, share_domain_value: nil, domain_strategy: nil, display_domain: nil)
   sess = MockSession.new
-  strategy_result = MockStrategyResult.new(session: sess, user: customer)
+  metadata = {}
+  metadata[:domain_strategy] = domain_strategy if domain_strategy
+  metadata[:display_domain]  = display_domain  if display_domain
+  strategy_result = MockStrategyResult.new(session: sess, user: customer, metadata: metadata)
   params = {
     'secret' => {
       'secret' => 'test secret',
@@ -46,14 +53,12 @@ def create_test_logic(customer, share_domain_value: nil, domain_strategy: nil)
       'share_domain' => share_domain_value
     }
   }
-  logic = V2::Logic::Secrets::ConcealSecret.new(strategy_result, params, 'en')
-  logic.domain_strategy = domain_strategy if domain_strategy
-  logic
+  V2::Logic::Secrets::ConcealSecret.new(strategy_result, params, 'en')
 end
 
 ## Domain owner can access their own domain from canonical domain
+# No domain_strategy in metadata -> canonical domain (domain_strategy is nil)
 logic = create_test_logic(@owner, share_domain_value: @domain.display_domain)
-logic.domain_strategy = nil # canonical domain (not custom)
 begin
   # Call validate_domain_access which internally calls validate_domain_permissions
   logic.send(:validate_domain_access, @domain.display_domain)
@@ -64,8 +69,8 @@ end
 #=> :success
 
 ## Non-owner on canonical domain raises FormError matching domain permission message
+# No domain_strategy in metadata -> canonical domain (domain_strategy is nil)
 logic = create_test_logic(@other, share_domain_value: @domain.display_domain)
-logic.domain_strategy = nil # canonical domain (not custom)
 begin
   logic.send(:validate_domain_access, @domain.display_domain)
   :success
@@ -75,8 +80,8 @@ end
 #=~> /You do not have permission to use domain:/
 
 ## Error message includes the actual domain name
+# No domain_strategy in metadata -> canonical domain (domain_strategy is nil)
 logic = create_test_logic(@other, share_domain_value: @domain.display_domain)
-logic.domain_strategy = nil # canonical domain
 begin
   logic.send(:validate_domain_access, @domain.display_domain)
   :success
@@ -87,9 +92,10 @@ end
 
 ## Non-owner on custom domain with public sharing enabled is allowed
 set_public_homepage(@domain, true)
-logic = create_test_logic(@other, share_domain_value: @domain.display_domain)
-logic.domain_strategy = 'custom' # accessing FROM a custom domain
-logic.display_domain = @domain.display_domain
+logic = create_test_logic(@other,
+  share_domain_value: @domain.display_domain,
+  domain_strategy: :custom,
+  display_domain: @domain.display_domain)
 begin
   logic.send(:validate_domain_access, @domain.display_domain)
   :success
@@ -100,9 +106,10 @@ end
 
 ## Non-owner on custom domain with public sharing disabled is rejected
 set_public_homepage(@domain, false)
-logic = create_test_logic(@other, share_domain_value: @domain.display_domain)
-logic.domain_strategy = 'custom' # accessing FROM a custom domain
-logic.display_domain = @domain.display_domain
+logic = create_test_logic(@other,
+  share_domain_value: @domain.display_domain,
+  domain_strategy: :custom,
+  display_domain: @domain.display_domain)
 begin
   logic.send(:validate_domain_access, @domain.display_domain)
   :success
@@ -112,9 +119,9 @@ end
 #=~> /Public sharing disabled for domain:/
 
 ## Owner can always access their domain regardless of public sharing setting
+# No domain_strategy in metadata -> canonical domain (domain_strategy is nil)
 set_public_homepage(@domain, false)
 logic = create_test_logic(@owner, share_domain_value: @domain.display_domain)
-logic.domain_strategy = nil # canonical domain
 begin
   logic.send(:validate_domain_access, @domain.display_domain)
   :success

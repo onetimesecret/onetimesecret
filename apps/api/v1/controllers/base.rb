@@ -93,6 +93,20 @@ module V1
       end
     end
 
+    # Applies domain context from the DomainStrategy middleware to a logic
+    # object. The middleware sets env['onetime.domain_strategy'] and
+    # env['onetime.display_domain'] for every request. V1 logic objects
+    # declare these as attr_accessor but don't receive a strategy_result
+    # (unlike the main Logic::Base), so we bridge the gap here.
+    #
+    # Must be called after construction but before raise_concerns, since
+    # validate_share_domain -> custom_domain? reads domain_strategy.
+    def apply_domain_context(logic)
+      logic.domain_strategy = req.env['onetime.domain_strategy']
+      logic.display_domain  = req.env['onetime.display_domain']
+      logic
+    end
+
     def json hsh
       res.headers['content-type'] = "application/json; charset=utf-8"
       res.body = hsh.to_json

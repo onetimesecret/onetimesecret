@@ -67,6 +67,7 @@ module V1
           return if check_rate_limit!(:create_secret, V1_RATE_LIMIT_MAX_CREATES) == :limited
 
           logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, req.params, locale
+          apply_domain_context(logic)
           logic.raise_concerns
           logic.process
           if req.get?
@@ -86,6 +87,7 @@ module V1
           return if check_rate_limit!(:create_secret, V1_RATE_LIMIT_MAX_CREATES) == :limited
 
           logic = V1::Logic::Secrets::GenerateSecret.new sess, cust, req.params, locale
+          apply_domain_context(logic)
           logic.raise_concerns
           logic.process
           if req.get?
@@ -107,6 +109,7 @@ module V1
           return otto_not_found unless valid_identifier?(req.params['key'])
 
           logic = V1::Logic::Secrets::ShowReceipt.new sess, cust, req.params, locale
+          apply_domain_context(logic)
           logic.raise_concerns
           logic.process
           # Reuse data already loaded/decrypted in logic.process rather than
@@ -132,6 +135,7 @@ module V1
       def show_receipt_recent
         authorized(false) do
           logic = V1::Logic::Secrets::ShowReceiptList.new sess, cust, req.params, locale
+          apply_domain_context(logic)
           logic.raise_concerns
           logic.process
           recent_receipts = logic.receipts.collect { |md|
@@ -151,6 +155,7 @@ module V1
 
           req.params['continue'] = 'true'
           logic = V1::Logic::Secrets::ShowSecret.new sess, cust, req.params, locale
+          apply_domain_context(logic)
           logic.raise_concerns
           logic.process
           if logic.show_secret
@@ -170,6 +175,7 @@ module V1
 
           req.params['continue'] = 'true'
           logic = V1::Logic::Secrets::BurnSecret.new sess, cust, req.params, locale
+          apply_domain_context(logic)
           logic.raise_concerns
           logic.process
           if logic.greenlighted
@@ -186,6 +192,7 @@ module V1
           return if check_rate_limit!(:create_secret, V1_RATE_LIMIT_MAX_CREATES) == :limited
 
           logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, req.params, locale
+          apply_domain_context(logic)
           logic.raise_concerns
           logic.process
           if req.get?
