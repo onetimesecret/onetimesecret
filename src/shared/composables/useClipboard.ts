@@ -1,9 +1,10 @@
 // src/shared/composables/useClipboard.ts
 
-import { ref, computed } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 
 export function useClipboard() {
   const isCopied = ref(false)
+  let resetTimerId: ReturnType<typeof setTimeout> | null = null
 
   // Check if clipboard API is available (requires secure context: HTTPS or localhost)
   const isClipboardAvailable = computed(() => typeof navigator !== 'undefined' && 'clipboard' in navigator)
@@ -22,8 +23,12 @@ export function useClipboard() {
     try {
       await navigator.clipboard.writeText(text)
       isCopied.value = true
-      setTimeout(() => {
+      if (resetTimerId !== null) {
+        clearTimeout(resetTimerId)
+      }
+      resetTimerId = setTimeout(() => {
         isCopied.value = false
+        resetTimerId = null
       }, 2000)
       return true
     } catch (err) {
@@ -31,6 +36,13 @@ export function useClipboard() {
       return false
     }
   }
+
+  onUnmounted(() => {
+    if (resetTimerId !== null) {
+      clearTimeout(resetTimerId)
+      resetTimerId = null
+    }
+  })
 
   return {
     isCopied,

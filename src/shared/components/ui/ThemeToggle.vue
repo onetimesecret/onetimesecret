@@ -29,7 +29,11 @@
       : t('web.layout.blank_mode_enabled', ['light']);
 
     document.body.appendChild(liveRegion);
-    setTimeout(() => document.body.removeChild(liveRegion), 1000);
+    setTimeout(() => {
+      if (document.body.contains(liveRegion)) {
+        document.body.removeChild(liveRegion);
+      }
+    }, 1000);
   };
 
   onMounted(initializeTheme);
