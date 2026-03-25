@@ -193,16 +193,26 @@ module V1
       json hsh
     end
 
-    # The v1 API historically returned 404 for auth errors
+    # DEPRECATED: The v1 API historically returned 404 for auth errors, which
+    # violates HTTP semantics (should be 401). This is preserved for backward
+    # compatibility with existing API consumers. Use API v2 for correct status codes.
+    #
+    # The X-OTS-Intended-Status header indicates the correct HTTP status code.
     def not_authorized_error hsh={}
       hsh[:message] = "Not authorized"
-      res.status = 404
+      res['X-OTS-Intended-Status'] = '401'
+      res.status = 404  # Legacy: should be 401
       json hsh
     end
 
+    # DEPRECATED: Returns 404 for all errors instead of appropriate status codes.
+    # Preserved for backward compatibility. Use API v2 for correct status codes.
+    #
+    # The X-OTS-Intended-Status header indicates the correct HTTP status code.
     def error_response msg, hsh={}
       hsh[:message] = msg
-      res.status = 404
+      res['X-OTS-Intended-Status'] = '400'
+      res.status = 404  # Legacy: should be 400
       json hsh
     end
 
