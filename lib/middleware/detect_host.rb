@@ -63,10 +63,14 @@ module Rack
   #
   # ### Security Considerations
   #
-  # Be cautious when trusting client-provided headers. Ensure that your
-  # infrastructure is configured to only allow trusted proxies to set these
-  # headers so that clients cannot spoof them. This middleware assumes that
-  # the headers come from trusted sources.
+  # **Trusted Proxy Validation**: This middleware only trusts forwarded host
+  # headers (X-Forwarded-Host, X-Original-Host, Apx-Incoming-Host, Forwarded)
+  # when the request originates from a private or loopback IP address. This
+  # indicates the request passed through a trusted reverse proxy in the local
+  # network. Direct requests from public IPs can only use the Host header.
+  #
+  # This prevents header spoofing attacks where malicious clients set
+  # X-Forwarded-Host to impersonate different hosts.
   #
   # ### Note on Rack's Default Behavior
   #
@@ -83,15 +87,20 @@ module Rack
     # NOTE: CF-Visitor header only contains scheme information { "scheme": "https" }
     # and is not used for host detection
     unless defined?(HEADER_PRECEDENCE)
-      # List of HTTP headers that might contain the host, in order of precedence.
-      # Headers earlier in the list are given priority over later ones.
-      HEADER_PRECEDENCE = [
+      # Forwarded headers that require trusted proxy validation.
+      # These headers can be spoofed by clients and should only be trusted
+      # when the request comes from a private/loopback IP (trusted proxy).
+      FORWARDED_HEADERS = [
         'X-Forwarded-Host',   # Common proxy header (AWS ALB, nginx)
         'Apx-Incoming-Host',  # Check Approximated (if it exists)
         'X-Original-Host',    # Various proxy services
         'Forwarded',          # RFC 7239 standard (host parameter)
-        'Host',               # Default HTTP host header
-      ]
+      ].freeze
+
+      # List of HTTP headers that might contain the host, in order of precedence.
+      # Headers earlier in the list are given priority over later ones.
+      # NOTE: FORWARDED_HEADERS are only checked when request comes from trusted proxy.
+      HEADER_PRECEDENCE = (FORWARDED_HEADERS + ['Host']).freeze
 
       # Hostnames and IP addresses that should never be accepted as valid hosts.
       # These typically indicate local or development environments.
@@ -131,17 +140,32 @@ module Rack
     # @return [Array] Standard Rack response array from the next middleware
     #
     # This method:
-    # 1. Examines headers in order of precedence
-    # 2. Normalizes and validates each potential host
-    # 3. Accepts the first valid host found
-    # 4. Stores the result in env[result_field_name]
-    # 5. Passes the request to the next middleware
+    # 1. Determines if request is from a trusted proxy (private/loopback IP)
+    # 2. Examines headers in order of precedence (forwarded headers only from trusted proxies)
+    # 3. Normalizes and validates each potential host
+    # 4. Accepts the first valid host found
+    # 5. Stores the result in env[result_field_name]
+    # 6. Passes the request to the next middleware
     def call(env)
       result_field_name = self.class.result_field_name
       detected_host     = nil
 
+      # Determine which headers to check based on whether request comes from trusted proxy
+      # Forwarded headers can be spoofed by clients, so we only trust them when
+      # REMOTE_ADDR is a private/loopback IP (indicating a trusted reverse proxy)
+      remote_addr        = env['REMOTE_ADDR']
+      from_trusted_proxy = self.class.private_ip?(remote_addr)
+
+      headers_to_check = if from_trusted_proxy
+        HEADER_PRECEDENCE
+      else
+        # Direct public requests: only trust the Host header, not forwarded headers
+        logger.debug("[DetectHost] Direct request from #{remote_addr}, ignoring forwarded headers")
+        ['Host']
+      end
+
       # Try headers in order of precedence
-      HEADER_PRECEDENCE.each do |header|
+      headers_to_check.each do |header|
         header_key = "HTTP_#{header.tr('-', '_').upcase}"
         host       = self.class.normalize_host(env[header_key])
         next if host.nil?
