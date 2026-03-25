@@ -16,7 +16,6 @@
 
   import BaseShowSecret from '@/shared/components/base/BaseShowSecret.vue';
   import FooterAttribution from '@/apps/secret/components/layout/SecretFooterAttribution.vue';
-  import FooterControls from '@/apps/secret/components/layout/SecretFooterControls.vue';
   import SecretConfirmationForm from '@/apps/secret/components/branded/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/apps/secret/components/branded/SecretDisplayCase.vue';
   import { useProductIdentity } from '@/shared/stores/identityStore';
@@ -104,7 +103,6 @@
     <!-- Footer slot -->
     <template #footer="{ }">
       <div class="flex flex-col items-center space-y-8 py-8">
-        <FooterControls :show-language="true" />
         <FooterAttribution
           :site-host="siteHost"
           :show-nav="true"

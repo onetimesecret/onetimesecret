@@ -18,9 +18,9 @@ module V2::Logic
       attr_reader :identifiers, :secrets
 
       def process_params
-        @identifiers      = params['identifiers'].to_s.strip.downcase.gsub(/[^a-z0-9,]/, '').split(',').compact
+        @identifiers      = params['identifiers'].to_s.strip.split(',').map { |id| sanitize_identifier(id) }.compact
         # Filter out empty identifiers first, then use optimized bulk loading
-        valid_identifiers = identifiers.compact.reject(&:empty?)
+        valid_identifiers = identifiers.reject(&:empty?)
         secret_objects    = Onetime::Secret.load_multi(valid_identifiers).compact
         @secrets          = secret_objects.map(&:safe_dump)
       end

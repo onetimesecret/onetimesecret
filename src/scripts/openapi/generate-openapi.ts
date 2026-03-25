@@ -75,6 +75,12 @@ const registryByVersion: Record<string, ResponseSchemaRegistry> = {
   v2: v2ResponseSchemas,
   v3: v3ResponseSchemas,
   internal: internalResponseSchemas,
+  // Internal app APIs share the internal response schema registry
+  colonel: internalResponseSchemas,
+  organizations: internalResponseSchemas,
+  invite: internalResponseSchemas,
+  account: internalResponseSchemas,
+  domains: internalResponseSchemas,
 };
 
 function getResponseRegistry(apiName: string): ResponseSchemaRegistry {
@@ -124,6 +130,7 @@ const API_MOUNT_PATHS: Record<string, string> = {
   domains: '/api/domains',
   organizations: '/api/organizations',
   invite: '/api/invite',
+  incoming: '/api/incoming',
 };
 
 // =============================================================================
@@ -257,9 +264,10 @@ function toOperationId(leaf: string): string {
 }
 
 /**
- * Convert PascalCase/snake_case to a human-readable summary.
+ * Convert PascalCase/snake_case/lowercase to a human-readable summary.
  * "ConcealSecret" -> "Conceal Secret"
  * "show_secret" -> "Show Secret"
+ * "status" -> "Status"
  */
 function toSummary(leaf: string): string {
   // Handle snake_case
@@ -270,7 +278,10 @@ function toSummary(leaf: string): string {
       .join(' ');
   }
   // Handle PascalCase — insert space before each capital letter
-  return leaf.replace(/([A-Z])/g, ' $1').trim();
+  const result = leaf.replace(/([A-Z])/g, ' $1').trim();
+
+  // Capitalize first letter (handles single-word lowercase inputs like "status")
+  return result.charAt(0).toUpperCase() + result.slice(1);
 }
 
 // =============================================================================
@@ -309,12 +320,12 @@ function createDocument(target: SpecTarget): OpenAPIDocument {
           type: 'apiKey',
           in: 'cookie',
           name: 'rack.session',
-          description: 'Session-based authentication via browser cookies',
+          description: 'Session-based authentication via browser cookies. Some endpoints additionally require a specific role (see x-ots-required-role extension on individual operations).',
         },
         basicAuth: {
           type: 'http',
           scheme: 'basic',
-          description: 'HTTP Basic authentication with username (email) and API token',
+          description: 'HTTP Basic authentication with username (email) and API token. Some endpoints additionally require a specific role (see x-ots-required-role extension on individual operations).',
         },
       },
       schemas: {},
@@ -501,6 +512,18 @@ function buildResponses(
   }
   errorCodes.push(404);
 
+  // Include 429 for rate-limited endpoints (secret creation, feedback, passphrase-protected reveals)
+  const RATE_LIMITED_HANDLERS = ['ConcealSecret', 'GenerateSecret', 'ReceiveFeedback', 'ShowSecret', 'RevealSecret'];
+  const RATE_LIMITED_V1_METHODS = ['share', 'generate', 'create', 'show_secret'];
+  const handlerLeaf = getHandlerLeaf(handler);
+  const v1Method = handler.includes('#') ? handler.split('#').pop() : undefined;
+  if (
+    route.method === 'POST' &&
+    (RATE_LIMITED_HANDLERS.includes(handlerLeaf) || (v1Method && RATE_LIMITED_V1_METHODS.includes(v1Method)))
+  ) {
+    errorCodes.push(429);
+  }
+
   for (const code of errorCodes) {
     responses[String(code)] = standardErrorResponses[code];
   }
@@ -571,12 +594,19 @@ function buildOperation(route: OttoRoute, apiName: string): Record<string, unkno
   }
 
   // Add security
+  const auth = getAuthRequirements(route);
   const security = buildSecurity(route);
   if (security) {
     operation.security = security;
   } else {
     // Explicitly mark as no auth required
     operation.security = [];
+  }
+
+  // Add role requirement as extension if specified
+  // This documents that the endpoint requires a specific role beyond basic authentication
+  if (auth.role) {
+    operation['x-ots-required-role'] = auth.role;
   }
 
   // Add path parameters
@@ -669,7 +699,10 @@ function processAllRoutes(
       // Skip OPTIONS preflight routes
       if (route.method === 'OPTIONS') continue;
 
-      const openApiPath = mountPath + toOpenAPIPath(route.path);
+      // Strip trailing slash to avoid path inconsistency (e.g. /api/account/ vs /api/account)
+      // when a route's path is "/" and gets concatenated with the mount path.
+      const rawPath = mountPath + toOpenAPIPath(route.path);
+      const openApiPath = rawPath.length > 1 ? rawPath.replace(/\/$/, '') : rawPath;
       const method = route.method.toLowerCase();
 
       if (!doc.paths[openApiPath]) {

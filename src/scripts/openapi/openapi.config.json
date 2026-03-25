@@ -27,13 +27,13 @@
       "filename": "openapi.v3.json",
       "title": "API v3 (alpha)",
       "description": "Our next-generation API. Similar to v2 with JSON types and new endpoints, but still evolving. Although we use the v3 API to power our UI, it is not recommended for production use externally until we reach stable status. Subject to change without deprecation.",
-      "apiNames": ["v3"]
+      "apiNames": ["v3", "incoming"]
     },
     {
       "id": "internal",
       "filename": "openapi.internal.json",
       "title": "Internal API",
-      "description": "Internal API consumed by the Vue frontend",
+      "description": "INTERNAL USE ONLY — This specification documents private admin and session-scoped endpoints consumed exclusively by the Vue frontend. It MUST NOT be deployed to public-facing servers or documentation portals. Exposing this spec reveals privileged operations (user management, IP banning, secret deletion, etc.).",
       "apiNames": ["account", "colonel", "domains", "organizations", "invite"]
     }
   ]

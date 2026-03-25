@@ -104,6 +104,9 @@ export const responseSchemas = {
   jurisdiction: jurisdictionResponseSchema,
 
   // Authentication
+  // NOTE: These auth schemas are not referenced by any internal API routes
+  // (auth routes live in apps/web/core/routes.txt). They are included here
+  // because the Vue frontend (useAuth.ts) imports them for runtime Zod parsing.
   login: loginResponseSchema,
   createAccount: createAccountResponseSchema,
   logout: logoutResponseSchema,

@@ -4,10 +4,10 @@ import { createError } from '@/shared/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import type { Jurisdiction, RegionsConfig } from '@/schemas/shapes/config';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import type { PiniaCustomProperties } from 'pinia';
 import { defineStore, storeToRefs } from 'pinia';
-import { computed, inject, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 /**
  * N.B.
@@ -43,7 +43,7 @@ export type JurisdictionStore = {
 } & PiniaCustomProperties;
 
 export const useJurisdictionStore = defineStore('jurisdiction', () => {
-  const $api = inject('api') as AxiosInstance; // eslint-disable-line
+  const $api = useApi(); // eslint-disable-line
   const bootstrapStore = useBootstrapStore();
   const { regions: bootstrapRegions } = storeToRefs(bootstrapStore);
 

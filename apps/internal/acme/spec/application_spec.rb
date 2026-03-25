@@ -69,8 +69,8 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
         get '/ask', domain: 'verified.example.com'
       end
 
-      context 'with check_verification=false' do
-        it 'still returns 200 OK' do
+      context 'with check_verification param (ignored at HTTP layer)' do
+        it 'still returns 200 OK for verified domain' do
           get '/ask', domain: 'verified.example.com', check_verification: 'false'
           expect(last_response.status).to eq(200)
         end
@@ -99,59 +99,17 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
         get '/ask', domain: 'unverified.example.com'
       end
 
-      context 'with check_verification=false' do
-        it 'returns 200 OK (skips verification)' do
+      # The check_verification query parameter is no longer honored at
+      # the HTTP layer to prevent local processes from bypassing DNS
+      # verification. Verification is always enforced.
+      context 'ignores check_verification query parameter' do
+        it 'enforces verification even when check_verification=false' do
           get '/ask', domain: 'unverified.example.com', check_verification: 'false'
-          expect(last_response.status).to eq(200)
+          expect(last_response.status).to eq(403)
         end
 
-        it 'returns OK text' do
-          get '/ask', domain: 'unverified.example.com', check_verification: 'false'
-          expect(last_response.body).to eq('OK')
-        end
-      end
-
-      context 'with check_verification=true' do
-        it 'returns 403 Forbidden (verification enforced)' do
+        it 'enforces verification when check_verification=true' do
           get '/ask', domain: 'unverified.example.com', check_verification: 'true'
-          expect(last_response.status).to eq(403)
-        end
-      end
-
-      context 'without check_verification parameter' do
-        it 'enforces verification by default (returns 403)' do
-          get '/ask', domain: 'unverified.example.com'
-          expect(last_response.status).to eq(403)
-        end
-      end
-
-      context 'with unexpected check_verification values' do
-        # Only the literal string "false" disables verification.
-        # All other values (including falsy-looking ones) should
-        # enforce verification because of: != 'false' parsing.
-
-        it 'enforces verification when check_verification=0' do
-          get '/ask', domain: 'unverified.example.com', check_verification: '0'
-          expect(last_response.status).to eq(403)
-        end
-
-        it 'enforces verification when check_verification=no' do
-          get '/ask', domain: 'unverified.example.com', check_verification: 'no'
-          expect(last_response.status).to eq(403)
-        end
-
-        it 'enforces verification when check_verification is empty string' do
-          get '/ask', domain: 'unverified.example.com', check_verification: ''
-          expect(last_response.status).to eq(403)
-        end
-
-        it 'enforces verification when check_verification=FALSE (case sensitive)' do
-          get '/ask', domain: 'unverified.example.com', check_verification: 'FALSE'
-          expect(last_response.status).to eq(403)
-        end
-
-        it 'enforces verification when check_verification=False (mixed case)' do
-          get '/ask', domain: 'unverified.example.com', check_verification: 'False'
           expect(last_response.status).to eq(403)
         end
       end
@@ -174,11 +132,9 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
         expect(last_response.body).to eq('Forbidden')
       end
 
-      context 'with check_verification=false' do
-        it 'still returns 403 (domain must exist regardless)' do
-          get '/ask', domain: 'nonexistent.example.com', check_verification: 'false'
-          expect(last_response.status).to eq(403)
-        end
+      it 'still returns 403 with check_verification=false (domain must exist)' do
+        get '/ask', domain: 'nonexistent.example.com', check_verification: 'false'
+        expect(last_response.status).to eq(403)
       end
     end
 

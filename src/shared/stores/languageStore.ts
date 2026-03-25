@@ -5,9 +5,9 @@ import type { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { localeSchema } from '@/schemas/i18n/locale';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { localeCodes } from '@/sources/languages';
-import type { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, storeToRefs } from 'pinia';
-import { computed, inject, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 export const SESSION_STORAGE_KEY = 'selected.locale';
 export const DEFAULT_LOCALE = 'en';
@@ -19,7 +19,7 @@ interface StoreOptions extends PiniaPluginOptions {
 
 /* eslint-disable max-lines-per-function, max-statements */
 export const useLanguageStore = defineStore('language', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
   const bootstrapStore = useBootstrapStore();
   const { cust: bootstrapCust, supported_locales: bootstrapSupportedLocales } =
     storeToRefs(bootstrapStore);

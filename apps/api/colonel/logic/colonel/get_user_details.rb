@@ -50,8 +50,9 @@ module ColonelAPI
 
         private
 
-        # Scan secrets owned by user using non-blocking Redis SCAN
-        # Replaces blocking KEYS operation
+        # Scan secrets owned by user using non-blocking Redis SCAN.
+        # O(all secrets) but filters by owner_id. The user.receipts sorted
+        # set would be more efficient but isn't populated by spawn_pair yet.
         def scan_user_secrets
           secrets  = []
           cursor   = '0'
@@ -83,8 +84,7 @@ module ColonelAPI
           secrets
         end
 
-        # Scan receipts owned by user using non-blocking Redis SCAN
-        # Replaces blocking KEYS operation
+        # Scan receipts owned by user using non-blocking Redis SCAN.
         def scan_user_receipts
           receipt_list = []
           cursor       = '0'

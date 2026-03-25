@@ -36,10 +36,10 @@
       : t('web.auth.account.not_verified');
   });
 
-  const handleThemeChange = async (isDark: boolean) => {
+  const handleThemeChange = async (_isDark: boolean) => {
     isLoading.value = true;
     try {
-      console.log('Theme changed:', isDark);
+      // TODO: Persist theme preference to user settings
     } catch (error) {
       console.error('Error changing theme:', error);
     } finally {

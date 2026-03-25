@@ -13,12 +13,12 @@ module V2::Logic
     #   expiration details, or a state of "unknown" if the secret does
     #   not exist.
     class ShowSecretStatus < V2::Logic::Base
-      SCHEMAS = { response: 'secret' }.freeze
+      SCHEMAS = { response: 'secretStatus' }.freeze
 
       attr_reader :identifier, :current_expiration, :secret, :verification
 
       def process_params
-        @identifier = params['identifier'].to_s
+        @identifier = sanitize_identifier(params['identifier'].to_s)
         @secret     = Onetime::Secret.load identifier
       end
 

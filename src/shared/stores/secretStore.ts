@@ -13,9 +13,9 @@ import { loggingService } from '@/services/logging.service';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { computed, inject, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 /**
  * API mode for secret operations.
@@ -55,7 +55,7 @@ export type SecretStore = {
  */
 /* eslint-disable max-lines-per-function */
 export const useSecretStore = defineStore('secrets', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const record = ref<Secret | null>(null);

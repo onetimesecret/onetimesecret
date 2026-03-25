@@ -407,9 +407,9 @@ describe('formatRelativeTime', () => {
   });
 
   describe('minutes ago (60s - 3599s)', () => {
-    it('returns "1 minutes ago" for exactly 60 seconds', () => {
+    it('returns "1 minute ago" for exactly 60 seconds', () => {
       const date = new Date(NOW.getTime() - 60 * 1000);
-      expect(formatRelativeTime(date)).toBe('1 minutes ago');
+      expect(formatRelativeTime(date)).toBe('1 minute ago');
     });
 
     it('returns "2 minutes ago" for 120 seconds', () => {
@@ -429,9 +429,9 @@ describe('formatRelativeTime', () => {
   });
 
   describe('hours ago (3600s - 86399s)', () => {
-    it('returns "1 hours ago" for exactly 3600 seconds', () => {
+    it('returns "1 hour ago" for exactly 3600 seconds', () => {
       const date = new Date(NOW.getTime() - 3600 * 1000);
-      expect(formatRelativeTime(date)).toBe('1 hours ago');
+      expect(formatRelativeTime(date)).toBe('1 hour ago');
     });
 
     it('returns "2 hours ago" for 7200 seconds', () => {
@@ -451,9 +451,9 @@ describe('formatRelativeTime', () => {
   });
 
   describe('days ago (>= 86400s)', () => {
-    it('returns "1 days ago" for exactly 86400 seconds', () => {
+    it('returns "1 day ago" for exactly 86400 seconds', () => {
       const date = new Date(NOW.getTime() - 86400 * 1000);
-      expect(formatRelativeTime(date)).toBe('1 days ago');
+      expect(formatRelativeTime(date)).toBe('1 day ago');
     });
 
     it('returns "2 days ago" for 172800 seconds', () => {

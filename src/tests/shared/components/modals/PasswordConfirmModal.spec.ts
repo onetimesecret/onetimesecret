@@ -344,8 +344,8 @@ describe('PasswordConfirmModal', () => {
     });
 
     it('uses custom cancel text when provided', () => {
-      wrapper = mountComponent({ cancelText: 'web.COMMON.word_cancel' });
-      expect(wrapper.text()).toContain('Cancel');
+      wrapper = mountComponent({ cancelText: 'Go Back' });
+      expect(wrapper.text()).toContain('Go Back');
     });
   });
 

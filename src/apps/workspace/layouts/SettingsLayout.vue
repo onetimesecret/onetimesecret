@@ -84,9 +84,9 @@ const isActiveRoute = (item: (typeof tabItems.value)[0]): boolean => {
       </router-link>
     </nav>
 
-    <!-- Main Content Area -->
-    <main class="pt-6">
+    <!-- Content Area -->
+    <div class="pt-6">
       <slot></slot>
-    </main>
+    </div>
   </div>
 </template>

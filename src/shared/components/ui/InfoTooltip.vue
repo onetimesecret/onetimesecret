@@ -56,17 +56,25 @@
 
 <template>
   <div class="relative mx-1 inline-block">
-    <OIcon
-      collection="heroicons"
-      name="information-circle"
-      class="inline cursor-pointer align-baseline text-base"
-      @click="toggleModal" />
+    <button
+      type="button"
+      class="inline cursor-pointer align-baseline border-0 bg-transparent p-0"
+      aria-label="More information"
+      @click="toggleModal"
+      @keydown.enter="toggleModal"
+      @keydown.space.prevent="toggleModal">
+      <OIcon
+        collection="heroicons"
+        name="information-circle"
+        class="inline align-baseline text-base" />
+    </button>
 
     <Transition name="fade">
       <div
         v-if="isModalVisible"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
-        @click="closeModal">
+        @click="closeModal"
+        @keydown.escape="closeModal">
         <div
           :class="['relative max-w-md rounded-lg p-6 shadow-lg', modalClasses]"
           @click.stop>

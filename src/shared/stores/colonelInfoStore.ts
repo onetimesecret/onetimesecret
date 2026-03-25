@@ -21,9 +21,9 @@ import {
 } from '@/schemas/api/account/responses/colonel';
 import { type SystemSettingsDetails } from '@/schemas/contracts/config';
 import { responseSchemas } from '@/schemas/api/internal/responses';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { inject, ref } from 'vue';
+import { ref } from 'vue';
 
 // Use the imported type from schemas
 export type ColonelStats = ColonelStatsDetails;
@@ -72,7 +72,7 @@ export type ColonelInfoStore = {
 
 // eslint-disable-next-line max-lines-per-function -- Admin store with many related endpoints
 export const useColonelInfoStore = defineStore('colonel', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const record = ref<{} | null>(null);

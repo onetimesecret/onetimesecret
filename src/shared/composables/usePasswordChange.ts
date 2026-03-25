@@ -2,10 +2,12 @@
 
 import { useAccountStore } from '@/shared/stores/accountStore';
 import { computed, reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
 export function usePasswordChange(emit: (event: 'update:password') => void) {
+  const { t } = useI18n();
   const formState = reactive({
     currentPassword: '',
     newPassword: '',
@@ -46,7 +48,7 @@ export function usePasswordChange(emit: (event: 'update:password') => void) {
 
   async function handleSubmit() {
     if (!isValid.value) {
-      formState.error = 'Please check your password entries';
+      formState.error = t('web.auth.change_password.error');
       return;
     }
 
@@ -54,14 +56,14 @@ export function usePasswordChange(emit: (event: 'update:password') => void) {
     formState.success = '';
     formState.isSubmitting = true;
 
-    wrap(async () => {
+    await wrap(async () => {
       await accountStore.changePassword(
         formState.currentPassword,
         formState.newPassword,
         formState.confirmPassword
       );
 
-      formState.success = 'Password updated successfully';
+      formState.success = t('web.auth.change_password.success');
       emit('update:password');
 
       // Reset form

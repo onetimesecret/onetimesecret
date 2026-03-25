@@ -114,6 +114,68 @@ describe('otto-routes-parser', () => {
         schemes: ['basicauth'],
       });
     });
+
+    // Tests for separate role= param (as used in colonel routes)
+    it('extracts role from separate role param with auth=sessionauth', () => {
+      const route = makeRoute({ auth: 'sessionauth', role: 'colonel' });
+      const result = getAuthRequirements(route);
+
+      expect(result).toEqual({
+        required: true,
+        schemes: ['sessionauth'],
+        role: 'colonel',
+      });
+    });
+
+    it('ignores role param when no auth is specified', () => {
+      // Edge case: role param but no auth (role is meaningless without auth)
+      // This is correct behavior - role enforcement requires auth first
+      const route = makeRoute({ role: 'colonel' });
+      const result = getAuthRequirements(route);
+
+      expect(result).toEqual({
+        required: false,
+        schemes: [],
+      });
+    });
+
+    it('role:X in auth takes precedence over separate role param', () => {
+      // If both role:X and role= are present, role:X should win (per implementation)
+      const route = makeRoute({
+        auth: 'sessionauth,role:admin',
+        role: 'colonel',
+      });
+      const result = getAuthRequirements(route);
+
+      // role:admin in auth string takes precedence
+      expect(result).toEqual({
+        required: true,
+        schemes: ['sessionauth'],
+        role: 'admin',
+      });
+    });
+
+    it('extracts role from auth param containing role:colonel', () => {
+      const route = makeRoute({ auth: 'sessionauth,role:colonel' });
+      const result = getAuthRequirements(route);
+
+      expect(result).toEqual({
+        required: true,
+        schemes: ['sessionauth'],
+        role: 'colonel',
+      });
+    });
+
+    it('handles multiple auth schemes with role', () => {
+      const route = makeRoute({ auth: 'sessionauth,basicauth', role: 'colonel' });
+      const result = getAuthRequirements(route);
+
+      expect(result).toEqual({
+        required: true,
+        schemes: ['sessionauth', 'basicauth'],
+        role: 'colonel',
+      });
+    });
   });
 
   // ─── parseRouteLine (tested via parseRoutesFile) ───────────────
@@ -252,6 +314,67 @@ describe('otto-routes-parser', () => {
       const result = getAuthRequirements(authcheckRoute!);
       expect(result.required).toBe(true);
       expect(result.schemes).toEqual(['basicauth']);
+    });
+  });
+
+  // ─── Colonel routes.txt integration ────────────────────────────────
+
+  describe('Colonel routes.txt integration', () => {
+    const colonelRoutesPath = join(
+      process.cwd(),
+      'apps',
+      'api',
+      'colonel',
+      'routes.txt'
+    );
+
+    let colonelRoutes: OttoRoute[];
+
+    beforeEach(() => {
+      const parsed = parseRoutesFile(colonelRoutesPath);
+      colonelRoutes = parsed.routes;
+    });
+
+    it('parses at least one route from colonel routes.txt', () => {
+      expect(colonelRoutes.length).toBeGreaterThan(0);
+    });
+
+    it('all colonel routes have role=colonel as separate param', () => {
+      for (const route of colonelRoutes) {
+        expect(route.params.role).toBe('colonel');
+      }
+    });
+
+    it('all colonel routes use auth=sessionauth', () => {
+      for (const route of colonelRoutes) {
+        expect(route.params.auth).toBe('sessionauth');
+      }
+    });
+
+    it('getAuthRequirements extracts role=colonel from colonel routes', () => {
+      const infoRoute = colonelRoutes.find(r => r.path === '/info');
+      expect(infoRoute).toBeDefined();
+
+      const result = getAuthRequirements(infoRoute!);
+      expect(result.required).toBe(true);
+      expect(result.schemes).toContain('sessionauth');
+      expect(result.role).toBe('colonel');
+    });
+
+    it('all colonel routes have scope=internal', () => {
+      for (const route of colonelRoutes) {
+        expect(route.params.scope).toBe('internal');
+      }
+    });
+
+    it('getAuthRequirements works for every colonel route', () => {
+      for (const route of colonelRoutes) {
+        const result = getAuthRequirements(route);
+        // Every colonel route should require auth with role=colonel
+        expect(result.required).toBe(true);
+        expect(result.role).toBe('colonel');
+        expect(result.schemes).toContain('sessionauth');
+      }
     });
   });
 });

@@ -75,9 +75,8 @@ The server-wide `AUTHENTICATION_MODE` setting controls V1 behavior:
   keys as opaque, variable-length strings.
 - **Passphrase minimum**: Configurable via `site.secret_options.passphrase.minimum_length`.
   When set, V1 now enforces the configured minimum (changed in v0.24.1).
-  When unset (nil), no minimum is enforced — preserving backward compatibility
-  for callers sending short passphrases. Fresh installs have no minimum by
-  default; operators can opt-in to enforcement via config.
+  Fresh installs default to 4 characters; operators can adjust via config.
+  Set to 0 or nil to disable enforcement for backward compatibility.
 - **`shrimp` field removed**: v0.23 included a `shrimp` CSRF token in error
   responses. v0.24 omits it — V1 uses Basic Auth exclusively, so the
   session-based CSRF token was never part of the API contract.

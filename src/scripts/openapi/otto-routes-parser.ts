@@ -137,9 +137,10 @@ export function getAuthRequirements(route: OttoRoute): {
     'anonymous': 'noauth',
   };
 
-  // Check for role requirement: auth=role:colonel
+  // Check for role requirement in auth param: auth=role:colonel
+  // or as separate param: role=colonel
   const roleScheme = schemes.find(s => s.startsWith('role:'));
-  const role = roleScheme ? roleScheme.split(':')[1] : undefined;
+  const role = roleScheme ? roleScheme.split(':')[1] : route.params.role;
 
   // Filter out role from schemes, normalize V1 tokens
   const authSchemes = schemes
@@ -249,7 +250,7 @@ export function discoverApiNames(): string[] {
   } catch (error) {
     console.warn('Warning: Could not discover API names, using fallback list:', error);
     // Fallback to known APIs if discovery fails
-    return ['v2', 'v3', 'account', 'domains', 'organizations', 'teams'];
+    return ['account', 'colonel', 'domains', 'incoming', 'invite', 'organizations', 'v1', 'v2', 'v3'];
   }
 }
 

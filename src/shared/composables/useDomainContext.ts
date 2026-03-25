@@ -232,10 +232,9 @@ async function initializeDomainContext(
     // On error, don't mark initialized - allow retry via watcher
     console.warn('[useDomainContext] Initialization failed, will retry when org is available');
   } finally {
-    // Only release the lock if initialization didn't complete (allow watcher retry)
-    if (!isInitialized.value) {
-      isInitializing = false;
-    }
+    // Always release the concurrency guard. The isInitialized ref tracks whether
+    // initialization succeeded; isInitializing only prevents concurrent calls.
+    isInitializing = false;
   }
 }
 
@@ -335,6 +334,7 @@ export function __resetDomainContextForTesting(): void {
   currentDomain.value = '';
   isInitialized.value = false;
   isLoadingDomains.value = false;
+  isInitializing = false;
   watcherInitialized = false;
   currentFetchController = null;
   bootstrapStoreInstance = null;

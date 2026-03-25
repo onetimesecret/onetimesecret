@@ -5,6 +5,7 @@
 
 import { vhostCanonical } from '@/schemas/contracts';
 import { transforms } from '@/schemas/transforms';
+import { parseDateValue } from '@/utils/parse/index';
 import { z } from 'zod';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -38,11 +39,15 @@ export const vhostSchema = vhostCanonical.extend({
   has_ssl: z.boolean().optional(),
   is_resolving: z.boolean().optional(),
 
-  // Approximated API sends timestamps as strings, not numbers
+  // Approximated API sends timestamps as strings or numbers depending on field.
   // All timestamp fields are optional - external API may omit them,
   // and historical data may predate these fields.
   created_at: transforms.fromString.date.optional(),
-  last_monitored_unix: transforms.fromString.date.optional(),
+  last_monitored_unix: z.union([z.string(), z.number()]).transform((val): Date => {
+    const date = parseDateValue(val);
+    if (!date) throw new Error('Valid date is required');
+    return date;
+  }).optional(),
   ssl_active_from: transforms.fromString.dateNullable.optional(),
   ssl_active_until: transforms.fromString.dateNullable.optional(),
 });

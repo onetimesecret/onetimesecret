@@ -32,6 +32,17 @@ module Onetime
       capture_error(operation, ex, context) if sentry_available?
     end
 
+    # Lua script for atomic INCR + EXPIRE (prevents race condition
+    # where a crash between the two commands leaves a permanent key).
+    TRACK_ERROR_LUA = <<~LUA
+      local c = redis.call('INCR', KEYS[1])
+      if tonumber(c) == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end
+      return c
+    LUA
+
+    # TTL for error tracking keys: 7 days in seconds
+    ERROR_TRACKING_TTL = 86_400 * 7
+
     class << self
       private
 
@@ -47,12 +58,12 @@ module Onetime
 
       # Tracks error frequency in Redis for monitoring
       # Keeps daily counters for 7 days to identify patterns
+      # Uses atomic Lua script to prevent race conditions between INCR and EXPIRE.
       def track_error(operation)
         return unless Familia.dbclient
 
         key = "errors:rodauth:#{operation}:#{Date.today.strftime('%Y%m%d')}"
-        Familia.dbclient.incr(key)
-        Familia.dbclient.expire(key, 86_400 * 7) # Keep 7 days
+        Familia.dbclient.eval(TRACK_ERROR_LUA, keys: [key], argv: [ERROR_TRACKING_TTL])
       rescue StandardError => ex
         # Don't let tracking errors break the error handler itself
         app_logger.error 'error-handler: Failed to track error',

@@ -54,7 +54,6 @@ const { t } = useI18n();
   }>();
 
   const handleDelete = async (domain: string) => {
-    console.log('Deleting domain', domain);
     const confirmed = await reveal();
     if (confirmed) {
       await deleteDomain(domain);

@@ -2,12 +2,12 @@
 
 import type { Account } from '@/schemas/api/account/responses/account';
 import { responseSchemas } from '@/schemas/api/v3/responses';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore } from 'pinia';
-import { inject, ref } from 'vue';
+import { ref } from 'vue';
 
 export const useAccountStore = defineStore('account', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const account = ref<Account | null>(null);

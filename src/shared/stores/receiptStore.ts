@@ -6,9 +6,9 @@ import { responseSchemas } from '@/schemas/api/v3/responses';
 import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v3/receipt';
 import { loggingService } from '@/services/logging.service';
 import { gracefulParse } from '@/utils/schemaValidation';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { computed, inject, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 /**
  * API mode for endpoint selection.
@@ -64,7 +64,7 @@ export type ReceiptStore = {
 
 // eslint-disable-next-line max-lines-per-function -- Store definition naturally groups related functionality
 export const useReceiptStore = defineStore('receipt', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const record = ref<Receipt | null>(null);

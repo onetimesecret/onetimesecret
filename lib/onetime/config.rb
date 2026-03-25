@@ -39,7 +39,7 @@ module Onetime
             ],
             'passphrase' => {
               'required' => false,
-              'minimum_length' => nil,
+              'minimum_length' => 4,
               'maximum_length' => 128,
               'enforce_complexity' => false,
             },

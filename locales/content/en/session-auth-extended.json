@@ -419,6 +419,14 @@
     "text": "Active Sessions",
     "sha256": "b58fa4e0"
   },
+  "web.auth.sessions.session_singular": {
+    "text": "session",
+    "sha256": "00000000"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "sessions",
+    "sha256": "00000000"
+  },
   "web.auth.mfa.title": {
     "text": "Two-Factor Authentication",
     "sha256": "bc074b60"
@@ -626,6 +634,10 @@
   "web.auth.mfa.enter_all_digits": {
     "text": "Please enter all 6 digits to continue",
     "sha256": "7914f7b2"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Alternative authentication options",
+    "sha256": "00000000"
   },
   "web.auth.mfa.digit_of_count": {
     "text": "Digit {current} of {total}",

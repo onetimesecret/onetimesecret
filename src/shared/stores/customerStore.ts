@@ -5,9 +5,9 @@ import { responseSchemas } from '@/schemas/api/v3/responses';
 import type { Customer } from '@/schemas/shapes/v3/customer';
 import { loggingService } from '@/services/logging.service';
 import { createError } from '@/shared/composables/useAsyncHandler';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { computed, handleError, inject, ref } from 'vue';
+import { computed, handleError, ref } from 'vue';
 
 /**
  * Type definition for CustomerStore.
@@ -30,7 +30,7 @@ export type CustomerStore = {
  */
 
 export const useCustomerStore = defineStore('customer', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const currentCustomer = ref<Customer | null>(null);

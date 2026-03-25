@@ -85,11 +85,11 @@ const middlewareSchema = z.object({
 const passphraseSchema = z.object({
   required: z.boolean().default(false),
   /**
-   * Minimum length required for passphrases (opt-in enforcement).
-   * When undefined or 0, no minimum length is enforced.
+   * Minimum length required for passphrases.
+   * Default: 4. Set to 0 to disable enforcement.
    * @sync apps/api/v1/logic/secrets/base_secret_action.rb — passphrase validation
    */
-  minimum_length: z.number().int().min(0).max(256).optional(),
+  minimum_length: z.number().int().min(0).max(256).default(4),
   maximum_length: z.number().int().positive().default(128),
   enforce_complexity: z.boolean().default(false),
 });

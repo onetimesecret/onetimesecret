@@ -43,10 +43,11 @@ import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { LockoutStatus } from '@/types/auth';
-import type { AxiosInstance } from 'axios';
-import { inject, ref } from 'vue';
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
+
+import { useApi } from '@/shared/composables/useApi';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -92,10 +93,10 @@ import { useRoute, useRouter } from 'vue-router';
  */
 /* eslint-disable max-lines-per-function */
 export function useAuth() {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
   const route = useRoute();
   const router = useRouter();
-  const { locale } = useI18n();
+  const { t, locale } = useI18n();
   const authStore = useAuthStore();
   const bootstrapStore = useBootstrapStore();
   const csrfStore = useCsrfStore();
@@ -253,7 +254,7 @@ export function useAuth() {
         currentPlan: currentPlanId,
         requestedProduct: product,
       });
-      notificationsStore.show('You are already subscribed to this plan.', 'info', 'top');
+      notificationsStore.show(t('web.billing.already_subscribed'), 'info', 'top');
       await router.push(`/billing/${orgExtid}/overview`);
       return true;
     }
@@ -364,10 +365,10 @@ export function useAuth() {
       const validated = loginResponseSchema.parse(response.data);
 
       loggingService.debug('[useAuth] Login response:', {
-        data: response.data,
-        validated: validated,
+        status: response.status,
         hasMfaRequired: 'mfa_required' in response.data,
         mfaRequiredValue: (response.data as any).mfa_required,
+        isError: 'error' in validated,
       });
 
       if (isAuthError(validated)) {
@@ -700,9 +701,10 @@ export function useAuth() {
         });
       }
 
-      // Success - logout and redirect to home with full page reload
-      // Use window.location.href instead of router.push to ensure all state is cleared
-      await authStore.logout();
+      // Success - clear cookies/session and redirect to home with full page reload.
+      // Use logoutMinimal() instead of logout() to avoid reactive store resets
+      // that cause a visual flash before the hard navigation discards state.
+      await authStore.logoutMinimal();
       window.location.href = '/';
       return true;
     });

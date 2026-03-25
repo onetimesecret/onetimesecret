@@ -185,7 +185,7 @@ describe('PrivacyOptionsBar', () => {
       await flushPromises();
 
       // Find the visibility toggle button (it has eye icon)
-      const toggleButton = wrapper.find('[aria-label="Show passphrase"]');
+      const toggleButton = wrapper.find('[aria-label="web.COMMON.show_password"]');
       expect(toggleButton.exists()).toBe(true);
     });
   });

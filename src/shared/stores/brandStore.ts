@@ -2,9 +2,9 @@
 
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import type { BrandSettings, ImageProps } from '@/schemas/shapes/v3/custom-domain';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore } from 'pinia';
-import { inject, ref } from 'vue';
+import { ref } from 'vue';
 
 const defaultBranding: BrandSettings = {
   primary_color: '#dc4a22',
@@ -22,7 +22,7 @@ const defaultBranding: BrandSettings = {
 
 /* eslint max-lines-per-function: off */
 export const useBrandStore = defineStore('brand', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
   const settings = ref<Record<string, BrandSettings>>({});
   const logos = ref<Record<string, ImageProps>>({});
   const _initialized = ref(false);

@@ -442,9 +442,10 @@ module V1::Logic
           raise_form_error "Public sharing disabled for domain: #{share_domain}"
         end
 
-        unless domain_record.owner?(@cust)
-          OT.li "[validate_domain_perm]: #{share_domain} non-owner [#{cust.custid}]"
-        end
+        return if domain_record.owner?(@cust)
+
+        OT.li "[validate_domain_perm]: #{share_domain} non-owner [#{cust.custid}]"
+        raise_form_error "You do not have permission to use domain: #{share_domain}"
       end
     end
   end

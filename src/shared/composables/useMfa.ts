@@ -58,9 +58,10 @@ import {
 import type { ApplicationError } from '@/schemas/errors';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import type { OtpSetupData, MfaStatus } from '@/types/auth';
-import type { AxiosInstance } from 'axios';
-import { ref, inject } from 'vue';
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
+import { useApi } from '@/shared/composables/useApi';
 
 import {
   generateQrCode,
@@ -72,7 +73,7 @@ import {
 /* eslint-disable max-lines-per-function */
 export function useMfa() {
   const { t } = useI18n();
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
   const notificationsStore = useNotificationsStore();
 
   const isLoading = ref(false);
@@ -181,13 +182,14 @@ export function useMfa() {
 
         setupData.value = validated;
         return validated;
-      } catch (err: any) {
+      } catch (err: unknown) {
         // HMAC Setup Success Path: 422 with secrets (not a real error)
         // When HMAC is enabled, backend returns 422 with otp_setup and otp_raw_secret
         // This is expected behavior, not an actual error
-        const errorData = err.response?.data;
+        const axiosErr = err as { response?: { status?: number; data?: Record<string, unknown> } };
+        const errorData = axiosErr.response?.data;
 
-        if (err.response?.status === 422 && errorData && hasHmacSetupData(errorData)) {
+        if (axiosErr.response?.status === 422 && errorData && hasHmacSetupData(errorData)) {
           const hmacData = await enrichSetupResponse(errorData, siteName, email);
           if (hmacData) {
             setupData.value = hmacData;
@@ -255,7 +257,7 @@ export function useMfa() {
         recoveryCodes.value = validated.recovery_codes;
       }
 
-      notificationsStore.show('Two-factor authentication has been enabled', 'success', 'top');
+      notificationsStore.show(t('web.auth.mfa.success_enabled'), 'success', 'top');
       return true;
     });
 
@@ -327,7 +329,7 @@ export function useMfa() {
         throw createError(t('web.auth.security.authentication_failed'), 'human', 'error');
       }
 
-      notificationsStore.show('Two-factor authentication has been disabled', 'success', 'top');
+      notificationsStore.show(t('web.auth.mfa.success_disabled'), 'success', 'top');
       return true;
     });
 
@@ -409,7 +411,7 @@ export function useMfa() {
     });
 
     if (result) {
-      notificationsStore.show('New recovery codes have been generated', 'success', 'top');
+      notificationsStore.show(t('web.auth.recovery_codes.generate_success'), 'success', 'top');
     } else {
       recoveryCodes.value = [];
     }

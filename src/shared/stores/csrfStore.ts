@@ -4,9 +4,9 @@ import { PiniaPluginOptions } from '@/plugins/pinia';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { z } from 'zod';
 import { useDocumentVisibility } from '@vueuse/core';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties, storeToRefs } from 'pinia';
-import { handleError, inject, ref, watch } from 'vue';
+import { handleError, ref, watch } from 'vue';
 
 // Inline schema — CSRF validation is a simple endpoint, not part of the API registry
 const csrfResponseSchema = z.object({
@@ -71,7 +71,7 @@ export type CsrfStore = {
 
 /* eslint-disable max-lines-per-function */
 export const useCsrfStore = defineStore('csrf', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
   const bootstrapStore = useBootstrapStore();
   const { shrimp: bootstrapShrimp, authenticated } = storeToRefs(bootstrapStore);
 

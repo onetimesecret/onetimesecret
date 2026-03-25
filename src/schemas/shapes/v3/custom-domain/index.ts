@@ -101,7 +101,7 @@ export const customDomainSchema = customDomainCanonical.extend({
   custid: z.string().nullable().default(null),
   subdomain: z.string().nullable().default(null),
   trd: z.string().nullable().default(null),
-  status: z.string().optional().default('pending'),
+  status: z.string().nullable().optional().default('pending'),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

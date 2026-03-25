@@ -17,12 +17,14 @@ import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import type { Session } from '@/types/auth';
 import type { AxiosInstance } from 'axios';
 import { ref, inject } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 /* eslint-disable max-lines-per-function */
 export function useActiveSessions() {
   const $api = inject('api') as AxiosInstance;
   const csrfStore = useCsrfStore();
   const notificationsStore = useNotificationsStore();
+  const { t } = useI18n();
 
   const sessions = ref<Session[]>([]);
   const isLoading = ref(false);
@@ -96,7 +98,7 @@ export function useActiveSessions() {
       // Remove from local state
       sessions.value = sessions.value.filter((s) => s.id !== sessionId);
 
-      notificationsStore.show('Session removed successfully', 'success', 'top');
+      notificationsStore.show(t('web.auth.sessions.removed_success'), 'success', 'top');
       return true;
     } catch (err: any) {
       error.value = err.response?.data?.error || 'Failed to remove session';
@@ -113,6 +115,7 @@ export function useActiveSessions() {
    */
   async function removeAllOtherSessions(): Promise<boolean> {
     clearError();
+    isLoading.value = true;
 
     try {
       const response = await $api.post<RemoveSessionResponse>(
@@ -132,11 +135,13 @@ export function useActiveSessions() {
       // Keep only current session in local state
       sessions.value = sessions.value.filter((s) => s.is_current);
 
-      notificationsStore.show('All other sessions have been logged out', 'success', 'top');
+      notificationsStore.show(t('web.auth.sessions.removed_all_success'), 'success', 'top');
       return true;
     } catch (err: any) {
       error.value = err.response?.data?.error || 'Failed to remove sessions';
       return false;
+    } finally {
+      isLoading.value = false;
     }
   }
 

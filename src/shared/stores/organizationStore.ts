@@ -19,9 +19,9 @@ import {
   organizationInvitationSchema,
   updateOrganizationPayloadSchema,
 } from '@/types/organization';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore } from 'pinia';
-import { computed, inject, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import { useBootstrapStore } from './bootstrapStore';
 
@@ -61,7 +61,7 @@ function persistOrgId(orgId: string | null): void {
 
 /* eslint-disable max-lines-per-function */
 export const useOrganizationStore = defineStore('organization', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const organizations = ref<Organization[]>([]);

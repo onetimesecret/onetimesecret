@@ -54,8 +54,9 @@ const closeDeleteModal = () => {
   <ul class="mb-4 list-inside list-disc dark:text-gray-300">
     <li><span class="font-bold">{{ t('web.account.secrets_will_remain_active_until_they_expire') }}</span></li>
     <li>
-      {{ t('web.account.any_secrets_you_wish_to_remove') }} <span
-        class="underline">{{ t('web.account.burn_them_before_continuing') }}</span>.
+      {{ t('web.account.any_secrets_you_wish_to_remove') }} <RouterLink
+        to="/recent"
+        class="underline hover:text-brand-600 dark:hover:text-brand-400">{{ t('web.account.burn_them_before_continuing') }}</RouterLink>.
     </li>
     <li>{{ t('web.account.deleting_your_account_is') }} <span class="italic">{{ t('web.account.permanent_and_non_reversible') }}</span></li>
   </ul>
@@ -72,7 +73,7 @@ const closeDeleteModal = () => {
     {{ t('web.account.permanently_delete_account') }}
   </button>
   <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-    {{ t('web.account.deleting_cust_custid', [cust?.extid]) }}
+    {{ t('web.account.deleting_cust_custid', [cust?.email]) }}
   </p>
 
   <!-- Delete Account Confirmation Modal -->

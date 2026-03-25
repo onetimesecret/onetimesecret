@@ -276,7 +276,7 @@
     <template #footer>
       <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
         <nav
-          aria-label="Alternative authentication options"
+          :aria-label="t('web.auth.mfa.alternative_auth_options')"
           class="flex items-center justify-center gap-2 text-sm">
         <!-- OTP mode: show recovery code option -->
         <template v-if="!useRecoveryMode">

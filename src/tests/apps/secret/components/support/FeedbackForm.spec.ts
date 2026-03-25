@@ -119,7 +119,7 @@ describe('FeedbackForm', () => {
   };
 
   describe('Customer ID Display', () => {
-    it('displays customer ID when user is authenticated (objid present)', async () => {
+    it('displays customer email when user is authenticated (objid present)', async () => {
       wrapper = mountComponent({
         cust: authenticatedCustomer,
       });
@@ -127,9 +127,9 @@ describe('FeedbackForm', () => {
       await nextTick();
 
       const html = wrapper.html();
-      // Should show customer ID line with extid value
+      // Should show customer ID line with email value (changed from extid to email in #2761)
       expect(html).toContain('Customer ID');
-      expect(html).toContain(authenticatedCustomer.extid);
+      expect(html).toContain(authenticatedCustomer.email);
     });
 
     it('does NOT display customer ID when user is anonymous (objid is null)', async () => {

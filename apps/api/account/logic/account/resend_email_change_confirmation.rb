@@ -106,9 +106,12 @@ module AccountAPI::Logic
 
       def increment_resend_count
         key = resend_count_key
-        Familia.dbclient.incr(key)
-        # Set TTL only on the first increment (when TTL is -1, meaning no expiry set)
-        Familia.dbclient.expire(key, 24 * 60 * 60) if Familia.dbclient.ttl(key) == -1
+        # Use MULTI/EXEC to atomically increment and set TTL, preventing a
+        # permanent-block if the process crashes between incr and expire.
+        Familia.dbclient.multi do |transaction|
+          transaction.incr(key)
+          transaction.expire(key, 24 * 60 * 60)
+        end
       end
     end
   end

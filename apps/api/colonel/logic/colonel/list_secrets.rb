@@ -64,7 +64,7 @@ module ColonelAPI
         def scan_secrets_paginated
           all_secrets = []
           cursor      = '0'
-          dbclient    = Onetime::Secret.new.dbclient
+          dbclient    = Onetime::Secret.dbclient
           pattern     = 'secret:*:object'
 
           loop do
