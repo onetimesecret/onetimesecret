@@ -2,10 +2,11 @@
 
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
-import type { AxiosInstance } from 'axios';
-import { inject, ref } from 'vue';
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+
+import { useApi } from '@/shared/composables/useApi';
 
 import { extractError } from './helpers/magicLinkHelpers';
 
@@ -20,7 +21,7 @@ function isError(response: MagicLinkResponse): response is MagicLinkErrorRespons
 /** Magic Link authentication composable */
 /* eslint-disable max-lines-per-function */
 export function useMagicLink() {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
   const { t } = useI18n();
   const router = useRouter();
   const authStore = useAuthStore();
@@ -55,13 +56,13 @@ export function useMagicLink() {
     isLoading.value = true;
     try {
       return await doMagicLinkRequest(email);
-    } catch (err: any) {
+    } catch (err: unknown) {
       // On 403 (CSRF token rejection), the Axios error interceptor already
       // refreshed the token from the response header. Retry once.
-      if (err.response?.status === 403) {
+      if ((err as { response?: { status?: number } })?.response?.status === 403) {
         try {
           return await doMagicLinkRequest(email);
-        } catch (_retryErr: any) {
+        } catch (_retryErr: unknown) {
           error.value = t('web.auth.magicLink.sessionExpired');
           return false;
         }
@@ -91,7 +92,7 @@ export function useMagicLink() {
       await authStore.setAuthenticated(true);
       await router.push('/');
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       const [errMsg, fieldErr] = extractError(err, t, 'web.auth.magicLink.loginFailed');
       error.value = errMsg;
       fieldError.value = fieldErr;

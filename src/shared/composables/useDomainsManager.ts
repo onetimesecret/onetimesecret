@@ -6,7 +6,7 @@ import { ApplicationError } from '@/schemas/errors';
 import type { CustomDomain } from '@/schemas/shapes/v3';
 import { useDomainsStore, useNotificationsStore } from '@/shared/stores';
 import { storeToRefs } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, onScopeDispose, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -27,6 +27,20 @@ export function useDomainsManager() {
   const route = useRoute();
   const goBack = () => router.back();
   const { records, details } = storeToRefs(store);
+
+  // Track pending timeouts so they can be cleared on scope disposal
+  let redirectTimer: ReturnType<typeof setTimeout> | null = null;
+  let verifyTimer: ReturnType<typeof setTimeout> | null = null;
+  onScopeDispose(() => {
+    if (redirectTimer) {
+      clearTimeout(redirectTimer);
+      redirectTimer = null;
+    }
+    if (verifyTimer) {
+      clearTimeout(verifyTimer);
+      verifyTimer = null;
+    }
+  });
 
   // Get org identifier from route params for org-qualified operations
   // Routes use either :orgid (domain routes) or :extid (org settings routes)
@@ -106,7 +120,8 @@ export function useDomainsManager() {
         await store.fetchList();
         const existingDomain = store.records?.find(d => d.display_domain === domain);
         if (existingDomain && orgid.value) {
-          setTimeout(() => {
+          redirectTimer = setTimeout(() => {
+            redirectTimer = null;
             router.push({
               name: 'DomainVerify',
               params: { orgid: orgid.value, extid: existingDomain.extid },
@@ -163,20 +178,26 @@ export function useDomainsManager() {
             params: { orgid: orgid.value, extid: record.extid },
           });
         }
-        setTimeout(() => verifyDomain(record.extid), 2000);
+        verifyTimer = setTimeout(() => {
+          verifyDomain(record.extid).catch((err: unknown) => {
+            console.warn('[useDomainsManager] Post-add verification failed:', err);
+          });
+        }, 2000);
         return record;
-      } catch (err: any) {
-        const errorMessage = err?.response?.data?.message || err?.message || '';
+      } catch (err: unknown) {
+        const axiosErr = err as { response?: { data?: { message?: string } }; message?: string };
+        const errorMessage = axiosErr?.response?.data?.message || axiosErr?.message || '';
         const handled = await handleDomainExistsError(domain, errorMessage);
         if (handled !== undefined) return handled;
         throw err;
       }
     });
 
-  const deleteDomain = async (domainId: string) => {
-    await store.deleteDomain(domainId);
-    notifications.show(t('web.domains.domain_removed_successfully'), 'success', 'top');
-  };
+  const deleteDomain = async (domainId: string) =>
+    wrap(async () => {
+      await store.deleteDomain(domainId);
+      notifications.show(t('web.domains.domain_removed_successfully'), 'success', 'top');
+    });
 
   /**
    * Refresh domain records for the current organization context.
