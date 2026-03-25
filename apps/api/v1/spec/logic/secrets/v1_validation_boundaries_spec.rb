@@ -145,51 +145,200 @@ RSpec.describe 'V1 Validation Boundaries [#2621]' do
   # Passphrase Validation Boundaries
   # =========================================================================
   describe 'Passphrase boundaries' do
-    describe 'V1 constants' do
-      it 'defines V1_PASSPHRASE_MIN_LENGTH as nil (no minimum)' do
-        expect(V1::Logic::Secrets::BaseSecretAction::V1_PASSPHRASE_MIN_LENGTH).to be_nil
+    describe '.passphrase_min_length (config-driven) [#2758]' do
+      it 'returns nil when config has no minimum_length set' do
+        allow(OT).to receive(:conf).and_return({
+          'site' => {
+            'secret_options' => {
+              'passphrase' => {}
+            }
+          }
+        })
+        expect(V1::Logic::Secrets::BaseSecretAction.passphrase_min_length).to be_nil
+      end
+
+      it 'returns nil when passphrase config is missing entirely' do
+        allow(OT).to receive(:conf).and_return({
+          'site' => {
+            'secret_options' => {}
+          }
+        })
+        expect(V1::Logic::Secrets::BaseSecretAction.passphrase_min_length).to be_nil
+      end
+
+      it 'returns the configured minimum_length when set' do
+        allow(OT).to receive(:conf).and_return({
+          'site' => {
+            'secret_options' => {
+              'passphrase' => {
+                'minimum_length' => 8
+              }
+            }
+          }
+        })
+        expect(V1::Logic::Secrets::BaseSecretAction.passphrase_min_length).to eq(8)
       end
     end
 
     describe '#validate_passphrase' do
       subject { V1BoundaryTestAction.new(session, customer, base_params) }
 
-      it 'accepts 4-character passphrase (v0.23.4 compat)' do
-        subject.instance_variable_set(:@passphrase, 'abcd')
-        expect { subject.send(:validate_passphrase) }.not_to raise_error
+      context 'when no minimum_length configured (default/backward-compatible)' do
+        before do
+          allow(OT).to receive(:conf).and_return({
+            'site' => {
+              'secret_options' => {
+                'passphrase' => {
+                  'maximum_length' => 128
+                }
+              }
+            }
+          })
+        end
+
+        it 'accepts 4-character passphrase (v0.23.4 compat)' do
+          subject.instance_variable_set(:@passphrase, 'abcd')
+          expect { subject.send(:validate_passphrase) }.not_to raise_error
+        end
+
+        it 'accepts 1-character passphrase' do
+          subject.instance_variable_set(:@passphrase, 'a')
+          expect { subject.send(:validate_passphrase) }.not_to raise_error
+        end
+
+        it 'accepts empty passphrase (optional)' do
+          subject.instance_variable_set(:@passphrase, '')
+          expect { subject.send(:validate_passphrase) }.not_to raise_error
+        end
+
+        it 'accepts nil passphrase (optional)' do
+          subject.instance_variable_set(:@passphrase, nil)
+          expect { subject.send(:validate_passphrase) }.not_to raise_error
+        end
+
+        it 'accepts 8-character passphrase' do
+          subject.instance_variable_set(:@passphrase, 'abcdefgh')
+          expect { subject.send(:validate_passphrase) }.not_to raise_error
+        end
       end
 
-      it 'accepts 1-character passphrase' do
-        subject.instance_variable_set(:@passphrase, 'a')
-        expect { subject.send(:validate_passphrase) }.not_to raise_error
+      context 'when minimum_length: 8 configured (opt-in enforcement)' do
+        before do
+          allow(OT).to receive(:conf).and_return({
+            'site' => {
+              'secret_options' => {
+                'passphrase' => {
+                  'minimum_length' => 8,
+                  'maximum_length' => 128
+                }
+              }
+            }
+          })
+        end
+
+        it 'rejects 4-character passphrase' do
+          subject.instance_variable_set(:@passphrase, 'abcd')
+          expect { subject.send(:validate_passphrase) }.to raise_error(
+            OT::FormError, /at least 8 characters/
+          )
+        end
+
+        it 'rejects 7-character passphrase (just under minimum)' do
+          subject.instance_variable_set(:@passphrase, 'abcdefg')
+          expect { subject.send(:validate_passphrase) }.to raise_error(
+            OT::FormError, /at least 8 characters/
+          )
+        end
+
+        it 'accepts 8-character passphrase (exactly at minimum)' do
+          subject.instance_variable_set(:@passphrase, 'abcdefgh')
+          expect { subject.send(:validate_passphrase) }.not_to raise_error
+        end
+
+        it 'accepts 12-character passphrase (above minimum)' do
+          subject.instance_variable_set(:@passphrase, 'abcdefghijkl')
+          expect { subject.send(:validate_passphrase) }.not_to raise_error
+        end
+
+        it 'still accepts empty passphrase (optional unless required: true)' do
+          subject.instance_variable_set(:@passphrase, '')
+          expect { subject.send(:validate_passphrase) }.not_to raise_error
+        end
+
+        it 'still accepts nil passphrase (optional unless required: true)' do
+          subject.instance_variable_set(:@passphrase, nil)
+          expect { subject.send(:validate_passphrase) }.not_to raise_error
+        end
       end
 
-      it 'accepts empty passphrase (optional)' do
-        subject.instance_variable_set(:@passphrase, '')
-        expect { subject.send(:validate_passphrase) }.not_to raise_error
+      context 'when minimum_length: 4 configured' do
+        before do
+          allow(OT).to receive(:conf).and_return({
+            'site' => {
+              'secret_options' => {
+                'passphrase' => {
+                  'minimum_length' => 4,
+                  'maximum_length' => 128
+                }
+              }
+            }
+          })
+        end
+
+        it 'rejects 3-character passphrase' do
+          subject.instance_variable_set(:@passphrase, 'abc')
+          expect { subject.send(:validate_passphrase) }.to raise_error(
+            OT::FormError, /at least 4 characters/
+          )
+        end
+
+        it 'accepts 4-character passphrase (exactly at minimum)' do
+          subject.instance_variable_set(:@passphrase, 'abcd')
+          expect { subject.send(:validate_passphrase) }.not_to raise_error
+        end
       end
 
-      it 'accepts nil passphrase (optional)' do
-        subject.instance_variable_set(:@passphrase, nil)
-        expect { subject.send(:validate_passphrase) }.not_to raise_error
+      context 'maximum length validation' do
+        before do
+          allow(OT).to receive(:conf).and_return({
+            'site' => {
+              'secret_options' => {
+                'passphrase' => {
+                  'maximum_length' => 128
+                }
+              }
+            }
+          })
+        end
+
+        it 'rejects passphrase exceeding maximum length' do
+          subject.instance_variable_set(:@passphrase, 'a' * 200)
+          expect { subject.send(:validate_passphrase) }.to raise_error(
+            OT::FormError, /no more than/
+          )
+        end
       end
 
-      it 'accepts 8-character passphrase' do
-        subject.instance_variable_set(:@passphrase, 'abcdefgh')
-        expect { subject.send(:validate_passphrase) }.not_to raise_error
-      end
+      context 'complexity enforcement' do
+        before do
+          allow(OT).to receive(:conf).and_return({
+            'site' => {
+              'secret_options' => {
+                'passphrase' => {
+                  'enforce_complexity' => true,
+                  'maximum_length' => 128
+                }
+              }
+            }
+          })
+        end
 
-      it 'rejects passphrase exceeding maximum length' do
-        subject.instance_variable_set(:@passphrase, 'a' * 200)
-        expect { subject.send(:validate_passphrase) }.to raise_error(
-          OT::FormError, /no more than/
-        )
-      end
-
-      it 'does not enforce complexity for V1' do
-        # Even with simple passphrase (no uppercase, symbols, etc.)
-        subject.instance_variable_set(:@passphrase, 'simplepassword')
-        expect { subject.send(:validate_passphrase) }.not_to raise_error
+        it 'does not enforce complexity for V1 (ignores config)' do
+          # Even with simple passphrase (no uppercase, symbols, etc.)
+          # and enforce_complexity: true in config, V1 API ignores it
+          subject.instance_variable_set(:@passphrase, 'simplepassword')
+          expect { subject.send(:validate_passphrase) }.not_to raise_error
+        end
       end
     end
   end

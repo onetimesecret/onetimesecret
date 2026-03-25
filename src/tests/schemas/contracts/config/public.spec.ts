@@ -95,7 +95,7 @@ describe('publicSecretOptionsSchema', () => {
       });
 
       expect(result.passphrase?.required).toBe(true);
-      expect(result.passphrase?.minimum_length).toBe(8); // default
+      expect(result.passphrase?.minimum_length).toBeUndefined(); // opt-in, no default
       expect(result.passphrase?.maximum_length).toBe(128); // default
       expect(result.passphrase?.enforce_complexity).toBe(false); // default
     });
@@ -110,11 +110,21 @@ describe('publicSecretOptionsSchema', () => {
       expect(result.passphrase?.required).toBe(true);
     });
 
-    it('enforces minimum passphrase length constraints', () => {
+    it('accepts zero for minimum_length (no enforcement)', () => {
+      const result = publicSecretOptionsSchema.parse({
+        passphrase: {
+          minimum_length: 0,
+        },
+      });
+
+      expect(result.passphrase?.minimum_length).toBe(0);
+    });
+
+    it('enforces maximum passphrase minimum_length constraint', () => {
       expect(() =>
         publicSecretOptionsSchema.parse({
           passphrase: {
-            minimum_length: 0, // Below minimum of 1
+            minimum_length: 300, // Above maximum of 256
           },
         })
       ).toThrow();

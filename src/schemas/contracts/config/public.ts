@@ -46,9 +46,11 @@ export const publicSecretOptionsSchema = z.object({
       required: z.boolean().default(false),
 
       /**
-       * Minimum length required for passphrases
+       * Minimum length required for passphrases (opt-in enforcement).
+       * When undefined or 0, no minimum length is enforced.
+       * @sync apps/api/v1/logic/secrets/base_secret_action.rb — passphrase validation
        */
-      minimum_length: z.number().int().min(1).max(256).default(8),
+      minimum_length: z.number().int().min(0).max(256).optional(),
 
       /**
        * Maximum length allowed for passphrases
