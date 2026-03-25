@@ -257,9 +257,10 @@ function toOperationId(leaf: string): string {
 }
 
 /**
- * Convert PascalCase/snake_case to a human-readable summary.
+ * Convert PascalCase/snake_case/lowercase to a human-readable summary.
  * "ConcealSecret" -> "Conceal Secret"
  * "show_secret" -> "Show Secret"
+ * "status" -> "Status"
  */
 function toSummary(leaf: string): string {
   // Handle snake_case
@@ -270,7 +271,10 @@ function toSummary(leaf: string): string {
       .join(' ');
   }
   // Handle PascalCase — insert space before each capital letter
-  return leaf.replace(/([A-Z])/g, ' $1').trim();
+  const result = leaf.replace(/([A-Z])/g, ' $1').trim();
+
+  // Capitalize first letter (handles single-word lowercase inputs like "status")
+  return result.charAt(0).toUpperCase() + result.slice(1);
 }
 
 // =============================================================================
@@ -309,12 +313,12 @@ function createDocument(target: SpecTarget): OpenAPIDocument {
           type: 'apiKey',
           in: 'cookie',
           name: 'rack.session',
-          description: 'Session-based authentication via browser cookies',
+          description: 'Session-based authentication via browser cookies. Some endpoints additionally require a specific role (see x-ots-required-role extension on individual operations).',
         },
         basicAuth: {
           type: 'http',
           scheme: 'basic',
-          description: 'HTTP Basic authentication with username (email) and API token',
+          description: 'HTTP Basic authentication with username (email) and API token. Some endpoints additionally require a specific role (see x-ots-required-role extension on individual operations).',
         },
       },
       schemas: {},
@@ -571,12 +575,19 @@ function buildOperation(route: OttoRoute, apiName: string): Record<string, unkno
   }
 
   // Add security
+  const auth = getAuthRequirements(route);
   const security = buildSecurity(route);
   if (security) {
     operation.security = security;
   } else {
     // Explicitly mark as no auth required
     operation.security = [];
+  }
+
+  // Add role requirement as extension if specified
+  // This documents that the endpoint requires a specific role beyond basic authentication
+  if (auth.role) {
+    operation['x-ots-required-role'] = auth.role;
   }
 
   // Add path parameters

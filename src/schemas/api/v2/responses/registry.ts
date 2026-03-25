@@ -37,6 +37,7 @@ import {
   concealDataResponseSchema,
   secretListResponseSchema,
   secretResponseSchema,
+  secretStatusResponseSchema,
 } from './secrets';
 
 // Single source of truth for response schemas
@@ -47,6 +48,7 @@ export const responseSchemas = {
   // Secrets
   concealData: concealDataResponseSchema,
   secret: secretResponseSchema,
+  secretStatus: secretStatusResponseSchema,
   secretList: secretListResponseSchema,
 
   // Domains / brand

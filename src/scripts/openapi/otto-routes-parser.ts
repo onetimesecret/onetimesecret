@@ -137,9 +137,10 @@ export function getAuthRequirements(route: OttoRoute): {
     'anonymous': 'noauth',
   };
 
-  // Check for role requirement: auth=role:colonel
+  // Check for role requirement in auth param: auth=role:colonel
+  // or as separate param: role=colonel
   const roleScheme = schemes.find(s => s.startsWith('role:'));
-  const role = roleScheme ? roleScheme.split(':')[1] : undefined;
+  const role = roleScheme ? roleScheme.split(':')[1] : route.params.role;
 
   // Filter out role from schemes, normalize V1 tokens
   const authSchemes = schemes
