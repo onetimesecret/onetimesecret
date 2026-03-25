@@ -54,7 +54,7 @@ module V1::Logic
       # This changed in v0.24.1: prior versions hard-coded nil here, ignoring
       # any operator config. Now operators can opt-in to enforcement.
       def self.passphrase_min_length
-        OT.conf.dig('site', 'secret_options', 'passphrase', 'minimum_length') || nil
+        OT.conf.dig('site', 'secret_options', 'passphrase', 'minimum_length')&.to_i
       end
 
       # Max secret size: 10_000 characters matches the API spec's

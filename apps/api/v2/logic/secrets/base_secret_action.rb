@@ -232,7 +232,7 @@ module V2::Logic
         return if passphrase.to_s.empty?
 
         # Validate minimum length
-        min_length = passphrase_config['minimum_length'] || nil
+        min_length = passphrase_config['minimum_length']&.to_i
         if min_length && passphrase.length < min_length
           raise_form_error "Passphrase must be at least #{min_length} characters long"
         end

@@ -89,7 +89,7 @@ const passphraseSchema = z.object({
    * When undefined or 0, no minimum length is enforced.
    * @sync apps/api/v1/logic/secrets/base_secret_action.rb — passphrase validation
    */
-  minimum_length: z.number().int().min(0).optional(),
+  minimum_length: z.number().int().min(0).max(256).optional(),
   maximum_length: z.number().int().positive().default(128),
   enforce_complexity: z.boolean().default(false),
 });
