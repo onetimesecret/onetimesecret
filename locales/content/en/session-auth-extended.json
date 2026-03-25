@@ -627,6 +627,10 @@
     "text": "Please enter all 6 digits to continue",
     "sha256": "7914f7b2"
   },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Alternative authentication options",
+    "sha256": "00000000"
+  },
   "web.auth.mfa.digit_of_count": {
     "text": "Digit {current} of {total}",
     "sha256": "879df41a"

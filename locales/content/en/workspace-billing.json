@@ -1,4 +1,8 @@
 {
+  "web.billing.already_subscribed": {
+    "text": "You are already subscribed to this plan.",
+    "sha256": "2b02438b"
+  },
   "web.billing.subscription_synced_title": {
     "text": "Subscription Synced",
     "sha256": "3086ef43"

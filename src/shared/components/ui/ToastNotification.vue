@@ -10,6 +10,8 @@
 <template>
   <div
     v-if="show"
+    role="status"
+    aria-live="polite"
     class="absolute right-3 top-3 rounded-md bg-gray-900 px-3 py-1.5 text-sm text-white shadow-lg transition-all duration-300 dark:bg-gray-700"
     :class="{
       'translate-y-1 opacity-0': !show,

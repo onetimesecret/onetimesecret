@@ -9,6 +9,7 @@ import { useDomainsStore } from '@/shared/stores/domainsStore';
 import { shouldUseLightText } from '@/utils';
 import { AxiosError } from 'axios';
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import { AsyncHandlerOptions, useAsyncHandler, createError } from './useAsyncHandler';
@@ -33,6 +34,7 @@ export function useBranding(domainId?: string) {
   const store = useBrandStore();
   const domainsStore = useDomainsStore();
   const notifications = useNotificationsStore();
+  const { t } = useI18n();
   const router = useRouter(); // Must be called at setup time, not in callbacks
   const isLoading = ref(false);
   const isInitialized = ref(false);
@@ -186,7 +188,7 @@ export function useBranding(domainId?: string) {
         brandSettings.value = updated;
         originalSettings.value = { ...brandSettings.value };
       }
-      notifications.show('Brand settings saved successfully', 'success', 'top');
+      notifications.show(t('web.branding.saved_successfully'), 'success', 'top');
     });
 
   const handleLogoUpload = async (file: File) =>

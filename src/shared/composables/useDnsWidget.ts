@@ -7,6 +7,7 @@
 
 import type { AxiosInstance } from 'axios';
 import { inject, onUnmounted, ref, type Ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // Import widget assets - Vite will handle bundling/hashing
 import dnsWidgetCss from '@/assets/approximated/dnswidget.v1.css?url';
@@ -94,6 +95,7 @@ export interface UseDnsWidgetOptions {
 /* eslint-disable max-lines-per-function */
 export function useDnsWidget(options: UseDnsWidgetOptions) {
   const $api = inject('api') as AxiosInstance;
+  const { t } = useI18n();
 
   const isLoading = ref(false);
   const error: Ref<string | null> = ref(null);
@@ -223,14 +225,14 @@ export function useDnsWidget(options: UseDnsWidgetOptions) {
       // Load assets
       const assetsLoaded = await loadAssets();
       if (!assetsLoaded) {
-        error.value = 'Failed to load DNS widget';
+        error.value = t('web.domains.dns_widget_load_failed');
         return false;
       }
 
       // Fetch token
       const tokenData = await fetchToken();
       if (!tokenData?.token) {
-        error.value = 'DNS widget not available';
+        error.value = t('web.domains.dns_widget_not_available');
         return false;
       }
 
@@ -264,7 +266,7 @@ export function useDnsWidget(options: UseDnsWidgetOptions) {
       return true;
     } catch (err) {
       console.error('[useDnsWidget] Initialization error:', err);
-      error.value = 'Failed to initialize DNS widget';
+      error.value = t('web.domains.dns_widget_init_failed');
       return false;
     } finally {
       isLoading.value = false;

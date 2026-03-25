@@ -130,5 +130,25 @@
   "incoming.receipt_link_text": {
     "text": "receipt",
     "sha256": "6f328609"
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Memo must be {max} characters or less",
+    "sha256": "a1b2c3d4"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Secret content is required",
+    "sha256": "b2c3d4e5"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Please select a recipient",
+    "sha256": "c3d4e5f6"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Incoming secrets feature is not enabled",
+    "sha256": "d4e5f6a7"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Please check the form for errors",
+    "sha256": "e5f6a7b8"
   }
 }
