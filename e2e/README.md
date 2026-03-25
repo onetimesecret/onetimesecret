@@ -87,6 +87,11 @@ page.locator('[data-testid^="org-card-"]')  // Prefix match
   <EmptyState testid="my-empty">
   ```
 
+**Skip testids on:**
+- Purely decorative elements (icons, dividers, background shapes)
+- Wrapper divs that exist only for layout — target the interactive child instead
+- Elements already reachable via `getByRole()` or `getByText()` with stable values
+
 ## Environment Variables
 
 | Variable | Description |
