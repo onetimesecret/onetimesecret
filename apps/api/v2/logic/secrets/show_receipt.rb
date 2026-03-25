@@ -99,12 +99,12 @@ module V2::Logic
 
           if !burned_or_revealed && receipt.secret_expired?
             OT.le("[show_receipt] Receipt has expired secret. #{receipt.shortid}")
-            receipt.secret_identifier = nil
-            receipt.expired!
+            receipt.expired!  # Sets secret_identifier to empty
+            @secret_identifier = nil  # Clear local variable to prevent leaking
           elsif !burned_or_revealed
             OT.le("[show_receipt] Receipt is an orphan. #{receipt.shortid}")
-            receipt.secret_identifier = nil
-            receipt.orphaned!
+            receipt.orphaned!  # Sets secret_identifier to empty
+            @secret_identifier = nil  # Clear local variable to prevent leaking
           end
 
           # Check for both new 'revealed' state and legacy 'received' state
@@ -114,7 +114,10 @@ module V2::Logic
           @is_orphaned  = receipt.state?(:orphaned)
           @is_destroyed = @is_burned || @is_received || @is_expired || @is_orphaned
 
-          receipt.secret_identifier! nil if is_destroyed && receipt.secret_identifier
+          if is_destroyed && receipt.secret_identifier
+            receipt.secret_identifier! nil
+            @secret_identifier = nil  # Clear local variable to prevent leaking
+          end
         else
           @secret_state   = secret.state
           @secret_realttl = secret.current_expiration
@@ -236,7 +239,12 @@ module V2::Logic
         attributes = receipt.safe_dump
 
         # Only include the secret's identifying key when necessary
-        attributes[:secret_identifier] = secret_identifier if show_secret
+        # Remove it from safe_dump and only add it back if show_secret is true
+        if show_secret
+          attributes[:secret_identifier] = secret_identifier
+        else
+          attributes.delete(:secret_identifier)
+        end
 
         # Add additional attributes not included in safe dump
         attributes.merge!(
