@@ -33,8 +33,7 @@ module Internal
     # Handler for ACME domain validation endpoint
     class AskHandler
       def self.call(req, res)
-        domain             = req.params['domain']
-        check_verification = req.params['check_verification'] != 'false'
+        domain = req.params['domain']
 
         if domain.to_s.empty?
           OT.ld '[Internal::ACME] Missing domain parameter'
@@ -44,11 +43,10 @@ module Internal
           return
         end
 
-        unless check_verification
-          OT.lw "[Internal::ACME] check_verification=false for domain: #{domain}"
-        end
-
-        allowed = Application.domain_allowed?(domain, check_verification: check_verification)
+        # Always verify domain ownership. The check_verification parameter
+        # was removed from the HTTP interface to prevent any local process
+        # from bypassing DNS verification via query string.
+        allowed = Application.domain_allowed?(domain)
         status  = allowed ? 200 : 403
 
         OT.info "[Internal::ACME] Domain check: #{domain} -> #{status}"
