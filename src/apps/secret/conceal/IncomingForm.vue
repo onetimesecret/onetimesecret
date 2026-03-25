@@ -69,9 +69,10 @@
 <template>
   <div class="container mx-auto mt-16 max-w-3xl px-4 pb-16 sm:mt-20 sm:pb-16">
     <!-- Feature Disabled (no header) -->
-    <EmptyState v-if="showFeatureDisabled"
-:show-action="false"
-data-testid="incoming-feature-disabled">
+    <EmptyState
+      v-if="showFeatureDisabled"
+      :show-action="false"
+      data-testid="incoming-feature-disabled">
       <template #title>
         {{ t('incoming.feature_disabled_title') }}
       </template>
@@ -98,9 +99,10 @@ data-testid="incoming-feature-disabled">
         :message="t('incoming.loading_config')" />
 
       <!-- Error State -->
-      <EmptyState v-if="incomingStore.configError"
-:show-action="false"
-data-testid="incoming-config-error">
+      <EmptyState
+        v-if="incomingStore.configError"
+        :show-action="false"
+        data-testid="incoming-config-error">
         <template #title>
           {{ t('incoming.config_error_title') }}
         </template>
@@ -126,7 +128,7 @@ data-testid="incoming-config-error">
             @blur="handleRecipientBlur" />
 
           <!-- Secret Content (Second) -->
-          <div data-testid="incoming-secret-content">
+          <div>
             <label
               for="secret-content"
               class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
