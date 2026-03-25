@@ -10,9 +10,9 @@ import {
 } from '@/schemas/api/incoming';
 import { responseSchemas, ReceiptResponse } from '@/schemas/api/v3/responses';
 import { loggingService } from '@/services/logging.service';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { computed, inject, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 interface StoreOptions extends PiniaPluginOptions {}
 
@@ -47,7 +47,7 @@ export type IncomingStore = {
  */
 /* eslint-disable max-lines-per-function */
 export const useIncomingStore = defineStore('incoming', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const config = ref<IncomingConfig | null>(null);

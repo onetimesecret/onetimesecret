@@ -3,9 +3,9 @@
 import { systemSettingsSchema } from '@/schemas/api/account/responses/colonel';
 import { type SystemSettingsDetails } from '@/schemas/contracts/config';
 import { responseSchemas } from '@/schemas/api/internal/responses';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { inject, ref } from 'vue';
+import { ref } from 'vue';
 import { z } from 'zod';
 
 /**
@@ -25,7 +25,7 @@ export type SystemSettingsStore = {
 } & PiniaCustomProperties;
 
 export const useSystemSettingsStore = defineStore('colonel', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const record = ref<{} | null>(null);

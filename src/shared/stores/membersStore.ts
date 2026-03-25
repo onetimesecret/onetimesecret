@@ -16,13 +16,13 @@ import type {
   UpdateMemberRolePayload,
 } from '@/types/organization';
 import { updateMemberRolePayloadSchema } from '@/types/organization';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore } from 'pinia';
-import { computed, inject, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 /* eslint-disable max-lines-per-function */
 export const useMembersStore = defineStore('members', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const members = ref<OrganizationMember[]>([]);

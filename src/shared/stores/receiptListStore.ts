@@ -4,9 +4,9 @@ import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import type { ReceiptList, ReceiptListDetails } from '@/schemas/shapes/v3/receipt';
 import { loggingService } from '@/services/logging.service';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { inject, ref, type Ref } from 'vue';
+import { ref, type Ref } from 'vue';
 
 /**
  * Options for filtering receipt list queries.
@@ -50,7 +50,7 @@ export type ReceiptListStore = {
 
 // eslint-disable-next-line max-lines-per-function -- temporary debug logging
 export const useReceiptListStore = defineStore('receiptList', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const _initialized = ref(false);

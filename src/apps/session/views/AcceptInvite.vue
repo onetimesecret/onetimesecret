@@ -11,9 +11,9 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { formatDisplayDate } from '@/utils/format';
-  import { inject, onMounted, ref, computed } from 'vue';
+  import { onMounted, ref, computed } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
-  import type { AxiosInstance } from 'axios';
+  import { useApi } from '@/shared/composables/useApi';
   import { z } from 'zod';
 
   const { t } = useI18n();
@@ -23,7 +23,7 @@
   const bootstrapStore = useBootstrapStore();
   const organizationStore = useOrganizationStore();
   const { logout } = useAuth();
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   const { wrap } = useAsyncHandler({
     notify: false,
