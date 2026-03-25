@@ -48,68 +48,61 @@ module ColonelAPI
           success_data
         end
 
+        # Maximum items to return (protects against users with huge histories)
+        MAX_ITEMS = 10_000
+
         private
 
-        # Scan secrets owned by user using non-blocking Redis SCAN
-        # Replaces blocking KEYS operation
+        # Get user's secrets via receipts - O(n) where n = user's receipts, not all secrets.
+        #
+        # Since there's no user→secrets index, we get secrets through receipts.
+        # Each receipt references a secret via secret_id. This is much more efficient
+        # than SCAN across ALL secrets in Redis.
         def scan_user_secrets
-          secrets  = []
-          cursor   = '0'
-          dbclient = Onetime::Secret.dbclient
-          pattern  = 'secret:*:object'
+          secrets = []
 
-          loop do
-            cursor, keys = dbclient.scan(cursor, match: pattern, count: 100)
+          # Use the user's receipts sorted set (user-scoped index)
+          user.receipts.revmembers(count: MAX_ITEMS).each do |receipt_id|
+            receipt = Onetime::Receipt.load(receipt_id)
+            next unless receipt&.exists?
 
-            keys.each do |key|
-              objid  = key.split(':')[1]
-              secret = Onetime::Secret.load(objid)
-              next unless secret&.exists?
-              next unless secret.owner_id == user.objid
+            secret = receipt.secret
+            next unless secret&.exists?
 
-              secrets << {
-                secret_id: secret.objid,
-                shortid: secret.shortid,
-                state: secret.state,
-                created: secret.created,
-                expiration: secret.expiration,
-              }
-            end
+            secrets << {
+              secret_id: secret.objid,
+              shortid: secret.shortid,
+              state: secret.state,
+              created: secret.created,
+              expiration: secret.expiration,
+            }
 
-            break if secrets.size >= 10_000
-            break if cursor == '0'
+            break if secrets.size >= MAX_ITEMS
           end
 
           secrets
         end
 
-        # Scan receipts owned by user using non-blocking Redis SCAN
-        # Replaces blocking KEYS operation
+        # Get user's receipts via user-scoped index - O(n) where n = user's receipts.
+        #
+        # Customer has a `receipts` sorted set (user-scoped index). This is O(n) on
+        # user's receipts, not O(n) on ALL receipts globally. Much more efficient.
         def scan_user_receipts
           receipt_list = []
-          cursor       = '0'
-          dbclient     = Onetime::Receipt.dbclient
-          pattern      = 'receipt:*:object'
 
-          loop do
-            cursor, keys = dbclient.scan(cursor, match: pattern, count: 100)
+          # Use the user's receipts sorted set directly (already user-scoped)
+          user.receipts.revmembers(count: MAX_ITEMS).each do |receipt_id|
+            receipt = Onetime::Receipt.load(receipt_id)
+            next unless receipt&.exists?
 
-            keys.each do |key|
-              objid   = key.split(':')[1]
-              receipt = Onetime::Receipt.load(objid)
-              next unless receipt&.exists?
-              next unless receipt.owner_id == user.objid
+            receipt_list << {
+              receipt_id: receipt.objid,
+              shortid: receipt.shortid,
+              state: receipt.state,
+              created: receipt.created,
+            }
 
-              receipt_list << {
-                receipt_id: receipt.objid,
-                shortid: receipt.shortid,
-                state: receipt.state,
-                created: receipt.created,
-              }
-            end
-
-            break if receipt_list.size >= 10_000
-            break if cursor == '0'
+            break if receipt_list.size >= MAX_ITEMS
           end
 
           receipt_list
