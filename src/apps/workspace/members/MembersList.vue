@@ -9,7 +9,7 @@ import { useMembersManager } from '@/shared/composables/useMembersManager';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { OrganizationMember } from '@/types/organization';
 import { storeToRefs } from 'pinia';
-import { computed, onMounted, onUnmounted, watch } from 'vue';
+import { computed, onUnmounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
@@ -50,28 +50,16 @@ const handleMemberRemoved = (memberExtid: string) => {
   console.debug('[MembersList] Member removed:', memberExtid);
 };
 
-// Load members when component mounts or org changes
-onMounted(() => {
-  loadMembers();
-});
-
-// Watch for route param changes
-watch(
-  () => route.params.extid,
-  (newExtid) => {
-    if (newExtid) {
-      loadMembers();
-    }
-  }
-);
-
-// Fetch organization if not already loaded
+// Single watcher handles both member loading and org fetching on route changes.
+// Using { immediate: true } replaces the onMounted call, avoiding double fetch.
 watch(
   orgExtid,
   async (extid) => {
-    if (extid && !currentOrganization.value) {
+    if (!extid) return;
+    if (!currentOrganization.value) {
       await orgStore.fetchOrganization(extid);
     }
+    await loadMembers();
   },
   { immediate: true }
 );

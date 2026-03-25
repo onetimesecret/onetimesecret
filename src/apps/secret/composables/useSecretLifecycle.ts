@@ -43,6 +43,8 @@ export function useSecretLifecycle(secretKey: string) {
       const record = data.record;
       if (record.state === 'burned') {
         state.value = 'burned';
+      } else if (record.state === 'expired') {
+        state.value = 'expired';
       } else if (record.state === 'previewed') {
         state.value = 'previewed';
       } else if (record.has_passphrase) {

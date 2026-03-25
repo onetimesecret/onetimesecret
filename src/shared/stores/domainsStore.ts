@@ -77,7 +77,7 @@ export const useDomainsStore = defineStore('domains', () => {
   const count = ref<number | null>(null);
 
   // Getters
-  const initialized = _initialized.value;
+  const initialized = computed(() => _initialized.value);
   const recordCount = () => count.value ?? 0;
   const domains = computed(() => records.value ?? []);
 

@@ -32,12 +32,13 @@
 
         <div class="p-6">
           <div
+            v-if="currentJurisdiction"
             class="rounded-lg border-2 border-brand-200 bg-brand-50 p-6 dark:border-brand-800 dark:bg-brand-900/20">
             <div class="flex items-center gap-4">
               <div
                 class="flex size-16 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
                 <OIcon
-                  v-if="currentJurisdiction?.icon"
+                  v-if="currentJurisdiction.icon"
                   :collection="currentJurisdiction.icon.collection"
                   :name="currentJurisdiction.icon.name"
                   class="size-8 text-brand-600 dark:text-brand-400"
@@ -45,12 +46,12 @@
               </div>
               <div class="flex-1">
                 <p class="text-xl font-semibold text-gray-900 dark:text-white">
-                  {{ currentJurisdiction?.display_name }}
+                  {{ currentJurisdiction.display_name }}
                 </p>
                 <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                   {{
                     t('web.regions.data_center_location_currentjurisdiction_identif', [
-                      currentJurisdiction?.identifier,
+                      currentJurisdiction.identifier,
                     ])
                   }}
                 </p>
@@ -60,6 +61,15 @@
                 {{ t('web.regions.active') }}
               </div>
             </div>
+          </div>
+
+          <!-- Fallback when jurisdiction data is not available -->
+          <div
+            v-else
+            class="rounded-lg border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800/50">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              {{ t('web.regions.no_region_configured') }}
+            </p>
           </div>
 
           <!-- Jurisdiction Details -->

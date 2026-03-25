@@ -346,7 +346,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       failureCount.value = (failureCount.value ?? 0) + 1;
       if (failureCount.value >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
-        logout();
+        await logout();
       }
       return false;
     }
