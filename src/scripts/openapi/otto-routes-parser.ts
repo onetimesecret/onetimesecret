@@ -250,7 +250,7 @@ export function discoverApiNames(): string[] {
   } catch (error) {
     console.warn('Warning: Could not discover API names, using fallback list:', error);
     // Fallback to known APIs if discovery fails
-    return ['v2', 'v3', 'account', 'domains', 'organizations', 'teams'];
+    return ['account', 'colonel', 'domains', 'incoming', 'invite', 'organizations', 'v1', 'v2', 'v3'];
   }
 }
 

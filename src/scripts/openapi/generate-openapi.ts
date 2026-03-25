@@ -75,6 +75,12 @@ const registryByVersion: Record<string, ResponseSchemaRegistry> = {
   v2: v2ResponseSchemas,
   v3: v3ResponseSchemas,
   internal: internalResponseSchemas,
+  // Internal app APIs share the internal response schema registry
+  colonel: internalResponseSchemas,
+  organizations: internalResponseSchemas,
+  invite: internalResponseSchemas,
+  account: internalResponseSchemas,
+  domains: internalResponseSchemas,
 };
 
 function getResponseRegistry(apiName: string): ResponseSchemaRegistry {
@@ -124,6 +130,7 @@ const API_MOUNT_PATHS: Record<string, string> = {
   domains: '/api/domains',
   organizations: '/api/organizations',
   invite: '/api/invite',
+  incoming: '/api/incoming',
 };
 
 // =============================================================================
@@ -505,6 +512,18 @@ function buildResponses(
   }
   errorCodes.push(404);
 
+  // Include 429 for rate-limited endpoints (secret creation, feedback, passphrase-protected reveals)
+  const RATE_LIMITED_HANDLERS = ['ConcealSecret', 'GenerateSecret', 'ReceiveFeedback', 'ShowSecret', 'RevealSecret'];
+  const RATE_LIMITED_V1_METHODS = ['share', 'generate', 'create', 'show_secret'];
+  const handlerLeaf = getHandlerLeaf(handler);
+  const v1Method = handler.includes('#') ? handler.split('#').pop() : undefined;
+  if (
+    route.method === 'POST' &&
+    (RATE_LIMITED_HANDLERS.includes(handlerLeaf) || (v1Method && RATE_LIMITED_V1_METHODS.includes(v1Method)))
+  ) {
+    errorCodes.push(429);
+  }
+
   for (const code of errorCodes) {
     responses[String(code)] = standardErrorResponses[code];
   }
@@ -680,7 +699,10 @@ function processAllRoutes(
       // Skip OPTIONS preflight routes
       if (route.method === 'OPTIONS') continue;
 
-      const openApiPath = mountPath + toOpenAPIPath(route.path);
+      // Strip trailing slash to avoid path inconsistency (e.g. /api/account/ vs /api/account)
+      // when a route's path is "/" and gets concatenated with the mount path.
+      const rawPath = mountPath + toOpenAPIPath(route.path);
+      const openApiPath = rawPath.length > 1 ? rawPath.replace(/\/$/, '') : rawPath;
       const method = route.method.toLowerCase();
 
       if (!doc.paths[openApiPath]) {
