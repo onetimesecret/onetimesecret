@@ -33,6 +33,28 @@ module Onetime
       # Lockout duration in seconds after max attempts exceeded (30 minutes)
       LOCKOUT_DURATION = 1800
 
+      # Lua script to atomically increment attempts and handle expiration/lockout
+      RECORD_ATTEMPT_SCRIPT = <<~LUA
+        local attempts_key = KEYS[1]
+        local lockout_key = KEYS[2]
+        local attempt_window = tonumber(ARGV[1])
+        local max_attempts = tonumber(ARGV[2])
+        local lockout_duration = tonumber(ARGV[3])
+
+        local current_attempts = redis.call('INCR', attempts_key)
+
+        if current_attempts == 1 then
+          redis.call('EXPIRE', attempts_key, attempt_window)
+        end
+
+        if current_attempts >= max_attempts then
+          redis.call('SETEX', lockout_key, lockout_duration, '1')
+          redis.call('DEL', attempts_key)
+        end
+
+        return current_attempts
+      LUA
+
       # Check if passphrase attempts are rate limited for a secret.
       # Raises LimitExceeded if the secret is locked out due to too many failures.
       #
@@ -42,11 +64,18 @@ module Onetime
       def check_passphrase_rate_limit!(secret_identifier)
         return if secret_identifier.to_s.empty?
 
-        lockout_key = passphrase_lockout_key(secret_identifier)
+        lockout_key  = passphrase_lockout_key(secret_identifier)
+        attempts_key = passphrase_attempts_key(secret_identifier)
 
-        # Check if currently locked out
-        if redis.exists?(lockout_key)
-          ttl = redis.ttl(lockout_key)
+        # Batch operations to avoid multiple Redis network trips
+        is_locked, ttl, current_attempts = redis.pipelined do |pipe|
+          pipe.exists?(lockout_key)
+          pipe.ttl(lockout_key)
+          pipe.get(attempts_key)
+        end
+
+        # Handle different redis-rb version return types for exists?
+        if [true, 1].include?(is_locked)
           raise Onetime::LimitExceeded.new(
             'Too many incorrect passphrase attempts. Please try again later.',
             retry_after: ttl > 0 ? ttl : LOCKOUT_DURATION,
@@ -54,9 +83,7 @@ module Onetime
           )
         end
 
-        # Check current attempt count (informational, doesn't block yet)
-        attempts_key     = passphrase_attempts_key(secret_identifier)
-        current_attempts = redis.get(attempts_key).to_i
+        current_attempts = current_attempts.to_i
 
         # Log if approaching limit (for monitoring)
         if current_attempts >= MAX_ATTEMPTS - 1
@@ -75,21 +102,14 @@ module Onetime
         attempts_key = passphrase_attempts_key(secret_identifier)
         lockout_key  = passphrase_lockout_key(secret_identifier)
 
-        # Increment attempt counter atomically
-        current_attempts = redis.incr(attempts_key)
+        # Atomically increment and set TTLs via Lua script
+        current_attempts = redis.eval(
+          RECORD_ATTEMPT_SCRIPT,
+          keys: [attempts_key, lockout_key],
+          argv: [ATTEMPT_WINDOW, MAX_ATTEMPTS, LOCKOUT_DURATION],
+        )
 
-        # Set expiration on first attempt
-        if current_attempts == 1
-          redis.expire(attempts_key, ATTEMPT_WINDOW)
-        end
-
-        # If max attempts exceeded, create lockout
         if current_attempts >= MAX_ATTEMPTS
-          redis.setex(lockout_key, LOCKOUT_DURATION, '1')
-
-          # Clear attempts counter (lockout now governs access)
-          redis.del(attempts_key)
-
           OT.le "[PassphraseRateLimiter] Secret #{secret_identifier[0..7]} locked for #{LOCKOUT_DURATION}s after #{current_attempts} failed attempts"
         end
 

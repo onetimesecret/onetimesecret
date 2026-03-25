@@ -30,10 +30,12 @@ module Onetime
       # Lua script for atomic INCR + EXPIRE (prevents race condition
       # where a crash between the two commands leaves a permanent key).
       # NOTE: Redis EVAL runs Lua scripts server-side for atomicity.
+      # Returns both the current count and TTL to batch operations.
       RATE_LIMIT_LUA = <<~LUA
         local c = redis.call('INCR', KEYS[1])
         if tonumber(c) == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end
-        return c
+        local ttl = redis.call('TTL', KEYS[1])
+        return {c, ttl}
       LUA
 
       # Check if IP-based rate limit is exceeded for an event.
@@ -54,10 +56,11 @@ module Onetime
           # Atomic INCR + EXPIRE via Lua script (Redis EVAL command).
           # Without atomicity, a crash between INCR and EXPIRE could leave
           # a permanent key that never expires.
-          count = Familia.dbclient.eval(RATE_LIMIT_LUA, keys: [key], argv: [window])
+          # We return both count and TTL to avoid an additional TTL call.
+          count, ttl = Familia.dbclient.eval(RATE_LIMIT_LUA, keys: [key], argv: [window])
 
-          if count > max
-            ttl = Familia.dbclient.ttl(key)
+          if count.to_i > max
+            ttl = ttl.to_i
             raise Onetime::LimitExceeded.new(
               'Rate limit exceeded. Please try again later.',
               retry_after: ttl.positive? ? ttl : window,
