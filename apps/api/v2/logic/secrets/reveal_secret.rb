@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/passphrase_rate_limiter'
+
 module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
