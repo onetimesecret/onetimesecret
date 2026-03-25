@@ -122,7 +122,11 @@ module Onetime
             # Self-cleaning: remove entries that have already expired
             cleanup_count = Onetime::Receipt.cleanup_expired_from_timeline(Familia.now.to_f - CLEANUP_GRACE_PERIOD_SECONDS)
 
-            scheduler_logger.info "[ExpirationWarningJob] Processed: #{processed}, Skipped: #{skipped}, Cleaned: #{cleanup_count}"
+            # Clean up orphaned warnings_sent entries that no longer exist in expiration_timeline
+            # This prevents unbounded growth of the warnings_sent set
+            orphan_cleanup_count = Onetime::Receipt.cleanup_orphaned_warnings
+
+            scheduler_logger.info "[ExpirationWarningJob] Processed: #{processed}, Skipped: #{skipped}, Cleaned: #{cleanup_count}, Orphans: #{orphan_cleanup_count}"
           end
 
           # Schedule warning email for a secret

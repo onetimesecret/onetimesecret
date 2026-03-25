@@ -272,6 +272,36 @@ module Onetime
       def cleanup_expired_from_timeline(before_timestamp)
         expiration_timeline.remrangebyscore(0, before_timestamp)
       end
+
+      # Clean up orphaned entries from warnings_sent that no longer exist in expiration_timeline
+      # Should be called periodically (e.g., daily) to prevent unbounded growth
+      # @param batch_size [Integer] Number of entries to check per batch (default 1000)
+      # @return [Integer] Number of orphaned entries removed
+      def cleanup_orphaned_warnings(batch_size: 1000)
+        removed_count = 0
+        cursor        = '0'
+
+        loop do
+          # SSCAN through warnings_sent in batches - returns raw string values
+          cursor, members = warnings_sent.dbclient.sscan(warnings_sent.dbkey, cursor, count: batch_size)
+
+          members.each do |receipt_id|
+            # Check if this receipt_id still exists in expiration_timeline
+            # Use ZSCORE directly since we have raw string from SSCAN
+            # (expiration_timeline.score would serialize the value again)
+            score          = expiration_timeline.dbclient.zscore(expiration_timeline.dbkey, receipt_id)
+            next if score
+
+            # Use SREM directly since we have raw string from SSCAN
+            warnings_sent.dbclient.srem(warnings_sent.dbkey, receipt_id)
+            removed_count += 1
+          end
+
+          break if cursor == '0'
+        end
+
+        removed_count
+      end
     end
   end
 end
