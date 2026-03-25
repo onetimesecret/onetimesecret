@@ -174,6 +174,7 @@
             <button
               @click="handleDisableClick"
               type="button"
+              data-testid="mfa-disable-btn"
               class="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-900/20">
               {{ t('web.auth.mfa.disable') }}
             </button>
@@ -219,6 +220,7 @@
             <button
               @click="handleEnableMfa"
               type="button"
+              data-testid="mfa-enable-btn"
               class="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
               {{ t('web.auth.mfa.enable') }}
             </button>
@@ -287,6 +289,7 @@
                 class="sr-only">Password</label>
               <input
                 id="disable-password"
+                data-testid="mfa-disable-password-input"
                 v-model="disablePassword"
                 type="password"
                 autocomplete="current-password"
@@ -316,6 +319,7 @@
               </button>
               <button
                 type="submit"
+                data-testid="mfa-confirm-btn"
                 :disabled="isDisabling || !disablePassword"
                 class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                 <span v-if="isDisabling">{{ t('web.auth.mfa.disabling') }}</span>

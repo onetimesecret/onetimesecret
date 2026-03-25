@@ -53,10 +53,10 @@ defineExpose({ currentMode });
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6" data-testid="auth-standard-section">
     <!-- SSO-only mode: render only SSO provider buttons -->
     <template v-if="showSsoOnly">
-      <div class="space-y-3">
+      <div class="space-y-3" data-testid="auth-sso-only-section">
         <SsoButton
           v-for="provider in ssoProviders"
           :key="provider.route_name"
@@ -83,7 +83,7 @@ defineExpose({ currentMode });
       <!-- SSO section when SSO is enabled -->
       <template v-if="ssoEnabled && ssoProviders.length > 0">
         <!-- Divider -->
-        <div class="relative">
+        <div class="relative" data-testid="auth-sso-divider">
           <div class="absolute inset-0 flex items-center" aria-hidden="true">
             <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
           </div>

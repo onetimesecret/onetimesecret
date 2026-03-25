@@ -69,7 +69,10 @@
 <template>
   <div class="container mx-auto mt-16 max-w-3xl px-4 pb-16 sm:mt-20 sm:pb-16">
     <!-- Feature Disabled (no header) -->
-    <EmptyState v-if="showFeatureDisabled" :show-action="false">
+    <EmptyState
+      v-if="showFeatureDisabled"
+      :show-action="false"
+      testid="incoming-feature-disabled">
       <template #title>
         {{ t('incoming.feature_disabled_title') }}
       </template>
@@ -96,7 +99,10 @@
         :message="t('incoming.loading_config')" />
 
       <!-- Error State -->
-      <EmptyState v-if="incomingStore.configError" :show-action="false">
+      <EmptyState
+        v-if="incomingStore.configError"
+        :show-action="false"
+        testid="incoming-config-error">
         <template #title>
           {{ t('incoming.config_error_title') }}
         </template>
@@ -111,7 +117,8 @@
         class="overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-slate-800">
       <form
         @submit.prevent="handleSubmit"
-        class="space-y-8 p-8 sm:p-10">
+        class="space-y-8 p-8 sm:p-10"
+        data-testid="incoming-form">
           <!-- Recipient Dropdown (First - like e-transfer) -->
           <IncomingRecipientDropdown
             v-model="form.recipientId"
@@ -142,7 +149,8 @@
 
             <span
               v-if="errors.secret"
-              class="mt-1 block text-sm text-red-600 dark:text-red-400">
+              class="mt-1 block text-sm text-red-600 dark:text-red-400"
+              data-testid="incoming-secret-error">
               {{ errors.secret }}
             </span>
           </div>
@@ -161,7 +169,8 @@
               type="button"
               :disabled="isSubmitting"
               class="order-2 rounded-xl border-2 border-gray-300 bg-white px-6 py-3.5 text-base font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-slate-800 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:bg-slate-700 sm:order-1"
-              @click="handleReset">
+              @click="handleReset"
+              data-testid="incoming-form-reset">
               {{ t('incoming.reset_form') }}
             </button>
 
@@ -171,7 +180,8 @@
               class="order-1 flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-base font-semibold text-white shadow-md transition-all duration-300 sm:order-2"
               :class="isFormValid && !isSubmitting
                 ? 'bg-brand-500 hover:bg-brand-600 hover:shadow-lg text-white hover:scale-105 active:scale-100'
-                : 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-60'">
+                : 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-60'"
+              data-testid="incoming-form-submit">
               <svg
                 class="size-5 text-white"
                 fill="none"

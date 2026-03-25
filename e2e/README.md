@@ -75,6 +75,22 @@ page.locator('[data-testid^="org-card-"]')  // Prefix match
 - Keep values short and hierarchical: `checkout/form/submit`
 - Never reuse the same value for elements that can coexist
 - Never use `data-testid` for styling or behavior—only tests
+- **Components with a `testid` prop** (`EmptyState`, `CopyButton`, `CopyToClipboardButton`):
+  use the prop, not the HTML attribute. `data-testid="foo"` on these components gets
+  swallowed by Vue's attribute priority—the explicit `:data-testid="testid"` binding in
+  the template wins, and since the prop is undefined, nothing renders.
+  ```vue
+  <!-- WRONG: silently lost -->
+  <EmptyState data-testid="my-empty">
+
+  <!-- RIGHT: renders on the DOM -->
+  <EmptyState testid="my-empty">
+  ```
+
+**Skip testids on:**
+- Purely decorative elements (icons, dividers, background shapes)
+- Wrapper divs that exist only for layout — target the interactive child instead
+- Elements already reachable via `getByRole()` or `getByText()` with stable values
 
 ## Environment Variables
 

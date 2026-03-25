@@ -195,6 +195,7 @@
           <!-- Success Message -->
           <div
             v-if="successMessage"
+            data-testid="change-email-pending-notice"
             class="mb-6 rounded-lg border border-green-200
               bg-green-50 p-4 dark:border-green-800
               dark:bg-green-900/20">
@@ -233,6 +234,7 @@
                   </span>
                   <button
                     type="button"
+                    data-testid="change-email-resend-btn"
                     :disabled="isResending"
                     class="text-sm font-medium
                       text-brand-600 underline
@@ -299,6 +301,7 @@
               <div class="relative mt-1">
                 <input
                   id="new-email"
+                  data-testid="change-email-input"
                   v-model="newEmail"
                   type="email"
                   autocomplete="email"
@@ -379,6 +382,7 @@
               </p>
               <button
                 type="submit"
+                data-testid="change-email-submit"
                 :disabled="!canSubmit"
                 :class="[
                   'inline-flex shrink-0 items-center',

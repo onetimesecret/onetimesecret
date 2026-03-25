@@ -78,7 +78,8 @@
           type="button"
           class="ml-4 text-sm font-medium
             text-brand-600 hover:text-brand-500
-            focus:underline focus:outline-none dark:text-brand-400 dark:hover:text-brand-300">
+            focus:underline focus:outline-none dark:text-brand-400 dark:hover:text-brand-300"
+          data-testid="secret-help-modal-trigger">
           {{ t('web.COMMON.need_help') }}?
         </button>
         <template #content>
@@ -91,7 +92,8 @@
       @submit.prevent="submitForm"
       class="space-y-6"
       :aria-labelledby="record?.has_passphrase ? passphraseHeadingId : undefined"
-      :aria-describedby="record?.has_passphrase ? passphraseDescriptionId : undefined">
+      :aria-describedby="record?.has_passphrase ? passphraseDescriptionId : undefined"
+      data-testid="secret-confirmation-form">
       <!-- Hidden username field for accessibility/password managers -->
       <input
         type="text"
@@ -125,13 +127,15 @@
             aria-required="true"
             :aria-invalid="error ? 'true' : undefined"
             :aria-errormessage="error ? 'passphrase-error' : undefined"
-            :aria-describedby="passphraseDescriptionId" />
+            :aria-describedby="passphraseDescriptionId"
+            data-testid="secret-reveal-passphrase-input" />
         </div>
         <p
           v-if="error"
           id="passphrase-error"
           class="mt-1 text-sm text-red-600 dark:text-red-400"
-          role="alert">
+          role="alert"
+          data-testid="secret-reveal-error">
           {{ String(error) }}
         </p>
       </div>
@@ -144,7 +148,8 @@
           'w-full rounded-md bg-brand-500 px-6 py-3 text-2xl font-semibold text-white transition duration-150 ease-in-out',
           'hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2',
           'disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-600 dark:focus:ring-brand-400',
-        ]">
+        ]"
+        data-testid="secret-reveal-submit">
         {{ isSubmitting ? t('web.COMMON.submitting') : t('web.COMMON.click_to_continue') }}
       </button>
     </form>

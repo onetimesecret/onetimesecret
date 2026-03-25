@@ -514,10 +514,12 @@ onMounted(async () => {
 
       <!-- Billing Interval Toggle -->
       <div class="flex items-center justify-center gap-3"
+data-testid="billing-interval-toggle"
 role="group"
 aria-label="Billing interval">
         <button
           @click="billingInterval = 'month'"
+          data-testid="billing-interval-month"
           :aria-pressed="billingInterval === 'month'"
           :class="[
             'rounded-md px-4 py-2 text-sm font-medium transition-colors',
@@ -529,6 +531,7 @@ aria-label="Billing interval">
         </button>
         <button
           @click="billingInterval = 'year'"
+          data-testid="billing-interval-year"
           :aria-pressed="billingInterval === 'year'"
           :class="[
             'rounded-md px-4 py-2 text-sm font-medium transition-colors',
