@@ -289,7 +289,7 @@
                 class="sr-only">Password</label>
               <input
                 id="disable-password"
-                data-testid="mfa-verify-code-input"
+                data-testid="mfa-disable-password-input"
                 v-model="disablePassword"
                 type="password"
                 autocomplete="current-password"
