@@ -97,6 +97,73 @@ enc_key = call_private_method(@session, :derive_key, 'encryption')
 hmac_key1 == hmac_key2 && hmac_key1 != enc_key
 #=> true
 
+## Encryption key is 32 bytes (64 hex chars) for AES-256
+enc_key = call_private_method(@session, :derive_key, 'encryption')
+enc_key.length == 64 && enc_key.match?(/\A[a-f0-9]+\z/)
+#=> true
+
+## Encryption key raw is 32 bytes for AES-256
+enc_key_raw = @session.instance_variable_get(:@encryption_key_raw)
+enc_key_raw.bytesize == 32
+#=> true
+
+## encrypt_data produces ciphertext with IV and auth_tag prefix (28+ bytes)
+plaintext = '{"account_id":123}'
+encrypted = call_private_method(@session, :encrypt_data, plaintext)
+# Must be at least 28 bytes (12 IV + 16 auth_tag + encrypted data)
+encrypted.bytesize >= 28
+#=> true
+
+## encrypt_data produces different ciphertext each time (random IV)
+plaintext = '{"account_id":123}'
+encrypted1 = call_private_method(@session, :encrypt_data, plaintext)
+encrypted2 = call_private_method(@session, :encrypt_data, plaintext)
+encrypted1 != encrypted2
+#=> true
+
+## decrypt_data recovers original plaintext
+plaintext = '{"account_id":123}'
+encrypted = call_private_method(@session, :encrypt_data, plaintext)
+decrypted = call_private_method(@session, :decrypt_data, encrypted)
+decrypted == plaintext
+#=> true
+
+## decrypt_data handles complex JSON data
+complex_data = '{"account_id":456,"email":"test@example.com","mfa":true,"roles":["admin","user"]}'
+encrypted = call_private_method(@session, :encrypt_data, complex_data)
+decrypted = call_private_method(@session, :decrypt_data, encrypted)
+decrypted == complex_data
+#=> true
+
+## decrypt_data returns nil for data too short (missing IV or auth_tag)
+short_data = "x" * 20  # Less than 28 bytes minimum
+result = call_private_method(@session, :decrypt_data, short_data)
+result.nil?
+#=> true
+
+## decrypt_data returns nil for nil input
+result = call_private_method(@session, :decrypt_data, nil)
+result.nil?
+#=> true
+
+## decrypt_data returns nil for tampered ciphertext (auth_tag verification fails)
+plaintext = '{"account_id":123}'
+encrypted = call_private_method(@session, :encrypt_data, plaintext)
+# Tamper with the ciphertext portion (after IV and auth_tag)
+tampered = encrypted[0, 28] + "x" * (encrypted.bytesize - 28)
+result = call_private_method(@session, :decrypt_data, tampered)
+result.nil?
+#=> true
+
+## decrypt_data returns nil for tampered auth_tag
+plaintext = '{"account_id":123}'
+encrypted = call_private_method(@session, :encrypt_data, plaintext)
+# Tamper with the auth_tag (bytes 12-27)
+tampered = encrypted[0, 12] + ("x" * 16) + encrypted[28..]
+result = call_private_method(@session, :decrypt_data, tampered)
+result.nil?
+#=> true
+
 ## Compute HMAC consistently for data
 data = "test data"
 hmac1 = call_private_method(@session, :compute_hmac, data)
