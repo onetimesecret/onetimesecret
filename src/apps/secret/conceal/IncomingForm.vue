@@ -72,7 +72,7 @@
     <EmptyState
       v-if="showFeatureDisabled"
       :show-action="false"
-      data-testid="incoming-feature-disabled">
+      testid="incoming-feature-disabled">
       <template #title>
         {{ t('incoming.feature_disabled_title') }}
       </template>
@@ -102,7 +102,7 @@
       <EmptyState
         v-if="incomingStore.configError"
         :show-action="false"
-        data-testid="incoming-config-error">
+        testid="incoming-config-error">
         <template #title>
           {{ t('incoming.config_error_title') }}
         </template>
