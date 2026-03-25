@@ -4,7 +4,6 @@
 
 require_relative 'base'
 require_relative '../../../../lib/onetime/jobs/publisher'
-require_relative '../../../../lib/onetime/security/ip_rate_limiter'
 
 module V3
   module Logic
@@ -15,8 +14,6 @@ module V3
     # Rate limiting: 10 requests per hour per IP to prevent abuse.
     # This prevents email storms to colonels and feedback store flooding.
     class ReceiveFeedback < V3::Logic::Base
-      include Onetime::Security::IPRateLimiter
-
       SCHEMAS = { response: 'feedback' }.freeze
 
       # Rate limit: 10 feedback submissions per hour per IP
@@ -37,13 +34,6 @@ module V3
       end
 
       def raise_concerns
-        # Rate limit: 10 requests per hour per IP to prevent abuse
-        check_ip_rate_limit!(
-          'feedback',
-          max: FEEDBACK_RATE_LIMIT_MAX,
-          window: FEEDBACK_RATE_LIMIT_WINDOW,
-        )
-
         raise_form_error 'You can be more original than that!' if @msg.empty?
       end
 
