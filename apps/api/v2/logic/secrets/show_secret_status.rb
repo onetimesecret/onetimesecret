@@ -18,7 +18,7 @@ module V2::Logic
       attr_reader :identifier, :current_expiration, :secret, :verification
 
       def process_params
-        @identifier = params['identifier'].to_s
+        @identifier = sanitize_identifier(params['identifier'].to_s)
         @secret     = Onetime::Secret.load identifier
       end
 

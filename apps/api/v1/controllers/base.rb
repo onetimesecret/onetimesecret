@@ -150,7 +150,7 @@ module V1
         end
       rescue StandardError => e
         # Fail open: if Redis is down, don't block the request
-        OT.le "[V1 rate_limit] #{e.class}: #{e.message}"
+        OT.le "[V1 rate_limit] fail-open event/#{event} ip/#{ip} #{e.class}: #{e.message}"
       end
 
       nil
