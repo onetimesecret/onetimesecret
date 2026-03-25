@@ -13,7 +13,7 @@ module V2::Logic
     #   expiration details, or a state of "unknown" if the secret does
     #   not exist.
     class ShowSecretStatus < V2::Logic::Base
-      SCHEMAS = { response: 'secret' }.freeze
+      SCHEMAS = { response: 'secretStatus' }.freeze
 
       attr_reader :identifier, :current_expiration, :secret, :verification
 
