@@ -56,6 +56,8 @@ module AccountAPI::Logic
       end
 
       def perform_update
+        raise_form_error 'Invalid field' unless valid_field?
+
         cust.send("#{preference_field}=", preference_value.to_s)
         cust.save
       end

@@ -15,7 +15,9 @@ module AccountAPI::Logic
 
       def raise_concerns
         # Allow both authenticated and anonymous users to update locale
-        # Anonymous users update session only; authenticated users update their account
+        # Anonymous users update session only; authenticated users update their account.
+        # Still validate the locale value against the supported locales allowlist.
+        field_specific_concerns
       end
 
       def success_data

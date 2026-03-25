@@ -32,7 +32,7 @@ module AccountAPI::Logic
       end
 
       def field_specific_concerns
-        return if @password.empty?
+        raise_form_error 'Current password is required', field: 'password', error_type: 'missing' if @password.empty?
 
         raise_form_error 'Current password is incorrect', field: 'password', error_type: 'incorrect' unless cust.passphrase?(@password)
         raise_form_error 'New password cannot be the same as current password', field: 'newpassword', error_type: 'same_as_current' if @newpassword == @password
