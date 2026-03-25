@@ -66,6 +66,9 @@ module Onetime
         # Extract organization and team context from StrategyResult metadata
         extract_organization_context(strategy_result)
 
+        # Extract domain context from StrategyResult metadata
+        extract_domain_context(strategy_result)
+
         @processed_params ||= {} # TODO: Remove
         process_settings
 
@@ -189,6 +192,13 @@ module Onetime
 
       def custom_domain?
         domain_strategy.to_s == 'custom'
+      end
+
+      def extract_domain_context(strategy_result)
+        return unless strategy_result
+
+        @domain_strategy = strategy_result.metadata[:domain_strategy]
+        @display_domain  = strategy_result.metadata[:display_domain]
       end
 
       # Session message helpers for user feedback

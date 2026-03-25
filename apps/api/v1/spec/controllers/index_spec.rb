@@ -62,6 +62,8 @@ RSpec.describe V1::Controllers::Index, type: :request do
       allow(V1::Logic::Secrets::ShowSecret).to receive(:new)
         .with(session, customer, secret_params, 'en')
         .and_return(logic)
+      allow(logic).to receive(:domain_strategy=)
+      allow(logic).to receive(:display_domain=)
       allow(logic).to receive(:raise_concerns)
       allow(logic).to receive(:process)
     end
@@ -117,6 +119,8 @@ RSpec.describe V1::Controllers::Index, type: :request do
       allow(V1::Logic::Secrets::ConcealSecret).to receive(:new)
         .with(session, customer, request.params, 'en')
         .and_return(logic)
+      allow(logic).to receive(:domain_strategy=)
+      allow(logic).to receive(:display_domain=)
       allow(logic).to receive(:raise_concerns)
       allow(logic).to receive(:process)
       allow(logic).to receive(:secret).and_return(secret)
@@ -191,6 +195,8 @@ RSpec.describe V1::Controllers::Index, type: :request do
       allow(V1::Logic::Secrets::ConcealSecret).to receive(:new)
         .with(session, customer, request.params, 'en')
         .and_return(logic)
+      allow(logic).to receive(:domain_strategy=)
+      allow(logic).to receive(:display_domain=)
       allow(logic).to receive(:raise_concerns)
       allow(logic).to receive(:process)
       allow(logic).to receive(:secret).and_return(secret)
@@ -239,6 +245,8 @@ RSpec.describe V1::Controllers::Index, type: :request do
       allow(V1::Logic::Secrets::GenerateSecret).to receive(:new)
         .with(session, customer, request.params, 'en')
         .and_return(logic)
+      allow(logic).to receive(:domain_strategy=)
+      allow(logic).to receive(:display_domain=)
       allow(logic).to receive(:raise_concerns)
       allow(logic).to receive(:process)
       allow(logic).to receive(:secret).and_return(secret)
@@ -292,6 +300,8 @@ RSpec.describe V1::Controllers::Index, type: :request do
       allow(V1::Logic::Secrets::ShowSecret).to receive(:new)
         .with(session, customer, secret_params, 'en')
         .and_return(logic)
+      allow(logic).to receive(:domain_strategy=)
+      allow(logic).to receive(:display_domain=)
       allow(logic).to receive(:raise_concerns)
       allow(logic).to receive(:process)
       # show_secret is false when passphrase is wrong — same controller path as
@@ -321,6 +331,8 @@ RSpec.describe V1::Controllers::Index, type: :request do
       allow(V1::Logic::Secrets::BurnSecret).to receive(:new)
         .with(session, customer, burn_params, 'en')
         .and_return(logic)
+      allow(logic).to receive(:domain_strategy=)
+      allow(logic).to receive(:display_domain=)
       allow(logic).to receive(:raise_concerns)
       allow(logic).to receive(:process)
       allow(logic).to receive(:receipt).and_return(receipt)
@@ -399,6 +411,8 @@ RSpec.describe V1::Controllers::Index, type: :request do
       before do
         logic = instance_double(V1::Logic::Secrets::ConcealSecret)
         allow(V1::Logic::Secrets::ConcealSecret).to receive(:new).and_return(logic)
+        allow(logic).to receive(:domain_strategy=)
+        allow(logic).to receive(:display_domain=)
         allow(logic).to receive(:raise_concerns)
         allow(logic).to receive(:process)
         allow(logic).to receive(:secret).and_return(
@@ -416,6 +430,8 @@ RSpec.describe V1::Controllers::Index, type: :request do
       before do
         logic = instance_double(V1::Logic::Secrets::GenerateSecret)
         allow(V1::Logic::Secrets::GenerateSecret).to receive(:new).and_return(logic)
+        allow(logic).to receive(:domain_strategy=)
+        allow(logic).to receive(:display_domain=)
         allow(logic).to receive(:raise_concerns)
         allow(logic).to receive(:process)
         allow(logic).to receive(:secret).and_return(
@@ -435,6 +451,8 @@ RSpec.describe V1::Controllers::Index, type: :request do
       before do
         logic = instance_double(V1::Logic::Secrets::ConcealSecret)
         allow(V1::Logic::Secrets::ConcealSecret).to receive(:new).and_return(logic)
+        allow(logic).to receive(:domain_strategy=)
+        allow(logic).to receive(:display_domain=)
         allow(logic).to receive(:raise_concerns)
         allow(logic).to receive(:process)
         allow(logic).to receive(:secret).and_return(
@@ -455,6 +473,8 @@ RSpec.describe V1::Controllers::Index, type: :request do
         allow(request).to receive(:params).and_return({'key' => secret_key})
         logic = instance_double(V1::Logic::Secrets::ShowSecret)
         allow(V1::Logic::Secrets::ShowSecret).to receive(:new).and_return(logic)
+        allow(logic).to receive(:domain_strategy=)
+        allow(logic).to receive(:display_domain=)
         allow(logic).to receive(:raise_concerns)
         allow(logic).to receive(:process)
         allow(logic).to receive(:show_secret).and_return(true)
