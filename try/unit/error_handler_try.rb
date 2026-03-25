@@ -29,14 +29,14 @@ OT.boot! :test, true
 Onetime::ErrorHandler.respond_to?(:safe_execute)
 #=> true
 
-## ErrorHandler has TRACK_ERROR_LUA constant (private, accessed via singleton_class)
-# The Lua script is defined as a private constant in the singleton class
-lua_script = Onetime::ErrorHandler.singleton_class.const_get(:TRACK_ERROR_LUA)
+## ErrorHandler has TRACK_ERROR_LUA constant
+# The Lua script is defined as a constant in the module
+lua_script = Onetime::ErrorHandler.const_get(:TRACK_ERROR_LUA)
 lua_script.include?('INCR') && lua_script.include?('EXPIRE')
 #=> true
 
 ## ERROR_TRACKING_TTL is 7 days in seconds (604800)
-ttl_constant = Onetime::ErrorHandler.singleton_class.const_get(:ERROR_TRACKING_TTL)
+ttl_constant = Onetime::ErrorHandler.const_get(:ERROR_TRACKING_TTL)
 ttl_constant
 #=> 604800
 

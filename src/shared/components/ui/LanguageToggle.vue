@@ -38,11 +38,11 @@
 
   const currentLocaleName = computed(() =>
     // Safely access the locale name, fallback to the locale code
-     supportedLocalesWithNames?.[currentLocale.value] || currentLocale.value
+     supportedLocalesWithNames.value?.[currentLocale.value] || currentLocale.value
   );
 
   const defaultLocaleName = computed(() =>
-    supportedLocalesWithNames?.[DEFAULT_LOCALE] || DEFAULT_LOCALE
+    supportedLocalesWithNames.value?.[DEFAULT_LOCALE] || DEFAULT_LOCALE
   );
 
   const canResetToDefault = computed(() =>
@@ -81,7 +81,7 @@
     liveRegion.setAttribute('aria-atomic', 'true');
     liveRegion.className = 'sr-only';
     // Safely access the locale name for announcement
-    const localeName = supportedLocalesWithNames?.[locale] || locale;
+    const localeName = supportedLocalesWithNames.value?.[locale] || locale;
     liveRegion.textContent = t('web.layout.language_changed_to_newlocale', [localeName]);
     document.body.appendChild(liveRegion);
     setTimeout(() => {
