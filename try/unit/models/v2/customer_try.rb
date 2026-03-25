@@ -176,3 +176,87 @@ Onetime::Customer.find_by_email(@find_by_email_address)
 
 test_cust = Onetime::Customer.find_by_email(@find_by_email_address)
 test_cust.delete!
+
+
+# ==========================================================================
+# Hash-like accessor [] tests (security boundary) [Task #103]
+#
+# These tests verify the allowlist-based [] accessor that replaced the
+# open-ended send() method. Only HASH_ACCESSIBLE_FIELDS can be accessed.
+# ==========================================================================
+
+## Hash accessor: allowlisted fields work via [] accessor
+# Tests that :role, :email, :custid, :objid, :planid, :locale all return values
+cust = Onetime::Customer.new(email: generate_random_email)
+cust.role = 'customer'
+cust.planid = 'basic'
+cust.locale = 'en'
+cust.save
+results = {
+  role: cust[:role],
+  roles: cust[:roles],  # :roles is aliased to :role for Otto compatibility
+  planid: cust[:planid],
+  locale: cust[:locale],
+}
+cust.delete!
+results
+#=> { role: 'customer', roles: 'customer', planid: 'basic', locale: 'en' }
+
+## Hash accessor: [:email] returns the email (allowlisted)
+email_for_test = generate_random_email
+cust = Onetime::Customer.new(email: email_for_test)
+cust.save
+result = cust[:email]
+cust.delete!
+result == email_for_test
+#=> true
+
+## Hash accessor: [:custid] returns a valid UUID (allowlisted)
+cust = Onetime::Customer.new(email: generate_random_email)
+cust.save
+result = cust[:custid]
+cust.delete!
+result
+#=~> /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/
+
+## Hash accessor: [:objid] returns a valid UUID (allowlisted)
+cust = Onetime::Customer.new(email: generate_random_email)
+cust.save
+result = cust[:objid]
+cust.delete!
+result
+#=~> /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/
+
+## Hash accessor: string key 'role' is coerced to symbol
+cust = Onetime::Customer.new(email: generate_random_email)
+cust.role = 'admin'
+cust.save
+result = cust['role']
+cust.delete!
+result
+#=> 'admin'
+
+## Hash accessor: non-allowlisted fields return nil (security boundary)
+# Tests that dangerous fields like :passphrase, :apitoken, :destroy! return nil
+cust = Onetime::Customer.new(email: generate_random_email)
+cust.save
+results = {
+  passphrase: cust[:passphrase],
+  password: cust[:password],
+  apitoken: cust[:apitoken],
+  destroy_bang: cust[:destroy!],
+  delete_bang: cust[:delete!],
+  system: cust[:system],
+  private_key: cust[:private_key],
+}
+cust.delete!
+results
+#=> { passphrase: nil, password: nil, apitoken: nil, destroy_bang: nil, delete_bang: nil, system: nil, private_key: nil }
+
+## HASH_ACCESSIBLE_FIELDS constant is frozen
+Onetime::Customer::HASH_ACCESSIBLE_FIELDS.frozen?
+#=> true
+
+## HASH_ACCESSIBLE_FIELDS contains exactly the expected fields
+Onetime::Customer::HASH_ACCESSIBLE_FIELDS.sort
+#=> [:created, :custid, :email, :locale, :objid, :planid, :role, :roles, :user_id]

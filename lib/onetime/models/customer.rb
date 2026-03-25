@@ -178,19 +178,32 @@ module Onetime
       notify_on_reveal.to_s == 'true'
     end
 
+    # Allowlist of fields accessible via hash-like [] access.
+    # This restricts access to prevent arbitrary method invocation.
+    # See Otto's RouteAuthWrapper#extract_user_roles for usage context.
+    HASH_ACCESSIBLE_FIELDS = [
+      :role, :roles, :email, :custid, :objid, :user_id, :planid, :locale, :created
+    ].freeze
+
     # Hash-like accessor for Otto's RouteAuthWrapper#extract_user_roles
     #
     # Otto expects user objects to support hash-like access via [] method.
     # This allows Otto to extract roles from the user object when metadata
     # is not available or as a fallback mechanism.
     #
+    # Security: Only allowlisted fields can be accessed. This prevents
+    # arbitrary method invocation that was previously possible via send().
+    #
     # @param key [Symbol, String] Field name to access
-    # @return [Object, nil] Field value or nil if field doesn't exist
+    # @return [Object, nil] Field value or nil if field not in allowlist
     def [](key)
       key = key.to_sym if key.is_a?(String)
-      send(key) if respond_to?(key)
-    rescue NoMethodError
-      nil
+      return nil unless HASH_ACCESSIBLE_FIELDS.include?(key)
+
+      # Handle :roles as an alias for :role (Otto expects roles array)
+      key = :role if key == :roles
+
+      send(key)
     end
 
     # Saves the customer object to the database.
