@@ -212,7 +212,7 @@
             <button
               type="button"
               class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              :aria-label="passphraseVisible ? 'Hide passphrase' : 'Show passphrase'"
+              :aria-label="passphraseVisible ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')"
               @click="toggleVisibility">
               <OIcon
                 collection="heroicons"

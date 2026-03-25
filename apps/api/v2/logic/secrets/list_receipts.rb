@@ -39,6 +39,9 @@ module V2::Logic
       end
 
       def raise_concerns
+        # Receipts require an authenticated customer
+        raise_not_found('Not found') unless cust
+
         # API access entitlement required for metadata listing
         require_entitlement!('api_access')
 
@@ -96,7 +99,7 @@ module V2::Logic
       def success_data
         {
           'success' => true,
-          'custid' => cust.custid,
+          'custid' => cust&.custid,
           'count' => records.count,
           'records' => records,
           'details' => {

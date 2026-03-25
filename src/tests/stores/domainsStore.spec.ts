@@ -208,20 +208,26 @@ describe('domainsStore', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle network errors', async () => {
+    it('should handle network errors gracefully', async () => {
       axiosMock.onGet('/api/domains').networkError();
 
-      // Expect raw AxiosError, not ApplicationError
-      await expect(store.refreshRecords()).rejects.toThrow();
+      // refreshRecords catches errors internally (does not throw)
+      await expect(store.refreshRecords()).resolves.toBeUndefined();
+
+      // Store should not be marked as initialized after a failed fetch
+      expect(store.initialized).toBe(false);
     });
 
-    it('should handle validation errors', async () => {
+    it('should handle validation errors gracefully', async () => {
       axiosMock.onGet('/api/domains').reply(200, {
         records: [{ invalid_field: true }],
       });
 
-      // Expect raw ZodError, not ApplicationError
-      await expect(store.refreshRecords()).rejects.toThrow();
+      // refreshRecords catches errors internally (does not throw)
+      await expect(store.refreshRecords()).resolves.toBeUndefined();
+
+      // Store should not be marked as initialized after a failed parse
+      expect(store.initialized).toBe(false);
     });
 
     it('should handle permission errors', async () => {

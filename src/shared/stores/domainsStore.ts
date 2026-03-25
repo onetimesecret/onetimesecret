@@ -191,9 +191,13 @@ export const useDomainsStore = defineStore('domains', () => {
 
     if (!force && _initialized.value && !orgChanged) return;
 
-    await fetchList(orgId);
-    _currentOrgId.value = normalizedOrgId;
-    _initialized.value = true;
+    try {
+      await fetchList(orgId);
+      _currentOrgId.value = normalizedOrgId;
+      _initialized.value = true;
+    } catch (error) {
+      loggingService.warn(`[domainsStore] Failed to refresh domain records: ${error}`);
+    }
   }
 
   /**

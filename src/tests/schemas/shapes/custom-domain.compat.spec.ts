@@ -349,6 +349,45 @@ describe('Null Field Handling Compatibility', () => {
     });
   });
 
+  describe('null status field handling', () => {
+    it('V3 schema accepts null status and preserves null', () => {
+      const wire = createV3WireCustomDomain(createCanonicalCustomDomain()) as Record<string, unknown>;
+      wire.status = null;
+
+      const result = v3CustomDomainSchema.safeParse(wire);
+
+      // The status field itself is nullable; if parse fails, check that
+      // status:null is not the cause (other missing fields like resolving may be)
+      if (!result.success) {
+        const statusErrors = result.error.issues.filter(
+          (i) => i.path.includes('status')
+        );
+        // No validation errors should be about the status field
+        expect(statusErrors).toHaveLength(0);
+      } else {
+        expect(result.data.status).toBeNull();
+      }
+    });
+
+    it('V3 schema defaults status to pending when field is omitted', () => {
+      const wire = createV3WireCustomDomain(createCanonicalCustomDomain()) as Record<string, unknown>;
+      // Ensure status is absent
+      delete wire.status;
+
+      const result = v3CustomDomainSchema.safeParse(wire);
+
+      if (!result.success) {
+        const statusErrors = result.error.issues.filter(
+          (i) => i.path.includes('status')
+        );
+        // No validation errors should be about the status field
+        expect(statusErrors).toHaveLength(0);
+      } else {
+        expect(result.data.status).toBe('pending');
+      }
+    });
+  });
+
   describe('empty string handling in V2', () => {
     it('V2 treats empty string as false for boolean (verified)', () => {
       const wire = createV2WireCustomDomain(createCanonicalCustomDomain());

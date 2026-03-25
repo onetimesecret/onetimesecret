@@ -84,7 +84,7 @@ module ColonelAPI
         def build_secrets_count_by_owner
           counts   = Hash.new(0)
           cursor   = '0'
-          dbclient = Onetime::Secret.new.dbclient
+          dbclient = Onetime::Secret.dbclient
           pattern  = 'secret:*:object'
 
           loop do

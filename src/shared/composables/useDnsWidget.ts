@@ -6,7 +6,7 @@
 // and offering automated updates or provider-specific instructions.
 
 import type { AxiosInstance } from 'axios';
-import { inject, onUnmounted, ref, type Ref } from 'vue';
+import { inject, onUnmounted, ref, toValue, type MaybeRefOrGetter, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // Import widget assets - Vite will handle bundling/hashing
@@ -52,8 +52,8 @@ export interface DnsWidgetTokenResponse {
 export interface UseDnsWidgetOptions {
   /** Element ID where widget will be mounted */
   widgetId?: string;
-  /** DNS records to configure */
-  dnsRecords: DnsRecord[];
+  /** DNS records to configure (accepts a static array or a reactive ref/getter) */
+  dnsRecords: MaybeRefOrGetter<DnsRecord[]>;
   /** Pre-set domain (skips domain entry step) */
   domain?: string;
   /** Pre-fill domain input */
@@ -251,7 +251,7 @@ export function useDnsWidget(options: UseDnsWidgetOptions) {
         token: tokenData.token,
         api_url: tokenData.api_url,
         widget_id: widgetId,
-        dnsRecords: options.dnsRecords,
+        dnsRecords: toValue(options.dnsRecords),
         verifyAutoScroll: options.verifyAutoScroll ?? true,
       };
 

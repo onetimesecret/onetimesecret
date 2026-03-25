@@ -1,12 +1,26 @@
 <!-- src/shared/components/common/HoverTooltip.vue -->
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+  import { useId } from 'vue';
+
+  const props = defineProps<{
+    /** Optional explicit ID for aria-describedby linkage. Auto-generated if omitted. */
+    tooltipId?: string;
+  }>();
+
+  const autoId = useId();
+  const id = props.tooltipId ?? `tooltip-${autoId}`;
+
+  defineExpose({ id });
+</script>
 
 <template>
   <div
+    :id="id"
+    role="tooltip"
     class="pointer-events-none absolute -top-10 left-1/2 z-50
            -translate-x-1/2 opacity-0 transition-opacity duration-200
-           group-hover:opacity-100">
+           group-hover:opacity-100 group-focus-within:opacity-100">
     <div class="flex flex-col items-center">
       <div
         class="min-w-[100px] rounded-md bg-gray-900 px-2 py-1

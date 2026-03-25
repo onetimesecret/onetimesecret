@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useEventListener } from '@vueuse/core';
-  import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
+  import { ref, watch, nextTick } from 'vue';
   import { Composer, useI18n } from 'vue-i18n';
 
   import HoverTooltip from '@/shared/components/common/HoverTooltip.vue';
@@ -63,22 +63,16 @@
     isOpen.value = false;
   };
 
-  // Handle ESC key press globally
-  const handleEscPress = (e: KeyboardEvent) => {
+  // Handle ESC key press globally (useEventListener auto-cleans up on unmount)
+  useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     if (e.key === 'Escape' && isOpen.value) {
       close();
     }
-  };
+  });
 
   const handleKeydown = (e: KeyboardEvent, key: string) => {
     // Update active field reference
     activeFieldRef.value = key;
-
-    // Close on escape
-    if (e.key === 'Escape') {
-      close();
-      return;
-    }
 
     // Save on Cmd+Enter (Mac) or Ctrl+Enter (Windows)
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -86,14 +80,6 @@
       close();
     }
   };
-
-  onMounted(() => {
-    document.addEventListener('keydown', handleEscPress);
-  });
-
-  onUnmounted(() => {
-    document.removeEventListener('keydown', handleEscPress);
-  });
 
   // Close on click outside
   useEventListener(
@@ -196,8 +182,7 @@
                 outline-none ring-1 ring-gray-200 transition-all duration-200
                 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
                 dark:bg-gray-700 dark:text-white dark:ring-gray-700 dark:focus:ring-brand-400 dark:focus:ring-offset-0"
-              :placeholder="getPlaceholderExample(field.placeholderKey)"
-              @keydown.esc="close"></textarea>
+              :placeholder="getPlaceholderExample(field.placeholderKey)"></textarea>
 
             <!-- prettier-ignore-attribute class -->
             <div

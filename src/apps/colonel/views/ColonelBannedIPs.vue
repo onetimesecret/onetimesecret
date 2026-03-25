@@ -4,6 +4,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import { formatDate } from '@/utils/format';
+  import { AxiosError } from 'axios';
   import { storeToRefs } from 'pinia';
   import { onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -41,11 +42,11 @@
       setTimeout(() => {
         successMessage.value = '';
       }, 5000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Extract error message from API response
-      if (error.response?.data?.message) {
+      if (error instanceof AxiosError && error.response?.data?.message) {
         errorMessage.value = error.response.data.message;
-      } else if (error.message) {
+      } else if (error instanceof Error) {
         errorMessage.value = error.message;
       } else {
         errorMessage.value = 'Failed to ban IP address';
@@ -67,11 +68,11 @@
       setTimeout(() => {
         successMessage.value = '';
       }, 5000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Extract error message from API response
-      if (error.response?.data?.message) {
+      if (error instanceof AxiosError && error.response?.data?.message) {
         errorMessage.value = error.response.data.message;
-      } else if (error.message) {
+      } else if (error instanceof Error) {
         errorMessage.value = error.message;
       } else {
         errorMessage.value = 'Failed to unban IP address';

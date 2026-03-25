@@ -419,6 +419,14 @@
     "text": "Active Sessions",
     "sha256": "b58fa4e0"
   },
+  "web.auth.sessions.session_singular": {
+    "text": "session",
+    "sha256": "00000000"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "sessions",
+    "sha256": "00000000"
+  },
   "web.auth.mfa.title": {
     "text": "Two-Factor Authentication",
     "sha256": "bc074b60"

@@ -108,7 +108,7 @@
   });
 
   const { isLoading, error, initWidget, stopWidget } = useDnsWidget({
-    dnsRecords: dnsRecords.value,
+    dnsRecords: dnsRecords,
     domain: props.domain,
     onRecordsVerified: (records) => emit('records-verified', records),
     onVerificationFailed: (records) => emit('verification-failed', records),

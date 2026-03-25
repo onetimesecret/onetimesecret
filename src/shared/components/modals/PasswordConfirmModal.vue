@@ -28,8 +28,8 @@ export interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   description: undefined,
-  confirmText: 'web.COMMON.word_confirm',
-  cancelText: 'web.COMMON.word_cancel',
+  confirmText: undefined,
+  cancelText: undefined,
   variant: 'default',
   loading: false,
   error: null,
@@ -57,12 +57,16 @@ const confirmButtonClasses = computed(() => {
   return `${base} bg-brand-600 text-white hover:bg-brand-700 focus:ring-brand-500 dark:bg-brand-500 dark:hover:bg-brand-600`;
 });
 
+// Resolve confirm/cancel text: use prop if provided, otherwise translate default key
+const resolvedConfirmText = computed(() => props.confirmText ?? t('web.COMMON.word_confirm'));
+const resolvedCancelText = computed(() => props.cancelText ?? t('web.COMMON.word_cancel'));
+
 // Computed for loading text
 const buttonText = computed(() => {
   if (props.loading) {
     return t('web.COMMON.processing');
   }
-  return t(props.confirmText);
+  return resolvedConfirmText.value;
 });
 
 // Toggle password visibility
@@ -264,7 +268,7 @@ watch(
                     :disabled="loading"
                     class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-600 sm:mt-0 sm:w-auto"
                     @click="handleCancel">
-                    {{ t(cancelText) }}
+                    {{ resolvedCancelText }}
                   </button>
                 </div>
               </form>
