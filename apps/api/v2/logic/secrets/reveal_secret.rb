@@ -30,6 +30,7 @@ module V2::Logic
     class RevealSecret < V2::Logic::Base
       include Onetime::LoggerMethods
       include Onetime::Logic::GuestRouteGating
+      include Onetime::Security::PassphraseRateLimiter
 
       SCHEMAS = { response: 'secret' }.freeze
 
@@ -59,6 +60,10 @@ module V2::Logic
         require_guest_route_enabled!(:reveal)
         require_entitlement!('api_access')
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
+
+        # Check passphrase rate limit before allowing passphrase attempts
+        # This prevents brute-force attacks on secrets with passphrases
+        check_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
       end
 
       def process # rubocop:disable Metrics/PerceivedComplexity
@@ -80,6 +85,8 @@ module V2::Logic
 
         owner = secret.load_owner
         if show_secret
+          # Clear any rate limit state on successful passphrase entry
+          clear_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
 
           # If we can't decrypt that's great! We just set secret_value to
           # the encrypted string.
@@ -181,6 +188,9 @@ module V2::Logic
           end
 
         elsif secret.has_passphrase? && !correct_passphrase
+          # Record failed attempt for rate limiting
+          attempt_count = record_failed_passphrase_attempt!(secret.identifier)
+
           secret_logger.warn 'Incorrect passphrase attempt',
             {
               secret_identifier: secret.shortid,
@@ -188,6 +198,7 @@ module V2::Logic
               session_id: safe_session_id&.public_id,
               action: 'reveal',
               result: :passphrase_failed,
+              attempt_count: attempt_count,
             }
 
           message = I18n.t('web.COMMON.incorrect_passphrase', locale: @locale, default: 'Incorrect passphrase')

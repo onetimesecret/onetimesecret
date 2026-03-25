@@ -114,4 +114,27 @@ module Onetime
       }
     end
   end
+
+  # Raised when a rate limit is exceeded (too many failed attempts, etc.)
+  # Used for security features like passphrase attempt limiting.
+  class LimitExceeded < Forbidden
+    attr_reader :retry_after, :attempts, :max_attempts
+
+    def initialize(message = 'Rate limit exceeded', retry_after: nil, attempts: nil, max_attempts: nil)
+      super(message)
+      @retry_after  = retry_after
+      @attempts     = attempts
+      @max_attempts = max_attempts
+    end
+
+    def to_h
+      {
+        error: 'LimitExceeded',
+        message: message,
+        retry_after: retry_after,
+        attempts: attempts,
+        max_attempts: max_attempts,
+      }.compact
+    end
+  end
 end

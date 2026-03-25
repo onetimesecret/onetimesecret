@@ -4,24 +4,46 @@
 
 require_relative 'base'
 require_relative '../../../../lib/onetime/jobs/publisher'
+require_relative '../../../../lib/onetime/security/ip_rate_limiter'
 
 module V3
   module Logic
     # @api Submit a feedback message. Accepts a text message with
     #   optional timezone and client version metadata. Available to
     #   both authenticated and anonymous users.
+    #
+    # Rate limiting: 10 requests per hour per IP to prevent abuse.
+    # This prevents email storms to colonels and feedback store flooding.
     class ReceiveFeedback < V3::Logic::Base
+      include Onetime::Security::IPRateLimiter
+
       SCHEMAS = { response: 'feedback' }.freeze
+
+      # Rate limit: 10 feedback submissions per hour per IP
+      # Generous enough for legitimate use, restrictive enough to prevent abuse
+      FEEDBACK_RATE_LIMIT_MAX    = 10
+      FEEDBACK_RATE_LIMIT_WINDOW = 3600 # 1 hour
+
+      MAX_MSG_LENGTH     = 199_999 # 200k chars is enough for anyone
+      MAX_TZ_LENGTH      = 64
+      MAX_VERSION_LENGTH = 32
 
       attr_reader :msg, :greenlighted, :tz, :version
 
       def process_params
-        @msg     = sanitize_plain_text(params['msg'], max_length: 19_999)
-        @tz      = sanitize_plain_text(params['tz'], max_length: 64)
-        @version = sanitize_plain_text(params['version'], max_length: 32)
+        @msg     = sanitize_plain_text(params['msg'], max_length: MAX_MSG_LENGTH)
+        @tz      = sanitize_plain_text(params['tz'], max_length: MAX_TZ_LENGTH)
+        @version = sanitize_plain_text(params['version'], max_length: MAX_VERSION_LENGTH)
       end
 
       def raise_concerns
+        # Rate limit: 10 requests per hour per IP to prevent abuse
+        check_ip_rate_limit!(
+          'feedback',
+          max: FEEDBACK_RATE_LIMIT_MAX,
+          window: FEEDBACK_RATE_LIMIT_WINDOW,
+        )
+
         raise_form_error 'You can be more original than that!' if @msg.empty?
       end
 
