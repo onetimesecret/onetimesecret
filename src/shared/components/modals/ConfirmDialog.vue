@@ -42,6 +42,7 @@ const cancel = () => {
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
     <div
       class="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
+      data-testid="confirm-dialog"
       role="dialog"
       aria-modal="true">
       <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
@@ -54,11 +55,13 @@ const cancel = () => {
       <div class="flex justify-end space-x-2">
         <button
           @click="cancel"
+          data-testid="confirm-dialog-cancel"
           class="rounded px-4 py-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
           {{ t(cancelText) }}
         </button>
         <button
           @click="confirm"
+          data-testid="confirm-dialog-confirm"
           :class="[
             'rounded px-4 py-2',
             type === 'danger'

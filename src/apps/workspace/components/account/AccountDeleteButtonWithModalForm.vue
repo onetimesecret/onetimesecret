@@ -61,6 +61,7 @@ const closeDeleteModal = () => {
   </ul>
   <button
     @click="openDeleteModal"
+    data-testid="account-delete-open-btn"
     class="group flex w-full items-center justify-center rounded bg-red-600 px-4 py-2 font-bold text-white transition-all hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/25">
     <!-- no-symbol: Reserved exclusively for destructive/irreversible actions -->
     <OIcon
@@ -77,6 +78,7 @@ const closeDeleteModal = () => {
   <!-- Delete Account Confirmation Modal -->
   <div
     v-if="showDeleteModal"
+    data-testid="account-delete-modal"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
     <form
       @submit.prevent="submitDeleteAccount"
@@ -104,6 +106,7 @@ const closeDeleteModal = () => {
             v-model="deletePassword"
             name="confirmation"
             type="password"
+            data-testid="account-delete-password-input"
             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             autocomplete="confirmation"
             :placeholder="t('web.account.confirm_with_your_password')" />
@@ -124,11 +127,13 @@ const closeDeleteModal = () => {
           <button
             @click="closeDeleteModal"
             type="button"
+            data-testid="account-delete-cancel-btn"
             class="rounded-md bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
             {{ t('web.COMMON.word_cancel') }}
           </button>
           <button
             type="submit"
+            data-testid="account-delete-confirm-btn"
             :disabled="!deletePassword || isDeleting"
             class="group flex items-center rounded-md bg-red-600 px-4 py-2 text-white transition-all hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/25 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-800">
             <OIcon

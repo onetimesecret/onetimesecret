@@ -142,6 +142,7 @@
     <!-- Button remains the same -->
     <button
       type="button"
+      data-testid="language-toggle"
       :class="[
         'inline-flex items-center justify-center rounded-md transition-colors',
         'focus:outline-none focus:ring-2 focus:ring-brand-600 dark:focus:ring-brand-400',

@@ -159,6 +159,7 @@
           <div v-else>
             <a
               :href="logoConfig.href"
+              data-testid="header-logo-link"
               class="flex items-center gap-3"
               :aria-label="logoConfig.alt">
               <img
@@ -230,6 +231,7 @@
               v-if="authentication?.signin"
               to="/signin"
               :title="t('web.homepage.log_in_to_onetime_secret')"
+              data-testid="header-signin-link"
               class="text-gray-600 transition-colors duration-200
                 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
               {{ t('web.COMMON.header_sign_in') }}

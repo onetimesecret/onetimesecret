@@ -90,6 +90,7 @@
 <template>
   <div
     :class="cardClasses"
+    :data-testid="`plan-card-${plan.id}`"
     :style="{ zIndex: cardZIndex }">
     <!-- Highlighted Badge (from URL) -->
     <div
@@ -193,6 +194,7 @@
         :handle-select="handleSelect">
         <button
           @click="handleSelect"
+          :data-testid="`plan-select-${plan.id}`"
           :disabled="buttonDisabled"
           :class="[
             'w-full rounded-md px-4 py-2 text-sm font-semibold transition-colors',

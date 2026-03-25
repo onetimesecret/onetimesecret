@@ -25,7 +25,8 @@ const handleTryAgain = () => {
   <!-- Success state - magic link sent -->
   <div
     v-if="sent"
-    class="mt-8 space-y-6">
+    class="mt-8 space-y-6"
+    data-testid="magic-link-sent-confirmation">
     <div class="rounded-md bg-green-50 p-6 text-center dark:bg-green-900/20">
       <svg
         class="mx-auto size-12 text-green-600 dark:text-green-400"
@@ -53,7 +54,8 @@ const handleTryAgain = () => {
     <button
       type="button"
       @click="handleTryAgain"
-      class="text-sm text-brand-600 transition duration-300 ease-in-out hover:underline dark:text-brand-400">
+      class="text-sm text-brand-600 transition duration-300 ease-in-out hover:underline dark:text-brand-400"
+      data-testid="magic-link-try-again">
       {{ t('web.auth.magicLink.tryDifferentEmail') }}
     </button>
   </div>
@@ -102,7 +104,8 @@ const handleTryAgain = () => {
                       disabled:cursor-not-allowed disabled:opacity-50
                       dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                       dark:focus:border-brand-500 dark:focus:ring-brand-500"
-        :placeholder="t('web.auth.magicLink.emailPlaceholder')" />
+        :placeholder="t('web.auth.magicLink.emailPlaceholder')"
+        data-testid="magic-link-email-input" />
     </div>
 
     <!-- Submit button -->
@@ -118,7 +121,8 @@ const handleTryAgain = () => {
                      text-white hover:bg-brand-700
                      focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
                      disabled:cursor-not-allowed disabled:opacity-50
-                     dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800">
+                     dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800"
+        data-testid="magic-link-submit">
         <span
           v-if="isLoading"
           class="flex items-center">

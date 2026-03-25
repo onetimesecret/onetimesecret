@@ -62,7 +62,8 @@ const handleSubmit = async () => {
 <template>
   <form
     @submit.prevent="handleSubmit"
-    class="space-y-6">
+    class="space-y-6"
+    data-testid="signin-form">
     <!-- Lockout alert (takes precedence over generic error) -->
     <LockoutAlert :lockout="lockoutStatus" />
 
@@ -73,7 +74,8 @@ const handleSubmit = async () => {
       class="rounded-md bg-red-50 p-4 dark:bg-red-900/20"
       role="alert"
       aria-live="assertive"
-      aria-atomic="true">
+      aria-atomic="true"
+      data-testid="signin-error-message">
       <p class="text-sm text-red-800 dark:text-red-200">
         {{ error }}
       </p>
@@ -106,7 +108,8 @@ const handleSubmit = async () => {
                       dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                       dark:focus:border-brand-500 dark:focus:ring-brand-500"
           :placeholder="t('web.COMMON.email_placeholder')"
-          v-model="email" />
+          v-model="email"
+          data-testid="signin-email-input" />
       </div>
 
       <!-- Password input with visibility toggle -->
@@ -136,13 +139,15 @@ const handleSubmit = async () => {
                    dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                    dark:focus:border-brand-500 dark:focus:ring-brand-500"
             :placeholder="t('web.COMMON.password_placeholder')"
-            v-model="password" />
+            v-model="password"
+            data-testid="signin-password-input" />
           <button
             type="button"
             @click="togglePasswordVisibility"
             :disabled="isSubmitting || isLoading"
             :aria-label="showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')"
-            class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50">
+            class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50"
+            data-testid="signin-toggle-password">
             <OIcon
               collection="heroicons"
               :name="showPassword ? 'outline-eye-off' : 'solid-eye'"
@@ -169,7 +174,8 @@ const handleSubmit = async () => {
                       disabled:cursor-not-allowed disabled:opacity-50
                       dark:border-gray-600
                       dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-brand-500"
-          v-model="rememberMe" />
+          v-model="rememberMe"
+          data-testid="signin-remember-me" />
         <label
           for="remember-me"
           class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
@@ -183,7 +189,8 @@ const handleSubmit = async () => {
       <router-link
         to="/forgot"
         class="text-sm text-gray-600 transition duration-300 ease-in-out hover:underline dark:text-gray-400"
-        :aria-label="t('web.login.forgot_your_password')">
+        :aria-label="t('web.login.forgot_your_password')"
+        data-testid="signin-forgot-password-link">
         {{ t('web.login.forgot_your_password') }}
       </router-link>
     </div>
@@ -201,7 +208,8 @@ const handleSubmit = async () => {
                      text-white hover:bg-brand-700
                      focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
                      disabled:cursor-not-allowed disabled:opacity-50
-                     dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800">
+                     dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800"
+        data-testid="signin-submit">
         <span v-if="isSubmitting || isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
         <span v-else>{{ t('web.login.button_sign_in') }}</span>
       </button>

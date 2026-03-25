@@ -95,6 +95,7 @@
             <!-- General error -->
             <div
               v-if="error && !fieldError"
+              data-testid="change-password-error"
               class="rounded-md bg-red-50 p-4 dark:bg-red-900/20"
               role="alert">
               <p class="text-sm text-red-800 dark:text-red-200">
@@ -112,6 +113,7 @@
               <div class="relative mt-1">
                 <input
                   id="current-password"
+                  data-testid="change-password-current-input"
                   :type="showCurrentPassword ? 'text' : 'password'"
                   v-model="currentPassword"
                   autocomplete="current-password"
@@ -173,6 +175,7 @@
               <div class="relative mt-1">
                 <input
                   id="new-password"
+                  data-testid="change-password-new-input"
                   :type="showNewPassword ? 'text' : 'password'"
                   v-model="newPassword"
                   autocomplete="new-password"
@@ -237,6 +240,7 @@
               <div class="relative mt-1">
                 <input
                   id="confirm-password"
+                  data-testid="change-password-confirm-input"
                   :type="showConfirmPassword ? 'text' : 'password'"
                   v-model="confirmPassword"
                   autocomplete="new-password"
@@ -297,6 +301,7 @@
             <div class="flex justify-end">
               <button
                 type="submit"
+                data-testid="change-password-submit"
                 :disabled="!canSubmit"
                 class="inline-flex justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700">
                 <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>

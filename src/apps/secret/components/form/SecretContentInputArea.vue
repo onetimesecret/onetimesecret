@@ -96,7 +96,8 @@ const { t } = useI18n();
         dark:disabled:bg-slate-900/50
       "
       :placeholder="t('web.COMMON.secret_placeholder')"
-      :aria-label="t('web.secrets.enter_the_secret_content_here')">
+      :aria-label="t('web.secrets.enter_the_secret_content_here')"
+      data-testid="secret-content-input">
     </textarea>
 
     <!--

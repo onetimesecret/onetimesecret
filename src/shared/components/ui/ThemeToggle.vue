@@ -39,6 +39,7 @@
 <template>
   <button
     @click="handleToggle"
+    data-testid="theme-toggle"
     :aria-label="t('web.layout.toggle_dark_mode')"
     :aria-pressed="isDarkMode"
     class="inline-flex size-10 items-center

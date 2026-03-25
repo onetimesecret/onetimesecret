@@ -48,12 +48,15 @@ const handleSubmit = () => {
 
 <template>
   <div class="mx-auto my-16 max-w-full space-y-9 px-4 dark:bg-gray-900 sm:px-6 lg:px-8">
-    <form @submit.prevent="handleSubmit" class="space-y-6">
+    <form @submit.prevent="handleSubmit"
+data-testid="domain-add-form"
+class="space-y-6">
       <DomainInput
         v-model="domain"
         :is-valid="isValid"
         autofocus
         required
+        data-testid="domain-input"
         :placeholder="placeholderText"
         class="dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
 
@@ -69,6 +72,7 @@ const handleSubmit = () => {
         <button
           type="button"
           @click="$emit('back')"
+          data-testid="domain-add-cancel-btn"
           class="inline-flex w-full items-center justify-center rounded-md
             border border-gray-300
             bg-white px-4 py-2 text-base
@@ -98,6 +102,7 @@ const handleSubmit = () => {
         <button
           type="submit"
           :disabled="isSubmitting"
+          data-testid="domain-add-submit"
           class="inline-flex w-full items-center justify-center rounded-md
             border border-transparent
             bg-brand-600 px-4 py-2 text-base

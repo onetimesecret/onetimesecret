@@ -117,7 +117,8 @@
           <!-- Secret Link Header -->
           <section
             class="relative"
-            aria-labelledby="secret-header">
+            aria-labelledby="secret-header"
+            data-testid="receipt-secret-link">
             <SecretLink
               v-if="isAvailable"
               :record="record"
@@ -207,7 +208,8 @@
           <!-- Status & Timeline with Improved Layout -->
           <section
             class="p-4 sm:p-6"
-            aria-labelledby="section-status">
+            aria-labelledby="section-status"
+            data-testid="receipt-status">
             <div class="mb-3 flex items-center justify-between">
               <h2
                 id="section-status"

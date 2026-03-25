@@ -63,7 +63,8 @@ const handleSubmit = async () => {
 <template>
   <form
     @submit.prevent="handleSubmit"
-    class="">
+    class=""
+    data-testid="signup-form">
     <!-- Honeypot field for spam prevention -->
     <input
       type="text"
@@ -80,7 +81,8 @@ const handleSubmit = async () => {
       class="rounded-md bg-red-50 p-4 dark:bg-red-900/20"
       role="alert"
       aria-live="assertive"
-      aria-atomic="true">
+      aria-atomic="true"
+      data-testid="signup-error-message">
       <div class="flex">
         <div class="shrink-0">
           <svg
@@ -150,7 +152,8 @@ const handleSubmit = async () => {
                       dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                       dark:focus:border-brand-500 dark:focus:ring-brand-500"
           :placeholder="t('web.COMMON.email_placeholder')"
-          v-model="email" />
+          v-model="email"
+          data-testid="signup-email-input" />
       </div>
 
       <!-- Password input with visibility toggle -->
@@ -181,13 +184,15 @@ const handleSubmit = async () => {
                    dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                    dark:focus:border-brand-500 dark:focus:ring-brand-500"
             :placeholder="t('web.COMMON.password_placeholder')"
-            v-model="password" />
+            v-model="password"
+            data-testid="signup-password-input" />
           <button
             type="button"
             @click="togglePasswordVisibility"
             :disabled="isSubmitting || isLoading"
             :aria-label="showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')"
-            class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50">
+            class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50"
+            data-testid="signup-toggle-password">
             <OIcon
               collection="heroicons"
               :name="showPassword ? 'outline-eye-off' : 'solid-eye'"
@@ -219,7 +224,8 @@ const handleSubmit = async () => {
                       disabled:cursor-not-allowed disabled:opacity-50
                       dark:border-gray-600
                       dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-brand-500"
-          v-model="termsAgreed" />
+          v-model="termsAgreed"
+          data-testid="signup-terms-checkbox" />
         <label
           for="terms-agreement"
           class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
@@ -227,14 +233,16 @@ const handleSubmit = async () => {
           <router-link
             to="/info/terms"
             class="font-medium text-brand-600 hover:text-brand-500
-                     dark:text-brand-500 dark:hover:text-brand-400">
+                     dark:text-brand-500 dark:hover:text-brand-400"
+            data-testid="signup-terms-link">
             {{ t('web.layout.terms_of_service') }}
           </router-link>
           and
           <router-link
             to="/info/privacy"
             class="font-medium text-brand-600 hover:text-brand-500
-                     dark:text-brand-500 dark:hover:text-brand-400">
+                     dark:text-brand-500 dark:hover:text-brand-400"
+            data-testid="signup-privacy-link">
             {{ t('web.layout.privacy_policy') }}
           </router-link>
         </label>
@@ -254,7 +262,8 @@ const handleSubmit = async () => {
                      text-white hover:bg-brand-700
                      focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
                      disabled:cursor-not-allowed disabled:opacity-50
-                     dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800">
+                     dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800"
+        data-testid="signup-submit">
         <span v-if="isSubmitting || isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
         <span v-else>{{ t('web.COMMON.button_create_account') }}</span>
       </button>
