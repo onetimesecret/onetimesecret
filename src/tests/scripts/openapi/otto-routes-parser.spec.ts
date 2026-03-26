@@ -8,7 +8,7 @@ import {
   getAuthRequirements,
   parseRoutesFile,
   type OttoRoute,
-} from '@/scripts/openapi/otto-routes-parser';
+} from '../../../../scripts/openapi/otto-routes-parser';
 
 /**
  * Helper to build an OttoRoute with the given params.

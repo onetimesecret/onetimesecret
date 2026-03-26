@@ -1,4 +1,4 @@
-// src/scripts/openapi/tests/test-scanner.ts
+// scripts/openapi/tests/test-scanner.ts
 
 /**
  * Test Schema Scanner

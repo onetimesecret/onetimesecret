@@ -108,7 +108,7 @@ SCHEMAS = { response: 'receipt' }.freeze
 SCHEMA = 'models/secret'.freeze
 ```
 
-Each key type validates against its own registry: `response` keys against `responseSchemas` (`src/schemas/api/v3/responses.ts`), `request` keys against `REQUEST_SCHEMA_REGISTRY` (`src/scripts/openapi/generate-openapi.ts`), and `model` keys against `modelSchemas` (`src/schemas/registry.ts`). Run `pnpm run schemas:scan` to verify coverage.
+Each key type validates against its own registry: `response` keys against `responseSchemas` (`src/schemas/api/v3/responses.ts`), `request` keys against `REQUEST_SCHEMA_REGISTRY` (`scripts/openapi/generate-openapi.ts`), and `model` keys against `modelSchemas` (`src/schemas/registry.ts`). Run `pnpm run schemas:scan` to verify coverage.
 
 ## Adding operation descriptions
 

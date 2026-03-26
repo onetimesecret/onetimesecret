@@ -1,4 +1,4 @@
-// src/scripts/openapi/route-config.ts
+// scripts/openapi/route-config.ts
 
 // =============================================================================
 // Types

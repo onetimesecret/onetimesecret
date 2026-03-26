@@ -53,7 +53,7 @@ on:
     paths:
       - 'src/schemas/**/*.ts'
       - 'apps/api/*/routes.txt'
-      - 'src/scripts/openapi/**'
+      - 'scripts/openapi/**'
 
   pull_request:
     branches:
@@ -61,7 +61,7 @@ on:
     paths:
       - 'src/schemas/**/*.ts'
       - 'apps/api/*/routes.txt'
-      - 'src/scripts/openapi/**'
+      - 'scripts/openapi/**'
 
   workflow_dispatch:
 

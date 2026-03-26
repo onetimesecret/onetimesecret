@@ -1,4 +1,4 @@
-// src/scripts/openapi/otto-routes-parser.ts
+// scripts/openapi/otto-routes-parser.ts
 
 /**
  * Otto Routes Parser
