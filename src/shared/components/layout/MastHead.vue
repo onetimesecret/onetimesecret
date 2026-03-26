@@ -59,8 +59,14 @@
     return isUserPresent.value ? 40 : 64;
   };
   // Hide site name when custom domain logo is displayed (unless explicitly configured)
-  // Priority: props > custom domain (always hide) > logo.show_name config > site_name presence
-  const getShowSiteName = () => props.logo?.showSiteName ?? (domain_logo.value ? false : (headerConfig.value?.branding?.logo?.show_name ?? !!headerConfig.value?.branding?.site_name));
+  // Priority: props > custom domain (hide by default) > logo.show_name config > site_name presence
+  const getShowSiteName = () => {
+    if (props.logo?.showSiteName != null) return props.logo.showSiteName;
+    if (domain_logo.value) return false;
+
+    const showName = headerConfig.value?.branding?.logo?.show_name;
+    return showName ?? !!headerConfig.value?.branding?.site_name;
+  };
   const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal');
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
