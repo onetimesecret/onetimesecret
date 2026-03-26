@@ -160,7 +160,9 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       const response = await $api.get(`/api/colonel/users?${params.toString()}`);
       const result = gracefulParse(responseSchemas.colonelUsers, response.data, 'ColonelUsersResponse');
       if (!result.ok) {
-        throw new Error('Unable to load users. Please try again.');
+        users.value = [];
+        usersPagination.value = null;
+        return null;
       }
 
       if (result.data.details) {
@@ -190,7 +192,9 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       const response = await $api.get(`/api/colonel/secrets?${params.toString()}`);
       const result = gracefulParse(responseSchemas.colonelSecrets, response.data, 'ColonelSecretsResponse');
       if (!result.ok) {
-        throw new Error('Unable to load secrets. Please try again.');
+        secrets.value = [];
+        secretsPagination.value = null;
+        return null;
       }
 
       if (result.data.details) {
@@ -329,7 +333,9 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       const response = await $api.get(`/api/colonel/domains?${params.toString()}`);
       const result = gracefulParse(responseSchemas.customDomains, response.data, 'ColonelCustomDomainsResponse');
       if (!result.ok) {
-        throw new Error('Unable to load custom domains. Please try again.');
+        customDomains.value = [];
+        customDomainsPagination.value = null;
+        return null;
       }
 
       if (result.data.details) {
@@ -370,7 +376,10 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       const response = await $api.get(`/api/colonel/organizations?${params.toString()}`);
       const result = gracefulParse(responseSchemas.colonelOrganizations, response.data, 'ColonelOrganizationsResponse');
       if (!result.ok) {
-        throw new Error('Unable to load organizations. Please try again.');
+        organizations.value = [];
+        organizationsPagination.value = null;
+        organizationsFilters.value = null;
+        return null;
       }
 
       if (result.data.details) {

@@ -129,7 +129,9 @@ export const useOrganizationStore = defineStore('organization', () => {
 
       const result = gracefulParse(organizationsResponseSchema, response.data, 'OrganizationsResponse');
       if (!result.ok) {
-        throw new Error('Unable to load organizations. Please try again.');
+        organizations.value = [];
+        _listFetched.value = true;
+        return [];
       }
       organizations.value = result.data.records;
       _listFetched.value = true;
@@ -349,7 +351,8 @@ export const useOrganizationStore = defineStore('organization', () => {
         'OrganizationInvitations'
       );
       if (!result.ok) {
-        throw new Error('Unable to load invitations. Please try again.');
+        invitations.value = [];
+        return [];
       }
       invitations.value = result.data;
       return invitations.value;

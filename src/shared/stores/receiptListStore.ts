@@ -49,7 +49,7 @@ export type ReceiptListStore = {
  * Handles fetching, caching, and state management of receipt listings.
  */
 
-// eslint-disable-next-line max-lines-per-function -- temporary debug logging
+/* eslint max-lines-per-function: off */
 export const useReceiptListStore = defineStore('receiptList', () => {
   const $api = useApi();
 
@@ -76,30 +76,13 @@ export const useReceiptListStore = defineStore('receiptList', () => {
     return { initialized };
   }
 
-  // eslint-disable-next-line complexity -- temporary debug logging
   async function fetchList(options: FetchListOptions = {}) {
-    const timestamp = Date.now();
-    loggingService.debug('[DEBUG:receiptListStore] fetchList called', {
-      timestamp,
-      scope: options.scope,
-      domainExtid: options.domainExtid,
-      currentCount: count.value,
-      currentRecordsLength: records.value?.length ?? 0,
-    });
-
     // Build query params based on options
     const params: Record<string, string> = {};
     if (options.scope) params.scope = options.scope;
     if (options.domainExtid) params.domain_extid = options.domainExtid;
 
     const response = await $api.get('/api/v3/receipt/recent', { params });
-
-    loggingService.debug('[DEBUG:receiptListStore] API response received', {
-      timestamp,
-      responseCount: response.data?.count,
-      responseRecordsLength: response.data?.records?.length ?? 0,
-      firstThreeIds: response.data?.records?.slice(0, 3).map((r: ReceiptList) => r.shortid),
-    });
 
     const result = gracefulParse(
       responseSchemas.receiptList,
@@ -120,14 +103,6 @@ export const useReceiptListStore = defineStore('receiptList', () => {
     count.value = validated.count ?? 0;
     currentScope.value = options.scope;
     scopeLabel.value = validated.details?.scope_label ?? null;
-
-    loggingService.debug('[DEBUG:receiptListStore] Store updated', {
-      timestamp,
-      newCount: count.value,
-      newRecordsLength: records.value?.length ?? 0,
-      scope: currentScope.value,
-      scopeLabel: scopeLabel.value,
-    });
 
     return validated;
   }

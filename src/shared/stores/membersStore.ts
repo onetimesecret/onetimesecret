@@ -79,7 +79,10 @@ export const useMembersStore = defineStore('members', () => {
 
       const result = gracefulParse(membersResponseSchema, response.data, 'MembersResponse');
       if (!result.ok) {
-        throw new Error('Unable to load members. Please try again.');
+        members.value = [];
+        currentOrgExtid.value = orgExtid;
+        _initialized.value = true;
+        return [];
       }
       members.value = result.data.records;
       currentOrgExtid.value = orgExtid;

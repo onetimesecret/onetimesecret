@@ -28,14 +28,6 @@ export const useBrandStore = defineStore('brand', () => {
   const logos = ref<Record<string, ImageProps>>({});
   const _initialized = ref(false);
 
-  /* Reset primaryColor by passing undefined through primary_color field validator
-   * This triggers Zod schema's default value if defined
-   * schema.shape provides access to individual field validators
-   * See https://zod.dev/ for schema parsing docs
-   * See https://pinia.vuejs.org/core-concepts/state.html for Pinia state management
-   */
-  // primaryColor.value = brandSettingschema.shape.primary_color.parse(undefined);
-
   function init() {
     if (_initialized.value) return;
     _initialized.value = true;
@@ -45,7 +37,8 @@ export const useBrandStore = defineStore('brand', () => {
     const response = await $api.get(`/api/domains/${domainId}/brand`);
     const result = gracefulParse(responseSchemas.brandSettings, response.data, 'BrandSettingsResponse');
     if (!result.ok) {
-      throw new Error('Unable to load brand settings. Please try again.');
+      settings.value[domainId] = { ...defaultBranding };
+      return settings.value[domainId];
     }
     settings.value[domainId] = result.data.record;
     return result.data.record;
@@ -77,7 +70,8 @@ export const useBrandStore = defineStore('brand', () => {
     const response = await $api.get(`/api/domains/${domainId}/logo`);
     const result = gracefulParse(responseSchemas.imageProps, response.data, 'ImagePropsResponse');
     if (!result.ok) {
-      throw new Error('Unable to load logo. Please try again.');
+      delete logos.value[domainId];
+      return null;
     }
     logos.value[domainId] = result.data.record;
     return result.data.record;
