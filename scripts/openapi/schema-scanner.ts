@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-// src/scripts/openapi/schema-scanner.ts
+// scripts/openapi/schema-scanner.ts
 
 /**
  * Schema Scanner (Prism-based)

@@ -1,2 +1,13 @@
-// src/schemas/api/v3/requests/content/base.ts — re-export from V2
-export { baseSecretPayloadSchema } from '@/schemas/api/v2/requests/content/base';
+// src/schemas/api/v3/requests/content/base.ts
+
+import { z } from 'zod';
+
+export const baseSecretPayloadSchema = z.object({
+  kind: z.enum(['generate', 'conceal', 'share']),
+  share_domain: z.string(),
+  recipient: z.string().optional(),
+  passphrase: z.string().optional(),
+  ttl: z
+    .union([z.string().regex(/^\d+$/).transform(Number), z.number().int()])
+    .optional(),
+});

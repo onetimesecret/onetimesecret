@@ -1,11 +1,11 @@
 // src/tests/utils/schemaValidation.spec.ts
 //
-// Tests for environment-aware schema validation utilities.
-// Note: Production behavior tests require environment mocking which is complex
-// due to Vitest's test environment. The core logic is tested in dev/test mode.
+// Tests for schema validation utilities with uniform control flow.
+// gracefulParse always returns ParseResult — never throws.
+// In dev/test it calls console.error as a side effect for visibility.
 
 import { z, ZodError } from 'zod';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ParseResult } from '@/utils/schemaValidation';
 
 // Mock loggingService before importing the module under test
@@ -38,8 +38,15 @@ const SimpleSchema = z.object({
 type User = z.infer<typeof UserSchema>;
 
 describe('schemaValidation', () => {
+  let consoleSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleSpy.mockRestore();
   });
 
   describe('gracefulParse', () => {
@@ -104,75 +111,93 @@ describe('schemaValidation', () => {
       });
     });
 
-    describe('failure in dev/test environment (default in Vitest)', () => {
-      // Note: Vitest sets NODE_ENV=test, so isDevOrTest() returns true
-      // This means gracefulParse throws rather than returning { ok: false }
+    describe('failure cases (uniform control flow)', () => {
+      // Note: gracefulParse always returns ParseResult — never throws.
+      // In dev/test (Vitest sets NODE_ENV=test), it calls console.error.
 
-      it('throws ZodError when required field is missing', () => {
+      it('returns { ok: false } when required field is missing', () => {
         const invalidData = {
           id: '123',
           // missing name and email
         };
 
-        expect(() => gracefulParse(UserSchema, invalidData)).toThrow(ZodError);
+        const result = gracefulParse(UserSchema, invalidData);
+        expect(result.ok).toBe(false);
+        if (!result.ok) {
+          expect(result.error).toBeInstanceOf(ZodError);
+        }
       });
 
-      it('throws ZodError when field type is wrong', () => {
+      it('returns { ok: false } when field type is wrong', () => {
         const invalidData = {
           id: 123, // should be string
           name: 'John',
           email: 'john@example.com',
         };
 
-        expect(() => gracefulParse(UserSchema, invalidData)).toThrow(ZodError);
+        const result = gracefulParse(UserSchema, invalidData);
+        expect(result.ok).toBe(false);
+        if (!result.ok) {
+          expect(result.error).toBeInstanceOf(ZodError);
+        }
       });
 
-      it('throws ZodError when email format is invalid', () => {
+      it('returns { ok: false } when email format is invalid', () => {
         const invalidData = {
           id: '123',
           name: 'John',
           email: 'not-an-email',
         };
 
-        expect(() => gracefulParse(UserSchema, invalidData)).toThrow(ZodError);
+        const result = gracefulParse(UserSchema, invalidData);
+        expect(result.ok).toBe(false);
+        if (!result.ok) {
+          expect(result.error).toBeInstanceOf(ZodError);
+        }
       });
 
-      it('throws ZodError when data is null', () => {
-        expect(() => gracefulParse(UserSchema, null)).toThrow(ZodError);
+      it('returns { ok: false } when data is null', () => {
+        const result = gracefulParse(UserSchema, null);
+        expect(result.ok).toBe(false);
+        if (!result.ok) {
+          expect(result.error).toBeInstanceOf(ZodError);
+        }
       });
 
-      it('throws ZodError when data is undefined', () => {
-        expect(() => gracefulParse(UserSchema, undefined)).toThrow(ZodError);
+      it('returns { ok: false } when data is undefined', () => {
+        const result = gracefulParse(UserSchema, undefined);
+        expect(result.ok).toBe(false);
+        if (!result.ok) {
+          expect(result.error).toBeInstanceOf(ZodError);
+        }
       });
 
-      it('includes validation issues in thrown error', () => {
+      it('includes validation issues in error result', () => {
         const invalidData = {
           id: '123',
           name: 'John',
           email: 'invalid',
         };
 
-        try {
-          gracefulParse(UserSchema, invalidData);
-          expect.fail('Should have thrown');
-        } catch (error) {
-          expect(error).toBeInstanceOf(ZodError);
-          const zodError = error as ZodError;
-          expect(zodError.issues.length).toBeGreaterThan(0);
-          expect(zodError.issues[0].path).toContain('email');
+        const result = gracefulParse(UserSchema, invalidData);
+        expect(result.ok).toBe(false);
+        if (!result.ok) {
+          expect(result.error).toBeInstanceOf(ZodError);
+          expect(result.error!.issues.length).toBeGreaterThan(0);
+          expect(result.error!.issues[0].path).toContain('email');
         }
       });
 
-      it('does not log errors when throwing (fast feedback mode)', () => {
+      it('calls console.error in dev/test mode on failure', () => {
         const invalidData = { id: 123 };
 
-        try {
-          gracefulParse(UserSchema, invalidData);
-        } catch {
-          // Expected to throw
-        }
+        gracefulParse(UserSchema, invalidData);
 
-        // In dev/test mode, errors are thrown, not logged
+        // In dev/test mode, console.error is called (not loggingService)
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Schema validation failed'),
+          expect.any(Array)
+        );
         expect(loggingService.error).not.toHaveBeenCalled();
       });
     });
@@ -202,38 +227,26 @@ describe('schemaValidation', () => {
     });
   });
 
-  describe('gracefulParse production behavior', () => {
-    // Note: Testing production behavior is challenging because:
-    // 1. Vitest sets NODE_ENV=test which triggers dev mode behavior
-    // 2. The isDevOrTest check happens at call time, not module load time
-    // 3. vi.resetModules() + dynamic import still runs in test environment
-    //
-    // The production behavior (returning { ok: false } instead of throwing)
-    // is verified through code review and integration tests.
-    // Here we document the expected behavior for reference.
+  describe('gracefulParse error reporting', () => {
+    // With the uniform approach, { ok: false } is returned in all environments.
+    // The only difference is the side-effect channel: console.error in dev/test,
+    // loggingService.error in production.
 
-    describe('expected production behavior (documented)', () => {
-      it.skip('should return { ok: false, error } instead of throwing in production', () => {
-        // In production (NODE_ENV !== 'test' && !import.meta.env.DEV):
-        // - gracefulParse returns { ok: false, error: ZodError }
-        // - loggingService.error is called with error details
-        // - No exception is thrown
-        //
-        // This allows callers to handle failures gracefully:
-        // const result = gracefulParse(schema, data, 'UserResponse');
-        // if (!result.ok) {
-        //   showErrorUI();
-        //   return;
-        // }
-        // useData(result.data);
-      });
+    it('returns { ok: false, error } on invalid data', () => {
+      const result = gracefulParse(SimpleSchema, { value: 123 });
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toBeInstanceOf(ZodError);
+      }
+    });
 
-      it.skip('should log error with context in production', () => {
-        // In production, loggingService.error is called with:
-        // - Error message: "Schema validation failed for {context}"
-        // - cause: the original ZodError
-        // - issues: the Zod validation issues array
-      });
+    it('includes context in console.error message when provided', () => {
+      gracefulParse(SimpleSchema, { value: 123 }, 'TestContext');
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Schema validation failed for TestContext'),
+        expect.any(Array)
+      );
     });
   });
 
@@ -567,13 +580,17 @@ describe('schemaValidation', () => {
         expect(result.data).toEqual(validData);
       }
 
-      // Invalid case (in test env, throws)
+      // Invalid case — returns { ok: false }
       const invalidData = {
         password: 'password123',
         confirmPassword: 'different',
       };
 
-      expect(() => gracefulParse(RefinedSchema, invalidData)).toThrow(ZodError);
+      const failResult = gracefulParse(RefinedSchema, invalidData);
+      expect(failResult.ok).toBe(false);
+      if (!failResult.ok) {
+        expect(failResult.error).toBeInstanceOf(ZodError);
+      }
     });
 
     it('handles optional fields with explicit undefined', () => {
@@ -608,7 +625,11 @@ describe('schemaValidation', () => {
         expect(resultFalse.data).toBe(false);
       }
 
-      expect(() => gracefulParse(BoolSchema, 'true')).toThrow(ZodError);
+      const failResult = gracefulParse(BoolSchema, 'true');
+      expect(failResult.ok).toBe(false);
+      if (!failResult.ok) {
+        expect(failResult.error).toBeInstanceOf(ZodError);
+      }
     });
 
     it('handles coerced boolean schema', () => {
@@ -641,7 +662,11 @@ describe('schemaValidation', () => {
         expect(result.data).toBe('hello');
       }
 
-      expect(() => gracefulParse(StringSchema, 123)).toThrow(ZodError);
+      const failResult = gracefulParse(StringSchema, 123);
+      expect(failResult.ok).toBe(false);
+      if (!failResult.ok) {
+        expect(failResult.error).toBeInstanceOf(ZodError);
+      }
     });
 
     it('handles number schema', () => {
@@ -654,7 +679,11 @@ describe('schemaValidation', () => {
         expect(result.data).toBe(42);
       }
 
-      expect(() => gracefulParse(NumberSchema, '42')).toThrow(ZodError);
+      const failResult = gracefulParse(NumberSchema, '42');
+      expect(failResult.ok).toBe(false);
+      if (!failResult.ok) {
+        expect(failResult.error).toBeInstanceOf(ZodError);
+      }
     });
 
     it('handles enum schema', () => {
@@ -667,7 +696,11 @@ describe('schemaValidation', () => {
         expect(result.data).toBe('red');
       }
 
-      expect(() => gracefulParse(EnumSchema, 'yellow')).toThrow(ZodError);
+      const failResult = gracefulParse(EnumSchema, 'yellow');
+      expect(failResult.ok).toBe(false);
+      if (!failResult.ok) {
+        expect(failResult.error).toBeInstanceOf(ZodError);
+      }
     });
 
     it('handles literal schema', () => {
@@ -680,7 +713,11 @@ describe('schemaValidation', () => {
         expect(result.data).toBe('exact');
       }
 
-      expect(() => gracefulParse(LiteralSchema, 'different')).toThrow(ZodError);
+      const failResult = gracefulParse(LiteralSchema, 'different');
+      expect(failResult.ok).toBe(false);
+      if (!failResult.ok) {
+        expect(failResult.error).toBeInstanceOf(ZodError);
+      }
     });
   });
 
@@ -701,20 +738,26 @@ describe('schemaValidation', () => {
       }
     });
 
-    it('both throw ZodError in test env on failure', () => {
+    it('gracefulParse returns { ok: false } while strictParse throws on failure', () => {
       const invalidData = { id: 123 }; // invalid
 
-      expect(() => gracefulParse(UserSchema, invalidData)).toThrow(ZodError);
+      const result = gracefulParse(UserSchema, invalidData);
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toBeInstanceOf(ZodError);
+      }
+
       expect(() => strictParse(UserSchema, invalidData)).toThrow(ZodError);
     });
 
-    it('gracefulParse uses safeParse internally', () => {
-      // This is an implementation detail but important for understanding behavior
-      // safeParse never throws - gracefulParse throws in dev/test after checking result
+    it('gracefulParse uses safeParse internally (never throws)', () => {
       const validData = { value: 'test' };
 
       // Should not throw for valid data
       expect(() => gracefulParse(SimpleSchema, validData)).not.toThrow();
+
+      // Should also not throw for invalid data
+      expect(() => gracefulParse(SimpleSchema, { value: 123 })).not.toThrow();
     });
 
     it('strictParse uses parse internally (always throws on failure)', () => {

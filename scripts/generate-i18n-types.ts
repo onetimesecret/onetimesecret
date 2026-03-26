@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-// src/scripts/generate-i18n-types.ts
+// scripts/generate-i18n-types.ts
 
 /**
  * I18n Type Generator Script
@@ -12,7 +12,7 @@
  * Usage:
  *   pnpm run i18n:generate-types
  *   # or directly:
- *   tsx src/scripts/generate-i18n-types.ts
+ *   tsx scripts/generate-i18n-types.ts
  *
  * Output:
  *   generated/types/i18n-keys.d.ts
@@ -29,7 +29,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Read from the pre-merged locale file in generated/locales/
-const PROJECT_ROOT = path.resolve(__dirname, '../..');
+const PROJECT_ROOT = path.resolve(__dirname, '..');
 const EN_LOCALE_FILE = path.join(PROJECT_ROOT, 'generated/locales/en.json');
 const OUTPUT_FILE = path.join(PROJECT_ROOT, 'generated/types/i18n-keys.d.ts');
 

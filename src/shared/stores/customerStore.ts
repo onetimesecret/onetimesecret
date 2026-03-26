@@ -4,6 +4,7 @@ import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import type { Customer } from '@/schemas/shapes/v3/customer';
 import { loggingService } from '@/services/logging.service';
+import { gracefulParse } from '@/utils/schemaValidation';
 import { createError } from '@/shared/composables/useAsyncHandler';
 import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
@@ -80,8 +81,11 @@ export const useCustomerStore = defineStore('customer', () => {
     const response = await $api.get('/api/account/customer', {
       signal: abortController.value.signal,
     });
-    const validated = responseSchemas.customer.parse(response.data);
-    currentCustomer.value = validated.record as Customer;
+    const result = gracefulParse(responseSchemas.customer, response.data, 'CustomerResponse');
+    if (!result.ok) {
+      throw new Error('Unable to load customer data. Please try again.');
+    }
+    currentCustomer.value = result.data.record as Customer;
   }
 
   /**
@@ -99,8 +103,11 @@ export const useCustomerStore = defineStore('customer', () => {
       `/api/account/customer/${currentCustomer?.value?.objid}`,
       updates
     );
-    const validated = responseSchemas.customer.parse(response.data);
-    currentCustomer.value = validated.record as Customer;
+    const result = gracefulParse(responseSchemas.customer, response.data, 'CustomerResponse');
+    if (!result.ok) {
+      throw new Error('Unable to update customer data. Please try again.');
+    }
+    currentCustomer.value = result.data.record as Customer;
   }
 
   /**

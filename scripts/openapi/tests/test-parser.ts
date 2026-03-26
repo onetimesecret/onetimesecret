@@ -1,4 +1,4 @@
-// src/scripts/openapi/tests/test-parser.ts
+// scripts/openapi/tests/test-parser.ts
 
 /**
  * Test Otto Routes Parser

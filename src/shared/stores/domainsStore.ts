@@ -9,6 +9,7 @@ import type {
   ImageProps,
 } from '@/schemas/shapes/v3';
 import { loggingService } from '@/services/logging.service';
+import { gracefulParse } from '@/utils/schemaValidation';
 import { AxiosError, AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref, Ref } from 'vue';
@@ -104,10 +105,13 @@ export const useDomainsStore = defineStore('domains', () => {
     const payload: { domain: string; org_id?: string } = { domain };
     if (orgId) payload.org_id = orgId;
     const response = await $api.post('/api/domains/add', payload);
-    const validated = responseSchemas.customDomain.parse(response.data);
+    const result = gracefulParse(responseSchemas.customDomain, response.data, 'CustomDomainResponse');
+    if (!result.ok) {
+      throw new Error('Unable to add domain. Please try again.');
+    }
     if (!records.value) records.value = [];
-    records.value.push(validated.record);
-    return { record: validated.record, details: validated.details };
+    records.value.push(result.data.record);
+    return { record: result.data.record, details: result.data.details };
   }
 
   /**
@@ -119,24 +123,36 @@ export const useDomainsStore = defineStore('domains', () => {
   async function fetchList(orgId?: string) {
     const params = orgId ? { org_id: orgId } : {};
     const response = await $api.get('/api/domains', { params });
-    const validated = responseSchemas.customDomainList.parse(response.data);
-    records.value = validated.records ?? [];
-    details.value = validated.details ?? {};
-    count.value = validated.count ?? 0;
+    const result = gracefulParse(responseSchemas.customDomainList, response.data, 'CustomDomainListResponse');
+    if (!result.ok) {
+      records.value = [];
+      details.value = {};
+      count.value = 0;
+      return null;
+    }
+    records.value = result.data.records ?? [];
+    details.value = result.data.details ?? {};
+    count.value = result.data.count ?? 0;
 
-    return validated;
+    return result.data;
   }
 
   async function getDomain(extid: string) {
     const response = await $api.get(`/api/domains/${extid}`);
-    const validated = responseSchemas.customDomain.parse(response.data);
-    return validated;
+    const result = gracefulParse(responseSchemas.customDomain, response.data, 'CustomDomainResponse');
+    if (!result.ok) {
+      throw new Error('Unable to load domain. Please try again.');
+    }
+    return result.data;
   }
 
   async function verifyDomain(extid: string) {
     const response = await $api.post(`/api/domains/${extid}/verify`);
-    const validated = responseSchemas.customDomain.parse(response.data);
-    return validated;
+    const result = gracefulParse(responseSchemas.customDomain, response.data, 'CustomDomainResponse');
+    if (!result.ok) {
+      throw new Error('Unable to verify domain. Please try again.');
+    }
+    return result.data;
   }
 
   async function uploadLogo(extid: string, file: File) {
@@ -148,16 +164,22 @@ export const useDomainsStore = defineStore('domains', () => {
     });
 
     // Validate upload response
-    const validated = responseSchemas.imageProps.parse(response.data);
-    return validated.record;
+    const result = gracefulParse(responseSchemas.imageProps, response.data, 'ImagePropsResponse');
+    if (!result.ok) {
+      throw new Error('Unable to upload logo. Please try again.');
+    }
+    return result.data.record;
   }
 
   async function fetchLogo(extid: string): Promise<ImageProps | null> {
     try {
       const response = await $api.get(`/api/domains/${extid}/logo`);
       // Use the existing schema to validate the response
-      const validated = responseSchemas.imageProps.parse(response.data);
-      return validated.record;
+      const result = gracefulParse(responseSchemas.imageProps, response.data, 'ImagePropsResponse');
+      if (!result.ok) {
+        throw new Error('Unable to load logo. Please try again.');
+      }
+      return result.data.record;
     } catch (error: unknown) {
       // Handle 404 or other expected errors silently
       if ((error as AxiosError).response?.status === 404) {
@@ -215,8 +237,11 @@ export const useDomainsStore = defineStore('domains', () => {
   // Ensure getBrandSettings always returns valid data
   async function getBrandSettings(extid: string): Promise<BrandSettings> {
     const response = await $api.get(`/api/domains/${extid}/brand`);
-    const validated = responseSchemas.brandSettings.parse(response.data);
-    return validated.record;
+    const result = gracefulParse(responseSchemas.brandSettings, response.data, 'BrandSettingsResponse');
+    if (!result.ok) {
+      throw new Error('Unable to load brand settings. Please try again.');
+    }
+    return result.data.record;
   }
 
   /**
@@ -226,7 +251,11 @@ export const useDomainsStore = defineStore('domains', () => {
     const response = await $api.put(`/api/domains/${extid}/brand`, {
       brand: settings,
     });
-    return responseSchemas.brandSettings.parse(response.data);
+    const result = gracefulParse(responseSchemas.brandSettings, response.data, 'BrandSettingsResponse');
+    if (!result.ok) {
+      throw new Error('Unable to update brand settings. Please try again.');
+    }
+    return result.data;
   }
 
   /**
@@ -237,14 +266,17 @@ export const useDomainsStore = defineStore('domains', () => {
    */
   async function updateDomainBrand(extid: string, brandUpdate: UpdateDomainBrandRequest) {
     const response = await $api.put(`/api/domains/${extid}/brand`, brandUpdate);
-    const validated = responseSchemas.customDomain.parse(response.data);
-    if (!records.value) return validated.record;
+    const result = gracefulParse(responseSchemas.customDomain, response.data, 'CustomDomainResponse');
+    if (!result.ok) {
+      throw new Error('Unable to update domain brand. Please try again.');
+    }
+    if (!records.value) return result.data.record;
 
     const domainIndex = records.value.findIndex((d) => d.extid === extid);
     if (domainIndex !== -1) {
-      records.value[domainIndex] = validated.record;
+      records.value[domainIndex] = result.data.record;
     }
-    return validated.record;
+    return result.data.record;
   }
 
   /**

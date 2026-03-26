@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-// src/scripts/openapi/generate-openapi.ts
+// scripts/openapi/generate-openapi.ts
 
 /**
  * Convention-Based OpenAPI 3.1 Generator

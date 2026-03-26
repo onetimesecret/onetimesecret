@@ -41,7 +41,7 @@ import {
   apiTokenResponseSchema,
   checkAuthResponseSchema,
   customerResponseSchema,
-} from '@/schemas/api/v2/responses/account';
+} from '@/schemas/api/v3/responses/account';
 
 // Domain schemas (shared with V2/V3 public APIs)
 import {
@@ -50,7 +50,7 @@ import {
   customDomainListResponseSchema,
   imagePropsResponseSchema,
   jurisdictionResponseSchema,
-} from '@/schemas/api/v2/responses/domains';
+} from '@/schemas/api/v3/responses/domains';
 
 // Auth schemas (shared with V2/V3)
 import {
@@ -59,7 +59,7 @@ import {
   logoutResponseSchema,
   resetPasswordRequestResponseSchema,
   resetPasswordResponseSchema,
-} from '@/schemas/api/v2/responses/auth';
+} from '@/schemas/api/v3/responses/auth';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Response schema registry
