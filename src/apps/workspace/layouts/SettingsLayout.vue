@@ -22,9 +22,7 @@ const route = useRoute();
 const tabItems = computed(() => {
   const sections = getSettingsNavigationSections(t);
   const allItems = sections.flatMap((section) => section.items);
-  const visibleItems = sections.flatMap((section) =>
-    section.items.filter((item) => (item.visible ? item.visible() : true))
-  );
+  const visibleItems = allItems.filter((item) => (item.visible ? item.visible() : true));
   debugLog.features('SettingsLayout.tabItems', {
     allItems: allItems.map(i => i.id),
     visibleItems: visibleItems.map(i => i.id),

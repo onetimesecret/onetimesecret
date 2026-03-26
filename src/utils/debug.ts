@@ -4,10 +4,17 @@ export const DEBUG = process.env.NODE_ENV === 'development';
 
 /**
  * Check if a specific debug channel is enabled via localStorage.
- * Enable in browser console: localStorage.setItem('debug:features', 'true')
- * Disable: localStorage.removeItem('debug:features')
+ *
+ * @param channel - The debug channel name (e.g., 'features')
+ * @returns True if localStorage contains `debug:{channel}` set to 'true'
+ *
+ * @example
+ * // Enable in browser console:
+ * localStorage.setItem('debug:features', 'true')
+ * // Disable:
+ * localStorage.removeItem('debug:features')
  */
-function isDebugEnabled(channel: string): boolean {
+export function isDebugEnabled(channel: string): boolean {
   if (typeof window === 'undefined') return false;
   return localStorage.getItem(`debug:${channel}`) === 'true';
 }
