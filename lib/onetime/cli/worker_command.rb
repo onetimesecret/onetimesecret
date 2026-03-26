@@ -115,9 +115,10 @@ module Onetime
           # Start heartbeat thread for liveness logging
           start_heartbeat_thread(worker_classes)
 
-          # Flush pending log messages before Sneakers forks worker processes.
-          # SemanticLogger's async Processor thread can deadlock after fork if
-          # its internal Queue mutex is in an inconsistent state at fork time.
+          # Flush pending log messages before Sneakers starts its fork cycle.
+          # The before_fork hook (via cleanup_before_fork) flushes again right
+          # before fork, but this early flush ensures log output from the lines
+          # above is visible even if Sneakers setup itself hangs or crashes.
           SemanticLogger.flush
 
           # Start the workers (forks based on workers: N config)
@@ -290,13 +291,15 @@ module Onetime
             # responds to :info/:debug/:error/:warn and uses it directly instead of
             # creating a ServerEngine::DaemonLogger. This unifies all worker logging.
             log: Onetime.bunny_logger,
-            # Hooks to configure logging in forked worker processes
+            # Fork hooks — mirror the Puma before_fork/before_worker_boot hooks
+            # so all fork-sensitive initializers (auth database, loggers, RabbitMQ)
+            # get proper cleanup/reconnect. See: etc/examples/puma.example.rb
             hooks: {
+              before_fork: -> {
+                Onetime.boot_registry&.cleanup_before_fork
+              },
               after_fork: -> {
-                # Reopen restarts SemanticLogger's Processor thread and reopens
-                # all appenders. Threads don't survive fork, so the child's
-                # Processor is dead — reopen brings it back to life.
-                SemanticLogger.reopen
+                Onetime.boot_registry&.reconnect_after_fork
               },
             },
           }
