@@ -215,8 +215,9 @@ export function handleSsoOnlyRoute(to: RouteLocationNormalized) {
     { path: to.path }
   );
 
-  // Authenticated routes land on profile; public routes on sign-in
-  if (to.meta.requiresAuth) {
+  // Authenticated users land on profile; unauthenticated on sign-in
+  const authStore = useAuthStore();
+  if (authStore.isFullyAuthenticated) {
     return { path: '/account' };
   }
   return { path: '/signin' };

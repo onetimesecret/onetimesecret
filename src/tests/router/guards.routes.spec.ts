@@ -48,6 +48,7 @@ const publicRoute: RouteLocationNormalized = {
 vi.mock('@/shared/stores/authStore', () => ({
   useAuthStore: vi.fn(() => ({
     isAuthenticated: false,
+    isFullyAuthenticated: false,
     needsCheck: false,
     checkWindowStatus: vi.fn(),
   })),
@@ -556,8 +557,11 @@ describe('Router Guards', () => {
       expect(result).toBeNull();
     });
 
-    it('should redirect excludeSsoOnly routes to /signin when SSO-only mode is active', () => {
+    it('should redirect unauthenticated excludeSsoOnly routes to /signin when SSO-only mode is active', () => {
       vi.mocked(isSsoOnlyMode).mockReturnValue(true);
+      vi.mocked(useAuthStore).mockReturnValue({
+        isFullyAuthenticated: false,
+      } as ReturnType<typeof useAuthStore>);
 
       const to = makeRoute({
         meta: { excludeSsoOnly: true },
@@ -582,8 +586,11 @@ describe('Router Guards', () => {
       expect(result).toBeNull();
     });
 
-    it('should redirect /forgot when SSO-only mode is active', () => {
+    it('should redirect /forgot when SSO-only mode is active (unauthenticated)', () => {
       vi.mocked(isSsoOnlyMode).mockReturnValue(true);
+      vi.mocked(useAuthStore).mockReturnValue({
+        isFullyAuthenticated: false,
+      } as ReturnType<typeof useAuthStore>);
 
       const to = makeRoute({
         meta: { excludeSsoOnly: true },
@@ -595,8 +602,11 @@ describe('Router Guards', () => {
       expect(result).toEqual({ path: '/signin' });
     });
 
-    it('should redirect /reset-password when SSO-only mode is active', () => {
+    it('should redirect /reset-password when SSO-only mode is active (unauthenticated)', () => {
       vi.mocked(isSsoOnlyMode).mockReturnValue(true);
+      vi.mocked(useAuthStore).mockReturnValue({
+        isFullyAuthenticated: false,
+      } as ReturnType<typeof useAuthStore>);
 
       const to = makeRoute({
         meta: { excludeSsoOnly: true },
@@ -608,17 +618,77 @@ describe('Router Guards', () => {
       expect(result).toEqual({ path: '/signin' });
     });
 
-    it('should redirect authenticated excludeSsoOnly routes to /account', () => {
-      vi.mocked(isSsoOnlyMode).mockReturnValue(true);
+    describe('redirect target based on auth store state', () => {
+      // The redirect decision now depends on authStore.isFullyAuthenticated,
+      // NOT on route metadata (requiresAuth). This prevents double-redirects
+      // when an authenticated user hits a public excludeSsoOnly route.
 
-      const to = makeRoute({
-        meta: { excludeSsoOnly: true, requiresAuth: true },
-        path: '/account/region',
-        name: 'Data Region',
+      it('should redirect authenticated user on auth-required excluded route to /account', () => {
+        vi.mocked(isSsoOnlyMode).mockReturnValue(true);
+        vi.mocked(useAuthStore).mockReturnValue({
+          isFullyAuthenticated: true,
+        } as ReturnType<typeof useAuthStore>);
+
+        const to = makeRoute({
+          meta: { excludeSsoOnly: true, requiresAuth: true },
+          path: '/account/region',
+          name: 'Data Region',
+        });
+
+        const result = handleSsoOnlyRoute(to);
+        expect(result).toEqual({ path: '/account' });
       });
 
-      const result = handleSsoOnlyRoute(to);
-      expect(result).toEqual({ path: '/account' });
+      it('should redirect authenticated user on public excluded route to /account', () => {
+        // This is the key behavioral change: previously this would wrongly
+        // redirect to /signin because it checked requiresAuth (false here),
+        // but now it checks isFullyAuthenticated from the auth store.
+        vi.mocked(isSsoOnlyMode).mockReturnValue(true);
+        vi.mocked(useAuthStore).mockReturnValue({
+          isFullyAuthenticated: true,
+        } as ReturnType<typeof useAuthStore>);
+
+        const to = makeRoute({
+          meta: { excludeSsoOnly: true, requiresAuth: false },
+          path: '/signup',
+          name: 'Sign Up',
+        });
+
+        const result = handleSsoOnlyRoute(to);
+        expect(result).toEqual({ path: '/account' });
+      });
+
+      it('should redirect unauthenticated user on auth-required excluded route to /signin', () => {
+        vi.mocked(isSsoOnlyMode).mockReturnValue(true);
+        vi.mocked(useAuthStore).mockReturnValue({
+          isFullyAuthenticated: false,
+        } as ReturnType<typeof useAuthStore>);
+
+        const to = makeRoute({
+          meta: { excludeSsoOnly: true, requiresAuth: true },
+          path: '/account/region',
+          name: 'Data Region',
+        });
+
+        const result = handleSsoOnlyRoute(to);
+        expect(result).toEqual({ path: '/signin' });
+      });
+
+      it('should redirect unauthenticated user on public excluded route to /signin', () => {
+        vi.mocked(isSsoOnlyMode).mockReturnValue(true);
+        vi.mocked(useAuthStore).mockReturnValue({
+          isFullyAuthenticated: false,
+        } as ReturnType<typeof useAuthStore>);
+
+        const to = makeRoute({
+          meta: { excludeSsoOnly: true },
+          path: '/forgot',
+          name: 'Forgot Password',
+        });
+
+        const result = handleSsoOnlyRoute(to);
+        expect(result).toEqual({ path: '/signin' });
+      });
     });
   });
 });
