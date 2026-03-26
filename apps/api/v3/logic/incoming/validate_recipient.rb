@@ -33,6 +33,11 @@ module V3
         end
 
         def raise_concerns
+          # On custom domains, require the domain-owning org's entitlement.
+          # Uses the resolver to check the org that owns the domain, not
+          # the session org (which is nil for anonymous visitors).
+          resolver.require_domain_entitlement!('incoming_secrets')
+
           # Check if feature is enabled (domain-aware)
           unless resolver.enabled?
             raise_form_error 'Incoming secrets feature is not enabled'

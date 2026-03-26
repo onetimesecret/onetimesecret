@@ -2,16 +2,19 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import {
+  EntitlementError,
+  entitlementErrorSchema,
   IncomingConfig,
+  incomingConfigSchema,
   IncomingSecretPayload,
   IncomingSecretResponse,
-  incomingConfigSchema,
   incomingSecretResponseSchema,
 } from '@/schemas/api/incoming';
-import { responseSchemas, ReceiptResponse } from '@/schemas/api/v3/responses';
+import { ReceiptResponse, responseSchemas } from '@/schemas/api/v3/responses';
 import { loggingService } from '@/services/logging.service';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { useApi } from '@/shared/composables/useApi';
+import axios from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, ref } from 'vue';
 
@@ -25,11 +28,13 @@ export type IncomingStore = {
   config: IncomingConfig | null;
   isLoading: boolean;
   configError: string | null;
+  entitlementError: EntitlementError | null;
   _initialized: boolean;
 
   // Getters
   isInitialized: boolean;
   isFeatureEnabled: boolean;
+  isEntitlementBlocked: boolean;
   memoMaxLength: number;
   recipients: IncomingConfig['recipients'];
   defaultTtl: number | undefined;
@@ -54,11 +59,13 @@ export const useIncomingStore = defineStore('incoming', () => {
   const config = ref<IncomingConfig | null>(null);
   const isLoading = ref(false);
   const configError = ref<string | null>(null);
+  const entitlementError = ref<EntitlementError | null>(null);
   const _initialized = ref(false);
 
   // Getters
   const isInitialized = computed(() => _initialized.value);
   const isFeatureEnabled = computed(() => config.value?.enabled ?? false);
+  const isEntitlementBlocked = computed(() => entitlementError.value !== null);
   const memoMaxLength = computed(() => config.value?.memo_max_length ?? 50);
   const recipients = computed(() => config.value?.recipients ?? []);
   const defaultTtl = computed(() => config.value?.default_ttl);
@@ -75,18 +82,37 @@ export const useIncomingStore = defineStore('incoming', () => {
   }
 
   /**
-   * Loads incoming secrets configuration from API
+   * Loads incoming secrets configuration from API.
+   *
+   * On custom domains, the backend may return 403 if the owning
+   * organization lacks the `incoming_secrets` entitlement. This
+   * is captured in `entitlementError` for the UI to render an
+   * upgrade prompt instead of the form.
+   *
    * @returns Validated incoming config response or undefined on error
    */
   const loadConfig = async () => {
     configError.value = null;
-    const response = await $api.get('/incoming/config');
-    const result = gracefulParse(incomingConfigSchema, response.data.config, 'IncomingConfig');
-    if (!result.ok) {
-      throw new Error('Unable to load incoming configuration. Please try again.');
+    entitlementError.value = null;
+    try {
+      const response = await $api.get('/incoming/config');
+      const result = gracefulParse(incomingConfigSchema, response.data.config, 'IncomingConfig');
+      if (!result.ok) {
+        throw new Error('Unable to load incoming configuration. Please try again.');
+      }
+      config.value = result.data;
+      return result.data;
+    } catch (error: unknown) {
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.status === 403 &&
+        error.response.data?.entitlement === 'incoming_secrets'
+      ) {
+        entitlementError.value = entitlementErrorSchema.parse(error.response.data);
+        return undefined;
+      }
+      throw error;
     }
-    config.value = result.data;
-    return result.data;
   };
 
   /**
@@ -134,6 +160,7 @@ export const useIncomingStore = defineStore('incoming', () => {
   function clear() {
     config.value = null;
     configError.value = null;
+    entitlementError.value = null;
     isLoading.value = false;
   }
 
@@ -143,6 +170,7 @@ export const useIncomingStore = defineStore('incoming', () => {
   function $reset() {
     config.value = null;
     configError.value = null;
+    entitlementError.value = null;
     isLoading.value = false;
     _initialized.value = false;
   }
@@ -152,11 +180,13 @@ export const useIncomingStore = defineStore('incoming', () => {
     config,
     isLoading,
     configError,
+    entitlementError,
     _initialized,
 
     // Getters
     isInitialized,
     isFeatureEnabled,
+    isEntitlementBlocked,
     memoMaxLength,
     recipients,
     defaultTtl,

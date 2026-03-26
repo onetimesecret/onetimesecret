@@ -69,8 +69,6 @@ module DomainsAPI::Logic
       end
 
       def success_data
-        # Clear memoized config to get fresh data
-        @custom_domain.instance_variable_set(:@incoming_secrets_config, nil)
         config = @custom_domain.incoming_secrets_config
         site_secret = OT.conf.dig('site', 'secret')
         {
@@ -84,10 +82,6 @@ module DomainsAPI::Logic
       end
 
       private
-
-      def valid_extid?(extid)
-        extid.match?(/\A[a-z0-9]+\z/)
-      end
 
       def validate_recipients_input
         unless @recipients_input.is_a?(Array)

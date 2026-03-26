@@ -3,6 +3,67 @@
 import { z } from 'zod';
 
 /**
+ * Schema for an EntitlementRequired 403 response from the backend.
+ * Backend's `EntitlementRequired#to_h` calls `.compact`, so keys with
+ * nil values are omitted entirely — hence `.nullish()` for optional fields.
+ */
+export const entitlementErrorSchema = z.object({
+  error: z.string(),
+  entitlement: z.string(),
+  current_plan: z.string().nullish(),
+  upgrade_to: z.string().nullish(),
+});
+
+export type EntitlementError = z.infer<typeof entitlementErrorSchema>;
+
+/**
+ * Schema for incoming recipient configuration
+ * Note: Uses hash instead of email to prevent exposing recipient addresses
+ */
+export const incomingRecipientSchema = z.object({
+  hash: z.string().min(1),
+  name: z.string(),
+});
+
+export type IncomingRecipient = z.infer<typeof incomingRecipientSchema>;
+
+/**
+ * Schema for incoming secrets configuration response from API
+ */
+export const incomingConfigSchema = z.object({
+  enabled: z.boolean(),
+  memo_max_length: z.number().int().positive().default(50),
+  recipients: z.array(incomingRecipientSchema).default([]),
+  default_ttl: z.number().int().positive().optional(),
+});
+
+export type IncomingConfig = z.infer<typeof incomingConfigSchema>;
+
+/**
+ * Schema for API response wrapper for config
+ */
+export const incomingConfigResponseSchema = z.object({
+  config: incomingConfigSchema,
+});
+
+export type IncomingConfigResponse = z.infer<typeof incomingConfigResponseSchema>;
+
+/**
+ * Schema for incoming secret creation payload
+ * Simple payload - passphrase and ttl come from backend config
+ * Memo is optional - only secret and recipient are required
+ * Recipient is now a hash string instead of email for security
+ * Note: Memo max length validation is enforced by backend config and UI component
+ */
+export const incomingSecretPayloadSchema = z.object({
+  memo: z.string().optional().default(''),
+  secret: z.string().min(1),
+  recipient: z.string().min(1), // Now expects hash instead of email
+});
+
+export type IncomingSecretPayload = z.infer<typeof incomingSecretPayloadSchema>;
+
+/**
  * Schema for receipt record in the response
  * Note: Many fields can be null or absent from the API via safe_dump.
  * Use .nullish() to accept null, undefined, and missing fields.

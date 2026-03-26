@@ -38,17 +38,13 @@ module V3
         end
 
         def raise_concerns
-          # No concerns to raise. The feature may be disabled; the frontend
-          # renders a "feature disabled" state when config.enabled is false.
-          # Raising FormError here would show the error state instead.
+          # On custom domains, require the domain-owning org to have the
+          # incoming_secrets entitlement. On canonical domain, this
+          # is a no-op (global config controls feature availability).
+          resolver.require_domain_entitlement!('incoming_secrets')
         end
 
         def process
-          resolver = Onetime::Incoming::RecipientResolver.new(
-            domain_strategy: domain_strategy,
-            display_domain: display_domain,
-          )
-
           @config_data = resolver.config_data
 
           Onetime.secret_logger.debug "[IncomingConfig] Returning #{@config_data[:recipients].size} recipients (hashed) for #{domain_strategy || 'default'}"
@@ -62,6 +58,15 @@ module V3
           {
             config: config_data,
           }
+        end
+
+        private
+
+        def resolver
+          @resolver ||= Onetime::Incoming::RecipientResolver.new(
+            domain_strategy: domain_strategy,
+            display_domain: display_domain,
+          )
         end
       end
     end
