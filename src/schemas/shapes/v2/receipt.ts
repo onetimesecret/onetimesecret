@@ -169,23 +169,30 @@ export const receiptDetailsSchema = receiptDetailsCanonical.extend({
  * V2 receipt list schema (base + show_recipients).
  *
  * Used for individual records in the /receipt/recent list response.
+ * Overrides identifier/key/secret fields to be nullable for V2 backward compatibility.
  */
 export const receiptListSchema = receiptBaseSchema.extend({
   show_recipients: transforms.fromString.boolean,
+  // Override to nullable for V2 backward compatibility
+  identifier: z.string().nullish(),
+  secret_identifier: z.string().nullish(),
+  secret_shortid: z.string().nullish(),
+  key: z.string().nullish(),
+  // Handle both string and number from API
+  secret_ttl: z.union([z.string(), z.number()]).transform(Number),
 });
 
 /**
  * V2 receipt list details.
  *
  * Metadata for the list response with categorized receipt arrays.
- * Backend sends `revealed_receipts` and `pending_receipts` (renamed from
- * the old `received`/`notreceived` in commit 34681572b).
+ * V2 uses legacy field names for backward compatibility.
  */
 export const receiptListDetailsSchema = receiptListDetailsCanonical.extend({
   now: transforms.fromString.date,
   has_items: transforms.fromString.boolean,
-  revealed_receipts: z.array(receiptListSchema).optional(),
-  pending_receipts: z.array(receiptListSchema).optional(),
+  received: z.array(receiptListSchema).optional(),
+  notreceived: z.array(receiptListSchema).optional(),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
