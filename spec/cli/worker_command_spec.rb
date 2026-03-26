@@ -783,6 +783,102 @@ RSpec.describe Onetime::CLI::WorkerCommand, type: :cli do
     end
   end
 
+  # ==========================================================================
+  # Sneakers Fork Hook Wiring
+  # ==========================================================================
+  # These tests verify that configure_sneakers wires before_fork and after_fork
+  # hooks that delegate to the InitializerRegistry, mirroring the Puma fork
+  # hook pattern (see: spec/integration/all/puma_fork_registry_workflow_spec.rb).
+  #
+  # This prevents regression of GitHub issue #2766 where Sneakers workers
+  # would not clean up / reconnect fork-sensitive resources (auth database,
+  # loggers, RabbitMQ) after forking.
+  # ==========================================================================
+  describe 'Sneakers fork hook wiring' do
+    let(:captured_config) { {} }
+    let(:mock_bunny_logger) { instance_double('SemanticLogger::Logger') }
+
+    around do |example|
+      original_url = ENV['RABBITMQ_URL']
+      original_vhost = ENV['RABBITMQ_VHOST']
+      example.run
+    ensure
+      ENV['RABBITMQ_URL'] = original_url
+      if original_vhost.nil?
+        ENV.delete('RABBITMQ_VHOST')
+      else
+        ENV['RABBITMQ_VHOST'] = original_vhost
+      end
+    end
+
+    before do
+      ENV['RABBITMQ_URL'] = 'amqp://localhost:5672'
+      ENV.delete('RABBITMQ_VHOST')
+
+      allow(Sneakers).to receive(:configure) { |config| captured_config.merge!(config) }
+      allow(Onetime).to receive(:bunny_logger).and_return(mock_bunny_logger)
+      allow(mock_bunny_logger).to receive(:level=)
+
+      command.instance_variable_set(:@amqp_url, ENV['RABBITMQ_URL'])
+      command.send(:configure_sneakers,
+        concurrency: 10,
+        daemonize: false,
+        environment: 'test',
+        log_level: nil
+      )
+    end
+
+    it 'configures a hooks hash with before_fork and after_fork' do
+      expect(captured_config).to have_key(:hooks)
+      expect(captured_config[:hooks]).to have_key(:before_fork)
+      expect(captured_config[:hooks]).to have_key(:after_fork)
+    end
+
+    it 'sets before_fork hook as a callable (lambda/proc)' do
+      expect(captured_config[:hooks][:before_fork]).to respond_to(:call)
+    end
+
+    it 'sets after_fork hook as a callable (lambda/proc)' do
+      expect(captured_config[:hooks][:after_fork]).to respond_to(:call)
+    end
+
+    describe 'before_fork hook' do
+      it 'calls cleanup_before_fork on the boot registry' do
+        mock_registry = instance_double('Onetime::Boot::InitializerRegistry')
+        allow(Onetime).to receive(:boot_registry).and_return(mock_registry)
+        allow(mock_registry).to receive(:cleanup_before_fork)
+
+        captured_config[:hooks][:before_fork].call
+
+        expect(mock_registry).to have_received(:cleanup_before_fork)
+      end
+
+      it 'handles nil boot_registry gracefully (safe navigation)' do
+        allow(Onetime).to receive(:boot_registry).and_return(nil)
+
+        expect { captured_config[:hooks][:before_fork].call }.not_to raise_error
+      end
+    end
+
+    describe 'after_fork hook' do
+      it 'calls reconnect_after_fork on the boot registry' do
+        mock_registry = instance_double('Onetime::Boot::InitializerRegistry')
+        allow(Onetime).to receive(:boot_registry).and_return(mock_registry)
+        allow(mock_registry).to receive(:reconnect_after_fork)
+
+        captured_config[:hooks][:after_fork].call
+
+        expect(mock_registry).to have_received(:reconnect_after_fork)
+      end
+
+      it 'handles nil boot_registry gracefully (safe navigation)' do
+        allow(Onetime).to receive(:boot_registry).and_return(nil)
+
+        expect { captured_config[:hooks][:after_fork].call }.not_to raise_error
+      end
+    end
+  end
+
   describe '#start_heartbeat_thread' do
     let(:mock_logger) { instance_double('SemanticLogger::Logger') }
 

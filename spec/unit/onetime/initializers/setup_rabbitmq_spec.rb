@@ -492,6 +492,43 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
         instance.execute(nil)
       end
     end
+
+    # Reconnect must also honor SKIP_RABBITMQ_SETUP. In worker mode, Sneakers
+    # manages its own consumer connections, so reconnect should not create a
+    # publisher connection pool that would later cause ConnectionPool.after_fork
+    # timeout issues.
+    describe 'reconnect behavior' do
+      context 'when SKIP_RABBITMQ_SETUP=1' do
+        before do
+          ENV['SKIP_RABBITMQ_SETUP'] = '1'
+          allow(OT).to receive(:conf).and_return({ 'jobs' => { 'enabled' => true } })
+        end
+
+        it 'returns early without calling setup_rabbitmq_connection' do
+          allow(instance).to receive(:setup_rabbitmq_connection)
+          instance.reconnect
+          expect(instance).not_to have_received(:setup_rabbitmq_connection)
+        end
+
+        it 'does not create a new Bunny connection' do
+          expect(Bunny).not_to receive(:new)
+          instance.reconnect
+        end
+      end
+
+      context 'when SKIP_RABBITMQ_SETUP is not set and jobs are enabled' do
+        before do
+          ENV.delete('SKIP_RABBITMQ_SETUP')
+          allow(OT).to receive(:conf).and_return({ 'jobs' => { 'enabled' => true } })
+          allow(instance).to receive(:setup_rabbitmq_connection)
+        end
+
+        it 'proceeds to call setup_rabbitmq_connection' do
+          instance.reconnect
+          expect(instance).to have_received(:setup_rabbitmq_connection)
+        end
+      end
+    end
   end
 
   describe 'RABBITMQ_CHANNEL_POOL_SIZE environment variable' do

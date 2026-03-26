@@ -82,7 +82,7 @@ module Onetime
       end
 
       # Reconnect SemanticLogger after fork.
-      # Called by InitializerRegistry.reconnect_after_fork from Puma's before_worker_boot hook.
+      # Called by InitializerRegistry.reconnect_after_fork from fork hooks (Puma, Sneakers).
       #
       # Re-opens appenders to create fresh async processing threads, replacing
       # zombie thread references inherited from the master process.
