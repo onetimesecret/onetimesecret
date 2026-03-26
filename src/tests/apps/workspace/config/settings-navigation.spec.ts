@@ -6,6 +6,7 @@ import type { ComposerTranslation } from 'vue-i18n';
 // Mock feature flags before importing the module under test
 vi.mock('@/utils/features', () => ({
   isFullAuthMode: vi.fn(() => false),
+  isSsoOnlyMode: vi.fn(() => false),
   isWebAuthnEnabled: vi.fn(() => false),
   hasPassword: vi.fn(() => false),
 }));
@@ -14,9 +15,10 @@ import {
   getSettingsNavigation,
   getSettingsNavigationSections,
 } from '@/apps/workspace/config/settings-navigation';
-import { isFullAuthMode, isWebAuthnEnabled, hasPassword } from '@/utils/features';
+import { isFullAuthMode, isSsoOnlyMode, isWebAuthnEnabled, hasPassword } from '@/utils/features';
 
 const mockedIsFullAuthMode = vi.mocked(isFullAuthMode);
+const mockedIsSsoOnlyMode = vi.mocked(isSsoOnlyMode);
 const mockedIsWebAuthnEnabled = vi.mocked(isWebAuthnEnabled);
 const mockedHasPassword = vi.mocked(hasPassword);
 
@@ -27,6 +29,7 @@ describe('settings-navigation config', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedIsFullAuthMode.mockReturnValue(false);
+    mockedIsSsoOnlyMode.mockReturnValue(false);
     mockedIsWebAuthnEnabled.mockReturnValue(false);
     mockedHasPassword.mockReturnValue(false);
   });
@@ -63,15 +66,16 @@ describe('settings-navigation config', () => {
       expect(securityItem?.visible?.()).toBe(false);
     });
 
-    it('security section is visible when isFullAuthMode() even without hasPassword() (SSO-only)', () => {
+    it('security section is hidden in SSO-only mode even when isFullAuthMode()', () => {
       mockedIsFullAuthMode.mockReturnValue(true);
+      mockedIsSsoOnlyMode.mockReturnValue(true);
       mockedHasPassword.mockReturnValue(false);
 
       const sections = getSettingsNavigationSections(t);
       const accountSection = sections.find((s) => s.id === 'account');
       const securityItem = accountSection?.items.find((i) => i.id === 'security');
 
-      expect(securityItem?.visible?.()).toBe(true);
+      expect(securityItem?.visible?.()).toBe(false);
     });
 
     it('security item in flat navigation still carries visible callback', () => {
@@ -114,8 +118,9 @@ describe('settings-navigation config', () => {
       expect(securityItem?.to).toBe('/account/settings/security');
     });
 
-    it('SettingsLayout-style filtering includes security for SSO-only users (full mode, no password)', () => {
+    it('SettingsLayout-style filtering excludes security for SSO-only users', () => {
       mockedIsFullAuthMode.mockReturnValue(true);
+      mockedIsSsoOnlyMode.mockReturnValue(true);
       mockedHasPassword.mockReturnValue(false);
 
       const sections = getSettingsNavigationSections(t);
@@ -124,8 +129,7 @@ describe('settings-navigation config', () => {
       );
       const securityItem = visibleItems.find((i) => i.id === 'security');
 
-      expect(securityItem).toBeDefined();
-      expect(securityItem?.to).toBe('/account/settings/security');
+      expect(securityItem).toBeUndefined();
     });
   });
 
@@ -208,7 +212,7 @@ describe('settings-navigation config', () => {
     });
   });
 
-  describe('Non-security sections always present', () => {
+  describe('Non-security sections visibility', () => {
     it('profile section is always included regardless of auth mode', () => {
       mockedIsFullAuthMode.mockReturnValue(false);
       const items = getSettingsNavigation(t);
@@ -219,16 +223,34 @@ describe('settings-navigation config', () => {
       expect(itemsFull.find((i) => i.id === 'profile')).toBeDefined();
     });
 
-    it('caution section is always included regardless of auth mode', () => {
-      mockedIsFullAuthMode.mockReturnValue(false);
+    it('caution section is visible when not SSO-only', () => {
+      mockedIsSsoOnlyMode.mockReturnValue(false);
       const items = getSettingsNavigation(t);
-      expect(items.find((i) => i.id === 'caution')).toBeDefined();
+      const cautionItem = items.find((i) => i.id === 'caution');
+      expect(cautionItem).toBeDefined();
+      expect(cautionItem?.visible?.()).toBe(true);
     });
 
-    it('region section is always included regardless of auth mode', () => {
-      mockedIsFullAuthMode.mockReturnValue(false);
+    it('caution section is hidden in SSO-only mode', () => {
+      mockedIsSsoOnlyMode.mockReturnValue(true);
       const items = getSettingsNavigation(t);
-      expect(items.find((i) => i.id === 'region')).toBeDefined();
+      const cautionItem = items.find((i) => i.id === 'caution');
+      expect(cautionItem?.visible?.()).toBe(false);
+    });
+
+    it('region section is visible when not SSO-only', () => {
+      mockedIsSsoOnlyMode.mockReturnValue(false);
+      const items = getSettingsNavigation(t);
+      const regionItem = items.find((i) => i.id === 'region');
+      expect(regionItem).toBeDefined();
+      expect(regionItem?.visible?.()).toBe(true);
+    });
+
+    it('region section is hidden in SSO-only mode', () => {
+      mockedIsSsoOnlyMode.mockReturnValue(true);
+      const items = getSettingsNavigation(t);
+      const regionItem = items.find((i) => i.id === 'region');
+      expect(regionItem?.visible?.()).toBe(false);
     });
   });
 
