@@ -294,7 +294,7 @@ def run_claude_streaming(
 
                         if verbose:
                             subtype = event.get("subtype", "")
-                            cost = event.get("cost_usd", 0)
+                            cost = event.get("cost_cad", 0)
                             duration = event.get("duration_ms", 0)
                             log_info(
                                 f"Result: {subtype}, cost: ${cost:.4f}, duration: {duration}ms"
@@ -390,8 +390,8 @@ def run_claude_batch(
                     f"Response type: {envelope.get('type')}, "
                     f"subtype: {envelope.get('subtype')}"
                 )
-                if envelope.get("cost_usd"):
-                    log_info(f"Cost: ${envelope.get('cost_usd', 0):.4f}")
+                if envelope.get("cost_cad"):
+                    log_info(f"Cost: ${envelope.get('cost_cad', 0):.4f}")
 
             if envelope.get("is_error"):
                 log_error(
@@ -456,7 +456,7 @@ async def run_claude_sdk(
 
             elif isinstance(message, ResultMessage):
                 if verbose:
-                    cost = getattr(message, "cost_usd", 0) or 0
+                    cost = getattr(message, "cost_cad", 0) or 0
                     duration = getattr(message, "duration_ms", 0) or 0
                     log_info(f"Cost: ${cost:.4f}, duration: {duration}ms")
 

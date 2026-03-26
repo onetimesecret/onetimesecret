@@ -10,7 +10,12 @@ require_relative '../base'
 
 module DomainsAPI::Logic
   module Domains
-    # Add a custom domain to an organization
+    # Add Custom Domain
+    #
+    # @api Registers a new custom domain for an organization. Validates
+    #   the domain via PublicSuffix, checks for duplicates, and initiates
+    #   SSL certificate provisioning. Returns the created domain record
+    #   and sets it as the active domain context in the session.
     #
     # Supports two modes:
     # 1. Default: Uses organization from session context
@@ -21,6 +26,8 @@ module DomainsAPI::Logic
     # the session is updated.
     #
     class AddDomain < DomainsAPI::Logic::Base
+      SCHEMAS = { response: 'customDomain' }.freeze
+
       attr_reader :greenlighted, :custom_domain, :domain_input, :display_domain, :target_organization
 
       def process_params

@@ -18,7 +18,7 @@ The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeSc
 ```
 1. Page Load
    Ruby backend renders index.html template
-   Injects window.__BOOTSTRAP_STATE__ via JSON script tag
+   Injects window.__BOOTSTRAP_ME__ via JSON script tag
    Location: apps/web/core/views.rb (VuePoint/BootstrapMe)
 
 2. Vue App Initialization
@@ -35,18 +35,18 @@ The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeSc
    Location: src/plugins/pinia/autoInitPlugin.ts
    - Pinia auto-init plugin calls store.init() if available
    - Stores read from bootstrapStore
-   - bootstrapStore reads from window.__BOOTSTRAP_STATE__
+   - bootstrapStore reads from window.__BOOTSTRAP_ME__
 
 4. Component Access
    Location: src/apps/**/components/**/*.vue, src/shared/components/**/*.vue
    - Components use bootstrapStore via storeToRefs()
    - Components use Pinia stores
-   - Both sources read from window.__BOOTSTRAP_STATE__
+   - Both sources read from window.__BOOTSTRAP_ME__
 
 5. State Refresh (every 15 minutes)
    Location: src/shared/stores/authStore.ts
    - checkWindowStatus() fetches /bootstrap/me endpoint
-   - Updates entire window.__BOOTSTRAP_STATE__
+   - Updates entire window.__BOOTSTRAP_ME__
    - Components using computed() react automatically
 ```
 
@@ -85,7 +85,7 @@ const { authenticated, cust, ui } = storeToRefs(bootstrapStore);
 - **Triggers:**
   - Automatic: `authStore.checkWindowStatus()` timer
   - Manual: After login via `useAuth.login()`
-- **Updates:** Entire `window.__BOOTSTRAP_STATE__` including customer data, config, CSRF token
+- **Updates:** Entire `window.__BOOTSTRAP_ME__` including customer data, config, CSRF token
 
 ## State Management (Pinia)
 
@@ -282,7 +282,7 @@ function handleClick() {
 **Location:** `src/api/index.ts`
 
 **Configuration:**
-- Base URL from `window.__BOOTSTRAP_STATE__.baseuri`
+- Base URL from `window.__BOOTSTRAP_ME__.baseuri`
 - Axios instance with interceptors
 - CSRF token injection via `csrfStore`
 - Error handling via interceptors
@@ -314,7 +314,7 @@ const response = await $api.post('/auth/login', {
 - Hierarchical keys (e.g., `web.secrets.enterPassphrase`)
 - Loaded from `src/locales/en.json`
 - Fallback locale: `en`
-- Available locales from `window.__BOOTSTRAP_STATE__.supported_locales`
+- Available locales from `window.__BOOTSTRAP_ME__.supported_locales`
 
 **Usage:**
 ```vue

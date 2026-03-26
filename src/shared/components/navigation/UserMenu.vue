@@ -31,7 +31,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useTheme } from '@/shared/composables/useTheme';
 import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
-import { Customer } from '@/schemas/models';
+import { type Customer } from '@/schemas/shapes/v3';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import PlanTestModal from '@/shared/components/modals/PlanTestModal.vue';
 import { storeToRefs } from 'pinia';
@@ -248,6 +248,7 @@ onUnmounted(() => {
     <!-- Trigger Button -->
     <button
       @click="toggleMenu"
+      data-testid="user-menu-trigger"
       class="flex items-center gap-2 rounded-md px-2 py-1.5
         text-sm text-gray-600 transition-colors duration-200
         hover:bg-gray-100 hover:text-gray-800
@@ -309,6 +310,7 @@ onUnmounted(() => {
       leave-to-class="transform scale-95 opacity-0">
       <div
         v-if="isOpen"
+        data-testid="user-menu-dropdown"
         class="absolute right-0 z-50 mt-2 w-64 origin-top-right
           rounded-lg bg-white shadow-lg ring-1 ring-black/5
           focus:outline-none dark:bg-gray-800 dark:ring-gray-700"
@@ -327,6 +329,7 @@ onUnmounted(() => {
             <!-- Theme Toggle -->
             <button
               @click="toggleDarkMode"
+              data-testid="user-menu-theme-toggle"
               :aria-label="t('web.layout.toggle_dark_mode')"
               :aria-pressed="isDarkMode"
               :title="isDarkMode ? t('web.layout.switch_to_blank_mode', ['light']) : t('web.layout.switch_to_blank_mode', ['dark'])"
@@ -348,6 +351,7 @@ onUnmounted(() => {
           <!-- MFA Required Notice -->
           <div
             v-if="awaitingMfa"
+            data-testid="user-menu-mfa-badge"
             class="mt-2 flex items-center gap-2 rounded-md px-2 py-1.5">
             <span class="text-sm font-medium ">
               {{ t('web.auth.mfa_verification_required') }}
@@ -409,6 +413,7 @@ onUnmounted(() => {
             <!-- Button Item (for logout) -->
             <button
               v-else-if="item.onClick"
+              :data-testid="item.id === 'logout' ? 'user-menu-logout' : undefined"
               :class="[getMenuItemClasses(item.variant), 'w-full']"
               @click="item.onClick"
               role="menuitem">

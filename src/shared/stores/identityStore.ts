@@ -1,6 +1,11 @@
 // src/shared/stores/identityStore.ts
 
-import { brandSettingschema, type BrandSettings } from '@/schemas/models/domain/brand';
+import {
+  brandSettingsSchema,
+  type BrandSettings,
+} from '@/schemas/shapes/v3/custom-domain';
+import { cornerStyleClasses, fontFamilyClasses } from '@/shared/utils/brand-helpers';
+import { gracefulParse } from '@/utils/schemaValidation';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, toRefs, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -38,7 +43,7 @@ interface IdentityState {
  * Zod validator for primary color field
  * Ensures color values conform to brand schema requirements
  */
-const primaryColorValidator = brandSettingschema.shape.primary_color;
+const primaryColorValidator = brandSettingsSchema.shape.primary_color;
 
 /**
  * Manages product identity state including domain context and branding
@@ -68,13 +73,13 @@ export const useProductIdentity = defineStore('productIdentity', () => {
    * Handles validation and default values for branding fields
    */
   function getInitialState(): IdentityState {
-    const brand = brandSettingschema.parse(domain_branding.value ?? {});
+    const brandResult = gracefulParse(brandSettingsSchema, domain_branding.value ?? {}, 'BrandSettings');
+    const brand = brandResult.ok ? brandResult.data : null;
 
-    // Parse with fallback values
-    const primaryColor =
-      primaryColorValidator.parse(brand.primary_color) ?? DEFAULT_PRIMARY_COLOR;
-    const buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
-    const allowPublicHomepage = brand.allow_public_homepage ?? false;
+    const colorResult = gracefulParse(primaryColorValidator, brand?.primary_color, 'PrimaryColor');
+    const primaryColor = colorResult.ok ? (colorResult.data ?? DEFAULT_PRIMARY_COLOR) : DEFAULT_PRIMARY_COLOR;
+    const buttonTextLight = brand?.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
+    const allowPublicHomepage = brand?.allow_public_homepage ?? false;
 
     return {
       domainStrategy: domain_strategy.value,
@@ -94,12 +99,14 @@ export const useProductIdentity = defineStore('productIdentity', () => {
 
   // Watch for domain branding changes to update derived state
   watch(domain_branding, (newBranding) => {
-    const brand = brandSettingschema.parse(newBranding ?? {});
+    const brandResult = gracefulParse(brandSettingsSchema, newBranding ?? {}, 'BrandSettings');
+    const brand = brandResult.ok ? brandResult.data : null;
     state.brand = brand;
-    state.primaryColor =
-      primaryColorValidator.parse(brand.primary_color) ?? DEFAULT_PRIMARY_COLOR;
-    state.buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
-    state.allowPublicHomepage = brand.allow_public_homepage ?? false;
+
+    const colorResult = gracefulParse(primaryColorValidator, brand?.primary_color, 'PrimaryColor');
+    state.primaryColor = colorResult.ok ? (colorResult.data ?? DEFAULT_PRIMARY_COLOR) : DEFAULT_PRIMARY_COLOR;
+    state.buttonTextLight = brand?.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
+    state.allowPublicHomepage = brand?.allow_public_homepage ?? false;
   });
 
   // Watch for domain config changes (consolidated for reduced reactive overhead)
@@ -136,31 +143,17 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     domain_logo.value
   );
 
-  const cornerClass = computed(() => {
-    switch (state.brand?.corner_style) {
-      case 'rounded':
-        return 'rounded-md'; // Updated to match BaseSecretDisplay
-      case 'pill':
-        return 'rounded-xl'; // Updated to match BaseSecretDisplay
-      case 'square':
-        return 'rounded-none';
-      default:
-        return DEFAULT_CORNER_CLASS;
-    }
-  });
+  const cornerClass = computed(() =>
+    state.brand?.corner_style
+      ? cornerStyleClasses[state.brand.corner_style] ?? DEFAULT_CORNER_CLASS
+      : DEFAULT_CORNER_CLASS
+  );
 
-  const fontFamilyClass = computed(() => {
-    switch (state.brand?.font_family) {
-      case 'sans':
-        return 'font-sans';
-      case 'serif':
-        return 'font-serif';
-      case 'mono':
-        return 'font-mono';
-      default:
-        return '';
-    }
-  });
+  const fontFamilyClass = computed(() =>
+    state.brand?.font_family
+      ? fontFamilyClasses[state.brand.font_family] ?? ''
+      : ''
+  );
 
   const preRevealInstructions = computed(
     () => state.brand?.instructions_pre_reveal?.trim() || t('web.shared.pre_reveal_default')

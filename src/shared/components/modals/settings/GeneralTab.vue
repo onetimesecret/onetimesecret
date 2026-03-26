@@ -25,11 +25,10 @@ const handleMenuToggled = () => {
   emit('menuToggled');
 };
 
-const handleThemeChange = async (isDark: boolean) => {
+const handleThemeChange = async (_isDark: boolean) => {
   isLoading.value = true;
   try {
-    console.log('Theme changed:', isDark);
-    // Add theme change logic here
+    // TODO: Persist theme preference to user settings
   } catch (error) {
     console.error('Error changing theme:', error);
   } finally {

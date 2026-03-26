@@ -25,7 +25,12 @@ module V3
       #     }
       #   }
       #
+      # @api Retrieve the incoming secrets feature configuration, including
+      #   whether the feature is enabled, memo length limits, default TTL,
+      #   and the list of available recipients identified by hash.
       class GetConfig < V3::Logic::Base
+        SCHEMAS = { response: 'incomingConfig' }.freeze
+
         attr_reader :greenlighted, :config_data
 
         def process_params

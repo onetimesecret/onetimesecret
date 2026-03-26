@@ -7,7 +7,14 @@ require_relative '../base'
 
 module DomainsAPI::Logic
   module Domains
+    # Get Domain Brand Settings
+    #
+    # @api Retrieves the brand settings for a custom domain. Requires the
+    #   custom_branding entitlement. Returns the brand configuration
+    #   including name, tagline, colors, fonts, and homepage settings.
     class GetDomainBrand < DomainsAPI::Logic::Base
+      SCHEMAS = { response: 'brandSettings' }.freeze
+
       attr_reader :brand_settings, :display_domain, :custom_domain
 
       def process_params

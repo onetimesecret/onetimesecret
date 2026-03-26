@@ -17,20 +17,45 @@ Together, they ensure all Chinese translations maintain consistency, respect Chi
 
 ## Core Translation Principles
 
-### 1. Avoid "秘密" (Secret) - Use Functional Terminology
+### 1. Avoid "秘密" (Secret) - Use Tiered Terminology
 
-**Critical Principle:** The word "秘密" in Chinese carries strong connotations of personal, hidden, or confidential information with emotional weight. It suggests something deliberately concealed rather than a functional security feature.
+**Critical Principle:** The word "秘密" is **banned in all contexts**. In Chinese it carries strong personal, emotional connotations -- something deliberately concealed rather than a professional security feature. It is inappropriate for a security product.
 
-**Alternative Approaches:**
-- **Functional contexts**: Use "内容" (content) for create/retrieve operations
-- **Product features**: Use "一次性链接" (one-time links) to emphasize the core single-use feature
-- **Descriptive contexts**: Use "加密的" (encrypted) or "安全的" (secure) as adjectives
+Instead, use a **three-tier system** based on where the text appears:
 
-**Examples:**
+#### Tier 1: UI/Functional -- 内容 (content)
+
+Use for buttons, labels, actions, status messages, form fields, and API operations. This is the most common tier.
+
 - "Create Secrets" → "创建内容" (create content)
 - "Retrieve Secrets" → "获取内容" (retrieve content)
-- "Secret Links" → "一次性链接" (one-time links)
-- "Why Use Secret Links" → "为什么使用一次性链接" (why use one-time links)
+- "Share a secret" → "分享内容" (share content)
+- "Secret created" → "内容已创建" (content created)
+
+**Context clues:** Keys containing `button`, `label`, `status`, `title`, `action`; any interactive UI element.
+
+#### Tier 2: Descriptive/Docs -- 机密内容 (confidential content)
+
+Use for FAQ answers, explanatory prose, help text, and documentation where the security connotation adds value to the explanation.
+
+- "Your secrets are encrypted at rest" → "您的机密内容在存储时已加密"
+- "Each secret can only be viewed once" → "每条机密内容只能查看一次"
+
+**Context clues:** Keys in FAQ/receipt sections (e.g., `secret-manage.json`), help text, longer explanatory passages.
+
+#### Tier 3: Marketing -- 机密信息 (classified information)
+
+Use for pricing pages, landing page persuasive copy, and feature descriptions where the term needs to convey gravitas.
+
+- "Send secrets securely" → "安全发送机密信息"
+- "Unlimited secrets per month" → "每月无限机密信息"
+
+**Context clues:** Keys in `secret-homepage.json` marketing copy, `workspace-billing.json` feature descriptions, any persuasive or promotional text.
+
+#### Additional alternatives (unchanged)
+
+- **Product features**: Use "一次性链接" (one-time links) to emphasize the core single-use feature
+- **Adjective form**: Use "加密的" (encrypted) or "安全的" (secure) as descriptive adjectives
 
 ### 2. Distinguish Password Types
 
@@ -79,7 +104,7 @@ Adapt phrasing to feel natural in Chinese while maintaining professional tone:
 
 | English | Chinese (Simplified) | Context | Notes |
 |---------|---------------------|---------|-------|
-| secret (noun) | 内容 / 信息 | Core application concept | Use "内容" in create/retrieve operations; avoid "秘密" emotional connotations |
+| secret (noun) | 内容 / 机密内容 / 机密信息 | Core application concept | Three-tier: 内容 (UI/functional), 机密内容 (docs/help), 机密信息 (marketing). Never use "秘密". |
 | secret (adj) | 加密的 / 安全的 | Descriptive adjective | Use based on context |
 | secret link | 一次性链接 | Core product feature | **Do not** translate as "秘密链接"; emphasizes one-time use characteristic |
 | passphrase | 口令 | Authentication method for protecting content | Distinguish from "密码" (account authentication) |
@@ -201,6 +226,7 @@ Adapt phrasing to feel natural in Chinese while maintaining professional tone:
 - **Global Elite** - Keep in English (product name)
 - **Custom Install** - Keep in English (product name)
 - **Starlight** - Keep in English (documentation framework)
+- Keys ending in `_literal` (e.g., `onetime_secret_literal`) contain brand names that must remain in English exactly as-is. Do not translate these values.
 
 ### Technical Terms
 
@@ -230,18 +256,23 @@ Maintain a professional yet concise tone. Chinese users value efficiency and dir
 
 ## Detailed Translation Rationale
 
-### Why Move Away from "秘密" (Secret)
+### Why "秘密" Is Banned
 
-The deliberate avoidance of "秘密" (secret) in Chinese translations is based on:
+The word "秘密" is banned in all contexts across zh locale files. The rationale:
 
-**Emotional connotations**: "秘密" in Chinese carries strong personal, hidden, or confidential overtones - similar to Italian "segreto" or Danish "hemmelighed." It suggests something emotionally charged or deliberately concealed.
+**Emotional connotations**: "秘密" in Chinese carries strong personal, hidden, or confidential overtones -- similar to Italian "segreto" or Danish "hemmelighed." It suggests something emotionally charged or deliberately concealed, which is inappropriate for a security product.
 
-**Functional clarity**: Better alternatives emphasize the functional security feature:
-- **"内容" (content)**: Neutral, functional term for what is being shared
-- **"一次性链接" (one-time links)**: Emphasizes the core product feature of single-use access
-- **"加密的" / "安全的"**: When describing security attributes
+**Three-tier replacement system**: Rather than a single replacement, different contexts call for different terms:
+
+| Tier | Term | Use When | Examples |
+|------|------|----------|----------|
+| UI/functional | **内容** (content) | Buttons, labels, actions, status, API ops | "创建内容", "分享内容" |
+| Descriptive/docs | **机密内容** (confidential content) | FAQ, help text, explanatory prose | "您的机密内容已加密" |
+| Marketing | **机密信息** (classified information) | Pricing, landing pages, feature highlights | "安全发送机密信息" |
 
 **User trust**: Using functional terminology builds trust by focusing on the security mechanism rather than creating mystery or secrecy around the content.
+
+**Note**: "密码" (password) and "口令" (passphrase) are correct and must not be changed -- they are unrelated to "秘密".
 
 ### Voice Patterns in Chinese
 
@@ -278,7 +309,7 @@ Adapt sentence structure to Chinese patterns rather than translating word-for-wo
 ## Summary of Key Terminology Choices
 
 ### Core Terminology Evolution
-- **"秘密" → Functional alternatives**: Replaced with "内容" (content) for create/retrieve actions and "一次性链接" (one-time links) for the core feature
+- **"秘密" banned**: Replaced with three-tier system: 内容 (UI/functional), 机密内容 (descriptive/docs), 机密信息 (marketing). "一次性链接" (one-time links) used for the core feature name.
 - **Technical precision maintained**: API, REST, version numbers preserved
 - **Brand names untranslated**: Starlight, Onetime Secret kept in original form
 
@@ -305,7 +336,7 @@ When translating new content:
 1. **Check this glossary first** for established terminology
 2. **Consider the context** - is this an action, status, or description?
 3. **Apply Chinese language patterns** - don't translate word-for-word
-4. **Avoid "秘密"** - use functional alternatives from this guide
+4. **Never use "秘密"** - select from the three-tier system: 内容 (UI), 机密内容 (docs), 机密信息 (marketing)
 5. **Maintain consistency** - use the same translation for the same concept
 6. **Keep it concise** - Chinese allows shorter expressions; use them
 7. **No exclamation marks** - maintain professional, calm tone
@@ -313,6 +344,7 @@ When translating new content:
 
 ## Version History
 
+- **2026-03-15**: Added three-tier terminology system for translating "secret": 内容 (UI/functional), 机密内容 (descriptive/docs), 机密信息 (marketing). Banned 秘密 in all contexts.
 - **2025-11-14**: Initial comprehensive translation guide created by combining glossary and language notes
 
 ---

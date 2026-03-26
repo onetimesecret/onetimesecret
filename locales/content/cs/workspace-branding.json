@@ -56,11 +56,11 @@
     "sha256": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Použijte telefon k naskenování QR kódu",
+    "text": "Použij telefon k naskenování QR kódu",
     "sha256": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "V případě dotazů kontaktujte onboarding{'@'}example.com",
+    "text": "V případě dotazů kontaktuj onboarding{'@'}example.com",
     "sha256": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -132,7 +132,7 @@
     "sha256": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Toto je interaktivní náhled toho, jak příjemci uvidí vaše zabezpečené zprávy. Můžete: - Přizpůsobit barvy a písma pomocí ovládacích prvků výše - Nahrát logo (doporučeno minimálně 128x128 pixelů, max. 1 MB) - Otestovat náhled pomocí tlačítka \"Zobrazit tajemství\"",
+    "text": "Toto je interaktivní náhled toho, jak příjemci uvidí tvoje zabezpečené zprávy. Můžeš: - Přizpůsobit barvy a písma pomocí ovládacích prvků výše - Nahrát logo (doporučeno minimálně 128x128 pixelů, max. 1 MB) - Otestovat náhled pomocí tlačítka \"Zobrazit tajemství\"",
     "sha256": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -166,5 +166,9 @@
   "web.branding.switch_to_safari_preview": {
     "text": "Přepnout na náhled Safari",
     "sha256": "f24ac447"
+  },
+  "web.branding.upgrade_to_customize": {
+    "text": "Upgraduj svůj plán pro přizpůsobení značky této domény.",
+    "sha256": "9077bf79"
   }
 }

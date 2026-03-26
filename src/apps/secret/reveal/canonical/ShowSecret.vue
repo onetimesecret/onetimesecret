@@ -18,7 +18,6 @@
    */
   import BaseShowSecret, { type Props } from '@/shared/components/base/BaseShowSecret.vue';
   import FooterAttribution from '@/apps/secret/components/layout/SecretFooterAttribution.vue';
-  import FooterControls from '@/apps/secret/components/layout/SecretFooterControls.vue';
   import SecretConfirmationForm from '@/apps/secret/components/canonical/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/apps/secret/components/canonical/SecretDisplayCase.vue';
   import {  nextTick } from 'vue';
@@ -172,9 +171,6 @@
     <!-- Footer slot -->
     <template #footer="{ siteHost }">
       <div class="flex flex-col items-center space-y-8 py-8">
-        <div class="flex items-center justify-center">
-          <FooterControls :show-language="true" />
-        </div>
         <FooterAttribution
           :site-host="siteHost"
           :show-nav="false"

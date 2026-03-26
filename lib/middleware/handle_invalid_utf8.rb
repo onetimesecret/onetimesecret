@@ -91,8 +91,9 @@ class Rack::HandleInvalidUTF8
     return false unless defined?(Otto) && app.is_a?(Otto)
 
     name, route     = app.route_definitions.first
-    setting_enabled = route.klass.respond_to?(:check_utf8) && route.klass.check_utf8
-    logger.debug "[handle-invalid-utf8] #{name} has settings: #{has_settings}, enabled: #{setting_enabled}"
+    has_setting     = route.klass.respond_to?(:check_utf8)
+    setting_enabled = has_setting && route.klass.check_utf8
+    logger.debug "[handle-invalid-utf8] #{name} has setting: #{has_setting}, enabled: #{setting_enabled}"
     setting_enabled
   end
 

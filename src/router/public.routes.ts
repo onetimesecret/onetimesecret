@@ -175,6 +175,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.pricing',
       requiresAuth: false,
+      excludeSsoOnly: true,
       layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: true,
@@ -195,6 +196,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.pricing',
       requiresAuth: false,
+      excludeSsoOnly: true,
       layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: true,
@@ -211,6 +213,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.pricing',
       requiresAuth: false,
+      excludeSsoOnly: true,
       layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: true,

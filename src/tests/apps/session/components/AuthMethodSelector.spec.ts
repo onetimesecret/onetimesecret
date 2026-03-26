@@ -21,13 +21,19 @@ vi.mock('vue-router', () => ({
 const mockFeatures = {
   magicLinksEnabled: ref(false),
   webauthnEnabled: ref(false),
-  omniAuthEnabled: ref(false),
+  ssoEnabled: ref(false),
+  ssoOnlyMode: ref(false),
 };
+
+// Mock providers list for getSsoProviders()
+const mockProviders = ref<Array<{ route_name: string; display_name: string }>>([]);
 
 vi.mock('@/utils/features', () => ({
   isMagicLinksEnabled: () => mockFeatures.magicLinksEnabled.value,
   isWebAuthnEnabled: () => mockFeatures.webauthnEnabled.value,
-  isOmniAuthEnabled: () => mockFeatures.omniAuthEnabled.value,
+  isSsoEnabled: () => mockFeatures.ssoEnabled.value,
+  isSsoOnlyMode: () => mockFeatures.ssoOnlyMode.value,
+  getSsoProviders: () => mockProviders.value,
 }));
 
 // Mock child components
@@ -75,9 +81,10 @@ const i18n = createI18n({
  * Tests the auth method selector that:
  * - Shows passwordless-first UI when any passwordless method is enabled
  * - Shows password-only form when no passwordless methods enabled
- * - Conditionally renders SSO section when OmniAuth is enabled
+ * - Conditionally renders SSO section when SSO is enabled
  * - Displays proper divider text between methods
  * - Emits mode changes to parent component
+ * - Supports SSO-only mode where only SSO buttons are shown
  */
 describe('AuthMethodSelector', () => {
   let wrapper: VueWrapper;
@@ -92,8 +99,11 @@ describe('AuthMethodSelector', () => {
     setup(props, { emit }) {
       const magicLinksEnabled = mockFeatures.magicLinksEnabled.value;
       const webauthnEnabled = mockFeatures.webauthnEnabled.value;
-      const omniAuthEnabled = mockFeatures.omniAuthEnabled.value;
+      const ssoEnabled = mockFeatures.ssoEnabled.value;
+      const ssoOnly = mockFeatures.ssoOnlyMode.value;
 
+      const ssoProviders = computed(() => mockProviders.value);
+      const showSsoOnly = computed(() => ssoOnly && ssoEnabled && ssoProviders.value.length > 0);
       const hasPasswordlessMethods = computed(() => magicLinksEnabled || webauthnEnabled);
 
       type AuthMode = 'passwordless' | 'passkey' | 'password';
@@ -107,7 +117,10 @@ describe('AuthMethodSelector', () => {
       return {
         magicLinksEnabled,
         webauthnEnabled,
-        omniAuthEnabled,
+        ssoEnabled,
+        ssoOnly,
+        ssoProviders,
+        showSsoOnly,
         hasPasswordlessMethods,
         currentMode,
         handleModeChange,
@@ -116,39 +129,55 @@ describe('AuthMethodSelector', () => {
     },
     template: `
       <div class="space-y-6">
-        <!-- Passwordless-first mode when any passwordless method is enabled -->
-        <div
-          v-if="hasPasswordlessMethods"
-          class="mock-passwordless-signin"
-          data-testid="passwordless-signin"
-          @mode-change="handleModeChange">
-          Passwordless Sign In
-        </div>
+        <!-- SSO-only mode -->
+        <template v-if="showSsoOnly">
+          <div class="space-y-3">
+            <button
+              v-for="provider in ssoProviders"
+              :key="provider.route_name"
+              class="mock-sso-button"
+              data-testid="sso-button">
+              Sign in with {{ provider.display_name }}
+            </button>
+          </div>
+        </template>
 
-        <!-- Password-only mode when no passwordless methods enabled -->
-        <div
-          v-else
-          class="mock-signin-form"
-          data-testid="signin-form">
-          Password Sign In Form
-        </div>
-
-        <!-- SSO section when OmniAuth is enabled -->
-        <template v-if="omniAuthEnabled">
-          <!-- Divider -->
-          <div class="sso-divider relative">
-            <div class="absolute inset-0 flex items-center" aria-hidden="true">
-              <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
-            </div>
-            <div class="relative flex justify-center text-sm">
-              <span class="divider-text bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-                Or continue with
-              </span>
-            </div>
+        <!-- Standard auth mode -->
+        <template v-else>
+          <!-- Passwordless-first mode when any passwordless method is enabled -->
+          <div
+            v-if="hasPasswordlessMethods"
+            class="mock-passwordless-signin"
+            data-testid="passwordless-signin"
+            @mode-change="handleModeChange">
+            Passwordless Sign In
           </div>
 
-          <!-- SSO Button -->
-          <button class="mock-sso-button" data-testid="sso-button">Sign in with SSO</button>
+          <!-- Password-only mode when no passwordless methods enabled -->
+          <div
+            v-else
+            class="mock-signin-form"
+            data-testid="signin-form">
+            Password Sign In Form
+          </div>
+
+          <!-- SSO section when SSO is enabled -->
+          <template v-if="ssoEnabled">
+            <!-- Divider -->
+            <div class="sso-divider relative">
+              <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
+              </div>
+              <div class="relative flex justify-center text-sm">
+                <span class="divider-text bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <!-- SSO Button -->
+            <button class="mock-sso-button" data-testid="sso-button">Sign in with SSO</button>
+          </template>
         </template>
       </div>
     `,
@@ -159,7 +188,9 @@ describe('AuthMethodSelector', () => {
     // Reset feature flags
     mockFeatures.magicLinksEnabled.value = false;
     mockFeatures.webauthnEnabled.value = false;
-    mockFeatures.omniAuthEnabled.value = false;
+    mockFeatures.ssoEnabled.value = false;
+    mockFeatures.ssoOnlyMode.value = false;
+    mockProviders.value = [];
   });
 
   afterEach(() => {
@@ -249,25 +280,25 @@ describe('AuthMethodSelector', () => {
     });
   });
 
-  describe('SSO Section (OmniAuth Enabled)', () => {
-    it('shows SSO button when OmniAuth is enabled', () => {
-      mockFeatures.omniAuthEnabled.value = true;
+  describe('SSO Section (SSO Enabled)', () => {
+    it('shows SSO button when SSO is enabled', () => {
+      mockFeatures.ssoEnabled.value = true;
 
       wrapper = mountComponent();
 
       expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(true);
     });
 
-    it('hides SSO button when OmniAuth is disabled', () => {
-      mockFeatures.omniAuthEnabled.value = false;
+    it('hides SSO button when SSO is disabled', () => {
+      mockFeatures.ssoEnabled.value = false;
 
       wrapper = mountComponent();
 
       expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(false);
     });
 
-    it('shows divider when OmniAuth is enabled', () => {
-      mockFeatures.omniAuthEnabled.value = true;
+    it('shows divider when SSO is enabled', () => {
+      mockFeatures.ssoEnabled.value = true;
 
       wrapper = mountComponent();
 
@@ -275,8 +306,8 @@ describe('AuthMethodSelector', () => {
       expect(divider.exists()).toBe(true);
     });
 
-    it('hides divider when OmniAuth is disabled', () => {
-      mockFeatures.omniAuthEnabled.value = false;
+    it('hides divider when SSO is disabled', () => {
+      mockFeatures.ssoEnabled.value = false;
 
       wrapper = mountComponent();
 
@@ -284,7 +315,7 @@ describe('AuthMethodSelector', () => {
     });
 
     it('displays correct divider text', () => {
-      mockFeatures.omniAuthEnabled.value = true;
+      mockFeatures.ssoEnabled.value = true;
 
       wrapper = mountComponent();
 
@@ -294,7 +325,7 @@ describe('AuthMethodSelector', () => {
     });
 
     it('divider has proper accessibility (decorative line hidden)', () => {
-      mockFeatures.omniAuthEnabled.value = true;
+      mockFeatures.ssoEnabled.value = true;
 
       wrapper = mountComponent();
 
@@ -307,7 +338,7 @@ describe('AuthMethodSelector', () => {
     it('shows SSO alongside password-only form', () => {
       mockFeatures.magicLinksEnabled.value = false;
       mockFeatures.webauthnEnabled.value = false;
-      mockFeatures.omniAuthEnabled.value = true;
+      mockFeatures.ssoEnabled.value = true;
 
       wrapper = mountComponent();
 
@@ -317,7 +348,7 @@ describe('AuthMethodSelector', () => {
 
     it('shows SSO alongside passwordless UI', () => {
       mockFeatures.magicLinksEnabled.value = true;
-      mockFeatures.omniAuthEnabled.value = true;
+      mockFeatures.ssoEnabled.value = true;
 
       wrapper = mountComponent();
 
@@ -328,13 +359,92 @@ describe('AuthMethodSelector', () => {
     it('shows all three options when everything enabled', () => {
       mockFeatures.magicLinksEnabled.value = true;
       mockFeatures.webauthnEnabled.value = true;
-      mockFeatures.omniAuthEnabled.value = true;
+      mockFeatures.ssoEnabled.value = true;
 
       wrapper = mountComponent();
 
       expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(true);
       expect(wrapper.find('.sso-divider').exists()).toBe(true);
+    });
+  });
+
+  describe('SSO-Only Mode', () => {
+    it('shows only SSO buttons when sso_only and sso are both active with providers', () => {
+      mockFeatures.ssoEnabled.value = true;
+      mockFeatures.ssoOnlyMode.value = true;
+      mockProviders.value = [
+        { route_name: 'entra', display_name: 'Microsoft' },
+      ];
+
+      wrapper = mountComponent();
+
+      expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(false);
+      expect(wrapper.find('.sso-divider').exists()).toBe(false);
+    });
+
+    it('renders multiple SSO buttons in sso-only mode', () => {
+      mockFeatures.ssoEnabled.value = true;
+      mockFeatures.ssoOnlyMode.value = true;
+      mockProviders.value = [
+        { route_name: 'entra', display_name: 'Microsoft' },
+        { route_name: 'google', display_name: 'Google' },
+      ];
+
+      wrapper = mountComponent();
+
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(2);
+    });
+
+    it('falls through to default when sso_only is true but sso is disabled', () => {
+      mockFeatures.ssoEnabled.value = false;
+      mockFeatures.ssoOnlyMode.value = true;
+
+      wrapper = mountComponent();
+
+      // Should show the default password form since SSO is not enabled
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(false);
+    });
+
+    it('falls through to default when sso_only is true but no providers configured', () => {
+      mockFeatures.ssoEnabled.value = true;
+      mockFeatures.ssoOnlyMode.value = true;
+      mockProviders.value = [];
+
+      wrapper = mountComponent();
+
+      // Should show the default form since there are no providers
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(true);
+    });
+
+    it('does not show divider in sso-only mode', () => {
+      mockFeatures.ssoEnabled.value = true;
+      mockFeatures.ssoOnlyMode.value = true;
+      mockProviders.value = [
+        { route_name: 'entra', display_name: 'Microsoft' },
+      ];
+
+      wrapper = mountComponent();
+
+      expect(wrapper.find('.sso-divider').exists()).toBe(false);
+    });
+
+    it('shows passwordless alongside SSO when sso_only is false', () => {
+      mockFeatures.magicLinksEnabled.value = true;
+      mockFeatures.ssoEnabled.value = true;
+      mockFeatures.ssoOnlyMode.value = false;
+      mockProviders.value = [
+        { route_name: 'entra', display_name: 'Microsoft' },
+      ];
+
+      wrapper = mountComponent();
+
+      expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(true);
     });
   });
 
@@ -378,7 +488,7 @@ describe('AuthMethodSelector', () => {
 
   describe('Dark Mode Styling', () => {
     it('divider has dark mode classes', () => {
-      mockFeatures.omniAuthEnabled.value = true;
+      mockFeatures.ssoEnabled.value = true;
 
       wrapper = mountComponent();
 
@@ -388,7 +498,7 @@ describe('AuthMethodSelector', () => {
     });
 
     it('divider text has dark mode classes', () => {
-      mockFeatures.omniAuthEnabled.value = true;
+      mockFeatures.ssoEnabled.value = true;
 
       wrapper = mountComponent();
 
@@ -398,46 +508,183 @@ describe('AuthMethodSelector', () => {
     });
   });
 
+  describe('Multi-Provider SSO Rendering', () => {
+    /**
+     * Tests that use the REAL AuthMethodSelector component (not the stub)
+     * to verify multi-provider rendering with v-for over ssoProviders.
+     */
+
+    // Mount the real component with mocked providers for multi-provider tests
+    const mountRealComponent = async (
+      bootstrapFeatures: Record<string, unknown>,
+      featureFlags: { magic?: boolean; webauthn?: boolean; sso?: boolean; ssoOnly?: boolean } = {}
+    ) => {
+      mockFeatures.magicLinksEnabled.value = featureFlags.magic ?? false;
+      mockFeatures.webauthnEnabled.value = featureFlags.webauthn ?? false;
+      mockFeatures.ssoEnabled.value = featureFlags.sso ?? true;
+      mockFeatures.ssoOnlyMode.value = featureFlags.ssoOnly ?? false;
+
+      // Set mock providers from the bootstrap features (mirrors getSsoProviders logic)
+      const sso = bootstrapFeatures.sso as Record<string, unknown> | undefined;
+      if (sso && sso.enabled && Array.isArray(sso.providers)) {
+        mockProviders.value = sso.providers as Array<{ route_name: string; display_name: string }>;
+      } else {
+        mockProviders.value = [];
+      }
+
+      // Use dynamic import for the real component
+      const { default: AuthMethodSelector } = await import(
+        '@/apps/session/components/AuthMethodSelector.vue'
+      );
+
+      const pinia = createTestingPinia({
+        createSpy: vi.fn,
+      });
+
+      const w = mount(AuthMethodSelector, {
+        props: { locale: 'en' },
+        global: {
+          plugins: [i18n, pinia],
+        },
+      });
+
+      // Allow computed properties to update
+      await w.vm.$nextTick();
+      return w;
+    };
+
+    it('renders one SsoButton per provider when multiple providers configured', async () => {
+      wrapper = await mountRealComponent({
+        sso: {
+          enabled: true,
+          providers: [
+            { route_name: 'entra', display_name: 'Microsoft' },
+            { route_name: 'google', display_name: 'Google' },
+            { route_name: 'github', display_name: 'GitHub' },
+          ],
+        },
+      });
+
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(3);
+    });
+
+    it('renders single SsoButton for single provider', async () => {
+      wrapper = await mountRealComponent({
+        sso: {
+          enabled: true,
+          providers: [
+            { route_name: 'oidc', display_name: 'Okta' },
+          ],
+        },
+      });
+
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(1);
+    });
+
+    it('renders no SsoButtons when providers array is empty', async () => {
+      wrapper = await mountRealComponent({
+        sso: {
+          enabled: true,
+          providers: [],
+        },
+      });
+
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(0);
+    });
+
+    it('renders no SsoButtons when providers array absent (no legacy fallback)', async () => {
+      wrapper = await mountRealComponent({
+        sso: {
+          enabled: true,
+          route_name: 'oidc',
+          display_name: 'Corporate SSO',
+        },
+      });
+
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(0);
+    });
+
+    it('shows divider and SSO section when SSO enabled with providers', async () => {
+      wrapper = await mountRealComponent({
+        sso: {
+          enabled: true,
+          providers: [
+            { route_name: 'entra', display_name: 'Microsoft' },
+            { route_name: 'google', display_name: 'Google' },
+          ],
+        },
+      });
+
+      expect(wrapper.text()).toContain('Or continue with');
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(2);
+    });
+
+    it('renders only SSO buttons in sso-only mode with real component', async () => {
+      wrapper = await mountRealComponent(
+        {
+          sso: {
+            enabled: true,
+            providers: [
+              { route_name: 'entra', display_name: 'Microsoft' },
+              { route_name: 'google', display_name: 'Google' },
+            ],
+          },
+        },
+        { sso: true, ssoOnly: true }
+      );
+
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(2);
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(false);
+    });
+  });
+
   describe('Feature Flag Combinations', () => {
     const testCases = [
       {
         name: 'all disabled',
-        flags: { magic: false, webauthn: false, omniauth: false },
+        flags: { magic: false, webauthn: false, sso: false },
         expected: { passwordless: false, password: true, sso: false },
       },
       {
         name: 'only magic links',
-        flags: { magic: true, webauthn: false, omniauth: false },
+        flags: { magic: true, webauthn: false, sso: false },
         expected: { passwordless: true, password: false, sso: false },
       },
       {
         name: 'only webauthn',
-        flags: { magic: false, webauthn: true, omniauth: false },
+        flags: { magic: false, webauthn: true, sso: false },
         expected: { passwordless: true, password: false, sso: false },
       },
       {
-        name: 'only omniauth',
-        flags: { magic: false, webauthn: false, omniauth: true },
+        name: 'only sso',
+        flags: { magic: false, webauthn: false, sso: true },
         expected: { passwordless: false, password: true, sso: true },
       },
       {
         name: 'magic + webauthn',
-        flags: { magic: true, webauthn: true, omniauth: false },
+        flags: { magic: true, webauthn: true, sso: false },
         expected: { passwordless: true, password: false, sso: false },
       },
       {
-        name: 'magic + omniauth',
-        flags: { magic: true, webauthn: false, omniauth: true },
+        name: 'magic + sso',
+        flags: { magic: true, webauthn: false, sso: true },
         expected: { passwordless: true, password: false, sso: true },
       },
       {
-        name: 'webauthn + omniauth',
-        flags: { magic: false, webauthn: true, omniauth: true },
+        name: 'webauthn + sso',
+        flags: { magic: false, webauthn: true, sso: true },
         expected: { passwordless: true, password: false, sso: true },
       },
       {
         name: 'all enabled',
-        flags: { magic: true, webauthn: true, omniauth: true },
+        flags: { magic: true, webauthn: true, sso: true },
         expected: { passwordless: true, password: false, sso: true },
       },
     ];
@@ -446,7 +693,7 @@ describe('AuthMethodSelector', () => {
       it(`correctly renders with ${name}`, () => {
         mockFeatures.magicLinksEnabled.value = flags.magic;
         mockFeatures.webauthnEnabled.value = flags.webauthn;
-        mockFeatures.omniAuthEnabled.value = flags.omniauth;
+        mockFeatures.ssoEnabled.value = flags.sso;
 
         wrapper = mountComponent();
 

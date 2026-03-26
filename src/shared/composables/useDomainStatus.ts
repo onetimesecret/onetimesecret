@@ -1,14 +1,14 @@
 // src/shared/composables/useDomainStatus.ts
 
-import type { CustomDomain } from '@/schemas/models';
-import { computed } from 'vue';
+import type { CustomDomain } from '@/schemas/shapes/v3';
+import { computed, type MaybeRefOrGetter, toValue } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-export function useDomainStatus(domain: CustomDomain) {
+export function useDomainStatus(domain: MaybeRefOrGetter<CustomDomain>) {
   const { t } = useI18n(); // Must be called at setup time, not in computed callbacks
 
   const isActive = computed(() => {
-    const status = domain.vhost?.status;
+    const status = toValue(domain).vhost?.status;
     const decision =
       status === 'ACTIVE' || status === 'ACTIVE_SSL' || status === 'ACTIVE_SSL_PROXIED';
     return decision;
@@ -20,7 +20,7 @@ export function useDomainStatus(domain: CustomDomain) {
     return t('web.STATUS.inactive');
   });
 
-  const isWarning = computed(() => domain.vhost?.status === 'DNS_INCORRECT');
+  const isWarning = computed(() => toValue(domain).vhost?.status === 'DNS_INCORRECT');
 
   const isError = computed(() => !isActive.value && !isWarning.value);
 

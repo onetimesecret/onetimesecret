@@ -76,14 +76,16 @@ namespace :spec do
   end
 
   # App-specific specs (co-located with their applications)
-  # NOTE: Excludes :postgres_database tagged tests by default since those require
-  # a PostgreSQL service. Use spec:integration:full:postgres for those tests.
+  # NOTE: Excludes integration tests by both directory (integration/) and tag (:integration).
+  # Integration tests run via spec:integration tasks with the correct AUTHENTICATION_MODE
+  # and database setup. Also excludes :postgres_database tagged tests.
   namespace :apps do
     APP_SPECS.each do |name, path|
       desc "Run specs for #{name}"
       RSpec::Core::RakeTask.new(name.tr(':', '_')) do |t|
-        t.pattern    = "#{path}/**/*_spec.rb"
-        t.rspec_opts = "#{rspec_format_options} --tag ~postgres_database"
+        t.pattern         = "#{path}/**/*_spec.rb"
+        t.exclude_pattern = "#{path}/integration/**/*_spec.rb"
+        t.rspec_opts      = "#{rspec_format_options} --tag ~postgres_database --tag ~integration"
       end
     end
 
@@ -99,6 +101,12 @@ namespace :spec do
 
     desc 'Run all app specs'
     task all: APP_SPECS.keys.map { |k| k.tr(':', '_') }
+  end
+
+  desc 'Run ACME internal app specs'
+  RSpec::Core::RakeTask.new(:acme) do |t|
+    t.pattern    = 'apps/internal/acme/spec/**/*_spec.rb'
+    t.rspec_opts = rspec_format_options
   end
 
   namespace :integration do
@@ -157,10 +165,12 @@ end
 # Tryouts is a documentation-first Ruby testing framework where tests are plain
 # Ruby code with comment expectations. These tasks mirror the RSpec structure.
 namespace :try do
-  desc 'Run unit tryouts (includes security and feature tests)'
+  desc 'Run unit tryouts (includes security, feature, and app-colocated tests)'
   task :unit do
-    patterns = %w[try/unit try/system try/security try/features].select { |p| Dir.exist?(p) }.join(' ')
-    sh "bundle exec tryouts --agent #{patterns}" unless patterns.empty?
+    patterns  = %w[try/unit try/system try/security try/features try/jobs]
+    patterns += Dir.glob('apps/**/try')
+    paths     = patterns.uniq.select { |p| Dir.exist?(p) }.join(' ')
+    sh "bundle exec tryouts --agent #{paths}" unless paths.empty?
   end
 
   desc 'Run feature tryouts'
@@ -187,6 +197,7 @@ namespace :try do
         try/integration/billing
         try/integration/homepage_bypass_header_integration_try.rb
         try/integration/homepage_mode_integration_try.rb
+        try/integration/check_jobqueue_live_try.rb
       ].select { |p| File.exist?(p) || Dir.exist?(p) }.join(' ')
 
       sh env, "bundle exec tryouts --agent #{patterns}" unless patterns.empty?

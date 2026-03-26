@@ -4,7 +4,11 @@
 
 module OrganizationAPI::Logic
   module Members
-    # List all members of an organization with their roles
+    # List Members
+    #
+    # @api Returns all active members of an organization with their roles,
+    #   join dates, and ownership status. Any organization member can view
+    #   the list. Includes a flag indicating which entry is the current user.
     #
     # GET /api/organizations/:extid/members
     #
@@ -16,6 +20,8 @@ module OrganizationAPI::Logic
     #   - Joined date
     #
     class ListMembers < OrganizationAPI::Logic::Base
+      SCHEMAS = { response: 'memberList' }.freeze
+
       attr_reader :organization, :memberships
 
       def process_params
@@ -23,7 +29,7 @@ module OrganizationAPI::Logic
       end
 
       def raise_concerns
-        raise_form_error('Authentication required', error_type: :unauthorized) if cust.anonymous?
+        verify_authenticated!
 
         @organization = load_organization(@extid)
         verify_organization_member(@organization)

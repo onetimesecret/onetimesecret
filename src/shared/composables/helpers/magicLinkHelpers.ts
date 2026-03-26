@@ -13,15 +13,16 @@
  * @returns Error message and field error tuple
  */
 export function extractError(
-  err: any,
+  err: unknown,
   t: (key: string) => string,
   defaultKey: string
 ): [string, [string, string] | null] {
-  if (err.response?.data) {
-    const errorData = err.response.data;
+  const response = (err as { response?: { data?: Record<string, unknown> } })?.response;
+  if (response?.data) {
+    const errorData = response.data;
     return [
-      errorData.error || t(defaultKey),
-      errorData['field-error'] || null
+      (typeof errorData.error === 'string' ? errorData.error : null) || t(defaultKey),
+      (Array.isArray(errorData['field-error']) ? errorData['field-error'] as [string, string] : null)
     ];
   }
   return [t('web.auth.magicLink.networkError'), null];

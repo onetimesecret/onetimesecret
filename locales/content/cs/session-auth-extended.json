@@ -1,30 +1,84 @@
 {
+  "web.auth._guidance": {
+    "skip": true,
+    "_meta": {
+      "_purpose": "These messages follow OWASP/NIST guidelines to prevent information disclosure. Translations MUST maintain generic wording to prevent credential enumeration and timing attacks. Never reveal: which credential failed, precise timing, account existence, or attack progress.",
+      "authentication_failed": {
+        "security_note": "MUST NOT reveal which credential failed (password, OTP, or recovery code). This prevents attackers from determining valid credentials or enumerating accounts.",
+        "owasp_ref": "ASVS 2.2.2 - Authentication failure responses must be generic"
+      },
+      "rate_limited": {
+        "security_note": "MUST NOT reveal precise lockout duration, attempt counts, or remaining attempts. This prevents timing attacks and progress tracking.",
+        "owasp_ref": "ASVS 2.2.1 - Account lockout must not be timing-based enumerable"
+      },
+      "session_expired": {
+        "security_note": "Safe to indicate session issue as it doesn't reveal credential information. Helps users understand they need to re-authenticate.",
+        "owasp_ref": "Session management best practices"
+      },
+      "recovery_code_not_found": {
+        "security_note": "Safe to indicate recovery code context as user explicitly selected this authentication method. Does not reveal whether code exists.",
+        "owasp_ref": "Recovery code validation guidance"
+      },
+      "recovery_code_used": {
+        "security_note": "Safe expected behavior message. Users need to know recovery codes are single-use to prevent confusion.",
+        "owasp_ref": "User guidance for recovery mechanisms"
+      }
+    },
+    "_translation_guidelines": {
+      "DO_NOT_translate_as": [
+        "Wrong password",
+        "Invalid OTP code",
+        "Incorrect recovery code",
+        "Wait 5 minutes",
+        "3 attempts remaining",
+        "Account locked for 15 minutes"
+      ],
+      "MUST_translate_as": [
+        "Generic authentication failure (no credential specifics)",
+        "Generic rate limit message (no precise timing)",
+        "Recovery code validation (no existence confirmation)"
+      ],
+      "WHY": "These restrictions prevent attackers from: (1) determining valid usernames/emails, (2) knowing which credential to focus attacks on, (3) conducting timing attacks, (4) measuring attack progress"
+    },
+    "_safe_information": {
+      "format_requirements": "Safe to specify format rules (e.g., 'OTP must be 6 digits')",
+      "expected_behavior": "Safe to describe how features work (e.g., 'Codes expire every 30 seconds')",
+      "recovery_options": "Safe to offer alternatives (e.g., 'Use a recovery code instead')",
+      "general_guidance": "Safe to provide help (e.g., 'Check your authenticator app')"
+    }
+  },
   "web.auth.mfa_required": {
     "text": "Vyžadováno MFA ověření",
+    "context": "Page heading shown when user must complete MFA to proceed",
     "sha256": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
-    "text": "Pro přístup k vašemu účtu je vyžadováno MFA ověření",
+    "text": "Pro přístup k tvému účtu je vyžadováno MFA ověření",
+    "context": "Explanatory text below the heading",
     "sha256": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
     "text": "Dokončit MFA ověření",
     "sha256": "0e681134"
   },
+  "web.auth.security._guidance": {
+    "skip": true,
+    "context": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
   "web.auth.security.authentication_failed": {
-    "text": "Ověření selhalo. Ověřte prosím své přihlašovací údaje a zkuste to znovu.",
+    "text": "Ověření selhalo. Ověř prosím své přihlašovací údaje a zkus to znovu.",
     "sha256": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "Příliš mnoho pokusů. Zkuste to prosím později.",
+    "text": "Příliš mnoho pokusů. Zkus to prosím později.",
     "sha256": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "Relace vypršela. Přihlaste se prosím znovu.",
+    "text": "Relace vypršela. Přihlas se prosím znovu.",
     "sha256": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Obnovovací kód nenalezen. Ověřte prosím, že jste ho zadali správně.",
+    "text": "Obnovovací kód nenalezen. Ověř prosím, že jsi ho zadali správně.",
     "sha256": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
@@ -32,11 +86,11 @@
     "sha256": "b51d6820"
   },
   "web.auth.security.network_error": {
-    "text": "Chyba sítě. Zkontrolujte prosím své připojení a zkuste to znovu.",
+    "text": "Chyba sítě. Zkontroluj prosím své připojení a zkus to znovu.",
     "sha256": "31f2678d"
   },
   "web.auth.security.internal_error": {
-    "text": "Došlo k chybě. Zkuste to prosím znovu.",
+    "text": "Došlo k chybě. Zkus to prosím znovu.",
     "sha256": "9c170dda"
   },
   "web.auth.methods.password": {
@@ -45,6 +99,7 @@
   },
   "web.auth.methods.magicLink": {
     "text": "E-mailový odkaz",
+    "context": "Passwordless authentication via email link",
     "sha256": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
@@ -56,11 +111,11 @@
     "sha256": "79a864df"
   },
   "web.auth.magicLink.description": {
-    "text": "Pošleme vám bezpečný přihlašovací odkaz",
+    "text": "Pošleme ti bezpečný přihlašovací odkaz",
     "sha256": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "Zadejte svůj e-mail",
+    "text": "Zadej svůj e-mail",
     "sha256": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
@@ -68,7 +123,7 @@
     "sha256": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
-    "text": "Zkontrolujte svůj e-mail",
+    "text": "Zkontroluj svůj e-mail",
     "sha256": "77322879"
   },
   "web.auth.magicLink.sentTo": {
@@ -88,27 +143,31 @@
     "sha256": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
-    "text": "Chyba sítě. Zkuste to prosím znovu.",
+    "text": "Chyba sítě. Zkus to prosím znovu.",
     "sha256": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Nepodařilo se odeslat přihlašovací odkaz. Zkuste to prosím znovu.",
+    "text": "Nepodařilo se odeslat přihlašovací odkaz. Zkus to prosím znovu.",
     "sha256": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
     "text": "Neplatný nebo chybějící přihlašovací odkaz",
     "sha256": "d726c0da"
   },
+  "web.auth.magicLink.sessionExpired": {
+    "text": "Tvá relace vypršela. Obnov prosím stránku a zkus to znovu.",
+    "sha256": "a7c3e901"
+  },
   "web.auth.magicLink.loginFailed": {
-    "text": "Přihlášení selhalo. Zkuste to prosím znovu.",
+    "text": "Přihlášení selhalo. Zkus to prosím znovu.",
     "sha256": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "Přihlašujeme vás...",
+    "text": "Přihlašujeme tě...",
     "sha256": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Počkejte prosím, ověřujeme váš odkaz",
+    "text": "Počkej prosím, ověřujeme tvůj odkaz",
     "sha256": "81e4efed"
   },
   "web.auth.magicLink.error": {
@@ -132,7 +191,7 @@
     "sha256": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "Použijte prosím moderní prohlížeč, který podporuje WebAuthn (Chrome, Safari, Firefox nebo Edge)",
+    "text": "Použij prosím moderní prohlížeč, který podporuje WebAuthn (Chrome, Safari, Firefox nebo Edge)",
     "sha256": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
@@ -143,8 +202,12 @@
     "text": "Nepodařilo se nastavit biometrické přihlášení",
     "sha256": "290cca44"
   },
+  "web.auth.webauthn.passwordRequired": {
+    "text": "Pro nastavení přístupového klíče je potřeba heslo",
+    "sha256": "085bb238"
+  },
   "web.auth.webauthn.authFailed": {
-    "text": "Biometrické ověření selhalo. Zkuste to prosím znovu.",
+    "text": "Biometrické ověření selhalo. Zkus to prosím znovu.",
     "sha256": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
@@ -156,12 +219,117 @@
     "sha256": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "Použijte svůj otisk prstu, obličej nebo bezpečnostní klíč k přihlášení",
+    "text": "Použij svůj otisk prstu, obličej nebo bezpečnostní klíč k přihlášení",
     "sha256": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
     "text": "Podporuje Face ID, Touch ID, Windows Hello a bezpečnostní klíče",
     "sha256": "3ea1c1a2"
+  },
+  "web.auth.passkeys.title": {
+    "text": "Přístupové klíče",
+    "context": "Title for passkey management section",
+    "sha256": "c87ccdb4"
+  },
+  "web.auth.passkeys.description": {
+    "text": "Přihlas se pomocí Face ID, Touch ID, Windows Hello nebo bezpečnostního klíče",
+    "context": "Description of passkey authentication",
+    "sha256": "a513ed5c"
+  },
+  "web.auth.passkeys.setup_description": {
+    "text": "Přístupové klíče ti umožní bezpečné přihlášení bez hesla",
+    "context": "Setup page description",
+    "sha256": "85630bef"
+  },
+  "web.auth.passkeys.not_configured": {
+    "text": "Nenakonfigurováno",
+    "context": "Status when no passkeys are registered",
+    "sha256": "dd1841d2"
+  },
+  "web.auth.passkeys.count": {
+    "text": "{count} přístupový klíč registrován | {count} přístupové klíče registrovány",
+    "context": "Number of registered passkeys",
+    "sha256": "82e6681f"
+  },
+  "web.auth.passkeys.add_passkey": {
+    "text": "Přidat přístupový klíč",
+    "context": "Button to add a new passkey",
+    "sha256": "93713ad7"
+  },
+  "web.auth.passkeys.register_passkey": {
+    "text": "Registrovat přístupový klíč",
+    "context": "Button to register a new passkey",
+    "sha256": "26db6968"
+  },
+  "web.auth.passkeys.remove_passkey": {
+    "text": "Odebrat přístupový klíč",
+    "context": "Button to remove a passkey",
+    "sha256": "67b1d47c"
+  },
+  "web.auth.passkeys.confirm_remove": {
+    "text": "Opravdu chceš odebrat tento přístupový klíč? Už se s ním nebudeš moci přihlásit.",
+    "context": "Confirmation message for passkey removal",
+    "sha256": "487ab72c"
+  },
+  "web.auth.passkeys.removed_success": {
+    "text": "Přístupový klíč úspěšně odebrán",
+    "context": "Success message after removing passkey",
+    "sha256": "436c1050"
+  },
+  "web.auth.passkeys.registered_success": {
+    "text": "Přístupový klíč úspěšně registrován",
+    "context": "Success message after registering passkey",
+    "sha256": "fbfb0713"
+  },
+  "web.auth.passkeys.no_passkeys": {
+    "text": "Žádné přístupové klíče registrovány",
+    "context": "Empty state when no passkeys exist",
+    "sha256": "1d97fde4"
+  },
+  "web.auth.passkeys.no_passkeys_description": {
+    "text": "Přidej přístupový klíč pro bezpečnější přihlášení bez zadávání hesla",
+    "context": "Description for empty state",
+    "sha256": "e5bc07f1"
+  },
+  "web.auth.passkeys.name": {
+    "text": "Název přístupového klíče",
+    "context": "Label for passkey name field",
+    "sha256": "22eefa67"
+  },
+  "web.auth.passkeys.created": {
+    "text": "Vytvořen",
+    "context": "Label for creation date",
+    "sha256": "d70b9e24"
+  },
+  "web.auth.passkeys.last_used": {
+    "text": "Naposledy použit: {time}",
+    "context": "Last used timestamp",
+    "sha256": "e1af94fe"
+  },
+  "web.auth.passkeys.never_used": {
+    "text": "Dosud nepoužit",
+    "context": "Status when passkey has not been used",
+    "sha256": "24d3236c"
+  },
+  "web.auth.passkeys.benefit_secure": {
+    "text": "Bezpečnější než hesla – odolný vůči phishingovým útokům",
+    "context": "Passkey benefit",
+    "sha256": "41afb6ec"
+  },
+  "web.auth.passkeys.benefit_fast": {
+    "text": "Rychlý a snadný – stačí použít otisk prstu, obličej nebo bezpečnostní klíč",
+    "context": "Passkey benefit",
+    "sha256": "5a0ce96c"
+  },
+  "web.auth.passkeys.benefit_synced": {
+    "text": "Synchronizovaný napříč tvými zařízeními při použití platformových autentizátorů",
+    "context": "Passkey benefit",
+    "sha256": "7480c7ae"
+  },
+  "web.auth.passkeys.link_title": {
+    "text": "Přístupové klíče",
+    "context": "Navigation link title",
+    "sha256": "c87ccdb4"
   },
   "web.auth.lockout.attempts_remaining": {
     "text": "Varování: Zbývá {count} pokus(ů) o přihlášení",
@@ -172,16 +340,20 @@
     "sha256": "5247f389"
   },
   "web.auth.lockout.locked_until": {
-    "text": "Váš účet je uzamčen do {time}",
+    "text": "Tvůj účet je uzamčen do {time}",
     "sha256": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "Kontaktujte podporu, pokud potřebujete okamžitý přístup",
+    "text": "Kontaktuj podporu, pokud potřebuješ okamžitý přístup",
     "sha256": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "Místo toho si můžete obnovit heslo",
+    "text": "Místo toho si můžeš obnovit heslo",
     "sha256": "a98a3f9d"
+  },
+  "web.auth.sessions._guidance": {
+    "skip": true,
+    "context": "User's logged-in devices/browsers management page"
   },
   "web.auth.sessions.title": {
     "text": "Aktivní relace",
@@ -224,11 +396,11 @@
     "sha256": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "Opravdu chcete odebrat tuto relaci?",
+    "text": "Opravdu chceš odebrat tuto relaci?",
     "sha256": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Tím budete odhlášeni ze všech ostatních zařízení. Opravdu?",
+    "text": "Tím budeš odhlášeni ze všech ostatních zařízení. Opravdu?",
     "sha256": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
@@ -272,7 +444,7 @@
     "sha256": "04e05601"
   },
   "web.auth.mfa.setup_description": {
-    "text": "Přidejte ke svému účtu další vrstvu zabezpečení",
+    "text": "Přidej ke svému účtu další vrstvu zabezpečení",
     "sha256": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
@@ -280,35 +452,39 @@
     "sha256": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. Ověřte nastavení",
+    "text": "2. Ověř nastavení",
     "sha256": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "Naskenujte tento QR kód vaší autentizační aplikací",
+    "text": "Naskenujte tento QR kód tvojí autentizační aplikací",
     "sha256": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "Nebo zadejte tento kód ručně",
+    "text": "Nebo zadej tento kód ručně",
     "sha256": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
-    "text": "Zadejte 6místný kód z vaší aplikace",
+    "text": "Zadej 6místný kód z tvojí aplikace",
     "sha256": "38f61733"
   },
   "web.auth.mfa.enter_code": {
-    "text": "Zadejte ověřovací kód",
+    "text": "Zadej ověřovací kód",
     "sha256": "186a582a"
   },
   "web.auth.mfa.verify": {
     "text": "Ověřit a povolit",
     "sha256": "7c08f68d"
   },
+  "web.auth.mfa.verify_login": {
+    "text": "Ověřit",
+    "sha256": "eea2745e"
+  },
   "web.auth.mfa.code_required": {
     "text": "Ověřovací kód je vyžadován",
     "sha256": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Neplatný kód. Kódy vyprší každých 30 sekund. Zkuste nejnovější kód z vaší autentizační aplikace.",
+    "text": "Neplatný kód. Kódy vyprší každých 30 sekund. Zkus nejnovější kód z tvojí autentizační aplikace.",
     "sha256": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
@@ -320,7 +496,7 @@
     "sha256": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
-    "text": "Pro zakázání 2FA zadejte své heslo",
+    "text": "Pro zakázání 2FA zadej své heslo",
     "sha256": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
@@ -328,7 +504,7 @@
     "sha256": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "Potvrďte svou identitu pro úpravu nastavení dvoufaktorového ověření",
+    "text": "Potvrď svou identitu pro úpravu nastavení dvoufaktorového ověření",
     "sha256": "09a96c07"
   },
   "web.auth.mfa.last_used": {
@@ -343,6 +519,10 @@
     "text": "Použít místo toho obnovovací kód",
     "sha256": "23d3441a"
   },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Použít obnovovací kód",
+    "sha256": "50d5790d"
+  },
   "web.auth.mfa.back_to_code": {
     "text": "Zpět na ověřovací kód",
     "sha256": "6fa090b4"
@@ -351,20 +531,24 @@
     "text": "Zrušit a vrátit se k přihlášení",
     "sha256": "83256742"
   },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Zrušit přihlášení",
+    "sha256": "1bebad2f"
+  },
   "web.auth.mfa.loading_status": {
     "text": "Načítání stavu MFA...",
     "sha256": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
-    "text": "Váš účet je chráněn dvoufaktorovým ověřením",
+    "text": "Tvůj účet je chráněn dvoufaktorovým ověřením",
     "sha256": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
-    "text": "Chraňte svůj účet další vrstvou zabezpečení",
+    "text": "Chraň svůj účet další vrstvou zabezpečení",
     "sha256": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Zabraňte neoprávněnému přístupu i v případě kompromitace vašeho hesla",
+    "text": "Zabraňte neoprávněnému přístupu i v případě kompromitace tvého hesla",
     "sha256": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
@@ -376,7 +560,7 @@
     "sha256": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
-    "text": "Zadejte své heslo",
+    "text": "Zadej své heslo",
     "sha256": "c06bf967"
   },
   "web.auth.mfa.disabling": {
@@ -392,7 +576,7 @@
     "sha256": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Použijte Google Authenticator, Authy nebo jakoukoli TOTP aplikaci",
+    "text": "Použij Google Authenticator, Authy nebo jakoukoli TOTP aplikaci",
     "sha256": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
@@ -400,7 +584,7 @@
     "sha256": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "Zadejte 6místný kód z vaší autentizační aplikace",
+    "text": "Zadej 6místný kód z tvojí autentizační aplikace",
     "sha256": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
@@ -412,7 +596,7 @@
     "sha256": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "Zadejte jeden z vašich obnovovacích kódů",
+    "text": "Zadej jeden z tvých obnovovacích kódů",
     "sha256": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
@@ -420,7 +604,7 @@
     "sha256": "cf25d0fc"
   },
   "web.auth.mfa.recovery_code_placeholder": {
-    "text": "Zadejte obnovovací kód",
+    "text": "Zadej obnovovací kód",
     "sha256": "586d719c"
   },
   "web.auth.mfa.verify_recovery_code": {
@@ -428,7 +612,7 @@
     "sha256": "c244c7bd"
   },
   "web.auth.mfa.six_digit_code": {
-    "text": "Zadejte 6místný ověřovací kód",
+    "text": "Zadej 6místný ověřovací kód",
     "sha256": "36a438ba"
   },
   "web.auth.mfa.recovery_code_mode_active": {
@@ -440,7 +624,7 @@
     "sha256": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "Pro pokračování zadejte prosím všech 6 číslic",
+    "text": "Pro pokračování zadej prosím všech 6 číslic",
     "sha256": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
@@ -452,7 +636,7 @@
     "sha256": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Uložte si tyto kódy na bezpečné místo. Každý lze použít jednou, pokud ztratíte přístup k vaší autentizační aplikaci.",
+    "text": "Ulož si tyto kódy na bezpečné místo. Každý lze použít jednou, pokud ztratíte přístup k tvojí autentizační aplikaci.",
     "sha256": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
@@ -460,7 +644,7 @@
     "sha256": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Před dokončením nastavení musíte stáhnout nebo zkopírovat své obnovovací kódy.",
+    "text": "Před dokončením nastavení musíš stáhnout nebo zkopírovat své obnovovací kódy.",
     "sha256": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
@@ -512,7 +696,7 @@
     "sha256": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Každý kód lze použít pouze jednou. Pokud vám dochází kódy, vygenerujte nové.",
+    "text": "Každý kód lze použít pouze jednou. Pokud ti dochází kódy, vygenerujte nové.",
     "sha256": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
@@ -526,23 +710,5 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Obnovovací kódy",
     "sha256": "579c7f4e"
-  },
-  "web.auth.mfa.verify_login": {
-    "text": "Ověřit",
-    "sha256": "eea2745e"
-  },
-  "web.auth.mfa.use_recovery_code_short": {
-    "text": "Použít obnovovací kód",
-    "sha256": "50d5790d"
-  },
-  "web.auth.mfa.cancel_sign_in": {
-    "text": "Zrušit přihlášení",
-    "sha256": "1bebad2f"
-  },
-  "web.auth.security._guidance.context": {
-    "text": "⚠️ BEZPEČNOSTNĚ KRITICKÉ: Zprávy zabraňují úniku informací. Viz src/locales/SECURITY-TRANSLATION-GUIDE.md"
-  },
-  "web.auth.sessions._guidance.context": {
-    "text": "Stránka správy přihlášených zařízení/prohlížečů uživatele"
   }
 }

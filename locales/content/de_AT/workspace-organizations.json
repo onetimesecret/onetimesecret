@@ -12,7 +12,7 @@
     "sha256": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Verwalte deine Organisationen",
+    "text": "Verwalten Sie Ihre Organisationen",
     "sha256": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
@@ -32,7 +32,7 @@
     "sha256": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organisationen bieten einheitliche Abrechnung und Verwaltung. Leg los, indem du deine erste Organisation erstellst.",
+    "text": "Organisationen bieten einheitliche Abrechnung und Verwaltung. Erstellen Sie Ihre erste Organisation, um loszulegen.",
     "sha256": "deab4304"
   },
   "web.organizations.no_description": {
@@ -132,7 +132,7 @@
     "sha256": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Aktualisiere deinen Organisationsnamen und die Beschreibung",
+    "text": "Aktualisieren Sie Ihren Organisationsnamen und die Beschreibung",
     "sha256": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
@@ -155,6 +155,14 @@
     "text": "Organisation konnte nicht aktualisiert werden",
     "sha256": "bc2b59b8"
   },
+  "web.organizations.billing_email_updated": {
+    "text": "Rechnungs-E-Mail erfolgreich aktualisiert",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "Rechnungs-E-Mail kann auf der Abrechnungsübersichtsseite geändert werden",
+    "sha256": "8a131415"
+  },
   "web.organizations.billing_coming_soon": {
     "text": "Abrechnungsintegration demnächst verfügbar",
     "sha256": "d3e0ec75"
@@ -172,11 +180,11 @@
     "sha256": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Deine Organisation verwalten",
+    "text": "Ihre Organisation verwalten",
     "sha256": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Aktualisiere hier deinen Firmennamen und Organisationsdetails. Diese Informationen helfen, dein Konto zu personalisieren und können für zukünftige Branding-Funktionen verwendet werden.",
+    "text": "Aktualisieren Sie hier Ihren Firmennamen und Organisationsdetails. Diese Informationen helfen, Ihr Konto zu personalisieren und können für zukünftige Branding-Funktionen verwendet werden.",
     "sha256": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
@@ -184,11 +192,11 @@
     "sha256": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Erstelle deine erste Organisation, um deine Unternehmensinformationen zu verwalten und dich auf zukünftige Branding-Funktionen vorzubereiten.",
+    "text": "Erstellen Sie Ihre erste Organisation, um Ihre Unternehmensinformationen zu verwalten und sich auf zukünftige Branding-Funktionen vorzubereiten.",
     "sha256": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Verwalte deine Organisationen und Teammitglieder",
+    "text": "Verwalten Sie Ihre Organisationen und Teammitglieder",
     "sha256": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -206,6 +214,10 @@
   "web.organizations.tabs.billing": {
     "text": "Abrechnung",
     "sha256": "3ac8bbca"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "Abonnement",
+    "sha256": "4999c6c6"
   },
   "web.organizations.danger_zone": {
     "text": "Gefahrenzone",
@@ -228,7 +240,7 @@
     "sha256": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Bist du sicher, dass du {name} löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "text": "Sind Sie sicher, dass Sie {name} löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
     "sha256": "db7e1f9d"
   },
   "web.organizations.delete_error": {
@@ -240,7 +252,7 @@
     "sha256": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Verwalte Organisationsmitglieder und ihre Rollen",
+    "text": "Verwalten Sie Organisationsmitglieder und ihre Rollen",
     "sha256": "1353774c"
   },
   "web.organizations.members.current_members": {
@@ -280,7 +292,7 @@
     "sha256": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Noch keine Mitglieder. Lade Teammitglieder ein, um loszulegen.",
+    "text": "Noch keine Mitglieder. Laden Sie Teammitglieder ein, um loszulegen.",
     "sha256": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
@@ -308,23 +320,23 @@
     "sha256": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Bist du sicher, dass du {name} aus dieser Organisation entfernen möchtest?",
+    "text": "Sind Sie sicher, dass Sie {name} aus dieser Organisation entfernen möchten?",
     "sha256": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Du kannst deine eigene Rolle nicht ändern",
+    "text": "Sie können Ihre eigene Rolle nicht ändern",
     "sha256": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Du kannst dich nicht selbst aus der Organisation entfernen",
+    "text": "Sie können sich nicht selbst aus der Organisation entfernen",
     "sha256": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Du kannst den Organisationsinhaber nicht entfernen",
+    "text": "Sie können den Organisationsinhaber nicht entfernen",
     "sha256": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "Du hast keine Berechtigung, Mitglieder zu verwalten",
+    "text": "Sie haben keine Berechtigung, Mitglieder zu verwalten",
     "sha256": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
@@ -476,11 +488,11 @@
     "sha256": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Du wurdest eingeladen beizutreten",
+    "text": "Sie wurden eingeladen beizutreten",
     "sha256": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Du wurdest eingeladen als",
+    "text": "Sie wurden eingeladen als",
     "sha256": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
@@ -508,24 +520,28 @@
     "sha256": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Bitte melde dich an, um diese Einladung anzunehmen",
+    "text": "Bitte melden Sie sich an, um diese Einladung anzunehmen",
     "sha256": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
     "text": "Einladungsdetails werden geladen",
     "sha256": "58884885"
   },
-  "web.organizations.billing_email_updated": {
-    "text": "Rechnungs-E-Mail erfolgreich aktualisiert",
-    "sha256": "080a7f11"
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Upgraden Sie Ihren Plan, um Teammitglieder einzuladen",
+    "sha256": "5e3f8df8"
   },
-  "web.organizations.billing_email_managed_on_billing": {
-    "text": "Rechnungs-E-Mail kann auf der Abrechnungsübersichtsseite geändert werden",
-    "sha256": "8a131415"
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Teammitglieder-Einladungen erfordern einen Plan mit Team-Verwaltung. Upgraden Sie, um Mitarbeiter zu Ihrer Organisation hinzuzufügen.",
+    "sha256": "cf10d623"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
     "sha256": "957b0b87"
+  },
+  "web.organizations.early_supporter_badge": {
+    "text": "Frühe Unterstützer",
+    "sha256": "e67d2ef8"
   },
   "web.organizations.member_count": {
     "text": "{count} Mitglied | {count} Mitglieder",
@@ -535,20 +551,16 @@
     "text": "{count} Domain | {count} Domains",
     "sha256": "09f52efa"
   },
-  "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Upgrade deinen Plan, um Teammitglieder einzuladen",
-    "sha256": "5e3f8df8"
-  },
-  "web.organizations.invitations.upgrade_prompt": {
-    "text": "Teammitglieder-Einladungen erfordern einen Plan mit Team-Verwaltung. Upgrade, um Mitarbeiter zu deiner Organisation hinzuzufügen.",
-    "sha256": "cf10d623"
+  "web.organizations.tabs.domains": {
+    "text": "Domänen",
+    "sha256": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Falsches Konto",
     "sha256": "80c8ffa7"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Diese Einladung wurde an {invitedEmail} gesendet, aber du bist als {currentEmail} angemeldet.",
+    "text": "Diese Einladung wurde an {invitedEmail} gesendet, aber Sie sind als {currentEmail} angemeldet.",
     "sha256": "937e08e7"
   },
   "web.organizations.invitations.switch_account": {
@@ -566,13 +578,5 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Läuft bald ab",
     "sha256": "a5dcfef9"
-  },
-  "web.organizations.tabs.subscription": {
-    "text": "Abonnement",
-    "sha256": "4999c6c6"
-  },
-  "web.organizations.tabs.domains": {
-    "text": "Domains",
-    "sha256": "ced67718"
   }
 }

@@ -2,9 +2,13 @@
 #
 # frozen_string_literal: true
 
-require 'familia/json_serializer'
+require 'oj'
 
 module Onetime
+  unless defined?(Onetime::HOME)
+    HOME = File.expand_path(File.join(File.dirname(__FILE__), '..', '..'))
+  end
+
   module VERSION
     def self.to_a
       load_config
@@ -28,10 +32,11 @@ module Onetime
 
       # Load version from package.json
       package_json_path = File.join(Onetime::HOME, 'package.json')
-      package_json      = Familia::JsonSerializer.parse(File.read(package_json_path))
+      source            = File.read(package_json_path)
+      package_json      = Oj.load(source, mode: :strict)
 
       # Split the version string into main version and pre-release parts
-      version_parts      = package_json['version'].split('-')
+      version_parts      = package_json['version'].split('-', 2)
       main_version_parts = version_parts[0].split('.')
 
       @version = {

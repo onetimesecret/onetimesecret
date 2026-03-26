@@ -17,15 +17,6 @@ POST   /secret/generate                           V3::Logic::Secrets::GenerateSe
 GET    /secret/:identifier                        V3::Logic::Secrets::ShowSecret response=json auth=sessionauth
 POST   /secret/:identifier/reveal                 V3::Logic::Secrets::RevealSecret response=json auth=sessionauth
 
-# Guest Routes (public access - anonymous or authenticated)
-POST   /guest/secret/conceal                      V3::Logic::Secrets::ConcealSecret response=json auth=noauth
-POST   /guest/secret/generate                     V3::Logic::Secrets::GenerateSecret response=json auth=noauth
-GET    /guest/secret/:identifier                  V3::Logic::Secrets::ShowSecret response=json auth=noauth
-POST   /guest/secret/:identifier/reveal           V3::Logic::Secrets::RevealSecret response=json auth=noauth
-GET    /guest/receipt/:identifier                 V3::Logic::Secrets::ShowReceipt response=json auth=noauth
-POST   /guest/receipt/:identifier/burn            V3::Logic::Secrets::BurnSecret response=json auth=noauth
-POST   /guest/receipts                            V3::Logic::Secrets::ShowMultipleReceipts response=json auth=noauth
-
 # Meta/Public endpoints (static information, no auth required)
 GET    /secret/:identifier/status                 V3::Logic::Secrets::ShowSecretStatus response=json auth=noauth
 POST   /secret/status                             V3::Logic::Secrets::ListSecretStatus response=json auth=noauth
@@ -34,16 +25,23 @@ POST   /secret/status                             V3::Logic::Secrets::ListSecret
 OPTIONS /secret/generate                          V3::Logic::Secrets::GenerateSecret response=json
 OPTIONS /secret/conceal                           V3::Logic::Secrets::ConcealSecret response=json
 
+# Guest routes (anonymous access with GuestRouteGating)
+POST   /guest/secret/conceal                      V3::Logic::Secrets::ConcealSecret response=json auth=noauth
+POST   /guest/secret/generate                     V3::Logic::Secrets::GenerateSecret response=json auth=noauth
+GET    /guest/secret/:identifier                  V3::Logic::Secrets::ShowSecret response=json auth=noauth
+POST   /guest/secret/:identifier/reveal           V3::Logic::Secrets::RevealSecret response=json auth=noauth
+GET    /guest/receipt/:identifier                 V3::Logic::Secrets::ShowReceipt response=json auth=noauth
+POST   /guest/receipt/:identifier/burn            V3::Logic::Secrets::BurnSecret response=json auth=noauth
+POST   /guest/receipts                            V3::Logic::Secrets::ShowMultipleReceipts response=json auth=noauth
+
 # Meta/Public endpoints (static information uses class methods)
 GET    /supported-locales                         V3::Logic::Meta.get_supported_locales response=json
 GET    /status                                    V3::Logic::Meta.system_status response=json
 GET    /version                                   V3::Logic::Meta.system_version response=json
 POST   /feedback                                  V3::Logic::ReceiveFeedback response=json auth=noauth
 
-# Incoming secrets endpoints (anonymous secret submission to configured recipients)
-GET    /incoming/config                           V3::Logic::Incoming::GetConfig response=json auth=noauth
-POST   /incoming/secret                           V3::Logic::Incoming::CreateIncomingSecret response=json auth=noauth
-POST   /incoming/validate                         V3::Logic::Incoming::ValidateRecipient response=json auth=noauth
+# NOTE: Incoming secrets have a dedicated API (apps/api/incoming/)
+# mounted at /api/incoming/* with separate routes.txt
 
 # OTTO ADVANCED ROUTES SYNTAX - QUICK REFERENCE
 # ==============================================

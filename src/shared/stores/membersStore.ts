@@ -16,13 +16,14 @@ import type {
   UpdateMemberRolePayload,
 } from '@/types/organization';
 import { updateMemberRolePayloadSchema } from '@/types/organization';
-import { AxiosInstance } from 'axios';
+import { gracefulParse } from '@/utils/schemaValidation';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore } from 'pinia';
-import { computed, inject, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 /* eslint-disable max-lines-per-function */
 export const useMembersStore = defineStore('members', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const members = ref<OrganizationMember[]>([]);
@@ -76,8 +77,14 @@ export const useMembersStore = defineStore('members', () => {
         signal: abortController.value.signal,
       });
 
-      const validated = membersResponseSchema.parse(response.data);
-      members.value = validated.records;
+      const result = gracefulParse(membersResponseSchema, response.data, 'MembersResponse');
+      if (!result.ok) {
+        members.value = [];
+        currentOrgExtid.value = orgExtid;
+        _initialized.value = true;
+        return [];
+      }
+      members.value = result.data.records;
       currentOrgExtid.value = orgExtid;
       _initialized.value = true;
 
@@ -98,22 +105,28 @@ export const useMembersStore = defineStore('members', () => {
     loading.value = true;
 
     try {
-      const validated = updateMemberRolePayloadSchema.parse(payload);
+      const payloadResult = gracefulParse(updateMemberRolePayloadSchema, payload, 'UpdateMemberRolePayload');
+      if (!payloadResult.ok) {
+        throw new Error('Invalid member role update data.');
+      }
 
       const response = await $api.patch(
         `/api/organizations/${orgExtid}/members/${memberExtid}/role`,
-        validated
+        payloadResult.data
       );
 
-      const memberData = memberResponseSchema.parse(response.data);
+      const memberResult = gracefulParse(memberResponseSchema, response.data, 'MemberResponse');
+      if (!memberResult.ok) {
+        throw new Error('Unable to update member role. Please try again.');
+      }
 
       // Update in members array
       const index = members.value.findIndex((m) => m.extid === memberExtid);
       if (index !== -1) {
-        members.value[index] = memberData.record;
+        members.value[index] = memberResult.data.record;
       }
 
-      return memberData.record;
+      return memberResult.data.record;
     } finally {
       loading.value = false;
     }
@@ -130,7 +143,10 @@ export const useMembersStore = defineStore('members', () => {
         `/api/organizations/${orgExtid}/members/${memberExtid}`
       );
 
-      memberDeleteResponseSchema.parse(response.data);
+      const deleteResult = gracefulParse(memberDeleteResponseSchema, response.data, 'MemberDeleteResponse');
+      if (!deleteResult.ok) {
+        throw new Error('Unable to remove member. Please try again.');
+      }
 
       // Remove from members array
       members.value = members.value.filter((m) => m.extid !== memberExtid);

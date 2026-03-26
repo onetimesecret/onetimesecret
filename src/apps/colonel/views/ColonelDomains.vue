@@ -74,6 +74,7 @@ d="M15 19l-7-7 7-7" />
 
       <div
         v-else
+        data-testid="colonel-domains-table"
         class="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
         <div
           v-for="domain in customDomains"

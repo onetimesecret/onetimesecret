@@ -9,7 +9,15 @@ require_relative '../base'
 module ColonelAPI
   module Logic
     module Colonel
+      # Get Colonel Info
+      #
+      # @api Returns the admin dashboard overview including recent customers,
+      #   feedback (today, yesterday, older), aggregate counts for sessions,
+      #   customers, secrets, receipts, and Redis memory info. Requires
+      #   colonel role.
       class GetColonelInfo < ColonelAPI::Logic::Base
+        SCHEMAS = { response: 'colonelInfo' }.freeze
+
         using Familia::Refinements::TimeLiterals
 
         attr_reader :billing_enabled,
@@ -132,7 +140,7 @@ module ColonelAPI
               today_feedback: today_feedback,
               yesterday_feedback: yesterday_feedback,
               older_feedback: older_feedback,
-              dbclient_info: redis_info,
+              dbclient_info: @redis_info,
               billing_enabled: billing_enabled,
               counts: {
                 session_count: session_count,

@@ -248,6 +248,7 @@ Following the style guide, brand names remain untranslated but descriptions are 
 - "Identity Plus" remains "Identity Plus" (untranslated)
 - "Onetime Secret" remains "Onetime Secret" (untranslated)
 - "Custom Install" description → "Tāutatanga Ritenga" (customized installation)
+- Keys ending in `_literal` (e.g., `onetime_secret_literal`) contain brand names that must remain in English exactly as-is
 
 ### Technical Conventions
 

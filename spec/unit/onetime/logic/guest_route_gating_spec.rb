@@ -4,6 +4,7 @@
 
 require 'spec_helper'
 require 'onetime/logic/guest_route_gating'
+require 'onetime/application/authorization_policies'
 
 # Unit tests for GuestRouteGating module
 #
@@ -13,8 +14,11 @@ require 'onetime/logic/guest_route_gating'
 #
 RSpec.describe Onetime::Logic::GuestRouteGating do
   # Create a test class that includes the module
+  # Note: GuestRouteGating uses anonymous_user? from AuthorizationPolicies,
+  # which is always included via Onetime::Logic::Base in production
   let(:test_class) do
     Class.new do
+      include Onetime::Application::AuthorizationPolicies
       include Onetime::Logic::GuestRouteGating
 
       attr_accessor :cust, :strategy_result

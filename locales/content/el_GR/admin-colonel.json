@@ -311,43 +311,6 @@
     "text": "Δοκιμάζετε με δικαιώματα {planName} (προσωρινή παράκαμψη συνεδρίας).",
     "sha256": "1a8aecf1"
   },
-  "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Όταν υποβάλλετε σχόλια, θα δούμε:"
-  },
-  "web.feedback.send_feedback": {
-    "text": "Αποστολή σχολίων"
-  },
-  "web.feedback.sending_ellipses": {
-    "text": "Αποστολή..."
-  },
-  "web.colonel.bannedIps.title": {
-    "text": "Αποκλεισμένες IP",
-    "sha256": "0ece5643"
-  },
-  "web.colonel.bannedIps.description": {
-    "text": "Διαχείριση λίστας αποκλεισμένων IP",
-    "sha256": "dd0d2614"
-  },
-  "web.colonel.customDomains.title": {
-    "text": "Προσαρμοσμένοι τομείς",
-    "sha256": "6170ab94"
-  },
-  "web.colonel.customDomains.description": {
-    "text": "Διαχείριση προσαρμοσμένων τομέων και επωνυμίας",
-    "sha256": "808ee2cb"
-  },
-  "web.colonel.feedback.send_feedback": {
-    "text": "Αποστολή σχολίων",
-    "sha256": "8235980b"
-  },
-  "web.colonel.feedback.sending_ellipses": {
-    "text": "Αποστολή...",
-    "sha256": "286a3af7"
-  },
-  "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Όταν υποβάλετε σχόλια, θα δούμε:",
-    "sha256": "fe77172e"
-  },
   "web.colonel.organizations.title": {
     "text": "Οργανισμοί",
     "sha256": "2730183d"
@@ -376,13 +339,45 @@
     "text": "Δεν βρέθηκαν οργανισμοί",
     "sha256": "538995db"
   },
-  "web.colonel.organizations.actions.investigate": {
-    "text": "Διερεύνηση",
-    "sha256": "e2641093"
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Κατάσταση συγχρονισμού",
+    "sha256": "b3998276"
   },
-  "web.colonel.organizations.actions.checking": {
-    "text": "Έλεγχος...",
-    "sha256": "2e5f79bb"
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Συνδρομή",
+    "sha256": "4999c6c6"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Όλα",
+    "sha256": "a52ace42"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Πιθανώς παλιά",
+    "sha256": "40137b37"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Άγνωστο",
+    "sha256": "b764cdc0"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Συγχρονισμένα",
+    "sha256": "5da22fe4"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Ενεργά",
+    "sha256": "92340695"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "Δοκιμαστική περίοδος",
+    "sha256": "3792573d"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Ληξιπρόθεσμα",
+    "sha256": "2bda1c7b"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Ακυρωμένα",
+    "sha256": "13ca2ee2"
   },
   "web.colonel.organizations.columns.account": {
     "text": "Λογαριασμός",
@@ -436,6 +431,42 @@
     "text": "Έχει χρεώσεις",
     "sha256": "db0628ed"
   },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Διαχείριση χρεώσεων οργανισμών",
+    "sha256": "5c7e07e7"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Διαχείριση οργανισμών και παρακολούθηση υγείας συγχρονισμού χρεώσεων ({total} σύνολο)",
+    "sha256": "996b446d"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Δεν βρέθηκαν οργανισμοί",
+    "sha256": "538995db"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "πιθανώς παλιά",
+    "sha256": "3ddfec45"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Παλιό",
+    "sha256": "40c9e59c"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Άγνωστο",
+    "sha256": "b764cdc0"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "ενεργό",
+    "sha256": "96879611"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Διερεύνηση",
+    "sha256": "e2641093"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Έλεγχος...",
+    "sha256": "2e5f79bb"
+  },
   "web.colonel.organizations.expanded.customer": {
     "text": "Πελάτης",
     "sha256": "bf376338"
@@ -447,46 +478,6 @@
   "web.colonel.organizations.expanded.orgId": {
     "text": "ID οργανισμού",
     "sha256": "5e6b9932"
-  },
-  "web.colonel.organizations.filters.syncStatus": {
-    "text": "Κατάσταση συγχρονισμού",
-    "sha256": "b3998276"
-  },
-  "web.colonel.organizations.filters.subscription": {
-    "text": "Συνδρομή",
-    "sha256": "4999c6c6"
-  },
-  "web.colonel.organizations.filters.all": {
-    "text": "Όλα",
-    "sha256": "a52ace42"
-  },
-  "web.colonel.organizations.filters.potentiallyStale": {
-    "text": "Πιθανώς παλιά",
-    "sha256": "40137b37"
-  },
-  "web.colonel.organizations.filters.unknown": {
-    "text": "Άγνωστο",
-    "sha256": "b764cdc0"
-  },
-  "web.colonel.organizations.filters.synced": {
-    "text": "Συγχρονισμένα",
-    "sha256": "5da22fe4"
-  },
-  "web.colonel.organizations.filters.active": {
-    "text": "Ενεργά",
-    "sha256": "92340695"
-  },
-  "web.colonel.organizations.filters.trialing": {
-    "text": "Δοκιμαστική περίοδος",
-    "sha256": "3792573d"
-  },
-  "web.colonel.organizations.filters.pastDue": {
-    "text": "Ληξιπρόθεσμα",
-    "sha256": "2bda1c7b"
-  },
-  "web.colonel.organizations.filters.canceled": {
-    "text": "Ακυρωμένα",
-    "sha256": "13ca2ee2"
   },
   "web.colonel.organizations.investigation.failed": {
     "text": "Η διερεύνηση απέτυχε",
@@ -536,34 +527,6 @@
     "text": "Stripe",
     "sha256": "961a6062"
   },
-  "web.colonel.organizations.legacy.title": {
-    "text": "Διαχείριση χρεώσεων οργανισμών",
-    "sha256": "5c7e07e7"
-  },
-  "web.colonel.organizations.legacy.description": {
-    "text": "Διαχείριση οργανισμών και παρακολούθηση υγείας συγχρονισμού χρεώσεων ({total} σύνολο)",
-    "sha256": "996b446d"
-  },
-  "web.colonel.organizations.legacy.empty": {
-    "text": "Δεν βρέθηκαν οργανισμοί",
-    "sha256": "538995db"
-  },
-  "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "πιθανώς παλιά",
-    "sha256": "3ddfec45"
-  },
-  "web.colonel.organizations.status.stale": {
-    "text": "Παλιό",
-    "sha256": "40c9e59c"
-  },
-  "web.colonel.organizations.status.unknown": {
-    "text": "Άγνωστο",
-    "sha256": "b764cdc0"
-  },
-  "web.colonel.organizations.status.active": {
-    "text": "ενεργό",
-    "sha256": "96879611"
-  },
   "web.colonel.organizations.usage.members": {
     "text": "{count} μέλη",
     "sha256": "201eb3d9"
@@ -580,6 +543,22 @@
     "text": "Προβολή και διαχείριση όλων των μυστικών",
     "sha256": "48f8052e"
   },
+  "web.colonel.bannedIps.title": {
+    "text": "Αποκλεισμένες IP",
+    "sha256": "0ece5643"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Διαχείριση λίστας αποκλεισμένων IP",
+    "sha256": "dd0d2614"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Εξαγωγή χρήσης",
+    "sha256": "10a0cb94"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Εξαγωγή δεδομένων χρήσης και στατιστικών",
+    "sha256": "2fd0a2e2"
+  },
   "web.colonel.systemSettings.title": {
     "text": "Σύστημα",
     "sha256": "6725e7bb"
@@ -587,6 +566,22 @@
   "web.colonel.systemSettings.description": {
     "text": "Ρυθμίσεις συστήματος, βάσεις δεδομένων και διαμόρφωση",
     "sha256": "7690b296"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Προσαρμοσμένοι τομείς",
+    "sha256": "6170ab94"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Διαχείριση προσαρμοσμένων τομέων και επωνυμίας",
+    "sha256": "808ee2cb"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Αποστολή σχολίων",
+    "sha256": "8235980b"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Αποστολή...",
+    "sha256": "286a3af7"
   },
   "web.colonel.titles.index": {
     "text": "Διαχείριση",
@@ -636,12 +631,8 @@
     "text": "Redis",
     "sha256": "a7f64157"
   },
-  "web.colonel.usageExport.title": {
-    "text": "Εξαγωγή χρήσης",
-    "sha256": "10a0cb94"
-  },
-  "web.colonel.usageExport.description": {
-    "text": "Εξαγωγή δεδομένων χρήσης και στατιστικών",
-    "sha256": "2fd0a2e2"
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Όταν υποβάλετε σχόλια, θα δούμε:",
+    "sha256": "fe77172e"
   }
 }

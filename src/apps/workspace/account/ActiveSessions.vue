@@ -2,8 +2,11 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import { useConfirmDialog } from '@vueuse/core';
   import SessionListItem from '@/apps/workspace/components/account/SessionListItem.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
+  import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useActiveSessions } from '@/shared/composables/useActiveSessions';
   import { computed, onMounted, ref } from 'vue';
 
@@ -15,15 +18,29 @@
   const currentSession = computed(() => sessions.value.find((s) => s.is_current));
   const otherSessions = computed(() => sessions.value.filter((s) => !s.is_current));
 
-  // Confirmation dialog state
+  // Confirmation dialog for removing all sessions
   const showRemoveAllConfirm = ref(false);
+
+  // Confirmation dialog for individual session removal
+  const {
+    isRevealed: isRemoveOneRevealed,
+    reveal: revealRemoveOne,
+    confirm: confirmRemoveOne,
+    cancel: cancelRemoveOne
+  } = useConfirmDialog();
+
+  const pendingRemoveSessionId = ref<string | null>(null);
 
   // Handle individual session removal
   const handleRemoveSession = async (sessionId: string) => {
-    const confirmed = window.confirm(t('web.auth.sessions.confirm_remove'));
-    if (!confirmed) return;
-
+    pendingRemoveSessionId.value = sessionId;
+    const { isCanceled } = await revealRemoveOne();
+    if (isCanceled) {
+      pendingRemoveSessionId.value = null;
+      return;
+    }
     await removeSession(sessionId);
+    pendingRemoveSessionId.value = null;
   };
 
   // Handle remove all sessions
@@ -31,6 +48,12 @@
     showRemoveAllConfirm.value = false;
     await removeAllOtherSessions();
   };
+
+  // Session count display
+  const sessionCountDisplay = computed(() => {
+    const count = sessions.value.length;
+    return `${count} ${count === 1 ? t('web.auth.sessions.session_singular') : t('web.auth.sessions.session_plural')}`;
+  });
 
   onMounted(async () => {
     await fetchSessions();
@@ -45,8 +68,7 @@
           {{ t('web.auth.sessions.title') }}
         </h1>
         <p class="mt-2 text-gray-600 dark:text-gray-400">
-          {{ t('web.auth.sessions.title') }} - {{ sessions.length }}
-          {{ sessions.length === 1 ? 'session' : 'sessions' }}
+          {{ t('web.auth.sessions.title') }} - {{ sessionCountDisplay }}
         </p>
       </div>
 
@@ -54,8 +76,12 @@
       <div
         v-if="isLoading"
         class="flex items-center justify-center py-12">
-        <i class="fas fa-spinner fa-spin mr-2 text-2xl text-gray-400"></i>
-        <span class="text-gray-600 dark:text-gray-400">Loading sessions...</span>
+        <OIcon
+          collection="heroicons"
+          name="arrow-path"
+          class="mr-2 size-6 animate-spin text-gray-400"
+          aria-hidden="true" />
+        <span class="text-gray-600 dark:text-gray-400">{{ t('web.LABELS.loading') }}</span>
       </div>
 
       <!-- Error state -->
@@ -93,7 +119,11 @@
               @click="showRemoveAllConfirm = true"
               type="button"
               class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700 dark:hover:bg-red-800">
-              <i class="fas fa-sign-out-alt mr-2"></i>
+              <OIcon
+                collection="heroicons"
+                name="arrow-right-on-rectangle-solid"
+                class="mr-2 inline size-4"
+                aria-hidden="true" />
               {{ t('web.auth.sessions.remove_all') }}
             </button>
           </div>
@@ -111,7 +141,11 @@
         <div
           v-else-if="currentSession"
           class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-800">
-          <i class="fas fa-check-circle mb-2 text-3xl text-green-500"></i>
+          <OIcon
+            collection="heroicons"
+            name="check-circle"
+            class="mx-auto mb-2 size-8 text-green-500"
+            aria-hidden="true" />
           <p class="text-gray-600 dark:text-gray-400">
             {{ t('web.auth.sessions.no_sessions') }}
           </p>
@@ -122,7 +156,7 @@
           v-else
           class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-800">
           <p class="text-gray-600 dark:text-gray-400">
-            No active sessions found.
+            {{ t('web.auth.sessions.no_sessions') }}
           </p>
         </div>
       </div>
@@ -136,10 +170,16 @@
           class="mx-4 max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
           role="dialog"
           aria-modal="true"
-          :aria-labelledby="t('web.auth.sessions.remove_all')">
+          aria-labelledby="remove-all-sessions-title">
           <div class="mb-4 flex items-center">
-            <i class="fas fa-exclamation-triangle mr-3 text-2xl text-yellow-500"></i>
-            <h3 class="text-lg font-semibold dark:text-white">
+            <OIcon
+              collection="heroicons"
+              name="exclamation-triangle"
+              class="mr-3 size-7 text-yellow-500"
+              aria-hidden="true" />
+            <h3
+              id="remove-all-sessions-title"
+              class="text-lg font-semibold dark:text-white">
               {{ t('web.auth.sessions.remove_all') }}
             </h3>
           </div>
@@ -151,7 +191,7 @@
               @click="showRemoveAllConfirm = false"
               type="button"
               class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-              Cancel
+              {{ t('web.LABELS.cancel') }}
             </button>
             <button
               @click="handleRemoveAllSessions"
@@ -162,6 +202,15 @@
           </div>
         </div>
       </div>
+
+      <!-- Confirmation dialog for individual session removal -->
+      <ConfirmDialog
+        v-if="isRemoveOneRevealed"
+        @confirm="confirmRemoveOne"
+        @cancel="cancelRemoveOne"
+        :title="t('web.auth.sessions.remove')"
+        :message="t('web.auth.sessions.confirm_remove')"
+        type="danger" />
     </div>
   </SettingsLayout>
 </template>

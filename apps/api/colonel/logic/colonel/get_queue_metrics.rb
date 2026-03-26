@@ -7,7 +7,12 @@ require_relative '../base'
 module ColonelAPI
   module Logic
     module Colonel
-      # Returns RabbitMQ queue metrics for admin dashboard
+      # Get Queue Metrics
+      #
+      # @api Returns RabbitMQ queue metrics including per-queue message
+      #   counts and consumer counts, connection status, and an inferred
+      #   worker health status (healthy, degraded, unhealthy, or unknown).
+      #   Requires colonel role.
       #
       # This endpoint is purely passive - it uses the existing $rmq_conn
       # connection established at boot and queries queue stats without
@@ -17,6 +22,8 @@ module ColonelAPI
       # run on different machines (no PID file access).
       #
       class GetQueueMetrics < ColonelAPI::Logic::Base
+        SCHEMAS = { response: 'queueMetrics' }.freeze
+
         def process_params
           # No parameters needed
         end

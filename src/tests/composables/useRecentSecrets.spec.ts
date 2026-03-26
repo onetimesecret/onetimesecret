@@ -1,6 +1,6 @@
 // src/tests/composables/useRecentSecrets.spec.ts
 
-import type { ReceiptRecords } from '@/schemas/api/account/endpoints/recent';
+import type { ReceiptList } from '@/schemas/shapes/v3/receipt';
 import type { LocalReceipt } from '@/types/ui/local-receipt';
 import { createTestingPinia } from '@pinia/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -52,7 +52,7 @@ vi.mock('@/shared/stores/localReceiptStore', () => ({
   })),
 }));
 
-const mockApiRecords = ref<ReceiptRecords[]>([]);
+const mockApiRecords = ref<ReceiptList[]>([]);
 
 vi.mock('@/shared/stores/receiptListStore', () => ({
   useReceiptListStore: vi.fn(() => ({
@@ -89,9 +89,9 @@ function createMockLocalReceipt(
 }
 
 /**
- * Creates a mock ReceiptRecords for API (authenticated) mode testing.
+ * Creates a mock ReceiptList for API (authenticated) mode testing.
  */
-function createMockApiRecord(overrides: Partial<ReceiptRecords> = {}): ReceiptRecords {
+function createMockApiRecord(overrides: Partial<ReceiptList> = {}): ReceiptList {
   const now = new Date();
   return {
     key: overrides.key ?? `api-key-${Date.now()}`,
@@ -116,7 +116,7 @@ function createMockApiRecord(overrides: Partial<ReceiptRecords> = {}): ReceiptRe
     show_recipients: overrides.show_recipients ?? false,
     custid: overrides.custid ?? 'test-customer',
     owner_id: overrides.owner_id ?? 'test-owner',
-  } as ReceiptRecords;
+  } as ReceiptList;
 }
 
 describe('useRecentSecrets', () => {

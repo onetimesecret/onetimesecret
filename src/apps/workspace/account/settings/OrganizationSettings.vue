@@ -27,6 +27,8 @@ import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/billing';
 // LAUNCH: Identity-only - CreateInvitationPayload hidden until team features enabled
 import type { /* CreateInvitationPayload, */ Organization, OrganizationInvitation } from '@/types/organization';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in template
+import { formatDisplayDate } from '@/utils/format';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 // LAUNCH: Identity-only - zod hidden until team features enabled (used for invite form validation)
@@ -249,7 +251,7 @@ const loadBilling = async () => {
       if (overview.subscription && overview.plan) {
         subscription.value = {
           id: overview.subscription.id,
-          org_id: organization.value.id,
+          org_id: organization.value.objid,
           plan_type: overview.plan.tier as any,
           status: overview.subscription.status as any,
           teams_limit: overview.plan.limits.teams || 0,
@@ -384,12 +386,6 @@ const handleRevokeInvitation = async (token: string) => {
     error.value = t('web.organizations.invitations.revoke_error');
   }
 };
-
-const formatDate = (timestamp: number): string => new Date(timestamp * 1000).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
 
 const formatTimeRemaining = (expiresAt: number): string => {
   const now = Math.floor(Date.now() / 1000);
@@ -856,7 +852,7 @@ watch(orgId, async (newOrgId, oldOrgId) => {
                         {{ t('web.organizations.invitations.status.pending') }}
                       </span>
                       <span class="text-xs text-gray-500 dark:text-gray-400">
-                        {{ t('web.organizations.invitations.invited_at') }} {{ formatDate(invitation.invited_at) }}
+                        {{ t('web.organizations.invitations.invited_at') }} {{ formatDisplayDate(new Date(invitation.invited_at * 1000)) }}
                       </span>
                       <span class="text-xs text-gray-500 dark:text-gray-400">·</span>
                       <span class="text-xs text-gray-500 dark:text-gray-400">

@@ -4,6 +4,7 @@
 
 require_relative '../base'
 require_relative '../../../../../lib/onetime/jobs/publisher'
+require 'onetime/logic/sso_only_gating'
 
 module AccountAPI::Logic
   module Account
@@ -18,6 +19,7 @@ module AccountAPI::Logic
     #
     class ResendEmailChangeConfirmation < AccountAPI::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Logic::SsoOnlyGating
 
       MAX_RESENDS = 3
 
@@ -28,7 +30,9 @@ module AccountAPI::Logic
       end
 
       def raise_concerns
-        raise_form_error('Authentication required', error_type: :unauthorized) if cust.anonymous?
+        require_non_sso_only!
+
+        verify_authenticated!
 
         # Verify there is a pending email change
         pending_identifier = cust.pending_email_change.to_s
@@ -102,9 +106,12 @@ module AccountAPI::Logic
 
       def increment_resend_count
         key = resend_count_key
-        Familia.dbclient.incr(key)
-        # Set TTL only on the first increment (when TTL is -1, meaning no expiry set)
-        Familia.dbclient.expire(key, 24 * 60 * 60) if Familia.dbclient.ttl(key) == -1
+        # Use MULTI/EXEC to atomically increment and set TTL, preventing a
+        # permanent-block if the process crashes between incr and expire.
+        Familia.dbclient.multi do |transaction|
+          transaction.incr(key)
+          transaction.expire(key, 24 * 60 * 60)
+        end
       end
     end
   end

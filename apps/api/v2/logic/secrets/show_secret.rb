@@ -2,11 +2,25 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/passphrase_rate_limiter'
+
 module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
 
+    # Show Secret
+    #
+    # @api Retrieves a secret's metadata and optionally its decrypted content.
+    #   When called with continue=true and the correct passphrase, the secret
+    #   value is returned and the secret is consumed. Without continue, returns
+    #   only metadata such as whether a passphrase is required. The secret can
+    #   only be viewed once.
     class ShowSecret < V2::Logic::Base
+      include Onetime::Logic::GuestRouteGating
+      include Onetime::Security::PassphraseRateLimiter
+
+      SCHEMAS = { response: 'secret' }.freeze
+
       attr_reader :identifier,
         :passphrase,
         :continue,
@@ -30,8 +44,13 @@ module V2::Logic
       end
 
       def raise_concerns
+        require_guest_route_enabled!(:show)
         require_entitlement!('api_access')
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
+
+        # Check passphrase rate limit before allowing passphrase attempts
+        # This prevents brute-force attacks on secrets with passphrases
+        check_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
       end
 
       def process
@@ -39,6 +58,17 @@ module V2::Logic
         @show_secret        = secret.viewable? && correct_passphrase && continue
         @verification       = secret.verification.to_s == 'true'
         @secret_identifier  = @secret.identifier
+
+        # Track passphrase attempts for rate limiting
+        if secret.has_passphrase? && !passphrase.empty?
+          if correct_passphrase
+            # Clear rate limit on successful passphrase
+            clear_passphrase_rate_limit!(secret.identifier)
+          else
+            # Record failed attempt
+            record_failed_passphrase_attempt!(secret.identifier)
+          end
+        end
 
         if show_secret
           @secret_value = secret.decrypted_secret_value(passphrase_input: passphrase)
@@ -92,7 +122,7 @@ module V2::Logic
       private
 
       def verify_owner(owner)
-        if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
+        if anonymous_user? || (cust.custid == owner.custid && !owner.verified?)
           owner.verified    = true
           owner.verified_by = 'email'
           owner.save

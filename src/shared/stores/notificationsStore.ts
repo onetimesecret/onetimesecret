@@ -53,6 +53,7 @@ export type NotificationsStore = {
  * ```
  */
 
+// eslint-disable-next-line max-lines-per-function
 export const useNotificationsStore = defineStore('notifications', () => {
   const $api = inject('api') as AxiosInstance; // eslint-disable-line
   const bootstrapStore = useBootstrapStore();
@@ -64,6 +65,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const isVisible = ref(false);
   const position = ref<NotificationPosition>('top');
   const _initialized = ref(false);
+  let _hideTimerId: ReturnType<typeof setTimeout> | null = null;
 
   /**
    * Initialize notification store
@@ -97,54 +99,40 @@ export const useNotificationsStore = defineStore('notifications', () => {
     _initialized.value = true;
   }
 
-  /**
-   * Display notification with auto-dismissal
-   *
-   * @param msg - Notification message text
-   * @param sev - Message severity: 'success' | 'error' | 'info'
-   * @param pos - Optional display position, defaults to 'top'
-   *
-   * @example Error Notification
-   * ```ts
-   * show('Failed to save', 'error');
-   * ```
-   *
-   * @example Success with Position
-   * ```ts
-   * show('Changes saved', 'success', 'top');
-   * ```
-   */
+  /** Display a notification with auto-dismissal after 5 s. */
   function show(msg: string, sev: NotificationSeverity, pos?: NotificationPosition) {
+    // Clear any pending hide timer so earlier timeouts don't dismiss this message
+    if (_hideTimerId !== null) {
+      clearTimeout(_hideTimerId);
+    }
+
     message.value = msg;
     severity.value = sev;
     position.value = pos || 'top';
     isVisible.value = true;
 
-    setTimeout(() => {
+    _hideTimerId = setTimeout(() => {
       hide();
     }, 5000);
   }
 
-  /**
-   * Hide current notification and reset state
-   *
-   * @example
-   * ```ts
-   * // Manually dismiss notification
-   * notifications.hide();
-   * ```
-   */
+  /** Hide the current notification and reset its state. */
   function hide() {
+    if (_hideTimerId !== null) {
+      clearTimeout(_hideTimerId);
+      _hideTimerId = null;
+    }
     isVisible.value = false;
     message.value = '';
     severity.value = null;
   }
 
-  /**
-   * Reset store to initial state
-   * Clears message, severity, visibility and position
-   */
+  /** Reset store to initial state (clears message, severity, visibility, position). */
   function $reset() {
+    if (_hideTimerId !== null) {
+      clearTimeout(_hideTimerId);
+      _hideTimerId = null;
+    }
     message.value = '';
     severity.value = null;
     isVisible.value = false;

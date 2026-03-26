@@ -21,6 +21,7 @@ pnpm-debug.log*
 .continue/
 .devcontainer
 .history
+.hypothesis/
 .pnpm/
 .pnpm-store/
 .prompts/
@@ -54,7 +55,8 @@ public/doc
 
 # Files
 .DS_Store
-!.pr_agent.toml
+CLAUDE.md
+!.oci-build.json
 .github/*md
 .eslintcache
 .claude
@@ -71,7 +73,7 @@ tsconfig.tsbuildinfo
 *.db
 !locales/db/*.sql
 !routes.txt
-
+.overmind.sock
 Procfile.*
 !Procfile*.example
 
@@ -80,13 +82,20 @@ src/auto-imports.d.ts
 src/.eslintrc-auto-import.json
 *.pyc
 
-# Generated files (locales and types) - produced by sync/type-gen scripts
+# Generated files (locales, types, OpenAPI, docs) - produced by sync/type-gen/openapi/typedoc scripts
 generated/locales/*.json
 generated/types/*.d.ts
+generated/openapi/*.json
+generated/outputs
+generated/docs/
+
+scripts/api-validation/captures
+scripts/api-validation/diffs
 
 # Environment files
 .env*
 !.env.example
+!.env.reference
 !.env.sh
 
 # Playwright paths

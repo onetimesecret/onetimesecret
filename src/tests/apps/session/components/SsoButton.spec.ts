@@ -25,7 +25,7 @@ vi.mock('@/shared/stores/csrfStore', () => ({
 
 // Mock bootstrapStore with configurable features
 const mockFeatures = ref<{
-  omniauth?: boolean | { enabled: boolean; provider_name?: string; route_name?: string };
+  sso?: boolean | { enabled: boolean; provider_name?: string; route_name?: string };
 }>({});
 
 vi.mock('@/shared/stores/bootstrapStore', () => ({
@@ -62,7 +62,7 @@ const i18n = createI18n({
  * - Creates and submits a form to /auth/sso/oidc
  * - Includes shrimp token in form submission (for consistency with other forms)
  * - Shows loading state during submission
- * - Reads provider_name from bootstrapStore.features.omniauth
+ * - Reads provider_name from bootstrapStore.features.sso
  *
  * Note: SSO routes (/auth/sso/*) skip Rack::Protection CSRF validation.
  * CSRF protection is handled by OAuth's state parameter instead.
@@ -82,18 +82,18 @@ describe('SsoButton', () => {
 
       // Provider name computed from features (matches actual component)
       const providerName = (() => {
-        const omniauth = mockFeatures.value?.omniauth;
-        if (typeof omniauth === 'object' && omniauth !== null) {
-          return omniauth.provider_name || null;
+        const sso = mockFeatures.value?.sso;
+        if (typeof sso === 'object' && sso !== null) {
+          return sso.provider_name || null;
         }
         return null;
       })();
 
       // SSO route computed from features (matches actual component)
       const ssoRoute = (() => {
-        const omniauth = mockFeatures.value?.omniauth;
-        if (typeof omniauth === 'object' && omniauth !== null) {
-          return `/auth/sso/${omniauth.route_name || 'oidc'}`;
+        const sso = mockFeatures.value?.sso;
+        if (typeof sso === 'object' && sso !== null) {
+          return `/auth/sso/${sso.route_name || 'oidc'}`;
         }
         return '/auth/sso/oidc';
       })();
@@ -179,22 +179,22 @@ describe('SsoButton', () => {
     });
 
     it('displays generic SSO text when no provider_name is configured', () => {
-      mockFeatures.value = { omniauth: true };
+      mockFeatures.value = { sso: true };
       wrapper = mountComponent();
 
       expect(wrapper.text()).toContain('Sign in with SSO');
     });
 
-    it('displays generic SSO text when omniauth is boolean true', () => {
-      mockFeatures.value = { omniauth: true };
+    it('displays generic SSO text when sso is boolean true', () => {
+      mockFeatures.value = { sso: true };
       wrapper = mountComponent();
 
       expect(wrapper.text()).toContain('Sign in with SSO');
       expect(wrapper.text()).not.toContain('Sign in with Okta');
     });
 
-    it('displays generic SSO text when omniauth is object without provider_name', () => {
-      mockFeatures.value = { omniauth: { enabled: true } };
+    it('displays generic SSO text when sso is object without provider_name', () => {
+      mockFeatures.value = { sso: { enabled: true } };
       wrapper = mountComponent();
 
       expect(wrapper.text()).toContain('Sign in with SSO');
@@ -223,9 +223,9 @@ describe('SsoButton', () => {
   });
 
   describe('Provider Name Display', () => {
-    it('displays provider name when configured in omniauth object', () => {
+    it('displays provider name when configured in sso object', () => {
       mockFeatures.value = {
-        omniauth: { enabled: true, provider_name: 'Okta' },
+        sso: { enabled: true, provider_name: 'Okta' },
       };
       wrapper = mountComponent();
 
@@ -235,7 +235,7 @@ describe('SsoButton', () => {
 
     it('displays provider name for Zitadel', () => {
       mockFeatures.value = {
-        omniauth: { enabled: true, provider_name: 'Zitadel' },
+        sso: { enabled: true, provider_name: 'Zitadel' },
       };
       wrapper = mountComponent();
 
@@ -244,7 +244,7 @@ describe('SsoButton', () => {
 
     it('displays provider name for Azure AD', () => {
       mockFeatures.value = {
-        omniauth: { enabled: true, provider_name: 'Azure AD' },
+        sso: { enabled: true, provider_name: 'Azure AD' },
       };
       wrapper = mountComponent();
 
@@ -253,7 +253,7 @@ describe('SsoButton', () => {
 
     it('displays provider name for Google Workspace', () => {
       mockFeatures.value = {
-        omniauth: { enabled: true, provider_name: 'Google Workspace' },
+        sso: { enabled: true, provider_name: 'Google Workspace' },
       };
       wrapper = mountComponent();
 
@@ -262,7 +262,7 @@ describe('SsoButton', () => {
 
     it('falls back to SSO when provider_name is empty string', () => {
       mockFeatures.value = {
-        omniauth: { enabled: true, provider_name: '' },
+        sso: { enabled: true, provider_name: '' },
       };
       wrapper = mountComponent();
 
@@ -271,21 +271,21 @@ describe('SsoButton', () => {
 
     it('falls back to SSO when provider_name is null', () => {
       mockFeatures.value = {
-        omniauth: { enabled: true, provider_name: undefined },
+        sso: { enabled: true, provider_name: undefined },
       };
       wrapper = mountComponent();
 
       expect(wrapper.text()).toContain('Sign in with SSO');
     });
 
-    it('falls back to SSO when omniauth is boolean false', () => {
-      mockFeatures.value = { omniauth: false };
+    it('falls back to SSO when sso is boolean false', () => {
+      mockFeatures.value = { sso: false };
       wrapper = mountComponent();
 
       expect(wrapper.text()).toContain('Sign in with SSO');
     });
 
-    it('falls back to SSO when omniauth is undefined', () => {
+    it('falls back to SSO when sso is undefined', () => {
       mockFeatures.value = {};
       wrapper = mountComponent();
 
@@ -295,7 +295,7 @@ describe('SsoButton', () => {
 
   describe('Dynamic Route Name', () => {
     it('uses default oidc route when route_name is not configured', async () => {
-      mockFeatures.value = { omniauth: { enabled: true } };
+      mockFeatures.value = { sso: { enabled: true } };
       wrapper = mountComponent();
 
       await wrapper.find('[data-testid="sso-button"]').trigger('click');
@@ -305,7 +305,7 @@ describe('SsoButton', () => {
     });
 
     it('uses custom route_name when configured', async () => {
-      mockFeatures.value = { omniauth: { enabled: true, route_name: 'saml' } };
+      mockFeatures.value = { sso: { enabled: true, route_name: 'saml' } };
       wrapper = mountComponent();
 
       await wrapper.find('[data-testid="sso-button"]').trigger('click');
@@ -316,7 +316,7 @@ describe('SsoButton', () => {
 
     it('supports google_oauth2 route name', async () => {
       mockFeatures.value = {
-        omniauth: { enabled: true, route_name: 'google_oauth2', provider_name: 'Google' },
+        sso: { enabled: true, route_name: 'google_oauth2', provider_name: 'Google' },
       };
       wrapper = mountComponent();
 
@@ -331,7 +331,7 @@ describe('SsoButton', () => {
 
     it('supports azure_activedirectory_v2 route name', async () => {
       mockFeatures.value = {
-        omniauth: { enabled: true, route_name: 'azure_activedirectory_v2', provider_name: 'Azure AD' },
+        sso: { enabled: true, route_name: 'azure_activedirectory_v2', provider_name: 'Azure AD' },
       };
       wrapper = mountComponent();
 
@@ -341,8 +341,8 @@ describe('SsoButton', () => {
       expect(form).not.toBeNull();
     });
 
-    it('falls back to oidc when omniauth is boolean true', async () => {
-      mockFeatures.value = { omniauth: true };
+    it('falls back to oidc when sso is boolean true', async () => {
+      mockFeatures.value = { sso: true };
       wrapper = mountComponent();
 
       await wrapper.find('[data-testid="sso-button"]').trigger('click');
@@ -352,7 +352,7 @@ describe('SsoButton', () => {
     });
 
     it('falls back to oidc when route_name is empty string', async () => {
-      mockFeatures.value = { omniauth: { enabled: true, route_name: '' } };
+      mockFeatures.value = { sso: { enabled: true, route_name: '' } };
       wrapper = mountComponent();
 
       await wrapper.find('[data-testid="sso-button"]').trigger('click');
@@ -366,7 +366,7 @@ describe('SsoButton', () => {
    * Form Submission Tests
    *
    * The SSO button creates a form POST to /auth/sso/oidc which initiates the
-   * OmniAuth flow. The form includes a shrimp field for consistency with other
+   * SSO flow. The form includes a shrimp field for consistency with other
    * forms, but SSO routes skip Rack::Protection CSRF validation - CSRF protection
    * is instead handled by OAuth's state parameter during the IdP redirect flow.
    *
@@ -393,14 +393,14 @@ describe('SsoButton', () => {
       expect(form?.getAttribute('method')).toBe('POST');
     });
 
-    it('form action is correct for OmniAuth OIDC initiation', async () => {
+    it('form action is correct for SSO OIDC initiation', async () => {
       wrapper = mountComponent();
 
       await wrapper.find('[data-testid="sso-button"]').trigger('click');
 
       const form = document.querySelector('form[action="/auth/sso/oidc"]');
       expect(form).not.toBeNull();
-      // The /auth/sso/oidc endpoint is handled by OmniAuth and redirects to the IdP
+      // The /auth/sso/oidc endpoint initiates the SSO flow and redirects to the IdP
       expect(form?.getAttribute('action')).toBe('/auth/sso/oidc');
     });
 

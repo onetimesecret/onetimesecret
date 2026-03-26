@@ -15,7 +15,7 @@ module V3
       # either global config (canonical) or per-domain config (custom).
       #
       # @example Request
-      #   POST /api/v3/incoming/secret
+      #   POST /api/incoming/secret
       #   {
       #     secret: {
       #       memo: "Password reset request",
@@ -31,8 +31,14 @@ module V3
       #     details: { memo: "...", recipient: "abc123..." }
       #   }
       #
+      # @api Create a secret destined for a pre-configured recipient and
+      #   send them an email notification. The recipient is identified by
+      #   a hash rather than a raw email address. Returns the receipt and
+      #   secret metadata on success.
       class CreateIncomingSecret < V3::Logic::Base
         include Onetime::LoggerMethods
+
+        SCHEMAS = { response: 'incomingSecret' }.freeze
 
         attr_reader :memo, :secret_value, :recipient_email, :recipient_hash, :ttl, :passphrase, :receipt, :secret, :greenlighted
 
@@ -153,7 +159,7 @@ module V3
 
         def update_customer_stats
           # Update customer stats if not anonymous
-          unless cust.anonymous?
+          unless anonymous_user?
             cust.add_receipt receipt
             cust.increment_field :secrets_created
           end

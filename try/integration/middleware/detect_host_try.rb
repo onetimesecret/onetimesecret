@@ -13,6 +13,7 @@
 # 3. Port stripping
 # 4. Multiple host handling
 # 5. Empty and missing header handling
+# 6. Trusted proxy validation (forwarded headers only trusted from private IPs)
 
 require_relative '../../support/test_helpers'
 
@@ -29,8 +30,9 @@ require 'middleware/detect_host'
 OT.debug = true  # log messages are only avalable in debug mode
 @middleware = Rack::DetectHost.new(@app, logger: @logger)
 
-## X-Forwarded-Host takes precedence over Host header
-env = {'HTTP_X_FORWARDED_HOST' => 'first.com', 'HTTP_HOST' => 'last.com'}
+## X-Forwarded-Host takes precedence over Host header (from trusted proxy)
+# REMOTE_ADDR must be a private IP for forwarded headers to be trusted
+env = {'REMOTE_ADDR' => '10.0.0.1', 'HTTP_X_FORWARDED_HOST' => 'first.com', 'HTTP_HOST' => 'last.com'}
 @middleware.call(env)
 env['rack.detected_host']
 #=> 'first.com'
@@ -71,8 +73,8 @@ env = {'HTTP_HOST' => '::1'}
 [env['rack.detected_host'], @log_output.string.include?('Invalid host detected')]
 #=> [nil, true]
 
-## Takes first host when multiple are provided
-env = {'HTTP_X_FORWARDED_HOST' => 'first.com, second.com'}
+## Takes first host when multiple are provided (from trusted proxy)
+env = {'REMOTE_ADDR' => '192.168.1.1', 'HTTP_X_FORWARDED_HOST' => 'first.com, second.com'}
 @middleware.call(env)
 env['rack.detected_host']
 #=> 'first.com'
@@ -90,6 +92,25 @@ env = {'HTTP_HOST' => 'example.com'}
 status, _, body = @middleware.call(env)
 [status, body]
 #=> [200, ['OK']]
+
+## Ignores X-Forwarded-Host from direct public request (security)
+# Direct requests from public IPs should not trust forwarded headers
+env = {'REMOTE_ADDR' => '203.0.113.50', 'HTTP_X_FORWARDED_HOST' => 'spoofed.com', 'HTTP_HOST' => 'real.com'}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'real.com'
+
+## Trusts X-Forwarded-Host from private network (loopback)
+env = {'REMOTE_ADDR' => '127.0.0.1', 'HTTP_X_FORWARDED_HOST' => 'forwarded.com', 'HTTP_HOST' => 'fallback.com'}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'forwarded.com'
+
+## Trusts X-Forwarded-Host from private network (RFC 1918)
+env = {'REMOTE_ADDR' => '172.16.5.100', 'HTTP_X_FORWARDED_HOST' => 'internal.example.com', 'HTTP_HOST' => 'external.com'}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'internal.example.com'
 
 
 

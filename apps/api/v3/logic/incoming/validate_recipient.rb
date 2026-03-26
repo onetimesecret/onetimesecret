@@ -14,13 +14,18 @@ module V3
       # either global config (canonical) or per-domain config (custom).
       #
       # @example Request
-      #   POST /api/v3/incoming/validate
+      #   POST /api/incoming/validate
       #   { recipient: "abc123..." }
       #
       # @example Response
       #   { recipient: "abc123...", valid: true }
       #
+      # @api Validate whether a recipient hash corresponds to a configured
+      #   incoming recipient. Returns true if the hash is recognized, false
+      #   otherwise. Use this before submitting a secret creation request.
       class ValidateRecipient < V3::Logic::Base
+        SCHEMAS = { response: 'validateRecipient' }.freeze
+
         attr_reader :greenlighted, :recipient_hash, :is_valid
 
         def process_params

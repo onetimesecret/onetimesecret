@@ -4,6 +4,7 @@
 
 require_relative '../base'
 require_relative '../../../../../lib/onetime/jobs/publisher'
+require 'onetime/logic/sso_only_gating'
 
 module AccountAPI::Logic
   module Account
@@ -11,6 +12,7 @@ module AccountAPI::Logic
 
     class ConfirmEmailChange < AccountAPI::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Logic::SsoOnlyGating
 
       attr_reader :secret
 
@@ -20,6 +22,8 @@ module AccountAPI::Logic
       end
 
       def raise_concerns
+        require_non_sso_only!
+
         raise OT::MissingSecret if @secret.nil?
         raise OT::MissingSecret unless @secret.exists?
         raise OT::MissingSecret if @secret.custid.to_s == 'anon'
@@ -156,8 +160,9 @@ module AccountAPI::Logic
       # Scan Redis for all session keys belonging to the given customer
       # and delete them. Uses SCAN to avoid blocking Redis on large keyspaces.
       #
-      # Session values are stored as "base64(json)--hmac". We decode and
-      # check whether external_id matches the customer's extid.
+      # Session values are stored as "base64(encrypted)--hmac". We verify
+      # the HMAC, decrypt, and check whether external_id matches the
+      # customer's extid.
       def delete_redis_sessions(customer)
         extid = customer.extid
         return if extid.nil? || extid.empty?
@@ -165,8 +170,14 @@ module AccountAPI::Logic
         dbclient = Familia.dbclient
         deleted  = 0
 
+        # Derive the same HMAC and encryption keys that Onetime::Session uses,
+        # so we can verify and decrypt session data before trusting it.
+        session_secret     = resolve_session_secret
+        hmac_key           = Onetime::KeyDerivation.derive_session_subkey(session_secret, 'hmac')
+        encryption_key_raw = [Onetime::KeyDerivation.derive_session_subkey(session_secret, 'encryption')].pack('H*')
+
         dbclient.scan_each(match: 'session:*') do |key|
-          session_extid = extract_session_extid(dbclient, key)
+          session_extid = extract_session_extid(dbclient, key, hmac_key, encryption_key_raw)
           next unless session_extid == extid
 
           dbclient.del(key)
@@ -178,18 +189,42 @@ module AccountAPI::Logic
         OT.le "[confirm-email-change] Redis session cleanup error: #{ex.message}"
       end
 
-      # Extract the external_id from a stored session value without
-      # verifying the HMAC (we are deleting, not trusting the data).
-      # Returns nil if the value cannot be decoded.
-      def extract_session_extid(dbclient, key)
+      # Resolve the session secret using the same fallback chain as
+      # Onetime::Session#initialize: ENV['SESSION_SECRET'] then site secret.
+      def resolve_session_secret
+        secret = ENV.fetch('SESSION_SECRET', nil)
+        return secret if secret.is_a?(String) && !secret.empty?
+
+        OT.conf.dig('site', 'secret')
+      end
+
+      # Extract the external_id from a stored session value after verifying
+      # the HMAC signature and decrypting the payload. Returns nil if the
+      # value cannot be verified or decoded.
+      def extract_session_extid(dbclient, key, hmac_key, encryption_key_raw)
         raw = dbclient.get(key)
         return nil unless raw
 
-        data, _hmac = raw.split('--', 2)
-        return nil unless data
+        data, hmac = raw.split('--', 2)
+        return nil unless data && hmac
 
-        decoded = Base64.decode64(data)
-        parsed  = Familia::JsonSerializer.parse(decoded)
+        # Verify HMAC to ensure the session data has not been tampered with
+        expected_hmac = OpenSSL::HMAC.hexdigest('SHA256', hmac_key, data)
+        return nil unless hmac.bytesize == expected_hmac.bytesize
+        return nil unless Rack::Utils.secure_compare(expected_hmac, hmac)
+
+        # Decode and decrypt the session payload
+        encrypted_data = Base64.strict_decode64(data)
+        return nil if encrypted_data.nil? || encrypted_data.bytesize < 28
+
+        cipher          = OpenSSL::Cipher.new('aes-256-gcm')
+        cipher.decrypt
+        cipher.key      = encryption_key_raw
+        cipher.iv       = encrypted_data[0, 12]
+        cipher.auth_tag = encrypted_data[12, 16]
+        decrypted       = cipher.update(encrypted_data[28..]) + cipher.final
+
+        parsed = Familia::JsonSerializer.parse(decrypted)
         parsed['external_id']
       rescue StandardError
         nil

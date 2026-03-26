@@ -7,6 +7,11 @@ module V1::Logic
 
     using Familia::Refinements::TimeLiterals
 
+    # V1 compat: uses load_owner (not load_customer) and
+    # decrypted_secret_value (not decrypted_value). The v0.24 model
+    # renamed load_customer -> load_owner, and the new decryption
+    # dispatcher (decrypted_secret_value) handles both v1 legacy
+    # `value` field and v2 `ciphertext` field transparently.
     class ShowSecret < V1::Logic::Base
       attr_reader :key, :passphrase, :continue
       attr_reader :secret, :show_secret, :secret_value, :is_truncated,
@@ -22,7 +27,6 @@ module V1::Logic
       end
 
       def raise_concerns
-
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
       end
 
@@ -32,17 +36,25 @@ module V1::Logic
         @verification = secret.verification.to_s == "true"
         @secret_key = @secret.identifier # Use identifier, not deprecated .key field
 
-        owner = secret.load_customer
+        owner = secret.load_owner
 
         if show_secret
-          # If we can't decrypt that's great! We just set secret_value to
-          # the encrypted string.
-          @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
+          # Call decrypted_secret_value directly instead of guarding with
+          # can_decrypt?. For passphrase-protected secrets, can_decrypt? checks
+          # passphrase_temp which isn't set until decrypted_secret_value runs —
+          # so can_decrypt? returns false and we fall through to secret.value
+          # (which is empty for v0.24 ciphertext-only secrets). Since we've
+          # already verified the passphrase is correct (line 35), we can safely
+          # call decrypted_secret_value which handles both ciphertext (v2) and
+          # legacy value paths.
+          @secret_value = secret.decrypted_secret_value(passphrase_input: passphrase)
           @is_truncated = secret.truncated?
-          @original_size = secret.original_size
+          @original_size = secret.respond_to?(:original_size) ? secret.original_size : nil
 
           if verification
-            if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
+            if owner.nil?
+              raise_form_error "Unable to verify account"
+            elsif cust.nil? || cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
               owner.verified! "true"
               # Skip for stateless auth (BasicAuth provides empty session)
               sess.clear unless sess.empty?
@@ -52,7 +64,7 @@ module V1::Logic
             end
           else
 
-            owner.increment_field :secrets_shared unless owner.anonymous?
+            owner.increment_field(:secrets_shared) if owner && !owner.anonymous?
             # TODO:
             # Onetime::Customer.global.increment_field :secrets_shared
 

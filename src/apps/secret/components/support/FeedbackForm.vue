@@ -169,8 +169,10 @@
           {{ t('web.feedback.when_you_submit_feedback_well_see') }}
         </h3>
         <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+          <!-- Authentication check: cust is null for anonymous users (via AuthenticationSerializer),
+               cust.objid confirms a fully hydrated customer object -->
           <li
-            v-if="cust && cust.identifier !== 'anon'"
+            v-if="cust?.objid"
             class="flex items-center">
             <svg
               class="mr-2 size-4 text-brand-500"
@@ -183,7 +185,7 @@
                 stroke-width="2"
                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
-            {{ t('web.account.customer_id') }}: {{ cust?.extid }}
+            {{ t('web.account.customer_id') }}: {{ cust?.email }}
           </li>
           <li class="flex items-center">
             <svg

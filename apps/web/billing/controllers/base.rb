@@ -72,6 +72,8 @@ module Billing
       # @param url [String] the URL to validate
       # @return [URI::HTTP, nil] the validated URI object if valid, otherwise nil
       def validate_url(url)
+        return nil if url.nil? || url.to_s.strip.empty?
+
         uri = nil
         begin
           uri = URI.parse(url)
@@ -104,13 +106,13 @@ module Billing
         user = req.user
         return user if user.is_a?(Onetime::Customer)
 
-        Onetime::Customer.anonymous
+        nil # Anonymous - return nil
       rescue StandardError => ex
         billing_logger.error 'Failed to load customer',
           {
             exception: ex,
           }
-        Onetime::Customer.anonymous
+        nil # Error recovery - treat as anonymous
       end
 
       # Checks if the request accepts JSON responses
@@ -153,7 +155,7 @@ module Billing
       # @return [void]
       def ensure_customer_has_workspace
         billing_logger.debug '[ensure_customer_has_workspace] Checking customer workspace'
-        return if cust.anonymous?
+        return if cust.nil? || cust.anonymous?
 
         # Use Familia v2 auto-generated reverse collection method for O(1) lookup
         return if cust.organization_instances.any?
@@ -189,6 +191,11 @@ module Billing
 
       # Load organization and verify ownership/membership
       #
+      # Checks membership first, then falls back to ownership. Owners are
+      # always granted access even if their membership entry is missing from
+      # the members sorted set (e.g. fresh regions without migration data).
+      # When this inconsistency is detected, the membership is self-healed.
+      #
       # @param extid [String] Organization external identifier
       # @param require_owner [Boolean] If true, require current user to be owner
       # @return [Onetime::Organization] Loaded organization
@@ -197,7 +204,10 @@ module Billing
         org = Onetime::Organization.find_by_extid(extid)
         raise OT::Problem, 'Organization not found' unless org
 
-        unless org.member?(cust)
+        is_member = org.member?(cust)
+        is_owner  = org.owner?(cust)
+
+        unless is_member || is_owner
           billing_logger.warn 'Access denied to organization',
             {
               extid: extid,
@@ -206,7 +216,29 @@ module Billing
           raise OT::Problem, 'Access denied'
         end
 
-        if require_owner && !org.owner?(cust)
+        # Self-heal: owner exists in org hash but missing from members sorted set.
+        # This can happen when a region has no migration data to pre-populate
+        # the members set and add_members_instance failed silently during creation.
+        if is_owner && !is_member
+          billing_logger.info '[self-healing] Re-adding owner to members sorted set',
+            {
+              extid: extid,
+              user: cust.extid,
+            }
+          begin
+            org.add_members_instance(cust, through_attrs: { role: 'owner' })
+          rescue StandardError => ex
+            billing_logger.error '[self-healing] Failed to re-add owner as member',
+              {
+                extid: extid,
+                user: cust.extid,
+                error: ex.message,
+                backtrace: ex.backtrace&.first(5),
+              }
+          end
+        end
+
+        if require_owner && !is_owner
           billing_logger.warn 'Owner access required',
             {
               extid: extid,

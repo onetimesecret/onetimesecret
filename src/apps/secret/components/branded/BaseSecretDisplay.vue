@@ -18,7 +18,7 @@
    * @slot action-button - Action button slot (submit or copy)
    */
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { BrandSettings } from '@/schemas/models';
+  import { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
   import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
   import { Composer, useI18n } from 'vue-i18n';
 

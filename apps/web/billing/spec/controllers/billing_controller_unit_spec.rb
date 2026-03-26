@@ -108,6 +108,27 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
       expect(last_response.body).to include('Access denied')
     end
 
+    context 'when owner is missing from members sorted set' do
+      before do
+        # Simulate the bug: owner exists in org hash (owner_id) but is
+        # absent from the members sorted set. This happens in fresh regions
+        # where add_members_instance failed silently during org creation
+        # and no migration script pre-populated the set.
+        organization.remove_members_instance(customer)
+        expect(organization.member?(customer)).to be(false), 'precondition: owner should not be in members set'
+        expect(organization.owner?(customer)).to be(true), 'precondition: owner? should still return true'
+      end
+
+      it 'grants access to the owner and self-heals membership' do
+        get "/billing/api/org/#{organization.extid}"
+
+        expect(last_response.status).to eq(200)
+
+        # Verify the self-healing re-added the owner to the members set
+        expect(organization.member?(customer)).to be(true)
+      end
+    end
+
     it 'returns 403 when organization does not exist' do
       get '/billing/api/org/nonexistent_org_id'
 
@@ -247,7 +268,7 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
         # Stub Stripe::Checkout::Session.create to raise currency conflict
         allow(Stripe::Checkout::Session).to receive(:create).and_raise(
           Stripe::InvalidRequestError.new(
-            'You cannot combine currencies on a single customer. This customer has had a subscription or payment in eur, but you are trying to pay in usd.',
+            'You cannot combine currencies on a single customer. This customer has had a subscription or payment in eur, but you are trying to pay in cad.',
             'currency'
           )
         )
@@ -269,7 +290,7 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
         expect(data['error']).to be true
         expect(data['code']).to eq('currency_conflict')
         expect(data['details']['existing_currency']).to eq('eur')
-        expect(data['details']['requested_currency']).to eq('usd')
+        expect(data['details']['requested_currency']).to eq('cad')
         # Fallback assessment: nil plan data, safe default warnings
         expect(data['details']['current_plan']).to be_nil
         expect(data['details']['requested_plan']).to be_nil

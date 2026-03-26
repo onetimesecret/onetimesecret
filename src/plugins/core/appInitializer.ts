@@ -6,7 +6,6 @@ import { createAppRouter } from '@/router';
 import { setupRouterGuards } from '@/router/guards.routes';
 import { consumeBootstrapData, getBootstrapValue } from '@/services/bootstrap.service';
 import { loggingService } from '@/services/logging.service';
-import type { DiagnosticsConfig } from '@/types/diagnostics';
 import { AxiosInstance } from 'axios';
 import { createPinia } from 'pinia';
 import { App, Plugin } from 'vue';
@@ -66,7 +65,7 @@ function initializeApp(app: App, options: AppInitializerOptions = {}) {
 
     const diagnosticsPlugin = createDiagnostics({
       host,
-      config: diagnostics as DiagnosticsConfig,
+      config: diagnostics!, // checked above: `if (d9sEnabled && diagnostics)`
       router,
     });
 
@@ -80,8 +79,11 @@ function initializeApp(app: App, options: AppInitializerOptions = {}) {
   });
 
   // Register auto-init plugin before creating stores. We pass the api client
-  // to the plugin so it can be used by stores.
-  pinia.use(autoInitPlugin(options));
+  // and browser locale to the plugin so stores can use them during init.
+  pinia.use(autoInitPlugin({
+    api: options.api,
+    deviceLocale: navigator.language,
+  }));
 
   // Make API client available to Vue app (and pinia stores)
   // NOTE: In our unit tests we need to explicitly provide an API client

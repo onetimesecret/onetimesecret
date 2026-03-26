@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import { useFormSubmission } from '@/shared/composables/useFormSubmission';
-import { Customer } from '@/schemas/models';
+import { type Customer } from '@/schemas/shapes/v3';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { ref } from 'vue';
@@ -54,13 +54,15 @@ const closeDeleteModal = () => {
   <ul class="mb-4 list-inside list-disc dark:text-gray-300">
     <li><span class="font-bold">{{ t('web.account.secrets_will_remain_active_until_they_expire') }}</span></li>
     <li>
-      {{ t('web.account.any_secrets_you_wish_to_remove') }} <span
-        class="underline">{{ t('web.account.burn_them_before_continuing') }}</span>.
+      {{ t('web.account.any_secrets_you_wish_to_remove') }} <RouterLink
+        to="/recent"
+        class="underline hover:text-brand-600 dark:hover:text-brand-400">{{ t('web.account.burn_them_before_continuing') }}</RouterLink>.
     </li>
     <li>{{ t('web.account.deleting_your_account_is') }} <span class="italic">{{ t('web.account.permanent_and_non_reversible') }}</span></li>
   </ul>
   <button
     @click="openDeleteModal"
+    data-testid="account-delete-open-btn"
     class="group flex w-full items-center justify-center rounded bg-red-600 px-4 py-2 font-bold text-white transition-all hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/25">
     <!-- no-symbol: Reserved exclusively for destructive/irreversible actions -->
     <OIcon
@@ -71,12 +73,13 @@ const closeDeleteModal = () => {
     {{ t('web.account.permanently_delete_account') }}
   </button>
   <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-    {{ t('web.account.deleting_cust_custid', [cust?.extid]) }}
+    {{ t('web.account.deleting_cust_custid', [cust?.email]) }}
   </p>
 
   <!-- Delete Account Confirmation Modal -->
   <div
     v-if="showDeleteModal"
+    data-testid="account-delete-modal"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
     <form
       @submit.prevent="submitDeleteAccount"
@@ -104,6 +107,7 @@ const closeDeleteModal = () => {
             v-model="deletePassword"
             name="confirmation"
             type="password"
+            data-testid="account-delete-password-input"
             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             autocomplete="confirmation"
             :placeholder="t('web.account.confirm_with_your_password')" />
@@ -124,11 +128,13 @@ const closeDeleteModal = () => {
           <button
             @click="closeDeleteModal"
             type="button"
+            data-testid="account-delete-cancel-btn"
             class="rounded-md bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
             {{ t('web.COMMON.word_cancel') }}
           </button>
           <button
             type="submit"
+            data-testid="account-delete-confirm-btn"
             :disabled="!deletePassword || isDeleting"
             class="group flex items-center rounded-md bg-red-600 px-4 py-2 text-white transition-all hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/25 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-800">
             <OIcon

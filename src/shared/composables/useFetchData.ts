@@ -1,7 +1,8 @@
 // src/shared/composables/useFetchData.ts
 
-import type { ApiRecordResponse, ApiRecordsResponse } from '@/schemas/api/v3';
+import type { ApiRecordResponse, ApiRecordsResponse } from '@/schemas/api/base';
 import { computed, ref, Ref } from 'vue';
+import { useApi } from './useApi';
 
 // Core API record interface used across models
 export interface BaseApiRecord {
@@ -36,6 +37,7 @@ export function useFetchData<T extends BaseApiRecord>({
   onSuccess,
   onError,
 }: FetchDataOptions<T>) {
+  const $api = useApi();
   const records = ref<T[]>([]) as Ref<T[]>;
   const details = ref<DetailsType | undefined>(undefined);
   const isLoading = ref(false);
@@ -50,21 +52,10 @@ export function useFetchData<T extends BaseApiRecord>({
     status.value = null;
 
     try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await $api.get<ApiRecordResponse<T> | ApiRecordsResponse<T>>(url);
 
       status.value = response.status;
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch data from ${url}`);
-      }
-
-      const jsonData: ApiRecordResponse<T> | ApiRecordsResponse<T> =
-        await response.json();
+      const jsonData = response.data;
 
       if ('record' in jsonData) {
         records.value = [jsonData.record as T];

@@ -155,6 +155,10 @@
     "text": "{0}を削除中",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "削除中...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "アカウントを完全に削除",
     "sha256": "f894e42c"
@@ -210,6 +214,22 @@
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "アカウント設定と環境設定を管理します",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "ダッシュボードに戻る",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "アカウント",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "請求",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "詳細",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "一般",
@@ -615,24 +635,52 @@
     "text": "この操作は取り消せません",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "削除中...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "メールアドレスが更新されました",
+    "sha256": "cf02eb0c"
   },
-  "web.settings.back_to_dashboard": {
-    "text": "ダッシュボードに戻る",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "メールアドレスが正常に更新されました。新しいメールアドレスでログインしてください。",
+    "sha256": "a84efcea"
   },
-  "web.settings.sections.account": {
-    "text": "アカウント",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "新しいメールアドレスを確認中...",
+    "sha256": "a6a4745f"
   },
-  "web.settings.sections.billing": {
-    "text": "請求",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "メールアドレスの変更に失敗しました",
+    "sha256": "953f3936"
   },
-  "web.settings.sections.advanced": {
-    "text": "詳細",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "この確認リンクは無効または期限切れです。",
+    "sha256": "f54594c2"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "アカウント設定に戻る",
+    "sha256": "fd49b66b"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "ログインページにリダイレクト中...",
+    "sha256": "c65f7dcc"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "確認メールを再送信",
+    "sha256": "c617fff7"
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "確認メールが再送信されました。",
+    "sha256": "2287783b"
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "送信中...",
+    "sha256": "286a3af7"
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "確認メールが送信されました。受信トレイを確認し、確認リンクをクリックしてください。",
+    "sha256": "5806c93f"
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "メールが届きませんか？",
+    "sha256": "fe3ac3ad"
   }
 }

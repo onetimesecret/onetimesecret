@@ -181,6 +181,10 @@ module Onetime
       end
 
       def resolve_anonymous_identity(request, _env)
+        logger.debug '[IdentityResolution] Resolved anonymous identity',
+          ip: request.ip,
+          path: request.path_info
+
         {
           user: build_anonymous_user(request),
           source: 'anonymous',
@@ -248,8 +252,8 @@ module Onetime
       end
 
       def build_anonymous_user(_request)
-        # Return static, frozen anonymous customer
-        Onetime::Customer.anonymous
+        # Return nil for anonymous users
+        nil
       end
 
       def full_authenticated?(session)

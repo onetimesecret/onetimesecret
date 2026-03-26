@@ -5,6 +5,7 @@ import { IncomingSecretPayload, IncomingSecretResponse } from '@/schemas/api/inc
 import { useIncomingStore } from '@/shared/stores/incomingStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 interface IncomingSecretForm {
@@ -42,6 +43,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
   const incomingStore = useIncomingStore();
   const notifications = useNotificationsStore();
   const router = useRouter();
+  const { t } = useI18n();
 
   // Form state
   const form = ref<IncomingSecretForm>({
@@ -86,7 +88,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
   const validateMemo = (): boolean => {
     // Memo is optional, only validate if provided
     if (form.value.memo.trim() && form.value.memo.length > memoMaxLength.value) {
-      errors.value.memo = `Memo must be ${memoMaxLength.value} characters or less`;
+      errors.value.memo = t('incoming.validation_memo_too_long', { max: memoMaxLength.value });
       return false;
     }
 
@@ -96,7 +98,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
 
   const validateSecret = (): boolean => {
     if (!form.value.secret.trim()) {
-      errors.value.secret = 'Secret content is required';
+      errors.value.secret = t('incoming.validation_secret_required');
       return false;
     }
 
@@ -106,7 +108,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
 
   const validateRecipient = (): boolean => {
     if (!form.value.recipientId) {
-      errors.value.recipientId = 'Please select a recipient';
+      errors.value.recipientId = t('incoming.validation_recipient_required');
       return false;
     }
 
@@ -141,11 +143,11 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
   const submit = () =>
     wrapSubmit(async () => {
       if (!isFeatureEnabled.value) {
-        throw createError('Incoming secrets feature is not enabled', 'human');
+        throw createError(t('incoming.validation_feature_disabled'), 'human');
       }
 
       if (!validateForm()) {
-        throw createError('Please check the form for errors', 'human');
+        throw createError(t('incoming.validation_form_errors'), 'human');
       }
 
       const payload = createPayload();

@@ -1,10 +1,12 @@
 // src/shared/stores/organizationStore.ts
+// @see src/tests/stores/organizationStore.spec.ts - Test fixtures for Organization schema
 
 import {
   organizationResponseSchema,
   organizationsResponseSchema,
 } from '@/schemas/api/organizations';
 import { loggingService } from '@/services/logging.service';
+import { gracefulParse } from '@/utils/schemaValidation';
 import type {
   CreateInvitationPayload,
   CreateOrganizationPayload,
@@ -18,9 +20,10 @@ import {
   organizationInvitationSchema,
   updateOrganizationPayloadSchema,
 } from '@/types/organization';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore } from 'pinia';
-import { computed, inject, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { z } from 'zod';
 
 import { useBootstrapStore } from './bootstrapStore';
 
@@ -60,7 +63,7 @@ function persistOrgId(orgId: string | null): void {
 
 /* eslint-disable max-lines-per-function */
 export const useOrganizationStore = defineStore('organization', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const organizations = ref<Organization[]>([]);
@@ -83,7 +86,7 @@ export const useOrganizationStore = defineStore('organization', () => {
   const getOrganizationById = computed(
     () =>
       (orgId: string): Organization | undefined =>
-        organizations.value.find((o) => o.id === orgId)
+        organizations.value.find((o) => o.objid === orgId)
   );
 
   const isInitialized = computed(() => _initialized.value);
@@ -124,8 +127,13 @@ export const useOrganizationStore = defineStore('organization', () => {
         signal: abortController.value.signal,
       });
 
-      const validated = organizationsResponseSchema.parse(response.data);
-      organizations.value = validated.records;
+      const result = gracefulParse(organizationsResponseSchema, response.data, 'OrganizationsResponse');
+      if (!result.ok) {
+        organizations.value = [];
+        _listFetched.value = true;
+        return [];
+      }
+      organizations.value = result.data.records;
       _listFetched.value = true;
       return organizations.value;
     } finally {
@@ -146,18 +154,21 @@ export const useOrganizationStore = defineStore('organization', () => {
     try {
       const response = await $api.get(`/api/organizations/${extid}`);
 
-      const validated = organizationResponseSchema.parse(response.data);
-      currentOrganization.value = validated.record;
+      const result = gracefulParse(organizationResponseSchema, response.data, 'OrganizationResponse');
+      if (!result.ok) {
+        throw new Error('Unable to load organization. Please try again.');
+      }
+      currentOrganization.value = result.data.record;
 
-      // Update in organizations array if exists (use returned id for matching)
-      const index = organizations.value.findIndex((o) => o.id === validated.record.id);
+      // Update in organizations array if exists (use returned objid for matching)
+      const index = organizations.value.findIndex((o) => o.objid === result.data.record.objid);
       if (index !== -1) {
-        organizations.value[index] = validated.record;
+        organizations.value[index] = result.data.record;
       } else {
-        organizations.value.push(validated.record);
+        organizations.value.push(result.data.record);
       }
 
-      return validated.record;
+      return result.data.record;
     } finally {
       loading.value = false;
     }
@@ -170,15 +181,21 @@ export const useOrganizationStore = defineStore('organization', () => {
     loading.value = true;
 
     try {
-      const validated = createOrganizationPayloadSchema.parse(payload);
+      const payloadResult = gracefulParse(createOrganizationPayloadSchema, payload, 'CreateOrganizationPayload');
+      if (!payloadResult.ok) {
+        throw new Error('Invalid organization data.');
+      }
 
-      const response = await $api.post('/api/organizations', validated);
+      const response = await $api.post('/api/organizations', payloadResult.data);
 
-      const orgData = organizationResponseSchema.parse(response.data);
-      organizations.value.push(orgData.record);
-      currentOrganization.value = orgData.record;
+      const orgResult = gracefulParse(organizationResponseSchema, response.data, 'OrganizationResponse');
+      if (!orgResult.ok) {
+        throw new Error('Unable to create organization. Please try again.');
+      }
+      organizations.value.push(orgResult.data.record);
+      currentOrganization.value = orgResult.data.record;
 
-      return orgData.record;
+      return orgResult.data.record;
     } finally {
       loading.value = false;
     }
@@ -196,24 +213,30 @@ export const useOrganizationStore = defineStore('organization', () => {
     loading.value = true;
 
     try {
-      const validated = updateOrganizationPayloadSchema.parse(payload);
+      const payloadResult = gracefulParse(updateOrganizationPayloadSchema, payload, 'UpdateOrganizationPayload');
+      if (!payloadResult.ok) {
+        throw new Error('Invalid organization update data.');
+      }
 
-      const response = await $api.put(`/api/organizations/${extid}`, validated);
+      const response = await $api.put(`/api/organizations/${extid}`, payloadResult.data);
 
-      const orgData = organizationResponseSchema.parse(response.data);
+      const orgResult = gracefulParse(organizationResponseSchema, response.data, 'OrganizationResponse');
+      if (!orgResult.ok) {
+        throw new Error('Unable to update organization. Please try again.');
+      }
 
-      // Update in organizations array (use returned id for matching)
-      const index = organizations.value.findIndex((o) => o.id === orgData.record.id);
+      // Update in organizations array (use returned objid for matching)
+      const index = organizations.value.findIndex((o) => o.objid === orgResult.data.record.objid);
       if (index !== -1) {
-        organizations.value[index] = orgData.record;
+        organizations.value[index] = orgResult.data.record;
       }
 
       // Update currentOrganization if it's the same organization
-      if (currentOrganization.value?.id === orgData.record.id) {
-        currentOrganization.value = orgData.record;
+      if (currentOrganization.value?.objid === orgResult.data.record.objid) {
+        currentOrganization.value = orgResult.data.record;
       }
 
-      return orgData.record;
+      return orgResult.data.record;
     } finally {
       loading.value = false;
     }
@@ -232,12 +255,12 @@ export const useOrganizationStore = defineStore('organization', () => {
       const orgToDelete = organizations.value.find((o) => o.extid === extid);
       await $api.delete(`/api/organizations/${extid}`);
 
-      // Remove from organizations array using internal ID (always present)
+      // Remove from organizations array using internal objid (always present)
       if (orgToDelete) {
-        organizations.value = organizations.value.filter((o) => o.id !== orgToDelete.id);
+        organizations.value = organizations.value.filter((o) => o.objid !== orgToDelete.objid);
 
         // Clear currentOrganization if it's the deleted organization
-        if (currentOrganization.value?.id === orgToDelete.id) {
+        if (currentOrganization.value?.objid === orgToDelete.objid) {
           currentOrganization.value = null;
         }
       }
@@ -322,10 +345,16 @@ export const useOrganizationStore = defineStore('organization', () => {
     try {
       const response = await $api.get(`/api/organizations/${extid}/invitations`);
 
-      const validated = response.data.records.map((inv: unknown) =>
-        organizationInvitationSchema.parse(inv)
+      const result = gracefulParse(
+        z.array(organizationInvitationSchema),
+        response.data.records,
+        'OrganizationInvitations'
       );
-      invitations.value = validated;
+      if (!result.ok) {
+        invitations.value = [];
+        return [];
+      }
+      invitations.value = result.data;
       return invitations.value;
     } finally {
       loading.value = false;
@@ -344,14 +373,20 @@ export const useOrganizationStore = defineStore('organization', () => {
     loading.value = true;
 
     try {
-      const validated = createInvitationPayloadSchema.parse(payload);
+      const payloadResult = gracefulParse(createInvitationPayloadSchema, payload, 'CreateInvitationPayload');
+      if (!payloadResult.ok) {
+        throw new Error('Invalid invitation data.');
+      }
 
-      const response = await $api.post(`/api/organizations/${extid}/invitations`, validated);
+      const response = await $api.post(`/api/organizations/${extid}/invitations`, payloadResult.data);
 
-      const invitation = organizationInvitationSchema.parse(response.data.record);
-      invitations.value.push(invitation);
+      const invResult = gracefulParse(organizationInvitationSchema, response.data.record, 'OrganizationInvitation');
+      if (!invResult.ok) {
+        throw new Error('Unable to create invitation. Please try again.');
+      }
+      invitations.value.push(invResult.data);
 
-      return invitation;
+      return invResult.data;
     } finally {
       loading.value = false;
     }
@@ -418,7 +453,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     const savedOrgId = loadPersistedOrgId();
     if (savedOrgId) {
       const savedOrg = organizations.value.find(
-        (o) => o.id === savedOrgId || o.extid === savedOrgId
+        (o) => o.objid === savedOrgId || o.extid === savedOrgId
       );
       if (savedOrg) return savedOrg;
     }
@@ -429,7 +464,7 @@ export const useOrganizationStore = defineStore('organization', () => {
 
   // Watch currentOrganization and persist to sessionStorage
   watch(
-    () => currentOrganization.value?.id,
+    () => currentOrganization.value?.objid,
     (newOrgId) => {
       persistOrgId(newOrgId ?? null);
     }
@@ -468,20 +503,24 @@ export const useOrganizationStore = defineStore('organization', () => {
       // This prevents overwriting user-selected organization with bootstrap default
       if (bootstrapOrg && !currentOrganization.value) {
         // Convert bootstrap org format to Organization type
-        // Bootstrap provides minimal fields; full data comes from fetchOrganization
+        // Bootstrap provides minimal fields (objid, extid, display_name, is_default, planid, current_user_role)
+        // Full data comes from fetchOrganization
         currentOrganization.value = {
-          id: bootstrapOrg.id,
+          objid: bootstrapOrg.objid,
           extid: bootstrapOrg.extid,
           display_name: bootstrapOrg.display_name,
+          description: null,
+          owner_id: '',
+          contact_email: null,
           is_default: bootstrapOrg.is_default,
-          planid: bootstrapOrg.planid ?? null,
+          planid: bootstrapOrg.planid ?? 'free',
           current_user_role: bootstrapOrg.current_user_role ?? null,
           // These fields will be populated when full org is fetched
           created: new Date(),
           updated: new Date(),
         } as Organization;
 
-        loggingService.debug('[organizationStore] Initialized from bootstrap', { id: bootstrapOrg.id });
+        loggingService.debug('[organizationStore] Initialized from bootstrap', { objid: bootstrapOrg.objid });
       }
     },
     { immediate: true }

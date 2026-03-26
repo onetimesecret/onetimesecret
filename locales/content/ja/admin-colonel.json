@@ -311,43 +311,6 @@
     "text": "{planName}のエンタイトルメントでテスト中です(一時的なセッションオーバーライド)。",
     "sha256": "1a8aecf1"
   },
-  "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "フィードバックを送信すると、以下が表示されます:"
-  },
-  "web.feedback.send_feedback": {
-    "text": "フィードバックを送信"
-  },
-  "web.feedback.sending_ellipses": {
-    "text": "送信中..."
-  },
-  "web.colonel.bannedIps.title": {
-    "text": "禁止IP",
-    "sha256": "0ece5643"
-  },
-  "web.colonel.bannedIps.description": {
-    "text": "IP禁止リストを管理",
-    "sha256": "dd0d2614"
-  },
-  "web.colonel.customDomains.title": {
-    "text": "カスタムドメイン",
-    "sha256": "6170ab94"
-  },
-  "web.colonel.customDomains.description": {
-    "text": "カスタムドメインとブランディングを管理",
-    "sha256": "808ee2cb"
-  },
-  "web.colonel.feedback.send_feedback": {
-    "text": "フィードバックを送信",
-    "sha256": "8235980b"
-  },
-  "web.colonel.feedback.sending_ellipses": {
-    "text": "送信中...",
-    "sha256": "286a3af7"
-  },
-  "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "フィードバックを送信すると、以下の情報が送信されます:",
-    "sha256": "fe77172e"
-  },
   "web.colonel.organizations.title": {
     "text": "組織",
     "sha256": "2730183d"
@@ -376,13 +339,45 @@
     "text": "組織が見つかりません",
     "sha256": "538995db"
   },
-  "web.colonel.organizations.actions.investigate": {
-    "text": "調査",
-    "sha256": "e2641093"
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "同期ステータス",
+    "sha256": "b3998276"
   },
-  "web.colonel.organizations.actions.checking": {
-    "text": "確認中...",
-    "sha256": "2e5f79bb"
+  "web.colonel.organizations.filters.subscription": {
+    "text": "サブスクリプション",
+    "sha256": "4999c6c6"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "すべて",
+    "sha256": "a52ace42"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "古い可能性あり",
+    "sha256": "40137b37"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "不明",
+    "sha256": "b764cdc0"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "同期済み",
+    "sha256": "5da22fe4"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "有効",
+    "sha256": "92340695"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "トライアル中",
+    "sha256": "3792573d"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "期限超過",
+    "sha256": "2bda1c7b"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "キャンセル済み",
+    "sha256": "13ca2ee2"
   },
   "web.colonel.organizations.columns.account": {
     "text": "アカウント",
@@ -436,6 +431,42 @@
     "text": "請求あり",
     "sha256": "db0628ed"
   },
+  "web.colonel.organizations.legacy.title": {
+    "text": "組織請求管理",
+    "sha256": "5c7e07e7"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "組織の管理と請求同期状態の監視 (合計{total}件)",
+    "sha256": "996b446d"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "組織が見つかりません",
+    "sha256": "538995db"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "古い可能性あり",
+    "sha256": "3ddfec45"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "古い",
+    "sha256": "40c9e59c"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "不明",
+    "sha256": "b764cdc0"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "有効",
+    "sha256": "96879611"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "調査",
+    "sha256": "e2641093"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "確認中...",
+    "sha256": "2e5f79bb"
+  },
   "web.colonel.organizations.expanded.customer": {
     "text": "顧客",
     "sha256": "bf376338"
@@ -447,46 +478,6 @@
   "web.colonel.organizations.expanded.orgId": {
     "text": "組織ID",
     "sha256": "5e6b9932"
-  },
-  "web.colonel.organizations.filters.syncStatus": {
-    "text": "同期ステータス",
-    "sha256": "b3998276"
-  },
-  "web.colonel.organizations.filters.subscription": {
-    "text": "サブスクリプション",
-    "sha256": "4999c6c6"
-  },
-  "web.colonel.organizations.filters.all": {
-    "text": "すべて",
-    "sha256": "a52ace42"
-  },
-  "web.colonel.organizations.filters.potentiallyStale": {
-    "text": "古い可能性あり",
-    "sha256": "40137b37"
-  },
-  "web.colonel.organizations.filters.unknown": {
-    "text": "不明",
-    "sha256": "b764cdc0"
-  },
-  "web.colonel.organizations.filters.synced": {
-    "text": "同期済み",
-    "sha256": "5da22fe4"
-  },
-  "web.colonel.organizations.filters.active": {
-    "text": "有効",
-    "sha256": "92340695"
-  },
-  "web.colonel.organizations.filters.trialing": {
-    "text": "トライアル中",
-    "sha256": "3792573d"
-  },
-  "web.colonel.organizations.filters.pastDue": {
-    "text": "期限超過",
-    "sha256": "2bda1c7b"
-  },
-  "web.colonel.organizations.filters.canceled": {
-    "text": "キャンセル済み",
-    "sha256": "13ca2ee2"
   },
   "web.colonel.organizations.investigation.failed": {
     "text": "調査に失敗しました",
@@ -536,34 +527,6 @@
     "text": "Stripe",
     "sha256": "961a6062"
   },
-  "web.colonel.organizations.legacy.title": {
-    "text": "組織請求管理",
-    "sha256": "5c7e07e7"
-  },
-  "web.colonel.organizations.legacy.description": {
-    "text": "組織の管理と請求同期状態の監視 (合計{total}件)",
-    "sha256": "996b446d"
-  },
-  "web.colonel.organizations.legacy.empty": {
-    "text": "組織が見つかりません",
-    "sha256": "538995db"
-  },
-  "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "古い可能性あり",
-    "sha256": "3ddfec45"
-  },
-  "web.colonel.organizations.status.stale": {
-    "text": "古い",
-    "sha256": "40c9e59c"
-  },
-  "web.colonel.organizations.status.unknown": {
-    "text": "不明",
-    "sha256": "b764cdc0"
-  },
-  "web.colonel.organizations.status.active": {
-    "text": "有効",
-    "sha256": "96879611"
-  },
   "web.colonel.organizations.usage.members": {
     "text": "{count}人のメンバー",
     "sha256": "201eb3d9"
@@ -580,6 +543,22 @@
     "text": "すべてのシークレットを表示・管理",
     "sha256": "48f8052e"
   },
+  "web.colonel.bannedIps.title": {
+    "text": "禁止IP",
+    "sha256": "0ece5643"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "IP禁止リストを管理",
+    "sha256": "dd0d2614"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "使用量エクスポート",
+    "sha256": "10a0cb94"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "使用量データと統計をエクスポート",
+    "sha256": "2fd0a2e2"
+  },
   "web.colonel.systemSettings.title": {
     "text": "システム",
     "sha256": "6725e7bb"
@@ -587,6 +566,22 @@
   "web.colonel.systemSettings.description": {
     "text": "システム設定、データベース、および構成",
     "sha256": "7690b296"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "カスタムドメイン",
+    "sha256": "6170ab94"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "カスタムドメインとブランディングを管理",
+    "sha256": "808ee2cb"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "フィードバックを送信",
+    "sha256": "8235980b"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "送信中...",
+    "sha256": "286a3af7"
   },
   "web.colonel.titles.index": {
     "text": "管理",
@@ -636,12 +631,8 @@
     "text": "Redis",
     "sha256": "a7f64157"
   },
-  "web.colonel.usageExport.title": {
-    "text": "使用量エクスポート",
-    "sha256": "10a0cb94"
-  },
-  "web.colonel.usageExport.description": {
-    "text": "使用量データと統計をエクスポート",
-    "sha256": "2fd0a2e2"
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "フィードバックを送信すると、以下の情報が送信されます:",
+    "sha256": "fe77172e"
   }
 }

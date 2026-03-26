@@ -48,7 +48,7 @@ module Onetime
             [receipt, secret]
           end
 
-          def encryption_key *entropy
+          def encryption_key(*entropy)
             input = entropy.flatten.compact.join ':'
             Digest::SHA256.hexdigest(input) # TODO: Use Familila.generate_id
           end
@@ -149,11 +149,11 @@ module Onetime
             end
           end
 
-          def encryption_key_v1 *_ignored
+          def encryption_key_v1(*_ignored)
             Onetime::Secret.encryption_key identifier, passphrase_temp
           end
 
-          def encryption_key_v2 *_ignored
+          def encryption_key_v2(*_ignored)
             Onetime::Secret.encryption_key OT.global_secret, identifier, passphrase_temp
           end
 

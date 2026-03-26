@@ -7,7 +7,13 @@ require_relative '../base'
 module ColonelAPI
   module Logic
     module Colonel
+      # Get Colonel Stats
+      #
+      # @api Returns aggregate platform statistics including total customer,
+      #   receipt, and secret counts. Requires colonel role.
       class GetColonelStats < ColonelAPI::Logic::Base
+        SCHEMAS = { response: 'colonelStats' }.freeze
+
         attr_reader :session_count,
           :customer_count,
           :receipt_count,
@@ -31,9 +37,13 @@ module ColonelAPI
         end
 
         def process_statistics
-          @customer_count = Onetime::Customer.count
-          @receipt_count  = Onetime::Receipt.count
-          @secret_count   = Onetime::Secret.count
+          @customer_count  = Onetime::Customer.count
+          @receipt_count   = Onetime::Receipt.count
+          @secret_count    = Onetime::Secret.count
+          # TODO: Re-enable when Customer.global is implemented
+          @secrets_created = 0
+          @secrets_shared  = 0
+          @emails_sent     = 0
         end
         private :process_statistics
 

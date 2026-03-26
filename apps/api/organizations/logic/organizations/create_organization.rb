@@ -4,7 +4,15 @@
 
 module OrganizationAPI::Logic
   module Organizations
+    # Create Organization
+    #
+    # @api Creates a new organization with the given display name, optional
+    #   description, and optional contact email. Enforces plan-based
+    #   organization quotas when billing is enabled. Uses a distributed
+    #   lock to prevent race conditions during creation.
     class CreateOrganization < OrganizationAPI::Logic::Base
+      SCHEMAS = { response: 'organization' }.freeze
+
       attr_reader :organization, :display_name, :description, :contact_email
 
       def process_params
@@ -15,7 +23,7 @@ module OrganizationAPI::Logic
 
       def raise_concerns
         # Require authenticated user
-        raise_form_error('Authentication required', field: 'user_id', error_type: :unauthorized) if cust.anonymous?
+        verify_authenticated!
 
         # Validate display_name (basic validation before quota check)
         if display_name.empty?

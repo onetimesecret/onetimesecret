@@ -71,10 +71,10 @@ end
 ]
 #=> ['password', 'a' * 128, '']
 
-## Plan defaults to anonymous for nil customer
+## Customer is nil for anonymous (no Customer.anonymous singleton)
 @strategy_result_no_cust = MockStrategyResult.new(session: @session, user: nil)
 @obj_no_cust = TestLogic.new(@strategy_result_no_cust, {})
-@obj_no_cust.cust.planid
+@obj_no_cust.cust
 #=> nil
 
 ## Form error includes form fields

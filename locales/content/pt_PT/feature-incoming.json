@@ -28,7 +28,7 @@
     "sha256": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Descrição breve (p. ex. Pedido de redefinição de senha)",
+    "text": "Descrição breve (p. ex. Pedido de redefinição de palavra-passe)",
     "sha256": "16bf83fd"
   },
   "incoming.memo_hint": {
@@ -60,7 +60,7 @@
     "sha256": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Cola aqui informação sensível (senhas, chaves, etc.)",
+    "text": "Cola aqui informação sensível (palavras-passe, chaves, etc.)",
     "sha256": "7d7abb48"
   },
   "incoming.secret_content_hint": {
@@ -120,7 +120,7 @@
     "sha256": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Mantém senhas e dados privados fora dos registos de e-mail e chat",
+    "text": "Mantém palavras-passe e dados privados fora dos registos de e-mail e chat",
     "sha256": "55566199"
   },
   "incoming.end_of_experience_suggestion": {

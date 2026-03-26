@@ -1,15 +1,28 @@
 <!-- src/shared/components/forms/PasswordStrengthChecker.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
-import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { computed } from 'vue';
 
-const password = ref('');
-const confirmPassword = ref('');
-const strength = ref(0);
-const passwordMismatch = ref(false);
-const showMismatch = ref(false);
+const props = defineProps<{
+  /** The primary password value to check strength for */
+  password: string;
+  /** The confirmation password to check for match */
+  confirmPassword?: string;
+}>();
+
 const { t } = useI18n();
+
+const strength = computed(() => {
+  const pass = props.password;
+  if (!pass || pass.length <= 6) return 0;
+  let score = 0;
+  if (pass.match(/[a-z]/) && pass.match(/[A-Z]/)) score++;
+  if (pass.match(/\d/)) score++;
+  if (pass.match(/[^a-zA-Z\d]/)) score++;
+  if (pass.length >= 6) score++;
+  return score;
+});
 
 const strengthText = computed(() => {
   const strengthLabels: Record<number, string> = {
@@ -22,42 +35,17 @@ const strengthText = computed(() => {
   return strengthLabels[strength.value];
 });
 
-const strengthClass = computed(() => strength.value > 2 ? 'text-green-500-dark-text-green-400' : 'text-red-500-dark-text-red-400');
+const strengthClass = computed(() =>
+  strength.value > 2 ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'
+);
 
-const checkPasswordStrength = (pass: string) => {
-  let score = 0;
-  if (pass.match(/[a-z]/) && pass.match(/[A-Z]/)) score++;
-  if (pass.match(/\d/)) score++;
-  if (pass.match(/[^a-zA-Z\d]/)) score++;
-  if (pass.length >= 6) score++;
-  if (pass.length <= 6) score = 0;
-  strength.value = score;
-};
+const showMismatch = computed(() =>
+  props.confirmPassword !== undefined && props.confirmPassword.length > 0
+);
 
-const checkPasswordMatch = () => {
-  passwordMismatch.value = password.value !== confirmPassword.value;
-};
-
-onMounted(() => {
-  const passField = document.getElementById('passField') as HTMLInputElement | null;
-  const pass2Field = document.getElementById('pass2Field') as HTMLInputElement | null;
-
-  if (passField && pass2Field) {
-    passField.addEventListener('input', (e) => {
-      password.value = (e.target as HTMLInputElement).value;
-      checkPasswordStrength(password.value);
-      if (showMismatch.value) {
-        checkPasswordMatch();
-      }
-    });
-
-    pass2Field.addEventListener('input', (e) => {
-      confirmPassword.value = (e.target as HTMLInputElement).value;
-      showMismatch.value = true;
-      checkPasswordMatch();
-    });
-  }
-});
+const passwordMismatch = computed(() =>
+  showMismatch.value && props.password !== props.confirmPassword
+);
 </script>
 
 <template>

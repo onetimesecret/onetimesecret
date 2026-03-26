@@ -1,4 +1,12 @@
 {
+  "web.billing.subscription_synced_title": {
+    "text": "Abonelik Senkronize Edildi",
+    "sha256": "3086ef43"
+  },
+  "web.billing.subscription_synced_description": {
+    "text": "Abonelik avantajlarınız başka bir bölgeden senkronize edildi.",
+    "sha256": "a99b7a98"
+  },
   "web.billing.upgrade.required": {
     "text": "Yükseltme Gerekli",
     "sha256": "16487236"
@@ -35,10 +43,9 @@
     "text": "Aboneliğinizi ve ödeme ayrıntılarınızı görüntüleyin ve yönetin",
     "sha256": "60e5a00e"
   },
-  "web.billing.overview.organization_selector": {
-    "text": "",
-    "skip": true,
-    "note": "empty"
+  "web.billing.overview.billing_for_organization": {
+    "text": "Bu kuruluş için faturalandırma",
+    "sha256": "21806992"
   },
   "web.billing.overview.current_plan": {
     "text": "Mevcut Plan",
@@ -75,6 +82,22 @@
   "web.billing.overview.change_plan": {
     "text": "Plan Değiştir",
     "sha256": "2d0b195b"
+  },
+  "web.billing.overview.manage_subscription": {
+    "text": "Aboneliği Yönet",
+    "sha256": "cbc4ef92"
+  },
+  "web.billing.plans.legacy_plan_info": {
+    "text": "Özel fiyatlandırmalı eski bir plandayken kazanılmış haklarınız korunmaktadır.",
+    "sha256": "e9aa8bf0"
+  },
+  "web.billing.plans.early_supporter_plan": {
+    "text": "Identity Plus (Erken Destekçi)",
+    "sha256": "f37cd0d9"
+  },
+  "web.billing.plans.legacy_plan_warning": {
+    "text": "Plan değiştirmek, mevcut özel fiyatlandırmanızı kaybetmenize neden olur. Bu işlem geri alınamaz.",
+    "sha256": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
     "text": "Kayıtlı ödeme yöntemi yok",
@@ -124,6 +147,22 @@
     "text": "Faturalandırmanızı ve aboneliğinizi yönetmek için bir kuruluş oluşturun",
     "sha256": "41e922d2"
   },
+  "web.billing.overview.load_error": {
+    "text": "Fatura bilgileri yüklenemedi",
+    "sha256": "3bc44882"
+  },
+  "web.billing.overview.upgrade_success": {
+    "text": "Planınız başarıyla yükseltildi",
+    "sha256": "00ac43f8"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "text": "Yeni planınız artık aktif. Satın aldığınız için teşekkür ederiz.",
+    "sha256": "fd1caeb1"
+  },
+  "web.billing.overview.billing_contact": {
+    "text": "Faturalandırma İletişimi",
+    "sha256": "8f782ad8"
+  },
   "web.billing.overview.entitlements.create_secrets": {
     "text": "Gizli Mesaj Oluştur",
     "sha256": "0320541d"
@@ -157,8 +196,8 @@
     "sha256": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Markalı Ana Sayfa",
-    "sha256": "e355a396"
+    "text": "Ana Sayfa Gizli Mesajları",
+    "sha256": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
     "text": "Gelen Gizli Mesajlar",
@@ -200,6 +239,74 @@
     "text": "Kullanılabilir özellik yok",
     "sha256": "03d195e8"
   },
+  "web.billing.features.create_secrets": {
+    "text": "Gizli Mesaj Oluştur ve Paylaş",
+    "sha256": "303f9386"
+  },
+  "web.billing.features.api_access": {
+    "text": "API Erişimi",
+    "sha256": "5f31cc2f"
+  },
+  "web.billing.features.custom_domains": {
+    "text": "Özel Alan Adları",
+    "sha256": "6170ab94"
+  },
+  "web.billing.features.custom_domain": {
+    "text": "1 Özel Alan Adı",
+    "sha256": "6a6be744"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Sınırsız Özel Alan Adı",
+    "sha256": "53eb7521"
+  },
+  "web.billing.features.custom_branding": {
+    "text": "Özel Markalama",
+    "sha256": "237dabec"
+  },
+  "web.billing.features.homepage_secrets": {
+    "text": "Ana Sayfa Gizli Mesajları",
+    "sha256": "6360f7ec"
+  },
+  "web.billing.features.manage_teams": {
+    "text": "Takım Yönetimi",
+    "sha256": "6bcbac8f"
+  },
+  "web.billing.features.manage_members": {
+    "text": "Üye Yönetimi",
+    "sha256": "b38b89db"
+  },
+  "web.billing.features.audit_logs": {
+    "text": "Denetim Günlükleri",
+    "sha256": "5428d7fe"
+  },
+  "web.billing.features.sso": {
+    "text": "Tek Oturum Açma (SSO)",
+    "sha256": "5db5c812"
+  },
+  "web.billing.features.priority_support": {
+    "text": "Öncelikli Destek",
+    "sha256": "ed8a65c8"
+  },
+  "web.billing.features.sla": {
+    "text": "Hizmet Düzeyi Sözleşmesi",
+    "sha256": "436f2550"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Merkezi Faturalandırma",
+    "sha256": "62042d3b"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Denetim İzi",
+    "sha256": "d52b4039"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Etkinlik Akışı",
+    "sha256": "b9c6cba7"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Devir İş Akışları",
+    "sha256": "07202af3"
+  },
   "web.billing.plans.title": {
     "text": "Plan Seçin",
     "sha256": "79506c82"
@@ -228,6 +335,10 @@
     "text": "Düşür",
     "sha256": "d955b7e8"
   },
+  "web.billing.plans.cancel_to_downgrade": {
+    "text": "Değiştirmek için iptal edin",
+    "sha256": "1c4cda89"
+  },
   "web.billing.plans.monthly": {
     "text": "Aylık",
     "sha256": "9b11f6b7"
@@ -241,7 +352,7 @@
     "sha256": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Yıllık faturalandırma ile {percent} tasarruf edin",
+    "text": "Yıllık faturalandırma ile {percent}% tasarruf edin",
     "sha256": "88c451f2"
   },
   "web.billing.plans.free_plan": {
@@ -332,6 +443,10 @@
     "text": "Şu anda kullanılabilir {interval} planı yok.",
     "sha256": "d8454436"
   },
+  "web.billing.plans.load_error": {
+    "text": "Planlar yüklenemedi",
+    "sha256": "a37d4d9a"
+  },
   "web.billing.plans.change_immediate": {
     "text": "Planınız hemen değişecektir.",
     "sha256": "889d13be"
@@ -347,6 +462,14 @@
   "web.billing.plans.credit_label": {
     "text": "Kullanılmayan süre kredisi:",
     "sha256": "001e4901"
+  },
+  "web.billing.plans.due_today": {
+    "text": "Bugün ödenmesi gereken:",
+    "sha256": "e370e3aa"
+  },
+  "web.billing.plans.next_billing": {
+    "text": "Sonraki fatura ({date}):",
+    "sha256": "a6846a85"
   },
   "web.billing.plans.next_invoice": {
     "text": "Sonraki fatura",
@@ -376,6 +499,30 @@
     "text": "{plan} planına düşürülsün mü?",
     "sha256": "8eb8ea81"
   },
+  "web.billing.plans.credit_applies_heading": {
+    "text": "Krediniz nasıl uygulanır:",
+    "sha256": "a0943c3b"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "text": "Sonraki fatura tutarı:",
+    "sha256": "526ad28f"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "text": "Uygulanan kredi:",
+    "sha256": "e5f2e81a"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "text": "Sonraki faturada ödenecek tutar:",
+    "sha256": "22ee868a"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "text": "Kalan hesap kredisi:",
+    "sha256": "eedd0c0a"
+  },
+  "web.billing.plans.credit_future_note": {
+    "text": "Gelecek faturalara uygulanır",
+    "sha256": "5007add6"
+  },
   "web.billing.invoices.title": {
     "text": "Faturalandırma Geçmişi",
     "sha256": "5ade0861"
@@ -400,9 +547,21 @@
     "text": "İndir",
     "sha256": "d6eafe82"
   },
+  "web.billing.invoices.invoice_number": {
+    "text": "Fatura No",
+    "sha256": "48a67cac"
+  },
   "web.billing.invoices.no_invoices": {
     "text": "Henüz fatura yok",
     "sha256": "92d2d0ce"
+  },
+  "web.billing.invoices.no_invoices_description": {
+    "text": "Ücretli bir plana yükselttiğinizde faturalarınız burada görünecektir",
+    "sha256": "7f16be70"
+  },
+  "web.billing.invoices.view_plans": {
+    "text": "Planları Görüntüle",
+    "sha256": "a865d424"
   },
   "web.billing.invoices.paid": {
     "text": "Ödendi",
@@ -419,6 +578,18 @@
   "web.billing.invoices.draft": {
     "text": "Taslak",
     "sha256": "d2e16e61"
+  },
+  "web.billing.invoices.open": {
+    "text": "Açık",
+    "sha256": "ed077f3d"
+  },
+  "web.billing.invoices.uncollectible": {
+    "text": "Tahsil edilemez",
+    "sha256": "c8d3b241"
+  },
+  "web.billing.invoices.void": {
+    "text": "Geçersiz",
+    "sha256": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
     "text": "Faturalar yüklenemedi",
@@ -467,6 +638,14 @@
   "web.billing.subscription.catalog_name": {
     "text": "Plan",
     "sha256": "fa8ed0bd"
+  },
+  "web.billing.subscription.team_usage": {
+    "text": "Takım Kullanımı",
+    "sha256": "f9989642"
+  },
+  "web.billing.subscription.teams_used": {
+    "text": "{limit} takımdan {used} tanesi kullanıldı",
+    "sha256": "1db6b53c"
   },
   "web.billing.portal.title": {
     "text": "Faturalandırma Portalı",
@@ -582,10 +761,12 @@
   },
   "web.billing.cancel.link_text": {
     "text": "Aboneliği iptal et",
+    "context": "Link text shown below the plan selector for paid users",
     "sha256": "3f85967f"
   },
   "web.billing.cancel.title": {
     "text": "Aboneliği İptal Et",
+    "context": "Modal dialog heading/title",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
@@ -614,10 +795,12 @@
   },
   "web.billing.cancel.keep_subscription": {
     "text": "Aboneliği Koru",
+    "context": "Secondary button in modal - keeps subscription active",
     "sha256": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
     "text": "Aboneliği İptal Et",
+    "context": "Primary action button in modal - confirms the cancellation",
     "sha256": "882e0c83"
   },
   "web.billing.cancel.success": {
@@ -630,91 +813,34 @@
   },
   "web.billing.cancel.scheduled_title": {
     "text": "Abonelik İptali Planlandı",
+    "context": "Alert banner heading shown when cancellation is pending",
     "sha256": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
     "text": "Aboneliğiniz {date} tarihine kadar aktif kalacaktır. O zamana kadar tüm özelliklere tam erişiminiz devam edecek.",
+    "context": "Alert banner description explaining continued access",
     "sha256": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
     "text": "Fikrinizi mi değiştirdiniz? İptal tarihinden önce istediğiniz zaman aboneliğinizi yeniden etkinleştirebilirsiniz.",
+    "context": "Alert banner note encouraging reactivation",
     "sha256": "c94d5527"
   },
-  "web.billing.features.create_secrets": {
-    "text": "Gizli Mesaj Oluştur ve Paylaş",
-    "sha256": "303f9386"
+  "web.billing.overview.entitlements.notifications": {
+    "text": "E-posta Bildirimleri",
+    "sha256": "04e0f1e9"
   },
-  "web.billing.features.api_access": {
-    "text": "API Erişimi",
-    "sha256": "5f31cc2f"
+  "web.billing.overview.entitlements.ip_access_rules": {
+    "text": "IP Erişim Kuralları",
+    "sha256": "db966d47"
   },
-  "web.billing.features.custom_domains": {
-    "text": "Özel Alan Adları",
-    "sha256": "6170ab94"
-  },
-  "web.billing.features.custom_domain": {
-    "text": "1 Özel Alan Adı",
-    "sha256": "6a6be744"
-  },
-  "web.billing.features.unlimited_custom_domains": {
-    "text": "Sınırsız Özel Alan Adı",
-    "sha256": "53eb7521"
-  },
-  "web.billing.features.custom_branding": {
-    "text": "Özel Markalama",
-    "sha256": "237dabec"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "Markalı Ana Sayfa",
-    "sha256": "e355a396"
-  },
-  "web.billing.features.manage_teams": {
-    "text": "Takım Yönetimi",
-    "sha256": "6bcbac8f"
-  },
-  "web.billing.features.manage_members": {
-    "text": "Üye Yönetimi",
-    "sha256": "b38b89db"
-  },
-  "web.billing.features.audit_logs": {
-    "text": "Denetim Günlükleri",
-    "sha256": "5428d7fe"
-  },
-  "web.billing.features.sso": {
-    "text": "Tek Oturum Açma (SSO)",
-    "sha256": "5db5c812"
-  },
-  "web.billing.features.priority_support": {
-    "text": "Öncelikli Destek",
-    "sha256": "ed8a65c8"
-  },
-  "web.billing.features.sla": {
-    "text": "Hizmet Düzeyi Sözleşmesi",
-    "sha256": "436f2550"
-  },
-  "web.billing.features.centralized_billing": {
-    "text": "Merkezi Faturalandırma",
-    "sha256": "62042d3b"
-  },
-  "web.billing.features.audit_trail": {
-    "text": "Denetim İzi",
-    "sha256": "d52b4039"
-  },
-  "web.billing.features.activity_stream": {
-    "text": "Etkinlik Akışı",
-    "sha256": "b9c6cba7"
-  },
-  "web.billing.features.handoff_workflows": {
-    "text": "Devir İş Akışları",
-    "sha256": "07202af3"
+  "web.billing.overview.entitlements.workspace_branding": {
+    "text": "Çalışma Alanı Markalaması",
+    "sha256": "e7acbf6f"
   },
   "web.billing.features.extended_retention": {
     "text": "30 Günlük Gizli Mesaj Saklama",
     "sha256": "21d6d514"
-  },
-  "web.billing.features.homepage_secrets": {
-    "text": "Ana Sayfa Gizli Mesajları",
-    "sha256": "6360f7ec"
   },
   "web.billing.features.incoming_secrets": {
     "text": "Gelen Gizli Mesajlar",
@@ -760,76 +886,107 @@
     "text": "Paylaşılan İş Akışları",
     "sha256": "158f558e"
   },
-  "web.billing.overview.billing_for_organization": {
-    "text": "Bu kuruluş için faturalandırma",
-    "sha256": "21806992"
+  "web.billing.currency_migration.title": {
+    "text": "Para Birimi Değişikliği Gerekli",
+    "context": "Modal title when plan requires different currency than current subscription",
+    "sha256": "2cd800c5"
   },
-  "web.billing.overview.upgrade_success": {
-    "text": "Planınız başarıyla yükseltildi",
-    "sha256": "00ac43f8"
+  "web.billing.currency_migration.description": {
+    "text": "Mevcut aboneliğiniz {from} kullanmaktadır. Seçilen plan {to} olarak faturalandırılır. Bu, aboneliğinizin yeni para birimine taşınmasını gerektirir.",
+    "sha256": "f0cdf727"
   },
-  "web.billing.overview.upgrade_success_description": {
-    "text": "Yeni planınız artık aktif. Satın aldığınız için teşekkür ederiz.",
-    "sha256": "fd1caeb1"
+  "web.billing.currency_migration.current_plan": {
+    "text": "Mevcut plan:",
+    "sha256": "648a0ab2"
   },
-  "web.billing.overview.billing_contact": {
-    "text": "Faturalandırma İletişimi",
-    "sha256": "8f782ad8"
+  "web.billing.currency_migration.new_plan": {
+    "text": "Yeni plan:",
+    "sha256": "edb868c4"
   },
-  "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Ana Sayfa Gizli Mesajları",
-    "sha256": "6360f7ec"
+  "web.billing.currency_migration.current_period_ends": {
+    "text": "Mevcut dönem bitiş tarihi:",
+    "sha256": "2e20e596"
   },
-  "web.billing.overview.entitlements.notifications": {
-    "text": "E-posta Bildirimleri",
-    "sha256": "04e0f1e9"
+  "web.billing.currency_migration.choose_timing": {
+    "text": "Değişiklik ne zaman yapılsın?",
+    "sha256": "f4aabb13"
   },
-  "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "IP Erişim Kuralları",
-    "sha256": "db966d47"
+  "web.billing.currency_migration.graceful_title": {
+    "text": "Fatura dönemi sonunda değiştir",
+    "sha256": "55cd980b"
   },
-  "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Çalışma Alanı Markalaması",
-    "sha256": "e7acbf6f"
+  "web.billing.currency_migration.graceful_description": {
+    "text": "Mevcut planınız {date} tarihine kadar aktif kalır. Bundan sonra yeni planınız için ödeme işlemini tamamlarsınız.",
+    "sha256": "b8661418"
   },
-  "web.billing.plans.due_today": {
-    "text": "Bugün ödenmesi gereken:",
-    "sha256": "e370e3aa"
+  "web.billing.currency_migration.immediate_title": {
+    "text": "Hemen değiştir",
+    "sha256": "e9d0ba59"
   },
-  "web.billing.plans.next_billing": {
-    "text": "Sonraki fatura ({date}):",
-    "sha256": "a6846a85"
+  "web.billing.currency_migration.immediate_description": {
+    "text": "Mevcut planınız şimdi iptal edilir. Kullanılmayan süreniz için geri ödeme alırsınız ve yeni plan için ödeme işlemini tamamlarsınız.",
+    "sha256": "b08de0ca"
   },
-  "web.billing.plans.credit_applies_heading": {
-    "text": "Krediniz nasıl uygulanır:",
-    "sha256": "a0943c3b"
+  "web.billing.currency_migration.confirm": {
+    "text": "Para Birimi Değişikliğini Onaylayın",
+    "sha256": "1edc1c78"
   },
-  "web.billing.plans.next_bill_amount": {
-    "text": "Sonraki fatura tutarı:",
-    "sha256": "526ad28f"
+  "web.billing.currency_migration.error": {
+    "text": "Para birimi taşıma işlemi başarısız oldu. Lütfen tekrar deneyin.",
+    "sha256": "4a6e1ced"
   },
-  "web.billing.plans.credit_applied_to_bill": {
-    "text": "Uygulanan kredi:",
-    "sha256": "e5f2e81a"
+  "web.billing.currency_migration.success": {
+    "text": "Abonelik para biriminiz başarıyla güncellendi.",
+    "sha256": "a8bf437e"
   },
-  "web.billing.plans.amount_due_next_billing": {
-    "text": "Sonraki faturada ödenecek tutar:",
-    "sha256": "22ee868a"
+  "web.billing.currency_migration.graceful_success": {
+    "text": "Mevcut planınız fatura dönemi sonuna kadar aktif kalacaktır. Bundan sonra yeni planınız için ödeme işlemini tamamlamanız istenecektir.",
+    "sha256": "15d41483"
   },
-  "web.billing.plans.remaining_account_credit": {
-    "text": "Kalan hesap kredisi:",
-    "sha256": "eedd0c0a"
+  "web.billing.currency_migration.warning_credit_balance": {
+    "text": "Yeni para birimine aktarılamayan {currency} cinsinden kredi bakiyeniz bulunmaktadır.",
+    "sha256": "aa15be91"
   },
-  "web.billing.plans.credit_future_note": {
-    "text": "Gelecek faturalara uygulanır",
-    "sha256": "5007add6"
+  "web.billing.currency_migration.warning_pending_items": {
+    "text": "Taşıma işleminden önce çözülmesi gereken bekleyen fatura kalemleriniz bulunmaktadır.",
+    "sha256": "7b4c5e10"
   },
-  "web.billing.subscription.team_usage": {
-    "text": "Takım Kullanımı",
-    "sha256": "f9989642"
+  "web.billing.currency_migration.warning_coupons": {
+    "text": "Hesabınızdaki aktif kuponlar yeni para birimiyle uyumlu olmayabilir.",
+    "sha256": "f572ee81"
   },
-  "web.billing.subscription.teams_used": {
-    "text": "{limit} takımdan {used} tanesi kullanıldı",
-    "sha256": "1db6b53c"
+  "web.billing.currency_migration.pending_title": {
+    "text": "Para Birimi Taşıma İşlemi Bekliyor",
+    "context": "Banner heading when graceful migration is scheduled",
+    "sha256": "018ae653"
+  },
+  "web.billing.currency_migration.pending_description": {
+    "text": "Mevcut planınız {date} tarihinde sona erer. {plan} ({currency}) planına geçişinizi tamamlayın.",
+    "sha256": "998ba4ab"
+  },
+  "web.billing.currency_migration.complete_migration": {
+    "text": "Taşıma İşlemini Tamamla",
+    "context": "Button to start checkout for the new currency plan",
+    "sha256": "fa794e0c"
+  },
+  "web.billing.checkout_session_failed": {
+    "text": "Ödeme oturumu oluşturulamadı",
+    "context": "Error when Stripe checkout session creation returns no URL",
+    "sha256": "a53f6fa3"
+  },
+  "web.billing.checkout_initiate_failed": {
+    "text": "Ödeme işlemi başlatılamadı",
+    "context": "Fallback error for checkout failures",
+    "sha256": "3ff06e41"
+  },
+  "web.billing.plan_switch_success": {
+    "text": "{plan} planına başarıyla geçildi",
+    "context": "Success message after plan change",
+    "sha256": "ab7c715c"
+  },
+  "web.billing.plan_unavailable_region_mismatch": {
+    "text": "Yalnızca orijinal abonelik bölgenizde kullanılabilir",
+    "context": "Hint shown on plan cards when currency does not match active subscription",
+    "sha256": "10de32e5"
   }
 }

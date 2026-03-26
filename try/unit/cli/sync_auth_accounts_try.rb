@@ -155,7 +155,7 @@ Onetime::Customer.load_multi([])
 
 # --- Customer skip logic: anonymous detection ---
 
-## anonymous? returns true for role=anonymous custid=anon
+## anonymous? returns true for role=anonymous (custid no longer relevant)
 @anon_customer.anonymous?
 #=> true
 

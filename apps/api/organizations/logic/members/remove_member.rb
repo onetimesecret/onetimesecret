@@ -4,7 +4,12 @@
 
 module OrganizationAPI::Logic
   module Members
-    # Remove a member from an organization
+    # Remove Member
+    #
+    # @api Removes a member from an organization. Owners can remove admins
+    #   and members; admins can only remove members. The owner cannot be
+    #   removed (ownership must be transferred first), and you cannot
+    #   remove yourself.
     #
     # DELETE /api/organizations/:extid/members/:member_extid
     #
@@ -16,6 +21,8 @@ module OrganizationAPI::Logic
     #   - Cannot remove yourself (use leave organization instead)
     #
     class RemoveMember < OrganizationAPI::Logic::Base
+      SCHEMAS = { response: 'memberDelete' }.freeze
+
       attr_reader :organization, :target_member, :target_membership, :actor_membership
 
       def process_params
@@ -24,7 +31,7 @@ module OrganizationAPI::Logic
       end
 
       def raise_concerns
-        raise_form_error('Authentication required', error_type: :unauthorized) if cust.anonymous?
+        verify_authenticated!
 
         @organization = load_organization(@extid)
 

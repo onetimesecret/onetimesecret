@@ -1,13 +1,14 @@
 // src/apps/secret/composables/useSecretLifecycle.ts
 
-import { ref, computed } from 'vue';
 import { useSecretStore } from '@/shared/stores/secretStore';
+import { computed, ref } from 'vue';
 
 export type SecretState =
   | 'idle'
   | 'loading'
   | 'passphrase'
   | 'ready'
+  | 'previewed'
   | 'revealed'
   | 'burned'
   | 'expired'
@@ -19,13 +20,9 @@ export function useSecretLifecycle(secretKey: string) {
   const payload = ref<string | null>(null);
   const error = ref<Error | null>(null);
 
-  const isTerminal = computed(() =>
-    ['burned', 'expired', 'unknown'].includes(state.value)
-  );
+  const isTerminal = computed(() => ['burned', 'expired', 'unknown'].includes(state.value));
 
-  const canReveal = computed(() =>
-    ['ready', 'passphrase'].includes(state.value)
-  );
+  const canReveal = computed(() => ['ready', 'passphrase'].includes(state.value));
 
   async function load() {
     state.value = 'loading';
@@ -42,8 +39,10 @@ export function useSecretLifecycle(secretKey: string) {
       const record = data.record;
       if (record.state === 'burned') {
         state.value = 'burned';
-      } else if (record.state === 'viewed') {
-        state.value = 'revealed';
+      } else if ((record.state as string) === 'expired') {
+        state.value = 'expired';
+      } else if (record.state === 'previewed') {
+        state.value = 'previewed';
       } else if (record.has_passphrase) {
         state.value = 'passphrase';
       } else {

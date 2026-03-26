@@ -2,10 +2,6 @@
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
 
-> [!WARNING]
-> **Development Branch**: You're viewing the `develop` branch with active development and unreleased features. This branch may be unstable or contain work-in-progress code. For stable releases and production use, check out the [`main` branch](https://github.com/onetimesecret/onetimesecret/tree/main).
-
-
 ## What is a One-Time Secret?
 
 A onetime secret is a link that can be viewed only once. A single-use URL.
@@ -17,7 +13,7 @@ When you send sensitive info like passwords via email or chat, copies persist in
 ## Quick Start with Docker
 
 > [!IMPORTANT]
-> **Upgrading from v0.22.x?** See [Redis Migration Guide](./docs/redis-migration.md) for database consolidation options (optional until v1.0).
+> **Upgrading from v0.22 or v0.23?** See the [v0.23 Upgrade Guide](https://docs.onetimesecret.com/en/self-hosting/upgrading-v0-23/) and [v0.24 Upgrade Guide](https://docs.onetimesecret.com/en/self-hosting/upgrading-v0-24/) for migration steps.
 
 **1. Start Redis:**
 ```bash
@@ -32,46 +28,25 @@ chmod 600 .ots_secret
 echo "Secret key saved to .ots_secret (keep this file secure!)"
 
 # Now run the container using the key
+# ⚠️ WARNING: Set SSL=true for production deployments
 docker run -p 3000:3000 -d \
   -e REDIS_URL=redis://host.docker.internal:6379/0 \
   -e SECRET="$(cat .ots_secret)" \
   -e HOST=localhost:3000 \
   -e AUTH_REQUIRED=false \
-  -e SSL=false \ # ⚠️ WARNING: Set SSL=true for production deployments
-  onetimesecret/onetimesecret:v0.23.0
+  -e SSL=false \
+  onetimesecret/onetimesecret:v0.24.6
 ```
 
 **3. Access:** http://localhost:3000
 
-### Upgrading to v0.23+
-
-> **For existing installations**: Your current setup will continue working without changes. Redis data migration is optional until v1.0.
-
-Starting with v0.23, OneTime Secret uses Redis database 0 for all models by default (previously distributed across multiple databases). This improves compatibility with Redis-as-a-Service providers and support for connection pooling.
-
-**New installations**: No action needed - automatically uses the optimized setup.
-
-**Existing installations**: See the [Redis Data Migration Guide](./docs/redis-migration.md) for migration options and timeline.
-
-
 ## Configuration
-
-### UI Controls
-
-**Disable Web Interface** (`UI_ENABLED=false`):
-- Shows minimal explanation page instead of full interface
-- Useful for maintenance or API-only deployments
-
-**Require Authentication** (`AUTH_REQUIRED=true`):
-- Homepage secret creation requires login
-- Maintains site navigation while restricting access
-
 
 ### Essential Settings
 
-Create `./etc/config.yaml` from the example:
+Create `./etc/config.yaml` from the defaults:
 ```bash
-cp -p ./etc/defaults/config.defaults.yaml ./etc/config.yaml
+cp -np ./etc/defaults/config.defaults.yaml ./etc/config.yaml
 ```
 
 Key configuration areas:
@@ -83,135 +58,81 @@ Key configuration areas:
 
 ### Environment Variables
 
-Common overrides:
-```bash
-HOST=your-domain.com
-SSL=true
-SECRET=your-secure-random-key
-REDIS_URL=redis://host:6379/0
-AUTH_REQUIRED=true
-PASSPHRASE_REQUIRED=true
-PASSWORD_GEN_LENGTH=8
-TTL_OPTIONS='1800 43200 86400 259200'  # 30m, 12h, 24h, 3d
-```
+See [.env.reference](./.env.reference)
 
 > **Important**: Generate a secure SECRET key and back it up safely:
 > ```bash
 > openssl rand -hex 32
 > ```
 
-## Installation Options
+## Installation
 
-### Docker Images
-
-**Pre-built images:**
-```bash
-# GitHub Container Registry
-docker pull ghcr.io/onetimesecret/onetimesecret:latest
-
-# Docker Hub
-docker pull onetimesecret/onetimesecret:latest
-
-# Lite version (smaller, optimized)
-docker pull ghcr.io/onetimesecret/onetimesecret-lite:latest
-```
-
-**Build locally:**
-```bash
-git clone https://github.com/onetimesecret/onetimesecret.git
-cd onetimesecret
-docker build -t onetimesecret .
-```
-
-### Manual Installation
-
-**System Requirements:**
-- Ruby 3.4+
-- Redis 5+
-- Node.js 22+ (for development)
-- 1GB RAM, 2 CPU cores minimum
-
-**Quick setup:**
-```bash
-git clone https://github.com/onetimesecret/onetimesecret.git
-cd onetimesecret
-./install.sh init    # Install deps, generate secrets, prepare .env
-cp ./etc/config.example.yaml ./etc/config.yaml
-# Edit config.yaml as needed
-RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
-```
-
-> **Tip**: Run `./install.sh doctor` to check your environment for common issues.
-
-> **For detailed installation instructions**, including system setup, troubleshooting, and advanced configuration, see [INSTALL.md](./INSTALL.md).
-
-### Admin Setup
-
-Create your first admin (colonel) user via CLI:
-```bash
-bin/ots customers --create admin@example.com --role colonel
-```
-
-Or promote an existing user:
-```bash
-bin/ots role promote user@example.com --role colonel
-```
+For Docker, manual setup, and system requirements, see the [Self-Hosting Guide](https://docs.onetimesecret.com/en/self-hosting/) and [Installation Guide](https://docs.onetimesecret.com/en/self-hosting/installation/).
 
 ## Development
 
+### Running Locally
+
+There are three ways to run the application for local development:
+
+**Option A: Overmind (recommended)**
+
+[Overmind](https://github.com/DarthSim/overmind) runs backend, frontend, and worker from a single command using `Procfile.dev`:
+
+```bash
+brew install overmind          # macOS
+./install-dev.sh               # Link config files + install gems and packages (one-time per checkout)
+bin/dev                        # Start all processes
+```
+
+Control individual processes from a separate terminal:
+```bash
+overmind connect backend       # Attach for debugger/pry (Ctrl+b,d to detach)
+overmind restart frontend      # Restart a single process
+```
+
+**Option B: Production-style**
+
+Build the frontend and serve everything from the backend:
+```bash
+pnpm run build
+RACK_ENV=production bundle exec puma -C etc/examples/puma.example.rb
+```
+
 ### Frontend Development Mode
 
-For active development with live reloading:
-
-1. Enable development mode in `etc/config.yaml`:
+Enable development mode in `etc/config.yaml` for HMR support:
 ```yaml
 :development:
   :enabled: true
   :frontend_host: 'http://localhost:5173'
 ```
 
-2. Start servers:
-```bash
-# Terminal 1: Main server
-RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
-
-# Terminal 2: Vite dev server
-pnpm run dev
-```
-
 ### Docker Compose
 
-For complete setup with dependencies:
-[Docker Compose repo](https://github.com/onetimesecret/docker-compose/)
+Docker Compose configurations are included in this repository:
+```bash
+cp --preserve --no-clobber .env.example .env
+docker compose up
+```
 
-### Git JSON Merge Driver (Recommended)
+See `docker-compose.yml` for available profiles (simple vs full stack) and `docker/README.md` for details.
 
-This repository uses a custom merge driver for locale JSON files to automatically resolve conflicts:
+## Community & Support
 
-1. Install dependencies: `pnpm install`
-2. Configure Git (one-time setup):
-   ```bash
-   git config merge.json.driver "npx git-json-merge %A %O %B"
-   git config merge.json.name "Custom 3-way merge driver for JSON files"
-   ```
+[Latest Release](https://github.com/onetimesecret/onetimesecret/releases/latest) · [Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret) · [Build Status](https://github.com/onetimesecret/onetimesecret/actions) · [License](LICENSE.txt)
 
-The driver automatically resolves conflicts when multiple branches modify different keys in the same locale file. If a conflict cannot be resolved automatically (e.g., same key modified on both sides), Git falls back to standard conflict markers.
+- [Report an issue](https://github.com/onetimesecret/onetimesecret/issues)
+- [Security Statement](./SECURITY.md)
+- [Documentation](https://docs.onetimesecret.com) — usage and self-hosting guides; [`docs/`](./docs/) for developer docs
+- [Try it live](https://ca.onetimesecret.com/)
 
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/onetimesecret/onetimesecret/issues)
-- **Documentation**: Check `docs/` directory for detailed guides
-- **Security**: Review `SECURITY.md` for security considerations
-
-### Production Deployments
-
-See [Dockerfile](./Dockerfile)
 
 ## AI Development Assistance
 
 This version of Familia was developed with assistance from AI tools. The following tools provided significant help with architecture design, code generation, and documentation:
 
-- **Claude (Desktop, Code Max plan, Sonnet 4, Opus 4.1)** - Interactive development sessions, debugging, architecture design, code generation, and documentation
+- **Claude (Desktop, Code Max plan, Sonnet 4, Opus 4.6)** - Interactive development sessions, debugging, architecture design, code generation, and documentation
 - **Google Gemini** - Refactoring suggestions, code generation, and documentation.
 - **GitHub Copilot** - Code completion and refactoring assistance
 - **Qodo Merge Pro** - Code review and QA improvements
@@ -249,15 +170,3 @@ _Summarized, fetched, and collated by [Cohere Command R+](https://cohere.com/blo
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE.txt) file for details.
-
-## Community & Support
-
-[![Latest Release](https://img.shields.io/github/v/release/onetimesecret/onetimesecret)](https://github.com/onetimesecret/onetimesecret/releases/latest)
-[![Docker Pulls](https://img.shields.io/docker/pulls/onetimesecret/onetimesecret)](https://hub.docker.com/r/onetimesecret/onetimesecret)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/onetimesecret/onetimesecret/ci.yml)](https://github.com/onetimesecret/onetimesecret/actions)
-[![License](https://img.shields.io/github/license/onetimesecret/onetimesecret)](LICENSE)
-
-
-- [Report Issues](https://github.com/onetimesecret/onetimesecret/issues)
-- [Security Issues](mailto:security@onetimesecret.com) (email)
-- [Try it Live](https://ca.onetimesecret.com/)

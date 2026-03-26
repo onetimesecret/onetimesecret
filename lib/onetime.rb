@@ -83,26 +83,42 @@ module Onetime
   require_relative 'onetime/deprecated_methods'
 end
 
-# Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
-# trying to send events over the network when we're shutting down via ctrl-c.
+# Track whether we received SIGINT for graceful shutdown coordination.
+# This flag is set in the trap and checked in at_exit, avoiding thread
+# operations inside the signal handler (which Ruby forbids).
+$ot_received_sigint = false # rubocop:disable Style/GlobalVars
+
+# SIGINT handler: minimal work only — set flag and re-raise.
+# Thread operations (Sentry.close, logging) are deferred to at_exit.
 trap('SIGINT') do
   # Prevent re-entry if signal is received again during cleanup
   trap('SIGINT', 'DEFAULT')
 
+  $ot_received_sigint = true # rubocop:disable Style/GlobalVars
+
   # Cannot use semantic_logger from trap context - use direct STDERR
   warn 'Shutting down gracefully...'
-  OT.with_diagnostics do
-      Sentry.close  # Attempt graceful shutdown with a short timeout
-    rescue ThreadError => ex
-      warn "Sentry shutdown interrupted: #{ex} (#{ex.class})"
-    rescue Sentry::Error, IOError, SystemCallError => ex
-      # Ignore Sentry-related/network errors during shutdown
-      warn "Error during shutdown: #{ex} (#{ex.class})"
-      warn(ex.backtrace&.join("\n")) if OT.debug?
-  end
 
   # Re-raise signal to trigger default handler (ensures proper exit code 130)
   Process.kill('SIGINT', Process.pid)
+end
+
+# Sentry cleanup runs in at_exit (outside trap context) where thread
+# operations are safe. This replaces the previous in-trap Sentry.close
+# which caused ThreadError.
+at_exit do
+  next unless $ot_received_sigint # rubocop:disable Style/GlobalVars
+
+  OT.with_diagnostics do
+    if defined?(Sentry) && Sentry.initialized?
+      begin
+        Sentry.close
+      rescue Sentry::Error, IOError, SystemCallError => ex
+        # Ignore Sentry-related/network errors during shutdown
+        warn "Error during Sentry shutdown: #{ex.class}" if OT.debug?
+      end
+    end
+  end
 end
 
 require_relative 'onetime/alias'

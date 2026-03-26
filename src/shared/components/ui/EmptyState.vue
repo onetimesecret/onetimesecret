@@ -9,11 +9,12 @@ defineProps<{
   actionRoute?: string;
   actionText?: string;
   showAction?: boolean;
+  testid?: string;
 }>();
 </script>
 
 <template>
-  <div class="py-12 text-center">
+  <div :data-testid="testid" class="py-12 text-center">
     <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-gray-100 p-3 dark:bg-gray-800">
       <svg
         xmlns="http://www.w3.org/2000/svg"

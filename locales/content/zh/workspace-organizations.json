@@ -155,6 +155,14 @@
     "text": "更新组织失败",
     "sha256": "bc2b59b8"
   },
+  "web.organizations.billing_email_updated": {
+    "text": "账单邮箱更新成功",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "账单邮箱可在账单概览页面更改",
+    "sha256": "8a131415"
+  },
   "web.organizations.billing_coming_soon": {
     "text": "账单集成即将推出",
     "sha256": "d3e0ec75"
@@ -206,6 +214,10 @@
   "web.organizations.tabs.billing": {
     "text": "账单",
     "sha256": "3ac8bbca"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "订阅",
+    "sha256": "4999c6c6"
   },
   "web.organizations.danger_zone": {
     "text": "危险区域",
@@ -515,17 +527,21 @@
     "text": "正在加载邀请详情",
     "sha256": "58884885"
   },
-  "web.organizations.billing_email_updated": {
-    "text": "账单邮箱更新成功",
-    "sha256": "080a7f11"
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "升级您的方案以邀请团队成员",
+    "sha256": "5e3f8df8"
   },
-  "web.organizations.billing_email_managed_on_billing": {
-    "text": "账单邮箱可在账单概览页面更改",
-    "sha256": "8a131415"
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "团队成员邀请需要具有团队管理功能的方案。升级以向您的组织添加协作者。",
+    "sha256": "cf10d623"
   },
   "web.organizations.paid_badge": {
     "text": "专业版",
     "sha256": "957b0b87"
+  },
+  "web.organizations.early_supporter_badge": {
+    "text": "早期支持者",
+    "sha256": "e67d2ef8"
   },
   "web.organizations.member_count": {
     "text": "{count} 名成员 | {count} 名成员",
@@ -535,13 +551,9 @@
     "text": "{count} 个域名 | {count} 个域名",
     "sha256": "09f52efa"
   },
-  "web.organizations.invitations.upgrade_to_invite": {
-    "text": "升级您的方案以邀请团队成员",
-    "sha256": "5e3f8df8"
-  },
-  "web.organizations.invitations.upgrade_prompt": {
-    "text": "团队成员邀请需要具有团队管理功能的方案。升级以向您的组织添加协作者。",
-    "sha256": "cf10d623"
+  "web.organizations.tabs.domains": {
+    "text": "域名",
+    "sha256": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "账户不匹配",
@@ -566,13 +578,5 @@
   "web.organizations.invitations.expires_soon": {
     "text": "即将过期",
     "sha256": "a5dcfef9"
-  },
-  "web.organizations.tabs.subscription": {
-    "text": "订阅",
-    "sha256": "4999c6c6"
-  },
-  "web.organizations.tabs.domains": {
-    "text": "域名",
-    "sha256": "ced67718"
   }
 }

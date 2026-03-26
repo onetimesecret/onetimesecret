@@ -382,7 +382,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr
         stripe_client.create(Stripe::Price, {
           product: product.id,
           unit_amount: 1999,
-          currency: 'usd',
+          currency: 'cad',
           recurring: { interval: 'month' },
         }
         )
@@ -405,7 +405,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr
         stripe_client.create(Stripe::Price, {
           product: product.id,
           unit_amount: 2500,
-          currency: 'usd',
+          currency: 'cad',
           recurring: { interval: 'month' },
         }
         )
@@ -415,7 +415,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr
         end
 
         # Verify price formatting includes amount and currency
-        expect(output).to match(/\$\d+\.\d{2}|USD/)
+        expect(output).to match(/CA\$\d+\.\d{2}|CAD/)
 
         # Note: No cleanup - VCR tests dont need product deletion
       end
@@ -429,7 +429,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr
         stripe_client.create(Stripe::Price, {
           product: product.id,
           unit_amount: 1000,
-          currency: 'usd',
+          currency: 'cad',
           recurring: { interval: 'month' },
         }
         )
@@ -453,7 +453,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr
         stripe_client.create(Stripe::Price, {
           product: product.id,
           unit_amount: 500,
-          currency: 'usd',
+          currency: 'cad',
           recurring: { interval: 'month' },
         }
         )

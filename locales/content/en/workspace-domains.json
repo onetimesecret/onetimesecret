@@ -398,5 +398,17 @@
   "web.domains.dns_widget_description": {
     "text": "Use the tool below to automatically detect your DNS provider and get step-by-step instructions for configuring your domain.",
     "sha256": "91c1af2e"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Failed to load DNS widget",
+    "sha256": "a2b3c4d5"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS widget not available",
+    "sha256": "b3c4d5e6"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Failed to initialize DNS widget",
+    "sha256": "c4d5e6f7"
   }
 }

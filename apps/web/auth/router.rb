@@ -97,17 +97,14 @@ module Auth
       { error: 'Endpoint not found' }
     end
 
-    # # Returns the current customer from session or anonymous
-    # # @return [Onetime::Customer]
+    # # Returns the current customer from session or nil (anonymous)
+    # # @return [Onetime::Customer, nil]
     # def current_customer
-    #   if session['external_id']
-    #     Onetime::Customer.find_by_extid(session['external_id'])
-    #   else
-    #     Onetime::Customer.anonymous
-    #   end
+    #   return nil unless session['external_id']
+    #   Onetime::Customer.find_by_extid(session['external_id'])
     # rescue StandardError => ex
     #   auth_logger.error 'Failed to load customer from session', exception: ex
-    #   Onetime::Customer.anonymous
+    #   nil
     # end
 
     # # Returns the current locale for i18n

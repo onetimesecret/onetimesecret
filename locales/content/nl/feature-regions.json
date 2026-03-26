@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "Huidig rechtsgebied:",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "Regio wijzigen",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "Ons beleid is om nooit gegevens tussen regio's over te dragen. Elke regio functioneert als een volledig onafhankelijke omgeving.",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "Om een andere regio te gebruiken, maak je daar een nieuw account aan met hetzelfde e-mailadres dat is gekoppeld aan je factuurcontact.",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "Als je factuurcontact-e-mailadres verschilt van je Onetime Secret-account-e-mailadres, gebruik dan het factuurcontact-e-mailadres voor het nieuwe regio-account om je abonnementsvoordelen te behouden.",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "Je abonnementsvoordelen worden automatisch toegepast op elk account dat is aangemaakt met je factuur-e-mailadres.",
+    "sha256": "5b2238b2"
   }
 }

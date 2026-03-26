@@ -5,7 +5,7 @@
   import BaseUnknownSecret from '@/shared/components/base/BaseUnknownSecret.vue';
   import NeedHelpModal from '@/shared/components/modals/NeedHelpModal.vue';
   import UnknownSecretHelpContent from '@/apps/secret/components/UnknownSecretHelpContent.vue';
-  import type { BrandSettings } from '@/schemas/models/domain/brand';
+  import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
 
 const { t } = useI18n();
 

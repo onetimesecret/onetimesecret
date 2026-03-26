@@ -181,6 +181,7 @@ Use passive voice or past participles for system messages and status updates.
   - `hasło` for account passwords only
   - `fraza dostępowa` for secret protection
   - `sekret` as the core concept (never "wiadomość" unless contextually necessary)
+- Keys ending in `_literal` (e.g., `onetime_secret_literal`) contain brand names that must remain in English exactly as-is
 
 ### 2. Context Awareness
 

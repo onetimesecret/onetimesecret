@@ -75,7 +75,7 @@ jobs:
     steps:
       - &checkout-step
         name: Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Check for CI flags
         id: check-flags
@@ -84,7 +84,7 @@ jobs:
           ./.github/scripts/detect-ci-flags.sh "$DISPATCH_RUN_ALL"
 
       - name: Detect file changes
-        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3.0.3
         id: filter
         with:
           filters: |
@@ -172,9 +172,9 @@ jobs:
     steps:
       - *checkout-step
 
-      - uses: ruby/setup-ruby@7f562e2882f42fe3ccc6f67a86ec4d551fdfcaf1
+      - uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
         with:
-          ruby-version: '3.4.8'
+          ruby-version: '3.4.9'
           bundler-cache: true
 
       - name: Run Rubocop
@@ -187,7 +187,7 @@ jobs:
 
       - name: Upload Rubocop results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: rubocop-results
           path: tmp/rubocop_results.json
@@ -253,7 +253,7 @@ jobs:
         run: pnpm run build
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: frontend-build
           path: public/web/dist/
@@ -286,6 +286,15 @@ jobs:
           --memory=4g
         ports:
           - 2121:6379
+      rabbitmq: &rabbitmq-service
+        image: rabbitmq:4.0
+        options: >-
+          --health-cmd "rabbitmq-diagnostics check_port_connectivity"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+        ports:
+          - 5672:5672
 
     steps:
       - *checkout-step
@@ -299,7 +308,7 @@ jobs:
           python-version: '3.14'
 
       - name: Setup Node.js for locale sync
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: '22'
 
@@ -314,6 +323,7 @@ jobs:
         with:
           test-type: unit
           auth-mode: simple
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_unit_results.json'
           debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
@@ -401,6 +411,7 @@ jobs:
 
     services:
       redis: *valkey-service
+      rabbitmq: *rabbitmq-service
 
     steps:
       - *checkout-step
@@ -414,7 +425,7 @@ jobs:
           python-version: '3.14'
 
       - name: Setup Node.js for locale sync
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: '22'
 
@@ -429,6 +440,7 @@ jobs:
         with:
           test-type: integration
           auth-mode: simple
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_simple_results.json'
 
   ruby-integration-full-sqlite:
@@ -440,6 +452,7 @@ jobs:
 
     services:
       redis: *valkey-service
+      rabbitmq: *rabbitmq-service
 
     steps:
       - *checkout-step
@@ -453,7 +466,7 @@ jobs:
           python-version: '3.14'
 
       - name: Setup Node.js for locale sync
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: '22'
 
@@ -469,6 +482,7 @@ jobs:
           test-type: integration
           auth-mode: full
           auth-database-url: 'sqlite::memory:'
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_full_sqlite_results.json'
 
   ruby-integration-full-postgres:
@@ -480,8 +494,9 @@ jobs:
 
     services:
       redis: *valkey-service
+      rabbitmq: *rabbitmq-service
       postgres:
-        image: postgres:17@sha256:1eada89ec2521ae0f61125f6bdaf83bbbf88a43fecda48d112a83bb92df75c36
+        image: postgres:17@sha256:2cd82735a36356842d5eb1ef80db3ae8f1154172f0f653db48fde079b2a0b7f7
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -506,7 +521,7 @@ jobs:
           python-version: '3.14'
 
       - name: Setup Node.js for locale sync
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: '22'
 
@@ -566,6 +581,7 @@ jobs:
           auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
           auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
           rspec-tag: 'postgres_database'
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_full_postgres_results.json'
 
   ruby-integration-disabled:
@@ -577,6 +593,7 @@ jobs:
 
     services:
       redis: *valkey-service
+      rabbitmq: *rabbitmq-service
 
     steps:
       - *checkout-step
@@ -590,7 +607,7 @@ jobs:
           python-version: '3.14'
 
       - name: Setup Node.js for locale sync
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: '22'
 
@@ -605,6 +622,7 @@ jobs:
         with:
           test-type: integration
           auth-mode: disabled
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_disabled_results.json'
 
   # ============================================================================
@@ -665,6 +683,7 @@ jobs:
           load: true
           set: |
             main.tags=onetime-test
+            main.args.ALLOW_DEV_VERSION=true
 
       - name: Generate random secrets for container
         uses: ./.github/actions/generate-test-secrets
@@ -708,13 +727,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           sparse-checkout: .github/scripts
           sparse-checkout-cone-mode: false
 
       - name: Download all test result artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: '*-results'
           path: test-results/
@@ -741,7 +760,7 @@ jobs:
 
       - name: Upload unified test report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: unified-test-report
           path: test-results/unified-report.json

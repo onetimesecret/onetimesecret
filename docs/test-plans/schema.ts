@@ -12,7 +12,7 @@
  * - Verify as assertions: what to check, not how
  */
 
-import { z } from 'zod/v4';
+import { z } from 'zod';
 
 // -----------------------------------------------------------------------------
 // Enums

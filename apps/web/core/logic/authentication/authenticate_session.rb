@@ -65,7 +65,7 @@ module Core::Logic
       def raise_concerns
         return unless @cust.nil?
 
-        @cust ||= Onetime::Customer.anonymous
+        # cust stays nil - error raised before we need it
         raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
       end
 
@@ -75,7 +75,7 @@ module Core::Logic
             {
               email: cust.obscure_email,
               role: cust.role,
-              session_id: sess&.id,
+              session_id: safe_session_id,
               ip: @strategy_result.metadata[:ip],
               reason: :invalid_credentials,
             }
@@ -89,7 +89,7 @@ module Core::Logic
               customer_id: cust.objid,
               email: cust.obscure_email,
               role: cust.role,
-              session_id: sess&.id,
+              session_id: safe_session_id,
               status: :pending,
             }
 
@@ -147,7 +147,7 @@ module Core::Logic
             user_id: cust.objid,
             email: cust.obscure_email,
             role: cust.role,
-            session_id: sess.id,
+            session_id: safe_session_id,
             ip: @strategy_result.metadata[:ip],
             stay: stay,
             session_ttl: session_ttl,

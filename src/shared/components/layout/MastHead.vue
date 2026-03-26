@@ -59,7 +59,14 @@
     return isUserPresent.value ? 40 : 64;
   };
   // Hide site name when custom domain logo is displayed (unless explicitly configured)
-  const getShowSiteName = () => props.logo?.showSiteName ?? (domain_logo.value ? false : !!headerConfig.value?.branding?.site_name);
+  // Priority: props > custom domain (hide by default) > logo.show_name config > site_name presence
+  const getShowSiteName = () => {
+    if (props.logo?.showSiteName != null) return props.logo.showSiteName;
+    if (domain_logo.value) return false;
+
+    const showName = headerConfig.value?.branding?.logo?.show_name;
+    return showName ?? !!headerConfig.value?.branding?.site_name;
+  };
   const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal');
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
@@ -159,6 +166,7 @@
           <div v-else>
             <a
               :href="logoConfig.href"
+              data-testid="header-logo-link"
               class="flex items-center gap-3"
               :aria-label="logoConfig.alt">
               <img
@@ -207,10 +215,10 @@
         </template>
 
         <template v-else>
-          <template v-if="authentication.enabled">
+          <template v-if="authentication?.enabled">
             <!-- prettier-ignore-attribute class -->
             <router-link
-              v-if="authentication.signup"
+              v-if="authentication?.signup"
               to="/signup"
               :title="t('web.homepage.signup_individual_and_business_plans')"
               class="font-bold text-gray-600 transition-colors duration-200
@@ -219,7 +227,7 @@
               {{ t('web.COMMON.header_create_account') }}
             </router-link>
             <span
-              v-if="authentication.signup && authentication.signin"
+              v-if="authentication?.signup && authentication?.signin"
               class="text-gray-400"
               aria-hidden="true"
               role="separator">
@@ -227,9 +235,10 @@
             </span>
             <!-- prettier-ignore-attribute class -->
             <router-link
-              v-if="authentication.signin"
+              v-if="authentication?.signin"
               to="/signin"
               :title="t('web.homepage.log_in_to_onetime_secret')"
+              data-testid="header-signin-link"
               class="text-gray-600 transition-colors duration-200
                 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
               {{ t('web.COMMON.header_sign_in') }}

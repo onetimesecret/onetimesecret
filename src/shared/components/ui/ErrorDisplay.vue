@@ -11,7 +11,7 @@ const props = defineProps<{
   error: ApplicationError;
 }>();
 
-const isZodError = computed(() => props.error.cause instanceof ZodError);
+const isZodError = computed(() => props.error.original instanceof ZodError);
 const friendlyMessage = computed(() => {
   if (!isZodError.value) return props.error.message;
   return t('web.errors.unable_to_load_data_due_to_data_format_issues_pl');

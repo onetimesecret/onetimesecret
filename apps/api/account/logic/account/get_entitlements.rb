@@ -8,6 +8,11 @@ module AccountAPI::Logic
   module Account
     # Get Entitlements API
     #
+    # @api Returns entitlement definitions and plan-to-entitlement mappings.
+    #   Includes a list of all entitlements with display names and categories,
+    #   plan mappings with their associated entitlements, and a source indicator
+    #   ("stripe" or "local_config") showing where plan data was loaded from.
+    #
     # Returns entitlement definitions and plan-to-entitlement mappings for the frontend.
     # Uses Stripe-synced plan cache with fallback to billing.yaml config.
     #
@@ -54,9 +59,11 @@ module AccountAPI::Logic
     # - Returns only public entitlement metadata, no sensitive data
     #
     class GetEntitlements < AccountAPI::Logic::Base
+      SCHEMAS = { response: 'account' }.freeze
+
       def raise_concerns
         # Basic auth check - requires logged in user
-        raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
+        verify_authenticated!
       end
 
       def process

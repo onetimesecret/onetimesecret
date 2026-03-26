@@ -74,17 +74,24 @@ site:
       header:
         # Control switch to enable/disable header customization
         enabled: <%= ENV['HEADER_ENABLED'] != 'false' %>
-        # Branding configuration for logo and company name
+        # Branding configuration for the masthead logo and site identity
         branding:
-          # Logo configuration
+          # Logo lockup: icon + optional text mark in the masthead
           logo:
-            # URL to logo image file
+            # Vue component name or image URL (e.g. DefaultLogo.vue, /img/logo.svg)
             url: <%= ENV['LOGO_URL'] || 'DefaultLogo.vue' %>
-            # Alt text for logo image
             alt: <%= ENV['LOGO_ALT'] || 'Share a Secret One-Time' %>
-            # Where the logo links to when clicked
             href: <%= ENV['LOGO_LINK'] || '/' %>
-          # Company name override (falls back to i18n if not set)
+            # Show the site name as a text mark next to the logo icon.
+            # Set false for icon-only display; SITE_NAME remains active
+            # in page titles, MFA labels, and emails regardless.
+            show_name: <%= ENV['LOGO_SHOW_NAME'] != 'false' %>
+          # Product name used across the application:
+          #   - Masthead text mark (when logo.show_name is true)
+          #   - Browser page title
+          #   - MFA authenticator app issuer label
+          #   - Outbound email sender name
+          # Falls back to i18n key if not set.
           site_name: <%= ENV['SITE_NAME'] || 'One-Time Secret' %>
         # Navigation configuration
         navigation:
@@ -94,7 +101,7 @@ site:
       # These links appear in the footer of each page
       footer_links:
         # Global toggle to enable/disable all footer links
-        enabled: <%= ENV['FOOTER_LINKS'] == 'true' || false %>
+        enabled: <%= ENV['FOOTER_LINKS'] == 'true' %>
         # Organized groups of links
         groups:
           - name: legal
@@ -131,6 +138,21 @@ site:
                 i18n_key: web.footer.contact
                 url: <%= ENV['CONTACT_URL'] %>
                 external: false
+          - name: workspace
+            i18n_key: web.footer.workspace
+            links:
+              - text: API Docs
+                i18n_key: web.footer.api_docs
+                url: <%= ENV['WORKSPACE_API_DOCS_URL'] %>
+                external: <%= ENV['WORKSPACE_API_DOCS_EXTERNAL'] != 'false' %>
+              - text: Branding Guide
+                i18n_key: web.footer.branding_guide
+                url: <%= ENV['WORKSPACE_BRANDING_GUIDE_URL'] %>
+                external: <%= ENV['WORKSPACE_BRANDING_GUIDE_EXTERNAL'] != 'false' %>
+              - text: Feedback
+                i18n_key: web.TITLES.feedback
+                url: <%= ENV['WORKSPACE_FEEDBACK_URL'] || '/feedback' %>
+                external: <%= ENV['WORKSPACE_FEEDBACK_EXTERNAL'] == 'true' %>
     # Controls whether the API endpoints are available. When disabled, the API
     # is completely disabled. Requests to /api/* will return 404.
     api:
@@ -161,7 +183,9 @@ site:
       # Require users to enter a passphrase when creating secrets
       required: <%= ENV['PASSPHRASE_REQUIRED'] == 'true' || false %>
       # Minimum number of characters required for passphrases
-      minimum_length: <%= ENV['PASSPHRASE_MIN_LENGTH'] || 8 %>
+      # Default to 4 chars to prevent trivially guessable passphrases while
+      # maintaining backward compatibility with existing integrations.
+      minimum_length: <%= ENV['PASSPHRASE_MIN_LENGTH'] || 4 %>
       # Maximum number of characters allowed for passphrases
       maximum_length: <%= ENV['PASSPHRASE_MAX_LENGTH'] || 128 %>
       # Enforce complexity requirements (uppercase, lowercase, numbers, symbols)
@@ -355,13 +379,22 @@ features:
       vhost_target: <%= ENV['APPROXIMATED_VHOST_TARGET'] || nil %>
 
     # Internal ACME endpoint configuration (for 'caddy_on_demand' strategy)
-    # This endpoint allows Caddy to verify domains before issuing certificates
+    # This endpoint allows Caddy to verify domains before issuing certificates.
+    #
+    # When enabled is true, the ACME app is auto-mounted inside the main
+    # application process and available on the loopback interface at the
+    # main app's port (e.g. http://127.0.0.1:3000/api/internal/acme/ask).
+    #
+    # When enabled is false, the ACME app must be run as a standalone
+    # process: rackup apps/internal/acme/config.ru
+    # It will bind to the listen_address and port configured below.
+    #
+    # The listen_address and port settings only apply to standalone mode.
     acme:
-      # Enable the internal ACME endpoint at /api/internal/acme/ask
       enabled: <%= ENV['ACME_ENDPOINT_ENABLED'] == 'true' %>
-      # IP address to bind to (should always be localhost for security)
+      # IP address to bind to in standalone mode (should always be localhost)
       listen_address: <%= ENV['ACME_LISTEN_ADDRESS'] || '127.0.0.1' %>
-      # Port for the ACME endpoint (Caddy will call this)
+      # Port for standalone mode (Caddy's ask directive points here)
       port: <%= ENV['ACME_PORT'] || '12020' %>
 
 # Main Database Configuration
@@ -582,52 +615,122 @@ jobs:
     # Prevents queue overflow; remaining secrets processed in next run
     batch_size: <%= ENV['JOBS_EXPIRATION_BATCH_SIZE']&.to_i || 100 %>
 
+  # Data maintenance jobs
+  # Scheduled jobs for Redis data consistency checks and repairs.
+  # All jobs ship with auto_repair: false — enable only after
+  # reviewing audit reports over multiple cycles.
+  maintenance:
+    # Master toggle — disables all maintenance jobs when false
+    enabled: <%= ENV['JOBS_MAINTENANCE_ENABLED'] == 'true' || false %>
+
+    # Phase 1: Remove phantom members from sorted sets (hourly)
+    phantom_cleanup:
+      enabled: <%= ENV['JOBS_PHANTOM_CLEANUP_ENABLED'] == 'true' || false %>
+      interval: <%= ENV['JOBS_PHANTOM_CLEANUP_INTERVAL'] || '1h' %>
+      batch_size: <%= ENV['JOBS_PHANTOM_CLEANUP_BATCH_SIZE']&.to_i || 500 %>
+      auto_repair: <%= ENV['JOBS_PHANTOM_CLEANUP_AUTO_REPAIR'] == 'true' || false %>
+
+    # Phase 2: Read-only data consistency audit (every 6h)
+    data_audit:
+      enabled: <%= ENV['JOBS_DATA_AUDIT_ENABLED'] == 'true' || false %>
+      interval: <%= ENV['JOBS_DATA_AUDIT_INTERVAL'] || '6h' %>
+      sample_size: <%= ENV['JOBS_DATA_AUDIT_SAMPLE_SIZE']&.to_i || 100 %>
+
+    # Phase 3: GC stale participation sorted set members (daily 5 AM)
+    participation_gc:
+      enabled: <%= ENV['JOBS_PARTICIPATION_GC_ENABLED'] == 'true' || false %>
+      cron: <%= ENV['JOBS_PARTICIPATION_GC_CRON'] || '0 5 * * *' %>
+      batch_size: <%= ENV['JOBS_PARTICIPATION_GC_BATCH_SIZE']&.to_i || 500 %>
+      auto_repair: <%= ENV['JOBS_PARTICIPATION_GC_AUTO_REPAIR'] == 'true' || false %>
+
+    # Phase 4: Reconcile unique indexes (daily 4 AM)
+    index_rebuild:
+      enabled: <%= ENV['JOBS_INDEX_REBUILD_ENABLED'] == 'true' || false %>
+      cron: <%= ENV['JOBS_INDEX_REBUILD_CRON'] || '0 4 * * *' %>
+      auto_repair: <%= ENV['JOBS_INDEX_REBUILD_AUTO_REPAIR'] == 'true' || false %>
+
+    # Phase 5: Rebuild instances sorted sets (weekly Sunday 3 AM)
+    instances_rebuild:
+      enabled: <%= ENV['JOBS_INSTANCES_REBUILD_ENABLED'] == 'true' || false %>
+      cron: <%= ENV['JOBS_INSTANCES_REBUILD_CRON'] || '0 3 * * 0' %>
+      auto_repair: <%= ENV['JOBS_INSTANCES_REBUILD_AUTO_REPAIR'] == 'true' || false %>
+
 internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
   default_locale: <%= ENV['I18N_DEFAULT_LOCALE'] || 'en' %>
+  # Date/time display format. Accepts a preset keyword or a date-fns pattern.
+  # Setting date_format alone controls both date-only and date+time display.
+  # Set datetime_format only if you need a different format for date+time contexts.
+  #
+  # Presets:
+  #   locale  - browser-native formatting (default)
+  #   iso8601 - 2026-03-21 / 2026-03-21 14:30:00
+  #   us      - 03/21/2026 / 03/21/2026 2:30:00 PM
+  #   eu      - 21/03/2026 / 21/03/2026 14:30
+  #   eu-dot  - 21.03.2026 / 21.03.2026 14:30
+  #   uk      - 21 Mar 2026 / 21 Mar 2026 14:30
+  #   long    - March 21, 2026 / March 21, 2026 2:30 PM
+  #
+  # Or pass a raw date-fns pattern: https://date-fns.org/docs/format
+  date_format: <%= ENV['I18N_DATE_FORMAT'] || 'locale' %>
+  datetime_format: <%= ENV['I18N_DATETIME_FORMAT'] || 'locale' %>
   fallback_locale:
-    fr-CA: [fr_CA, fr_FR, en]
-    fr: [fr_FR, fr_CA, en]
-    de-AT: [de_AT, de, en]
+    ca: [ca_ES, en]
+    ca-ES: [ca_ES, en]
+    da: [da_DK, en]
+    da-DK: [da_DK, en]
     de: [de, de_AT, en]
+    de-AT: [de_AT, de, en]
+    el: [el_GR, en]
+    el-GR: [el_GR, en]
+    fr: [fr_FR, fr_CA, en]
+    fr-CA: [fr_CA, fr_FR, en]
     it: [it_IT, en]
-    pt: [pt_BR, en]
+    mi: [mi_NZ, en]
+    mi-NZ: [mi_NZ, en]
+    pt: [pt_BR, pt_PT, en]
+    pt-BR: [pt_BR, pt_PT, en]
+    pt-PT: [pt_PT, pt_BR, en]
+    sl: [sl_SI, en]
+    sl-SI: [sl_SI, en]
+    sv: [sv_SE, en]
+    sv-SE: [sv_SE, en]
     default: [en]
   # A list of ISO language codes (e.g., 'en' for English, 'es'
-  # for Spanish, etc.). There is a corresponding file in src/locales
-  # with the same name containing the translated text. If it's not
-  # selected automatically, users are able to select their preferred
-  # language by using the toggle in the footer or in the settings
-  # modal if they're logged in.
+  # for Spanish, etc.). There is a corresponding file in
+  # generated/locales with the same name containing the translated
+  # text. If it's not selected automatically, users are able to
+  # select their preferred language by using the toggle in the
+  # footer or in the settings modal if they're logged in.
   locales:
+    - ar
     - bg
+    - ca_ES
+    - cs
     - da_DK
     - de
     - de_AT
     - el_GR
     - en
+    - eo
     - es
     - fr_CA
     - fr_FR
+    - he
+    - hu
     - it_IT
     - ja
     - ko
     - mi_NZ
     - nl
-    - tr
-    - uk
     - pl
     - pt_BR
-    - sv_SE
-  incomplete:
-    - ar
-    - ca_ES
-    - cs
-    - he
-    - hu
     - pt_PT
     - ru
     - sl_SI
+    - sv_SE
+    - tr
+    - uk
     - vi
     - zh
 diagnostics:
@@ -739,3 +842,32 @@ development:
   #   automatic retry with nil secret
   #
   allow_nil_global_secret: <%= ENV['ALLOW_NIL_GLOBAL_SECRET'] == 'true' || false %>
+  # DEVELOPMENT TOOL: Auto-provisioning Basic Auth for testing
+  #
+  # Enables the devbasicauth strategy which auto-creates ephemeral test users.
+  # Users require dev_ prefix on both username and apikey, and expire after 20h.
+  #
+  # SECURITY: Blocked in production (raises SecurityError on registration).
+  #
+  # USAGE:
+  #   curl -u dev_alice:dev_secretkey123 http://localhost:7143/api/v2/status
+  #
+  # The user dev_alice@dev.local is auto-created on first request.
+  #
+  # @see lib/onetime/application/auth_strategies/dev_basic_auth_strategy.rb
+  # @see https://github.com/onetimesecret/onetimesecret/issues/2735
+  devbasicauth: <%= ENV['DEV_BASIC_AUTH'] == 'true' %>
+  # DEVELOPMENT TOOL: Session Auth for browser-based dev workflows
+  #
+  # Enables the devsessionauth strategy which validates sessions belong to dev users.
+  # Works with dev_*@dev.local users created by devbasicauth or dev login forms.
+  #
+  # SECURITY: Blocked in production (raises SecurityError on registration).
+  #
+  # USAGE:
+  #   1. Create a dev user via devbasicauth or dev login endpoint
+  #   2. Routes with auth=devsessionauth validate the session belongs to a dev user
+  #
+  # @see lib/onetime/application/auth_strategies/dev_session_auth_strategy.rb
+  # @see https://github.com/onetimesecret/onetimesecret/issues/2735
+  devsessionauth: <%= ENV['DEV_SESSION_AUTH'] == 'true' %>

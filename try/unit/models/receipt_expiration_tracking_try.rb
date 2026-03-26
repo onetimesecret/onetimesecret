@@ -120,6 +120,89 @@ Onetime::Receipt.cleanup_expired_from_timeline(Familia.now.to_f - 3600)
 Onetime::Receipt.expiration_timeline.member?(future_id)
 #=> true
 
+# ==========================================================================
+# cleanup_orphaned_warnings tests [Task #107]
+#
+# Tests the cleanup_orphaned_warnings method that removes entries from
+# warnings_sent that no longer exist in expiration_timeline.
+# ==========================================================================
+
+## remove_element directly removes from warnings_sent set
+# Verify that remove_element works correctly
+Onetime::Receipt.warnings_sent.clear
+test_remove_id = "test_remove_#{rand(10000)}"
+Onetime::Receipt.warnings_sent.add_element(test_remove_id)
+before = Onetime::Receipt.warnings_sent.member?(test_remove_id)
+Onetime::Receipt.warnings_sent.remove_element(test_remove_id)
+after = Onetime::Receipt.warnings_sent.member?(test_remove_id)
+[before, after]
+#=> [true, false]
+
+## cleanup_orphaned_warnings removes orphaned entries
+# Clear both sets first to ensure isolation
+Onetime::Receipt.warnings_sent.clear
+Onetime::Receipt.expiration_timeline.clear
+# Add entries to warnings_sent that don't exist in expiration_timeline
+orphan_id1 = "orphan_#{rand(10000)}"
+orphan_id2 = "orphan_#{rand(10000)}"
+Onetime::Receipt.warnings_sent.add_element(orphan_id1)
+Onetime::Receipt.warnings_sent.add_element(orphan_id2)
+# Verify they exist
+before = [Onetime::Receipt.warnings_sent.member?(orphan_id1), Onetime::Receipt.warnings_sent.member?(orphan_id2)]
+# Run cleanup
+Onetime::Receipt.cleanup_orphaned_warnings
+# Verify they were removed
+after = [Onetime::Receipt.warnings_sent.member?(orphan_id1), Onetime::Receipt.warnings_sent.member?(orphan_id2)]
+[before, after]
+#=> [[true, true], [false, false]]
+
+## cleanup_orphaned_warnings preserves entries that exist in expiration_timeline
+# Add entry to both warnings_sent and expiration_timeline
+valid_id = "valid_#{rand(10000)}"
+future_time = Familia.now.to_f + 86400
+Onetime::Receipt.expiration_timeline.add(valid_id, future_time)
+Onetime::Receipt.warnings_sent.add_element(valid_id)
+# Run cleanup
+Onetime::Receipt.cleanup_orphaned_warnings
+# Entry should still exist in warnings_sent
+Onetime::Receipt.warnings_sent.member?(valid_id)
+#=> true
+
+## cleanup_orphaned_warnings returns count of removed entries
+# Clear and set up fresh test data
+Onetime::Receipt.warnings_sent.clear
+Onetime::Receipt.expiration_timeline.clear
+# Add 3 orphaned entries
+(1..3).each { |i| Onetime::Receipt.warnings_sent.add_element("orphan_count_#{i}_#{rand(10000)}") }
+# Add 1 valid entry (in both sets)
+both_id = "both_#{rand(10000)}"
+Onetime::Receipt.expiration_timeline.add(both_id, Familia.now.to_f + 3600)
+Onetime::Receipt.warnings_sent.add_element(both_id)
+# Run cleanup and check return value
+removed_count = Onetime::Receipt.cleanup_orphaned_warnings
+removed_count
+#=> 3
+
+## cleanup_orphaned_warnings handles empty warnings_sent
+Onetime::Receipt.warnings_sent.clear
+Onetime::Receipt.cleanup_orphaned_warnings
+#=> 0
+
+## cleanup_orphaned_warnings batch processing works for sets larger than batch_size
+# Add many orphaned entries to test batch processing
+Onetime::Receipt.warnings_sent.clear
+batch_test_prefix = "batch_#{rand(10000)}"
+entry_count = 15  # More than default batch_size of 10 for this test
+entry_count.times { |i| Onetime::Receipt.warnings_sent.add_element("#{batch_test_prefix}_#{i}") }
+# Verify all entries added
+before_count = entry_count.times.count { |i| Onetime::Receipt.warnings_sent.member?("#{batch_test_prefix}_#{i}") }
+# Run cleanup with small batch size to ensure multiple iterations
+removed = Onetime::Receipt.cleanup_orphaned_warnings(batch_size: 5)
+# Verify all orphaned entries were removed
+after_count = entry_count.times.count { |i| Onetime::Receipt.warnings_sent.member?("#{batch_test_prefix}_#{i}") }
+[before_count, removed, after_count]
+#=> [15, 15, 0]
+
 # Cleanup after tests
 Onetime::Receipt.expiration_timeline.clear
 Onetime::Receipt.warnings_sent.clear

@@ -6,7 +6,14 @@ require 'base64'
 
 module DomainsAPI::Logic
   module Domains
+    # Get Domain Image
+    #
+    # @api Retrieves a stored image (logo or icon) for a custom domain as
+    #   base64-encoded data with content type metadata. Requires the
+    #   custom_branding entitlement. Returns 404 if no image is stored.
     class GetDomainImage < DomainsAPI::Logic::Base
+      SCHEMAS = { response: 'imageProps' }.freeze
+
       attr_reader :display_domain, :image_field, :image, :custom_domain
 
       @field = nil

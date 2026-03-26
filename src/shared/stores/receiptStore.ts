@@ -3,11 +3,12 @@
 import { createError } from '@/shared/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/v3/responses';
-import { Receipt, ReceiptDetails } from '@/schemas/models/receipt';
+import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v3/receipt';
 import { loggingService } from '@/services/logging.service';
-import { AxiosInstance } from 'axios';
+import { gracefulParse } from '@/utils/schemaValidation';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { computed, inject, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 /**
  * API mode for endpoint selection.
@@ -63,7 +64,7 @@ export type ReceiptStore = {
 
 // eslint-disable-next-line max-lines-per-function -- Store definition naturally groups related functionality
 export const useReceiptStore = defineStore('receipt', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const record = ref<Receipt | null>(null);
@@ -134,16 +135,26 @@ export const useReceiptStore = defineStore('receipt', () => {
    * Updates store state with validated response.
    *
    * @param key - Receipt identifier
-   * @throws {ZodError} When response fails schema validation
+   * @throws {ZodError} When response fails schema validation (dev/test only)
+   * @throws In production, throws generic error on schema failure after logging
    * @throws {AxiosError} When request fails
    */
   async function fetch(key: string) {
     const endpoint = getEndpoint(`/receipt/${key}`);
     const response = await $api.get(endpoint);
-    const validated = responseSchemas.receipt.parse(response.data);
-    record.value = validated.record;
-    details.value = validated.details ?? null;
-    return validated;
+    const result = gracefulParse(
+      responseSchemas.receipt,
+      response.data,
+      'ReceiptResponse'
+    );
+
+    if (!result.ok) {
+      throw new Error('Unable to load receipt. Please try again.');
+    }
+
+    record.value = result.data.record;
+    details.value = result.data.details ?? null;
+    return result.data;
   }
 
   /**
@@ -154,7 +165,8 @@ export const useReceiptStore = defineStore('receipt', () => {
    * @param key - Receipt identifier
    * @param passphrase - Optional passphrase required for some secrets
    * @throws {ApplicationError} When receipt cannot be burned
-   * @throws {ZodError} When response fails schema validation
+   * @throws {ZodError} When response fails schema validation (dev/test only)
+   * @throws In production, throws generic error on schema failure after logging
    * @throws {AxiosError} When request fails
    */
   async function burn(key: string, passphrase?: string) {
@@ -168,11 +180,20 @@ export const useReceiptStore = defineStore('receipt', () => {
       continue: true,
     });
 
-    const validated = responseSchemas.receipt.parse(response.data);
-    record.value = validated.record;
-    details.value = validated.details ?? null;
+    const result = gracefulParse(
+      responseSchemas.receipt,
+      response.data,
+      'ReceiptResponse'
+    );
 
-    return validated;
+    if (!result.ok) {
+      throw new Error('Unable to burn secret. Please try again.');
+    }
+
+    record.value = result.data.record;
+    details.value = result.data.details ?? null;
+
+    return result.data;
   }
 
   /**

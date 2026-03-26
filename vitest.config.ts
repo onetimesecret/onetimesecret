@@ -29,6 +29,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   plugins: [vue()],
   test: {
+    globalSetup: ['src/tests/globalSetup.ts'],
     globals: true,
     environment: 'jsdom',
     include: ['src/tests/**/*.spec.ts', 'src/**/*.spec.vue'],
@@ -44,7 +45,6 @@ export default defineConfig({
       'src/tests/setup-stores.ts',
       'src/tests/setup-components.ts',
       'src/tests/setup.ts',
-      'src/tests/setupWindow.ts',
       'src/tests/setupRouter.ts',
     ],
     sequence: {

@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "Mana ture o nāianei:",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "Te Huri Rohe",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "Ko tā mātou kaupapa kia kaua e nuku raraunga i waenga i ngā rohe. Ka mahi motuhake ia rohe, ia rohe.",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "Hei whakamahi i tētahi rohe kē, waihangahia he pūkete hou ki reira mā te whakamahi i te wāhitau īmēra ōrite e hono ana ki tō īmēra nama.",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "Mēnā he rerekē tō īmēra nama ki tō īmēra pūkete Onetime Secret, whakamahia te īmēra nama mō te pūkete rohe hou hei pupuri i ō painga ohaurunga.",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "Ka tukuna aunoa ō painga ohaurunga ki ngā pūkete katoa i hangaia mā tō wāhitau īmēra nama.",
+    "sha256": "5b2238b2"
   }
 }

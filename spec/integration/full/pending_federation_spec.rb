@@ -46,7 +46,7 @@ RSpec.describe 'Pending Federation: Account Claim Flow', :full_auth_mode, type: 
     pending.subscription_status = status
     pending.planid = planid
     pending.subscription_period_end = (Time.now + 30 * 24 * 60 * 60).to_i.to_s
-    pending.home_region = 'US'
+    pending.region = 'US'
     pending.received_at = Time.now.to_i.to_s
     pending.save
     pending

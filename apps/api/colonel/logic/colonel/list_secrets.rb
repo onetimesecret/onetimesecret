@@ -7,7 +7,15 @@ require_relative '../base'
 module ColonelAPI
   module Logic
     module Colonel
+      # List Secrets
+      #
+      # @api Returns a paginated list of all secrets with metadata including
+      #   owner, state, creation time, expiration, lifespan, and whether
+      #   ciphertext is present. Sorted by most recently created. Requires
+      #   colonel role.
       class ListSecrets < ColonelAPI::Logic::Base
+        SCHEMAS = { response: 'colonelSecrets' }.freeze
+
         attr_reader :secrets, :total_count, :page, :per_page, :total_pages
 
         def process_params
@@ -56,7 +64,7 @@ module ColonelAPI
         def scan_secrets_paginated
           all_secrets = []
           cursor      = '0'
-          dbclient    = Onetime::Secret.new.dbclient
+          dbclient    = Onetime::Secret.dbclient
           pattern     = 'secret:*:object'
 
           loop do

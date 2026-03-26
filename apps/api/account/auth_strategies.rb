@@ -30,8 +30,8 @@ module AccountAPI
       # Public routes - always available (anonymous or authenticated)
       otto.add_auth_strategy('noauth', Onetime::Application::AuthStrategies::NoAuthStrategy.new)
 
-      # Check if authentication is enabled at initialization time
-      unless Onetime::Application::AuthStrategies.authentication_enabled?
+      # Check if account creation/usage is allowed at initialization time
+      unless Onetime::Application::AuthStrategies.account_creation_allowed?
         OT.le '[AccountAPI::AuthStrategies] Authentication disabled in config - skipping session strategies'
         return
       end
@@ -40,7 +40,8 @@ module AccountAPI
       otto.add_auth_strategy('sessionauth', Onetime::Application::AuthStrategies::SessionAuthStrategy.new)
 
       # HTTP Basic Auth - require valid apikey and apisecretkey
-      otto.add_auth_strategy('basicauth', Onetime::Application::AuthStrategies::BasicAuthStrategy.new)
+      # Also auto-registers devbasicauth when DEV_BASIC_AUTH=true
+      Onetime::Application::AuthStrategies.register_basic_auth(otto)
     end
   end
 end

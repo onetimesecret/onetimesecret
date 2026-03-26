@@ -79,6 +79,34 @@ logic = AccountAPI::Logic::Account::UpdateLocale.new @strategy_result_with_cust,
 logic.instance_variables.include?(:@modified)
 #=> true
 
+## anonymous_user? returns false for authenticated strategy result in UpdateLocale
+# Note: UpdateLocale.process_params reads cust.locale, so we need an authenticated user
+# Use symbol keys as UpdateLocale's field_name is :locale
+auth_session = MockSession.new
+auth_strategy = MockStrategyResult.authenticated(@cust, session: auth_session)
+logic = AccountAPI::Logic::Account::UpdateLocale.new auth_strategy, { locale: 'fr_FR' }
+logic.anonymous_user?
+#=> false
+
+## UpdateLocale updates both session and customer for authenticated user
+# Note: UpdateLocale.process_params calls cust.locale which requires authenticated user
+# Test config only supports en, fr_CA, fr_FR locales. Use symbol key for :locale.
+auth_session = MockSession.new
+auth_strategy = MockStrategyResult.authenticated(@cust, session: auth_session)
+# Reset customer locale to known state
+@cust.locale!('en')
+@cust.save
+locale_params = { locale: 'fr_FR' }
+logic = AccountAPI::Logic::Account::UpdateLocale.new auth_strategy, locale_params
+# process_params already called in constructor
+logic.raise_concerns
+logic.process
+# Reload customer to get fresh value
+reloaded_cust = Onetime::Customer.load(@cust.custid)
+# Both session and customer should have locale updated
+[auth_session['locale'], reloaded_cust.locale]
+#=> ['fr_FR', 'fr_FR']
+
 # GenerateAPIToken Tests
 
 ## API token generation, but nothing happens without calling process

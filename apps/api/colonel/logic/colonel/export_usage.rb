@@ -7,7 +7,15 @@ require_relative '../base'
 module ColonelAPI
   module Logic
     module Colonel
+      # Export Usage
+      #
+      # @api Returns usage statistics for a date range including daily
+      #   breakdowns of secrets created and users registered, totals,
+      #   secrets grouped by state, and daily averages. Date range defaults
+      #   to the last 30 days and cannot exceed 365 days. Requires colonel role.
       class ExportUsage < ColonelAPI::Logic::Base
+        SCHEMAS = { response: 'usageExport' }.freeze
+
         using Familia::Refinements::TimeLiterals
 
         attr_reader :start_date, :end_date, :usage_data, :secrets_by_day, :users_by_day
@@ -89,7 +97,7 @@ module ColonelAPI
         def scan_secrets_in_date_range
           secrets  = []
           cursor   = '0'
-          dbclient = Onetime::Secret.new.dbclient
+          dbclient = Onetime::Secret.dbclient
           pattern  = 'secret:*:object'
 
           loop do

@@ -13,12 +13,13 @@ import CurrencyMigrationModal from './CurrencyMigrationModal.vue';
 import PendingMigrationBanner from './PendingMigrationBanner.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
-import type { CurrencyConflictError } from '@/schemas/models/billing';
+import type { CurrencyConflictError } from '@/schemas/shapes/account/billing';
 import { BillingService, extractCurrencyConflict, type Plan as BillingPlan, type SubscriptionStatusResponse } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { BillingInterval } from '@/types/billing';
 import { isLegacyPlan, getPlanDisplayName } from '@/types/billing';
 import type { Organization } from '@/types/organization';
+import { formatDisplayDate } from '@/utils/format';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -62,11 +63,7 @@ const isCancelScheduled = computed(() => subscriptionStatus.value?.cancel_at_per
 const cancelAtFormatted = computed(() => {
   const cancelAt = subscriptionStatus.value?.cancel_at;
   if (!cancelAt) return null;
-  return new Date(cancelAt * 1000).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  return formatDisplayDate(new Date(cancelAt * 1000));
 });
 
 // Plan change modal state
@@ -517,10 +514,12 @@ onMounted(async () => {
 
       <!-- Billing Interval Toggle -->
       <div class="flex items-center justify-center gap-3"
+data-testid="billing-interval-toggle"
 role="group"
 aria-label="Billing interval">
         <button
           @click="billingInterval = 'month'"
+          data-testid="billing-interval-month"
           :aria-pressed="billingInterval === 'month'"
           :class="[
             'rounded-md px-4 py-2 text-sm font-medium transition-colors',
@@ -532,6 +531,7 @@ aria-label="Billing interval">
         </button>
         <button
           @click="billingInterval = 'year'"
+          data-testid="billing-interval-year"
           :aria-pressed="billingInterval === 'year'"
           :class="[
             'rounded-md px-4 py-2 text-sm font-medium transition-colors',

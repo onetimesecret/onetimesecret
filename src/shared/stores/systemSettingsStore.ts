@@ -1,12 +1,12 @@
 // src/shared/stores/systemSettingsStore.ts
 
-import { systemSettingsSchema } from '@/schemas/api/account/endpoints/colonel';
-import { type SystemSettingsDetails } from '@/schemas/config';
-import { responseSchemas } from '@/schemas/api/v3';
-import { AxiosInstance } from 'axios';
+import { systemSettingsSchema } from '@/schemas/api/account/responses/colonel';
+import { type SystemSettingsDetails } from '@/schemas/contracts/config';
+import { responseSchemas } from '@/schemas/api/internal/responses';
+import { gracefulParse } from '@/utils/schemaValidation';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { inject, ref } from 'vue';
-import { z } from 'zod';
+import { ref } from 'vue';
 
 /**
  * Type definition for SystemSettingsStore.
@@ -25,7 +25,7 @@ export type SystemSettingsStore = {
 } & PiniaCustomProperties;
 
 export const useSystemSettingsStore = defineStore('colonel', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const record = ref<{} | null>(null);
@@ -39,15 +39,14 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
   async function fetch() {
     const response = await $api.get('/api/colonel/config');
 
-    try {
-      const validated = responseSchemas.systemSettings.parse(response.data);
-      details.value = validated.details ?? null;
-    } catch (validationError) {
-      console.warn('System settings validation warning:', validationError);
-      // Gracefully handle validation errors by using response data directly
-      // This allows for partial configurations and new fields not yet in schema
+    // Admin config schemas may lag behind server changes, so validation
+    // failures degrade to raw data rather than blocking the admin UI.
+    const result = gracefulParse(responseSchemas.systemSettings, response.data, 'SystemSettingsResponse');
+    if (!result.ok) {
       details.value = response.data.details || {};
+      return response.data;
     }
+    details.value = result.data.details ?? null;
 
     return response.data;
   }
@@ -58,31 +57,28 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
    */
   async function update(newConfig: SystemSettingsDetails) {
     // Validate the config before sending to API, but allow partial configurations
-    try {
-      // Use partial validation to allow incomplete config objects
-      systemSettingsSchema.partial().parse(newConfig);
-    } catch (validationError) {
-      if (validationError instanceof z.ZodError) {
-        const firstError = validationError.issues[0];
-        throw new Error(`Validation error: ${firstError.path.join('.')} - ${firstError.message}`);
-      }
-      throw validationError;
+    const payloadResult = gracefulParse(systemSettingsSchema.partial(), newConfig, 'SystemSettingsPayload');
+    if (!payloadResult.ok) {
+      const firstError = payloadResult.error?.issues[0];
+      throw new Error(
+        firstError
+          ? `Validation error: ${firstError.path.join('.')} - ${firstError.message}`
+          : 'Invalid system settings data.'
+      );
     }
 
     const response = await $api.post('/api/colonel/config', { config: newConfig });
 
-    try {
-      const validated = responseSchemas.systemSettings.parse(response.data);
-      record.value = validated.record;
-      details.value = validated.details ?? null;
-      return validated;
-    } catch (validationError) {
-      console.warn('Response validation warning:', validationError);
-      // Fallback to using response data directly if validation fails
+    // Admin config schemas may lag behind server changes (see fetch above)
+    const responseResult = gracefulParse(responseSchemas.systemSettings, response.data, 'SystemSettingsResponse');
+    if (!responseResult.ok) {
       record.value = response.data.record || {};
       details.value = response.data.details || {};
       return response.data;
     }
+    record.value = responseResult.data.record;
+    details.value = responseResult.data.details ?? null;
+    return responseResult.data;
   }
 
   function dispose() {

@@ -5,11 +5,14 @@ name: Build and Publish OCI Images
 #
 # OCI image tagging strategy:
 #
-# Release tags (v1.0.0):          {version}, latest
-# Release candidates (v1.0.0-rc1): {version}, next
+# Release tags (v1.0.0):          v{version}, latest
+# Release candidates (v1.0.0-rc1): v{version}, next
 # Branch push:                    {branch-name}, edge
-# Manual dispatch:                {branch-name}, dev (or version_tag if provided)
+# Manual dispatch:                dev (or version_tag if provided)
 # Scheduled (nightly):            nightly
+#
+# IMAGE_TAG carries the v-prefixed version for release builds;
+# empty for non-release builds (only EXTRA_TAGS apply).
 #
 # Architecture:
 #   Uses docker/bake-action with docker/bake.hcl to build all image
@@ -85,7 +88,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.source_branch || github.ref }}
 
@@ -97,9 +100,23 @@ jobs:
           echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
           echo "Commit hash recorded: ${SHORT_SHA}"
 
-      - name: Update package.json version from tag
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: ./.github/scripts/update-version.sh
+      - name: Compute and set package.json version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION_TAG: ${{ inputs.version_tag }}
+          SHORT_SHA: ${{ steps.commit.outputs.short_sha }}
+        run: |
+          if [[ "$GITHUB_REF" =~ ^refs/tags/v ]]; then
+            # Tag build: script auto-detects version from GITHUB_REF
+            ./.github/scripts/update-version.sh
+          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]] && [[ -n "$INPUT_VERSION_TAG" ]]; then
+            ./.github/scripts/update-version.sh "$INPUT_VERSION_TAG"
+          elif [[ "$EVENT_NAME" == "schedule" ]]; then
+            ./.github/scripts/update-version.sh "0.0.0-nightly.$(date -u +%Y%m%d)"
+          else
+            BRANCH_SLUG=$(echo "${GITHUB_REF#refs/heads/}" | sed 's|/|-|g')
+            ./.github/scripts/update-version.sh "0.0.0-${BRANCH_SLUG}.${SHORT_SHA}"
+          fi
 
       - name: Compute version and tags
         id: version
@@ -150,8 +167,17 @@ jobs:
             EXTRA_TAGS="${EXTRA_TAGS:+${EXTRA_TAGS},}nightly"
           fi
 
+          # Docker image tag: v-prefixed for tag builds, empty for non-tag builds
+          if [[ "$GITHUB_REF" =~ ^refs/tags/v ]]; then
+            IMAGE_TAG="v${VERSION}"
+          else
+            IMAGE_TAG=""
+          fi
+
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
           echo "extra_tags=${EXTRA_TAGS}" >> $GITHUB_OUTPUT
           echo "Version: ${VERSION}"
+          echo "Image tag: ${IMAGE_TAG}"
           echo "Extra tags: ${EXTRA_TAGS}"
 
       - name: Set up QEMU
@@ -187,10 +213,28 @@ jobs:
           username: ${{ secrets.CUSTOM_REGISTRY_USERNAME }}
           password: ${{ secrets.CUSTOM_REGISTRY_PASSWORD }}
 
+      - name: Audit — resolved bake configuration
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
+          COMMIT_HASH: ${{ steps.commit.outputs.short_sha }}
+          EXTRA_TAGS: ${{ steps.version.outputs.extra_tags }}
+          PLATFORMS: ${{ inputs.platforms || 'linux/amd64' }}
+          REGISTRY_MODE: ${{ inputs.registry_target || 'public' }}
+          CUSTOM_REGISTRY: ${{ secrets.CUSTOM_REGISTRY_HOST }}
+        run: |
+          echo "::group::Bake resolved config (dry-run)"
+          docker buildx bake -f docker/bake.hcl --print ci 2>&1 || true
+          echo "::endgroup::"
+          echo "::group::package.json version in build context"
+          node -p "require('./package.json').version"
+          echo "::endgroup::"
+
       - name: Build and push with Bake
         uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
         env:
           VERSION: ${{ steps.version.outputs.version }}
+          IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
           COMMIT_HASH: ${{ steps.commit.outputs.short_sha }}
           EXTRA_TAGS: ${{ steps.version.outputs.extra_tags }}
           PLATFORMS: ${{ inputs.platforms || 'linux/amd64' }}
@@ -204,10 +248,43 @@ jobs:
             *.args.VERSION=${{ steps.version.outputs.version }}
             *.args.COMMIT_HASH=${{ steps.commit.outputs.short_sha }}
 
+      - name: Audit — verify image version
+        if: success()
+        env:
+          BUILD_VERSION: ${{ steps.version.outputs.version }}
+          BUILD_IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
+          BUILD_EXTRA_TAGS: ${{ steps.version.outputs.extra_tags }}
+          REGISTRY_MODE: ${{ inputs.registry_target || 'public' }}
+          CUSTOM_REGISTRY: ${{ secrets.CUSTOM_REGISTRY_HOST }}
+        run: |
+          # Determine image reference to inspect
+          if [ "${REGISTRY_MODE}" = "custom" ] && [ -n "${CUSTOM_REGISTRY}" ]; then
+            REGISTRY_PREFIX="${CUSTOM_REGISTRY}/onetimesecret"
+          else
+            REGISTRY_PREFIX="ghcr.io/onetimesecret"
+          fi
+
+          # Use IMAGE_TAG if available (release builds), otherwise first EXTRA_TAG
+          if [ -n "${BUILD_IMAGE_TAG}" ]; then
+            IMAGE_REF="${REGISTRY_PREFIX}/onetimesecret:${BUILD_IMAGE_TAG}"
+          else
+            FIRST_TAG=$(echo "${BUILD_EXTRA_TAGS}" | cut -d',' -f1 | tr -d ' ')
+            IMAGE_REF="${REGISTRY_PREFIX}/onetimesecret:${FIRST_TAG}"
+          fi
+
+          echo "::group::Image version check (${IMAGE_REF})"
+          podman pull "${IMAGE_REF}" --quiet
+          ACTUAL_VERSION=$(podman run --rm --entrypoint cat "${IMAGE_REF}" package.json \
+            | grep -o '"version": "[^"]*"' || echo '"version": "UNKNOWN"')
+          echo "Expected: ${BUILD_VERSION}"
+          echo "Actual:   ${ACTUAL_VERSION}"
+          echo "::endgroup::"
+
       - name: Output build summary
         env:
           BUILD_PLATFORMS: ${{ inputs.platforms || 'linux/amd64' }}
           BUILD_VERSION: ${{ steps.version.outputs.version }}
+          BUILD_IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
           BUILD_COMMIT: ${{ steps.commit.outputs.short_sha }}
           BUILD_EXTRA_TAGS: ${{ steps.version.outputs.extra_tags }}
         run: |
@@ -218,6 +295,7 @@ jobs:
             echo "**Targets:** ci (main, s6, lite)"
             echo "**Platforms:** ${BUILD_PLATFORMS}"
             echo "**Version:** ${BUILD_VERSION}"
+            echo "**Image tag:** ${BUILD_IMAGE_TAG:-*(none — non-tag build)*}"
             echo "**Commit:** ${BUILD_COMMIT}"
             echo "**Extra tags:** ${BUILD_EXTRA_TAGS}"
           } >> "$GITHUB_STEP_SUMMARY"

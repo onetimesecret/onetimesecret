@@ -54,7 +54,9 @@ module Billing
               interval: interval,
               error: result.error,
             }
-          res.redirect '/signup'
+          # Preserve plan selection through signup so the auth billing hook
+          # can carry it through to checkout after authentication.
+          res.redirect "/signup?product=#{product}&interval=#{interval}"
           return
         end
 
@@ -68,7 +70,7 @@ module Billing
               interval: interval,
               plan_id: result.plan_id,
             }
-          res.redirect '/signup'
+          res.redirect "/signup?product=#{product}&interval=#{interval}"
           return
         end
 
@@ -109,7 +111,7 @@ module Billing
         # Customer handling for authenticated users
         # Reuse existing Stripe Customer if the user has an org with one (returning subscriber)
         # Otherwise, Stripe creates a new customer from email prefill
-        unless cust.anonymous?
+        unless cust.nil? || cust.anonymous?
           session_params[:client_reference_id] = cust.extid
 
           # Check for existing Stripe customer on user's default organization
@@ -172,7 +174,7 @@ module Billing
             product: product,
             interval: interval,
           }
-        res.redirect '/signup'
+        res.redirect "/signup?product=#{product}&interval=#{interval}"
       end
 
       # Welcome page after successful Stripe checkout

@@ -135,13 +135,13 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
       expect(org.planid).to eq('test_plan_v1_monthly')
     end
 
-    it 'logs drift warning when metadata differs from catalog' do
-      expect(OT).to receive(:lw).with(
+    it 'does not log drift warning (ApplySubscriptionToOrg resolves from catalog silently)' do
+      # ApplySubscriptionToOrg replaced extract_plan_id_from_subscription in the
+      # checkout flow. It resolves plan_id from catalog without drift detection,
+      # so OT.lw is never called with "Drift detected".
+      expect(OT).not_to receive(:lw).with(
         a_string_including('Drift detected'),
-        hash_including(
-          catalog_plan_id: 'test_plan_v1_monthly',
-          metadata_plan_id: 'identity_plus_v1',
-        ),
+        anything,
       )
       operation.call
     end
@@ -332,7 +332,7 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
             metadata: hash_including(
               'email_hash' => a_string_matching(/\A[0-9a-f]{32}\z/),
               'email_hash_created_at' => a_string_matching(/\A\d+\z/),
-              'home_region' => anything,
+              'region' => anything,
             ),
           ),
         )

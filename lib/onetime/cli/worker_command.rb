@@ -14,16 +14,27 @@
 #   -d, --daemonize              Run as daemon
 #   -e, --environment ENV        Environment to run in (default: development)
 #   -l, --log-level LEVEL        Override Jobs logger level (uses logging.yaml by default)
+#   --check                      Validate config and connectivity, then exit
 #
 
+require 'socket'
 require 'sneakers'
 require 'sneakers/runner'
 require_relative '../jobs/queues/config'
 require_relative '../jobs/queues/declarator'
+require_relative 'queue/rabbitmq_helpers'
 
 module Onetime
   module CLI
     class WorkerCommand < Command
+        include Queue::RabbitMQHelpers
+
+        # Semantic exit codes for scripting and orchestration
+        EXIT_SUCCESS                = 0
+        EXIT_GENERAL_ERROR          = 1
+        EXIT_CONFIG_ERROR           = 2
+        EXIT_DEPENDENCY_UNAVAILABLE = 3
+
         desc 'Start Sneakers job workers'
 
         option :queues,
@@ -49,15 +60,24 @@ module Onetime
           type: :string,
           aliases: ['l'],
           desc: 'Override Jobs logger level (trace/debug/info/warn/error)'
+        option :check,
+          type: :boolean,
+          default: false,
+          desc: 'Validate config and connectivity, then exit'
 
         def call(queues: nil, concurrency: 10, daemonize: false, environment: 'development',
-                 log_level: nil, **)
+                 log_level: nil, check: false, **)
           # Skip RabbitMQ setup during boot - Sneakers creates its own connections.
           # This prevents ConnectionPool.after_fork from timing out when closing
           # inherited channels after Sneakers forks worker processes.
           ENV['SKIP_RABBITMQ_SETUP'] = '1'
 
           boot_application!
+
+          @amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+
+          # Preflight check: verify RabbitMQ is reachable before proceeding
+          preflight_check!
 
           # Configure Sneakers (via the rubygem named "kicks")
           configure_sneakers(
@@ -74,8 +94,19 @@ module Onetime
           declare_infrastructure
 
           if worker_classes.empty?
-            Onetime.workers_logger.error('No worker classes found')
-            exit 1
+            if check
+              warn 'Check failed: No worker classes found'
+            else
+              Onetime.workers_logger.error('No worker classes found')
+            end
+            exit EXIT_GENERAL_ERROR
+          end
+
+          # Handle --check mode: validate and exit
+          if check
+            puts "Config OK: #{worker_classes.size} worker(s) ready"
+            puts "Workers: #{worker_classes.map(&:name).join(', ')}"
+            exit EXIT_SUCCESS
           end
 
           Onetime.workers_logger.info("Starting #{worker_classes.size} worker(s) with concurrency #{concurrency}")
@@ -84,9 +115,10 @@ module Onetime
           # Start heartbeat thread for liveness logging
           start_heartbeat_thread(worker_classes)
 
-          # Flush pending log messages before Sneakers forks worker processes.
-          # SemanticLogger's async Processor thread can deadlock after fork if
-          # its internal Queue mutex is in an inconsistent state at fork time.
+          # Flush pending log messages before Sneakers starts its fork cycle.
+          # The before_fork hook (via cleanup_before_fork) flushes again right
+          # before fork, but this early flush ensures log output from the lines
+          # above is visible even if Sneakers setup itself hangs or crashes.
           SemanticLogger.flush
 
           # Start the workers (forks based on workers: N config)
@@ -96,24 +128,66 @@ module Onetime
 
       private
 
+        # Quick TCP connectivity check before attempting full RabbitMQ connection.
+        # Fails fast with actionable error messages when RabbitMQ is unreachable.
+        def preflight_check!
+          parsed = parse_amqp_url(@amqp_url)
+          host   = parsed[:host]
+          port   = parsed[:port]
+
+          Socket.tcp(host, port, connect_timeout: 2).close
+        rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Errno::ETIMEDOUT, SocketError => ex
+          Onetime.workers_logger.fatal(
+            "[Worker] RabbitMQ unreachable at #{host}:#{port}: #{ex.message}",
+          )
+          warn <<~MSG
+            ERROR: Cannot connect to RabbitMQ at #{host}:#{port}
+
+            Possible fixes:
+              brew services start rabbitmq   # macOS
+              systemctl start rabbitmq-server # Linux
+              docker start rabbitmq          # Docker
+
+            Check RABBITMQ_URL environment variable if using a non-default host.
+          MSG
+          exit EXIT_DEPENDENCY_UNAVAILABLE
+        end
+
         def declare_infrastructure
-          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
           Onetime.bunny_logger.info '[Worker] Initializing RabbitMQ infrastructure via QueueDeclarator...'
 
           bunny_config = {
             logger: Onetime.get_logger('Bunny'),
           }
-          bunny_config.merge!(Onetime::Jobs::QueueConfig.tls_options(amqp_url))
+          bunny_config.merge!(Onetime::Jobs::QueueConfig.tls_options(@amqp_url))
 
-          conn = Bunny.new(amqp_url, **bunny_config)
+          conn = Bunny.new(@amqp_url, **bunny_config)
           conn.start
 
-          # Declare all exchanges and queues via QueueDeclarator (single source of truth).
-          # This raises InfrastructureError if any queues are missing after declaration,
-          # preventing the worker from starting in a broken state.
-          Onetime::Jobs::QueueDeclarator.declare_all(conn)
+          begin
+            # Declare all exchanges and queues via QueueDeclarator (single source of truth).
+            # This raises InfrastructureError if any queues are missing after declaration,
+            # preventing the worker from starting in a broken state.
+            Onetime::Jobs::QueueDeclarator.declare_all(conn)
+          ensure
+            conn&.close
+          end
+        rescue Bunny::TCPConnectionFailed => ex
+          Onetime.workers_logger.fatal("[Worker] RabbitMQ connection failed: #{ex.message}")
+          warn "ERROR: Cannot connect to RabbitMQ: #{ex.message}"
+          exit EXIT_DEPENDENCY_UNAVAILABLE
+        rescue Bunny::AuthenticationFailureError => ex
+          Onetime.workers_logger.fatal("[Worker] RabbitMQ authentication failed: #{ex.message}")
+          warn 'ERROR: RabbitMQ authentication failed. Check credentials in RABBITMQ_URL.'
+          exit EXIT_CONFIG_ERROR
+        rescue Onetime::Jobs::QueueDeclarator::InfrastructureError => ex
+          Onetime.workers_logger.fatal("[Worker] Infrastructure error: #{ex.message}")
+          warn <<~MSG
+            ERROR: #{ex.message}
 
-          conn.close
+            Run: ots queue init
+          MSG
+          exit EXIT_GENERAL_ERROR
         end
 
         # Periodic heartbeat logging for observability
@@ -184,7 +258,6 @@ module Onetime
           # 3. Update Publisher to use that exchange
           # 4. Update this config to match
           #
-          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
 
           # Apply CLI log level override if provided
           if log_level
@@ -202,7 +275,7 @@ module Onetime
           end
 
           config = {
-            amqp: amqp_url,
+            amqp: @amqp_url,
             exchange: '',
             exchange_type: :direct,
             threads: concurrency,
@@ -218,13 +291,15 @@ module Onetime
             # responds to :info/:debug/:error/:warn and uses it directly instead of
             # creating a ServerEngine::DaemonLogger. This unifies all worker logging.
             log: Onetime.bunny_logger,
-            # Hooks to configure logging in forked worker processes
+            # Fork hooks — manage auth database, loggers, RabbitMQ connections
+            # via InitializerRegistry (mirrors Puma configuration).
+            # See: etc/examples/puma.example.rb
             hooks: {
+              before_fork: -> {
+                Onetime.boot_registry&.cleanup_before_fork
+              },
               after_fork: -> {
-                # Reopen restarts SemanticLogger's Processor thread and reopens
-                # all appenders. Threads don't survive fork, so the child's
-                # Processor is dead — reopen brings it back to life.
-                SemanticLogger.reopen
+                Onetime.boot_registry&.reconnect_after_fork
               },
             },
           }
@@ -234,7 +309,7 @@ module Onetime
           config[:vhost] = ENV['RABBITMQ_VHOST'] if ENV.key?('RABBITMQ_VHOST')
 
           # TLS configuration for amqps:// connections (centralized in QueueConfig)
-          config.merge!(Onetime::Jobs::QueueConfig.tls_options(amqp_url))
+          config.merge!(Onetime::Jobs::QueueConfig.tls_options(@amqp_url))
 
           Sneakers.configure(config)
         end

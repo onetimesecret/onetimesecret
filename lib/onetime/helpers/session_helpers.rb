@@ -28,7 +28,7 @@ module Onetime
       def authenticated?
         session['authenticated'] == true &&
           !session['external_id'].to_s.empty? &&
-          authentication_enabled?
+          session_auth_enforced?
       end
 
       # Check user role without loading Customer (uses session data)
@@ -75,10 +75,10 @@ module Onetime
       private
 
       def load_current_customer
-        return Onetime::Customer.anonymous unless authenticated?
+        return nil unless authenticated?
 
         customer = Onetime::Customer.find_by_extid(session['external_id'])
-        return Onetime::Customer.anonymous unless customer
+        return nil unless customer
 
         # Update cached session data if it changed
         session['role']      = customer.role if session['role'] != customer.role
@@ -87,12 +87,34 @@ module Onetime
         customer
       end
 
-      def authentication_enabled?
-        # Check global authentication toggle
-        return true unless defined?(OT) && OT.respond_to?(:conf)
+      # Should sessions enforce authentication checks?
+      #
+      # Per-request check used by `authenticated?` and V1's `authorized`
+      # to determine if the auth system is active for session validation.
+      #
+      # Defaulting to disabled is the right thing to do. If the site
+      # config is missing, we assume that authentication is disabled
+      # and that accounts are not used. This prevents situations where
+      # the app is running and anyone can create an account without
+      # proper authentication configuration in place. Features that
+      # require an account are rendered unavailable.
+      #
+      # Uses `dig` for safe hash access to avoid the `rescue false`
+      # anti-pattern that silently swallowed config access errors,
+      # masking legitimate configuration problems (see #2620).
+      #
+      # Distinct from AuthStrategies.account_creation_allowed? which
+      # is a boot-time decision about whether to register auth
+      # strategies (strict `== true`).
+      #
+      # @return [Boolean] true only if authentication is explicitly
+      #   configured; false when config is absent or disabled.
+      #
+      def session_auth_enforced?
+        return false unless defined?(OT) && OT.respond_to?(:conf)
 
         auth_conf = OT.conf&.dig('site', 'authentication')
-        return true unless auth_conf
+        return false unless auth_conf
 
         auth_conf['enabled'] != false
       end

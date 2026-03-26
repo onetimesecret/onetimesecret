@@ -14,36 +14,36 @@ require_relative 'logger_methods'
 module Onetime
   # Onetime::Session - A secure Rack session store using Familia's StringKey DataType
   #
-  # This implementation provides secure session storage with HMAC verification
-  # and encryption using Familia's Redis-backed StringKey data type.
+  # This implementation provides secure session storage with AES-256-GCM encryption
+  # and HMAC verification using Familia's Redis-backed StringKey data type.
   #
   # SECURITY MODEL:
   # ===============
   # - Session ID: Plain 64-char hex string (visible in cookie and Redis key)
   #   Example: "c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655"
   #
-  # - Session Data: JSON serialized, Base64 encoded, HMAC signed
-  #   Format: "base64(json)--hmac"
+  # - Session Data: JSON serialized, AES-256-GCM encrypted, Base64 encoded, HMAC signed
+  #   Format: "base64(iv:auth_tag:ciphertext)--hmac"
   #   Example: "eyJhY2NvdW50X2lkIjoxMjN9...--a3f5e8d9c2b1..."
   #
   # - Secret: Used to derive two keys:
   #   * HMAC key: Signs session data to prevent tampering
-  #   * Encryption key: Currently derived but unused (future enhancement)
+  #   * Encryption key: AES-256-GCM key for session data confidentiality
   #
   # WHAT THE SECRET PROTECTS:
   # =========================
   # ✅ Session data integrity - Can't modify contents without detection
   # ✅ Prevents tampering - Can't change account_id from 123 to 456
+  # ✅ Session data confidentiality - Encrypted at rest in Redis
   # ❌ Does NOT hide session ID - The ID itself is visible in cookie
-  # ❌ Does NOT encrypt data - Base64 is encoding, not encryption
   #
   # STORAGE LAYOUT:
   # ==============
   # Browser Cookie: onetime.session=c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655
   # Redis Key:      session:c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655
-  # Redis Value:    eyJhY2NvdW50X2lkIjoxMjN9...--a3f5e8d9c2b1...
-  #                 ^^^^^^^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^
-  #                 Base64(JSON(session_data))    HMAC signature
+  # Redis Value:    base64(iv:auth_tag:ciphertext)--hmac_signature
+  #                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^
+  #                 Base64(AES-GCM(JSON(session_data))) HMAC signature
   #
   # Usage:
   #   use Onetime::Session,
@@ -100,10 +100,13 @@ module Onetime
       @namespace    = options[:namespace] || 'session'
 
       # Derive different keys for different purposes from the master secret
-      # HMAC key: Used for signing session data (active)
-      # Encryption key: Derived but currently unused (reserved for future encryption)
+      # HMAC key: Used for signing session data
+      # Encryption key: Used for AES-256-GCM encryption of session data
       @hmac_key       = derive_key('hmac')
       @encryption_key = derive_key('encryption')
+
+      # Convert hex-encoded encryption key to raw 32 bytes for AES-256
+      @encryption_key_raw = [@encryption_key].pack('H*')
     end
 
     private
@@ -242,6 +245,69 @@ module Onetime
       OpenSSL::HMAC.hexdigest('SHA256', @hmac_key, data)
     end
 
+    # Encrypts session data using AES-256-GCM
+    #
+    # Input:  '{"account_id":123}' (JSON string)
+    # Output: "iv:auth_tag:ciphertext" (binary string with : delimiter)
+    #
+    # AES-256-GCM provides:
+    # - Confidentiality: Data is encrypted
+    # - Authenticity: GCM auth tag detects tampering (in addition to HMAC)
+    # - Uniqueness: Random 12-byte IV per encryption
+    def encrypt_data(plaintext)
+      cipher     = OpenSSL::Cipher.new('aes-256-gcm')
+      cipher.encrypt
+      cipher.key = @encryption_key_raw
+
+      # Generate random 12-byte IV (NIST recommendation for GCM)
+      iv        = cipher.random_iv
+      cipher.iv = iv
+
+      # Encrypt the plaintext
+      ciphertext = cipher.update(plaintext) + cipher.final
+
+      # Get the authentication tag (16 bytes)
+      auth_tag = cipher.auth_tag
+
+      # Combine: iv (12 bytes) + auth_tag (16 bytes) + ciphertext
+      iv + auth_tag + ciphertext
+    end
+
+    # Decrypts session data using AES-256-GCM
+    #
+    # Input:  "iv:auth_tag:ciphertext" (binary string)
+    # Output: '{"account_id":123}' (JSON string) or nil if decryption fails
+    #
+    # Returns nil if:
+    # - Data is too short (missing IV or auth tag)
+    # - Auth tag verification fails (tampered data)
+    # - Any decryption error occurs
+    def decrypt_data(encrypted_data)
+      return nil if encrypted_data.nil? || encrypted_data.bytesize < 28  # 12 + 16 minimum
+
+      cipher     = OpenSSL::Cipher.new('aes-256-gcm')
+      cipher.decrypt
+      cipher.key = @encryption_key_raw
+
+      # Extract components: iv (12 bytes) + auth_tag (16 bytes) + ciphertext
+      iv         = encrypted_data[0, 12]
+      auth_tag   = encrypted_data[12, 16]
+      ciphertext = encrypted_data[28..]
+
+      cipher.iv       = iv
+      cipher.auth_tag = auth_tag
+
+      # Decrypt and verify authenticity
+      cipher.update(ciphertext) + cipher.final
+    rescue OpenSSL::Cipher::CipherError => ex
+      session_logger.warn 'AES-GCM decryption failed',
+        {
+          error: ex.message,
+          operation: 'decrypt',
+        }
+      nil
+    end
+
     # READ SESSION FROM REDIS
     # =======================
     #
@@ -250,8 +316,9 @@ module Onetime
     # 2. Validate ID format
     # 3. Load data from Redis: session:SESSION_ID
     # 4. Verify HMAC signature
-    # 5. Decode Base64 and parse JSON
-    # 6. Return session data hash
+    # 5. Decode Base64 to get encrypted binary data
+    # 6. Decrypt AES-256-GCM encrypted data
+    # 7. Parse JSON and return session data hash
     #
     # RODAUTH LOGIN FAILURE EXAMPLE:
     # ==============================
@@ -365,18 +432,37 @@ module Onetime
           return [new_sid, {}]  # Empty session - Rodauth sees "not logged in"
         end
 
-        # Decode Base64 (encoding, not encryption - anyone can decode this)
-        decoded_data = Base64.decode64(data)
+        # Decode Base64 to get encrypted binary data
+        encrypted_data = Base64.strict_decode64(data)
         session_logger.trace 'Base64 decode complete',
           {
             session_id: sid_string,
-            decoded_size: decoded_data.bytesize,
+            encrypted_size: encrypted_data.bytesize,
+            operation: 'read',
+          }
+
+        # Decrypt AES-256-GCM encrypted data
+        decrypted_data = decrypt_data(encrypted_data)
+        unless decrypted_data
+          session_logger.warn 'Session decryption failed',
+            {
+              session_id: sid_string,
+              operation: 'read',
+            }
+          new_sid = generate_sid
+          return [new_sid, {}]
+        end
+
+        session_logger.trace 'AES-256-GCM decryption complete',
+          {
+            session_id: sid_string,
+            decrypted_size: decrypted_data.bytesize,
             operation: 'read',
           }
 
         # Parse JSON to get session hash
         # Example: {"account_id":123,"awaiting_mfa":true}
-        session_data = Familia::JsonSerializer.parse(decoded_data)
+        session_data = Familia::JsonSerializer.parse(decrypted_data)
 
         session_logger.trace 'Session loaded successfully',
           {
@@ -417,10 +503,13 @@ module Onetime
     # 1. Serialize session data to JSON
     #    {"account_id":123,"awaiting_mfa":true} => '{"account_id":123,...}'
     #
-    # 2. Base64 encode (for safe transport, not encryption)
+    # 2. Encrypt with AES-256-GCM (confidentiality at rest)
+    #    => iv + auth_tag + ciphertext (binary)
+    #
+    # 3. Base64 encode (for safe storage of binary data)
     #    => "eyJhY2NvdW50X2lkIjoxMjN9..."
     #
-    # 3. Compute HMAC signature (prevents tampering)
+    # 4. Compute HMAC signature (prevents tampering)
     #    => "a3f5e8d9c2b1..."
     #
     # 4. Combine with separator
@@ -453,9 +542,18 @@ module Onetime
           operation: 'write',
         }
 
-      # Step 2: Base64 encode (this is NOT encryption - anyone can decode)
-      # Purpose: Safe transport, handles binary data
-      encoded = Base64.encode64(json_data).delete("\n")
+      # Step 2: Encrypt with AES-256-GCM
+      # Provides confidentiality at rest in Redis
+      encrypted_data = encrypt_data(json_data)
+      session_logger.trace 'AES-256-GCM encryption complete',
+        {
+          session_id: sid_string,
+          encrypted_size: encrypted_data.bytesize,
+          operation: 'write',
+        }
+
+      # Step 3: Base64 encode (for safe storage of binary encrypted data)
+      encoded = Base64.strict_encode64(encrypted_data)
       session_logger.trace 'Base64 encoding complete',
         {
           session_id: sid_string,

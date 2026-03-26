@@ -10,6 +10,7 @@
     text: string;
     interval?: number;
     tooltip?: string | undefined;
+    testid?: string;
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -50,6 +51,7 @@
       @click="copyToClipboard"
       @mouseenter="showTooltip = true"
       @mouseleave="showTooltip = false"
+      :data-testid="testid"
       class="text-gray-600 hover:text-gray-900 focus:outline-none dark:text-gray-400 dark:hover:text-white"
       :aria-label="ariaLabel">
       <OIcon

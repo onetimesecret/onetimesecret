@@ -10,7 +10,7 @@ RSpec.shared_examples 'handles Stripe card errors', :stripe do
     expect do
       Stripe::PaymentIntent.create(
         amount: 1000,
-        currency: 'usd',
+        currency: 'cad',
         payment_method_data: {
           type: 'card',
           card: { token: StripeTestData::CARDS[:visa_decline] },
@@ -27,7 +27,7 @@ RSpec.shared_examples 'handles Stripe card errors', :stripe do
     expect do
       Stripe::PaymentIntent.create(
         amount: 1000,
-        currency: 'usd',
+        currency: 'cad',
         payment_method_data: {
           type: 'card',
           card: { token: StripeTestData::CARDS[:visa_insufficient_funds] },
@@ -43,7 +43,7 @@ RSpec.shared_examples 'handles Stripe card errors', :stripe do
     expect do
       Stripe::PaymentIntent.create(
         amount: 1000,
-        currency: 'usd',
+        currency: 'cad',
         payment_method_data: {
           type: 'card',
           card: { token: StripeTestData::CARDS[:visa_expired] },

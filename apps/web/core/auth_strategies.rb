@@ -41,8 +41,8 @@ module Core
       # Public routes - always available (anonymous or authenticated)
       otto.add_auth_strategy('noauth', Onetime::Application::AuthStrategies::NoAuthStrategy.new)
 
-      # Check if authentication is enabled at initialization time
-      unless Onetime::Application::AuthStrategies.authentication_enabled?
+      # Check if account creation/usage is allowed at initialization time
+      unless Onetime::Application::AuthStrategies.account_creation_allowed?
         auth_logger.warn 'Authentication disabled in config - skipping session strategy registration',
           {
             module: 'Core::AuthStrategies',
@@ -52,6 +52,19 @@ module Core
 
       # Authenticated routes - requires valid session
       otto.add_auth_strategy('sessionauth', Onetime::Application::AuthStrategies::SessionAuthStrategy.new)
+
+      # Auto-register dev session strategy when enabled in config
+      register_dev_session_auth(otto) if Onetime::Application::AuthStrategies.dev_session_auth_enabled?
+    end
+
+    # Registers development-only Session Auth strategy (opt-in, non-production only)
+    #
+    # Validates that authenticated sessions belong to dev_* users.
+    # Normally called automatically by register_essential when config is set.
+    #
+    # @param otto [Otto] Otto router instance
+    def register_dev_session_auth(otto)
+      Onetime::Application::AuthStrategies.register_dev_session_auth(otto)
     end
   end
 end

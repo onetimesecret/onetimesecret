@@ -19,6 +19,7 @@ module Core
       @safe_site_fields = %w[
         host ssl interface
         secret_options authentication
+        support
       ]
 
       class << self
@@ -63,7 +64,7 @@ module Core
           if strategy_result
             # Normal flow: Otto ran, strategy_result available
             sess        ||= strategy_result.session
-            cust        ||= strategy_result.user || Onetime::Customer.anonymous
+            cust        ||= strategy_result.user # nil for anonymous
             authenticated = strategy_result.authenticated? || false
           else
             # Error recovery flow: Otto didn't run, use fallback values
@@ -72,7 +73,7 @@ module Core
             rescue NoMethodError, RuntimeError
               sess = {}
             end
-            cust        ||= Onetime::Customer.anonymous
+            # cust stays nil for anonymous
             authenticated = false
           end
         else

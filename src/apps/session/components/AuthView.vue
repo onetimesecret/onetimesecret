@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { Jurisdiction } from '@/schemas/models';
+  import type { Jurisdiction } from '@/schemas/shapes/config';
   import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';

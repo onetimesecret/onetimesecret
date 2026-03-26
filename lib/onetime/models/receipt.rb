@@ -7,6 +7,8 @@ module Onetime
     include Familia::Features::Autoloader
     include Onetime::LoggerMethods
 
+    SCHEMA = 'models/receipt'
+
     using Familia::Refinements::TimeLiterals
 
     feature :object_identifier,
@@ -141,8 +143,8 @@ module Onetime
       owner_id.to_s == 'anon'
     end
 
-    def owner?(cust)
-      !anonymous? && (cust.is_a?(Onetime::Customer) ? cust.custid : cust).to_s == owner_id.to_s
+    def owner?(fobj)
+      !!(fobj && !anonymous? && (fobj.objid == owner_id))
     end
 
     def valid?
@@ -155,10 +157,6 @@ module Onetime
 
     def load_owner
       Onetime::Customer.load owner_id
-    end
-
-    def owner?(fobj)
-      fobj && (fobj.objid == owner_id)
     end
 
     def load_secret
@@ -206,31 +204,25 @@ module Onetime
         secret  = Onetime::Secret.new(owner_id: owner_id)
         receipt = Onetime::Receipt.new(owner_id: owner_id)
 
+        # Link the pair (objids exist at new-time, no save needed)
         receipt.secret_identifier  = secret.objid
         receipt.default_expiration = lifespan * 2
-        receipt.save
 
         secret.default_expiration = lifespan
         secret.lifespan           = lifespan
         secret.receipt_identifier = receipt.objid
+        secret.ciphertext_domain  = domain
+        secret.share_domain       = domain
+        secret.ciphertext         = content
 
-        # NOTE: Transient fields that are used for aad protection (like
-        # ciphertext_domain) need to be populated before encrypting the
-        # content.
-        secret.ciphertext_domain = domain
-        secret.share_domain      = domain
-        secret.ciphertext        = content
-
-        # Set the passphrase via the special update method that ensures it
-        # is encrypted before its saved. We could override the field setter,
-        # but prefer to be explicit about it.
-        unless passphrase.nil?
+        unless passphrase.to_s.empty?
           secret.update_passphrase passphrase
           receipt.has_passphrase = true
         end
 
         secret.save
 
+        # Single save with all fields populated — no partial-state window
         receipt.secret_shortid = secret.shortid
         receipt.secret_ttl     = lifespan
         receipt.lifespan       = lifespan
@@ -238,7 +230,6 @@ module Onetime
         receipt.kind           = kind
         receipt.save
 
-        # Register for expiration warnings if feature is enabled and TTL is long enough
         receipt.register_for_expiration_notifications
 
         [receipt, secret]
@@ -280,6 +271,36 @@ module Onetime
       # @return [Integer] Number of entries removed
       def cleanup_expired_from_timeline(before_timestamp)
         expiration_timeline.remrangebyscore(0, before_timestamp)
+      end
+
+      # Clean up orphaned entries from warnings_sent that no longer exist in expiration_timeline
+      # Should be called periodically (e.g., daily) to prevent unbounded growth
+      # @param batch_size [Integer] Number of entries to check per batch (default 1000)
+      # @return [Integer] Number of orphaned entries removed
+      def cleanup_orphaned_warnings(batch_size: 1000)
+        removed_count = 0
+        cursor        = '0'
+
+        loop do
+          # SSCAN through warnings_sent in batches - returns raw string values
+          cursor, members = warnings_sent.dbclient.sscan(warnings_sent.dbkey, cursor, count: batch_size)
+
+          members.each do |receipt_id|
+            # Check if this receipt_id still exists in expiration_timeline
+            # Use ZSCORE directly since we have raw string from SSCAN
+            # (expiration_timeline.score would serialize the value again)
+            score          = expiration_timeline.dbclient.zscore(expiration_timeline.dbkey, receipt_id)
+            next if score
+
+            # Use SREM directly since we have raw string from SSCAN
+            warnings_sent.dbclient.srem(warnings_sent.dbkey, receipt_id)
+            removed_count += 1
+          end
+
+          break if cursor == '0'
+        end
+
+        removed_count
       end
     end
   end

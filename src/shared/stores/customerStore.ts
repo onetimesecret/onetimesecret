@@ -2,12 +2,13 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/v3/responses';
-import type { Customer } from '@/schemas/models/customer';
+import type { Customer } from '@/schemas/shapes/v3/customer';
 import { loggingService } from '@/services/logging.service';
+import { gracefulParse } from '@/utils/schemaValidation';
 import { createError } from '@/shared/composables/useAsyncHandler';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { computed, handleError, inject, ref } from 'vue';
+import { computed, handleError, ref } from 'vue';
 
 /**
  * Type definition for CustomerStore.
@@ -30,7 +31,7 @@ export type CustomerStore = {
  */
 
 export const useCustomerStore = defineStore('customer', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const currentCustomer = ref<Customer | null>(null);
@@ -80,8 +81,11 @@ export const useCustomerStore = defineStore('customer', () => {
     const response = await $api.get('/api/account/customer', {
       signal: abortController.value.signal,
     });
-    const validated = responseSchemas.customer.parse(response.data);
-    currentCustomer.value = validated.record as Customer;
+    const result = gracefulParse(responseSchemas.customer, response.data, 'CustomerResponse');
+    if (!result.ok) {
+      throw new Error('Unable to load customer data. Please try again.');
+    }
+    currentCustomer.value = result.data.record as Customer;
   }
 
   /**
@@ -99,8 +103,11 @@ export const useCustomerStore = defineStore('customer', () => {
       `/api/account/customer/${currentCustomer?.value?.objid}`,
       updates
     );
-    const validated = responseSchemas.customer.parse(response.data);
-    currentCustomer.value = validated.record as Customer;
+    const result = gracefulParse(responseSchemas.customer, response.data, 'CustomerResponse');
+    if (!result.ok) {
+      throw new Error('Unable to update customer data. Please try again.');
+    }
+    currentCustomer.value = result.data.record as Customer;
   }
 
   /**

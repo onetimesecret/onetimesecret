@@ -7,9 +7,64 @@ module V1::Logic
 
     using Familia::Refinements::TimeLiterals
 
+    # V1 Secret Creation Logic [#2615]
+    #
+    # TTL bounds come from site.secret_options in config. The config path
+    # is OT.conf.dig('site', 'secret_options') — NOT a top-level fetch.
+    # If the config key is missing, the hardcoded fallback applies:
+    #   ttl_options: [30.minutes, 2.hours, 1.day, 7.days]
+    #   default_ttl: 7.days
+    #
+    # In practice, the fallback rarely triggers because OT::Config.after_load
+    # deep-merges DEFAULTS into the loaded config. When the YAML sets a key
+    # to nil (e.g. `ttl_options: <%= nil %>`), deep_merge preserves the
+    # DEFAULTS value — so the effective max comes from Config::DEFAULTS
+    # (currently 30.days / 2,592,000s). See Config.deep_merge nil semantics.
+    #
+    # v0.23.x vs v0.24 behavioral differences (not bugs):
+    #   TTL max:         v0.23 used plan.options[:ttl] (14 days for most plans)
+    #                    v0.24 resolves org from customer for plan-aware limits:
+    #                    14 days free tier, 30 days paid/billing-disabled.
+    #   Passphrase min:  v0.23 hardcoded 8 chars; v0.24 is config-driven
+    #                    (site.secret_options.passphrase.minimum_length)
+    #   Secret keys:     v0.23 generated 31-char keys; v0.24 generates 64-char
+    #                    keys (intentional — more secure algorithm), with
+    #                    shortkey truncation at 8 chars (was 6)
+    #
+    # The metadata_ttl = 2 * secret_ttl ratio is unchanged from v0.23.x.
+    #
     class BaseSecretAction < V1::Logic::Base
-      # Email validation regex - defined once to avoid recompilation on every call
-      EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
+      # V1-specific validation boundaries [#2621]
+      #
+      # These constants preserve v0.23.4 behavior for backward compatibility.
+      # V1 consumers rely on these bounds; changing them is a breaking change.
+      #
+      # TTL: v0.23.4 allowed 60s minimum; v0.24 raised it to 1800s.
+      # V1 preserves the old 60s floor so existing integrations don't break.
+      V1_MIN_TTL = 60        # 1 minute, matching v0.23.4
+      V1_MAX_TTL = 2_592_000 # 30 days (30 * 86400)
+
+      # Passphrase minimum length: config-driven with nil fallback [#2758]
+      #
+      # When the operator sets `site.secret_options.passphrase.minimum_length`
+      # in config, V1 now respects that value. When unset (nil), no minimum
+      # is enforced — preserving backward compatibility for callers sending
+      # short passphrases (e.g. "1234").
+      #
+      # This changed in v0.24.1: prior versions hard-coded nil here, ignoring
+      # any operator config. Now operators can opt-in to enforcement.
+      def self.passphrase_min_length
+        OT.conf.dig('site', 'secret_options', 'passphrase', 'minimum_length')&.to_i
+      end
+
+      # Max secret size: 10_000 characters matches the API spec's
+      # maxLength: 10000 documented in the OpenAPI definition.
+      V1_MAX_SECRET_SIZE = 10_000
+
+      # Basic email shape check for parsing recipient input. Only used
+      # to extract email-shaped tokens from free-text input; actual
+      # validation is done by Truemail in validate_recipient.
+      EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/
 
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
       attr_reader :receipt, :secret, :share_domain, :custom_domain, :payload, :default_expiration
@@ -18,8 +73,9 @@ module V1::Logic
       # raise_concerns and process methods deal with the values in the instance
       # variables only (no more params access).
       def process_params
-        # All parameters are passed in the :secret hash (secret[:ttl], etc)
-        @payload = params['secret'] || {}
+        # V1 uses flat query/form params: params['secret'], params['ttl'], etc.
+        # (V2/V3 use a nested 'secret' namespace; V1 does not.)
+        @payload = params || {}
         raise_form_error "Incorrect payload format" if payload.is_a?(String)
         process_ttl
         process_secret
@@ -29,9 +85,8 @@ module V1::Logic
       end
 
       def raise_concerns
-
-
         raise_form_error "Unknown type of secret" if kind.nil?
+        validate_secret_size
         validate_recipient
         validate_share_domain
         validate_passphrase
@@ -77,30 +132,37 @@ module V1::Logic
       def process_ttl
         @ttl = payload.fetch('ttl', nil)
 
-        # Get configuration options. We can rely on these values existing
-        # because that are guaranteed by OT::Config.after_load.
+        # Config resolution chain:
+        #   1. OT::Config.after_load deep-merges DEFAULTS into loaded YAML
+        #   2. YAML nil values are preserved as DEFAULTS (deep_merge skips nil)
+        #   3. This dig reads the merged result — DEFAULTS wins when YAML is nil
         #
-        # NOTE: These values differ from v2 slightly. Here the minimum is 30
-        # minutes for historical reasons.
-        secret_options = OT.conf&.fetch('secret_options', {
+        # The inline fallback hash below only triggers if the entire
+        # site.secret_options key is absent (should not happen after after_load).
+        #
+        # V1-specific TTL bounds [#2621]:
+        #   min = V1_MIN_TTL (60s), max = V1_MAX_TTL (30 days)
+        # These preserve v0.23.4 behavior. The config values are used for
+        # default_ttl only; bounds are V1-specific constants.
+        secret_options = OT.conf.dig('site', 'secret_options') || {
           'default_ttl' => 7.days,
           'ttl_options' => [30.minutes, 2.hours, 1.day, 7.days],
-        })
+        }
         default_ttl = secret_options['default_ttl']
-        ttl_options = secret_options['ttl_options']
 
-        # Get min/max values safely
-        min_ttl = ttl_options.min || 30.minutes
+        # V1 uses its own TTL bounds, not the config's ttl_options min/max.
+        # This preserves v0.23.4 behavior where 60s was the minimum.
+        min_ttl = V1_MIN_TTL
+        max_ttl = V1_MAX_TTL
 
-        # Limit enforcement: fail-open (unlimited) when no billing, else plan limit.
-        # Note: V1 logic doesn't include OrganizationContext, so org may be undefined.
-        config_max = ttl_options.max || 30.days
-        max_ttl = if respond_to?(:org) && org&.respond_to?(:limit_for)
-                    org_limit = org.limit_for('secret_lifetime')
-                    org_limit.positive? ? org_limit : config_max
-                  else
-                    config_max
-                  end
+        # Plan-aware TTL cap: resolve the customer's org for plan limits.
+        # Falls back to V1_MAX_TTL when billing is disabled (self-hosted).
+        plan_max = if respond_to?(:org) && org&.respond_to?(:limit_for)
+                     org_limit = org.limit_for('secret_lifetime')
+                     org_limit.positive? ? org_limit : max_ttl
+                   else
+                     resolve_ttl_limit(max_ttl)
+                   end
 
         # Apply default if nil
         @ttl = default_ttl || 7.days if ttl.nil?
@@ -108,18 +170,21 @@ module V1::Logic
         # Convert to integer, now that we know it has a value
         @ttl = ttl.to_i
 
+        # V1 TTL clamping [#2621]: silently clamp to V1 bounds.
+        # v0.23.4 silently clamped rather than rejecting, so V1 preserves
+        # that behavior for backward compatibility. Clamping happens BEFORE
+        # the entitlement gate so that e.g. ttl=9999999 gets clamped to
+        # 30 days rather than rejected for missing entitlements.
+        # plan_max may be lower than max_ttl, so use the stricter ceiling.
+        effective_max_ttl = [max_ttl, plan_max].min
+        @ttl = ttl.clamp(min_ttl, effective_max_ttl)
+
         # Entitlement gate: requests beyond free tier TTL require extended_default_expiration.
+        # Checked after clamping so the effective (clamped) value is evaluated.
         free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
         if ttl > free_ttl && respond_to?(:org) && org && !org.can?('extended_default_expiration')
           require_entitlement!('extended_default_expiration')
         end
-
-        # Apply a global maximum
-        @ttl = 30.days if ttl && ttl >= 30.days
-
-        # Enforce bounds
-        @ttl = min_ttl if ttl < min_ttl
-        @ttl = max_ttl if ttl > max_ttl
 
         # Set default_expiration for compatibility with tests
         @default_expiration = @ttl
@@ -166,10 +231,25 @@ module V1::Logic
         @share_domain = potential_domain
       end
 
+      # V1 secret size enforcement [#2621]
+      #
+      # The API spec documents maxLength: 10000 but this was never enforced
+      # in code. V1 now enforces the documented limit to prevent abuse and
+      # ensure consistent behavior with the API documentation.
+      def validate_secret_size
+        return if secret_value.nil?
+        return if secret_value.length <= V1_MAX_SECRET_SIZE
+
+        raise_form_error "Secret value exceeds the maximum size of #{V1_MAX_SECRET_SIZE} characters"
+      end
+
       def validate_recipient
         return if recipient.empty?
-        raise_form_error "An account is required to send emails." if cust.anonymous?
+        raise_form_error "An account is required to send emails." if cust.nil? || cust.anonymous?
         recipient.each do |recip|
+          # Use Truemail validation (same as rest of application) rather
+          # than regex-only v1_valid_email?. This is a security improvement
+          # over v0.23.4 behavior — email delivery should be validated.
           raise_form_error "Undeliverable email address: #{recip}" unless valid_email?(recip)
         end
       end
@@ -186,11 +266,16 @@ module V1::Logic
         validate_domain_access(@share_domain)
       end
 
+      # @sync src/schemas/contracts/config/public.ts — passphrase options
       def validate_passphrase
-        # Get passphrase configuration
+        # V1 passphrase validation [#2758]
+        #
+        # When the operator sets minimum_length in config, V1 now enforces it.
+        # When unset (nil), no minimum is enforced — preserving backward
+        # compatibility for callers sending short passphrases.
         passphrase_config = OT.conf.dig('site', 'secret_options', 'passphrase') || {}
 
-        # Check if passphrase is required
+        # Check if passphrase is required (defaults to false for V1 compat)
         if passphrase_config['required'] && passphrase.to_s.empty?
           raise_form_error "A passphrase is required for all secrets"
         end
@@ -198,45 +283,80 @@ module V1::Logic
         # Skip further validation if no passphrase provided
         return if passphrase.to_s.empty?
 
-        # Validate minimum length
-        min_length = passphrase_config['minimum_length']
+        # Config-driven minimum length; nil means no enforcement
+        min_length = self.class.passphrase_min_length
         if min_length && passphrase.length < min_length
           raise_form_error "Passphrase must be at least #{min_length} characters long"
         end
 
-        # Validate maximum length
+        # Validate maximum length (shared with all versions)
         max_length = passphrase_config['maximum_length']
         if max_length && passphrase.length > max_length
           raise_form_error "Passphrase must be no more than #{max_length} characters long"
         end
 
-        # Validate complexity if required
-        if passphrase_config['enforce_complexity']
-          validate_passphrase_complexity
-        end
-      end
-
-      def validate_passphrase_complexity
-        errors = []
-
-        # Check for at least one uppercase letter
-        errors << "uppercase letter" unless passphrase.match?(/[A-Z]/)
-
-        # Check for at least one lowercase letter
-        errors << "lowercase letter" unless passphrase.match?(/[a-z]/)
-
-        # Check for at least one number
-        errors << "number" unless passphrase.match?(/\d/)
-
-        # Check for at least one symbol
-        errors << "symbol" unless passphrase.match?(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/)
-
-        unless errors.empty?
-          raise_form_error "Passphrase must contain at least one #{errors.join(', ')}"
-        end
+        # V1 does not enforce complexity — preserves v0.23.4 behavior.
+        # The enforce_complexity config option is ignored for V1 API.
       end
 
       private
+
+      # Resolve max TTL when OrganizationContext is not available (V1).
+      #
+      # Looks up the customer's organization to check plan-based limits.
+      # Billing-disabled (self-hosted) deployments get config_max (30 days).
+      # Billing-enabled free/anonymous users get the free tier limit (14 days).
+      #
+      # Codeflow for organization_instances (Familia participates_in):
+      #   1. Customer.participates_in :Organization, :members (customer.rb:116)
+      #      generates cust.organization_instances, organization_ids, organization?, etc.
+      #   2. organization_instances calls participating_ids_for_target(Organization)
+      #      which scans the customer's `participations` Redis set (all relationship
+      #      types: orgs, domains, etc.), filtering by the "organization" key prefix.
+      #   3. Matching IDs are passed to Organization.load_multi(ids) — one HGETALL
+      #      per org — and the result is already an Array (compact'd).
+      #   4. .to_a is therefore a no-op (load_multi returns Array). Kept for
+      #      defensive clarity but has zero cost.
+      #   5. .first picks the first org. Typical customer has exactly 1 org
+      #      (created on signup), so the scan + load is ~1 set read + 1 HGETALL.
+      #
+      # Lighter alternative if needed: Organization.load(cust.organization_ids.first)
+      # skips loading all org objects. Not worth the change at current scale.
+      #
+      # @param config_max [Integer] Fallback from config ttl_options.max
+      # @return [Integer] Maximum TTL in seconds
+      def resolve_ttl_limit(config_max)
+        billing_enabled = begin
+          Onetime::BillingConfig.instance.enabled?
+        rescue StandardError
+          false
+        end
+
+        # Billing disabled (self-hosted): fail-open at config max
+        return config_max unless billing_enabled
+
+        # Anonymous users: free tier limit
+        if cust.nil? || cust.anonymous?
+          free_max = Onetime::Models::Features::WithEntitlements
+                       .free_tier_limits['secret_lifetime.max']
+          return free_max.positive? ? free_max : config_max
+        end
+
+        # Authenticated: look up customer's org for plan-based limit
+        resolved_org = cust.organization_instances.to_a.first
+        if resolved_org&.respond_to?(:limit_for)
+          org_limit = resolved_org.limit_for('secret_lifetime')
+          return org_limit.positive? ? [org_limit, config_max].min : config_max
+        end
+
+        # No org found (edge case): fall back to free tier limit
+        free_max = Onetime::Models::Features::WithEntitlements
+                     .free_tier_limits['secret_lifetime.max']
+        free_max.positive? ? free_max : config_max
+      rescue StandardError => e
+        OT.ld "[BaseSecretAction] TTL limit resolution failed: #{e.message}"
+        config_max
+      end
 
       # Creates the receipt/secret pair using the modern Metadata.spawn_pair API.
       #
@@ -259,7 +379,7 @@ module V1::Logic
       end
 
       def update_stats
-        unless cust.anonymous?
+        unless cust.nil? || cust.anonymous?
           cust.add_receipt receipt
           cust.increment_field :secrets_created # cust.secrets_created.increment
         end
@@ -322,9 +442,10 @@ module V1::Logic
           raise_form_error "Public sharing disabled for domain: #{share_domain}"
         end
 
-        unless domain_record.owner?(@cust)
-          OT.li "[validate_domain_perm]: #{share_domain} non-owner [#{cust.custid}]"
-        end
+        return if domain_record.owner?(@cust)
+
+        OT.li "[validate_domain_perm]: #{share_domain} non-owner [#{cust.custid}]"
+        raise_form_error "You do not have permission to use domain: #{share_domain}"
       end
     end
   end

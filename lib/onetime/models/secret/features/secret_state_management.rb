@@ -48,9 +48,10 @@ module Onetime::Secret::Features
 
         # The secret link has been accessed but the secret has not been consumed yet
         @state = 'previewed'
-        # NOTE: calling save re-creates all fields so if you're relying on
-        # has_field? to be false, it will start returning true after a save.
-        save update_expiration: false
+        # Only save the state field — a full save would re-serialize encrypted
+        # fields (ciphertext), corrupting them via double-encryption. Using
+        # save_fields also avoids resetting the TTL.
+        save_fields(:state)
       end
 
       # MIGRATION NOTE: This method replaces the legacy `received!` method.

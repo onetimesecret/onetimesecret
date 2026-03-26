@@ -70,4 +70,10 @@ export interface RouteMeta {
   layoutProps?: Record<string, unknown>;
   scopesAvailable?: ScopesAvailable;
   requiresFeature?: 'signup' | 'signin';
+  /**
+   * When true, this route is excluded when SSO-only mode is active.
+   * The route guard redirects authenticated users to '/account'
+   * and unauthenticated users to '/signin'.
+   */
+  excludeSsoOnly?: boolean;
 }

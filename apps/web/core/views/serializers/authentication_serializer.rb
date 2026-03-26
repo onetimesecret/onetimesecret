@@ -20,9 +20,12 @@ module Core
 
         output['authenticated'] = view_vars['authenticated']
         output['awaiting_mfa']  = view_vars['awaiting_mfa'] || false
-        cust                    = view_vars['cust'] || Onetime::Customer.anonymous
+        cust                    = view_vars['cust']
 
-        output['cust'] = cust.safe_dump
+        # For anonymous users (nil cust), return null to match frontend schema.
+        # The customerCanonical schema requires non-null objid string, so we
+        # cannot return an object with nil fields - must be null or valid object.
+        output['cust'] = cust&.safe_dump
 
         # Check if there was a valid session at the time of this response
         # This is crucial for error pages where authenticated=false but the user
@@ -35,7 +38,9 @@ module Core
         if output['authenticated']
           output['custid']         = cust.custid
           output['email']          = cust.email
+          # customer_since: Formatted date string (e.g., "Mar 21, 2026") - matches Zod schema z.string()
           output['customer_since'] = OT::Utils::TimeUtils.epochdom(cust.created) if cust.created
+          output['has_password']   = account_has_password?(sess)
 
           # Add entitlement test mode state for colonels
           if cust.role?(:colonel) && sess[:entitlement_test_planid]
@@ -66,6 +71,7 @@ module Core
             'authenticated' => nil,
             'awaiting_mfa' => false,
             'had_valid_session' => false,
+            'has_password' => false,
             'custid' => nil,
             'cust' => nil,
             'email' => nil,
@@ -73,6 +79,23 @@ module Core
             'entitlement_test_planid' => nil,
             'entitlement_test_plan_name' => nil,
           }
+        end
+
+        # Checks whether the authenticated account has a password hash set.
+        # SSO-only accounts have no row in account_password_hashes.
+        #
+        # @param sess [Hash, nil] Session hash containing account_id
+        # @return [Boolean] true if account has a password, false otherwise
+        def account_has_password?(sess)
+          account_id = sess&.[]('account_id')
+          return false unless account_id
+
+          db = Auth::Database.connection
+          return false unless db
+
+          db[:account_password_hashes].where(id: account_id).any?
+        rescue StandardError
+          false
         end
 
         # Resolve test plan name from Billing::Plan cache or config

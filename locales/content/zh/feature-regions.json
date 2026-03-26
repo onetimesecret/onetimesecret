@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "当前司法管辖区：",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "更换区域",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "我们的政策是绝不在区域之间传输数据。每个区域作为完全独立的环境运行。",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "要使用其他区域，请使用与账单联系邮箱关联的相同邮箱地址在该区域创建新账户。",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "如果您的账单联系邮箱与 Onetime Secret 账户邮箱不同，请使用账单联系邮箱创建新区域账户，以保留您的订阅权益。",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "您的订阅权益将自动应用于使用账单邮箱地址创建的任何账户。",
+    "sha256": "5b2238b2"
   }
 }

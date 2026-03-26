@@ -136,7 +136,10 @@ async function persistDomainContext(
   }
 }
 
-/** Create domain fetcher for an organization store */
+/**
+ * Create domain fetcher for an organization store.
+ * @see src/tests/composables/useDomainContext.spec.ts - Test fixtures (mock uses objid)
+ */
 function createDomainFetcher(
   organizationStore: ReturnType<typeof useOrganizationStore>,
   domainsStore: ReturnType<typeof useDomainsStore>
@@ -144,7 +147,7 @@ function createDomainFetcher(
   return async (): Promise<boolean> => {
     const { domainsEnabled } = getConfig();
     if (!domainsEnabled) return true;
-    const orgId = organizationStore.currentOrganization?.id;
+    const orgId = organizationStore.currentOrganization?.objid;
     if (!orgId) {
       console.debug('[useDomainContext] Skipping fetch: no currentOrganization set yet');
       return false;
@@ -229,10 +232,9 @@ async function initializeDomainContext(
     // On error, don't mark initialized - allow retry via watcher
     console.warn('[useDomainContext] Initialization failed, will retry when org is available');
   } finally {
-    // Only release the lock if initialization didn't complete (allow watcher retry)
-    if (!isInitialized.value) {
-      isInitializing = false;
-    }
+    // Always release the concurrency guard. The isInitialized ref tracks whether
+    // initialization succeeded; isInitializing only prevents concurrent calls.
+    isInitializing = false;
   }
 }
 
@@ -253,7 +255,7 @@ export function useDomainContext() {
   if (!watcherInitialized) {
     watcherInitialized = true;
     watch(
-      () => organizationStore.currentOrganization?.id,
+      () => organizationStore.currentOrganization?.objid,
       async (newOrgId, oldOrgId) => {
         if (newOrgId && newOrgId !== oldOrgId) {
           const isCurrentRequest = await fetchDomainsForOrganization();
@@ -332,6 +334,7 @@ export function __resetDomainContextForTesting(): void {
   currentDomain.value = '';
   isInitialized.value = false;
   isLoadingDomains.value = false;
+  isInitializing = false;
   watcherInitialized = false;
   currentFetchController = null;
   bootstrapStoreInstance = null;

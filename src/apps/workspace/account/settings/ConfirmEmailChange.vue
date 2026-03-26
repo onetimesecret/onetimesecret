@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useAuth } from '@/shared/composables/useAuth';
-  import { onMounted, ref } from 'vue';
+  import { onMounted, onUnmounted, ref } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
 
   const { t } = useI18n();
@@ -44,6 +44,12 @@
           redirectToSignin();
         }
       }, 1000);
+    }
+  });
+
+  onUnmounted(() => {
+    if (countdownTimer) {
+      clearInterval(countdownTimer);
     }
   });
 </script>

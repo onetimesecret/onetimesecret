@@ -1,6 +1,6 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Vaše zpětná vazba",
+    "text": "Tvoje zpětná vazba",
     "sha256": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
@@ -31,36 +31,32 @@
     "text": "Obsah nápovědy se zobrazí zde.",
     "sha256": "796979ea"
   },
-  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Díky za pomoc se zlepšováním Onetime Secret. Znamená to hodně."
+  "web.feedback.founder_note_line1": {
+    "text": "Čtu každou zpětnou vazbu, která mi přijde. Je to způsob, jak zjistit, čemu věnovat čas.",
+    "sha256": "8b430d93"
   },
-  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
-    "text": "Vytvořili jsme tento nástroj, abychom ti pomohli bezpečně sdílet citlivé informace, a tvé zkušenosti z reálného světa jsou zásadní pro zaměření našeho úsilí. Pomáhá nám to zjistit, na čem pracovat dál a jak vylepšit službu pro všechny."
-  },
-  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
-    "text": "Ahoj, díky, že jsi navštívil naši stránku zpětné vazby. Tvůj názor není jen vítán - je zásadní."
-  },
-  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "Poznámka od Delano, zakladatele Onetime Secret"
+  "web.feedback.founder_note_line2": {
+    "text": "Pokud něco nefunguje správně nebo máš nápady, jak by to mělo fungovat, toto je správné místo.",
+    "sha256": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
     "text": "Otevřít formulář zpětné vazby",
     "sha256": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Zadejte svou zpětnou vazbu",
+    "text": "Zadej svou zpětnou vazbu",
     "sha256": "1bb310f4"
   },
   "web.feedback.send_feedback": {
     "text": "Odeslat zpětnou vazbu",
     "sha256": "8235980b"
   },
-  "web.feedback.founder_note_line1": {
-    "text": "Čtu každou zpětnou vazbu, která mi přijde. Je to způsob, jak zjistit, čemu věnovat čas.",
-    "sha256": "8b430d93"
+  "web.feedback.sending_ellipses": {
+    "text": "Odesílání...",
+    "sha256": "286a3af7"
   },
-  "web.feedback.founder_note_line2": {
-    "text": "Pokud něco nefunguje správně nebo máte nápady, jak by to mělo fungovat, toto je správné místo.",
-    "sha256": "d4b8f073"
+  "web.feedback.reason_email_change_unauthorized": {
+    "text": "Vypadá to, že hlásíš neoprávněnou změnu e-mailu na tvém účtu. Popiš prosím, co se stalo, a hned to prošetříme.",
+    "sha256": "00e56551"
   }
 }

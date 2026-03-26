@@ -33,11 +33,11 @@
   const isLoading = ref(false);
 
   const handleThemeChange = async (
-    isDark: boolean
+    _isDark: boolean
   ) => {
     isLoading.value = true;
     try {
-      console.log('Theme changed:', isDark);
+      // TODO: Persist theme preference to user settings
     } catch (error) {
       console.error('Error changing theme:', error);
     } finally {

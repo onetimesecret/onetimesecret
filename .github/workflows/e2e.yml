@@ -51,15 +51,15 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Setup Node.js for Playwright
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: '25'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         with:
           run_install: false
 
@@ -80,6 +80,7 @@ jobs:
           set: |
             main.tags=${{ env.OCI_IMAGE_NAME }}
             main.args.VERSION=ci-test
+            main.args.ALLOW_DEV_VERSION=true
 
       - name: Start Redis service
         run: |
@@ -150,7 +151,7 @@ jobs:
 
           # Test that page contains expected content (bootstrap state injection)
           homepage_content=$(curl -s ${{ env.TEST_BASE_URL }}/)
-          if ! echo "$homepage_content" | grep -q "__BOOTSTRAP_STATE__"; then
+          if ! echo "$homepage_content" | grep -q "__BOOTSTRAP_ME__"; then
             echo "❌ Homepage doesn't contain expected content"
             echo "Content preview: $(echo "$homepage_content" | head -c 200)..."
             exit 1
@@ -176,7 +177,7 @@ jobs:
           PLAYWRIGHT_BASE_URL: ${{ env.TEST_BASE_URL }}
 
       - name: Upload Playwright Report
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: always()
         with:
           name: playwright-report-e2e-integration

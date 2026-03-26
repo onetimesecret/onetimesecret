@@ -350,7 +350,7 @@ module Billing
               name: plan.name,
               tier: plan.tier,
               interval: plan.interval,
-              amount: plan.amount,
+              amount: plan.amount.to_i,
               currency: plan.currency,
               region: plan.region,
               features: plan.features.to_a,
@@ -1129,8 +1129,7 @@ module Billing
         # @param preview [Stripe::Invoice] Invoice preview object
         # @return [Hash] Proration breakdown with credit_applied, immediate_amount, next_period_amount
         def calculate_proration_amounts(preview)
-          proration_lines = preview.lines.data.select { |line| line_is_proration?(line) }
-          regular_lines   = preview.lines.data.reject { |line| line_is_proration?(line) }
+          proration_lines, regular_lines = preview.lines.data.partition { |line| line_is_proration?(line) }
 
           {
             credit_applied: proration_lines.select { |l| l.amount.negative? }.sum(&:amount).abs,

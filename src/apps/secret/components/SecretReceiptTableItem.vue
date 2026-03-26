@@ -3,14 +3,14 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import { type ReceiptRecords } from '@/schemas/api/account/endpoints/recent';
-import { formatRelativeTime } from '@/utils/format'
+import type { ReceiptList } from '@/schemas/shapes/v3/receipt';
+import { formatRelativeTime, formatDisplayDateTime } from '@/utils/format'
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 const { t } = useI18n();
 
 interface Props {
-  secretReceipt: ReceiptRecords;
+  secretReceipt: ReceiptList;
 }
 
 const props = defineProps<Props>();
@@ -28,7 +28,7 @@ const linkTitle = computed(() => {
   if (props.secretReceipt.is_destroyed) {
     return t('web.STATUS.expired');
   }
-  if (props.secretReceipt.is_received) {
+  if (props.secretReceipt.is_revealed) {
     return t('web.COMMON.received');
   }
   return '';
@@ -49,7 +49,7 @@ const formattedDate = computed(() =>
 const statusIcon = computed(() => {
   if (props.secretReceipt.is_destroyed) return 'x-mark';
   if (props.secretReceipt.is_burned) return 'fire';
-  if (props.secretReceipt.is_received) return 'check';
+  if (props.secretReceipt.is_revealed) return 'check';
   return 'lock-closed-16-solid';
 });
 
@@ -78,7 +78,7 @@ const statusIcon = computed(() => {
       <!-- Date Information -->
       <span
         class="text-xs text-gray-500 dark:text-gray-400"
-        :title="secretReceipt.updated.toLocaleString()">
+        :title="formatDisplayDateTime(secretReceipt.updated)">
         {{ formattedDate }}
       </span>
     </div>

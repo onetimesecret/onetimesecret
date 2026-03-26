@@ -7,7 +7,12 @@ require_relative '../base'
 
 module DomainsAPI::Logic
   module Domains
-    # List domains for an organization
+    # List Custom Domains
+    #
+    # @api Returns all custom domains for the user's organization, or for
+    #   a specific organization if org_id is provided. Each domain includes
+    #   its full record and the organization summary. Also returns cluster
+    #   configuration details.
     #
     # Supports two modes:
     # 1. Default: Uses organization from session context
@@ -18,6 +23,8 @@ module DomainsAPI::Logic
     # the session is updated.
     #
     class ListDomains < DomainsAPI::Logic::Base
+      SCHEMAS = { response: 'customDomainList' }.freeze
+
       attr_reader :custom_domains, :with_brand, :target_organization
 
       def process_params

@@ -40,11 +40,11 @@ end
 
 # Setup for normal flow tests (using instance variables to persist across test cases)
 @mock_session = { 'test_key' => 'test_value' }
-@mock_user = Onetime::Customer.anonymous
+@mock_user = nil # Anonymous user - no Customer.anonymous singleton
 @strategy_result = MockStrategyResult.new(
   session: @mock_session,
   user: @mock_user,
-  authenticated: true
+  authenticated: false # anonymous users are not authenticated
 )
 
 env = Rack::MockRequest.env_for('http://example.com/')
@@ -65,8 +65,8 @@ env_error['onetime.nonce'] = 'test-nonce'
 @fallback_session = { 'fallback_key' => 'fallback_value' }
 env_error['rack.session'] = @fallback_session
 
-# Initialize fallback customer for comparison
-@fallback_cust = Onetime::Customer.anonymous
+# Initialize fallback customer for comparison - nil for anonymous
+@fallback_cust = nil
 
 req_error = Rack::Request.new(env_error)
 
@@ -106,9 +106,9 @@ req_error = Rack::Request.new(env_error)
 @view.view_vars['cust']
 #=> @mock_user
 
-## Normal flow view_vars shows authenticated
+## Normal flow view_vars shows not authenticated (anonymous user)
 @view.view_vars['authenticated']
-#=> true
+#=> false
 
 ## Error recovery flow view_vars has anonymous customer
 @view_error.view_vars['cust']
@@ -130,6 +130,6 @@ req_error = Rack::Request.new(env_error)
 @view_error.serialized_data['authenticated']
 #=> false
 
-## Error recovery flow serializes customer data
+## Error recovery flow returns nil for anonymous customer
 @view_error.serialized_data['cust']
-#=:> Hash
+#=> nil

@@ -6,7 +6,12 @@ require 'stripe'
 
 module OrganizationAPI::Logic
   module Organizations
-    # UpdateOrganization - Update organization settings including billing email
+    # Update Organization
+    #
+    # @api Updates an organization's display name, description, and/or
+    #   billing email. When the billing email changes and a Stripe customer
+    #   is linked, the email is synced to Stripe. Only the organization
+    #   owner can perform this action.
     #
     # When billing_email is updated and the organization has a linked Stripe
     # customer, this also updates the email in Stripe to keep them in sync.
@@ -25,6 +30,8 @@ module OrganizationAPI::Logic
     # - Stripe -> OTS: CustomerUpdated webhook handler (on portal changes)
     #
     class UpdateOrganization < OrganizationAPI::Logic::Base
+      SCHEMAS = { response: 'organization' }.freeze
+
       attr_reader :organization, :display_name, :description, :billing_email, :extid
 
       def process_params
@@ -37,7 +44,7 @@ module OrganizationAPI::Logic
 
       def raise_concerns
         # Require authenticated user
-        raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
+        verify_authenticated!
 
         # Validate extid parameter
         raise_form_error('Organization ID required', field: :extid, error_type: :missing) if @extid.to_s.empty?

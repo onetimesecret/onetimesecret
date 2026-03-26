@@ -4,7 +4,14 @@
 
 module OrganizationAPI::Logic
   module Organizations
+    # List Organizations
+    #
+    # @api Returns all organizations the authenticated user belongs to,
+    #   including each organization's details, member count, and billing
+    #   information.
     class ListOrganizations < OrganizationAPI::Logic::Base
+      SCHEMAS = { response: 'organizationList' }.freeze
+
       attr_reader :organizations
 
       def process_params
@@ -13,7 +20,7 @@ module OrganizationAPI::Logic
 
       def raise_concerns
         # Require authenticated user
-        raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
+        verify_authenticated!
       end
 
       def process

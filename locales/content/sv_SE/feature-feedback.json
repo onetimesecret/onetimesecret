@@ -31,17 +31,13 @@
     "text": "Hjälpinnehåll placeras här.",
     "sha256": "796979ea"
   },
-  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Tack för att du hjälper Onetime Secret att förbättras. Det betyder mycket."
+  "web.feedback.founder_note_line1": {
+    "text": "Jag läser varje återkoppling som kommer in här. Det är så jag tar reda på vad jag ska lägga tid på.",
+    "sha256": "8b430d93"
   },
-  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
-    "text": "Vi har byggt detta verktyg för att hjälpa dig att dela känslig information säkert, och dina verkliga erfarenheter är avgörande för att fokusera våra ansträngningar. Det hjälper oss att avgöra vad vi ska arbeta med härnäst och hur vi kan göra tjänsten bättre för alla."
-  },
-  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
-    "text": "Hej där, tack för att du besöker vår feedback-sida. Din input är inte bara välkommen - den är avgörande."
-  },
-  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "En notering från Delano, grundare av Onetime Secret"
+  "web.feedback.founder_note_line2": {
+    "text": "Om något inte stämmer, eller om du har idéer om hur det borde fungera, är detta rätt ställe.",
+    "sha256": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
     "text": "Öppna återkopplingsformulär",
@@ -55,12 +51,12 @@
     "text": "Skicka återkoppling",
     "sha256": "8235980b"
   },
-  "web.feedback.founder_note_line1": {
-    "text": "Jag läser varje återkoppling som kommer in här. Det är så jag tar reda på vad jag ska lägga tid på.",
-    "sha256": "8b430d93"
+  "web.feedback.sending_ellipses": {
+    "text": "Skickar...",
+    "sha256": "286a3af7"
   },
-  "web.feedback.founder_note_line2": {
-    "text": "Om något inte stämmer, eller om du har idéer om hur det borde fungera, är detta rätt ställe.",
-    "sha256": "d4b8f073"
+  "web.feedback.reason_email_change_unauthorized": {
+    "text": "Det verkar som att du rapporterar en obehörig e-poständring på ditt konto. Beskriv vad som hände så utreder vi det omedelbart.",
+    "sha256": "00e56551"
   }
 }

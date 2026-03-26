@@ -74,13 +74,20 @@ module Onetime
       end
 
       # Reconnect RabbitMQ after fork.
-      # Called by InitializerRegistry.reconnect_after_fork from Puma's before_worker_boot hook.
-      #
-      # Creates fresh TCP connection and channel pool in each worker process.
+      # Called by InitializerRegistry.reconnect_after_fork from Puma and Sneakers
+      # fork hooks. Creates fresh TCP connection and channel pool in each worker
+      # process (Puma only — Sneakers manages its own consumer connections).
       #
       # @return [void]
       def reconnect
         return unless OT.conf.dig('jobs', 'enabled')
+
+        # Workers set SKIP_RABBITMQ_SETUP to prevent creating a publisher
+        # connection pool — Sneakers manages its own consumer connections.
+        if ENV['SKIP_RABBITMQ_SETUP'] == '1'
+          Onetime.bunny_logger.debug '[SetupRabbitMQ] Reconnect skipped (worker mode - Sneakers handles connections)'
+          return
+        end
 
         Onetime.bunny_logger.info "[SetupRabbitMQ] Reconnecting RabbitMQ in worker #{Process.pid}"
         setup_rabbitmq_connection
@@ -91,6 +98,11 @@ module Onetime
 
       private
 
+      # Creates a publisher-side Bunny connection and channel pool for this
+      # process. Called from #execute (boot) and #reconnect (post-fork).
+      # Sneakers workers skip both callers via SKIP_RABBITMQ_SETUP and
+      # manage their own consumer connections internally.
+      # See: docs/architecture/fork-safety.md
       def setup_rabbitmq_connection
         url       = OT.conf.dig('jobs', 'rabbitmq_url') || ENV.fetch('RABBITMQ_URL', 'amqp://localhost:5672')
         pool_size = OT.conf.dig('jobs', 'channel_pool_size') || ENV.fetch('RABBITMQ_CHANNEL_POOL_SIZE', 5).to_i

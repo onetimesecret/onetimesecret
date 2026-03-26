@@ -5,13 +5,14 @@ import { getBootstrapValue } from '@/services/bootstrap.service';
 /**
  * Feature detection utilities for checking enabled authentication methods
  * Features are configured on the backend via environment variables and
- * exposed through window.__BOOTSTRAP_STATE__, accessed via bootstrap.service.ts
+ * exposed through window.__BOOTSTRAP_ME__, accessed via bootstrap.service.ts
  */
 
 export interface AuthFeatures {
   magicLinksEnabled: boolean;
   webauthnEnabled: boolean;
-  omniAuthEnabled: boolean;
+  ssoEnabled: boolean;
+  ssoOnly: boolean;
 }
 
 /**
@@ -22,6 +23,16 @@ export function isMagicLinksEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   return features?.magic_links === true || features?.email_auth === true;
+}
+
+/**
+ * Checks if MFA (TOTP + recovery codes) is enabled
+ */
+export function isMfaEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  return features?.mfa === true;
 }
 
 /**
@@ -55,16 +66,65 @@ export function isPasswordRequirementsEnabled(): boolean {
 }
 
 /**
- * Checks if OmniAuth/SSO authentication is enabled
+ * Checks if SSO authentication is enabled
  */
-export function isOmniAuthEnabled(): boolean {
+export function isSsoEnabled(): boolean {
   if (typeof window === 'undefined') return false;
 
   const features = getBootstrapValue('features');
-  // omniauth can be boolean (false) or object with enabled property
-  const omniauth = features?.omniauth;
-  if (typeof omniauth === 'boolean') return omniauth;
-  return omniauth?.enabled === true;
+  // sso can be boolean (false) or object with enabled property
+  const sso = features?.sso;
+  if (typeof sso === 'boolean') return sso;
+  return sso?.enabled === true;
+}
+
+/**
+ * Provider entry from bootstrap state
+ */
+export interface SsoProvider {
+  route_name: string;
+  display_name: string;
+}
+
+/**
+ * Returns the list of configured SSO providers from bootstrap state.
+ * Each provider has a route_name (for constructing /auth/sso/{route_name})
+ * and a display_name (for "Sign in with X" button text).
+ *
+ * Used by AuthMethodSelector and available for any component needing the
+ * configured provider list (e.g., account settings, admin views).
+ */
+export function getSsoProviders(): SsoProvider[] {
+  if (typeof window === 'undefined') return [];
+
+  const features = getBootstrapValue('features');
+  const sso = features?.sso;
+
+  // Disabled or not configured
+  if (!sso || typeof sso === 'boolean') return [];
+  if (!sso.enabled) return [];
+
+  // Return providers array, or empty if not configured
+  if (Array.isArray(sso.providers) && sso.providers.length > 0) {
+    return sso.providers;
+  }
+
+  return [];
+}
+
+/**
+ * Checks if SSO-only mode is active.
+ * When true, password-based auth routes are disabled and the sign-in page
+ * shows only SSO provider buttons.
+ *
+ * This is a no-op when SSO is not enabled -- the UI falls through to
+ * default auth forms.
+ */
+export function isSsoOnlyMode(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  return features?.sso_only === true;
 }
 
 /**
@@ -80,13 +140,25 @@ export function isFullAuthMode(): boolean {
 }
 
 /**
+ * Checks if the current authenticated user has a password set.
+ * SSO-only accounts (Entra, Google, GitHub) return false.
+ * Used to hide password-based security settings for SSO-only users.
+ */
+export function hasPassword(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  return getBootstrapValue('has_password') === true;
+}
+
+/**
  * Gets all enabled authentication features
  */
 export function getAuthFeatures(): AuthFeatures {
   return {
     magicLinksEnabled: isMagicLinksEnabled(),
     webauthnEnabled: isWebAuthnEnabled(),
-    omniAuthEnabled: isOmniAuthEnabled(),
+    ssoEnabled: isSsoEnabled(),
+    ssoOnly: isSsoOnlyMode(),
   };
 }
 

@@ -63,7 +63,7 @@ d="M15 19l-7-7 7-7" />
       <div
         v-if="users.length > 0"
         class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <table data-testid="colonel-users-table" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
               <th

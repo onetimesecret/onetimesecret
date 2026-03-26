@@ -6,7 +6,18 @@ module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
 
+    # Show Receipt
+    #
+    # @api Retrieves the receipt (metadata) for a previously created secret.
+    #   Returns the receipt's state, share and burn URLs, expiration details,
+    #   and recipient information. For generated secrets viewed shortly after
+    #   creation, the generated value may be included. The receipt tracks
+    #   whether the associated secret has been viewed, burned, or expired.
     class ShowReceipt < V2::Logic::Base
+      include Onetime::Logic::GuestRouteGating
+
+      SCHEMAS = { response: 'receipt' }.freeze
+
       # Working variables
       attr_reader :identifier, :receipt, :secret
       # Template variables
@@ -53,6 +64,7 @@ module V2::Logic
       end
 
       def raise_concerns
+        require_guest_route_enabled!(:receipt)
         require_entitlement!('api_access')
         raise OT::MissingSecret, "identifier: #{identifier}" if receipt.nil?
       end
@@ -87,12 +99,12 @@ module V2::Logic
 
           if !burned_or_revealed && receipt.secret_expired?
             OT.le("[show_receipt] Receipt has expired secret. #{receipt.shortid}")
-            receipt.secret_identifier = nil
-            receipt.expired!
+            receipt.expired!  # Sets secret_identifier to empty
+            @secret_identifier = nil  # Clear local variable to prevent leaking
           elsif !burned_or_revealed
             OT.le("[show_receipt] Receipt is an orphan. #{receipt.shortid}")
-            receipt.secret_identifier = nil
-            receipt.orphaned!
+            receipt.orphaned!  # Sets secret_identifier to empty
+            @secret_identifier = nil  # Clear local variable to prevent leaking
           end
 
           # Check for both new 'revealed' state and legacy 'received' state
@@ -102,7 +114,10 @@ module V2::Logic
           @is_orphaned  = receipt.state?(:orphaned)
           @is_destroyed = @is_burned || @is_received || @is_expired || @is_orphaned
 
-          receipt.secret_identifier! nil if is_destroyed && receipt.secret_identifier
+          if is_destroyed && receipt.secret_identifier
+            receipt.secret_identifier! nil
+            @secret_identifier = nil  # Clear local variable to prevent leaking
+          end
         else
           @secret_state   = secret.state
           @secret_realttl = secret.current_expiration
@@ -224,7 +239,12 @@ module V2::Logic
         attributes = receipt.safe_dump
 
         # Only include the secret's identifying key when necessary
-        attributes[:secret_identifier] = secret_identifier if show_secret
+        # Remove it from safe_dump and only add it back if show_secret is true
+        if show_secret
+          attributes[:secret_identifier] = secret_identifier
+        else
+          attributes.delete(:secret_identifier)
+        end
 
         # Add additional attributes not included in safe dump
         attributes.merge!(
@@ -236,10 +256,10 @@ module V2::Logic
             share_path: share_path,
             burn_path: burn_path,
             receipt_path: receipt_path,
-            metadata_path: metadata_path, # maintain public API
+            metadata_path: metadata_path, # V2 backward-compat alias
             share_url: share_url,
             receipt_url: receipt_url,
-            metadata_url: metadata_url, # maintain public API
+            metadata_url: metadata_url, # V2 backward-compat alias
             burn_url: burn_url,
           },
         )
@@ -254,8 +274,8 @@ module V2::Logic
           no_cache: no_cache,
           secret_realttl: secret_realttl,
           view_count: view_count,
-          has_passphrase: has_passphrase,
-          can_decrypt: can_decrypt,
+          has_passphrase: has_passphrase || false,
+          can_decrypt: can_decrypt || false,
           secret_value: secret_value,
           show_secret: show_secret,
           show_secret_link: show_secret_link,
@@ -269,10 +289,10 @@ module V2::Logic
         @share_path    = build_path(:secret, secret_identifier)
         @burn_path     = build_path(:receipt, receipt_identifier, 'burn')
         @receipt_path  = build_path(:receipt, receipt_identifier)
-        @metadata_path = @receipt_path # maintain public API
+        @metadata_path = @receipt_path # V2 backward-compat alias
         @share_url     = build_url(share_domain, @share_path)
         @receipt_url   = build_url(share_domain, @receipt_path)
-        @metadata_url  = @receipt_url # maintain public API
+        @metadata_url  = @receipt_url # V2 backward-compat alias
         @burn_url      = build_url(share_domain, @burn_path)
         @display_lines = calculate_display_lines
       end

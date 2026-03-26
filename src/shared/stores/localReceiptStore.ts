@@ -7,9 +7,9 @@ import {
   type LocalReceipt,
 } from '@/schemas/ui/local-receipt';
 import { loggingService } from '@/services/logging.service';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { computed, inject, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 interface StoreOptions extends PiniaPluginOptions {}
 
@@ -98,7 +98,7 @@ function loadWorkspaceModePreference(): boolean {
  */
 // eslint-disable-next-line max-lines-per-function
 export const useLocalReceiptStore = defineStore('localReceipt', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const _initialized = ref(false);

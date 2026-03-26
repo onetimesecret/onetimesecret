@@ -60,7 +60,7 @@ module V2::Logic
           success: greenlighted,
           record: {
             receipt: receipt.safe_dump,
-            metadata: receipt.safe_dump, # maintain public API
+            metadata: receipt.safe_dump, # V2 backward-compat alias
             secret: secret.safe_dump,
             share_domain: share_domain, # we return the value, but don't save it
           },
@@ -93,13 +93,10 @@ module V2::Logic
 
         # Get configuration options. We can rely on these values existing
         # because that are guaranteed by OT::Config.after_load.
-        secret_options = OT.conf&.fetch(
-          'secret_options',
-          {
-            'default_ttl' => 7.days,
-            'ttl_options' => [1.minute, 1.hour, 1.day, 7.days],
-          },
-        )
+        secret_options = OT.conf.dig('site', 'secret_options') || {
+          'default_ttl' => 7.days,
+          'ttl_options' => [1.minute, 1.hour, 1.day, 7.days],
+        }
         default_ttl    = secret_options['default_ttl']
         ttl_options    = secret_options['ttl_options']
 
@@ -203,7 +200,7 @@ module V2::Logic
       def validate_recipient
         return if recipient.empty?
 
-        raise_form_error 'An account is required to send emails.', field: 'recipient', error_type: 'requires_account' if cust.anonymous?
+        raise_form_error 'An account is required to send emails.', field: 'recipient', error_type: 'requires_account' if anonymous_user?
         recipient.each do |recip|
           raise_form_error "Undeliverable email address: #{recip}", field: 'recipient', error_type: 'invalid_email' unless valid_email?(recip)
         end
@@ -221,6 +218,7 @@ module V2::Logic
         validate_domain_access(@share_domain)
       end
 
+      # @sync src/schemas/contracts/config/public.ts — passphrase options
       def validate_passphrase
         # Get passphrase configuration
         passphrase_config = OT.conf.dig('site', 'secret_options', 'passphrase') || {}
@@ -234,7 +232,7 @@ module V2::Logic
         return if passphrase.to_s.empty?
 
         # Validate minimum length
-        min_length = passphrase_config['minimum_length'] || nil
+        min_length = passphrase_config['minimum_length']&.to_i
         if min_length && passphrase.length < min_length
           raise_form_error "Passphrase must be at least #{min_length} characters long"
         end
@@ -298,7 +296,7 @@ module V2::Logic
         # This enables domain owners to see activity on their branded links
         scope_fields << :domain_id if index_receipt_to_domain
 
-        unless cust.anonymous?
+        unless anonymous_user?
           cust.add_receipt receipt
           cust.increment_field :secrets_created
 
@@ -404,13 +402,14 @@ module V2::Logic
 
         return if domain_record.owner?(@cust)
 
-        secret_logger.info 'Non-owner attempted domain access',
+        secret_logger.warn 'Non-owner attempted domain access',
           {
             domain: share_domain,
             user_id: @cust&.objid,
             action: 'validate_domain_permissions',
             result: :non_owner,
           }
+        raise_form_error "You do not have permission to use domain: #{share_domain}"
       end
     end
   end

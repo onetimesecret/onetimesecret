@@ -330,7 +330,7 @@ module Onetime
         rescue NameError
           raise
         rescue StandardError => ex
-          init_logger.warn "[before_worker_boot] Error reconnecting #{init.name}: #{ex.message}"
+          init_logger.warn "[reconnect_after_fork] Error reconnecting #{init.name}: #{ex.message}"
         end
       end
 

@@ -4,7 +4,14 @@
 
 module OrganizationAPI::Logic
   module Organizations
+    # Delete Organization
+    #
+    # @api Permanently deletes an organization, removing all member
+    #   associations first. Only the organization owner can perform
+    #   this action. Returns a confirmation of deletion.
     class DeleteOrganization < OrganizationAPI::Logic::Base
+      SCHEMAS = { response: 'organizationDelete' }.freeze
+
       attr_reader :organization
 
       def process_params
@@ -13,7 +20,7 @@ module OrganizationAPI::Logic
 
       def raise_concerns
         # Require authenticated user
-        raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
+        verify_authenticated!
 
         # Validate extid parameter
         raise_form_error('Organization ID required', field: :extid, error_type: :missing) if @extid.to_s.empty?

@@ -15,8 +15,10 @@
 #   end
 #
 RSpec.shared_context 'rack_test_context' do
+  # Otto::Request/Response extend Rack::Request/Response with app_path,
+  # redirect, etc. Use Otto types so instance_double allows those methods.
   let(:rack_request) do
-    instance_double(Rack::Request,
+    instance_double(Otto::Request,
       params: {},
       get?: false,
       post?: false,
@@ -35,17 +37,15 @@ RSpec.shared_context 'rack_test_context' do
   end
 
   let(:rack_response) do
-    instance_double(Rack::Response,
+    instance_double(Otto::Response,
       status: 200,
       headers: {},
-      header: {},
       body: [],
       set_cookie: nil,
       finish: [200, {}, []],
       write: nil).tap do |resp|
       allow(resp).to receive(:[]=) { |k, v| resp.headers[k] = v }
       allow(resp).to receive(:[]) { |k| resp.headers[k] }
-      allow(resp).to receive(:header).and_return(resp.headers)
       allow(resp).to receive(:body=)
     end
   end

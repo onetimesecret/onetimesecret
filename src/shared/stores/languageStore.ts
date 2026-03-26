@@ -5,9 +5,10 @@ import type { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { localeSchema } from '@/schemas/i18n/locale';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { localeCodes } from '@/sources/languages';
-import type { AxiosInstance } from 'axios';
+import { gracefulParse } from '@/utils/schemaValidation';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, storeToRefs } from 'pinia';
-import { computed, inject, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 export const SESSION_STORAGE_KEY = 'selected.locale';
 export const DEFAULT_LOCALE = 'en';
@@ -19,7 +20,7 @@ interface StoreOptions extends PiniaPluginOptions {
 
 /* eslint-disable max-lines-per-function, max-statements */
 export const useLanguageStore = defineStore('language', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
   const bootstrapStore = useBootstrapStore();
   const { cust: bootstrapCust, supported_locales: bootstrapSupportedLocales } =
     storeToRefs(bootstrapStore);
@@ -58,6 +59,15 @@ export const useLanguageStore = defineStore('language', () => {
   function init(options?: StoreOptions) {
     if (_initialized.value) return getCurrentLocale.value;
 
+    if (options?.storageKey) {
+      storageKey.value = options.storageKey;
+    }
+
+    // Load supported locales BEFORE normalizing deviceLocale so that
+    // validateAndNormalizeLocale can match against the actual list
+    // (e.g. normalizing browser's "it-IT" to our "it_IT").
+    loadSupportedLocales();
+
     if (options?.deviceLocale) {
       try {
         deviceLocale.value = validateAndNormalizeLocale(options.deviceLocale);
@@ -65,9 +75,6 @@ export const useLanguageStore = defineStore('language', () => {
         console.warn(`Invalid device locale: ${options.deviceLocale}`, error);
         deviceLocale.value = null;
       }
-    }
-    if (options?.storageKey) {
-      storageKey.value = options.storageKey;
     }
 
     watch(
@@ -84,6 +91,9 @@ export const useLanguageStore = defineStore('language', () => {
 
   function initializeLocale() {
     try {
+      // Idempotent: init() loads these before calling us, but
+      // initializeLocale() may also be called independently (e.g.
+      // from LanguageToggle.onMounted), so we load here too.
       loadSupportedLocales();
 
       // Check for user preference first
@@ -96,15 +106,10 @@ export const useLanguageStore = defineStore('language', () => {
       storedLocale.value = loadStoredLocale();
       if (storedLocale.value && supportedLocales.value.includes(storedLocale.value)) {
         currentLocale.value = storedLocale.value;
-      } else if (deviceLocale.value) {
-        const primaryLocale = deviceLocale.value.split('-')[0];
-        if (supportedLocales.value.includes(primaryLocale)) {
-          currentLocale.value = primaryLocale;
-        } else if (supportedLocales.value.includes(deviceLocale.value)) {
-          currentLocale.value = deviceLocale.value;
-        } else {
-          currentLocale.value = DEFAULT_LOCALE;
-        }
+      } else if (deviceLocale.value && supportedLocales.value.includes(deviceLocale.value)) {
+        // deviceLocale was already normalized by validateAndNormalizeLocale
+        // in init(), so it matches the server's format (e.g. "it_IT")
+        currentLocale.value = deviceLocale.value;
       } else {
         currentLocale.value = DEFAULT_LOCALE;
       }
@@ -198,7 +203,8 @@ export const useLanguageStore = defineStore('language', () => {
    * validateAndNormalizeLocale('de-CH')  // → 'de' if 'de' available, 'de-CH' otherwise
    */
   const validateAndNormalizeLocale = (locale: string): string => {
-    const validatedLocale = localeSchema.parse(locale);
+    const localeResult = gracefulParse(localeSchema, locale, 'Locale');
+    const validatedLocale = localeResult.ok ? localeResult.data : locale;
 
     // Normalize separators for comparison (both hyphen and underscore → underscore)
     const normalizeForComparison = (loc: string) => loc.toLowerCase().replace('-', '_');

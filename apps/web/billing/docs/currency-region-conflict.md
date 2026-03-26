@@ -19,7 +19,7 @@ attempt fails:
 
 ```
 Stripe::InvalidRequestError: You cannot combine currencies on a single customer.
-This customer has an active subscription... with currency usd.
+This customer has an active subscription... with currency cad.
 ```
 
 ## Stripe's Constraint and Design Expectation

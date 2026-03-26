@@ -1,12 +1,13 @@
 // src/shared/stores/receiptListStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import type { ReceiptRecords, ReceiptRecordsDetails } from '@/schemas/api/account/endpoints/recent';
 import { responseSchemas } from '@/schemas/api/v3/responses';
+import type { ReceiptList, ReceiptListDetails } from '@/schemas/shapes/v3/receipt';
 import { loggingService } from '@/services/logging.service';
-import { AxiosInstance } from 'axios';
+import { gracefulParse } from '@/utils/schemaValidation';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { inject, ref, type Ref } from 'vue';
+import { ref, type Ref } from 'vue';
 
 /**
  * Options for filtering receipt list queries.
@@ -26,8 +27,8 @@ export interface FetchListOptions {
 export type ReceiptListStore = {
   // State
   _initialized: boolean;
-  records: ReceiptRecords[];
-  details: ReceiptRecordsDetails | null;
+  records: ReceiptList[];
+  details: ReceiptListDetails | null;
   count: number | null;
   currentScope: FetchListOptions['scope'];
   scopeLabel: string | null;
@@ -48,14 +49,14 @@ export type ReceiptListStore = {
  * Handles fetching, caching, and state management of receipt listings.
  */
 
-// eslint-disable-next-line max-lines-per-function -- temporary debug logging
+/* eslint max-lines-per-function: off */
 export const useReceiptListStore = defineStore('receiptList', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const _initialized = ref(false);
-  const records: Ref<ReceiptRecords[] | null> = ref(null);
-  const details: Ref<ReceiptRecordsDetails | null> = ref(null);
+  const records: Ref<ReceiptList[] | null> = ref(null);
+  const details: Ref<ReceiptListDetails | null> = ref(null);
   const count = ref<number | null>(null);
   const currentScope = ref<FetchListOptions['scope']>(undefined);
   const scopeLabel = ref<string | null>(null);
@@ -75,17 +76,7 @@ export const useReceiptListStore = defineStore('receiptList', () => {
     return { initialized };
   }
 
-  // eslint-disable-next-line complexity -- temporary debug logging
   async function fetchList(options: FetchListOptions = {}) {
-    const timestamp = Date.now();
-    loggingService.debug('[DEBUG:receiptListStore] fetchList called', {
-      timestamp,
-      scope: options.scope,
-      domainExtid: options.domainExtid,
-      currentCount: count.value,
-      currentRecordsLength: records.value?.length ?? 0,
-    });
-
     // Build query params based on options
     const params: Record<string, string> = {};
     if (options.scope) params.scope = options.scope;
@@ -93,28 +84,25 @@ export const useReceiptListStore = defineStore('receiptList', () => {
 
     const response = await $api.get('/api/v3/receipt/recent', { params });
 
-    loggingService.debug('[DEBUG:receiptListStore] API response received', {
-      timestamp,
-      responseCount: response.data?.count,
-      responseRecordsLength: response.data?.records?.length ?? 0,
-      firstThreeIds: response.data?.records?.slice(0, 3).map((r: ReceiptRecords) => r.shortid),
-    });
+    const result = gracefulParse(
+      responseSchemas.receiptList,
+      response.data,
+      'ReceiptListResponse'
+    );
 
-    const validated = responseSchemas.receiptList.parse(response.data);
+    if (!result.ok) {
+      records.value = [];
+      details.value = {} as ReceiptListDetails;
+      count.value = 0;
+      return null;
+    }
 
+    const validated = result.data;
     records.value = validated.records ?? [];
-    details.value = (validated.details ?? {}) as ReceiptRecordsDetails;
+    details.value = (validated.details ?? {}) as ReceiptListDetails;
     count.value = validated.count ?? 0;
     currentScope.value = options.scope;
     scopeLabel.value = validated.details?.scope_label ?? null;
-
-    loggingService.debug('[DEBUG:receiptListStore] Store updated', {
-      timestamp,
-      newCount: count.value,
-      newRecordsLength: records.value?.length ?? 0,
-      scope: currentScope.value,
-      scopeLabel: scopeLabel.value,
-    });
 
     return validated;
   }

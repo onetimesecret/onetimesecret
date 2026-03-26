@@ -132,9 +132,17 @@
     "text": "Recenti",
     "sha256": "690dbe9d"
   },
-  "web.COMMON.received": {
-    "text": "Ricevuto",
-    "sha256": "49f19bee"
+  "web.COMMON.not_set": {
+    "text": "Non impostato",
+    "sha256": "4895f731"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Modifica",
+    "sha256": "464c4ffd"
+  },
+  "web.COMMON.word_save": {
+    "text": "Salva",
+    "sha256": "1509f561"
   },
   "web.COMMON.burn": {
     "text": "Distruggi",
@@ -432,6 +440,10 @@
     "text": "es. {example}",
     "sha256": "cc921aaa"
   },
+  "web.COMMON.about": {
+    "text": "Informazioni",
+    "sha256": "d833339d"
+  },
   "web.COMMON.status": {
     "text": "Stato",
     "sha256": "920e413c"
@@ -648,6 +660,10 @@
     "text": "Premi il pulsante copia qui sotto.",
     "sha256": "77fcf6fb"
   },
+  "web.COMMON.external_link": {
+    "text": "Link esterno",
+    "sha256": "be6f6527"
+  },
   "web.LABELS.view_toggle.show": {
     "text": "Mostra",
     "sha256": "0df6f1ca"
@@ -687,6 +703,10 @@
   "web.LABELS.expiration_time": {
     "text": "Scadenza",
     "sha256": "c5db84a8"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "Scade tra",
+    "sha256": "de996752"
   },
   "web.LABELS.close": {
     "text": "Chiudi",
@@ -824,6 +844,14 @@
     "text": "Ricarica",
     "sha256": "bdc090ec"
   },
+  "web.LABELS.filter": {
+    "text": "Filtra",
+    "sha256": "638e249f"
+  },
+  "web.LABELS.clear": {
+    "text": "Cancella",
+    "sha256": "83b12c22"
+  },
   "web.LABELS.caption_recent_secrets": {
     "text": "Link segreti creati in questa sessione",
     "sha256": "6c7ceab8"
@@ -848,6 +876,11 @@
     "text": "Impostazioni correlate",
     "sha256": "68574b20"
   },
+  "web.LABELS.benefits": {
+    "text": "Vantaggi",
+    "context": "Section header for listing benefits",
+    "sha256": "d5b67bc9"
+  },
   "web.LABELS.creating_links_for": {
     "text": "Creazione link per",
     "sha256": "57db069e"
@@ -871,6 +904,14 @@
   "web.STATUS.received": {
     "text": "Ricevuto",
     "sha256": "49f19bee"
+  },
+  "web.STATUS.previewed": {
+    "text": "In anteprima",
+    "sha256": "3d391a9b"
+  },
+  "web.STATUS.revealed": {
+    "text": "Rivelato",
+    "sha256": "17376ee4"
   },
   "web.STATUS.burned": {
     "text": "Distrutto",
@@ -931,6 +972,14 @@
   "web.STATUS.received_description": {
     "text": "Il segreto è stato rivelato al destinatario",
     "sha256": "ceb756b4"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "Il link segreto è stato aperto ed è pronto per essere rivelato",
+    "sha256": "cc7d1e92"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "Il contenuto del segreto è stato rivelato al destinatario",
+    "sha256": "39b32f80"
   },
   "web.STATUS.burned_description": {
     "text": "Il segreto è stato distrutto manualmente prima di essere visualizzato",
@@ -1056,6 +1105,10 @@
     "text": "Feedback",
     "sha256": "aac77df3"
   },
+  "web.TITLES.help": {
+    "text": "Aiuto",
+    "sha256": "b79cac92"
+  },
   "web.TITLES.signin": {
     "text": "Accedi",
     "sha256": "bcc0bcc9"
@@ -1172,6 +1225,10 @@
     "text": "Cambia email",
     "sha256": "18c3f2d5"
   },
+  "web.TITLES.confirm_email_change": {
+    "text": "Conferma modifica email",
+    "sha256": "c2736949"
+  },
   "web.TITLES.security_overview": {
     "text": "Sicurezza",
     "sha256": "8f6fb4eb"
@@ -1191,6 +1248,11 @@
   "web.TITLES.recovery_codes": {
     "text": "Codici di recupero",
     "sha256": "579c7f4e"
+  },
+  "web.TITLES.passkeys": {
+    "text": "Passkey",
+    "context": "Page title for passkey management",
+    "sha256": "c87ccdb4"
   },
   "web.TITLES.api_settings": {
     "text": "Impostazioni API",
@@ -1216,6 +1278,10 @@
     "text": "Impostazioni organizzazione",
     "sha256": "cc1d9e61"
   },
+  "web.TITLES.pricing": {
+    "text": "Prezzi",
+    "sha256": "dfe95783"
+  },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
     "text": "Il focus è ora nell'area di testo principale",
     "sha256": "e00dd260"
@@ -1239,70 +1305,6 @@
   "web.INSTRUCTION.phishing_warning": {
     "text": "Verifica sempre di essere sul sito ufficiale di Onetime Secret. I truffatori a volte creano siti falsi che sembrano identici a Onetime Secret per rubare i tuoi segreti. Per evitare attacchi di phishing, controlla il dominio prima di creare nuovi link.",
     "sha256": "b588f5b2"
-  },
-  "web.STATUS.previewed": {
-    "text": "In anteprima",
-    "sha256": "3d391a9b"
-  },
-  "web.STATUS.revealed": {
-    "text": "Rivelato",
-    "sha256": "17376ee4"
-  },
-  "web.STATUS.previewed_description": {
-    "text": "Il link segreto è stato aperto ed è pronto per essere rivelato",
-    "sha256": "cc7d1e92"
-  },
-  "web.STATUS.revealed_description": {
-    "text": "Il contenuto del segreto è stato rivelato al destinatario",
-    "sha256": "39b32f80"
-  },
-  "web.COMMON.not_set": {
-    "text": "Non impostato",
-    "sha256": "4895f731"
-  },
-  "web.COMMON.word_edit": {
-    "text": "Modifica",
-    "sha256": "464c4ffd"
-  },
-  "web.COMMON.word_save": {
-    "text": "Salva",
-    "sha256": "1509f561"
-  },
-  "web.LABELS.secret_ttl": {
-    "text": "Scade tra",
-    "sha256": "de996752"
-  },
-  "web.LABELS.filter": {
-    "text": "Filtra",
-    "sha256": "638e249f"
-  },
-  "web.LABELS.clear": {
-    "text": "Cancella",
-    "sha256": "83b12c22"
-  },
-  "web.LABELS.add_note": {
-    "text": "Aggiungi nota...",
-    "sha256": "32738894"
-  },
-  "web.LABELS.edit_note": {
-    "text": "Modifica nota",
-    "sha256": "299e604c"
-  },
-  "web.LABELS.add_memo": {
-    "text": "Aggiungi promemoria...",
-    "sha256": "02384c53"
-  },
-  "web.LABELS.edit_memo": {
-    "text": "Modifica promemoria",
-    "sha256": "0ec1a5db"
-  },
-  "web.TITLES.help": {
-    "text": "Aiuto",
-    "sha256": "b79cac92"
-  },
-  "web.TITLES.pricing": {
-    "text": "Prezzi",
-    "sha256": "dfe95783"
   },
   "web.pricing.title": {
     "text": "Prezzi semplici e trasparenti",
@@ -1332,8 +1334,58 @@
     "text": "Consigliato per te",
     "sha256": "00093fbd"
   },
+  "web.COMMON.received": {
+    "text": "Ricevuto",
+    "sha256": "49f19bee"
+  },
+  "web.LABELS.add_note": {
+    "text": "Aggiungi nota...",
+    "sha256": "32738894"
+  },
+  "web.LABELS.edit_note": {
+    "text": "Modifica nota",
+    "sha256": "299e604c"
+  },
+  "web.LABELS.add_memo": {
+    "text": "Aggiungi promemoria...",
+    "sha256": "02384c53"
+  },
+  "web.LABELS.edit_memo": {
+    "text": "Modifica promemoria",
+    "sha256": "0ec1a5db"
+  },
   "web.pricing.free_tier_description": {
     "text": "Crea e condividi segreti con funzionalità base. Nessuna carta di credito richiesta.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.enter_password_to_continue": {
+    "text": "Inserisci la tua password per continuare",
+    "context": "Prompt for password confirmation modal",
+    "sha256": "09055357"
+  },
+  "web.COMMON.password_required_for_action": {
+    "text": "La tua password è necessaria per completare questa azione",
+    "context": "Description for password confirmation modal",
+    "sha256": "cc078766"
+  },
+  "api.errors.unexpected_error": {
+    "text": "Si è verificato un errore imprevisto",
+    "context": "Generic error message for unhandled exceptions in API",
+    "sha256": "6615bf1c"
+  },
+  "api.errors.service_unavailable": {
+    "text": "Servizio temporaneamente non disponibile. Riprova tra poco.",
+    "context": "Error message when database connection fails",
+    "sha256": "343ccdcb"
+  },
+  "api.errors.request_processing_error": {
+    "text": "Impossibile elaborare la richiesta in questo momento",
+    "context": "Error message for recoverable server errors",
+    "sha256": "fb961f3f"
+  },
+  "web.COMMON.upgrade_description": {
+    "text": "Effettua l'upgrade per sbloccare più funzionalità",
+    "context": "Description shown for free plan users encouraging upgrade",
+    "sha256": "783f174c"
   }
 }

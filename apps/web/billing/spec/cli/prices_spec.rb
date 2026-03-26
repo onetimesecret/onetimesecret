@@ -96,14 +96,14 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
           command.call(
             product_id: product.id,
             amount: 900,
-            currency: 'usd',
+            currency: 'cad',
             interval: 'month',
             interval_count: 1,
           )
         end
 
         expect(output).to include('Creating price:')
-        expect(output).to include('Amount: USD 9.00')
+        expect(output).to include('Amount: CAD 9.00')
         expect(output).to include('Interval: 1 month(s)')
         expect(output).to include('Proceed? (y/n):')
         expect(output).to include('Price created successfully')
@@ -111,7 +111,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
         # Note: No cleanup - products with prices can't be deleted in Stripe
       end
 
-      it 'uses default currency of usd', :vcr do
+      it 'uses default currency of CAD', :vcr do
         product = create_price_test_product('Default Currency Test')
         allow($stdin).to receive(:gets).and_return("y\n")
 
@@ -123,7 +123,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
           )
         end
 
-        expect(output).to include('Amount: USD 9.00')
+        expect(output).to include('Amount: CAD 9.00')
         expect(output).to include('Price created successfully')
         # Note: No cleanup - products with prices can't be deleted in Stripe
       end
@@ -348,7 +348,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
           )
         end
 
-        expect(output).to include('Amount: USD 12.99')
+        expect(output).to include('Amount: CAD 12.99')
 
         # Note: No cleanup - products with prices cannot be deleted
       end

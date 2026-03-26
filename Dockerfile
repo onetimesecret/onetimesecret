@@ -59,7 +59,7 @@
 ARG APP_DIR=/app
 ARG PUBLIC_DIR=/app/public
 ARG VERSION
-ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:bbc49173621b513e33c4add027747db0c41d540c86492cca66e90814a7518c84
+ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:510c441d2541a5ef8c6a657a67ae98d5b0c6acdd886691690ed30f986095f55e
 
 ##
 # DEPENDENCIES: Install application dependencies
@@ -109,21 +109,42 @@ COPY locales ./locales
 COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts \
      tailwind.config.ts eslint.config.ts ./
 
+# Belt-and-suspenders version patch: if the host-side update-version.sh ran
+# but the Docker build context didn't pick up the modified package.json
+# (remote BuildKit builder, context snapshot timing, layer caching, etc.),
+# the VERSION build arg serves as a fallback to patch the version in-container
+# BEFORE the Vite build runs, so compiled assets also carry the correct version.
+ARG ALLOW_DEV_VERSION=false
+RUN set -eux && \
+    PKG_VERSION=$(node -p "require('./package.json').version") && \
+    if [ "${PKG_VERSION}" = "0.0.0-rc0" ] && [ -n "${VERSION}" ] && \
+       [ "${VERSION}" != "dev" ] && [ "${VERSION}" != "0.0.0-rc0" ]; then \
+      yq -i -o json ".version = \"${VERSION}\"" package.json && \
+      echo "NOTICE: package.json had placeholder; updated to ${VERSION} via build arg" >&2 && \
+      PKG_VERSION="${VERSION}" ; \
+    fi && \
+    if [ "${PKG_VERSION}" = "0.0.0-rc0" ]; then \
+      if [ "${ALLOW_DEV_VERSION}" = "true" ]; then \
+        echo "WARNING: Building with archetype version (${PKG_VERSION})" >&2 ; \
+      else \
+        echo "ERROR: package.json still has archetype placeholder version (${PKG_VERSION})." >&2 && \
+        echo "Run update-version.sh before building, or set --build-arg ALLOW_DEV_VERSION=true" >&2 && \
+        exit 1 ; \
+      fi ; \
+    fi
+
 # Build application and generate schema
 RUN set -eux && \
     pnpm run build && \
+    chmod -R a+rX public/ && \
     pnpm prune --prod && \
     rm -rf node_modules ~/.npm ~/.pnpm-store && \
     npm uninstall -g pnpm
 
-# Generate build metadata
+# Generate build metadata.
 # COMMIT_HASH is passed as a build arg from CI (GitHub Actions).
-# For local builds without the arg, falls back to "dev".
 RUN set -eux && \
-    VERSION=$(node -p "require('./package.json').version") && \
     mkdir -p /tmp/build-meta && \
-    echo "VERSION=${VERSION}" > /tmp/build-meta/version_env && \
-    echo "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> /tmp/build-meta/version_env && \
     echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt
 
 ##
@@ -205,10 +226,12 @@ COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
 COPY --chown=appuser:appuser install.sh ./
 COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
-COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/package.json ./
+COPY --chown=appuser:appuser config.ru Gemfile Gemfile.lock ./
 
 # Copy S6 service definitions (as root for proper ownership)
 COPY --chown=root:root docker/s6/services /etc/s6-overlay/s6-rc.d
@@ -241,12 +264,12 @@ RUN set -eux && \
         fi; \
     done && \
     cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
-    chmod +x bin/entrypoint.sh
+    chmod +x bin/entrypoint.sh bin/healthcheck.sh
 
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD s6-svstat /run/service/web && curl -f http://127.0.0.1:3000/api/v2/status || exit 1
+    CMD bin/healthcheck.sh
 
 # Run as non-root user
 USER appuser
@@ -311,10 +334,12 @@ COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
 COPY --chown=appuser:appuser install.sh ./
 COPY --chown=appuser:appuser scripts ./scripts
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
-COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/package.json ./
+COPY --chown=appuser:appuser config.ru Gemfile Gemfile.lock ./
 
 # Set production environment
 ENV RACK_ENV=production \
@@ -340,12 +365,12 @@ RUN set -eux && \
         fi; \
     done && \
     cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
-    chmod +x bin/entrypoint.sh
+    chmod +x bin/entrypoint.sh bin/healthcheck.sh
 
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://127.0.0.1:3000/api/v2/status || exit 1
+    CMD bin/healthcheck.sh
 
 # Run as non-root user
 USER appuser

@@ -127,6 +127,10 @@
     "text": "You have unsaved changes. Are you sure?",
     "sha256": "184b6a83"
   },
+  "web.branding.saved_successfully": {
+    "text": "Brand settings saved successfully",
+    "sha256": "9960c252"
+  },
   "web.branding.failed_to_load_brand_settings": {
     "text": "Failed to load brand settings",
     "sha256": "a7a1575e"
@@ -169,6 +173,6 @@
   },
   "web.branding.upgrade_to_customize": {
     "text": "Upgrade your plan to customize branding for this domain.",
-    "sha256": "placeholder"
+    "sha256": "9077bf79"
   }
 }

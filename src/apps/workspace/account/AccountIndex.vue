@@ -11,6 +11,7 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useAccountStore } from '@/shared/stores/accountStore';
   import { storeToRefs } from 'pinia';
+  import { formatDisplayDate } from '@/utils/format';
   import { computed, onMounted, ref } from 'vue';
 
   const { t } = useI18n();
@@ -25,7 +26,7 @@
 
   const accountCreatedDate = computed(() => {
     if (!accountInfo.value?.created_at) return '';
-    return new Date(accountInfo.value.created_at).toLocaleDateString();
+    return formatDisplayDate(new Date(accountInfo.value.created_at));
   });
 
   const emailVerificationStatus = computed(() => {
@@ -35,10 +36,10 @@
       : t('web.auth.account.not_verified');
   });
 
-  const handleThemeChange = async (isDark: boolean) => {
+  const handleThemeChange = async (_isDark: boolean) => {
     isLoading.value = true;
     try {
-      console.log('Theme changed:', isDark);
+      // TODO: Persist theme preference to user settings
     } catch (error) {
       console.error('Error changing theme:', error);
     } finally {

@@ -106,8 +106,8 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
           v-model="formState.confirmPassword"
           required
           tabindex="0"
-          autocomplete="confirm-password"
-          :aria-label="t('web.account.changePassword.newPassword')"
+          autocomplete="new-password"
+          :aria-label="t('web.account.changePassword.confirmPassword')"
           aria-labelledby="confirmPasswordLabel"
           class="mt-1 block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
         <button

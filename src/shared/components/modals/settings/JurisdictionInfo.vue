@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import type { Jurisdiction } from '@/schemas/models';
+import type { Jurisdiction } from '@/schemas/shapes/config';
 
 const { t } = useI18n();
 

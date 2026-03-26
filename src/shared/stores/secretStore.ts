@@ -1,20 +1,21 @@
 // src/shared/stores/secretStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
+import { ConcealPayload, GeneratePayload } from '@/schemas/api/v3/requests/content';
 import {
-  ConcealDataResponse,
-  ConcealPayload,
-  GeneratePayload,
   responseSchemas,
+  type ConcealDataResponse,
   type SecretResponse,
-} from '@/schemas/api/v3';
-import { type Secret, type SecretDetails, type SecretState } from '@/schemas/models/secret';
+} from '@/schemas/api/v3/responses';
+import type { SecretState } from '@/schemas/contracts';
+import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
 import { loggingService } from '@/services/logging.service';
+import { gracefulParse } from '@/utils/schemaValidation';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { computed, inject, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 /**
  * API mode for secret operations.
@@ -54,7 +55,7 @@ export type SecretStore = {
  */
 /* eslint-disable max-lines-per-function */
 export const useSecretStore = defineStore('secrets', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const record = ref<Secret | null>(null);
@@ -99,16 +100,26 @@ export const useSecretStore = defineStore('secrets', () => {
   /**
    * Loads a secret by its key
    * @param secretIdentifier - Unique identifier for the secret
-   * @throws Will throw an error if the API call fails
+   * @throws Will throw an error if the API call fails (dev/test: also throws on schema errors)
+   * @throws In production, throws generic error on schema failure after logging
    * @returns Validated secret response
    */
   async function fetch(secretIdentifier: string) {
     const response = await $api.get(getEndpoint(`/secret/${secretIdentifier}`));
-    const validated = responseSchemas.secret.parse(response.data);
-    record.value = validated.record;
-    details.value = validated.details ?? null;
+    const result = gracefulParse(
+      responseSchemas.secret,
+      response.data,
+      'SecretResponse'
+    );
 
-    return validated;
+    if (!result.ok) {
+      throw new Error('Unable to load secret. Please try again.');
+    }
+
+    record.value = result.data.record;
+    details.value = result.data.details ?? null;
+
+    return result.data;
   }
 
   /**
@@ -152,7 +163,8 @@ export const useSecretStore = defineStore('secrets', () => {
    * Reveals a secret's contents using an optional passphrase
    * @param secretIdentifier - Unique identifier for the secret
    * @param passphrase - Optional passphrase to decrypt the secret
-   * @throws Will throw an error if the API call fails
+   * @throws Will throw an error if the API call fails (dev/test: also throws on schema errors)
+   * @throws In production, throws generic error on schema failure after logging
    * @returns Validated secret response
    */
   async function reveal(secretIdentifier: string, passphrase?: string) {
@@ -164,9 +176,18 @@ export const useSecretStore = defineStore('secrets', () => {
       }
     );
 
-    const validated = responseSchemas.secret.parse(response.data);
-    record.value = validated.record;
-    details.value = validated.details ?? null;
+    const result = gracefulParse(
+      responseSchemas.secret,
+      response.data,
+      'SecretResponse'
+    );
+
+    if (!result.ok) {
+      throw new Error('Unable to reveal secret. Please try again.');
+    }
+
+    record.value = result.data.record;
+    details.value = result.data.details ?? null;
 
     // Update local storage status for non-authenticated users only
     // The secretIdentifier is the secretExtid we stored when creating the secret
@@ -176,7 +197,7 @@ export const useSecretStore = defineStore('secrets', () => {
       localReceiptStore.markAsRevealed(secretIdentifier);
     }
 
-    return validated;
+    return result.data;
   }
 
   function clear() {

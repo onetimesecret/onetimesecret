@@ -101,17 +101,22 @@ all       main, s6, lite, caddy  Full local build
 
 ## Tag Strategy
 
-Tags are computed as `EXTRA_TAGS` (comma-separated) in both CI and the post-receive hook. Bake's `tags()` function (CI) and `PushRef.image_tags()` (Gitolite) apply the same logic:
+Two variables control Docker image tags:
+
+- **`IMAGE_TAG`** — v-prefixed version for release builds (e.g. `v0.24.0-rc15`). Empty for non-release builds, which suppresses the version tag entirely.
+- **`EXTRA_TAGS`** — comma-separated additional tags (e.g. `latest`, `next`, `nightly`). Always applied when non-empty.
+
+`VERSION` (clean semver) is used only for build args and OCI labels — never as a Docker tag.
 
 ```
-Event                 EXTRA_TAGS            Registries
-────────────────────  ────────────────────  ──────────────────────────────
-v1.0.0 tag push       latest                GHCR + DockerHub (or custom)
-v1.0.0-rc1 tag push   next                  "
-Branch push           {branch-name},edge    "
-develop push          next                  "
-Manual dispatch       dev or custom         "
-Nightly schedule      nightly               "
+Event                 IMAGE_TAG         EXTRA_TAGS            Registries
+────────────────────  ────────────────  ────────────────────  ──────────────────────────────
+v1.0.0 tag push       v1.0.0            latest                GHCR + DockerHub (or custom)
+v1.0.0-rc1 tag push   v1.0.0-rc1        next                  "
+Branch push           (empty)           {branch-name},edge    "
+develop push          (empty)           next                  "
+Manual dispatch       (empty)           dev or custom         "
+Nightly schedule      (empty)           nightly               "
 ```
 
 `REGISTRY_MODE=custom` routes all tags to a single private registry instead of GHCR+DockerHub.

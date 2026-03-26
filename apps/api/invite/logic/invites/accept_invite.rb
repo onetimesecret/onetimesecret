@@ -21,7 +21,7 @@ module InviteAPI::Logic
 
       def raise_concerns
         # Must be authenticated
-        raise_form_error('Authentication required', error_type: :unauthorized) if cust.anonymous?
+        verify_authenticated!
 
         raise_form_error('Token is required', field: :token) if @token.nil? || @token.empty?
 

@@ -88,7 +88,7 @@
           </label>
           <div class="group relative overflow-hidden rounded-xl border-2 border-gray-200 bg-gray-50 transition-all duration-200 hover:border-gray-300 dark:border-gray-700 dark:bg-slate-900/50 dark:hover:border-gray-600">
             <div class="flex items-center justify-between gap-2 p-4">
-              <code class="flex-1 select-all break-all font-mono text-sm font-medium text-gray-900 dark:text-white sm:text-base">
+              <code class="flex-1 select-all break-all font-mono text-sm font-medium text-gray-900 dark:text-white sm:text-base" data-testid="incoming-reference-id">
                 {{ receiptKey }}
               </code>
               <div class="flex flex-shrink-0 gap-2">
@@ -97,7 +97,8 @@
                   class="rounded-lg bg-gray-200 p-2.5 text-gray-600 transition-all duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
                   :class="{ 'bg-green-500 hover:bg-green-500 text-white dark:bg-green-600 dark:hover:bg-green-600': copied }"
                   @click="copyToClipboard"
-                  :title="copied ? 'Copied!' : 'Copy to clipboard'">
+                  :title="copied ? 'Copied!' : 'Copy to clipboard'"
+                  data-testid="incoming-copy-reference-btn">
                   <svg
                     v-if="!copied"
                     class="size-5"
@@ -177,7 +178,8 @@
           <button
             type="button"
             class="rounded-xl bg-brand-500 px-8 py-4 text-base font-semibold text-white shadow-md transition-all duration-200 hover:bg-brand-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-            @click="handleCreateAnother">
+            @click="handleCreateAnother"
+            data-testid="incoming-send-another-btn">
             <span class="flex items-center justify-center gap-2">
               <svg
                 class="size-5"

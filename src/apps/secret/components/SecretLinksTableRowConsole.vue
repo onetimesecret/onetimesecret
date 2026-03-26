@@ -231,8 +231,8 @@
 
   // Row styling based on state
   // Whether the secret was created on a different domain
-  const hasDifferentDomain = computed(() =>
-    !!props.record.shareDomain && props.record.shareDomain !== site_host.value
+  const hasDifferentDomain = computed(
+    () => !!props.record.shareDomain && props.record.shareDomain !== site_host.value
   );
 
   // Receipt route for this record
@@ -244,17 +244,15 @@
     router.push(receiptRoute.value);
   };
 
-  const rowClasses = computed(() => [
-    'font-mono text-sm',
-    isTerminal.value && 'opacity-60',
-  ]);
+  const rowClasses = computed(() => ['font-mono text-sm', isTerminal.value && 'opacity-60']);
 </script>
 
 <template>
-  <li ref="rowRef"
-:class="rowClasses"
-class="group/row relative cursor-pointer transition-all duration-150 hover:shadow-sm"
-@click="handleRowClick">
+  <li
+    ref="rowRef"
+    :class="rowClasses"
+    class="group/row relative cursor-pointer transition-all duration-150 hover:shadow-sm"
+    @click="handleRowClick">
     <!-- Content wrapper: contains everything except separator, for watermark positioning -->
     <div class="relative">
       <!-- Background watermark: oversized shortid, centered (hidden on mobile) -->
@@ -265,8 +263,8 @@ class="group/row relative cursor-pointer transition-all duration-150 hover:shado
           :class="[
             'font-mono text-[clamp(3.5rem,8vw,4.5rem)] font-light uppercase leading-none tracking-[0.3em] transition-colors duration-150',
             isTerminal
-              ? 'text-gray-400/15 group-hover/row:text-gray-400/30 dark:text-gray-500/12 dark:group-hover/row:text-gray-500/25'
-              : 'text-gray-400/20 group-hover/row:text-gray-400/40 dark:text-gray-500/18 dark:group-hover/row:text-gray-500/35',
+              ? 'dark:text-gray-500/12 text-gray-400/15 group-hover/row:text-gray-400/30 dark:group-hover/row:text-gray-500/25'
+              : 'dark:text-gray-500/18 text-gray-400/20 group-hover/row:text-gray-400/40 dark:group-hover/row:text-gray-500/35',
           ]">
           {{ displayKey }}
         </span>
@@ -274,123 +272,128 @@ class="group/row relative cursor-pointer transition-all duration-150 hover:shado
 
       <!-- Header line: #N  🔒  SYMBOL STATUS  Memo/ID -->
       <div class="relative flex items-start gap-2">
-      <!-- Index prefix (links to receipt) -->
-      <router-link
-        :to="receiptRoute"
-        :aria-label="`${t('web.receipt.view_receipt')} #${index}`"
-        class="cursor-pointer select-none px-1 py-0.5 text-gray-400 no-underline hover:underline dark:text-gray-500"
-        @click.stop>
-        #{{ index }}
-      </router-link>
+        <!-- Index prefix (links to receipt) -->
+        <router-link
+          :to="receiptRoute"
+          :aria-label="`${t('web.receipt.view_receipt')} #${index}`"
+          class="cursor-pointer select-none px-1 py-0.5 text-gray-400 no-underline hover:underline dark:text-gray-500"
+          @click.stop>
+          #{{ index }}
+        </router-link>
 
-      <!--
+        <!--
         LAYER 1 & 2: Encryption iconography
         - All items show padlock (EO baseline)
         - EAP items add keyhole badge with pulse animation
       -->
-      <div
-        class="group/encrypt relative flex-shrink-0"
-        @mouseenter="showEncryptionTooltip = true"
-        @mouseleave="showEncryptionTooltip = false"
-        @focus="showEncryptionTooltip = true"
-        @blur="showEncryptionTooltip = false"
-        tabindex="0"
-        role="img"
-        :aria-label="hasPassphrase ? `${t('web.LABELS.encrypted')} + ${t('web.LABELS.passphrase_protected')}` : t('web.LABELS.encrypted')">
-        <!-- Padlock icon (always shown, mid-gray, same saturation for EO and EAP) -->
-        <OIcon
+        <div
+          class="group/encrypt relative flex-shrink-0"
+          @mouseenter="showEncryptionTooltip = true"
+          @mouseleave="showEncryptionTooltip = false"
+          @focus="showEncryptionTooltip = true"
+          @blur="showEncryptionTooltip = false"
+          tabindex="0"
+          role="img"
+          :aria-label="
+            hasPassphrase
+              ? `${t('web.LABELS.encrypted')} + ${t('web.LABELS.passphrase_protected')}`
+              : t('web.LABELS.encrypted')
+          ">
+          <!-- Padlock icon (always shown, mid-gray, same saturation for EO and EAP) -->
+          <OIcon
             v-if="hasPassphrase"
             collection="tabler"
             name="lock-check"
-            size="5"
-        />
-        <OIcon
+            size="5" />
+          <OIcon
             v-else
             collection="tabler"
             name="lock"
-            size="5"
-        />
+            size="5" />
 
-        <!-- LAYER 3: Tooltip on hover/focus -->
-        <Transition
-          enter-active-class="transition duration-150 ease-out"
-          enter-from-class="opacity-0 translate-y-1"
-          enter-to-class="opacity-100 translate-y-0"
-          leave-active-class="transition duration-100 ease-in"
-          leave-from-class="opacity-100 translate-y-0"
-          leave-to-class="opacity-0 translate-y-1">
-          <div
-            v-if="showEncryptionTooltip"
-            class="absolute -top-8 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs font-medium text-white shadow-lg dark:bg-gray-700">
-            <template v-if="hasPassphrase">
-              {{ t('web.LABELS.encrypted') }}
-              <span class="text-teal-300"> + {{ t('web.LABELS.passphrase_protected') }}</span>
-            </template>
-            <template v-else>
-              {{ t('web.LABELS.encrypted') }}
-            </template>
-            <!-- Tooltip arrow -->
+          <!-- LAYER 3: Tooltip on hover/focus -->
+          <Transition
+            enter-active-class="transition duration-150 ease-out"
+            enter-from-class="opacity-0 translate-y-1"
+            enter-to-class="opacity-100 translate-y-0"
+            leave-active-class="transition duration-100 ease-in"
+            leave-from-class="opacity-100 translate-y-0"
+            leave-to-class="opacity-0 translate-y-1">
             <div
-              class="absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rotate-45 bg-gray-800 dark:bg-gray-700"
-              aria-hidden="true"></div>
-          </div>
-        </Transition>
-      </div>
+              v-if="showEncryptionTooltip"
+              class="absolute -top-8 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs font-medium text-white shadow-lg dark:bg-gray-700">
+              <template v-if="hasPassphrase">
+                {{ t('web.LABELS.encrypted') }}
+                <span class="text-teal-300"> + {{ t('web.LABELS.passphrase_protected') }}</span>
+              </template>
+              <template v-else>
+                {{ t('web.LABELS.encrypted') }}
+              </template>
+              <!-- Tooltip arrow -->
+              <div
+                class="absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rotate-45 bg-gray-800 dark:bg-gray-700"
+                aria-hidden="true"></div>
+            </div>
+          </Transition>
+        </div>
 
-      <!-- Status label -->
-      <span :class="['font-semibold tracking-wide', statusConfig.colorClass]">
-        {{ statusConfig.label }}
-      </span>
+        <!-- Status label -->
+        <span :class="['font-semibold tracking-wide', statusConfig.colorClass]">
+          {{ statusConfig.label }}
+        </span>
 
-      <!-- Memo or shortid — stop propagation to prevent row click -->
-      <div class="min-w-0 flex-1" @click.stop>
-        <template v-if="isEditingMemo">
-          <input
-            ref="memoInputRef"
-            v-model="memoInputValue"
-            type="text"
-            maxlength="100"
-            :placeholder="t('web.LABELS.add_memo')"
-            class="w-full max-w-xs rounded border border-gray-300 bg-white px-2 py-0.5 font-mono text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
-            @keydown="handleMemoKeydown"
-            @blur="saveMemo" />
-        </template>
-        <template v-else>
-          <button
-            type="button"
-            @click="startEditingMemo"
-            class="group/memo inline-flex max-w-full items-center gap-1 text-left transition-colors hover:text-gray-600 dark:hover:text-gray-300"
-            :title="t('web.LABELS.edit_memo')">
-            <span
-              v-if="record.memo"
-              :class="[
-                'truncate',
-                isActive
-                  ? 'text-gray-900 dark:text-gray-100'
-                  : 'text-gray-600 dark:text-gray-400',
-              ]">
-              {{ record.memo }}
-            </span>
-            <span
-              v-else
-              class="text-gray-400 group-hover/memo:text-gray-300 dark:text-gray-500 dark:group-hover/memo:text-gray-300">
-              {{ displayKey }}
-            </span>
-            <span
-              class="text-xs text-gray-300 group-hover/memo:text-gray-200 transition-opacity dark:text-gray-600 dark:group-hover/memo:text-gray-300">
-              <OIcon
-                collection="heroicons"
-                name="pencil-square"
-                class="size-3" />
-            </span>
-          </button>
-        </template>
-      </div>
+        <!-- Memo or shortid — stop propagation to prevent row click -->
+        <div
+          class="min-w-0 flex-1"
+          @click.stop>
+          <template v-if="isEditingMemo">
+            <input
+              ref="memoInputRef"
+              v-model="memoInputValue"
+              type="text"
+              maxlength="100"
+              :placeholder="t('web.LABELS.add_memo')"
+              class="w-full max-w-xs rounded border border-gray-300 bg-white px-2 py-0.5 font-mono text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
+              @keydown="handleMemoKeydown"
+              @blur="saveMemo" />
+          </template>
+          <template v-else>
+            <button
+              type="button"
+              @click="startEditingMemo"
+              class="group/memo inline-flex max-w-full items-center gap-1 text-left transition-colors hover:text-gray-600 dark:hover:text-gray-300"
+              :title="t('web.LABELS.edit_memo')">
+              <span
+                v-if="record.memo"
+                :class="[
+                  'truncate',
+                  isActive
+                    ? 'text-gray-900 dark:text-gray-100'
+                    : 'text-gray-600 dark:text-gray-400',
+                ]">
+                {{ record.memo }}
+              </span>
+              <span
+                v-else
+                class="text-gray-400 group-hover/memo:text-gray-300 dark:text-gray-500 dark:group-hover/memo:text-gray-300">
+                {{ displayKey }}
+              </span>
+              <span
+                class="text-xs text-gray-300 transition-opacity group-hover/memo:text-gray-200 dark:text-gray-600 dark:group-hover/memo:text-gray-300">
+                <OIcon
+                  collection="heroicons"
+                  name="pencil-square"
+                  class="size-3" />
+              </span>
+            </button>
+          </template>
+        </div>
 
-      <!-- Actions (header line, right side) — stop propagation to prevent row click -->
-      <div v-if="isActive"
-class="flex flex-shrink-0 items-center gap-1 sm:gap-2"
-@click.stop>
+        <!-- Actions (header line, right side) — stop propagation to prevent row click -->
+        <div
+          v-if="isActive"
+          class="flex flex-shrink-0 items-center gap-1 sm:gap-2"
+          @click.stop>
           <!-- Copy button: icon-only on mobile, text on sm+ -->
           <button
             type="button"
@@ -425,7 +428,7 @@ class="flex flex-shrink-0 items-center gap-1 sm:gap-2"
             :href="shareLink"
             target="_blank"
             rel="noopener noreferrer"
-            class="rounded border border-gray-300 bg-white p-1.5 text-gray-700 transition-colors hover:bg-gray-50 sm:px-2 sm:py-0.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            class="rounded border border-gray-300 bg-white p-1.5 text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-2 sm:py-0.5"
             :title="t('web.COMMON.view_secret')">
             <!-- Mobile: icon only -->
             <OIcon
@@ -435,73 +438,94 @@ class="flex flex-shrink-0 items-center gap-1 sm:gap-2"
             <!-- Desktop: text label -->
             <span class="hidden text-xs font-medium sm:inline">[ OPEN &#8599; ]</span>
           </a>
+        </div>
+      </div>
+
+      <!-- Metadata tree (full tree for active/previewed, minimal for terminal) -->
+      <div class="relative ml-4 mt-1 space-y-0.5 text-gray-600 dark:text-gray-400">
+        <template v-if="isActive">
+          <!-- Domain line (only when share domain differs from site host) -->
+          <div
+            v-if="hasDifferentDomain"
+            class="flex items-center">
+            <span
+              class="mr-2 select-none text-gray-300 dark:text-gray-600"
+              aria-hidden="true"
+              >├─</span
+            >
+            <span class="text-gray-400 dark:text-gray-500">via:</span>
+            <span class="ml-1 text-gray-500 dark:text-gray-400">{{ record.shareDomain }}</span>
+          </div>
+
+          <!-- Expires line with timestamp on right -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <span
+                class="mr-2 select-none text-gray-300 dark:text-gray-600"
+                aria-hidden="true"
+                >└─</span
+              >
+              <span>expires:</span>
+              <span
+                :class="[
+                  'ml-1',
+                  isUrgent
+                    ? 'font-semibold text-amber-600 dark:text-amber-400'
+                    : 'text-gray-700 dark:text-gray-300',
+                ]">
+                {{ timeRemaining }}
+              </span>
+            </div>
+
+            <!-- Timestamp and receipt link -->
+            <div class="flex items-center gap-2">
+              <span
+                data-test-id="created-timestamp"
+                class="text-xs text-gray-400 dark:text-gray-500">
+                <time :datetime="record.createdAt.toISOString()">
+                  {{ formattedDate }}
+                </time>
+              </span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Terminal states: minimal info -->
+        <template v-else>
+          <!-- Domain line (only when share domain differs from site host) -->
+          <div
+            v-if="hasDifferentDomain"
+            class="flex items-center">
+            <span
+              class="mr-2 select-none text-gray-300 dark:text-gray-600"
+              aria-hidden="true"
+              >├─</span
+            >
+            <span class="text-gray-400 dark:text-gray-500">via:</span>
+            <span class="ml-1 text-gray-500 dark:text-gray-400">{{ record.shareDomain }}</span>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <span
+                class="mr-2 select-none text-gray-300 dark:text-gray-600"
+                aria-hidden="true"
+                >└─</span
+              >
+              <span v-if="itemState === 'revealed'">viewed:</span>
+              <span v-else-if="itemState === 'burned'">destroyed:</span>
+              <span v-else>expired:</span>
+              <span class="ml-1 text-gray-500 dark:text-gray-400">
+                <time :datetime="record.createdAt.toISOString()">
+                  {{ formattedDate }}
+                </time>
+              </span>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
-
-    <!-- Metadata tree (full tree for active/previewed, minimal for terminal) -->
-    <div class="relative ml-4 mt-1 space-y-0.5 text-gray-600 dark:text-gray-400">
-      <template v-if="isActive">
-        <!-- Domain line (only when share domain differs from site host) -->
-        <div v-if="hasDifferentDomain" class="flex items-center">
-          <span class="mr-2 select-none text-gray-300 dark:text-gray-600" aria-hidden="true">├─</span>
-          <span class="text-gray-400 dark:text-gray-500">via:</span>
-          <span class="ml-1 text-gray-500 dark:text-gray-400">{{ record.shareDomain }}</span>
-        </div>
-
-        <!-- Expires line with timestamp on right -->
-        <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <span class="mr-2 select-none text-gray-300 dark:text-gray-600" aria-hidden="true">└─</span>
-            <span>expires:</span>
-            <span
-              :class="[
-                'ml-1',
-                isUrgent
-                  ? 'font-semibold text-amber-600 dark:text-amber-400'
-                  : 'text-gray-700 dark:text-gray-300',
-              ]">
-              {{ timeRemaining }}
-            </span>
-          </div>
-
-          <!-- Timestamp and receipt link -->
-          <div class="flex items-center gap-2">
-            <span
-              data-test-id="created-timestamp"
-              class="text-xs text-gray-400 dark:text-gray-500">
-              <time :datetime="record.createdAt.toISOString()">
-                {{ formattedDate }}
-              </time>
-            </span>
-          </div>
-        </div>
-      </template>
-
-      <!-- Terminal states: minimal info -->
-      <template v-else>
-        <!-- Domain line (only when share domain differs from site host) -->
-        <div v-if="hasDifferentDomain" class="flex items-center">
-          <span class="mr-2 select-none text-gray-300 dark:text-gray-600" aria-hidden="true">├─</span>
-          <span class="text-gray-400 dark:text-gray-500">via:</span>
-          <span class="ml-1 text-gray-500 dark:text-gray-400">{{ record.shareDomain }}</span>
-        </div>
-
-        <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <span class="mr-2 select-none text-gray-300 dark:text-gray-600" aria-hidden="true">└─</span>
-            <span v-if="itemState === 'revealed'">viewed:</span>
-            <span v-else-if="itemState === 'burned'">destroyed:</span>
-            <span v-else>expired:</span>
-            <span class="ml-1 text-gray-500 dark:text-gray-400">
-              <time :datetime="record.createdAt.toISOString()">
-                {{ formattedDate }}
-              </time>
-            </span>
-          </div>
-        </div>
-      </template>
-    </div>
-    </div><!-- /Content wrapper -->
+    <!-- /Content wrapper -->
 
     <!-- Separator line (if not last item) -->
     <div

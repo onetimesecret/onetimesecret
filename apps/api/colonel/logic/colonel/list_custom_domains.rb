@@ -7,7 +7,15 @@ require_relative '../base'
 module ColonelAPI
   module Logic
     module Colonel
+      # List Custom Domains (Colonel)
+      #
+      # @api Returns a paginated list of all custom domains across all
+      #   organizations, including verification state, brand settings,
+      #   logo/icon presence, and the owning organization. Requires
+      #   colonel role.
       class ListCustomDomains < ColonelAPI::Logic::Base
+        SCHEMAS = { response: 'customDomains' }.freeze
+
         attr_reader :domains, :total_count, :page, :per_page, :total_pages
 
         def process_params

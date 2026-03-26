@@ -97,7 +97,8 @@
         :aria-invalid="!!error"
         :aria-describedby="error ? 'recipient-error' : undefined"
         @click="toggleDropdown"
-        @keydown="handleKeydown">
+        @keydown="handleKeydown"
+        data-testid="incoming-recipient-trigger">
         <span>{{ displayText }}</span>
         <svg
           :class="[
@@ -135,7 +136,8 @@
                 ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                 : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-slate-700',
             ]"
-            @click="selectRecipient(recipient.hash)">
+            @click="selectRecipient(recipient.hash)"
+            :data-testid="`recipient-option-${recipient.hash}`">
             <div class="flex items-center justify-between">
               <span class="font-medium">{{ recipient.name }}</span>
               <svg

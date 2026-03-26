@@ -155,6 +155,10 @@
     "text": "E muku ana i a {0}",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "E muku ana...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Muku Pūmautia te Pūkete",
     "sha256": "f894e42c"
@@ -210,6 +214,22 @@
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Whakahaere i ō tautuhinga pūkete me ngā hiahia",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Hoki ki te Papatohu",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Pūkete",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Pire",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Matatau",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "Whānui",
@@ -615,24 +635,52 @@
     "text": "Kāore e taea te whakakore i tēnei mahi",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "E muku ana...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "Kua Whakahoutia te Wāhitau Īmēra",
+    "sha256": "cf02eb0c"
   },
-  "web.settings.back_to_dashboard": {
-    "text": "Hoki ki te Papatohu",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Kua whakahoutia tō īmēra. Takiuru mā tō wāhitau īmēra hou.",
+    "sha256": "a84efcea"
   },
-  "web.settings.sections.account": {
-    "text": "Pūkete",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "E manatoko ana i tō wāhitau īmēra hou...",
+    "sha256": "a6a4745f"
   },
-  "web.settings.sections.billing": {
-    "text": "Pire",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "I Hapa te Huringa Īmēra",
+    "sha256": "953f3936"
   },
-  "web.settings.sections.advanced": {
-    "text": "Matatau",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "He muhu tēnei hononga manatoko, kua pau rānei.",
+    "sha256": "f54594c2"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Hoki ki ngā Tautuhinga Pūkete",
+    "sha256": "fd49b66b"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "E whakawhiti ana ki te takiuru...",
+    "sha256": "c65f7dcc"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Tuku anō i te īmēra whakaū",
+    "sha256": "c617fff7"
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "Kua tukuna anō te īmēra whakaū.",
+    "sha256": "2287783b"
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "E tuku ana...",
+    "sha256": "286a3af7"
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "Kua tukuna he īmēra manatoko. Tirohia tō pouaka whakauru ka pāwhiria te hononga whakaū.",
+    "sha256": "5806c93f"
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "Kāore i tae te īmēra?",
+    "sha256": "fe3ac3ad"
   }
 }

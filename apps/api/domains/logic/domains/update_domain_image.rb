@@ -17,7 +17,15 @@ module DomainsAPI::Logic
       MAX_IMAGE_BYTES  = 2 * 1024 * 1024 # 1 MB
     end
 
+    # Update Domain Image
+    #
+    # @api Uploads and stores an image (logo or icon) for a custom domain.
+    #   Accepts standard image formats (JPEG, PNG, GIF, SVG, WebP, BMP,
+    #   TIFF) up to 2 MB. Requires the custom_branding entitlement.
+    #   Returns the stored image metadata including dimensions and ratio.
     class UpdateDomainImage < DomainsAPI::Logic::Base
+      SCHEMAS = { response: 'imageProps' }.freeze
+
       attr_reader :greenlighted,
         :image,
         :display_domain,

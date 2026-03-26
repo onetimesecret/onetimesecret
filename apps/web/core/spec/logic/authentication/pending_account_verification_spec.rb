@@ -56,7 +56,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
       # Stub customer lookup
       allow(Onetime::Customer).to receive(:find_by_email).with(test_email).and_return(pending_customer)
-      allow(Onetime::Customer).to receive(:anonymous).and_return(double('AnonymousCustomer', anonymous?: true))
+      # Note: Customer.anonymous singleton removed in PR #2733 - anonymous users have cust=nil
 
       # Stub logging
       allow(logic).to receive(:auth_logger).and_return(

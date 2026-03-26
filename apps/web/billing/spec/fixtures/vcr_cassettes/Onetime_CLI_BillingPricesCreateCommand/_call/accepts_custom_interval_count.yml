@@ -98,7 +98,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/prices
     body:
       encoding: UTF-8
-      string: product=prod_TfaNFNS9POeEtz&unit_amount=900&currency=usd&recurring[interval]=month&recurring[interval_count]=3
+      string: product=prod_TfaNFNS9POeEtz&unit_amount=900&currency=cad&recurring[interval]=month&recurring[interval_count]=3
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -177,7 +177,7 @@ http_interactions:
           "active": true,
           "billing_scheme": "per_unit",
           "created": 1766671673,
-          "currency": "usd",
+          "currency": "cad",
           "custom_unit_amount": null,
           "livemode": false,
           "lookup_key": null,
@@ -375,7 +375,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/prices
     body:
       encoding: UTF-8
-      string: product=prod_Tgwn3JZSTv1tka&unit_amount=900&currency=usd&recurring[interval]=month&recurring[interval_count]=3
+      string: product=prod_Tgwn3JZSTv1tka&unit_amount=900&currency=cad&recurring[interval]=month&recurring[interval_count]=3
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -454,7 +454,7 @@ http_interactions:
           "active": true,
           "billing_scheme": "per_unit",
           "created": 1766985703,
-          "currency": "usd",
+          "currency": "cad",
           "custom_unit_amount": null,
           "livemode": false,
           "lookup_key": null,
@@ -677,7 +677,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/prices
     body:
       encoding: UTF-8
-      string: product=prod_TzPUQ8pKhM1Rth&unit_amount=900&currency=usd&recurring[interval]=month&recurring[interval_count]=3
+      string: product=prod_TzPUQ8pKhM1Rth&unit_amount=900&currency=cad&recurring[interval]=month&recurring[interval_count]=3
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/18.1.0
@@ -756,7 +756,7 @@ http_interactions:
           "active": true,
           "billing_scheme": "per_unit",
           "created": 1771243960,
-          "currency": "usd",
+          "currency": "cad",
           "custom_unit_amount": null,
           "livemode": false,
           "lookup_key": null,

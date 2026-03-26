@@ -7,7 +7,15 @@ require_relative '../base'
 module ColonelAPI
   module Logic
     module Colonel
+      # List Users
+      #
+      # @api Returns a paginated list of all users with obscured emails,
+      #   roles, verification status, plan IDs, and secret counts. Supports
+      #   optional role filtering and pagination via page/per_page params.
+      #   Requires colonel role.
       class ListUsers < ColonelAPI::Logic::Base
+        SCHEMAS = { response: 'colonelUsers' }.freeze
+
         attr_reader :users, :total_count, :page, :per_page, :total_pages, :role_filter
 
         def process_params
@@ -76,7 +84,7 @@ module ColonelAPI
         def build_secrets_count_by_owner
           counts   = Hash.new(0)
           cursor   = '0'
-          dbclient = Onetime::Secret.new.dbclient
+          dbclient = Onetime::Secret.dbclient
           pattern  = 'secret:*:object'
 
           loop do

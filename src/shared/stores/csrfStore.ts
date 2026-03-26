@@ -1,12 +1,19 @@
 // src/shared/stores/csrfStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import { responseSchemas } from '@/schemas/api/v3/responses';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { gracefulParse } from '@/utils/schemaValidation';
+import { z } from 'zod';
 import { useDocumentVisibility } from '@vueuse/core';
-import { AxiosInstance } from 'axios';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties, storeToRefs } from 'pinia';
-import { handleError, inject, ref, watch } from 'vue';
+import { handleError, ref, watch } from 'vue';
+
+// Inline schema — CSRF validation is a simple endpoint, not part of the API registry
+const csrfResponseSchema = z.object({
+  isValid: z.boolean(),
+  shrimp: z.string(),
+});
 
 const DEFAULT_PERIODIC_INTERVAL_MS = 60000 * 15; // Check every 15 minutes
 
@@ -65,7 +72,7 @@ export type CsrfStore = {
 
 /* eslint-disable max-lines-per-function */
 export const useCsrfStore = defineStore('csrf', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
   const bootstrapStore = useBootstrapStore();
   const { shrimp: bootstrapShrimp, authenticated } = storeToRefs(bootstrapStore);
 
@@ -107,12 +114,15 @@ export const useCsrfStore = defineStore('csrf', () => {
   async function checkShrimpValidity() {
     const response = await $api.post('/api/v3/validate-shrimp', {});
 
-    const validated = responseSchemas.csrf.parse(response.data);
-    isValid.value = validated.isValid;
-    if (validated.isValid) {
-      updateShrimp(validated.shrimp);
+    const result = gracefulParse(csrfResponseSchema, response.data, 'CsrfResponse');
+    if (!result.ok) {
+      throw new Error('CSRF validation failed. Please reload the page.');
     }
-    return validated;
+    isValid.value = result.data.isValid;
+    if (result.data.isValid) {
+      updateShrimp(result.data.shrimp);
+    }
+    return result.data;
   }
 
   function initVisibilityCheck() {

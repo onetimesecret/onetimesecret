@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import MinimalDropdownMenu from '@/shared/components/ui/MinimalDropdownMenu.vue';
-  import { CustomDomain } from '@/schemas/models'
+  import { CustomDomain } from '@/schemas/shapes/v3'
   import { MenuItem } from '@headlessui/vue';
 
 const { t } = useI18n();

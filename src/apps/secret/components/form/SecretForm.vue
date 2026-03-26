@@ -181,7 +181,8 @@
       ref="form1"
       @submit.prevent="handleSubmit"
       :aria-busy="isSubmitting"
-      class="space-y-6">
+      class="space-y-6"
+      data-testid="secret-form">
       <!-- prettier-ignore-attribute class -->
       <div
         ref="div1"
@@ -332,7 +333,8 @@
                     dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
                     dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
                   :placeholder="t('web.secrets.enterPassphrase')"
-                  @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)" />
+                  @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)"
+                  data-testid="secret-passphrase-input" />
                 <!-- prettier-ignore-attribute class -->
                 <button
                   type="button"
@@ -340,7 +342,8 @@
                   :aria-label="state.passphraseVisibility ? 'Hide passphrase' : 'Show passphrase'"
                   :aria-pressed="state.passphraseVisibility"
                   class="absolute inset-y-0 right-3 flex items-center
-                    focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  data-testid="secret-toggle-passphrase">
                   <OIcon
                     collection="heroicons"
                     :name="state.passphraseVisibility ? 'solid-eye' : 'outline-eye-off'"
@@ -384,7 +387,8 @@
                     dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white
                     dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
                     dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
-                  @change="(e) => updateTtl(Number((e.target as HTMLSelectElement).value))">
+                  @change="(e) => updateTtl(Number((e.target as HTMLSelectElement).value))"
+                  data-testid="secret-ttl-select">
                   <option
                     value=""
                     disabled>
@@ -453,7 +457,8 @@
                   dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-gray-500
                   dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
                   dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
-                @input="(e) => updateRecipient((e.target as HTMLInputElement).value)" />
+                @input="(e) => updateRecipient((e.target as HTMLInputElement).value)"
+                data-testid="secret-recipient-input" />
             </div>
           </div>
         </div>
@@ -496,7 +501,8 @@
                   role="status"
                   :aria-label="
                     t('web.LABELS.scope_indicator', { domain: currentContext.displayName })
-                  ">
+                  "
+                  data-testid="secret-domain-context-indicator">
                   <OIcon
                     collection="heroicons"
                     :name="currentContext.isCanonical ? 'user-circle' : 'building-office'"
@@ -507,7 +513,7 @@
               </div>
 
               <!-- Action Button (full-width on mobile, normal width on desktop) -->
-              <div class="order-2 shrink-0 sm:order-2">
+              <div class="order-2 shrink-0 sm:order-2 sm:ml-auto">
                 <div class="mb-0 mt-3 sm:mt-0">
                   <SplitButton
                     :with-generate="props.withGenerate"

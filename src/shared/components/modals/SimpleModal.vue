@@ -1,6 +1,6 @@
 <!-- src/shared/components/modals/SimpleModal.vue -->
 
-<script setup>
+<script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';

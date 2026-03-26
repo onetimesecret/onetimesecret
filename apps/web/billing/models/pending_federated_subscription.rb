@@ -62,7 +62,7 @@ module Billing
     # ========================================
     # Metadata (NOT PII)
     # ========================================
-    field :home_region              # Region that owns the subscription
+    field :region                   # Region that owns the subscription
     field :received_at              # When webhook was first received
 
     # Find pending subscription by email hash
@@ -90,14 +90,14 @@ module Billing
     #
     # @param email_hash [String] HMAC hash from Stripe customer metadata
     # @param subscription [Stripe::Subscription] Subscription object
-    # @param home_region [String] Region identifier from Stripe metadata
+    # @param region [String] Region identifier from Stripe metadata
     # @return [PendingFederatedSubscription]
-    def self.store_from_webhook(email_hash:, subscription:, home_region: nil)
+    def self.store_from_webhook(email_hash:, subscription:, region: nil)
       pending                         = new(email_hash)  # Sets identifier (email_hash) automatically
       pending.subscription_status     = subscription.status
       pending.planid                  = extract_plan_id(subscription)
       pending.subscription_period_end = subscription.items.data.first&.current_period_end.to_s
-      pending.home_region             = home_region
+      pending.region                  = region
       pending.received_at             = Time.now.to_i.to_s
       pending.save
       pending

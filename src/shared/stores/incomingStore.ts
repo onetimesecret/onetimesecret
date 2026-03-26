@@ -10,9 +10,10 @@ import {
 } from '@/schemas/api/incoming';
 import { responseSchemas, ReceiptResponse } from '@/schemas/api/v3/responses';
 import { loggingService } from '@/services/logging.service';
-import { AxiosInstance } from 'axios';
+import { gracefulParse } from '@/utils/schemaValidation';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { computed, inject, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 interface StoreOptions extends PiniaPluginOptions {}
 
@@ -47,7 +48,7 @@ export type IncomingStore = {
  */
 /* eslint-disable max-lines-per-function */
 export const useIncomingStore = defineStore('incoming', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   // State
   const config = ref<IncomingConfig | null>(null);
@@ -79,10 +80,13 @@ export const useIncomingStore = defineStore('incoming', () => {
    */
   const loadConfig = async () => {
     configError.value = null;
-    const response = await $api.get('/api/v3/incoming/config');
-    const validated = incomingConfigSchema.parse(response.data.config);
-    config.value = validated;
-    return validated;
+    const response = await $api.get('/incoming/config');
+    const result = gracefulParse(incomingConfigSchema, response.data.config, 'IncomingConfig');
+    if (!result.ok) {
+      throw new Error('Unable to load incoming configuration. Please try again.');
+    }
+    config.value = result.data;
+    return result.data;
   };
 
   /**
@@ -98,12 +102,15 @@ export const useIncomingStore = defineStore('incoming', () => {
       throw new Error('Incoming secrets feature is not enabled');
     }
 
-    const response = await $api.post('/api/v3/incoming/secret', {
+    const response = await $api.post('/incoming/secret', {
       secret: payload,
     });
 
-    const validated = incomingSecretResponseSchema.parse(response.data);
-    return validated;
+    const result = gracefulParse(incomingSecretResponseSchema, response.data, 'IncomingSecretResponse');
+    if (!result.ok) {
+      throw new Error('Unable to create incoming secret. Please try again.');
+    }
+    return result.data;
   }
 
   /**
@@ -117,7 +124,11 @@ export const useIncomingStore = defineStore('incoming', () => {
    */
   async function getReceipt(key: string): Promise<ReceiptResponse> {
     const response = await $api.get(`/api/v3/guest/receipt/${key}`);
-    return responseSchemas.receipt.parse(response.data);
+    const result = gracefulParse(responseSchemas.receipt, response.data, 'ReceiptResponse');
+    if (!result.ok) {
+      throw new Error('Unable to load receipt. Please try again.');
+    }
+    return result.data;
   }
 
   function clear() {

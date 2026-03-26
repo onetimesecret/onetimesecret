@@ -90,7 +90,7 @@ module Onetime
 end
 
 # Module methods for accessing incoming recipient data
-module Onetime
+module Onetime # rubocop:disable Style/OneClassPerFile
   class << self
     # Returns the lookup table mapping hashes to email addresses
     # @return [Hash<String, String>] Hash mapping recipient hashes to emails

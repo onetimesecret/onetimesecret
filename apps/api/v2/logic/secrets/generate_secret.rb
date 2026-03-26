@@ -8,7 +8,22 @@ module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
 
+    # Generate Secret
+    #
+    # @api Creates a new secret with a randomly generated value. Accepts
+    #   optional password generation parameters (length, character sets),
+    #   TTL, recipient email, and share domain. Returns the receipt and
+    #   secret records with share URLs.
     class GenerateSecret < BaseSecretAction
+      include Onetime::Logic::GuestRouteGating
+
+      SCHEMAS = { response: 'concealData', request: 'generateSecret' }.freeze
+
+      def raise_concerns
+        require_guest_route_enabled!(:generate)
+        super
+      end
+
       def process_secret
         @kind = 'generate'
 

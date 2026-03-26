@@ -2,10 +2,20 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/passphrase_rate_limiter'
+
 module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
 
+    # Reveal Secret
+    #
+    # @api Retrieves and permanently reveals a secret's content. Requires
+    #   the secret identifier, a passphrase if one was set, and a continue
+    #   flag to confirm the reveal. The secret is destroyed immediately
+    #   upon reveal and cannot be accessed again. Returns the decrypted
+    #   secret value along with display metadata.
+    #
     # Very similar logic to ShowSecret, but with a few key differences
     # as required by the v2 API. The v1 API uses the original ShowSecret.
     #
@@ -21,6 +31,10 @@ module V2::Logic
     #
     class RevealSecret < V2::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Logic::GuestRouteGating
+      include Onetime::Security::PassphraseRateLimiter
+
+      SCHEMAS = { response: 'secret' }.freeze
 
       attr_reader :identifier,
         :passphrase,
@@ -45,8 +59,13 @@ module V2::Logic
       end
 
       def raise_concerns
+        require_guest_route_enabled!(:reveal)
         require_entitlement!('api_access')
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
+
+        # Check passphrase rate limit before allowing passphrase attempts
+        # This prevents brute-force attacks on secrets with passphrases
+        check_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
       end
 
       def process # rubocop:disable Metrics/PerceivedComplexity
@@ -68,6 +87,8 @@ module V2::Logic
 
         owner = secret.load_owner
         if show_secret
+          # Clear any rate limit state on successful passphrase entry
+          clear_passphrase_rate_limit!(secret.identifier) if secret.has_passphrase?
 
           # If we can't decrypt that's great! We just set secret_value to
           # the encrypted string.
@@ -84,7 +105,7 @@ module V2::Logic
                 }
               # Do not mark as received obviously
               raise_form_error I18n.t('web.COMMON.verification_not_valid', locale: @locale, default: 'Verification not valid')
-            elsif owner.anonymous?
+            elsif owner&.anonymous?
               secret_logger.error 'Invalid verification attempt - owner anonymous',
                 {
                   secret_identifier: secret.shortid,
@@ -169,13 +190,17 @@ module V2::Logic
           end
 
         elsif secret.has_passphrase? && !correct_passphrase
+          # Record failed attempt for rate limiting
+          attempt_count = record_failed_passphrase_attempt!(secret.identifier)
+
           secret_logger.warn 'Incorrect passphrase attempt',
             {
               secret_identifier: secret.shortid,
               user_id: cust&.custid,
-              session_id: sess&.id&.public_id,
+              session_id: safe_session_id&.public_id,
               action: 'reveal',
               result: :passphrase_failed,
+              attempt_count: attempt_count,
             }
 
           message = I18n.t('web.COMMON.incorrect_passphrase', locale: @locale, default: 'Incorrect passphrase')

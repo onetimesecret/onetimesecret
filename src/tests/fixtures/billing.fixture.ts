@@ -1,10 +1,10 @@
 // src/tests/fixtures/billing.fixture.ts
 
 import type {
-  BillingOverviewResponse,
-  Plan,
-  PlanChangePreviewResponse,
-  SubscriptionStatusResponse,
+    BillingOverviewResponse,
+    Plan,
+    PlanChangePreviewResponse,
+    SubscriptionStatusResponse,
 } from '@/services/billing.service';
 import type { ExtId, ObjId } from '@/types/identifiers';
 import type { Organization } from '@/types/organization';
@@ -25,7 +25,7 @@ export function createMockPlan(overrides: Partial<Plan> = {}): Plan {
     tier: 'single_team',
     interval: 'month',
     amount: 1499,
-    currency: 'usd',
+    currency: 'cad',
     region: 'US',
     display_order: 100,
     features: ['Feature 1', 'Feature 2'],
@@ -151,7 +151,7 @@ export function createMockPreviewResponse(
     subtotal: 9900,
     credit_applied: 2900,
     next_billing_date: Math.floor(Date.now() / 1000) + 86400 * 30,
-    currency: 'usd',
+    currency: 'cad',
     current_plan: {
       price_id: 'price_current_123',
       amount: 2900,
@@ -280,11 +280,17 @@ export const mockSubscriptionStatuses = {
 
 /**
  * Factory for creating mock organizations with billing data
+ *
+ * V3 Schema fields:
+ * - objid: Internal UUID (primary key)
+ * - extid: External ID (user-facing, format: on%<id>s)
+ * - owner_id: Owner's Customer objid
  */
 export function createMockOrganization(overrides: Partial<Organization> = {}): Organization {
   return {
-    id: 'org_obj_123' as ObjId,
+    objid: 'org_obj_123' as ObjId,
     extid: 'org_ext_123' as ExtId,
+    owner_id: 'cust_obj_456',
     display_name: 'Test Organization',
     description: 'A test organization',
     contact_email: 'contact@example.com',
@@ -292,7 +298,6 @@ export function createMockOrganization(overrides: Partial<Organization> = {}): O
     is_default: true,
     created: new Date('2024-01-01'),
     updated: new Date('2024-01-01'),
-    owner_extid: 'cust_ext_456' as ExtId,
     member_count: 5,
     current_user_role: 'owner',
     planid: 'identity_plus_v1_monthly',
@@ -367,7 +372,7 @@ export function createMockInvoice(overrides: Partial<MockInvoice> = {}): MockInv
     id: 'inv_test_123',
     number: 'INV-001',
     amount: 2900,
-    currency: 'usd',
+    currency: 'cad',
     status: 'paid',
     created: now - 86400 * 30,
     period_start: now - 86400 * 30,
@@ -431,7 +436,7 @@ export function createMockOverviewResponse(
       tier: 'single_team',
       interval: 'month',
       amount: 2900,
-      currency: 'usd',
+      currency: 'cad',
       features: ['web.billing.features.feature1', 'web.billing.features.feature2'],
       limits: { teams: 1 },
     },
@@ -470,7 +475,7 @@ export const mockOverviewResponses = {
       tier: 'single_team',
       interval: 'month',
       amount: 1900,
-      currency: 'usd',
+      currency: 'cad',
       features: ['web.billing.features.feature1', 'web.billing.features.feature2'],
       limits: { teams: 1 },
     },

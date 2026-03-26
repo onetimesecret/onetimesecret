@@ -132,9 +132,17 @@
     "text": "최근",
     "sha256": "690dbe9d"
   },
-  "web.COMMON.received": {
-    "text": "수신됨",
-    "sha256": "49f19bee"
+  "web.COMMON.not_set": {
+    "text": "설정되지 않음",
+    "sha256": "4895f731"
+  },
+  "web.COMMON.word_edit": {
+    "text": "편집",
+    "sha256": "464c4ffd"
+  },
+  "web.COMMON.word_save": {
+    "text": "저장",
+    "sha256": "1509f561"
   },
   "web.COMMON.burn": {
     "text": "소각",
@@ -432,6 +440,10 @@
     "text": "예: {example}",
     "sha256": "cc921aaa"
   },
+  "web.COMMON.about": {
+    "text": "소개",
+    "sha256": "d833339d"
+  },
   "web.COMMON.status": {
     "text": "상태",
     "sha256": "920e413c"
@@ -648,6 +660,10 @@
     "text": "아래 복사 버튼을 누르세요.",
     "sha256": "77fcf6fb"
   },
+  "web.COMMON.external_link": {
+    "text": "외부 링크",
+    "sha256": "be6f6527"
+  },
   "web.LABELS.view_toggle.show": {
     "text": "표시",
     "sha256": "0df6f1ca"
@@ -687,6 +703,10 @@
   "web.LABELS.expiration_time": {
     "text": "만료 시간",
     "sha256": "c5db84a8"
+  },
+  "web.LABELS.secret_ttl": {
+    "text": "만료까지",
+    "sha256": "de996752"
   },
   "web.LABELS.close": {
     "text": "닫기",
@@ -824,6 +844,14 @@
     "text": "새로고침",
     "sha256": "bdc090ec"
   },
+  "web.LABELS.filter": {
+    "text": "필터",
+    "sha256": "638e249f"
+  },
+  "web.LABELS.clear": {
+    "text": "지우기",
+    "sha256": "83b12c22"
+  },
   "web.LABELS.caption_recent_secrets": {
     "text": "이 세션에서 생성된 비밀 링크",
     "sha256": "6c7ceab8"
@@ -848,6 +876,11 @@
     "text": "관련 설정",
     "sha256": "68574b20"
   },
+  "web.LABELS.benefits": {
+    "text": "혜택",
+    "context": "Section header for listing benefits",
+    "sha256": "d5b67bc9"
+  },
   "web.LABELS.creating_links_for": {
     "text": "링크 생성 중:",
     "sha256": "57db069e"
@@ -871,6 +904,14 @@
   "web.STATUS.received": {
     "text": "수신됨",
     "sha256": "49f19bee"
+  },
+  "web.STATUS.previewed": {
+    "text": "미리보기됨",
+    "sha256": "3d391a9b"
+  },
+  "web.STATUS.revealed": {
+    "text": "공개됨",
+    "sha256": "17376ee4"
   },
   "web.STATUS.burned": {
     "text": "소각됨",
@@ -931,6 +972,14 @@
   "web.STATUS.received_description": {
     "text": "비밀 메시지가 수신자에게 공개되었습니다",
     "sha256": "ceb756b4"
+  },
+  "web.STATUS.previewed_description": {
+    "text": "비밀 링크가 열렸으며 공개할 준비가 되었습니다",
+    "sha256": "cc7d1e92"
+  },
+  "web.STATUS.revealed_description": {
+    "text": "비밀 내용이 수신자에게 공개되었습니다",
+    "sha256": "39b32f80"
   },
   "web.STATUS.burned_description": {
     "text": "비밀 메시지가 조회되기 전에 수동으로 소각되었습니다",
@@ -1056,6 +1105,10 @@
     "text": "의견",
     "sha256": "aac77df3"
   },
+  "web.TITLES.help": {
+    "text": "도움말",
+    "sha256": "b79cac92"
+  },
   "web.TITLES.signin": {
     "text": "로그인",
     "sha256": "bcc0bcc9"
@@ -1172,6 +1225,10 @@
     "text": "이메일 변경",
     "sha256": "18c3f2d5"
   },
+  "web.TITLES.confirm_email_change": {
+    "text": "이메일 변경 확인",
+    "sha256": "c2736949"
+  },
   "web.TITLES.security_overview": {
     "text": "보안",
     "sha256": "8f6fb4eb"
@@ -1191,6 +1248,11 @@
   "web.TITLES.recovery_codes": {
     "text": "복구 코드",
     "sha256": "579c7f4e"
+  },
+  "web.TITLES.passkeys": {
+    "text": "패스키",
+    "context": "Page title for passkey management",
+    "sha256": "c87ccdb4"
   },
   "web.TITLES.api_settings": {
     "text": "API 설정",
@@ -1216,6 +1278,10 @@
     "text": "조직 설정",
     "sha256": "cc1d9e61"
   },
+  "web.TITLES.pricing": {
+    "text": "요금제",
+    "sha256": "dfe95783"
+  },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
     "text": "포커스가 주요 텍스트 영역으로 이동했습니다",
     "sha256": "e00dd260"
@@ -1239,70 +1305,6 @@
   "web.INSTRUCTION.phishing_warning": {
     "text": "항상 공식 Onetime Secret 웹사이트에 있는지 확인하세요. 사기꾼들은 때때로 비밀을 훔치기 위해 Onetime Secret과 똑같이 생긴 가짜 웹사이트를 만듭니다. 피싱 공격을 피하려면 새 링크를 만들기 전에 지역 도메인을 확인하세요.",
     "sha256": "b588f5b2"
-  },
-  "web.STATUS.previewed": {
-    "text": "미리보기됨",
-    "sha256": "3d391a9b"
-  },
-  "web.STATUS.revealed": {
-    "text": "공개됨",
-    "sha256": "17376ee4"
-  },
-  "web.STATUS.previewed_description": {
-    "text": "비밀 링크가 열렸으며 공개할 준비가 되었습니다",
-    "sha256": "cc7d1e92"
-  },
-  "web.STATUS.revealed_description": {
-    "text": "비밀 내용이 수신자에게 공개되었습니다",
-    "sha256": "39b32f80"
-  },
-  "web.COMMON.not_set": {
-    "text": "설정되지 않음",
-    "sha256": "4895f731"
-  },
-  "web.COMMON.word_edit": {
-    "text": "편집",
-    "sha256": "464c4ffd"
-  },
-  "web.COMMON.word_save": {
-    "text": "저장",
-    "sha256": "1509f561"
-  },
-  "web.LABELS.secret_ttl": {
-    "text": "만료까지",
-    "sha256": "de996752"
-  },
-  "web.LABELS.filter": {
-    "text": "필터",
-    "sha256": "638e249f"
-  },
-  "web.LABELS.clear": {
-    "text": "지우기",
-    "sha256": "83b12c22"
-  },
-  "web.LABELS.add_note": {
-    "text": "메모 추가...",
-    "sha256": "32738894"
-  },
-  "web.LABELS.edit_note": {
-    "text": "메모 편집",
-    "sha256": "299e604c"
-  },
-  "web.LABELS.add_memo": {
-    "text": "메모 추가...",
-    "sha256": "02384c53"
-  },
-  "web.LABELS.edit_memo": {
-    "text": "메모 편집",
-    "sha256": "0ec1a5db"
-  },
-  "web.TITLES.help": {
-    "text": "도움말",
-    "sha256": "b79cac92"
-  },
-  "web.TITLES.pricing": {
-    "text": "요금제",
-    "sha256": "dfe95783"
   },
   "web.pricing.title": {
     "text": "간단하고 투명한 요금제",
@@ -1332,8 +1334,58 @@
     "text": "추천",
     "sha256": "00093fbd"
   },
+  "web.COMMON.received": {
+    "text": "수신됨",
+    "sha256": "49f19bee"
+  },
+  "web.LABELS.add_note": {
+    "text": "메모 추가...",
+    "sha256": "32738894"
+  },
+  "web.LABELS.edit_note": {
+    "text": "메모 편집",
+    "sha256": "299e604c"
+  },
+  "web.LABELS.add_memo": {
+    "text": "메모 추가...",
+    "sha256": "02384c53"
+  },
+  "web.LABELS.edit_memo": {
+    "text": "메모 편집",
+    "sha256": "0ec1a5db"
+  },
   "web.pricing.free_tier_description": {
     "text": "기본 기능으로 비밀 메시지를 생성하고 공유하세요. 신용카드가 필요하지 않습니다.",
     "sha256": "3a4f2bc0"
+  },
+  "web.COMMON.enter_password_to_continue": {
+    "text": "계속하려면 비밀번호를 입력하세요",
+    "context": "Prompt for password confirmation modal",
+    "sha256": "09055357"
+  },
+  "web.COMMON.password_required_for_action": {
+    "text": "이 작업을 완료하려면 비밀번호가 필요합니다",
+    "context": "Description for password confirmation modal",
+    "sha256": "cc078766"
+  },
+  "api.errors.unexpected_error": {
+    "text": "예기치 않은 오류가 발생했습니다",
+    "context": "Generic error message for unhandled exceptions in API",
+    "sha256": "6615bf1c"
+  },
+  "api.errors.service_unavailable": {
+    "text": "서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    "context": "Error message when database connection fails",
+    "sha256": "343ccdcb"
+  },
+  "api.errors.request_processing_error": {
+    "text": "현재 요청을 처리할 수 없습니다",
+    "context": "Error message for recoverable server errors",
+    "sha256": "fb961f3f"
+  },
+  "web.COMMON.upgrade_description": {
+    "text": "업그레이드하여 더 많은 기능을 사용하세요",
+    "context": "Description shown for free plan users encouraging upgrade",
+    "sha256": "783f174c"
   }
 }

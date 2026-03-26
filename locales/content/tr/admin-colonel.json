@@ -4,7 +4,7 @@
     "sha256": "98ba1771"
   },
   "web.colonel.customer_verified_verified_not_verified_0": {
-    "text": "`+customer.verified ? `verified` : `not verified",
+    "text": "`+customer.verified ? `doğrulanmış` : `doğrulanmamış",
     "sha256": "52e93cc0"
   },
   "web.colonel.customers_details_counts_recent_customer_count_o_0": {
@@ -311,43 +311,6 @@
     "text": "{planName} yetkilendirmeleriyle test ediyorsunuz (geçici oturum geçersiz kılma).",
     "sha256": "1a8aecf1"
   },
-  "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Geribildirim gönderdiğinizde göreceğimiz bilgiler:"
-  },
-  "web.feedback.send_feedback": {
-    "text": "Geribildirim gönder"
-  },
-  "web.feedback.sending_ellipses": {
-    "text": "Gönderiliyor..."
-  },
-  "web.colonel.bannedIps.title": {
-    "text": "Yasaklı IP'ler",
-    "sha256": "0ece5643"
-  },
-  "web.colonel.bannedIps.description": {
-    "text": "IP yasaklama listesini yönetin",
-    "sha256": "dd0d2614"
-  },
-  "web.colonel.customDomains.title": {
-    "text": "Özel Alan Adları",
-    "sha256": "6170ab94"
-  },
-  "web.colonel.customDomains.description": {
-    "text": "Özel alan adlarını ve markalaşmayı yönetin",
-    "sha256": "808ee2cb"
-  },
-  "web.colonel.feedback.send_feedback": {
-    "text": "Geri bildirim gönder",
-    "sha256": "8235980b"
-  },
-  "web.colonel.feedback.sending_ellipses": {
-    "text": "Gönderiliyor...",
-    "sha256": "286a3af7"
-  },
-  "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Geri bildirim gönderdiğinizde şunları göreceğiz:",
-    "sha256": "fe77172e"
-  },
   "web.colonel.organizations.title": {
     "text": "Kuruluşlar",
     "sha256": "2730183d"
@@ -376,13 +339,45 @@
     "text": "Kuruluş bulunamadı",
     "sha256": "538995db"
   },
-  "web.colonel.organizations.actions.investigate": {
-    "text": "İncele",
-    "sha256": "e2641093"
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Senkronizasyon Durumu",
+    "sha256": "b3998276"
   },
-  "web.colonel.organizations.actions.checking": {
-    "text": "Kontrol ediliyor...",
-    "sha256": "2e5f79bb"
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Abonelik",
+    "sha256": "4999c6c6"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Tümü",
+    "sha256": "a52ace42"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Potansiyel Olarak Eski",
+    "sha256": "40137b37"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Bilinmiyor",
+    "sha256": "b764cdc0"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Senkronize",
+    "sha256": "5da22fe4"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Aktif",
+    "sha256": "92340695"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "Deneme",
+    "sha256": "3792573d"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Vadesi Geçmiş",
+    "sha256": "2bda1c7b"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "İptal Edildi",
+    "sha256": "13ca2ee2"
   },
   "web.colonel.organizations.columns.account": {
     "text": "Hesap",
@@ -436,6 +431,42 @@
     "text": "Faturalandırması Var",
     "sha256": "db0628ed"
   },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Kuruluşlar Faturalandırma Yönetimi",
+    "sha256": "5c7e07e7"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Kuruluşları yönetin ve faturalandırma senkronizasyon durumunu izleyin ({total} toplam)",
+    "sha256": "996b446d"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Kuruluş bulunamadı",
+    "sha256": "538995db"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "potansiyel olarak eski",
+    "sha256": "3ddfec45"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Eski",
+    "sha256": "40c9e59c"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Bilinmiyor",
+    "sha256": "b764cdc0"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "aktif",
+    "sha256": "96879611"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "İncele",
+    "sha256": "e2641093"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Kontrol ediliyor...",
+    "sha256": "2e5f79bb"
+  },
   "web.colonel.organizations.expanded.customer": {
     "text": "Müşteri",
     "sha256": "bf376338"
@@ -447,46 +478,6 @@
   "web.colonel.organizations.expanded.orgId": {
     "text": "Kuruluş Kimliği",
     "sha256": "5e6b9932"
-  },
-  "web.colonel.organizations.filters.syncStatus": {
-    "text": "Senkronizasyon Durumu",
-    "sha256": "b3998276"
-  },
-  "web.colonel.organizations.filters.subscription": {
-    "text": "Abonelik",
-    "sha256": "4999c6c6"
-  },
-  "web.colonel.organizations.filters.all": {
-    "text": "Tümü",
-    "sha256": "a52ace42"
-  },
-  "web.colonel.organizations.filters.potentiallyStale": {
-    "text": "Potansiyel Olarak Eski",
-    "sha256": "40137b37"
-  },
-  "web.colonel.organizations.filters.unknown": {
-    "text": "Bilinmiyor",
-    "sha256": "b764cdc0"
-  },
-  "web.colonel.organizations.filters.synced": {
-    "text": "Senkronize",
-    "sha256": "5da22fe4"
-  },
-  "web.colonel.organizations.filters.active": {
-    "text": "Aktif",
-    "sha256": "92340695"
-  },
-  "web.colonel.organizations.filters.trialing": {
-    "text": "Deneme",
-    "sha256": "3792573d"
-  },
-  "web.colonel.organizations.filters.pastDue": {
-    "text": "Vadesi Geçmiş",
-    "sha256": "2bda1c7b"
-  },
-  "web.colonel.organizations.filters.canceled": {
-    "text": "İptal Edildi",
-    "sha256": "13ca2ee2"
   },
   "web.colonel.organizations.investigation.failed": {
     "text": "İnceleme başarısız",
@@ -536,34 +527,6 @@
     "text": "Stripe",
     "sha256": "961a6062"
   },
-  "web.colonel.organizations.legacy.title": {
-    "text": "Kuruluşlar Faturalandırma Yönetimi",
-    "sha256": "5c7e07e7"
-  },
-  "web.colonel.organizations.legacy.description": {
-    "text": "Kuruluşları yönetin ve faturalandırma senkronizasyon durumunu izleyin ({total} toplam)",
-    "sha256": "996b446d"
-  },
-  "web.colonel.organizations.legacy.empty": {
-    "text": "Kuruluş bulunamadı",
-    "sha256": "538995db"
-  },
-  "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "potansiyel olarak eski",
-    "sha256": "3ddfec45"
-  },
-  "web.colonel.organizations.status.stale": {
-    "text": "Eski",
-    "sha256": "40c9e59c"
-  },
-  "web.colonel.organizations.status.unknown": {
-    "text": "Bilinmiyor",
-    "sha256": "b764cdc0"
-  },
-  "web.colonel.organizations.status.active": {
-    "text": "aktif",
-    "sha256": "96879611"
-  },
   "web.colonel.organizations.usage.members": {
     "text": "{count} üye",
     "sha256": "201eb3d9"
@@ -580,6 +543,22 @@
     "text": "Tüm gizli mesajları görüntüleyin ve yönetin",
     "sha256": "48f8052e"
   },
+  "web.colonel.bannedIps.title": {
+    "text": "Yasaklı IP'ler",
+    "sha256": "0ece5643"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "IP yasaklama listesini yönetin",
+    "sha256": "dd0d2614"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Kullanım Dışa Aktarımı",
+    "sha256": "10a0cb94"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Kullanım verilerini ve istatistikleri dışa aktarın",
+    "sha256": "2fd0a2e2"
+  },
   "web.colonel.systemSettings.title": {
     "text": "Sistem",
     "sha256": "6725e7bb"
@@ -587,6 +566,22 @@
   "web.colonel.systemSettings.description": {
     "text": "Sistem ayarları, veritabanları ve yapılandırma",
     "sha256": "7690b296"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Özel Alan Adları",
+    "sha256": "6170ab94"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Özel alan adlarını ve markalaşmayı yönetin",
+    "sha256": "808ee2cb"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Geri bildirim gönder",
+    "sha256": "8235980b"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Gönderiliyor...",
+    "sha256": "286a3af7"
   },
   "web.colonel.titles.index": {
     "text": "Yönetim",
@@ -636,12 +631,8 @@
     "text": "Redis",
     "sha256": "a7f64157"
   },
-  "web.colonel.usageExport.title": {
-    "text": "Kullanım Dışa Aktarımı",
-    "sha256": "10a0cb94"
-  },
-  "web.colonel.usageExport.description": {
-    "text": "Kullanım verilerini ve istatistikleri dışa aktarın",
-    "sha256": "2fd0a2e2"
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Geri bildirim gönderdiğinizde şunları göreceğiz:",
+    "sha256": "fe77172e"
   }
 }

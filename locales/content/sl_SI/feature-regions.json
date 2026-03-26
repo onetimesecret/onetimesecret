@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "Trenutna jurisdikcija:",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "Spreminjanje regije",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "Naša politika je, da podatkov nikoli ne prenašamo med regijami. Vsaka regija deluje kot popolnoma neodvisno okolje.",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "Za uporabo druge regije tam ustvarite nov račun z istim e-poštnim naslovom, ki je povezan z vašim kontaktnim e-poštnim naslovom za obračun.",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "Če se vaš kontaktni e-poštni naslov za obračun razlikuje od e-poštnega naslova računa Onetime Secret, za račun v novi regiji uporabite kontaktni e-poštni naslov za obračun, da obdržite ugodnosti naročnine.",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "Ugodnosti vaše naročnine se bodo samodejno uporabile za vsak račun, ustvarjen z vašim e-poštnim naslovom za obračun.",
+    "sha256": "5b2238b2"
   }
 }

@@ -125,7 +125,7 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
         <!-- Step 1: QR Code & Manual Entry -->
         <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
           <h3 class="mb-4 text-lg font-semibold dark:text-white">
-            {{ t('web.auth.mfa.step_scan') || '1. Scan QR Code' }}
+            {{ t('web.auth.mfa.step_scan') }}
           </h3>
           <div class="flex flex-col items-center">
             <p class="mb-4 text-sm text-gray-700 dark:text-gray-300">
@@ -157,7 +157,7 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
           <!-- Password Input -->
           <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
             <h3 class="mb-4 text-lg font-semibold dark:text-white">
-              {{ t('web.auth.mfa.step_verify') || '2. Verify Setup' }}
+              {{ t('web.auth.mfa.step_verify') }}
             </h3>
 
             <!-- Hidden username field for accessibility/password managers -->
@@ -191,7 +191,7 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
             <!-- OTP Code Input -->
             <div>
               <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ t('web.auth.mfa.enter_code') || 'Enter verification code' }}
+                {{ t('web.auth.mfa.enter_code') }}
               </label>
               <OtpCodeInput
                 ref="otpInputRef"
@@ -226,8 +226,8 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
               type="submit"
               :disabled="!canVerify"
               class="flex-1 rounded-md bg-brand-600 px-4 py-3 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-              <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
-              <span v-else>{{ t('web.auth.mfa.enable_and_continue') || 'Enable MFA' }}</span>
+              <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>
+              <span v-else>{{ t('web.auth.mfa.enable_and_continue') }}</span>
             </button>
           </div>
         </form>

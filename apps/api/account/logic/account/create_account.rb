@@ -4,7 +4,15 @@
 
 module AccountAPI::Logic
   module Account
+    # Create Account
+    #
+    # @api Creates a new user account with the provided email and password.
+    #   Returns a success response regardless of whether the account already
+    #   exists to prevent email enumeration. Sends a verification email to
+    #   new and unverified accounts.
     class CreateAccount < AccountAPI::Logic::Base
+      SCHEMAS = { response: 'createAccount' }.freeze
+
       using Familia::Refinements::TimeLiterals
 
       attr_reader :cust, :autoverify, :customer_role, :email, :password, :skill
@@ -102,7 +110,9 @@ module AccountAPI::Logic
       end
 
       def success_data
-        { user_id: cust.extid, email: cust.email, role: customer_role }
+        # Security: Use obscured email to prevent email enumeration.
+        # Returning the exact email would confirm account existence.
+        { user_id: cust.extid, email: cust.obscure_email, role: customer_role }
       end
 
       private

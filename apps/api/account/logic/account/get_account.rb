@@ -6,7 +6,13 @@ require 'onetime/refinements/stripe_refinements'
 
 module AccountAPI::Logic
   module Account
+    # Get Account
+    #
+    # @api Retrieves the authenticated user's account details, including
+    #   their API token and safe-dumped customer record.
     class GetAccount < AccountAPI::Logic::Base
+      SCHEMAS = { response: 'account' }.freeze
+
       attr_accessor :billing_enabled
       attr_reader :stripe_subscription, :stripe_customer
 

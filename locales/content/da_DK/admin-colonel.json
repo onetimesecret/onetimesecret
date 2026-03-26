@@ -311,43 +311,6 @@
     "text": "Du tester med {planName}-rettigheder (midlertidig sessionsoverskrivning).",
     "sha256": "1a8aecf1"
   },
-  "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Når du sender feedback, vil vi se:"
-  },
-  "web.feedback.send_feedback": {
-    "text": "Send feedback"
-  },
-  "web.feedback.sending_ellipses": {
-    "text": "Sender ..."
-  },
-  "web.colonel.bannedIps.title": {
-    "text": "Blokerede IP-adresser",
-    "sha256": "0ece5643"
-  },
-  "web.colonel.bannedIps.description": {
-    "text": "Administrer IP-blokeringsliste",
-    "sha256": "dd0d2614"
-  },
-  "web.colonel.customDomains.title": {
-    "text": "Brugerdefinerede domæner",
-    "sha256": "6170ab94"
-  },
-  "web.colonel.customDomains.description": {
-    "text": "Administrer brugerdefinerede domæner og branding",
-    "sha256": "808ee2cb"
-  },
-  "web.colonel.feedback.send_feedback": {
-    "text": "Send feedback",
-    "sha256": "8235980b"
-  },
-  "web.colonel.feedback.sending_ellipses": {
-    "text": "Sender...",
-    "sha256": "286a3af7"
-  },
-  "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Når du sender feedback, kan vi se:",
-    "sha256": "fe77172e"
-  },
   "web.colonel.organizations.title": {
     "text": "Organisationer",
     "sha256": "2730183d"
@@ -376,13 +339,45 @@
     "text": "Ingen organisationer fundet",
     "sha256": "538995db"
   },
-  "web.colonel.organizations.actions.investigate": {
-    "text": "Undersøg",
-    "sha256": "e2641093"
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Synkroniseringsstatus",
+    "sha256": "b3998276"
   },
-  "web.colonel.organizations.actions.checking": {
-    "text": "Tjekker...",
-    "sha256": "2e5f79bb"
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Abonnement",
+    "sha256": "4999c6c6"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "Alle",
+    "sha256": "a52ace42"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Potentielt forældet",
+    "sha256": "40137b37"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Ukendt",
+    "sha256": "b764cdc0"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Synkroniseret",
+    "sha256": "5da22fe4"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Aktiv",
+    "sha256": "92340695"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "Prøveperiode",
+    "sha256": "3792573d"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Forfalden",
+    "sha256": "2bda1c7b"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Annulleret",
+    "sha256": "13ca2ee2"
   },
   "web.colonel.organizations.columns.account": {
     "text": "Konto",
@@ -436,6 +431,42 @@
     "text": "Har fakturering",
     "sha256": "db0628ed"
   },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Organisationsfaktureringsadmin",
+    "sha256": "5c7e07e7"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Administrer organisationer og overvåg faktureringssync-sundhed ({total} total)",
+    "sha256": "996b446d"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "Ingen organisationer fundet",
+    "sha256": "538995db"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "potentielt forældet",
+    "sha256": "3ddfec45"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Forældet",
+    "sha256": "40c9e59c"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Ukendt",
+    "sha256": "b764cdc0"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "aktiv",
+    "sha256": "96879611"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Undersøg",
+    "sha256": "e2641093"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Tjekker...",
+    "sha256": "2e5f79bb"
+  },
   "web.colonel.organizations.expanded.customer": {
     "text": "Kunde",
     "sha256": "bf376338"
@@ -447,46 +478,6 @@
   "web.colonel.organizations.expanded.orgId": {
     "text": "Org-ID",
     "sha256": "5e6b9932"
-  },
-  "web.colonel.organizations.filters.syncStatus": {
-    "text": "Synkroniseringsstatus",
-    "sha256": "b3998276"
-  },
-  "web.colonel.organizations.filters.subscription": {
-    "text": "Abonnement",
-    "sha256": "4999c6c6"
-  },
-  "web.colonel.organizations.filters.all": {
-    "text": "Alle",
-    "sha256": "a52ace42"
-  },
-  "web.colonel.organizations.filters.potentiallyStale": {
-    "text": "Potentielt forældet",
-    "sha256": "40137b37"
-  },
-  "web.colonel.organizations.filters.unknown": {
-    "text": "Ukendt",
-    "sha256": "b764cdc0"
-  },
-  "web.colonel.organizations.filters.synced": {
-    "text": "Synkroniseret",
-    "sha256": "5da22fe4"
-  },
-  "web.colonel.organizations.filters.active": {
-    "text": "Aktiv",
-    "sha256": "92340695"
-  },
-  "web.colonel.organizations.filters.trialing": {
-    "text": "Prøveperiode",
-    "sha256": "3792573d"
-  },
-  "web.colonel.organizations.filters.pastDue": {
-    "text": "Forfalden",
-    "sha256": "2bda1c7b"
-  },
-  "web.colonel.organizations.filters.canceled": {
-    "text": "Annulleret",
-    "sha256": "13ca2ee2"
   },
   "web.colonel.organizations.investigation.failed": {
     "text": "Undersøgelse mislykkedes",
@@ -536,34 +527,6 @@
     "text": "Stripe",
     "sha256": "961a6062"
   },
-  "web.colonel.organizations.legacy.title": {
-    "text": "Organisationsfaktureringsadmin",
-    "sha256": "5c7e07e7"
-  },
-  "web.colonel.organizations.legacy.description": {
-    "text": "Administrer organisationer og overvåg faktureringssync-sundhed ({total} total)",
-    "sha256": "996b446d"
-  },
-  "web.colonel.organizations.legacy.empty": {
-    "text": "Ingen organisationer fundet",
-    "sha256": "538995db"
-  },
-  "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "potentielt forældet",
-    "sha256": "3ddfec45"
-  },
-  "web.colonel.organizations.status.stale": {
-    "text": "Forældet",
-    "sha256": "40c9e59c"
-  },
-  "web.colonel.organizations.status.unknown": {
-    "text": "Ukendt",
-    "sha256": "b764cdc0"
-  },
-  "web.colonel.organizations.status.active": {
-    "text": "aktiv",
-    "sha256": "96879611"
-  },
   "web.colonel.organizations.usage.members": {
     "text": "{count} medlemmer",
     "sha256": "201eb3d9"
@@ -580,6 +543,22 @@
     "text": "Se og administrer alle beskeder",
     "sha256": "48f8052e"
   },
+  "web.colonel.bannedIps.title": {
+    "text": "Blokerede IP-adresser",
+    "sha256": "0ece5643"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Administrer IP-blokeringsliste",
+    "sha256": "dd0d2614"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Forbrugseksport",
+    "sha256": "10a0cb94"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Eksporter forbrugsdata og statistik",
+    "sha256": "2fd0a2e2"
+  },
   "web.colonel.systemSettings.title": {
     "text": "System",
     "sha256": "6725e7bb"
@@ -587,6 +566,22 @@
   "web.colonel.systemSettings.description": {
     "text": "Systemindstillinger, databaser og konfiguration",
     "sha256": "7690b296"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Brugerdefinerede domæner",
+    "sha256": "6170ab94"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Administrer brugerdefinerede domæner og branding",
+    "sha256": "808ee2cb"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Send feedback",
+    "sha256": "8235980b"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Sender...",
+    "sha256": "286a3af7"
   },
   "web.colonel.titles.index": {
     "text": "Administration",
@@ -636,12 +631,8 @@
     "text": "Redis",
     "sha256": "a7f64157"
   },
-  "web.colonel.usageExport.title": {
-    "text": "Forbrugseksport",
-    "sha256": "10a0cb94"
-  },
-  "web.colonel.usageExport.description": {
-    "text": "Eksporter forbrugsdata og statistik",
-    "sha256": "2fd0a2e2"
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "Når du sender feedback, kan vi se:",
+    "sha256": "fe77172e"
   }
 }

@@ -45,6 +45,18 @@ import { useBootstrapStore } from './bootstrapStore';
  *    - Access: All authorized pages
  *
  * ───────────────────────────────────────────────────────────────────────────────
+ * CUSTOMER OBJECT STATE
+ * ───────────────────────────────────────────────────────────────────────────────
+ *
+ * The `cust` object from bootstrapStore follows this pattern:
+ *
+ * - ANONYMOUS USER: `cust` is `null` (AuthenticationSerializer returns cust: null)
+ * - AUTHENTICATED USER: `cust` is a fully hydrated object with `objid`, `email`, etc.
+ *
+ * Template checks should use `v-if="cust?.objid"` to confirm authentication,
+ * as this handles both the null case and ensures the object is properly populated.
+ *
+ * ───────────────────────────────────────────────────────────────────────────────
  * STATE SYNCHRONIZATION (CRITICAL)
  * ───────────────────────────────────────────────────────────────────────────────
  *
@@ -334,7 +346,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       failureCount.value = (failureCount.value ?? 0) + 1;
       if (failureCount.value >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
-        logout();
+        await logout();
       }
       return false;
     }
@@ -404,8 +416,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     $reset();
 
-    // Reset bootstrapStore to typed defaults - single source of truth
-    bootstrapStore.$reset();
+    // Reset bootstrapStore user state while preserving server config
+    bootstrapStore.resetForLogout();
 
     deleteCookie('sess');
     deleteCookie('locale');
@@ -415,6 +427,21 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Remove any and all lingering store state
     // context.pinia.state.value = {};
+  }
+
+  /**
+   * Minimal logout: clears cookies and session storage without resetting
+   * reactive Pinia state. Use this when a hard navigation (window.location.href)
+   * follows immediately — the page reload discards all in-memory state, and
+   * skipping $reset() / bootstrapStore.$reset() avoids a visual flash where
+   * brand-dependent components briefly revert to defaults.
+   */
+  async function logoutMinimal() {
+    await $stopAuthCheck();
+
+    deleteCookie('sess');
+    deleteCookie('locale');
+    sessionStorage.clear();
   }
   /**
    * Disposes of the store, stopping the auth check.
@@ -491,6 +518,7 @@ export const useAuthStore = defineStore('auth', () => {
     checkWindowStatus,
     refreshAuthState,
     logout,
+    logoutMinimal,
     setAuthenticated,
 
     $scheduleNextCheck,

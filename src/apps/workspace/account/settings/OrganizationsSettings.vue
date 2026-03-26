@@ -173,7 +173,7 @@ class="space-y-4"
 data-testid="organizations-list">
             <div
               v-for="org in visibleOrganizations"
-              :key="org.id"
+              :key="org.objid"
               :data-testid="`org-card-${org.extid}`"
               class="rounded-lg border border-gray-200 p-4 transition-colors hover:border-brand-300 dark:border-gray-700 dark:hover:border-brand-600">
               <!-- Header row: Name + badges -->

@@ -4,43 +4,41 @@
 import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { ref, computed } from 'vue';
+
+export interface Props {
+  /**
+   * SSO route name used to build the POST action URL.
+   * Corresponds to the `name:` option in auth.omniauth_provider.
+   * Example: 'oidc', 'google', 'entra', 'github'
+   */
+  routeName: string;
+
+  /**
+   * Human-readable label for the button.
+   * Example: 'Google', 'Microsoft Entra ID', 'GitHub'
+   * Falls back to generic SSO label when not provided.
+   */
+  displayName?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  displayName: '',
+});
 
 const { t } = useI18n();
 const csrfStore = useCsrfStore();
-const bootstrapStore = useBootstrapStore();
 
 const isLoading = ref(false);
 
 /**
- * SSO provider display name from server configuration.
- * Falls back to null if not configured (uses generic "SSO" label).
+ * SSO route path built from the routeName prop.
  */
-const providerName = computed(() => {
-  const omniauth = bootstrapStore.features?.omniauth;
-  if (typeof omniauth === 'object' && omniauth !== null) {
-    return omniauth.provider_name || null;
-  }
-  return null;
-});
+const ssoRoute = computed(() => `/auth/sso/${props.routeName}`);
 
 /**
- * SSO route path from server configuration.
- * Allows the backend to specify which OmniAuth strategy to use.
- * Falls back to 'oidc' if not configured.
- */
-const ssoRoute = computed(() => {
-  const omniauth = bootstrapStore.features?.omniauth;
-  if (typeof omniauth === 'object' && omniauth !== null) {
-    return `/auth/sso/${omniauth.route_name || 'oidc'}`;
-  }
-  return '/auth/sso/oidc';
-});
-
-/**
- * Initiates SSO login by submitting a form to the OIDC endpoint.
- * This creates a traditional form POST to /auth/sso/oidc which triggers
+ * Initiates SSO login by submitting a form to the provider endpoint.
+ * This creates a traditional form POST to /auth/sso/:provider which triggers
  * the OmniAuth flow and redirects to the identity provider.
  */
 const handleSsoLogin = () => {
@@ -119,7 +117,7 @@ const handleSsoLogin = () => {
           class="text-gray-500 dark:text-gray-400"
           aria-hidden="true" />
         <!-- Use provider-specific name if configured, otherwise generic SSO label -->
-        {{ providerName ? t('web.login.sign_in_with_provider', { provider: providerName }) : t('web.login.sign_in_with_sso') }}
+        {{ displayName ? t('web.login.sign_in_with_provider', { provider: displayName }) : t('web.login.sign_in_with_sso') }}
       </template>
     </button>
   </div>

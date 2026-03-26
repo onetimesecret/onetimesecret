@@ -122,7 +122,7 @@ const { t } = useI18n();
           );
         "></div>
     </div>
-    <div class="font-brand text-base leading-6 text-gray-900 dark:text-gray-100">
+    <div class="font-brand text-base leading-6 text-gray-900 dark:text-gray-100" role="status">
       <div class="relative flex items-center space-x-3">
         <svg
           class="size-6 opacity-60"

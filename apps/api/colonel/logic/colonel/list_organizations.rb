@@ -8,7 +8,11 @@ require_relative '../../../../../apps/web/billing/lib/billing_service'
 module ColonelAPI
   module Logic
     module Colonel
-      # Lists organizations with billing sync health detection.
+      # List Organizations (Colonel)
+      #
+      # @api Returns a paginated list of all organizations with billing and
+      #   sync health details. Supports filtering by subscription status and
+      #   sync status (synced, potentially_stale, unknown). Requires colonel role.
       #
       # Sync health helps identify organizations with potentially stale planid
       # after plan changes made via Stripe Dashboard/CLI (bypassing webhook flow).
@@ -16,6 +20,8 @@ module ColonelAPI
       # @see Billing::BillingService for sync status computation logic
       #
       class ListOrganizations < ColonelAPI::Logic::Base
+        SCHEMAS = { response: 'colonelOrganizations' }.freeze
+
         attr_reader :organizations, :total_count, :page, :per_page, :total_pages, :status_filter, :sync_status_filter
 
         def process_params

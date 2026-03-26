@@ -79,7 +79,8 @@ const handleSubmit = async () => {
         v-if="hasValidResetKey"
         @submit.prevent="handleSubmit"
         id="passwordResetForm"
-        class="space-y-4">
+        class="space-y-4"
+        data-testid="password-reset-form">
         <!-- Username field for accessibility -->
         <div class="hidden">
           <label
@@ -114,7 +115,8 @@ const handleSubmit = async () => {
             :aria-describedby="fieldError && (fieldError[0] === 'password' || fieldError[0] === 'password-confirm') ? 'password-error' : undefined"
             class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300"
             placeholder=""
-            v-model="newPassword" />
+            v-model="newPassword"
+            data-testid="password-reset-new-input" />
         </div>
         <div>
           <label
@@ -134,13 +136,15 @@ const handleSubmit = async () => {
             :aria-describedby="fieldError && fieldError[0] === 'password-confirm' ? 'password-error' : undefined"
             class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300"
             placeholder=""
-            v-model="confirmPassword" />
+            v-model="confirmPassword"
+            data-testid="password-reset-confirm-input" />
         </div>
         <div class="flex items-center justify-between">
           <button
             type="submit"
             :disabled="isLoading"
-            class="focus:shadow-outline rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-800">
+            class="focus:shadow-outline rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-800"
+            data-testid="password-reset-submit">
             <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
             <span v-else>{{ t('web.account.changePassword.updatePassword') }}</span>
           </button>

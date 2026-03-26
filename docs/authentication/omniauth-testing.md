@@ -87,3 +87,34 @@ bundle exec rspec apps/web/auth/spec/
 # - "Callback mismatch" → OIDC_REDIRECT_URI doesn't match IdP config
 # - "Errors.App.NotFound" → Client ID doesn't match IdP configuration
 ```
+
+## Manual Testing Checklist
+
+### Feature flag disabled (`AUTH_SSO_ENABLED=false` or unset)
+
+- [ ] SSO button does NOT appear on the signin page
+- [ ] POST to `/auth/sso/{provider}` returns 404
+
+### Feature flag enabled, no IdP configured
+
+- [ ] SSO button appears on the signin page
+- [ ] Clicking the SSO button shows a configuration error
+
+### Fully configured (feature flag + IdP credentials)
+
+- [ ] SSO button on signin page redirects to the IdP login screen
+- [ ] Successful authentication at the IdP creates a new account
+- [ ] After authentication, user is redirected to the dashboard
+- [ ] Session is properly authenticated (user can access protected pages)
+
+### Domain restrictions (`ALLOWED_SIGNUP_DOMAIN`)
+
+- [ ] User with an allowed email domain can create an account via SSO
+- [ ] User with a disallowed email domain gets a 403 with a generic error message (no domain leak)
+- [ ] Logs contain an `omniauth_domain_rejected` event for the rejected attempt
+
+### Multi-provider
+
+- [ ] Each configured provider shows its own button on the signin page
+- [ ] Buttons use the correct route names (e.g., `/auth/sso/oidc`, `/auth/sso/entra`)
+- [ ] Buttons display the correct provider display names

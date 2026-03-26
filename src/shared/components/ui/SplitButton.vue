@@ -141,6 +141,7 @@
     <button
       ref="submitButtonRef"
       type="submit"
+      data-testid="split-button-submit"
       :class="[
         corners.leftCorner,
         textColorClass,
@@ -230,6 +231,7 @@ ry="2" />
         '--button-shadow-color': primaryColor || 'rgb(59, 130, 246)',
       }"
       @click="handleDropdownToggle"
+      data-testid="split-button-dropdown-toggle"
       aria-label="Show more actions"
       :aria-expanded="isDropdownOpen"
       aria-haspopup="true"
@@ -270,7 +272,8 @@ ry="2" />
           hover:bg-gray-100/80 hover:pl-5
           dark:text-gray-200 dark:hover:bg-gray-700/80
           group"
-        @click="setAction('create-link')">
+        @click="setAction('create-link')"
+        data-testid="split-button-option-create-link">
         <span class="flex items-center text-current transition-transform duration-200 group-hover:scale-110">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -303,7 +306,8 @@ ry="2" />
           hover:bg-gray-100/80 hover:pl-5
           dark:text-gray-200 dark:hover:bg-gray-700/80
           group"
-        @click="setAction('generate-password')">
+        @click="setAction('generate-password')"
+        data-testid="split-button-option-generate-password">
         <span class="flex items-center text-brand-500 dark:text-brand-400 transition-transform duration-200 group-hover:scale-110">
           <svg
             xmlns="http://www.w3.org/2000/svg"

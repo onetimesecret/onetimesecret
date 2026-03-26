@@ -39,10 +39,10 @@ describe('Receipt Date Handling', () => {
   };
 
   /**
-   * Creates a mock receipt record for API responses with correct date formats.
-   * Schema expects:
+   * Creates a mock receipt record for V3 API responses.
+   * V3 schema expects:
    * - created, updated, expiration: Unix timestamps in SECONDS (number)
-   * - burned, received, shared, viewed: ISO strings or null (dateNullable transform)
+   * - burned, received, shared, viewed, previewed, revealed: number | null (toDateNullish)
    */
   const createMockReceiptResponse = (
     overrides: Partial<{
@@ -50,13 +50,17 @@ describe('Receipt Date Handling', () => {
       created: number;
       updated: number;
       expiration: number;
-      burned: string | null;
-      received: string | null;
+      burned: number | null;
+      received: number | null;
+      shared: number | null;
+      viewed: number | null;
+      previewed: number | null;
+      revealed: number | null;
       state: string;
+      is_burned: boolean;
       [key: string]: unknown;
     }> = {}
   ) => {
-    // Base record with timestamps in seconds (not Date objects)
     const baseRecord = {
       key: mockReceiptRecord.key,
       shortid: mockReceiptRecord.shortid,
@@ -72,8 +76,9 @@ describe('Receipt Date Handling', () => {
       receipt_url: mockReceiptRecord.receipt_url,
       burn_url: mockReceiptRecord.burn_url,
       identifier: mockReceiptRecord.identifier,
-      is_viewed: mockReceiptRecord.is_viewed,
-      is_received: mockReceiptRecord.is_received,
+      // V3 canonical boolean fields (replaces deprecated is_viewed/is_received)
+      is_previewed: mockReceiptRecord.is_previewed,
+      is_revealed: mockReceiptRecord.is_revealed,
       is_burned: mockReceiptRecord.is_burned,
       is_destroyed: mockReceiptRecord.is_destroyed,
       is_expired: mockReceiptRecord.is_expired,
@@ -81,13 +86,15 @@ describe('Receipt Date Handling', () => {
       secret_ttl: mockReceiptRecord.secret_ttl,
       receipt_ttl: mockReceiptRecord.receipt_ttl,
       lifespan: mockReceiptRecord.lifespan,
-      // Unix timestamps in seconds for date fields that use secondsToDate transform
+      // Unix timestamps in seconds
       created: TEST_TIMESTAMPS.now,
       updated: TEST_TIMESTAMPS.now,
       expiration: TEST_TIMESTAMPS.expiration,
-      // ISO strings for nullable date fields
+      // V3: nullable timestamp fields (canonical names only)
+      shared: null,
+      previewed: null,
+      revealed: null,
       burned: null,
-      received: null,
     };
 
     return {
@@ -101,7 +108,7 @@ describe('Receipt Date Handling', () => {
       key: 'burnedkey',
       state: 'burned',
       is_burned: true,
-      burned: TEST_DATES.now.toISOString(),
+      burned: TEST_TIMESTAMPS.now,     // V3: Unix epoch seconds
       ...overrides,
     });
     return {
@@ -197,7 +204,7 @@ describe('Receipt Date Handling', () => {
     const testKey = mockReceiptRecord.key; // 'testkey123'
     const mockResponse = createBurnedMockResponse({
       key: testKey,
-      burned: TEST_DATES.now.toISOString(),
+      burned: TEST_TIMESTAMPS.now,
     });
 
     store.record = mockReceiptRecord;
@@ -220,7 +227,7 @@ describe('Receipt Date Handling', () => {
       const testKey = 'testkey123';
       const mockResponse = createBurnedMockResponse({
         key: testKey,
-        burned: TEST_DATES.now.toISOString(),
+        burned: TEST_TIMESTAMPS.now,
       });
 
       store.record = mockReceiptRecord;
@@ -244,7 +251,7 @@ describe('Receipt Date Handling', () => {
       const testKey = 'testkey123';
       const mockResponse = createBurnedMockResponse({
         key: testKey,
-        burned: TEST_DATES.now.toISOString(),
+        burned: TEST_TIMESTAMPS.now,
       });
 
       store.record = mockReceiptRecord;
@@ -268,7 +275,7 @@ describe('Receipt Date Handling', () => {
       const testKey = 'burnedkey';
       const mockResponse = createMockReceiptResponse({
         key: testKey,
-        burned: TEST_DATES.now.toISOString(),
+        burned: TEST_TIMESTAMPS.now,
       });
 
       axiosMock?.onPost(`/api/v3/receipt/${testKey}/burn`).reply(function (config) {
@@ -291,26 +298,26 @@ describe('Receipt Date Handling', () => {
       expect(store.record).toBeNull();
     });
 
-    it('properly validates received date when receiving receipt', async () => {
+    it('properly validates revealed date when revealing receipt', async () => {
       const testKey = 'testkey123';
       const mockResponse = createMockReceiptResponse({
-        received: TEST_DATES.now.toISOString(),
-        state: 'received',
+        revealed: TEST_TIMESTAMPS.now, // V3 canonical (replaces received)
+        state: 'revealed',             // V3 canonical (replaces received)
       });
 
       axiosMock?.onGet(`/api/v3/receipt/${testKey}`).reply(200, mockResponse);
 
       await store.fetch(testKey);
 
-      expect(store.record?.received).toEqual(TEST_DATES.now);
-      expect(store.record?.state).toBe('received');
+      expect(store.record?.revealed).toEqual(TEST_DATES.now);
+      expect(store.record?.state).toBe('revealed');
     });
 
     it('handles null dates for optional date fields', async () => {
       const testKey = 'testkey123';
       const mockResponse = createMockReceiptResponse({
         burned: null,
-        received: null,
+        revealed: null, // V3 canonical (replaces received)
       });
 
       axiosMock?.onGet(`/api/v3/receipt/${testKey}`).reply(200, mockResponse);
@@ -318,7 +325,7 @@ describe('Receipt Date Handling', () => {
       await store.fetch(testKey);
 
       expect(store.record?.burned).toBeNull();
-      expect(store.record?.received).toBeNull();
+      expect(store.record?.revealed).toBeNull();
     });
   });
 
@@ -337,20 +344,17 @@ describe('Receipt Date Handling', () => {
       expect(store.record?.created).toEqual(TEST_DATES.now);
     });
 
-    it('handles invalid date formats gracefully for nullable fields', async () => {
+    it('rejects invalid date formats for nullable fields (V3 expects number|null)', async () => {
       const testKey = 'testkey123';
-      const mockResponse = createMockReceiptResponse({
-        burned: 'invalid-date', // burned transforms to dateNullable - should become null
-        received: null, // received transforms to dateNullable as well
-      });
+      // Build response manually since createMockReceiptResponse enforces types
+      const mockResponse = createMockReceiptResponse();
+      // @ts-expect-error — intentionally passing invalid type for test
+      mockResponse.record.burned = 'invalid-date';
 
       axiosMock?.onGet(`/api/v3/receipt/${testKey}`).reply(200, mockResponse);
 
-      await store.fetch(testKey);
-
-      expect(store.record?.burned).toBeNull();
-      expect(store.record?.received).toBeNull();
-      expect(store.record?.expiration).toEqual(TEST_DATES.expiration);
+      // V3 toDateNullish expects number|null|undefined — string is rejected
+      await expect(store.fetch(testKey)).rejects.toThrow();
     });
 
     it('throws validation error for invalid required dates', async () => {
@@ -370,8 +374,8 @@ describe('Receipt Date Handling', () => {
           receipt_url: 'https://example.com/receipt/abc123',
           burn_url: 'https://example.com/burn/abc123',
           identifier: 'test-identifier',
-          is_viewed: false,
-          is_received: false,
+          is_previewed: false,  // V3 canonical
+          is_revealed: false,   // V3 canonical
           is_burned: false,
           is_destroyed: false,
           is_expired: false,
@@ -383,7 +387,7 @@ describe('Receipt Date Handling', () => {
           updated: null,
           expiration: TEST_TIMESTAMPS.expiration,
           burned: null,
-          received: null,
+          revealed: null,       // V3 canonical
         },
         details: mockReceiptDetails,
       };
@@ -410,7 +414,7 @@ describe('Receipt Date Handling', () => {
         created: TEST_TIMESTAMPS.now,
         updated: TEST_TIMESTAMPS.now,
         expiration: TEST_TIMESTAMPS.expiration,
-        burned: TEST_DATES.future.toISOString(),
+        burned: TEST_TIMESTAMPS.future,
       });
 
       axiosMock?.onGet(`/api/v3/receipt/${testKey}`).reply(200, mockResponse);

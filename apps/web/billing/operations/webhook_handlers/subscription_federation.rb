@@ -4,6 +4,7 @@
 
 require 'onetime/utils/email_hash'
 require_relative '../../models/pending_federated_subscription'
+require_relative '../apply_subscription_to_org'
 
 module Billing
   module Operations
@@ -115,19 +116,12 @@ module Billing
         def update_federated_org(org, subscription)
           first_federation = !org.subscription_federated?
 
-          # Update ONLY status fields - NOT stripe_customer_id or stripe_subscription_id
-          # Federated orgs don't own the subscription, they just receive benefits
-          org.subscription_status     = subscription.status
-          period_end                  = subscription.items.data.first&.current_period_end
-          org.subscription_period_end = period_end.to_s if period_end
-
-          # Extract plan ID using the same logic as update_from_stripe_subscription
-          price    = subscription.items.data.first&.price
-          price_id = price&.id
-          if price_id
-            plan_id    = Billing::PlanValidator.resolve_plan_id(price_id)
-            org.planid = plan_id if plan_id
-          end
+          # Delegate field-setting to shared operation (federated path:
+          # status + plan + complimentary, but NOT stripe IDs).
+          # save: false because we set additional fields below before saving.
+          Billing::Operations::ApplySubscriptionToOrg.call(
+            org, subscription, owner: false, save: false
+          )
 
           # Mark as federated if first time
           org.mark_subscription_federated! if first_federation
@@ -218,12 +212,12 @@ module Billing
         def store_pending_federation(email_hash, subscription, stripe_customer)
           return nil if email_hash.to_s.empty?
 
-          home_region = stripe_customer&.metadata&.[]('home_region')
+          region = stripe_customer&.metadata&.[]('region')
 
           Billing::PendingFederatedSubscription.store_from_webhook(
             email_hash: email_hash,
             subscription: subscription,
-            home_region: home_region,
+            region: region,
           )
         end
       end

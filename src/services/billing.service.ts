@@ -8,15 +8,30 @@
  */
 
 import { createApi } from '@/api';
+import type { AxiosInstance } from 'axios';
 import type { PaymentMethod } from '@/types/billing';
 import type {
   CurrencyConflictError,
   InvoiceStatus,
   MigrateCurrencyRequest,
   MigrateCurrencyResponse,
-} from '@/schemas/models/billing';
+} from '@/schemas/shapes/account/billing';
 
-const $api = createApi();
+/**
+ * Lazily-initialized Axios instance for billing API calls.
+ *
+ * Uses createApi() which configures interceptors (CSRF, locale, error handling)
+ * identically to the injected instance. A standalone instance is used here because
+ * BillingService is a plain module (not a composable/store) and cannot call inject().
+ *
+ * If callers want to share the exact injected instance (e.g. for testing or to pick
+ * up per-request config), they can pass it via createBillingService().
+ */
+let _defaultApi: AxiosInstance | null = null;
+function getDefaultApi(): AxiosInstance {
+  if (!_defaultApi) _defaultApi = createApi();
+  return _defaultApi;
+}
 
 /**
  * Billing overview response from the API
@@ -149,7 +164,7 @@ export interface SubscriptionStatusResponse {
   subscription_item_id?: string;
   subscription_status?: string;
   current_period_end?: number;
-  /** Currency of the current subscription (e.g., 'usd', 'eur') */
+  /** Currency of the current subscription (e.g., 'cad', 'eur') */
   current_currency?: string;
   /** True if subscription is scheduled for cancellation at period end */
   cancel_at_period_end?: boolean;
@@ -219,6 +234,37 @@ export interface CancelSubscriptionResponse {
   status: string;
 }
 
+/**
+ * Create a BillingService bound to a specific Axios instance.
+ * Use this in Vue components/composables to share the injected API instance.
+ *
+ * @example
+ * ```ts
+ * const $api = useApi();
+ * const billing = createBillingService($api);
+ * await billing.getOverview(orgId);
+ * ```
+ */
+export function createBillingService(api: AxiosInstance): typeof BillingService {
+  return {
+    getOverview: (orgExtId) => api.get(`/billing/api/org/${orgExtId}`).then(r => r.data),
+    createCheckoutSession: (orgExtId, plan) => {
+      const intervalSuffix = plan.interval === 'year' ? '_yearly' : '_monthly';
+      const product = plan.id.endsWith(intervalSuffix)
+        ? plan.id.slice(0, -intervalSuffix.length)
+        : plan.id;
+      return api.post(`/billing/api/org/${orgExtId}/checkout`, { product, interval: plan.interval }).then(r => r.data);
+    },
+    listInvoices: (orgExtId) => api.get(`/billing/api/org/${orgExtId}/invoices`).then(r => r.data),
+    listPlans: () => api.get('/billing/api/plans').then(r => r.data),
+    getSubscriptionStatus: (orgExtId) => api.get(`/billing/api/org/${orgExtId}/subscription`).then(r => r.data),
+    previewPlanChange: (orgExtId, newPriceId) => api.post(`/billing/api/org/${orgExtId}/preview-plan-change`, { new_price_id: newPriceId }).then(r => r.data),
+    changePlan: (orgExtId, newPriceId) => api.post(`/billing/api/org/${orgExtId}/change-plan`, { new_price_id: newPriceId }).then(r => r.data),
+    cancelSubscription: (orgExtId) => api.post(`/billing/api/org/${orgExtId}/cancel-subscription`).then(r => r.data),
+    migrateCurrency: (orgExtId, request) => api.post(`/billing/api/org/${orgExtId}/migrate-currency`, request).then(r => r.data),
+  };
+}
+
 export const BillingService = {
   /**
    * Get billing overview for an organization
@@ -227,7 +273,7 @@ export const BillingService = {
    * @returns Billing overview data including subscription, plan, and usage
    */
   async getOverview(orgExtId: string): Promise<BillingOverviewResponse> {
-    const response = await $api.get(`/billing/api/org/${orgExtId}`);
+    const response = await getDefaultApi().get(`/billing/api/org/${orgExtId}`);
     return response.data;
   },
 
@@ -255,7 +301,7 @@ export const BillingService = {
       ? plan.id.slice(0, -intervalSuffix.length)
       : plan.id;
 
-    const response = await $api.post(`/billing/api/org/${orgExtId}/checkout`, {
+    const response = await getDefaultApi().post(`/billing/api/org/${orgExtId}/checkout`, {
       product,
       interval: plan.interval,
     });
@@ -269,7 +315,7 @@ export const BillingService = {
    * @returns List of invoices with pagination info
    */
   async listInvoices(orgExtId: string): Promise<InvoicesResponse> {
-    const response = await $api.get(`/billing/api/org/${orgExtId}/invoices`);
+    const response = await getDefaultApi().get(`/billing/api/org/${orgExtId}/invoices`);
     return response.data;
   },
 
@@ -279,7 +325,7 @@ export const BillingService = {
    * @returns List of available plans with pricing and features
    */
   async listPlans(): Promise<PlansResponse> {
-    const response = await $api.get('/billing/api/plans');
+    const response = await getDefaultApi().get('/billing/api/plans');
     return response.data;
   },
 
@@ -293,7 +339,7 @@ export const BillingService = {
    * @returns Subscription status including current plan and price details
    */
   async getSubscriptionStatus(orgExtId: string): Promise<SubscriptionStatusResponse> {
-    const response = await $api.get(`/billing/api/org/${orgExtId}/subscription`);
+    const response = await getDefaultApi().get(`/billing/api/org/${orgExtId}/subscription`);
     return response.data;
   },
 
@@ -311,7 +357,7 @@ export const BillingService = {
     orgExtId: string,
     newPriceId: string
   ): Promise<PlanChangePreviewResponse> {
-    const response = await $api.post(`/billing/api/org/${orgExtId}/preview-plan-change`, {
+    const response = await getDefaultApi().post(`/billing/api/org/${orgExtId}/preview-plan-change`, {
       new_price_id: newPriceId,
     });
     return response.data;
@@ -328,7 +374,7 @@ export const BillingService = {
    * @returns Result of plan change with new plan details
    */
   async changePlan(orgExtId: string, newPriceId: string): Promise<PlanChangeResponse> {
-    const response = await $api.post(`/billing/api/org/${orgExtId}/change-plan`, {
+    const response = await getDefaultApi().post(`/billing/api/org/${orgExtId}/change-plan`, {
       new_price_id: newPriceId,
     });
     return response.data;
@@ -344,7 +390,7 @@ export const BillingService = {
    * @returns Result of cancellation with effective date
    */
   async cancelSubscription(orgExtId: string): Promise<CancelSubscriptionResponse> {
-    const response = await $api.post(`/billing/api/org/${orgExtId}/cancel-subscription`);
+    const response = await getDefaultApi().post(`/billing/api/org/${orgExtId}/cancel-subscription`);
     return response.data;
   },
 
@@ -364,7 +410,7 @@ export const BillingService = {
     orgExtId: string,
     request: MigrateCurrencyRequest
   ): Promise<MigrateCurrencyResponse> {
-    const response = await $api.post(
+    const response = await getDefaultApi().post(
       `/billing/api/org/${orgExtId}/migrate-currency`,
       request
     );

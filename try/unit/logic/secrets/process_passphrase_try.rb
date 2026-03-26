@@ -90,7 +90,7 @@ action.test_process_passphrase
 
 ## Secret created without passphrase (nil) has has_passphrase? == false
 _meta1, secret1 = Onetime::Receipt.spawn_pair(
-  Onetime::Customer.anonymous.custid,
+  'anon',
   3600,
   'test content without passphrase',
   passphrase: nil
@@ -98,20 +98,20 @@ _meta1, secret1 = Onetime::Receipt.spawn_pair(
 secret1.has_passphrase?
 #=> false
 
-## Secret created with empty string passphrase has has_passphrase? == true
-# Empty string is a valid intentional passphrase when explicitly provided
+## Secret created with empty string passphrase has has_passphrase? == false
+# spawn_pair treats empty string the same as nil (no passphrase protection)
 _meta2, secret2 = Onetime::Receipt.spawn_pair(
-  Onetime::Customer.anonymous.custid,
+  'anon',
   3600,
   'test content with empty passphrase',
   passphrase: ''
 )
 secret2.has_passphrase?
-#=> true
+#=> false
 
 ## Secret created with valid passphrase has has_passphrase? == true
 _meta3, secret3 = Onetime::Receipt.spawn_pair(
-  Onetime::Customer.anonymous.custid,
+  'anon',
   3600,
   'test content with passphrase',
   passphrase: 'secretpass123'
@@ -121,7 +121,7 @@ secret3.has_passphrase?
 
 ## Secret with passphrase can verify correct passphrase
 _meta4, secret4 = Onetime::Receipt.spawn_pair(
-  Onetime::Customer.anonymous.custid,
+  'anon',
   3600,
   'verify correct passphrase',
   passphrase: 'secretpass123'
@@ -131,7 +131,7 @@ secret4.passphrase?('secretpass123')
 
 ## Secret with passphrase rejects incorrect passphrase
 _meta5, secret5 = Onetime::Receipt.spawn_pair(
-  Onetime::Customer.anonymous.custid,
+  'anon',
   3600,
   'verify incorrect passphrase',
   passphrase: 'secretpass123'
@@ -142,7 +142,7 @@ secret5.passphrase?('wrongpassword')
 ## Secret without passphrase: passphrase?('') returns false (nothing to compare)
 # Note: Higher-level logic uses `!has_passphrase? || passphrase?(val)` for access control
 _meta6, secret6 = Onetime::Receipt.spawn_pair(
-  Onetime::Customer.anonymous.custid,
+  'anon',
   3600,
   'no passphrase returns false',
   passphrase: nil
@@ -152,7 +152,7 @@ secret6.passphrase?('')
 
 ## Secret without passphrase: passphrase?('anything') returns false (nothing to compare)
 _meta7, secret7 = Onetime::Receipt.spawn_pair(
-  Onetime::Customer.anonymous.custid,
+  'anon',
   3600,
   'no passphrase returns false for any input',
   passphrase: nil
@@ -160,19 +160,20 @@ _meta7, secret7 = Onetime::Receipt.spawn_pair(
 secret7.passphrase?('anything')
 #=> false
 
-## Secret with empty string passphrase: passphrase?('') returns true
+## Secret with empty string passphrase: passphrase?('') returns false
+# spawn_pair skips passphrase storage for empty string; nothing to compare against
 _meta8, secret8 = Onetime::Receipt.spawn_pair(
-  Onetime::Customer.anonymous.custid,
+  'anon',
   3600,
-  'empty passphrase can be verified',
+  'empty passphrase skipped by spawn_pair',
   passphrase: ''
 )
 secret8.passphrase?('')
-#=> true
+#=> false
 
 ## Secret with empty string passphrase: passphrase?('wrong') returns false
 _meta9, secret9 = Onetime::Receipt.spawn_pair(
-  Onetime::Customer.anonymous.custid,
+  'anon',
   3600,
   'empty passphrase rejects non-empty',
   passphrase: ''

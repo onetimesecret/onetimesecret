@@ -24,7 +24,10 @@ check_version() {
 
   required=$(version_from "$file")
   if [[ -z "$required" ]]; then
-    warn "$name version check skipped ($(basename "$file") not found)"
+    has "$cmd" || die "$name not found ($(basename "$file") missing — cannot determine required version)"
+    local detected
+    detected=$(eval "$extractor")
+    warn "$name $detected detected but no $(basename "$file") to pin against — version not verified"
     return 0
   fi
 
@@ -42,7 +45,10 @@ check_version_major() {
 
   required=$(version_from "$file" | sed 's/^v//' | cut -d. -f1)
   if [[ -z "$required" ]]; then
-    warn "$name version check skipped ($(basename "$file") not found)"
+    has "$cmd" || die "$name not found ($(basename "$file") missing — cannot determine required version)"
+    local detected
+    detected=$(eval "$extractor" | sed 's/^v//')
+    warn "$name $detected detected but no $(basename "$file") to pin against — version not verified"
     return 0
   fi
 
@@ -73,6 +79,7 @@ install_node() {
   for pkg in "pnpm-lock.yaml:pnpm:install --frozen-lockfile" "package-lock.json:npm:ci" "yarn.lock:yarn:install --frozen-lockfile"; do
     IFS=: read -r lockfile mgr flags <<< "$pkg"
     if [[ -f "$lockfile" ]]; then
+      has "$mgr" || die "$mgr not found but $lockfile exists — install $mgr first (see https://docs.onetimesecret.com/en/self-hosting/installation/)"
       info "Installing node packages ($mgr)..."
       $mgr $flags
       return
@@ -84,6 +91,29 @@ install_node() {
 
 is_initialized() {
   bundle exec bin/ots install check 2>/dev/null
+}
+
+redis_url() {
+  # Resolve VALKEY_URL -> REDIS_URL -> .env -> default (matches entrypoint.sh)
+  local url="${VALKEY_URL:-${REDIS_URL:-}}"
+  if [[ -z "$url" && -f .env ]]; then
+    url=$(sed -n -E "s/^[[:space:]]*(VALKEY_URL|REDIS_URL)[[:space:]]*=[[:space:]]*[\"']?([^\"'#[:space:]]*)[\"']?[[:space:]]*(#.*)?$/\2/p" .env 2>/dev/null | head -1)
+  fi
+  echo "${url:-redis://127.0.0.1:6379}"
+}
+
+redis_host_port() {
+  local url clean host port
+  url=$(redis_url)
+  clean="${url#redis://}"
+  clean="${clean#valkey://}"
+  if [[ "$clean" == *@* ]]; then
+    clean="${clean#*@}"
+  fi
+  host="${clean%%:*}"
+  port="${clean#*:}"
+  port="${port%%/*}"
+  echo "${host:-127.0.0.1}" "${port:-6379}"
 }
 
 auth_mode() {
@@ -102,7 +132,8 @@ cmd_reconcile() {
   install_node
 
   info "Re-deriving child keys from existing SECRET..."
-  DERIVE=1 bundle exec rake ots:secrets
+  DERIVE=1 bundle exec rake ots:secrets || die "Failed to generate secrets"
+  chmod 600 "${ENV_FILE:-.env}" || die "Failed to secure ${ENV_FILE:-.env} file permissions"
 
   local mode
   mode=$(auth_mode)
@@ -121,6 +152,10 @@ cmd_init() {
   check_version "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"'
   check_version_major "Node" node .nvmrc 'node -v'
 
+  # Install dependencies first — bundle exec is needed for subsequent steps
+  install_gems
+  install_node
+
   bundle exec rake ots:env:setup
 
   local mode
@@ -137,10 +172,56 @@ cmd_init() {
     echo ""
   fi
 
-  cmd_reconcile
+  info "Re-deriving child keys from SECRET..."
+  DERIVE=1 bundle exec rake ots:secrets || die "Failed to generate secrets"
+  chmod 600 "${ENV_FILE:-.env}" || die "Failed to secure ${ENV_FILE:-.env} file permissions"
 
-  bundle exec bin/ots install mark > /dev/null
-  info "Environment initialized (onetime:install:init_count incremented)"
+  if [[ "$mode" == "full" ]]; then
+    info "Re-applying RabbitMQ policies and queue declarations..."
+    bin/ots queue init --force
+  fi
+
+  # Check Redis/Valkey availability before attempting install mark
+  redis_available=false
+  read -r rhost rport < <(redis_host_port)
+  if (has valkey-cli && valkey-cli -h "$rhost" -p "$rport" ping &>/dev/null) || \
+     (has redis-cli && redis-cli -h "$rhost" -p "$rport" ping &>/dev/null); then
+    redis_available=true
+  fi
+
+  if [[ "$redis_available" == true ]]; then
+    if bundle exec bin/ots install mark; then
+      info "Environment initialized (onetime:install:init_count incremented)"
+    else
+      warn "install mark failed (exit $?) — see errors above"
+    fi
+  else
+    warn "Redis/Valkey not running — skipping install mark (run install.sh again after starting Valkey)"
+  fi
+
+  # Ensure puma config exists for the instructions below
+  if [[ ! -e "etc/puma.rb" && -f "etc/examples/puma.example.rb" ]]; then
+    [[ -L "etc/puma.rb" ]] && rm "etc/puma.rb"
+    cp etc/examples/puma.example.rb etc/puma.rb
+    info "Copied etc/examples/puma.example.rb -> etc/puma.rb"
+  fi
+
+  echo ""
+  info "Next steps:"
+  if [[ "$mode" == "full" ]]; then
+    echo "  1. Start Valkey/Redis and RabbitMQ"
+    echo "  2. Source environment:  source .env.sh"
+    echo "  3. Start the app:      bundle exec puma -C etc/puma.rb"
+    echo "  4. Start workers:      bundle exec bin/ots worker"
+    echo "  5. Start scheduler:    bundle exec bin/ots scheduler"
+  else
+    echo "  1. Start Valkey/Redis"
+    echo "  2. Source environment:  source .env.sh"
+    echo "  3. Start the app:      bundle exec puma -C etc/puma.rb"
+  fi
+  echo ""
+  echo "  For development with Overmind:  bin/dev"
+  echo "  Check environment health:       install.sh doctor"
 }
 
 cmd_console() {
@@ -153,13 +234,24 @@ cmd_doctor() {
   (check_version "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"') || true
   (check_version_major "Node" node .nvmrc 'node -v') || true
 
-  if has redis-cli && redis-cli ping &>/dev/null; then
-    info "Redis responding"
+  read -r rhost rport < <(redis_host_port)
+  if has valkey-cli && valkey-cli -h "$rhost" -p "$rport" ping &>/dev/null; then
+    info "Valkey responding ($rhost:$rport)"
+  elif has redis-cli && redis-cli -h "$rhost" -p "$rport" ping &>/dev/null; then
+    info "Redis responding ($rhost:$rport)"
   else
-    warn "Redis not responding or not found"
+    warn "Valkey/Redis not responding at $rhost:$rport"
+  fi
+
+  if has overmind; then
+    info "Overmind found (for development use: bin/dev)"
+  else
+    warn "Overmind not found — needed for bin/dev (install: https://github.com/DarthSim/overmind)"
   fi
 
   [[ -f .env ]] && info ".env exists" || warn ".env missing"
+  [[ -f etc/puma.rb ]] && info "etc/puma.rb exists" || warn "etc/puma.rb missing (copy from etc/examples/puma.example.rb)"
+  [[ -f Procfile.dev ]] && info "Procfile.dev exists" || warn "Procfile.dev missing (copy from Procfile.dev.example)"
 
   local mode
   mode=$(auth_mode)

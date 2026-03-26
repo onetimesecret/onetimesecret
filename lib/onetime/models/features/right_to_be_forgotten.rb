@@ -67,7 +67,6 @@ module Onetime
             self.passphrase         = ''
             self.verified           = 'false'
             self.role               = 'user_deleted_self'
-            save
           end
         end
       end

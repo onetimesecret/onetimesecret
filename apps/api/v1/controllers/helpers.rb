@@ -22,7 +22,7 @@ module V1
       redirect     ||= req.request_path unless app == :api
       content_type ||= 'text/html; charset=utf-8'
 
-      cust ||= Onetime::Customer.anonymous
+      # cust may be nil for anonymous requests
 
       # Prevent infinite redirect loops by checking if the request is a GET request.
       # Pages redirecting from a POST request can use the same page once.
@@ -43,7 +43,7 @@ module V1
 
       log_customer_activity
 
-      obscured = if cust.anonymous?
+      obscured = if cust.nil? || cust.anonymous?
         'anonymous'
       else
         OT::Utils.obscure_email(cust.email)
@@ -96,7 +96,7 @@ module V1
       # Track Familia errors as regular exceptions
       capture_error ex
 
-      error_response I18n.t('api.errors.unexpected_error')
+      error_response 'An unexpected error occurred :['
     rescue Errno::ECONNREFUSED => ex
       OT.le ex.message
       OT.le ex.backtrace
@@ -116,7 +116,7 @@ module V1
       # Track the unexected errors
       capture_error ex
 
-      error_response I18n.t('api.errors.unexpected_error')
+      error_response 'An unexpected error occurred :['
     end
 
     # Sets the locale for the request based on various sources.
@@ -315,41 +315,17 @@ module V1
       res.do_not_cache!
     end
 
-    def app_path *paths
-      paths = paths.flatten.compact
-      paths.unshift req.script_name
-      paths.join('/').gsub '//', '/'
-    end
+    # Note: app_path is not defined here. Otto provides it on both req and res,
+    # prepending script_name to support sub-path mounting. Use req.app_path(...).
 
-
-    # Checks if authentication is enabled for the site.
-    #
-    # This method determines whether authentication is enabled by checking the
-    # site configuration. It defaults to disabled if the site configuration is
-    # missing. This approach prevents unauthorized access by ensuring that
-    # accounts are not used if authentication is not explicitly enabled.
-    #
-    # @return [Boolean] True if authentication and sign-in are enabled, false otherwise.
-    #
-    def authentication_enabled?
-      # Defaulting to disabled is the Right Thing to Do™. If the site config
-      # is missing, we assume that authentication is disabled and that accounts
-      # are not used. This prevents situations where the app is running and
-      # anyone accessing it can create an account without proper authentication.
-      authentication_enabled = OT.conf['site']['authentication']['enabled'] rescue false # rubocop:disable Style/RescueModifier
-      signin_enabled         = OT.conf['site']['authentication']['signin'] rescue false # rubocop:disable Style/RescueModifier
-
-      # The only condition that allows a request to be authenticated is if
-      # the site has authentication enabled, and the user is signed in. If a
-      # user is signed in and the site configuration changes to disable it,
-      # the user will be signed out temporarily. If the setting is restored
-      # before the session key expires in Redis, that user will be signed in
-      # again. This is a security feature.
-      authentication_enabled && signin_enabled
-    end
+    # session_auth_enforced? is inherited from SessionHelpers (included
+    # at the top of this module). It uses safe `dig` access and defaults
+    # to disabled when config is absent — account features are rendered
+    # unavailable unless authentication is explicitly configured.
+    # See lib/onetime/helpers/session_helpers.rb.
 
     def log_customer_activity
-      return if cust.anonymous?
+      return if cust.nil? || cust.anonymous?
 
       reqstr           = stringify_request_details(req)
       custref          = cust.obscure_email

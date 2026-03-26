@@ -155,6 +155,14 @@
     "text": "עדכון הארגון נכשל",
     "sha256": "bc2b59b8"
   },
+  "web.organizations.billing_email_updated": {
+    "text": "דוא״ל החיוב עודכן בהצלחה",
+    "sha256": "080a7f11"
+  },
+  "web.organizations.billing_email_managed_on_billing": {
+    "text": "ניתן לשנות את דוא״ל החיוב בדף סקירת החיוב",
+    "sha256": "8a131415"
+  },
   "web.organizations.billing_coming_soon": {
     "text": "אינטגרציית חיוב בקרוב",
     "sha256": "d3e0ec75"
@@ -206,6 +214,10 @@
   "web.organizations.tabs.billing": {
     "text": "חיוב",
     "sha256": "3ac8bbca"
+  },
+  "web.organizations.tabs.subscription": {
+    "text": "מנוי",
+    "sha256": "4999c6c6"
   },
   "web.organizations.danger_zone": {
     "text": "אזור סכנה",
@@ -515,17 +527,21 @@
     "text": "טוען פרטי הזמנה",
     "sha256": "58884885"
   },
-  "web.organizations.billing_email_updated": {
-    "text": "דוא״ל החיוב עודכן בהצלחה",
-    "sha256": "080a7f11"
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "שדרג את התוכנית שלך כדי להזמין חברי צוות",
+    "sha256": "5e3f8df8"
   },
-  "web.organizations.billing_email_managed_on_billing": {
-    "text": "ניתן לשנות את דוא״ל החיוב בדף סקירת החיוב",
-    "sha256": "8a131415"
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "הזמנות לחברי צוות דורשות תוכנית עם ניהול צוותים. שדרג כדי להוסיף משתפי פעולה לארגון שלך.",
+    "sha256": "cf10d623"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
     "sha256": "957b0b87"
+  },
+  "web.organizations.early_supporter_badge": {
+    "text": "תומך מוקדם",
+    "sha256": "e67d2ef8"
   },
   "web.organizations.member_count": {
     "text": "{count} חבר | {count} חברים",
@@ -535,13 +551,9 @@
     "text": "{count} דומיין | {count} דומיינים",
     "sha256": "09f52efa"
   },
-  "web.organizations.invitations.upgrade_to_invite": {
-    "text": "שדרג את התוכנית שלך כדי להזמין חברי צוות",
-    "sha256": "5e3f8df8"
-  },
-  "web.organizations.invitations.upgrade_prompt": {
-    "text": "הזמנות לחברי צוות דורשות תוכנית עם ניהול צוותים. שדרג כדי להוסיף משתפי פעולה לארגון שלך.",
-    "sha256": "cf10d623"
+  "web.organizations.tabs.domains": {
+    "text": "דומיינים",
+    "sha256": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "חשבון לא נכון",
@@ -566,13 +578,5 @@
   "web.organizations.invitations.expires_soon": {
     "text": "פג תוקף בקרוב",
     "sha256": "a5dcfef9"
-  },
-  "web.organizations.tabs.subscription": {
-    "text": "מנוי",
-    "sha256": "4999c6c6"
-  },
-  "web.organizations.tabs.domains": {
-    "text": "דומיינים",
-    "sha256": "ced67718"
   }
 }

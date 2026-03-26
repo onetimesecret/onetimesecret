@@ -6,10 +6,29 @@
 # Centralized authentication strategies for Onetime applications.
 # All applications (Web Core, V2 API, etc.) use these shared strategy classes.
 #
+# Structure:
+#   auth_strategies/
+#     helpers.rb                      - Shared helper methods
+#     no_auth_strategy.rb             - Public access (auth=noauth)
+#     base_session_auth_strategy.rb   - Abstract base for session auth
+#     session_auth_strategy.rb        - Authenticated sessions (auth=sessionauth)
+#     basic_auth_strategy.rb          - HTTP Basic Auth (auth=basicauth)
+#     dev_basic_auth_strategy.rb      - Development-only Basic Auth (auth=devbasicauth)
+#     dev_session_auth_strategy.rb    - Development-only Session Auth (auth=devsessionauth)
+#
 # Keep this code in sync with:
 # @see docs/architecture/authentication.md#authstrategies
 #
 # All dependent modules and references: `rg -t ruby -t markdown authstrategies`
+
+require_relative 'organization_loader'
+require_relative 'auth_strategies/helpers'
+require_relative 'auth_strategies/no_auth_strategy'
+require_relative 'auth_strategies/base_session_auth_strategy'
+require_relative 'auth_strategies/session_auth_strategy'
+require_relative 'auth_strategies/basic_auth_strategy'
+require_relative 'auth_strategies/dev_basic_auth_strategy'
+require_relative 'auth_strategies/dev_session_auth_strategy'
 
 module Onetime
   module Application
@@ -51,11 +70,19 @@ module Onetime
         end
       end
 
-      # Checks if authentication is enabled in configuration
+      # Can users create and use accounts?
       #
-      # @return [Boolean] true if authentication is enabled
-      def authentication_enabled?
-        settings = OT.conf.dig('site', 'authentication')
+      # Boot-time capability decision - called once during strategy
+      # registration to determine whether to register sessionauth and
+      # basicauth strategies with Otto. Uses strict `== true` because
+      # enabling account capabilities is an explicit opt-in.
+      #
+      # Distinct from SessionHelpers#session_auth_enforced? which is
+      # a per-request check using loose `!= false` comparison.
+      #
+      # @return [Boolean] true only if authentication is explicitly enabled
+      def account_creation_allowed?
+        settings = OT.conf&.dig('site', 'authentication')
         return false unless settings
 
         settings['enabled'] == true
@@ -77,234 +104,77 @@ module Onetime
       # Only call this for apps that need API key authentication.
       # Reduces attack surface by not exposing Basic auth on all apps.
       #
+      # Also auto-registers devbasicauth when development.devbasicauth config is true.
+      #
       # @param otto [Otto] Otto router instance
       def register_basic_auth(otto)
         otto.add_auth_strategy('basicauth', BasicAuthStrategy.new)
+
+        # Auto-register dev strategy when enabled in config
+        register_dev_basic_auth(otto) if dev_basic_auth_enabled?
       end
 
-      # Public strategy - allows all requests, loads customer from session if available
+      # Check if development basic auth is enabled
       #
-      # Routes: auth=noauth
-      # Access: Everyone (including authenticated)
-      # User: Customer.anonymous or authenticated Customer
-      class NoAuthStrategy < Otto::Security::AuthStrategy
-        include Helpers
-        include Onetime::Application::OrganizationLoader
+      # Checks config first, falls back to DEV_BASIC_AUTH env var.
+      # Config example: `devbasicauth: <%= ENV['DEV_BASIC_AUTH'] == 'true' %>`
+      #
+      # @return [Boolean] true if enabled via config or env var
+      def dev_basic_auth_enabled?
+        # Config takes precedence (supports ERB: <%= ENV['DEV_BASIC_AUTH'] == 'true' %>)
+        config_value = OT.conf&.dig('development', 'devbasicauth')
+        return config_value == true if [true, false].include?(config_value)
 
-        @auth_method_name = 'noauth'
-
-        class << self
-          attr_reader :auth_method_name
-        end
-
-        def authenticate(env, _requirement)
-          session = env['rack.session']
-
-          # Try session first, then fall back to anonymous. Basic auth is
-          # handled by a separate strategy in the route chain (routes.txt),
-          # not here — this strategy only checks session state.
-          cust = load_user_from_session(session) || Onetime::Customer.anonymous
-
-          # Load organization context if user is authenticated
-          org_context = if cust && !cust.anonymous?
-                          load_organization_context(cust, session, env)
-                        else
-                          {}
-                        end
-
-          success(
-            session: session,
-            user: cust.anonymous? ? nil : cust,  # Pass nil for anonymous users
-            auth_method: self.class.auth_method_name,
-            **build_metadata(env, { organization_context: org_context }),
-          )
-        end
+        # Fallback to env var directly
+        ENV['DEV_BASIC_AUTH'] == 'true'
       end
 
-      # Base strategy for authenticated routes
+      # Registers development-only Basic Auth strategy (opt-in, non-production only)
       #
-      # Provides common authentication logic for session-based auth.
-      # Subclasses can override `additional_checks` for role/permission validation.
-      class BaseSessionAuthStrategy < Otto::Security::AuthStrategy
-        include Helpers
-        include Onetime::Application::OrganizationLoader
-
-        @auth_method_name = nil
-
-        class << self
-          attr_reader :auth_method_name
-        end
-
-        def authenticate(env, _requirement)
-          session = env['rack.session']
-          return failure('[SESSION_MISSING] No session available') unless session
-
-          # Check if session is authenticated
-          unless session['authenticated'] == true
-            return failure('[SESSION_NOT_AUTHENTICATED] Not authenticated')
-          end
-
-          external_id = session['external_id']
-          if external_id.to_s.empty?
-            return failure('[IDENTITY_MISSING] No identity in session')
-          end
-
-          # Load customer
-          cust = Onetime::Customer.load_by_extid_or_email(external_id)
-          return failure('[CUSTOMER_NOT_FOUND] Customer not found') unless cust
-
-          # Perform additional checks (role, permissions, etc.)
-          check_result = additional_checks(cust, env)
-          return check_result if check_result.is_a?(Otto::Security::Authentication::AuthFailure)
-
-          log_success(cust)
-
-          # Load organization and team context
-          org_context = load_organization_context(cust, session, env)
-
-          # Build complete metadata hash, then splat it into success()
-          metadata_hash = build_metadata(env, additional_metadata(cust)).merge(
-            organization_context: org_context,
-          )
-
-          success(
-            session: session,
-            user: cust,
-            auth_method: self.class.auth_method_name,
-            **metadata_hash,
-          )
-        end
-
-        protected
-
-        # Override in subclasses to add role/permission checks
-        #
-        # @param cust [Onetime::Customer] Authenticated customer
-        # @param env [Hash] Rack environment
-        # @return [Otto::Security::Authentication::AuthFailure, nil] Failure if check fails, nil if passes
-        def additional_checks(_cust, _env)
-          nil
-        end
-
-        # Override in subclasses to add metadata
-        #
-        # @param cust [Onetime::Customer] Authenticated customer
-        # @return [Hash] Additional metadata for StrategyResult
-        def additional_metadata(_cust)
-          {}
-        end
-
-        # Override in subclasses to customize success logging
-        #
-        # @param cust [Onetime::Customer] Authenticated customer
-        def log_success(cust)
-          OT.ld "[onetime_authenticated] Authenticated '#{cust.objid}'"
-        end
+      # Auto-provisions ephemeral dev users with dev_* prefixed credentials.
+      # Users expire after 20 hours. BLOCKED in production environments.
+      #
+      # Normally called automatically by register_basic_auth when config is set.
+      # Can also be called directly for explicit registration.
+      #
+      # @param otto [Otto] Otto router instance
+      # @raise [SecurityError] if called in production
+      # @see DevBasicAuthStrategy
+      # @see https://github.com/onetimesecret/onetimesecret/issues/2735
+      def register_dev_basic_auth(otto)
+        DevBasicAuthStrategy.production_guard!
+        otto.add_auth_strategy('devbasicauth', DevBasicAuthStrategy.new)
+        OT.li "[auth_strategies] Registered devbasicauth (TTL: #{DevBasicAuthStrategy::DEV_CUSTOMER_TTL / 3600}h)"
       end
 
-      # Authenticated strategy - requires valid session with authenticated customer
+      # Check if development session auth is enabled
       #
-      # Routes: auth=sessionauth
-      # Access: Authenticated users only
-      # User: Authenticated Customer
-      # Roles: Provides customer role(s) for Otto's role-based authorization (role= option)
-      class SessionAuthStrategy < BaseSessionAuthStrategy
-        @auth_method_name = 'sessionauth'
+      # Checks config first, falls back to DEV_SESSION_AUTH env var.
+      # Config example: `devsessionauth: <%= ENV['DEV_SESSION_AUTH'] == 'true' %>`
+      #
+      # @return [Boolean] true if enabled via config or env var
+      def dev_session_auth_enabled?
+        # Config takes precedence (supports ERB: <%= ENV['DEV_SESSION_AUTH'] == 'true' %>)
+        config_value = OT.conf&.dig('development', 'devsessionauth')
+        return config_value if [true, false].include?(config_value)
 
-        protected
-
-        def additional_metadata(cust)
-          # Provide roles as array for Otto's role= parameter support
-          # Otto's RouteAuthWrapper#extract_user_roles looks for metadata[:user_roles]
-          { user_roles: [cust.role.to_s] }
-        end
+        # Fallback to env var directly
+        ENV['DEV_SESSION_AUTH'] == 'true'
       end
 
-      # Basic auth strategy - HTTP Basic Authentication
+      # Registers development-only Session Auth strategy (opt-in, non-production only)
       #
-      # Routes: auth=basicauth
-      # Access: Valid API credentials via Authorization header
-      # User: Customer associated with API credentials
+      # Validates that authenticated sessions belong to dev_* users.
+      # BLOCKED in production environments.
       #
-      # Security: Uses constant-time comparison for both username and API key
-      # to prevent timing attacks that could enumerate valid usernames.
-      class BasicAuthStrategy < Otto::Security::AuthStrategy
-        include Helpers
-        include Onetime::Application::OrganizationLoader
-
-        @auth_method_name = 'basic_auth'
-
-        class << self
-          attr_reader :auth_method_name
-        end
-
-        def authenticate(env, _requirement)
-          # Extract credentials from Authorization header
-          auth_header = env['HTTP_AUTHORIZATION']
-          return failure('[AUTH_HEADER_MISSING] No authorization header') unless auth_header
-
-          # Parse Basic auth
-          unless auth_header.start_with?('Basic ')
-            return failure('[AUTH_TYPE_INVALID] Invalid authorization type')
-          end
-
-          # Decode credentials
-          encoded          = auth_header.sub('Basic ', '')
-          decoded          = Base64.decode64(encoded)
-          username, apikey = decoded.split(':', 2)
-
-          return failure('[CREDENTIALS_FORMAT_INVALID] Invalid credentials format') unless username && apikey
-
-          # Load customer by custid (may be nil)
-          cust = Onetime::Customer.load_by_extid_or_email(username)
-
-          # Timing attack mitigation:
-          # To prevent username enumeration via timing analysis, we ensure that
-          # authentication takes the same amount of time whether the user exists or not.
-          #
-          # Strategy:
-          # 1. Use a dummy customer with a real BCrypt hash when user doesn't exist
-          # 2. Always perform BCrypt password comparison (expensive operation)
-          # 3. Both paths execute identical cryptographic operations
-          #
-          # The dummy customer has a pre-computed BCrypt hash, so passphrase?()
-          # performs the same ~280ms BCrypt comparison for both existing and
-          # non-existing users, making timing analysis ineffective.
-          target_cust = cust || Onetime::Customer.dummy
-
-          # Validate API key using constant-time comparison (apitoken?)
-          valid_credentials = target_cust.apitoken?(apikey)
-
-          # Only succeed if we have a real customer AND valid credentials
-          if cust && valid_credentials
-            OT.ld "[onetime_basic_auth] Authenticated '#{cust.objid}' via API key"
-
-            # Load organization context for API key auth
-            # Note: No session for stateless Basic auth, pass empty hash
-            session     = env['rack.session'] || {}
-            org_context = load_organization_context(cust, session, env)
-
-            # Build complete metadata hash, then splat it into success()
-            metadata_hash = build_metadata(env, { auth_type: 'basic' }).merge(
-              organization_context: org_context,
-            )
-
-            success(
-              session: {},  # Empty hash, not nil: downstream consumers
-              # (Logic::Base, RequestHelpers) index into
-              # session with [] and would raise on nil.
-              user: cust,
-              auth_method: self.class.auth_method_name,
-              **metadata_hash,
-            )
-          else
-            # Return generic error for both cases:
-            # 1. User doesn't exist (cust is nil)
-            # 2. Invalid credentials (valid_credentials is false)
-            # The timing is identical in both cases due to our mitigation strategy
-            failure('[CREDENTIALS_INVALID] Invalid credentials')
-          end
-        end
+      # @param otto [Otto] Otto router instance
+      # @raise [SecurityError] if called in production
+      # @see DevSessionAuthStrategy
+      # @see https://github.com/onetimesecret/onetimesecret/issues/2735
+      def register_dev_session_auth(otto)
+        DevSessionAuthStrategy.production_guard!
+        otto.add_auth_strategy('devsessionauth', DevSessionAuthStrategy.new)
+        OT.li '[auth_strategies] Registered devsessionauth'
       end
     end
   end

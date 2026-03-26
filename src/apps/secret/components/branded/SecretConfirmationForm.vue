@@ -2,17 +2,15 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import { Secret, SecretDetails, brandSettingschema } from '@/schemas/models';
-  import {
-    CornerStyle,
-    FontFamily,
-    cornerStyleClasses,
-    fontFamilyClasses,
-  } from '@/schemas/models/domain/brand';
+  import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
+  import { brandSettingsSchema } from '@/schemas/shapes/v3/custom-domain';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { ref, computed } from 'vue';
 
   import BaseSecretDisplay from './BaseSecretDisplay.vue';
+
+  // Default brand settings for when no custom branding is configured
+  const defaultBrandSettings = brandSettingsSchema.parse({});
 
   interface Props {
     secretIdentifier: string;
@@ -37,26 +35,15 @@
   };
 
   const productIdentity = useProductIdentity();
-  const brandSettings = productIdentity.brand; // Not reactive
-  const defaultBranding = brandSettingschema.parse({});
-  const safeBrandSettings = computed(() =>
-    brandSettings ? brandSettingschema.parse(brandSettings) : defaultBranding
-  );
 
-  const cornerClass = computed(() => {
-    const style = safeBrandSettings.value?.corner_style as CornerStyle | undefined;
-    return cornerStyleClasses[style ?? CornerStyle.ROUNDED];
-  });
-
-  const fontFamilyClass = computed(() => {
-    const font = safeBrandSettings.value?.font_family as FontFamily | undefined;
-    return fontFamilyClasses[font ?? FontFamily.SANS];
-  });
+  // Use computed refs from identityStore directly - already parsed with v3 schema
+  const cornerClass = computed(() => productIdentity.cornerClass);
+  const fontFamilyClass = computed(() => productIdentity.fontFamilyClass);
 
   const hasImageError = ref(false);
 
   const cornerStyle = computed(() => {
-    switch (brandSettings?.corner_style) {
+    switch (productIdentity.brand?.corner_style) {
       case 'rounded':
         return 'rounded-lg';
       case 'pill':
@@ -82,10 +69,9 @@
   <BaseSecretDisplay
     :default-title="t('web.secrets.you_have_a_message')"
     :preview-i18n="i18n"
-    :domain-branding="safeBrandSettings"
+    :domain-branding="productIdentity.brand ?? defaultBrandSettings"
     :corner-class="cornerClass"
-    :font-class="fontFamilyClass"
-    :instructions="brandSettings?.instructions_pre_reveal">
+    :font-class="fontFamilyClass">
     <template #logo>
       <div class="relative mx-auto sm:mx-0">
         <div :class="[cornerStyle, 'size-14 overflow-hidden sm:size-16']">
@@ -193,8 +179,8 @@
             'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg',
           ]"
           :style="{
-            backgroundColor: brandSettings?.primary_color ?? '#dc4a22',
-            color: brandSettings?.button_text_light ?? true ? '#ffffff' : '#222222',
+            backgroundColor: productIdentity.primaryColor,
+            color: productIdentity.buttonTextLight ? '#ffffff' : '#222222',
           }"
           class="focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
           aria-live="polite">

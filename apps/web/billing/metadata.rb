@@ -20,8 +20,14 @@ module Billing
     FIELD_ENTITLEMENTS       = 'entitlements'
     FIELD_PLAN_ID            = 'plan_id'
     FIELD_CREATED            = 'created'
+    FIELD_CURRENCY           = 'currency'
     FIELD_DISPLAY_ORDER      = 'display_order'
     FIELD_SHOW_ON_PLANS_PAGE = 'show_on_plans_page'
+
+    # Complimentary subscription marker — lives on Stripe subscription
+    # metadata and is cached locally on org.complimentary by webhooks.
+    # Stripe is the source of truth; the local field is read-only.
+    FIELD_COMPLIMENTARY      = 'complimentary'
 
     # Optional metadata fields
     FIELD_PLAN_CODE          = 'ots_plan_code'           # Deduplication key (e.g., "identity_plus" for monthly+yearly)
@@ -70,6 +76,9 @@ module Billing
       FIELD_TENANCY,
       FIELD_CREATED,
     ].freeze
+
+    # Plan IDs that represent free/unpaid tiers
+    FREE_PLAN_IDS = %w[free free_v1].freeze
 
     # Values representing unlimited resources
     UNLIMITED_VALUES = ['-1', 'infinity'].freeze

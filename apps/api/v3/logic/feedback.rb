@@ -7,13 +7,30 @@ require_relative '../../../../lib/onetime/jobs/publisher'
 
 module V3
   module Logic
+    # @api Submit a feedback message. Accepts a text message with
+    #   optional timezone and client version metadata. Available to
+    #   both authenticated and anonymous users.
+    #
+    # Rate limiting: 10 requests per hour per IP to prevent abuse.
+    # This prevents email storms to colonels and feedback store flooding.
     class ReceiveFeedback < V3::Logic::Base
+      SCHEMAS = { response: 'feedback' }.freeze
+
+      # Rate limit: 10 feedback submissions per hour per IP
+      # Generous enough for legitimate use, restrictive enough to prevent abuse
+      FEEDBACK_RATE_LIMIT_MAX    = 10
+      FEEDBACK_RATE_LIMIT_WINDOW = 3600 # 1 hour
+
+      MAX_MSG_LENGTH     = 199_999 # 200k chars is enough for anyone
+      MAX_TZ_LENGTH      = 64
+      MAX_VERSION_LENGTH = 32
+
       attr_reader :msg, :greenlighted, :tz, :version
 
       def process_params
-        @msg     = sanitize_plain_text(params['msg'], max_length: 19_999)
-        @tz      = sanitize_plain_text(params['tz'], max_length: 64)
-        @version = sanitize_plain_text(params['version'], max_length: 32)
+        @msg     = sanitize_plain_text(params['msg'], max_length: MAX_MSG_LENGTH)
+        @tz      = sanitize_plain_text(params['tz'], max_length: MAX_TZ_LENGTH)
+        @version = sanitize_plain_text(params['version'], max_length: MAX_VERSION_LENGTH)
       end
 
       def raise_concerns
@@ -47,8 +64,9 @@ module V3
       end
 
       def format_feedback_message
-        # Use extid for authenticated users, session-based identifier for anonymous
-        identifier = if cust.anonymous?
+        # Use extid for authenticated users, session-based identifier for anonymous.
+        # anonymous_user? is from AuthorizationPolicies, checks cust.nil? || cust.anonymous?
+        identifier = if anonymous_user?
                        # Generate short identifier from session for anonymous users
                        sess_id = sess.respond_to?(:id) ? sess.id&.public_id : sess.object_id.to_s(16)
                        "anon:#{sess_id.to_s[0, 8]}"
@@ -76,8 +94,8 @@ module V3
         effective_domain = display_domain || OT.conf.dig('site', 'host')
 
         # Determine sender email - use actual email for authenticated users,
-        # 'anonymous' indicator for guests
-        sender_email = sender.anonymous? ? 'anonymous' : sender.email
+        # 'anonymous' indicator for guests (nil sender or anonymous flag)
+        sender_email = sender.nil? || sender.anonymous? ? 'anonymous' : sender.email
 
         begin
           # Non-critical: feedback is saved in Redis regardless of email

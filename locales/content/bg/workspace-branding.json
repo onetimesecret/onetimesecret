@@ -166,5 +166,9 @@
   "web.branding.switch_to_safari_preview": {
     "text": "Превключи към Safari преглед",
     "sha256": "f24ac447"
+  },
+  "web.branding.upgrade_to_customize": {
+    "text": "Надградете плана си, за да персонализирате брандирането за този домейн.",
+    "sha256": "9077bf79"
   }
 }

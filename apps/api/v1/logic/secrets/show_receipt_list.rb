@@ -29,30 +29,34 @@ module V1::Logic
         # and truncating to int excludes receipts added in the same second
         @query_results = cust.receipts.rangebyscore(since, @now)
 
-        # Get the safe fields for each record
+        # Return Receipt model objects (not safe_dump hashes) because the V1
+        # controller passes these to receipt_hsh which needs model methods
+        # like secret_ttl, identifier, current_expiration, and to_h.
         @receipts = query_results.filter_map do |identifier|
-          md = Onetime::Receipt.find_by_identifier(identifier)
-          md&.safe_dump
+          Onetime::Receipt.find_by_identifier(identifier)
         end
 
         @has_items = receipts.any?
-        @received, @notreceived = *receipts.partition{ |m| m[:is_destroyed] }
-        received.sort_by! { |a| a[:updated] }
-        notreceived.sort!{ |a,b| b[:updated] <=> a[:updated] }
+        @received, @notreceived = *receipts.partition { |m|
+          m.state?(:revealed) || m.state?(:received) ||
+            m.state?(:burned) || m.state?(:expired) || m.state?(:orphaned)
+        }
+        received.sort_by! { |a| a.updated.to_i }
+        notreceived.sort! { |a, b| b.updated.to_i <=> a.updated.to_i }
       end
 
       def success_data
         {
           custid: cust.custid,
           count: receipts.count,
-          records: receipts,
+          records: receipts.map(&:safe_dump),
           details: {
             type: 'list', # Add the type discriminator
             since: since,
             now: now,
             has_items: has_items,
-            received: received,
-            notreceived: notreceived,
+            revealed_receipts: received.map(&:safe_dump),
+            pending_receipts: notreceived.map(&:safe_dump),
           },
         }
       end

@@ -43,6 +43,9 @@ module Internal
           return
         end
 
+        # Always verify domain ownership. The check_verification parameter
+        # was removed from the HTTP interface to prevent any local process
+        # from bypassing DNS verification via query string.
         allowed = Application.domain_allowed?(domain)
         status  = allowed ? 200 : 403
 
@@ -51,6 +54,42 @@ module Internal
         res.status          = status
         res['content-type'] = 'text/plain'
         res.body            = [allowed ? 'OK' : 'Forbidden']
+      end
+    end
+
+    # Middleware to restrict access to localhost only.
+    #
+    # Defined at module level (not inside Application) so it is available
+    # for the class-level `use` directive when Application is parsed.
+    #
+    # Relies on IPPrivacyMiddleware (from the universal MiddlewareStack) running
+    # first to resolve the real client IP from forwarded headers into REMOTE_ADDR.
+    # If middleware ordering changes, add a Caddy-level block as defense in depth
+    # (see README Security section).
+    class LocalhostOnly
+      def initialize(app)
+        @app = app
+        # Lazy-load ipaddr as it's part of the standard library but not always needed.
+        require 'ipaddr' unless defined?(IPAddr)
+      end
+
+      def call(env)
+        remote_addr = env['REMOTE_ADDR']
+        is_loopback = false
+
+        begin
+          # IPAddr.new will raise an error for nil or invalid IP strings.
+          is_loopback = remote_addr && IPAddr.new(remote_addr).loopback?
+        rescue IPAddr::InvalidAddressError
+          # is_loopback remains false, correctly denying the request.
+        end
+
+        unless is_loopback
+          OT.le "[Internal::ACME] Unauthorized access attempt from #{remote_addr}"
+          return [401, { 'content-type' => 'text/plain' }, ['Unauthorized - localhost only']]
+        end
+
+        @app.call(env)
       end
     end
 
@@ -73,6 +112,17 @@ module Internal
     class Application < Onetime::Application::Base
       @uri_prefix = '/api/internal/acme'
 
+      # Security: restrict to localhost. Runs after the universal MiddlewareStack
+      # (including IPPrivacyMiddleware which resolves the real client IP from
+      # forwarded headers), so REMOTE_ADDR reflects the true client even when
+      # the main process runs behind a reverse proxy.
+      use LocalhostOnly
+
+      # Only load when ACME endpoint is explicitly enabled in config
+      def self.should_skip_loading?
+        OT.conf&.dig('features', 'domains', 'acme', 'enabled').to_s != 'true'
+      end
+
       warmup do
         # Preload CustomDomain model for ACME validation
         # This prevents lazy loading during Caddy's on-demand TLS requests
@@ -86,24 +136,14 @@ module Internal
         Otto.new(routes_path)
       end
 
-      # Build middleware stack
-      def build_middleware_stack
-        Rack::Builder.new do
-          # Security middleware - MUST be first
-          # Only allow requests from localhost (Caddy running on same host)
-          use LocalhostOnly
-
-          # Simple logging for debugging (development only)
-          use Rack::CommonLogger if Onetime.development?
-        end
-      end
-
       class << self
-        def domain_allowed?(domain)
+        def domain_allowed?(domain, check_verification: true)
           # Load and check if this domain exists in our CustomDomain database
           custom_domain = Onetime::CustomDomain.load_by_display_domain(domain)
 
           return false if custom_domain.nil?
+
+          return true unless check_verification
 
           # IMPORTANT: Only allow domains that have been verified via DNS TXT record.
           # This proves the customer actually owns the domain before Caddy issues a cert.
@@ -112,26 +152,6 @@ module Internal
         rescue StandardError => ex
           OT.le "[Internal::ACME] Error checking domain #{domain}: #{ex.message}"
           false
-        end
-      end
-
-      # Middleware to restrict access to localhost only
-      class LocalhostOnly
-        LOCALHOST_IPS = ['127.0.0.1', '::1', '::ffff:127.0.0.1'].freeze
-
-        def initialize(app)
-          @app = app
-        end
-
-        def call(env)
-          remote_addr = env['REMOTE_ADDR']
-
-          unless LOCALHOST_IPS.include?(remote_addr)
-            OT.le "[Internal::ACME] Unauthorized access attempt from #{remote_addr}"
-            return [401, { 'content-type' => 'text/plain' }, ['Unauthorized - localhost only']]
-          end
-
-          @app.call(env)
         end
       end
     end

@@ -98,6 +98,38 @@ class MockStrategyResult
     )
   end
 
+  # Create an authenticated result with organization context
+  # Automatically creates a default organization if none exists for the customer
+  #
+  # @param customer [Onetime::Customer] Authenticated customer
+  # @param session [Object] Optional session object (default: MockSession.new)
+  # @param auth_method [String] Authentication method (default: 'session')
+  # @return [MockStrategyResult] Strategy result with organization context
+  def self.authenticated(customer, session: nil, auth_method: 'session')
+    session ||= MockSession.new
+
+    # Get or create organization for the customer
+    org = customer.organization_instances.to_a.first
+    unless org
+      display_name = "#{customer.email}'s Test Workspace"
+      org = Onetime::Organization.create!(display_name, customer, customer.email, is_default: true)
+    end
+
+    # Build metadata with organization context (same structure as OrganizationLoader)
+    org_context = {
+      organization: org,
+      organization_id: org.objid,
+      expires_at: Familia.now.to_i + 300,
+    }
+
+    new(
+      session: session,
+      user: customer,
+      auth_method: auth_method,
+      metadata: { organization_context: org_context }
+    )
+  end
+
   # Check if the request has an authenticated user in session
   def authenticated?
     !user.nil?
@@ -294,11 +326,21 @@ class MockSession
   end
 
   def [](key)
-    nil
+    @data ||= {}
+    @data[key]
   end
 
   def []=(key, value)
-    value
+    @data ||= {}
+    @data[key] = value
+  end
+
+  def clear
+    @data = {}
+  end
+
+  def empty?
+    (@data || {}).empty?
   end
 end
 

@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "תחום שיפוט נוכחי:",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "החלפת אזורים",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "המדיניות שלנו היא לעולם לא להעביר נתונים בין אזורים. כל אזור פועל כסביבה עצמאית לחלוטין.",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "כדי להשתמש באזור אחר, צור חשבון חדש שם באמצעות אותה כתובת דואר אלקטרוני המשויכת לדואר האלקטרוני של איש הקשר לחיוב שלך.",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "אם דואר אלקטרוני של איש הקשר לחיוב שלך שונה מדואר אלקטרוני של חשבון Onetime Secret שלך, השתמש בדואר האלקטרוני של איש הקשר לחיוב לחשבון באזור החדש כדי לשמור על הטבות המנוי שלך.",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "הטבות המנוי שלך יחולו אוטומטית על כל חשבון שנוצר עם כתובת הדואר האלקטרוני לחיוב שלך.",
+    "sha256": "5b2238b2"
   }
 }

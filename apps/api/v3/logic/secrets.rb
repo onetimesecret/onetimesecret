@@ -40,9 +40,16 @@ module V3
       end
 
       # Conceal a secret (create from user-provided value)
+      #
+      # @api Store a user-provided secret value and return share metadata
+      #   including a secret link for the recipient and a receipt link for
+      #   the creator. The secret can only be retrieved once before it is
+      #   permanently destroyed.
       class ConcealSecret < V2::Logic::Secrets::ConcealSecret
         include ModernResponseFormat
         include Onetime::Logic::GuestRouteGating
+
+        SCHEMAS = { response: 'concealData', request: 'concealSecret' }.freeze
 
         def raise_concerns
           require_guest_route_enabled!(:conceal)
@@ -51,9 +58,15 @@ module V3
       end
 
       # Generate a secret (create from system-generated value)
+      #
+      # @api Generate a random secret value using configurable character sets
+      #   and length, then return share metadata including a secret link and
+      #   a receipt link. The generated value can only be retrieved once.
       class GenerateSecret < V2::Logic::Secrets::GenerateSecret
         include ModernResponseFormat
         include Onetime::Logic::GuestRouteGating
+
+        SCHEMAS = { response: 'concealData', request: 'generateSecret' }.freeze
 
         def raise_concerns
           require_guest_route_enabled!(:generate)
@@ -63,8 +76,15 @@ module V3
 
       # Reveal a secret (decrypt and return value)
       # Extended to notify owner when their secret is revealed
+      #
+      # @api Retrieve and decrypt a secret value. The secret is permanently
+      #   destroyed immediately after retrieval and cannot be accessed again.
+      #   Requires a passphrase if one was set during creation. The secret
+      #   owner is optionally notified when the secret is revealed.
       class RevealSecret < V2::Logic::Secrets::RevealSecret
         include Onetime::Logic::GuestRouteGating
+
+        SCHEMAS = { response: 'secret' }.freeze
 
         def raise_concerns
           require_guest_route_enabled!(:reveal)
@@ -106,8 +126,14 @@ module V3
       end
 
       # Show secret receipt without revealing value
+      #
+      # @api Return metadata about a secret without revealing its value.
+      #   Includes state, expiration details, and whether a passphrase is
+      #   required. Marks the secret as previewed on first access.
       class ShowSecret < V2::Logic::Secrets::ShowSecret
         include Onetime::Logic::GuestRouteGating
+
+        SCHEMAS = { response: 'secret' }.freeze
 
         def raise_concerns
           require_guest_route_enabled!(:show)
@@ -116,23 +142,47 @@ module V3
       end
 
       # Show secret status
+      #
+      # @api Check the current status of a secret by its identifier.
+      #   Returns the secret's state and expiration details, or an
+      #   unknown state if the secret does not exist.
       class ShowSecretStatus < V2::Logic::Secrets::ShowSecretStatus
+        SCHEMAS = { response: 'secret' }.freeze
+
         # include ::V3::Logic::Base
       end
 
       # List secret status for multiple identifiers
+      #
+      # @api Retrieve the status of multiple secrets in a single request.
+      #   Accepts a comma-separated list of secret identifiers and returns
+      #   their current state and metadata.
       class ListSecretStatus < V2::Logic::Secrets::ListSecretStatus
+        SCHEMAS = { response: 'secretList' }.freeze
+
         # include ::V3::Logic::Base
       end
 
-      # List user's receipts (recent secrets - receipt/private)
+      # List user's receipts
+      #
+      # @api List receipts for the authenticated user's recent secrets.
+      #   Returns receipts from the last 30 days, sorted by most recently
+      #   updated. Supports scoping by organization or custom domain.
       class ListReceipts < V2::Logic::Secrets::ListReceipts
+        SCHEMAS = { response: 'receiptList' }.freeze
+
         # include ::V3::Logic::Base
       end
 
       # Burn a secret
+      #
+      # @api Permanently destroy a secret before it has been revealed.
+      #   Requires a passphrase if one was set during creation. Returns
+      #   the updated receipt confirming the secret has been burned.
       class BurnSecret < V2::Logic::Secrets::BurnSecret
         include Onetime::Logic::GuestRouteGating
+
+        SCHEMAS = { response: 'receipt' }.freeze
 
         def raise_concerns
           require_guest_route_enabled!(:burn)
@@ -140,9 +190,15 @@ module V3
         end
       end
 
-      # Show receipt for a secret (receipt/private endpoints)
+      # Show receipt for a secret
+      #
+      # @api Retrieve a receipt with full details about a secret's lifecycle,
+      #   including share and burn URLs, expiration, and current state. On
+      #   first access, may include the generated secret value briefly.
       class ShowReceipt < V2::Logic::Secrets::ShowReceipt
         include Onetime::Logic::GuestRouteGating
+
+        SCHEMAS = { response: 'receipt' }.freeze
 
         def raise_concerns
           require_guest_route_enabled!(:receipt)
@@ -151,8 +207,14 @@ module V3
       end
 
       # Show multiple receipts for guest users (batch status check)
+      #
+      # @api Retrieve multiple receipts in a single request by providing an
+      #   array of receipt identifiers. Returns up to 25 receipts per
+      #   request. Useful for checking the status of several secrets at once.
       class ShowMultipleReceipts < V2::Logic::Base
         include Onetime::Logic::GuestRouteGating
+
+        SCHEMAS = { response: 'receiptList' }.freeze
 
         # Maximum receipt identifiers per batch request
         MAX_RECEIPT_IDENTIFIERS_PER_BATCH = 25
@@ -191,7 +253,12 @@ module V3
       end
 
       # Update receipt (memo field)
+      #
+      # @api Update the memo field on a receipt owned by the authenticated
+      #   user. Returns the updated receipt record.
       class UpdateReceipt < V2::Logic::Secrets::UpdateReceipt
+        SCHEMAS = { response: 'receipt' }.freeze
+
         # include ::V3::Logic::Base
       end
     end

@@ -8,10 +8,9 @@ module Onetime
       # Shared helpers for billing-related email templates
       module BillingTemplateHelpers
         CURRENCY_SYMBOLS = {
-          'usd' => '$',
+          'cad' => 'CA$',
           'eur' => '€',
           'gbp' => '£',
-          'cad' => 'CA$',
           'aud' => 'A$',
           'jpy' => '¥',
         }.freeze

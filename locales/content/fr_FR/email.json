@@ -151,6 +151,14 @@
     "text": "Ce lien ne fonctionnera qu'une seule fois. Après consultation, le secret sera définitivement supprimé.",
     "sha256": "fecaf0a1"
   },
+  "email.incoming_secret.passphrase_required": {
+    "text": "Ce secret est protégé par une phrase secrète. L'expéditeur doit vous la communiquer séparément.",
+    "sha256": "1e49826b"
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "Phrase secrète requise :",
+    "sha256": "1ab9a20f"
+  },
   "email.incoming_secret.sent_via": {
     "text": "Envoyé via",
     "sha256": "d01479b3"
@@ -320,16 +328,84 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "L'adresse e-mail de votre compte %{product_name} a été modifiée en %{new_email_masked} le %{date}.",
+    "text": "L'adresse e-mail de votre compte %{product_name} a été modifiée en %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "Si vous n'avez pas effectué cette modification, veuillez contacter immédiatement le support car votre compte pourrait être compromis.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "L'adresse e-mail de votre compte %{product_name} a été modifiée.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "Nouvel e-mail :",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "Modifié le :",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "Si vous avez effectué ce changement, aucune action supplémentaire n'est requise.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "Si vous n'avez pas effectué ce changement, votre compte pourrait être compromis.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "Contacter le support",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "P.S. Cet e-mail a été envoyé à %{email_address} pour vous informer d'un changement d'adresse e-mail.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "Changement d'e-mail demandé (%{display_domain})",
+    "sha256": "be3441d6"
+  },
+  "email.email_change_requested.title": {
+    "text": "Changement d'e-mail demandé",
+    "sha256": "704cbdca"
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "Une demande de changement d'adresse e-mail a été effectuée sur votre compte %{product_name}.",
+    "sha256": "d7e39154"
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "Nouvel e-mail demandé :",
+    "sha256": "243f3e03"
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "Demandé le :",
+    "sha256": "ada23c51"
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "Si vous avez fait cette demande, vérifiez votre nouvel e-mail pour un lien de confirmation. Aucun changement n'a encore été effectué.",
+    "sha256": "aa1bf526"
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "Si vous n'avez pas fait cette demande, vous pouvez ignorer cet e-mail en toute sécurité. Votre compte n'a pas été modifié.",
+    "sha256": "ff41a7b7"
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "Contacter le support",
+    "sha256": "f8d47b82"
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.email_change_requested.postscript": {
+    "text": "P.S. Cet e-mail a été envoyé à %{email_address} car un changement d'e-mail a été demandé pour votre compte.",
+    "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {
     "text": "Vérifiez votre nouvelle adresse e-mail (%{display_domain})",
@@ -347,13 +423,33 @@
     "text": "Vérifier l'adresse e-mail",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "Une demande a été effectuée pour changer l'adresse e-mail de votre compte %{product_name} en %{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "Confirmer le changement d'e-mail",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Ou copiez et collez ce lien :",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "Ce lien expirera dans %{hours} heures.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "Si vous n'avez pas demandé ce changement, vous pouvez ignorer cet e-mail en toute sécurité. Votre adresse e-mail ne sera pas modifiée.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "P.S. Cet e-mail a été envoyé à %{email_address} pour confirmer un changement d'adresse e-mail.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "Authentification à deux facteurs activée (%{display_domain})",

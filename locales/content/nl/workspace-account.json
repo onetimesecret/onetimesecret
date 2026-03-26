@@ -155,6 +155,10 @@
     "text": "{0} verwijderen",
     "sha256": "81d21828"
   },
+  "web.account.deleting_ellipsis": {
+    "text": "Verwijderen...",
+    "sha256": "685ecb98"
+  },
   "web.account.permanently_delete_account": {
     "text": "Account permanent verwijderen",
     "sha256": "f894e42c"
@@ -210,6 +214,22 @@
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Beheer je accountinstellingen en voorkeuren",
     "sha256": "2ff0853c"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Terug naar dashboard",
+    "sha256": "97ba1d39"
+  },
+  "web.settings.sections.account": {
+    "text": "Account",
+    "sha256": "7e1b0d56"
+  },
+  "web.settings.sections.billing": {
+    "text": "Facturering",
+    "sha256": "3ac8bbca"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Geavanceerd",
+    "sha256": "9f088dbe"
   },
   "web.settings.general": {
     "text": "Algemeen",
@@ -615,24 +635,52 @@
     "text": "Deze actie kan niet ongedaan worden gemaakt",
     "sha256": "02ccc074"
   },
-  "web.account.deleting_ellipsis": {
-    "text": "Verwijderen...",
-    "sha256": "685ecb98"
+  "web.settings.profile.confirm_email_change_title": {
+    "text": "E-mailadres bijgewerkt",
+    "sha256": "cf02eb0c"
   },
-  "web.settings.back_to_dashboard": {
-    "text": "Terug naar dashboard",
-    "sha256": "97ba1d39"
+  "web.settings.profile.email_confirmed_success": {
+    "text": "Je e-mailadres is succesvol bijgewerkt. Log in met je nieuwe e-mailadres.",
+    "sha256": "a84efcea"
   },
-  "web.settings.sections.account": {
-    "text": "Account",
-    "sha256": "7e1b0d56"
+  "web.settings.profile.email_confirm_verifying": {
+    "text": "Je nieuwe e-mailadres wordt geverifieerd...",
+    "sha256": "a6a4745f"
   },
-  "web.settings.sections.billing": {
-    "text": "Facturering",
-    "sha256": "3ac8bbca"
+  "web.settings.profile.email_confirm_error_title": {
+    "text": "E-mailadres wijzigen mislukt",
+    "sha256": "953f3936"
   },
-  "web.settings.sections.advanced": {
-    "text": "Geavanceerd",
-    "sha256": "9f088dbe"
+  "web.settings.profile.email_confirm_invalid": {
+    "text": "Deze verificatielink is ongeldig of verlopen.",
+    "sha256": "f54594c2"
+  },
+  "web.settings.profile.email_confirm_back_to_settings": {
+    "text": "Terug naar accountinstellingen",
+    "sha256": "fd49b66b"
+  },
+  "web.settings.profile.redirecting_to_signin": {
+    "text": "Doorsturen naar inloggen...",
+    "sha256": "c65f7dcc"
+  },
+  "web.settings.profile.resend_confirmation": {
+    "text": "Bevestigingsmail opnieuw verzenden",
+    "sha256": "c617fff7"
+  },
+  "web.settings.profile.resend_confirmation_success": {
+    "text": "Bevestigingsmail succesvol opnieuw verzonden.",
+    "sha256": "2287783b"
+  },
+  "web.settings.profile.resend_confirmation_sending": {
+    "text": "Verzenden...",
+    "sha256": "286a3af7"
+  },
+  "web.settings.profile.email_change_pending": {
+    "text": "Er is een verificatie-e-mail verzonden. Controleer je inbox en klik op de bevestigingslink.",
+    "sha256": "5806c93f"
+  },
+  "web.settings.profile.didnt_receive_email": {
+    "text": "E-mail niet ontvangen?",
+    "sha256": "fe3ac3ad"
   }
 }

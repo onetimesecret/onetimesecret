@@ -151,6 +151,14 @@
     "text": "Ez a link csak egyszer működik. Megtekintés után a titok véglegesen törlődik.",
     "sha256": "fecaf0a1"
   },
+  "email.incoming_secret.passphrase_required": {
+    "text": "Ez a titok hozzáférési mondattal van védve. A küldőnek külön kell megadnia Önnek.",
+    "sha256": "1e49826b"
+  },
+  "email.incoming_secret.passphrase_label": {
+    "text": "Hozzáférési mondat szükséges:",
+    "sha256": "1ab9a20f"
+  },
   "email.incoming_secret.sent_via": {
     "text": "Küldve ezen keresztül:",
     "sha256": "d01479b3"
@@ -232,7 +240,7 @@
     "sha256": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
-    "text": "Domain:",
+    "text": "Domén:",
     "sha256": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
@@ -320,16 +328,84 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "A %{product_name} fiókjához tartozó e-mail cím %{date} dátummal megváltozott erre: %{new_email_masked}.",
+    "text": "A %{product_name} fiókjához tartozó e-mail cím megváltozott erre: %{new_email_masked}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "Ha nem Ön kezdeményezte ezt a módosítást, kérjük, azonnal lépjen kapcsolatba az ügyfélszolgálattal, mert fiókja veszélybe kerülhetett.",
     "sha256": "f505b562"
   },
+  "email.email_changed.change_notice": {
+    "text": "A %{product_name} fiókjához tartozó e-mail cím megváltozott.",
+    "sha256": "bb467ebc"
+  },
+  "email.email_changed.new_email_label": {
+    "text": "Új e-mail:",
+    "sha256": "0161371a"
+  },
+  "email.email_changed.changed_at_label": {
+    "text": "Módosítva:",
+    "sha256": "f4a9cdda"
+  },
+  "email.email_changed.if_you_initiated": {
+    "text": "Ha Ön hajtotta végre ezt a módosítást, nincs további teendője.",
+    "sha256": "5cb54887"
+  },
+  "email.email_changed.not_you_notice": {
+    "text": "Ha nem Ön hajtotta végre ezt a módosítást, fiókja feltörésre kerülhetett.",
+    "sha256": "08f479fb"
+  },
+  "email.email_changed.contact_support": {
+    "text": "Kapcsolatfelvétel a támogatással",
+    "sha256": "f8d47b82"
+  },
   "email.email_changed.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_changed.postscript": {
+    "text": "U.I. Ezt az e-mailt a %{email_address} címre küldtük, hogy értesítsük az e-mail cím változásáról.",
+    "sha256": "475cae37"
+  },
+  "email.email_change_requested.subject": {
+    "text": "E-mail módosítás kérelmezve (%{display_domain})",
+    "sha256": "be3441d6"
+  },
+  "email.email_change_requested.title": {
+    "text": "E-mail módosítás kérelmezve",
+    "sha256": "704cbdca"
+  },
+  "email.email_change_requested.change_notice": {
+    "text": "Kérelem érkezett a %{product_name} fiókjához tartozó e-mail cím módosítására.",
+    "sha256": "d7e39154"
+  },
+  "email.email_change_requested.new_email_label": {
+    "text": "Kért új e-mail:",
+    "sha256": "243f3e03"
+  },
+  "email.email_change_requested.requested_at_label": {
+    "text": "Kérelmezve:",
+    "sha256": "ada23c51"
+  },
+  "email.email_change_requested.if_you_initiated": {
+    "text": "Ha Ön kezdeményezte ezt a kérelmet, ellenőrizze az új e-mail fiókját a megerősítő hivatkozásért. Még nem történt módosítás.",
+    "sha256": "aa1bf526"
+  },
+  "email.email_change_requested.not_you_notice": {
+    "text": "Ha nem Ön kezdeményezte ezt a kérelmet, nyugodtan figyelmen kívül hagyhatja ezt az e-mailt. Fiókja nem változott.",
+    "sha256": "ff41a7b7"
+  },
+  "email.email_change_requested.contact_support": {
+    "text": "Kapcsolatfelvétel a támogatással",
+    "sha256": "f8d47b82"
+  },
+  "email.email_change_requested.signature": {
+    "text": "Delano",
+    "sha256": "f58154f7"
+  },
+  "email.email_change_requested.postscript": {
+    "text": "U.I. Ezt az e-mailt a %{email_address} címre küldtük, mert e-mail módosítást kérelmeztek a fiókjához.",
+    "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {
     "text": "Új e-mail cím ellenőrzése (%{display_domain})",
@@ -347,13 +423,33 @@
     "text": "E-mail cím ellenőrzése",
     "sha256": "d261b9df"
   },
+  "email.email_change_confirmation.request_notice": {
+    "text": "Kérelem érkezett a %{product_name} fiókjához tartozó e-mail cím módosítására a következőre: %{new_email}.",
+    "sha256": "33277e1b"
+  },
+  "email.email_change_confirmation.confirm_button": {
+    "text": "E-mail módosítás megerősítése",
+    "sha256": "c2736949"
+  },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Vagy másolja és illessze be ezt a linket:",
     "sha256": "88c72144"
   },
+  "email.email_change_confirmation.expires_notice": {
+    "text": "Ez a hivatkozás %{hours} óra múlva lejár.",
+    "sha256": "e744f5a7"
+  },
+  "email.email_change_confirmation.ignore_notice": {
+    "text": "Ha nem Ön kérte ezt a módosítást, nyugodtan figyelmen kívül hagyhatja ezt az e-mailt. Az e-mail címe nem változik meg.",
+    "sha256": "d4d835fc"
+  },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
     "sha256": "f58154f7"
+  },
+  "email.email_change_confirmation.postscript": {
+    "text": "U.I. Ezt az e-mailt a %{email_address} címre küldtük az e-mail cím módosításának megerősítéséhez.",
+    "sha256": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "Kétfaktoros hitelesítés bekapcsolva (%{display_domain})",

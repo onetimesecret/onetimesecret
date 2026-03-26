@@ -47,6 +47,10 @@
     "text": "Legal",
     "sha256": "0a410c78"
   },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Cuando envíes tus comentarios, veremos:",
+    "sha256": "fe77172e"
+  },
   "web.footer.read_our_privacy_policy": {
     "text": "Lee nuestra política de privacidad",
     "sha256": "eb443229"
@@ -94,6 +98,14 @@
   "web.footer.company": {
     "text": "Empresa",
     "sha256": "de4743c8"
+  },
+  "web.footer.product": {
+    "text": "Producto",
+    "sha256": "7f5540e9"
+  },
+  "web.footer.source_code_purveyor": {
+    "text": "Código fuente",
+    "sha256": "29c5c68f"
   },
   "web.navigation.billing": {
     "text": "Facturación",
@@ -307,6 +319,10 @@
     "text": "Idioma cambiado a {0}",
     "sha256": "1680f4fe"
   },
+  "web.layout.reset_to_default_language": {
+    "text": "Restablecer a {0}",
+    "sha256": "c0cfa9b2"
+  },
   "web.layout.switch_to_blank_mode": {
     "text": "Cambiar a modo {0}",
     "sha256": "c8b909e0"
@@ -322,13 +338,5 @@
   "web.layout.workspace_context": {
     "text": "Contexto del espacio de trabajo",
     "sha256": "dc6fa4f5"
-  },
-  "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Cuando envíes tus comentarios, veremos:",
-    "sha256": "fe77172e"
-  },
-  "web.layout.reset_to_default_language": {
-    "text": "Restablecer a {0}",
-    "sha256": "c0cfa9b2"
   }
 }

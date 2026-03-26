@@ -75,7 +75,7 @@ export function useReceipt(receiptIdentifier: string, options?: ReceiptOptions) 
       // Should be handled by the async handler
       //notifications.show('Secret burned successfully', 'success');
 
-      router.push({
+      await router.push({
         name: 'Receipt link',
         params: { receiptIdentifier },
         query: { ts: Date.now().toString() },

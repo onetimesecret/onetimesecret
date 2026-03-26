@@ -5,7 +5,6 @@ import { ref, reactive, computed } from 'vue';
 
 import { useAsyncHandler, AsyncHandlerOptions } from './useAsyncHandler';
 
-const languageListeners = new Set<(locale: string) => void>();
 const isInitialized = ref(false);
 
 export function useLanguage(options?: AsyncHandlerOptions) {
@@ -39,24 +38,17 @@ export function useLanguage(options?: AsyncHandlerOptions) {
     }
   };
 
-  const onLanguageChange = (callback: (locale: string) => void) => {
-    languageListeners.add(callback);
-    return () => languageListeners.delete(callback);
-  };
-
   const updateLanguage = (newLocale: string) => wrap(() => languageStore.updateLanguage(newLocale));
 
   return {
-    // Expose store values through composable
+    // Expose store values through composable (wrapped in computed for reactivity)
     currentLocale: computed(() => languageStore.getCurrentLocale),
-
-    supportedLocales: languageStore.getSupportedLocales,
-    supportedLocalesWithNames: languageStore.supportedLocalesWithNames,
+    supportedLocales: computed(() => languageStore.getSupportedLocales),
+    supportedLocalesWithNames: computed(() => languageStore.supportedLocalesWithNames),
 
     // Encapsulate business logic and side effects
     updateLanguage,
     initializeLanguage,
-    onLanguageChange,
     state,
   };
 }

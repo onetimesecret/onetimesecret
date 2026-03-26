@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useDomainStatus } from '@/shared/composables/useDomainStatus';
-  import { CustomDomain } from '@/schemas/models';
+  import { CustomDomain } from '@/schemas/shapes/v3';
   import { computed } from 'vue';
   const { t } = useI18n();
 

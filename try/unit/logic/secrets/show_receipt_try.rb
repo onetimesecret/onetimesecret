@@ -44,7 +44,7 @@ class MockRequest
 end
 
 @sess = MockSession.new
-@strategy_result = MockStrategyResult.new(session: @sess, user: @cust)
+@strategy_result = MockStrategyResult.authenticated(@cust, session: @sess)
 
 ## Can create a ShowReceipt logic with all arguments
 params = {}
@@ -254,6 +254,61 @@ logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
 logic.process
 logic.display_lines
 #=> 9
+
+## Clears secret_identifier when secret is burned
+receipt, secret = Onetime::Receipt.spawn_pair(@cust.custid, 3600, "Secret content")
+original_secret_id = receipt.secret_identifier
+secret.destroy!  # Simulate burning/destroying the secret
+receipt.burned!
+params = { 'identifier' => receipt.identifier }
+logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
+logic.process
+# The instance variable should be nil after processing
+[logic.secret_identifier.nil?, logic.is_destroyed]
+#=> [true, true]
+
+## Clears secret_identifier when secret is revealed
+receipt, secret = Onetime::Receipt.spawn_pair(@cust.custid, 3600, "Secret content")
+secret.destroy!  # Simulate secret being consumed after reveal
+receipt.revealed!
+params = { 'identifier' => receipt.identifier }
+logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
+logic.process
+[logic.secret_identifier.nil?, logic.is_received]
+#=> [true, true]
+
+## Clears secret_identifier when receipt is orphaned (secret destroyed unexpectedly)
+receipt, secret = Onetime::Receipt.spawn_pair(@cust.custid, 3600, "Secret content")
+# Simulate orphan: secret is gone but receipt state is not burned/revealed
+secret.destroy!
+params = { 'identifier' => receipt.identifier }
+logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
+logic.process
+[logic.secret_identifier.nil?, logic.is_orphaned]
+#=> [true, true]
+
+## Response attributes don't include secret_identifier for destroyed secrets
+receipt, secret = Onetime::Receipt.spawn_pair(@cust.custid, 3600, "Secret content")
+secret.destroy!
+receipt.burned!
+params = { 'identifier' => receipt.identifier }
+logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
+result = logic.process
+record_attrs = result[:record]
+# secret_identifier should not be in the response (show_secret is false for destroyed)
+record_attrs.key?(:secret_identifier)
+#=> false
+
+## Share path uses nil identifier for destroyed secrets (prevents leaking)
+receipt, secret = Onetime::Receipt.spawn_pair(@cust.custid, 3600, "Secret content")
+secret.destroy!
+receipt.burned!
+params = { 'identifier' => receipt.identifier }
+logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
+logic.process
+# share_path should not contain the original secret identifier
+logic.share_path.include?(secret.identifier)
+#=> false
 
 # Teardown
 @receipt.destroy!

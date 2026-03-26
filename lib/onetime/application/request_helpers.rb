@@ -69,11 +69,11 @@ module Onetime
 
       # Get current customer (Onetime-specific user object)
       #
-      # Never returns nil - returns Customer.anonymous for unauthenticated requests.
+      # Returns nil for unauthenticated requests.
       #
-      # @return [Onetime::Customer] Customer object (authenticated or anonymous)
+      # @return [Onetime::Customer, nil] Customer object or nil for anonymous
       def current_customer
-        user.is_a?(Onetime::Customer) ? user : Onetime::Customer.anonymous
+        user.is_a?(Onetime::Customer) ? user : nil
       end
 
       # Get current organization from strategy result metadata

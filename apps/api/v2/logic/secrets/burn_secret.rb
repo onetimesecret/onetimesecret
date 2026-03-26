@@ -6,8 +6,30 @@ module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
 
+    # Burn Secret
+    #
+    # @api Permanently destroys a secret before its expiration time. Requires
+    #   the receipt identifier and a passphrase if one was set. Returns the
+    #   updated receipt record with burn confirmation and related URLs.
+    #
+    # SECURITY NOTE: Ownership Not Required
+    # =====================================
+    # This endpoint intentionally does NOT check ownership. Any user (or anonymous
+    # visitor) with the receipt identifier can burn a secret. This is by-design for
+    # the one-time secret sharing model:
+    #
+    # - The receipt URL is the credential for accessing/burning the secret
+    # - Secrets are meant to be burned by the recipient, not the creator
+    # - Passphrase protection provides an additional layer if needed
+    # - The secret creator shares the receipt URL and trusts the recipient
+    #
+    # If ownership-restricted burning is desired, use the owner-facing burn
+    # endpoint on the receipt page (which requires session authentication).
     class BurnSecret < V2::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Logic::GuestRouteGating
+
+      SCHEMAS = { response: 'receipt' }.freeze
 
       attr_reader :identifier, :passphrase, :continue, :receipt, :secret, :correct_passphrase, :greenlighted
 
@@ -19,6 +41,7 @@ module V2::Logic
       end
 
       def raise_concerns
+        require_guest_route_enabled!(:burn)
         require_entitlement!('api_access')
         raise OT::MissingSecret if receipt.nil?
       end
@@ -102,10 +125,10 @@ module V2::Logic
             share_path: build_path(:secret, receipt.secret_identifier),
             burn_path: build_path(:receipt, receipt.identifier, 'burn'),
             receipt_path: build_path(:receipt, receipt.identifier),
-            metadata_path: build_path(:receipt, receipt.identifier), # maintain public API
+            metadata_path: build_path(:receipt, receipt.identifier), # V2 backward-compat alias
             share_url: build_url(domain_uri, build_path(:secret, receipt.secret_identifier)),
             receipt_url: build_url(domain_uri, build_path(:receipt, receipt.identifier)),
-            metadata_url: build_url(domain_uri, build_path(:receipt, receipt.identifier)), # maintain public API
+            metadata_url: build_url(domain_uri, build_path(:receipt, receipt.identifier)), # V2 backward-compat alias
             burn_url: build_url(domain_uri, build_path(:receipt, receipt.identifier, 'burn')),
           },
         )

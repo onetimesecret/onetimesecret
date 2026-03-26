@@ -5,13 +5,14 @@
  * Handles fetching and managing user account data
  */
 
-import { accountInfoResponseSchema, type AccountInfoResponse } from '@/schemas/api/auth/endpoints/auth';
+import { accountInfoResponseSchema, type AccountInfoResponse } from '@/schemas/api/auth/responses/auth';
 import type { AccountInfo } from '@/types/auth';
-import type { AxiosInstance } from 'axios';
-import { ref, inject } from 'vue';
+import { ref } from 'vue';
+
+import { useApi } from '@/shared/composables/useApi';
 
 export function useAccount() {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   const accountInfo = ref<AccountInfo | null>(null);
   const isLoading = ref(false);
@@ -39,8 +40,9 @@ export function useAccount() {
 
       accountInfo.value = validated;
       return validated;
-    } catch (err: any) {
-      error.value = err.response?.data?.error || 'Failed to load account information';
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { error?: string } } };
+      error.value = axiosErr?.response?.data?.error || 'Failed to load account information';
       return null;
     } finally {
       isLoading.value = false;

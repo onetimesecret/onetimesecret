@@ -48,7 +48,8 @@ const handleSubmit = async () => {
       <div
         v-if="successMessage"
         class="mb-4 rounded-md bg-green-50 p-4 dark:bg-green-900/20"
-        role="alert">
+        role="alert"
+        data-testid="password-reset-success">
         <p class="text-sm text-green-800 dark:text-green-200">
           {{ successMessage }}
         </p>
@@ -58,7 +59,8 @@ const handleSubmit = async () => {
       <div
         v-if="error"
         class="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20"
-        role="alert">
+        role="alert"
+        data-testid="password-reset-error">
         <p class="text-sm text-red-800 dark:text-red-200">
           {{ error }}
         </p>
@@ -82,13 +84,15 @@ const handleSubmit = async () => {
             :disabled="isLoading"
             class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300"
             v-model="email"
-            :placeholder="t('web.COMMON.email_placeholder')" />
+            :placeholder="t('web.COMMON.email_placeholder')"
+            data-testid="password-reset-email-input" />
         </div>
         <div class="flex items-center justify-between">
           <button
             type="submit"
             :disabled="isLoading"
-            class="focus:shadow-outline rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-800">
+            class="focus:shadow-outline rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-800"
+            data-testid="password-reset-request-submit">
             <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
             <span v-else>{{ t('web.auth.password_reset_request.button') }}</span>
           </button>

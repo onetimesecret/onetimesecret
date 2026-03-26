@@ -85,6 +85,10 @@ module Onetime
         }
 
         if config_file
+          # Drop Host/Port from the config hash — the puma config file owns binding
+          # via ENV['PORT']. Leaving them in would override the config file's bind directive.
+          config.delete(:Host)
+          config.delete(:Port)
           config[:config_files] = config_file
         elsif server == 'puma'
           thread_config    = parse_threads(threads)

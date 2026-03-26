@@ -2,13 +2,13 @@
 
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
-import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 import type {
-  RegistrationResponseJSON,
   AuthenticationResponseJSON,
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
+  RegistrationResponseJSON,
 } from '@simplewebauthn/browser';
+import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
 import type { AxiosInstance } from 'axios';
 import { inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -69,6 +69,24 @@ export function useWebAuthn() {
   }
 
   /**
+   * Normalizes WebAuthn catch-block errors into a displayable string.
+   * Extracted to keep the three async action functions below the ESLint
+   * complexity limit (max 13 branches each).
+   */
+  function handleWebAuthnError(err: unknown, fallbackKey: string): void {
+    type AxiosLike = { response?: { data?: { error?: string } } };
+    if (err instanceof DOMException && err.name === 'NotAllowedError') {
+      error.value = t('web.auth.webauthn.cancelled');
+    } else if (err instanceof Error && 'response' in err && (err as AxiosLike).response?.data) {
+      error.value = (err as AxiosLike).response!.data!.error || t(fallbackKey);
+    } else if (err instanceof Error) {
+      error.value = err.message || t(fallbackKey);
+    } else {
+      error.value = t(fallbackKey);
+    }
+  }
+
+  /**
    * Registers a new WebAuthn credential (setup flow)
    * Requires password confirmation for security
    *
@@ -126,15 +144,8 @@ export function useWebAuthn() {
       }
 
       return true;
-    } catch (err: any) {
-      // Handle WebAuthn errors
-      if (err.name === 'NotAllowedError') {
-        error.value = t('web.auth.webauthn.cancelled');
-      } else if (err.response?.data) {
-        error.value = err.response.data.error || t('web.auth.webauthn.setupFailed');
-      } else {
-        error.value = err.message || t('web.auth.webauthn.setupFailed');
-      }
+    } catch (err: unknown) {
+      handleWebAuthnError(err, 'web.auth.webauthn.setupFailed');
       return false;
     } finally {
       isLoading.value = false;
@@ -196,15 +207,8 @@ export function useWebAuthn() {
       await authStore.setAuthenticated(true);
       await router.push('/');
       return true;
-    } catch (err: any) {
-      // Handle WebAuthn errors
-      if (err.name === 'NotAllowedError') {
-        error.value = t('web.auth.webauthn.cancelled');
-      } else if (err.response?.data) {
-        error.value = err.response.data.error || t('web.auth.webauthn.authFailed');
-      } else {
-        error.value = err.message || t('web.auth.webauthn.authFailed');
-      }
+    } catch (err: unknown) {
+      handleWebAuthnError(err, 'web.auth.webauthn.authFailed');
       return false;
     } finally {
       isLoading.value = false;
@@ -261,15 +265,8 @@ export function useWebAuthn() {
       }
 
       return true;
-    } catch (err: any) {
-      // Handle WebAuthn errors
-      if (err.name === 'NotAllowedError') {
-        error.value = t('web.auth.webauthn.cancelled');
-      } else if (err.response?.data) {
-        error.value = err.response.data.error || t('web.auth.webauthn.authFailed');
-      } else {
-        error.value = err.message || t('web.auth.webauthn.authFailed');
-      }
+    } catch (err: unknown) {
+      handleWebAuthnError(err, 'web.auth.webauthn.authFailed');
       return false;
     } finally {
       isLoading.value = false;
@@ -284,8 +281,8 @@ export function useWebAuthn() {
 
     // Actions
     registerWebAuthn,
-    authenticateWebAuthn,  // Passwordless login (signin page)
-    verifyWebAuthnMfa,     // MFA verification (after password login)
+    authenticateWebAuthn, // Passwordless login (signin page)
+    verifyWebAuthnMfa, // MFA verification (after password login)
     clearError,
   };
 }

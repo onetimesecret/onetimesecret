@@ -5,6 +5,7 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { usePageTitle } from '@/shared/composables/usePageTitle';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useLanguageStore } from '@/shared/stores/languageStore';
+import { isSsoOnlyMode } from '@/utils/features';
 import { RouteLocationNormalized, Router } from 'vue-router';
 
 import { processQueryParams } from './queryParams.handler';
@@ -42,6 +43,12 @@ export async function setupRouterGuards(router: Router): Promise<void> {
   // Runs as a separate guard to keep complexity per-function within limits.
   router.beforeEach((to: RouteLocationNormalized) => {
     const redirect = handleDisabledAuthFeature(to);
+    return redirect ?? true;
+  });
+
+  // Block access to routes marked excludeSsoOnly when SSO-only mode is active.
+  router.beforeEach((to: RouteLocationNormalized) => {
+    const redirect = handleSsoOnlyRoute(to);
     return redirect ?? true;
   });
 
@@ -178,7 +185,7 @@ function handleDisabledAuthFeature(to: RouteLocationNormalized) {
   const bootstrapStore = useBootstrapStore();
   const { authentication } = bootstrapStore;
 
-  if (!authentication.enabled || !authentication[feature]) {
+  if (!authentication?.enabled || !authentication[feature]) {
     loggingService.debug(
       '[RouterGuard] Redirecting - auth feature disabled:',
       { feature, path: to.path }
@@ -187,6 +194,33 @@ function handleDisabledAuthFeature(to: RouteLocationNormalized) {
   }
 
   return null;
+}
+
+/**
+ * Block access to routes marked with `meta.excludeSsoOnly: true`
+ * when SSO-only mode is active.
+ *
+ * Authenticated routes redirect to '/account' (profile page).
+ * Unauthenticated routes redirect to '/signin' (SSO sign-in page).
+ * Note: /signin is explicitly excluded to prevent redirect loops.
+ */
+export function handleSsoOnlyRoute(to: RouteLocationNormalized) {
+  if (!to.meta.excludeSsoOnly) return null;
+  if (!isSsoOnlyMode()) return null;
+  // Prevent redirect loop: never redirect /signin to itself
+  if (to.path === '/signin') return null;
+
+  loggingService.debug(
+    '[RouterGuard] Redirecting - SSO-only mode blocks route:',
+    { path: to.path }
+  );
+
+  // Authenticated users land on profile; unauthenticated on sign-in
+  const authStore = useAuthStore();
+  if (authStore.isFullyAuthenticated) {
+    return { path: '/account' };
+  }
+  return { path: '/signin' };
 }
 
 function redirectToSignIn(from: RouteLocationNormalized) {

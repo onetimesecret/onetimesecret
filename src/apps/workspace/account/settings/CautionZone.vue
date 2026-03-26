@@ -49,8 +49,10 @@
 
 
 
+            <!-- Authentication check: cust is null for anonymous users (via AuthenticationSerializer),
+                 cust.objid confirms a fully hydrated customer object -->
             <AccountDeleteButtonWithModalForm
-              v-if="cust"
+              v-if="cust?.objid"
               :cust="cust" />
           </div>
         </div>

@@ -3,7 +3,7 @@
 import { test, expect } from '@playwright/test';
 
 /** Window with bootstrap state (object before consumption, true after) */
-type BootstrapWindow = Window & { __BOOTSTRAP_STATE__?: unknown };
+type BootstrapWindow = Window & { __BOOTSTRAP_ME__?: unknown };
 
 /**
  * E2E Integration Tests
@@ -287,7 +287,7 @@ test.describe('E2E Integration - Environment Validation', () => {
   test('environment variables are properly set', async ({ page }) => {
     // This test validates that the application state is properly initialized
     //
-    // Note: window.__BOOTSTRAP_STATE__ starts as an object with server config,
+    // Note: window.__BOOTSTRAP_ME__ starts as an object with server config,
     // then is replaced with `true` after consumption by the bootstrap service.
     // This allows memory to be reclaimed while preserving a testable marker.
 
@@ -295,7 +295,7 @@ test.describe('E2E Integration - Environment Validation', () => {
 
     // Verify bootstrap data was successfully consumed (marker is set to true)
     const bootstrapConsumed = await page.evaluate(() => {
-      return (window as BootstrapWindow).__BOOTSTRAP_STATE__ === true;
+      return (window as BootstrapWindow).__BOOTSTRAP_ME__ === true;
     });
 
     expect(bootstrapConsumed, 'Bootstrap state should be consumed (value === true)').toBe(true);

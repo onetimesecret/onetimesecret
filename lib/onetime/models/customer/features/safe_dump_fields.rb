@@ -21,7 +21,6 @@ module Onetime::Customer::Features
       # NOTE: The SafeDump mixin caches the safe_dump_field_map so updating this list
       # with hot reloading in dev mode will not work. You will need to restart the
       # server to see the changes.
-      base.safe_dump_field :identifier, ->(obj) { obj.identifier }
       base.safe_dump_field :objid
       base.safe_dump_field :extid
       base.safe_dump_field :email

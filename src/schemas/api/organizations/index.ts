@@ -4,4 +4,4 @@
  * Organizations API schemas index
  */
 
-export * from './endpoints';
+export * from './responses';

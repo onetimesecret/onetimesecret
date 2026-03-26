@@ -1,6 +1,6 @@
 // src/apps/workspace/config/settings-navigation.ts
 
-import { isFullAuthMode, isWebAuthnEnabled } from '@/utils/features';
+import { hasPassword, isFullAuthMode, isSsoOnlyMode, isWebAuthnEnabled } from '@/utils/features';
 import type { ComposerTranslation } from 'vue-i18n';
 
 /**
@@ -80,19 +80,21 @@ function getSecuritySection(t: ComposerTranslation): SettingsNavigationItem {
     icon: { collection: 'heroicons', name: 'shield-check-solid' },
     label: t('web.COMMON.security'),
     description: t('web.settings.security_settings_description'),
-    visible: () => isFullAuthMode(),
+    visible: () => isFullAuthMode() && !isSsoOnlyMode(),
     children: [
       {
         id: 'password',
         to: '/account/settings/security/password',
         icon: { collection: 'heroicons', name: 'lock-closed-solid' },
         label: t('web.auth.change_password.title'),
+        visible: () => hasPassword(),
       },
       {
         id: 'mfa',
         to: '/account/settings/security/mfa',
         icon: { collection: 'heroicons', name: 'key-solid' },
         label: t('web.auth.mfa.title'),
+        visible: () => hasPassword(),
       },
       {
         id: 'sessions',
@@ -105,6 +107,7 @@ function getSecuritySection(t: ComposerTranslation): SettingsNavigationItem {
         to: '/account/settings/security/recovery-codes',
         icon: { collection: 'heroicons', name: 'document-text-solid' },
         label: t('web.auth.recovery_codes.title'),
+        visible: () => hasPassword(),
       },
       {
         id: 'passkeys',
@@ -125,6 +128,7 @@ function getRegionSection(t: ComposerTranslation): SettingsNavigationItem {
     icon: { collection: 'heroicons', name: 'globe-alt-solid' },
     label: t('web.account.region'),
     description: t('web.regions.data_sovereignty_title'),
+    visible: () => !isSsoOnlyMode(),
     children: [
       {
         id: 'current',
@@ -193,6 +197,7 @@ export function getSettingsNavigationSections(t: ComposerTranslation): SettingsN
           icon: { collection: 'heroicons', name: 'no-symbol-solid' },
           label: t('web.settings.caution.title'),
           description: t('web.settings.caution.description'),
+          visible: () => !isSsoOnlyMode(),
         },
       ],
     },

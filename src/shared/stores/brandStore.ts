@@ -1,10 +1,11 @@
 // src/shared/stores/brandStore.ts
 
-import { responseSchemas } from '@/schemas/api/v3';
-import type { BrandSettings, ImageProps } from '@/schemas/models';
-import { AxiosInstance } from 'axios';
+import { responseSchemas } from '@/schemas/api/v3/responses';
+import type { BrandSettings, ImageProps } from '@/schemas/shapes/v3/custom-domain';
+import { gracefulParse } from '@/utils/schemaValidation';
+import { useApi } from '@/shared/composables/useApi';
 import { defineStore } from 'pinia';
-import { inject, ref } from 'vue';
+import { ref } from 'vue';
 
 const defaultBranding: BrandSettings = {
   primary_color: '#dc4a22',
@@ -16,22 +17,16 @@ const defaultBranding: BrandSettings = {
   instructions_reveal: '',
   allow_public_api: false,
   allow_public_homepage: false,
+  passphrase_required: false,
+  notify_enabled: false,
 };
 
 /* eslint max-lines-per-function: off */
 export const useBrandStore = defineStore('brand', () => {
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
   const settings = ref<Record<string, BrandSettings>>({});
   const logos = ref<Record<string, ImageProps>>({});
   const _initialized = ref(false);
-
-  /* Reset primaryColor by passing undefined through primary_color field validator
-   * This triggers Zod schema's default value if defined
-   * schema.shape provides access to individual field validators
-   * See https://zod.dev/ for schema parsing docs
-   * See https://pinia.vuejs.org/core-concepts/state.html for Pinia state management
-   */
-  // primaryColor.value = brandSettingschema.shape.primary_color.parse(undefined);
 
   function init() {
     if (_initialized.value) return;
@@ -40,9 +35,13 @@ export const useBrandStore = defineStore('brand', () => {
 
   async function fetchSettings(domainId: string): Promise<BrandSettings> {
     const response = await $api.get(`/api/domains/${domainId}/brand`);
-    const validated = responseSchemas.brandSettings.parse(response.data);
-    settings.value[domainId] = validated.record;
-    return validated.record;
+    const result = gracefulParse(responseSchemas.brandSettings, response.data, 'BrandSettingsResponse');
+    if (!result.ok) {
+      settings.value[domainId] = { ...defaultBranding };
+      return settings.value[domainId];
+    }
+    settings.value[domainId] = result.data.record;
+    return result.data.record;
   }
 
   async function updateSettings(domainId: string, updates: Partial<BrandSettings>) {
@@ -54,11 +53,14 @@ export const useBrandStore = defineStore('brand', () => {
     const response = await $api.put(`/api/domains/${domainId}/brand`, {
       brand: formattedUpdates,
     });
-    const validated = responseSchemas.brandSettings.parse(response.data);
+    const result = gracefulParse(responseSchemas.brandSettings, response.data, 'BrandSettingsResponse');
+    if (!result.ok) {
+      throw new Error('Unable to update brand settings. Please try again.');
+    }
     // Merge the response with existing settings instead of overwriting
     settings.value[domainId] = {
       ...settings.value[domainId],
-      ...validated.record,
+      ...result.data.record,
     };
 
     return settings.value[domainId];
@@ -66,9 +68,13 @@ export const useBrandStore = defineStore('brand', () => {
 
   async function fetchLogo(domainId: string) {
     const response = await $api.get(`/api/domains/${domainId}/logo`);
-    const validated = responseSchemas.imageProps.parse(response.data);
-    logos.value[domainId] = validated.record;
-    return validated.record;
+    const result = gracefulParse(responseSchemas.imageProps, response.data, 'ImagePropsResponse');
+    if (!result.ok) {
+      delete logos.value[domainId];
+      return null;
+    }
+    logos.value[domainId] = result.data.record;
+    return result.data.record;
   }
 
   async function uploadLogo(domainId: string, file: File) {
@@ -76,9 +82,12 @@ export const useBrandStore = defineStore('brand', () => {
     formData.append('image', file);
     // Don't set Content-Type manually - Axios sets it with the correct boundary
     const response = await $api.post(`/api/domains/${domainId}/logo`, formData);
-    const validated = responseSchemas.imageProps.parse(response.data);
-    logos.value[domainId] = validated.record;
-    return validated.record;
+    const result = gracefulParse(responseSchemas.imageProps, response.data, 'ImagePropsResponse');
+    if (!result.ok) {
+      throw new Error('Unable to upload logo. Please try again.');
+    }
+    logos.value[domainId] = result.data.record;
+    return result.data.record;
   }
 
   async function removeLogo(domainId: string) {
@@ -125,6 +134,8 @@ function isEqual(a: BrandSettings, b: BrandSettings): boolean {
     'instructions_reveal',
     'allow_public_api',
     'allow_public_homepage',
+    'passphrase_required',
+    'notify_enabled',
   ];
 
   return keys.every((key) => a[key] === b[key]);

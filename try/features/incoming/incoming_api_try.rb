@@ -391,6 +391,91 @@ ensure
 end
 #=> true
 
+## anonymous_user? returns true for anonymous strategy in CreateIncomingSecret
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+anon_strategy = MockStrategyResult.anonymous
+logic = V3::Logic::Incoming::CreateIncomingSecret.new(anon_strategy, {
+  'secret' => {
+    'memo' => 'Anon test',
+    'secret' => 'Anonymous secret',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.anonymous_user?
+#=> true
+
+## anonymous_user? returns false for authenticated strategy in CreateIncomingSecret
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+  'secret' => {
+    'memo' => 'Auth test',
+    'secret' => 'Authenticated secret',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.anonymous_user?
+#=> false
+
+## CreateIncomingSecret succeeds for anonymous user
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+anon_strategy = MockStrategyResult.anonymous
+logic = V3::Logic::Incoming::CreateIncomingSecret.new(anon_strategy, {
+  'secret' => {
+    'memo' => 'Anonymous memo',
+    'secret' => 'Anonymous secret content',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+result = logic.process
+result[:success]
+#=> true
+
+## CreateIncomingSecret skips customer stats update for anonymous user
+# When anonymous, customer stats (add_receipt, secrets_created) should not be updated
+# This test verifies the code path doesn't error (can't easily verify stats weren't updated
+# without the customer object, but we can verify the process completes successfully)
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+anon_strategy = MockStrategyResult.anonymous
+logic = V3::Logic::Incoming::CreateIncomingSecret.new(anon_strategy, {
+  'secret' => {
+    'memo' => 'Stats skip test',
+    'secret' => 'Secret for stats test',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+result = logic.process
+# Process completes without error and greenlighted is true
+[result[:success], logic.greenlighted]
+#=> [true, true]
+
+## CreateIncomingSecret adds receipt to customer for authenticated user
+# Note: increment_field uses hash field increment, while secrets_created is a Familia counter
+# Testing the receipt association instead as it's more reliable
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+auth_session = MockSession.new
+auth_strategy = MockStrategyResult.authenticated(@cust, session: auth_session)
+# Count initial receipts
+initial_receipt_count = @cust.receipts.to_a.size
+logic = V3::Logic::Incoming::CreateIncomingSecret.new(auth_strategy, {
+  'secret' => {
+    'memo' => 'Auth stats test',
+    'secret' => 'Secret for auth stats',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+# Reload customer and check receipts
+reloaded_cust = Onetime::Customer.load(@cust.custid)
+# Receipt should be added for authenticated user
+reloaded_cust.receipts.to_a.size > initial_receipt_count
+#=> true
+
 ## Cleanup test data
 disable_incoming_feature(@original_conf)
 @cust.destroy! if @cust

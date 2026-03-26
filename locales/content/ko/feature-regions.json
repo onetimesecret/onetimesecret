@@ -138,5 +138,25 @@
   "web.regions.current_jurisdiction": {
     "text": "현재 관할권:",
     "sha256": "d0f2192d"
+  },
+  "web.regions.changing_regions_title": {
+    "text": "지역 변경",
+    "sha256": "189d6685"
+  },
+  "web.regions.changing_regions_description": {
+    "text": "지역 간 데이터 전송은 하지 않는 것이 저희 정책입니다. 각 지역은 완전히 독립적인 환경으로 운영됩니다.",
+    "sha256": "cf45b8be"
+  },
+  "web.regions.changing_regions_how_to": {
+    "text": "다른 지역을 사용하려면 결제 연락처 이메일과 동일한 이메일 주소로 해당 지역에 새 계정을 만드세요.",
+    "sha256": "1d97f6bd"
+  },
+  "web.regions.changing_regions_billing_note": {
+    "text": "결제 연락처 이메일이 Onetime Secret 계정 이메일과 다른 경우, 구독 혜택을 유지하려면 새 지역 계정에 결제 연락처 이메일을 사용하세요.",
+    "sha256": "dac1cc28"
+  },
+  "web.regions.changing_regions_subscription_note": {
+    "text": "결제 이메일 주소로 생성된 모든 계정에 구독 혜택이 자동으로 적용됩니다.",
+    "sha256": "5b2238b2"
   }
 }

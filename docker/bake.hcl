@@ -11,7 +11,13 @@
 #   docker buildx bake -f docker/bake.hcl \
 #     --set '*.args.VERSION=1.0.0' \
 #     --set '*.args.COMMIT_HASH=abc1234' \
+#     --set '*.args.ALLOW_DEV_VERSION=true' \
 #     ci
+#
+# Tagging:
+#   VERSION    → clean semver for build args and OCI labels (never a Docker tag)
+#   IMAGE_TAG  → v-prefixed Docker tag for releases; empty skips version tag
+#   EXTRA_TAGS → comma-separated additional tags (latest, next, nightly, etc.)
 #
 
 # ---------------------------------------------------------------------------
@@ -32,6 +38,16 @@ variable "VERSION" {
 
 variable "COMMIT_HASH" {
   default = "dev"
+}
+
+variable "ALLOW_DEV_VERSION" {
+  default = "false"
+}
+
+# Docker image tag for versioned releases (e.g. "v0.24.0-rc15").
+# Empty for non-tag builds (nightly, branch push, manual dispatch) — only EXTRA_TAGS apply.
+variable "IMAGE_TAG" {
+  default = ""
 }
 
 # Comma-separated list of additional tags to apply (e.g. "latest,edge,nightly")
@@ -58,18 +74,19 @@ variable "PLATFORMS" {
 
 function "tags" {
   params = [suffix]
-  # Custom registry: org/image namespace — Public: GHCR + DockerHub
+  # IMAGE_TAG (v-prefixed) → versioned Docker tag; empty → only EXTRA_TAGS
+  # VERSION (clean semver) → build args and OCI labels only, never used as a Docker tag
   result = (
     equal(REGISTRY_MODE, "custom") && notequal(CUSTOM_REGISTRY, "") ? concat(
-      ["${CUSTOM_REGISTRY}/onetimesecret/onetimesecret${suffix}:${VERSION}"],
+      notequal(IMAGE_TAG, "") ? ["${CUSTOM_REGISTRY}/onetimesecret/onetimesecret${suffix}:${IMAGE_TAG}"] : [],
       [for t in compact(split(",", EXTRA_TAGS)) :
         "${CUSTOM_REGISTRY}/onetimesecret/onetimesecret${suffix}:${trimspace(t)}"
       ]
     ) : concat(
-      [
-        "${REGISTRY}/onetimesecret${suffix}:${VERSION}",
-        "${DOCKERHUB_REPO}${suffix}:${VERSION}",
-      ],
+      notequal(IMAGE_TAG, "") ? [
+        "${REGISTRY}/onetimesecret${suffix}:${IMAGE_TAG}",
+        "${DOCKERHUB_REPO}${suffix}:${IMAGE_TAG}",
+      ] : [],
       flatten([
         [for t in compact(split(",", EXTRA_TAGS)) :
           "${REGISTRY}/onetimesecret${suffix}:${trimspace(t)}"
@@ -105,8 +122,9 @@ group "ci" {
 # Abstract target: shared args and labels for all app images
 target "_common" {
   args = {
-    VERSION     = VERSION
-    COMMIT_HASH = COMMIT_HASH
+    VERSION           = VERSION
+    COMMIT_HASH       = COMMIT_HASH
+    ALLOW_DEV_VERSION = ALLOW_DEV_VERSION
   }
   labels = {
     "org.opencontainers.image.source"  = "https://github.com/onetimesecret/onetimesecret"

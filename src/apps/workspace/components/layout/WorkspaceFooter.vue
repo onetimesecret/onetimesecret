@@ -12,6 +12,7 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
   import type { LayoutProps } from '@/types/ui/layouts';
+  import { isExternalUrl } from '@/utils/url';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
   import { useRoute } from 'vue-router';
@@ -23,10 +24,10 @@
     displayPoweredBy: true,
   });
 
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const route = useRoute();
   const bootstrapStore = useBootstrapStore();
-  const { ot_version, ot_version_long, domains_enabled, support_host } = storeToRefs(bootstrapStore);
+  const { ot_version, ot_version_long, domains_enabled, support_host, ui } = storeToRefs(bootstrapStore);
 
   // Store instances for counts
   const receiptListStore = useReceiptListStore();
@@ -83,29 +84,60 @@
     return items;
   });
 
-  // Standard SaaS footer links for authenticated users
+  // Workspace footer links — configurable via footer_links.groups[name=workspace]
+  // Falls back to computed URLs based on support_host when not configured
   const docsBase = computed(() => {
     const host = support_host.value;
     return host ? `https://${host}` : '';
   });
 
-  const footerLinks = computed((): FooterLink[] => [
+  const docsLocale = computed(() => {
+    const lang = locale.value;
+    return lang?.split(/[-_]/)[0] || 'en';
+  });
+
+  // Look for a "workspace" group in the footer_links config
+  const workspaceGroup = computed(() =>
+    ui.value?.footer_links?.groups?.find(g => g.name === 'workspace')
+  );
+
+  // Default links when no workspace group is configured
+  const defaultLinks: { i18nKey: string; href: () => string; external: () => boolean }[] = [
     {
-      label: t('web.footer.api_docs'),
-      href: `${docsBase.value}/en/rest-api/`,
-      external: !!docsBase.value,
+      i18nKey: 'web.footer.api_docs',
+      href: () => `${docsBase.value}/${docsLocale.value}/rest-api/`,
+      external: () => !!docsBase.value,
     },
     {
-      label: t('web.footer.branding_guide'),
-      href: `${docsBase.value}/en/custom-domains/brand-guide/`,
-      external: !!docsBase.value,
+      i18nKey: 'web.footer.branding_guide',
+      href: () => `${docsBase.value}/${docsLocale.value}/custom-domains/brand-guide/`,
+      external: () => !!docsBase.value,
     },
     {
-      label: t('web.TITLES.feedback'),
-      href: '/feedback',
-      external: false,
+      i18nKey: 'web.TITLES.feedback',
+      href: () => '/feedback',
+      external: () => false,
     },
-  ]);
+  ];
+
+  const footerLinks = computed((): FooterLink[] => {
+    const group = workspaceGroup.value;
+    if (group?.links?.length) {
+      return group.links
+        .filter(link => link.url?.trim())
+        .map((link) => ({
+          label: link.i18n_key ? t(link.i18n_key) : (link.text || ''),
+          href: link.url!,
+          external: link.external ?? isExternalUrl(link.url!),
+        }));
+    }
+    // Fallback to computed defaults
+    return defaultLinks.map(def => ({
+      label: t(def.i18nKey),
+      href: def.href(),
+      external: def.external(),
+    }));
+  });
 
   // Check if a route is active
   const isActiveRoute = (path: string): boolean => {
@@ -172,7 +204,7 @@
     <div class="container mx-auto max-w-4xl px-4">
       <!-- Footer Links Section -->
       <div
-        v-if="displayFooterLinks"
+        v-if="displayFooterLinks && ui?.footer_links?.enabled !== false"
         class="mb-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
         <template
           v-for="link in footerLinks"
@@ -183,12 +215,6 @@
             :rel="link.external ? 'noopener noreferrer' : undefined"
             class="text-sm text-gray-600 transition-colors duration-200 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
             {{ link.label }}
-            <span
-              v-if="link.external"
-              class="ml-0.5 text-xs opacity-60"
-              aria-hidden="true"
-              >↗</span
-            >
           </a>
         </template>
       </div>
@@ -205,7 +231,7 @@
         <div class="flex items-center gap-x-3">
           <span
             v-if="displayVersion"
-            :title="`${t('web.homepage.onetime_secret_literal')} Version`">
+            :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
               target="_blank"
@@ -222,7 +248,7 @@
           </span>
           <span
             v-if="displayPoweredBy"
-            :title="`${t('web.homepage.onetime_secret_literal')} Version`">
+            :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
             <a
               :href="t('web.COMMON.website_url')"
               target="_blank"

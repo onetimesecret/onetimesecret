@@ -6,7 +6,7 @@
   import DomainsTableActionsCell from '@/apps/workspace/components/dashboard/DomainsTableActionsCell.vue';
   import DomainsTableDomainCell from '@/apps/workspace/components/dashboard/DomainsTableDomainCell.vue';
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
-  import type { CustomDomain } from '@/schemas/models/domain';
+  import { brandSettingsSchema, type CustomDomain } from '@/schemas/shapes/v3/custom-domain';
   import { useConfirmDialog } from '@vueuse/core';
 
   const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
@@ -54,7 +54,6 @@ const { t } = useI18n();
   }>();
 
   const handleDelete = async (domain: string) => {
-    console.log('Deleting domain', domain);
     const confirmed = await reveal();
     if (confirmed) {
       await deleteDomain(domain);
@@ -69,8 +68,10 @@ const { t } = useI18n();
 
     emit('toggle-homepage', domain);
 
-    // Update local domain state after successful API call
+    // Update local domain state after successful API call.
+    // Use schema defaults to ensure a complete BrandSettings object.
     domain.brand = {
+      ...brandSettingsSchema.parse({}),
       ...domain.brand,
       allow_public_homepage: !domain.brand?.allow_public_homepage,
     };
@@ -150,7 +151,7 @@ const { t } = useI18n();
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             <tr
               v-for="domain in domains"
-              :key="domain.identifier"
+              :key="domain.domainid"
               class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800">
               <!-- Domain & Status -->
               <td class="px-6 py-4">

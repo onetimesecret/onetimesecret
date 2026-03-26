@@ -10,9 +10,10 @@
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
-  import { inject, onMounted, ref, computed } from 'vue';
+  import { formatDisplayDate } from '@/utils/format';
+  import { onMounted, ref, computed } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
-  import type { AxiosInstance } from 'axios';
+  import { useApi } from '@/shared/composables/useApi';
   import { z } from 'zod';
 
   const { t } = useI18n();
@@ -22,7 +23,7 @@
   const bootstrapStore = useBootstrapStore();
   const organizationStore = useOrganizationStore();
   const { logout } = useAuth();
-  const $api = inject('api') as AxiosInstance;
+  const $api = useApi();
 
   const { wrap } = useAsyncHandler({
     notify: false,
@@ -47,7 +48,7 @@
   const invitationSchema = z.object({
     organization_name: z.string(),
     organization_id: z.string(),
-    email: z.string().email(),
+    email: z.email(),
     role: z.string(),
     invited_by_email: z.string(),
     expires_at: z.number(),
@@ -172,11 +173,7 @@
     }
   };
 
-  const formatDate = (timestamp: number): string => new Date(timestamp * 1000).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+  const formatDate = (timestamp: number): string => formatDisplayDate(new Date(timestamp * 1000));
 </script>
 
 <template>
