@@ -12,6 +12,7 @@ import {
   receiptBaseCanonical,
   receiptCanonical,
   receiptDetailsCanonical,
+  receiptListDetailsCanonical,
 } from '@/schemas/contracts';
 import { createModelSchema } from '@/schemas/shapes/v2/base';
 import { transforms } from '@/schemas/transforms';
@@ -161,8 +162,37 @@ export const receiptDetailsSchema = receiptDetailsCanonical.extend({
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// List schemas (V2 wire format)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * V2 receipt list schema (base + show_recipients).
+ *
+ * Used for individual records in the /receipt/recent list response.
+ */
+export const receiptListSchema = receiptBaseSchema.extend({
+  show_recipients: transforms.fromString.boolean,
+});
+
+/**
+ * V2 receipt list details.
+ *
+ * Metadata for the list response with categorized receipt arrays.
+ * Backend sends `revealed_receipts` and `pending_receipts` (renamed from
+ * the old `received`/`notreceived` in commit 34681572b).
+ */
+export const receiptListDetailsSchema = receiptListDetailsCanonical.extend({
+  now: transforms.fromString.date,
+  has_items: transforms.fromString.boolean,
+  revealed_receipts: z.array(receiptListSchema).optional(),
+  pending_receipts: z.array(receiptListSchema).optional(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Type exports
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type Receipt = z.infer<typeof receiptSchema>;
 export type ReceiptDetails = z.infer<typeof receiptDetailsSchema>;
+export type ReceiptList = z.infer<typeof receiptListSchema>;
+export type ReceiptListDetails = z.infer<typeof receiptListDetailsSchema>;
