@@ -291,9 +291,9 @@ module Onetime
             # responds to :info/:debug/:error/:warn and uses it directly instead of
             # creating a ServerEngine::DaemonLogger. This unifies all worker logging.
             log: Onetime.bunny_logger,
-            # Fork hooks — mirror the Puma before_fork/before_worker_boot hooks
-            # so all fork-sensitive initializers (auth database, loggers, RabbitMQ)
-            # get proper cleanup/reconnect. See: etc/examples/puma.example.rb
+            # Fork hooks — manage auth database, loggers, RabbitMQ connections
+            # via InitializerRegistry (mirrors Puma configuration).
+            # See: etc/examples/puma.example.rb
             hooks: {
               before_fork: -> {
                 Onetime.boot_registry&.cleanup_before_fork
