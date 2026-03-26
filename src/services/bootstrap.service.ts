@@ -1,6 +1,7 @@
 // src/services/bootstrap.service.ts
 
 import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
+import { debugLog } from '@/utils/debug';
 
 /**
  * Bootstrap Service - Pre-Pinia State Access
@@ -88,7 +89,9 @@ export function getBootstrapValue<K extends keyof BootstrapPayload>(
 ): BootstrapPayload[K] | undefined {
   // If already consumed, use snapshot
   if (consumed && bootstrapSnapshot) {
-    return bootstrapSnapshot[key] as BootstrapPayload[K] | undefined;
+    const value = bootstrapSnapshot[key] as BootstrapPayload[K] | undefined;
+    debugLog.features('BootstrapService.getBootstrapValue', { source: 'snapshot', key, value });
+    return value;
   }
 
   // Pre-consumption: read directly from window
@@ -96,10 +99,13 @@ export function getBootstrapValue<K extends keyof BootstrapPayload>(
     const windowWithState = window as Window & { [BOOTSTRAP_KEY]?: BootstrapPayload };
     const state = windowWithState[BOOTSTRAP_KEY];
     if (state) {
-      return state[key];
+      const value = state[key];
+      debugLog.features('BootstrapService.getBootstrapValue', { source: 'window', key, value });
+      return value;
     }
   }
 
+  debugLog.features('BootstrapService.getBootstrapValue', { source: 'not-found', key, consumed, hasSnapshot: !!bootstrapSnapshot });
   return undefined;
 }
 
