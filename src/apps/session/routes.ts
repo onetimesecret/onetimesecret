@@ -52,7 +52,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
       isAuthRoute: true,
       requiresFeature: 'signup',
-      ssoOnlyDisabled: true,
+      excludeSsoOnly: true,
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -72,7 +72,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
       isAuthRoute: true,
       requiresFeature: 'signin',
-      ssoOnlyDisabled: true,
+      excludeSsoOnly: true,
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -118,7 +118,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.verify_account',
       requiresAuth: false,
       isAuthRoute: true,
-      ssoOnlyDisabled: true,
+      excludeSsoOnly: true,
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: true,
@@ -138,7 +138,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
       isAuthRoute: true,
       requiresFeature: 'signin',
-      ssoOnlyDisabled: true,
+      excludeSsoOnly: true,
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -159,7 +159,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
       isAuthRoute: true,
       requiresFeature: 'signin',
-      ssoOnlyDisabled: true,
+      excludeSsoOnly: true,
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -181,7 +181,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
       isAuthRoute: true,
       requiresFeature: 'signin',
-      ssoOnlyDisabled: true,
+      excludeSsoOnly: true,
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,

@@ -46,7 +46,7 @@ export async function setupRouterGuards(router: Router): Promise<void> {
     return redirect ?? true;
   });
 
-  // Block access to routes marked ssoOnlyDisabled when SSO-only mode is active.
+  // Block access to routes marked excludeSsoOnly when SSO-only mode is active.
   router.beforeEach((to: RouteLocationNormalized) => {
     const redirect = handleSsoOnlyRoute(to);
     return redirect ?? true;
@@ -197,14 +197,15 @@ function handleDisabledAuthFeature(to: RouteLocationNormalized) {
 }
 
 /**
- * Block access to routes marked with `meta.ssoOnlyDisabled: true`
+ * Block access to routes marked with `meta.excludeSsoOnly: true`
  * when SSO-only mode is active.
  *
- * Redirects to '/signin' so the user sees the SSO-only sign-in page.
+ * Authenticated routes redirect to '/account' (profile page).
+ * Unauthenticated routes redirect to '/signin' (SSO sign-in page).
  * Note: /signin is explicitly excluded to prevent redirect loops.
  */
 export function handleSsoOnlyRoute(to: RouteLocationNormalized) {
-  if (!to.meta.ssoOnlyDisabled) return null;
+  if (!to.meta.excludeSsoOnly) return null;
   if (!isSsoOnlyMode()) return null;
   // Prevent redirect loop: never redirect /signin to itself
   if (to.path === '/signin') return null;
@@ -213,6 +214,12 @@ export function handleSsoOnlyRoute(to: RouteLocationNormalized) {
     '[RouterGuard] Redirecting - SSO-only mode blocks route:',
     { path: to.path }
   );
+
+  // Authenticated users land on profile; unauthenticated on sign-in
+  const authStore = useAuthStore();
+  if (authStore.isFullyAuthenticated) {
+    return { path: '/account' };
+  }
   return { path: '/signin' };
 }
 
