@@ -5,6 +5,7 @@ import {
   type BrandSettings,
 } from '@/schemas/shapes/v3/custom-domain';
 import { cornerStyleClasses, fontFamilyClasses } from '@/shared/utils/brand-helpers';
+import { gracefulParse } from '@/utils/schemaValidation';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, reactive, toRefs, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -72,13 +73,13 @@ export const useProductIdentity = defineStore('productIdentity', () => {
    * Handles validation and default values for branding fields
    */
   function getInitialState(): IdentityState {
-    const brand = brandSettingsSchema.parse(domain_branding.value ?? {});
+    const brandResult = gracefulParse(brandSettingsSchema, domain_branding.value ?? {}, 'BrandSettings');
+    const brand = brandResult.ok ? brandResult.data : null;
 
-    // Parse with fallback values
-    const primaryColor =
-      primaryColorValidator.parse(brand.primary_color) ?? DEFAULT_PRIMARY_COLOR;
-    const buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
-    const allowPublicHomepage = brand.allow_public_homepage ?? false;
+    const colorResult = gracefulParse(primaryColorValidator, brand?.primary_color, 'PrimaryColor');
+    const primaryColor = colorResult.ok ? (colorResult.data ?? DEFAULT_PRIMARY_COLOR) : DEFAULT_PRIMARY_COLOR;
+    const buttonTextLight = brand?.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
+    const allowPublicHomepage = brand?.allow_public_homepage ?? false;
 
     return {
       domainStrategy: domain_strategy.value,
@@ -98,12 +99,14 @@ export const useProductIdentity = defineStore('productIdentity', () => {
 
   // Watch for domain branding changes to update derived state
   watch(domain_branding, (newBranding) => {
-    const brand = brandSettingsSchema.parse(newBranding ?? {});
+    const brandResult = gracefulParse(brandSettingsSchema, newBranding ?? {}, 'BrandSettings');
+    const brand = brandResult.ok ? brandResult.data : null;
     state.brand = brand;
-    state.primaryColor =
-      primaryColorValidator.parse(brand.primary_color) ?? DEFAULT_PRIMARY_COLOR;
-    state.buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
-    state.allowPublicHomepage = brand.allow_public_homepage ?? false;
+
+    const colorResult = gracefulParse(primaryColorValidator, brand?.primary_color, 'PrimaryColor');
+    state.primaryColor = colorResult.ok ? (colorResult.data ?? DEFAULT_PRIMARY_COLOR) : DEFAULT_PRIMARY_COLOR;
+    state.buttonTextLight = brand?.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
+    state.allowPublicHomepage = brand?.allow_public_homepage ?? false;
   });
 
   // Watch for domain config changes (consolidated for reduced reactive overhead)

@@ -2,6 +2,7 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { gracefulParse } from '@/utils/schemaValidation';
 import { z } from 'zod';
 import { useDocumentVisibility } from '@vueuse/core';
 import { useApi } from '@/shared/composables/useApi';
@@ -113,12 +114,15 @@ export const useCsrfStore = defineStore('csrf', () => {
   async function checkShrimpValidity() {
     const response = await $api.post('/api/v3/validate-shrimp', {});
 
-    const validated = csrfResponseSchema.parse(response.data);
-    isValid.value = validated.isValid;
-    if (validated.isValid) {
-      updateShrimp(validated.shrimp);
+    const result = gracefulParse(csrfResponseSchema, response.data, 'CsrfResponse');
+    if (!result.ok) {
+      throw new Error('CSRF validation failed. Please reload the page.');
     }
-    return validated;
+    isValid.value = result.data.isValid;
+    if (result.data.isValid) {
+      updateShrimp(result.data.shrimp);
+    }
+    return result.data;
   }
 
   function initVisibilityCheck() {
