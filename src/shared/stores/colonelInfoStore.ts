@@ -21,6 +21,7 @@ import {
 } from '@/schemas/api/account/responses/colonel';
 import { type SystemSettingsDetails } from '@/schemas/contracts/config';
 import { responseSchemas } from '@/schemas/api/internal/responses';
+import { gracefulParse } from '@/utils/schemaValidation';
 import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { ref } from 'vue';
@@ -101,15 +102,18 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     isLoading.value = true;
     try {
       const response = await $api.get('/api/colonel/info');
-      const validated = responseSchemas.colonelInfo.parse(response.data);
-      details.value = validated.details ?? null;
+      const result = gracefulParse(responseSchemas.colonelInfo, response.data, 'ColonelInfoResponse');
+      if (!result.ok) {
+        throw new Error('Unable to load colonel info. Please try again.');
+      }
+      details.value = result.data.details ?? null;
       // Also populate stats from the full response
-      if (validated.details) {
+      if (result.data.details) {
         stats.value = {
-          counts: validated.details.counts,
+          counts: result.data.details.counts,
         };
       }
-      return validated.record;
+      return result.data.record;
     } catch (error) {
       console.error('Failed to fetch colonel info:', error);
       throw error;
@@ -124,9 +128,12 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     try {
       // Use the dedicated stats endpoint for better performance
       const response = await $api.get('/api/colonel/stats');
-      const validated = responseSchemas.colonelStats.parse(response.data);
-      if (validated.details) {
-        stats.value = validated.details;
+      const result = gracefulParse(responseSchemas.colonelStats, response.data, 'ColonelStatsResponse');
+      if (!result.ok) {
+        throw new Error('Unable to load colonel stats. Please try again.');
+      }
+      if (result.data.details) {
+        stats.value = result.data.details;
       }
       return stats.value!;
     } catch (error) {
@@ -151,14 +158,17 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       }
 
       const response = await $api.get(`/api/colonel/users?${params.toString()}`);
-      const validated = responseSchemas.colonelUsers.parse(response.data);
-
-      if (validated.details) {
-        users.value = validated.details.users;
-        usersPagination.value = validated.details.pagination;
+      const result = gracefulParse(responseSchemas.colonelUsers, response.data, 'ColonelUsersResponse');
+      if (!result.ok) {
+        throw new Error('Unable to load users. Please try again.');
       }
 
-      return validated.details!;
+      if (result.data.details) {
+        users.value = result.data.details.users;
+        usersPagination.value = result.data.details.pagination;
+      }
+
+      return result.data.details!;
     } catch (error) {
       console.error('Failed to fetch colonel users:', error);
       users.value = [];
@@ -178,14 +188,17 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       params.append('per_page', perPage.toString());
 
       const response = await $api.get(`/api/colonel/secrets?${params.toString()}`);
-      const validated = responseSchemas.colonelSecrets.parse(response.data);
-
-      if (validated.details) {
-        secrets.value = validated.details.secrets;
-        secretsPagination.value = validated.details.pagination;
+      const result = gracefulParse(responseSchemas.colonelSecrets, response.data, 'ColonelSecretsResponse');
+      if (!result.ok) {
+        throw new Error('Unable to load secrets. Please try again.');
       }
 
-      return validated.details!;
+      if (result.data.details) {
+        secrets.value = result.data.details.secrets;
+        secretsPagination.value = result.data.details.pagination;
+      }
+
+      return result.data.details!;
     } catch (error) {
       console.error('Failed to fetch colonel secrets:', error);
       secrets.value = [];
@@ -201,13 +214,16 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     isLoading.value = true;
     try {
       const response = await $api.get('/api/colonel/system/database');
-      const validated = responseSchemas.databaseMetrics.parse(response.data);
-
-      if (validated.details) {
-        databaseMetrics.value = validated.details;
+      const result = gracefulParse(responseSchemas.databaseMetrics, response.data, 'DatabaseMetricsResponse');
+      if (!result.ok) {
+        throw new Error('Unable to load database metrics. Please try again.');
       }
 
-      return validated.details!;
+      if (result.data.details) {
+        databaseMetrics.value = result.data.details;
+      }
+
+      return result.data.details!;
     } catch (error) {
       console.error('Failed to fetch database metrics:', error);
       databaseMetrics.value = null;
@@ -222,13 +238,16 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     isLoading.value = true;
     try {
       const response = await $api.get('/api/colonel/system/redis');
-      const validated = responseSchemas.redisMetrics.parse(response.data);
-
-      if (validated.details) {
-        redisMetrics.value = validated.details;
+      const result = gracefulParse(responseSchemas.redisMetrics, response.data, 'RedisMetricsResponse');
+      if (!result.ok) {
+        throw new Error('Unable to load Redis metrics. Please try again.');
       }
 
-      return validated.details!;
+      if (result.data.details) {
+        redisMetrics.value = result.data.details;
+      }
+
+      return result.data.details!;
     } catch (error) {
       console.error('Failed to fetch Redis metrics:', error);
       redisMetrics.value = null;
@@ -243,14 +262,17 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     isLoading.value = true;
     try {
       const response = await $api.get('/api/colonel/banned-ips');
-      const validated = responseSchemas.bannedIPs.parse(response.data);
-
-      if (validated.details) {
-        currentIP.value = validated.details.current_ip;
-        bannedIPs.value = validated.details.banned_ips;
+      const result = gracefulParse(responseSchemas.bannedIPs, response.data, 'BannedIPsResponse');
+      if (!result.ok) {
+        throw new Error('Unable to load banned IPs. Please try again.');
       }
 
-      return validated.details!;
+      if (result.data.details) {
+        currentIP.value = result.data.details.current_ip;
+        bannedIPs.value = result.data.details.banned_ips;
+      }
+
+      return result.data.details!;
     } catch (error) {
       console.error('Failed to fetch banned IPs:', error);
       bannedIPs.value = [];
@@ -305,14 +327,17 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       params.append('per_page', perPage.toString());
 
       const response = await $api.get(`/api/colonel/domains?${params.toString()}`);
-      const validated = responseSchemas.customDomains.parse(response.data);
-
-      if (validated.details) {
-        customDomains.value = validated.details.domains;
-        customDomainsPagination.value = validated.details.pagination;
+      const result = gracefulParse(responseSchemas.customDomains, response.data, 'ColonelCustomDomainsResponse');
+      if (!result.ok) {
+        throw new Error('Unable to load custom domains. Please try again.');
       }
 
-      return validated.details!;
+      if (result.data.details) {
+        customDomains.value = result.data.details.domains;
+        customDomainsPagination.value = result.data.details.pagination;
+      }
+
+      return result.data.details!;
     } catch (error) {
       console.error('Failed to fetch custom domains:', error);
       customDomains.value = [];
@@ -343,15 +368,18 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       }
 
       const response = await $api.get(`/api/colonel/organizations?${params.toString()}`);
-      const validated = responseSchemas.colonelOrganizations.parse(response.data);
-
-      if (validated.details) {
-        organizations.value = validated.details.organizations;
-        organizationsPagination.value = validated.details.pagination;
-        organizationsFilters.value = validated.details.filters;
+      const result = gracefulParse(responseSchemas.colonelOrganizations, response.data, 'ColonelOrganizationsResponse');
+      if (!result.ok) {
+        throw new Error('Unable to load organizations. Please try again.');
       }
 
-      return validated.details!;
+      if (result.data.details) {
+        organizations.value = result.data.details.organizations;
+        organizationsPagination.value = result.data.details.pagination;
+        organizationsFilters.value = result.data.details.filters;
+      }
+
+      return result.data.details!;
     } catch (error) {
       console.error('Failed to fetch organizations:', error);
       organizations.value = [];
@@ -367,8 +395,11 @@ export const useColonelInfoStore = defineStore('colonel', () => {
   async function investigateOrganization(extId: string): Promise<InvestigateOrganizationResult> {
     try {
       const response = await $api.post(`/api/colonel/organizations/${extId}/investigate`);
-      const validated = responseSchemas.investigateOrganization.parse(response.data);
-      return validated.record;
+      const result = gracefulParse(responseSchemas.investigateOrganization, response.data, 'InvestigateOrganizationResponse');
+      if (!result.ok) {
+        throw new Error('Unable to investigate organization. Please try again.');
+      }
+      return result.data.record;
     } catch (error) {
       console.error('Failed to investigate organization:', error);
       throw error;
@@ -388,13 +419,16 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       }
 
       const response = await $api.get(`/api/colonel/usage/export?${params.toString()}`);
-      const validated = responseSchemas.usageExport.parse(response.data);
-
-      if (validated.details) {
-        usageExport.value = validated.details;
+      const result = gracefulParse(responseSchemas.usageExport, response.data, 'UsageExportResponse');
+      if (!result.ok) {
+        throw new Error('Unable to load usage export. Please try again.');
       }
 
-      return validated.details!;
+      if (result.data.details) {
+        usageExport.value = result.data.details;
+      }
+
+      return result.data.details!;
     } catch (error) {
       console.error('Failed to fetch usage export:', error);
       usageExport.value = null;
@@ -409,13 +443,16 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     isLoading.value = true;
     try {
       const response = await $api.get('/api/colonel/queue');
-      const validated = responseSchemas.queueMetrics.parse(response.data);
-
-      if (validated.details) {
-        queueMetrics.value = validated.details;
+      const result = gracefulParse(responseSchemas.queueMetrics, response.data, 'QueueMetricsResponse');
+      if (!result.ok) {
+        throw new Error('Unable to load queue metrics. Please try again.');
       }
 
-      return validated.details!;
+      if (result.data.details) {
+        queueMetrics.value = result.data.details;
+      }
+
+      return result.data.details!;
     } catch (error) {
       console.error('Failed to fetch queue metrics:', error);
       queueMetrics.value = null;

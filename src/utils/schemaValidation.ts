@@ -3,6 +3,13 @@
 // Environment-aware schema validation utilities.
 // Dev/Test: Throws validation errors immediately for fast feedback
 // Production: Logs errors and returns failure result for graceful degradation
+//
+// Stores are error producers, not handlers. They validate at the API boundary
+// and throw clean errors upward. Composables and components handle those errors
+// — typically via `wrap` from useAsyncHandler — to classify, log, and present
+// them to users. gracefulParse is the one store-level exception: it translates
+// raw ZodErrors (schema implementation details) into results the store can act
+// on, keeping validation internals from leaking to consuming code.
 
 import { z } from 'zod';
 import { loggingService } from '@/services/logging.service';

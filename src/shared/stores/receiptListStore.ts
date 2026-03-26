@@ -4,6 +4,7 @@ import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import type { ReceiptList, ReceiptListDetails } from '@/schemas/shapes/v3/receipt';
 import { loggingService } from '@/services/logging.service';
+import { gracefulParse } from '@/utils/schemaValidation';
 import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { ref, type Ref } from 'vue';
@@ -100,8 +101,20 @@ export const useReceiptListStore = defineStore('receiptList', () => {
       firstThreeIds: response.data?.records?.slice(0, 3).map((r: ReceiptList) => r.shortid),
     });
 
-    const validated = responseSchemas.receiptList.parse(response.data);
+    const result = gracefulParse(
+      responseSchemas.receiptList,
+      response.data,
+      'ReceiptListResponse'
+    );
 
+    if (!result.ok) {
+      records.value = [];
+      details.value = {} as ReceiptListDetails;
+      count.value = 0;
+      return null;
+    }
+
+    const validated = result.data;
     records.value = validated.records ?? [];
     details.value = (validated.details ?? {}) as ReceiptListDetails;
     count.value = validated.count ?? 0;

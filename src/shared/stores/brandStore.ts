@@ -2,6 +2,7 @@
 
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import type { BrandSettings, ImageProps } from '@/schemas/shapes/v3/custom-domain';
+import { gracefulParse } from '@/utils/schemaValidation';
 import { useApi } from '@/shared/composables/useApi';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
@@ -42,9 +43,12 @@ export const useBrandStore = defineStore('brand', () => {
 
   async function fetchSettings(domainId: string): Promise<BrandSettings> {
     const response = await $api.get(`/api/domains/${domainId}/brand`);
-    const validated = responseSchemas.brandSettings.parse(response.data);
-    settings.value[domainId] = validated.record;
-    return validated.record;
+    const result = gracefulParse(responseSchemas.brandSettings, response.data, 'BrandSettingsResponse');
+    if (!result.ok) {
+      throw new Error('Unable to load brand settings. Please try again.');
+    }
+    settings.value[domainId] = result.data.record;
+    return result.data.record;
   }
 
   async function updateSettings(domainId: string, updates: Partial<BrandSettings>) {
@@ -56,11 +60,14 @@ export const useBrandStore = defineStore('brand', () => {
     const response = await $api.put(`/api/domains/${domainId}/brand`, {
       brand: formattedUpdates,
     });
-    const validated = responseSchemas.brandSettings.parse(response.data);
+    const result = gracefulParse(responseSchemas.brandSettings, response.data, 'BrandSettingsResponse');
+    if (!result.ok) {
+      throw new Error('Unable to update brand settings. Please try again.');
+    }
     // Merge the response with existing settings instead of overwriting
     settings.value[domainId] = {
       ...settings.value[domainId],
-      ...validated.record,
+      ...result.data.record,
     };
 
     return settings.value[domainId];
@@ -68,9 +75,12 @@ export const useBrandStore = defineStore('brand', () => {
 
   async function fetchLogo(domainId: string) {
     const response = await $api.get(`/api/domains/${domainId}/logo`);
-    const validated = responseSchemas.imageProps.parse(response.data);
-    logos.value[domainId] = validated.record;
-    return validated.record;
+    const result = gracefulParse(responseSchemas.imageProps, response.data, 'ImagePropsResponse');
+    if (!result.ok) {
+      throw new Error('Unable to load logo. Please try again.');
+    }
+    logos.value[domainId] = result.data.record;
+    return result.data.record;
   }
 
   async function uploadLogo(domainId: string, file: File) {
@@ -78,9 +88,12 @@ export const useBrandStore = defineStore('brand', () => {
     formData.append('image', file);
     // Don't set Content-Type manually - Axios sets it with the correct boundary
     const response = await $api.post(`/api/domains/${domainId}/logo`, formData);
-    const validated = responseSchemas.imageProps.parse(response.data);
-    logos.value[domainId] = validated.record;
-    return validated.record;
+    const result = gracefulParse(responseSchemas.imageProps, response.data, 'ImagePropsResponse');
+    if (!result.ok) {
+      throw new Error('Unable to upload logo. Please try again.');
+    }
+    logos.value[domainId] = result.data.record;
+    return result.data.record;
   }
 
   async function removeLogo(domainId: string) {
