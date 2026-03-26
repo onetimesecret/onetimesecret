@@ -59,6 +59,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.data_region',
       requiresAuth: true,
+      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -71,6 +72,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.current_region',
       requiresAuth: true,
+      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -83,6 +85,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.available_regions',
       requiresAuth: true,
+      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -95,6 +98,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.why_data_sovereignty',
       requiresAuth: true,
+      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -178,6 +182,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.security_overview',
       requiresAuth: true,
+      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -191,6 +196,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.change_password',
       requiresAuth: true,
+      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -204,6 +210,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.mfa_settings',
       requiresAuth: true,
+      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -217,6 +224,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.active_sessions',
       requiresAuth: true,
+      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -230,6 +238,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.recovery_codes',
       requiresAuth: true,
+      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -243,6 +252,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.passkeys',
       requiresAuth: true,
+      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -267,6 +277,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.advanced_settings',
       requiresAuth: true,
+      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,

@@ -71,8 +71,9 @@ export interface RouteMeta {
   scopesAvailable?: ScopesAvailable;
   requiresFeature?: 'signup' | 'signin';
   /**
-   * When true, this route is blocked when SSO-only mode is active.
-   * The route guard redirects to '/signin' if isSsoOnlyMode() returns true.
+   * When true, this route is excluded when SSO-only mode is active.
+   * The route guard redirects authenticated users to '/account'
+   * and unauthenticated users to '/signin'.
    */
-  ssoOnlyDisabled?: boolean;
+  excludeSsoOnly?: boolean;
 }

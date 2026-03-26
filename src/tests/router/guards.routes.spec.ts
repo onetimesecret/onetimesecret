@@ -536,18 +536,18 @@ describe('Router Guards', () => {
       vi.mocked(isSsoOnlyMode).mockReturnValue(false);
     });
 
-    it('should pass through routes without ssoOnlyDisabled meta', () => {
+    it('should pass through routes without excludeSsoOnly meta', () => {
       const to = makeRoute({ meta: {} });
 
       const result = handleSsoOnlyRoute(to);
       expect(result).toBeNull();
     });
 
-    it('should pass through ssoOnlyDisabled routes when SSO-only mode is inactive', () => {
+    it('should pass through excludeSsoOnly routes when SSO-only mode is inactive', () => {
       vi.mocked(isSsoOnlyMode).mockReturnValue(false);
 
       const to = makeRoute({
-        meta: { ssoOnlyDisabled: true },
+        meta: { excludeSsoOnly: true },
         path: '/signup',
         name: 'Sign Up',
       });
@@ -556,11 +556,11 @@ describe('Router Guards', () => {
       expect(result).toBeNull();
     });
 
-    it('should redirect ssoOnlyDisabled routes to /signin when SSO-only mode is active', () => {
+    it('should redirect excludeSsoOnly routes to /signin when SSO-only mode is active', () => {
       vi.mocked(isSsoOnlyMode).mockReturnValue(true);
 
       const to = makeRoute({
-        meta: { ssoOnlyDisabled: true },
+        meta: { excludeSsoOnly: true },
         path: '/signup',
         name: 'Sign Up',
       });
@@ -573,7 +573,7 @@ describe('Router Guards', () => {
       vi.mocked(isSsoOnlyMode).mockReturnValue(true);
 
       const to = makeRoute({
-        meta: { ssoOnlyDisabled: true },
+        meta: { excludeSsoOnly: true },
         path: '/signin',
         name: 'Sign In',
       });
@@ -586,7 +586,7 @@ describe('Router Guards', () => {
       vi.mocked(isSsoOnlyMode).mockReturnValue(true);
 
       const to = makeRoute({
-        meta: { ssoOnlyDisabled: true },
+        meta: { excludeSsoOnly: true },
         path: '/forgot',
         name: 'Forgot Password',
       });
@@ -599,13 +599,26 @@ describe('Router Guards', () => {
       vi.mocked(isSsoOnlyMode).mockReturnValue(true);
 
       const to = makeRoute({
-        meta: { ssoOnlyDisabled: true },
+        meta: { excludeSsoOnly: true },
         path: '/reset-password',
         name: 'Reset Password',
       });
 
       const result = handleSsoOnlyRoute(to);
       expect(result).toEqual({ path: '/signin' });
+    });
+
+    it('should redirect authenticated excludeSsoOnly routes to /account', () => {
+      vi.mocked(isSsoOnlyMode).mockReturnValue(true);
+
+      const to = makeRoute({
+        meta: { excludeSsoOnly: true, requiresAuth: true },
+        path: '/account/region',
+        name: 'Data Region',
+      });
+
+      const result = handleSsoOnlyRoute(to);
+      expect(result).toEqual({ path: '/account' });
     });
   });
 });
