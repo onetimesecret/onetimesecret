@@ -40,7 +40,7 @@ import { responseSchemas as v1ResponseSchemas } from '@/schemas/api/v1/responses
 import { responseSchemas as v2ResponseSchemas } from '@/schemas/api/v2/responses/registry';
 import { responseSchemas as v3ResponseSchemas } from '@/schemas/api/v3/responses/registry';
 import { responseSchemas as internalResponseSchemas } from '@/schemas/api/internal/responses/registry';
-import { modelSchemas } from '@/schemas/registry';
+import { shapeSchemas } from '@/schemas/registry';
 
 // Version-aware registry selection for schema validation.
 // Each API version validates against its own registry, eliminating the need
@@ -441,7 +441,7 @@ export function buildHandlerSchemaMap(entries: SchemaEntry[]): Map<string, Schem
 // Schema Validation
 // =============================================================================
 
-const validModelKeys = new Set(Object.keys(modelSchemas));
+const validModelKeys = new Set(Object.keys(shapeSchemas));
 
 // Request keys must match the generator's REQUEST_SCHEMA_REGISTRY.
 // Defined here as a static set to avoid importing from the generator.

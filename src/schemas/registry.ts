@@ -50,7 +50,7 @@ import { secretStateSchema } from './contracts/secret';
 // =============================================================================
 import { concealPayloadSchema } from './api/v3/requests/content/conceal';
 import { generatePayloadSchema } from './api/v3/requests/content/generate';
-import { responseSchemas } from './api/v3/responses';
+import { responseSchemas } from './api/v3/responses/registry';
 
 // =============================================================================
 // Schema Categories
