@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-// src/scripts/json-schema/generate.ts
+// scripts/json-schema/generate.ts
 
 /**
  * JSON Schema Generator
