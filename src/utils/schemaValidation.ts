@@ -1,15 +1,20 @@
 // src/utils/schemaValidation.ts
 //
-// Environment-aware schema validation utilities.
-// Dev/Test: Throws validation errors immediately for fast feedback
-// Production: Logs errors and returns failure result for graceful degradation
+// Schema validation with uniform control flow.
+// Always returns ParseResult — callers decide the degradation strategy:
+//   - List fetches: degrade to empty state
+//   - Mutations: throw clean Error for the user
+//   - Identity/config: degrade to defaults
+//
+// Reporting is environment-aware (loud in dev, logged in prod) but control
+// flow is identical everywhere, so fallback paths are testable.
 //
 // Stores are error producers, not handlers. They validate at the API boundary
 // and throw clean errors upward. Composables and components handle those errors
 // — typically via `wrap` from useAsyncHandler — to classify, log, and present
-// them to users. gracefulParse is the one store-level exception: it translates
-// raw ZodErrors (schema implementation details) into results the store can act
-// on, keeping validation internals from leaking to consuming code.
+// them to users. gracefulParse translates raw ZodErrors (schema internals)
+// into ParseResult the store can act on, keeping validation details from
+// leaking to consuming code.
 
 import { z } from 'zod';
 import { loggingService } from '@/services/logging.service';
@@ -38,14 +43,14 @@ function isDevOrTest(): boolean {
 }
 
 /**
- * Parse data with a Zod schema, handling errors differently by environment.
+ * Parse data with a Zod schema, returning a discriminated result.
  *
- * In development/test:
- * - Throws ZodError immediately for fast feedback
+ * Always returns ParseResult — never throws. Callers decide what to do
+ * with { ok: false } based on context (throw, degrade, ignore).
  *
- * In production:
- * - Logs error to console (Sentry integration tracked in #2755)
- * - Returns { ok: false } for explicit failure handling
+ * Error reporting is environment-aware:
+ * - Dev/test: console.error for immediate visibility
+ * - Production: loggingService.error (Sentry integration tracked in #2755)
  *
  * @example
  * ```typescript
@@ -68,19 +73,18 @@ export function gracefulParse<T>(
     return { ok: true, data: result.data };
   }
 
-  // In dev/test, throw for immediate feedback
-  if (isDevOrTest()) {
-    throw result.error;
-  }
-
-  // In production, log and return failure
   const errorMessage = `Schema validation failed${context ? ` for ${context}` : ''}`;
-  loggingService.error(
-    Object.assign(new Error(errorMessage), {
-      cause: result.error,
-      issues: result.error.issues,
-    })
-  );
+
+  if (isDevOrTest()) {
+    console.error(errorMessage, result.error.issues);
+  } else {
+    loggingService.error(
+      Object.assign(new Error(errorMessage), {
+        cause: result.error,
+        issues: result.error.issues,
+      })
+    );
+  }
 
   return { ok: false, error: result.error };
 }

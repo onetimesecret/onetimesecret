@@ -160,12 +160,24 @@ describe('receiptListStore', () => {
     });
 
     it('handles validation errors correctly', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
       axiosMock.onGet('/api/v3/receipt/recent').reply(200, {
         records: [{ invalid: 'data' }],
       });
 
-      await expect(store.fetchList()).rejects.toThrow();
-      // isLoading property not exposed by store
+      // fetchList degrades to empty state on parse failure (does not throw)
+      await expect(store.fetchList()).resolves.toBeNull();
+      expect(store.records).toEqual([]);
+      expect(store.count).toBe(0);
+
+      // gracefulParse reports via console.error in test env
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Schema validation failed'),
+        expect.any(Array)
+      );
+
+      consoleSpy.mockRestore();
     });
 
     it('resets error state between requests', async () => {
@@ -224,8 +236,8 @@ describe('receiptListStore', () => {
       });
 
       it('classifies schema validation errors as technical errors', async () => {
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
         store = useReceiptListStore();
-        // store.setupAsyncHandler(axiosInstance, { notify: notifySpy });
 
         // Send malformed data that won't match schema
         axiosMock.onGet('/api/v3/receipt/recent').reply(200, {
@@ -235,7 +247,12 @@ describe('receiptListStore', () => {
           },
         });
 
-        await expect(store.fetchList()).rejects.toThrow();
+        // fetchList degrades to empty state on parse failure (does not throw)
+        await expect(store.fetchList()).resolves.toBeNull();
+        expect(store.records).toEqual([]);
+        expect(store.count).toBe(0);
+
+        consoleSpy.mockRestore();
       });
 
       it.skip('handles security-related errors appropriately', async () => {

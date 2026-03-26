@@ -219,15 +219,26 @@ describe('domainsStore', () => {
     });
 
     it('should handle validation errors gracefully', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
       axiosMock.onGet('/api/domains').reply(200, {
         records: [{ invalid_field: true }],
       });
 
-      // refreshRecords catches errors internally (does not throw)
+      // refreshRecords completes without throwing
       await expect(store.refreshRecords()).resolves.toBeUndefined();
 
-      // Store should not be marked as initialized after a failed parse
-      expect(store.initialized).toBe(false);
+      // Store degrades to empty state on parse failure
+      expect(store.records).toEqual([]);
+      expect(store.recordCount()).toBe(0);
+
+      // gracefulParse reports via console.error in test env
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Schema validation failed'),
+        expect.any(Array)
+      );
+
+      consoleSpy.mockRestore();
     });
 
     it('should handle permission errors', async () => {
