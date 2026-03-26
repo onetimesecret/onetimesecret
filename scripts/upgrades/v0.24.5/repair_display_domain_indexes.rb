@@ -76,6 +76,44 @@ def redact_fqdn(fqdn)
   parts.join('.')
 end
 
+# Normalize a value that may or may not be JSON-encoded.
+# Familia HashKey values are JSON-serialized (strings have quotes),
+# but sorted set members are raw strings. This handles both.
+def normalize_value(raw)
+  return nil if raw.nil?
+  return raw if raw.empty?
+
+  # Try parsing as JSON first (handles '"abc123"' -> 'abc123')
+  JSON.parse(raw)
+rescue JSON::ParserError
+  # Not valid JSON, return as-is (handles raw 'abc123')
+  raw
+end
+
+# Check if two values match, accounting for JSON encoding differences.
+# Either value may be raw or JSON-encoded.
+def values_match?(val_a, val_b)
+  return true if val_a == val_b
+  normalize_value(val_a) == normalize_value(val_b)
+end
+
+# Try to find a value in a hash index, checking multiple key variants.
+# Returns [key_used, value] or [nil, nil] if not found.
+def hget_flexible(redis, hash_key, display_domain)
+  # Try exact case first
+  value = redis.hget(hash_key, display_domain)
+  return [display_domain, value] if value
+
+  # Try lowercase
+  lower = display_domain.downcase
+  if lower != display_domain
+    value = redis.hget(hash_key, lower)
+    return [lower, value] if value
+  end
+
+  [nil, nil]
+end
+
 INSTANCES_KEY = 'custom_domain:instances'
 DISPLAY_DOMAIN_INDEX_KEY = 'custom_domain:display_domain_index'
 DISPLAY_DOMAINS_KEY = 'custom_domain:display_domains'
@@ -115,57 +153,65 @@ instance_ids.each do |instance_id|
     next
   end
 
-  display_domain = fields['display_domain']
-  record_objid = fields['objid']
+  # Normalize display_domain and objid from the :object hash
+  # These are stored JSON-encoded by Familia, so parse them
+  display_domain_raw = fields['display_domain']
+  record_objid_raw = fields['objid']
 
-  if display_domain.nil? || display_domain.empty?
+  display_domain = normalize_value(display_domain_raw)
+  record_objid = normalize_value(record_objid_raw)
+
+  if display_domain.nil? || display_domain.to_s.empty?
     stats[:no_display_domain] += 1
     next
   end
 
-  if record_objid.nil? || record_objid.empty?
+  if record_objid.nil? || record_objid.to_s.empty?
     # Use instance_id as fallback (it's the key used in instances sorted set)
     record_objid = instance_id
   end
 
-  # The record's objid (JSON-encoded) is what the indexes should contain
-  # Familia stores values as JSON, so "abc123" in Ruby becomes '"abc123"' in Redis
-  record_objid_json = record_objid.to_json
+  # The correct index value should be JSON-encoded (Familia HashKey convention)
+  correct_value_json = record_objid.to_json
 
-  # Check display_domain_index
-  indexed_value_1 = redis.hget(DISPLAY_DOMAIN_INDEX_KEY, display_domain)
-  index_1_mismatch = indexed_value_1 && indexed_value_1 != record_objid_json
+  # Check display_domain_index - try multiple key variants
+  key_1_used, indexed_value_1 = hget_flexible(redis, DISPLAY_DOMAIN_INDEX_KEY, display_domain)
+  index_1_mismatch = indexed_value_1 && !values_match?(indexed_value_1, record_objid)
 
-  # Check display_domains
-  indexed_value_2 = redis.hget(DISPLAY_DOMAINS_KEY, display_domain)
-  index_2_mismatch = indexed_value_2 && indexed_value_2 != record_objid_json
+  # Check display_domains - try multiple key variants
+  key_2_used, indexed_value_2 = hget_flexible(redis, DISPLAY_DOMAINS_KEY, display_domain)
+  index_2_mismatch = indexed_value_2 && !values_match?(indexed_value_2, record_objid)
 
   if verbose || index_1_mismatch || index_2_mismatch
     puts "Checking: #{redact_fqdn(display_domain)}"
     puts "  record objid:           #{record_objid}"
-    puts "  display_domain_index:   #{indexed_value_1 || '(missing)'}"
-    puts "  display_domains:        #{indexed_value_2 || '(missing)'}"
+    puts "  display_domain_index:   #{indexed_value_1 || '(missing)'} (key: #{key_1_used || 'n/a'})"
+    puts "  display_domains:        #{indexed_value_2 || '(missing)'} (key: #{key_2_used || 'n/a'})"
   end
 
   if index_1_mismatch
     stats[:display_domain_index_mismatches] += 1
-    puts "  MISMATCH in display_domain_index: has #{indexed_value_1}, should be #{record_objid_json}"
+    puts "  MISMATCH in display_domain_index: has #{indexed_value_1}, should be #{correct_value_json}"
 
     unless dry_run
-      redis.hset(DISPLAY_DOMAIN_INDEX_KEY, display_domain, record_objid_json)
+      # Update using the key that was found (preserves existing case convention)
+      fix_key = key_1_used || display_domain
+      redis.hset(DISPLAY_DOMAIN_INDEX_KEY, fix_key, correct_value_json)
       stats[:fixed_display_domain_index] += 1
-      puts "  FIXED display_domain_index"
+      puts "  FIXED display_domain_index (key: #{fix_key})"
     end
   end
 
   if index_2_mismatch
     stats[:display_domains_mismatches] += 1
-    puts "  MISMATCH in display_domains: has #{indexed_value_2}, should be #{record_objid_json}"
+    puts "  MISMATCH in display_domains: has #{indexed_value_2}, should be #{correct_value_json}"
 
     unless dry_run
-      redis.hset(DISPLAY_DOMAINS_KEY, display_domain, record_objid_json)
+      # Update using the key that was found (preserves existing case convention)
+      fix_key = key_2_used || display_domain
+      redis.hset(DISPLAY_DOMAINS_KEY, fix_key, correct_value_json)
       stats[:fixed_display_domains] += 1
-      puts "  FIXED display_domains"
+      puts "  FIXED display_domains (key: #{fix_key})"
     end
   end
 
