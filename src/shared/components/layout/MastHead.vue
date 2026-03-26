@@ -59,7 +59,8 @@
     return isUserPresent.value ? 40 : 64;
   };
   // Hide site name when custom domain logo is displayed (unless explicitly configured)
-  const getShowSiteName = () => props.logo?.showSiteName ?? (domain_logo.value ? false : !!headerConfig.value?.branding?.site_name);
+  // Priority: props > custom domain (always hide) > logo.show_name config > site_name presence
+  const getShowSiteName = () => props.logo?.showSiteName ?? (domain_logo.value ? false : (headerConfig.value?.branding?.logo?.show_name ?? !!headerConfig.value?.branding?.site_name));
   const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal');
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
