@@ -9,15 +9,15 @@
  *
  * Adding schemas:
  *   1. Import the schema at the top of this file
- *   2. Add to the appropriate category object (modelSchemas, apiV3Schemas, etc.)
+ *   2. Add to the appropriate category object (shapeSchemas, apiV3Schemas, etc.)
  *   3. Key format: 'category/name' → outputs 'category/name.schema.json'
  *
  * Architecture:
  * ┌─────────────────────────────────────────────────────────┐
  * │ Zod Schemas (src/schemas/)                              │
- * │   ├── models/    → Core domain models                   │
+ * │   ├── contracts/ → Canonical field definitions           │
+ * │   ├── shapes/    → Version-specific wire-format schemas  │
  * │   ├── api/       → API request/response schemas         │
- * │   ├── config/    → Configuration schemas                │
  * │   └── ui/        → Form and UI validation schemas       │
  * ├─────────────────────────────────────────────────────────┤
  * │ Registry (this file)                                    │
@@ -27,48 +27,50 @@
  * │   └── Used by: API docs, forms, external tools, Ruby    │
  * └─────────────────────────────────────────────────────────┘
  *
- * Note on transforms: Schemas using z.preprocess() (e.g., transforms.fromString.boolean)
- * will serialize to their underlying type (boolean, number, etc.) in JSON Schema.
- * The preprocessing logic is runtime-only and not representable in JSON Schema.
+ * Note on transforms: Schemas using z.transform() (e.g., transforms.fromNumber.toDate)
+ * will serialize to their input type (number, string, etc.) in JSON Schema when
+ * using io:"input". The transform logic is runtime-only and not representable in JSON Schema.
  */
 
 import { z } from 'zod';
 
 // =============================================================================
-// Model Schemas
+// V3 Shape Schemas
 // =============================================================================
-import { customerSchema } from './shapes/v2/customer';
-import { customDomainSchema } from './shapes/v2/custom-domain';
-import { secretSchema, secretDetailsSchema, secretStateSchema } from './shapes/v2/secret';
-import { receiptSchema, receiptDetailsSchema, receiptStateSchema } from './shapes/v2/receipt';
+import { customerSchema } from './shapes/v3/customer';
+import { customDomainSchema } from './shapes/v3/custom-domain';
+import { secretSchema, secretDetailsSchema } from './shapes/v3/secret';
+import { receiptSchema, receiptDetailsSchema, receiptStateSchema } from './shapes/v3/receipt';
 import { feedbackSchema } from './shapes/v3/feedback';
 import { organizationSchema } from './shapes/organizations/organization';
+import { secretStateSchema } from './contracts/secret';
 
 // =============================================================================
 // API v3 Schemas
 // =============================================================================
-import { concealPayloadSchema } from './api/v2/requests/content/conceal';
-import { generatePayloadSchema } from './api/v2/requests/content/generate';
-import { responseSchemas } from './api/v2/responses';
+import { concealPayloadSchema } from './api/v3/requests/content/conceal';
+import { generatePayloadSchema } from './api/v3/requests/content/generate';
+import { responseSchemas } from './api/v3/responses';
 
 // =============================================================================
 // Schema Categories
 // =============================================================================
 
 /**
- * Core model schemas - domain entities
+ * V3 shape schemas - domain entities with V3 wire-format transforms.
+ * State enums come from contracts (version-independent).
  */
-export const modelSchemas = {
-  'models/customer': customerSchema,
-  'models/secret': secretSchema,
-  'models/secret-details': secretDetailsSchema,
-  'models/secret-state': secretStateSchema,
-  'models/receipt': receiptSchema,
-  'models/receipt-details': receiptDetailsSchema,
-  'models/receipt-state': receiptStateSchema,
-  'models/feedback': feedbackSchema,
-  'models/custom-domain': customDomainSchema,
-  'models/organization': organizationSchema,
+export const shapeSchemas = {
+  'shapes/customer': customerSchema,
+  'shapes/secret': secretSchema,
+  'shapes/secret-details': secretDetailsSchema,
+  'shapes/secret-state': secretStateSchema,
+  'shapes/receipt': receiptSchema,
+  'shapes/receipt-details': receiptDetailsSchema,
+  'shapes/receipt-state': receiptStateSchema,
+  'shapes/feedback': feedbackSchema,
+  'shapes/custom-domain': customDomainSchema,
+  'shapes/organization': organizationSchema,
 } as const;
 
 /**
@@ -88,10 +90,10 @@ export const apiV3Schemas = {
 
 /**
  * All schemas available for JSON Schema generation.
- * Keys are paths relative to the output directory (e.g., 'models/customer' -> 'models/customer.schema.json')
+ * Keys are paths relative to the output directory (e.g., 'shapes/customer' -> 'shapes/customer.schema.json')
  */
 export const schemaRegistry = {
-  ...modelSchemas,
+  ...shapeSchemas,
   ...apiV3Schemas,
 } as const;
 
@@ -106,13 +108,13 @@ export type SchemaKey = keyof typeof schemaRegistry;
  */
 export function getSchemasByCategory(): Record<string, SchemaKey[]> {
   const categories: Record<string, SchemaKey[]> = {
-    models: [],
+    shapes: [],
     'api/v3': [],
   };
 
   for (const key of Object.keys(schemaRegistry) as SchemaKey[]) {
-    if (key.startsWith('models/')) {
-      categories.models.push(key);
+    if (key.startsWith('shapes/')) {
+      categories.shapes.push(key);
     } else if (key.startsWith('api/v3/')) {
       categories['api/v3'].push(key);
     }

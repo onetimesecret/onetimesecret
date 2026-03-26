@@ -38,24 +38,24 @@ function generateJsonSchema(schema: z.ZodType): Record<string, unknown> {
 // =============================================================================
 
 describe('schemaRegistry completeness', () => {
-  it('contains all expected model schemas', () => {
-    const modelKeys = registryKeys.filter((k) => k.startsWith('models/'));
+  it('contains all expected shape schemas', () => {
+    const shapeKeys = registryKeys.filter((k) => k.startsWith('shapes/'));
     const expected = [
-      'models/customer',
-      'models/secret',
-      'models/secret-details',
-      'models/secret-state',
-      'models/receipt',
-      'models/receipt-details',
-      'models/receipt-state',
-      'models/feedback',
-      'models/custom-domain',
-      'models/organization',
+      'shapes/customer',
+      'shapes/secret',
+      'shapes/secret-details',
+      'shapes/secret-state',
+      'shapes/receipt',
+      'shapes/receipt-details',
+      'shapes/receipt-state',
+      'shapes/feedback',
+      'shapes/custom-domain',
+      'shapes/organization',
     ];
     for (const key of expected) {
-      expect(modelKeys, `missing ${key}`).toContain(key);
+      expect(shapeKeys, `missing ${key}`).toContain(key);
     }
-    expect(modelKeys).toHaveLength(expected.length);
+    expect(shapeKeys).toHaveLength(expected.length);
   });
 
   it('contains all expected API schemas', () => {
@@ -124,10 +124,10 @@ describe('JSON Schema generation round-trip', () => {
   it('generator wrapper adds $schema and $id fields', () => {
     // generate.ts wraps z.toJSONSchema() output with JSON Schema 2020-12
     // metadata. Verify the convention with one representative schema.
-    const raw = generateJsonSchema(schemaRegistry['models/feedback']);
+    const raw = generateJsonSchema(schemaRegistry['shapes/feedback']);
     const wrapped = {
       $schema: 'https://json-schema.org/draft/2020-12/schema',
-      $id: 'https://onetimesecret.com/schemas/models/feedback.schema.json',
+      $id: 'https://onetimesecret.com/schemas/shapes/feedback.schema.json',
       ...raw,
     };
     expect(wrapped.$schema).toBe('https://json-schema.org/draft/2020-12/schema');
@@ -135,14 +135,14 @@ describe('JSON Schema generation round-trip', () => {
     expect(wrapped.$id).toMatch(/\.schema\.json$/);
   });
 
-  it('date fields in model schemas serialize as string (via transform)', () => {
-    // V2 schemas use z.string().transform() for date fields, which serializes
-    // to { type: 'string' } in JSON Schema (transform logic is runtime-only).
-    const customerSchema = generateJsonSchema(schemaRegistry['models/customer']);
+  it('date fields in shape schemas serialize as number (via transform)', () => {
+    // V3 shapes use transforms.fromNumber.toDate for date fields, which serializes
+    // to { type: 'number' } in JSON Schema with io:'input' (transform is runtime-only).
+    const customerSchema = generateJsonSchema(schemaRegistry['shapes/customer']);
     const props = customerSchema.properties as Record<string, Record<string, unknown>>;
-    // customerSchema has created/updated fields
-    expect(props.created).toEqual({ type: 'string' });
-    expect(props.updated).toEqual({ type: 'string' });
+    // customerSchema has created/updated fields — V3 wire format is Unix epoch numbers
+    expect(props.created).toEqual({ type: 'number' });
+    expect(props.updated).toEqual({ type: 'number' });
   });
 });
 
@@ -162,7 +162,7 @@ describe('registry.toJsonSchema vs generator parity', () => {
   });
 
   it('no schemas contain z.date() (using transform pattern instead)', () => {
-    // All V2 schemas now use z.string().transform() instead of z.date(),
+    // All V3 shapes use z.number().transform() for dates instead of z.date(),
     // so toJsonSchema works without throwing. This is intentional.
     expect(schemasWithDates.length).toBe(0);
   });
