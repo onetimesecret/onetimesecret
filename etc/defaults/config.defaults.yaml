@@ -74,17 +74,24 @@ site:
       header:
         # Control switch to enable/disable header customization
         enabled: <%= ENV['HEADER_ENABLED'] != 'false' %>
-        # Branding configuration for logo and company name
+        # Branding configuration for the masthead logo and site identity
         branding:
-          # Logo configuration
+          # Logo lockup: icon + optional text mark in the masthead
           logo:
-            # URL to logo image file
+            # Vue component name or image URL (e.g. DefaultLogo.vue, /img/logo.svg)
             url: <%= ENV['LOGO_URL'] || 'DefaultLogo.vue' %>
-            # Alt text for logo image
             alt: <%= ENV['LOGO_ALT'] || 'Share a Secret One-Time' %>
-            # Where the logo links to when clicked
             href: <%= ENV['LOGO_LINK'] || '/' %>
-          # Company name override (falls back to i18n if not set)
+            # Show the site name as a text mark next to the logo icon.
+            # Set false for icon-only display; SITE_NAME remains active
+            # in page titles, MFA labels, and emails regardless.
+            show_name: <%= ENV['LOGO_SHOW_NAME'] != 'false' %>
+          # Product name used across the application:
+          #   - Masthead text mark (when logo.show_name is true)
+          #   - Browser page title
+          #   - MFA authenticator app issuer label
+          #   - Outbound email sender name
+          # Falls back to i18n key if not set.
           site_name: <%= ENV['SITE_NAME'] || 'One-Time Secret' %>
         # Navigation configuration
         navigation:

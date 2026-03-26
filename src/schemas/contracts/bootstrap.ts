@@ -75,6 +75,7 @@ export const headerLogoSchema = z.object({
   url: z.string().default(''),
   alt: z.string().default(''),
   link_to: z.string().default('/'),
+  show_name: z.boolean().optional(),
 });
 
 export const headerBrandingSchema = z.object({

@@ -16,6 +16,7 @@ const userInterfaceLogoSchema = z.object({
   url: z.string().optional(),
   alt: z.string().optional(),
   href: z.string().optional(),
+  show_name: z.boolean().optional(),
 });
 
 /**
