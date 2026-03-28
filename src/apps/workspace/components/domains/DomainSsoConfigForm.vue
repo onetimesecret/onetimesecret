@@ -15,10 +15,10 @@ import { classifyError } from '@/schemas/errors';
 import { SsoService, type TestSsoConnectionResponse } from '@/services/sso.service';
 import {
   SSO_PROVIDER_METADATA,
-  type OrgSsoConfig,
+  type DomainSsoConfig,
   type SsoProviderType,
 } from '@/schemas/shapes/sso-config';
-import type { PatchSsoConfigRequest } from '@/schemas/api/organizations/requests/sso-config';
+import type { PatchSsoConfigRequest } from '@/schemas/api/domains/requests/sso-config';
 
 /**
  * Internal form state type.
@@ -86,7 +86,7 @@ const testResult = ref<TestSsoConnectionResponse | null>(null);
 const testError = ref('');
 
 // Existing config (null if no config exists)
-const existingConfig = ref<OrgSsoConfig | null>(null);
+const existingConfig = ref<DomainSsoConfig | null>(null);
 
 // Form data - internal state with required fields; saveConfig auto-selects PUT/PATCH
 const formData = ref<SsoConfigFormData>({

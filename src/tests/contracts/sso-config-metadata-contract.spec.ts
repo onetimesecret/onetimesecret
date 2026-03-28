@@ -1,11 +1,14 @@
-// src/tests/contracts/org-sso-config-metadata-contract.spec.ts
+// src/tests/contracts/sso-config-metadata-contract.spec.ts
 //
-// Contract tests for SSO_PROVIDER_METADATA constant.
+// Contract tests for SSO_PROVIDER_METADATA constant and domainSsoConfigCanonical schema.
 // Verifies frontend metadata matches backend PROVIDER_METADATA constant in:
-// lib/onetime/models/org_sso_config.rb
+// lib/onetime/models/domain_sso_config.rb
 //
 // These tests ensure the frontend has accurate information about which
 // providers require domain filtering vs having IdP-controlled access.
+//
+// Note: SSO config moved from per-org to per-domain in #2786. The schema was
+// renamed to domainSsoConfigCanonical; orgSsoConfigCanonical is a deprecated alias.
 
 import { describe, expect, it } from 'vitest';
 import {
@@ -129,8 +132,10 @@ describe('orgSsoConfigCanonical schema', () => {
   });
 
   describe('full payload parsing with metadata fields', () => {
+    // Note: Schema was renamed from orgSsoConfigCanonical to domainSsoConfigCanonical
+    // and uses domain_id instead of org_id (per #2786 domain SSO migration)
     const validPayload = {
-      org_id: 'org_123',
+      domain_id: 'dm_123',
       provider_type: 'github' as SsoProviderType,
       enabled: true,
       display_name: 'GitHub SSO',

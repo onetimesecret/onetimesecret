@@ -1,22 +1,22 @@
-// src/schemas/contracts/org-sso-config.ts
+// src/schemas/contracts/sso-config.ts
 //
-// OrgSsoConfig contracts defining field names and wire format types.
+// DomainSsoConfig contracts defining field names and wire format types.
 // Shapes transform these to runtime types (e.g., timestamps -> Date).
 //
 // Architecture: contract -> shape -> API
 
 /**
- * Per-Organization SSO Configuration contracts.
+ * Per-Domain SSO Configuration contracts.
  *
- * Stores SSO/OIDC credentials for organizations that manage their own
+ * Stores SSO/OIDC credentials for custom domains that manage their own
  * identity provider connections. This enables multi-tenant SSO where each
- * organization can configure their own Entra ID, Google Workspace, or
+ * domain can configure their own Entra ID, Google Workspace, or
  * generic OIDC provider.
  *
  * Design Decisions:
  *
- * 1. One-to-One with Organization: Each organization has at most one SSO
- *    config. The org_id field is the identifier.
+ * 1. One-to-One with Domain: Each custom domain has at most one SSO
+ *    config. The domain_id field is the identifier.
  *
  * 2. Masked Credentials: client_secret is never exposed in API responses.
  *    Instead, client_secret_masked provides a hint (e.g., "••••1234").
@@ -29,9 +29,9 @@
  *    domains can authenticate via this SSO config. Empty list means no
  *    restriction (any domain allowed).
  *
- * @module contracts/org-sso-config
+ * @module contracts/sso-config
  * @category Contracts
- * @see {@link "shapes/organizations/org-sso-config"} - Shapes with transforms
+ * @see {@link "shapes/sso-config"} - Shapes with transforms
  */
 
 import { z } from 'zod';
@@ -58,7 +58,7 @@ export type SsoProviderType = z.infer<typeof ssoProviderTypeSchema>;
 /**
  * Provider metadata for UI behavior.
  *
- * Mirrors PROVIDER_METADATA in lib/onetime/models/org_sso_config.rb.
+ * Mirrors PROVIDER_METADATA in lib/onetime/models/domain_sso_config.rb.
  * Used by forms to determine when domain filter field should be shown/required.
  */
 export const SSO_PROVIDER_METADATA: Record<SsoProviderType, {
@@ -93,21 +93,21 @@ export const SSO_PROVIDER_METADATA: Record<SsoProviderType, {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Canonical OrgSsoConfig contract schema.
+ * Canonical DomainSsoConfig contract schema.
  *
- * Defines field names matching the Ruby OrgSsoConfig model and wire format.
+ * Defines field names matching the Ruby DomainSsoConfig model and wire format.
  * Shapes transform timestamps (number -> Date) for runtime use.
  *
  * Note: client_id and client_secret are encrypted at rest in the backend.
  * API responses use client_secret_masked to indicate presence without exposing
  * the actual secret.
  *
- * @see lib/onetime/models/org_sso_config.rb - Backend model
+ * @see lib/onetime/models/domain_sso_config.rb - Backend model
  * @category Contracts
  */
-export const orgSsoConfigCanonical = z.object({
-  /** Organization ID (references Organization.objid). */
-  org_id: z.string(),
+export const domainSsoConfigCanonical = z.object({
+  /** Domain ID (references CustomDomain.identifier). */
+  domain_id: z.string(),
 
   /** SSO provider type (oidc, entra_id, google, github). */
   provider_type: ssoProviderTypeSchema,
@@ -185,8 +185,22 @@ export const orgSsoConfigCanonical = z.object({
 // Type exports
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** TypeScript type for OrgSsoConfig wire format. */
-export type OrgSsoConfigCanonical = z.infer<typeof orgSsoConfigCanonical>;
+/** TypeScript type for DomainSsoConfig wire format. */
+export type DomainSsoConfigCanonical = z.infer<typeof domainSsoConfigCanonical>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Deprecated aliases (backward compatibility)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @deprecated Use domainSsoConfigCanonical. SSO config moved from per-org to per-domain.
+ */
+export const orgSsoConfigCanonical = domainSsoConfigCanonical;
+
+/**
+ * @deprecated Use DomainSsoConfigCanonical. SSO config moved from per-org to per-domain.
+ */
+export type OrgSsoConfigCanonical = DomainSsoConfigCanonical;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Request payload schemas
@@ -195,7 +209,7 @@ export type OrgSsoConfigCanonical = z.infer<typeof orgSsoConfigCanonical>;
 /**
  * Create or update SSO configuration request payload schema.
  *
- * Used for PUT /api/organizations/:extid/sso
+ * Used for PUT /api/domains/:domain_extid/sso
  *
  * Fields:
  * - provider_type: Required, one of the supported providers

@@ -3,3 +3,4 @@
 // Domains API responses index
 
 export * from './domains';
+export * from './sso-config';

@@ -1,4 +1,14 @@
-// src/tests/services/sso.service.spec.ts
+// src/tests/services/sso.service.org-level.deprecated.spec.ts
+//
+// DEPRECATED: This file tests org-level SSO API methods that no longer exist.
+//
+// As of #2786, SSO configuration moved from per-organization to per-domain.
+// The old API methods (getConfig, putConfig, patchConfig, saveConfig, deleteConfig, testConnection)
+// have been replaced by domain-scoped methods (getConfigForDomain, putConfigForDomain, etc.).
+//
+// For active tests, see: sso.service.domain.spec.ts
+//
+// This file is preserved for reference but all tests are skipped.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -24,7 +34,7 @@ vi.mock('@/api', () => ({
 // Import after mocking
 import { SsoService } from '@/services/sso.service';
 
-describe('SsoService', () => {
+describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGet.mockReset();

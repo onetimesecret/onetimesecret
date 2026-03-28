@@ -68,12 +68,14 @@ vi.mock('@/services/sso.service', () => ({
 }));
 
 // Mock SSO provider metadata
-vi.mock('@/schemas/shapes/organizations/org-sso-config', () => ({
+// Note: This mock matches the actual module path the component imports from.
+// If tests fail due to provider metadata behavior, verify the component import path.
+vi.mock('@/schemas/shapes/sso-config', () => ({
   SSO_PROVIDER_METADATA: {
-    entra_id: { requiresDomainFilter: false },
-    google: { requiresDomainFilter: false },
-    github: { requiresDomainFilter: true },
-    oidc: { requiresDomainFilter: false },
+    entra_id: { requiresDomainFilter: false, idpControlsAccess: true, description: 'Microsoft Entra ID' },
+    google: { requiresDomainFilter: false, idpControlsAccess: true, description: 'Google Workspace' },
+    github: { requiresDomainFilter: true, idpControlsAccess: false, description: 'GitHub OAuth' },
+    oidc: { requiresDomainFilter: false, idpControlsAccess: true, description: 'Generic OIDC' },
   },
 }));
 

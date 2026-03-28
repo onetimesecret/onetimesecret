@@ -12,8 +12,8 @@ import type {
   PutSsoConfigRequest,
   PatchSsoConfigRequest,
   DeleteSsoConfigResponse,
-} from '@/schemas/api/organizations/requests/sso-config';
-import type { OrgSsoConfig, SsoProviderType } from '@/schemas/shapes/sso-config';
+} from '@/schemas/api/domains/requests/sso-config';
+import type { DomainSsoConfig, SsoProviderType } from '@/schemas/shapes/sso-config';
 import axios from 'axios';
 
 const $api = createApi();
@@ -24,9 +24,14 @@ const $api = createApi();
  * Note: The record is non-null on success. When no config exists,
  * the API returns 404 (not 200 with null), so consumers should
  * handle AxiosError with status 404 for missing configs.
+ *
+ * IMPORTANT: The record is returned without Zod parsing. While the
+ * DomainSsoConfig type shows `created_at` and `updated_at` as Date,
+ * they arrive as Unix epoch numbers from the API. Components that
+ * need Date objects should parse the record with domainSsoConfigSchema.
  */
 export interface SsoConfigResponse {
-  record: OrgSsoConfig | null;
+  record: DomainSsoConfig | null;
 }
 
 /**

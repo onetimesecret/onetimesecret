@@ -4,4 +4,5 @@
  * Domains API schemas index
  */
 
+export * from './requests';
 export * from './responses';
