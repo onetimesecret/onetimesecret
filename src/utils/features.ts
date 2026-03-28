@@ -200,3 +200,22 @@ export function isOrganizationSwitcherEnabled(): boolean {
   });
   return result;
 }
+
+/**
+ * Checks if organization-level SSO configuration is enabled.
+ * When true, organizations with manage_sso entitlement can configure
+ * SSO for their custom domains.
+ * Default is OFF - requires explicit opt-in via ORGS_SSO_ENABLED=true.
+ */
+export function isOrgsSsoEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  const result = features?.organizations?.sso_enabled === true;
+  console.log('[features] isOrgsSsoEnabled:', {
+    organizations: features?.organizations,
+    sso_enabled: features?.organizations?.sso_enabled,
+    result,
+  });
+  return result;
+}

@@ -29,6 +29,7 @@ import { getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/
 import type { /* CreateInvitationPayload, */ Organization, OrganizationInvitation } from '@/types/organization';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in template
 import { formatDisplayDate } from '@/utils/format';
+import { isOrgsSsoEnabled } from '@/utils/features';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 // LAUNCH: Identity-only - zod hidden until team features enabled (used for invite form validation)
@@ -177,8 +178,8 @@ const {
   ENTITLEMENTS,
 } = useEntitlements(organization);
 
-// SSO entitlement check
-const canManageSso = computed(() => can(ENTITLEMENTS.MANAGE_SSO));
+// SSO visibility: feature flag AND entitlement must both pass (dual-control)
+const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
 
 
 // Form data

@@ -82,6 +82,10 @@ module DomainsAPI
         # @param domain_id [String] Domain extid
         # @return [void]
         def authorize_domain_sso!(domain_id)
+          unless OT.conf.dig('features', 'organizations', 'sso_enabled')
+            raise_form_error('Organization SSO is not enabled on this instance', error_type: :forbidden)
+          end
+
           @custom_domain = load_custom_domain(domain_id)
           @organization  = load_organization_for_domain(@custom_domain)
 

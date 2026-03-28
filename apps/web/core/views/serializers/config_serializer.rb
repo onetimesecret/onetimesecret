@@ -131,6 +131,7 @@ module Core
             'sso_only' => Onetime.auth_config.sso_only_enabled?,
             'organizations' => {
               'enabled' => features.dig('organizations', 'enabled') || false,
+              'sso_enabled' => features.dig('organizations', 'sso_enabled') || false,
             },
           }
         end
