@@ -17,6 +17,7 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import type { ScopeSwitcherState } from '@/types/router';
+import { isOrganizationSwitcherEnabled } from '@/utils/features';
 
 interface ScopeSwitcherVisibility {
   organization: ScopeSwitcherState;
@@ -36,7 +37,9 @@ export function useScopeSwitcherVisibility() {
     domain: route.meta.scopesAvailable?.domain ?? defaults.domain,
   }));
 
-  const showOrgSwitcher = computed(() => visibility.value.organization !== 'hide');
+  const showOrgSwitcher = computed(
+    () => visibility.value.organization !== 'hide' && isOrganizationSwitcherEnabled()
+  );
   const lockOrgSwitcher = computed(() => visibility.value.organization === 'locked');
 
   const showDomainSwitcher = computed(() => visibility.value.domain !== 'hide');

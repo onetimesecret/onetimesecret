@@ -151,10 +151,12 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/settings/profile/email',
     name: 'Change Email',
+    beforeEnter: checkPasswordSecurityAccess,
     component: () => import('@/apps/workspace/account/settings/ChangeEmail.vue'),
     meta: {
       title: 'web.TITLES.change_email',
       requiresAuth: true,
+      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,

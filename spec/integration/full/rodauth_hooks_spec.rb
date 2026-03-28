@@ -31,7 +31,7 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
   end
 
   def app
-    Onetime::Application::Registry.generate_rack_url_map
+    @app ||= Onetime::Application::Registry.generate_rack_url_map
   end
 
   # Establish session and get CSRF token

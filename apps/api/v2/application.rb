@@ -14,7 +14,9 @@ module V2
   # V2 API Application
   #
   # RESTful API for Onetime Secret v2. Serves JSON responses and uses
-  # Otto router for authentication and routing.
+  # Otto router for authentication and routing. Returns string-encoded
+  # values (mirroring Redis storage). For new integrations, prefer V3
+  # which returns native JSON types.
   #
   # ## Architecture
   #

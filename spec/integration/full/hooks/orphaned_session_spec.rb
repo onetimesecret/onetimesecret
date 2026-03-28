@@ -21,13 +21,18 @@
 # - AUTH_DATABASE_URL set (SQLite or PostgreSQL)
 # - AUTHENTICATION_MODE=full
 #
+# TEST SETUP NOTES:
+# - Clear Content-Type before GET (Rack::Test persists it after POST)
+# - Fetch CSRF token AFTER login (session regeneration invalidates prior tokens)
+# - Memoize app with @app ||= (multiple URL map generation corrupts state)
+#
 # RUN:
 #   VALKEY_URL='valkey://127.0.0.1:2121/0' AUTH_DATABASE_URL='sqlite://data/test_auth.db' \
 #     pnpm run test:rspec apps/web/auth/spec/hooks/orphaned_session_spec.rb
 #
 # =============================================================================
 
-require_relative '../../../spec_helper'
+require_relative '../../integration_spec_helper'
 require 'json'
 require 'securerandom'
 
@@ -35,7 +40,8 @@ RSpec.describe 'Orphaned Session Handling', :shared_db_state, type: :integration
   include Rack::Test::Methods
 
   def app
-    Onetime::Application::Registry.generate_rack_url_map
+    # MUST memoize - calling generate_rack_url_map multiple times corrupts app state
+    @app ||= Onetime::Application::Registry.generate_rack_url_map
   end
 
   def json_get(path)
@@ -46,9 +52,10 @@ RSpec.describe 'Orphaned Session Handling', :shared_db_state, type: :integration
 
   # Fetch a fresh CSRF token for the current session
   def fetch_csrf_token
-    get '/auth', {}, { 'HTTP_ACCEPT' => 'application/json' }
-    @last_csrf_token = last_response.headers['X-CSRF-Token']
-    @last_csrf_token
+    header 'Content-Type', nil  # Clear Content-Type from previous POST requests
+    header 'Accept', 'application/json'
+    get '/auth'
+    last_response.headers['X-CSRF-Token']
   end
 
   # POST with CSRF token, optionally using a pre-stored token
@@ -73,13 +80,31 @@ RSpec.describe 'Orphaned Session Handling', :shared_db_state, type: :integration
   end
 
   before(:all) do
+    # Set full mode before loading the application
+    ENV['AUTHENTICATION_MODE'] = 'full'
+
+    # Reset registry to clear state from previous test runs
+    Onetime::Application::Registry.reset!
+
+    # Reload auth config to pick up AUTHENTICATION_MODE env var
+    Onetime.auth_config.reload!
+
+    # Boot application
     Onetime.boot! :test
+
+    # Prepare the application registry
+    Onetime::Application::Registry.prepare_application_registry
+  end
+
+  after(:all) do
+    ENV.delete('AUTHENTICATION_MODE')
   end
 
   let(:test_email) { "orphan-#{SecureRandom.hex(8)}@example.com" }
   let(:valid_password) { 'SecureP@ss123!' }
 
   # Creates account and logs in, returning the account record
+  # After login, fetches and stores a fresh CSRF token for the authenticated session
   def create_and_login_account(email:, password:)
     json_post '/auth/create-account', {
       login: email,
@@ -93,6 +118,10 @@ RSpec.describe 'Orphaned Session Handling', :shared_db_state, type: :integration
     json_post '/auth/login', { login: email, password: password }
     expect(last_response.status).to eq(200),
       "Login failed: #{last_response.body[0..500]}"
+
+    # Fetch fresh CSRF token for the authenticated session (after session regeneration)
+    # This token will be valid for requests with this session
+    @last_csrf_token = fetch_csrf_token
 
     find_account_by_email(email)
   end
@@ -138,7 +167,7 @@ RSpec.describe 'Orphaned Session Handling', :shared_db_state, type: :integration
     it 'handles logout gracefully when account no longer exists' do
       # Skip: Requires special session handling for orphaned session scenarios
       # The test infrastructure flushes Redis between tests which breaks session state
-      pending 'Orphaned session tests require dedicated session isolation'
+      # pending 'Orphaned session tests require dedicated session isolation'
 
       account = create_and_login_account(email: test_email, password: valid_password)
 
@@ -159,8 +188,6 @@ RSpec.describe 'Orphaned Session Handling', :shared_db_state, type: :integration
 
   describe 'GET /auth/account with deleted account' do
     it 'returns 401 when account no longer exists' do
-      pending 'Orphaned session tests require dedicated session isolation'
-
       account = create_and_login_account(email: test_email, password: valid_password)
       delete_account_from_db(account[:id])
 
@@ -176,8 +203,6 @@ RSpec.describe 'Orphaned Session Handling', :shared_db_state, type: :integration
 
   describe 'GET /auth/mfa-status with deleted account' do
     it 'returns 401 when account no longer exists' do
-      pending 'Orphaned session tests require dedicated session isolation'
-
       account = create_and_login_account(email: test_email, password: valid_password)
       delete_account_from_db(account[:id])
 
@@ -193,8 +218,6 @@ RSpec.describe 'Orphaned Session Handling', :shared_db_state, type: :integration
 
   describe 'POST /auth/change-password with deleted account' do
     it 'fails gracefully when account no longer exists' do
-      pending 'Orphaned session tests require dedicated session isolation'
-
       account = create_and_login_account(email: test_email, password: valid_password)
       delete_account_from_db(account[:id])
 
@@ -212,8 +235,6 @@ RSpec.describe 'Orphaned Session Handling', :shared_db_state, type: :integration
 
   describe 'multiple requests with orphaned session' do
     it 'returns 401 on repeated requests without database errors' do
-      pending 'Orphaned session tests require dedicated session isolation'
-
       account = create_and_login_account(email: test_email, password: valid_password)
       delete_account_from_db(account[:id])
 

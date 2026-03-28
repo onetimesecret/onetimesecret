@@ -27,6 +27,15 @@ import {
 // -----------------------------------------------------------------------------
 // V2 Wire -> V3 Schema (Forward Compatibility)
 // -----------------------------------------------------------------------------
+//
+// INTENTIONALLY SKIPPED: These tests document the compatibility matrix between
+// V2 and V3 wire formats. They are reference documentation for migration
+// planning, not regression tests. The "FAILS:" prefix indicates expected
+// incompatibilities that would require an API version bump to resolve.
+//
+// Unskip when: actively testing migration paths or verifying compatibility
+// assumptions during a version cutover.
+// -----------------------------------------------------------------------------
 
 describe.skip('V2 Wire -> V3 Schema (Forward Compatibility)', () => {
   describe('V3 schema type expectations', () => {
@@ -105,6 +114,14 @@ describe.skip('V2 Wire -> V3 Schema (Forward Compatibility)', () => {
 
 // -----------------------------------------------------------------------------
 // V3 Wire -> V2 Schema (Backward Compatibility)
+// -----------------------------------------------------------------------------
+//
+// INTENTIONALLY SKIPPED: Documents that V2 schemas can accept V3 wire data
+// (backward compatible). The "SUCCEEDS:" prefix indicates V2's flexible
+// preprocessors handle V3's native types. Kept as reference for migration
+// planning - V2 clients can safely receive V3 responses.
+//
+// Unskip when: verifying backward compatibility during rollout.
 // -----------------------------------------------------------------------------
 
 describe.skip('V3 Wire -> V2 Schema (Backward Compatibility)', () => {
@@ -582,6 +599,13 @@ describe('Transform Error Handling', () => {
 
 // -----------------------------------------------------------------------------
 // V3 Default Values
+// -----------------------------------------------------------------------------
+//
+// INTENTIONALLY SKIPPED: Documents V3 schema default value behavior when
+// optional fields are missing from wire data. Reference for understanding
+// schema resilience - not active regression tests.
+//
+// Unskip when: verifying default value behavior during schema changes.
 // -----------------------------------------------------------------------------
 
 describe.skip('V3 CustomDomain Default Values', () => {

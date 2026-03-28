@@ -2,12 +2,27 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/org_sso_config'
+require 'onetime/models/custom_domain'
+
 module Core
   module Views
     # Serializes application configuration for the frontend
     #
     # Responsible for transforming server-side configuration settings into
     # a consistent format that can be safely exposed to the frontend.
+    #
+    # SSO Provider Resolution:
+    # The serializer returns domain-aware SSO providers based on request context:
+    #   1. If request is from a custom domain with OrgSsoConfig -> tenant's provider
+    #   2. If tenant has no config or is disabled -> platform fallback (if allowed)
+    #   3. If fallback disallowed -> empty providers array
+    #
+    # Resolution Flow:
+    #   view_vars['organization'] -> org_id -> OrgSsoConfig.find_by_org_id
+    #   OR
+    #   view_vars['display_domain'] -> CustomDomain.load_by_display_domain -> org_id
+    #
     module ConfigSerializer
       # Serializes configuration data from view variables
       #
@@ -64,7 +79,7 @@ module Core
 
         # Feature flags for authentication methods
         # Only available in full mode (Rodauth)
-        output['features'] = build_feature_flags
+        output['features'] = build_feature_flags(view_vars)
 
         output
       end
@@ -101,8 +116,11 @@ module Core
         # based on the current authentication mode (simple vs full).
         # Uses AuthConfig methods which already check full_enabled? internally.
         #
+        # @param view_vars [Hash] View variables with request context
         # @return [Hash] Feature flags for frontend consumption
-        def build_feature_flags
+        def build_feature_flags(view_vars)
+          features = view_vars['features'] || {}
+
           {
             'lockout' => Onetime.auth_config.lockout_enabled?,
             'password_requirements' => Onetime.auth_config.password_requirements_enabled?,
@@ -111,21 +129,127 @@ module Core
             'mfa' => Onetime.auth_config.mfa_enabled?,
             'email_auth' => Onetime.auth_config.email_auth_enabled?,
             'webauthn' => Onetime.auth_config.webauthn_enabled?,
-            'sso' => build_sso_config,
+            'sso' => build_sso_config(view_vars),
             'sso_only' => Onetime.auth_config.sso_only_enabled?,
+            'organizations' => {
+              'enabled' => features.dig('organizations', 'enabled') || false,
+            },
           }
         end
 
         # Build SSO configuration for frontend
         #
-        # Returns false if disabled, or a hash with enabled status and
-        # a providers array for multi-provider SSO support.
+        # Returns domain-aware SSO provider configuration. For custom domains
+        # with OrgSsoConfig, returns the tenant's provider. Otherwise returns
+        # platform SSO configuration (from env vars).
         #
-        # Each provider entry includes route_name (for POST URL) and
-        # display_name (for button label).
+        # Resolution priority:
+        #   1. OrgSsoConfig for tenant (if custom domain with org SSO config)
+        #   2. Platform SSO providers (from env vars, if fallback allowed)
+        #   3. Disabled (empty providers)
+        #
+        # @param view_vars [Hash] View variables containing organization context
+        # @return [Boolean, Hash] false if disabled, otherwise config hash
+        def build_sso_config(view_vars)
+          # Try tenant-specific SSO config first
+          tenant_config = resolve_tenant_sso_config(view_vars)
+
+          if tenant_config
+            return build_tenant_sso_response(tenant_config)
+          end
+
+          # Check if we're on a custom domain that should have tenant config
+          # but doesn't - honor the fallback policy
+          if tenant_domain?(view_vars) && !allow_platform_fallback?
+            return { 'enabled' => false, 'providers' => [] }
+          end
+
+          # Fall back to platform SSO config (from env vars)
+          build_platform_sso_config
+        end
+
+        # Resolve tenant SSO configuration from request context
+        #
+        # Attempts to find OrgSsoConfig using:
+        #   1. Organization from view_vars (already resolved by auth strategy)
+        #   2. CustomDomain lookup from display_domain
+        #
+        # @param view_vars [Hash] View variables
+        # @return [Onetime::OrgSsoConfig, nil] Tenant config if found and enabled
+        def resolve_tenant_sso_config(view_vars)
+          org_id = resolve_org_id(view_vars)
+          return nil unless org_id
+
+          config = Onetime::OrgSsoConfig.find_by_org_id(org_id)
+          return nil unless config&.enabled?
+
+          config
+        end
+
+        # Resolve organization ID from view variables
+        #
+        # @param view_vars [Hash] View variables
+        # @return [String, nil] Organization objid or nil
+        def resolve_org_id(view_vars)
+          # First try the pre-resolved organization from auth strategy
+          organization = view_vars['organization']
+          return organization.objid if organization
+
+          # Fall back to CustomDomain lookup from display_domain
+          display_domain = view_vars['display_domain']
+          return nil if display_domain.to_s.empty?
+
+          custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
+          custom_domain&.org_id
+        rescue Redis::BaseError => ex
+          OT.le "[ConfigSerializer] Redis error resolving org_id for domain=#{display_domain}: #{ex.class}"
+          nil
+        end
+
+        # Check if request is from a tenant/custom domain
+        #
+        # @param view_vars [Hash] View variables
+        # @return [Boolean] true if on a custom domain
+        def tenant_domain?(view_vars)
+          strategy = view_vars['domain_strategy']
+          strategy == :custom
+        end
+
+        # Check if platform fallback is allowed for tenant domains
+        #
+        # When true, custom domains without OrgSsoConfig use platform SSO.
+        # When false, such domains see no SSO buttons.
+        #
+        # @return [Boolean] true if fallback allowed (default: true)
+        def allow_platform_fallback?
+          setting = OT.conf.dig('site', 'sso', 'allow_platform_fallback_for_tenants')
+          # Default to true for backward compatibility
+          setting.nil? || setting
+        end
+
+        # Build SSO response for tenant configuration
+        #
+        # @param config [Onetime::OrgSsoConfig] Tenant SSO config
+        # @return [Hash] SSO config hash for frontend
+        def build_tenant_sso_response(config)
+          {
+            'enabled' => true,
+            'providers' => [
+              {
+                'route_name' => config.provider_type.to_s,
+                'display_name' => config.display_name.to_s,
+              },
+            ],
+          }
+        end
+
+        # Build platform SSO configuration from environment variables
+        #
+        # This is the original behavior - reading SSO providers from
+        # AuthConfig which derives them from environment variables.
         #
         # @return [Boolean, Hash] false if disabled, otherwise config hash
-        def build_sso_config
+        def build_platform_sso_config
           return false unless Onetime.auth_config.sso_enabled?
 
           providers = Onetime.auth_config.sso_providers

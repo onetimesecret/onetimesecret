@@ -168,3 +168,16 @@ export function getAuthFeatures(): AuthFeatures {
 export function hasPasswordlessMethods(): boolean {
   return isMagicLinksEnabled() || isWebAuthnEnabled();
 }
+
+/**
+ * Checks if the organization switcher UI is enabled.
+ * Organizations always exist (every customer has one for Stripe billing).
+ * This controls whether the multi-org switcher is visible in navigation.
+ * Default is OFF - requires explicit opt-in via ORGANIZATIONS_ENABLED=true.
+ */
+export function isOrganizationSwitcherEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  return features?.organizations?.enabled === true;
+}

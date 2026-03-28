@@ -397,6 +397,13 @@ features:
       # Port for standalone mode (Caddy's ask directive points here)
       port: <%= ENV['ACME_PORT'] || '12020' %>
 
+  # Organizations UI
+  # Shows the organization switcher in the navigation bar. Organizations
+  # always exist under the hood (every customer has one for Stripe billing).
+  # This flag controls whether users can see and switch between multiple orgs.
+  organizations:
+    enabled: <%= ENV['ORGANIZATIONS_ENABLED'] == 'true' %>
+
 # Main Database Configuration
 redis:
   # Redis/Valkey connection URI - Compatible with Redis, Valkey, and other

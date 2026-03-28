@@ -15,8 +15,9 @@ module V1
   # V1 API Application
   #
   # Legacy RESTful API for Onetime Secret v1. Maintained for backward
-  # compatibility with existing integrations. Serves JSON responses
-  # and uses Otto router with controller-based routing.
+  # compatibility with existing integrations. For new integrations,
+  # use V2 or V3. Serves JSON responses and uses Otto router with
+  # controller-based routing.
   #
   # ## Architecture
   #

@@ -4,8 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useSecretExpiration } from '@/shared/composables/useSecretExpiration';
-  import type { Receipt } from '@/schemas/shapes/v3/receipt';
-  import { ReceiptState, receiptStateSchema } from '@/schemas/shapes/v3/receipt';
+  import { type Receipt, ReceiptState, receiptStateSchema } from '@/schemas/shapes/v3/receipt';
   import { getDisplayStatus, type DisplayStatus, getStatusText } from '@/utils/status';
   import { computed, watchEffect } from 'vue';
 

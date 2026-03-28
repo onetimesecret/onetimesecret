@@ -99,8 +99,20 @@ export const StructuredAssertion = z.object({
   value: z.string().optional(),
 });
 
-/** Verification assertion - simple string or structured */
-export const Assertion = z.union([z.string(), StructuredAssertion]);
+/** API assertion for backend state verification */
+export const ApiAssertion = z.object({
+  /** HTTP method and endpoint (e.g., "GET /api/invite/{{token}}") */
+  api: z.string(),
+  /** Request body for POST/PUT/PATCH requests */
+  body: z.record(z.string(), z.unknown()).optional(),
+  /** Expected response values to assert */
+  assert: z.record(z.string(), z.unknown()),
+  /** Notes for human reviewers or agent context */
+  notes: z.string().optional(),
+});
+
+/** Verification assertion - simple string, selector-based, or API call */
+export const Assertion = z.union([z.string(), StructuredAssertion, ApiAssertion]);
 
 // -----------------------------------------------------------------------------
 // Skip Conditions
@@ -229,6 +241,7 @@ export type Fixture = z.infer<typeof Fixture>;
 export type Setup = z.infer<typeof Setup>;
 export type Action = z.infer<typeof Action>;
 export type StructuredAssertion = z.infer<typeof StructuredAssertion>;
+export type ApiAssertion = z.infer<typeof ApiAssertion>;
 export type Assertion = z.infer<typeof Assertion>;
 export type Skip = z.infer<typeof Skip>;
 export type TestCase = z.infer<typeof TestCase>;

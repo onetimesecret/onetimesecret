@@ -133,6 +133,7 @@ module Auth
       if Onetime.auth_config.omniauth_enabled?
         Features::OmniAuth.configure(self)
         Hooks::OmniAuth.configure(self)
+        Hooks::OmniAuthTenant.configure(self)
       end
 
       # Billing: plan selection carry-through for checkout flow

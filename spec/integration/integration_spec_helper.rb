@@ -77,6 +77,14 @@ end
 # These helpers establish a session, extract the CSRF token from the
 # X-CSRF-Token response header, and include it in subsequent requests.
 #
+# PITFALLS:
+# 1. Content-Type persistence: After JSON POST, Rack::Test keeps Content-Type
+#    header. Clear it before GET: `header 'Content-Type', nil`
+# 2. Session regeneration: Login/account-creation regenerate sessions, invalidating
+#    CSRF tokens. Fetch fresh token AFTER login completes.
+# 3. App memoization: Use `@app ||=` in def app - multiple generate_rack_url_map
+#    calls corrupt middleware state.
+#
 # Usage:
 #   include CsrfTestHelpers
 #
@@ -95,7 +103,8 @@ module CsrfTestHelpers
   def ensure_csrf_token
     return @csrf_token if defined?(@csrf_token) && @csrf_token
 
-    # Make a GET request to establish session
+    # Clear Content-Type from previous POST (Rack::Parser chokes on nil body with JSON type)
+    header 'Content-Type', nil
     header 'Accept', 'application/json'
     get '/auth'
     @csrf_token = last_response.headers['X-CSRF-Token']

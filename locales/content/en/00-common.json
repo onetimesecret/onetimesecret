@@ -464,6 +464,14 @@
     "text": "Remove",
     "sha256": "c3812fc4"
   },
+  "web.COMMON.add": {
+    "text": "Add",
+    "sha256": "a1b2c3d4"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Yes, delete",
+    "sha256": "b2c3d4e5"
+  },
   "web.COMMON.press_esc_to_close": {
     "text": "Press ESC to close",
     "sha256": "5aa83883"
@@ -567,6 +575,18 @@
   "web.COMMON.other": {
     "text": "Other",
     "sha256": "f97e9da0"
+  },
+  "web.COMMON.error_code": {
+    "text": "Error Code",
+    "sha256": "a1b2c3d4"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP Status",
+    "sha256": "b2c3d4e5"
+  },
+  "web.COMMON.details": {
+    "text": "Details",
+    "sha256": "c3d4e5f6"
   },
   "web.COMMON.min_width_1024px": {
     "text": "(min-width: 1024px)",

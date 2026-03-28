@@ -289,9 +289,10 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
         expect(app_div).not_to be_nil
       end
 
-      it 'includes router-view inside #app' do
-        router_view = doc.css('#app router-view').first
-        expect(router_view).not_to be_nil
+      it 'includes fallback content inside #app' do
+        # Vue replaces this fallback when mounted; server-rendered HTML has loading state
+        fallback_div = doc.css('#app .app-fallback').first
+        expect(fallback_div).not_to be_nil
       end
 
       it 'sets html lang attribute from locale' do

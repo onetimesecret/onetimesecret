@@ -10,6 +10,7 @@ import {
   isPasswordRequirementsEnabled,
   hasPasswordlessMethods,
   getAuthFeatures,
+  isOrganizationSwitcherEnabled,
 } from '@/utils/features';
 import { _resetForTesting } from '@/services/bootstrap.service';
 
@@ -565,6 +566,73 @@ describe('features utility', () => {
     });
   });
 
+  describe('isOrganizationSwitcherEnabled', () => {
+    it('returns true when organizations.enabled is true', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { enabled: true } });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when organizations.enabled is false', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { enabled: false } });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations object is empty', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: {} });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations is undefined', () => {
+      getBootstrapValueMock.mockReturnValue({});
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when features object is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations.enabled is truthy but not exactly true', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { enabled: 'yes' } });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations.enabled is null', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { enabled: null } });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations.enabled is 1 (number)', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { enabled: 1 } });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+  });
+
   describe('SSR safety (window undefined)', () => {
     // Store original window reference
     const originalWindow = global.window;
@@ -623,6 +691,11 @@ describe('features utility', () => {
         ssoEnabled: false,
         ssoOnly: false,
       });
+    });
+
+    it('isOrganizationSwitcherEnabled returns false when window is undefined', () => {
+      const result = isOrganizationSwitcherEnabled();
+      expect(result).toBe(false);
     });
   });
 });

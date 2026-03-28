@@ -10,5 +10,6 @@ export * from './list-organizations';
 export * from './remove-member';
 export * from './resend-invitation';
 export * from './revoke-invitation';
+export * from './sso-config';
 export * from './update-member-role';
 export * from './update-organization';
