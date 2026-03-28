@@ -136,8 +136,8 @@ describe('JSON Schema generation round-trip', () => {
   });
 
   it('date fields in shape schemas serialize as number (via transform)', () => {
-    // V3 shapes use transforms.fromNumber.toDate for date fields, which serializes
-    // to { type: 'number' } in JSON Schema with io:'input' (transform is runtime-only).
+    // V3 shapes use a number→Date transform for date fields; with io:'input',
+    // JSON Schema reflects the wire type as { type: 'number' } (transform is runtime-only).
     const customerSchema = generateJsonSchema(schemaRegistry['shapes/customer']);
     const props = customerSchema.properties as Record<string, Record<string, unknown>>;
     // customerSchema has created/updated fields — V3 wire format is Unix epoch numbers

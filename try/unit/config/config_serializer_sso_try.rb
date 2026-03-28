@@ -1,4 +1,4 @@
-# try/unit/config/config_serializer_omniauth_try.rb
+# try/unit/config/config_serializer_sso_try.rb
 #
 # frozen_string_literal: true
 
@@ -57,9 +57,10 @@ ensure
 end
 
 ## build_sso_config returns false when SSO is disabled
-with_sso_config(enabled: false) do
+result = with_sso_config(enabled: false) do
   Core::Views::ConfigSerializer.send(:build_sso_config, {})
 end
+result
 #=> false
 
 ## build_sso_config returns hash with enabled true when SSO is enabled

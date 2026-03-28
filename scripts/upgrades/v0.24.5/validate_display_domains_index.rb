@@ -14,6 +14,7 @@
 
 require 'redis'
 require 'uri'
+require 'json'
 
 redis_url = ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', 'redis://localhost:6379')
 
@@ -111,10 +112,10 @@ end
 
 puts "=== DOM-VAL-024: Display Domains Index Completeness ==="
 puts ""
-printf "Domains in instances:           %d\n", instance_ids.size
-printf "Missing display_domain field:   %d\n", no_display_domain.size
-printf "Missing from display_domains:   %d\n", missing_index.size
-printf "Mismatched in display_domains:  %d\n", mismatched_index.size
+printf "%-32s %d\n", "Domains in instances:", instance_ids.size
+printf "%-32s %d\n", "Missing display_domain field:", no_display_domain.size
+printf "%-32s %d\n", "Missing from display_domains:", missing_index.size
+printf "%-32s %d\n", "Mismatched in display_domains:", mismatched_index.size
 puts ""
 
 all_ok = no_display_domain.empty? && missing_index.empty? && mismatched_index.empty?
