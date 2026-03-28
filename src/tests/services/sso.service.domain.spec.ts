@@ -817,6 +817,36 @@ describe('SsoService domain methods', () => {
         expect(result.record?.allowed_domains).toEqual([]);
       });
 
+      it('transforms null client_id to empty string for form safety', async () => {
+        // This is the key fix: client_id is nullable in the API contract but
+        // the form component calls .trim() on it, so null must become ''
+        const nullClientIdResponse = {
+          record: {
+            domain_id: domainExtId,
+            provider_type: 'entra_id',
+            display_name: 'Test',
+            client_id: null, // API returns null
+            client_secret_masked: '********',
+            tenant_id: 'tenant-123',
+            issuer: null,
+            enabled: true,
+            allowed_domains: [],
+            requires_domain_filter: false,
+            idp_controls_access: true,
+            created_at: 1234567890,
+            updated_at: 1234567890,
+          },
+        };
+        mockGet.mockResolvedValueOnce({ data: nullClientIdResponse });
+
+        const result = await SsoService.getConfigForDomain(domainExtId);
+
+        // Schema transforms null -> '' for client_id (required field)
+        expect(result.record?.client_id).toBe('');
+        // Verify .trim() is now safe to call
+        expect(() => result.record?.client_id.trim()).not.toThrow();
+      });
+
       it('normalizes undefined nullish fields to their defaults', async () => {
         const undefinedFieldsResponse = {
           record: {

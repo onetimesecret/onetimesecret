@@ -118,14 +118,14 @@ export const domainSsoConfigCanonical = z.object({
   /** Human-readable name for UI display (e.g., "Acme Corp SSO"). */
   display_name: z.string(),
 
-  /** OAuth client ID (encrypted at rest). */
-  client_id: z.string(),
+  /** OAuth client ID (encrypted at rest). Null if not yet configured. */
+  client_id: z.string().nullable(),
 
   /**
    * Masked client secret for display (e.g., "••••1234").
-   * Never contains the actual secret value.
+   * Never contains the actual secret value. Null if not yet configured.
    */
-  client_secret_masked: z.string(),
+  client_secret_masked: z.string().nullable(),
 
   /**
    * Azure AD tenant ID.
