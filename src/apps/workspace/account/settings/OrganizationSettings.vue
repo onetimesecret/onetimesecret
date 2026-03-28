@@ -20,6 +20,7 @@ import { classifyError } from '@/schemas/errors';
 // LAUNCH: Identity-only - ApplicationError hidden until team features enabled
 // import type { ApplicationError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
+import { SsoService } from '@/services/sso.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { storeToRefs } from 'pinia';
@@ -30,7 +31,7 @@ import { getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/
 import type { /* CreateInvitationPayload, */ Organization, OrganizationInvitation } from '@/types/organization';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in template
 import { formatDisplayDate } from '@/utils/format';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 // LAUNCH: Identity-only - zod hidden until team features enabled (used for invite form validation)
 // import { z } from 'zod';
@@ -147,6 +148,9 @@ const success = ref('');
 const planName = ref<string>('');
 const planFeatures = ref<string[]>([]);
 
+// SSO configuration status for tab badge
+const ssoConfigStatus = ref<'not_configured' | 'configured' | 'enabled'>('not_configured');
+
 // LAUNCH: Identity-only - Invitation form state hidden until team features enabled
 /*
 const showInviteForm = ref(false);
@@ -169,14 +173,16 @@ const { billing_enabled } = storeToRefs(bootstrapStore);
 const billingEnabled = computed(() => billing_enabled.value ?? false);
 
 // Entitlements - formatEntitlement uses API-driven i18n keys
-// LAUNCH: Identity-only - can and ENTITLEMENTS hidden until team features enabled
 const {
   entitlements,
-  // can,
+  can,
   formatEntitlement,
   initDefinitions,
-  // ENTITLEMENTS,
+  ENTITLEMENTS,
 } = useEntitlements(organization);
+
+// SSO entitlement check
+const canManageSso = computed(() => can(ENTITLEMENTS.MANAGE_SSO));
 
 
 // Form data
@@ -433,6 +439,26 @@ onMounted(async () => {
 
   await loadOrganization();
 
+  // DEBUG: SSO entitlement check
+  console.log('[OrganizationSettings] SSO visibility:', canManageSso.value,
+    '| billing:', billing_enabled.value,
+    '| entitlements:', organization.value?.entitlements);
+
+  // Load SSO config status for tab badge (if user can manage SSO)
+  if (canManageSso.value) {
+    try {
+      const response = await SsoService.getConfig(orgId.value);
+      if (response.record?.enabled) {
+        ssoConfigStatus.value = 'enabled';
+      } else if (response.record) {
+        ssoConfigStatus.value = 'configured';
+      }
+      // else: keep default 'not_configured'
+    } catch {
+      // Silently ignore SSO config load errors - badge is not critical
+    }
+  }
+
   // Load data for the initial tab
   if (activeTab.value === 'members') {
     await Promise.all([loadMembers(), loadInvitations()]);
@@ -480,6 +506,44 @@ watch(orgId, async (newOrgId, oldOrgId) => {
     }
   }
 });
+
+// Keyboard navigation for tabs (WCAG 2.1 AA)
+const handleTabKeydown = (e: KeyboardEvent) => {
+  // Build visible tabs array dynamically based on entitlements
+  const tabs: TabType[] = ['domains', 'subscription'];
+  if (canManageSso.value) {
+    tabs.push('sso');
+  }
+  tabs.push('general');
+
+  const currentIndex = tabs.indexOf(activeTab.value);
+  if (currentIndex === -1) return;
+
+  switch (e.key) {
+    case 'ArrowRight':
+    case 'ArrowDown':
+      e.preventDefault();
+      setActiveTab(tabs[(currentIndex + 1) % tabs.length]);
+      nextTick(() => document.getElementById(`org-tab-${activeTab.value}`)?.focus());
+      break;
+    case 'ArrowLeft':
+    case 'ArrowUp':
+      e.preventDefault();
+      setActiveTab(tabs[(currentIndex - 1 + tabs.length) % tabs.length]);
+      nextTick(() => document.getElementById(`org-tab-${activeTab.value}`)?.focus());
+      break;
+    case 'Home':
+      e.preventDefault();
+      setActiveTab(tabs[0]);
+      nextTick(() => document.getElementById(`org-tab-${tabs[0]}`)?.focus());
+      break;
+    case 'End':
+      e.preventDefault();
+      setActiveTab(tabs[tabs.length - 1]);
+      nextTick(() => document.getElementById(`org-tab-${tabs[tabs.length - 1]}`)?.focus());
+      break;
+  }
+};
 </script>
 
 <template>
@@ -507,7 +571,12 @@ watch(orgId, async (newOrgId, oldOrgId) => {
       <!-- Tabs: Domains, Billing (conditional), Settings (infrequent) -->
       <!-- LAUNCH: Identity-only - Team tab hidden until team features enabled -->
       <div class="border-b border-gray-200 dark:border-gray-700">
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+        <nav
+          role="tablist"
+          aria-orientation="horizontal"
+          aria-label="Organization settings tabs"
+          class="-mb-px flex space-x-8"
+          @keydown="handleTabKeydown">
           <!-- LAUNCH: Team tab hidden - uncomment when team features enabled
           <button
             @click="setActiveTab('members')"
@@ -522,6 +591,11 @@ watch(orgId, async (newOrgId, oldOrgId) => {
           -->
           <!-- Domains tab -->
           <button
+            id="org-tab-domains"
+            role="tab"
+            :aria-selected="activeTab === 'domains'"
+            :tabindex="activeTab === 'domains' ? 0 : -1"
+            aria-controls="org-panel-domains"
             data-testid="org-tab-domains"
             @click="setActiveTab('domains')"
             :class="[
@@ -534,6 +608,11 @@ watch(orgId, async (newOrgId, oldOrgId) => {
           </button>
           <!-- Subscription tab - shown for all organizations -->
           <button
+            id="org-tab-subscription"
+            role="tab"
+            :aria-selected="activeTab === 'subscription'"
+            :tabindex="activeTab === 'subscription' ? 0 : -1"
+            aria-controls="org-panel-subscription"
             data-testid="org-tab-subscription"
             @click="setActiveTab('subscription')"
             :class="[
@@ -544,20 +623,41 @@ watch(orgId, async (newOrgId, oldOrgId) => {
             ]">
             {{ t('web.organizations.tabs.subscription') }}
           </button>
-          <!-- SSO tab - single sign-on configuration -->
+          <!-- SSO tab - single sign-on configuration (entitlement-gated) -->
           <button
+            v-if="canManageSso"
+            id="org-tab-sso"
+            role="tab"
+            :aria-selected="activeTab === 'sso'"
+            :tabindex="activeTab === 'sso' ? 0 : -1"
+            aria-controls="org-panel-sso"
             data-testid="org-tab-sso"
             @click="setActiveTab('sso')"
             :class="[
-              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              'inline-flex items-center whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
               activeTab === 'sso'
                 ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.sso') }}
+            <span
+              v-if="ssoConfigStatus !== 'not_configured'"
+              :class="[
+                'ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+                ssoConfigStatus === 'enabled'
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                  : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+              ]">
+              {{ ssoConfigStatus === 'enabled' ? t('web.organizations.sso.status_enabled') : t('web.organizations.sso.status_configured') }}
+            </span>
           </button>
           <!-- Settings tab - infrequently changed fields -->
           <button
+            id="org-tab-general"
+            role="tab"
+            :aria-selected="activeTab === 'general'"
+            :tabindex="activeTab === 'general' ? 0 : -1"
+            aria-controls="org-panel-general"
             data-testid="org-tab-settings"
             @click="setActiveTab('general')"
             :class="[
@@ -590,6 +690,10 @@ watch(orgId, async (newOrgId, oldOrgId) => {
         <!-- General Tab -->
         <section
           v-if="activeTab === 'general'"
+          id="org-panel-general"
+          role="tabpanel"
+          aria-labelledby="org-tab-general"
+          tabindex="0"
           data-testid="org-section-settings"
           class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
@@ -901,6 +1005,10 @@ watch(orgId, async (newOrgId, oldOrgId) => {
         <!-- Domains Tab -->
         <section
           v-if="activeTab === 'domains'"
+          id="org-panel-domains"
+          role="tabpanel"
+          aria-labelledby="org-tab-domains"
+          tabindex="0"
           data-testid="org-section-domains"
           class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
@@ -968,6 +1076,10 @@ watch(orgId, async (newOrgId, oldOrgId) => {
         <!-- Subscription Tab -->
         <section
           v-if="activeTab === 'subscription'"
+          id="org-panel-subscription"
+          role="tabpanel"
+          aria-labelledby="org-tab-subscription"
+          tabindex="0"
           data-testid="org-section-subscription"
           class="space-y-6">
           <!-- Billing Disabled Notice -->
@@ -1211,9 +1323,13 @@ watch(orgId, async (newOrgId, oldOrgId) => {
           </template>
         </section>
 
-        <!-- SSO Tab -->
+        <!-- SSO Tab (entitlement-gated) -->
         <section
-          v-if="activeTab === 'sso'"
+          v-if="activeTab === 'sso' && canManageSso"
+          id="org-panel-sso"
+          role="tabpanel"
+          aria-labelledby="org-tab-sso"
+          tabindex="0"
           data-testid="org-section-sso"
           class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">

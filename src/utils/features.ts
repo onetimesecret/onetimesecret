@@ -192,5 +192,11 @@ export function isOrganizationSwitcherEnabled(): boolean {
   if (typeof window === 'undefined') return false;
 
   const features = getBootstrapValue('features');
-  return features?.organizations?.enabled === true;
+  const result = features?.organizations?.enabled === true;
+  console.log('[features] isOrganizationSwitcherEnabled:', {
+    organizations: features?.organizations,
+    enabled: features?.organizations?.enabled,
+    result,
+  });
+  return result;
 }

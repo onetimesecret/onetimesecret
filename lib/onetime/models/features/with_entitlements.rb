@@ -68,7 +68,7 @@ module Onetime
           api_access custom_privacy_defaults extended_default_expiration
           custom_domains custom_branding homepage_secrets
           incoming_secrets custom_mail_defaults
-          manage_orgs manage_teams manage_members audit_logs
+          manage_orgs manage_teams manage_members manage_sso audit_logs
         ].freeze
 
         # Minimal FREE tier entitlements as fallback when billing is enabled
