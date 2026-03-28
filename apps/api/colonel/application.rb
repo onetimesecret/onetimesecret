@@ -17,6 +17,7 @@ module ColonelAPI
   #
   # Administrative API for site-wide management and monitoring.
   # These endpoints are restricted to users with the 'colonel' role.
+  # Follows V3 conventions: native JSON types, consistent field naming.
   #
   # ## Scope
   #

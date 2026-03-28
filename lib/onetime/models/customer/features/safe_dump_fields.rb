@@ -25,7 +25,7 @@ module Onetime::Customer::Features
       base.safe_dump_field :extid
       base.safe_dump_field :email
       base.safe_dump_field :role
-      base.safe_dump_field :verified
+      base.safe_dump_field :verified, ->(cust) { cust.verified? }
       base.safe_dump_field :last_login
       base.safe_dump_field :locale
       base.safe_dump_field :updated

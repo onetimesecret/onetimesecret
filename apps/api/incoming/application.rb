@@ -20,6 +20,7 @@ module Incoming
   # Incoming API Application
   #
   # Anonymous secret submission API for pre-configured recipients.
+  # Follows V3 conventions: native JSON types, consistent field naming.
   # Mounted at /api/incoming, this API provides:
   #
   # - Configuration endpoint (available recipients)
