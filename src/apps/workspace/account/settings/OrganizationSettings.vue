@@ -7,7 +7,6 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 // LAUNCH: Identity-only - MembersTable hidden until team features enabled
 // import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
 import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
-import SsoConfigForm from '@/apps/workspace/components/organizations/SsoConfigForm.vue';
 import EmptyState from '@/shared/components/ui/EmptyState.vue';
 // LAUNCH: Identity-only - EntitlementUpgradePrompt hidden until team features enabled
 // import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
@@ -20,7 +19,6 @@ import { classifyError } from '@/schemas/errors';
 // LAUNCH: Identity-only - ApplicationError hidden until team features enabled
 // import type { ApplicationError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
-import { SsoService } from '@/services/sso.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { storeToRefs } from 'pinia';
@@ -148,8 +146,6 @@ const success = ref('');
 const planName = ref<string>('');
 const planFeatures = ref<string[]>([]);
 
-// SSO configuration status for tab badge
-const ssoConfigStatus = ref<'not_configured' | 'configured' | 'enabled'>('not_configured');
 
 // LAUNCH: Identity-only - Invitation form state hidden until team features enabled
 /*
@@ -444,20 +440,8 @@ onMounted(async () => {
     '| billing:', billing_enabled.value,
     '| entitlements:', organization.value?.entitlements);
 
-  // Load SSO config status for tab badge (if user can manage SSO)
-  if (canManageSso.value) {
-    try {
-      const response = await SsoService.getConfig(orgId.value);
-      if (response.record?.enabled) {
-        ssoConfigStatus.value = 'enabled';
-      } else if (response.record) {
-        ssoConfigStatus.value = 'configured';
-      }
-      // else: keep default 'not_configured'
-    } catch {
-      // Silently ignore SSO config load errors - badge is not critical
-    }
-  }
+  // SSO config status badge is populated per-domain; org-level SSO removed
+  // Domain SSO status will be shown in the domain list
 
   // Load data for the initial tab
   if (activeTab.value === 'members') {
@@ -640,16 +624,6 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.sso') }}
-            <span
-              v-if="ssoConfigStatus !== 'not_configured'"
-              :class="[
-                'ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
-                ssoConfigStatus === 'enabled'
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                  : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
-              ]">
-              {{ ssoConfigStatus === 'enabled' ? t('web.organizations.sso.status_enabled') : t('web.organizations.sso.status_configured') }}
-            </span>
           </button>
           <!-- Settings tab - infrequently changed fields -->
           <button
@@ -1446,35 +1420,6 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             </div>
           </div>
 
-          <!-- Organization Default SSO (fallback) -->
-          <div class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-              <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
-                  <OIcon
-                    collection="heroicons"
-                    name="building-office"
-                    class="size-5 text-gray-600 dark:text-gray-400"
-                    aria-hidden="true" />
-                </div>
-                <div>
-                  <h3 class="text-base font-semibold text-gray-900 dark:text-white">
-                    {{ t('web.organizations.sso.org_default_title') }}
-                  </h3>
-                  <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-                    {{ t('web.organizations.sso.org_default_description') }}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div class="p-6">
-              <SsoConfigForm
-                :org-ext-id="orgId"
-                @saved="success = t('web.organizations.sso.update_success')"
-                @deleted="success = t('web.organizations.sso.delete_success')" />
-            </div>
-          </div>
         </section>
       </div>
     </div>

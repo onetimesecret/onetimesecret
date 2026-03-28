@@ -2,31 +2,31 @@
 #
 # frozen_string_literal: true
 
-# Test fixtures and factory methods for OrgSsoConfig model testing.
+# Test fixtures and factory methods for DomainSsoConfig model testing.
 #
 # These fixtures provide consistent, isolated test data for SSO configuration
 # tests without requiring a live Redis/Valkey connection for unit tests.
 #
 # Usage:
 #   include TenantTestFixtures
-#   let(:config) { build_org_sso_config(:entra_id) }
+#   let(:config) { build_domain_sso_config(:entra_id) }
 
 module TenantTestFixtures
   # ==========================================================================
   # Constants
   # ==========================================================================
 
-  # Supported SSO provider types (matches OrgSsoConfig::PROVIDER_TYPES)
+  # Supported SSO provider types (matches DomainSsoConfig::PROVIDER_TYPES)
   PROVIDER_TYPES = %i[oidc entra_id google github].freeze
 
   # Mock encryption key for testing (32 bytes for AES-256)
   TEST_ENCRYPTION_KEY = 'test_encryption_key_32_bytes_ok!'.freeze
 
-  # Sample organization IDs for testing
-  SAMPLE_ORG_IDS = {
-    primary: 'org_test_primary_12345',
-    secondary: 'org_test_secondary_67890',
-    enterprise: 'org_test_enterprise_abcde',
+  # Sample domain IDs for testing
+  SAMPLE_DOMAIN_IDS = {
+    primary: 'dom_test_primary_12345',
+    secondary: 'dom_test_secondary_67890',
+    enterprise: 'dom_test_enterprise_abcde',
   }.freeze
 
   # ==========================================================================
@@ -39,7 +39,7 @@ module TenantTestFixtures
   }.freeze
 
   # Provider-specific default attributes
-  # Note: Matches OrgSsoConfig field structure - provider_type uses underscores
+  # Note: Matches DomainSsoConfig field structure - provider_type uses underscores
   PROVIDER_CONFIGS = {
     oidc: {
       provider_type: 'oidc',
@@ -77,80 +77,80 @@ module TenantTestFixtures
   # Factory Methods
   # ==========================================================================
 
-  # Build OrgSsoConfig attributes hash for a given provider type
+  # Build DomainSsoConfig attributes hash for a given provider type
   #
-  # @param provider [Symbol] one of :oidc, :entra, :google, :github
+  # @param provider [Symbol] one of :oidc, :entra_id, :google, :github
   # @param overrides [Hash] attributes to override defaults
   # @return [Hash] complete attributes hash
-  def build_org_sso_config_attributes(provider = :oidc, overrides = {})
+  def build_domain_sso_config_attributes(provider = :oidc, overrides = {})
     raise ArgumentError, "Unknown provider: #{provider}" unless PROVIDER_CONFIGS.key?(provider)
 
-    org_id = overrides.delete(:org_id) || SAMPLE_ORG_IDS[:primary]
+    domain_id = overrides.delete(:domain_id) || SAMPLE_DOMAIN_IDS[:primary]
 
-    # org_id MUST come before client_id/client_secret in hash iteration order.
-    # AAD encryption reads org_id when encrypting those fields, so it must be
+    # domain_id MUST come before client_id/client_secret in hash iteration order.
+    # AAD encryption reads domain_id when encrypting those fields, so it must be
     # set first during Familia's attr initialization.
-    { org_id: org_id }
+    { domain_id: domain_id }
       .merge(BASE_CONFIG_ATTRIBUTES)
       .merge(PROVIDER_CONFIGS[provider])
       .merge(overrides)
   end
 
-  # Build a stubbed OrgSsoConfig instance for unit testing
+  # Build a stubbed DomainSsoConfig instance for unit testing
   #
   # This creates an instance with stubbed persistence methods,
   # suitable for testing model behavior without Redis.
   #
-  # @param provider [Symbol] one of :oidc, :entra, :google, :github
+  # @param provider [Symbol] one of :oidc, :entra_id, :google, :github
   # @param overrides [Hash] attributes to override defaults
-  # @return [Onetime::OrgSsoConfig] stubbed instance
-  def build_org_sso_config(provider = :oidc, overrides = {})
-    attrs = build_org_sso_config_attributes(provider, overrides)
+  # @return [Onetime::DomainSsoConfig] stubbed instance
+  def build_domain_sso_config(provider = :oidc, overrides = {})
+    attrs = build_domain_sso_config_attributes(provider, overrides)
 
     # Extract allowed_domains before creating the config
     # The model has a custom setter that converts array to JSON
     allowed_domains = attrs.delete(:allowed_domains)
 
-    config = Onetime::OrgSsoConfig.new(attrs)
+    config = Onetime::DomainSsoConfig.new(attrs)
 
     # Set allowed_domains using the custom setter (converts to JSON internally)
     config.allowed_domains = allowed_domains if allowed_domains
 
     # Stub persistence methods for unit tests
-    stub_org_sso_config_persistence(config)
+    stub_domain_sso_config_persistence(config)
 
     config
   end
 
-  # Build a minimal OrgSsoConfig with only required fields
+  # Build a minimal DomainSsoConfig with only required fields
   #
-  # @param org_id [String] organization identifier
+  # @param domain_id [String] domain identifier
   # @param provider_type [String] SSO provider type
-  # @return [Onetime::OrgSsoConfig] minimal stubbed instance
-  def build_minimal_org_sso_config(org_id:, provider_type: 'oidc')
-    config = Onetime::OrgSsoConfig.new(
-      org_id: org_id,
+  # @return [Onetime::DomainSsoConfig] minimal stubbed instance
+  def build_minimal_domain_sso_config(domain_id:, provider_type: 'oidc')
+    config = Onetime::DomainSsoConfig.new(
+      domain_id: domain_id,
       provider_type: provider_type,
       enabled: true
     )
-    stub_org_sso_config_persistence(config)
+    stub_domain_sso_config_persistence(config)
     config
   end
 
-  # Build an invalid OrgSsoConfig for negative testing
+  # Build an invalid DomainSsoConfig for negative testing
   #
   # @param invalid_attribute [Symbol] which attribute to make invalid
-  # @return [Onetime::OrgSsoConfig] instance with invalid data
-  def build_invalid_org_sso_config(invalid_attribute)
-    attrs = build_org_sso_config_attributes(:oidc)
+  # @return [Onetime::DomainSsoConfig] instance with invalid data
+  def build_invalid_domain_sso_config(invalid_attribute)
+    attrs = build_domain_sso_config_attributes(:oidc)
 
     case invalid_attribute
-    when :missing_org_id
-      attrs.delete(:org_id)
-    when :empty_org_id
-      attrs[:org_id] = ''
-    when :nil_org_id
-      attrs[:org_id] = nil
+    when :missing_domain_id
+      attrs.delete(:domain_id)
+    when :empty_domain_id
+      attrs[:domain_id] = ''
+    when :nil_domain_id
+      attrs[:domain_id] = nil
     when :missing_provider_type
       attrs.delete(:provider_type)
     when :invalid_provider_type
@@ -165,21 +165,21 @@ module TenantTestFixtures
       # OIDC requires issuer, but we'll leave it nil
       attrs[:issuer] = nil
     when :empty_tenant_for_entra
-      attrs = build_org_sso_config_attributes(:entra_id)
+      attrs = build_domain_sso_config_attributes(:entra_id)
       attrs[:tenant_id] = nil
     end
 
-    config = Onetime::OrgSsoConfig.new(attrs)
-    stub_org_sso_config_persistence(config)
+    config = Onetime::DomainSsoConfig.new(attrs)
+    stub_domain_sso_config_persistence(config)
     config
   end
 
-  # Build a disabled OrgSsoConfig
+  # Build a disabled DomainSsoConfig
   #
   # @param provider [Symbol] provider type
-  # @return [Onetime::OrgSsoConfig] disabled config instance
-  def build_disabled_org_sso_config(provider = :oidc)
-    build_org_sso_config(provider, enabled: false)
+  # @return [Onetime::DomainSsoConfig] disabled config instance
+  def build_disabled_domain_sso_config(provider = :oidc)
+    build_domain_sso_config(provider, enabled: false)
   end
 
   # ==========================================================================
@@ -189,17 +189,17 @@ module TenantTestFixtures
   # Expected OmniAuth options structure for a given provider
   #
   # Used to verify to_omniauth_options output. Matches the structure
-  # generated by OrgSsoConfig#to_omniauth_options.
+  # generated by DomainSsoConfig#to_omniauth_options.
   #
   # @param provider [Symbol] provider type
-  # @param org_id [String] organization ID (used as strategy name)
+  # @param domain_id [String] domain ID (used as strategy name)
   # @return [Hash] expected OmniAuth options structure
-  def expected_omniauth_options(provider, org_id = SAMPLE_ORG_IDS[:primary])
+  def expected_omniauth_options(provider, domain_id = SAMPLE_DOMAIN_IDS[:primary])
     case provider
     when :oidc
       {
         strategy: :openid_connect,
-        name: org_id,
+        name: domain_id,
         scope: [:openid, :email, :profile],
         response_type: :code,
         issuer: 'https://auth.example.com',
@@ -213,7 +213,7 @@ module TenantTestFixtures
     when :entra_id
       {
         strategy: :entra_id,
-        name: org_id,
+        name: domain_id,
         client_id: anything,
         client_secret: anything,
         tenant_id: 'contoso-tenant-uuid-1234',
@@ -222,7 +222,7 @@ module TenantTestFixtures
     when :google
       {
         strategy: :google_oauth2,
-        name: org_id,
+        name: domain_id,
         client_id: anything,
         client_secret: anything,
         scope: 'openid,email,profile',
@@ -231,7 +231,7 @@ module TenantTestFixtures
     when :github
       {
         strategy: :github,
-        name: org_id,
+        name: domain_id,
         client_id: anything,
         client_secret: anything,
         scope: 'user:email',
@@ -273,14 +273,14 @@ module TenantTestFixtures
 
   private
 
-  # Stub persistence methods on an OrgSsoConfig instance
+  # Stub persistence methods on a DomainSsoConfig instance
   #
   # For unit tests, we don't need to actually persist to Redis.
   # The model already has these methods from Familia::Horreum.
   # We stub them to avoid Redis connections in unit tests.
   #
-  # @param config [Onetime::OrgSsoConfig] instance to stub
-  def stub_org_sso_config_persistence(config)
+  # @param config [Onetime::DomainSsoConfig] instance to stub
+  def stub_domain_sso_config_persistence(config)
     # Use allow_any_instance_of pattern or define singleton methods
     # to avoid "does not implement" errors from RSpec's verified doubles
     config.define_singleton_method(:save) { true }
@@ -298,7 +298,7 @@ end
 # Shared Context for Integration Tests with Real Valkey Fixtures
 # ==========================================================================
 #
-# This shared context creates actual Organization, CustomDomain, and OrgSsoConfig
+# This shared context creates actual Organization, CustomDomain, and DomainSsoConfig
 # records in Valkey for integration tests that require the full tenant resolution
 # chain. Each test run gets unique identifiers to prevent collision.
 #
@@ -328,8 +328,8 @@ RSpec.shared_context 'tenant fixtures' do
   end
 
   let!(:test_sso_config) do
-    Onetime::OrgSsoConfig.create!(
-      org_id: test_organization.org_id,
+    Onetime::DomainSsoConfig.create!(
+      domain_id: test_custom_domain.identifier,
       provider_type: 'entra_id',
       display_name: 'Test Entra ID',
       tenant_id: "tenant-#{test_run_id}",
@@ -340,7 +340,7 @@ RSpec.shared_context 'tenant fixtures' do
   end
 
   after do
-    Onetime::OrgSsoConfig.delete_for_org!(test_organization.org_id) rescue nil
+    Onetime::DomainSsoConfig.delete_for_domain!(test_custom_domain.identifier) rescue nil
     Onetime::CustomDomain.display_domains.remove(tenant_domain) rescue nil
     test_custom_domain&.destroy!
     test_organization&.destroy!
@@ -348,13 +348,13 @@ RSpec.shared_context 'tenant fixtures' do
 end
 
 # ==========================================================================
-# Shared Examples for OrgSsoConfig Tests
+# Shared Examples for DomainSsoConfig Tests
 # ==========================================================================
 
 RSpec.shared_examples 'a valid SSO config' do
   it 'has required attributes set' do
-    expect(config.org_id).not_to be_nil
-    expect(config.org_id).not_to be_empty
+    expect(config.domain_id).not_to be_nil
+    expect(config.domain_id).not_to be_empty
     expect(config.provider_type).not_to be_nil
     expect(config.provider_type).not_to be_empty
   end
@@ -397,7 +397,7 @@ RSpec.shared_examples 'provider-specific config' do |provider|
 
     expect(options).to be_a(Hash)
     expect(options[:strategy]).not_to be_nil
-    expect(options[:name]).to eq(config.org_id)
+    expect(options[:name]).to eq(config.domain_id)
   end
 end
 

@@ -28,15 +28,3 @@ DELETE /:extid/invitations/:token           OrganizationAPI::Logic::Invitations:
 GET    /:extid/members                      OrganizationAPI::Logic::Members::ListMembers response=json auth=sessionauth
 PATCH  /:extid/members/:member_extid/role   OrganizationAPI::Logic::Members::UpdateMemberRole response=json auth=sessionauth
 DELETE /:extid/members/:member_extid        OrganizationAPI::Logic::Members::RemoveMember response=json auth=sessionauth
-
-# Organization SSO Configuration
-# Per-organization SSO/OIDC credential management
-# Enables multi-tenant SSO where each org configures their own identity provider
-# PUT: Full replacement (request body IS the new state)
-# PATCH: Partial update (empty values preserve existing)
-# POST test: Validates credentials can reach IdP (uses request body, not stored config)
-GET    /:extid/sso                          OrganizationAPI::Logic::SsoConfig::GetSsoConfig response=json auth=sessionauth
-PUT    /:extid/sso                          OrganizationAPI::Logic::SsoConfig::PutSsoConfig response=json auth=sessionauth
-PATCH  /:extid/sso                          OrganizationAPI::Logic::SsoConfig::PatchSsoConfig response=json auth=sessionauth
-DELETE /:extid/sso                          OrganizationAPI::Logic::SsoConfig::DeleteSsoConfig response=json auth=sessionauth
-POST   /:extid/sso/test                     OrganizationAPI::Logic::SsoConfig::TestConnection response=json auth=sessionauth
