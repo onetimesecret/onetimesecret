@@ -77,8 +77,20 @@ module Onetime
     field :display_name    # Human-readable name for UI
 
     # Provider-specific fields
-    field :tenant_id       # Entra ID: Azure AD tenant ID
-    field :issuer          # OIDC: Issuer URL for discovery endpoint
+    #
+    # Required fields vary by provider_type:
+    #   - entra_id: requires tenant_id
+    #   - oidc:     requires issuer
+    #   - google:   neither (uses well-known Google endpoints)
+    #   - github:   neither (uses well-known GitHub endpoints)
+    #
+    # Universal required fields (all providers):
+    #   - client_id, client_secret, display_name, provider_type
+    #
+    # See: validation_errors method for enforcement
+    #
+    field :tenant_id       # Entra ID: Azure AD tenant ID (required for entra_id only)
+    field :issuer          # OIDC: Issuer URL for discovery (required for oidc only)
 
     # Encrypted credential storage with domain-bound AAD
     encrypted_field :client_id, aad_fields: [:domain_id]
@@ -236,7 +248,19 @@ module Onetime
       errors << 'client_id is required' if client_id_val.to_s.empty?
       errors << 'client_secret is required' if client_secret_val.to_s.empty?
 
-      # Provider-specific validations
+      # Provider-specific field requirements:
+      #
+      #   | provider_type | tenant_id | issuer |
+      #   |---------------|-----------|--------|
+      #   | entra_id      | required  | -      |
+      #   | oidc          | -         | required |
+      #   | google        | -         | -      |
+      #   | github        | -         | -      |
+      #
+      # Google and GitHub use well-known OAuth endpoints, so neither
+      # tenant_id nor issuer is needed. Universal fields (client_id,
+      # client_secret, display_name) are validated above.
+      #
       case provider_type
       when 'oidc'
         errors << 'issuer is required for OIDC provider' if issuer.to_s.empty?
@@ -327,12 +351,11 @@ module Onetime
         config.created = now
         config.updated = now
 
-        # Atomic save + index update
-        Familia.redis.multi do |txn|
-          txn.hmset(config.rediskey, *config.to_h.flatten)
-          txn.zadd(instances.rediskey, Time.now.to_f, domain_id)
-          txn.hset(configs_by_domain.rediskey, domain_id, domain_id)
-        end
+        # Save using Horreum's built-in method
+        config.save
+
+        # Update custom index for O(1) lookup
+        configs_by_domain[domain_id] = domain_id
 
         config
       end
@@ -347,11 +370,11 @@ module Onetime
         config = find_by_domain_id(domain_id)
         return false unless config
 
-        Familia.redis.multi do |txn|
-          txn.del(config.rediskey)
-          txn.zrem(instances.rediskey, domain_id)
-          txn.hdel(configs_by_domain.rediskey, domain_id)
-        end
+        # Use Horreum's destroy! which handles main key + instances zset
+        config.destroy!
+
+        # Clean up custom index
+        configs_by_domain.delete(domain_id)
 
         true
       end

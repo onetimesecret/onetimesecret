@@ -33,7 +33,7 @@ module DomainsAPI
         attr_reader :sso_config
 
         def process_params
-          @domain_id = sanitize_identifier(params['domain_id'])
+          @domain_id = sanitize_identifier(params['extid'])
         end
 
         def raise_concerns

@@ -40,7 +40,7 @@ module DomainsAPI
         attr_reader :sso_config, :existing_config
 
         def process_params
-          @domain_id       = sanitize_identifier(params['domain_id'])
+          @domain_id       = sanitize_identifier(params['extid'])
           @provider_type   = sanitize_plain_text(params['provider_type'])
           @display_name    = sanitize_plain_text(params['display_name'])
           @client_id       = params['client_id'].to_s.strip

@@ -410,5 +410,37 @@
   "web.domains.dns_widget_init_failed": {
     "text": "Failed to initialize DNS widget",
     "sha256": "c4d5e6f7"
+  },
+  "web.domains.sso.title": {
+    "text": "Single Sign-On",
+    "sha256": "a1b2c3d4"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO Configuration",
+    "sha256": "b2c3d4e5"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Configure single sign-on authentication for this domain",
+    "sha256": "c3d4e5f6"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Access Denied",
+    "sha256": "d4e5f6a7"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "You don't have permission to manage SSO settings for this domain. Contact your organization administrator.",
+    "sha256": "e5f6a7b8"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO configuration saved successfully",
+    "sha256": "f6a7b8c9"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO configuration removed successfully",
+    "sha256": "a7b8c9d0"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Configure SSO",
+    "sha256": "b8c9d0e1"
   }
 }

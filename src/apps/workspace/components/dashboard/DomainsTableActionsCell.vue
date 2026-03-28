@@ -64,6 +64,21 @@ const { t } = useI18n();
           </router-link>
         </MenuItem>
         <MenuItem v-slot="{ active }">
+          <router-link
+            :to="{
+              name: 'DomainSso',
+              params: { orgid: props.orgid, extid: domain.extid },
+            }"
+            :class="[
+              active
+                ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+                : 'text-gray-700 dark:text-gray-200',
+              'block px-4 py-2 text-sm transition-colors duration-200',
+            ]">
+            {{ t('web.domains.sso.configure_sso') }}
+          </router-link>
+        </MenuItem>
+        <MenuItem v-slot="{ active }">
           <button
             @click="handleDelete(domain.extid)"
             :class="[

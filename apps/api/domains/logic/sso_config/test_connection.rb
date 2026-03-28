@@ -64,7 +64,7 @@ module DomainsAPI
         VALID_PROVIDER_TYPES = Onetime::DomainSsoConfig::PROVIDER_TYPES.freeze
 
         def process_params
-          @domain_id     = sanitize_identifier(params['domain_id'])
+          @domain_id     = sanitize_identifier(params['extid'])
           @provider_type = sanitize_plain_text(params['provider_type'])
           @client_id     = params['client_id'].to_s.strip
           @tenant_id     = sanitize_plain_text(params['tenant_id'])
