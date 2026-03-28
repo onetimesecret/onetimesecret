@@ -20,7 +20,7 @@
   const { accountInfo, fetchAccountInfo } = useAccount();
 
   const bootstrapStore = useBootstrapStore();
-  const { i18n_enabled } = storeToRefs(bootstrapStore);
+  const { i18n_enabled, has_password } = storeToRefs(bootstrapStore);
 
   const currentEmail = computed(
     () => bootstrapStore.email
@@ -116,6 +116,7 @@
               </div>
             </div>
             <router-link
+              v-if="has_password"
               to="/account/settings/profile/email"
               class="inline-flex items-center gap-2
                 text-sm font-medium text-brand-600
