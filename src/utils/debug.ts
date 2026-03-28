@@ -2,6 +2,23 @@
 
 export const DEBUG = process.env.NODE_ENV === 'development';
 
+/**
+ * Check if a specific debug channel is enabled via localStorage.
+ *
+ * @param channel - The debug channel name (e.g., 'features')
+ * @returns True if localStorage contains `debug:{channel}` set to 'true'
+ *
+ * @example
+ * // Enable in browser console:
+ * localStorage.setItem('debug:features', 'true')
+ * // Disable:
+ * localStorage.removeItem('debug:features')
+ */
+export function isDebugEnabled(channel: string): boolean {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(`debug:${channel}`) === 'true';
+}
+
 export const debugLog = {
   init: (msg: string, ...args: any[]) => DEBUG && console.log(`[Init] ${msg}`, ...args),
   route: (msg: string, ...args: any[]) => DEBUG && console.log(`[Route] ${msg}`, ...args),
@@ -14,4 +31,11 @@ export const debugLog = {
     }
     return () => {};
   },
+
+  /**
+   * Feature/bootstrap debugging — disabled by default, enable with:
+   *   localStorage.setItem('debug:features', 'true')
+   */
+  features: (tag: string, data?: Record<string, unknown>) =>
+    isDebugEnabled('features') && console.debug(`[${tag}]`, data ?? ''),
 };

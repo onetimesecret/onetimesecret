@@ -13,6 +13,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { getSettingsNavigationSections } from '@/apps/workspace/config/settings-navigation';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { debugLog } from '@/utils/debug';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -20,9 +21,14 @@ const route = useRoute();
 // Flatten navigation sections into tab items
 const tabItems = computed(() => {
   const sections = getSettingsNavigationSections(t);
-  return sections.flatMap((section) =>
-    section.items.filter((item) => (item.visible ? item.visible() : true))
-  );
+  const allItems = sections.flatMap((section) => section.items);
+  const visibleItems = allItems.filter((item) => (item.visible ? item.visible() : true));
+  debugLog.features('SettingsLayout.tabItems', {
+    allItems: allItems.map(i => i.id),
+    visibleItems: visibleItems.map(i => i.id),
+    visibility: allItems.map(i => ({ id: i.id, fn: !!i.visible, result: i.visible ? i.visible() : 'default' })),
+  });
+  return visibleItems;
 });
 
 // Check if route matches item or any of its children

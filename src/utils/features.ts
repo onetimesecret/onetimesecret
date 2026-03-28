@@ -1,6 +1,7 @@
 // src/utils/features.ts
 
 import { getBootstrapValue } from '@/services/bootstrap.service';
+import { debugLog } from '@/utils/debug';
 
 /**
  * Feature detection utilities for checking enabled authentication methods
@@ -124,7 +125,9 @@ export function isSsoOnlyMode(): boolean {
   if (typeof window === 'undefined') return false;
 
   const features = getBootstrapValue('features');
-  return features?.sso_only === true;
+  const result = features?.sso_only === true;
+  debugLog.features('features.isSsoOnlyMode', { sso_only: features?.sso_only, result });
+  return result;
 }
 
 /**
@@ -136,7 +139,9 @@ export function isFullAuthMode(): boolean {
   if (typeof window === 'undefined') return false;
 
   const authentication = getBootstrapValue('authentication');
-  return authentication?.mode === 'full';
+  const result = authentication?.mode === 'full';
+  debugLog.features('features.isFullAuthMode', { mode: authentication?.mode, result });
+  return result;
 }
 
 /**
