@@ -54,6 +54,11 @@ module OrganizationAPI::Logic
       # Compares fields and returns a hash indicating what changed.
       # Sensitive fields only indicate whether they changed, not their values.
       #
+      # PATCH semantics: Only fields actually present in new_params are compared.
+      # Uses field_provided?() to distinguish "field not sent" from "field sent
+      # with nil/empty". This prevents false change reports when clients send
+      # partial updates - omitted fields are not treated as changes.
+      #
       # @param old_config [Onetime::OrgSsoConfig] Existing configuration
       # @param new_params [Hash] New parameter values
       # @return [Hash] Changes hash with field names as keys

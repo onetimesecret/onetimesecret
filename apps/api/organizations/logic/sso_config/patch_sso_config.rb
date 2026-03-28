@@ -136,9 +136,15 @@ module OrganizationAPI::Logic
 
       private
 
+      # Validates and resolves provider_type with PATCH semantics.
+      #
+      # For new configs: provider_type is required
+      # For updates: falls back to existing config value when not provided
+      #
+      # This allows true partial updates - clients can update other fields
+      # without re-sending provider_type. The TypeScript schema correctly
+      # models this as optional for PATCH requests.
       def validate_provider_type
-        # PATCH semantics: provider_type required for new configs, optional for updates
-        # When updating, fall back to existing value if not provided
         if @provider_type.to_s.empty?
           if @existing_config
             @provider_type = @existing_config.provider_type
@@ -156,9 +162,14 @@ module OrganizationAPI::Logic
         )
       end
 
+      # Validates and resolves client credentials with PATCH semantics.
+      #
+      # For new configs: client_id and client_secret are required
+      # For updates: falls back to existing values when not provided
+      #
+      # This matches the TypeScript patchSsoConfigRequestSchema where
+      # credentials are optional, enabling partial updates.
       def validate_client_credentials
-        # PATCH semantics: client_id required for new configs, optional for updates
-        # When updating, fall back to existing value if not provided
         if @client_id.to_s.empty?
           if @existing_config
             @client_id = @existing_config.client_id

@@ -20,9 +20,13 @@ const $api = createApi();
 
 /**
  * SSO configuration response wrapper
+ *
+ * Note: The record is non-null on success. When no config exists,
+ * the API returns 404 (not 200 with null), so consumers should
+ * handle AxiosError with status 404 for missing configs.
  */
 export interface SsoConfigResponse {
-  record: OrgSsoConfig | null;
+  record: OrgSsoConfig;
 }
 
 /**

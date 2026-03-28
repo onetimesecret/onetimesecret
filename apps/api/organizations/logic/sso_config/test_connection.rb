@@ -20,6 +20,15 @@ module OrganizationAPI::Logic
     #   Uses credentials from request body (not stored config) to allow
     #   testing before saving. Does not persist anything.
     #
+    # Security Note:
+    #   SSRF protection uses SsrfProtection module which validates URLs via
+    #   DNS resolution against private/internal IP ranges. We intentionally
+    #   do NOT use an IdP domain allowlist because:
+    #   1. Organizations bring their own IdPs (custom OIDC, on-prem Entra, etc.)
+    #   2. IP-based validation catches internal hosts regardless of hostname
+    #   3. An allowlist would require maintenance and limit legitimate use cases
+    #   See: ssrf_protection.rb for implementation details.
+    #
     # Request body:
     # - provider_type: Required. One of: oidc, entra_id, google, github
     # - client_id: Required. OAuth client ID
