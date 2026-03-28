@@ -288,6 +288,10 @@
     "text": "Email Verified",
     "sha256": "bc512ab0"
   },
+  "web.auth.account.sso_linked": {
+    "text": "SSO Account",
+    "context": "Status text shown for accounts authenticated via SSO (no password)"
+  },
   "web.auth.account.region": {
     "text": "Region",
     "sha256": "d3a008ef"

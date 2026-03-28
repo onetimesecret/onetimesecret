@@ -90,28 +90,45 @@
                 <div
                   class="mt-1 flex items-center
                     gap-1.5">
-                  <OIcon
-                    v-if="emailVerified"
-                    collection="heroicons"
-                    name="check-circle-solid"
-                    class="size-4 text-green-600
-                      dark:text-green-400"
-                    aria-hidden="true" />
-                  <span
-                    :class="[
-                      'text-sm',
-                      emailVerified
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-gray-500 dark:text-gray-400',
-                    ]">
-                    {{
-                      emailVerified
-                        ? t('web.auth.account.verified')
-                        : t(
-                          'web.auth.account.not_verified'
-                        )
-                    }}
-                  </span>
+                  <!-- SSO users: show linked status -->
+                  <template v-if="!has_password">
+                    <OIcon
+                      collection="heroicons"
+                      name="link-solid"
+                      class="size-4 text-brand-600
+                        dark:text-brand-400"
+                      aria-hidden="true" />
+                    <span
+                      class="text-sm text-brand-600
+                        dark:text-brand-400">
+                      {{ t('web.auth.account.sso_linked') }}
+                    </span>
+                  </template>
+                  <!-- Password users: show verification status -->
+                  <template v-else>
+                    <OIcon
+                      v-if="emailVerified"
+                      collection="heroicons"
+                      name="check-circle-solid"
+                      class="size-4 text-green-600
+                        dark:text-green-400"
+                      aria-hidden="true" />
+                    <span
+                      :class="[
+                        'text-sm',
+                        emailVerified
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-gray-500 dark:text-gray-400',
+                      ]">
+                      {{
+                        emailVerified
+                          ? t('web.auth.account.verified')
+                          : t(
+                            'web.auth.account.not_verified'
+                          )
+                      }}
+                    </span>
+                  </template>
                 </div>
               </div>
             </div>
