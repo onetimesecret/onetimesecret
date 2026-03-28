@@ -214,3 +214,38 @@ export const formatRelativeTime = (date: Date | undefined): string => {
   const days = Math.floor(diffInSeconds / 86400);
   return `${days} ${days === 1 ? 'day' : 'days'} ago`;
 };
+
+/**
+ * Mask sensitive text, showing only first and last few characters.
+ * Uses bullet character (•) for masking to match SSO config patterns.
+ *
+ * @param text - The text to mask
+ * @param visibleStart - Number of characters to show at start (default: 4)
+ * @param visibleEnd - Number of characters to show at end (default: 4)
+ * @returns Masked text like "abc1••••••••5xyz"
+ *
+ * @example
+ * maskSensitiveText('sk_live_abc123xyz789') // 'sk_l••••••••9789'
+ * maskSensitiveText('short') // '••••••••' (too short to show ends)
+ * maskSensitiveText('abcdefghij', 2, 2) // 'ab••••••ij'
+ */
+export const maskSensitiveText = (
+  text: string,
+  visibleStart = 4,
+  visibleEnd = 4,
+): string => {
+  if (!text) return '';
+
+  const minLength = visibleStart + visibleEnd + 4; // Need at least 4 masked chars
+
+  if (text.length < minLength) {
+    // Too short to show meaningful ends - just mask entirely
+    return '••••••••';
+  }
+
+  const start = text.slice(0, visibleStart);
+  const end = text.slice(-visibleEnd);
+  const maskedLength = Math.min(text.length - visibleStart - visibleEnd, 8);
+
+  return `${start}${'•'.repeat(maskedLength)}${end}`;
+};
