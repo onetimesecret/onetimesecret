@@ -150,6 +150,7 @@
     "@vueuse/core": "^14.2.1",
     "@vueuse/integrations": "^14.2.1",
     "axios": "^1.13.6",
+    "brace-expansion": "1.1.13",
     "codemirror": "^6.0.2",
     "date-fns": "^4.1.0",
     "dompurify": "^3.3.3",
@@ -166,6 +167,7 @@
     "vue-codemirror6": "^1.4.3",
     "vue-i18n": "^11.3.0",
     "vue-router": "^4.6.4",
+    "yaml": "^2.8.3",
     "zod": "^4.3.6",
     "zod-validation-error": "^5.0.0"
   },
@@ -207,10 +209,11 @@
     "eslint-plugin-tailwindcss": "4.0.0-beta.0",
     "eslint-plugin-vue": "^10.8.0",
     "fs-extra": "^11.3.4",
+    "flatted": "^3.4.2",
     "git-json-merge": "^1.0.0",
     "glob": "^13.0.6",
     "globals": "^17.4.0",
-    "happy-dom": "^20.8.4",
+    "happy-dom": "^20.8.8",
     "jiti": "^2.6.1",
     "jsdom": "^27.4.0",
     "lint-staged": "^16.4.0",
@@ -248,6 +251,11 @@
     ]
   },
   "pnpm": {
+    "overrides": {
+      "brace-expansion": "1.1.13",
+      "flatted": "^3.4.2",
+      "yaml": "^2.8.3"
+    },
     "ignoredBuiltDependencies": [
       "vue-demi"
     ],

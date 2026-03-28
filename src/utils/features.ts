@@ -17,7 +17,15 @@ export interface AuthFeatures {
 }
 
 /**
- * Checks if magic link authentication is enabled
+ * Checks if magic link authentication is enabled.
+ *
+ * The backend currently exposes two related flags:
+ * - `magic_links`: preferred flag for magic link authentication.
+ * - `email_auth`: legacy/compatibility flag used by older configurations.
+ *
+ * To remain backwards compatible, magic links are considered enabled if either
+ * flag is explicitly set to `true`. Once all backends use a single flag, this
+ * logic can be simplified.
  */
 export function isMagicLinksEnabled(): boolean {
   if (typeof window === 'undefined') return false;
@@ -106,7 +114,7 @@ export function getSsoProviders(): SsoProvider[] {
   if (!sso.enabled) return [];
 
   // Return providers array, or empty if not configured
-  if (Array.isArray(sso.providers) && sso.providers.length > 0) {
+  if (Array.isArray(sso.providers)) {
     return sso.providers;
   }
 

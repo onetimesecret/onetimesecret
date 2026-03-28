@@ -460,7 +460,7 @@ GEM
       lint_roller (~> 1.1)
       rubocop (~> 1.72, >= 1.72.1)
       rubocop-ast (>= 1.44.0, < 2.0)
-    ruby-lsp (0.26.8)
+    ruby-lsp (0.26.9)
       language_server-protocol (~> 3.17.0)
       prism (>= 1.2, < 2.0)
       rbs (>= 3, < 5)
@@ -681,7 +681,7 @@ DEPENDENCIES
   rubocop-rspec
   rubocop-sequel
   rubocop-thread_safety
-  ruby-lsp
+  ruby-lsp (~> 0.26.9)
   rufus-scheduler (~> 3.9)
   sanitize
   semantic_logger (~> 4.17)
