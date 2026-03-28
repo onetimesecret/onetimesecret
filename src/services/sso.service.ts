@@ -26,7 +26,7 @@ const $api = createApi();
  * handle AxiosError with status 404 for missing configs.
  */
 export interface SsoConfigResponse {
-  record: OrgSsoConfig;
+  record: OrgSsoConfig | null;
 }
 
 /**
