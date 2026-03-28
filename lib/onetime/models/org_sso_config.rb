@@ -53,6 +53,38 @@ module Onetime
     #   - github: omniauth-github (GitHub OAuth)
     PROVIDER_TYPES = %w[oidc entra_id google github].freeze
 
+    # Provider metadata for UI and validation behavior.
+    #
+    # :requires_domain_filter - Whether app-side domain restrictions are recommended.
+    #   - true: IdP has no user assignment model (e.g., GitHub OAuth allows any user)
+    #   - false: IdP controls access via user/app assignment (e.g., Entra, Google Workspace)
+    #
+    # :idp_controls_access - Whether the IdP has built-in user assignment.
+    #   Used for UI hints explaining why domain filter may be unnecessary.
+    #
+    PROVIDER_METADATA = {
+      'oidc' => {
+        requires_domain_filter: false,
+        idp_controls_access: true,
+        description: 'Generic OIDC provider with user assignment',
+      },
+      'entra_id' => {
+        requires_domain_filter: false,
+        idp_controls_access: true,
+        description: 'Microsoft Entra ID controls access via app assignment',
+      },
+      'google' => {
+        requires_domain_filter: false,
+        idp_controls_access: true,
+        description: 'Google Workspace controls access via app assignment',
+      },
+      'github' => {
+        requires_domain_filter: true,
+        idp_controls_access: false,
+        description: 'GitHub OAuth allows any user — domain filter recommended',
+      },
+    }.freeze
+
     prefix :org_sso_config
 
     # NOTE: safe_dump_fields feature requires per-model feature file setup.
@@ -116,6 +148,29 @@ module Onetime
     # @return [Boolean] true if SSO is active and should be used
     def enabled?
       enabled.to_s == 'true'
+    end
+
+    # Returns metadata for the current provider type.
+    #
+    # @return [Hash] Provider metadata (requires_domain_filter, idp_controls_access, description)
+    def provider_metadata
+      PROVIDER_METADATA.fetch(provider_type, {})
+    end
+
+    # Whether domain filtering is recommended for this provider.
+    # True for providers without IdP-side user assignment (e.g., GitHub).
+    #
+    # @return [Boolean]
+    def requires_domain_filter?
+      provider_metadata.fetch(:requires_domain_filter, false)
+    end
+
+    # Whether the IdP controls access via user/app assignment.
+    # When true, app-side domain filtering is typically redundant.
+    #
+    # @return [Boolean]
+    def idp_controls_access?
+      provider_metadata.fetch(:idp_controls_access, true)
     end
 
     # Enable SSO for this organization.
@@ -247,6 +302,22 @@ module Onetime
     end
 
     class << self
+      # Returns provider metadata for all supported providers.
+      # Used by frontend to determine UI behavior per provider type.
+      #
+      # @return [Hash] Provider type => metadata hash
+      def provider_metadata
+        PROVIDER_METADATA
+      end
+
+      # Returns metadata for a specific provider type.
+      #
+      # @param provider_type [String] One of PROVIDER_TYPES
+      # @return [Hash] Provider metadata or empty hash if unknown
+      def metadata_for(provider_type)
+        PROVIDER_METADATA.fetch(provider_type.to_s, {})
+      end
+
       # Find SSO config by organization ID.
       # Uses the class_hashkey index for O(1) lookup.
       #

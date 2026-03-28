@@ -7,7 +7,11 @@ import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { classifyError } from '@/schemas/errors';
 import { SsoService, type TestSsoConnectionResponse } from '@/services/sso.service';
-import type { OrgSsoConfig, SsoProviderType } from '@/schemas/shapes/organizations/org-sso-config';
+import {
+  SSO_PROVIDER_METADATA,
+  type OrgSsoConfig,
+  type SsoProviderType,
+} from '@/schemas/shapes/organizations/org-sso-config';
 import type { PatchSsoConfigRequest } from '@/schemas/api/organizations/requests/sso-config';
 
 /**
@@ -105,6 +109,13 @@ const requiresTenantId = computed(() => formData.value.provider_type === 'entra_
 
 // Computed: whether provider requires issuer
 const requiresIssuer = computed(() => formData.value.provider_type === 'oidc');
+
+// Computed: whether to show domain filter field
+// Only shown for providers without IdP-side user assignment (e.g., GitHub)
+const showDomainFilter = computed(() => {
+  const metadata = SSO_PROVIDER_METADATA[formData.value.provider_type];
+  return metadata?.requiresDomainFilter ?? false;
+});
 
 // Computed: form is valid
 const isFormValid = computed(() => {
@@ -599,13 +610,14 @@ aria-hidden="true">*</span>
               v-if="isTesting"
               collection="heroicons"
               name="arrow-path"
-              class="size-4 animate-spin"
+              size="4"
+              class="animate-spin"
               aria-hidden="true" />
             <OIcon
               v-else
               collection="heroicons"
               name="signal"
-              class="size-4"
+              size="4"
               aria-hidden="true" />
             {{ isTesting ? t('web.organizations.sso.testing') : t('web.organizations.sso.test_button') }}
           </button>
@@ -715,8 +727,8 @@ aria-hidden="true">*</span>
         </div>
       </div>
 
-      <!-- Domain Allowlist -->
-      <div>
+      <!-- Domain Allowlist (only for providers without IdP-side access control) -->
+      <div v-if="showDomainFilter">
         <label
           for="sso-domain-input"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">

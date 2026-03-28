@@ -55,6 +55,39 @@ export const ssoProviderTypeSchema = z.enum(['oidc', 'entra_id', 'google', 'gith
 
 export type SsoProviderType = z.infer<typeof ssoProviderTypeSchema>;
 
+/**
+ * Provider metadata for UI behavior.
+ *
+ * Mirrors PROVIDER_METADATA in lib/onetime/models/org_sso_config.rb.
+ * Used by forms to determine when domain filter field should be shown/required.
+ */
+export const SSO_PROVIDER_METADATA: Record<SsoProviderType, {
+  requiresDomainFilter: boolean;
+  idpControlsAccess: boolean;
+  description: string;
+}> = {
+  oidc: {
+    requiresDomainFilter: false,
+    idpControlsAccess: true,
+    description: 'Generic OIDC provider with user assignment',
+  },
+  entra_id: {
+    requiresDomainFilter: false,
+    idpControlsAccess: true,
+    description: 'Microsoft Entra ID controls access via app assignment',
+  },
+  google: {
+    requiresDomainFilter: false,
+    idpControlsAccess: true,
+    description: 'Google Workspace controls access via app assignment',
+  },
+  github: {
+    requiresDomainFilter: true,
+    idpControlsAccess: false,
+    description: 'GitHub OAuth allows any user — domain filter recommended',
+  },
+} as const;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Canonical schema
 // ─────────────────────────────────────────────────────────────────────────────
@@ -106,6 +139,20 @@ export const orgSsoConfigCanonical = z.object({
    * Empty array means no domain restriction.
    */
   allowed_domains: z.array(z.string()),
+
+  /**
+   * Whether app-side domain filtering is recommended for this provider.
+   * True for providers without IdP-side user assignment (e.g., GitHub).
+   * Read-only, computed from provider_type.
+   */
+  requires_domain_filter: z.boolean(),
+
+  /**
+   * Whether the IdP controls access via user/app assignment.
+   * When true, app-side domain filtering is typically redundant.
+   * Read-only, computed from provider_type.
+   */
+  idp_controls_access: z.boolean(),
 
   /** Configuration creation timestamp (Unix epoch seconds). */
   created_at: z.number(),

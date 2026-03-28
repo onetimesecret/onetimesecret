@@ -781,6 +781,185 @@ RSpec.describe Onetime::OrgSsoConfig do
   end
 
   # ==========================================================================
+  # PROVIDER_METADATA Constant Tests
+  # ==========================================================================
+
+  describe 'PROVIDER_METADATA constant' do
+    it 'defines metadata for all provider types' do
+      expect(described_class::PROVIDER_METADATA).to be_a(Hash)
+      expect(described_class::PROVIDER_METADATA.keys).to match_array(described_class::PROVIDER_TYPES)
+    end
+
+    it 'includes required keys for each provider' do
+      described_class::PROVIDER_METADATA.each do |provider, metadata|
+        expect(metadata).to have_key(:requires_domain_filter), "#{provider} missing requires_domain_filter"
+        expect(metadata).to have_key(:idp_controls_access), "#{provider} missing idp_controls_access"
+        expect(metadata).to have_key(:description), "#{provider} missing description"
+      end
+    end
+
+    describe 'provider-specific values' do
+      it 'marks GitHub as requiring domain filter' do
+        expect(described_class::PROVIDER_METADATA['github'][:requires_domain_filter]).to be true
+      end
+
+      it 'marks GitHub as NOT having IdP-controlled access' do
+        expect(described_class::PROVIDER_METADATA['github'][:idp_controls_access]).to be false
+      end
+
+      it 'marks Entra ID as NOT requiring domain filter' do
+        expect(described_class::PROVIDER_METADATA['entra_id'][:requires_domain_filter]).to be false
+      end
+
+      it 'marks Entra ID as having IdP-controlled access' do
+        expect(described_class::PROVIDER_METADATA['entra_id'][:idp_controls_access]).to be true
+      end
+
+      it 'marks Google as NOT requiring domain filter' do
+        expect(described_class::PROVIDER_METADATA['google'][:requires_domain_filter]).to be false
+      end
+
+      it 'marks Google as having IdP-controlled access' do
+        expect(described_class::PROVIDER_METADATA['google'][:idp_controls_access]).to be true
+      end
+
+      it 'marks OIDC as NOT requiring domain filter' do
+        expect(described_class::PROVIDER_METADATA['oidc'][:requires_domain_filter]).to be false
+      end
+
+      it 'marks OIDC as having IdP-controlled access' do
+        expect(described_class::PROVIDER_METADATA['oidc'][:idp_controls_access]).to be true
+      end
+    end
+  end
+
+  # ==========================================================================
+  # Provider Metadata Instance Methods Tests
+  # ==========================================================================
+
+  describe '#provider_metadata' do
+    context 'for OIDC provider' do
+      let(:config) { build_org_sso_config(:oidc) }
+
+      it 'returns metadata hash for oidc' do
+        expect(config.provider_metadata).to be_a(Hash)
+        expect(config.provider_metadata[:requires_domain_filter]).to be false
+        expect(config.provider_metadata[:idp_controls_access]).to be true
+      end
+    end
+
+    context 'for GitHub provider' do
+      let(:config) { build_org_sso_config(:github) }
+
+      it 'returns metadata hash for github' do
+        expect(config.provider_metadata).to be_a(Hash)
+        expect(config.provider_metadata[:requires_domain_filter]).to be true
+        expect(config.provider_metadata[:idp_controls_access]).to be false
+      end
+    end
+
+    context 'for unknown provider type' do
+      let(:config) { build_invalid_org_sso_config(:invalid_provider_type) }
+
+      it 'returns empty hash' do
+        expect(config.provider_metadata).to eq({})
+      end
+    end
+  end
+
+  describe '#requires_domain_filter?' do
+    context 'for providers with IdP-controlled access' do
+      %i[oidc entra_id google].each do |provider|
+        it "returns false for #{provider}" do
+          config = build_org_sso_config(provider)
+          expect(config.requires_domain_filter?).to be false
+        end
+      end
+    end
+
+    context 'for GitHub (no IdP user assignment)' do
+      let(:config) { build_org_sso_config(:github) }
+
+      it 'returns true' do
+        expect(config.requires_domain_filter?).to be true
+      end
+    end
+
+    context 'for unknown provider type' do
+      let(:config) { build_invalid_org_sso_config(:invalid_provider_type) }
+
+      it 'returns false as default' do
+        expect(config.requires_domain_filter?).to be false
+      end
+    end
+  end
+
+  describe '#idp_controls_access?' do
+    context 'for providers with IdP-controlled access' do
+      %i[oidc entra_id google].each do |provider|
+        it "returns true for #{provider}" do
+          config = build_org_sso_config(provider)
+          expect(config.idp_controls_access?).to be true
+        end
+      end
+    end
+
+    context 'for GitHub' do
+      let(:config) { build_org_sso_config(:github) }
+
+      it 'returns false' do
+        expect(config.idp_controls_access?).to be false
+      end
+    end
+
+    context 'for unknown provider type' do
+      let(:config) { build_invalid_org_sso_config(:invalid_provider_type) }
+
+      it 'returns true as default' do
+        expect(config.idp_controls_access?).to be true
+      end
+    end
+  end
+
+  # ==========================================================================
+  # Provider Metadata Class Methods Tests
+  # ==========================================================================
+
+  describe '.provider_metadata' do
+    it 'returns the PROVIDER_METADATA constant' do
+      expect(described_class.provider_metadata).to eq(described_class::PROVIDER_METADATA)
+    end
+
+    it 'returns a hash with all provider types' do
+      metadata = described_class.provider_metadata
+      expect(metadata.keys).to match_array(%w[oidc entra_id google github])
+    end
+  end
+
+  describe '.metadata_for' do
+    it 'returns metadata for a valid provider type' do
+      metadata = described_class.metadata_for('github')
+      expect(metadata).to be_a(Hash)
+      expect(metadata[:requires_domain_filter]).to be true
+      expect(metadata[:idp_controls_access]).to be false
+    end
+
+    it 'accepts symbol provider type' do
+      metadata = described_class.metadata_for(:entra_id)
+      expect(metadata[:requires_domain_filter]).to be false
+      expect(metadata[:idp_controls_access]).to be true
+    end
+
+    it 'returns empty hash for unknown provider' do
+      expect(described_class.metadata_for('unknown')).to eq({})
+    end
+
+    it 'returns empty hash for nil provider' do
+      expect(described_class.metadata_for(nil)).to eq({})
+    end
+  end
+
+  # ==========================================================================
   # PROVIDER_TYPES Constant Tests
   # ==========================================================================
 

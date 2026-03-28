@@ -29,6 +29,8 @@ module OrganizationAPI::Logic
           tenant_id: config.tenant_id,
           issuer: config.issuer,
           allowed_domains: config.allowed_domains,
+          requires_domain_filter: config.requires_domain_filter?,
+          idp_controls_access: config.idp_controls_access?,
           created_at: config.created.to_i,
           updated_at: config.updated.to_i,
         }

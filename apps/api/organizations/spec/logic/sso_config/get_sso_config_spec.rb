@@ -224,6 +224,50 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::GetSsoConfig do
       expect(record[:created_at]).to be > 0
       expect(record[:updated_at]).to be > 0
     end
+
+    it 'includes requires_domain_filter from provider metadata' do
+      result = logic.process
+      # Entra ID does not require domain filter (IdP controls access)
+      expect(result[:record][:requires_domain_filter]).to be false
+    end
+
+    it 'includes idp_controls_access from provider metadata' do
+      result = logic.process
+      # Entra ID has IdP-controlled access
+      expect(result[:record][:idp_controls_access]).to be true
+    end
+  end
+
+  describe 'provider metadata fields' do
+    let(:github_config) do
+      config = Onetime::OrgSsoConfig.new(
+        org_id: 'org-123',
+        provider_type: 'github',
+        display_name: 'GitHub SSO',
+        enabled: 'true',
+      )
+      config.client_id = 'github-client-id'
+      config.client_secret = 'github-secret'
+      config.define_singleton_method(:save) { true }
+      config
+    end
+
+    before do
+      allow(Onetime::Organization).to receive(:find_by_extid).with('ext-org-123').and_return(organization)
+      allow(organization).to receive(:owner?).with(customer).and_return(true)
+      allow(Onetime::OrgSsoConfig).to receive(:find_by_org_id).with('org-123').and_return(github_config)
+      logic.raise_concerns
+    end
+
+    it 'returns requires_domain_filter: true for GitHub provider' do
+      result = logic.process
+      expect(result[:record][:requires_domain_filter]).to be true
+    end
+
+    it 'returns idp_controls_access: false for GitHub provider' do
+      result = logic.process
+      expect(result[:record][:idp_controls_access]).to be false
+    end
   end
 
   describe 'secret masking' do
