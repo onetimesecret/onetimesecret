@@ -650,11 +650,11 @@ RSpec.describe OrganizationAPI::Logic::SsoConfig::PatchSsoConfig do
           logic.raise_concerns
         end
 
-        it 'replaces with empty array when omitted (PUT semantics for this field)' do
+        it 'preserves existing domains when omitted (PATCH semantics)' do
           logic.process
-          # Note: omitting allowed_domains results in empty array, not preservation
-          # This is consistent PUT-like behavior for the allowed_domains field
-          expect(existing_config.allowed_domains).to eq([])
+          # PATCH semantics: omitting allowed_domains preserves existing values
+          # Use empty array [] to explicitly clear domains
+          expect(existing_config.allowed_domains).to eq(['existing.com', 'old-domain.com'])
         end
       end
     end
