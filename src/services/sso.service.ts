@@ -11,9 +11,16 @@ import { createApi } from '@/api';
 import type {
   PutSsoConfigRequest,
   PatchSsoConfigRequest,
-  DeleteSsoConfigResponse,
 } from '@/schemas/api/domains/requests/sso-config';
+import {
+  getSsoConfigResponseSchema,
+  putSsoConfigResponseSchema,
+  patchSsoConfigResponseSchema,
+  deleteSsoConfigResponseSchema,
+  type DeleteSsoConfigResponse,
+} from '@/schemas/api/domains/responses/sso-config';
 import type { DomainSsoConfig, SsoProviderType } from '@/schemas/shapes/sso-config';
+import { gracefulParse, strictParse } from '@/utils/schemaValidation';
 import axios from 'axios';
 
 const $api = createApi();
@@ -25,10 +32,9 @@ const $api = createApi();
  * the API returns 404 (not 200 with null), so consumers should
  * handle AxiosError with status 404 for missing configs.
  *
- * IMPORTANT: The record is returned without Zod parsing. While the
- * DomainSsoConfig type shows `created_at` and `updated_at` as Date,
- * they arrive as Unix epoch numbers from the API. Components that
- * need Date objects should parse the record with domainSsoConfigSchema.
+ * Response parsing applies Zod schema transforms:
+ * - `created_at` and `updated_at` are transformed from Unix epoch to Date objects
+ * - Optional fields are normalized (nullish -> null or default)
  */
 export interface SsoConfigResponse {
   record: DomainSsoConfig | null;
@@ -84,7 +90,12 @@ export const SsoService = {
   async getConfigForDomain(domainExtId: string): Promise<SsoConfigResponse> {
     try {
       const response = await $api.get(`/api/domains/${domainExtId}/sso`);
-      return response.data;
+      const result = gracefulParse(getSsoConfigResponseSchema, response.data, 'GetSsoConfigResponse');
+      if (!result.ok) {
+        // Degrade gracefully on parse failure - treat as missing config
+        return { record: null };
+      }
+      return { record: result.data.record };
     } catch (error: unknown) {
       // Handle 404 (no SSO config exists) by returning { record: null }
       if (axios.isAxiosError(error) && error.response?.status === 404) {
@@ -103,13 +114,15 @@ export const SsoService = {
    * @param domainExtId - Domain external ID
    * @param payload - Full SSO configuration data including client_secret
    * @returns Updated SSO configuration
+   * @throws ZodError if response validation fails
    */
   async putConfigForDomain(
     domainExtId: string,
     payload: PutSsoConfigRequest
   ): Promise<SsoConfigResponse> {
     const response = await $api.put(`/api/domains/${domainExtId}/sso`, payload);
-    return response.data;
+    const validated = strictParse(putSsoConfigResponseSchema, response.data);
+    return { record: validated.record };
   },
 
   /**
@@ -121,13 +134,15 @@ export const SsoService = {
    * @param domainExtId - Domain external ID
    * @param payload - Partial SSO configuration data
    * @returns Updated SSO configuration
+   * @throws ZodError if response validation fails
    */
   async patchConfigForDomain(
     domainExtId: string,
     payload: PatchSsoConfigRequest
   ): Promise<SsoConfigResponse> {
     const response = await $api.patch(`/api/domains/${domainExtId}/sso`, payload);
-    return response.data;
+    const validated = strictParse(patchSsoConfigResponseSchema, response.data);
+    return { record: validated.record };
   },
 
   /**
@@ -159,10 +174,11 @@ export const SsoService = {
    *
    * @param domainExtId - Domain external ID
    * @returns Deletion confirmation
+   * @throws ZodError if response validation fails
    */
   async deleteConfigForDomain(domainExtId: string): Promise<DeleteSsoConfigResponse> {
     const response = await $api.delete(`/api/domains/${domainExtId}/sso`);
-    return response.data;
+    return strictParse(deleteSsoConfigResponseSchema, response.data);
   },
 
   /**

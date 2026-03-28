@@ -12,7 +12,8 @@
  *   pnpm test src/tests/services/sso.service.domain.spec.ts
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, type MockInstance } from 'vitest';
+import { ZodError } from 'zod';
 
 // Use vi.hoisted to properly hoist mock functions before vi.mock
 const { mockGet, mockPut, mockPatch, mockPost, mockDelete } = vi.hoisted(() => ({
@@ -51,6 +52,8 @@ describe('SsoService domain methods', () => {
   const domainExtId = 'dm_test_domain_456';
   const baseUrl = `/api/domains/${domainExtId}/sso`;
 
+  // Complete mock config that passes schema validation
+  // Must include all required fields from domainSsoConfigCanonical
   const mockDomainSsoConfig = {
     record: {
       domain_id: domainExtId,
@@ -59,6 +62,7 @@ describe('SsoService domain methods', () => {
       client_id: 'test-client-id',
       client_secret_masked: '********',
       tenant_id: 'test-tenant-id',
+      issuer: null,  // Required nullable field
       enabled: true,
       allowed_domains: ['example.com'],
       requires_domain_filter: false,
@@ -291,8 +295,45 @@ describe('SsoService domain methods', () => {
     });
 
     it('returns the same response type regardless of method', async () => {
-      const putResponse = { data: { record: { domain_id: 'dm_put', enabled: true } } };
-      const patchResponse = { data: { record: { domain_id: 'dm_patch', enabled: false } } };
+      // Full valid responses required for schema validation
+      const putResponse = {
+        data: {
+          record: {
+            domain_id: 'dm_put',
+            provider_type: 'google',
+            display_name: 'PUT Config',
+            client_id: 'put-client-id',
+            client_secret_masked: '********',
+            tenant_id: null,
+            issuer: null,
+            enabled: true,
+            allowed_domains: [],
+            requires_domain_filter: false,
+            idp_controls_access: true,
+            created_at: 1234567890,
+            updated_at: 1234567890,
+          },
+        },
+      };
+      const patchResponse = {
+        data: {
+          record: {
+            domain_id: 'dm_patch',
+            provider_type: 'google',
+            display_name: 'PATCH Config',
+            client_id: 'patch-client-id',
+            client_secret_masked: '********',
+            tenant_id: null,
+            issuer: null,
+            enabled: false,
+            allowed_domains: [],
+            requires_domain_filter: false,
+            idp_controls_access: true,
+            created_at: 1234567890,
+            updated_at: 1234567890,
+          },
+        },
+      };
       mockPut.mockResolvedValueOnce(putResponse);
       mockPatch.mockResolvedValueOnce(patchResponse);
 
@@ -307,8 +348,11 @@ describe('SsoService domain methods', () => {
         display_name: 'Updated',
       });
 
-      expect(putResult).toEqual(putResponse.data);
-      expect(patchResult).toEqual(patchResponse.data);
+      // After schema validation, response is wrapped in { record }
+      expect(putResult.record?.domain_id).toBe('dm_put');
+      expect(putResult.record?.enabled).toBe(true);
+      expect(patchResult.record?.domain_id).toBe('dm_patch');
+      expect(patchResult.record?.enabled).toBe(false);
     });
   });
 
@@ -435,6 +479,371 @@ describe('SsoService domain methods', () => {
       await SsoService.getConfigForDomain(specialDomainId);
 
       expect(mockGet).toHaveBeenCalledWith(`/api/domains/${specialDomainId}/sso`);
+    });
+  });
+
+  // ==========================================================================
+  // Schema Validation Tests
+  // ==========================================================================
+
+  describe('schema validation', () => {
+    // These tests verify behavior when schema validation is added to SsoService.
+    // Schema validation should:
+    // - Transform timestamps from Unix epoch to Date objects
+    // - Gracefully degrade to { record: null } for GET failures
+    // - Throw ZodError for PUT/PATCH/DELETE failures
+
+    let consoleErrorSpy: MockInstance;
+
+    beforeEach(() => {
+      consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      consoleErrorSpy.mockRestore();
+    });
+
+    describe('getConfigForDomain', () => {
+      it('parses valid response and transforms timestamps', async () => {
+        // Valid API response with Unix epoch timestamps
+        const validApiResponse = {
+          record: {
+            domain_id: domainExtId,
+            provider_type: 'entra_id',
+            display_name: 'Test Domain SSO',
+            client_id: 'test-client-id',
+            client_secret_masked: '********',
+            tenant_id: 'test-tenant-id',
+            issuer: null,
+            enabled: true,
+            allowed_domains: ['example.com'],
+            requires_domain_filter: false,
+            idp_controls_access: true,
+            created_at: 1234567890,
+            updated_at: 1234567890,
+          },
+          user_id: 'user_123',
+          shrimp: 'csrf_token',
+        };
+        mockGet.mockResolvedValueOnce({ data: validApiResponse });
+
+        const result = await SsoService.getConfigForDomain(domainExtId);
+
+        expect(result.record).not.toBeNull();
+        expect(result.record?.provider_type).toBe('entra_id');
+        // Schema transforms Unix epoch to Date objects
+        expect(result.record?.created_at).toBeInstanceOf(Date);
+        expect(result.record?.updated_at).toBeInstanceOf(Date);
+      });
+
+      it('returns null record on schema validation failure (graceful degradation)', async () => {
+        // Malformed response: missing required fields
+        const malformedResponse = {
+          record: {
+            domain_id: domainExtId,
+            // Missing: provider_type, display_name, client_id, etc.
+          },
+        };
+        mockGet.mockResolvedValueOnce({ data: malformedResponse });
+
+        // getConfigForDomain uses gracefulParse which degrades to { record: null }
+        const result = await SsoService.getConfigForDomain(domainExtId);
+
+        expect(result.record).toBeNull();
+        // gracefulParse logs errors in dev/test mode
+        expect(consoleErrorSpy).toHaveBeenCalled();
+      });
+
+      it('degrades to null record when API returns null (schema parse failure)', async () => {
+        // Note: The domainSsoConfigSchema doesn't allow null record, so this
+        // triggers graceful degradation, not a pass-through
+        const nullRecordResponse = {
+          record: null,
+          user_id: 'user_123',
+        };
+        mockGet.mockResolvedValueOnce({ data: nullRecordResponse });
+
+        const result = await SsoService.getConfigForDomain(domainExtId);
+
+        // Graceful degradation returns { record: null }
+        expect(result.record).toBeNull();
+      });
+
+      it('handles response with extra fields (should be passed through or stripped)', async () => {
+        const responseWithExtraFields = {
+          record: {
+            ...mockDomainSsoConfig.record,
+            unexpected_field: 'should be ignored or passed through',
+            another_extra: 12345,
+          },
+        };
+        mockGet.mockResolvedValueOnce({ data: responseWithExtraFields });
+
+        const result = await SsoService.getConfigForDomain(domainExtId);
+
+        // Schema should strip unknown fields or pass them through (based on config)
+        expect(result.record?.domain_id).toBe(domainExtId);
+      });
+    });
+
+    describe('putConfigForDomain', () => {
+      const createPayload = {
+        provider_type: 'entra_id' as const,
+        display_name: 'New Domain SSO',
+        client_id: 'new-client-id',
+        client_secret: 'new-client-secret',
+        tenant_id: 'new-tenant-id',
+        enabled: true,
+        allowed_domains: ['newdomain.com'],
+      };
+
+      it('parses valid response and returns typed result', async () => {
+        const validResponse = {
+          record: {
+            domain_id: domainExtId,
+            provider_type: 'entra_id',
+            display_name: 'New Domain SSO',
+            client_id: 'new-client-id',
+            client_secret_masked: '********',
+            tenant_id: 'new-tenant-id',
+            issuer: null,
+            enabled: true,
+            allowed_domains: ['newdomain.com'],
+            requires_domain_filter: false,
+            idp_controls_access: true,
+            created_at: 1234567890,
+            updated_at: 1234567890,
+          },
+        };
+        mockPut.mockResolvedValueOnce({ data: validResponse });
+
+        const result = await SsoService.putConfigForDomain(domainExtId, createPayload);
+
+        expect(result.record).toBeDefined();
+        expect(result.record?.provider_type).toBe('entra_id');
+      });
+
+      it('throws ZodError on schema validation failure (strict mode)', async () => {
+        // Malformed response missing required fields
+        const malformedResponse = {
+          record: {
+            domain_id: domainExtId,
+            provider_type: 'invalid_provider', // Invalid enum value
+          },
+        };
+        mockPut.mockResolvedValueOnce({ data: malformedResponse });
+
+        // PUT uses strictParse which throws ZodError on validation failure
+        await expect(
+          SsoService.putConfigForDomain(domainExtId, createPayload)
+        ).rejects.toThrow(ZodError);
+      });
+
+      it('propagates ZodError to caller for handling', async () => {
+        const responseWithWrongTypes = {
+          record: {
+            domain_id: domainExtId,
+            provider_type: 'entra_id',
+            display_name: 'Test',
+            client_id: 'client-id',
+            client_secret_masked: '********',
+            enabled: 'yes', // Should be boolean, not string
+            created_at: 'not-a-timestamp', // Should be number
+            updated_at: 1234567890,
+          },
+        };
+        mockPut.mockResolvedValueOnce({ data: responseWithWrongTypes });
+
+        // strictParse throws on type mismatches - caller can catch and handle
+        await expect(
+          SsoService.putConfigForDomain(domainExtId, createPayload)
+        ).rejects.toThrow(ZodError);
+      });
+    });
+
+    describe('patchConfigForDomain', () => {
+      const updatePayload = {
+        display_name: 'Updated Domain SSO',
+        enabled: false,
+      };
+
+      it('parses valid partial update response', async () => {
+        const validResponse = {
+          record: {
+            ...mockDomainSsoConfig.record,
+            display_name: 'Updated Domain SSO',
+            enabled: false,
+            updated_at: Date.now() / 1000,
+          },
+        };
+        mockPatch.mockResolvedValueOnce({ data: validResponse });
+
+        const result = await SsoService.patchConfigForDomain(domainExtId, updatePayload);
+
+        expect(result.record?.display_name).toBe('Updated Domain SSO');
+        expect(result.record?.enabled).toBe(false);
+      });
+
+      it('throws ZodError on schema validation failure (strict mode)', async () => {
+        const malformedResponse = {
+          record: {
+            // Response missing domain_id and other required fields
+            display_name: 'Updated',
+          },
+        };
+        mockPatch.mockResolvedValueOnce({ data: malformedResponse });
+
+        // PATCH uses strictParse which throws on validation failure
+        await expect(
+          SsoService.patchConfigForDomain(domainExtId, updatePayload)
+        ).rejects.toThrow(ZodError);
+      });
+    });
+
+    describe('deleteConfigForDomain', () => {
+      it('parses valid deletion response', async () => {
+        const deleteResponse = { success: true, message: 'SSO configuration deleted' };
+        mockDelete.mockResolvedValueOnce({ data: deleteResponse });
+
+        const result = await SsoService.deleteConfigForDomain(domainExtId);
+
+        expect(result.success).toBe(true);
+        expect(result.message).toBe('SSO configuration deleted');
+      });
+
+      it('throws ZodError on schema validation failure (strict mode)', async () => {
+        // Response missing required 'success' field
+        const malformedResponse = {
+          message: 'Deleted',
+          // Missing: success
+        };
+        mockDelete.mockResolvedValueOnce({ data: malformedResponse });
+
+        // DELETE uses strictParse which throws on validation failure
+        await expect(
+          SsoService.deleteConfigForDomain(domainExtId)
+        ).rejects.toThrow(ZodError);
+      });
+
+      it('throws ZodError on wrong type for success field', async () => {
+        const wrongTypeResponse = {
+          success: 'true', // String instead of boolean
+        };
+        mockDelete.mockResolvedValueOnce({ data: wrongTypeResponse });
+
+        // strictParse rejects type mismatches
+        await expect(
+          SsoService.deleteConfigForDomain(domainExtId)
+        ).rejects.toThrow(ZodError);
+      });
+    });
+
+    describe('edge cases', () => {
+      it('gracefully degrades on empty record object', async () => {
+        const emptyRecordResponse = {
+          record: {},
+        };
+        mockGet.mockResolvedValueOnce({ data: emptyRecordResponse });
+
+        // gracefulParse returns { record: null } on validation failure
+        const result = await SsoService.getConfigForDomain(domainExtId);
+        expect(result.record).toBeNull();
+        expect(consoleErrorSpy).toHaveBeenCalled();
+      });
+
+      it('gracefully degrades on deeply nested malformed data', async () => {
+        const nestedMalformedResponse = {
+          record: {
+            domain_id: domainExtId,
+            provider_type: 'entra_id',
+            display_name: 'Test',
+            client_id: 'client-id',
+            client_secret_masked: '********',
+            enabled: true,
+            allowed_domains: [123, null, { invalid: true }], // Should be string[]
+            created_at: 1234567890,
+            updated_at: 1234567890,
+          },
+        };
+        mockGet.mockResolvedValueOnce({ data: nestedMalformedResponse });
+
+        // Malformed array elements cause validation failure -> graceful degradation
+        const result = await SsoService.getConfigForDomain(domainExtId);
+        expect(result.record).toBeNull();
+      });
+
+      it('transforms timestamp edge values to Date objects', async () => {
+        const edgeTimestampResponse = {
+          record: {
+            ...mockDomainSsoConfig.record,
+            created_at: 0, // Unix epoch start
+            updated_at: 2147483647, // Max 32-bit signed int (Y2K38)
+          },
+        };
+        mockGet.mockResolvedValueOnce({ data: edgeTimestampResponse });
+
+        const result = await SsoService.getConfigForDomain(domainExtId);
+
+        // Schema transforms Unix epoch numbers to Date objects
+        expect(result.record?.created_at).toEqual(new Date(0));
+        expect(result.record?.updated_at).toEqual(new Date(2147483647 * 1000));
+      });
+
+      it('handles null values in nullable fields and normalizes nullish to defaults', async () => {
+        const nullableFieldsResponse = {
+          record: {
+            domain_id: domainExtId,
+            provider_type: 'entra_id',
+            display_name: 'Test',
+            client_id: 'client-id',
+            client_secret_masked: '********',
+            tenant_id: null, // Nullable
+            issuer: null, // Nullable
+            enabled: true,
+            allowed_domains: null, // Nullish, should normalize to []
+            requires_domain_filter: false,
+            idp_controls_access: true,
+            created_at: 1234567890,
+            updated_at: 1234567890,
+          },
+        };
+        mockGet.mockResolvedValueOnce({ data: nullableFieldsResponse });
+
+        const result = await SsoService.getConfigForDomain(domainExtId);
+
+        expect(result.record?.tenant_id).toBeNull();
+        expect(result.record?.issuer).toBeNull();
+        // Schema transforms null -> [] for allowed_domains
+        expect(result.record?.allowed_domains).toEqual([]);
+      });
+
+      it('normalizes undefined nullish fields to their defaults', async () => {
+        const undefinedFieldsResponse = {
+          record: {
+            domain_id: domainExtId,
+            provider_type: 'entra_id',
+            display_name: 'Test',
+            client_id: 'client-id',
+            client_secret_masked: '********',
+            enabled: true,
+            requires_domain_filter: false,
+            idp_controls_access: true,
+            created_at: 1234567890,
+            updated_at: 1234567890,
+            // tenant_id, issuer, allowed_domains all undefined (nullish)
+          },
+        };
+        mockGet.mockResolvedValueOnce({ data: undefinedFieldsResponse });
+
+        const result = await SsoService.getConfigForDomain(domainExtId);
+
+        expect(result.record).not.toBeNull();
+        // Schema transforms normalize undefined -> null for nullable fields
+        expect(result.record?.tenant_id).toBeNull();
+        expect(result.record?.issuer).toBeNull();
+        // Schema transforms normalize undefined -> [] for allowed_domains
+        expect(result.record?.allowed_domains).toEqual([]);
+      });
     });
   });
 });
