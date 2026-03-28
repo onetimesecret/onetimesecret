@@ -156,14 +156,14 @@ runs:
 
     - name: Login to Docker Hub
       if: inputs.push == 'true' && inputs.registry-mode != 'custom'
-      uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+      uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
       with:
         username: ${{ inputs.dockerhub-username }}
         password: ${{ inputs.dockerhub-token }}
 
     - name: Log into GitHub Container Registry
       if: inputs.push == 'true' && inputs.registry-mode != 'custom'
-      uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+      uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
@@ -171,7 +171,7 @@ runs:
 
     - name: Log into custom registry
       if: inputs.push == 'true' && inputs.registry-mode == 'custom'
-      uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+      uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
       with:
         registry: ${{ inputs.custom-registry-host }}
         username: ${{ inputs.custom-registry-username }}
