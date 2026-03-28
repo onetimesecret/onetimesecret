@@ -618,6 +618,8 @@ aria-hidden="true">*</span>
           <!-- Success Result -->
           <div
             v-if="testResult?.success"
+            role="status"
+            aria-live="polite"
             class="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
             <div class="flex">
               <OIcon
@@ -654,6 +656,8 @@ aria-hidden="true">*</span>
           <!-- Failure Result -->
           <div
             v-else-if="testResult && !testResult.success"
+            role="alert"
+            aria-live="assertive"
             class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
             <div class="flex">
               <OIcon

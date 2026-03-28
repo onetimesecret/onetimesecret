@@ -64,6 +64,7 @@ export const ENTITLEMENTS = {
   MANAGE_ORGS: 'manage_orgs',
   MANAGE_TEAMS: 'manage_teams',
   MANAGE_MEMBERS: 'manage_members',
+  MANAGE_SSO: 'manage_sso',
 
   // Advanced
   AUDIT_LOGS: 'audit_logs',

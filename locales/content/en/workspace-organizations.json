@@ -727,6 +727,14 @@
     "text": "Missing Fields",
     "sha256": "a7b8c9d1"
   },
+  "web.organizations.sso.status_enabled": {
+    "text": "Enabled",
+    "sha256": "b8c9d1e2"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Configured",
+    "sha256": "c9d1e2f3"
+  },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Wrong Account",
     "sha256": "80c8ffa7"

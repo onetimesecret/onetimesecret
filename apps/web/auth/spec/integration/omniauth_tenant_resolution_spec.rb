@@ -138,18 +138,22 @@ RSpec.describe 'OmniAuth Tenant Resolution', type: :integration do
     #   HTTP_HOST -> CustomDomain -> org_id -> OrgSsoConfig
 
     describe 'CustomDomain resolution' do
+      include_context 'tenant fixtures'
+
       let(:helpers) { Auth::Config::Hooks::OmniAuthTenant }
 
       it 'resolves Host header to CustomDomain' do
         # Implementation: helpers.resolve_custom_domain(host)
         # Uses Onetime::CustomDomain.load_by_display_domain internally
-        skip 'Requires CustomDomain fixture in Valkey with display_domain set'
+        custom_domain = helpers.resolve_custom_domain(tenant_domain)
+        expect(custom_domain).not_to be_nil
+        expect(custom_domain.display_domain).to eq(tenant_domain)
       end
 
       it 'CustomDomain returns org_id' do
         # CustomDomain.org_id links to owning Organization
-        # Tested when CustomDomain fixture exists
-        skip 'Requires CustomDomain fixture with org_id association'
+        custom_domain = helpers.resolve_custom_domain(tenant_domain)
+        expect(custom_domain.org_id).to eq(test_organization.org_id)
       end
     end
 
@@ -169,16 +173,22 @@ RSpec.describe 'OmniAuth Tenant Resolution', type: :integration do
     end
 
     describe 'complete resolution chain' do
+      include_context 'tenant fixtures'
+
+      let(:helpers) { Auth::Config::Hooks::OmniAuthTenant }
+
       it 'resolves Host -> CustomDomain -> org_id -> OrgSsoConfig' do
-        # Full chain implemented in Auth::Config::Hooks::OmniAuthTenant.configure
-        # Resolution: resolve_custom_domain(host) -> custom_domain.org_id -> OrgSsoConfig.find_by_org_id
-        #
-        # To enable this test:
-        # 1. Create test Organization in Valkey
-        # 2. Create CustomDomain with display_domain pointing to org
-        # 3. Create OrgSsoConfig for org_id
-        # 4. Call helpers.resolve_custom_domain and verify chain
-        skip 'Requires Valkey fixtures: Organization + CustomDomain + OrgSsoConfig'
+        # Full chain: resolve_custom_domain(host) -> custom_domain.org_id -> OrgSsoConfig.find_by_org_id
+        custom_domain = helpers.resolve_custom_domain(tenant_domain)
+        expect(custom_domain).not_to be_nil
+
+        org_id = custom_domain.org_id
+        expect(org_id).to eq(test_organization.org_id)
+
+        sso_config = Onetime::OrgSsoConfig.find_by_org_id(org_id)
+        expect(sso_config).not_to be_nil
+        expect(sso_config.provider_type).to eq('entra_id')
+        expect(sso_config.enabled?).to be true
       end
     end
   end

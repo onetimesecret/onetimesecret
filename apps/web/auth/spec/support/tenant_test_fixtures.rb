@@ -87,9 +87,12 @@ module TenantTestFixtures
 
     org_id = overrides.delete(:org_id) || SAMPLE_ORG_IDS[:primary]
 
-    BASE_CONFIG_ATTRIBUTES
+    # org_id MUST come before client_id/client_secret in hash iteration order.
+    # AAD encryption reads org_id when encrypting those fields, so it must be
+    # set first during Familia's attr initialization.
+    { org_id: org_id }
+      .merge(BASE_CONFIG_ATTRIBUTES)
       .merge(PROVIDER_CONFIGS[provider])
-      .merge(org_id: org_id)
       .merge(overrides)
   end
 
@@ -283,8 +286,64 @@ module TenantTestFixtures
     config.define_singleton_method(:save) { true }
     config.define_singleton_method(:destroy) { true }
     config.define_singleton_method(:destroy!) { true }
-    config.define_singleton_method(:exists?) { true }
+    # IMPORTANT: Must match the state during encryption (which happens at object
+    # creation when exists? == false). If this returns true, Familia's AAD
+    # calculation differs and decryption fails with "authentication tag failed".
+    config.define_singleton_method(:exists?) { false }
     config.define_singleton_method(:reload) { self }
+  end
+end
+
+# ==========================================================================
+# Shared Context for Integration Tests with Real Valkey Fixtures
+# ==========================================================================
+#
+# This shared context creates actual Organization, CustomDomain, and OrgSsoConfig
+# records in Valkey for integration tests that require the full tenant resolution
+# chain. Each test run gets unique identifiers to prevent collision.
+#
+# Usage:
+#   include_context 'tenant fixtures'
+#
+#   it 'resolves tenant from Host header' do
+#     # test_organization, test_custom_domain, test_sso_config are available
+#   end
+#
+
+RSpec.shared_context 'tenant fixtures' do
+  let(:test_run_id) { SecureRandom.hex(8) }
+  let(:tenant_domain) { "secrets-#{test_run_id}.acme-corp.test" }
+
+  let!(:test_organization) do
+    owner = Onetime::Customer.new(email: "owner-#{test_run_id}@test.local")
+    owner.save
+    Onetime::Organization.create!("Test Org #{test_run_id}", owner, "contact@test.local")
+  end
+
+  let!(:test_custom_domain) do
+    domain = Onetime::CustomDomain.new(display_domain: tenant_domain, org_id: test_organization.org_id)
+    domain.save
+    Onetime::CustomDomain.display_domains.put(tenant_domain, domain.domainid)
+    domain
+  end
+
+  let!(:test_sso_config) do
+    Onetime::OrgSsoConfig.create!(
+      org_id: test_organization.org_id,
+      provider_type: 'entra_id',
+      display_name: 'Test Entra ID',
+      tenant_id: "tenant-#{test_run_id}",
+      client_id: "client-#{test_run_id}",
+      client_secret: "secret-#{test_run_id}",
+      enabled: true
+    )
+  end
+
+  after do
+    Onetime::OrgSsoConfig.delete_for_org!(test_organization.org_id) rescue nil
+    Onetime::CustomDomain.display_domains.remove(tenant_domain) rescue nil
+    test_custom_domain&.destroy!
+    test_organization&.destroy!
   end
 end
 

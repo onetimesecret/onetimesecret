@@ -83,8 +83,10 @@ module Onetime
     # Encrypted credential storage - these contain sensitive OAuth secrets
     # that should never be logged or exposed in API responses.
     # Uses Familia's encrypted_field feature with AES-256-GCM.
-    encrypted_field :client_id
-    encrypted_field :client_secret
+    # AAD (Additional Authenticated Data) binds credentials to this org,
+    # preventing credential swapping attacks between organizations.
+    encrypted_field :client_id, aad_fields: [:org_id]
+    encrypted_field :client_secret, aad_fields: [:org_id]
 
     # Domain allowlist stored as JSON array string.
     # Validates that authenticating users have email domains in this list.
