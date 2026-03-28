@@ -251,6 +251,11 @@
     ]
   },
   "pnpm": {
+    "overrides": {
+      "brace-expansion": "1.1.13",
+      "flatted": "^3.4.2",
+      "yaml": "^2.8.3"
+    },
     "ignoredBuiltDependencies": [
       "vue-demi"
     ],
