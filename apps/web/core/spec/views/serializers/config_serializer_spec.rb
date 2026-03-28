@@ -5,10 +5,9 @@
 # Unit tests for ConfigSerializer domain-aware SSO provider resolution
 #
 # Tests cover:
-# - Tenant SSO config resolution from organization context
 # - Tenant SSO config resolution from custom domain
 # - Platform fallback behavior
-# - Edge cases (disabled config, missing org, Redis errors)
+# - Edge cases (disabled config, missing domain, Redis errors)
 #
 # Run with:
 #   source .env.test && bundle exec rspec apps/web/core/spec/views/serializers/config_serializer_spec.rb
@@ -20,7 +19,7 @@ require_relative File.join(Onetime::HOME, 'apps', 'web', 'auth', 'spec', 'suppor
 RSpec.describe Core::Views::ConfigSerializer do
   include TenantTestFixtures
 
-  # Configure Familia encryption for OrgSsoConfig tests
+  # Configure Familia encryption for DomainSsoConfig tests
   before(:all) do
     key_v1 = 'test_encryption_key_32bytes_ok!!'
     key_v2 = 'another_test_key_for_testing_!!'
@@ -37,14 +36,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
   let(:canonical_domain) { 'onetimesecret.com' }
   let(:custom_display_domain) { 'secrets.acme.com' }
-  let(:org_id) { TenantTestFixtures::SAMPLE_ORG_IDS[:primary] }
-
-  let(:organization) do
-    instance_double(
-      Onetime::Organization,
-      objid: org_id
-    )
-  end
+  let(:domain_id) { TenantTestFixtures::SAMPLE_DOMAIN_IDS[:primary] }
 
   let(:customer) do
     instance_double(
@@ -156,23 +148,35 @@ RSpec.describe Core::Views::ConfigSerializer do
       end
     end
 
-    describe 'on custom domain with organization context' do
-      let(:org_sso_config) { build_org_sso_config(:entra_id, org_id: org_id) }
+    describe 'on custom domain with DomainSsoConfig' do
+      let(:custom_domain_obj) do
+        instance_double(Onetime::CustomDomain, identifier: domain_id)
+      end
 
       let(:custom_domain_view_vars) do
         base_view_vars.merge(
           'domain_strategy' => :custom,
-          'display_domain' => custom_display_domain,
-          'organization' => organization
+          'display_domain' => custom_display_domain
         )
       end
 
-      context 'when tenant has enabled OrgSsoConfig' do
+      context 'when tenant has enabled DomainSsoConfig' do
+        let(:domain_sso_config) do
+          instance_double(
+            Onetime::DomainSsoConfig,
+            enabled?: true,
+            provider_type: 'entra_id',
+            display_name: 'Contoso Azure AD'
+          )
+        end
+
         before do
-          allow(Onetime::OrgSsoConfig).to receive(:find_by_org_id)
-            .with(org_id)
-            .and_return(org_sso_config)
-          allow(org_sso_config).to receive(:enabled?).and_return(true)
+          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+            .with(custom_display_domain)
+            .and_return(custom_domain_obj)
+          allow(Onetime::DomainSsoConfig).to receive(:find_by_domain_id)
+            .with(domain_id)
+            .and_return(domain_sso_config)
         end
 
         it 'returns tenant provider' do
@@ -190,12 +194,23 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
       end
 
-      context 'when tenant has disabled OrgSsoConfig' do
+      context 'when tenant has disabled DomainSsoConfig' do
+        let(:domain_sso_config) do
+          instance_double(
+            Onetime::DomainSsoConfig,
+            enabled?: false,
+            provider_type: 'entra_id',
+            display_name: 'Contoso Azure AD'
+          )
+        end
+
         before do
-          allow(Onetime::OrgSsoConfig).to receive(:find_by_org_id)
-            .with(org_id)
-            .and_return(org_sso_config)
-          allow(org_sso_config).to receive(:enabled?).and_return(false)
+          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+            .with(custom_display_domain)
+            .and_return(custom_domain_obj)
+          allow(Onetime::DomainSsoConfig).to receive(:find_by_domain_id)
+            .with(domain_id)
+            .and_return(domain_sso_config)
         end
 
         context 'with platform fallback allowed (default)' do
@@ -231,10 +246,13 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
       end
 
-      context 'when tenant has no OrgSsoConfig' do
+      context 'when tenant has no DomainSsoConfig' do
         before do
-          allow(Onetime::OrgSsoConfig).to receive(:find_by_org_id)
-            .with(org_id)
+          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+            .with(custom_display_domain)
+            .and_return(custom_domain_obj)
+          allow(Onetime::DomainSsoConfig).to receive(:find_by_domain_id)
+            .with(domain_id)
             .and_return(nil)
         end
 
@@ -273,50 +291,18 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
 
     describe 'custom domain resolution from display_domain' do
-      # Test the fallback path when organization is not in view_vars
-      # but we can resolve it from CustomDomain
-
-      let(:domain_id) { 'cdom_abc123def456' }
-
       let(:custom_domain_obj) do
-        instance_double(Onetime::CustomDomain, org_id: org_id, identifier: domain_id)
+        instance_double(Onetime::CustomDomain, identifier: domain_id)
       end
 
-      let(:custom_domain_view_vars_without_org) do
+      let(:custom_domain_view_vars) do
         base_view_vars.merge(
           'domain_strategy' => :custom,
-          'display_domain' => custom_display_domain,
-          'organization' => nil
+          'display_domain' => custom_display_domain
         )
       end
 
-      context 'when CustomDomain exists with OrgSsoConfig (no DomainSsoConfig)' do
-        let(:org_sso_config) { build_org_sso_config(:google, org_id: org_id) }
-
-        before do
-          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
-            .with(custom_display_domain)
-            .and_return(custom_domain_obj)
-          # Domain-specific config not found, falls back to org config
-          allow(Onetime::DomainSsoConfig).to receive(:find_by_domain_id)
-            .with(domain_id)
-            .and_return(nil)
-          allow(Onetime::OrgSsoConfig).to receive(:find_by_org_id)
-            .with(org_id)
-            .and_return(org_sso_config)
-          allow(org_sso_config).to receive(:enabled?).and_return(true)
-        end
-
-        it 'resolves tenant config from CustomDomain via org fallback' do
-          result = described_class.build_sso_config(custom_domain_view_vars_without_org)
-
-          expect(result['enabled']).to be true
-          expect(result['providers'][0]['route_name']).to eq('google')
-          expect(result['providers'][0]['display_name']).to eq('Google Workspace')
-        end
-      end
-
-      context 'when CustomDomain exists with DomainSsoConfig (domain-first)' do
+      context 'when CustomDomain exists with DomainSsoConfig' do
         let(:domain_sso_config) do
           instance_double(
             Onetime::DomainSsoConfig,
@@ -330,15 +316,13 @@ RSpec.describe Core::Views::ConfigSerializer do
           allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
-          # Domain-specific config found and enabled
           allow(Onetime::DomainSsoConfig).to receive(:find_by_domain_id)
             .with(domain_id)
             .and_return(domain_sso_config)
-          # OrgSsoConfig should NOT be called when domain config is found
         end
 
-        it 'resolves tenant config from DomainSsoConfig (domain-first)' do
-          result = described_class.build_sso_config(custom_domain_view_vars_without_org)
+        it 'resolves tenant config from DomainSsoConfig' do
+          result = described_class.build_sso_config(custom_domain_view_vars)
 
           expect(result['enabled']).to be true
           expect(result['providers'][0]['route_name']).to eq('entra_id')
@@ -358,7 +342,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
 
         it 'gracefully falls back to platform SSO' do
-          result = described_class.build_sso_config(custom_domain_view_vars_without_org)
+          result = described_class.build_sso_config(custom_domain_view_vars)
 
           # Should not raise, should fall back
           expect(result['enabled']).to be true
@@ -368,18 +352,10 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
   end
 
-  describe '.resolve_org_id' do
-    context 'with organization in view_vars' do
-      it 'returns organization objid' do
-        vars = base_view_vars.merge('organization' => organization)
-        result = described_class.resolve_org_id(vars)
-        expect(result).to eq(org_id)
-      end
-    end
-
-    context 'without organization but with display_domain' do
+  describe '.resolve_domain_id' do
+    context 'with display_domain' do
       let(:custom_domain_obj) do
-        instance_double(Onetime::CustomDomain, org_id: 'domain_org_123')
+        instance_double(Onetime::CustomDomain, identifier: domain_id)
       end
 
       before do
@@ -390,21 +366,19 @@ RSpec.describe Core::Views::ConfigSerializer do
 
       it 'resolves from CustomDomain' do
         vars = base_view_vars.merge(
-          'organization' => nil,
           'display_domain' => custom_display_domain
         )
-        result = described_class.resolve_org_id(vars)
-        expect(result).to eq('domain_org_123')
+        result = described_class.resolve_domain_id(vars)
+        expect(result).to eq(domain_id)
       end
     end
 
     context 'with empty display_domain' do
       it 'returns nil' do
         vars = base_view_vars.merge(
-          'organization' => nil,
           'display_domain' => ''
         )
-        result = described_class.resolve_org_id(vars)
+        result = described_class.resolve_domain_id(vars)
         expect(result).to be_nil
       end
     end
@@ -417,10 +391,9 @@ RSpec.describe Core::Views::ConfigSerializer do
 
       it 'returns nil' do
         vars = base_view_vars.merge(
-          'organization' => nil,
           'display_domain' => 'unknown.example.com'
         )
-        result = described_class.resolve_org_id(vars)
+        result = described_class.resolve_domain_id(vars)
         expect(result).to be_nil
       end
     end
@@ -481,7 +454,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
   describe '.build_tenant_sso_response' do
     it 'returns correct structure for OIDC config' do
-      config = build_org_sso_config(:oidc, display_name: 'Acme SSO')
+      config = build_domain_sso_config(:oidc, display_name: 'Acme SSO')
       result = described_class.build_tenant_sso_response(config)
 
       expect(result).to eq({
@@ -493,7 +466,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
 
     it 'returns correct structure for Entra ID config' do
-      config = build_org_sso_config(:entra_id, display_name: 'Microsoft Login')
+      config = build_domain_sso_config(:entra_id, display_name: 'Microsoft Login')
       result = described_class.build_tenant_sso_response(config)
 
       expect(result).to eq({
@@ -505,7 +478,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
 
     it 'handles nil display_name gracefully' do
-      config = build_org_sso_config(:github)
+      config = build_domain_sso_config(:github)
       allow(config).to receive(:display_name).and_return(nil)
 
       result = described_class.build_tenant_sso_response(config)

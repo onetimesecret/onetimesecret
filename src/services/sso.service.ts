@@ -13,7 +13,7 @@ import type {
   PatchSsoConfigRequest,
   DeleteSsoConfigResponse,
 } from '@/schemas/api/organizations/requests/sso-config';
-import type { OrgSsoConfig, SsoProviderType } from '@/schemas/shapes/organizations/org-sso-config';
+import type { OrgSsoConfig, SsoProviderType } from '@/schemas/shapes/sso-config';
 import axios from 'axios';
 
 const $api = createApi();

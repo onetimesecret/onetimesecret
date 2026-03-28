@@ -1,6 +1,10 @@
-# Per-Organization SSO Configuration
+# Per-Domain SSO Configuration
 
-This document describes the conditions required for the SSO configuration tab to appear in organization settings.
+This document describes the per-domain SSO configuration system and the conditions required for the SSO configuration tab to appear in organization settings.
+
+## Overview
+
+SSO configuration is bound to individual custom domains, not organizations. This enables multi-IdP configurations where different domains owned by the same organization can use different identity providers.
 
 ## Prerequisites
 
@@ -104,7 +108,7 @@ SSO Tab Visibility
 
 ### Login Flow (Runtime)
 
-**Prerequisite:** Organization must have a custom domain configured.
+**Prerequisite:** Organization must have a custom domain with SSO configured.
 
 ```
 User visits https://{custom-domain}/signin
@@ -113,13 +117,13 @@ User visits https://{custom-domain}/signin
 POST /auth/sso/{provider}
     │
     ▼
-Host header → CustomDomain → Organization → OrgSsoConfig
+Host header → CustomDomain → DomainSsoConfig
     │
     ▼
-Inject org credentials into OmniAuth strategy
+Inject domain credentials into OmniAuth strategy
     │
     ▼
-Redirect to org's IdP
+Redirect to domain's IdP
     │
     ▼
 IdP callback → tenant validation → session created
@@ -131,11 +135,11 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 |------|--------|--------|
 | 1 | `request.host` | `secrets.acme.com` |
 | 2 | `CustomDomain.load_by_display_domain(host)` | CustomDomain record |
-| 3 | `custom_domain.org_id` | Organization identifier |
-| 4 | `OrgSsoConfig.find_by_org_id(org_id)` | SSO credentials |
-| 5 | `org_config.to_omniauth_options` | OmniAuth strategy injection |
+| 3 | `custom_domain.identifier` | Domain identifier |
+| 4 | `DomainSsoConfig.find_by_domain_id(domain_id)` | SSO credentials |
+| 5 | `domain_config.to_omniauth_options` | OmniAuth strategy injection |
 
-**Security:** Tenant context stored in session during request phase, validated on callback to prevent cross-tenant redirect attacks.
+**Security:** Tenant context (domain_id) stored in session during request phase, validated on callback to prevent cross-tenant redirect attacks.
 
 ## Troubleshooting
 
@@ -179,8 +183,8 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 | SSO tab missing | `manage_sso` not in plan entitlements | Add to billing.yaml, push, pull |
 | Entitlement in YAML but not Redis | Push/pull not run | Run `bin/ots billing catalog push && pull` |
 | Mismatch between YAML key and plan | Root uses `sso`, plan uses `manage_sso` | Use consistent naming (`manage_sso`) |
-| SSO configured but login fails | No custom domain for organization | Add custom domain pointing to org |
-| Platform SSO used instead of org SSO | Accessing via canonical domain | Use org's custom domain URL |
+| SSO configured but login fails | No custom domain with SSO config | Add custom domain and configure SSO |
+| Platform SSO used instead of domain SSO | Accessing via canonical domain | Use domain's custom URL |
 
 ## Related Configuration
 
@@ -196,9 +200,9 @@ This controls `features.organizations.enabled` in the bootstrap response.
 
 ## See Also
 
-- [SSO Configuration Guide](omniauth-sso.md) — platform-level SSO setup and provider configuration
-- [OmniAuth Tenant Resolution](../../apps/web/auth/config/hooks/omniauth_tenant.rb) — runtime credential injection
-- [OrgSsoConfig Model](../../lib/onetime/models/org_sso_config.rb) — per-org SSO storage
+- [SSO Configuration Guide](omniauth-sso.md) - platform-level SSO setup and provider configuration
+- [OmniAuth Tenant Resolution](../../apps/web/auth/config/hooks/omniauth_tenant.rb) - runtime credential injection
+- [DomainSsoConfig Model](../../lib/onetime/models/domain_sso_config.rb) - per-domain SSO storage
 - [Billing Catalog Management](../billing/catalog-management.md)
 - [Entitlements System](../billing/entitlements.md)
 - [STANDALONE_ENTITLEMENTS](../../lib/onetime/models/features/with_entitlements.rb)

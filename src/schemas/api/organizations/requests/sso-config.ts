@@ -16,7 +16,7 @@ import {
   createOrUpdateSsoConfigPayloadStrictSchema,
   patchSsoConfigPayloadSchema,
   putSsoConfigPayloadStrictSchema,
-} from '@/schemas/shapes/organizations/org-sso-config';
+} from '@/schemas/shapes/sso-config';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/organizations/:org_extid/sso

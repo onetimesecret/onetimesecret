@@ -5,26 +5,20 @@
 #
 # DomainSsoConfig - Per-domain SSO credential storage
 #
-# This model stores SSO credentials bound to a specific CustomDomain rather
-# than an Organization. This enables multi-IdP configurations where different
-# domains owned by the same organization can use different identity providers.
+# This model stores SSO credentials bound to a specific CustomDomain.
+# This enables multi-IdP configurations where different domains owned
+# by the same organization can use different identity providers.
 #
 # Use Cases:
 #   - Regional compliance: secrets.acme.eu uses Google Workspace, secrets.acme.com uses Entra ID
 #   - Gradual rollout: enable SSO on one domain before expanding to others
 #   - Subsidiary isolation: different business units use different IdPs
 #
-# Resolution Priority:
-#   The tenant resolution flow checks DomainSsoConfig first, falling back to
-#   OrgSsoConfig for backward compatibility. This allows organizations to
-#   either configure SSO per-domain (new model) or org-wide (legacy model).
-#
 # Credential Binding:
 #   Credentials are encrypted with AAD (Additional Authenticated Data) bound
 #   to domain_id, preventing credential swapping attacks between domains.
 #
 # See: apps/web/auth/config/hooks/omniauth_tenant.rb (tenant resolution)
-# See: lib/onetime/models/org_sso_config.rb (org-level SSO config)
 #
 module Onetime
   class DomainSsoConfig < Familia::Horreum
@@ -32,11 +26,41 @@ module Onetime
 
     SCHEMA = 'models/domain-sso-config'
 
-    # Supported SSO provider types (same as OrgSsoConfig)
-    PROVIDER_TYPES = OrgSsoConfig::PROVIDER_TYPES
+    # Supported SSO provider types
+    PROVIDER_TYPES = %w[oidc entra_id google github].freeze
 
-    # Provider metadata (delegate to OrgSsoConfig for single source of truth)
-    PROVIDER_METADATA = OrgSsoConfig::PROVIDER_METADATA
+    # Provider metadata for UI filtering logic
+    #
+    # :requires_domain_filter - When true, UI should show domain filter config
+    #   prominently because the IdP doesn't restrict access by default.
+    #   When false, IdP controls access via user/app assignment.
+    #
+    # :idp_controls_access - When true, the IdP is the source of truth for
+    #   which users can access the app. When false, anyone with valid IdP
+    #   credentials could potentially authenticate.
+    #
+    PROVIDER_METADATA = {
+      'oidc' => {
+        requires_domain_filter: true,
+        idp_controls_access: false,
+        description: 'Generic OpenID Connect provider - domain filtering recommended',
+      },
+      'entra_id' => {
+        requires_domain_filter: false,
+        idp_controls_access: true,
+        description: 'Microsoft Entra ID - access controlled via Azure app assignment',
+      },
+      'google' => {
+        requires_domain_filter: true,
+        idp_controls_access: false,
+        description: 'Google Workspace - domain filtering recommended for enterprise',
+      },
+      'github' => {
+        requires_domain_filter: true,
+        idp_controls_access: false,
+        description: 'GitHub OAuth - domain filtering recommended',
+      },
+    }.freeze
 
     prefix :domain_sso_config
 

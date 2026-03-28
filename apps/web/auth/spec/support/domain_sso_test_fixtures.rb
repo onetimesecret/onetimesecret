@@ -126,8 +126,6 @@ module DomainSsoTestFixtures
   # @param overrides [Hash] attributes to override defaults
   # @return [Onetime::DomainSsoConfig] stubbed instance
   #
-  # NOTE: This method requires DomainSsoConfig model to be implemented.
-  # Until then, tests using this fixture will be pending.
   def build_domain_sso_config(provider = :oidc, overrides = {})
     attrs = build_domain_sso_config_attributes(provider, overrides)
 
@@ -135,18 +133,15 @@ module DomainSsoTestFixtures
     # The model has a custom setter that converts array to JSON
     allowed_domains = attrs.delete(:allowed_domains)
 
-    # NOTE: Uncomment when DomainSsoConfig model is implemented
-    # config = Onetime::DomainSsoConfig.new(attrs)
-    #
-    # # Set allowed_domains using the custom setter (converts to JSON internally)
-    # config.allowed_domains = allowed_domains if allowed_domains
-    #
-    # # Stub persistence methods for unit tests
-    # stub_domain_sso_config_persistence(config)
-    #
-    # config
+    config = Onetime::DomainSsoConfig.new(attrs)
 
-    raise NotImplementedError, 'DomainSsoConfig model not yet implemented (#2786)'
+    # Set allowed_domains using the custom setter (converts to JSON internally)
+    config.allowed_domains = allowed_domains if allowed_domains
+
+    # Stub persistence methods for unit tests
+    stub_domain_sso_config_persistence(config)
+
+    config
   end
 
   # Build a minimal DomainSsoConfig with only required fields
@@ -156,17 +151,14 @@ module DomainSsoTestFixtures
   # @param provider_type [String] SSO provider type
   # @return [Onetime::DomainSsoConfig] minimal stubbed instance
   def build_minimal_domain_sso_config(domain_id:, org_id:, provider_type: 'oidc')
-    # NOTE: Uncomment when DomainSsoConfig model is implemented
-    # config = Onetime::DomainSsoConfig.new(
-    #   domain_id: domain_id,
-    #   org_id: org_id,
-    #   provider_type: provider_type,
-    #   enabled: true
-    # )
-    # stub_domain_sso_config_persistence(config)
-    # config
-
-    raise NotImplementedError, 'DomainSsoConfig model not yet implemented (#2786)'
+    config = Onetime::DomainSsoConfig.new(
+      domain_id: domain_id,
+      org_id: org_id,
+      provider_type: provider_type,
+      enabled: true
+    )
+    stub_domain_sso_config_persistence(config)
+    config
   end
 
   # Build an invalid DomainSsoConfig for negative testing
@@ -207,12 +199,9 @@ module DomainSsoTestFixtures
       attrs[:tenant_id] = nil
     end
 
-    # NOTE: Uncomment when DomainSsoConfig model is implemented
-    # config = Onetime::DomainSsoConfig.new(attrs)
-    # stub_domain_sso_config_persistence(config)
-    # config
-
-    raise NotImplementedError, 'DomainSsoConfig model not yet implemented (#2786)'
+    config = Onetime::DomainSsoConfig.new(attrs)
+    stub_domain_sso_config_persistence(config)
+    config
   end
 
   # Build a disabled DomainSsoConfig
@@ -372,24 +361,22 @@ RSpec.shared_context 'domain sso fixtures' do
     domain
   end
 
-  # NOTE: Uncomment when DomainSsoConfig model is implemented
-  # let!(:test_domain_sso_config) do
-  #   Onetime::DomainSsoConfig.create!(
-  #     domain_id: test_domain_with_sso.objid,
-  #     org_id: test_sso_organization.org_id,
-  #     provider_type: 'entra_id',
-  #     display_name: 'Test Domain Entra ID',
-  #     tenant_id: "tenant-#{test_run_id}",
-  #     client_id: "client-#{test_run_id}",
-  #     client_secret: "secret-#{test_run_id}",
-  #     enabled: true
-  #   )
-  # end
+  let!(:test_domain_sso_config) do
+    Onetime::DomainSsoConfig.create!(
+      domain_id: test_domain_with_sso.objid,
+      org_id: test_sso_organization.org_id,
+      provider_type: 'entra_id',
+      display_name: 'Test Domain Entra ID',
+      tenant_id: "tenant-#{test_run_id}",
+      client_id: "client-#{test_run_id}",
+      client_secret: "secret-#{test_run_id}",
+      enabled: true
+    )
+  end
 
   after do
     # Cleanup in reverse order of creation
-    # NOTE: Uncomment when DomainSsoConfig model is implemented
-    # Onetime::DomainSsoConfig.delete_for_domain!(test_domain_with_sso.objid) rescue nil
+    Onetime::DomainSsoConfig.delete_for_domain!(test_domain_with_sso.objid) rescue nil
     Onetime::CustomDomain.display_domains.remove(domain_sso_display_domain) rescue nil
     test_domain_with_sso&.destroy!
     test_sso_organization&.destroy!

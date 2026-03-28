@@ -17,7 +17,7 @@ import {
   SSO_PROVIDER_METADATA,
   type OrgSsoConfig,
   type SsoProviderType,
-} from '@/schemas/shapes/organizations/org-sso-config';
+} from '@/schemas/shapes/sso-config';
 import type { PatchSsoConfigRequest } from '@/schemas/api/organizations/requests/sso-config';
 
 /**

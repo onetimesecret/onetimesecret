@@ -13,7 +13,7 @@ import {
   ssoProviderTypeSchema,
   orgSsoConfigCanonical,
   type SsoProviderType,
-} from '@/schemas/contracts/org-sso-config';
+} from '@/schemas/contracts/sso-config';
 
 describe('SSO_PROVIDER_METADATA constant', () => {
   describe('structure', () => {

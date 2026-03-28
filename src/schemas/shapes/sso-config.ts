@@ -10,12 +10,12 @@
 import {
   orgSsoConfigCanonical,
   ssoProviderTypeSchema,
-} from '@/schemas/contracts/org-sso-config';
+} from '@/schemas/contracts/sso-config';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // Re-export contracts for backwards compatibility
-export * from '@/schemas/contracts/org-sso-config';
+export * from '@/schemas/contracts/sso-config';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Timestamp transforms
@@ -94,7 +94,7 @@ export const orgSsoConfigSummarySchema = z.object({
 
 export type OrgSsoConfigSummary = z.infer<typeof orgSsoConfigSummarySchema>;
 
-// Note: All payload schemas are re-exported via `export * from '@/schemas/contracts/org-sso-config'` above.
+// Note: All payload schemas are re-exported via `export * from '@/schemas/contracts/sso-config'` above.
 // This includes:
 // - createOrUpdateSsoConfigPayloadSchema (legacy, for backwards compatibility)
 // - createOrUpdateSsoConfigPayloadStrictSchema (legacy)
