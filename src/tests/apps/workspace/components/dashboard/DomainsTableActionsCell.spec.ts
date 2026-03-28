@@ -11,6 +11,7 @@ vi.mock('vue-i18n', () => ({
       const translations: Record<string, string> = {
         'web.domains.manage_brand': 'Manage Brand',
         'web.domains.verify_domain': 'Verify Domain',
+        'web.domains.sso.configure_sso': 'Configure SSO',
         'web.COMMON.remove': 'Remove',
       };
       return translations[key] ?? key;
@@ -111,12 +112,14 @@ describe('DomainsTableActionsCell', () => {
       expect(texts).toContain('Remove');
     });
 
-    it('renders 2 menu items without branding, 3 with branding', () => {
+    it('renders 3 menu items without branding, 4 with branding', () => {
       const withoutBrand = mountComponent(false);
       const withBrand = mountComponent(true);
 
-      expect(withoutBrand.findAll('[role="menuitem"]')).toHaveLength(2);
-      expect(withBrand.findAll('[role="menuitem"]')).toHaveLength(3);
+      // Without branding: Verify Domain, Configure SSO, Remove
+      expect(withoutBrand.findAll('[role="menuitem"]')).toHaveLength(3);
+      // With branding: Manage Brand, Verify Domain, Configure SSO, Remove
+      expect(withBrand.findAll('[role="menuitem"]')).toHaveLength(4);
     });
 
     it('links "Manage Brand" to DomainBrand route with correct params', () => {

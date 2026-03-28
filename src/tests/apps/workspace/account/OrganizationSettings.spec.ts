@@ -285,7 +285,7 @@ describe('OrganizationSettings', () => {
 
   const switchToSettingsTab = async (w: VueWrapper) => {
     // Find the Settings tab button (located in the nav tabs area)
-    const navTabs = w.find('nav[aria-label="Tabs"]');
+    const navTabs = w.find('nav[aria-label="Organization settings tabs"]');
     const tabs = navTabs.findAll('button');
     const settingsTab = tabs.find((tab) => tab.text() === 'Settings');
     if (!settingsTab) {
