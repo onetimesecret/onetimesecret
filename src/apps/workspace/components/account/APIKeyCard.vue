@@ -3,7 +3,8 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import { ref } from 'vue';
+import { maskSensitiveText } from '@/utils/format';
+import { ref, computed } from 'vue';
 
 const { t } = useI18n();
 
@@ -19,8 +20,11 @@ const props = withDefaults(defineProps<Props>(), {
 
 const copied = ref(false);
 
+// Mask the displayed token while keeping the full value for copying
+const maskedToken = computed(() => maskSensitiveText(props.apitoken ?? ''));
+
 const handleCopy = () => {
-  navigator.clipboard.writeText(props.apitoken)
+  navigator.clipboard.writeText(props.apitoken ?? '')
     .then(() => {
       copied.value = true;
       setTimeout(() => {
@@ -40,7 +44,7 @@ const handleCopy = () => {
     class="mb-4 rounded-lg border border-gray-200/60 bg-white/60 p-4 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
     <div class="font-mono text-sm text-gray-800 dark:text-gray-200">
       <div class="relative flex items-center overflow-x-auto rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-900/50">
-        <span class="break-all pr-10">{{ apitoken }}</span>
+        <span class="break-all pr-10">{{ maskedToken }}</span>
         <button
           @click.stop="handleCopy"
           type="button"
