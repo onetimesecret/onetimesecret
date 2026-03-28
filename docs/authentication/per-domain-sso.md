@@ -193,10 +193,49 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 The organization switcher (separate from SSO tab) requires:
 
 ```bash
-ENABLE_ORGANIZATIONS=true
+ENABLE_ORGS=true
 ```
 
 This controls `features.organizations.enabled` in the bootstrap response.
+
+### AUTH_SSO_ENABLED vs ORGS_SSO_ENABLED
+
+Independent flags is the cleaner design.
+
+Distinction:
+- AUTH_SSO_ENABLED: Install-level SSO on canonical domain (env-configured providers)
+- ORGS_SSO_ENABLED: Org-level SSO for custom domains (DB-configured per-domain)
+
+The two features serve fundamentally different use cases:
+
+┌──────────────────┬──────────────────┬──────────────────────────────────┬─────────────────────────────────────────┐
+│       Flag       │      Scope       │          Configuration           │                Use Case                 │
+├──────────────────┼──────────────────┼──────────────────────────────────┼─────────────────────────────────────────┤
+│ AUTH_SSO_ENABLED │ Canonical domain │ Env vars (OIDC_*, ENTRA_*, etc.) │ Self-hosted enterprise with single IdP  │
+├──────────────────┼──────────────────┼──────────────────────────────────┼─────────────────────────────────────────┤
+│ ORGS_SSO_ENABLED │ Custom domains   │ DB per-domain (DomainSsoConfig)  │ SaaS offering enterprise SSO to tenants │
+└──────────────────┴──────────────────┴──────────────────────────────────┴─────────────────────────────────────────┘
+
+The key scenario that breaks hierarchical design:
+
+A SaaS operator may want AUTH_SSO_ENABLED=false (users sign up with passwords on onetimesecret.com) while
+ORGS_SSO_ENABLED=true (enterprise customers configure SSO for secrets.acme.com). A master switch would force enabling
+install-level SSO (with dummy or unused providers) just to unlock the org-level feature.
+
+Why independent is more maintainable:
+
+1. Single responsibility: Each flag controls exactly one subsystem. AUTH_SSO flows through AuthConfig.sso_enabled? →
+Rodauth OmniAuth. ORGS_SSO flows through features.organizations.sso_enabled → DomainSsoConfig resolution.
+2. No coupling bugs: Changes to install-level SSO can't accidentally break org-level SSO or vice versa.
+3. Clearer config intent: AUTH_SSO_ENABLED=false, ORGS_SSO_ENABLED=true explicitly communicates "no platform SSO, yes
+tenant SSO" without needing to understand implicit relationships.
+4. Entitlements already provide the per-org gate: The manage_sso entitlement controls which organizations can use domain
+  SSO. The feature flag gates the entire capability at the install level—orthogonal concerns.
+
+The one exception: If the underlying OAuth session machinery required AUTH_SSO_ENABLED to be true for any OAuth to work,
+  coupling would be necessary. But from the recon, domain SSO has independent provider resolution that doesn't depend on
+install-level providers.
+
 
 ## See Also
 

@@ -12,7 +12,7 @@
   └────────────────────────────────────────────────────────────────┘
 
   Visibility controlled by:
-  - ENABLE_ORGANIZATIONS env var (feature flag for org switcher)
+  - ENABLE_ORGS env var (feature flag for org switcher)
   - Route meta.scopesAvailable (per-route visibility control)
 -->
 
