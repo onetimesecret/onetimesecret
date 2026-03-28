@@ -412,16 +412,6 @@ module DomainsAPI
             .gsub(/:[0-9]+/, ':[PORT]')
             .slice(0, 200) # Limit length
         end
-
-        def sanitize_url(value)
-          return '' if value.nil?
-
-          url = value.to_s.strip
-          # Basic URL validation - must start with https:// for security
-          return '' unless url.start_with?('https://')
-
-          url
-        end
       end
     end
   end

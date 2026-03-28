@@ -92,6 +92,49 @@ module DomainsAPI
           verify_organization_owner(@organization)
           verify_manage_sso_entitlement(@organization)
         end
+
+        # Parse allowed domains from string or array input.
+        #
+        # @param value [String, Array, nil] Comma-separated string or array of domains
+        # @return [Array<String>] Normalized array of lowercase domain strings
+        def parse_allowed_domains(value)
+          return [] if value.nil?
+          return value if value.is_a?(Array)
+
+          # Handle comma-separated string
+          if value.is_a?(String)
+            value.split(',').map { it.strip.downcase }.reject(&:empty?)
+          else
+            []
+          end
+        end
+
+        # Parse boolean from various input formats.
+        #
+        # @param value [Boolean, String, Integer, nil] Value to parse
+        # @return [Boolean] true if value represents truthy, false otherwise
+        def parse_boolean(value)
+          case value
+          when true, 'true', '1', 1
+            true
+          else
+            false
+          end
+        end
+
+        # Sanitize and validate URL input.
+        #
+        # @param value [String, nil] URL string to sanitize
+        # @return [String] Sanitized URL or empty string if invalid
+        def sanitize_url(value)
+          return '' if value.nil?
+
+          url = value.to_s.strip
+          # Basic URL validation - must start with https:// for security
+          return '' unless url.start_with?('https://')
+
+          url
+        end
       end
     end
   end

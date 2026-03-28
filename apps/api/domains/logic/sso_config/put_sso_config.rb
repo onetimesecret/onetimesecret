@@ -201,37 +201,6 @@ module DomainsAPI
           @sso_config.save
         end
 
-        def parse_allowed_domains(value)
-          return [] if value.nil?
-          return value if value.is_a?(Array)
-
-          # Handle comma-separated string
-          if value.is_a?(String)
-            value.split(',').map { it.strip.downcase }.reject(&:empty?)
-          else
-            []
-          end
-        end
-
-        def parse_boolean(value)
-          case value
-          when true, 'true', '1', 1
-            true
-          else
-            false
-          end
-        end
-
-        def sanitize_url(value)
-          return '' if value.nil?
-
-          url = value.to_s.strip
-          # Basic URL validation - must start with https:// for security
-          return '' unless url.start_with?('https://')
-
-          url
-        end
-
         # Log enabled/disabled state change if it occurred.
         #
         # @param was_enabled [Boolean, nil] Previous enabled state (nil if new config)
