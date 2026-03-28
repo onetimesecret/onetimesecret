@@ -152,7 +152,7 @@ group :development do
   gem 'rubocop-rspec', require: false
   gem 'rubocop-sequel', require: false
   gem 'rubocop-thread_safety', require: false
-  gem 'ruby-lsp', require: false
+  gem 'ruby-lsp', '~> 0.26.9', require: false
   gem 'solargraph', require: false # serena project index
   gem 'syntax_tree', require: false
 end
