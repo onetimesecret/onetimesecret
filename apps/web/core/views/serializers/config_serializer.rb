@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/models/org_sso_config'
+require 'onetime/models/domain_sso_config'
 require 'onetime/models/custom_domain'
 
 module Core
@@ -170,20 +171,46 @@ module Core
 
         # Resolve tenant SSO configuration from request context
         #
-        # Attempts to find OrgSsoConfig using:
-        #   1. Organization from view_vars (already resolved by auth strategy)
-        #   2. CustomDomain lookup from display_domain
+        # Resolution priority (domain-first):
+        #   1. DomainSsoConfig for the custom domain (per-domain SSO)
+        #   2. OrgSsoConfig for the organization (org-wide SSO fallback)
+        #
+        # This enables multi-IdP configurations where different domains
+        # owned by the same organization can use different identity providers.
         #
         # @param view_vars [Hash] View variables
-        # @return [Onetime::OrgSsoConfig, nil] Tenant config if found and enabled
+        # @return [Onetime::DomainSsoConfig, Onetime::OrgSsoConfig, nil] Config if found and enabled
         def resolve_tenant_sso_config(view_vars)
+          # Try domain-specific config first
+          domain_id = resolve_domain_id(view_vars)
+          if domain_id
+            domain_config = Onetime::DomainSsoConfig.find_by_domain_id(domain_id)
+            return domain_config if domain_config&.enabled?
+          end
+
+          # Fall back to org-level config
           org_id = resolve_org_id(view_vars)
           return nil unless org_id
 
-          config = Onetime::OrgSsoConfig.find_by_org_id(org_id)
-          return nil unless config&.enabled?
+          org_config = Onetime::OrgSsoConfig.find_by_org_id(org_id)
+          return nil unless org_config&.enabled?
 
-          config
+          org_config
+        end
+
+        # Resolve domain identifier from view variables
+        #
+        # @param view_vars [Hash] View variables
+        # @return [String, nil] CustomDomain identifier (objid) or nil
+        def resolve_domain_id(view_vars)
+          display_domain = view_vars['display_domain']
+          return nil if display_domain.to_s.empty?
+
+          custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
+          custom_domain&.identifier
+        rescue Redis::BaseError => ex
+          OT.le "[ConfigSerializer] Redis error resolving domain_id for domain=#{display_domain}: #{ex.class}"
+          nil
         end
 
         # Resolve organization ID from view variables

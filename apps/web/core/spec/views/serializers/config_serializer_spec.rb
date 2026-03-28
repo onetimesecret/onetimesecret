@@ -276,8 +276,10 @@ RSpec.describe Core::Views::ConfigSerializer do
       # Test the fallback path when organization is not in view_vars
       # but we can resolve it from CustomDomain
 
+      let(:domain_id) { 'cdom_abc123def456' }
+
       let(:custom_domain_obj) do
-        instance_double(Onetime::CustomDomain, org_id: org_id)
+        instance_double(Onetime::CustomDomain, org_id: org_id, identifier: domain_id)
       end
 
       let(:custom_domain_view_vars_without_org) do
@@ -288,25 +290,59 @@ RSpec.describe Core::Views::ConfigSerializer do
         )
       end
 
-      context 'when CustomDomain exists with OrgSsoConfig' do
+      context 'when CustomDomain exists with OrgSsoConfig (no DomainSsoConfig)' do
         let(:org_sso_config) { build_org_sso_config(:google, org_id: org_id) }
 
         before do
           allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
+          # Domain-specific config not found, falls back to org config
+          allow(Onetime::DomainSsoConfig).to receive(:find_by_domain_id)
+            .with(domain_id)
+            .and_return(nil)
           allow(Onetime::OrgSsoConfig).to receive(:find_by_org_id)
             .with(org_id)
             .and_return(org_sso_config)
           allow(org_sso_config).to receive(:enabled?).and_return(true)
         end
 
-        it 'resolves tenant config from CustomDomain' do
+        it 'resolves tenant config from CustomDomain via org fallback' do
           result = described_class.build_sso_config(custom_domain_view_vars_without_org)
 
           expect(result['enabled']).to be true
           expect(result['providers'][0]['route_name']).to eq('google')
           expect(result['providers'][0]['display_name']).to eq('Google Workspace')
+        end
+      end
+
+      context 'when CustomDomain exists with DomainSsoConfig (domain-first)' do
+        let(:domain_sso_config) do
+          instance_double(
+            Onetime::DomainSsoConfig,
+            enabled?: true,
+            provider_type: 'entra_id',
+            display_name: 'Acme Corp Entra'
+          )
+        end
+
+        before do
+          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+            .with(custom_display_domain)
+            .and_return(custom_domain_obj)
+          # Domain-specific config found and enabled
+          allow(Onetime::DomainSsoConfig).to receive(:find_by_domain_id)
+            .with(domain_id)
+            .and_return(domain_sso_config)
+          # OrgSsoConfig should NOT be called when domain config is found
+        end
+
+        it 'resolves tenant config from DomainSsoConfig (domain-first)' do
+          result = described_class.build_sso_config(custom_domain_view_vars_without_org)
+
+          expect(result['enabled']).to be true
+          expect(result['providers'][0]['route_name']).to eq('entra_id')
+          expect(result['providers'][0]['display_name']).to eq('Acme Corp Entra')
         end
       end
 

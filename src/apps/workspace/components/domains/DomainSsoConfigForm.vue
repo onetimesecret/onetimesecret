@@ -1,6 +1,12 @@
-<!-- src/apps/workspace/components/organizations/SsoConfigForm.vue -->
+<!-- src/apps/workspace/components/domains/DomainSsoConfigForm.vue -->
 
 <script setup lang="ts">
+/**
+ * Domain SSO Configuration Form
+ *
+ * This component mirrors SsoConfigForm but uses domain-scoped service methods.
+ * It provides SSO configuration for individual custom domains.
+ */
 import { useI18n } from 'vue-i18n';
 import { computed, onMounted, ref, watch } from 'vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
@@ -31,7 +37,7 @@ interface SsoConfigFormData {
 }
 
 const props = defineProps<{
-  orgExtId: string;
+  domainExtId: string;
 }>();
 
 const emit = defineEmits<{
@@ -169,7 +175,7 @@ const handleTestConnection = async () => {
       issuer: requiresIssuer.value ? formData.value.issuer?.trim() : undefined,
     };
 
-    testResult.value = await SsoService.testConnection(props.orgExtId, payload);
+    testResult.value = await SsoService.testConnectionForDomain(props.domainExtId, payload);
 
     if (testResult.value.success) {
       success.value = testResult.value.message;
@@ -179,7 +185,7 @@ const handleTestConnection = async () => {
   } catch (err) {
     const classified = classifyError(err);
     testError.value = classified.message || t('web.organizations.sso.test_error');
-    console.error('[SsoConfigForm] Error testing connection:', err);
+    console.error('[DomainSsoConfigForm] Error testing connection:', err);
   } finally {
     isTesting.value = false;
   }
@@ -200,7 +206,7 @@ const loadConfig = async () => {
   error.value = '';
 
   try {
-    const response = await SsoService.getConfig(props.orgExtId);
+    const response = await SsoService.getConfigForDomain(props.domainExtId);
     existingConfig.value = response.record;
 
     if (response.record) {
@@ -217,11 +223,11 @@ const loadConfig = async () => {
       };
     }
   } catch (err) {
-    // 404 is handled by SsoService.getConfig (returns { record: null })
+    // 404 is handled by SsoService.getConfigForDomain (returns { record: null })
     // Any error reaching here is a real failure
     const classified = classifyError(err);
     error.value = classified.message || t('web.organizations.sso.load_error');
-    console.error('[SsoConfigForm] Error loading config:', err);
+    console.error('[DomainSsoConfigForm] Error loading config:', err);
   } finally {
     isLoading.value = false;
   }
@@ -238,7 +244,7 @@ const handleSave = async () => {
 
   try {
     // Prepare payload - only include client_secret if provided
-    // saveConfig auto-selects PUT (with secret) or PATCH (without secret)
+    // saveConfigForDomain auto-selects PUT (with secret) or PATCH (without secret)
     const payload: PatchSsoConfigRequest = {
       provider_type: formData.value.provider_type,
       display_name: formData.value.display_name.trim(),
@@ -260,7 +266,7 @@ const handleSave = async () => {
       payload.issuer = formData.value.issuer.trim();
     }
 
-    const response = await SsoService.saveConfig(props.orgExtId, payload);
+    const response = await SsoService.saveConfigForDomain(props.domainExtId, payload);
     existingConfig.value = response.record;
 
     // Clear secret field after successful save
@@ -274,7 +280,7 @@ const handleSave = async () => {
   } catch (err) {
     const classified = classifyError(err);
     error.value = classified.message || t('web.organizations.sso.save_error');
-    console.error('[SsoConfigForm] Error saving config:', err);
+    console.error('[DomainSsoConfigForm] Error saving config:', err);
   } finally {
     isSaving.value = false;
   }
@@ -289,7 +295,7 @@ const handleDelete = async () => {
   success.value = '';
 
   try {
-    await SsoService.deleteConfig(props.orgExtId);
+    await SsoService.deleteConfigForDomain(props.domainExtId);
     existingConfig.value = null;
 
     // Reset form to defaults
@@ -310,7 +316,7 @@ const handleDelete = async () => {
   } catch (err) {
     const classified = classifyError(err);
     error.value = classified.message || t('web.organizations.sso.delete_error');
-    console.error('[SsoConfigForm] Error deleting config:', err);
+    console.error('[DomainSsoConfigForm] Error deleting config:', err);
   } finally {
     isDeleting.value = false;
   }
@@ -416,12 +422,12 @@ class="space-y-6">
             ]">
             <input
               type="radio"
-              :id="`provider-${option.value}`"
+              :id="`domain-provider-${option.value}`"
               :name="'provider_type'"
               :value="option.value"
               v-model="formData.provider_type"
               class="sr-only"
-              :aria-describedby="`provider-${option.value}-description`" />
+              :aria-describedby="`domain-provider-${option.value}-description`" />
             <span class="flex flex-1 flex-col">
               <span
                 :class="[
@@ -433,7 +439,7 @@ class="space-y-6">
                 {{ option.label }}
               </span>
               <span
-                :id="`provider-${option.value}-description`"
+                :id="`domain-provider-${option.value}-description`"
                 class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 {{ option.description }}
               </span>
@@ -451,29 +457,29 @@ class="space-y-6">
       <!-- Display Name -->
       <div>
         <label
-          for="sso-display-name"
+          for="domain-sso-display-name"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.display_name') }}
           <span class="text-red-500" aria-hidden="true">*</span>
         </label>
         <p
-          id="display-name-hint"
+          id="domain-display-name-hint"
           class="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.sso.display_name_hint') }}
         </p>
         <input
-          id="sso-display-name"
+          id="domain-sso-display-name"
           v-model="formData.display_name"
           type="text"
           required
           maxlength="100"
           :placeholder="t('web.organizations.sso.display_name_placeholder')"
-          aria-describedby="display-name-hint"
+          aria-describedby="domain-display-name-hint"
           :aria-invalid="!!fieldErrors.display_name"
           class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
         <p
           v-if="fieldErrors.display_name"
-          :id="`display-name-error`"
+          :id="`domain-display-name-error`"
           class="mt-1 text-sm text-red-600 dark:text-red-400"
           role="alert">
           {{ fieldErrors.display_name }}
@@ -483,13 +489,13 @@ class="space-y-6">
       <!-- Client ID -->
       <div>
         <label
-          for="sso-client-id"
+          for="domain-sso-client-id"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.client_id') }}
           <span class="text-red-500" aria-hidden="true">*</span>
         </label>
         <input
-          id="sso-client-id"
+          id="domain-sso-client-id"
           v-model="formData.client_id"
           type="text"
           required
@@ -502,7 +508,7 @@ class="space-y-6">
       <!-- Client Secret -->
       <div>
         <label
-          for="sso-client-secret"
+          for="domain-sso-client-secret"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.client_secret') }}
           <span v-if="!isEditing"
@@ -511,19 +517,19 @@ aria-hidden="true">*</span>
         </label>
         <p
           v-if="isEditing"
-          id="client-secret-hint"
+          id="domain-client-secret-hint"
           class="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.sso.client_secret_update_hint') }}
         </p>
         <div class="relative mt-1">
           <input
-            id="sso-client-secret"
+            id="domain-sso-client-secret"
             v-model="formData.client_secret"
             :type="showClientSecret ? 'text' : 'password'"
             :required="!isEditing"
             autocomplete="new-password"
             :placeholder="clientSecretPlaceholder"
-            :aria-describedby="isEditing ? 'client-secret-hint' : undefined"
+            :aria-describedby="isEditing ? 'domain-client-secret-hint' : undefined"
             :aria-invalid="!!fieldErrors.client_secret"
             class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
           <button
@@ -543,24 +549,24 @@ aria-hidden="true">*</span>
       <!-- Tenant ID (Entra ID only) -->
       <div v-if="requiresTenantId">
         <label
-          for="sso-tenant-id"
+          for="domain-sso-tenant-id"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.tenant_id') }}
           <span class="text-red-500" aria-hidden="true">*</span>
         </label>
         <p
-          id="tenant-id-hint"
+          id="domain-tenant-id-hint"
           class="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.sso.tenant_id_hint') }}
         </p>
         <input
-          id="sso-tenant-id"
+          id="domain-sso-tenant-id"
           v-model="formData.tenant_id"
           type="text"
           required
           autocomplete="off"
           :placeholder="t('web.organizations.sso.tenant_id_placeholder')"
-          aria-describedby="tenant-id-hint"
+          aria-describedby="domain-tenant-id-hint"
           :aria-invalid="!!fieldErrors.tenant_id"
           class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
       </div>
@@ -568,24 +574,24 @@ aria-hidden="true">*</span>
       <!-- Issuer URL (OIDC only) -->
       <div v-if="requiresIssuer">
         <label
-          for="sso-issuer"
+          for="domain-sso-issuer"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.issuer') }}
           <span class="text-red-500" aria-hidden="true">*</span>
         </label>
         <p
-          id="issuer-hint"
+          id="domain-issuer-hint"
           class="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.sso.issuer_hint') }}
         </p>
         <input
-          id="sso-issuer"
+          id="domain-sso-issuer"
           v-model="formData.issuer"
           type="url"
           required
           autocomplete="off"
           :placeholder="t('web.organizations.sso.issuer_placeholder')"
-          aria-describedby="issuer-hint"
+          aria-describedby="domain-issuer-hint"
           :aria-invalid="!!fieldErrors.issuer"
           class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
       </div>
@@ -730,12 +736,12 @@ aria-hidden="true">*</span>
       <!-- Domain Allowlist (only for providers without IdP-side access control) -->
       <div v-if="showDomainFilter">
         <label
-          for="sso-domain-input"
+          for="domain-sso-domain-input"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.allowed_domains') }}
         </label>
         <p
-          id="allowed-domains-hint"
+          id="domain-allowed-domains-hint"
           class="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.sso.allowed_domains_hint') }}
         </p>
@@ -770,11 +776,11 @@ aria-hidden="true">*</span>
         <div class="mt-2 flex gap-2">
           <div class="flex-1">
             <input
-              id="sso-domain-input"
+              id="domain-sso-domain-input"
               v-model="newDomain"
               type="text"
               :placeholder="t('web.organizations.sso.domain_placeholder')"
-              aria-describedby="allowed-domains-hint domain-input-error"
+              aria-describedby="domain-allowed-domains-hint domain-domain-input-error"
               :aria-invalid="!!domainInputError"
               @keydown.enter.prevent="addDomain"
               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
@@ -788,7 +794,7 @@ aria-hidden="true">*</span>
         </div>
         <p
           v-if="domainInputError"
-          id="domain-input-error"
+          id="domain-domain-input-error"
           class="mt-1 text-sm text-red-600 dark:text-red-400"
           role="alert">
           {{ domainInputError }}
@@ -799,12 +805,12 @@ aria-hidden="true">*</span>
       <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
         <div>
           <label
-            for="sso-enabled"
+            for="domain-sso-enabled"
             class="text-sm font-medium text-gray-900 dark:text-white">
             {{ t('web.organizations.sso.enabled') }}
           </label>
           <p
-            id="enabled-hint"
+            id="domain-enabled-hint"
             class="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {{ t('web.organizations.sso.enabled_hint') }}
           </p>
@@ -813,7 +819,7 @@ aria-hidden="true">*</span>
           type="button"
           role="switch"
           :aria-checked="formData.enabled"
-          aria-describedby="enabled-hint"
+          aria-describedby="domain-enabled-hint"
           @click="formData.enabled = !formData.enabled"
           :class="[
             'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',

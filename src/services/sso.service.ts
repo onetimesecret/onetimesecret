@@ -184,4 +184,117 @@ export const SsoService = {
     const response = await $api.post(`/api/organizations/${orgExtId}/sso/test`, payload);
     return response.data;
   },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Domain-scoped SSO configuration methods
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Get SSO configuration for a specific domain
+   *
+   * @param domainExtId - Domain external ID
+   * @returns SSO configuration or { record: null } if not configured
+   */
+  async getConfigForDomain(domainExtId: string): Promise<SsoConfigResponse> {
+    try {
+      const response = await $api.get(`/api/domains/${domainExtId}/sso`);
+      return response.data;
+    } catch (error: unknown) {
+      // Handle 404 (no SSO config exists) by returning { record: null }
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return { record: null };
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Create SSO configuration for a domain (full replacement)
+   *
+   * Uses PUT semantics: the request body IS the new state.
+   * client_secret is required for full replacement.
+   *
+   * @param domainExtId - Domain external ID
+   * @param payload - Full SSO configuration data including client_secret
+   * @returns Updated SSO configuration
+   */
+  async putConfigForDomain(
+    domainExtId: string,
+    payload: PutSsoConfigRequest
+  ): Promise<SsoConfigResponse> {
+    const response = await $api.put(`/api/domains/${domainExtId}/sso`, payload);
+    return response.data;
+  },
+
+  /**
+   * Update SSO configuration for a domain (partial update)
+   *
+   * Uses PATCH semantics: only provided fields are updated.
+   * client_secret is optional; omit to preserve existing secret.
+   *
+   * @param domainExtId - Domain external ID
+   * @param payload - Partial SSO configuration data
+   * @returns Updated SSO configuration
+   */
+  async patchConfigForDomain(
+    domainExtId: string,
+    payload: PatchSsoConfigRequest
+  ): Promise<SsoConfigResponse> {
+    const response = await $api.patch(`/api/domains/${domainExtId}/sso`, payload);
+    return response.data;
+  },
+
+  /**
+   * Create or update SSO configuration for a domain
+   *
+   * Automatically selects PUT or PATCH based on payload:
+   * - If client_secret is provided and non-empty: uses PUT (full replacement)
+   * - If client_secret is omitted or empty: uses PATCH (partial update)
+   *
+   * @param domainExtId - Domain external ID
+   * @param payload - SSO configuration data
+   * @returns Updated SSO configuration
+   */
+  async saveConfigForDomain(
+    domainExtId: string,
+    payload: PutSsoConfigRequest | PatchSsoConfigRequest
+  ): Promise<SsoConfigResponse> {
+    const hasClientSecret = 'client_secret' in payload && payload.client_secret && payload.client_secret.length > 0;
+
+    if (hasClientSecret) {
+      return this.putConfigForDomain(domainExtId, payload as PutSsoConfigRequest);
+    } else {
+      return this.patchConfigForDomain(domainExtId, payload as PatchSsoConfigRequest);
+    }
+  },
+
+  /**
+   * Delete SSO configuration for a domain
+   *
+   * @param domainExtId - Domain external ID
+   * @returns Deletion confirmation
+   */
+  async deleteConfigForDomain(domainExtId: string): Promise<DeleteSsoConfigResponse> {
+    const response = await $api.delete(`/api/domains/${domainExtId}/sso`);
+    return response.data;
+  },
+
+  /**
+   * Test SSO connection credentials for a domain
+   *
+   * Validates that the provided SSO credentials can reach the IdP.
+   * Uses credentials from request body (not stored config) to allow
+   * testing before saving.
+   *
+   * @param domainExtId - Domain external ID
+   * @param payload - Credentials to test
+   * @returns Test result with success status and details
+   */
+  async testConnectionForDomain(
+    domainExtId: string,
+    payload: TestSsoConnectionRequest
+  ): Promise<TestSsoConnectionResponse> {
+    const response = await $api.post(`/api/domains/${domainExtId}/sso/test`, payload);
+    return response.data;
+  },
 };

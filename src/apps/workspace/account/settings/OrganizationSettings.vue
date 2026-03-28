@@ -1331,32 +1331,149 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           aria-labelledby="org-tab-sso"
           tabindex="0"
           data-testid="org-section-sso"
-          class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-          <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-            <div class="flex items-center gap-3">
-              <div class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
+          class="space-y-6">
+          <!-- Domain SSO Configuration -->
+          <div class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+              <div class="flex items-center gap-3">
+                <div class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
+                  <OIcon
+                    collection="heroicons"
+                    name="shield-check"
+                    class="size-5 text-brand-600 dark:text-brand-400"
+                    aria-hidden="true" />
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                    {{ t('web.organizations.sso.domain_sso_title') }}
+                  </h3>
+                  <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                    {{ t('web.organizations.sso.domain_sso_description') }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <!-- Loading state -->
+              <div v-if="isLoadingDomains" class="flex items-center justify-center py-8">
                 <OIcon
                   collection="heroicons"
-                  name="shield-check"
-                  class="size-5 text-brand-600 dark:text-brand-400"
+                  name="arrow-path"
+                  class="size-6 animate-spin text-gray-400"
                   aria-hidden="true" />
+                <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
               </div>
-              <div>
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">
-                  {{ t('web.organizations.sso.title') }}
-                </h3>
-                <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-                  {{ t('web.organizations.sso.description') }}
+
+              <!-- Empty state -->
+              <div v-else-if="domainCount === 0" class="py-8 text-center">
+                <OIcon
+                  collection="heroicons"
+                  name="globe-alt"
+                  class="mx-auto size-12 text-gray-400"
+                  aria-hidden="true" />
+                <h4 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+                  {{ t('web.organizations.sso.no_domains') }}
+                </h4>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {{ t('web.organizations.sso.no_domains_description') }}
                 </p>
+                <router-link
+                  :to="`/org/${orgId}/domains/add`"
+                  class="mt-4 inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
+                  <OIcon
+                    collection="heroicons"
+                    name="plus"
+                    class="size-4"
+                    aria-hidden="true" />
+                  {{ t('web.domains.add_domain') }}
+                </router-link>
+              </div>
+
+              <!-- Domain list -->
+              <div v-else class="space-y-3">
+                <div
+                  v-for="domain in domainRecords"
+                  :key="domain.extid"
+                  class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-600 dark:bg-gray-700/50">
+                  <div class="flex items-center gap-3">
+                    <OIcon
+                      collection="heroicons"
+                      name="globe-alt"
+                      class="size-5 text-gray-400"
+                      aria-hidden="true" />
+                    <div>
+                      <p class="font-medium text-gray-900 dark:text-white">
+                        {{ domain.display_domain }}
+                      </p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ domain.vhost?.last_monitored_unix ? t('web.domains.verified') : t('web.domains.pending_verification') }}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <!-- SSO Status Badge -->
+                    <!-- Note: sso_enabled/sso_configured fields will be added by backend in Phase 2 -->
+                    <span
+                      v-if="(domain as Record<string, unknown>).sso_enabled"
+                      class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                      {{ t('web.organizations.sso.status_enabled') }}
+                    </span>
+                    <span
+                      v-else-if="(domain as Record<string, unknown>).sso_configured"
+                      class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-600 dark:text-gray-300">
+                      {{ t('web.organizations.sso.status_configured') }}
+                    </span>
+                    <span
+                      v-else
+                      class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-600 dark:text-gray-400">
+                      {{ t('web.organizations.sso.status_not_configured') }}
+                    </span>
+                    <!-- Configure SSO link -->
+                    <router-link
+                      :to="`/org/${orgId}/domains/${domain.extid}/sso`"
+                      class="inline-flex items-center gap-1 rounded-md bg-white px-2.5 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:ring-gray-500 dark:hover:bg-gray-500">
+                      <OIcon
+                        collection="heroicons"
+                        name="cog-6-tooth"
+                        class="size-4"
+                        aria-hidden="true" />
+                      {{ t('web.COMMON.configure') }}
+                    </router-link>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="p-6">
-            <SsoConfigForm
-              :org-ext-id="orgId"
-              @saved="success = t('web.organizations.sso.update_success')"
-              @deleted="success = t('web.organizations.sso.delete_success')" />
+          <!-- Organization Default SSO (fallback) -->
+          <div class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+              <div class="flex items-center gap-3">
+                <div class="flex size-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
+                  <OIcon
+                    collection="heroicons"
+                    name="building-office"
+                    class="size-5 text-gray-600 dark:text-gray-400"
+                    aria-hidden="true" />
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                    {{ t('web.organizations.sso.org_default_title') }}
+                  </h3>
+                  <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                    {{ t('web.organizations.sso.org_default_description') }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <SsoConfigForm
+                :org-ext-id="orgId"
+                @saved="success = t('web.organizations.sso.update_success')"
+                @deleted="success = t('web.organizations.sso.delete_success')" />
+            </div>
           </div>
         </section>
       </div>
