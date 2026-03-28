@@ -39,6 +39,7 @@ end
 # but sorted set members are raw strings. This handles both.
 def normalize_value(raw)
   return nil if raw.nil?
+  return raw unless raw.is_a?(String) # Non-strings already normalized
   return raw if raw.empty?
 
   JSON.parse(raw)
@@ -55,13 +56,14 @@ end
 # Try to find a value in a hash index, checking multiple key variants.
 # Returns [key_used, value] or [nil, nil] if not found.
 def hget_flexible(redis, hash_key, display_domain)
+  domain_str = display_domain.to_s
   # Try exact case first
-  value = redis.hget(hash_key, display_domain)
-  return [display_domain, value] if value
+  value = redis.hget(hash_key, domain_str)
+  return [domain_str, value] if value
 
   # Try lowercase
-  lower = display_domain.downcase
-  if lower != display_domain
+  lower = domain_str.downcase
+  if lower != domain_str
     value = redis.hget(hash_key, lower)
     return [lower, value] if value
   end
