@@ -70,11 +70,11 @@ RSpec.describe "Onetime global state after boot", type: :integration do
   end
 
   describe "When Onetime.boot! completes" do
-    it "sets and freezes OT.conf" do
+    it "sets OT.conf (unfrozen in test mode for test isolation)" do
       Onetime.boot!(:test)
 
       expect(Onetime.conf).to be_a(Hash)
-      expect(Onetime.conf).to be_frozen
+      expect(Onetime.conf).not_to be_frozen  # test mode skips freeze for config isolation
       expect(Onetime.conf['site']['host']).to eq('127.0.0.1:3000')
     end
 
