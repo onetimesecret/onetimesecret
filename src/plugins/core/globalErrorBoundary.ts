@@ -38,8 +38,9 @@ export function createErrorBoundary(options: ErrorBoundaryOptions = {}): Plugin 
        * @see https://vuejs.org/api/application#app-config-errorhandler
        */
       app.config.errorHandler = (error, instance, info) => {
+        const normalizedError = error instanceof Error ? error : new Error(String(error));
         const classifiedError = classifyError(error);
-        loggingService.error(error as Error);
+        loggingService.error(normalizedError);
 
         // Only notify user for human-facing errors
         if (errorGuards.isOfHumanInterest(classifiedError) && options.notify) {
@@ -49,7 +50,7 @@ export function createErrorBoundary(options: ErrorBoundaryOptions = {}): Plugin 
         // Send to Sentry via diagnostics service
         if (isDiagnosticsEnabled()) {
           console.debug('[GlobalErrorBoundary] Sending to Sentry');
-          captureException(error as Error, {
+          captureException(normalizedError, {
             componentInfo: info,
             errorType: classifiedError.type,
             errorSeverity: classifiedError.severity,

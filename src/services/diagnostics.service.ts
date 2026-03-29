@@ -10,7 +10,7 @@
 // This fixes #2755 where globalErrorBoundary and schemaValidation had no
 // access to Sentry because they couldn't use Vue's inject() mechanism.
 
-import type { BrowserClient, Scope } from '@sentry/browser';
+import { Scope, type BrowserClient } from '@sentry/browser';
 
 interface DiagnosticsClient {
   client: BrowserClient;
@@ -54,19 +54,14 @@ export function captureException(
   context?: Record<string, unknown>
 ): void {
   if (diagnosticsClient) {
-    const { scope } = diagnosticsClient;
+    const { client, scope: baseScope } = diagnosticsClient;
+    const eventScope = baseScope.clone();
 
-    // Set extra context if provided
     if (context) {
-      scope.setExtras(context);
+      eventScope.setExtras(context);
     }
 
-    scope.captureException(error);
-
-    // Clear extras after capture to avoid leaking to subsequent events
-    if (context) {
-      scope.setExtras({});
-    }
+    client.captureException(error, undefined, eventScope);
   } else {
     // Sentry not available, log to console as fallback
     console.error('[Diagnostics] Exception captured (Sentry unavailable):', error);
@@ -85,17 +80,14 @@ export function captureMessage(
   context?: Record<string, unknown>
 ): void {
   if (diagnosticsClient) {
-    const { scope } = diagnosticsClient;
+    const { client, scope: baseScope } = diagnosticsClient;
+    const eventScope = baseScope.clone();
 
     if (context) {
-      scope.setExtras(context);
+      eventScope.setExtras(context);
     }
 
-    scope.captureMessage(message);
-
-    if (context) {
-      scope.setExtras({});
-    }
+    client.captureMessage(message, undefined, undefined, eventScope);
   } else {
     console.warn('[Diagnostics] Message captured (Sentry unavailable):', message);
     if (context) {
