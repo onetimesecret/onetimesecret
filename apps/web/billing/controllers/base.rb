@@ -85,7 +85,7 @@ module Billing
             }
         else
           uri.host ||= OT.conf['site']['host']
-          if (OT.conf['site']['ssl']) && (uri.scheme.nil? || uri.scheme != 'https')
+          if (OT.conf.dig('site', 'ssl') != false) && (uri.scheme.nil? || uri.scheme != 'https')
             uri.scheme = 'https'
           end
           uri        = nil unless uri.is_a?(URI::HTTP)

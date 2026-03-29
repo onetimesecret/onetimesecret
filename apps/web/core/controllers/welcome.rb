@@ -157,7 +157,7 @@ module Core
         customer_id = cust.stripe_customer_id
 
         site_host   = Onetime.conf['site']['host']
-        is_secure   = Onetime.conf['site']['ssl']
+        is_secure   = Onetime.conf.dig('site', 'ssl') != false
         return_url  = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
 
         # Create a Stripe Customer Portal session
