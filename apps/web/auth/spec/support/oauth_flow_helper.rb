@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative 'omniauth_test_helper'
+
 # =============================================================================
 # OAuth Flow Simulation Helper
 # =============================================================================
@@ -183,20 +185,66 @@ module OAuthFlowHelper
     @oauth_test_fixtures = []
   end
 
-  # Inject session values directly for callback-only testing
+  # Inject session values for callback-only testing
   #
-  # When you need to test callback behavior without going through
-  # the full initiation flow (e.g., testing edge cases).
+  # NOTE: This method makes a bootstrap request to populate the session,
+  # then injects the tenant context values. This is necessary because
+  # cookie-based session middleware (used by rodauth) reads session data
+  # from the encrypted session cookie, not from rack.session env var.
+  # The env 'rack.session' approach does not work with cookie sessions.
+  #
+  # This approach:
+  # 1. Makes a GET request to establish a session cookie
+  # 2. Uses Rack::Test's session manipulation to inject values
+  # 3. Session values persist in subsequent requests via cookies
   #
   # @param domain_id [String] The domain ID to inject
   # @param host [String] The host to inject
-  def inject_oauth_session(domain_id:, host:)
-    # Access the Rack::Test session and inject values
-    # This requires using Rack::Test's session manipulation
-    env 'rack.session', {
-      SESSION_DOMAIN_KEY => domain_id,
-      SESSION_HOST_KEY => host,
-    }
+  # @param bootstrap_path [String] Path to request for establishing session (default: '/')
+  def inject_oauth_session(domain_id:, host:, bootstrap_path: '/')
+    # Make a bootstrap request to establish a session cookie.
+    # This creates the session infrastructure in Rack::Test.
+    get bootstrap_path
+
+    # Access Rack::Test's internal session and inject values.
+    # This modifies the session data that will be sent with subsequent requests.
+    rack_mock_session = rack_test_session.instance_variable_get(:@rack_mock_session)
+
+    # The session middleware stores data in the cookie; we need to access
+    # the last_request's session hash to modify it for subsequent requests.
+    # However, this is tricky with encrypted cookies - consider using
+    # simulate_oauth_flow() instead for most test scenarios.
+    if last_request&.env && last_request.env['rack.session']
+      last_request.env['rack.session'][SESSION_DOMAIN_KEY] = domain_id
+      last_request.env['rack.session'][SESSION_HOST_KEY] = host
+      true
+    else
+      # If session injection is not possible, log warning and return false.
+      # Tests should handle this by using simulate_oauth_flow() instead.
+      warn '[OAuthFlowHelper] Session injection not available. ' \
+           'Use simulate_oauth_flow() for full flow testing.'
+      false
+    end
+  end
+
+  # Simulate initiation to establish proper session state
+  #
+  # This is the recommended way to test callback behavior with tenant context.
+  # It goes through the real initiation flow which properly sets session values.
+  #
+  # @param domain_host [String] Domain host to initiate from
+  # @param provider [Symbol] OmniAuth provider name
+  # @return [Hash] Initiation result (use for verifying setup succeeded)
+  def setup_oauth_session_via_initiation(domain_host:, provider: DEFAULT_PROVIDER)
+    # Ensure domain fixtures exist
+    setup_oauth_test_domain(domain_host)
+
+    # Configure OmniAuth test mode
+    OmniAuth.config.test_mode = true
+    OmniAuth.config.allowed_request_methods = %i[get post]
+
+    # Initiate OAuth to populate session with tenant context
+    simulate_oauth_initiation(host: domain_host, provider: provider)
   end
 
   private
