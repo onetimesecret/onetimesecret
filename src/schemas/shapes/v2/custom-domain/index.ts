@@ -69,9 +69,6 @@ export const customDomainSchema = z.object({
   vhost: transforms.fromObject.nested(vhostSchema.passthrough().strip()).nullable(),
   brand: transforms.fromObject.nested(brandSettingschema.passthrough().strip()).nullable(),
 
-  // SSO status fields (computed from DomainSsoConfig lookup)
-  sso_configured: z.boolean().optional(),
-  sso_enabled: z.boolean().optional(),
   // The .strip() modifier removes all unknown properties throughout the entire
   // object hierarchy after validation. This ensures our domain objects maintain
   // a consistent shape regardless of API response variations.
