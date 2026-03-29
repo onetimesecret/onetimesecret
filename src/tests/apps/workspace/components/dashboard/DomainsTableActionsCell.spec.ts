@@ -181,4 +181,39 @@ describe('DomainsTableActionsCell', () => {
       });
     });
   });
+
+  describe('delete event emission', () => {
+    it('emits delete event with domain extid when Remove button is clicked', async () => {
+      const wrapper = mountComponent();
+
+      // Find the Remove button by its text content
+      const menuItems = wrapper.findAll('[role="menuitem"]');
+      const removeMenuItem = menuItems.find((item) => item.text().includes('Remove'));
+      expect(removeMenuItem).toBeDefined();
+
+      // Find and click the button inside the menu item
+      const removeButton = removeMenuItem!.find('button');
+      expect(removeButton.exists()).toBe(true);
+
+      await removeButton.trigger('click');
+
+      // Verify delete event was emitted with correct payload
+      const emitted = wrapper.emitted('delete');
+      expect(emitted).toBeDefined();
+      expect(emitted).toHaveLength(1);
+      expect(emitted![0]).toEqual(['dm-test-extid']);
+    });
+
+    it('passes domain.extid (not identifier) to delete event', async () => {
+      const wrapper = mountComponent();
+
+      const removeButton = wrapper.find('button');
+      await removeButton.trigger('click');
+
+      const emitted = wrapper.emitted('delete');
+      // extid should be 'dm-test-extid', not 'domain-123' (identifier)
+      expect(emitted![0][0]).toBe(mockDomain.extid);
+      expect(emitted![0][0]).not.toBe(mockDomain.identifier);
+    });
+  });
 });

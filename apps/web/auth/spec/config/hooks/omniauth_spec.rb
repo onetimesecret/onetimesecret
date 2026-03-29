@@ -562,4 +562,18 @@ RSpec.describe 'OmniAuth hooks' do
       expect(Auth::Config::Hooks::OmniAuth.method(:configure).arity).to eq(1)
     end
   end
+
+  # ==========================================================================
+  # after_omniauth_create_account operations
+  # ==========================================================================
+  #
+  # Integration tests for CreateCustomer and CreateDefaultWorkspace operations
+  # are in: spec/integration/omniauth_account_creation_spec.rb
+  #
+  # These operations are tested with real database/Redis operations to verify:
+  # - Customer creation with correct attributes (email, role, verified)
+  # - Account linking via external_id
+  # - Organization creation with is_default flag
+  # - Idempotency guarantees
+  #
 end

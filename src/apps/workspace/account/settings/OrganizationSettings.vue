@@ -188,6 +188,7 @@ interface DomainSsoStatus {
   enabled: boolean;
 }
 const domainSsoStatus: Record<string, DomainSsoStatus> = reactive({});
+const isSsoStatusLoading = ref(false);
 const isSsoStatusLoaded = ref(false);
 
 /**
@@ -198,7 +199,9 @@ const isSsoStatusLoaded = ref(false);
  */
 const loadDomainSsoStatus = async () => {
   if (!canManageSso.value || !domainRecords.value?.length) return;
-  if (isSsoStatusLoaded.value) return;
+  // Guard against concurrent calls and redundant loads
+  if (isSsoStatusLoading.value || isSsoStatusLoaded.value) return;
+  isSsoStatusLoading.value = true;
 
   const domains = domainRecords.value;
   const results = await Promise.allSettled(
@@ -208,19 +211,23 @@ const loadDomainSsoStatus = async () => {
     })
   );
 
-  for (const result of results) {
-    if (result.status === 'fulfilled') {
-      const { extid, record } = result.value;
-      domainSsoStatus[extid] = {
-        configured: record !== null,
-        enabled: record?.enabled === true,
-      };
+  try {
+    for (const result of results) {
+      if (result.status === 'fulfilled') {
+        const { extid, record } = result.value;
+        domainSsoStatus[extid] = {
+          configured: record !== null,
+          enabled: record?.enabled === true,
+        };
+      }
+      // Rejected promises (network errors) are silently skipped —
+      // the badge simply won't appear for that domain.
     }
-    // Rejected promises (network errors) are silently skipped —
-    // the badge simply won't appear for that domain.
-  }
 
-  isSsoStatusLoaded.value = true;
+    isSsoStatusLoaded.value = true;
+  } finally {
+    isSsoStatusLoading.value = false;
+  }
 };
 
 // Form data
@@ -1431,7 +1438,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                         {{ domain.display_domain }}
                       </p>
                       <p class="text-xs text-gray-500 dark:text-gray-400">
-                        {{ domain.vhost?.last_monitored_unix ? t('web.domains.verified') : t('web.domains.pending_verification') }}
+                        {{ domain.verified ? t('web.domains.verified') : t('web.domains.pending_verification') }}
                       </p>
                     </div>
                   </div>
@@ -1446,6 +1453,11 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                       v-else-if="domainSsoStatus[domain.extid]?.configured"
                       class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-600 dark:text-gray-300">
                       {{ t('web.organizations.sso.status_configured') }}
+                    </span>
+                    <span
+                      v-else
+                      class="inline-flex items-center rounded-full bg-yellow-50 px-2 py-0.5 text-xs font-medium text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400">
+                      {{ t('web.organizations.sso.status_not_configured') }}
                     </span>
                     <!-- Configure SSO link -->
                     <router-link

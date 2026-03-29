@@ -294,6 +294,12 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       end
     end
 
+    let(:rodauth) do
+      double('Rodauth').tap do |r|
+        allow(r).to receive(:throw_error_status)
+      end
+    end
+
     let(:sso_config) do
       double('Onetime::DomainSsoConfig',
         domain_id: 'dom_test_123',
@@ -313,7 +319,7 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
     end
 
     it 'writes tenant credentials into strategy.options' do
-      helpers.inject_tenant_credentials(sso_config, request)
+      helpers.inject_tenant_credentials(sso_config, request, rodauth)
 
       expect(options_hash[:issuer]).to eq('https://auth.tenant.com')
       expect(options_hash[:discovery]).to be true
@@ -323,7 +329,7 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
     end
 
     it 'does not leak :strategy or :name keys into strategy.options' do
-      helpers.inject_tenant_credentials(sso_config, request)
+      helpers.inject_tenant_credentials(sso_config, request, rodauth)
 
       # :strategy and :name are consumed by inject_tenant_credentials,
       # not passed through to the strategy's runtime options
@@ -345,9 +351,14 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
         end
       end
 
-      it 'raises Onetime::Problem' do
-        expect { helpers.inject_tenant_credentials(sso_config, request) }
-          .to raise_error(Onetime::Problem, /SSO provider mismatch/)
+      it 'calls throw_error_status with 400 provider_mismatch' do
+        helpers.inject_tenant_credentials(sso_config, request, rodauth)
+
+        expect(rodauth).to have_received(:throw_error_status).with(
+          400,
+          'provider_mismatch',
+          /SSO provider mismatch/
+        )
       end
     end
 
@@ -358,8 +369,10 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
         end
       end
 
-      it 'returns early without raising' do
-        expect { helpers.inject_tenant_credentials(sso_config, request) }.not_to raise_error
+      it 'returns early without calling throw_error_status' do
+        helpers.inject_tenant_credentials(sso_config, request, rodauth)
+
+        expect(rodauth).not_to have_received(:throw_error_status)
       end
     end
   end
