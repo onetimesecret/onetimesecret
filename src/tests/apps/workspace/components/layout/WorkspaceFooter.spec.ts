@@ -1,6 +1,6 @@
 // src/tests/apps/workspace/components/layout/WorkspaceFooter.spec.ts
 //
-// Tests for WorkspaceFooter external link detection and footer links computed property.
+// Tests for isExternalUrl helper and WorkspaceFooter footer links computed property.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount, VueWrapper } from '@vue/test-utils';
@@ -167,155 +167,30 @@ describe('WorkspaceFooter footerLinks', () => {
     });
   };
 
-  describe('default links (no workspace group configured)', () => {
-    it('uses computed external flag for default links', async () => {
+  describe('default links (no workspace_links configured)', () => {
+    it('renders default links when no workspace_links set', async () => {
       wrapper = mountComponent();
 
-      // Default links should use the component's internal logic
-      // API Docs and Branding Guide should be external when support_host is set
       const links = wrapper.findAll('a');
-
-      // Should have at least the footer links
+      // Should have at least the footer links (API Docs, Branding Guide, Feedback)
       expect(links.length).toBeGreaterThanOrEqual(3);
     });
   });
 
-  describe('configured footer_links with explicit external flag', () => {
-    it('preserves explicit external:true from config', async () => {
+  describe('configured workspace_links overrides defaults', () => {
+    it('uses workspace_links when configured', async () => {
       wrapper = mountComponent({
         ui: {
-          footer_links: {
+          workspace_links: {
             enabled: true,
-            groups: [
+            links: [
               {
-                name: 'workspace',
-                links: [
-                  {
-                    text: 'External Link',
-                    url: '/local-path',
-                    external: true,
-                  },
-                ],
+                text: 'Custom Link 1',
+                url: '/custom-1',
               },
-            ],
-          },
-        },
-      });
-
-      // Find the link with text "External Link"
-      const links = wrapper.findAll('a');
-      const externalLink = links.find(link => link.text() === 'External Link');
-      expect(externalLink).toBeDefined();
-      expect(externalLink?.attributes('target')).toBe('_blank');
-      expect(externalLink?.attributes('rel')).toBe('noopener noreferrer');
-    });
-
-    it('preserves explicit external:false from config', async () => {
-      wrapper = mountComponent({
-        ui: {
-          footer_links: {
-            enabled: true,
-            groups: [
               {
-                name: 'workspace',
-                links: [
-                  {
-                    text: 'Internal Link',
-                    url: 'https://external-url.com',
-                    external: false,
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      });
-
-      const links = wrapper.findAll('a');
-      const internalLink = links.find(link => link.text() === 'Internal Link');
-      expect(internalLink).toBeDefined();
-      expect(internalLink?.attributes('target')).toBe('_self');
-      expect(internalLink?.attributes('rel')).toBeUndefined();
-    });
-  });
-
-  describe('configured footer_links without explicit external flag', () => {
-    it('infers external:true for https:// URL when external not specified', async () => {
-      wrapper = mountComponent({
-        ui: {
-          footer_links: {
-            enabled: true,
-            groups: [
-              {
-                name: 'workspace',
-                links: [
-                  {
-                    text: 'HTTPS Link',
-                    url: 'https://docs.example.com/api',
-                    // external not specified
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      });
-
-      const links = wrapper.findAll('a');
-      const httpsLink = links.find(link => link.text() === 'HTTPS Link');
-      expect(httpsLink).toBeDefined();
-      expect(httpsLink?.attributes('target')).toBe('_blank');
-      expect(httpsLink?.attributes('rel')).toBe('noopener noreferrer');
-    });
-
-    it('infers external:false for relative URL when external not specified', async () => {
-      wrapper = mountComponent({
-        ui: {
-          footer_links: {
-            enabled: true,
-            groups: [
-              {
-                name: 'workspace',
-                links: [
-                  {
-                    text: 'Relative Link',
-                    url: '/feedback',
-                    // external not specified
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      });
-
-      const links = wrapper.findAll('a');
-      const relativeLink = links.find(link => link.text() === 'Relative Link');
-      expect(relativeLink).toBeDefined();
-      expect(relativeLink?.attributes('target')).toBe('_self');
-      expect(relativeLink?.attributes('rel')).toBeUndefined();
-    });
-  });
-
-  describe('configured footer_links overrides defaults', () => {
-    it('uses workspace group links when configured', async () => {
-      wrapper = mountComponent({
-        ui: {
-          footer_links: {
-            enabled: true,
-            groups: [
-              {
-                name: 'workspace',
-                links: [
-                  {
-                    text: 'Custom Link 1',
-                    url: '/custom-1',
-                  },
-                  {
-                    text: 'Custom Link 2',
-                    url: 'https://custom.example.com',
-                  },
-                ],
+                text: 'Custom Link 2',
+                url: 'https://custom.example.com',
               },
             ],
           },
@@ -328,23 +203,14 @@ describe('WorkspaceFooter footerLinks', () => {
 
       expect(customLink1).toBeDefined();
       expect(customLink2).toBeDefined();
-
-      // Should not have default API Docs link
-      const apiDocsLink = links.find(link => link.text() === 'web.footer.api_docs');
-      // Note: might exist due to i18n key as text, but we're checking configured links work
     });
 
-    it('uses default links when workspace group has empty links array', async () => {
+    it('uses default links when workspace_links.links is empty array', async () => {
       wrapper = mountComponent({
         ui: {
-          footer_links: {
+          workspace_links: {
             enabled: true,
-            groups: [
-              {
-                name: 'workspace',
-                links: [],
-              },
-            ],
+            links: [],
           },
         },
       });
@@ -355,24 +221,55 @@ describe('WorkspaceFooter footerLinks', () => {
       expect(links.length).toBeGreaterThanOrEqual(3);
     });
 
-    it('uses default links when no workspace group exists', async () => {
+    it('uses default links when workspace_links not configured', async () => {
       wrapper = mountComponent({
         ui: {
           footer_links: {
             enabled: true,
-            groups: [
+            groups: [],
+          },
+        },
+      });
+
+      // Should fall back to default links since no workspace_links
+      const links = wrapper.findAll('a');
+      expect(links.length).toBeGreaterThanOrEqual(3);
+    });
+  });
+
+  describe('workspace_links enabled toggle', () => {
+    it('hides all footer links when workspace_links.enabled is false', async () => {
+      wrapper = mountComponent({
+        ui: {
+          workspace_links: {
+            enabled: false,
+            links: [
               {
-                name: 'other-group',
-                links: [
-                  { text: 'Other Link', url: '/other' },
-                ],
+                text: 'Should Not Appear',
+                url: '/hidden',
               },
             ],
           },
         },
       });
 
-      // Should fall back to default links since no 'workspace' group
+      const links = wrapper.findAll('a');
+      const hiddenLink = links.find(link => link.text() === 'Should Not Appear');
+      expect(hiddenLink).toBeUndefined();
+      // Also no default links should render
+      const feedbackLink = links.find(link => link.text() === 'web.TITLES.feedback');
+      expect(feedbackLink).toBeUndefined();
+    });
+
+    it('shows default links when enabled is true but no links configured', async () => {
+      wrapper = mountComponent({
+        ui: {
+          workspace_links: {
+            enabled: true,
+          },
+        },
+      });
+
       const links = wrapper.findAll('a');
       expect(links.length).toBeGreaterThanOrEqual(3);
     });
@@ -382,18 +279,13 @@ describe('WorkspaceFooter footerLinks', () => {
     it('uses i18n_key for label when provided', async () => {
       wrapper = mountComponent({
         ui: {
-          footer_links: {
+          workspace_links: {
             enabled: true,
-            groups: [
+            links: [
               {
-                name: 'workspace',
-                links: [
-                  {
-                    text: 'Fallback Text',
-                    i18n_key: 'web.custom.label',
-                    url: '/custom',
-                  },
-                ],
+                text: 'Fallback Text',
+                i18n_key: 'web.custom.label',
+                url: '/custom',
               },
             ],
           },
@@ -409,17 +301,12 @@ describe('WorkspaceFooter footerLinks', () => {
     it('falls back to text when i18n_key not provided', async () => {
       wrapper = mountComponent({
         ui: {
-          footer_links: {
+          workspace_links: {
             enabled: true,
-            groups: [
+            links: [
               {
-                name: 'workspace',
-                links: [
-                  {
-                    text: 'Plain Text Label',
-                    url: '/plain',
-                  },
-                ],
+                text: 'Plain Text Label',
+                url: '/plain',
               },
             ],
           },
@@ -432,29 +319,24 @@ describe('WorkspaceFooter footerLinks', () => {
     });
   });
 
-  describe('footer_links filtering', () => {
+  describe('workspace_links filtering', () => {
     it('filters out links with empty URL', async () => {
       wrapper = mountComponent({
         ui: {
-          footer_links: {
+          workspace_links: {
             enabled: true,
-            groups: [
+            links: [
               {
-                name: 'workspace',
-                links: [
-                  {
-                    text: 'Valid Link',
-                    url: '/valid',
-                  },
-                  {
-                    text: 'Empty URL',
-                    url: '',
-                  },
-                  {
-                    text: 'Whitespace URL',
-                    url: '   ',
-                  },
-                ],
+                text: 'Valid Link',
+                url: '/valid',
+              },
+              {
+                text: 'Empty URL',
+                url: '',
+              },
+              {
+                text: 'Whitespace URL',
+                url: '   ',
               },
             ],
           },
