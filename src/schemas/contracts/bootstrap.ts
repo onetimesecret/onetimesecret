@@ -116,20 +116,23 @@ export const headerConfigSchema = z.object({
  *     enabled: true,
  *     groups: [
  *       {
- *         name: 'workspace',
+ *         name: 'legal',
  *         links: [
- *           { text: 'API Docs', url: 'https://docs.example.com/api', external: true },
  *           { i18n_key: 'web.footer.privacy', url: '/privacy' },
  *         ],
  *       },
  *     ],
  *   },
+ *   workspace_links: [
+ *     { text: 'API Docs', url: 'https://docs.example.com/api', external: true },
+ *   ],
  * };
  */
 export const uiInterfaceSchema = z.object({
   enabled: z.boolean().default(true),
   header: headerConfigSchema.optional(),
   footer_links: footerLinksConfigSchema.optional(),
+  workspace_links: z.array(footerLinkSchema).optional(),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

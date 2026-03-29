@@ -90,6 +90,7 @@ const uiSchema = z.object({
   homepage: userInterfaceHomepageSchema.optional(),
   header: userInterfaceHeaderSchema.optional(),
   footer_links: userInterfaceFooterLinksSchema.optional(),
+  workspace_links: z.array(userInterfaceFooterLinkSchema).optional(),
 });
 
 /**

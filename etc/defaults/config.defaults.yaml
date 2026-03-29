@@ -97,7 +97,7 @@ site:
         navigation:
           # Enable/disable header navigation entirely
           enabled: <%= ENV['HEADER_NAV_ENABLED'] != 'false' %>
-      # Footer link configuration
+      # Footer link configuration (public pages)
       # These links appear in the footer of each page
       footer_links:
         # Global toggle to enable/disable all footer links
@@ -138,21 +138,21 @@ site:
                 i18n_key: web.footer.contact
                 url: <%= ENV['CONTACT_URL'] %>
                 external: false
-          - name: workspace
-            i18n_key: web.footer.workspace
-            links:
-              - text: API Docs
-                i18n_key: web.footer.api_docs
-                url: <%= ENV['WORKSPACE_API_DOCS_URL'] %>
-                external: <%= ENV['WORKSPACE_API_DOCS_EXTERNAL'] != 'false' %>
-              - text: Branding Guide
-                i18n_key: web.footer.branding_guide
-                url: <%= ENV['WORKSPACE_BRANDING_GUIDE_URL'] %>
-                external: <%= ENV['WORKSPACE_BRANDING_GUIDE_EXTERNAL'] != 'false' %>
-              - text: Feedback
-                i18n_key: web.TITLES.feedback
-                url: <%= ENV['WORKSPACE_FEEDBACK_URL'] || '/feedback' %>
-                external: <%= ENV['WORKSPACE_FEEDBACK_EXTERNAL'] == 'true' %>
+      # Workspace footer links (authenticated users only)
+      # Separate from footer_links which are for public pages
+      workspace_links:
+        - text: API Docs
+          i18n_key: web.footer.api_docs
+          url: <%= ENV['WORKSPACE_API_DOCS_URL'] %>
+          external: <%= ENV['WORKSPACE_API_DOCS_EXTERNAL'] != 'false' %>
+        - text: Branding Guide
+          i18n_key: web.footer.branding_guide
+          url: <%= ENV['WORKSPACE_BRANDING_GUIDE_URL'] %>
+          external: <%= ENV['WORKSPACE_BRANDING_GUIDE_EXTERNAL'] != 'false' %>
+        - text: Feedback
+          i18n_key: web.TITLES.feedback
+          url: <%= ENV['WORKSPACE_FEEDBACK_URL'] || '/feedback' %>
+          external: <%= ENV['WORKSPACE_FEEDBACK_EXTERNAL'] == 'true' %>
     # Controls whether the API endpoints are available. When disabled, the API
     # is completely disabled. Requests to /api/* will return 404.
     api:

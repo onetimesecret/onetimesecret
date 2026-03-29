@@ -84,7 +84,7 @@
     return items;
   });
 
-  // Workspace footer links — configurable via footer_links.groups[name=workspace]
+  // Workspace footer links — configurable via ui.workspace_links
   // Falls back to computed URLs based on support_host when not configured
   const docsBase = computed(() => {
     const host = support_host.value;
@@ -96,12 +96,7 @@
     return lang?.split(/[-_]/)[0] || 'en';
   });
 
-  // Look for a "workspace" group in the footer_links config
-  const workspaceGroup = computed(() =>
-    ui.value?.footer_links?.groups?.find(g => g.name === 'workspace')
-  );
-
-  // Default links when no workspace group is configured
+  // Default links when no workspace_links are configured
   const defaultLinks: { i18nKey: string; href: () => string; external: () => boolean }[] = [
     {
       i18nKey: 'web.footer.api_docs',
@@ -121,9 +116,9 @@
   ];
 
   const footerLinks = computed((): FooterLink[] => {
-    const group = workspaceGroup.value;
-    if (group?.links?.length) {
-      return group.links
+    const links = ui.value?.workspace_links;
+    if (links?.length) {
+      return links
         .filter(link => link.url?.trim())
         .map((link) => ({
           label: link.i18n_key ? t(link.i18n_key) : (link.text || ''),
