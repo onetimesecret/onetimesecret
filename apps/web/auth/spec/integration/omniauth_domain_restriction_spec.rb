@@ -42,15 +42,6 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
     Onetime.boot! :test unless Onetime.ready?
   end
 
-  # Store original config to restore after tests
-  around do |example|
-    original_config = OT.conf.dup
-    example.run
-  ensure
-    # Restore original config if we modified it
-    # Note: OT.conf is a hash, modifications persist in memory
-  end
-
   # ==========================================================================
   # Helper Methods
   # ==========================================================================

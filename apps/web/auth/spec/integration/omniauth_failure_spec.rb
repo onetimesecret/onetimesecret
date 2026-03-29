@@ -64,7 +64,7 @@ RSpec.describe 'OmniAuth Failure Handling' do
   end
 
   describe 'failure redirect flow', type: :integration do
-    include Rack::Test::Methods
+    # Rack::Test::Methods included via spec_helper for :integration type
 
     def app
       Onetime::Application::Registry.generate_rack_url_map
