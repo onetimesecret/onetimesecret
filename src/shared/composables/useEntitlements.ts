@@ -96,21 +96,13 @@ export function useEntitlements(org: Ref<Organization | null>) {
   const can = (entitlement: string): boolean => {
     // Standalone mode: all entitlements available
     if (isStandaloneMode.value) {
-      console.log('[useEntitlements] can() standalone mode, returning true for:', entitlement);
       return true;
     }
 
     if (!org.value) {
-      console.log('[useEntitlements] can() no org, returning false for:', entitlement);
       return false;
     }
-    const result = org.value.entitlements?.includes(entitlement as (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS]) ?? false;
-    console.log('[useEntitlements] can():', {
-      entitlement,
-      orgEntitlements: org.value.entitlements,
-      result,
-    });
-    return result;
+    return org.value.entitlements?.includes(entitlement as (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS]) ?? false;
   };
 
   /**

@@ -182,6 +182,11 @@ module DomainsAPI
           )
         end
 
+        # Replaces existing SSO config with PUT semantics.
+        #
+        # Uses transaction with commit_fields to prevent race condition where
+        # config could be deleted between existence check and update.
+        #
         def replace_existing_config
           @sso_config = @existing_config
 
@@ -198,7 +203,10 @@ module DomainsAPI
           # Update timestamp for replacement
           @sso_config.updated = Familia.now.to_i
 
-          @sso_config.save
+          # Use transaction to ensure atomic update (prevents race with concurrent delete)
+          @sso_config.transaction do |_conn|
+            @sso_config.commit_fields
+          end
         end
 
         # Log enabled/disabled state change if it occurred.

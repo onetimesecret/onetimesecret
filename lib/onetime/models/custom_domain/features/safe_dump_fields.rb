@@ -34,14 +34,18 @@ module Onetime::CustomDomain::Features
       base.safe_dump_field :updated
 
       # SSO status fields - computed from DomainSsoConfig lookup
+      # Single lookup for both fields to avoid N+1 pattern on domain lists
       base.safe_dump_field :sso_configured,
         ->(obj) {
-                Onetime::DomainSsoConfig.exists_for_domain?(obj.identifier)
+          config = Onetime::DomainSsoConfig.find_by_domain_id(obj.identifier)
+          obj.instance_variable_set(:@_sso_config_cache, config)
+          !config.nil?
         }
       base.safe_dump_field :sso_enabled,
         ->(obj) {
-                config = Onetime::DomainSsoConfig.find_by_domain_id(obj.identifier)
-                config&.enabled? || false
+          config = obj.instance_variable_get(:@_sso_config_cache) ||
+                   Onetime::DomainSsoConfig.find_by_domain_id(obj.identifier)
+          config&.enabled? || false
         }
     end
   end
