@@ -6,7 +6,7 @@
   import DomainsTableActionsCell from '@/apps/workspace/components/dashboard/DomainsTableActionsCell.vue';
   import DomainsTableDomainCell from '@/apps/workspace/components/dashboard/DomainsTableDomainCell.vue';
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
-  import { brandSettingsSchema, type CustomDomain } from '@/schemas/shapes/v3/custom-domain';
+  import type { CustomDomain } from '@/schemas/shapes/v3/custom-domain';
   import { useConfirmDialog } from '@vueuse/core';
 
   const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
@@ -14,10 +14,11 @@
   const { deleteDomain } = useDomainsManager();
 
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { useBranding } from '@/shared/composables/useBranding';
   import { useEntitlements } from '@/shared/composables/useEntitlements';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { useDomainsStore } from '@/shared/stores/domainsStore';
   import { ENTITLEMENTS } from '@/types/organization';
+  import { isOrgsSsoEnabled } from '@/utils/features';
 
   import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
   import { computed } from 'vue';
@@ -25,9 +26,8 @@
 
 const { t } = useI18n();
 
-  // Call useBranding at setup time (required for Vue composable hooks)
-  // Pass domain ID to saveBranding when needed
-  const { saveBranding } = useBranding();
+  // Use domainsStore for updating domain brand (proper Vue data flow)
+  const domainsStore = useDomainsStore();
 
   const props = withDefaults(defineProps<{
     domains: CustomDomain[];
@@ -48,6 +48,7 @@ const { t } = useI18n();
   );
   const { can } = useEntitlements(organization);
   const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
+  const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
 
   const emit = defineEmits<{
     (e: 'toggle-homepage', domain: CustomDomain): void;
@@ -61,20 +62,15 @@ const { t } = useI18n();
   };
 
   const handleHomepageToggle = async (domain: CustomDomain) => {
-    await saveBranding(
-      { allow_public_homepage: !domain.brand?.allow_public_homepage },
-      domain.extid
-    );
+    // Use domainsStore.updateDomainBrand to update brand settings.
+    // This updates the store's records array, triggering reactive updates
+    // without directly mutating the prop-derived domain object.
+    const newValue = !domain.brand?.allow_public_homepage;
+    await domainsStore.updateDomainBrand(domain.extid, {
+      brand: { allow_public_homepage: newValue },
+    });
 
     emit('toggle-homepage', domain);
-
-    // Update local domain state after successful API call.
-    // Use schema defaults to ensure a complete BrandSettings object.
-    domain.brand = {
-      ...brandSettingsSchema.parse({}),
-      ...domain.brand,
-      allow_public_homepage: !domain.brand?.allow_public_homepage,
-    };
   };
 </script>
 
@@ -127,13 +123,20 @@ const { t } = useI18n();
                 class="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
                 <div class="flex items-center justify-center">
                   <span class="uppercase">{{ t('web.domains.homepage_access') }}</span>
-                  <div class="group relative ml-2">
+                  <div
+                    class="group relative ml-2"
+                    tabindex="0"
+                    :aria-label="t('web.domains.homepage_access')"
+                    aria-describedby="homepage-access-tooltip">
                     <OIcon
                       collection="heroicons"
                       name="question-mark-circle"
-                      class="size-4 text-gray-400 transition-colors duration-200 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300" />
+                      class="size-4 text-gray-400 transition-colors duration-200 hover:text-gray-500 focus:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300 dark:focus:text-gray-300"
+                      aria-hidden="true" />
                     <div
-                      class="invisible absolute z-10 -ml-24 mt-2 w-48 rounded-md bg-white p-2 text-xs text-gray-900 shadow-lg ring-1 ring-black/5 transition-opacity duration-200 group-hover:visible dark:bg-gray-800 dark:text-gray-100 dark:shadow-gray-900/50 dark:ring-white/10">
+                      id="homepage-access-tooltip"
+                      role="tooltip"
+                      class="invisible absolute z-10 -ml-24 mt-2 w-48 rounded-md bg-white p-2 text-xs text-gray-900 shadow-lg ring-1 ring-black/5 transition-opacity duration-200 group-hover:visible group-focus-within:visible dark:bg-gray-800 dark:text-gray-100 dark:shadow-gray-900/50 dark:ring-white/10">
                       {{ t('web.domains.control_whether_users_can_create_secret_links') }}
                     </div>
                   </div>
@@ -178,6 +181,7 @@ const { t } = useI18n();
                   :domain="domain"
                   :orgid="props.orgid"
                   :can-brand="canBrand"
+                  :can-manage-sso="canManageSso"
                   @delete="handleDelete" />
               </td>
             </tr>

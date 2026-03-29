@@ -11,7 +11,7 @@
 
 import { useAuth } from '@/shared/composables/useAuth';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import type { Organization } from '@/types/organization';
+import { createWireOrganization, type OrganizationWire } from '@/tests/fixtures/billing.fixture';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { useRoute, useRouter } from 'vue-router';
@@ -39,35 +39,31 @@ vi.mock('@/services/logging.service', () => ({
 }));
 
 /**
- * Factory for creating mock Organization API response data
+ * Creates mock Organization API response for auth billing tests.
  *
- * IMPORTANT: Returns raw API format (timestamps as Unix epoch numbers)
- * because organizationStore.fetchOrganizations() validates through the
- * schema which transforms number -> Date. The test mocks the axios
- * response, so we need to provide pre-transform data.
+ * Wraps canonical createWireOrganization with auth-specific defaults:
+ * - is_default: true (most tests need a default org)
+ * - planid: 'free' (tests verify redirect behavior for users without paid plans)
  *
- * V3 Schema fields:
- * - objid: Internal UUID (primary key)
- * - extid: External ID (user-facing, format: on%<id>s)
- * - owner_id: Owner's Customer objid
+ * Returns wire format (epoch timestamps) for API response mocking.
  */
-function createMockOrganization(overrides: Partial<Organization> = {}): Record<string, unknown> {
-  const now = Math.floor(Date.now() / 1000); // Unix epoch seconds
-  return {
+function createMockOrganization(overrides: Partial<OrganizationWire> = {}): OrganizationWire {
+  const now = Math.floor(Date.now() / 1000);
+  return createWireOrganization({
     objid: 'org_obj_123',
     extid: 'on1234abc',
     owner_id: 'cust_obj_456',
-    contact_email: 'contact@example.com',
     display_name: 'Test Organization',
     description: null,
+    contact_email: 'contact@example.com',
     is_default: true,
+    planid: 'free',
     created: now,
     updated: now,
-    planid: null,
-    entitlements: null,
-    limits: null,
+    entitlements: [],
+    limits: { teams: 0, members_per_team: 0, custom_domains: 0 },
     ...overrides,
-  };
+  });
 }
 
 /**
@@ -251,7 +247,7 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       setRouteQuery({ product: 'identity', interval: 'month' });
       const { login } = useAuth();
       axiosMock.onPost('/auth/login').reply(200, { success: 'Logged in successfully' });
-      const org = createMockOrganization({ planid: null });
+      const org = createMockOrganization(); // Default is free plan (no paid subscription)
       axiosMock.onGet('/api/organizations').reply(200, { records: [org], count: 1 });
       await login('test@example.com', 'password123');
       const expectedPath = `/billing/${org.extid}/plans?product=identity&interval=month`;
@@ -537,7 +533,7 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
       },
     });
 
-    const org = createMockOrganization({ planid: null });
+    const org = createMockOrganization(); // Default is free plan (no paid subscription)
     axiosMock.onGet('/api/organizations').reply(200, {
       records: [org],
       count: 1,

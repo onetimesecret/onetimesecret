@@ -27,10 +27,14 @@ require_relative '../support/domain_sso_test_fixtures'
 RSpec.describe Onetime::DomainSsoConfig do
   include DomainSsoTestFixtures
 
-  # Configure Familia encryption for testing
+  # Configure Familia encryption for testing, saving originals for restoration
   # DomainSsoConfig uses encrypted_field which requires key configuration
   # Keys must be Base64-encoded 32-byte values
   before(:all) do
+    @original_encryption_keys = Familia.config.encryption_keys&.dup
+    @original_key_version = Familia.config.current_key_version
+    @original_personalization = Familia.config.encryption_personalization
+
     # Generate valid 32-byte keys and Base64 encode them
     key_v1 = 'test_encryption_key_32bytes_ok!!' # Exactly 32 bytes
     key_v2 = 'another_test_key_for_testing_!!' # Exactly 32 bytes
@@ -42,6 +46,15 @@ RSpec.describe Onetime::DomainSsoConfig do
       }
       config.current_key_version = :v1
       config.encryption_personalization = 'DomainSsoConfigTest'
+    end
+  end
+
+  # Restore original Familia encryption config to avoid cross-contamination
+  after(:all) do
+    Familia.configure do |config|
+      config.encryption_keys = @original_encryption_keys if @original_encryption_keys
+      config.current_key_version = @original_key_version if @original_key_version
+      config.encryption_personalization = @original_personalization if @original_personalization
     end
   end
 
@@ -403,6 +416,353 @@ RSpec.describe Onetime::DomainSsoConfig do
     it 'responds to disable!' do
       config = build_domain_sso_config(:oidc)
       expect(config).to respond_to(:disable!)
+    end
+  end
+
+  # ==========================================================================
+  # AAD Encryption Isolation Tests
+  # ==========================================================================
+  #
+  # These tests verify that encrypted_field with aad_fields: [:domain_id]
+  # produces domain-bound ciphertext. The AAD (Additional Authenticated Data)
+  # binds credentials to a specific domain_id, preventing cross-domain
+  # credential swapping even if an attacker has direct database access.
+  #
+  # Encryption context for unsaved records (exists? == false):
+  #   AAD = "Onetime::DomainSsoConfig:<field_name>:<domain_id>"
+  #
+  # Changing the domain_id changes both the encryption context string and
+  # the derived key, so decryption under a different domain_id fails with
+  # an authentication tag mismatch.
+
+  describe 'AAD encryption isolation' do
+    let(:domain_a_id) { 'dom_aad_test_domain_a' }
+    let(:domain_b_id) { 'dom_aad_test_domain_b' }
+    let(:plaintext_client_id) { 'my-oauth-client-id-12345' }
+    let(:plaintext_client_secret) { 'super-secret-value-for-aad-test' }
+
+    describe 'client_id encryption with domain_id binding' do
+      it 'produces non-nil ciphertext when encrypted with a domain_id' do
+        config = build_domain_sso_config(:oidc, domain_id: domain_a_id)
+        config.client_id = plaintext_client_id
+
+        encrypted_json = config.client_id.encrypted_value
+        expect(encrypted_json).not_to be_nil
+        expect(encrypted_json).not_to eq(plaintext_client_id)
+      end
+
+      it 'decrypts successfully with the same domain_id' do
+        config = build_domain_sso_config(:oidc, domain_id: domain_a_id)
+        config.client_id = plaintext_client_id
+
+        revealed = config.client_id.reveal { it }
+        expect(revealed).to eq(plaintext_client_id)
+      end
+
+      it 'fails to decrypt when the encrypted value is moved to a config with a different domain_id' do
+        # Encrypt under domain A
+        config_a = build_domain_sso_config(:oidc, domain_id: domain_a_id)
+        config_a.client_id = plaintext_client_id
+        stolen_ciphertext = config_a.client_id.encrypted_value
+
+        # Build config B with a different domain_id and inject the stolen ciphertext
+        config_b = build_domain_sso_config(:oidc, domain_id: domain_b_id)
+        # Bypass the normal setter by injecting the raw encrypted JSON
+        # The setter recognizes encrypted JSON and wraps it without re-encrypting
+        config_b.client_id = stolen_ciphertext
+
+        # Attempting to reveal should fail because the decryption context
+        # (domain_id) no longer matches what was used during encryption
+        expect {
+          config_b.client_id.reveal { it }
+        }.to raise_error(Familia::EncryptionError)
+      end
+    end
+
+    describe 'client_secret encryption with domain_id binding' do
+      it 'produces non-nil ciphertext when encrypted with a domain_id' do
+        config = build_domain_sso_config(:oidc, domain_id: domain_a_id)
+        config.client_secret = plaintext_client_secret
+
+        encrypted_json = config.client_secret.encrypted_value
+        expect(encrypted_json).not_to be_nil
+        expect(encrypted_json).not_to eq(plaintext_client_secret)
+      end
+
+      it 'decrypts successfully with the same domain_id' do
+        config = build_domain_sso_config(:oidc, domain_id: domain_a_id)
+        config.client_secret = plaintext_client_secret
+
+        revealed = config.client_secret.reveal { it }
+        expect(revealed).to eq(plaintext_client_secret)
+      end
+
+      it 'fails to decrypt when the encrypted value is moved to a config with a different domain_id' do
+        # Encrypt under domain A
+        config_a = build_domain_sso_config(:oidc, domain_id: domain_a_id)
+        config_a.client_secret = plaintext_client_secret
+        stolen_ciphertext = config_a.client_secret.encrypted_value
+
+        # Build config B with a different domain_id and inject the stolen ciphertext
+        config_b = build_domain_sso_config(:oidc, domain_id: domain_b_id)
+        config_b.client_secret = stolen_ciphertext
+
+        expect {
+          config_b.client_secret.reveal { it }
+        }.to raise_error(Familia::EncryptionError)
+      end
+    end
+
+    describe 'cross-field isolation' do
+      it 'produces different ciphertext for client_id and client_secret with the same plaintext' do
+        config = build_domain_sso_config(:oidc, domain_id: domain_a_id)
+        same_value = 'identical-plaintext-value'
+        config.client_id = same_value
+        config.client_secret = same_value
+
+        # Even with the same plaintext and domain_id, the encryption context
+        # includes the field name, so ciphertext should differ
+        ciphertext_id = config.client_id.encrypted_value
+        ciphertext_secret = config.client_secret.encrypted_value
+        expect(ciphertext_id).not_to eq(ciphertext_secret)
+      end
+    end
+  end
+
+  # ==========================================================================
+  # validation_errors Direct Tests
+  # ==========================================================================
+  #
+  # These tests exercise the validation_errors method directly rather than
+  # relying on it being tested indirectly through other code paths.
+  # The method returns an array of human-readable error strings.
+
+  describe '#validation_errors' do
+    context 'with a fully valid OIDC config' do
+      let(:config) { build_domain_sso_config(:oidc) }
+
+      it 'returns an empty errors array' do
+        expect(config.validation_errors).to eq([])
+      end
+    end
+
+    context 'with a fully valid Entra ID config' do
+      let(:config) { build_domain_sso_config(:entra_id) }
+
+      it 'returns an empty errors array' do
+        expect(config.validation_errors).to eq([])
+      end
+    end
+
+    context 'with a fully valid Google config' do
+      let(:config) { build_domain_sso_config(:google) }
+
+      it 'returns an empty errors array' do
+        expect(config.validation_errors).to eq([])
+      end
+    end
+
+    context 'with a fully valid GitHub config' do
+      let(:config) { build_domain_sso_config(:github) }
+
+      it 'returns an empty errors array' do
+        expect(config.validation_errors).to eq([])
+      end
+    end
+
+    context 'when provider_type is missing' do
+      it 'returns an error about provider_type' do
+        config = build_domain_sso_config(:oidc)
+        config.provider_type = nil
+
+        errors = config.validation_errors
+        expect(errors).to include('provider_type is required')
+      end
+    end
+
+    context 'when provider_type is empty string' do
+      it 'returns an error about provider_type' do
+        config = build_domain_sso_config(:oidc)
+        config.provider_type = ''
+
+        errors = config.validation_errors
+        expect(errors).to include('provider_type is required')
+      end
+    end
+
+    context 'when provider_type is invalid' do
+      it 'returns an error about valid provider types' do
+        config = build_domain_sso_config(:oidc)
+        config.provider_type = 'unsupported_provider'
+
+        errors = config.validation_errors
+        expect(errors).to include(
+          "provider_type must be one of: #{Onetime::DomainSsoConfig::PROVIDER_TYPES.join(', ')}"
+        )
+      end
+    end
+
+    context 'when client_id is missing' do
+      it 'returns an error about client_id' do
+        config = build_domain_sso_config(:oidc)
+        config.client_id = nil
+
+        errors = config.validation_errors
+        expect(errors).to include('client_id is required')
+      end
+    end
+
+    context 'when client_id is empty string' do
+      it 'returns an error about client_id' do
+        config = build_domain_sso_config(:oidc)
+        config.client_id = ''
+
+        errors = config.validation_errors
+        expect(errors).to include('client_id is required')
+      end
+    end
+
+    context 'when client_secret is missing' do
+      it 'returns an error about client_secret' do
+        config = build_domain_sso_config(:oidc)
+        config.client_secret = nil
+
+        errors = config.validation_errors
+        expect(errors).to include('client_secret is required')
+      end
+    end
+
+    context 'when client_secret is empty string' do
+      it 'returns an error about client_secret' do
+        config = build_domain_sso_config(:oidc)
+        config.client_secret = ''
+
+        errors = config.validation_errors
+        expect(errors).to include('client_secret is required')
+      end
+    end
+
+    context 'when domain_id is missing' do
+      it 'returns an error about domain_id' do
+        config = build_domain_sso_config(:oidc, domain_id: '')
+
+        errors = config.validation_errors
+        expect(errors).to include('domain_id is required')
+      end
+    end
+
+    # Provider-specific required fields
+
+    context 'when Entra ID config is missing tenant_id' do
+      it 'returns an error about tenant_id' do
+        config = build_domain_sso_config(:entra_id)
+        config.tenant_id = nil
+
+        errors = config.validation_errors
+        expect(errors).to include('tenant_id is required for Entra ID provider')
+      end
+    end
+
+    context 'when Entra ID config has empty tenant_id' do
+      it 'returns an error about tenant_id' do
+        config = build_domain_sso_config(:entra_id)
+        config.tenant_id = ''
+
+        errors = config.validation_errors
+        expect(errors).to include('tenant_id is required for Entra ID provider')
+      end
+    end
+
+    context 'when OIDC config is missing issuer' do
+      it 'returns an error about issuer' do
+        config = build_domain_sso_config(:oidc)
+        config.issuer = nil
+
+        errors = config.validation_errors
+        expect(errors).to include('issuer is required for OIDC provider')
+      end
+    end
+
+    context 'when OIDC config has empty issuer' do
+      it 'returns an error about issuer' do
+        config = build_domain_sso_config(:oidc)
+        config.issuer = ''
+
+        errors = config.validation_errors
+        expect(errors).to include('issuer is required for OIDC provider')
+      end
+    end
+
+    # Google and GitHub should NOT require tenant_id or issuer
+
+    context 'when Google config has no tenant_id or issuer' do
+      it 'does not return provider-specific field errors' do
+        config = build_domain_sso_config(:google)
+        errors = config.validation_errors
+        expect(errors).not_to include(a_string_matching(/tenant_id/))
+        expect(errors).not_to include(a_string_matching(/issuer/))
+      end
+    end
+
+    context 'when GitHub config has no tenant_id or issuer' do
+      it 'does not return provider-specific field errors' do
+        config = build_domain_sso_config(:github)
+        errors = config.validation_errors
+        expect(errors).not_to include(a_string_matching(/tenant_id/))
+        expect(errors).not_to include(a_string_matching(/issuer/))
+      end
+    end
+
+    # Multiple errors at once
+
+    context 'when multiple fields are missing' do
+      it 'returns all applicable errors' do
+        config = build_domain_sso_config(:oidc, domain_id: '')
+        config.provider_type = nil
+        config.client_id = nil
+        config.client_secret = nil
+
+        errors = config.validation_errors
+        expect(errors).to include('domain_id is required')
+        expect(errors).to include('provider_type is required')
+        expect(errors).to include('client_id is required')
+        expect(errors).to include('client_secret is required')
+        expect(errors.length).to be >= 4
+      end
+    end
+  end
+
+  # ==========================================================================
+  # valid? Direct Tests
+  # ==========================================================================
+
+  describe '#valid?' do
+    context 'when validation_errors is empty' do
+      it 'returns true' do
+        config = build_domain_sso_config(:oidc)
+        expect(config.validation_errors).to be_empty
+        expect(config.valid?).to be true
+      end
+    end
+
+    context 'when validation_errors is non-empty' do
+      it 'returns false for missing provider_type' do
+        config = build_domain_sso_config(:oidc)
+        config.provider_type = nil
+        expect(config.valid?).to be false
+      end
+
+      it 'returns false for missing client_id' do
+        config = build_domain_sso_config(:oidc)
+        config.client_id = nil
+        expect(config.valid?).to be false
+      end
+
+      it 'returns false for invalid provider_type' do
+        config = build_domain_sso_config(:oidc)
+        config.provider_type = 'bogus'
+        expect(config.valid?).to be false
+      end
     end
   end
 end

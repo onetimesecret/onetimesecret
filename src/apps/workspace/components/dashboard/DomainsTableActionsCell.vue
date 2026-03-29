@@ -13,10 +13,12 @@ const { t } = useI18n();
     domain: CustomDomain;
     orgid: string;
     canBrand?: boolean;
+    canManageSso?: boolean;
   }
 
   const props = withDefaults(defineProps<Props>(), {
     canBrand: false,
+    canManageSso: false,
   });
 
   const emit = defineEmits<{
@@ -43,7 +45,7 @@ const { t } = useI18n();
               active
                 ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
                 : 'text-gray-700 dark:text-gray-200',
-              'block px-4 py-2 text-sm transition-colors duration-200',
+              'block px-4 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500',
             ]">
             {{ t('web.domains.manage_brand') }}
           </router-link>
@@ -58,12 +60,12 @@ const { t } = useI18n();
               active
                 ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
                 : 'text-gray-700 dark:text-gray-200',
-              'block px-4 py-2 text-sm transition-colors duration-200',
+              'block px-4 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500',
             ]">
             {{ t('web.domains.verify_domain') }}
           </router-link>
         </MenuItem>
-        <MenuItem v-slot="{ active }">
+        <MenuItem v-if="canManageSso" v-slot="{ active }">
           <router-link
             :to="{
               name: 'DomainSso',
@@ -73,7 +75,7 @@ const { t } = useI18n();
               active
                 ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
                 : 'text-gray-700 dark:text-gray-200',
-              'block px-4 py-2 text-sm transition-colors duration-200',
+              'block px-4 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500',
             ]">
             {{ t('web.domains.sso.configure_sso') }}
           </router-link>
@@ -83,7 +85,7 @@ const { t } = useI18n();
             @click="handleDelete(domain.extid)"
             :class="[
               active ? 'bg-gray-100 dark:bg-gray-800' : '',
-              'flex w-full items-center px-4 py-2 text-sm text-red-600 transition-colors duration-200 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300',
+              'flex w-full items-center px-4 py-2 text-sm text-red-600 transition-colors duration-200 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500',
             ]">
             <OIcon
               collection="heroicons"

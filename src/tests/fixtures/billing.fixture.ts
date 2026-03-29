@@ -6,8 +6,16 @@ import type {
     PlanChangePreviewResponse,
     SubscriptionStatusResponse,
 } from '@/services/billing.service';
-import type { ExtId, ObjId } from '@/types/identifiers';
-import type { Organization } from '@/types/organization';
+
+// Import organization factories from canonical source
+import {
+  createWireOrganization,
+  createWireFreeOrganization,
+  createWireSingleTeamOrganization,
+  createWireMultiTeamOrganization,
+  createWireLegacyIdentityOrganization,
+  type OrganizationWire,
+} from '@/tests/schemas/shapes/fixtures/organization.fixtures';
 
 /**
  * Plan tier type for billing fixtures
@@ -279,72 +287,47 @@ export const mockSubscriptionStatuses = {
 };
 
 /**
- * Factory for creating mock organizations with billing data
+ * Factory for creating mock organizations with billing data (wire format).
+ *
+ * Delegates to canonical createWireOrganization and applies billing-specific overrides.
+ * Returns wire format (epoch timestamps) suitable for API response mocking.
  *
  * V3 Schema fields:
  * - objid: Internal UUID (primary key)
  * - extid: External ID (user-facing, format: on%<id>s)
  * - owner_id: Owner's Customer objid
  */
-export function createMockOrganization(overrides: Partial<Organization> = {}): Organization {
-  return {
-    objid: 'org_obj_123' as ObjId,
-    extid: 'org_ext_123' as ExtId,
-    owner_id: 'cust_obj_456',
-    display_name: 'Test Organization',
-    description: 'A test organization',
-    contact_email: 'contact@example.com',
-    billing_email: 'billing@example.com',
-    is_default: true,
-    created: new Date('2024-01-01'),
-    updated: new Date('2024-01-01'),
-    member_count: 5,
-    current_user_role: 'owner',
-    planid: 'identity_plus_v1_monthly',
-    entitlements: ['api_access', 'custom_domains', 'custom_branding'],
-    limits: {
-      teams: 1,
-      members_per_team: 10,
-      custom_domains: 3,
-    },
-    ...overrides,
-  };
+export function createMockOrganization(
+  overrides: Partial<OrganizationWire> = {}
+): OrganizationWire {
+  return createWireSingleTeamOrganization(overrides);
 }
 
 /**
- * Pre-configured organization variants
+ * Pre-configured organization variants for billing tests.
+ * Uses canonical wire format factories from organization.fixtures.ts.
  */
 export const mockOrganizations = {
-  free: createMockOrganization({
-    planid: 'free_v1',
-    entitlements: [],
-    limits: { teams: 0, members_per_team: 0, custom_domains: 0 },
-  }),
-  singleTeam: createMockOrganization(),
-  multiTeam: createMockOrganization({
-    planid: 'team_plus_v1_monthly',
-    entitlements: [
-      'api_access',
-      'custom_domains',
-      'custom_branding',
-      'manage_teams',
-      'manage_members',
-      'audit_logs',
-    ],
-    limits: { teams: 5, members_per_team: 25, custom_domains: 10 },
-  }),
+  free: createWireFreeOrganization(),
+  singleTeam: createWireSingleTeamOrganization(),
+  multiTeam: createWireMultiTeamOrganization(),
   /**
    * Legacy "identity" plan - grandfathered Early Supporter plan
    * These customers have single_team tier features but their planid is just 'identity'
    * (not 'identity_plus_v1_monthly'). Display should show "Identity Plus (Early Supporter)".
    */
-  legacyIdentity: createMockOrganization({
-    planid: 'identity',
-    display_name: 'Early Supporter Org',
-    entitlements: ['api_access', 'custom_domains', 'custom_branding'],
-    limits: { teams: 1, members_per_team: 10, custom_domains: 3 },
-  }),
+  legacyIdentity: createWireLegacyIdentityOrganization(),
   noOrg: null,
+};
+
+// Re-export for convenience
+export {
+  createWireOrganization,
+  createWireFreeOrganization,
+  createWireSingleTeamOrganization,
+  createWireMultiTeamOrganization,
+  createWireLegacyIdentityOrganization,
+  type OrganizationWire,
 };
 
 /**

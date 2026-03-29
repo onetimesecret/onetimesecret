@@ -79,7 +79,42 @@ require 'rack/test'
 # Load OmniAuth test helper for additional helper methods
 require_relative 'support/omniauth_test_helper'
 require_relative 'support/auth_test_constants'
+require_relative 'support/mock_omniauth_strategy'
 require_relative '../database'
+
+# =============================================================================
+# TENANT VERIFYING MOCK REGISTRATION
+# =============================================================================
+#
+# Register TenantVerifyingMock as an OmniAuth provider for integration tests.
+#
+# This module prepends Auth::Config::Features::OmniAuth to register our mock
+# strategy alongside other OmniAuth providers. The registration happens during
+# Rodauth's configure phase, ensuring the mock is included in the OmniAuth
+# middleware stack built by post_configure.
+#
+# The TenantVerifyingMock strategy captures credentials injected via the setup
+# proc during the request phase, enabling tests to verify:
+#   - Tenant resolution from Host header
+#   - Credential injection into strategy options
+#   - Setup proc execution
+#
+# Routes created:
+#   POST /auth/sso/tenant_verify (request phase)
+#   GET  /auth/sso/tenant_verify/callback (callback phase)
+#
+# @see apps/web/auth/spec/support/mock_omniauth_strategy.rb
+#
+module TenantVerifyingMockRegistration
+  def self.register_with_rodauth(auth)
+    # Register TenantVerifyingMock strategy.
+    # Uses the strategy class from OmniAuth::Strategies namespace.
+    auth.omniauth_provider(
+      :tenant_verifying_mock,
+      name: :tenant_verify
+    )
+  end
+end
 
 # Helper module for creating isolated Rodauth test environments
 module RodauthTestHelper
@@ -339,6 +374,11 @@ module ProductionConfigHelper
     require 'onetime/auth_config'
     Onetime.auth_config.reload! if Onetime.respond_to?(:auth_config) && Onetime.auth_config.respond_to?(:reload!)
 
+    # Install TenantVerifyingMock registration hook BEFORE boot.
+    # This prepends our registration method to the OmniAuth feature configure,
+    # ensuring the mock strategy is included in Rodauth's OmniAuth middleware.
+    install_tenant_verifying_mock_hook
+
     # Boot application
     Onetime.boot! :test unless Onetime.ready?
 
@@ -346,6 +386,37 @@ module ProductionConfigHelper
     Onetime::Application::Registry.prepare_application_registry
 
     @@onetime_booted = true
+  end
+
+  # Install a hook to register TenantVerifyingMock during OmniAuth configuration.
+  #
+  # This prepends a module to Auth::Config::Features::OmniAuth.configure that
+  # registers TenantVerifyingMock after other providers. The hook runs during
+  # Rodauth's configure phase, before post_configure builds the middleware stack.
+  #
+  # @see TenantVerifyingMockRegistration
+  def install_tenant_verifying_mock_hook
+    # Only install once
+    return if defined?(@@tenant_mock_hook_installed) && @@tenant_mock_hook_installed
+
+    # Load the Auth features module structure
+    require_relative '../config/features'
+
+    # Check if OmniAuth feature exists
+    return unless defined?(Auth::Config::Features::OmniAuth)
+
+    # Prepend our registration hook
+    original_configure = Auth::Config::Features::OmniAuth.method(:configure)
+
+    Auth::Config::Features::OmniAuth.define_singleton_method(:configure) do |auth|
+      # Call original configure first (registers OIDC, Entra, GitHub, Google)
+      original_configure.call(auth)
+
+      # Then register TenantVerifyingMock for testing
+      TenantVerifyingMockRegistration.register_with_rodauth(auth)
+    end
+
+    @@tenant_mock_hook_installed = true
   end
 
   # Build the full Rack URL map (all mounted apps)

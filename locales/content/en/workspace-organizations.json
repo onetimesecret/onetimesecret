@@ -735,6 +735,10 @@
     "text": "Configured",
     "sha256": "c9d1e2f3"
   },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Not Configured",
+    "sha256": "d1e2f3a4"
+  },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Wrong Account",
     "sha256": "80c8ffa7"

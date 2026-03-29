@@ -118,7 +118,7 @@ module Auth::Config::Hooks
         )
 
         # Inject tenant-specific credentials into strategy
-        HELPERS.inject_tenant_credentials(sso_config, request)
+        HELPERS.inject_tenant_credentials(sso_config, request, self)
       end
 
       # ========================================================================
@@ -130,8 +130,8 @@ module Auth::Config::Hooks
       # We validate that the callback is arriving at the same tenant that
       # initiated the auth request. This prevents cross-tenant redirect attacks.
       #
-      # The existing before_omniauth_callback_route hook (in omniauth.rb) runs
-      # after this one. This hook is specifically for tenant validation.
+      # The before_omniauth_callback_route hook (in omniauth.rb) runs BEFORE this
+      # one (it is registered first in config.rb). This hook validates tenants.
       #
       auth.before_omniauth_callback_route do
         expected_domain_id = session.delete(:omniauth_tenant_domain_id)
@@ -255,8 +255,9 @@ module Auth::Config::Hooks
     #
     # @param sso_config [Onetime::DomainSsoConfig] The SSO config
     # @param request [Rack::Request] The current request
-    # @raise [Onetime::Problem] if strategy type doesn't match configuration
-    def self.inject_tenant_credentials(sso_config, request)
+    # @param rodauth [Rodauth] Rodauth instance (for throw_error_status)
+    # @raise [Rodauth::Error] if strategy type doesn't match configuration
+    def self.inject_tenant_credentials(sso_config, request, rodauth)
       strategy = request.env['omniauth.strategy']
       return unless strategy
 
@@ -278,7 +279,11 @@ module Auth::Config::Hooks
           domain_id: sso_config.domain_id,
           provider_type: sso_config.provider_type,
         )
-        raise Onetime::Problem, "SSO provider mismatch: tenant configured #{sso_config.provider_type}, but request is for #{strategy.class.name}"
+        rodauth.throw_error_status(
+          400,
+          'provider_mismatch',
+          "SSO provider mismatch: tenant configured #{sso_config.provider_type}, but request is for #{strategy.class.name}",
+        )
       end
 
       Auth::Logging.log_auth_event(

@@ -29,17 +29,12 @@ module DomainSsoTestFixtures
   TEST_ENCRYPTION_KEY = 'test_encryption_key_32_bytes_ok!'.freeze
 
   # Sample domain IDs for testing (mimics CustomDomain objid format)
+  # NOTE: DomainSsoConfig uses domain_id as its identifier, not org_id.
+  # The relationship is: CustomDomain -> DomainSsoConfig (1:1 by domain_id).
   SAMPLE_DOMAIN_IDS = {
     primary: 'dom_test_primary_12345',
     secondary: 'dom_test_secondary_67890',
     enterprise: 'dom_test_enterprise_abcde',
-  }.freeze
-
-  # Sample organization IDs for testing
-  SAMPLE_ORG_IDS = {
-    primary: 'org_test_primary_12345',
-    secondary: 'org_test_secondary_67890',
-    enterprise: 'org_test_enterprise_abcde',
   }.freeze
 
   # Sample display domains for testing
@@ -106,12 +101,11 @@ module DomainSsoTestFixtures
     raise ArgumentError, "Unknown provider: #{provider}" unless PROVIDER_CONFIGS.key?(provider)
 
     domain_id = overrides.delete(:domain_id) || SAMPLE_DOMAIN_IDS[:primary]
-    org_id    = overrides.delete(:org_id) || SAMPLE_ORG_IDS[:primary]
 
-    # domain_id and org_id MUST come before client_id/client_secret in hash
-    # iteration order. AAD encryption reads these fields when encrypting
-    # credentials, so they must be set first during Familia's attr initialization.
-    { domain_id: domain_id, org_id: org_id }
+    # domain_id MUST come before client_id/client_secret in hash iteration order.
+    # AAD encryption reads domain_id when encrypting credentials, so it must be
+    # set first during Familia's attr initialization.
+    { domain_id: domain_id }
       .merge(BASE_CONFIG_ATTRIBUTES)
       .merge(PROVIDER_CONFIGS[provider])
       .merge(overrides)
@@ -147,13 +141,11 @@ module DomainSsoTestFixtures
   # Build a minimal DomainSsoConfig with only required fields
   #
   # @param domain_id [String] domain identifier
-  # @param org_id [String] organization identifier
   # @param provider_type [String] SSO provider type
   # @return [Onetime::DomainSsoConfig] minimal stubbed instance
-  def build_minimal_domain_sso_config(domain_id:, org_id:, provider_type: 'oidc')
+  def build_minimal_domain_sso_config(domain_id:, provider_type: 'oidc')
     config = Onetime::DomainSsoConfig.new(
       domain_id: domain_id,
-      org_id: org_id,
       provider_type: provider_type,
       enabled: true
     )
@@ -175,12 +167,6 @@ module DomainSsoTestFixtures
       attrs[:domain_id] = ''
     when :nil_domain_id
       attrs[:domain_id] = nil
-    when :missing_org_id
-      attrs.delete(:org_id)
-    when :empty_org_id
-      attrs[:org_id] = ''
-    when :nil_org_id
-      attrs[:org_id] = nil
     when :missing_provider_type
       attrs.delete(:provider_type)
     when :invalid_provider_type
@@ -343,7 +329,7 @@ end
 
 RSpec.shared_context 'domain sso fixtures' do
   let(:test_run_id) { SecureRandom.hex(8) }
-  let(:domain_sso_display_domain) { "secrets-#{test_run_id}.acme-corp.test" }
+  let(:domain_sso_display_domain) { "secrets-#{test_run_id}.acme-corp.example.com" }
 
   let!(:test_sso_organization) do
     owner = Onetime::Customer.new(email: "owner-#{test_run_id}@test.local")
@@ -361,10 +347,11 @@ RSpec.shared_context 'domain sso fixtures' do
     domain
   end
 
+  # NOTE: DomainSsoConfig only has domain_id, not org_id.
+  # The organization relationship is via CustomDomain.org_id.
   let!(:test_domain_sso_config) do
     Onetime::DomainSsoConfig.create!(
       domain_id: test_domain_with_sso.objid,
-      org_id: test_sso_organization.org_id,
       provider_type: 'entra_id',
       display_name: 'Test Domain Entra ID',
       tenant_id: "tenant-#{test_run_id}",
@@ -391,8 +378,6 @@ RSpec.shared_examples 'a valid domain SSO config' do
   it 'has required attributes set' do
     expect(config.domain_id).not_to be_nil
     expect(config.domain_id).not_to be_empty
-    expect(config.org_id).not_to be_nil
-    expect(config.org_id).not_to be_empty
     expect(config.provider_type).not_to be_nil
     expect(config.provider_type).not_to be_empty
   end

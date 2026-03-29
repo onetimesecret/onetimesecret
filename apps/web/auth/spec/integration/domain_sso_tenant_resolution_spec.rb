@@ -28,6 +28,7 @@ require_relative '../spec_helper'
 require_relative '../support/tenant_test_fixtures'
 require_relative '../support/domain_sso_test_fixtures'
 require_relative '../support/mock_omniauth_strategy'
+require_relative '../support/oauth_flow_helper'
 require 'json'
 
 # Define module structure for hooks (normally provided by auth app boot)
@@ -48,8 +49,12 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
   include TenantTestFixtures
   include DomainSsoTestFixtures
 
-  # Configure Familia encryption for testing
+  # Configure Familia encryption for testing, saving originals for restoration
   before(:all) do
+    @original_encryption_keys = Familia.config.encryption_keys&.dup
+    @original_key_version = Familia.config.current_key_version
+    @original_personalization = Familia.config.encryption_personalization
+
     key_v1 = 'test_encryption_key_32bytes_ok!!'
     key_v2 = 'another_test_key_for_testing_!!'
 
@@ -60,6 +65,15 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
       }
       config.current_key_version = :v1
       config.encryption_personalization = 'DomainSsoTenantResolutionTest'
+    end
+  end
+
+  # Restore original Familia encryption config to avoid cross-contamination
+  after(:all) do
+    Familia.configure do |config|
+      config.encryption_keys = @original_encryption_keys if @original_encryption_keys
+      config.current_key_version = @original_key_version if @original_key_version
+      config.encryption_personalization = @original_personalization if @original_personalization
     end
   end
 
@@ -83,9 +97,19 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
       end
 
       it 'uses domain_id as strategy name' do
-        domain_sso_config = Onetime::DomainSsoConfig.find_by_domain_id(test_custom_domain.identifier)
-        options = domain_sso_config.to_omniauth_options
-        expect(options[:name]).to eq(test_custom_domain.identifier)
+        # Use a stubbed instance for to_omniauth_options because Familia's AAD
+        # computation differs between unsaved (encryption) and persisted (decryption)
+        # records when aad_fields are specified. The loaded record would fail to
+        # decrypt since exists? changes the AAD path.
+        #
+        # Use a unique domain_id that does NOT exist in Valkey (the tenant fixtures
+        # create a real record with test_custom_domain.identifier, causing exists?
+        # to return true during encryption in new(), but the persistence stub sets
+        # exists? to false for decryption -- AAD mismatch).
+        unique_domain_id = "dom_strategy_name_test_#{SecureRandom.hex(4)}"
+        config = build_domain_sso_config(:entra_id, domain_id: unique_domain_id)
+        options = config.to_omniauth_options
+        expect(options[:name]).to eq(unique_domain_id)
       end
     end
 
@@ -120,7 +144,7 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
   describe 'disabled config handling' do
     context 'when DomainSsoConfig exists but is disabled' do
       it 'skips disabled DomainSsoConfig' do
-        config = build_disabled_domain_sso_config(:entra_id)
+        config = build_disabled_domain_sso_config(:oidc)
         expect(config.enabled?).to be false
       end
     end
@@ -185,6 +209,10 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
         expect(helpers::STRATEGY_CLASS_MAP).to include(:entra_id)
       end
     end
+
+    # Full OAuth callback flow tests (cross-domain attack prevention,
+    # same-domain success, platform-level flow) are consolidated in
+    # callback_validation_spec.rb to avoid duplication.
   end
 
   # ==========================================================================
@@ -195,9 +223,11 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
     describe 'domain orphaned from org' do
       it 'handles missing organization gracefully' do
         # Domain exists but org was deleted
-        # Should still work with domain-only resolution
+        # Stub custom_domain to return nil (simulates orphaned domain)
+        # since CustomDomain.load now requires (display_domain, org_id)
         config = build_domain_sso_config(:oidc)
-        expect(config.organization).to be_nil # No real org in test
+        config.define_singleton_method(:custom_domain) { nil }
+        expect(config.organization).to be_nil
       end
     end
   end

@@ -15,12 +15,18 @@
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative '../../../views/serializers'
 require_relative File.join(Onetime::HOME, 'apps', 'web', 'auth', 'spec', 'support', 'tenant_test_fixtures')
+require_relative File.join(Onetime::HOME, 'apps', 'web', 'auth', 'spec', 'support', 'domain_sso_test_fixtures')
 
 RSpec.describe Core::Views::ConfigSerializer do
   include TenantTestFixtures
+  include DomainSsoTestFixtures
 
   # Configure Familia encryption for DomainSsoConfig tests
   before(:all) do
+    @original_encryption_keys = Familia.encryption_keys&.dup
+    @original_key_version = Familia.current_key_version
+    @original_personalization = Familia.encryption_personalization
+
     key_v1 = 'test_encryption_key_32bytes_ok!!'
     key_v2 = 'another_test_key_for_testing_!!'
 
@@ -34,9 +40,17 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
   end
 
+  after(:all) do
+    Familia.configure do |config|
+      config.encryption_keys = @original_encryption_keys if @original_encryption_keys
+      config.current_key_version = @original_key_version if @original_key_version
+      config.encryption_personalization = @original_personalization if @original_personalization
+    end
+  end
+
   let(:canonical_domain) { 'onetimesecret.com' }
   let(:custom_display_domain) { 'secrets.acme.com' }
-  let(:domain_id) { TenantTestFixtures::SAMPLE_DOMAIN_IDS[:primary] }
+  let(:domain_id) { DomainSsoTestFixtures::SAMPLE_DOMAIN_IDS[:primary] }
 
   let(:customer) do
     instance_double(
