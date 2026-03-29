@@ -15,7 +15,7 @@ RSpec.describe Onetime::Application::AuthStrategies::DevBasicAuthStrategy do
   before do
     # Clear all worker ID env vars before each test
     env_vars.each { |k| ENV.delete(k) }
-    identity.instance_variable_set(:@process_suffix, nil)
+    identity.instance_variable_set(:@process_unique_suffix, nil)
   end
 
   after do
@@ -27,7 +27,7 @@ RSpec.describe Onetime::Application::AuthStrategies::DevBasicAuthStrategy do
         ENV[key] = value
       end
     end
-    identity.instance_variable_set(:@process_suffix, nil)
+    identity.instance_variable_set(:@process_unique_suffix, nil)
   end
 
   describe '#namespace_dev_username' do

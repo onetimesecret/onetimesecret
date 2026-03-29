@@ -21,7 +21,7 @@ require_relative '../../../lib/onetime/application/auth_strategies/dev_worker_id
 @env_vars = %w[DEV_WORKER_ID GITHUB_JOB TEST_ENV_NUMBER CIRCLE_NODE_INDEX]
 @original_env = @env_vars.to_h { |k| [k, ENV[k]] }
 @env_vars.each { |k| ENV.delete(k) }
-@identity.instance_variable_set(:@process_suffix, nil)
+@identity.instance_variable_set(:@process_unique_suffix, nil)
 
 ## With no env vars, uses process-unique fallback
 @result_fallback = @identity.namespaced_username('alice')
@@ -29,7 +29,7 @@ require_relative '../../../lib/onetime/application/auth_strategies/dev_worker_id
 #=> true
 
 ## Fallback suffix is cached within process
-@identity.instance_variable_set(:@process_suffix, nil)
+@identity.instance_variable_set(:@process_unique_suffix, nil)
 @result1 = @identity.namespaced_username('alice')
 @result2 = @identity.namespaced_username('bob')
 @suffix1 = @result1.sub('alice_', '')
@@ -39,7 +39,7 @@ require_relative '../../../lib/onetime/application/auth_strategies/dev_worker_id
 
 ## With GITHUB_JOB set, produces deterministic suffix
 ENV['GITHUB_JOB'] = 'ruby-integration-simple'
-@identity.instance_variable_set(:@process_suffix, nil)
+@identity.instance_variable_set(:@process_unique_suffix, nil)
 @result_github = @identity.namespaced_username('alice')
 @result_github.match?(/^alice_w[a-f0-9]{4}$/)
 #=> true
@@ -119,4 +119,4 @@ ENV['GITHUB_JOB'] = 'logging-test-job'
     ENV[key] = value
   end
 end
-@identity.instance_variable_set(:@process_suffix, nil)
+@identity.instance_variable_set(:@process_unique_suffix, nil)

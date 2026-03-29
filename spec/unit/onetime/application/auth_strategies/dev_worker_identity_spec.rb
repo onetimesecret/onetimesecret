@@ -16,7 +16,7 @@ RSpec.describe Onetime::Application::AuthStrategies::DevWorkerIdentity do
     # Clear all worker ID env vars before each test
     env_vars.each { |k| ENV.delete(k) }
     # Reset the cached process suffix
-    identity.instance_variable_set(:@process_suffix, nil)
+    identity.instance_variable_set(:@process_unique_suffix, nil)
   end
 
   after do
@@ -29,7 +29,7 @@ RSpec.describe Onetime::Application::AuthStrategies::DevWorkerIdentity do
       end
     end
     # Reset the cached process suffix
-    identity.instance_variable_set(:@process_suffix, nil)
+    identity.instance_variable_set(:@process_unique_suffix, nil)
   end
 
   describe '.namespaced_username' do
