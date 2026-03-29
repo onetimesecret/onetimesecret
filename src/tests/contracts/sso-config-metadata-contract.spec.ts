@@ -48,18 +48,20 @@ describe('SSO_PROVIDER_METADATA constant', () => {
   });
 
   describe('provider-specific values (mirrors backend PROVIDER_METADATA)', () => {
+    // Values must match lib/onetime/models/domain_sso_config.rb PROVIDER_METADATA
+
     describe('oidc', () => {
-      it('does not require domain filter', () => {
-        expect(SSO_PROVIDER_METADATA.oidc.requiresDomainFilter).toBe(false);
+      it('requires domain filter (generic OIDC has no app assignment)', () => {
+        expect(SSO_PROVIDER_METADATA.oidc.requiresDomainFilter).toBe(true);
       });
 
-      it('has IdP-controlled access', () => {
-        expect(SSO_PROVIDER_METADATA.oidc.idpControlsAccess).toBe(true);
+      it('does NOT have IdP-controlled access', () => {
+        expect(SSO_PROVIDER_METADATA.oidc.idpControlsAccess).toBe(false);
       });
     });
 
     describe('entra_id', () => {
-      it('does not require domain filter', () => {
+      it('does not require domain filter (Azure app assignment controls access)', () => {
         expect(SSO_PROVIDER_METADATA.entra_id.requiresDomainFilter).toBe(false);
       });
 
@@ -69,12 +71,12 @@ describe('SSO_PROVIDER_METADATA constant', () => {
     });
 
     describe('google', () => {
-      it('does not require domain filter', () => {
-        expect(SSO_PROVIDER_METADATA.google.requiresDomainFilter).toBe(false);
+      it('requires domain filter (Workspace needs explicit filtering for enterprise)', () => {
+        expect(SSO_PROVIDER_METADATA.google.requiresDomainFilter).toBe(true);
       });
 
-      it('has IdP-controlled access', () => {
-        expect(SSO_PROVIDER_METADATA.google.idpControlsAccess).toBe(true);
+      it('does NOT have IdP-controlled access', () => {
+        expect(SSO_PROVIDER_METADATA.google.idpControlsAccess).toBe(false);
       });
     });
 

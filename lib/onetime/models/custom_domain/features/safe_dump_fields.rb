@@ -32,6 +32,17 @@ module Onetime::CustomDomain::Features
       base.safe_dump_field :verified, ->(obj) { obj.verified.to_s == 'true' }
       base.safe_dump_field :created
       base.safe_dump_field :updated
+
+      # SSO status fields - computed from DomainSsoConfig lookup
+      base.safe_dump_field :sso_configured,
+        ->(obj) {
+                Onetime::DomainSsoConfig.exists_for_domain?(obj.identifier)
+        }
+      base.safe_dump_field :sso_enabled,
+        ->(obj) {
+                config = Onetime::DomainSsoConfig.find_by_domain_id(obj.identifier)
+                config&.enabled? || false
+        }
     end
   end
 end

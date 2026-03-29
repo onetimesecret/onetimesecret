@@ -67,24 +67,24 @@ export const SSO_PROVIDER_METADATA: Record<SsoProviderType, {
   description: string;
 }> = {
   oidc: {
-    requiresDomainFilter: false,
-    idpControlsAccess: true,
-    description: 'Generic OIDC provider with user assignment',
+    requiresDomainFilter: true,
+    idpControlsAccess: false,
+    description: 'Generic OpenID Connect provider — domain filtering recommended',
   },
   entra_id: {
     requiresDomainFilter: false,
     idpControlsAccess: true,
-    description: 'Microsoft Entra ID controls access via app assignment',
+    description: 'Microsoft Entra ID — access controlled via Azure app assignment',
   },
   google: {
-    requiresDomainFilter: false,
-    idpControlsAccess: true,
-    description: 'Google Workspace controls access via app assignment',
+    requiresDomainFilter: true,
+    idpControlsAccess: false,
+    description: 'Google Workspace — domain filtering recommended for enterprise',
   },
   github: {
     requiresDomainFilter: true,
     idpControlsAccess: false,
-    description: 'GitHub OAuth allows any user — domain filter recommended',
+    description: 'GitHub OAuth — domain filtering recommended',
   },
 } as const;
 

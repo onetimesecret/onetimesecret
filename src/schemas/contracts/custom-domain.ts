@@ -360,6 +360,16 @@ export const customDomainCanonical = z.object({
   brand: brandSettingsCanonical.nullable(),
 
   // ─────────────────────────────────────────────────────────────────────────
+  // SSO status (computed from DomainSsoConfig lookup)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /** Whether SSO configuration exists for this domain. */
+  sso_configured: z.boolean().optional(),
+
+  /** Whether SSO is enabled (config exists AND enabled flag is true). */
+  sso_enabled: z.boolean().optional(),
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Timestamps
   // ─────────────────────────────────────────────────────────────────────────
 

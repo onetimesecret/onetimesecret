@@ -436,14 +436,6 @@ onMounted(async () => {
 
   await loadOrganization();
 
-  // DEBUG: SSO entitlement check
-  console.log('[OrganizationSettings] SSO visibility:', canManageSso.value,
-    '| billing:', billing_enabled.value,
-    '| entitlements:', organization.value?.entitlements);
-
-  // SSO config status badge is populated per-domain; org-level SSO removed
-  // Domain SSO status will be shown in the domain list
-
   // Load data for the initial tab
   if (activeTab.value === 'members') {
     await Promise.all([loadMembers(), loadInvitations()]);
@@ -1387,23 +1379,6 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     </div>
                   </div>
                   <div class="flex items-center gap-3">
-                    <!-- SSO Status Badge -->
-                    <!-- Note: sso_enabled/sso_configured fields will be added by backend in Phase 2 -->
-                    <span
-                      v-if="(domain as Record<string, unknown>).sso_enabled"
-                      class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                      {{ t('web.organizations.sso.status_enabled') }}
-                    </span>
-                    <span
-                      v-else-if="(domain as Record<string, unknown>).sso_configured"
-                      class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-600 dark:text-gray-300">
-                      {{ t('web.organizations.sso.status_configured') }}
-                    </span>
-                    <span
-                      v-else
-                      class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-600 dark:text-gray-400">
-                      {{ t('web.organizations.sso.status_not_configured') }}
-                    </span>
                     <!-- Configure SSO link -->
                     <router-link
                       :to="`/org/${orgId}/domains/${domain.extid}/sso`"

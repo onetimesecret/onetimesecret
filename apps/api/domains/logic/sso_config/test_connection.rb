@@ -205,11 +205,12 @@ module DomainsAPI
         end
 
         def validate_github_fields
-          # GitHub client_id format: 20 character alphanumeric
-          return if @client_id.match?(/\A[a-zA-Z0-9]{20}\z/)
+          # GitHub client_id format: "Iv1." prefix followed by hex characters
+          # Example: Iv1.8a61f9b3a7aba766
+          return if @client_id.match?(/\AIv1\.[0-9a-f]{10,40}\z/i)
 
           raise_form_error(
-            'GitHub Client ID must be exactly 20 alphanumeric characters',
+            'GitHub Client ID must be in format Iv1.{hex} (e.g., Iv1.8a61f9b3a7aba766)',
             field: :client_id,
             error_type: :invalid,
           )

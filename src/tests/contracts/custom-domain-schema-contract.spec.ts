@@ -96,6 +96,8 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
       verified: true,
       created: 1609372800,
       updated: 1609459200,
+      sso_configured: true,
+      sso_enabled: false,
     };
 
     it('parses a full backend payload without errors (passthrough mode)', () => {
