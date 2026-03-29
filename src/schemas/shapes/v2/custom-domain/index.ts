@@ -68,6 +68,7 @@ export const customDomainSchema = z.object({
   // - Added `.strip()` to remove unknown properties after validation
   vhost: transforms.fromObject.nested(vhostSchema.passthrough().strip()).nullable(),
   brand: transforms.fromObject.nested(brandSettingschema.passthrough().strip()).nullable(),
+
   // The .strip() modifier removes all unknown properties throughout the entire
   // object hierarchy after validation. This ensures our domain objects maintain
   // a consistent shape regardless of API response variations.

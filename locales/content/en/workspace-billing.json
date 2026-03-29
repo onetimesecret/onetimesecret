@@ -219,6 +219,10 @@
     "text": "Manage Members",
     "sha256": "af812b01"
   },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Single Sign-On (SSO)",
+    "sha256": "d9e2f3a4"
+  },
   "web.billing.overview.entitlements.audit_logs": {
     "text": "Audit Logs",
     "sha256": "5428d7fe"

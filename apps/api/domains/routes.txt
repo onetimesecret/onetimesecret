@@ -22,3 +22,10 @@ DELETE /:extid/icon                       DomainsAPI::Logic::Domains::RemoveDoma
 POST   /:extid/icon                       DomainsAPI::Logic::Domains::UpdateDomainIcon response=json auth=sessionauth,basicauth
 GET    /:extid/icon                       DomainsAPI::Logic::Domains::GetDomainIcon response=json auth=sessionauth,basicauth
 GET    /                                  DomainsAPI::Logic::Domains::ListDomains response=json auth=sessionauth,basicauth
+
+# Domain SSO Configuration
+GET    /:extid/sso                        DomainsAPI::Logic::SsoConfig::GetSsoConfig response=json auth=sessionauth
+PUT    /:extid/sso                        DomainsAPI::Logic::SsoConfig::PutSsoConfig response=json auth=sessionauth
+PATCH  /:extid/sso                        DomainsAPI::Logic::SsoConfig::PatchSsoConfig response=json auth=sessionauth
+DELETE /:extid/sso                        DomainsAPI::Logic::SsoConfig::DeleteSsoConfig response=json auth=sessionauth
+POST   /:extid/sso/test                   DomainsAPI::Logic::SsoConfig::TestConnection response=json auth=sessionauth

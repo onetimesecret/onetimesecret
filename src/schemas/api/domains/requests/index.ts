@@ -10,6 +10,7 @@ export * from './list-domains';
 export * from './remove-domain';
 export * from './remove-domain-icon';
 export * from './remove-domain-logo';
+export * from './sso-config';
 export * from './update-domain-brand';
 export * from './update-domain-icon';
 export * from './update-domain-logo';

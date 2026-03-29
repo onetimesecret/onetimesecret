@@ -10,19 +10,22 @@
 # It enables organizations to configure their own IdP connections without
 # requiring platform environment variables.
 #
-# Flow:
+# Flow (domain-based resolution):
 #   1. Host header -> CustomDomain lookup
-#   2. CustomDomain -> Organization -> OrgSsoConfig
-#   3. OrgSsoConfig -> omniauth strategy.options injection
+#   2. CustomDomain.identifier -> DomainSsoConfig
+#   3. SSO config -> omniauth strategy.options injection
+#
+# Each domain has its own SSO configuration, enabling multi-IdP setups where
+# different domains owned by the same organization use different identity providers.
 #
 # Security Model:
-#   - Tenant context stored in session during request phase
+#   - Tenant context (domain_id) stored in session during request phase
 #   - Callback validates tenant context matches (prevents redirect attacks)
 #   - Missing tenant config can either fall back to platform credentials
 #     or reject the request based on `allow_platform_fallback_for_tenants`
 #
 # See: docs/authentication/omniauth-sso.md (full configuration guide)
-# See: lib/onetime/models/org_sso_config.rb (tenant SSO config model)
+# See: lib/onetime/models/domain_sso_config.rb (per-domain SSO config)
 #
 
 module Auth::Config::Hooks
@@ -30,7 +33,7 @@ module Auth::Config::Hooks
     # Module reference for calling helper methods from within Rodauth blocks
     HELPERS = self
 
-    # Map OrgSsoConfig provider_type symbols to OmniAuth strategy class names.
+    # Map DomainSsoConfig provider_type symbols to OmniAuth strategy class names.
     # Used to validate that credentials are being injected into the correct strategy.
     STRATEGY_CLASS_MAP = {
       openid_connect: %w[OmniAuth::Strategies::OpenIDConnect],
@@ -84,15 +87,15 @@ module Auth::Config::Hooks
           next # Continue with platform defaults (if allowed)
         end
 
-        # Look up organization's SSO configuration
-        org_config = Onetime::OrgSsoConfig.find_by_org_id(custom_domain.org_id)
+        # Look up domain-specific SSO configuration
+        sso_config = Onetime::DomainSsoConfig.find_by_domain_id(custom_domain.identifier)
 
-        unless org_config&.enabled?
+        unless sso_config&.enabled?
           Auth::Logging.log_auth_event(
             :omniauth_tenant_sso_not_enabled,
             level: :info,
             host: host,
-            org_id: custom_domain.org_id,
+            domain_id: custom_domain.identifier,
           )
 
           # Check if we should fall back to platform credentials
@@ -103,19 +106,19 @@ module Auth::Config::Hooks
         # Store tenant context in session for callback validation
         # This prevents an attacker from initiating auth on domain A
         # then redirecting callback to domain B.
-        session[:omniauth_tenant_org_id] = custom_domain.org_id
-        session[:omniauth_tenant_host]   = host
+        session[:omniauth_tenant_domain_id] = custom_domain.identifier
+        session[:omniauth_tenant_host]      = host
 
         Auth::Logging.log_auth_event(
           :omniauth_tenant_credentials_injecting,
           level: :info,
           host: host,
-          org_id: custom_domain.org_id,
-          provider_type: org_config.provider_type,
+          domain_id: custom_domain.identifier,
+          provider_type: sso_config.provider_type,
         )
 
-        # Inject organization-specific credentials into strategy
-        HELPERS.inject_org_credentials(org_config, request)
+        # Inject tenant-specific credentials into strategy
+        HELPERS.inject_tenant_credentials(sso_config, request)
       end
 
       # ========================================================================
@@ -131,25 +134,27 @@ module Auth::Config::Hooks
       # after this one. This hook is specifically for tenant validation.
       #
       auth.before_omniauth_callback_route do
-        expected_org_id = session.delete(:omniauth_tenant_org_id)
-        expected_host   = session.delete(:omniauth_tenant_host)
+        expected_domain_id = session.delete(:omniauth_tenant_domain_id)
+        expected_host      = session.delete(:omniauth_tenant_host)
 
         # If no tenant context was stored, this was a platform-level auth
         # (no tenant credentials were injected). Allow it to proceed.
-        next unless expected_org_id
+        next unless expected_domain_id
 
         # Resolve current request's tenant context
         current_domain = HELPERS.resolve_custom_domain(request.host)
 
-        # Validate tenant context matches
-        if current_domain&.org_id != expected_org_id
+        # Validate tenant context matches - domain_id must match exactly
+        domain_mismatch = current_domain&.identifier != expected_domain_id
+
+        if domain_mismatch
           Auth::Logging.log_auth_event(
             :omniauth_tenant_mismatch,
             level: :warn,
-            expected_org_id: expected_org_id,
+            expected_domain_id: expected_domain_id,
             expected_host: expected_host,
             actual_host: request.host,
-            actual_org_id: current_domain&.org_id,
+            actual_domain_id: current_domain&.identifier,
             ip: request.ip,
           )
 
@@ -159,7 +164,7 @@ module Auth::Config::Hooks
         Auth::Logging.log_auth_event(
           :omniauth_tenant_callback_validated,
           level: :debug,
-          org_id: expected_org_id,
+          domain_id: expected_domain_id,
           host: request.host,
         )
       end
@@ -243,19 +248,19 @@ module Auth::Config::Hooks
       rodauth.throw_error_status(403, 'sso_not_configured', 'SSO not configured for this domain')
     end
 
-    # Inject organization credentials into the OmniAuth strategy.
+    # Inject tenant credentials into the OmniAuth strategy.
     #
     # Accesses the strategy from request.env['omniauth.strategy'] and
-    # merges in the organization's OAuth configuration.
+    # merges in the tenant's OAuth configuration.
     #
-    # @param org_config [Onetime::OrgSsoConfig] The org's SSO configuration
+    # @param sso_config [Onetime::DomainSsoConfig] The SSO config
     # @param request [Rack::Request] The current request
     # @raise [Onetime::Problem] if strategy type doesn't match configuration
-    def self.inject_org_credentials(org_config, request)
+    def self.inject_tenant_credentials(sso_config, request)
       strategy = request.env['omniauth.strategy']
       return unless strategy
 
-      options = org_config.to_omniauth_options
+      options = sso_config.to_omniauth_options
 
       # Extract the strategy-specific options (excluding :strategy and :name keys
       # which are used for provider registration, not runtime configuration)
@@ -270,10 +275,10 @@ module Auth::Config::Hooks
           level: :warn,
           expected_strategy: expected_strategy,
           actual_strategy: strategy.class.name,
-          org_id: org_config.org_id,
-          provider_type: org_config.provider_type,
+          domain_id: sso_config.domain_id,
+          provider_type: sso_config.provider_type,
         )
-        raise Onetime::Problem, "SSO provider mismatch: organization configured #{org_config.provider_type}, but request is for #{strategy.class.name}"
+        raise Onetime::Problem, "SSO provider mismatch: tenant configured #{sso_config.provider_type}, but request is for #{strategy.class.name}"
       end
 
       Auth::Logging.log_auth_event(
@@ -296,7 +301,7 @@ module Auth::Config::Hooks
     # Check if the active OmniAuth strategy matches the expected type.
     #
     # @param strategy [OmniAuth::Strategy] The active strategy instance
-    # @param expected_type [Symbol] Expected strategy type from OrgSsoConfig
+    # @param expected_type [Symbol] Expected strategy type from DomainSsoConfig
     # @return [Boolean] true if strategy class matches expected type
     def self.strategy_matches?(strategy, expected_type)
       return false unless strategy && expected_type

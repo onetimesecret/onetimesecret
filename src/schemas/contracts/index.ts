@@ -6,7 +6,7 @@ export * from './config';
 export * from './custom-domain';
 export * from './customer';
 export * from './feedback';
-export * from './org-sso-config';
+export * from './sso-config';
 export * from './organization';
 export * from './organization-membership';
 export * from './receipt';

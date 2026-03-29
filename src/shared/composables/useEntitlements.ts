@@ -24,6 +24,7 @@ const FALLBACK_DISPLAY_KEYS: Record<string, string> = {
   [ENTITLEMENTS.MANAGE_ORGS]: 'web.billing.overview.entitlements.manage_orgs',
   [ENTITLEMENTS.MANAGE_TEAMS]: 'web.billing.overview.entitlements.manage_teams',
   [ENTITLEMENTS.MANAGE_MEMBERS]: 'web.billing.overview.entitlements.manage_members',
+  [ENTITLEMENTS.MANAGE_SSO]: 'web.billing.overview.entitlements.manage_sso',
   [ENTITLEMENTS.AUDIT_LOGS]: 'web.billing.overview.entitlements.audit_logs',
 };
 
@@ -39,6 +40,7 @@ const FALLBACK_DISPLAY_KEYS: Record<string, string> = {
 const FALLBACK_ENTITLEMENT_TO_PLAN: Record<string, string> = {
   [ENTITLEMENTS.MANAGE_TEAMS]: 'identity_v1',
   [ENTITLEMENTS.MANAGE_MEMBERS]: 'identity_v1',
+  [ENTITLEMENTS.MANAGE_SSO]: 'identity_v1',
   [ENTITLEMENTS.MANAGE_ORGS]: 'identity_v1',
   [ENTITLEMENTS.API_ACCESS]: 'identity_v1',
   [ENTITLEMENTS.CUSTOM_DOMAINS]: 'identity_v1',
@@ -93,9 +95,13 @@ export function useEntitlements(org: Ref<Organization | null>) {
    */
   const can = (entitlement: string): boolean => {
     // Standalone mode: all entitlements available
-    if (isStandaloneMode.value) return true;
+    if (isStandaloneMode.value) {
+      return true;
+    }
 
-    if (!org.value) return false;
+    if (!org.value) {
+      return false;
+    }
     return org.value.entitlements?.includes(entitlement as (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS]) ?? false;
   };
 

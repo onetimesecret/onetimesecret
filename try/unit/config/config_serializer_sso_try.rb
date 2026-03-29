@@ -56,6 +56,26 @@ ensure
   ENV['OIDC_DISPLAY_NAME'] = original_oidc_display
 end
 
+# Helper to modify organizations feature flags temporarily
+# Defined in setup section to be available for all test cases
+def with_orgs_sso_enabled(enabled:, orgs_enabled: false)
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  features = config['full']['features'] ||= {}
+  original_orgs = features['organizations']
+
+  features['organizations'] = {
+    'enabled' => orgs_enabled,
+    'sso_enabled' => enabled,
+  }
+  yield
+ensure
+  if original_orgs.nil?
+    features.delete('organizations')
+  else
+    features['organizations'] = original_orgs
+  end
+end
+
 ## build_sso_config returns false when SSO is disabled
 result = with_sso_config(enabled: false) do
   Core::Views::ConfigSerializer.send(:build_sso_config, {})
@@ -165,3 +185,49 @@ with_sso_config(enabled: true) do
   providers.all? { |p| !p['route_name'].nil? && !p['display_name'].nil? }
 end
 #=> true
+
+## build_feature_flags includes organizations.sso_enabled as false when disabled
+result = with_orgs_sso_enabled(enabled: false) do
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  view_vars = { 'features' => config['full']['features'] }
+  Core::Views::ConfigSerializer.send(:build_feature_flags, view_vars)
+end
+result['organizations']['sso_enabled']
+#=> false
+
+## build_feature_flags includes organizations.sso_enabled as true when enabled
+result = with_orgs_sso_enabled(enabled: true) do
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  view_vars = { 'features' => config['full']['features'] }
+  Core::Views::ConfigSerializer.send(:build_feature_flags, view_vars)
+end
+result['organizations']['sso_enabled']
+#=> true
+
+## build_feature_flags includes organizations.enabled alongside sso_enabled
+result = with_orgs_sso_enabled(enabled: true, orgs_enabled: true) do
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  view_vars = { 'features' => config['full']['features'] }
+  Core::Views::ConfigSerializer.send(:build_feature_flags, view_vars)
+end
+[result['organizations']['enabled'], result['organizations']['sso_enabled']]
+#=> [true, true]
+
+## build_feature_flags organizations defaults to false when features is empty
+result = Core::Views::ConfigSerializer.send(:build_feature_flags, {})
+[result['organizations']['enabled'], result['organizations']['sso_enabled']]
+#=> [false, false]
+
+## build_feature_flags organizations defaults to false when organizations key missing
+result = Core::Views::ConfigSerializer.send(:build_feature_flags, { 'features' => {} })
+[result['organizations']['enabled'], result['organizations']['sso_enabled']]
+#=> [false, false]
+
+## build_feature_flags organizations.sso_enabled is independent of organizations.enabled
+result = with_orgs_sso_enabled(enabled: true, orgs_enabled: false) do
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  view_vars = { 'features' => config['full']['features'] }
+  Core::Views::ConfigSerializer.send(:build_feature_flags, view_vars)
+end
+[result['organizations']['enabled'], result['organizations']['sso_enabled']]
+#=> [false, true]

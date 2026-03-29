@@ -153,7 +153,15 @@ RSpec.describe Onetime::Secret, 'v1/v2 reveal paths' do
       end
 
       it 'fails with incorrect passphrase' do
-        expect { secret.decrypted_secret_value(passphrase_input: 'wrong-passphrase') }.to raise_error(OpenSSL::Cipher::CipherError)
+        # AES-256-CBC with wrong key may raise CipherError (bad padding) or silently
+        # return garbage — both outcomes confirm the wrong passphrase was used.
+        begin
+          wrong_result = secret.decrypted_secret_value(passphrase_input: 'wrong-passphrase')
+          expect(wrong_result).not_to eq(secret_value),
+            'Decrypting with wrong passphrase must not return the original plaintext'
+        rescue OpenSSL::Cipher::CipherError
+          # Expected: padding check failed, confirming wrong passphrase
+        end
       end
 
       it 'fails when no passphrase is provided for passphrase-protected secret' do

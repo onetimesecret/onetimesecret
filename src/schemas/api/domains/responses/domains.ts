@@ -3,8 +3,8 @@
 // Response schemas for custom domain, jurisdiction, brand, and image endpoints.
 
 import { createApiResponseSchema, createApiListResponseSchema } from '@/schemas/api/base';
+import { customDomainCanonical } from '@/schemas/contracts';
 import {
-  customDomainSchema,
   jurisdictionDetailsSchema,
   jurisdictionSchema,
 } from '@/schemas/shapes/v2';
@@ -37,8 +37,8 @@ export const customDomainDetailsSchema = z.object({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const brandSettingsResponseSchema = createApiResponseSchema(brandSettingschema);
-export const customDomainResponseSchema = createApiResponseSchema(customDomainSchema, customDomainDetailsSchema);
-export const customDomainListResponseSchema = createApiListResponseSchema(customDomainSchema, customDomainDetailsSchema);
+export const customDomainResponseSchema = createApiResponseSchema(customDomainCanonical, customDomainDetailsSchema);
+export const customDomainListResponseSchema = createApiListResponseSchema(customDomainCanonical, customDomainDetailsSchema);
 export const imagePropsResponseSchema = createApiResponseSchema(imagePropsSchema);
 export const jurisdictionResponseSchema = createApiResponseSchema(jurisdictionSchema, jurisdictionDetailsSchema);
 

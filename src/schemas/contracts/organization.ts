@@ -127,6 +127,7 @@ export const entitlementSchema = z.enum([
   'manage_orgs',
   'manage_teams',
   'manage_members',
+  'manage_sso',
   'audit_logs',
   // Free tier entitlements (from billing.yaml free_v1 plan)
   'create_secrets',

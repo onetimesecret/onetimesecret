@@ -700,6 +700,12 @@
     "text": "Show Less",
     "sha256": "0264d7b0"
   },
+  "web.LABELS.show_passphrase": {
+    "text": "Show passphrase"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Hide passphrase"
+  },
   "web.LABELS.enable": {
     "text": "Enable",
     "sha256": "5342e09f"

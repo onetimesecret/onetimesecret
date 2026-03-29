@@ -402,7 +402,8 @@ features:
   # always exist under the hood (every customer has one for Stripe billing).
   # This flag controls whether users can see and switch between multiple orgs.
   organizations:
-    enabled: <%= ENV['ORGANIZATIONS_ENABLED'] == 'true' %>
+    enabled: <%= ENV['ENABLE_ORGS'] == 'true' %>
+    sso_enabled: <%= ENV['ORGS_SSO_ENABLED'] == 'true' %>
 
 # Main Database Configuration
 redis:

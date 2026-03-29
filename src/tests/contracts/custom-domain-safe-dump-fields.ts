@@ -26,6 +26,8 @@ export const CUSTOM_DOMAIN_SAFE_DUMP_FIELDS = [
   'verified',
   'created',
   'updated',
+  'sso_configured',
+  'sso_enabled',
 ] as const;
 
 export type CustomDomainSafeDumpField = (typeof CUSTOM_DOMAIN_SAFE_DUMP_FIELDS)[number];

@@ -186,11 +186,36 @@ export function hasPasswordlessMethods(): boolean {
  * Checks if the organization switcher UI is enabled.
  * Organizations always exist (every customer has one for Stripe billing).
  * This controls whether the multi-org switcher is visible in navigation.
- * Default is OFF - requires explicit opt-in via ORGANIZATIONS_ENABLED=true.
+ * Default is OFF - requires explicit opt-in via ENABLE_ORGS=true.
  */
 export function isOrganizationSwitcherEnabled(): boolean {
   if (typeof window === 'undefined') return false;
 
   const features = getBootstrapValue('features');
-  return features?.organizations?.enabled === true;
+  const result = features?.organizations?.enabled === true;
+  console.log('[features] isOrganizationSwitcherEnabled:', {
+    organizations: features?.organizations,
+    enabled: features?.organizations?.enabled,
+    result,
+  });
+  return result;
+}
+
+/**
+ * Checks if organization-level SSO configuration is enabled.
+ * When true, organizations with manage_sso entitlement can configure
+ * SSO for their custom domains.
+ * Default is OFF - requires explicit opt-in via ORGS_SSO_ENABLED=true.
+ */
+export function isOrgsSsoEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  const result = features?.organizations?.sso_enabled === true;
+  console.log('[features] isOrgsSsoEnabled:', {
+    organizations: features?.organizations,
+    sso_enabled: features?.organizations?.sso_enabled,
+    result,
+  });
+  return result;
 }

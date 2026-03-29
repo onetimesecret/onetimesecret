@@ -181,7 +181,8 @@ export const featuresSchema = z.object({
   magic_links: z.boolean().optional(),
   organizations: z.object({
     enabled: z.boolean().default(false),
-  }).optional().default({ enabled: false }),
+    sso_enabled: z.boolean().default(false),
+  }).optional().default({ enabled: false, sso_enabled: false }),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

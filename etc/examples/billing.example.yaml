@@ -130,9 +130,9 @@ entitlements:
     category: advanced
     description: Access to audit log features
 
-  sso:
+  manage_sso:
     category: advanced
-    description: Single sign-on integration
+    description: Single sign-on configuration and management
 
 # Plan Definitions
 #
