@@ -28,16 +28,8 @@
   <div
     v-if="isEnabled && linkGroups.length > 0"
     class="flex w-full justify-center border-t border-gray-200 pt-8 dark:border-gray-700">
-    <!-- prettier-ignore-attribute class -->
     <div
-      class="
-      grid w-full max-w-6xl grid-cols-1
-      justify-items-start gap-x-12
-      gap-y-8 px-4
-      [@media(min-width:640px)]:grid-cols-[repeat(auto-fill,minmax(140px,max-content))]
-      [@media(min-width:640px)]:justify-center
-      [@media(min-width:768px)]:grid-cols-[repeat(auto-fill,minmax(160px,max-content))]
-      [@media(min-width:1024px)]:grid-cols-[repeat(auto-fill,minmax(180px,max-content))]">
+      class="flex w-full max-w-6xl flex-col gap-x-12 gap-y-8 px-4 sm:flex-row sm:justify-center">
       <div
         v-for="(group, groupIndex) in linkGroups"
         :key="group.name || `group-${groupIndex}`"

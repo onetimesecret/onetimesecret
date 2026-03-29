@@ -118,20 +118,24 @@ site:
           - name: resources
             i18n_key: web.footer.resources
             links:
+              - text: Docs
+                i18n_key: web.footer.docs
+                # Replace with your documentation URL
+                url: <%= ENV['DOCS_URL'] || 'https://docs.onetimesecret.com/' %>
               - text: Status
                 i18n_key: web.COMMON.status
                 # Replace with your status page URL if you have one
-                url: <%= ENV['STATUS_URL'] %>
-              - text: About
-                i18n_key: web.COMMON.about
-                # Replace with your about page URL
-                url: <%= ENV['ABOUT_URL'] %>
+                url: <%= ENV['STATUS_URL'] || 'https://status.onetimesecret.com/' %>
           - name: support
             i18n_key: web.footer.support
             links:
+              - text: About
+                i18n_key: web.COMMON.about
+                # Replace with your about page URL
+                url: <%= ENV['ABOUT_URL'] || 'https://onetimesecret.com/about' %>
               - text: Contact
                 i18n_key: web.footer.contact
-                url: <%= ENV['CONTACT_URL'] %>
+                url: <%= ENV['CONTACT_URL'] || '/feedback' %>
       # Workspace footer links (authenticated users only)
       # Separate from footer_links which are for public pages
       workspace_links:
