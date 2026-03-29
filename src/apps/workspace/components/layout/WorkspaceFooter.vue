@@ -12,6 +12,7 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
   import type { LayoutProps } from '@/types/ui/layouts';
+  import { isExternalUrl } from '@/utils/url';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
   import { useRoute } from 'vue-router';
@@ -204,6 +205,8 @@
           :key="link.href">
           <a
             :href="link.href"
+            :target="isExternalUrl(link.href) ? '_blank' : '_self'"
+            :rel="isExternalUrl(link.href) ? 'noopener noreferrer' : undefined"
             class="text-sm text-gray-600 transition-colors duration-200 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
             {{ link.label }}
           </a>

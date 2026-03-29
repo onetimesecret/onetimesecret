@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { FooterLinksConfig } from '@/schemas/contracts/bootstrap';
+  import { isExternalUrl } from '@/utils/url';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
 
@@ -50,6 +51,8 @@
             <a
               v-if="link.url && link.url.trim()"
               :href="link.url"
+              :target="isExternalUrl(link.url) ? '_blank' : '_self'"
+              :rel="isExternalUrl(link.url) ? 'noopener noreferrer' : undefined"
               class="
                  block
                  text-sm text-gray-600

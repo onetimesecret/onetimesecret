@@ -177,7 +177,7 @@ module Core
 
         # URI helpers for templates
         site_host            = safe_site['host']
-        base_scheme          = safe_site['ssl'] ? 'https://' : 'http://'
+        base_scheme          = safe_site['ssl'] != false ? 'https://' : 'http://'
         baseuri              = base_scheme + site_host
 
         # Return all view variables as a hash
