@@ -27,10 +27,14 @@ require_relative '../support/domain_sso_test_fixtures'
 RSpec.describe Onetime::DomainSsoConfig do
   include DomainSsoTestFixtures
 
-  # Configure Familia encryption for testing
+  # Configure Familia encryption for testing, saving originals for restoration
   # DomainSsoConfig uses encrypted_field which requires key configuration
   # Keys must be Base64-encoded 32-byte values
   before(:all) do
+    @original_encryption_keys = Familia.config.encryption_keys&.dup
+    @original_key_version = Familia.config.current_key_version
+    @original_personalization = Familia.config.encryption_personalization
+
     # Generate valid 32-byte keys and Base64 encode them
     key_v1 = 'test_encryption_key_32bytes_ok!!' # Exactly 32 bytes
     key_v2 = 'another_test_key_for_testing_!!' # Exactly 32 bytes
@@ -42,6 +46,15 @@ RSpec.describe Onetime::DomainSsoConfig do
       }
       config.current_key_version = :v1
       config.encryption_personalization = 'DomainSsoConfigTest'
+    end
+  end
+
+  # Restore original Familia encryption config to avoid cross-contamination
+  after(:all) do
+    Familia.configure do |config|
+      config.encryption_keys = @original_encryption_keys if @original_encryption_keys
+      config.current_key_version = @original_key_version if @original_key_version
+      config.encryption_personalization = @original_personalization if @original_personalization
     end
   end
 

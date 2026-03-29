@@ -57,8 +57,12 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
   include TenantTestFixtures
   include DomainSsoTestFixtures
 
-  # Configure Familia encryption for testing
+  # Configure Familia encryption for testing, saving originals for restoration
   before(:all) do
+    @original_encryption_keys = Familia.config.encryption_keys&.dup
+    @original_key_version = Familia.config.current_key_version
+    @original_personalization = Familia.config.encryption_personalization
+
     key_v1 = 'test_encryption_key_32bytes_ok!!'
     key_v2 = 'another_test_key_for_testing_!!'
 
@@ -69,6 +73,15 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
       }
       config.current_key_version = :v1
       config.encryption_personalization = 'CallbackValidationTest'
+    end
+  end
+
+  # Restore original Familia encryption config to avoid cross-contamination
+  after(:all) do
+    Familia.configure do |config|
+      config.encryption_keys = @original_encryption_keys if @original_encryption_keys
+      config.current_key_version = @original_key_version if @original_key_version
+      config.encryption_personalization = @original_personalization if @original_personalization
     end
   end
 

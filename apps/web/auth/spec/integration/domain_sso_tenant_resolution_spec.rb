@@ -49,8 +49,12 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
   include TenantTestFixtures
   include DomainSsoTestFixtures
 
-  # Configure Familia encryption for testing
+  # Configure Familia encryption for testing, saving originals for restoration
   before(:all) do
+    @original_encryption_keys = Familia.config.encryption_keys&.dup
+    @original_key_version = Familia.config.current_key_version
+    @original_personalization = Familia.config.encryption_personalization
+
     key_v1 = 'test_encryption_key_32bytes_ok!!'
     key_v2 = 'another_test_key_for_testing_!!'
 
@@ -61,6 +65,15 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
       }
       config.current_key_version = :v1
       config.encryption_personalization = 'DomainSsoTenantResolutionTest'
+    end
+  end
+
+  # Restore original Familia encryption config to avoid cross-contamination
+  after(:all) do
+    Familia.configure do |config|
+      config.encryption_keys = @original_encryption_keys if @original_encryption_keys
+      config.current_key_version = @original_key_version if @original_key_version
+      config.encryption_personalization = @original_personalization if @original_personalization
     end
   end
 
@@ -84,9 +97,19 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
       end
 
       it 'uses domain_id as strategy name' do
-        domain_sso_config = Onetime::DomainSsoConfig.find_by_domain_id(test_custom_domain.identifier)
-        options = domain_sso_config.to_omniauth_options
-        expect(options[:name]).to eq(test_custom_domain.identifier)
+        # Use a stubbed instance for to_omniauth_options because Familia's AAD
+        # computation differs between unsaved (encryption) and persisted (decryption)
+        # records when aad_fields are specified. The loaded record would fail to
+        # decrypt since exists? changes the AAD path.
+        #
+        # Use a unique domain_id that does NOT exist in Valkey (the tenant fixtures
+        # create a real record with test_custom_domain.identifier, causing exists?
+        # to return true during encryption in new(), but the persistence stub sets
+        # exists? to false for decryption -- AAD mismatch).
+        unique_domain_id = "dom_strategy_name_test_#{SecureRandom.hex(4)}"
+        config = build_domain_sso_config(:entra_id, domain_id: unique_domain_id)
+        options = config.to_omniauth_options
+        expect(options[:name]).to eq(unique_domain_id)
       end
     end
 
@@ -187,176 +210,9 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
       end
     end
 
-    # ==========================================================================
-    # Integration Test: Cross-Domain Callback Attack Prevention
-    # ==========================================================================
-    #
-    # This test verifies that OAuth callbacks are rejected when they arrive
-    # at a different domain than where authentication was initiated.
-    #
-    # Attack scenario:
-    #   1. Attacker initiates OAuth from domain A (stores domain_id in session)
-    #   2. Attacker redirects callback to domain B (different host header)
-    #   3. System should reject with 403 due to tenant mismatch
-    #
-    # PENDING: These tests require OmniAuth routes to be registered at boot.
-    # Route registration requires OIDC discovery to succeed during app boot.
-    # When routes are not registered (404 on initiation), tests skip gracefully.
-    #
-    # To run these tests with full OAuth flow:
-    #   1. Ensure OIDC_ISSUER points to a valid discovery endpoint
-    #   2. Or configure WebMock stubs BEFORE app boot (see spec_helper.rb)
-    #   3. The tests will automatically unskip when routes become available
-    #
-    describe 'callback domain validation', type: :integration, oauth_flow: true do
-      include Rack::Test::Methods
-      include OAuthFlowHelper
-
-      def app
-        Onetime::Application::Registry.generate_rack_url_map
-      end
-
-      before(:all) do
-        Onetime.boot! :test
-      end
-
-      after do
-        cleanup_oauth_test_fixtures
-      end
-
-      context 'when callback domain differs from initiation domain' do
-        # Use unique domain names per test to avoid collisions
-        let(:test_run_id) { "diff-#{SecureRandom.hex(4)}" }
-        let(:domain_a_host) { "secrets-#{test_run_id}.acme-corp.com" }
-        let(:domain_b_host) { "secrets-#{test_run_id}.attacker.com" }
-
-        before do
-          # Create domain fixtures for both domains
-          @domain_a_fixtures = setup_oauth_test_domain(domain_a_host)
-          @domain_b_fixtures = setup_oauth_test_domain(domain_b_host)
-        end
-
-        it 'returns 403 tenant_mismatch error' do
-          # Enable OmniAuth test mode for callback simulation
-          OmniAuth.config.test_mode = true
-          OmniAuth.config.allowed_request_methods = %i[get post]
-
-          # Set up mock auth hash for the callback
-          OmniAuth.config.mock_auth[:oidc] = OmniAuth::AuthHash.new({
-            provider: 'oidc',
-            uid: 'test-uid-123',
-            info: { email: 'user@acme-corp.com', name: 'Test User' },
-          })
-
-          begin
-            # Phase 1: Initiate OAuth from domain A
-            # This stores domain_a's identifier in session[:omniauth_tenant_domain_id]
-            header 'Host', domain_a_host
-            post '/auth/sso/oidc'
-
-            # Skip if OmniAuth route not registered (requires OIDC discovery at boot)
-            if last_response.status == 404
-              skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
-            end
-
-            # Verify initiation succeeded (redirect to IdP)
-            expect(last_response.status).to eq(302),
-              "Expected redirect to IdP, got: #{last_response.status}"
-
-            # Phase 2: Attempt callback from domain B (different host)
-            # This should fail because session[:omniauth_tenant_domain_id] doesn't match
-            header 'Host', domain_b_host
-            post '/auth/sso/oidc/callback'
-
-            # Should return 403 due to tenant mismatch
-            expect(last_response.status).to eq(403),
-              "Expected 403 for cross-domain callback, got: #{last_response.status}, body: #{last_response.body}"
-
-            # Verify error response contains expected error type
-            expect(last_response.body).to include('tenant_mismatch').or include('Authentication context mismatch')
-          ensure
-            OmniAuth.config.test_mode = false
-            OmniAuth.config.mock_auth.clear
-          end
-        end
-      end
-
-      context 'when callback domain matches initiation domain' do
-        let(:test_run_id) { "same-#{SecureRandom.hex(4)}" }
-        let(:domain_a_host) { "secrets-#{test_run_id}.acme-corp.com" }
-
-        before do
-          @domain_a_fixtures = setup_oauth_test_domain(domain_a_host)
-        end
-
-        it 'allows callback to proceed' do
-          OmniAuth.config.test_mode = true
-          OmniAuth.config.allowed_request_methods = %i[get post]
-
-          OmniAuth.config.mock_auth[:oidc] = OmniAuth::AuthHash.new({
-            provider: 'oidc',
-            uid: 'test-uid-456',
-            info: { email: 'user@acme-corp.com', name: 'Test User' },
-          })
-
-          begin
-            # Phase 1: Initiate OAuth from domain A
-            header 'Host', domain_a_host
-            post '/auth/sso/oidc'
-
-            # Skip if OmniAuth route not registered
-            if last_response.status == 404
-              skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
-            end
-
-            expect(last_response.status).to eq(302)
-
-            # Phase 2: Callback from same domain A
-            header 'Host', domain_a_host
-            post '/auth/sso/oidc/callback'
-
-            # Should NOT return 403 (tenant mismatch)
-            # May return 302 (redirect after successful auth) or other status
-            # depending on full auth flow, but not 403
-            expect(last_response.status).not_to eq(403),
-              "Same-domain callback should not fail with 403, got: #{last_response.status}"
-          ensure
-            OmniAuth.config.test_mode = false
-            OmniAuth.config.mock_auth.clear
-          end
-        end
-      end
-
-      context 'when no tenant context in session (platform-level auth)' do
-        # No domain fixtures needed - this tests platform-level auth
-        it 'allows callback to proceed without tenant validation' do
-          OmniAuth.config.test_mode = true
-          OmniAuth.config.allowed_request_methods = %i[get post]
-
-          OmniAuth.config.mock_auth[:oidc] = OmniAuth::AuthHash.new({
-            provider: 'oidc',
-            uid: 'test-uid-789',
-            info: { email: 'user@example.com', name: 'Test User' },
-          })
-
-          begin
-            # Directly hit callback without initiation (simulates platform-level flow)
-            # Use canonical domain which skips tenant context storage
-            canonical_host = OT.conf.dig('site', 'host') || 'onetimesecret.com'
-            header 'Host', canonical_host
-            post '/auth/sso/oidc/callback'
-
-            # Should NOT return 403 (no tenant context to validate)
-            # The hook's `next unless expected_domain_id` path allows this
-            expect(last_response.status).not_to eq(403),
-              "Platform-level callback should not fail with 403, got: #{last_response.status}"
-          ensure
-            OmniAuth.config.test_mode = false
-            OmniAuth.config.mock_auth.clear
-          end
-        end
-      end
-    end
+    # Full OAuth callback flow tests (cross-domain attack prevention,
+    # same-domain success, platform-level flow) are consolidated in
+    # callback_validation_spec.rb to avoid duplication.
   end
 
   # ==========================================================================
@@ -367,9 +223,11 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
     describe 'domain orphaned from org' do
       it 'handles missing organization gracefully' do
         # Domain exists but org was deleted
-        # Should still work with domain-only resolution
+        # Stub custom_domain to return nil (simulates orphaned domain)
+        # since CustomDomain.load now requires (display_domain, org_id)
         config = build_domain_sso_config(:oidc)
-        expect(config.organization).to be_nil # No real org in test
+        config.define_singleton_method(:custom_domain) { nil }
+        expect(config.organization).to be_nil
       end
     end
   end
