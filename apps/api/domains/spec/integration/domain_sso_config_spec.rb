@@ -71,7 +71,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
   let(:test_run_id) { SecureRandom.hex(8) }
   let(:test_email) { "owner-#{test_run_id}@test.local" }
   let(:test_password) { 'Test123!@#' }
-  let(:tenant_domain) { "secrets-#{test_run_id}.acme-corp.test" }
+  let(:tenant_domain) { "secrets-#{test_run_id}.acme-corp.example.com" }
 
   # Create owner customer
   let!(:test_owner) do

@@ -312,7 +312,7 @@ end
 
 RSpec.shared_context 'tenant fixtures' do
   let(:test_run_id) { SecureRandom.hex(8) }
-  let(:tenant_domain) { "secrets-#{test_run_id}.acme-corp.test" }
+  let(:tenant_domain) { "secrets-#{test_run_id}.acme-corp.example.com" }
 
   let!(:test_organization) do
     owner = Onetime::Customer.new(email: "owner-#{test_run_id}@test.local")
