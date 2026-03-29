@@ -126,8 +126,7 @@ const { t } = useI18n();
                   <div
                     class="group relative ml-2"
                     tabindex="0"
-                    role="button"
-                    :aria-label="t('web.domains.homepage_access_help')"
+                    :aria-label="t('web.domains.homepage_access')"
                     aria-describedby="homepage-access-tooltip">
                     <OIcon
                       collection="heroicons"
