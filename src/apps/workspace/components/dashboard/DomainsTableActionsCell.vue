@@ -13,10 +13,12 @@ const { t } = useI18n();
     domain: CustomDomain;
     orgid: string;
     canBrand?: boolean;
+    canManageSso?: boolean;
   }
 
   const props = withDefaults(defineProps<Props>(), {
     canBrand: false,
+    canManageSso: false,
   });
 
   const emit = defineEmits<{
@@ -63,7 +65,7 @@ const { t } = useI18n();
             {{ t('web.domains.verify_domain') }}
           </router-link>
         </MenuItem>
-        <MenuItem v-slot="{ active }">
+        <MenuItem v-if="canManageSso" v-slot="{ active }">
           <router-link
             :to="{
               name: 'DomainSso',

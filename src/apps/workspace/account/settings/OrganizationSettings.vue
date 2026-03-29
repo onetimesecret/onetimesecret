@@ -30,7 +30,8 @@ import type { /* CreateInvitationPayload, */ Organization, OrganizationInvitatio
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in template
 import { formatDisplayDate } from '@/utils/format';
 import { isOrgsSsoEnabled } from '@/utils/features';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { SsoService } from '@/services/sso.service';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 // LAUNCH: Identity-only - zod hidden until team features enabled (used for invite form validation)
 // import { z } from 'zod';
@@ -181,6 +182,46 @@ const {
 // SSO visibility: feature flag AND entitlement must both pass (dual-control)
 const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
 
+// SSO status per domain — populated on-demand when SSO tab is shown
+interface DomainSsoStatus {
+  configured: boolean;
+  enabled: boolean;
+}
+const domainSsoStatus: Record<string, DomainSsoStatus> = reactive({});
+const isSsoStatusLoaded = ref(false);
+
+/**
+ * Fetch SSO configuration status for each domain in the list.
+ * Only called when canManageSso is true and domains are loaded.
+ * Uses SsoService.getConfigForDomain which returns { record: null }
+ * for 404 (no config), so no error handling needed for that case.
+ */
+const loadDomainSsoStatus = async () => {
+  if (!canManageSso.value || !domainRecords.value?.length) return;
+  if (isSsoStatusLoaded.value) return;
+
+  const domains = domainRecords.value;
+  const results = await Promise.allSettled(
+    domains.map(async (domain) => {
+      const { record } = await SsoService.getConfigForDomain(domain.extid);
+      return { extid: domain.extid, record };
+    })
+  );
+
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      const { extid, record } = result.value;
+      domainSsoStatus[extid] = {
+        configured: record !== null,
+        enabled: record?.enabled === true,
+      };
+    }
+    // Rejected promises (network errors) are silently skipped —
+    // the badge simply won't appear for that domain.
+  }
+
+  isSsoStatusLoaded.value = true;
+};
 
 // Form data
 const formData = ref({
@@ -443,6 +484,9 @@ onMounted(async () => {
     await refreshDomains();
   } else if (activeTab.value === 'subscription' && billingEnabled.value) {
     await loadBilling();
+  } else if (activeTab.value === 'sso' && canManageSso.value) {
+    await refreshDomains();
+    await loadDomainSsoStatus();
   }
 });
 
@@ -464,6 +508,10 @@ watch(activeTab, async (newTab) => {
     await refreshDomains();
   } else if (newTab === 'subscription' && !subscription.value && billingEnabled.value) {
     await loadBilling();
+  } else if (newTab === 'sso' && canManageSso.value) {
+    // Ensure domains are loaded, then fetch SSO status for each
+    await refreshDomains();
+    await loadDomainSsoStatus();
   }
 });
 
@@ -472,6 +520,12 @@ watch(activeTab, async (newTab) => {
 // This ensures currentOrganization in the store is updated to match the URL.
 watch(orgId, async (newOrgId, oldOrgId) => {
   if (newOrgId && newOrgId !== oldOrgId) {
+    // Reset SSO status cache when switching orgs — domains differ per org
+    isSsoStatusLoaded.value = false;
+    for (const key of Object.keys(domainSsoStatus)) {
+      delete domainSsoStatus[key];
+    }
+
     await loadOrganization();
     // Reload tab-specific data for the new org
     if (activeTab.value === 'members') {
@@ -480,6 +534,9 @@ watch(orgId, async (newOrgId, oldOrgId) => {
       await refreshDomains();
     } else if (activeTab.value === 'subscription' && billingEnabled.value) {
       await loadBilling();
+    } else if (activeTab.value === 'sso' && canManageSso.value) {
+      await refreshDomains();
+      await loadDomainSsoStatus();
     }
   }
 });
@@ -1379,6 +1436,17 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     </div>
                   </div>
                   <div class="flex items-center gap-3">
+                    <!-- SSO Status Badge (driven by domainSsoStatus map) -->
+                    <span
+                      v-if="domainSsoStatus[domain.extid]?.enabled"
+                      class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                      {{ t('web.organizations.sso.status_enabled') }}
+                    </span>
+                    <span
+                      v-else-if="domainSsoStatus[domain.extid]?.configured"
+                      class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-600 dark:text-gray-300">
+                      {{ t('web.organizations.sso.status_configured') }}
+                    </span>
                     <!-- Configure SSO link -->
                     <router-link
                       :to="`/org/${orgId}/domains/${domain.extid}/sso`"

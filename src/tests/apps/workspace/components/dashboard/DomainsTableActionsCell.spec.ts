@@ -65,12 +65,13 @@ const mockDomain = {
   updated: new Date('2024-01-01'),
 };
 
-function mountComponent(canBrand = false) {
+function mountComponent({ canBrand = false, canManageSso = false } = {}) {
   return mount(DomainsTableActionsCell, {
     props: {
       domain: mockDomain,
       orgid: 'org_ext_123',
       canBrand,
+      canManageSso,
     },
     global: {
       stubs: {
@@ -91,7 +92,7 @@ describe('DomainsTableActionsCell', () => {
 
   describe('canBrand entitlement gating', () => {
     it('hides "Manage Brand" menu item when canBrand is false', () => {
-      const wrapper = mountComponent(false);
+      const wrapper = mountComponent({ canBrand: false });
 
       const menuItems = wrapper.findAll('[role="menuitem"]');
       const texts = menuItems.map((item) => item.text());
@@ -102,7 +103,7 @@ describe('DomainsTableActionsCell', () => {
     });
 
     it('shows "Manage Brand" menu item when canBrand is true', () => {
-      const wrapper = mountComponent(true);
+      const wrapper = mountComponent({ canBrand: true });
 
       const menuItems = wrapper.findAll('[role="menuitem"]');
       const texts = menuItems.map((item) => item.text());
@@ -112,18 +113,26 @@ describe('DomainsTableActionsCell', () => {
       expect(texts).toContain('Remove');
     });
 
-    it('renders 3 menu items without branding, 4 with branding', () => {
-      const withoutBrand = mountComponent(false);
-      const withBrand = mountComponent(true);
+    it('renders correct menu item count based on entitlements', () => {
+      // Base: Verify Domain, Remove (2 items)
+      const base = mountComponent();
+      expect(base.findAll('[role="menuitem"]')).toHaveLength(2);
 
-      // Without branding: Verify Domain, Configure SSO, Remove
-      expect(withoutBrand.findAll('[role="menuitem"]')).toHaveLength(3);
-      // With branding: Manage Brand, Verify Domain, Configure SSO, Remove
-      expect(withBrand.findAll('[role="menuitem"]')).toHaveLength(4);
+      // With branding only: Manage Brand, Verify Domain, Remove (3 items)
+      const withBrand = mountComponent({ canBrand: true });
+      expect(withBrand.findAll('[role="menuitem"]')).toHaveLength(3);
+
+      // With SSO only: Verify Domain, Configure SSO, Remove (3 items)
+      const withSso = mountComponent({ canManageSso: true });
+      expect(withSso.findAll('[role="menuitem"]')).toHaveLength(3);
+
+      // With both: Manage Brand, Verify Domain, Configure SSO, Remove (4 items)
+      const withBoth = mountComponent({ canBrand: true, canManageSso: true });
+      expect(withBoth.findAll('[role="menuitem"]')).toHaveLength(4);
     });
 
     it('links "Manage Brand" to DomainBrand route with correct params', () => {
-      const wrapper = mountComponent(true);
+      const wrapper = mountComponent({ canBrand: true });
 
       const links = wrapper.findAll('a[data-to]');
       const brandLink = links.find((link) => link.text() === 'Manage Brand');
@@ -132,6 +141,42 @@ describe('DomainsTableActionsCell', () => {
       const to = JSON.parse(brandLink!.attributes('data-to')!);
       expect(to).toEqual({
         name: 'DomainBrand',
+        params: { orgid: 'org_ext_123', extid: 'dm-test-extid' },
+      });
+    });
+  });
+
+  describe('canManageSso entitlement gating', () => {
+    it('hides "Configure SSO" menu item when canManageSso is false', () => {
+      const wrapper = mountComponent({ canManageSso: false });
+
+      const menuItems = wrapper.findAll('[role="menuitem"]');
+      const texts = menuItems.map((item) => item.text());
+
+      expect(texts).not.toContain('Configure SSO');
+      expect(texts).toContain('Verify Domain');
+      expect(texts).toContain('Remove');
+    });
+
+    it('shows "Configure SSO" menu item when canManageSso is true', () => {
+      const wrapper = mountComponent({ canManageSso: true });
+
+      const menuItems = wrapper.findAll('[role="menuitem"]');
+      const texts = menuItems.map((item) => item.text());
+
+      expect(texts).toContain('Configure SSO');
+    });
+
+    it('links "Configure SSO" to DomainSso route with correct params', () => {
+      const wrapper = mountComponent({ canManageSso: true });
+
+      const links = wrapper.findAll('a[data-to]');
+      const ssoLink = links.find((link) => link.text() === 'Configure SSO');
+
+      expect(ssoLink).toBeDefined();
+      const to = JSON.parse(ssoLink!.attributes('data-to')!);
+      expect(to).toEqual({
+        name: 'DomainSso',
         params: { orgid: 'org_ext_123', extid: 'dm-test-extid' },
       });
     });

@@ -18,6 +18,7 @@
   import { useEntitlements } from '@/shared/composables/useEntitlements';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { ENTITLEMENTS } from '@/types/organization';
+  import { isOrgsSsoEnabled } from '@/utils/features';
 
   import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
   import { computed } from 'vue';
@@ -48,6 +49,7 @@ const { t } = useI18n();
   );
   const { can } = useEntitlements(organization);
   const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
+  const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
 
   const emit = defineEmits<{
     (e: 'toggle-homepage', domain: CustomDomain): void;
@@ -178,6 +180,7 @@ const { t } = useI18n();
                   :domain="domain"
                   :orgid="props.orgid"
                   :can-brand="canBrand"
+                  :can-manage-sso="canManageSso"
                   @delete="handleDelete" />
               </td>
             </tr>
