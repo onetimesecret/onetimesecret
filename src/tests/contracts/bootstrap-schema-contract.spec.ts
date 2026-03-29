@@ -360,6 +360,12 @@ describe('Bootstrap realistic payload parsing', () => {
     const payload = {
       ui: {
         enabled: true,
+        capabilities: {
+          burn: true,
+          show: true,
+          receipt: true,
+          recipient: true,
+        },
         header: {
           enabled: true,
           branding: {
@@ -377,8 +383,8 @@ describe('Bootstrap realistic payload parsing', () => {
             {
               name: 'Resources',
               links: [
-                { text: 'Docs', url: '/docs', external: false },
-                { text: 'API', url: '/docs/api', external: false },
+                { text: 'Docs', url: '/docs' },
+                { text: 'API', url: '/docs/api' },
               ],
             },
           ],
