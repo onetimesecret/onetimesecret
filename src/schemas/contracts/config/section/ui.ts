@@ -81,14 +81,21 @@ const userInterfaceFooterLinksSchema = z.object({
 });
 
 /**
- * UI configuration schema
- */
-/**
  * Workspace links configuration (authenticated users only)
  */
 const userInterfaceWorkspaceLinksSchema = z.object({
   enabled: z.boolean().default(false),
   links: z.array(userInterfaceFooterLinkSchema).default([]),
+});
+
+/**
+ * UI capabilities configuration
+ */
+const uiCapabilitiesSchema = z.object({
+  burn: z.boolean().optional(),
+  show: z.boolean().optional(),
+  receipt: z.boolean().optional(),
+  recipient: z.boolean().optional(),
 });
 
 const uiSchema = z.object({
@@ -97,6 +104,7 @@ const uiSchema = z.object({
   header: userInterfaceHeaderSchema.optional(),
   footer_links: userInterfaceFooterLinksSchema.optional(),
   workspace_links: userInterfaceWorkspaceLinksSchema.optional(),
+  capabilities: uiCapabilitiesSchema.optional(),
 });
 
 /**
@@ -122,4 +130,5 @@ export {
   userInterfaceHeaderSchema,
   userInterfaceFooterLinksSchema,
   userInterfaceHomepageSchema,
+  uiCapabilitiesSchema,
 };

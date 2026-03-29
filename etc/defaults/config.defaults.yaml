@@ -69,6 +69,16 @@ site:
         mode_header: <%= ENV['UI_HOMEPAGE_MODE_HEADER'] || 'O-Homepage-Mode' %>
         trusted_proxy_depth: <%= ENV['UI_HOMEPAGE_TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
         trusted_ip_header: <%= ENV['UI_HOMEPAGE_TRUSTED_IP_HEADER'] || 'X-Forwarded-For' %>
+
+      # Form field visibility flags
+      # Controls which optional fields appear on the secret creation form.
+      # All default to true (visible). Set to 'false' to hide from the UI.
+      # These are independent of API guest_routes, which gate endpoint access.
+      capabilities:
+        burn: <%= ENV['UI_CAPABILITIES_BURN'] != 'false' %>
+        show: <%= ENV['UI_CAPABILITIES_SHOW'] != 'false' %>
+        receipt: <%= ENV['UI_CAPABILITIES_RECEIPT'] != 'false' %>
+        recipient: <%= ENV['UI_CAPABILITIES_RECIPIENT'] != 'false' %>
       # Header configuration
       # Controls branding and navigation in the site header
       header:
@@ -147,7 +157,7 @@ site:
           url: <%= ENV['WORKSPACE_API_DOCS_URL'] || 'https://api.onetimesecret.com/' %>
         - text: Branding Guide
           i18n_key: web.footer.branding_guide
-          url: <%= ENV['WORKSPACE_BRANDING_GUIDE_URL'] || 'https://docs.onetimesecrets.com/' %>
+          url: <%= ENV['WORKSPACE_BRANDING_GUIDE_URL'] || 'https://docs.onetimesecret.com/' %>
         - text: Feedback
           i18n_key: web.TITLES.feedback
           url: <%= ENV['WORKSPACE_FEEDBACK_URL'] || '/feedback' %>

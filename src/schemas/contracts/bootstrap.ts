@@ -134,11 +134,19 @@ export const workspaceLinksConfigSchema = z.object({
   links: z.array(footerLinkSchema).default([]),
 });
 
+export const uiCapabilitiesSchema = z.object({
+  burn: z.boolean().optional(),
+  show: z.boolean().optional(),
+  receipt: z.boolean().optional(),
+  recipient: z.boolean().optional(),
+});
+
 export const uiInterfaceSchema = z.object({
   enabled: z.boolean().default(true),
   header: headerConfigSchema.optional(),
   footer_links: footerLinksConfigSchema.optional(),
   workspace_links: workspaceLinksConfigSchema.optional(),
+  capabilities: uiCapabilitiesSchema.optional(),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -325,6 +333,7 @@ export type HeaderLogo = z.infer<typeof headerLogoSchema>;
 export type HeaderBranding = z.infer<typeof headerBrandingSchema>;
 export type HeaderNavigation = z.infer<typeof headerNavigationSchema>;
 export type HeaderConfig = z.infer<typeof headerConfigSchema>;
+export type UiCapabilities = z.infer<typeof uiCapabilitiesSchema>;
 export type UiInterface = z.infer<typeof uiInterfaceSchema>;
 export type AuthenticationSettings = z.infer<typeof authenticationSettingsSchema>;
 export type SSOProvider = z.infer<typeof ssoProviderSchema>;
