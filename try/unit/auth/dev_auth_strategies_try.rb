@@ -153,5 +153,165 @@ strategy = DevBasicAuth.new
 strategy.send(:valid_dev_credentials?, nil, nil)
 #=> false
 
-# Cleanup: Customer records created during tests are left for inspection
+# =============================================================================
+# DevBasicAuthStrategy#authenticate Tests
+# =============================================================================
+
+## DevBasicAuth#authenticate with valid dev_* credentials succeeds
+@dev_username = "dev_testauth_#{SecureRandom.hex(4)}"
+@dev_apikey = "dev_apikey_#{SecureRandom.hex(8)}"
+@basic_auth_header = "Basic #{Base64.strict_encode64("#{@dev_username}:#{@dev_apikey}")}"
+@env_dev_basic = {
+  'HTTP_AUTHORIZATION' => @basic_auth_header,
+  'rack.session' => {},
+  'REMOTE_ADDR' => '127.0.0.1',
+  'HTTP_USER_AGENT' => 'Test/1.0'
+}
+@dev_basic_strategy = DevBasicAuth.new
+@result_dev_basic = @dev_basic_strategy.authenticate(@env_dev_basic, nil)
+[
+  @result_dev_basic.class.name,
+  @result_dev_basic.authenticated?,
+  @result_dev_basic.metadata[:dev_user],
+  @result_dev_basic.metadata[:ttl_seconds]
+]
+#=> ['Otto::Security::Authentication::StrategyResult', true, true, 72000]
+
+## DevBasicAuth#authenticate creates ephemeral customer with dev_* email
+@result_dev_basic.user.email.start_with?(@dev_username) && @result_dev_basic.user.email.end_with?('@dev.local')
+#=> true
+
+## DevBasicAuth#authenticate with non-dev username fails
+@non_dev_username = "regular_user_#{SecureRandom.hex(4)}"
+@non_dev_header = "Basic #{Base64.strict_encode64("#{@non_dev_username}:dev_secret123")}"
+@env_non_dev = {
+  'HTTP_AUTHORIZATION' => @non_dev_header,
+  'rack.session' => {},
+  'REMOTE_ADDR' => '127.0.0.1',
+  'HTTP_USER_AGENT' => 'Test/1.0'
+}
+@result_non_dev = DevBasicAuth.new.authenticate(@env_non_dev, nil)
+[
+  @result_non_dev.class.name,
+  @result_non_dev.failure_reason.include?('DEV_PREFIX_REQUIRED')
+]
+#=> ['Otto::Security::Authentication::AuthFailure', true]
+
+## DevBasicAuth#authenticate with non-dev apikey fails
+@non_dev_apikey_header = "Basic #{Base64.strict_encode64("dev_alice:regular_secret123")}"
+@env_non_dev_apikey = {
+  'HTTP_AUTHORIZATION' => @non_dev_apikey_header,
+  'rack.session' => {},
+  'REMOTE_ADDR' => '127.0.0.1',
+  'HTTP_USER_AGENT' => 'Test/1.0'
+}
+@result_non_dev_apikey = DevBasicAuth.new.authenticate(@env_non_dev_apikey, nil)
+@result_non_dev_apikey.failure_reason.include?('DEV_PREFIX_REQUIRED')
+#=> true
+
+## DevBasicAuth#authenticate production guard returns failure (not exception)
+# Temporarily set RACK_ENV to production to test the guard
+original_rack_env = ENV['RACK_ENV']
+ENV['RACK_ENV'] = 'production'
+# Reload OT.env by checking production? directly
+@prod_guard_result = DevBasicAuth.new.authenticate(@env_dev_basic, nil)
+ENV['RACK_ENV'] = original_rack_env
+[
+  @prod_guard_result.class.name,
+  @prod_guard_result.failure_reason.include?('DEV_AUTH_BLOCKED')
+]
+#=> ['Otto::Security::Authentication::AuthFailure', true]
+
+## DevBasicAuth#authenticate handles RecordExistsError race condition by retry
+# First create the customer so a race condition would occur.
+# NOTE: With DevWorkerIdentity, emails are namespaced for parallel CI execution.
+# We need to pre-compute the namespaced email that the strategy will use.
+@race_username = "dev_race_#{SecureRandom.hex(4)}"
+@race_apikey = "dev_racekey_#{SecureRandom.hex(8)}"
+
+# Compute the namespaced email the strategy will look for
+@identity = Onetime::Application::AuthStrategies::DevWorkerIdentity
+@race_base_name = @race_username.delete_prefix('dev_')
+@race_namespaced = "dev_#{@identity.namespaced_username(@race_base_name)}"
+@race_email = "#{@race_namespaced}@dev.local"
+
+# Pre-create the customer with the namespaced email (simulates another request winning the race)
+@precreated_cust = Onetime::Customer.create!(email: @race_email, role: 'customer')
+@precreated_cust.apitoken = @race_apikey
+@precreated_cust.save
+
+@race_auth_header = "Basic #{Base64.strict_encode64("#{@race_username}:#{@race_apikey}")}"
+@env_race = {
+  'HTTP_AUTHORIZATION' => @race_auth_header,
+  'rack.session' => {},
+  'REMOTE_ADDR' => '127.0.0.1',
+  'HTTP_USER_AGENT' => 'Test/1.0'
+}
+
+# This should find the existing customer (simulates race resolution)
+@result_race = DevBasicAuth.new.authenticate(@env_race, nil)
+[
+  @result_race.class.name,
+  @result_race.authenticated?,
+  @result_race.user.email == @race_email
+]
+#=> ['Otto::Security::Authentication::StrategyResult', true, true]
+
+# =============================================================================
+# DevSessionAuthStrategy#authenticate Tests
+# =============================================================================
+
+## DevSessionAuth#authenticate with dev user session succeeds
+@session_dev_email = "dev_sessionauth_#{SecureRandom.hex(4)}@example.com"
+@session_dev_cust = Onetime::Customer.create!(email: @session_dev_email, role: 'customer')
+@env_dev_session = {
+  'rack.session' => {
+    'authenticated' => true,
+    'external_id' => @session_dev_cust.extid
+  },
+  'REMOTE_ADDR' => '127.0.0.1',
+  'HTTP_USER_AGENT' => 'Test/1.0'
+}
+@result_dev_session = DevSessionAuth.new.authenticate(@env_dev_session, nil)
+[
+  @result_dev_session.class.name,
+  @result_dev_session.authenticated?,
+  @result_dev_session.metadata[:dev_user]
+]
+#=> ['Otto::Security::Authentication::StrategyResult', true, true]
+
+## DevSessionAuth#authenticate with non-dev user session fails
+@session_regular_email = "regular_sessionauth_#{SecureRandom.hex(4)}@example.com"
+@session_regular_cust = Onetime::Customer.create!(email: @session_regular_email, role: 'customer')
+@env_regular_session = {
+  'rack.session' => {
+    'authenticated' => true,
+    'external_id' => @session_regular_cust.extid
+  },
+  'REMOTE_ADDR' => '127.0.0.1',
+  'HTTP_USER_AGENT' => 'Test/1.0'
+}
+@result_regular_session = DevSessionAuth.new.authenticate(@env_regular_session, nil)
+[
+  @result_regular_session.class.name,
+  @result_regular_session.failure_reason.include?('DEV_USER_REQUIRED')
+]
+#=> ['Otto::Security::Authentication::AuthFailure', true]
+
+## DevSessionAuth#authenticate production guard returns failure
+original_rack_env = ENV['RACK_ENV']
+ENV['RACK_ENV'] = 'production'
+@prod_session_result = DevSessionAuth.new.authenticate(@env_dev_session, nil)
+ENV['RACK_ENV'] = original_rack_env
+[
+  @prod_session_result.class.name,
+  @prod_session_result.failure_reason.include?('DEV_AUTH_BLOCKED')
+]
+#=> ['Otto::Security::Authentication::AuthFailure', true]
+
+# =============================================================================
+# Cleanup
+# =============================================================================
+
+# Customer records created during tests are left for inspection
 # They will be cleaned up by Redis TTL or manual cleanup

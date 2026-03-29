@@ -1,5 +1,6 @@
 // src/plugins/core/enableDiagnostics.ts
 
+import { initDiagnostics } from '@/services/diagnostics.service';
 import type { DiagnosticsConfig } from '@/types/diagnostics';
 import { DEBUG } from '@/utils/debug';
 import {
@@ -130,7 +131,11 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
 
   return {
     install(app: App) {
-      // Provide Sentry instance using symbol key
+      // Initialize module-level diagnostics service for use outside Vue context
+      // (e.g., globalErrorBoundary, schemaValidation)
+      initDiagnostics(client, scope);
+
+      // Provide Sentry instance using symbol key (for components using inject)
       app.provide(SENTRY_KEY, { client, scope });
 
       // Auto-cleanup on unmount. Otherwise some events might be

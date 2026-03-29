@@ -135,11 +135,48 @@ export type OrganizationWire = OrganizationCanonical & {
 
 /**
  * Creates wire format from canonical, adding API-response fields.
+ *
+ * @param canonicalOrOverrides - Either a full OrganizationCanonical object,
+ *   or partial overrides to apply to the default canonical organization.
  */
 export function createWireOrganization(
-  canonical?: OrganizationCanonical
+  canonicalOrOverrides?: OrganizationCanonical | Partial<OrganizationWire>
 ): OrganizationWire {
-  const org = canonical ?? createCanonicalOrganization();
+  // If overrides have wire-only fields, use as overrides; otherwise treat as canonical
+  const hasWireFields = canonicalOrOverrides && (
+    'billing_email' in canonicalOrOverrides ||
+    'member_count' in canonicalOrOverrides ||
+    'current_user_role' in canonicalOrOverrides ||
+    'entitlements' in canonicalOrOverrides ||
+    'limits' in canonicalOrOverrides ||
+    'domain_count' in canonicalOrOverrides
+  );
+
+  if (hasWireFields) {
+    // Overrides mode: merge with defaults
+    const overrides = canonicalOrOverrides as Partial<OrganizationWire>;
+    const canonical = createCanonicalOrganization(overrides);
+    return {
+      ...canonical,
+      billing_email: null,
+      member_count: 1,
+      current_user_role: 'owner',
+      entitlements: ['create_secrets', 'view_receipt'],
+      limits: {
+        teams: 1,
+        members_per_team: 5,
+        custom_domains: 0,
+      },
+      domain_count: 0,
+      ...overrides,
+    };
+  }
+
+  // Canonical mode: use as-is or default
+  const org = canonicalOrOverrides
+    ? createCanonicalOrganization(canonicalOrOverrides as Partial<OrganizationCanonical>)
+    : createCanonicalOrganization();
+
   return {
     ...org,
     billing_email: null,
@@ -185,6 +222,110 @@ export function createWirePaidOrganization(
     domain_count: 2,
   };
 }
+
+// -----------------------------------------------------------------------------
+// Billing-Specific Wire Format Factories
+// -----------------------------------------------------------------------------
+
+/**
+ * Creates wire format for free tier organization (no subscription).
+ */
+export function createWireFreeOrganization(
+  overrides?: Partial<OrganizationWire>
+): OrganizationWire {
+  return {
+    ...createWireOrganization(createCanonicalOrganization({
+      objid: 'org_free_123',
+      extid: 'on%org_free_123',
+      planid: 'free_v1',
+    })),
+    entitlements: [],
+    limits: { teams: 0, members_per_team: 0, custom_domains: 0 },
+    ...overrides,
+  };
+}
+
+/**
+ * Creates wire format for single team tier (Identity Plus).
+ */
+export function createWireSingleTeamOrganization(
+  overrides?: Partial<OrganizationWire>
+): OrganizationWire {
+  return {
+    ...createWireOrganization(createCanonicalOrganization({
+      objid: 'org_single_123',
+      extid: 'on%org_single_123',
+      planid: 'identity_plus_v1_monthly',
+    })),
+    billing_email: 'billing@example.com',
+    member_count: 5,
+    current_user_role: 'owner',
+    entitlements: ['api_access', 'custom_domains', 'custom_branding'],
+    limits: { teams: 1, members_per_team: 10, custom_domains: 3 },
+    ...overrides,
+  };
+}
+
+/**
+ * Creates wire format for multi team tier (Team Plus).
+ */
+export function createWireMultiTeamOrganization(
+  overrides?: Partial<OrganizationWire>
+): OrganizationWire {
+  return {
+    ...createWireOrganization(createCanonicalOrganization({
+      objid: 'org_multi_123',
+      extid: 'on%org_multi_123',
+      planid: 'team_plus_v1_monthly',
+    })),
+    billing_email: 'billing@enterprise.example.com',
+    member_count: 15,
+    current_user_role: 'owner',
+    entitlements: [
+      'api_access',
+      'custom_domains',
+      'custom_branding',
+      'manage_teams',
+      'manage_members',
+      'audit_logs',
+    ],
+    limits: { teams: 5, members_per_team: 25, custom_domains: 10 },
+    ...overrides,
+  };
+}
+
+/**
+ * Creates wire format for legacy identity plan (Early Supporter).
+ * These customers have single_team tier features but planid is 'identity'.
+ */
+export function createWireLegacyIdentityOrganization(
+  overrides?: Partial<OrganizationWire>
+): OrganizationWire {
+  return {
+    ...createWireOrganization(createCanonicalOrganization({
+      objid: 'org_legacy_123',
+      extid: 'on%org_legacy_123',
+      display_name: 'Early Supporter Org',
+      planid: 'identity',
+    })),
+    billing_email: 'billing@legacy.example.com',
+    member_count: 3,
+    current_user_role: 'owner',
+    entitlements: ['api_access', 'custom_domains', 'custom_branding'],
+    limits: { teams: 1, members_per_team: 10, custom_domains: 3 },
+    ...overrides,
+  };
+}
+
+/**
+ * Pre-configured wire organization variants for billing tests.
+ */
+export const wireOrganizations = {
+  free: createWireFreeOrganization(),
+  singleTeam: createWireSingleTeamOrganization(),
+  multiTeam: createWireMultiTeamOrganization(),
+  legacyIdentity: createWireLegacyIdentityOrganization(),
+};
 
 // -----------------------------------------------------------------------------
 // Comparison Functions
