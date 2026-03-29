@@ -129,6 +129,9 @@ module Core
             'webauthn' => Onetime.auth_config.webauthn_enabled?,
             'sso' => build_sso_config(view_vars),
             'sso_only' => Onetime.auth_config.sso_only_enabled?,
+            'password_only' => Onetime.auth_config.password_only_enabled?,
+            'email_auth_only' => Onetime.auth_config.email_auth_only_enabled?,
+            'webauthn_only' => Onetime.auth_config.webauthn_only_enabled?,
             'organizations' => {
               'enabled' => features.dig('organizations', 'enabled') || false,
               'sso_enabled' => features.dig('organizations', 'sso_enabled') || false,

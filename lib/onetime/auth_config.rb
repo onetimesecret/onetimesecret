@@ -13,6 +13,9 @@ module Onetime
   class AuthConfig
     include Singleton
 
+    # The four mutually-exclusive single-auth-method keys.
+    SINGLE_AUTH_KEYS = %w[password_only email_auth_only webauthn_only sso_only].freeze
+
     attr_reader :config, :path, :mode, :environment
 
     def initialize
@@ -146,10 +149,54 @@ module Onetime
     # Returns false if SSO itself is disabled (no-op guard).
     def sso_only_enabled?
       return false unless sso_enabled?
-      return false unless sso_config['sso_only'] == true
+      return false unless single_auth_method_valid?
+
+      # Check the new single_auth_method section first, fall back to legacy sso config
+      only = single_auth_method_config['sso_only'] == true ||
+             sso_config['sso_only'] == true
+      return false unless only
 
       # Ensure at least one provider is actually configured
       sso_providers.any?
+    end
+
+    # Whether password-only mode is active.
+    # When true, only the password form is shown on the login page;
+    # other enabled auth methods (SSO, WebAuthn, magic links) are hidden.
+    def password_only_enabled?
+      return false unless full_enabled?
+      return false unless single_auth_method_valid?
+
+      single_auth_method_config['password_only'] == true
+    end
+
+    # Whether email-auth-only (magic links) mode is active.
+    # When true, only the email link form is shown on the login page.
+    # Returns false if email_auth itself is disabled (no-op guard).
+    def email_auth_only_enabled?
+      return false unless email_auth_enabled?
+      return false unless single_auth_method_valid?
+
+      single_auth_method_config['email_auth_only'] == true
+    end
+
+    # Whether WebAuthn-only mode is active.
+    # When true, only biometric/security-key authentication is shown.
+    # Returns false if webauthn itself is disabled (no-op guard).
+    def webauthn_only_enabled?
+      return false unless webauthn_enabled?
+      return false unless single_auth_method_valid?
+
+      single_auth_method_config['webauthn_only'] == true
+    end
+
+    # Returns the active single-auth-method name, or nil if none is set.
+    # Useful for logging and diagnostics.
+    def active_single_auth_method
+      return nil unless full_enabled?
+      return nil unless single_auth_method_valid?
+
+      SINGLE_AUTH_KEYS.find { |key| single_auth_method_config[key] == true }
     end
 
     # SSO display name (e.g., "Zitadel", "Okta", "Azure AD")
@@ -213,6 +260,32 @@ module Onetime
     end
 
     private
+
+    # Single-auth-method configuration section from full mode config.
+    # Returns the hash under full.single_auth_method, or an empty hash
+    # when that section is absent (backward compatibility).
+    def single_auth_method_config
+      section = full['single_auth_method']
+      return section if section.is_a?(Hash)
+
+      # Fallback: derive from ENV directly (e.g. older YAML without the section)
+      {
+        'password_only' => ENV['AUTH_PASSWORD_ONLY'] == 'true',
+        'email_auth_only' => ENV['AUTH_EMAIL_AUTH_ONLY'] == 'true',
+        'webauthn_only' => ENV['AUTH_WEBAUTHN_ONLY'] == 'true',
+        'sso_only' => ENV['AUTH_SSO_ONLY'] == 'true',
+      }
+    end
+
+    # Returns true when zero or one single-auth-method flag is set.
+    # When more than one is set, the config is invalid and we fall back
+    # to showing all enabled methods (i.e. all *_only_enabled? return false).
+    def single_auth_method_valid?
+      return false unless full_enabled?
+
+      count = SINGLE_AUTH_KEYS.count { |key| single_auth_method_config[key] == true }
+      count <= 1
+    end
 
     # SSO configuration section from full mode config.
     # Contains sso_display_name and sso_only settings.

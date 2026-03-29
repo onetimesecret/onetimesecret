@@ -8,6 +8,10 @@ import {
   isSsoOnlyMode,
   isLockoutEnabled,
   isPasswordRequirementsEnabled,
+  isPasswordOnlyMode,
+  isEmailAuthOnlyMode,
+  isWebAuthnOnlyMode,
+  activeSingleAuthMethod,
   hasPasswordlessMethods,
   getAuthFeatures,
   isOrganizationSwitcherEnabled,
@@ -448,6 +452,127 @@ describe('features utility', () => {
     });
   });
 
+  describe('isPasswordOnlyMode', () => {
+    it('returns true when password_only is true', () => {
+      getBootstrapValueMock.mockReturnValue({ password_only: true });
+      expect(isPasswordOnlyMode()).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when password_only is false', () => {
+      getBootstrapValueMock.mockReturnValue({ password_only: false });
+      expect(isPasswordOnlyMode()).toBe(false);
+    });
+
+    it('returns false when password_only is undefined', () => {
+      getBootstrapValueMock.mockReturnValue({});
+      expect(isPasswordOnlyMode()).toBe(false);
+    });
+
+    it('returns false when features object is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+      expect(isPasswordOnlyMode()).toBe(false);
+    });
+
+    it('returns false when password_only is truthy but not exactly true', () => {
+      getBootstrapValueMock.mockReturnValue({ password_only: 'yes' });
+      expect(isPasswordOnlyMode()).toBe(false);
+    });
+  });
+
+  describe('isEmailAuthOnlyMode', () => {
+    it('returns true when email_auth_only is true', () => {
+      getBootstrapValueMock.mockReturnValue({ email_auth_only: true });
+      expect(isEmailAuthOnlyMode()).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when email_auth_only is false', () => {
+      getBootstrapValueMock.mockReturnValue({ email_auth_only: false });
+      expect(isEmailAuthOnlyMode()).toBe(false);
+    });
+
+    it('returns false when email_auth_only is undefined', () => {
+      getBootstrapValueMock.mockReturnValue({});
+      expect(isEmailAuthOnlyMode()).toBe(false);
+    });
+
+    it('returns false when features object is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+      expect(isEmailAuthOnlyMode()).toBe(false);
+    });
+
+    it('returns false when email_auth_only is truthy but not exactly true', () => {
+      getBootstrapValueMock.mockReturnValue({ email_auth_only: 'yes' });
+      expect(isEmailAuthOnlyMode()).toBe(false);
+    });
+  });
+
+  describe('isWebAuthnOnlyMode', () => {
+    it('returns true when webauthn_only is true', () => {
+      getBootstrapValueMock.mockReturnValue({ webauthn_only: true });
+      expect(isWebAuthnOnlyMode()).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when webauthn_only is false', () => {
+      getBootstrapValueMock.mockReturnValue({ webauthn_only: false });
+      expect(isWebAuthnOnlyMode()).toBe(false);
+    });
+
+    it('returns false when webauthn_only is undefined', () => {
+      getBootstrapValueMock.mockReturnValue({});
+      expect(isWebAuthnOnlyMode()).toBe(false);
+    });
+
+    it('returns false when features object is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+      expect(isWebAuthnOnlyMode()).toBe(false);
+    });
+
+    it('returns false when webauthn_only is truthy but not exactly true', () => {
+      getBootstrapValueMock.mockReturnValue({ webauthn_only: 'yes' });
+      expect(isWebAuthnOnlyMode()).toBe(false);
+    });
+  });
+
+  describe('activeSingleAuthMethod', () => {
+    it('returns null when no *_only flag is set', () => {
+      getBootstrapValueMock.mockReturnValue({});
+      expect(activeSingleAuthMethod()).toBeNull();
+    });
+
+    it('returns null when features object is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+      expect(activeSingleAuthMethod()).toBeNull();
+    });
+
+    it('returns "password_only" when password_only is true', () => {
+      getBootstrapValueMock.mockReturnValue({ password_only: true });
+      expect(activeSingleAuthMethod()).toBe('password_only');
+    });
+
+    it('returns "email_auth_only" when email_auth_only is true', () => {
+      getBootstrapValueMock.mockReturnValue({ email_auth_only: true });
+      expect(activeSingleAuthMethod()).toBe('email_auth_only');
+    });
+
+    it('returns "webauthn_only" when webauthn_only is true', () => {
+      getBootstrapValueMock.mockReturnValue({ webauthn_only: true });
+      expect(activeSingleAuthMethod()).toBe('webauthn_only');
+    });
+
+    it('returns "sso_only" when sso_only is true', () => {
+      getBootstrapValueMock.mockReturnValue({ sso_only: true });
+      expect(activeSingleAuthMethod()).toBe('sso_only');
+    });
+
+    it('returns first match when multiple are set (password_only wins)', () => {
+      getBootstrapValueMock.mockReturnValue({ password_only: true, sso_only: true });
+      expect(activeSingleAuthMethod()).toBe('password_only');
+    });
+  });
+
   describe('getAuthFeatures', () => {
     it('returns correct object when all features enabled', () => {
       getBootstrapValueMock.mockReturnValue({ webauthn: true, magic_links: true, sso: true, sso_only: true });
@@ -459,6 +584,9 @@ describe('features utility', () => {
         webauthnEnabled: true,
         ssoEnabled: true,
         ssoOnly: true,
+        passwordOnly: false,
+        emailAuthOnly: false,
+        webauthnOnly: false,
       });
     });
 
@@ -472,6 +600,9 @@ describe('features utility', () => {
         webauthnEnabled: false,
         ssoEnabled: false,
         ssoOnly: false,
+        passwordOnly: false,
+        emailAuthOnly: false,
+        webauthnOnly: false,
       });
     });
 
@@ -485,6 +616,9 @@ describe('features utility', () => {
         webauthnEnabled: false,
         ssoEnabled: false,
         ssoOnly: false,
+        passwordOnly: false,
+        emailAuthOnly: false,
+        webauthnOnly: false,
       });
     });
 
@@ -498,6 +632,9 @@ describe('features utility', () => {
         webauthnEnabled: true,
         ssoEnabled: true,
         ssoOnly: false,
+        passwordOnly: false,
+        emailAuthOnly: false,
+        webauthnOnly: false,
       });
     });
 
@@ -511,6 +648,9 @@ describe('features utility', () => {
         webauthnEnabled: false,
         ssoEnabled: true,
         ssoOnly: false,
+        passwordOnly: false,
+        emailAuthOnly: false,
+        webauthnOnly: false,
       });
     });
 
@@ -528,6 +668,9 @@ describe('features utility', () => {
         webauthnEnabled: false,
         ssoEnabled: true,
         ssoOnly: false,
+        passwordOnly: false,
+        emailAuthOnly: false,
+        webauthnOnly: false,
       });
     });
 
@@ -545,6 +688,9 @@ describe('features utility', () => {
         webauthnEnabled: true,
         ssoEnabled: false,
         ssoOnly: false,
+        passwordOnly: false,
+        emailAuthOnly: false,
+        webauthnOnly: false,
       });
     });
 
@@ -563,6 +709,57 @@ describe('features utility', () => {
         webauthnEnabled: false,
         ssoEnabled: true,
         ssoOnly: true,
+        passwordOnly: false,
+        emailAuthOnly: false,
+        webauthnOnly: false,
+      });
+    });
+
+    it('returns passwordOnly true when password_only flag is set', () => {
+      getBootstrapValueMock.mockReturnValue({ password_only: true });
+
+      const result = getAuthFeatures();
+
+      expect(result).toEqual({
+        magicLinksEnabled: false,
+        webauthnEnabled: false,
+        ssoEnabled: false,
+        ssoOnly: false,
+        passwordOnly: true,
+        emailAuthOnly: false,
+        webauthnOnly: false,
+      });
+    });
+
+    it('returns emailAuthOnly true when email_auth_only flag is set', () => {
+      getBootstrapValueMock.mockReturnValue({ email_auth_only: true });
+
+      const result = getAuthFeatures();
+
+      expect(result).toEqual({
+        magicLinksEnabled: false,
+        webauthnEnabled: false,
+        ssoEnabled: false,
+        ssoOnly: false,
+        passwordOnly: false,
+        emailAuthOnly: true,
+        webauthnOnly: false,
+      });
+    });
+
+    it('returns webauthnOnly true when webauthn_only flag is set', () => {
+      getBootstrapValueMock.mockReturnValue({ webauthn_only: true });
+
+      const result = getAuthFeatures();
+
+      expect(result).toEqual({
+        magicLinksEnabled: false,
+        webauthnEnabled: false,
+        ssoEnabled: false,
+        ssoOnly: false,
+        passwordOnly: false,
+        emailAuthOnly: false,
+        webauthnOnly: true,
       });
     });
   });
@@ -771,6 +968,26 @@ describe('features utility', () => {
       expect(result).toBe(false);
     });
 
+    it('isPasswordOnlyMode returns false when window is undefined', () => {
+      const result = isPasswordOnlyMode();
+      expect(result).toBe(false);
+    });
+
+    it('isEmailAuthOnlyMode returns false when window is undefined', () => {
+      const result = isEmailAuthOnlyMode();
+      expect(result).toBe(false);
+    });
+
+    it('isWebAuthnOnlyMode returns false when window is undefined', () => {
+      const result = isWebAuthnOnlyMode();
+      expect(result).toBe(false);
+    });
+
+    it('activeSingleAuthMethod returns null when window is undefined', () => {
+      const result = activeSingleAuthMethod();
+      expect(result).toBeNull();
+    });
+
     it('getAuthFeatures returns all false when window is undefined', () => {
       const result = getAuthFeatures();
       expect(result).toEqual({
@@ -778,6 +995,9 @@ describe('features utility', () => {
         webauthnEnabled: false,
         ssoEnabled: false,
         ssoOnly: false,
+        passwordOnly: false,
+        emailAuthOnly: false,
+        webauthnOnly: false,
       });
     });
 

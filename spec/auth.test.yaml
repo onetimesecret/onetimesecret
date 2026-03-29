@@ -31,6 +31,13 @@ full:
     webauthn: false
     sso: false
 
+  # Single-authentication-method overrides (mutually exclusive)
+  single_auth_method:
+    password_only: false
+    email_auth_only: false
+    webauthn_only: false
+    sso_only: false
+
   # SSO configuration section
   sso:
     sso_display_name: ''

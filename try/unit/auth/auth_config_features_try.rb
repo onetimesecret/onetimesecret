@@ -275,6 +275,150 @@ config.instance_variable_get(:@config)['mode'] = 'full'
 config.magic_links_enabled? == config.email_auth_enabled?
 #=> true
 
+# ── Single-auth-method override tests ──────────────────────────────
+
+## password_only_enabled? returns false by default
+config = Onetime::AuthConfig.instance
+config.instance_variable_get(:@config)['mode'] = 'full'
+config.password_only_enabled?
+#=> false
+
+## password_only_enabled? returns true when single_auth_method.password_only is set
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['single_auth_method'] ||= {}
+cfg['full']['single_auth_method']['password_only'] = true
+result = config.password_only_enabled?
+cfg['full']['single_auth_method']['password_only'] = false
+result
+#=> true
+
+## password_only_enabled? returns false in simple mode
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'simple'
+cfg['full']['single_auth_method'] ||= {}
+cfg['full']['single_auth_method']['password_only'] = true
+result = config.password_only_enabled?
+cfg['full']['single_auth_method']['password_only'] = false
+cfg['mode'] = 'full'
+result
+#=> false
+
+## email_auth_only_enabled? returns false when email_auth is disabled
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['single_auth_method'] ||= {}
+cfg['full']['single_auth_method']['email_auth_only'] = true
+cfg['full']['features']['email_auth'] = false
+result = config.email_auth_only_enabled?
+cfg['full']['single_auth_method']['email_auth_only'] = false
+result
+#=> false
+
+## email_auth_only_enabled? returns true when email_auth is enabled and flag set
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['single_auth_method'] ||= {}
+cfg['full']['single_auth_method']['email_auth_only'] = true
+cfg['full']['features']['email_auth'] = true
+result = config.email_auth_only_enabled?
+cfg['full']['single_auth_method']['email_auth_only'] = false
+cfg['full']['features']['email_auth'] = false
+result
+#=> true
+
+## webauthn_only_enabled? returns false when webauthn is disabled
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['single_auth_method'] ||= {}
+cfg['full']['single_auth_method']['webauthn_only'] = true
+cfg['full']['features']['webauthn'] = false
+result = config.webauthn_only_enabled?
+cfg['full']['single_auth_method']['webauthn_only'] = false
+result
+#=> false
+
+## webauthn_only_enabled? returns true when webauthn is enabled and flag set
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['single_auth_method'] ||= {}
+cfg['full']['single_auth_method']['webauthn_only'] = true
+cfg['full']['features']['webauthn'] = true
+result = config.webauthn_only_enabled?
+cfg['full']['single_auth_method']['webauthn_only'] = false
+cfg['full']['features']['webauthn'] = false
+result
+#=> true
+
+## Mutual exclusivity: all *_only_enabled? return false when two flags are set
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['single_auth_method'] ||= {}
+cfg['full']['single_auth_method']['password_only'] = true
+cfg['full']['single_auth_method']['email_auth_only'] = true
+cfg['full']['features']['email_auth'] = true
+results = [config.password_only_enabled?, config.email_auth_only_enabled?]
+cfg['full']['single_auth_method']['password_only'] = false
+cfg['full']['single_auth_method']['email_auth_only'] = false
+cfg['full']['features']['email_auth'] = false
+results
+#=> [false, false]
+
+## active_single_auth_method returns nil when no flag is set
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+config.active_single_auth_method
+#=> nil
+
+## active_single_auth_method returns the active key name
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['single_auth_method'] ||= {}
+cfg['full']['single_auth_method']['password_only'] = true
+result = config.active_single_auth_method
+cfg['full']['single_auth_method']['password_only'] = false
+result
+#=> "password_only"
+
+## active_single_auth_method returns nil when multiple flags set (invalid)
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['single_auth_method'] ||= {}
+cfg['full']['single_auth_method']['password_only'] = true
+cfg['full']['single_auth_method']['webauthn_only'] = true
+result = config.active_single_auth_method
+cfg['full']['single_auth_method']['password_only'] = false
+cfg['full']['single_auth_method']['webauthn_only'] = false
+result
+#=> nil
+
+## sso_only_enabled? works with new single_auth_method section
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['features']['sso'] = true
+cfg['full']['single_auth_method'] ||= {}
+cfg['full']['single_auth_method']['sso_only'] = true
+ENV['OIDC_ISSUER'] = 'https://example.com'
+ENV['OIDC_CLIENT_ID'] = 'test-client'
+result = config.sso_only_enabled?
+cfg['full']['features']['sso'] = false
+cfg['full']['single_auth_method']['sso_only'] = false
+ENV.delete('OIDC_ISSUER')
+ENV.delete('OIDC_CLIENT_ID')
+result
+#=> true
+
 # Teardown: Restore original method and clear singleton
 Onetime::Utils::ConfigResolver.define_singleton_method(:resolve, @original_resolve)
 Onetime::AuthConfig.instance_variable_set(:@singleton__instance__, nil)

@@ -14,6 +14,9 @@ export interface AuthFeatures {
   webauthnEnabled: boolean;
   ssoEnabled: boolean;
   ssoOnly: boolean;
+  passwordOnly: boolean;
+  emailAuthOnly: boolean;
+  webauthnOnly: boolean;
 }
 
 /**
@@ -139,6 +142,55 @@ export function isSsoOnlyMode(): boolean {
 }
 
 /**
+ * Checks if password-only mode is active.
+ * When true, only the password form is shown on the login page;
+ * other enabled auth methods (SSO, WebAuthn, magic links) are hidden.
+ */
+export function isPasswordOnlyMode(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  return features?.password_only === true;
+}
+
+/**
+ * Checks if email-auth-only (magic links) mode is active.
+ * When true, only the email link form is shown on the login page.
+ */
+export function isEmailAuthOnlyMode(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  return features?.email_auth_only === true;
+}
+
+/**
+ * Checks if WebAuthn-only mode is active.
+ * When true, only biometric/security-key authentication is shown.
+ */
+export function isWebAuthnOnlyMode(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  return features?.webauthn_only === true;
+}
+
+/**
+ * Returns the name of the active single-auth-method override, or null
+ * if no override is active (all enabled methods are shown).
+ */
+export function activeSingleAuthMethod(): string | null {
+  if (typeof window === 'undefined') return null;
+
+  const features = getBootstrapValue('features');
+  if (features?.password_only === true) return 'password_only';
+  if (features?.email_auth_only === true) return 'email_auth_only';
+  if (features?.webauthn_only === true) return 'webauthn_only';
+  if (features?.sso_only === true) return 'sso_only';
+  return null;
+}
+
+/**
  * Checks if authentication mode is 'full' (Rodauth with SQL db).
  * When mode is 'simple' (or undefined), security features like
  * password change, MFA, sessions, and passkeys are not available.
@@ -172,6 +224,9 @@ export function getAuthFeatures(): AuthFeatures {
     webauthnEnabled: isWebAuthnEnabled(),
     ssoEnabled: isSsoEnabled(),
     ssoOnly: isSsoOnlyMode(),
+    passwordOnly: isPasswordOnlyMode(),
+    emailAuthOnly: isEmailAuthOnlyMode(),
+    webauthnOnly: isWebAuthnOnlyMode(),
   };
 }
 

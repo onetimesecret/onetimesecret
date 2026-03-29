@@ -91,6 +91,38 @@ full:
     #   GitHub: GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
     sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
 
+  # ──────────────────────────────────────────────────────────────────────
+  # Single-authentication-method overrides (mutually exclusive)
+  #
+  # When mode=full, exactly ONE of these may be set to 'true'.
+  # Setting a *_ONLY flag restricts the login page to that single
+  # authentication method and disables account-management actions that
+  # don't apply (e.g. password change when using SSO-only).
+  #
+  # If none are set, all enabled authentication methods are shown.
+  # If more than one is set, the configuration is invalid and the
+  # application falls back to showing all enabled methods.
+  # ──────────────────────────────────────────────────────────────────────
+  single_auth_method:
+    # Password-only mode: show only the password form on the login page.
+    # Other enabled auth methods (SSO, WebAuthn, magic links) are hidden.
+    password_only: <%= ENV['AUTH_PASSWORD_ONLY'] == 'true' %>
+
+    # Email-auth-only (magic links) mode: show only the email link form.
+    # Requires AUTH_EMAIL_AUTH_ENABLED=true to take effect.
+    email_auth_only: <%= ENV['AUTH_EMAIL_AUTH_ONLY'] == 'true' %>
+
+    # WebAuthn-only mode: show only biometric/security-key authentication.
+    # Requires AUTH_WEBAUTHN_ENABLED=true to take effect.
+    webauthn_only: <%= ENV['AUTH_WEBAUTHN_ONLY'] == 'true' %>
+
+    # SSO-only mode: show only SSO provider buttons on the login page
+    # and disable password-based account management (destroy account,
+    # change password, change email). Users must manage credentials
+    # through the SSO identity provider.
+    # Requires AUTH_SSO_ENABLED=true and at least one provider configured.
+    sso_only: <%= ENV['AUTH_SSO_ONLY'] == 'true' %>
+
   # SSO configuration section
   #
   # Settings that control SSO behavior beyond the feature toggle.
@@ -103,10 +135,6 @@ full:
     # Retained for backward compatibility with single-provider OIDC setups.
     sso_display_name: <%= ENV.fetch('SSO_DISPLAY_NAME', '') %>
 
-    # SSO-only mode: when true, disables password-based account management
-    # (destroy account, change password, change email). Users must manage
-    # their credentials through the SSO identity provider.
-    # Only effective when SSO is enabled (features.sso = true).
     sso_only: <%= ENV['AUTH_SSO_ONLY'] == 'true' %>
 
   # Argon2 secret key (pepper) for password hashing defense-in-depth.
