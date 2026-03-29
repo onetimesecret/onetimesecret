@@ -20,6 +20,11 @@ require_relative '../../../apps/web/core/views'
 
 OT.boot! :test, false
 
+# Save original Familia encryption config for restoration in teardown
+@original_encryption_keys = Familia.config.encryption_keys&.dup
+@original_key_version = Familia.config.current_key_version
+@original_personalization = Familia.config.encryption_personalization
+
 # Familia encryption for DomainSsoConfig
 key_v1 = 'test_encryption_key_32bytes_ok!!'
 key_v2 = 'another_test_key_for_testing_!!'
@@ -233,10 +238,17 @@ restore_fallback_config
 result
 #=> true
 
-# Teardown: clean up Valkey fixtures
+# Teardown: clean up Valkey fixtures and restore Familia config
 Onetime::DomainSsoConfig.delete_for_domain!(@test_custom_domain.identifier) rescue nil
 Onetime::CustomDomain.display_domains.remove(@test_display_domain) rescue nil
 Onetime::CustomDomain.display_domains.remove(@no_sso_display_domain) rescue nil
 @test_custom_domain&.destroy! rescue nil
 @no_sso_custom_domain&.destroy! rescue nil
 @test_org&.destroy! rescue nil
+
+# Restore original Familia encryption config to avoid polluting other test files
+Familia.configure do |config|
+  config.encryption_keys = @original_encryption_keys if @original_encryption_keys
+  config.current_key_version = @original_key_version if @original_key_version
+  config.encryption_personalization = @original_personalization if @original_personalization
+end

@@ -285,7 +285,12 @@ module Onetime
       # - Any attempt to modify frozen config will raise a FrozenError, failing fast
       # - Guarantees configuration integrity throughout application lifecycle
       # - Makes security guarantees stronger by ensuring config values can't be tampered with
-      deep_freeze(conf)
+      #
+      # Skip freezing in test mode to allow config modifications for test isolation.
+      # Tests may need to modify config values without triggering FrozenError.
+      # See also: boot.rb line 133 which guards the raw_conf freeze.
+      deep_freeze(conf) unless OT.testing?
+      conf
     end
 
     def raise_concerns(conf)
