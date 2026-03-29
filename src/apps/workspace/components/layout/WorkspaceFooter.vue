@@ -12,7 +12,6 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { isExternalUrl } from '@/utils/url';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
   import { useRoute } from 'vue-router';
@@ -44,7 +43,6 @@
   interface FooterLink {
     label: string;
     href: string;
-    external?: boolean;
   }
 
   // Computed counts (data loaded by parent layout)
@@ -97,21 +95,18 @@
   });
 
   // Default links when no workspace_links are configured
-  const defaultLinks: { i18nKey: string; href: () => string; external: () => boolean }[] = [
+  const defaultLinks: { i18nKey: string; href: () => string }[] = [
     {
       i18nKey: 'web.footer.api_docs',
       href: () => `${docsBase.value}/${docsLocale.value}/rest-api/`,
-      external: () => !!docsBase.value,
     },
     {
       i18nKey: 'web.footer.branding_guide',
       href: () => `${docsBase.value}/${docsLocale.value}/custom-domains/brand-guide/`,
-      external: () => !!docsBase.value,
     },
     {
       i18nKey: 'web.TITLES.feedback',
       href: () => '/feedback',
-      external: () => false,
     },
   ];
 
@@ -123,14 +118,12 @@
         .map((link) => ({
           label: link.i18n_key ? t(link.i18n_key) : (link.text || ''),
           href: link.url!,
-          external: link.external ?? isExternalUrl(link.url!),
         }));
     }
     // Fallback to computed defaults
     return defaultLinks.map(def => ({
       label: t(def.i18nKey),
       href: def.href(),
-      external: def.external(),
     }));
   });
 
@@ -206,8 +199,6 @@
           :key="link.href">
           <a
             :href="link.href"
-            :target="link.external ? '_blank' : '_self'"
-            :rel="link.external ? 'noopener noreferrer' : undefined"
             class="text-sm text-gray-600 transition-colors duration-200 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
             {{ link.label }}
           </a>

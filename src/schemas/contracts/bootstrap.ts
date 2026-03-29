@@ -56,8 +56,6 @@ export const footerLinkSchema = z.object({
   text: z.string().optional(),
   i18n_key: z.string().optional(),
   url: z.string(),
-  external: z.boolean().optional(),
-  icon: z.string().optional(),
 });
 
 export const footerGroupSchema = z.object({

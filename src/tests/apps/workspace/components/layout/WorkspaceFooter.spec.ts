@@ -1,6 +1,6 @@
 // src/tests/apps/workspace/components/layout/WorkspaceFooter.spec.ts
 //
-// Tests for WorkspaceFooter external link detection and footer links computed property.
+// Tests for isExternalUrl helper and WorkspaceFooter footer links computed property.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount, VueWrapper } from '@vue/test-utils';
@@ -168,100 +168,12 @@ describe('WorkspaceFooter footerLinks', () => {
   };
 
   describe('default links (no workspace_links configured)', () => {
-    it('uses computed external flag for default links', async () => {
+    it('renders default links when no workspace_links set', async () => {
       wrapper = mountComponent();
 
-      // Default links should use the component's internal logic
-      // API Docs and Branding Guide should be external when support_host is set
       const links = wrapper.findAll('a');
-
-      // Should have at least the footer links
+      // Should have at least the footer links (API Docs, Branding Guide, Feedback)
       expect(links.length).toBeGreaterThanOrEqual(3);
-    });
-  });
-
-  describe('configured workspace_links with explicit external flag', () => {
-    it('preserves explicit external:true from config', async () => {
-      wrapper = mountComponent({
-        ui: {
-          workspace_links: [
-            {
-              text: 'External Link',
-              url: '/local-path',
-              external: true,
-            },
-          ],
-        },
-      });
-
-      // Find the link with text "External Link"
-      const links = wrapper.findAll('a');
-      const externalLink = links.find(link => link.text() === 'External Link');
-      expect(externalLink).toBeDefined();
-      expect(externalLink?.attributes('target')).toBe('_blank');
-      expect(externalLink?.attributes('rel')).toBe('noopener noreferrer');
-    });
-
-    it('preserves explicit external:false from config', async () => {
-      wrapper = mountComponent({
-        ui: {
-          workspace_links: [
-            {
-              text: 'Internal Link',
-              url: 'https://external-url.com',
-              external: false,
-            },
-          ],
-        },
-      });
-
-      const links = wrapper.findAll('a');
-      const internalLink = links.find(link => link.text() === 'Internal Link');
-      expect(internalLink).toBeDefined();
-      expect(internalLink?.attributes('target')).toBe('_self');
-      expect(internalLink?.attributes('rel')).toBeUndefined();
-    });
-  });
-
-  describe('configured workspace_links without explicit external flag', () => {
-    it('infers external:true for https:// URL when external not specified', async () => {
-      wrapper = mountComponent({
-        ui: {
-          workspace_links: [
-            {
-              text: 'HTTPS Link',
-              url: 'https://docs.example.com/api',
-              // external not specified
-            },
-          ],
-        },
-      });
-
-      const links = wrapper.findAll('a');
-      const httpsLink = links.find(link => link.text() === 'HTTPS Link');
-      expect(httpsLink).toBeDefined();
-      expect(httpsLink?.attributes('target')).toBe('_blank');
-      expect(httpsLink?.attributes('rel')).toBe('noopener noreferrer');
-    });
-
-    it('infers external:false for relative URL when external not specified', async () => {
-      wrapper = mountComponent({
-        ui: {
-          workspace_links: [
-            {
-              text: 'Relative Link',
-              url: '/feedback',
-              // external not specified
-            },
-          ],
-        },
-      });
-
-      const links = wrapper.findAll('a');
-      const relativeLink = links.find(link => link.text() === 'Relative Link');
-      expect(relativeLink).toBeDefined();
-      expect(relativeLink?.attributes('target')).toBe('_self');
-      expect(relativeLink?.attributes('rel')).toBeUndefined();
     });
   });
 

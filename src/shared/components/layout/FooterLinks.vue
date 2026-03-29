@@ -31,7 +31,7 @@
     <!-- prettier-ignore-attribute class -->
     <div
       class="
-      grid max-w-6xl grid-cols-1
+      grid w-full max-w-6xl grid-cols-1
       justify-items-start gap-x-12
       gap-y-8 px-4
       [@media(min-width:1024px)]:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]
@@ -57,8 +57,6 @@
             <a
               v-if="link.url && link.url.trim()"
               :href="link.url"
-              :target="link.external ? '_blank' : '_self'"
-              :rel="link.external ? 'noopener noreferrer' : ''"
               class="
                  block
                  text-sm text-gray-600
@@ -66,25 +64,7 @@
                  hover:text-gray-900
                  dark:text-gray-400
                  dark:hover:text-gray-100">
-              <!-- Content wrapper for consistent spacing -->
-              <span class="inline-flex items-center gap-2">
-                <!-- Optional icon - modify icon size here (text-xs) -->
-                <i
-                  v-if="link.icon"
-                  :class="`icon-${link.icon}`"
-                  class="shrink-0 text-xs"
-                  :aria-hidden="true"></i>
-
-                <!-- Link text - modify link font size here (text-sm) -->
-                <span class="flex-1">{{ link.i18n_key ? t(link.i18n_key) : link.text }}</span>
-
-                <!-- External link indicator -->
-                <i
-                  v-if="link.external"
-                  class="icon-external-link shrink-0 text-xs opacity-60"
-                  :aria-label="t('web.COMMON.external_link')"
-                  :aria-hidden="true"></i>
-              </span>
+              {{ link.i18n_key ? t(link.i18n_key) : link.text }}
             </a>
             <!-- Fallback for missing/empty URLs -->
             <span

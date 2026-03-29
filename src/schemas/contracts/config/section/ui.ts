@@ -61,8 +61,6 @@ const userInterfaceFooterLinkSchema = z.object({
   text: z.string().optional(),
   i18n_key: z.string().optional(),
   url: nullableString,
-  external: z.boolean().optional(),
-  icon: z.string().optional(),
 });
 
 /**
