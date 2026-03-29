@@ -34,9 +34,10 @@
       grid w-full max-w-6xl grid-cols-1
       justify-items-start gap-x-12
       gap-y-8 px-4
-      [@media(min-width:1024px)]:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]
-      [@media(min-width:640px)]:grid-cols-[repeat(auto-fit,minmax(140px,1fr))]
-      [@media(min-width:640px)]:items-start [@media(min-width:640px)]:justify-items-start [@media(min-width:768px)]:grid-cols-[repeat(auto-fit,minmax(160px,1fr))]">
+      [@media(min-width:640px)]:grid-cols-[repeat(auto-fill,minmax(140px,max-content))]
+      [@media(min-width:640px)]:justify-center
+      [@media(min-width:768px)]:grid-cols-[repeat(auto-fill,minmax(160px,max-content))]
+      [@media(min-width:1024px)]:grid-cols-[repeat(auto-fill,minmax(180px,max-content))]">
       <div
         v-for="(group, groupIndex) in linkGroups"
         :key="group.name || `group-${groupIndex}`"

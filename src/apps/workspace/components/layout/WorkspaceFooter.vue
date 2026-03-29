@@ -110,8 +110,13 @@
     },
   ];
 
+  const workspaceLinksEnabled = computed(() => ui.value?.workspace_links?.enabled !== false);
+
   const footerLinks = computed((): FooterLink[] => {
-    const links = ui.value?.workspace_links;
+    if (!workspaceLinksEnabled.value) {
+      return [];
+    }
+    const links = ui.value?.workspace_links?.links;
     if (links?.length) {
       return links
         .filter(link => link.url?.trim())

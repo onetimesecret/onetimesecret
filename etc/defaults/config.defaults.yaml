@@ -135,12 +135,15 @@ site:
       # Workspace footer links (authenticated users only)
       # Separate from footer_links which are for public pages
       workspace_links:
+        # Global toggle to enable/disable all footer links
+        enabled: <%= ENV['WORKSPACE_LINKS'] == 'true' %>
+        links:
         - text: API Docs
           i18n_key: web.footer.api_docs
-          url: <%= ENV['WORKSPACE_API_DOCS_URL'] %>
+          url: <%= ENV['WORKSPACE_API_DOCS_URL'] || 'https://api.onetimesecret.com/' %>
         - text: Branding Guide
           i18n_key: web.footer.branding_guide
-          url: <%= ENV['WORKSPACE_BRANDING_GUIDE_URL'] %>
+          url: <%= ENV['WORKSPACE_BRANDING_GUIDE_URL'] || 'https://docs.onetimesecrets.com/' %>
         - text: Feedback
           i18n_key: web.TITLES.feedback
           url: <%= ENV['WORKSPACE_FEEDBACK_URL'] || '/feedback' %>

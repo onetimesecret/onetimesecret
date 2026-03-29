@@ -83,12 +83,20 @@ const userInterfaceFooterLinksSchema = z.object({
 /**
  * UI configuration schema
  */
+/**
+ * Workspace links configuration (authenticated users only)
+ */
+const userInterfaceWorkspaceLinksSchema = z.object({
+  enabled: z.boolean().default(false),
+  links: z.array(userInterfaceFooterLinkSchema).default([]),
+});
+
 const uiSchema = z.object({
   enabled: z.boolean().default(true),
   homepage: userInterfaceHomepageSchema.optional(),
   header: userInterfaceHeaderSchema.optional(),
   footer_links: userInterfaceFooterLinksSchema.optional(),
-  workspace_links: z.array(userInterfaceFooterLinkSchema).optional(),
+  workspace_links: userInterfaceWorkspaceLinksSchema.optional(),
 });
 
 /**

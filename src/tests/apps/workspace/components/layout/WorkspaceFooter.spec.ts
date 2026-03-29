@@ -181,16 +181,19 @@ describe('WorkspaceFooter footerLinks', () => {
     it('uses workspace_links when configured', async () => {
       wrapper = mountComponent({
         ui: {
-          workspace_links: [
-            {
-              text: 'Custom Link 1',
-              url: '/custom-1',
-            },
-            {
-              text: 'Custom Link 2',
-              url: 'https://custom.example.com',
-            },
-          ],
+          workspace_links: {
+            enabled: true,
+            links: [
+              {
+                text: 'Custom Link 1',
+                url: '/custom-1',
+              },
+              {
+                text: 'Custom Link 2',
+                url: 'https://custom.example.com',
+              },
+            ],
+          },
         },
       });
 
@@ -202,10 +205,13 @@ describe('WorkspaceFooter footerLinks', () => {
       expect(customLink2).toBeDefined();
     });
 
-    it('uses default links when workspace_links is empty array', async () => {
+    it('uses default links when workspace_links.links is empty array', async () => {
       wrapper = mountComponent({
         ui: {
-          workspace_links: [],
+          workspace_links: {
+            enabled: true,
+            links: [],
+          },
         },
       });
 
@@ -231,17 +237,58 @@ describe('WorkspaceFooter footerLinks', () => {
     });
   });
 
+  describe('workspace_links enabled toggle', () => {
+    it('hides all footer links when workspace_links.enabled is false', async () => {
+      wrapper = mountComponent({
+        ui: {
+          workspace_links: {
+            enabled: false,
+            links: [
+              {
+                text: 'Should Not Appear',
+                url: '/hidden',
+              },
+            ],
+          },
+        },
+      });
+
+      const links = wrapper.findAll('a');
+      const hiddenLink = links.find(link => link.text() === 'Should Not Appear');
+      expect(hiddenLink).toBeUndefined();
+      // Also no default links should render
+      const feedbackLink = links.find(link => link.text() === 'web.TITLES.feedback');
+      expect(feedbackLink).toBeUndefined();
+    });
+
+    it('shows default links when enabled is true but no links configured', async () => {
+      wrapper = mountComponent({
+        ui: {
+          workspace_links: {
+            enabled: true,
+          },
+        },
+      });
+
+      const links = wrapper.findAll('a');
+      expect(links.length).toBeGreaterThanOrEqual(3);
+    });
+  });
+
   describe('links with i18n_key', () => {
     it('uses i18n_key for label when provided', async () => {
       wrapper = mountComponent({
         ui: {
-          workspace_links: [
-            {
-              text: 'Fallback Text',
-              i18n_key: 'web.custom.label',
-              url: '/custom',
-            },
-          ],
+          workspace_links: {
+            enabled: true,
+            links: [
+              {
+                text: 'Fallback Text',
+                i18n_key: 'web.custom.label',
+                url: '/custom',
+              },
+            ],
+          },
         },
       });
 
@@ -254,12 +301,15 @@ describe('WorkspaceFooter footerLinks', () => {
     it('falls back to text when i18n_key not provided', async () => {
       wrapper = mountComponent({
         ui: {
-          workspace_links: [
-            {
-              text: 'Plain Text Label',
-              url: '/plain',
-            },
-          ],
+          workspace_links: {
+            enabled: true,
+            links: [
+              {
+                text: 'Plain Text Label',
+                url: '/plain',
+              },
+            ],
+          },
         },
       });
 
@@ -273,20 +323,23 @@ describe('WorkspaceFooter footerLinks', () => {
     it('filters out links with empty URL', async () => {
       wrapper = mountComponent({
         ui: {
-          workspace_links: [
-            {
-              text: 'Valid Link',
-              url: '/valid',
-            },
-            {
-              text: 'Empty URL',
-              url: '',
-            },
-            {
-              text: 'Whitespace URL',
-              url: '   ',
-            },
-          ],
+          workspace_links: {
+            enabled: true,
+            links: [
+              {
+                text: 'Valid Link',
+                url: '/valid',
+              },
+              {
+                text: 'Empty URL',
+                url: '',
+              },
+              {
+                text: 'Whitespace URL',
+                url: '   ',
+              },
+            ],
+          },
         },
       });
 
