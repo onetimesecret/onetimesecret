@@ -110,7 +110,7 @@
     },
   ];
 
-  const workspaceLinksEnabled = computed(() => ui.value?.workspace_links?.enabled !== false);
+  const workspaceLinksEnabled = computed(() => ui.value?.workspace_links?.enabled ?? true);
 
   const footerLinks = computed((): FooterLink[] => {
     if (!workspaceLinksEnabled.value) {
