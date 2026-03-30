@@ -195,7 +195,10 @@ module Onetime
         @mailer_config.verification_status = verification_status
         @mailer_config.verified_at         = verified_at&.to_i&.to_s
         @mailer_config.updated             = Familia.now.to_i
-        @mailer_config.save
+        # Partial save: only write verification fields, not the full record.
+        # A full save would overwrite api_key with stale in-memory ciphertext
+        # if a concurrent rotate_credentials call updated it since we loaded.
+        @mailer_config.save_fields(:verification_status, :verified_at, :updated)
 
         true
       rescue StandardError => ex

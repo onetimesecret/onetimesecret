@@ -301,7 +301,7 @@ RSpec.describe 'RabbitMQ Publishing', :rabbitmq, type: :integration do
         )
 
         expect(result).to be false
-        expect(Onetime::Mail).to have_received(:deliver).with(:test_template, { email: 'test@example.com' })
+        expect(Onetime::Mail).to have_received(:deliver).with(:test_template, { email: 'test@example.com' }, sender_config: nil)
       end
     end
   end

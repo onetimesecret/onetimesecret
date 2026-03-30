@@ -166,6 +166,26 @@ module Onetime
           nil
         end
 
+        # Load sender config with graceful fallback.
+        #
+        # Wraps find_by_domain_id with broader error handling. Returns nil
+        # on missing config or any error — callers treat nil as "use
+        # system default sender config".
+        #
+        # @param domain_id [String] CustomDomain identifier (objid)
+        # @return [CustomDomain::MailerConfig, nil] The config or nil
+        def load_for_domain(domain_id)
+          config = find_by_domain_id(domain_id)
+          unless config
+            OT.info "[MailerConfig] No sender config for domain_id=#{domain_id}, using global mailer"
+            return nil
+          end
+          config
+        rescue StandardError => ex
+          OT.le "[MailerConfig] Failed to load sender config for domain_id=#{domain_id}: #{ex.message}"
+          nil
+        end
+
         # Check if a domain has mailer configuration.
         #
         # @param domain_id [String] CustomDomain identifier

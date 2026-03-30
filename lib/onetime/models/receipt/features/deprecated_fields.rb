@@ -86,6 +86,10 @@ module Onetime::Receipt::Features
 
         # Deliver to first recipient only
         email_address = eaddrs.first
+        # Resolve share_domain FQDN to a domain_id for sender config lookup.
+        # Fault-tolerant: any failure results in nil (system default sender).
+        domain_id     = Onetime::CustomDomain.resolve_domain_id(secret.share_domain)
+
         # Secret sharing: use default async_thread fallback (non-blocking)
         # User expects email but doesn't need to wait for it
         #
@@ -102,6 +106,7 @@ module Onetime::Receipt::Features
             sender_email: cust.email,
             locale: locale || OT.default_locale,
           },
+          domain_id: domain_id,
         ) # fallback: :async_thread is the default
       end
 

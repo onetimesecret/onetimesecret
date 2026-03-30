@@ -56,37 +56,42 @@ module Onetime
         # @param data [Hash] Template data
         # @param locale [String] Locale code (default: 'en')
         # @return [Object] Delivery response
-        def deliver(template_name, data = {}, locale: 'en')
+        def deliver(template_name, data = {}, locale: 'en', sender_config: nil)
           template_class = template_class_for(template_name)
           template       = template_class.new(data, locale: locale)
-          deliver_template(template)
+          deliver_template(template, sender_config: sender_config)
         end
 
         # Deliver an email using a template instance
         # @param template [Templates::Base] Template instance
         # @return [Object] Delivery response
-        def deliver_template(template)
+        def deliver_template(template, sender_config: nil)
+          backend    = resolve_backend(sender_config)
+          use_sender = sender_config&.enabled? && sender_config.verified?
+
           email = template.to_email(
-            from: from_address,
-            reply_to: reply_to_address(template),
+            from: use_sender ? sender_config.from_address : from_address,
+            reply_to: use_sender && sender_config.reply_to ? sender_config.reply_to : reply_to_address(template),
           )
-          delivery_backend.deliver(email)
+          backend.deliver(email)
         end
 
         # Deliver a raw email hash (for Rodauth integration)
         # @param email [Hash] Email with :to, :from, :subject, :body keys
         # @return [Object] Delivery response
-        def deliver_raw(email)
-          # Normalize the email format
+        def deliver_raw(email, sender_config: nil)
+          backend    = resolve_backend(sender_config)
+          use_sender = sender_config&.enabled? && sender_config.verified?
+
           normalized = {
             to: extract_email_address(email[:to]),
-            from: extract_email_address(email[:from]) || from_address,
-            reply_to: email[:reply_to]&.to_s,
+            from: use_sender ? sender_config.from_address : (extract_email_address(email[:from]) || from_address),
+            reply_to: use_sender && sender_config.reply_to ? sender_config.reply_to : email[:reply_to]&.to_s,
             subject: email[:subject]&.to_s,
             text_body: email[:body]&.to_s,
             html_body: email[:html_body]&.to_s,
           }
-          delivery_backend.deliver(normalized)
+          backend.deliver(normalized)
         end
 
         # Get the configured delivery backend
@@ -171,6 +176,14 @@ module Onetime
             log_error "[mail] Unknown provider '#{provider}', falling back to logger"
             Delivery::Logger.new(config)
           end
+        end
+
+        # Returns the delivery backend for the given sender config.
+        # Currently always uses the global backend — per-domain sender
+        # identity is applied at the email level (from/reply_to override),
+        # not at the backend level.
+        def resolve_backend(_sender_config)
+          delivery_backend
         end
 
         # Logging helpers that work with or without OT defined
