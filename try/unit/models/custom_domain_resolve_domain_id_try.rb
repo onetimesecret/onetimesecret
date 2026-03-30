@@ -6,7 +6,7 @@
 #
 # The display_domains class_hashkey maps an FQDN (e.g. "secrets.example.com")
 # to a CustomDomain identifier. This lookup is used by:
-#   - Receipt#resolve_domain_id (deprecated_fields.rb)
+#   - CustomDomain.resolve_domain_id (class method)
 #   - CreateIncomingSecret#resolve_share_domain_id (v3 incoming)
 # to pass domain_id to Publisher.enqueue_email for per-domain sender config.
 #
@@ -31,9 +31,6 @@ OT.info "Cleaned Redis for display_domains resolution test run"
 @org = Onetime::Organization.create!("Resolve Test Org #{@ts}", @owner, "resolve_#{@ts}@test.com")
 @domain = Onetime::CustomDomain.create!(@fqdn, @org.objid)
 
-# Receipt via spawn_pair to get a fully initialized instance with resolve_domain_id
-@receipt, @secret = Onetime::Receipt.spawn_pair(@owner.objid, 3600, 'resolve test secret')
-
 # --- display_domains.get with known FQDN ---
 
 ## display_domains.get returns the domain identifier for a registered FQDN
@@ -52,22 +49,22 @@ Onetime::CustomDomain.display_domains.get(nil)
 Onetime::CustomDomain.display_domains.get('')
 #=> nil
 
-# --- Receipt#resolve_domain_id integration ---
+# --- CustomDomain.resolve_domain_id class method ---
 
 ## resolve_domain_id returns domain identifier for a known FQDN
-@receipt.resolve_domain_id(@fqdn)
+Onetime::CustomDomain.resolve_domain_id(@fqdn)
 #=> @domain.identifier
 
 ## resolve_domain_id returns nil for an unknown FQDN
-@receipt.resolve_domain_id('nonexistent.example.com')
+Onetime::CustomDomain.resolve_domain_id('nonexistent.example.com')
 #=> nil
 
 ## resolve_domain_id returns nil when given nil
-@receipt.resolve_domain_id(nil)
+Onetime::CustomDomain.resolve_domain_id(nil)
 #=> nil
 
 ## resolve_domain_id returns nil when given empty string
-@receipt.resolve_domain_id('')
+Onetime::CustomDomain.resolve_domain_id('')
 #=> nil
 
 # Teardown
