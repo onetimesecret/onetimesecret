@@ -34,7 +34,9 @@ module Onetime::CustomDomain::Features
       base.safe_dump_field :updated
 
       # SSO status fields - computed from CustomDomain::SsoConfig lookup
-      # Single lookup for both fields to avoid N+1 pattern on domain lists
+      # Single lookup for both fields to avoid N+1 pattern on domain lists.
+      # Cache is per-object (cleared on GC when the CustomDomain instance
+      # is discarded, typically at end of request).
       base.safe_dump_field :sso_configured,
         ->(obj) {
           config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(obj.identifier)
@@ -43,9 +45,13 @@ module Onetime::CustomDomain::Features
         }
       base.safe_dump_field :sso_enabled,
         ->(obj) {
-          config = obj.instance_variable_get(:@_sso_config_cache) ||
-                   Onetime::CustomDomain::SsoConfig.find_by_domain_id(obj.identifier)
-          config&.enabled? || false
+          unless obj.instance_variable_defined?(:@_sso_config_cache)
+            obj.instance_variable_set(
+              :@_sso_config_cache,
+              Onetime::CustomDomain::SsoConfig.find_by_domain_id(obj.identifier),
+            )
+          end
+          obj.instance_variable_get(:@_sso_config_cache)&.enabled? || false
         }
 
       # Mail config status fields - computed from CustomDomain::MailerConfig lookup
@@ -58,9 +64,13 @@ module Onetime::CustomDomain::Features
         }
       base.safe_dump_field :mail_enabled,
         ->(obj) {
-          config = obj.instance_variable_get(:@_mailer_config_cache) ||
-                   Onetime::CustomDomain::MailerConfig.find_by_domain_id(obj.identifier)
-          config&.enabled? || false
+          unless obj.instance_variable_defined?(:@_mailer_config_cache)
+            obj.instance_variable_set(
+              :@_mailer_config_cache,
+              Onetime::CustomDomain::MailerConfig.find_by_domain_id(obj.identifier),
+            )
+          end
+          obj.instance_variable_get(:@_mailer_config_cache)&.enabled? || false
         }
     end
   end

@@ -284,6 +284,11 @@ module Onetime
     end
 
     # Forward navigation to config models
+    #
+    # Not memoized: each call is a single Redis HGETALL whose result is
+    # already materialized into in-memory fields. Memoizing would only
+    # save a repeated load within the same request — minimal benefit,
+    # and it risks serving stale state after writes.
 
     def sso_config
       Onetime::CustomDomain::SsoConfig.find_by_domain_id(identifier)

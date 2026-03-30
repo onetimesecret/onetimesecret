@@ -28,7 +28,8 @@ module Onetime
     class MailerConfig < Familia::Horreum
       include Familia::Features::Autoloader
 
-      # Supported mail provider types
+      # Supported mail provider types.
+      # See lib/onetime/mail/mailer.rb for provider implementations.
       PROVIDER_TYPES = %w[smtp ses sendgrid lettermint].freeze
 
       prefix :custom_domain__mailer_config
@@ -116,7 +117,9 @@ module Onetime
       #
       # @return [CustomDomain, nil] The domain or nil if not found
       def custom_domain
-        Onetime::CustomDomain.load(domain_id)
+        Onetime::CustomDomain.find_by_identifier(domain_id)
+      rescue Onetime::RecordNotFound
+        nil
       end
 
       # Load the owning Organization via the CustomDomain.
@@ -133,8 +136,11 @@ module Onetime
         errors = []
 
         errors << 'domain_id is required' if domain_id.to_s.empty?
-        errors << 'provider is required' if provider.to_s.empty?
-        errors << "provider must be one of: #{PROVIDER_TYPES.join(', ')}" unless PROVIDER_TYPES.include?(provider)
+        if provider.to_s.empty?
+          errors << 'provider is required'
+        elsif !PROVIDER_TYPES.include?(provider)
+          errors << "provider must be one of: #{PROVIDER_TYPES.join(', ')}"
+        end
         errors << 'from_address is required' if from_address.to_s.empty?
 
         errors
@@ -201,6 +207,10 @@ module Onetime
           now            = Familia.now.to_i
           config.created = now
           config.updated = now
+
+          unless config.valid?
+            raise Onetime::Problem, config.validation_errors.join('; ')
+          end
 
           config.save
 
