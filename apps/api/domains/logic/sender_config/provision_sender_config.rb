@@ -79,7 +79,7 @@ module DomainsAPI
 
             success_data(result)
           else
-            error_response(result.error || 'Provisioning failed')
+            raise_form_error(result.error || 'Provisioning failed', field: :provider, error_type: :operation_failed)
           end
         end
 
@@ -87,7 +87,7 @@ module DomainsAPI
           {
             message: 'Domain provisioned successfully',
             dns_records: result.dns_records,
-            record: serialize_sender_config(@mailer_config.reload),
+            record: serialize_sender_config(@mailer_config),
           }
         end
       end
