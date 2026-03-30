@@ -37,8 +37,8 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(queues).to have_key('system.transient')
     end
 
-    it 'has 6 queues total' do
-      expect(queues.size).to eq(6)
+    it 'has 7 queues total' do
+      expect(queues.size).to eq(7)
     end
   end
 
@@ -106,6 +106,18 @@ RSpec.describe Onetime::Jobs::QueueConfig do
     end
   end
 
+  describe 'domain.validation.check queue' do
+    subject(:queue) { described_class::QUEUES['domain.validation.check'] }
+
+    it 'is durable' do
+      expect(queue[:durable]).to be true
+    end
+
+    it 'has dead letter exchange configured' do
+      expect(queue[:arguments]['x-dead-letter-exchange']).to eq('dlx.domain.validation')
+    end
+  end
+
   describe 'system.transient queue' do
     subject(:queue) { described_class::QUEUES['system.transient'] }
 
@@ -141,8 +153,8 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(dead_letter_config).to be_frozen
     end
 
-    it 'has 4 entries' do
-      expect(dead_letter_config.size).to eq(4)
+    it 'has 5 entries' do
+      expect(dead_letter_config.size).to eq(5)
     end
 
     it "contains 'dlx.email.message' with queue 'dlq.email.message'" do
@@ -163,6 +175,11 @@ RSpec.describe Onetime::Jobs::QueueConfig do
     it "contains 'dlx.billing.event' with queue 'dlq.billing.event'" do
       expect(dead_letter_config).to have_key('dlx.billing.event')
       expect(dead_letter_config['dlx.billing.event'][:queue]).to eq('dlq.billing.event')
+    end
+
+    it "contains 'dlx.domain.validation' with queue 'dlq.domain.validation'" do
+      expect(dead_letter_config).to have_key('dlx.domain.validation')
+      expect(dead_letter_config['dlx.domain.validation'][:queue]).to eq('dlq.domain.validation')
     end
 
     it 'has empty arguments (TTL managed via DLQ_POLICIES)' do
