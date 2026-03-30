@@ -73,21 +73,25 @@ Billing::Plan.instances.size
 @monthly.currency
 #=> 'cad'
 
-## Verify entitlements were loaded
-@monthly.entitlements.size
-#=> 8
+## Verify entitlements match config (derive expected count from source of truth)
+@config_plans = Billing::Config.load_plans
+@expected_entitlements = @config_plans.dig('identity_plus_v1', 'entitlements') || []
+@monthly.entitlements.size == @expected_entitlements.size
+#=> true
 
-## Verify entitlements include expected values
+## Verify all config entitlements were loaded
+@expected_entitlements.all? { |e| @monthly.entitlements.member?(e) }
+#=> true
+
+## Verify entitlements include core values
 @monthly.entitlements.member?('create_secrets')
 #=> true
 
-## Verify entitlements include custom_domains
-@monthly.entitlements.member?('custom_domains')
+## Verify limits were loaded (all config limits present as .max keys)
+@config_limits = @config_plans.dig('identity_plus_v1', 'limits') || {}
+@expected_limit_keys = @config_limits.keys.map { |k| "#{k}.max" }.sort
+@monthly.limits_hash.keys.sort == @expected_limit_keys
 #=> true
-
-## Verify limits were loaded
-@monthly.limits_hash.keys.sort
-#=> ["custom_domains.max", "members_per_team.max", "organizations.max", "secret_lifetime.max", "teams.max"]
 
 ## Verify unlimited custom_domains limit
 @monthly.limits_hash['custom_domains.max']
