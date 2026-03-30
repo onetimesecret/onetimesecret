@@ -10,47 +10,54 @@ require 'spec_helper'
 # access to protected API endpoints based on organization entitlements.
 #
 # The method (fail-closed behavior):
-# - Raises EntitlementRequired if no organization context (system issue)
-# - Returns true if the organization has the requested entitlement
-# - Raises EntitlementRequired if the organization lacks the entitlement
+# - Raises EntitlementRequired if no auth_org context (system issue)
+# - Returns true if the auth_org has the requested entitlement
+# - Raises EntitlementRequired if the auth_org lacks the entitlement
 #
-# These tests use a minimal test harness that delegates to the real
-# implementation from Onetime::Logic::Base to ensure the tests stay
-# in sync with production behavior.
+# These tests use a minimal test harness that wires up a @strategy_result
+# with organization_context metadata, matching how the real auth_org
+# method reads from StrategyResult in OrganizationContext.
 #
 RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
-  # Minimal test harness that includes the entitlement checking behavior
-  # from the real Onetime::Logic::Base implementation.
+  # Minimal test harness that mirrors how auth_org and require_entitlement!
+  # work in the real Onetime::Logic::Base + OrganizationContext.
   #
-  # We extract just the require_entitlement! method to test it in isolation
-  # without needing the full Logic::Base infrastructure (strategy_result, etc.)
+  # auth_org reads immutably from @strategy_result.metadata, matching
+  # the production code path. This avoids the old pattern of storing
+  # the org in a mutable @org ivar.
   let(:test_class) do
     Class.new do
-      attr_accessor :org
+      attr_reader :strategy_result
 
-      def initialize(org = nil)
-        @org = org
+      def initialize(strategy_result)
+        @strategy_result = strategy_result
       end
 
-      # Delegate to the exact same implementation as Onetime::Logic::Base
-      # This ensures our tests validate the real production behavior
+      # Mirrors OrganizationContext#auth_org: reads immutably from
+      # strategy_result metadata, not from a mutable ivar.
+      def auth_org
+        @strategy_result&.metadata&.dig(:organization_context, :organization)
+      end
+
+      # Mirrors Onetime::Logic::Base#require_entitlement! — uses auth_org
+      # to check entitlements against the authenticated session's org.
       def require_entitlement!(entitlement)
         entitlement = entitlement.to_s
 
-        # Fail-closed: org context required for entitlement checks.
-        # OrganizationLoader self-heals, so nil org indicates a system issue.
-        unless org
+        # Fail-closed: auth_org context required for entitlement checks.
+        # OrganizationLoader self-heals, so nil auth_org indicates a system issue.
+        unless auth_org
           raise Onetime::EntitlementRequired.new(
             entitlement,
             message: 'Unable to verify entitlements (organization context unavailable)',
           )
         end
 
-        # Check if org has the entitlement
-        return true if org.can?(entitlement)
+        # Check if auth_org has the entitlement
+        return true if auth_org.can?(entitlement)
 
         # Build upgrade path info
-        current_plan = org.planid
+        current_plan = auth_org.planid
         upgrade_to   = if defined?(Billing::PlanHelpers)
                          Billing::PlanHelpers.upgrade_path_for(entitlement, current_plan)
                        end
@@ -64,6 +71,12 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
     end
   end
 
+  # Lightweight stand-in for StrategyResult. Provides the metadata
+  # hash that auth_org reads via dig(:organization_context, :organization).
+  let(:strategy_result_class) do
+    Struct.new(:metadata, keyword_init: true)
+  end
+
   let(:organization) do
     instance_double(
       Onetime::Organization,
@@ -72,8 +85,8 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
     )
   end
 
-  describe 'when org is nil (fail-closed behavior)' do
-    subject(:logic) { test_class.new(nil) }
+  describe 'when auth_org is nil (fail-closed behavior)' do
+    subject(:logic) { test_class.new(strategy_result_class.new(metadata: {})) }
 
     it 'raises EntitlementRequired (fail-closed)' do
       expect { logic.require_entitlement!('api_access') }
@@ -87,7 +100,7 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
         end
     end
 
-    it 'includes a descriptive message about missing org context' do
+    it 'includes a descriptive message about missing auth_org context' do
       expect { logic.require_entitlement!('api_access') }
         .to raise_error(Onetime::EntitlementRequired) do |error|
           expect(error.message).to include('organization context unavailable')
@@ -100,10 +113,22 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
           expect(error.entitlement).to eq('api_access')
         end
     end
+
+    context 'when strategy_result itself is nil' do
+      subject(:logic) { test_class.new(nil) }
+
+      it 'raises EntitlementRequired (fail-closed)' do
+        expect { logic.require_entitlement!('api_access') }
+          .to raise_error(Onetime::EntitlementRequired)
+      end
+    end
   end
 
-  describe 'when org has the entitlement' do
-    subject(:logic) { test_class.new(organization) }
+  describe 'when auth_org has the entitlement' do
+    subject(:logic) do
+      sr = strategy_result_class.new(metadata: { organization_context: { organization: organization } })
+      test_class.new(sr)
+    end
 
     before do
       allow(organization).to receive(:can?).with('api_access').and_return(true)
@@ -123,8 +148,11 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
     end
   end
 
-  describe 'when org lacks the entitlement' do
-    subject(:logic) { test_class.new(organization) }
+  describe 'when auth_org lacks the entitlement' do
+    subject(:logic) do
+      sr = strategy_result_class.new(metadata: { organization_context: { organization: organization } })
+      test_class.new(sr)
+    end
 
     before do
       allow(organization).to receive(:can?).with('api_access').and_return(false)
@@ -184,7 +212,10 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
   end
 
   describe 'EntitlementRequired error structure' do
-    subject(:logic) { test_class.new(organization) }
+    subject(:logic) do
+      sr = strategy_result_class.new(metadata: { organization_context: { organization: organization } })
+      test_class.new(sr)
+    end
 
     before do
       allow(organization).to receive(:can?).with('custom_domains').and_return(false)
@@ -206,7 +237,10 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
   end
 
   describe 'different entitlement types' do
-    subject(:logic) { test_class.new(organization) }
+    subject(:logic) do
+      sr = strategy_result_class.new(metadata: { organization_context: { organization: organization } })
+      test_class.new(sr)
+    end
 
     %w[api_access custom_domains create_teams audit_logs advanced_analytics].each do |entitlement|
       context "with '#{entitlement}' entitlement" do

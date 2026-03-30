@@ -47,9 +47,11 @@ module Onetime
       # Make organization readable
       attr_reader :organization
 
-      # Alias for convenience
-      def org
-        @organization
+      # Immutable accessor: returns the organization from the authentication
+      # strategy result metadata. Distinct from @organization which may be
+      # mutated during request processing.
+      def auth_org
+        @strategy_result&.metadata&.dig(:organization_context, :organization)
       end
 
       # Require organization to be present

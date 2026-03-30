@@ -125,7 +125,7 @@ module V2::Logic
 
       # Organization scope: all receipts created by org members
       def query_organization_receipts
-        unless org
+        unless auth_org
           raise_form_error(
             I18n.t(
               'web.secrets.errors.no_organization_context',
@@ -135,8 +135,8 @@ module V2::Logic
           )
         end
 
-        @scope_label = org.display_name
-        org.receipts.rangebyscore(since, @now)
+        @scope_label = auth_org.display_name
+        auth_org.receipts.rangebyscore(since, @now)
       end
 
       # Domain scope: receipts created with a specific custom domain
