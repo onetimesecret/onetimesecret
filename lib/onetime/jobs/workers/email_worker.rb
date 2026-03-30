@@ -7,6 +7,7 @@ require_relative 'base_worker'
 require_relative '../queues/config'
 require_relative '../queues/declarator'
 require_relative '../../mail'
+require_relative '../../models/custom_domain/mailer_config'
 
 module Onetime
   module Jobs
@@ -109,7 +110,7 @@ module Onetime
         # Handles both templated and raw email formats
         def deliver_email(data)
           domain_id     = data[:domain_id] || data['domain_id']
-          sender_config = load_sender_config(domain_id) if domain_id
+          sender_config = Onetime::CustomDomain::MailerConfig.load_for_domain(domain_id) if domain_id
 
           if data[:raw]
             deliver_raw_email(data, sender_config: sender_config)
@@ -151,21 +152,6 @@ module Onetime
           end
 
           Onetime::Mail.deliver_raw(email, sender_config: sender_config)
-        end
-
-        # Load sender config for a custom domain.
-        # Returns nil on missing config or errors (graceful fallback to global mailer).
-        def load_sender_config(domain_id)
-          require_relative '../../models/custom_domain/mailer_config'
-          config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(domain_id)
-          unless config
-            log_info "No sender config found for domain_id=#{domain_id}, using global mailer"
-            return nil
-          end
-          config
-        rescue StandardError => ex
-          log_error "Failed to load sender config for domain_id=#{domain_id}: #{ex.message}"
-          nil
         end
 
         # Update the customer's pending_email_delivery_status field.

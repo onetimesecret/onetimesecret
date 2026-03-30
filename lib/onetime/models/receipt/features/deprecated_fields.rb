@@ -88,7 +88,7 @@ module Onetime::Receipt::Features
         email_address = eaddrs.first
         # Resolve share_domain FQDN to a domain_id for sender config lookup.
         # Fault-tolerant: any failure results in nil (system default sender).
-        domain_id     = resolve_domain_id(secret.share_domain)
+        domain_id     = Onetime::CustomDomain.resolve_domain_id(secret.share_domain)
 
         # Secret sharing: use default async_thread fallback (non-blocking)
         # User expects email but doesn't need to wait for it
@@ -108,39 +108,6 @@ module Onetime::Receipt::Features
           },
           domain_id: domain_id,
         ) # fallback: :async_thread is the default
-      end
-
-      # Resolve an FQDN share_domain to its CustomDomain identifier.
-      #
-      # Returns nil when the domain is blank, unregistered, or on any
-      # error — the Publisher and EmailWorker treat nil as "use system
-      # default sender config".
-      #
-      # @param fqdn [String, nil] The fully-qualified domain name
-      # @return [String, nil] The CustomDomain objid, or nil
-      def resolve_domain_id(fqdn)
-        return nil if fqdn.nil? || fqdn.to_s.empty?
-
-        domain_id = Onetime::CustomDomain.display_domains.get(fqdn)
-
-        if domain_id
-          secret_logger.debug 'Resolved share_domain to domain_id',
-            {
-              share_domain: fqdn,
-              domain_id: domain_id,
-              action: 'deliver_email',
-            }
-        end
-
-        domain_id
-      rescue StandardError => ex
-        secret_logger.warn 'Failed to resolve share_domain',
-          {
-            share_domain: fqdn,
-            error: ex.message,
-            action: 'deliver_email',
-          }
-        nil
       end
 
       # NOTE: We override the default fast writer (bang!) methods from familia

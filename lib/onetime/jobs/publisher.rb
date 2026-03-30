@@ -332,8 +332,9 @@ module Onetime
       # @param domain_id [String, nil] Domain identifier for per-domain sender config
       def deliver_email(email_type, template:, data:, raw_email:, domain_id: nil)
         require_relative '../mail'
+        require_relative '../models/custom_domain/mailer_config'
 
-        sender_config = load_sender_config(domain_id) if domain_id
+        sender_config = Onetime::CustomDomain::MailerConfig.load_for_domain(domain_id) if domain_id
 
         case email_type
         when :templated
@@ -345,21 +346,6 @@ module Onetime
 
           Onetime::Mail.deliver_raw(raw_email, sender_config: sender_config)
         end
-      end
-
-      # Load sender config for a custom domain (fallback path only).
-      # Returns nil on missing config or errors (graceful fallback to global mailer).
-      def load_sender_config(domain_id)
-        require_relative '../models/custom_domain/mailer_config'
-        config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(domain_id)
-        unless config
-          logger.info 'No sender config found for domain_id, using global mailer', domain_id: domain_id
-          return nil
-        end
-        config
-      rescue StandardError => ex
-        logger.error 'Failed to load sender config', domain_id: domain_id, error: ex.message
-        nil
       end
 
       # Clear pending state

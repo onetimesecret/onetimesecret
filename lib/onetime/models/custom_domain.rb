@@ -569,6 +569,25 @@ module Onetime
         end
       end
 
+      # Resolve an FQDN to its CustomDomain identifier.
+      #
+      # Looks up the display_domains hash for the given FQDN. Returns nil
+      # when the domain is blank, unregistered, or on any error — callers
+      # treat nil as "no custom domain".
+      #
+      # @param fqdn [String, nil] The fully-qualified domain name
+      # @return [String, nil] The CustomDomain objid, or nil
+      def resolve_domain_id(fqdn)
+        return nil if fqdn.nil? || fqdn.to_s.empty?
+
+        domain_id = display_domains.get(fqdn)
+        OT.ld "[CustomDomain] Resolved #{fqdn} to domain_id=#{domain_id}" if domain_id
+        domain_id
+      rescue StandardError => ex
+        OT.le "[CustomDomain] Failed to resolve domain_id for #{fqdn}: #{ex.message}"
+        nil
+      end
+
       # Check if a domain exists but has no organization (orphaned)
       # @param domain_name [String] The domain name to check
       # @return [Boolean] true if domain exists without org_id
