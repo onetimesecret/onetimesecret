@@ -61,6 +61,11 @@ module Onetime
       # (e.g. `R&D` → `R&amp;D`), so the final step decodes the entities
       # it introduces to get back to plain text for storage.
       #
+      # Strips all HTML tags and decodes HTML entities so the stored value
+      # is raw text. Frontend frameworks (Vue, React) handle output encoding
+      # on render, so storing pre-encoded entities causes double-encoding
+      # (e.g. `R&D` → `R&amp;D` in storage → `R&amp;amp;D` on screen).
+      #
       # @param value [String, nil] The text value to sanitize
       # @param max_length [Integer, nil] Optional maximum length
       # @return [String] Sanitized plain text with HTML stripped, entities decoded,
