@@ -103,7 +103,6 @@ module Onetime
         # Reset the delivery backend (useful for testing)
         def reset!
           @delivery_backend = nil
-          @domain_backends  = nil
         end
 
         # Get the configured from address
@@ -179,69 +178,12 @@ module Onetime
           end
         end
 
-        def resolve_backend(sender_config)
-          return delivery_backend unless sender_config&.enabled? && sender_config.verified?
-
-          @domain_backends                          ||= {}
-          # Per-domain backends are cached for the process lifetime (consistent with the global
-          # @delivery_backend). Config changes (key rotation, provider switch) take effect on
-          # process restart. A future iteration may add TTL-based expiry.
-          @domain_backends[sender_config.domain_id] ||= create_backend_for(sender_config)
-        end
-
-        def create_backend_for(sender_config)
-          provider = sender_config.provider
-
-          # Only providers whose config can be built from MailerConfig fields
-          # are supported for per-domain backends. SMTP requires host, port,
-          # username, etc. not available in MailerConfig.
-          unless %w[ses sendgrid lettermint logger].include?(provider)
-            log_error "[mail] Per-domain backend not supported for provider '#{provider}', using global backend"
-            return delivery_backend
-          end
-
-          config = build_sender_config(sender_config)
-
-          log_info "[mail] Using #{provider} delivery backend for domain #{sender_config.domain_id}"
-
-          case provider
-          when 'ses'
-            Delivery::SES.new(config)
-          when 'sendgrid'
-            Delivery::SendGrid.new(config)
-          when 'lettermint'
-            Delivery::Lettermint.new(config)
-          when 'logger'
-            Delivery::Logger.new(config)
-          else
-            log_error "[mail] Unknown provider '#{provider}' for domain #{sender_config.domain_id}, falling back to logger"
-            Delivery::Logger.new(config)
-          end
-        end
-
-        def build_sender_config(sender_config)
-          case sender_config.provider
-          when 'ses'
-            # Per-domain SES uses the domain's access_key_id with
-            # region and secret_access_key from global config or ENV
-            # (typical SES setup: one AWS account, multiple verified identities).
-            global = build_provider_config('ses')
-            {
-              region: global[:region],
-              access_key_id: sender_config.api_key || global[:access_key_id],
-              secret_access_key: global[:secret_access_key],
-            }
-          when 'sendgrid'
-            {
-              api_key: sender_config.api_key,
-            }
-          when 'lettermint'
-            {
-              api_token: sender_config.api_key,
-            }
-          else
-            {}
-          end
+        # Returns the delivery backend for the given sender config.
+        # Currently always uses the global backend — per-domain sender
+        # identity is applied at the email level (from/reply_to override),
+        # not at the backend level.
+        def resolve_backend(_sender_config)
+          delivery_backend
         end
 
         # Logging helpers that work with or without OT defined

@@ -2,12 +2,15 @@
 #
 # frozen_string_literal: true
 
-# Integration tests for Mailer with per-domain sender_config.
+# Integration tests for Mailer with per-domain sender_config (platform mode).
 #
 # Verifies that:
 #   - Mailer.deliver with an enabled+verified sender_config uses custom from_address
 #   - Mailer.deliver_raw with sender_config uses custom from_address
 #   - Nil/disabled/unverified sender_config falls back to global defaults
+#
+# Platform mode: the global backend is always used for delivery. Per-domain
+# sender identity is applied at the email level (from/reply_to override).
 #
 # Uses a capturing backend that records the normalized email hash,
 # allowing assertions on the actual from/reply_to values passed to delivery.
@@ -39,22 +42,13 @@ end
 
 @capturing_backend = CapturingBackend.new
 
-# Override delivery_backend to return our capturing backend
+# Override delivery_backend to return our capturing backend.
+# In platform mode, resolve_backend always delegates to delivery_backend,
+# so this single override is sufficient for all sender_config scenarios.
 Onetime::Mail::Mailer.reset!
 Onetime::Mail::Mailer.define_singleton_method(:delivery_backend) { @capturing_backend ||= CapturingBackend.new }
 # Inject our specific instance
 Onetime::Mail::Mailer.instance_variable_set(:@capturing_backend, @capturing_backend)
-
-# Also need to handle resolve_backend for domain backends. The capturing backend
-# will be returned by resolve_backend when sender_config is not enabled/verified
-# (falls through to delivery_backend). For enabled+verified configs, Mailer
-# creates a per-domain backend via create_backend_for. Since MockSenderConfig
-# uses provider: 'logger', it will create a Logger backend. We override
-# create_backend_for to return our capturing backend for test domains.
-original_create_backend_for = Onetime::Mail::Mailer.method(:create_backend_for)
-Onetime::Mail::Mailer.define_singleton_method(:create_backend_for) do |sender_config|
-  @capturing_backend
-end
 
 # Mock sender config using a simple struct to avoid Redis dependencies.
 MockSenderConfig = Struct.new(

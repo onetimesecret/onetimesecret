@@ -228,29 +228,10 @@ RSpec.describe Onetime::Mail::Mailer do
         expect(result).to eq(mock_backend)
       end
 
-      context 'when sender_config is enabled and verified' do
-        let(:domain_backend) do
-          instance_double(Onetime::Mail::Delivery::Logger, deliver: { status: 'logged' })
-        end
+      it 'returns global backend when sender_config is enabled and verified' do
+        result = described_class.send(:resolve_backend, mock_sender_config)
 
-        before do
-          allow(described_class).to receive(:create_backend_for).and_return(domain_backend)
-        end
-
-        it 'creates a per-domain backend' do
-          result = described_class.send(:resolve_backend, mock_sender_config)
-
-          expect(result).to eq(domain_backend)
-          expect(described_class).to have_received(:create_backend_for).with(mock_sender_config)
-        end
-
-        it 'caches per-domain backends by domain_id' do
-          result1 = described_class.send(:resolve_backend, mock_sender_config)
-          result2 = described_class.send(:resolve_backend, mock_sender_config)
-
-          expect(result1).to equal(result2)
-          expect(described_class).to have_received(:create_backend_for).once
-        end
+        expect(result).to eq(mock_backend)
       end
 
       context 'when sender_config is not enabled' do
@@ -285,25 +266,6 @@ RSpec.describe Onetime::Mail::Mailer do
 
           expect(result).to eq(mock_backend)
         end
-      end
-    end
-
-    describe '.reset!' do
-      it 'clears domain backend cache' do
-        domain_backend = instance_double(Onetime::Mail::Delivery::Logger, deliver: { status: 'logged' })
-        allow(described_class).to receive(:create_backend_for).and_return(domain_backend)
-
-        # Prime the cache
-        described_class.send(:resolve_backend, mock_sender_config)
-
-        # Reset should clear it
-        described_class.reset!
-
-        # After reset, create_backend_for should be called again
-        allow(described_class).to receive(:delivery_backend).and_return(mock_backend)
-        described_class.send(:resolve_backend, mock_sender_config)
-
-        expect(described_class).to have_received(:create_backend_for).twice
       end
     end
   end
