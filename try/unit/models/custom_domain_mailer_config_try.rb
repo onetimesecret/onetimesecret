@@ -502,7 +502,7 @@ Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS.include?('c
 
 # --- provisioned? and required_dns_records ---
 
-## provisioned? returns false when provider_dns_data is nil
+## provisioned? returns false when dns_records is nil
 @domain_prov = Onetime::CustomDomain.create!("mc-prov-#{@ts}.example.com", @org.objid)
 @cfg_prov = Onetime::CustomDomain::MailerConfig.create!(
   domain_id: @domain_prov.identifier, provider: 'ses', from_address: 'a@prov.com')
@@ -513,12 +513,12 @@ Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS.include?('c
 @cfg_prov.required_dns_records
 #=> []
 
-## provisioned? returns true when provider_dns_data has records
-@dns_records = [
+## provisioned? returns true when dns_records has records
+@dns_records_data = [
   { type: 'CNAME', name: 'abc123._domainkey', value: 'abc123.dkim.amazonses.com' },
   { type: 'CNAME', name: 'def456._domainkey', value: 'def456.dkim.amazonses.com' },
 ]
-@cfg_prov.provider_dns_data = @dns_records
+@cfg_prov.dns_records = @dns_records_data
 @cfg_prov.save
 @cfg_prov.provisioned?
 #=> true
@@ -551,7 +551,7 @@ Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS.include?('c
 #=> 'verified'
 
 ## required_dns_records handles string keys in stored data
-@cfg_prov.provider_dns_data = [
+@cfg_prov.dns_records = [
   { 'type' => 'TXT', 'name' => 'spf.example.com', 'value' => 'v=spf1 include:amazonses.com ~all' },
 ]
 @cfg_prov.save
@@ -559,7 +559,7 @@ Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS.include?('c
 #=> 'TXT'
 
 ## required_dns_records handles mixed string/symbol keys
-@cfg_prov.provider_dns_data = [
+@cfg_prov.dns_records = [
   { 'type' => 'CNAME', :name => 'mixed._domainkey', 'value' => 'mixed.dkim.amazonses.com' },
 ]
 @cfg_prov.save
@@ -567,12 +567,12 @@ Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS.include?('c
 #=> 'mixed._domainkey'
 
 ## provisioned? returns false for empty array
-@cfg_prov.provider_dns_data = []
+@cfg_prov.dns_records = []
 @cfg_prov.save
 @cfg_prov.provisioned?
 #=> false
 
-## required_dns_records returns empty array for empty provider_dns_data
+## required_dns_records returns empty array for empty dns_records
 @cfg_prov.required_dns_records
 #=> []
 

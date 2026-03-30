@@ -114,11 +114,11 @@ module Onetime
 
         # Step 7: Extract and normalize DNS records
         dns_records   = normalize_dns_records(provision_result[:dns_records], provider)
-        provider_data = provision_result[:dns_records]
+        provider_data = provision_result[:provider_data]
 
         # Step 8: Store result in mailer_config and save if persist enabled
         if @persist
-          persist_provider_data(provider_data, provision_result[:identity_id])
+          persist_provider_data(provider_data, dns_records, provision_result[:identity_id])
         end
 
         logger.info 'Sender domain provisioned successfully',
@@ -186,11 +186,14 @@ module Onetime
       # Each provider returns DNS data in different shapes. This method
       # converts them to a common array of record hashes for UI display.
       #
-      # @param dns_data [Hash] Provider-specific DNS record data
+      # @param dns_data [Array, Hash] Provider-specific DNS record data
       # @param provider [String] Provider name for format selection
       # @return [Array<Hash>] Normalized records: [{ type:, name:, value: }, ...]
       def normalize_dns_records(dns_data, provider)
-        return [] unless dns_data.is_a?(Hash)
+        return [] if dns_data.nil?
+
+        # Strategies return Arrays directly from :dns_records
+        return dns_data if dns_data.is_a?(Array)
 
         case provider.to_s.downcase
         when 'ses'
@@ -272,16 +275,19 @@ module Onetime
 
       # Persist provider data to the mailer config.
       #
-      # @param provider_data [Hash] Provider DNS data to store
+      # @param provider_data [Hash] Raw provider-specific data to store
+      # @param dns_records [Array<Hash>] Normalized DNS records for UI display
       # @param identity_id [String, nil] Provider's identity identifier
-      def persist_provider_data(provider_data, identity_id)
+      def persist_provider_data(provider_data, dns_records, identity_id)
         @mailer_config.provider_dns_data = provider_data
+        @mailer_config.dns_records       = dns_records
         @mailer_config.updated           = Familia.now.to_i
         @mailer_config.save
 
         logger.debug 'Persisted provider DNS data',
           domain_id: @mailer_config.domain_id,
-          identity_id: identity_id
+          identity_id: identity_id,
+          record_count: dns_records&.size
       rescue StandardError => ex
         logger.error 'Failed to persist provider data',
           domain_id: @mailer_config.domain_id,

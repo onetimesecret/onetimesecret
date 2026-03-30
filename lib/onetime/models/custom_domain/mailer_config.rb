@@ -64,6 +64,11 @@ module Onetime
       #   SendGrid: { subdomain: "em1234", dns_records: [...] }
       jsonkey :provider_dns_data
 
+      # Normalized DNS records for UI display.
+      # Uniform array format: [{ type: 'CNAME', name: '...', value: '...' }, ...]
+      # Populated during provisioning from provider-specific dns_records.
+      jsonkey :dns_records
+
       # Encrypted credential storage with domain-bound AAD
       encrypted_field :api_key, aad_fields: [:domain_id]
 
@@ -165,12 +170,12 @@ module Onetime
 
       # Check if the sender domain has been provisioned.
       #
-      # A domain is considered provisioned when provider_dns_data contains
-      # DNS records returned from the provider API (SES, SendGrid, etc.).
+      # A domain is considered provisioned when dns_records contains
+      # normalized records from the provider API (SES, SendGrid, etc.).
       #
-      # @return [Boolean] true if provider_dns_data is populated
+      # @return [Boolean] true if dns_records is populated
       def provisioned?
-        data = provider_dns_data&.value
+        data = dns_records&.value
         data.is_a?(Array) && !data.empty?
       end
 
@@ -190,7 +195,7 @@ module Onetime
       def required_dns_records
         return [] unless provisioned?
 
-        data           = provider_dns_data.value
+        data           = dns_records.value
         current_status = verification_status || 'pending'
 
         data.map do |record|
