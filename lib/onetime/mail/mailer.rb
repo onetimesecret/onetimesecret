@@ -219,15 +219,6 @@ module Onetime
 
         def build_sender_config(sender_config)
           case sender_config.provider
-          when 'smtp'
-            {
-              host: sender_config.from_address&.split('@')&.last,
-              password: sender_config.api_key,
-            }
-          when 'ses'
-            {
-              access_key_id: sender_config.api_key,
-            }
           when 'sendgrid'
             {
               api_key: sender_config.api_key,
