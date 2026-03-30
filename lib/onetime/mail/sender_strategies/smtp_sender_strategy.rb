@@ -34,7 +34,7 @@ module Onetime
             success: false,
             message: 'SMTP providers do not support automated DNS provisioning. ' \
                      'Configure SPF and DKIM records manually with your DNS provider.',
-            dns_records: {},
+            dns_records: [],
             error: 'provisioning_not_supported',
           }
         end

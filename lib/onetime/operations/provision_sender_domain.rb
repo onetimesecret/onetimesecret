@@ -168,17 +168,53 @@ module Onetime
         errors.empty? ? nil : errors.join('; ')
       end
 
-      # Load platform credentials for the provider.
+      # Load and validate platform credentials for the provider.
+      #
+      # Mailer.provider_credentials always returns a Hash (even with nil
+      # values when env vars are missing), so we validate that provider-
+      # specific required keys are present and non-nil.
       #
       # @param provider [String] Provider name
       # @return [Hash, nil] Credentials hash or nil if not configured
       def load_credentials(provider)
-        Onetime::Mail::Mailer.provider_credentials(provider)
+        credentials = Onetime::Mail::Mailer.provider_credentials(provider)
+
+        missing = missing_credential_keys(provider, credentials)
+        unless missing.empty?
+          logger.warn 'Provider credentials incomplete',
+            provider: provider,
+            missing_keys: missing
+          return nil
+        end
+
+        credentials
       rescue StandardError => ex
         logger.error 'Failed to load provider credentials',
           provider: provider,
           error: ex.message
         nil
+      end
+
+      # Returns any required credential keys that are missing or nil.
+      #
+      # @param provider [String] Provider name
+      # @param credentials [Hash] Credentials hash to validate
+      # @return [Array<Symbol>] Missing key names (empty if all present)
+      def missing_credential_keys(provider, credentials)
+        required = case provider.to_s.downcase
+                   when 'ses'
+                     [:access_key_id, :secret_access_key, :region]
+                   when 'sendgrid'
+                     [:api_key]
+                   when 'lettermint'
+                     [:api_token]
+                   when 'smtp'
+                     [:host]
+                   else
+                     []
+                   end
+
+        required.select { |key| credentials[key].to_s.empty? }
       end
 
       # Normalize provider-specific DNS records to a consistent display format.
@@ -237,9 +273,17 @@ module Onetime
       def normalize_sendgrid_records(dns_data)
         records = []
 
-        # SendGrid typically returns dns_records or cnames hash
-        if dns_data[:dns_records].is_a?(Array)
-          records = dns_data[:dns_records]
+        # SendGrid provider_data stores records under :dns (Hash of record hashes)
+        if dns_data[:dns].is_a?(Hash)
+          dns_data[:dns].each do |_key, record|
+            next unless record.is_a?(Hash)
+
+            records << {
+              type: (record[:type] || record['type'] || 'CNAME').upcase,
+              name: record[:host] || record['host'] || record[:name] || record['name'],
+              value: record[:data] || record['data'] || record[:value] || record['value'],
+            }
+          end
         elsif dns_data[:cnames].is_a?(Hash)
           dns_data[:cnames].each do |_key, record|
             records << {
@@ -255,11 +299,18 @@ module Onetime
 
       # Normalize Lettermint DNS record format.
       #
-      # @param dns_data [Hash] Lettermint DNS data
+      # The Lettermint strategy already returns an Array of {type, name, value}
+      # hashes from normalize_dns_records, so this is a passthrough. If for
+      # some reason a Hash arrives (e.g., from stored provider_data), extract
+      # the records array.
+      #
+      # @param dns_data [Array, Hash] Lettermint DNS data
       # @return [Array<Hash>] DNS records
       def normalize_lettermint_records(dns_data)
-        # Lettermint format TBD based on their API response
-        dns_data[:records] || dns_data[:selectors] || []
+        return dns_data if dns_data.is_a?(Array)
+
+        # Fallback for legacy Hash shapes
+        dns_data[:all_records] || dns_data[:records] || dns_data[:selectors] || []
       end
 
       # Extract the domain from the mailer config's from_address.

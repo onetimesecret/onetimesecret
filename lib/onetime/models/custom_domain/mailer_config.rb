@@ -23,6 +23,12 @@
 #   - Changing from_address resets verified_at (DNS verification no longer applies)
 #   - Changing api_key, from_name, or reply_to does NOT reset verified_at
 #
+# DNS Data Storage (two-field design):
+#   - provider_dns_data (jsonkey): Raw provider response hash, shape varies by provider.
+#     Preserved for re-normalization and provider-specific operations.
+#   - dns_records (jsonkey): Normalized Array of record hashes for UI display,
+#     each with :type, :name, :value keys. Populated during provisioning.
+#
 module Onetime
   class CustomDomain < Familia::Horreum
     class MailerConfig < Familia::Horreum

@@ -15,10 +15,10 @@ module Onetime
       # SES provides DKIM authentication via 3 CNAME records with
       # tokens that must be added to the domain's DNS.
       #
-      # Example DNS records for domain "example.com":
-      #   token1._domainkey.example.com CNAME token1.dkim.amazonses.com
-      #   token2._domainkey.example.com CNAME token2.dkim.amazonses.com
-      #   token3._domainkey.example.com CNAME token3.dkim.amazonses.com
+      # Example DNS records returned (name is relative, without the domain suffix):
+      #   { type: 'CNAME', name: 'token1._domainkey', value: 'token1.dkim.amazonses.com' }
+      #   { type: 'CNAME', name: 'token2._domainkey', value: 'token2.dkim.amazonses.com' }
+      #   { type: 'CNAME', name: 'token3._domainkey', value: 'token3.dkim.amazonses.com' }
       #
       # Configuration:
       #   region:            AWS region (default: us-east-1)

@@ -53,10 +53,10 @@ module Onetime
         # @return [Hash] Provider-specific DNS provisioning data:
         #   - :success [Boolean] Whether provisioning succeeded
         #   - :message [String] Human-readable result
-        #   - :dns_records [Hash] Provider-specific DNS record data
-        #     - SES: { dkim_tokens: ['t1', 't2', 't3'], region: 'us-east-1' }
-        #     - SendGrid: { subdomain: 'em1234', cnames: {...} }
-        #     - Lettermint: { selectors: [...] }
+        #   - :dns_records [Array<Hash>] Normalized DNS records, each with:
+        #     - :type [String] Record type ('CNAME', 'TXT', etc.)
+        #     - :name [String] DNS hostname
+        #     - :value [String] DNS record value
         #   - :identity_id [String, nil] Provider's identity identifier
         #   - :error [String, nil] Error message if failed
         #
