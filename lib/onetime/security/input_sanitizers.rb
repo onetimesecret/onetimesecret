@@ -56,10 +56,10 @@ module Onetime
 
       # Sanitize plain text input (display names, titles, descriptions)
       #
-      # Strips all HTML tags and decodes HTML entities so the stored value
-      # is raw text. Frontend frameworks (Vue, React) handle output encoding
-      # on render, so storing pre-encoded entities causes double-encoding
-      # (e.g. `R&D` → `R&amp;D` in storage → `R&amp;amp;D` on screen).
+      # We store plain text and render plain text, but sanitize in the
+      # middle using HTML-centric tools. Sanitize.fragment returns HTML
+      # (e.g. `R&D` → `R&amp;D`), so the final step decodes the entities
+      # it introduces to get back to plain text for storage.
       #
       # @param value [String, nil] The text value to sanitize
       # @param max_length [Integer, nil] Optional maximum length
