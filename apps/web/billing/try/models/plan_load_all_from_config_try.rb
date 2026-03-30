@@ -75,7 +75,7 @@ Billing::Plan.instances.size
 
 ## Verify entitlements were loaded
 @monthly.entitlements.size
-#=> 7
+#=> 8
 
 ## Verify entitlements include expected values
 @monthly.entitlements.member?('create_secrets')
