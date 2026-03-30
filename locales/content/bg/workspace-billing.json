@@ -187,7 +187,7 @@
     "text": "Удължено време на изтичане по подразбиране",
     "sha256": "19b19637"
   },
-  "web.billing.overview.entitlements.custom_mail_defaults": {
+  "web.billing.overview.entitlements.custom_mail_sender": {
     "text": "Персонализирани настройки за поща",
     "sha256": "95aebfb9"
   },

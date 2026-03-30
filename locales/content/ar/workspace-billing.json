@@ -187,7 +187,7 @@
     "text": "انتهاء صلاحية افتراضي ممتد",
     "sha256": "19b19637"
   },
-  "web.billing.overview.entitlements.custom_mail_defaults": {
+  "web.billing.overview.entitlements.custom_mail_sender": {
     "text": "إعدادات البريد المخصصة الافتراضية",
     "sha256": "95aebfb9"
   },
