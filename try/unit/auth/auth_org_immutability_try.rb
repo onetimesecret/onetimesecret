@@ -60,7 +60,7 @@ class AuthOrgTestHarness
 
   def initialize(strategy_result)
     @strategy_result = strategy_result
-    @cust = strategy_result.user
+    @cust = strategy_result&.user
     extract_organization_context(strategy_result)
   end
 end
