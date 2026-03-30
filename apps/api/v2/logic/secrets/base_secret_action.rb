@@ -105,8 +105,8 @@ module V2::Logic
 
         # Limit enforcement: fail-open (unlimited) when no billing, else plan limit.
         config_max = ttl_options.max || 30.days
-        max_ttl    = if org && org.respond_to?(:limit_for)
-                    org_limit = org.limit_for('secret_lifetime')
+        max_ttl    = if auth_org && auth_org.respond_to?(:limit_for)
+                    org_limit = auth_org.limit_for('secret_lifetime')
                     org_limit.positive? ? org_limit : config_max
                   else
                     config_max
@@ -122,7 +122,7 @@ module V2::Logic
         # This runs before clamping so the user gets a clear error with upgrade path
         # instead of a silent clamp.
         free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
-        if ttl > free_ttl && org && !org.can?('extended_default_expiration')
+        if ttl > free_ttl && auth_org && !auth_org.can?('extended_default_expiration')
           require_entitlement!('extended_default_expiration')
         end
 
@@ -314,10 +314,10 @@ module V2::Logic
       # Enables org-scoped receipt queries via org.receipts
       # @return [Boolean] true if indexed, false otherwise
       def index_receipt_to_organization
-        return false unless org # org comes from OrganizationContext module
+        return false unless auth_org # auth_org comes from OrganizationContext module
 
-        receipt.org_id = org.objid
-        receipt.add_to_organization_receipts(org)
+        receipt.org_id = auth_org.objid
+        receipt.add_to_organization_receipts(auth_org)
         true
       end
 

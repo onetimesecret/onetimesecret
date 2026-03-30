@@ -31,6 +31,11 @@
 
 module Onetime
   module Logic
+    # Provides organization context with two distinct accessors:
+    #   @organization / #organization — mutable operational context (may be
+    #     overwritten by domain-scoped logic like SsoConfig::Base)
+    #   #auth_org — immutable, reads from StrategyResult metadata so it
+    #     always reflects the authenticated user's organization
     module OrganizationContext
       # Extract organization from StrategyResult metadata
       #
@@ -47,9 +52,14 @@ module Onetime
       # Make organization readable
       attr_reader :organization
 
-      # Alias for convenience
-      def org
-        @organization
+      # Immutable accessor: returns the organization from the authentication
+      # strategy result metadata. Distinct from @organization which may be
+      # mutated during request processing.
+      #
+      # No memoization needed — the value is already a direct object
+      # reference held in the strategy_result metadata hash.
+      def auth_org
+        @strategy_result&.metadata&.dig(:organization_context, :organization)
       end
 
       # Require organization to be present
