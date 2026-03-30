@@ -12,7 +12,7 @@
 # - to_omniauth_options generation for different providers
 # - enabled? flag behavior
 # - valid_email_domain? validation against allowed_domains
-# - configs_by_domain class hashkey for O(1) lookup
+# - Domain-to-config lookup via display_domains index
 # - Domain ownership validation
 #
 # These are unit tests - they don't require Valkey/Redis.

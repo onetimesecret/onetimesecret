@@ -106,7 +106,6 @@ Onetime::CustomDomain.display_domains.put(@test_display_domain, @test_custom_dom
 
 @test_sso_config = Onetime::CustomDomain::SsoConfig.create!(
   domain_id: @test_custom_domain.identifier,
-  org_id: @test_org.org_id,
   provider_type: 'entra_id',
   display_name: 'Try Test Entra ID',
   tenant_id: "tenant-#{@test_run_id}",

@@ -189,110 +189,6 @@ export const customDomainSsoConfigCanonical = z.object({
 export type CustomDomainSsoConfigCanonical = z.infer<typeof customDomainSsoConfigCanonical>;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Request payload schemas
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Create or update SSO configuration request payload schema.
- *
- * Used for PUT /api/domains/:domain_extid/sso
- *
- * Fields:
- * - provider_type: Required, one of the supported providers
- * - display_name: Required, human-readable name
- * - client_id: Required, OAuth client ID
- * - client_secret: Required for create, optional for update (omit to keep existing)
- * - tenant_id: Required for entra_id provider
- * - issuer: Required for oidc provider
- * - allowed_domains: Optional domain allowlist
- * - enabled: Optional, defaults to false
- *
- * @category Contracts
- */
-export const createOrUpdateSsoConfigPayloadSchema = z.object({
-  /** SSO provider type (oidc, entra_id, google, github). */
-  provider_type: ssoProviderTypeSchema,
-
-  /** Human-readable name for UI display. */
-  display_name: z.string().min(1, 'Display name is required').max(100, 'Display name is too long'),
-
-  /** OAuth client ID. */
-  client_id: z.string().min(1, 'Client ID is required'),
-
-  /**
-   * OAuth client secret.
-   * Required for create, optional for update (omit to keep existing secret).
-   */
-  client_secret: z.string().optional(),
-
-  /**
-   * Azure AD tenant ID.
-   *
-   * Conditionally required based on provider_type:
-   *   - entra_id: REQUIRED (identifies Azure AD tenant)
-   *   - oidc:     not used (uses issuer instead)
-   *   - google:   not used (well-known endpoints)
-   *   - github:   not used (well-known endpoints)
-   *
-   * Typed as optional because it's only required for entra_id.
-   * Strict schemas enforce this via superRefine validation.
-   */
-  tenant_id: z.string().optional(),
-
-  /**
-   * OIDC issuer URL for auto-discovery.
-   *
-   * Conditionally required based on provider_type:
-   *   - oidc:     REQUIRED (e.g., https://login.example.com)
-   *   - entra_id: not used (uses tenant_id instead)
-   *   - google:   not used (well-known endpoints)
-   *   - github:   not used (well-known endpoints)
-   *
-   * Typed as optional because it's only required for oidc.
-   * Strict schemas enforce this via superRefine validation.
-   */
-  issuer: z.string().url('Issuer must be a valid URL').optional(),
-
-  /** Email domain allowlist. Empty array means no restriction. */
-  allowed_domains: z.array(z.string()).optional(),
-
-  /** Whether SSO is enabled. Defaults to false. */
-  enabled: z.boolean().optional(),
-});
-
-export type CreateOrUpdateSsoConfigPayload = z.infer<typeof createOrUpdateSsoConfigPayloadSchema>;
-
-/**
- * Validation refinement for provider-specific requirements.
- *
- * - Entra ID requires tenant_id
- * - OIDC requires issuer
- *
- * Use this schema when strict validation is needed.
- */
-export const createOrUpdateSsoConfigPayloadStrictSchema = createOrUpdateSsoConfigPayloadSchema.superRefine(
-  (data, ctx) => {
-    if (data.provider_type === 'entra_id' && !data.tenant_id) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'tenant_id is required for Entra ID provider',
-        path: ['tenant_id'],
-      });
-    }
-
-    if (data.provider_type === 'oidc' && !data.issuer) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'issuer is required for OIDC provider',
-        path: ['issuer'],
-      });
-    }
-  }
-);
-
-export type CreateOrUpdateSsoConfigPayloadStrict = z.infer<typeof createOrUpdateSsoConfigPayloadStrictSchema>;
-
-// ─────────────────────────────────────────────────────────────────────────────
 // PATCH payload schema (partial update - all fields optional)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -320,10 +216,10 @@ export const patchSsoConfigPayloadSchema = z.object({
    */
   client_secret: z.string().optional(),
 
-  /** Azure AD tenant ID (required for entra_id only). See createOrUpdateSsoConfigPayloadSchema. */
+  /** Azure AD tenant ID (required for entra_id only). See customDomainSsoConfigCanonical for provider-specific requirements. */
   tenant_id: z.string().optional(),
 
-  /** OIDC issuer URL (required for oidc only). See createOrUpdateSsoConfigPayloadSchema. */
+  /** OIDC issuer URL (required for oidc only). See customDomainSsoConfigCanonical for provider-specific requirements. */
   issuer: z.string().url('Issuer must be a valid URL').optional(),
 
   /** Email domain allowlist. Empty array means no restriction. */
@@ -360,10 +256,10 @@ export const putSsoConfigPayloadSchema = z.object({
   /** OAuth client secret. Required for PUT (full replacement). */
   client_secret: z.string().min(1, 'Client secret is required'),
 
-  /** Azure AD tenant ID (required for entra_id only). See createOrUpdateSsoConfigPayloadSchema. */
+  /** Azure AD tenant ID (required for entra_id only). See customDomainSsoConfigCanonical for provider-specific requirements. */
   tenant_id: z.string().optional(),
 
-  /** OIDC issuer URL (required for oidc only). See createOrUpdateSsoConfigPayloadSchema. */
+  /** OIDC issuer URL (required for oidc only). See customDomainSsoConfigCanonical for provider-specific requirements. */
   issuer: z.string().url('Issuer must be a valid URL').optional(),
 
   /** Email domain allowlist. Empty array means no restriction. */

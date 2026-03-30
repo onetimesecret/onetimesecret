@@ -149,7 +149,6 @@ module OAuthFlowHelper
     # Use OIDC provider type since that's what's registered in the test environment
     sso_config = Onetime::CustomDomain::SsoConfig.create!(
       domain_id: domain.identifier,
-      org_id: org.org_id,
       provider_type: 'oidc',
       display_name: "OAuth Test SSO #{test_id}",
       issuer: OmniAuthTestHelper::MOCK_ISSUER,
