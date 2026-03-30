@@ -343,6 +343,7 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
     context 'when persistence succeeds' do
       it 'saves provider_dns_data to mailer_config' do
         expect(mailer_config).to receive(:provider_dns_data=)
+        expect(mailer_config).to receive(:dns_records=)
         expect(mailer_config).to receive(:updated=)
         expect(mailer_config).to receive(:save)
 
@@ -368,6 +369,9 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
 
     context 'when persistence raises (Item 5 fix)' do
       before do
+        allow(mailer_config).to receive(:provider_dns_data=)
+        allow(mailer_config).to receive(:dns_records=)
+        allow(mailer_config).to receive(:updated=)
         allow(mailer_config).to receive(:save).and_raise(StandardError, 'Redis connection refused')
       end
 

@@ -243,6 +243,9 @@ module Onetime
         # Strategies return Arrays directly from :dns_records
         return dns_data if dns_data.is_a?(Array)
 
+        # Guard against non-Hash types (String, Integer, etc.)
+        return [] unless dns_data.is_a?(Hash)
+
         case provider.to_s.downcase
         when 'ses'
           normalize_ses_records(dns_data)
@@ -304,6 +307,9 @@ module Onetime
               value: record[:data] || record[:value],
             }
           end
+        elsif dns_data[:dns_records].is_a?(Array)
+          # Fallback: dns_records array already in normalized format
+          return dns_data[:dns_records]
         end
 
         records.compact
