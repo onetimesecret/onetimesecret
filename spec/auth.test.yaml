@@ -31,12 +31,9 @@ full:
     webauthn: false
     sso: false
 
-  # Single-authentication-method overrides (mutually exclusive)
-  single_auth_method:
-    password_only: false
-    email_auth_only: false
-    webauthn_only: false
-    sso_only: false
+  # Restrict login page to a single auth method.
+  # Values: password, email_auth, webauthn, sso (or blank for all)
+  restrict_to:
 
   # SSO configuration section
   sso:

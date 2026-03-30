@@ -11,7 +11,7 @@ import {
   isPasswordOnlyMode,
   isEmailAuthOnlyMode,
   isWebAuthnOnlyMode,
-  activeSingleAuthMethod,
+  getRestrictTo,
   hasPasswordlessMethods,
   getAuthFeatures,
   isOrganizationSwitcherEnabled,
@@ -401,256 +401,208 @@ describe('features utility', () => {
     });
   });
 
-  describe('isSsoOnlyMode', () => {
-    it('returns true when sso_only is true', () => {
-      getBootstrapValueMock.mockReturnValue({ sso_only: true });
+  // ── restrict_to / single-auth-method tests ────────────────────────
 
-      const result = isSsoOnlyMode();
-
-      expect(result).toBe(true);
-      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
-    });
-
-    it('returns false when sso_only is false', () => {
-      getBootstrapValueMock.mockReturnValue({ sso_only: false });
-
-      const result = isSsoOnlyMode();
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when sso_only is undefined', () => {
+  describe('getRestrictTo', () => {
+    it('returns null when restrict_to is not set', () => {
       getBootstrapValueMock.mockReturnValue({});
-
-      const result = isSsoOnlyMode();
-
-      expect(result).toBe(false);
+      expect(getRestrictTo()).toBeNull();
     });
 
-    it('returns false when features object is undefined', () => {
+    it('returns null when features is undefined', () => {
       getBootstrapValueMock.mockReturnValue(undefined);
-
-      const result = isSsoOnlyMode();
-
-      expect(result).toBe(false);
+      expect(getRestrictTo()).toBeNull();
     });
 
-    it('returns false when sso_only is truthy but not exactly true', () => {
-      getBootstrapValueMock.mockReturnValue({ sso_only: 'yes' });
-
-      const result = isSsoOnlyMode();
-
-      expect(result).toBe(false);
+    it('returns null when restrict_to is null', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: null });
+      expect(getRestrictTo()).toBeNull();
     });
 
-    it('returns false when sso_only is null', () => {
-      getBootstrapValueMock.mockReturnValue({ sso_only: null });
+    it('returns "password" when restrict_to is "password"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'password' });
+      expect(getRestrictTo()).toBe('password');
+    });
 
-      const result = isSsoOnlyMode();
+    it('returns "email_auth" when restrict_to is "email_auth"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'email_auth' });
+      expect(getRestrictTo()).toBe('email_auth');
+    });
 
-      expect(result).toBe(false);
+    it('returns "webauthn" when restrict_to is "webauthn"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'webauthn' });
+      expect(getRestrictTo()).toBe('webauthn');
+    });
+
+    it('returns "sso" when restrict_to is "sso"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'sso' });
+      expect(getRestrictTo()).toBe('sso');
+    });
+
+    it('returns null for unrecognised values', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'carrier_pigeon' });
+      expect(getRestrictTo()).toBeNull();
+    });
+
+    it('returns null for boolean true (not a valid value)', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: true });
+      expect(getRestrictTo()).toBeNull();
+    });
+
+    it('returns null for number (not a valid value)', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 42 });
+      expect(getRestrictTo()).toBeNull();
+    });
+  });
+
+  describe('isSsoOnlyMode', () => {
+    it('returns true when restrict_to is "sso"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'sso' });
+      expect(isSsoOnlyMode()).toBe(true);
+    });
+
+    it('returns false when restrict_to is null', () => {
+      getBootstrapValueMock.mockReturnValue({});
+      expect(isSsoOnlyMode()).toBe(false);
+    });
+
+    it('returns false when restrict_to is "password"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'password' });
+      expect(isSsoOnlyMode()).toBe(false);
+    });
+
+    it('returns false when features is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+      expect(isSsoOnlyMode()).toBe(false);
     });
   });
 
   describe('isPasswordOnlyMode', () => {
-    it('returns true when password_only is true', () => {
-      getBootstrapValueMock.mockReturnValue({ password_only: true });
+    it('returns true when restrict_to is "password"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'password' });
       expect(isPasswordOnlyMode()).toBe(true);
-      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
     });
 
-    it('returns false when password_only is false', () => {
-      getBootstrapValueMock.mockReturnValue({ password_only: false });
-      expect(isPasswordOnlyMode()).toBe(false);
-    });
-
-    it('returns false when password_only is undefined', () => {
+    it('returns false when restrict_to is null', () => {
       getBootstrapValueMock.mockReturnValue({});
       expect(isPasswordOnlyMode()).toBe(false);
     });
 
-    it('returns false when features object is undefined', () => {
-      getBootstrapValueMock.mockReturnValue(undefined);
+    it('returns false when restrict_to is "sso"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'sso' });
       expect(isPasswordOnlyMode()).toBe(false);
     });
 
-    it('returns false when password_only is truthy but not exactly true', () => {
-      getBootstrapValueMock.mockReturnValue({ password_only: 'yes' });
+    it('returns false when features is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
       expect(isPasswordOnlyMode()).toBe(false);
     });
   });
 
   describe('isEmailAuthOnlyMode', () => {
-    it('returns true when email_auth_only is true', () => {
-      getBootstrapValueMock.mockReturnValue({ email_auth_only: true });
+    it('returns true when restrict_to is "email_auth"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'email_auth' });
       expect(isEmailAuthOnlyMode()).toBe(true);
-      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
     });
 
-    it('returns false when email_auth_only is false', () => {
-      getBootstrapValueMock.mockReturnValue({ email_auth_only: false });
-      expect(isEmailAuthOnlyMode()).toBe(false);
-    });
-
-    it('returns false when email_auth_only is undefined', () => {
+    it('returns false when restrict_to is null', () => {
       getBootstrapValueMock.mockReturnValue({});
       expect(isEmailAuthOnlyMode()).toBe(false);
     });
 
-    it('returns false when features object is undefined', () => {
+    it('returns false when features is undefined', () => {
       getBootstrapValueMock.mockReturnValue(undefined);
-      expect(isEmailAuthOnlyMode()).toBe(false);
-    });
-
-    it('returns false when email_auth_only is truthy but not exactly true', () => {
-      getBootstrapValueMock.mockReturnValue({ email_auth_only: 'yes' });
       expect(isEmailAuthOnlyMode()).toBe(false);
     });
   });
 
   describe('isWebAuthnOnlyMode', () => {
-    it('returns true when webauthn_only is true', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn_only: true });
+    it('returns true when restrict_to is "webauthn"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'webauthn' });
       expect(isWebAuthnOnlyMode()).toBe(true);
-      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
     });
 
-    it('returns false when webauthn_only is false', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn_only: false });
-      expect(isWebAuthnOnlyMode()).toBe(false);
-    });
-
-    it('returns false when webauthn_only is undefined', () => {
+    it('returns false when restrict_to is null', () => {
       getBootstrapValueMock.mockReturnValue({});
       expect(isWebAuthnOnlyMode()).toBe(false);
     });
 
-    it('returns false when features object is undefined', () => {
+    it('returns false when features is undefined', () => {
       getBootstrapValueMock.mockReturnValue(undefined);
-      expect(isWebAuthnOnlyMode()).toBe(false);
-    });
-
-    it('returns false when webauthn_only is truthy but not exactly true', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn_only: 'yes' });
       expect(isWebAuthnOnlyMode()).toBe(false);
     });
   });
 
-  describe('activeSingleAuthMethod', () => {
-    it('returns null when no *_only flag is set', () => {
-      getBootstrapValueMock.mockReturnValue({});
-      expect(activeSingleAuthMethod()).toBeNull();
-    });
-
-    it('returns null when features object is undefined', () => {
-      getBootstrapValueMock.mockReturnValue(undefined);
-      expect(activeSingleAuthMethod()).toBeNull();
-    });
-
-    it('returns "password_only" when password_only is true', () => {
-      getBootstrapValueMock.mockReturnValue({ password_only: true });
-      expect(activeSingleAuthMethod()).toBe('password_only');
-    });
-
-    it('returns "email_auth_only" when email_auth_only is true', () => {
-      getBootstrapValueMock.mockReturnValue({ email_auth_only: true });
-      expect(activeSingleAuthMethod()).toBe('email_auth_only');
-    });
-
-    it('returns "webauthn_only" when webauthn_only is true', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn_only: true });
-      expect(activeSingleAuthMethod()).toBe('webauthn_only');
-    });
-
-    it('returns "sso_only" when sso_only is true', () => {
-      getBootstrapValueMock.mockReturnValue({ sso_only: true });
-      expect(activeSingleAuthMethod()).toBe('sso_only');
-    });
-
-    it('returns first match when multiple are set (password_only wins)', () => {
-      getBootstrapValueMock.mockReturnValue({ password_only: true, sso_only: true });
-      expect(activeSingleAuthMethod()).toBe('password_only');
-    });
-  });
+  // ── getAuthFeatures ───────────────────────────────────────────────
 
   describe('getAuthFeatures', () => {
-    it('returns correct object when all features enabled', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn: true, magic_links: true, sso: true, sso_only: true });
+    it('returns correct object when all features enabled with sso restriction', () => {
+      getBootstrapValueMock.mockReturnValue({
+        webauthn: true, magic_links: true, sso: true, restrict_to: 'sso',
+      });
 
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
+      expect(getAuthFeatures()).toEqual({
         magicLinksEnabled: true,
         webauthnEnabled: true,
         ssoEnabled: true,
-        ssoOnly: true,
-        passwordOnly: false,
-        emailAuthOnly: false,
-        webauthnOnly: false,
+        restrictTo: 'sso',
       });
     });
 
     it('returns correct object when no features enabled', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn: false, magic_links: false, sso: false, sso_only: false });
+      getBootstrapValueMock.mockReturnValue({
+        webauthn: false, magic_links: false, sso: false,
+      });
 
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
+      expect(getAuthFeatures()).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: false,
         ssoEnabled: false,
-        ssoOnly: false,
-        passwordOnly: false,
-        emailAuthOnly: false,
-        webauthnOnly: false,
+        restrictTo: null,
       });
     });
 
     it('returns correct object when features is undefined', () => {
       getBootstrapValueMock.mockReturnValue(undefined);
 
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
+      expect(getAuthFeatures()).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: false,
         ssoEnabled: false,
-        ssoOnly: false,
-        passwordOnly: false,
-        emailAuthOnly: false,
-        webauthnOnly: false,
+        restrictTo: null,
       });
     });
 
-    it('returns correct object with mixed enabled states', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn: true, magic_links: false, sso: true });
+    it('returns restrictTo: "password" when set', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'password' });
 
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
-        magicLinksEnabled: false,
-        webauthnEnabled: true,
-        ssoEnabled: true,
-        ssoOnly: false,
-        passwordOnly: false,
-        emailAuthOnly: false,
-        webauthnOnly: false,
-      });
-    });
-
-    it('returns correct object with only sso enabled', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn: false, magic_links: false, sso: true });
-
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
+      expect(getAuthFeatures()).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: false,
-        ssoEnabled: true,
-        ssoOnly: false,
-        passwordOnly: false,
-        emailAuthOnly: false,
-        webauthnOnly: false,
+        ssoEnabled: false,
+        restrictTo: 'password',
+      });
+    });
+
+    it('returns restrictTo: "email_auth" when set', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'email_auth' });
+
+      expect(getAuthFeatures()).toEqual({
+        magicLinksEnabled: false,
+        webauthnEnabled: false,
+        ssoEnabled: false,
+        restrictTo: 'email_auth',
+      });
+    });
+
+    it('returns restrictTo: "webauthn" when set', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'webauthn' });
+
+      expect(getAuthFeatures()).toEqual({
+        magicLinksEnabled: false,
+        webauthnEnabled: false,
+        ssoEnabled: false,
+        restrictTo: 'webauthn',
       });
     });
 
@@ -661,16 +613,11 @@ describe('features utility', () => {
         sso: { enabled: true, provider_name: 'Zitadel' },
       });
 
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
+      expect(getAuthFeatures()).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: false,
         ssoEnabled: true,
-        ssoOnly: false,
-        passwordOnly: false,
-        emailAuthOnly: false,
-        webauthnOnly: false,
+        restrictTo: null,
       });
     });
 
@@ -681,88 +628,16 @@ describe('features utility', () => {
         sso: { enabled: false },
       });
 
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
+      expect(getAuthFeatures()).toEqual({
         magicLinksEnabled: true,
         webauthnEnabled: true,
         ssoEnabled: false,
-        ssoOnly: false,
-        passwordOnly: false,
-        emailAuthOnly: false,
-        webauthnOnly: false,
-      });
-    });
-
-    it('returns ssoOnly true when sso_only flag is set', () => {
-      getBootstrapValueMock.mockReturnValue({
-        webauthn: false,
-        magic_links: false,
-        sso: { enabled: true },
-        sso_only: true,
-      });
-
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
-        magicLinksEnabled: false,
-        webauthnEnabled: false,
-        ssoEnabled: true,
-        ssoOnly: true,
-        passwordOnly: false,
-        emailAuthOnly: false,
-        webauthnOnly: false,
-      });
-    });
-
-    it('returns passwordOnly true when password_only flag is set', () => {
-      getBootstrapValueMock.mockReturnValue({ password_only: true });
-
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
-        magicLinksEnabled: false,
-        webauthnEnabled: false,
-        ssoEnabled: false,
-        ssoOnly: false,
-        passwordOnly: true,
-        emailAuthOnly: false,
-        webauthnOnly: false,
-      });
-    });
-
-    it('returns emailAuthOnly true when email_auth_only flag is set', () => {
-      getBootstrapValueMock.mockReturnValue({ email_auth_only: true });
-
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
-        magicLinksEnabled: false,
-        webauthnEnabled: false,
-        ssoEnabled: false,
-        ssoOnly: false,
-        passwordOnly: false,
-        emailAuthOnly: true,
-        webauthnOnly: false,
-      });
-    });
-
-    it('returns webauthnOnly true when webauthn_only flag is set', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn_only: true });
-
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
-        magicLinksEnabled: false,
-        webauthnEnabled: false,
-        ssoEnabled: false,
-        ssoOnly: false,
-        passwordOnly: false,
-        emailAuthOnly: false,
-        webauthnOnly: true,
+        restrictTo: null,
       });
     });
   });
+
+  // ── Organizations ─────────────────────────────────────────────────
 
   describe('isOrganizationSwitcherEnabled', () => {
     it('returns true when organizations.enabled is true', () => {
@@ -918,6 +793,8 @@ describe('features utility', () => {
     });
   });
 
+  // ── SSR safety (window undefined) ─────────────────────────────────
+
   describe('SSR safety (window undefined)', () => {
     // Store original window reference
     const originalWindow = global.window;
@@ -963,6 +840,11 @@ describe('features utility', () => {
       expect(result).toBe(false);
     });
 
+    it('getRestrictTo returns null when window is undefined', () => {
+      const result = getRestrictTo();
+      expect(result).toBeNull();
+    });
+
     it('isSsoOnlyMode returns false when window is undefined', () => {
       const result = isSsoOnlyMode();
       expect(result).toBe(false);
@@ -983,21 +865,13 @@ describe('features utility', () => {
       expect(result).toBe(false);
     });
 
-    it('activeSingleAuthMethod returns null when window is undefined', () => {
-      const result = activeSingleAuthMethod();
-      expect(result).toBeNull();
-    });
-
-    it('getAuthFeatures returns all false when window is undefined', () => {
+    it('getAuthFeatures returns all defaults when window is undefined', () => {
       const result = getAuthFeatures();
       expect(result).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: false,
         ssoEnabled: false,
-        ssoOnly: false,
-        passwordOnly: false,
-        emailAuthOnly: false,
-        webauthnOnly: false,
+        restrictTo: null,
       });
     });
 

@@ -34,10 +34,7 @@ module AuthModeHelpers
       @email_auth_enabled = options.fetch(:email_auth_enabled, false)
       @webauthn_enabled = options.fetch(:webauthn_enabled, false)
       @sso_enabled = options.fetch(:sso_enabled, false)  # SSO disabled by default in tests
-      @sso_only_enabled = options.fetch(:sso_only_enabled, false)
-      @password_only_enabled = options.fetch(:password_only_enabled, false)
-      @email_auth_only_enabled = options.fetch(:email_auth_only_enabled, false)
-      @webauthn_only_enabled = options.fetch(:webauthn_only_enabled, false)
+      @restrict_to = options.fetch(:restrict_to, nil)  # nil = show all enabled methods
       @omniauth_provider_name = options.fetch(:omniauth_provider_name, nil)
     end
 
@@ -93,37 +90,32 @@ module AuthModeHelpers
     # DEPRECATED: Alias for sso_enabled? — retained for Rodauth integration
     alias omniauth_enabled? sso_enabled?
 
+    def restrict_to
+      return nil unless full_enabled?
+
+      @restrict_to
+    end
+
     def sso_only_enabled?
       return false unless sso_enabled?
 
-      @sso_only_enabled
+      restrict_to == 'sso'
     end
 
     def password_only_enabled?
-      return false unless full_enabled?
-
-      @password_only_enabled
+      restrict_to == 'password'
     end
 
     def email_auth_only_enabled?
       return false unless email_auth_enabled?
 
-      @email_auth_only_enabled
+      restrict_to == 'email_auth'
     end
 
     def webauthn_only_enabled?
       return false unless webauthn_enabled?
 
-      @webauthn_only_enabled
-    end
-
-    def active_single_auth_method
-      return 'password_only' if @password_only_enabled
-      return 'email_auth_only' if @email_auth_only_enabled
-      return 'webauthn_only' if @webauthn_only_enabled
-      return 'sso_only' if @sso_only_enabled
-
-      nil
+      restrict_to == 'webauthn'
     end
 
     def omniauth_provider_name

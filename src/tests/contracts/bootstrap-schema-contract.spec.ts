@@ -269,7 +269,7 @@ describe('Bootstrap Zod schema validation', () => {
             { route_name: 'google', display_name: 'Google' },
           ],
         },
-        sso_only: false,
+        restrict_to: null,
         magic_links: true,
       };
 

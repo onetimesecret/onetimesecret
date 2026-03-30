@@ -7,7 +7,7 @@ require 'tempfile'
 require 'fileutils'
 
 # Systematic tests for AuthConfig, covering all env var mappings and
-# single-auth-method mutual-exclusivity logic.
+# the restrict_to single-auth-method override.
 #
 # Strategy: write a minimal YAML config to a temp file, point
 # ConfigResolver at it, and reset the singleton between tests.
@@ -33,11 +33,14 @@ RSpec.describe Onetime::AuthConfig do
           email_auth: <%= ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true' %>
           webauthn: <%= ENV['AUTH_WEBAUTHN_ENABLED'] == 'true' %>
           sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
-        single_auth_method:
-          password_only: <%= ENV['AUTH_PASSWORD_ONLY'] == 'true' %>
-          email_auth_only: <%= ENV['AUTH_EMAIL_AUTH_ONLY'] == 'true' %>
-          webauthn_only: <%= ENV['AUTH_WEBAUTHN_ONLY'] == 'true' %>
-          sso_only: <%= ENV['AUTH_SSO_ONLY'] == 'true' %>
+        <%
+          restrict_to = nil
+          restrict_to = 'password' if ENV['AUTH_PASSWORD_ONLY'] == 'true'
+          restrict_to = 'email_auth' if ENV['AUTH_EMAIL_AUTH_ONLY'] == 'true'
+          restrict_to = 'webauthn' if ENV['AUTH_WEBAUTHN_ONLY'] == 'true'
+          restrict_to = 'sso' if ENV['AUTH_SSO_ONLY'] == 'true'
+        %>
+        restrict_to: <%= restrict_to %>
         sso:
           sso_display_name: ''
           sso_only: <%= ENV['AUTH_SSO_ONLY'] == 'true' %>
@@ -177,171 +180,118 @@ RSpec.describe Onetime::AuthConfig do
     end
   end
 
-  # ── Single-auth-method overrides ───────────────────────────────────
+  # ── restrict_to ────────────────────────────────────────────────────
 
-  describe 'single-auth-method overrides' do
-    describe '#password_only_enabled?' do
-      it 'returns false by default' do
-        config = fresh_config
-        expect(config.password_only_enabled?).to be false
-      end
-
-      it 'returns true when AUTH_PASSWORD_ONLY=true' do
-        config = fresh_config('AUTH_PASSWORD_ONLY' => 'true')
-        expect(config.password_only_enabled?).to be true
-      end
-
-      it 'returns false in simple mode' do
-        config = fresh_config('AUTHENTICATION_MODE' => 'simple', 'AUTH_PASSWORD_ONLY' => 'true')
-        expect(config.password_only_enabled?).to be false
-      end
+  describe '#restrict_to' do
+    it 'returns nil by default' do
+      config = fresh_config
+      expect(config.restrict_to).to be_nil
     end
 
-    describe '#email_auth_only_enabled?' do
-      it 'returns false by default' do
-        config = fresh_config
-        expect(config.email_auth_only_enabled?).to be false
-      end
-
-      it 'returns true when AUTH_EMAIL_AUTH_ONLY=true and email_auth is enabled' do
-        config = fresh_config('AUTH_EMAIL_AUTH_ONLY' => 'true', 'AUTH_EMAIL_AUTH_ENABLED' => 'true')
-        expect(config.email_auth_only_enabled?).to be true
-      end
-
-      it 'returns false when AUTH_EMAIL_AUTH_ONLY=true but email_auth is disabled' do
-        config = fresh_config('AUTH_EMAIL_AUTH_ONLY' => 'true', 'AUTH_EMAIL_AUTH_ENABLED' => 'false')
-        expect(config.email_auth_only_enabled?).to be false
-      end
+    it 'returns "password" when AUTH_PASSWORD_ONLY=true' do
+      config = fresh_config('AUTH_PASSWORD_ONLY' => 'true')
+      expect(config.restrict_to).to eq('password')
     end
 
-    describe '#webauthn_only_enabled?' do
-      it 'returns false by default' do
-        config = fresh_config
-        expect(config.webauthn_only_enabled?).to be false
-      end
-
-      it 'returns true when AUTH_WEBAUTHN_ONLY=true and webauthn is enabled' do
-        config = fresh_config('AUTH_WEBAUTHN_ONLY' => 'true', 'AUTH_WEBAUTHN_ENABLED' => 'true')
-        expect(config.webauthn_only_enabled?).to be true
-      end
-
-      it 'returns false when AUTH_WEBAUTHN_ONLY=true but webauthn is disabled' do
-        config = fresh_config('AUTH_WEBAUTHN_ONLY' => 'true', 'AUTH_WEBAUTHN_ENABLED' => 'false')
-        expect(config.webauthn_only_enabled?).to be false
-      end
+    it 'returns "email_auth" when AUTH_EMAIL_AUTH_ONLY=true' do
+      config = fresh_config('AUTH_EMAIL_AUTH_ONLY' => 'true')
+      expect(config.restrict_to).to eq('email_auth')
     end
 
-    describe '#sso_only_enabled?' do
-      it 'returns false by default' do
-        config = fresh_config
-        expect(config.sso_only_enabled?).to be false
-      end
+    it 'returns "webauthn" when AUTH_WEBAUTHN_ONLY=true' do
+      config = fresh_config('AUTH_WEBAUTHN_ONLY' => 'true')
+      expect(config.restrict_to).to eq('webauthn')
+    end
 
-      it 'returns true when AUTH_SSO_ONLY=true, SSO enabled, and provider configured' do
-        config = fresh_config(
-          'AUTH_SSO_ONLY' => 'true',
-          'AUTH_SSO_ENABLED' => 'true',
-          'OIDC_ISSUER' => 'https://example.com',
-          'OIDC_CLIENT_ID' => 'test-client',
-        )
-        expect(config.sso_only_enabled?).to be true
-      end
+    it 'returns "sso" when AUTH_SSO_ONLY=true' do
+      config = fresh_config('AUTH_SSO_ONLY' => 'true')
+      expect(config.restrict_to).to eq('sso')
+    end
 
-      it 'returns false when AUTH_SSO_ONLY=true but SSO disabled' do
-        config = fresh_config('AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'false')
-        expect(config.sso_only_enabled?).to be false
-      end
+    it 'returns nil in simple mode' do
+      config = fresh_config('AUTHENTICATION_MODE' => 'simple', 'AUTH_PASSWORD_ONLY' => 'true')
+      expect(config.restrict_to).to be_nil
+    end
 
-      it 'returns false when AUTH_SSO_ONLY=true, SSO enabled, but no provider configured' do
-        ENV.delete('OIDC_ISSUER')
-        ENV.delete('OIDC_CLIENT_ID')
-        config = fresh_config('AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'true')
-        expect(config.sso_only_enabled?).to be false
-      end
+    it 'last-one-wins when multiple ENV vars set (sso overrides password)' do
+      config = fresh_config('AUTH_PASSWORD_ONLY' => 'true', 'AUTH_SSO_ONLY' => 'true')
+      expect(config.restrict_to).to eq('sso')
     end
   end
 
-  # ── Mutual exclusivity ────────────────────────────────────────────
+  # ── *_only_enabled? convenience predicates ─────────────────────────
 
-  describe 'mutual exclusivity of single-auth-method flags' do
-    it 'all *_only_enabled? return false when two flags are set' do
-      config = fresh_config(
-        'AUTH_PASSWORD_ONLY' => 'true',
-        'AUTH_EMAIL_AUTH_ONLY' => 'true',
-        'AUTH_EMAIL_AUTH_ENABLED' => 'true',
-      )
-      expect(config.password_only_enabled?).to be false
-      expect(config.email_auth_only_enabled?).to be false
+  describe '#password_only_enabled?' do
+    it 'returns true when restrict_to is password' do
+      config = fresh_config('AUTH_PASSWORD_ONLY' => 'true')
+      expect(config.password_only_enabled?).to be true
     end
 
-    it 'all *_only_enabled? return false when three flags are set' do
+    it 'returns false by default' do
+      config = fresh_config
+      expect(config.password_only_enabled?).to be false
+    end
+  end
+
+  describe '#email_auth_only_enabled?' do
+    it 'returns true when restrict_to is email_auth and email_auth is enabled' do
+      config = fresh_config('AUTH_EMAIL_AUTH_ONLY' => 'true', 'AUTH_EMAIL_AUTH_ENABLED' => 'true')
+      expect(config.email_auth_only_enabled?).to be true
+    end
+
+    it 'returns false when restrict_to is email_auth but email_auth is disabled' do
+      config = fresh_config('AUTH_EMAIL_AUTH_ONLY' => 'true', 'AUTH_EMAIL_AUTH_ENABLED' => 'false')
+      expect(config.email_auth_only_enabled?).to be false
+    end
+  end
+
+  describe '#webauthn_only_enabled?' do
+    it 'returns true when restrict_to is webauthn and webauthn is enabled' do
+      config = fresh_config('AUTH_WEBAUTHN_ONLY' => 'true', 'AUTH_WEBAUTHN_ENABLED' => 'true')
+      expect(config.webauthn_only_enabled?).to be true
+    end
+
+    it 'returns false when restrict_to is webauthn but webauthn is disabled' do
+      config = fresh_config('AUTH_WEBAUTHN_ONLY' => 'true', 'AUTH_WEBAUTHN_ENABLED' => 'false')
+      expect(config.webauthn_only_enabled?).to be false
+    end
+  end
+
+  describe '#sso_only_enabled?' do
+    it 'returns true when restrict_to is sso, SSO enabled, and provider configured' do
       config = fresh_config(
-        'AUTH_PASSWORD_ONLY' => 'true',
-        'AUTH_WEBAUTHN_ONLY' => 'true',
-        'AUTH_WEBAUTHN_ENABLED' => 'true',
         'AUTH_SSO_ONLY' => 'true',
         'AUTH_SSO_ENABLED' => 'true',
         'OIDC_ISSUER' => 'https://example.com',
         'OIDC_CLIENT_ID' => 'test-client',
       )
-      expect(config.password_only_enabled?).to be false
-      expect(config.webauthn_only_enabled?).to be false
-      # sso_only uses a different code path (checks sso_config) so it may
-      # still return true via legacy path — but single_auth_method_valid?
-      # should prevent it in the new single_auth_method section
+      expect(config.sso_only_enabled?).to be true
+    end
+
+    it 'returns false when restrict_to is sso but SSO disabled' do
+      config = fresh_config('AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'false')
+      expect(config.sso_only_enabled?).to be false
+    end
+
+    it 'returns false when restrict_to is sso, SSO enabled, but no provider' do
+      ENV.delete('OIDC_ISSUER')
+      ENV.delete('OIDC_CLIENT_ID')
+      config = fresh_config('AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'true')
+      expect(config.sso_only_enabled?).to be false
     end
   end
 
-  # ── active_single_auth_method ──────────────────────────────────────
+  # ── RESTRICT_TO_VALUES constant ────────────────────────────────────
 
-  describe '#active_single_auth_method' do
-    it 'returns nil when no flag is set' do
-      config = fresh_config
-      expect(config.active_single_auth_method).to be_nil
-    end
-
-    it 'returns "password_only" when AUTH_PASSWORD_ONLY=true' do
-      config = fresh_config('AUTH_PASSWORD_ONLY' => 'true')
-      expect(config.active_single_auth_method).to eq('password_only')
-    end
-
-    it 'returns "email_auth_only" when AUTH_EMAIL_AUTH_ONLY=true' do
-      config = fresh_config('AUTH_EMAIL_AUTH_ONLY' => 'true')
-      expect(config.active_single_auth_method).to eq('email_auth_only')
-    end
-
-    it 'returns "webauthn_only" when AUTH_WEBAUTHN_ONLY=true' do
-      config = fresh_config('AUTH_WEBAUTHN_ONLY' => 'true')
-      expect(config.active_single_auth_method).to eq('webauthn_only')
-    end
-
-    it 'returns "sso_only" when AUTH_SSO_ONLY=true' do
-      config = fresh_config('AUTH_SSO_ONLY' => 'true')
-      expect(config.active_single_auth_method).to eq('sso_only')
-    end
-
-    it 'returns nil when multiple flags are set (invalid config)' do
-      config = fresh_config('AUTH_PASSWORD_ONLY' => 'true', 'AUTH_WEBAUTHN_ONLY' => 'true')
-      expect(config.active_single_auth_method).to be_nil
-    end
-
-    it 'returns nil in simple mode' do
-      config = fresh_config('AUTHENTICATION_MODE' => 'simple', 'AUTH_PASSWORD_ONLY' => 'true')
-      expect(config.active_single_auth_method).to be_nil
-    end
-  end
-
-  # ── SINGLE_AUTH_KEYS constant ──────────────────────────────────────
-
-  describe 'SINGLE_AUTH_KEYS' do
-    it 'contains exactly four keys' do
-      expect(described_class::SINGLE_AUTH_KEYS).to eq(
-        %w[password_only email_auth_only webauthn_only sso_only]
+  describe 'RESTRICT_TO_VALUES' do
+    it 'contains the four valid restriction values' do
+      expect(described_class::RESTRICT_TO_VALUES).to eq(
+        %w[password email_auth webauthn sso]
       )
     end
 
     it 'is frozen' do
-      expect(described_class::SINGLE_AUTH_KEYS).to be_frozen
+      expect(described_class::RESTRICT_TO_VALUES).to be_frozen
     end
   end
 end
