@@ -144,6 +144,10 @@
     "text": "Save",
     "sha256": "1509f561"
   },
+  "web.COMMON.configure": {
+    "text": "Configure",
+    "sha256": "e2f3a4b5"
+  },
   "web.COMMON.burn": {
     "text": "Burn",
     "sha256": "926c5b43"
@@ -1303,6 +1307,10 @@
   "web.TITLES.organization_settings": {
     "text": "Organization Settings",
     "sha256": "cc1d9e61"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Domain SSO",
+    "sha256": "a1b2c3d5"
   },
   "web.TITLES.pricing": {
     "text": "Pricing",
