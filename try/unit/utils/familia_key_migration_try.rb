@@ -18,6 +18,13 @@ OT.boot! :test, false
 
 @secret_key = OT.conf.dig('site', 'secret')
 
+# ConfigureFamilia is skipped when connect_to_db=false, so replicate
+# the key setup here to test the derivation logic in isolation.
+v1_key = Base64.strict_encode64(Digest::SHA256.digest(@secret_key))
+v2_key = Onetime::KeyDerivation.derive_base64(@secret_key, :familia_enc)
+Familia.config.encryption_keys = { v1: v1_key, v2: v2_key }
+Familia.config.current_key_version = :v2
+
 ## Familia has both v1 and v2 encryption keys
 keys = Familia.config.encryption_keys
 keys.key?(:v1) && keys.key?(:v2)
