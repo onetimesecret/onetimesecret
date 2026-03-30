@@ -24,8 +24,10 @@ import type {
   EmailProviderType,
 } from '@/schemas/shapes/domains/email-config';
 import { useDomainsStore } from '@/shared/stores/domainsStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useNotificationsStore } from '@/shared/stores';
 import { computed, ref } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { type AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
@@ -61,15 +63,28 @@ function configToFormState(config: CustomDomainEmailConfig): EmailConfigFormStat
 /* eslint max-lines-per-function: off */
 export function useEmailConfig(domainExtId: string) {
   const domainsStore = useDomainsStore();
+  const bootstrapStore = useBootstrapStore();
+  const { cust } = storeToRefs(bootstrapStore);
   const notifications = useNotificationsStore();
   const { t } = useI18n();
   const router = useRouter();
 
+  /** Whether the email validation endpoint is deployed and stable. */
+  const isValidateEndpointStable = computed(
+    () => cust.value?.feature_flags?.email_validate_endpoint ?? false
+  );
+
+  /** Whether the initial config fetch is in progress. */
   const isLoading = ref(false);
+  /** Whether `initialize` has completed at least once. */
   const isInitialized = ref(false);
+  /** Whether a save (PUT/PATCH) request is in flight. */
   const isSaving = ref(false);
+  /** Whether a DNS validation request is in flight. */
   const isValidating = ref(false);
+  /** Whether a delete request is in flight. */
   const isDeleting = ref(false);
+  /** The most recent API error, or null. */
   const error = ref<ApplicationError | null>(null);
 
   /** The full config object from the API. Null = unconfigured (404). */
@@ -231,25 +246,39 @@ export function useEmailConfig(domainExtId: string) {
    * Trigger DNS record validation for the domain's email config.
    * Updates the local config with refreshed validation status.
    *
-   * Uses direct error handling rather than `wrap` because the validate
-   * endpoint may not exist yet (backend #2803). A 404 here means "endpoint
-   * missing", not "domain not found", so we must not redirect to NotFound.
+   * When the `email_validate_endpoint` feature flag is enabled, uses the
+   * standard `wrap` error handler. Otherwise falls back to direct error
+   * handling because the validate endpoint may not exist yet (backend #2803)
+   * and a 404 here means "endpoint missing", not "domain not found".
    */
   const validateDomain = async () => {
     isValidating.value = true;
     error.value = null;
 
-    try {
-      const response = await domainsStore.validateEmailConfig(domainExtId);
+    const applyResult = (response: { record?: CustomDomainEmailConfig | null }) => {
       if (response.record) {
         emailConfig.value = response.record;
         formState.value = configToFormState(response.record);
         savedFormState.value = { ...formState.value };
       }
-    } catch {
-      notifications.show(t('web.domains.email.validation_failed'), 'error', 'top');
-    } finally {
-      isValidating.value = false;
+    };
+
+    if (isValidateEndpointStable.value) {
+      try {
+        const response = await wrap(async () => await domainsStore.validateEmailConfig(domainExtId));
+        if (response) applyResult(response);
+      } finally {
+        isValidating.value = false;
+      }
+    } else {
+      try {
+        const response = await domainsStore.validateEmailConfig(domainExtId);
+        applyResult(response);
+      } catch {
+        notifications.show(t('web.domains.email.validation_failed'), 'error', 'top');
+      } finally {
+        isValidating.value = false;
+      }
     }
   };
 

@@ -10,10 +10,13 @@
  */
 import { useI18n } from 'vue-i18n';
 import { computed, ref, watch } from 'vue';
+import { z } from 'zod';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import type { EmailConfigFormState } from '@/shared/composables/useEmailConfig';
 import type { EmailProviderType } from '@/schemas/shapes/domains/email-config';
+
+const emailSchema = z.string().email();
 
 interface Props {
   formState: EmailConfigFormState;
@@ -83,12 +86,11 @@ const isFormValid = computed(() => {
   if (!localForm.value.from_name.trim()) return false;
   if (!localForm.value.from_address.trim()) return false;
 
-  // Basic email format check for from_address
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailPattern.test(localForm.value.from_address.trim())) return false;
+  // Email format validation via Zod for consistency with schema layer
+  if (!emailSchema.safeParse(localForm.value.from_address.trim()).success) return false;
 
   // reply_to is optional but must be valid if provided
-  if (localForm.value.reply_to.trim() && !emailPattern.test(localForm.value.reply_to.trim())) {
+  if (localForm.value.reply_to.trim() && !emailSchema.safeParse(localForm.value.reply_to.trim()).success) {
     return false;
   }
 
