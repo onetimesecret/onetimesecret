@@ -200,9 +200,6 @@ module Onetime
           config.dkim_record         = attrs[:dkim_record] if attrs.key?(:dkim_record)
           config.spf_record          = attrs[:spf_record] if attrs.key?(:spf_record)
 
-          # Set encrypted fields
-          config.api_key = attrs[:api_key] if attrs.key?(:api_key)
-
           # Initialize timestamps
           now            = Familia.now.to_i
           config.created = now
@@ -213,6 +210,16 @@ module Onetime
           end
 
           config.save
+
+          # Set encrypted fields AFTER save so the AAD context includes
+          # aad_fields values (Familia's build_aad uses record.exists? to
+          # decide whether to include aad_fields in the AAD hash). Setting
+          # api_key before save would encrypt with pre-save AAD, but reveal
+          # after save computes post-save AAD -- causing decryption failure.
+          if attrs.key?(:api_key)
+            config.api_key = attrs[:api_key]
+            config.commit_fields
+          end
 
           config
         end
