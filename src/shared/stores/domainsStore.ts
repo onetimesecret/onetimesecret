@@ -2,15 +2,29 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { UpdateDomainBrandRequest } from '@/schemas/api/domains/requests';
+import type {
+  PutEmailConfigRequest,
+  PatchEmailConfigRequest,
+} from '@/schemas/api/domains/requests/email-config';
+import {
+  getEmailConfigResponseSchema,
+  putEmailConfigResponseSchema,
+  patchEmailConfigResponseSchema,
+  deleteEmailConfigResponseSchema,
+  validateEmailConfigResponseSchema,
+  type DeleteEmailConfigResponse,
+  type ValidateEmailConfigResponse,
+} from '@/schemas/api/domains/responses/email-config';
 import { responseSchemas, type CustomDomainDetails } from '@/schemas/api/v3/responses';
+import type { CustomDomainEmailConfig } from '@/schemas/shapes/domains/email-config';
 import type {
   BrandSettings,
   CustomDomain,
   ImageProps,
 } from '@/schemas/shapes/v3';
 import { loggingService } from '@/services/logging.service';
-import { gracefulParse } from '@/utils/schemaValidation';
-import { AxiosError, AxiosInstance } from 'axios';
+import { gracefulParse, strictParse } from '@/utils/schemaValidation';
+import axios, { AxiosError, AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref, Ref } from 'vue';
 
@@ -62,6 +76,13 @@ export type DomainsStore = {
     brandUpdate: UpdateDomainBrandRequest
   ) => Promise<CustomDomain>;
   updateBrandSettings: (extid: string, settings: Partial<BrandSettings>) => Promise<BrandSettings>;
+
+  // Email config
+  getEmailConfig: (extid: string) => Promise<CustomDomainEmailConfig | null>;
+  putEmailConfig: (extid: string, payload: PutEmailConfigRequest) => Promise<CustomDomainEmailConfig>;
+  patchEmailConfig: (extid: string, payload: PatchEmailConfigRequest) => Promise<CustomDomainEmailConfig>;
+  deleteEmailConfig: (extid: string) => Promise<DeleteEmailConfigResponse>;
+  validateEmailConfig: (extid: string) => Promise<ValidateEmailConfigResponse>;
 
   reset: () => void;
 } & PiniaCustomProperties;
@@ -279,6 +300,89 @@ export const useDomainsStore = defineStore('domains', () => {
     return result.data.record;
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Email configuration
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Get email configuration for a domain.
+   *
+   * Returns null when no email config exists (404 from API).
+   * This is a valid "unconfigured" state, not an error.
+   */
+  async function getEmailConfig(extid: string): Promise<CustomDomainEmailConfig | null> {
+    try {
+      const response = await $api.get(`/api/domains/${extid}/email-config`);
+      const result = gracefulParse(
+        getEmailConfigResponseSchema,
+        response.data,
+        'GetEmailConfigResponse'
+      );
+      if (!result.ok) {
+        return null;
+      }
+      return result.data.record;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Create or fully replace email configuration for a domain (PUT).
+   *
+   * PUT semantics: the request body IS the new state.
+   * All required fields must be provided.
+   */
+  async function putEmailConfig(
+    extid: string,
+    payload: PutEmailConfigRequest
+  ): Promise<CustomDomainEmailConfig> {
+    const response = await $api.put(`/api/domains/${extid}/email-config`, payload);
+    const validated = strictParse(putEmailConfigResponseSchema, response.data);
+    return validated.record;
+  }
+
+  /**
+   * Partially update email configuration for a domain (PATCH).
+   *
+   * PATCH semantics: only provided fields are updated.
+   * Omitted fields preserve existing values.
+   */
+  async function patchEmailConfig(
+    extid: string,
+    payload: PatchEmailConfigRequest
+  ): Promise<CustomDomainEmailConfig> {
+    const response = await $api.patch(`/api/domains/${extid}/email-config`, payload);
+    const validated = strictParse(patchEmailConfigResponseSchema, response.data);
+    return validated.record;
+  }
+
+  /**
+   * Delete email configuration for a domain.
+   *
+   * Removes the email config entirely. The domain reverts to the
+   * system default email configuration.
+   */
+  async function deleteEmailConfig(extid: string): Promise<DeleteEmailConfigResponse> {
+    const response = await $api.delete(`/api/domains/${extid}/email-config`);
+    return strictParse(deleteEmailConfigResponseSchema, response.data);
+  }
+
+  /**
+   * Validate email configuration for a domain.
+   *
+   * Triggers DNS record verification and sender identity validation
+   * for the domain's current email configuration. Returns the updated
+   * config with refreshed validation_status and dns_records.
+   */
+  async function validateEmailConfig(extid: string): Promise<ValidateEmailConfigResponse> {
+    const response = await $api.post(`/api/domains/${extid}/email-config/validate`);
+    return strictParse(validateEmailConfigResponseSchema, response.data);
+  }
+
   /**
    * Reset store state to initial values
    *
@@ -317,6 +421,13 @@ export const useDomainsStore = defineStore('domains', () => {
     uploadLogo,
     fetchLogo,
     removeLogo,
+
+    // Email config
+    getEmailConfig,
+    putEmailConfig,
+    patchEmailConfig,
+    deleteEmailConfig,
+    validateEmailConfig,
 
     fetchList,
     refreshRecords,

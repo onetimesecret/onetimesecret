@@ -5,6 +5,7 @@
 export * from './config';
 export * from './custom-domain';
 export * from './customer';
+export * from './email-config';
 export * from './feedback';
 export * from './sso-config';
 export * from './organization';

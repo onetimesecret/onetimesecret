@@ -12,6 +12,7 @@ vi.mock('vue-i18n', () => ({
         'web.domains.manage_brand': 'Manage Brand',
         'web.domains.verify_domain': 'Verify Domain',
         'web.domains.sso.configure_sso': 'Configure SSO',
+        'web.domains.email.configure_email': 'Configure Email',
         'web.COMMON.remove': 'Remove',
       };
       return translations[key] ?? key;
@@ -65,13 +66,14 @@ const mockDomain = {
   updated: new Date('2024-01-01'),
 };
 
-function mountComponent({ canBrand = false, canManageSso = false } = {}) {
+function mountComponent({ canBrand = false, canManageSso = false, canEmailConfig = false } = {}) {
   return mount(DomainsTableActionsCell, {
     props: {
       domain: mockDomain,
       orgid: 'org_ext_123',
       canBrand,
       canManageSso,
+      canEmailConfig,
     },
     global: {
       stubs: {
@@ -126,9 +128,13 @@ describe('DomainsTableActionsCell', () => {
       const withSso = mountComponent({ canManageSso: true });
       expect(withSso.findAll('[role="menuitem"]')).toHaveLength(3);
 
-      // With both: Manage Brand, Verify Domain, Configure SSO, Remove (4 items)
-      const withBoth = mountComponent({ canBrand: true, canManageSso: true });
-      expect(withBoth.findAll('[role="menuitem"]')).toHaveLength(4);
+      // With email config only: Verify Domain, Configure Email, Remove (3 items)
+      const withEmail = mountComponent({ canEmailConfig: true });
+      expect(withEmail.findAll('[role="menuitem"]')).toHaveLength(3);
+
+      // With all: Manage Brand, Verify Domain, Configure SSO, Configure Email, Remove (5 items)
+      const withAll = mountComponent({ canBrand: true, canManageSso: true, canEmailConfig: true });
+      expect(withAll.findAll('[role="menuitem"]')).toHaveLength(5);
     });
 
     it('links "Manage Brand" to DomainBrand route with correct params', () => {
@@ -177,6 +183,42 @@ describe('DomainsTableActionsCell', () => {
       const to = JSON.parse(ssoLink!.attributes('data-to')!);
       expect(to).toEqual({
         name: 'DomainSso',
+        params: { orgid: 'org_ext_123', extid: 'dm-test-extid' },
+      });
+    });
+  });
+
+  describe('canEmailConfig entitlement gating', () => {
+    it('hides "Configure Email" menu item when canEmailConfig is false', () => {
+      const wrapper = mountComponent({ canEmailConfig: false });
+
+      const menuItems = wrapper.findAll('[role="menuitem"]');
+      const texts = menuItems.map((item) => item.text());
+
+      expect(texts).not.toContain('Configure Email');
+      expect(texts).toContain('Verify Domain');
+      expect(texts).toContain('Remove');
+    });
+
+    it('shows "Configure Email" menu item when canEmailConfig is true', () => {
+      const wrapper = mountComponent({ canEmailConfig: true });
+
+      const menuItems = wrapper.findAll('[role="menuitem"]');
+      const texts = menuItems.map((item) => item.text());
+
+      expect(texts).toContain('Configure Email');
+    });
+
+    it('links "Configure Email" to DomainEmail route with correct params', () => {
+      const wrapper = mountComponent({ canEmailConfig: true });
+
+      const links = wrapper.findAll('a[data-to]');
+      const emailLink = links.find((link) => link.text() === 'Configure Email');
+
+      expect(emailLink).toBeDefined();
+      const to = JSON.parse(emailLink!.attributes('data-to')!);
+      expect(to).toEqual({
+        name: 'DomainEmail',
         params: { orgid: 'org_ext_123', extid: 'dm-test-extid' },
       });
     });

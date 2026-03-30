@@ -2,9 +2,11 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
   import DomainVerificationInfo from '@/apps/workspace/components/domains/DomainVerificationInfo.vue';
   import type { CustomDomain } from '@/schemas/shapes/v3/custom-domain';
   import { formatDistanceToNow } from 'date-fns';
+  import { computed } from 'vue';
 
 const { t } = useI18n();
 
@@ -12,10 +14,63 @@ const { t } = useI18n();
     domain: CustomDomain;
     orgid: string;
     canBrand?: boolean;
+    canEmailConfig?: boolean;
   }
 
   const props = withDefaults(defineProps<Props>(), {
     canBrand: false,
+    canEmailConfig: false,
+  });
+
+  /**
+   * Email config status for the domain row badge.
+   *
+   * Four states:
+   *  1. "not_configured" — no email config exists (null/undefined). Default sender in use.
+   *  2. "pending"        — config exists but validation_status != 'verified'. Default sender.
+   *  3. "verified"       — config exists, verified, and enabled. Custom sender active.
+   *  4. "disabled"       — config exists but enabled === false. Default sender.
+   */
+  const emailConfig = computed(() => props.domain.email_config ?? null);
+
+  type EmailState = 'not_configured' | 'pending' | 'verified' | 'disabled';
+
+  const emailState = computed((): EmailState => {
+    const config = emailConfig.value;
+    if (!config) return 'not_configured';
+    if (config.enabled === false) return 'disabled';
+    if (config.validation_status === 'verified') return 'verified';
+    return 'pending';
+  });
+
+  const emailStatusIcon = computed(() => {
+    switch (emailState.value) {
+      case 'verified': return 'check-circle';
+      case 'pending': return 'clock';
+      case 'disabled': return 'minus-circle';
+      case 'not_configured': return 'envelope';
+      default: return 'envelope';
+    }
+  });
+
+  const emailStatusColorClass = computed(() => {
+    switch (emailState.value) {
+      case 'verified': return 'text-emerald-600 dark:text-emerald-400';
+      case 'pending': return 'text-amber-500 dark:text-amber-400';
+      case 'disabled': return 'text-gray-400 dark:text-gray-500';
+      case 'not_configured': return 'text-gray-400 dark:text-gray-500';
+      default: return 'text-gray-400 dark:text-gray-500';
+    }
+  });
+
+  const emailStatusTooltip = computed(() => {
+    switch (emailState.value) {
+      case 'verified': return t('web.domains.email.status_verified');
+      case 'pending': return t('web.domains.email.status_pending');
+      case 'disabled': return t('web.domains.email.tooltip_disabled');
+      case 'not_configured': return t('web.domains.email.tooltip_not_configured');
+      default: return t('web.domains.email.configure_email');
+    }
   });
 </script>
 
@@ -56,6 +111,20 @@ const { t } = useI18n();
         :domain="domain"
         :orgid="props.orgid"
         class="-mt-0.5 shrink-0" />
+
+      <!-- Email config status badge: always shown when entitlement is present -->
+      <router-link
+        v-if="canEmailConfig"
+        :to="{ name: 'DomainEmail', params: { orgid: props.orgid, extid: domain.extid } }"
+        class="tooltip -mt-0.5 inline-flex shrink-0 items-center"
+        :data-tooltip="emailStatusTooltip">
+        <OIcon
+          collection="heroicons"
+          :name="emailStatusIcon"
+          class="size-4 opacity-75 transition-opacity hover:opacity-100"
+          :class="emailStatusColorClass"
+          aria-hidden="true" />
+      </router-link>
 
       <span class="text-xs text-gray-500 dark:text-gray-400">
         {{
