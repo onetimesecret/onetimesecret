@@ -103,10 +103,7 @@ end
 # Edge cases: nil and missing metadata
 
 ## auth_org returns nil when strategy_result is nil
-@nil_harness = AuthOrgTestHarness.new(
-  MockStrategyResult.new(session: {}, user: nil, metadata: {})
-)
-@nil_harness.instance_variable_set(:@strategy_result, nil)
+@nil_harness = AuthOrgTestHarness.new(nil)
 @nil_harness.auth_org
 #=> nil
 
