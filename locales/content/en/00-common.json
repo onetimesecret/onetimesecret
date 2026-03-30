@@ -1312,6 +1312,10 @@
     "text": "Domain SSO",
     "sha256": "a1b2c3d5"
   },
+  "web.TITLES.domain_email": {
+    "text": "Email Configuration",
+    "sha256": "6f38aa51"
+  },
   "web.TITLES.pricing": {
     "text": "Pricing",
     "sha256": "dfe95783"

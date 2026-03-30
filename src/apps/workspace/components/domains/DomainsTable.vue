@@ -49,6 +49,7 @@ const { t } = useI18n();
   const { can } = useEntitlements(organization);
   const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
   const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
+  const canEmailConfig = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
 
   const emit = defineEmits<{
     (e: 'toggle-homepage', domain: CustomDomain): void;
@@ -161,7 +162,8 @@ const { t } = useI18n();
                 <DomainsTableDomainCell
                   :domain="domain"
                   :orgid="props.orgid"
-                  :can-brand="canBrand" />
+                  :can-brand="canBrand"
+                  :can-email-config="canEmailConfig" />
               </td>
 
               <!-- Homepage Access -->
@@ -182,6 +184,7 @@ const { t } = useI18n();
                   :orgid="props.orgid"
                   :can-brand="canBrand"
                   :can-manage-sso="canManageSso"
+                  :can-email-config="canEmailConfig"
                   @delete="handleDelete" />
               </td>
             </tr>
