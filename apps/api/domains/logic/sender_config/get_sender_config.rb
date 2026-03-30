@@ -24,8 +24,8 @@ module DomainsAPI
       # - enabled: Whether sender config is active
       # - verification_status: pending, verified, failed
       # - verified: Boolean shortcut for verification_status == 'verified'
-      # - dkim_record: DKIM DNS record value
-      # - spf_record: SPF DNS record value
+      # - sending_mode: platform or custom
+      # - provider_dns_data: Provider-specific DNS records (Hash)
       # - api_key_masked: Masked (e.g., "--------abcd")
       # - created_at: Unix timestamp
       # - updated_at: Unix timestamp

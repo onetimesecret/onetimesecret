@@ -124,6 +124,16 @@ module Onetime
           end
         end
 
+        # Get provider-specific credentials for API access
+        # @param provider [String] Provider name ('ses', 'sendgrid', 'lettermint', 'smtp')
+        # @return [Hash] Provider credentials from OT.conf['emailer']
+        # @example
+        #   Onetime::Mail::Mailer.provider_credentials('ses')
+        #   # => { region: 'us-east-1', access_key_id: '...', secret_access_key: '...' }
+        def provider_credentials(provider)
+          build_provider_config(provider)
+        end
+
         private
 
         def template_class_for(name)
