@@ -26,30 +26,12 @@ const { t } = useI18n();
    * Email config status for the domain row badge.
    *
    * Four states:
-   *  1. "not_configured" — no email config exists (API would 404). Default sender in use.
+   *  1. "not_configured" — no email config exists (null/undefined). Default sender in use.
    *  2. "pending"        — config exists but validation_status != 'verified'. Default sender.
    *  3. "verified"       — config exists, verified, and enabled. Custom sender active.
    *  4. "disabled"       — config exists but enabled === false. Default sender.
-   *
-   * The domain shape does not yet include email_config fields from the API.
-   * When the API exposes email_config on the domain object (with
-   * `validation_status: string` and `enabled: boolean`), wire these
-   * computed values to real data by replacing the emailConfig extraction below.
    */
-  interface EmailConfigData {
-    validation_status?: string;
-    enabled?: boolean;
-  }
-
-  const emailConfig = computed((): EmailConfigData | null => {
-    // Extract email_config from domain if present (not yet in the schema).
-    // Once the API includes it, this will start returning real data.
-    const domainAny = props.domain as Record<string, unknown>;
-    if (domainAny.email_config && typeof domainAny.email_config === 'object') {
-      return domainAny.email_config as EmailConfigData;
-    }
-    return null;
-  });
+  const emailConfig = computed(() => props.domain.email_config ?? null);
 
   type EmailState = 'not_configured' | 'pending' | 'verified' | 'disabled';
 
