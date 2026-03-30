@@ -162,6 +162,7 @@ module Onetime
         # Fail-closed: auth_org context required for authenticated entitlement checks.
         # OrganizationLoader self-heals, so nil auth_org indicates a system issue.
         unless auth_org
+          OT.le format('[require_entitlement!] No auth_org for %s (cust=%s)', entitlement, cust&.custid)
           raise Onetime::EntitlementRequired.new(
             entitlement,
             message: 'Unable to verify entitlements (organization context unavailable)',
