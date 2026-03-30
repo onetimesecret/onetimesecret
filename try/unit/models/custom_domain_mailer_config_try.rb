@@ -500,5 +500,81 @@ Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS.include?('c
 @cfg_dis.enabled?
 #=> false
 
+# --- provisioned? and required_dns_records ---
+
+## provisioned? returns false when provider_dns_data is nil
+@domain_prov = Onetime::CustomDomain.create!("mc-prov-#{@ts}.example.com", @org.objid)
+@cfg_prov = Onetime::CustomDomain::MailerConfig.create!(
+  domain_id: @domain_prov.identifier, provider: 'ses', from_address: 'a@prov.com')
+@cfg_prov.provisioned?
+#=> false
+
+## required_dns_records returns empty array when not provisioned
+@cfg_prov.required_dns_records
+#=> []
+
+## provisioned? returns true when provider_dns_data has records
+@dns_records = [
+  { type: 'CNAME', name: 'abc123._domainkey', value: 'abc123.dkim.amazonses.com' },
+  { type: 'CNAME', name: 'def456._domainkey', value: 'def456.dkim.amazonses.com' },
+]
+@cfg_prov.provider_dns_data = @dns_records
+@cfg_prov.save
+@cfg_prov.provisioned?
+#=> true
+
+## required_dns_records returns records with status when provisioned
+@result = @cfg_prov.required_dns_records
+@result.size
+#=> 2
+
+## required_dns_records includes type field
+@result.first[:type]
+#=> 'CNAME'
+
+## required_dns_records includes name field
+@result.first[:name]
+#=> 'abc123._domainkey'
+
+## required_dns_records includes value field
+@result.first[:value]
+#=> 'abc123.dkim.amazonses.com'
+
+## required_dns_records includes status from verification_status
+@result.first[:status]
+#=> 'pending'
+
+## required_dns_records reflects updated verification_status
+@cfg_prov.verification_status = 'verified'
+@cfg_prov.save
+@cfg_prov.required_dns_records.first[:status]
+#=> 'verified'
+
+## required_dns_records handles string keys in stored data
+@cfg_prov.provider_dns_data = [
+  { 'type' => 'TXT', 'name' => 'spf.example.com', 'value' => 'v=spf1 include:amazonses.com ~all' },
+]
+@cfg_prov.save
+@cfg_prov.required_dns_records.first[:type]
+#=> 'TXT'
+
+## required_dns_records handles mixed string/symbol keys
+@cfg_prov.provider_dns_data = [
+  { 'type' => 'CNAME', :name => 'mixed._domainkey', 'value' => 'mixed.dkim.amazonses.com' },
+]
+@cfg_prov.save
+@cfg_prov.required_dns_records.first[:name]
+#=> 'mixed._domainkey'
+
+## provisioned? returns false for empty array
+@cfg_prov.provider_dns_data = []
+@cfg_prov.save
+@cfg_prov.provisioned?
+#=> false
+
+## required_dns_records returns empty array for empty provider_dns_data
+@cfg_prov.required_dns_records
+#=> []
+
 # Teardown
 Familia.dbclient.flushdb

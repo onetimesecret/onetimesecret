@@ -556,8 +556,9 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
 
         expect(record).to have_key('verification_status')
         expect(record).to have_key('verified')
-        expect(record).to have_key('dkim_record')
-        expect(record).to have_key('spf_record')
+        expect(record).to have_key('sending_mode')
+        expect(record).to have_key('dns_records')
+        expect(record).to have_key('provider_dns_data')
       end
     end
 
@@ -944,8 +945,9 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         enabled
         verification_status
         verified
-        dkim_record
-        spf_record
+        sending_mode
+        dns_records
+        provider_dns_data
         api_key_masked
         created_at
         updated_at
