@@ -300,6 +300,33 @@ data = @reloaded_persist.provider_dns_data.value
 (data[:dkim_tokens] || data['dkim_tokens']).is_a?(Array)
 #=> true
 
+## persist: true saves dns_records jsonkey as Array with records
+@reloaded_persist.dns_records.value.is_a?(Array)
+#=> true
+
+## persist: true dns_records contains expected number of records
+@reloaded_persist.dns_records.value.size
+#=> 3
+
+# --- Normalization of nil dns_records ---
+
+## Strategy returning dns_records: nil produces empty array in result
+@nil_dns_strategy = MockProvisionStrategy.new(success: true)
+@nil_dns_strategy.provision_result[:dns_records] = nil
+@nil_dns_config = Onetime::CustomDomain::MailerConfig.create!(
+  domain_id: @domain.identifier + '_nildns',
+  provider: 'ses',
+  from_address: "nildns-#{@timestamp}@example.com",
+  api_key: 'nildns-key',
+)
+@nil_dns_result = Onetime::Operations::ProvisionSenderDomain.new(
+  mailer_config: @nil_dns_config,
+  strategy: @nil_dns_strategy,
+  persist: false,
+).call
+@nil_dns_result.dns_records
+#=> []
+
 # --- Failure conditions ---
 
 ## Returns failure when mailer_config is nil

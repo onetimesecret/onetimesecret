@@ -997,11 +997,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
       end
     end
 
-    context 'successful provisioning (mocked operation)', :pending_endpoint_fix do
-      # NOTE: These tests are skipped pending endpoint fixes:
-      # - MailerConfig#reload method does not exist (called in success_data)
-      # - Fix: Add reload method to MailerConfig or use MailerConfig.load(identifier) in endpoint
-
+    context 'successful provisioning (mocked operation)' do
       let!(:existing_config) do
         config = Onetime::CustomDomain::MailerConfig.create!(
           domain_id: test_custom_domain.identifier,
