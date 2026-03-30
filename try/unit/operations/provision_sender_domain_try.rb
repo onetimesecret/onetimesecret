@@ -201,27 +201,25 @@ Onetime::Operations::ProvisionSenderDomain::Result.ancestors.include?(Data)
 @ses_result.dns_records.first[:name].include?('_domainkey')
 #=> true
 
-## SES dns_records value includes dkim.amazonses.com
-@ses_result.dns_records.first[:value].include?('dkim.amazonses.com')
+## SES dns_records value ends with dkim.amazonses.com
+@ses_result.dns_records.first[:value].end_with?('.dkim.amazonses.com')
 #=> true
 
 # --- SendGrid provider normalization (Array dns_records) ---
 
 ## SendGrid dns_records passthrough when dns_records array present
-@sendgrid_dns_data = {
-  dns_records: [
-    { type: 'CNAME', name: 'em1234.example.com', value: 'u1234.wl.sendgrid.net' },
-    { type: 'TXT', name: '_dmarc.example.com', value: 'v=DMARC1; p=none' },
-  ],
-}
+# Actual SendGrid strategy returns Array directly in :dns_records
+@sendgrid_dns_data = [
+  { type: 'CNAME', name: 'em1234.example.com', value: 'u1234.wl.sendgrid.net' },
+  { type: 'TXT', name: '_dmarc.example.com', value: 'v=DMARC1; p=none' },
+]
 @sendgrid_config = Onetime::CustomDomain::MailerConfig.create!(
   domain_id: @domain.identifier + '_sendgrid',
   provider: 'sendgrid',
   from_address: "noreply@sendgrid-#{@timestamp}.example.com",
   api_key: 'sendgrid-api-key',
 )
-# We need to test SendGrid normalization directly - use a mock strategy
-# that returns SendGrid-style dns_records format
+# Mock strategy returns Array directly like actual SendGrid strategy
 @sendgrid_strategy = MockProvisionStrategy.new(success: true, dns_records: @sendgrid_dns_data)
 
 # Manually test the normalization logic via the operation
@@ -229,7 +227,7 @@ Onetime::Operations::ProvisionSenderDomain::Result.ancestors.include?(Data)
 allow_provisioning = ->(provider) { %w[ses sendgrid lettermint].include?(provider.to_s.downcase) }
 Onetime::Mail::SenderStrategies.define_singleton_method(:supports_provisioning?, allow_provisioning)
 
-# SendGrid dns_records returns array from dns_records key
+# SendGrid strategy returns Array directly, operation passes through
 @sendgrid_result = Onetime::Operations::ProvisionSenderDomain.new(
   mailer_config: @sendgrid_config,
   strategy: @sendgrid_strategy,
