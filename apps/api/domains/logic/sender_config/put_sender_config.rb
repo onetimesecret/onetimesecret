@@ -135,6 +135,11 @@ module DomainsAPI
 
         def validate_required_fields
           raise_form_error('From address is required', field: :from_address, error_type: :missing) if @from_address.to_s.empty?
+
+          # Validate email format using Truemail
+          unless valid_email?(@from_address)
+            raise_form_error('Invalid email format for from_address', field: :from_address, error_type: :invalid)
+          end
         end
 
         def validate_credentials
@@ -162,6 +167,9 @@ module DomainsAPI
         def replace_existing_config
           @mailer_config = @existing_config
 
+          # Capture original from_address BEFORE mutation (for verification reset check)
+          original_from_address = @existing_config.from_address
+
           # PUT semantics: full replacement - set ALL fields from request
           @mailer_config.provider     = @provider
           @mailer_config.from_name    = @from_name        # Empty string clears the field
@@ -169,6 +177,12 @@ module DomainsAPI
           @mailer_config.reply_to     = @reply_to         # Empty string clears the field
           @mailer_config.api_key      = @api_key          # Always required for PUT
           @mailer_config.enabled      = @enabled.to_s
+
+          # Reset verification if from_address changed
+          if @from_address != original_from_address
+            @mailer_config.verified_at         = nil
+            @mailer_config.verification_status = VERIFICATION_STATUS_PENDING
+          end
 
           # Update timestamp for replacement
           @mailer_config.updated = Familia.now.to_i

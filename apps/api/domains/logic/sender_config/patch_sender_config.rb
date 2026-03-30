@@ -161,12 +161,17 @@ module DomainsAPI
         # For new configs: from_address is required
         # For updates: falls back to existing value when not provided
         def validate_required_fields
-          return unless @from_address.to_s.empty?
+          if @from_address.to_s.empty?
+            if @existing_config
+              @from_address = @existing_config.from_address
+            else
+              raise_form_error('From address is required', field: :from_address, error_type: :missing)
+            end
+          end
 
-          if @existing_config
-            @from_address = @existing_config.from_address
-          else
-            raise_form_error('From address is required', field: :from_address, error_type: :missing)
+          # Validate email format when from_address is provided
+          if @from_address_provided && !valid_email?(@from_address)
+            raise_form_error('Invalid email format for from_address', field: :from_address, error_type: :invalid)
           end
         end
 
@@ -222,8 +227,8 @@ module DomainsAPI
             @mailer_config.verification_status = VERIFICATION_STATUS_PENDING
           end
 
-          # Only update api_key if provided (preserves existing otherwise)
-          @mailer_config.api_key = @api_key unless @api_key.to_s.empty?
+          # Only update api_key if explicitly provided and non-empty
+          @mailer_config.api_key = @api_key if @api_key_provided && !@api_key.to_s.empty?
 
           # Update timestamp for partial update
           @mailer_config.updated = Familia.now.to_i

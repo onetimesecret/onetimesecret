@@ -330,6 +330,49 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
           expect(record['from_name']).to be_empty.or be_nil
           expect(record['reply_to']).to be_empty.or be_nil
         end
+
+        it 'resets verification status when from_address changes' do
+          # Mark the existing config as verified
+          existing = Onetime::CustomDomain::MailerConfig.load(test_custom_domain.identifier)
+          existing.verification_status = 'verified'
+          existing.verified_at = Familia.now.to_i.to_s
+          existing.save
+
+          # PUT with a different from_address
+          new_params = valid_ses_params.merge(from_address: 'changed@acme-corp.example.com')
+          csrf_put api_path(test_custom_domain.extid), new_params
+
+          expect(last_response.status).to eq(200)
+
+          body = json_body
+          record = body['record']
+
+          expect(record['from_address']).to eq('changed@acme-corp.example.com')
+          expect(record['verification_status']).to eq('pending')
+          expect(record['verified']).to be false
+        end
+
+        it 'preserves verification status when from_address is unchanged' do
+          # Mark the existing config as verified
+          existing = Onetime::CustomDomain::MailerConfig.load(test_custom_domain.identifier)
+          existing.verification_status = 'verified'
+          existing.verified_at = Familia.now.to_i.to_s
+          existing.save
+
+          # PUT with the same from_address as existing config
+          same_params = valid_ses_params.merge(from_address: 'old@smtp.example.com')
+          csrf_put api_path(test_custom_domain.extid), same_params
+
+          expect(last_response.status).to eq(200)
+
+          body = json_body
+          record = body['record']
+
+          # Verification should be preserved since address didn't change
+          expect(record['from_address']).to eq('old@smtp.example.com')
+          expect(record['verification_status']).to eq('verified')
+          expect(record['verified']).to be true
+        end
       end
 
       context 'validation errors' do
@@ -374,6 +417,17 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
           expect(last_response.status).to eq(422)
           body = json_body
           expect(body['message']).to include('API key')
+        end
+
+        it 'returns 422 for invalid email format in from_address' do
+          params = valid_ses_params.merge(from_address: 'not-a-valid-email')
+
+          csrf_put api_path(test_custom_domain.extid), params
+
+          expect(last_response.status).to eq(422)
+          body = json_body
+          expect(body['message']).to include('Invalid email format')
+          expect(body['field']).to eq('from_address')
         end
       end
     end
@@ -710,6 +764,42 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         # Other fields preserved
         expect(record['from_address']).to eq('original@acme-corp.example.com')
         expect(record['from_name']).to eq('Original Sender')
+      end
+
+      it 'returns config unchanged for empty PATCH body (no-op)' do
+        # Record original values for comparison
+        original_config = Onetime::CustomDomain::MailerConfig.load(test_custom_domain.identifier)
+        original_from_address = original_config.from_address
+        original_from_name = original_config.from_name
+        original_provider = original_config.provider
+        original_reply_to = original_config.reply_to
+        original_enabled = original_config.enabled?
+
+        # PATCH with empty body (only shrimp token will be present)
+        csrf_patch api_path(test_custom_domain.extid), {}
+
+        expect(last_response.status).to eq(200)
+
+        body = json_body
+        record = body['record']
+
+        # All fields should be preserved
+        expect(record['from_address']).to eq(original_from_address)
+        expect(record['from_name']).to eq(original_from_name)
+        expect(record['provider']).to eq(original_provider)
+        expect(record['reply_to']).to eq(original_reply_to)
+        expect(record['enabled']).to eq(original_enabled)
+      end
+
+      it 'returns 422 for invalid email format in from_address' do
+        csrf_patch api_path(test_custom_domain.extid), {
+          from_address: 'not-a-valid-email',
+        }
+
+        expect(last_response.status).to eq(422)
+        body = json_body
+        expect(body['message']).to include('Invalid email format')
+        expect(body['field']).to eq('from_address')
       end
     end
 
