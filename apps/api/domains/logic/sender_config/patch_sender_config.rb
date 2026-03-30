@@ -161,12 +161,17 @@ module DomainsAPI
         # For new configs: from_address is required
         # For updates: falls back to existing value when not provided
         def validate_required_fields
-          return unless @from_address.to_s.empty?
+          if @from_address.to_s.empty?
+            if @existing_config
+              @from_address = @existing_config.from_address
+            else
+              raise_form_error('From address is required', field: :from_address, error_type: :missing)
+            end
+          end
 
-          if @existing_config
-            @from_address = @existing_config.from_address
-          else
-            raise_form_error('From address is required', field: :from_address, error_type: :missing)
+          # Validate email format when from_address is provided
+          if @from_address_provided && !@from_address.to_s.empty? && !valid_email?(@from_address)
+            raise_form_error('Invalid email format for from_address', field: :from_address, error_type: :invalid)
           end
         end
 
