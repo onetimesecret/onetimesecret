@@ -31,10 +31,13 @@ full:
     webauthn: false
     sso: false
 
+  # Restrict login page to a single auth method.
+  # Values: password, email_auth, webauthn, sso (or blank for all)
+  restrict_to:
+
   # SSO configuration section
   sso:
     sso_display_name: ''
-    sso_only: false
 
   # Security settings
   security:

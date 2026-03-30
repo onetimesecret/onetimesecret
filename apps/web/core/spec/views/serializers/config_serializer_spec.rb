@@ -101,6 +101,7 @@ RSpec.describe Core::Views::ConfigSerializer do
       webauthn_enabled?: false,
       sso_enabled?: false,
       sso_only_enabled?: false,
+      restrict_to: nil,
       sso_providers: []
     )
   end

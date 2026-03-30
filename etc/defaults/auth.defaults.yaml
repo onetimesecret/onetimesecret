@@ -91,6 +91,30 @@ full:
     #   GitHub: GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
     sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
 
+  # ──────────────────────────────────────────────────────────────────────
+  # Restrict login page to a single authentication method
+  #
+  # Values: password, email_auth, webauthn, sso
+  # Leave blank to show all enabled authentication methods (default).
+  #
+  # When set, only the specified method is shown on the login page.
+  # For sso: also disables password-based account management (destroy
+  # account, change password, change email).
+  #
+  # The underlying feature must also be enabled (e.g. restrict_to: sso
+  # requires AUTH_SSO_ENABLED=true and at least one provider configured).
+  # ──────────────────────────────────────────────────────────────────────
+  <%
+    only_flags = [
+      ENV['AUTH_PASSWORD_ONLY'] == 'true' ? 'password' : nil,
+      ENV['AUTH_EMAIL_AUTH_ONLY'] == 'true' ? 'email_auth' : nil,
+      ENV['AUTH_WEBAUTHN_ONLY'] == 'true' ? 'webauthn' : nil,
+      ENV['AUTH_SSO_ONLY'] == 'true' ? 'sso' : nil,
+    ].compact
+    restrict_to = only_flags.length == 1 ? only_flags.first : nil
+  %>
+  restrict_to: <%= restrict_to %>
+
   # SSO configuration section
   #
   # Settings that control SSO behavior beyond the feature toggle.
@@ -102,12 +126,6 @@ full:
     # OIDC_DISPLAY_NAME, ENTRA_DISPLAY_NAME, GOOGLE_DISPLAY_NAME, etc.
     # Retained for backward compatibility with single-provider OIDC setups.
     sso_display_name: <%= ENV.fetch('SSO_DISPLAY_NAME', '') %>
-
-    # SSO-only mode: when true, disables password-based account management
-    # (destroy account, change password, change email). Users must manage
-    # their credentials through the SSO identity provider.
-    # Only effective when SSO is enabled (features.sso = true).
-    sso_only: <%= ENV['AUTH_SSO_ONLY'] == 'true' %>
 
   # Argon2 secret key (pepper) for password hashing defense-in-depth.
   # Folded into password hashes — if the hash database is compromised,

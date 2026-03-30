@@ -13,6 +13,9 @@ module Onetime
   class AuthConfig
     include Singleton
 
+    # Valid values for full.restrict_to — the single-auth-method override.
+    RESTRICT_TO_VALUES = %w[password email_auth webauthn sso].freeze
+
     attr_reader :config, :path, :mode, :environment
 
     def initialize
@@ -138,18 +141,64 @@ module Onetime
     # that reference omniauth_enabled? (apps/web/auth/).
     alias omniauth_enabled? sso_enabled?
 
+    # The login-page restriction, if any.
+    # Returns one of RESTRICT_TO_VALUES ('password', 'email_auth',
+    # 'webauthn', 'sso') or nil when all enabled methods are shown.
+    #
+    # Guards:
+    # - Returns nil in simple mode or when the value is unrecognised.
+    # - For 'sso': requires sso_enabled? and at least one provider.
+    # - For 'email_auth': requires email_auth_enabled?.
+    # - For 'webauthn': requires webauthn_enabled?.
+    # - 'password' has no prerequisite (passwords are always available
+    #   in full mode).
+    def restrict_to
+      return nil unless full_enabled?
+
+      value = full['restrict_to'].to_s.strip
+      # Legacy fallback: configs that still use sso.sso_only instead of restrict_to
+      value = 'sso' if value.empty? && legacy_sso_only?
+
+      return nil unless RESTRICT_TO_VALUES.include?(value)
+
+      # Ensure the restriction refers to an actually enabled method.
+      case value
+      when 'sso'
+        return nil unless sso_enabled? && sso_providers.any?
+      when 'email_auth'
+        return nil unless email_auth_enabled?
+      when 'webauthn'
+        return nil unless webauthn_enabled?
+      end
+
+      value
+    end
+
     # Whether SSO-only mode is active.
     # When true, password-based account management is disabled (destroy
     # account, change password, change email). Users must manage their
     # credentials through the SSO identity provider.
-    #
-    # Returns false if SSO itself is disabled (no-op guard).
     def sso_only_enabled?
-      return false unless sso_enabled?
-      return false unless sso_config['sso_only'] == true
+      restrict_to == 'sso'
+    end
 
-      # Ensure at least one provider is actually configured
-      sso_providers.any?
+    # Whether password-only mode is active.
+    # When true, only the password form is shown on the login page;
+    # other enabled auth methods (SSO, WebAuthn, magic links) are hidden.
+    def password_only_enabled?
+      restrict_to == 'password'
+    end
+
+    # Whether email-auth-only (magic links) mode is active.
+    # When true, only the email link form is shown on the login page.
+    def email_auth_only_enabled?
+      restrict_to == 'email_auth'
+    end
+
+    # Whether WebAuthn-only mode is active.
+    # When true, only biometric/security-key authentication is shown.
+    def webauthn_only_enabled?
+      restrict_to == 'webauthn'
     end
 
     # SSO display name (e.g., "Zitadel", "Okta", "Azure AD")
@@ -214,8 +263,15 @@ module Onetime
 
     private
 
+    # Whether the legacy sso.sso_only flag is set in config.
+    # Used as a fallback by #restrict_to for configs that predate
+    # the restrict_to key.
+    def legacy_sso_only?
+      sso_config['sso_only'] == true
+    end
+
     # SSO configuration section from full mode config.
-    # Contains sso_display_name and sso_only settings.
+    # Contains sso_display_name (and legacy sso_only).
     #
     # Falls back to legacy layout where sso_display_name lived
     # under features, so existing config files keep working.

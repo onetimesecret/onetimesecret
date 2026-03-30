@@ -132,11 +132,11 @@ end
 [result['sso']['enabled'], result['sso']['providers'].first['display_name']]
 #=> [true, "Azure AD"]
 
-## build_feature_flags includes sso_only key
+## build_feature_flags includes restrict_to key
 result = with_sso_config(enabled: false) do
   Core::Views::ConfigSerializer.send(:build_feature_flags, {})
 end
-result.key?('sso_only')
+result.key?('restrict_to')
 #=> true
 
 ## build_sso_config provider entry includes route_name

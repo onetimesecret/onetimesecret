@@ -9,11 +9,16 @@ import { debugLog } from '@/utils/debug';
  * exposed through window.__BOOTSTRAP_ME__, accessed via bootstrap.service.ts
  */
 
+/**
+ * Valid values for the restrict_to single-auth-method override.
+ */
+export type RestrictTo = 'password' | 'email_auth' | 'webauthn' | 'sso';
+
 export interface AuthFeatures {
   magicLinksEnabled: boolean;
   webauthnEnabled: boolean;
   ssoEnabled: boolean;
-  ssoOnly: boolean;
+  restrictTo: RestrictTo | null;
 }
 
 /**
@@ -121,21 +126,67 @@ export function getSsoProviders(): SsoProvider[] {
   return [];
 }
 
+// ── Single-auth-method restriction ──────────────────────────────────
+
+const VALID_RESTRICT_TO: readonly string[] = ['password', 'email_auth', 'webauthn', 'sso'];
+
+/**
+ * Returns the active single-auth-method restriction, or null when all
+ * enabled authentication methods are shown.
+ *
+ * Possible values: 'password', 'email_auth', 'webauthn', 'sso'.
+ */
+export function getRestrictTo(): RestrictTo | null {
+  if (typeof window === 'undefined') return null;
+
+  const features = getBootstrapValue('features');
+  const value = features?.restrict_to;
+  if (typeof value === 'string' && VALID_RESTRICT_TO.includes(value)) {
+    return value as RestrictTo;
+  }
+  return null;
+}
+
 /**
  * Checks if SSO-only mode is active.
  * When true, password-based auth routes are disabled and the sign-in page
  * shows only SSO provider buttons.
  *
- * This is a no-op when SSO is not enabled -- the UI falls through to
- * default auth forms.
+ * The backend only sets restrict_to='sso' when SSO is enabled and at
+ * least one provider is configured, so no additional frontend guard is
+ * needed.
  */
 export function isSsoOnlyMode(): boolean {
   if (typeof window === 'undefined') return false;
 
-  const features = getBootstrapValue('features');
-  const result = features?.sso_only === true;
-  debugLog.features('features.isSsoOnlyMode', { sso_only: features?.sso_only, result });
+  const result = getRestrictTo() === 'sso';
+  debugLog.features('features.isSsoOnlyMode', { restrict_to: getRestrictTo(), result });
   return result;
+}
+
+/**
+ * Checks if password-only mode is active.
+ * When true, only the password form is shown on the login page;
+ * other enabled auth methods (SSO, WebAuthn, magic links) are hidden.
+ */
+export function isPasswordOnlyMode(): boolean {
+  return getRestrictTo() === 'password';
+}
+
+/**
+ * Checks if email-auth-only (magic links) mode is active.
+ * When true, only the email link form is shown on the login page.
+ */
+export function isEmailAuthOnlyMode(): boolean {
+  return getRestrictTo() === 'email_auth';
+}
+
+/**
+ * Checks if WebAuthn-only mode is active.
+ * When true, only biometric/security-key authentication is shown.
+ */
+export function isWebAuthnOnlyMode(): boolean {
+  return getRestrictTo() === 'webauthn';
 }
 
 /**
@@ -171,7 +222,7 @@ export function getAuthFeatures(): AuthFeatures {
     magicLinksEnabled: isMagicLinksEnabled(),
     webauthnEnabled: isWebAuthnEnabled(),
     ssoEnabled: isSsoEnabled(),
-    ssoOnly: isSsoOnlyMode(),
+    restrictTo: getRestrictTo(),
   };
 }
 

@@ -194,7 +194,8 @@ export const featuresSchema = z.object({
   email_auth: z.boolean().optional(),
   webauthn: z.boolean().optional(),
   sso: z.union([z.boolean(), ssoConfigSchema]).optional(),
-  sso_only: z.boolean().optional(),
+  // Single-auth-method restriction: 'password', 'email_auth', 'webauthn', 'sso', or null
+  restrict_to: z.enum(['password', 'email_auth', 'webauthn', 'sso']).nullable().optional(),
   magic_links: z.boolean().optional(),
   organizations: z.object({
     enabled: z.boolean().default(false),
