@@ -38,7 +38,6 @@ full:
   # SSO configuration section
   sso:
     sso_display_name: ''
-    sso_only: false
 
   # Security settings
   security:

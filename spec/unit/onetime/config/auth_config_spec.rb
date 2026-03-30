@@ -34,16 +34,17 @@ RSpec.describe Onetime::AuthConfig do
           webauthn: <%= ENV['AUTH_WEBAUTHN_ENABLED'] == 'true' %>
           sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
         <%
-          restrict_to = nil
-          restrict_to = 'password' if ENV['AUTH_PASSWORD_ONLY'] == 'true'
-          restrict_to = 'email_auth' if ENV['AUTH_EMAIL_AUTH_ONLY'] == 'true'
-          restrict_to = 'webauthn' if ENV['AUTH_WEBAUTHN_ONLY'] == 'true'
-          restrict_to = 'sso' if ENV['AUTH_SSO_ONLY'] == 'true'
+          only_flags = [
+            ENV['AUTH_PASSWORD_ONLY'] == 'true' ? 'password' : nil,
+            ENV['AUTH_EMAIL_AUTH_ONLY'] == 'true' ? 'email_auth' : nil,
+            ENV['AUTH_WEBAUTHN_ONLY'] == 'true' ? 'webauthn' : nil,
+            ENV['AUTH_SSO_ONLY'] == 'true' ? 'sso' : nil,
+          ].compact
+          restrict_to = only_flags.length == 1 ? only_flags.first : nil
         %>
         restrict_to: <%= restrict_to %>
         sso:
           sso_display_name: ''
-          sso_only: <%= ENV['AUTH_SSO_ONLY'] == 'true' %>
     YAML
   end
 
@@ -213,9 +214,9 @@ RSpec.describe Onetime::AuthConfig do
       expect(config.restrict_to).to be_nil
     end
 
-    it 'last-one-wins when multiple ENV vars set (sso overrides password)' do
-      config = fresh_config('AUTH_PASSWORD_ONLY' => 'true', 'AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'true', 'OIDC_ISSUER' => 'https://example.com', 'OIDC_CLIENT_ID' => 'test')
-      expect(config.restrict_to).to eq('sso')
+    it 'returns nil when multiple ENV vars are set (mutual exclusivity)' do
+      config = fresh_config('AUTH_PASSWORD_ONLY' => 'true', 'AUTH_SSO_ONLY' => 'true')
+      expect(config.restrict_to).to be_nil
     end
   end
 

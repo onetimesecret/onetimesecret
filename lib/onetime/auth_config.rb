@@ -156,8 +156,8 @@ module Onetime
       return nil unless full_enabled?
 
       value = full['restrict_to'].to_s.strip
-      # Fall back to legacy sso.sso_only for existing configs
-      value = 'sso' if value.empty? && sso_config['sso_only'] == true
+      # Legacy fallback: configs that still use sso.sso_only instead of restrict_to
+      value = 'sso' if value.empty? && legacy_sso_only?
 
       return nil unless RESTRICT_TO_VALUES.include?(value)
 
@@ -263,8 +263,15 @@ module Onetime
 
     private
 
+    # Whether the legacy sso.sso_only flag is set in config.
+    # Used as a fallback by #restrict_to for configs that predate
+    # the restrict_to key.
+    def legacy_sso_only?
+      sso_config['sso_only'] == true
+    end
+
     # SSO configuration section from full mode config.
-    # Contains sso_display_name and sso_only settings.
+    # Contains sso_display_name (and legacy sso_only).
     #
     # Falls back to legacy layout where sso_display_name lived
     # under features, so existing config files keep working.
