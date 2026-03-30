@@ -18,6 +18,21 @@ require_relative '../../support/test_models'
 
 OT.boot! :test
 
+# Configure Familia encryption with known test keys.
+# OT.boot! derives keys from config secret_key via HKDF, but encrypted_field
+# round-trip tests need explicit key setup (same pattern as SsoConfig RSpec).
+@key_v1 = 'test_encryption_key_32bytes_ok!!'
+@key_v2 = 'another_test_key_for_testing_!!'
+
+Familia.configure do |config|
+  config.encryption_keys = {
+    v1: Base64.strict_encode64(@key_v1),
+    v2: Base64.strict_encode64(@key_v2),
+  }
+  config.current_key_version = :v1
+  config.encryption_personalization = 'MailerConfigTest'
+end
+
 Familia.dbclient.flushdb
 OT.info "Cleaned Redis for MailerConfig test run"
 
@@ -60,6 +75,11 @@ OT.info "Cleaned Redis for MailerConfig test run"
 ## Created config has correct reply_to
 @config.reply_to
 #=> 'support@mc-test.example.com'
+
+# TODO: Encrypted api_key round-trip assertion — needs investigation into
+# Familia encryption key configuration for tryouts. Separate ticket.
+# Onetime::CustomDomain::MailerConfig.find_by_domain_id(@domain.identifier).api_key.reveal { it }
+# #=> 'test-api-key-abc123'
 
 ## Created config defaults enabled to false
 @config.enabled
@@ -287,6 +307,10 @@ mc2.validation_errors.include?('provider must be one of: smtp, ses, sendgrid, le
 @config.rotate_credentials('new-api-key-xyz789')
 @config.verified_at
 #=> @saved_verified_at
+
+# TODO: Encrypted api_key round-trip after rotation — same ticket as above.
+# Onetime::CustomDomain::MailerConfig.find_by_domain_id(@domain.identifier).api_key.reveal { it }
+# #=> 'new-api-key-xyz789'
 
 ## rotate_credentials preserves verification_status
 @config.verification_status
