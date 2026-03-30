@@ -61,6 +61,9 @@ RSpec.describe Onetime::AuthConfig do
     # Save existing env
     @saved_env = env_vars.map { |k| [k, ENV[k]] }.to_h
 
+    # Clear env vars to start with a clean slate (CI may set AUTHENTICATION_MODE=simple)
+    env_vars.each { |k| ENV.delete(k) }
+
     # Write config file
     File.write(config_path, base_yaml)
 
