@@ -318,6 +318,9 @@ module Onetime
         # @return [Integer, nil] Domain ID or nil if not found
         #
         def find_domain_id(domain, api_key:)
+          # WARNING: No pagination — SendGrid defaults to ~50 results.
+          # Accounts with >50 authenticated domains may not find matches
+          # beyond the first page. Add limit/offset params if needed.
           response = get_request('/whitelabel/domains', api_key: api_key)
           return nil unless response[:success]
 

@@ -96,6 +96,18 @@ module Onetime
         strategy = @strategy || Onetime::Mail::SenderStrategies.for_provider(provider)
 
         # Step 5: Call strategy.provision_dns_records
+        #
+        # NOTE: No client-side rate limiting is applied here. Currently
+        # each call is a single user-triggered action so throttling is
+        # unnecessary. If this operation is ever used in bulk (e.g.
+        # batch provisioning for multiple domains), add a rate_limit
+        # parameter with a sleep between calls — see VerifyDomain for
+        # the pattern (0.5s default between bulk API calls). Provider
+        # server-side limits to be aware of:
+        #   - SES: 1 req/sec for CreateEmailIdentity
+        #   - SendGrid: 600 req/min across all endpoints
+        #   - Lettermint: undocumented, expect standard API limits
+        #
         logger.info 'Provisioning sender domain',
           domain_id: @mailer_config.domain_id,
           provider: provider,

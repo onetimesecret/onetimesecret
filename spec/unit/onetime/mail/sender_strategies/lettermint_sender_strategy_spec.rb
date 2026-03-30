@@ -3,32 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-
-# Define stub classes before requiring the strategy, since it does
-# `require 'lettermint'` at runtime inside build_client.
-module Lettermint
-  class HttpClient
-    def initialize(**kwargs); end
-    def post(**kwargs); end
-    def get(**kwargs); end
-    def delete(**kwargs); end
-  end
-
-  class HttpRequestError < StandardError
-    attr_reader :status_code
-
-    def initialize(msg = '', status_code: 500)
-      @status_code = status_code
-      super(msg)
-    end
-  end
-
-  class ValidationError < StandardError; end
-  class AuthenticationError < StandardError; end
-  class RateLimitError < StandardError; end
-  class TimeoutError < StandardError; end
-end
-
+require 'lettermint'
 require 'onetime/mail/sender_strategies/lettermint_sender_strategy'
 
 RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
@@ -106,7 +81,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
       before do
         allow(mock_client).to receive(:post)
-          .and_raise(Lettermint::HttpRequestError.new('Conflict', status_code: 409))
+          .and_raise(Lettermint::HttpRequestError.new(message: 'Conflict', status_code: 409))
         allow(mock_client).to receive(:get)
           .with(path: '/api/v1/domains/example.com')
           .and_return(get_response)
@@ -169,7 +144,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
     context 'when Lettermint API fails (HttpRequestError)' do
       before do
         allow(mock_client).to receive(:post)
-          .and_raise(Lettermint::HttpRequestError.new('Internal Server Error', status_code: 500))
+          .and_raise(Lettermint::HttpRequestError.new(message: 'Internal Server Error', status_code: 500))
       end
 
       it 'returns error with status code' do
@@ -185,7 +160,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
     context 'when ValidationError is raised' do
       before do
         allow(mock_client).to receive(:post)
-          .and_raise(Lettermint::ValidationError, 'Invalid domain format')
+          .and_raise(Lettermint::ValidationError.new(message: 'Invalid domain format', error_type: 'validation'))
       end
 
       it 'returns validation error' do
@@ -201,7 +176,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
     context 'when AuthenticationError is raised' do
       before do
         allow(mock_client).to receive(:post)
-          .and_raise(Lettermint::AuthenticationError, 'Invalid token')
+          .and_raise(Lettermint::AuthenticationError.new(message: 'Invalid token', status_code: 401))
       end
 
       it 'returns authentication error' do
@@ -217,7 +192,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
     context 'when RateLimitError is raised' do
       before do
         allow(mock_client).to receive(:post)
-          .and_raise(Lettermint::RateLimitError, 'Too many requests')
+          .and_raise(Lettermint::RateLimitError.new(message: 'Too many requests'))
       end
 
       it 'returns rate limit error' do
@@ -318,7 +293,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
     context 'when domain is not found (404)' do
       before do
         allow(mock_client).to receive(:get)
-          .and_raise(Lettermint::HttpRequestError.new('Not Found', status_code: 404))
+          .and_raise(Lettermint::HttpRequestError.new(message: 'Not Found', status_code: 404))
       end
 
       it 'returns not_found status' do
@@ -333,7 +308,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
     context 'when API returns error' do
       before do
         allow(mock_client).to receive(:get)
-          .and_raise(Lettermint::HttpRequestError.new('Server Error', status_code: 500))
+          .and_raise(Lettermint::HttpRequestError.new(message: 'Server Error', status_code: 500))
       end
 
       it 'returns error status' do
@@ -388,7 +363,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
     context 'when domain not found (404, idempotent)' do
       before do
         allow(mock_client).to receive(:delete)
-          .and_raise(Lettermint::HttpRequestError.new('Not Found', status_code: 404))
+          .and_raise(Lettermint::HttpRequestError.new(message: 'Not Found', status_code: 404))
       end
 
       it 'returns deleted true' do
@@ -402,7 +377,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
     context 'when API returns error' do
       before do
         allow(mock_client).to receive(:delete)
-          .and_raise(Lettermint::HttpRequestError.new('Forbidden', status_code: 403))
+          .and_raise(Lettermint::HttpRequestError.new(message: 'Forbidden', status_code: 403))
       end
 
       it 'returns deleted false with error' do
