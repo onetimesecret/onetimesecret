@@ -194,17 +194,17 @@ RSpec.describe Onetime::AuthConfig do
     end
 
     it 'returns "email_auth" when AUTH_EMAIL_AUTH_ONLY=true' do
-      config = fresh_config('AUTH_EMAIL_AUTH_ONLY' => 'true')
+      config = fresh_config('AUTH_EMAIL_AUTH_ONLY' => 'true', 'AUTH_EMAIL_AUTH_ENABLED' => 'true')
       expect(config.restrict_to).to eq('email_auth')
     end
 
     it 'returns "webauthn" when AUTH_WEBAUTHN_ONLY=true' do
-      config = fresh_config('AUTH_WEBAUTHN_ONLY' => 'true')
+      config = fresh_config('AUTH_WEBAUTHN_ONLY' => 'true', 'AUTH_WEBAUTHN_ENABLED' => 'true')
       expect(config.restrict_to).to eq('webauthn')
     end
 
     it 'returns "sso" when AUTH_SSO_ONLY=true' do
-      config = fresh_config('AUTH_SSO_ONLY' => 'true')
+      config = fresh_config('AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'true', 'OIDC_ISSUER' => 'https://example.com', 'OIDC_CLIENT_ID' => 'test')
       expect(config.restrict_to).to eq('sso')
     end
 
@@ -214,7 +214,7 @@ RSpec.describe Onetime::AuthConfig do
     end
 
     it 'last-one-wins when multiple ENV vars set (sso overrides password)' do
-      config = fresh_config('AUTH_PASSWORD_ONLY' => 'true', 'AUTH_SSO_ONLY' => 'true')
+      config = fresh_config('AUTH_PASSWORD_ONLY' => 'true', 'AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'true', 'OIDC_ISSUER' => 'https://example.com', 'OIDC_CLIENT_ID' => 'test')
       expect(config.restrict_to).to eq('sso')
     end
   end
