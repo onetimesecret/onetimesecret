@@ -143,6 +143,7 @@ const isLoadingBilling = ref(false);
 // Billing email editing has been moved to BillingOverview.vue
 const error = ref('');
 const success = ref('');
+const orgNotFound = ref(false);
 
 // Plan data from billing overview
 const planName = ref<string>('');
@@ -246,6 +247,13 @@ const isDirty = computed(() => {
   );
 });
 
+// Clear success banner when user starts editing again
+watch(formData, () => {
+  if (success.value && isDirty.value) {
+    success.value = '';
+  }
+}, { deep: true });
+
 // Billing email is only shown for paid plans (organizations with a planid set)
 const hasPaidPlan = computed(() => !!organization.value?.planid);
 
@@ -257,6 +265,7 @@ const isLegacyCustomer = computed(() =>
 const loadOrganization = async () => {
   isLoading.value = true;
   error.value = '';
+  orgNotFound.value = false;
   try {
     const org = await organizationStore.fetchOrganization(orgId.value);
     if (org) {
@@ -267,11 +276,17 @@ const loadOrganization = async () => {
         contact_email: org.contact_email || '',
       };
     } else {
+      orgNotFound.value = true;
       error.value = t('web.organizations.not_found');
     }
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.message || t('web.organizations.load_error');
+    if (classified.code === 404) {
+      orgNotFound.value = true;
+      error.value = t('web.organizations.not_found');
+    } else {
+      error.value = classified.message || t('web.organizations.load_error');
+    }
     console.error('[OrganizationSettings] Error loading organization:', err);
   } finally {
     isLoading.value = false;
@@ -534,16 +549,18 @@ watch(orgId, async (newOrgId, oldOrgId) => {
     }
 
     await loadOrganization();
-    // Reload tab-specific data for the new org
-    if (activeTab.value === 'members') {
-      await Promise.all([loadMembers(), loadInvitations()]);
-    } else if (activeTab.value === 'domains') {
-      await refreshDomains();
-    } else if (activeTab.value === 'subscription' && billingEnabled.value) {
-      await loadBilling();
-    } else if (activeTab.value === 'sso' && canManageSso.value) {
-      await refreshDomains();
-      await loadDomainSsoStatus();
+    // Only load tab-specific data if the org loaded successfully
+    if (!orgNotFound.value && !error.value) {
+      if (activeTab.value === 'members') {
+        await Promise.all([loadMembers(), loadInvitations()]);
+      } else if (activeTab.value === 'domains') {
+        await refreshDomains();
+      } else if (activeTab.value === 'subscription' && billingEnabled.value) {
+        await loadBilling();
+      } else if (activeTab.value === 'sso' && canManageSso.value) {
+        await refreshDomains();
+        await loadDomainSsoStatus();
+      }
     }
   }
 });
@@ -611,7 +628,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
 
       <!-- Tabs: Domains, Billing (conditional), Settings (infrequent) -->
       <!-- LAUNCH: Identity-only - Team tab hidden until team features enabled -->
-      <div class="border-b border-gray-200 dark:border-gray-700">
+      <div v-if="!orgNotFound && organization" class="border-b border-gray-200 dark:border-gray-700">
         <nav
           role="tablist"
           aria-orientation="horizontal"
@@ -713,6 +730,33 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
             {{ t('web.COMMON.loading') }}
           </p>
+        </div>
+      </div>
+
+      <!-- Error State: Organization not found or failed to load -->
+      <div v-else-if="orgNotFound || (error && !organization)" class="flex items-center justify-center py-12">
+        <div class="text-center">
+          <OIcon
+            collection="heroicons"
+            name="exclamation-triangle"
+            class="mx-auto size-12 text-gray-400"
+            aria-hidden="true" />
+          <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+            {{ orgNotFound ? t('web.organizations.not_found') : t('web.organizations.load_error') }}
+          </h3>
+          <p v-if="error && !orgNotFound" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ error }}
+          </p>
+          <router-link
+            to="/orgs"
+            class="mt-4 inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
+            <OIcon
+              collection="heroicons"
+              name="arrow-left"
+              class="size-4"
+              aria-hidden="true" />
+            {{ t('web.organizations.title') }}
+          </router-link>
         </div>
       </div>
 
