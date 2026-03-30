@@ -98,9 +98,8 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
       it 'raises forbidden error' do
         expect {
           logic.send(:authorize_sender_config!, 'ext-domain123')
-        }.to raise_error(Onetime::FormError) do |error|
+        }.to raise_error(Onetime::Forbidden) do |error|
           expect(error.message).to eq('Custom mail sender is not enabled on this instance')
-          expect(error.error_type).to eq(:forbidden)
         end
       end
     end
@@ -115,9 +114,8 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
       it 'raises forbidden error' do
         expect {
           logic.send(:authorize_sender_config!, 'ext-domain123')
-        }.to raise_error(Onetime::FormError) do |error|
+        }.to raise_error(Onetime::Forbidden) do |error|
           expect(error.message).to eq('Custom mail sender is not enabled on this instance')
-          expect(error.error_type).to eq(:forbidden)
         end
       end
     end
@@ -132,7 +130,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
       it 'raises forbidden error' do
         expect {
           logic.send(:authorize_sender_config!, 'ext-domain123')
-        }.to raise_error(Onetime::FormError) do |error|
+        }.to raise_error(Onetime::Forbidden) do |error|
           expect(error.message).to eq('Custom mail sender is not enabled on this instance')
         end
       end
@@ -205,9 +203,8 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
       it 'raises forbidden error for missing entitlement' do
         expect {
           logic.send(:authorize_sender_config!, 'ext-domain123')
-        }.to raise_error(Onetime::FormError) do |error|
+        }.to raise_error(Onetime::Forbidden) do |error|
           expect(error.message).to include('custom_mail_sender')
-          expect(error.error_type).to eq(:forbidden)
         end
       end
     end

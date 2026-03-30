@@ -53,18 +53,10 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
   before(:all) do
     Onetime.boot! :test
 
-    # Configure encryption for CustomDomain::MailerConfig (api_key is encrypted)
-    key_v1 = 'test_encryption_key_32bytes_ok!!'
-    key_v2 = 'another_test_key_for_testing_!!'
-
-    Familia.configure do |config|
-      config.encryption_keys = {
-        v1: Base64.strict_encode64(key_v1),
-        v2: Base64.strict_encode64(key_v2),
-      }
-      config.current_key_version = :v1
-      config.encryption_personalization = 'CustomDomain::MailerConfigIntegrationTest'
-    end
+    # Encryption keys are configured by Onetime.boot! via the
+    # ConfigureFamilia initializer (derived from site.secret).
+    # No need to override -- using the boot-configured keys ensures
+    # encrypt/decrypt consistency within the test process.
   end
 
   let(:test_run_id) { SecureRandom.hex(8) }
@@ -341,45 +333,45 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
       end
 
       context 'validation errors' do
-        it 'returns 400 for missing provider' do
+        it 'returns 422 for missing provider' do
           params = valid_ses_params.dup
           params.delete(:provider)
 
           csrf_put api_path(test_custom_domain.extid), params
 
-          expect(last_response.status).to eq(400)
+          expect(last_response.status).to eq(422)
           body = json_body
           expect(body['message']).to include('Provider')
         end
 
-        it 'returns 400 for invalid provider' do
+        it 'returns 422 for invalid provider' do
           params = valid_ses_params.merge(provider: 'mailchimp')
 
           csrf_put api_path(test_custom_domain.extid), params
 
-          expect(last_response.status).to eq(400)
+          expect(last_response.status).to eq(422)
           body = json_body
           expect(body['message']).to include('Invalid provider')
         end
 
-        it 'returns 400 for missing from_address' do
+        it 'returns 422 for missing from_address' do
           params = valid_ses_params.dup
           params.delete(:from_address)
 
           csrf_put api_path(test_custom_domain.extid), params
 
-          expect(last_response.status).to eq(400)
+          expect(last_response.status).to eq(422)
           body = json_body
           expect(body['message']).to include('From address')
         end
 
-        it 'returns 400 for missing api_key on PUT' do
+        it 'returns 422 for missing api_key on PUT' do
           params = valid_ses_params.dup
           params.delete(:api_key)
 
           csrf_put api_path(test_custom_domain.extid), params
 
-          expect(last_response.status).to eq(400)
+          expect(last_response.status).to eq(422)
           body = json_body
           expect(body['message']).to include('API key')
         end
@@ -464,6 +456,8 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
           api_key: 'existing-api-key-value',
           enabled: true,
         )
+        # Reload to ensure encrypted fields use post-save AAD
+        Onetime::CustomDomain::MailerConfig.load(test_custom_domain.identifier)
       end
 
       before do
@@ -572,6 +566,8 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         api_key: 'original-api-key-secret',
         enabled: false,
       )
+      # Reload to ensure encrypted fields use post-save AAD
+      Onetime::CustomDomain::MailerConfig.load(test_custom_domain.identifier)
     end
 
     context 'when authenticated as organization owner' do
@@ -598,6 +594,22 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         expect(record['provider']).to eq('ses')
         expect(record['from_address']).to eq('original@acme-corp.example.com')
         expect(record['reply_to']).to eq('original-reply@acme-corp.example.com')
+      end
+
+      it 'preserves enabled state when enabled field is omitted' do
+        # existing_config has enabled: false — verify PATCH without enabled preserves it
+        csrf_patch api_path(test_custom_domain.extid), {
+          from_name: 'Name Only Update',
+        }
+
+        expect(last_response.status).to eq(200)
+
+        body = json_body
+        record = body['record']
+
+        # enabled should be preserved from original config, not flipped
+        expect(record['enabled']).to eq(false)
+        expect(record['from_name']).to eq('Name Only Update')
       end
 
       it 'preserves api_key when not provided' do
@@ -719,12 +731,12 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         expect(record['from_address']).to eq('noreply@acme-corp.example.com')
       end
 
-      it 'returns 400 when required fields missing for creation' do
+      it 'returns 422 when required fields missing for creation' do
         csrf_patch api_path(test_custom_domain.extid), {
           from_name: 'Incomplete Config',
         }
 
-        expect(last_response.status).to eq(400)
+        expect(last_response.status).to eq(422)
         body = json_body
         expect(body['message']).to include('required')
       end
@@ -821,6 +833,8 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         api_key: 'full-secret-value-here',
         enabled: true,
       )
+      # Reload to ensure encrypted fields use post-save AAD
+      Onetime::CustomDomain::MailerConfig.load(test_custom_domain.identifier)
     end
 
     it 'serializes all expected fields' do

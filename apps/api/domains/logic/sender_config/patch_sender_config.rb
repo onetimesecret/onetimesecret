@@ -219,7 +219,7 @@ module DomainsAPI
           if @from_address_provided && !@from_address.to_s.empty? && @from_address != @existing_config.from_address
             @mailer_config.from_address        = @from_address
             @mailer_config.verified_at         = nil
-            @mailer_config.verification_status = 'pending'
+            @mailer_config.verification_status = VERIFICATION_STATUS_PENDING
           end
 
           # Only update api_key if provided (preserves existing otherwise)
@@ -228,10 +228,8 @@ module DomainsAPI
           # Update timestamp for partial update
           @mailer_config.updated = Familia.now.to_i
 
-          # Use transaction to ensure atomic update (prevents race with concurrent delete)
-          @mailer_config.transaction do |_conn|
-            @mailer_config.commit_fields
-          end
+          # commit_fields uses its own internal transaction for atomicity
+          @mailer_config.commit_fields
         end
 
         # Log enabled/disabled state change if it occurred.

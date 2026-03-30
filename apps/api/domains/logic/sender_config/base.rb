@@ -22,6 +22,8 @@ module DomainsAPI
       class Base < DomainsAPI::Logic::Base
         include Onetime::Application::AuthorizationPolicies
 
+        VERIFICATION_STATUS_PENDING = 'pending'
+
         attr_reader :custom_domain, :organization
 
         protected
@@ -70,10 +72,8 @@ module DomainsAPI
         def verify_custom_mail_sender_entitlement(organization)
           return if organization.can?('custom_mail_sender')
 
-          raise_form_error(
-            'Custom mail sender requires the custom_mail_sender entitlement. Please upgrade your plan.',
-            error_type: :forbidden,
-          )
+          raise Onetime::Forbidden,
+            'Custom mail sender requires the custom_mail_sender entitlement. Please upgrade your plan.'
         end
 
         # Full authorization check for domain sender config operations.
@@ -83,7 +83,7 @@ module DomainsAPI
         # @return [void]
         def authorize_sender_config!(domain_id)
           unless OT.conf.dig('features', 'organizations', 'custom_mail_enabled')
-            raise_form_error('Custom mail sender is not enabled on this instance', error_type: :forbidden)
+            raise Onetime::Forbidden, 'Custom mail sender is not enabled on this instance'
           end
 
           @custom_domain = load_custom_domain(domain_id)
@@ -94,6 +94,10 @@ module DomainsAPI
         end
 
         # Parse boolean from various input formats.
+        #
+        # Note: nil is treated as false. For PATCH semantics where an omitted
+        # field should preserve the existing value, callers must check field
+        # presence (e.g. @enabled_provided) before calling this method.
         #
         # @param value [Boolean, String, Integer, nil] Value to parse
         # @return [Boolean] true if value represents truthy, false otherwise

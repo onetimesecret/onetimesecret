@@ -37,8 +37,11 @@ module DomainsAPI
         # @param provider [String] Mail provider type
         # @param changes [Hash, nil] Field changes for update events
         # @param details [Hash, nil] Additional event-specific details
+        # @param timestamp [Integer] Unix timestamp; defaults to Time.now.to_i.
+        #   Pass explicitly to ensure multiple audit events in one request share
+        #   the same timestamp.
         # @return [void]
-        def log_sender_audit_event(event:, domain:, org:, actor:, provider:, changes: nil, details: nil)
+        def log_sender_audit_event(event:, domain:, org:, actor:, provider:, changes: nil, details: nil, timestamp: Time.now.to_i)
           payload = build_audit_payload(
             event: event,
             domain: domain,
@@ -47,6 +50,7 @@ module DomainsAPI
             provider: provider,
             changes: changes,
             details: details,
+            timestamp: timestamp,
           )
 
           OT.info "[DOMAIN_SENDER_AUDIT] #{event}", payload.to_json
@@ -93,7 +97,7 @@ module DomainsAPI
         # Build the complete audit payload.
         #
         # @return [Hash] Structured audit data
-        def build_audit_payload(event:, domain:, org:, actor:, provider:, changes:, details:)
+        def build_audit_payload(event:, domain:, org:, actor:, provider:, changes:, details:, timestamp: Time.now.to_i)
           payload = {
             event: event.to_s,
             domain_id: domain.identifier,
@@ -103,7 +107,7 @@ module DomainsAPI
             actor_id: actor.custid,
             actor_email: actor.email,
             provider: provider,
-            timestamp: Time.now.to_i,
+            timestamp: timestamp,
             ip_address: extract_ip_address,
           }
 
@@ -147,12 +151,7 @@ module DomainsAPI
 
           case field
           when 'enabled'
-            case value
-            when true, 'true', '1', 1
-              true
-            else
-              false
-            end
+            parse_boolean(value)
           else
             value
           end

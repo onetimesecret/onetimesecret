@@ -173,10 +173,8 @@ module DomainsAPI
           # Update timestamp for replacement
           @mailer_config.updated = Familia.now.to_i
 
-          # Use transaction to ensure atomic update (prevents race with concurrent delete)
-          @mailer_config.transaction do |_conn|
-            @mailer_config.commit_fields
-          end
+          # commit_fields uses its own internal transaction for atomicity
+          @mailer_config.commit_fields
         end
 
         # Log enabled/disabled state change if it occurred.
