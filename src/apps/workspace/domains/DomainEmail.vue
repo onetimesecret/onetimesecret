@@ -252,7 +252,7 @@ onMounted(async () => {
                 :is-deleting="isDeleting"
                 :has-unsaved-changes="hasUnsavedChanges"
                 :error="emailError?.message"
-                @update:form-state="(state) => { formState.provider = state.provider; formState.from_name = state.from_name; formState.from_address = state.from_address; formState.reply_to = state.reply_to; formState.enabled = state.enabled; }"
+                @update:form-state="(state) => Object.assign(formState, state)"
                 @save="saveConfig"
                 @discard="discardChanges"
                 @delete="deleteConfig" />

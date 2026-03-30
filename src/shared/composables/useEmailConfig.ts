@@ -181,9 +181,7 @@ export function useEmailConfig(domainExtId: string) {
             from_address: formState.value.from_address.trim(),
             enabled: formState.value.enabled,
           };
-          if (formState.value.reply_to.trim()) {
-            payload.reply_to = formState.value.reply_to.trim();
-          }
+          payload.reply_to = formState.value.reply_to.trim();
           return await domainsStore.patchEmailConfig(domainExtId, payload);
         } else {
           // PUT: create new config
@@ -193,9 +191,7 @@ export function useEmailConfig(domainExtId: string) {
             from_address: formState.value.from_address.trim(),
             enabled: formState.value.enabled,
           };
-          if (formState.value.reply_to.trim()) {
-            payload.reply_to = formState.value.reply_to.trim();
-          }
+          payload.reply_to = formState.value.reply_to.trim();
           return await domainsStore.putEmailConfig(domainExtId, payload);
         }
       });

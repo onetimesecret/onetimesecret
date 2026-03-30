@@ -1,0 +1,862 @@
+// src/tests/composables/useEmailConfig.spec.ts
+//
+// Tests for useEmailConfig composable covering:
+// 1. initialize(): returns null config on 404, populates formState from config
+// 2. saveConfig(): uses PUT when not configured, PATCH when configured
+// 3. deleteConfig(): resets to default state
+// 4. hasUnsavedChanges: detects field modifications
+// 5. discardChanges(): restores saved state
+// 6. usesFallbackSender: true when not configured, not verified, or disabled
+// 7. reply_to always included in payload (bug fix coverage)
+// 8. validateDomain: triggers DNS record verification
+
+import { useEmailConfig } from '@/shared/composables/useEmailConfig';
+import { createPinia, setActivePinia } from 'pinia';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { CustomDomainEmailConfig } from '@/schemas/shapes/domains/email-config';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mock Setup
+// ─────────────────────────────────────────────────────────────────────────────
+
+const mockGetEmailConfig = vi.fn();
+const mockPutEmailConfig = vi.fn();
+const mockPatchEmailConfig = vi.fn();
+const mockDeleteEmailConfig = vi.fn();
+const mockValidateEmailConfig = vi.fn();
+const mockNotificationsShow = vi.fn();
+const mockRouterPush = vi.fn();
+
+vi.mock('@/shared/stores/domainsStore', () => ({
+  useDomainsStore: () => ({
+    getEmailConfig: mockGetEmailConfig,
+    putEmailConfig: mockPutEmailConfig,
+    patchEmailConfig: mockPatchEmailConfig,
+    deleteEmailConfig: mockDeleteEmailConfig,
+    validateEmailConfig: mockValidateEmailConfig,
+  }),
+}));
+
+vi.mock('@/shared/stores', () => ({
+  useNotificationsStore: () => ({
+    show: mockNotificationsShow,
+  }),
+}));
+
+vi.mock('vue-router', () => ({
+  useRouter: () => ({
+    push: mockRouterPush,
+  }),
+}));
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'web.domains.email.update_success': 'Email configuration updated',
+        'web.domains.email.delete_success': 'Email configuration removed',
+        'web.domains.email.validation_failed': 'Validation failed',
+        'web.COMMON.unexpected_error': 'An unexpected error occurred',
+      };
+      return translations[key] ?? key;
+    },
+  }),
+}));
+
+vi.mock('@/shared/composables/useAsyncHandler', () => ({
+  useAsyncHandler: () => ({
+    wrap: vi.fn(async (fn: () => Promise<unknown>) => {
+      try {
+        return await fn();
+      } catch {
+        return undefined;
+      }
+    }),
+  }),
+  createError: vi.fn(),
+}));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Test Fixtures
+// ─────────────────────────────────────────────────────────────────────────────
+
+const mockEmailConfigData: CustomDomainEmailConfig = {
+  domain_id: 'domain-123',
+  provider: 'ses',
+  enabled: true,
+  from_address: 'noreply@example.com',
+  from_name: 'Acme Corp',
+  reply_to: 'support@example.com',
+  validation_status: 'verified',
+  dns_records: [
+    { type: 'TXT', name: '_dmarc.example.com', value: 'v=DMARC1; p=none', status: 'verified' },
+    { type: 'CNAME', name: 'em._domainkey.example.com', value: 'dkim.example.com', status: 'pending' },
+  ],
+  last_validated_at: new Date('2025-01-15T10:00:00Z'),
+  provider_domain_id: null,
+  created_at: new Date('2025-01-01T00:00:00Z'),
+  updated_at: new Date('2025-01-15T10:00:00Z'),
+};
+
+const mockPendingConfig: CustomDomainEmailConfig = {
+  ...mockEmailConfigData,
+  validation_status: 'pending',
+  enabled: false,
+};
+
+const mockDisabledConfig: CustomDomainEmailConfig = {
+  ...mockEmailConfigData,
+  enabled: false,
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tests
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('useEmailConfig', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
+
+    // Default: no existing config (unconfigured)
+    mockGetEmailConfig.mockResolvedValue(null);
+    mockPutEmailConfig.mockResolvedValue(mockEmailConfigData);
+    mockPatchEmailConfig.mockResolvedValue(mockEmailConfigData);
+    mockDeleteEmailConfig.mockResolvedValue({ success: true });
+    mockValidateEmailConfig.mockResolvedValue({ record: mockEmailConfigData });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // initialize
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('initialize', () => {
+    it('sets emailConfig to null when domain is unconfigured (404)', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.emailConfig.value).toBeNull();
+      expect(composable.isConfigured.value).toBe(false);
+      expect(composable.isInitialized.value).toBe(true);
+    });
+
+    it('populates formState from existing config', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.emailConfig.value).toEqual(mockEmailConfigData);
+      expect(composable.formState.value).toEqual({
+        provider: 'ses',
+        from_name: 'Acme Corp',
+        from_address: 'noreply@example.com',
+        reply_to: 'support@example.com',
+        enabled: true,
+      });
+      expect(composable.isConfigured.value).toBe(true);
+    });
+
+    it('sets default formState when unconfigured', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value).toEqual({
+        provider: 'inherit',
+        from_name: '',
+        from_address: '',
+        reply_to: '',
+        enabled: false,
+      });
+    });
+
+    it('snapshots savedFormState on load', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      // hasUnsavedChanges should be false immediately after load
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
+    it('handles null reply_to in config by converting to empty string', async () => {
+      const configWithNullReplyTo: CustomDomainEmailConfig = {
+        ...mockEmailConfigData,
+        reply_to: null,
+      };
+      mockGetEmailConfig.mockResolvedValue(configWithNullReplyTo);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value.reply_to).toBe('');
+    });
+
+    it('calls domainsStore.getEmailConfig with correct extid', async () => {
+      const composable = useEmailConfig('dm-ext-456');
+      await composable.initialize();
+
+      expect(mockGetEmailConfig).toHaveBeenCalledWith('dm-ext-456');
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // saveConfig
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('saveConfig', () => {
+    it('uses PUT when domain is not yet configured', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      // Fill in form
+      composable.formState.value = {
+        provider: 'ses',
+        from_name: 'Test Corp',
+        from_address: 'test@example.com',
+        reply_to: '',
+        enabled: true,
+      };
+
+      await composable.saveConfig();
+
+      expect(mockPutEmailConfig).toHaveBeenCalledWith('dm-ext-123', expect.objectContaining({
+        provider: 'ses',
+        from_name: 'Test Corp',
+        from_address: 'test@example.com',
+        enabled: true,
+      }));
+      expect(mockPatchEmailConfig).not.toHaveBeenCalled();
+    });
+
+    it('uses PATCH when domain is already configured', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      // Modify form
+      composable.formState.value = {
+        ...composable.formState.value,
+        from_name: 'Updated Corp',
+      };
+
+      await composable.saveConfig();
+
+      expect(mockPatchEmailConfig).toHaveBeenCalledWith('dm-ext-123', expect.objectContaining({
+        from_name: 'Updated Corp',
+      }));
+      expect(mockPutEmailConfig).not.toHaveBeenCalled();
+    });
+
+    it('trims whitespace from text fields', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        provider: 'ses',
+        from_name: '  Test Corp  ',
+        from_address: '  test@example.com  ',
+        reply_to: '  reply@example.com  ',
+        enabled: true,
+      };
+
+      await composable.saveConfig();
+
+      expect(mockPutEmailConfig).toHaveBeenCalledWith('dm-ext-123', expect.objectContaining({
+        from_name: 'Test Corp',
+        from_address: 'test@example.com',
+        reply_to: 'reply@example.com',
+      }));
+    });
+
+    it('always includes reply_to in PUT payload', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        provider: 'ses',
+        from_name: 'Test Corp',
+        from_address: 'test@example.com',
+        reply_to: '',
+        enabled: true,
+      };
+
+      await composable.saveConfig();
+
+      const putCall = mockPutEmailConfig.mock.calls[0];
+      expect(putCall[1]).toHaveProperty('reply_to');
+      expect(putCall[1].reply_to).toBe('');
+    });
+
+    it('always includes reply_to in PATCH payload', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      // Modify only the from_name
+      composable.formState.value = {
+        ...composable.formState.value,
+        from_name: 'Updated Corp',
+      };
+
+      await composable.saveConfig();
+
+      const patchCall = mockPatchEmailConfig.mock.calls[0];
+      expect(patchCall[1]).toHaveProperty('reply_to');
+    });
+
+    it('updates emailConfig and formState after successful save', async () => {
+      const updatedConfig: CustomDomainEmailConfig = {
+        ...mockEmailConfigData,
+        from_name: 'Updated Corp',
+      };
+      mockGetEmailConfig.mockResolvedValue(null);
+      mockPutEmailConfig.mockResolvedValue(updatedConfig);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        provider: 'ses',
+        from_name: 'Updated Corp',
+        from_address: 'test@example.com',
+        reply_to: '',
+        enabled: true,
+      };
+
+      await composable.saveConfig();
+
+      expect(composable.emailConfig.value).toEqual(updatedConfig);
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
+    it('shows success notification after save', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        provider: 'ses',
+        from_name: 'Test',
+        from_address: 'test@example.com',
+        reply_to: '',
+        enabled: true,
+      };
+
+      await composable.saveConfig();
+
+      expect(mockNotificationsShow).toHaveBeenCalledWith(
+        'Email configuration updated',
+        'success',
+        'top',
+      );
+    });
+
+    it('sets isSaving during operation', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+      let resolvePut: (value: unknown) => void;
+      mockPutEmailConfig.mockImplementation(() => new Promise((resolve) => {
+        resolvePut = resolve;
+      }));
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        provider: 'ses',
+        from_name: 'Test',
+        from_address: 'test@example.com',
+        reply_to: '',
+        enabled: true,
+      };
+
+      const savePromise = composable.saveConfig();
+      expect(composable.isSaving.value).toBe(true);
+
+      resolvePut!(mockEmailConfigData);
+      await savePromise;
+
+      expect(composable.isSaving.value).toBe(false);
+    });
+
+    it('resets isSaving even when save fails', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+      // wrap returns undefined on error, which means result is falsy
+      // so no notification is shown, but isSaving should still reset
+      mockPutEmailConfig.mockRejectedValue(new Error('Network error'));
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        provider: 'ses',
+        from_name: 'Test',
+        from_address: 'test@example.com',
+        reply_to: '',
+        enabled: true,
+      };
+
+      await composable.saveConfig();
+
+      expect(composable.isSaving.value).toBe(false);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // deleteConfig
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('deleteConfig', () => {
+    it('resets emailConfig to null after deletion', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.isConfigured.value).toBe(true);
+
+      await composable.deleteConfig();
+
+      expect(composable.emailConfig.value).toBeNull();
+      expect(composable.isConfigured.value).toBe(false);
+    });
+
+    it('resets formState to default after deletion', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.deleteConfig();
+
+      expect(composable.formState.value).toEqual({
+        provider: 'inherit',
+        from_name: '',
+        from_address: '',
+        reply_to: '',
+        enabled: false,
+      });
+    });
+
+    it('resets savedFormState so hasUnsavedChanges is false', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.deleteConfig();
+
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
+    it('calls domainsStore.deleteEmailConfig with correct extid', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-456');
+      await composable.initialize();
+
+      await composable.deleteConfig();
+
+      expect(mockDeleteEmailConfig).toHaveBeenCalledWith('dm-ext-456');
+    });
+
+    it('shows success notification after deletion', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.deleteConfig();
+
+      expect(mockNotificationsShow).toHaveBeenCalledWith(
+        'Email configuration removed',
+        'success',
+        'top',
+      );
+    });
+
+    it('sets isDeleting during operation', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      let resolveDelete: (value: unknown) => void;
+      mockDeleteEmailConfig.mockImplementation(() => new Promise((resolve) => {
+        resolveDelete = resolve;
+      }));
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      const deletePromise = composable.deleteConfig();
+      expect(composable.isDeleting.value).toBe(true);
+
+      resolveDelete!({ success: true });
+      await deletePromise;
+
+      expect(composable.isDeleting.value).toBe(false);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // hasUnsavedChanges
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('hasUnsavedChanges', () => {
+    it('returns false immediately after initialization', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
+    it('returns true when provider is modified', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        provider: 'sendgrid',
+      };
+
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+    });
+
+    it('returns true when from_name is modified', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        from_name: 'Changed Name',
+      };
+
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+    });
+
+    it('returns true when from_address is modified', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        from_address: 'changed@example.com',
+      };
+
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+    });
+
+    it('returns true when reply_to is modified', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        reply_to: 'newreply@example.com',
+      };
+
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+    });
+
+    it('returns true when enabled is toggled', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        enabled: false,
+      };
+
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+    });
+
+    it('returns false when changes are reverted to original values', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      // Modify
+      composable.formState.value = {
+        ...composable.formState.value,
+        from_name: 'Changed',
+      };
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+
+      // Revert
+      composable.formState.value = {
+        ...composable.formState.value,
+        from_name: 'Acme Corp',
+      };
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
+    it('returns false before initialization (no savedFormState)', () => {
+      const composable = useEmailConfig('dm-ext-123');
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // discardChanges
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('discardChanges', () => {
+    it('restores formState to saved values', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      const originalFormState = { ...composable.formState.value };
+
+      // Modify multiple fields
+      composable.formState.value = {
+        provider: 'sendgrid',
+        from_name: 'Changed Corp',
+        from_address: 'changed@example.com',
+        reply_to: 'changed-reply@example.com',
+        enabled: false,
+      };
+
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+
+      composable.discardChanges();
+
+      expect(composable.formState.value).toEqual(originalFormState);
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
+    it('is a no-op when savedFormState is null (before init)', () => {
+      const composable = useEmailConfig('dm-ext-123');
+
+      // Should not throw
+      composable.discardChanges();
+
+      // formState should remain at defaults
+      expect(composable.formState.value).toEqual({
+        provider: 'inherit',
+        from_name: '',
+        from_address: '',
+        reply_to: '',
+        enabled: false,
+      });
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // usesFallbackSender
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('usesFallbackSender', () => {
+    it('returns true when domain is not configured', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.usesFallbackSender.value).toBe(true);
+    });
+
+    it('returns true when domain is configured but not verified', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockPendingConfig);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.usesFallbackSender.value).toBe(true);
+    });
+
+    it('returns true when domain is configured and verified but disabled', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockDisabledConfig);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.usesFallbackSender.value).toBe(true);
+    });
+
+    it('returns false when configured, verified, and enabled', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.usesFallbackSender.value).toBe(false);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Computed properties
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('computed properties', () => {
+    it('isVerified returns true when validation_status is verified', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.isVerified.value).toBe(true);
+    });
+
+    it('isVerified returns false when validation_status is pending', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockPendingConfig);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.isVerified.value).toBe(false);
+    });
+
+    it('dnsRecords returns records from config', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.dnsRecords.value).toHaveLength(2);
+      expect(composable.dnsRecords.value[0].type).toBe('TXT');
+    });
+
+    it('dnsRecords returns empty array when unconfigured', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.dnsRecords.value).toEqual([]);
+    });
+
+    it('validationStatus defaults to pending when unconfigured', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.validationStatus.value).toBe('pending');
+    });
+
+    it('lastValidatedAt returns null when unconfigured', async () => {
+      mockGetEmailConfig.mockResolvedValue(null);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.lastValidatedAt.value).toBeNull();
+    });
+
+    it('lastValidatedAt returns date from config', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.lastValidatedAt.value).toEqual(new Date('2025-01-15T10:00:00Z'));
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // validateDomain
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('validateDomain', () => {
+    it('calls domainsStore.validateEmailConfig with correct extid', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      const composable = useEmailConfig('dm-ext-789');
+      await composable.initialize();
+
+      await composable.validateDomain();
+
+      expect(mockValidateEmailConfig).toHaveBeenCalledWith('dm-ext-789');
+    });
+
+    it('updates emailConfig and formState from validation response', async () => {
+      const updatedConfig: CustomDomainEmailConfig = {
+        ...mockEmailConfigData,
+        validation_status: 'verified',
+      };
+      mockValidateEmailConfig.mockResolvedValue({ record: updatedConfig });
+      mockGetEmailConfig.mockResolvedValue(mockPendingConfig);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.validateDomain();
+
+      expect(composable.emailConfig.value?.validation_status).toBe('verified');
+    });
+
+    it('shows error notification when validation fails', async () => {
+      mockValidateEmailConfig.mockRejectedValue(new Error('DNS check failed'));
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.validateDomain();
+
+      expect(mockNotificationsShow).toHaveBeenCalledWith(
+        'Validation failed',
+        'error',
+        'top',
+      );
+    });
+
+    it('sets isValidating during operation', async () => {
+      let resolveValidate: (value: unknown) => void;
+      mockValidateEmailConfig.mockImplementation(() => new Promise((resolve) => {
+        resolveValidate = resolve;
+      }));
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      const validatePromise = composable.validateDomain();
+      expect(composable.isValidating.value).toBe(true);
+
+      resolveValidate!({ record: mockEmailConfigData });
+      await validatePromise;
+
+      expect(composable.isValidating.value).toBe(false);
+    });
+
+    it('resets isValidating even when validation fails', async () => {
+      mockValidateEmailConfig.mockRejectedValue(new Error('DNS check failed'));
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.validateDomain();
+
+      expect(composable.isValidating.value).toBe(false);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Initial state
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('initial state', () => {
+    it('starts with isLoading false', () => {
+      const composable = useEmailConfig('dm-ext-123');
+      expect(composable.isLoading.value).toBe(false);
+    });
+
+    it('starts with isInitialized false', () => {
+      const composable = useEmailConfig('dm-ext-123');
+      expect(composable.isInitialized.value).toBe(false);
+    });
+
+    it('starts with isSaving false', () => {
+      const composable = useEmailConfig('dm-ext-123');
+      expect(composable.isSaving.value).toBe(false);
+    });
+
+    it('starts with error null', () => {
+      const composable = useEmailConfig('dm-ext-123');
+      expect(composable.error.value).toBeNull();
+    });
+
+    it('starts with emailConfig null', () => {
+      const composable = useEmailConfig('dm-ext-123');
+      expect(composable.emailConfig.value).toBeNull();
+    });
+  });
+});
