@@ -313,22 +313,37 @@ module Onetime
 
         # Finds domain authentication ID by domain name.
         #
+        # Paginates through SendGrid's domain authentication list using
+        # limit/offset, since the default response is capped at ~50 domains.
+        #
         # @param domain [String] Domain to search for
         # @param api_key [String] SendGrid API key
         # @return [Integer, nil] Domain ID or nil if not found
         #
         def find_domain_id(domain, api_key:)
-          # WARNING: No pagination — SendGrid defaults to ~50 results.
-          # Accounts with >50 authenticated domains may not find matches
-          # beyond the first page. Add limit/offset params if needed.
-          response = get_request('/whitelabel/domains', api_key: api_key)
-          return nil unless response[:success]
+          limit  = 50
+          offset = 0
 
-          domains = response[:data]
-          return nil unless domains.is_a?(Array)
+          loop do
+            response = get_request(
+              "/whitelabel/domains?limit=#{limit}&offset=#{offset}",
+              api_key: api_key,
+            )
+            return nil unless response[:success]
 
-          match = domains.find { |d| d['domain'] == domain }
-          match&.dig('id')
+            domains = response[:data]
+            return nil unless domains.is_a?(Array)
+
+            match = domains.find { |d| d['domain'] == domain }
+            return match['id'] if match
+
+            # Stop when fewer results than the limit — we've seen all pages
+            break if domains.size < limit
+
+            offset += limit
+          end
+
+          nil
         end
 
         # Makes a GET request to SendGrid API.

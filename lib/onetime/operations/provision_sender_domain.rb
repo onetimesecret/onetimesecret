@@ -338,9 +338,15 @@ module Onetime
 
       # Persist provider data to the mailer config.
       #
+      # Raises on failure so the caller's rescue block can build a proper
+      # failure result.  Without this, a Redis failure would leave the
+      # provider-side domain registered while the local config has no
+      # record of it.
+      #
       # @param provider_data [Hash] Raw provider-specific data to store
       # @param dns_records [Array<Hash>] Normalized DNS records for UI display
       # @param identity_id [String, nil] Provider's identity identifier
+      # @raise [StandardError] if persistence fails
       def persist_provider_data(provider_data, dns_records, identity_id)
         @mailer_config.provider_dns_data = provider_data
         @mailer_config.dns_records       = dns_records
@@ -351,11 +357,6 @@ module Onetime
           domain_id: @mailer_config.domain_id,
           identity_id: identity_id,
           record_count: dns_records&.size
-      rescue StandardError => ex
-        logger.error 'Failed to persist provider data',
-          domain_id: @mailer_config.domain_id,
-          error: ex.message
-        # Don't fail the operation - provisioning succeeded even if persistence failed
       end
 
       # Create a failure result with the given error message.
