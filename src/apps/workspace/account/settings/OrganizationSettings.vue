@@ -268,18 +268,14 @@ const loadOrganization = async () => {
   orgNotFound.value = false;
   try {
     const org = await organizationStore.fetchOrganization(orgId.value);
-    if (org) {
-      organization.value = org;
-      formData.value = {
-        display_name: org.display_name,
-        description: org.description || '',
-        contact_email: org.contact_email || '',
-      };
-    } else {
-      orgNotFound.value = true;
-      error.value = t('web.organizations.not_found');
-    }
+    organization.value = org;
+    formData.value = {
+      display_name: org.display_name,
+      description: org.description || '',
+      contact_email: org.contact_email || '',
+    };
   } catch (err) {
+    organization.value = null;
     const classified = classifyError(err);
     if (classified.code === 404) {
       orgNotFound.value = true;
@@ -549,6 +545,10 @@ watch(orgId, async (newOrgId, oldOrgId) => {
     }
 
     await loadOrganization();
+    // Guard against stale responses from rapid org navigation — if the
+    // user navigated again while we were loading, orgId has already
+    // changed and a newer watcher invocation will handle it.
+    if (orgId.value !== newOrgId) return;
     // Only load tab-specific data if the org loaded successfully
     if (!orgNotFound.value && !error.value) {
       if (activeTab.value === 'members') {
