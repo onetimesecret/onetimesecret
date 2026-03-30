@@ -153,6 +153,9 @@ module V2::Logic
       def send_recipient_notification
         return if recipient_email.nil? || recipient_email.empty?
 
+        # Resolve share_domain to domain_id for sender config (nil-safe)
+        domain_id = resolve_share_domain_id(secret.share_domain)
+
         Onetime::Jobs::Publisher.enqueue_email(
           :incoming_secret,
           {
@@ -162,12 +165,22 @@ module V2::Logic
             memo: memo,
             locale: locale || OT.default_locale,
           },
+          domain_id: domain_id,
         )
 
         OT.info "[IncomingSecret] Notification enqueued for #{OT::Utils.obscure_email(recipient_email)} (metadata: #{metadata.key})"
       rescue StandardError => ex
         OT.le "[IncomingSecret] Failed to enqueue notification: #{ex.message}"
         # Don't raise - email failure shouldn't prevent secret creation
+      end
+
+      def resolve_share_domain_id(fqdn)
+        return nil if fqdn.nil? || fqdn.to_s.empty?
+
+        Onetime::CustomDomain.display_domains.get(fqdn)
+      rescue StandardError => ex
+        OT.lw "[IncomingSecret] Failed to resolve domain_id for #{fqdn}: #{ex.message}"
+        nil
       end
     end
   end

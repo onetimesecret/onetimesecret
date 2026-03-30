@@ -123,7 +123,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
         )
       end
 
-      it 'calls Mail.deliver with template symbol, data hash, and locale' do
+      it 'calls Mail.deliver with template symbol, data hash, locale, and nil sender_config' do
         worker.work_with_params(message, delivery_info, metadata)
 
         expect(Onetime::Mail).to have_received(:deliver).with(
@@ -134,7 +134,8 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
             recipient: 'user@example.com',
             sender_email: 'sender@example.com'
           },
-          locale: 'en'
+          locale: 'en',
+          sender_config: nil
         )
       end
 
@@ -160,7 +161,8 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
             recipient: 'user@example.com',
             sender_email: 'sender@example.com'
           },
-          locale: 'fr'
+          locale: 'fr',
+          sender_config: nil
         )
       end
 
@@ -190,7 +192,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
         )
       end
 
-      it 'calls Mail.deliver_raw with email hash when raw: true' do
+      it 'calls Mail.deliver_raw with email hash and nil sender_config when raw: true' do
         worker.work_with_params(message, delivery_info, metadata)
 
         expect(Onetime::Mail).to have_received(:deliver_raw).with(
@@ -199,7 +201,8 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
             from: 'noreply@example.com',
             subject: 'Test Email',
             body: 'Email body content'
-          }
+          },
+          sender_config: nil
         )
       end
 
@@ -317,6 +320,231 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
 
         expect(worker.rejected?).to be true
         expect(Onetime::Mail).not_to have_received(:deliver_raw)
+      end
+    end
+
+    # ========================================================================
+    # Sender Config (domain_id threading) Tests
+    # ========================================================================
+    # These tests verify that domain_id is extracted from the message payload,
+    # MailerConfig is loaded, and sender_config is passed through to Mail.deliver
+    # and Mail.deliver_raw.
+    # ========================================================================
+
+    context 'with domain_id in templated email payload' do
+      let(:mock_sender_config) do
+        instance_double(
+          Onetime::CustomDomain::MailerConfig,
+          domain_id: 'dom_abc123',
+          from_address: 'noreply@custom.example.com',
+          from_name: 'Custom Sender',
+          reply_to: 'support@custom.example.com',
+          provider: 'ses',
+          enabled?: true,
+          verified?: true,
+          api_key: 'test-api-key'
+        )
+      end
+
+      let(:message) do
+        JSON.generate(
+          template: 'secret_link',
+          domain_id: 'dom_abc123',
+          data: {
+            secret_key: 'abc123',
+            share_domain: 'custom.example.com',
+            recipient: 'user@example.com',
+            sender_email: 'sender@example.com'
+          }
+        )
+      end
+
+      before do
+        allow(Onetime::CustomDomain::MailerConfig)
+          .to receive(:find_by_domain_id)
+          .with('dom_abc123')
+          .and_return(mock_sender_config)
+      end
+
+      it 'loads MailerConfig for the domain_id and passes it to Mail.deliver' do
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(Onetime::CustomDomain::MailerConfig).to have_received(:find_by_domain_id).with('dom_abc123')
+        expect(Onetime::Mail).to have_received(:deliver).with(
+          :secret_link,
+          {
+            secret_key: 'abc123',
+            share_domain: 'custom.example.com',
+            recipient: 'user@example.com',
+            sender_email: 'sender@example.com'
+          },
+          locale: 'en',
+          sender_config: mock_sender_config
+        )
+      end
+
+      it 'acknowledges the message after successful delivery' do
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(worker.acked?).to be true
+      end
+    end
+
+    context 'with domain_id in raw email payload' do
+      let(:mock_sender_config) do
+        instance_double(
+          Onetime::CustomDomain::MailerConfig,
+          domain_id: 'dom_raw456',
+          from_address: 'noreply@rawdomain.example.com',
+          from_name: 'Raw Domain Sender',
+          reply_to: nil,
+          provider: 'smtp',
+          enabled?: true,
+          verified?: true,
+          api_key: 'raw-api-key'
+        )
+      end
+
+      let(:message) do
+        JSON.generate(
+          raw: true,
+          domain_id: 'dom_raw456',
+          email: {
+            to: 'user@example.com',
+            from: 'noreply@example.com',
+            subject: 'Raw Test',
+            body: 'Raw body'
+          }
+        )
+      end
+
+      before do
+        allow(Onetime::CustomDomain::MailerConfig)
+          .to receive(:find_by_domain_id)
+          .with('dom_raw456')
+          .and_return(mock_sender_config)
+      end
+
+      it 'passes sender_config to Mail.deliver_raw' do
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(Onetime::Mail).to have_received(:deliver_raw).with(
+          {
+            to: 'user@example.com',
+            from: 'noreply@example.com',
+            subject: 'Raw Test',
+            body: 'Raw body'
+          },
+          sender_config: mock_sender_config
+        )
+      end
+    end
+
+    context 'with missing domain_id (backward compatibility)' do
+      let(:message) do
+        JSON.generate(
+          template: 'secret_link',
+          data: {
+            secret_key: 'abc123',
+            recipient: 'user@example.com',
+            sender_email: 'sender@example.com'
+          }
+        )
+      end
+
+      it 'does not attempt to load MailerConfig' do
+        allow(Onetime::CustomDomain::MailerConfig).to receive(:find_by_domain_id)
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(Onetime::CustomDomain::MailerConfig).not_to have_received(:find_by_domain_id)
+      end
+
+      it 'passes nil sender_config to Mail.deliver' do
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(Onetime::Mail).to have_received(:deliver).with(
+          :secret_link,
+          hash_including(secret_key: 'abc123'),
+          locale: 'en',
+          sender_config: nil
+        )
+      end
+    end
+
+    context 'with domain_id that has no MailerConfig' do
+      let(:message) do
+        JSON.generate(
+          template: 'secret_link',
+          domain_id: 'dom_nonexistent',
+          data: {
+            secret_key: 'abc123',
+            recipient: 'user@example.com',
+            sender_email: 'sender@example.com'
+          }
+        )
+      end
+
+      before do
+        allow(Onetime::CustomDomain::MailerConfig)
+          .to receive(:find_by_domain_id)
+          .with('dom_nonexistent')
+          .and_return(nil)
+      end
+
+      it 'falls back to nil sender_config when no config exists' do
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(Onetime::Mail).to have_received(:deliver).with(
+          :secret_link,
+          hash_including(secret_key: 'abc123'),
+          locale: 'en',
+          sender_config: nil
+        )
+      end
+
+      it 'still acknowledges the message' do
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(worker.acked?).to be true
+      end
+    end
+
+    context 'when MailerConfig lookup raises an error' do
+      let(:message) do
+        JSON.generate(
+          template: 'secret_link',
+          domain_id: 'dom_error',
+          data: {
+            secret_key: 'abc123',
+            recipient: 'user@example.com',
+            sender_email: 'sender@example.com'
+          }
+        )
+      end
+
+      before do
+        allow(Onetime::CustomDomain::MailerConfig)
+          .to receive(:find_by_domain_id)
+          .with('dom_error')
+          .and_raise(StandardError, 'Redis connection refused')
+      end
+
+      it 'gracefully falls back to nil sender_config' do
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(Onetime::Mail).to have_received(:deliver).with(
+          :secret_link,
+          hash_including(secret_key: 'abc123'),
+          locale: 'en',
+          sender_config: nil
+        )
+      end
+
+      it 'still delivers the email and acknowledges' do
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(worker.acked?).to be true
       end
     end
   end

@@ -47,9 +47,10 @@ module Onetime
         # @param template [Symbol] Email template name
         # @param data [Hash] Template data
         # @param fallback [Symbol] Fallback strategy if RabbitMQ unavailable
+        # @param domain_id [String, nil] Domain identifier for per-domain sender config
         # @return [Boolean] true if published to queue, false if fallback used
-        def enqueue_email(template, data, fallback: DEFAULT_FALLBACK)
-          new.enqueue_email(template, data, fallback: fallback)
+        def enqueue_email(template, data, fallback: DEFAULT_FALLBACK, domain_id: nil)
+          new.enqueue_email(template, data, fallback: fallback, domain_id: domain_id)
         end
 
         # Schedule an email for delayed delivery
@@ -57,18 +58,20 @@ module Onetime
         # @param data [Hash] Template data
         # @param delay_seconds [Integer] Delay in seconds
         # @param fallback [Symbol] Fallback strategy if RabbitMQ unavailable
+        # @param domain_id [String, nil] Domain identifier for per-domain sender config
         # @return [Boolean] true if published to queue, false if fallback used
-        def schedule_email(template, data, delay_seconds:, fallback: DEFAULT_FALLBACK)
-          new.schedule_email(template, data, delay_seconds: delay_seconds, fallback: fallback)
+        def schedule_email(template, data, delay_seconds:, fallback: DEFAULT_FALLBACK, domain_id: nil)
+          new.schedule_email(template, data, delay_seconds: delay_seconds, fallback: fallback, domain_id: domain_id)
         end
 
         # Enqueue a raw email (non-templated) for immediate delivery
         # Used for Rodauth integration where emails are pre-formatted
         # @param email [Hash] Raw email with :to, :from, :subject, :body keys
         # @param fallback [Symbol] Fallback strategy if RabbitMQ unavailable
+        # @param domain_id [String, nil] Domain identifier for per-domain sender config
         # @return [Boolean] true if published to queue, false if fallback used
-        def enqueue_email_raw(email, fallback: DEFAULT_FALLBACK)
-          new.enqueue_email_raw(email, fallback: fallback)
+        def enqueue_email_raw(email, fallback: DEFAULT_FALLBACK, domain_id: nil)
+          new.enqueue_email_raw(email, fallback: fallback, domain_id: domain_id)
         end
 
         # Enqueue a Stripe webhook event for async processing
@@ -89,13 +92,15 @@ module Onetime
         @pending_template  = nil
         @pending_data      = nil
         @pending_raw_email = nil
+        @pending_domain_id = nil
       end
 
       # Enqueue email for immediate delivery
-      def enqueue_email(template, data, fallback: DEFAULT_FALLBACK)
+      def enqueue_email(template, data, fallback: DEFAULT_FALLBACK, domain_id: nil)
         validate_fallback!(fallback)
-        @pending_template = template
-        @pending_data     = data
+        @pending_template  = template
+        @pending_data      = data
+        @pending_domain_id = domain_id
 
         # Gracefully fallback if jobs are disabled (no pool initialized)
         unless jobs_enabled?
@@ -104,17 +109,18 @@ module Onetime
         end
 
         with_fallback(fallback, :templated) do
-          message_id = publish('email.message.send', { template: template, data: data })
+          message_id = publish('email.message.send', { template: template, data: data, domain_id: domain_id })
           logger.info 'Enqueued email', template: template, message_id: message_id, queue: 'email.message.send'
           true
         end
       end
 
       # Schedule email for delayed delivery
-      def schedule_email(template, data, delay_seconds:, fallback: DEFAULT_FALLBACK)
+      def schedule_email(template, data, delay_seconds:, fallback: DEFAULT_FALLBACK, domain_id: nil)
         validate_fallback!(fallback)
-        @pending_template = template
-        @pending_data     = data
+        @pending_template  = template
+        @pending_data      = data
+        @pending_domain_id = domain_id
 
         # Gracefully fallback if jobs are disabled (no pool initialized)
         unless jobs_enabled?
@@ -125,7 +131,7 @@ module Onetime
         with_fallback(fallback, :templated) do
           message_id = publish(
             'email.message.schedule',
-            { template: template, data: data },
+            { template: template, data: data, domain_id: domain_id },
             expiration: (delay_seconds * 1000).to_s, # Convert to milliseconds
           )
           logger.info 'Scheduled email', template: template, message_id: message_id, delay_seconds: delay_seconds
@@ -135,9 +141,10 @@ module Onetime
 
       # Enqueue raw email (non-templated) for immediate delivery
       # Used for Rodauth integration where emails are pre-formatted
-      def enqueue_email_raw(email, fallback: DEFAULT_FALLBACK)
+      def enqueue_email_raw(email, fallback: DEFAULT_FALLBACK, domain_id: nil)
         validate_fallback!(fallback)
         @pending_raw_email = email
+        @pending_domain_id = domain_id
 
         # Gracefully fallback if jobs are disabled (no pool initialized)
         unless jobs_enabled?
@@ -146,7 +153,7 @@ module Onetime
         end
 
         with_fallback(fallback, :raw) do
-          message_id = publish('email.message.send', { raw: true, email: email })
+          message_id = publish('email.message.send', { raw: true, email: email, domain_id: domain_id })
           logger.info 'Enqueued raw email', to: email[:to], message_id: message_id
           true
         end
@@ -287,12 +294,13 @@ module Onetime
         template  = @pending_template
         data      = @pending_data
         raw_email = @pending_raw_email
+        domain_id = @pending_domain_id
 
         clear_pending_state
 
         # rubocop:disable ThreadSafety/NewThread
         Thread.new do
-          deliver_email(email_type, template: template, data: data, raw_email: raw_email)
+          deliver_email(email_type, template: template, data: data, raw_email: raw_email, domain_id: domain_id)
         rescue StandardError => ex
           # Log but don't crash - this is fire-and-forget
           logger.error 'Async thread delivery failed', error: ex.message, backtrace: ex.backtrace.first(5)
@@ -308,10 +316,11 @@ module Onetime
         template  = @pending_template
         data      = @pending_data
         raw_email = @pending_raw_email
+        domain_id = @pending_domain_id
 
         clear_pending_state
 
-        deliver_email(email_type, template: template, data: data, raw_email: raw_email)
+        deliver_email(email_type, template: template, data: data, raw_email: raw_email, domain_id: domain_id)
         logger.info 'Sent email synchronously', email_type: email_type
       end
 
@@ -320,19 +329,37 @@ module Onetime
       # @param template [Symbol, nil] Template name for templated emails
       # @param data [Hash, nil] Template data for templated emails
       # @param raw_email [Hash, nil] Raw email hash for raw emails
-      def deliver_email(email_type, template:, data:, raw_email:)
+      # @param domain_id [String, nil] Domain identifier for per-domain sender config
+      def deliver_email(email_type, template:, data:, raw_email:, domain_id: nil)
         require_relative '../mail'
+
+        sender_config = load_sender_config(domain_id) if domain_id
 
         case email_type
         when :templated
           return unless template && data
 
-          Onetime::Mail.deliver(template, data)
+          Onetime::Mail.deliver(template, data, sender_config: sender_config)
         when :raw
           return unless raw_email
 
-          Onetime::Mail.deliver_raw(raw_email)
+          Onetime::Mail.deliver_raw(raw_email, sender_config: sender_config)
         end
+      end
+
+      # Load sender config for a custom domain (fallback path only).
+      # Returns nil on missing config or errors (graceful fallback to global mailer).
+      def load_sender_config(domain_id)
+        require_relative '../models/custom_domain/mailer_config'
+        config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(domain_id)
+        unless config
+          logger.info 'No sender config found for domain_id, using global mailer', domain_id: domain_id
+          return nil
+        end
+        config
+      rescue StandardError => ex
+        logger.error 'Failed to load sender config', domain_id: domain_id, error: ex.message
+        nil
       end
 
       # Clear pending state
@@ -340,6 +367,7 @@ module Onetime
         @pending_template  = nil
         @pending_data      = nil
         @pending_raw_email = nil
+        @pending_domain_id = nil
       end
     end
   end

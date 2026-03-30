@@ -108,10 +108,13 @@ module Onetime
         # Deliver email via Onetime::Mail
         # Handles both templated and raw email formats
         def deliver_email(data)
+          domain_id     = data[:domain_id] || data['domain_id']
+          sender_config = load_sender_config(domain_id) if domain_id
+
           if data[:raw]
-            deliver_raw_email(data)
+            deliver_raw_email(data, sender_config: sender_config)
           else
-            deliver_templated_email(data)
+            deliver_templated_email(data, sender_config: sender_config)
           end
         rescue Onetime::Mail::DeliveryError => ex
           # Log and re-raise; with_retry's retriable predicate handles
@@ -125,7 +128,7 @@ module Onetime
         end
 
         # Deliver templated email
-        def deliver_templated_email(data)
+        def deliver_templated_email(data, sender_config: nil)
           template   = data[:template]&.to_sym
           email_data = data[:data] || {}
 
@@ -136,18 +139,33 @@ module Onetime
           # Extract locale from payload, fall back to configured default locale
           locale = email_data.delete(:locale) || email_data.delete('locale') || OT.default_locale
 
-          Onetime::Mail.deliver(template, email_data, locale: locale)
+          Onetime::Mail.deliver(template, email_data, locale: locale, sender_config: sender_config)
         end
 
         # Deliver raw email (non-templated)
-        def deliver_raw_email(data)
+        def deliver_raw_email(data, sender_config: nil)
           email = data[:email]
 
           unless email && email[:to]
             raise ArgumentError, 'Missing email data in raw message payload'
           end
 
-          Onetime::Mail.deliver_raw(email)
+          Onetime::Mail.deliver_raw(email, sender_config: sender_config)
+        end
+
+        # Load sender config for a custom domain.
+        # Returns nil on missing config or errors (graceful fallback to global mailer).
+        def load_sender_config(domain_id)
+          require_relative '../../models/custom_domain/mailer_config'
+          config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(domain_id)
+          unless config
+            log_info "No sender config found for domain_id=#{domain_id}, using global mailer"
+            return nil
+          end
+          config
+        rescue StandardError => ex
+          log_error "Failed to load sender config for domain_id=#{domain_id}: #{ex.message}"
+          nil
         end
 
         # Update the customer's pending_email_delivery_status field.

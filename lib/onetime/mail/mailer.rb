@@ -56,37 +56,42 @@ module Onetime
         # @param data [Hash] Template data
         # @param locale [String] Locale code (default: 'en')
         # @return [Object] Delivery response
-        def deliver(template_name, data = {}, locale: 'en')
+        def deliver(template_name, data = {}, locale: 'en', sender_config: nil)
           template_class = template_class_for(template_name)
           template       = template_class.new(data, locale: locale)
-          deliver_template(template)
+          deliver_template(template, sender_config: sender_config)
         end
 
         # Deliver an email using a template instance
         # @param template [Templates::Base] Template instance
         # @return [Object] Delivery response
-        def deliver_template(template)
+        def deliver_template(template, sender_config: nil)
+          backend    = resolve_backend(sender_config)
+          use_sender = sender_config&.enabled? && sender_config.verified?
+
           email = template.to_email(
-            from: from_address,
-            reply_to: reply_to_address(template),
+            from: use_sender ? sender_config.from_address : from_address,
+            reply_to: use_sender && sender_config.reply_to ? sender_config.reply_to : reply_to_address(template),
           )
-          delivery_backend.deliver(email)
+          backend.deliver(email)
         end
 
         # Deliver a raw email hash (for Rodauth integration)
         # @param email [Hash] Email with :to, :from, :subject, :body keys
         # @return [Object] Delivery response
-        def deliver_raw(email)
-          # Normalize the email format
+        def deliver_raw(email, sender_config: nil)
+          backend    = resolve_backend(sender_config)
+          use_sender = sender_config&.enabled? && sender_config.verified?
+
           normalized = {
             to: extract_email_address(email[:to]),
-            from: extract_email_address(email[:from]) || from_address,
-            reply_to: email[:reply_to]&.to_s,
+            from: use_sender ? sender_config.from_address : (extract_email_address(email[:from]) || from_address),
+            reply_to: use_sender && sender_config.reply_to ? sender_config.reply_to : email[:reply_to]&.to_s,
             subject: email[:subject]&.to_s,
             text_body: email[:body]&.to_s,
             html_body: email[:html_body]&.to_s,
           }
-          delivery_backend.deliver(normalized)
+          backend.deliver(normalized)
         end
 
         # Get the configured delivery backend
@@ -98,6 +103,7 @@ module Onetime
         # Reset the delivery backend (useful for testing)
         def reset!
           @delivery_backend = nil
+          @domain_backends  = nil
         end
 
         # Get the configured from address
@@ -170,6 +176,68 @@ module Onetime
           else
             log_error "[mail] Unknown provider '#{provider}', falling back to logger"
             Delivery::Logger.new(config)
+          end
+        end
+
+        def resolve_backend(sender_config)
+          return delivery_backend unless sender_config&.enabled? && sender_config.verified?
+
+          @domain_backends                          ||= {}
+          # Per-domain backends are cached for the process lifetime (consistent with the global
+          # @delivery_backend). Config changes (key rotation, provider switch) take effect on
+          # process restart. A future iteration may add TTL-based expiry.
+          @domain_backends[sender_config.domain_id] ||= create_backend_for(sender_config)
+        end
+
+        def create_backend_for(sender_config)
+          provider = sender_config.provider
+
+          # Only providers that work with api_key-only config are supported
+          # for per-domain backends. SMTP and SES require additional fields
+          # (host, port, region, etc.) not yet available in MailerConfig.
+          unless %w[sendgrid lettermint logger].include?(provider)
+            log_error "[mail] Per-domain backend not supported for provider '#{provider}', using global backend"
+            return delivery_backend
+          end
+
+          config = build_sender_config(sender_config)
+
+          log_info "[mail] Using #{provider} delivery backend for domain #{sender_config.domain_id}"
+
+          case provider
+          when 'sendgrid'
+            Delivery::SendGrid.new(config)
+          when 'lettermint'
+            Delivery::Lettermint.new(config)
+          when 'logger'
+            Delivery::Logger.new(config)
+          else
+            log_error "[mail] Unknown provider '#{provider}' for domain #{sender_config.domain_id}, falling back to logger"
+            Delivery::Logger.new(config)
+          end
+        end
+
+        def build_sender_config(sender_config)
+          case sender_config.provider
+          when 'smtp'
+            {
+              host: sender_config.from_address&.split('@')&.last,
+              password: sender_config.api_key,
+            }
+          when 'ses'
+            {
+              access_key_id: sender_config.api_key,
+            }
+          when 'sendgrid'
+            {
+              api_key: sender_config.api_key,
+            }
+          when 'lettermint'
+            {
+              api_token: sender_config.api_key,
+            }
+          else
+            {}
           end
         end
 
