@@ -101,7 +101,11 @@ RSpec.describe Core::Views::ConfigSerializer do
       webauthn_enabled?: false,
       sso_enabled?: false,
       sso_only_enabled?: false,
-      sso_providers: []
+      sso_providers: [],
+      # Single-auth-method overrides (added for mode=full)
+      password_only_enabled?: false,
+      email_auth_only_enabled?: false,
+      webauthn_only_enabled?: false
     )
   end
 
