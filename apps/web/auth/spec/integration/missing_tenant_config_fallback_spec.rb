@@ -8,15 +8,15 @@
 #
 # Issue: #2786 - Per-domain SSO configuration
 #
-# Tests the fallback policy when a custom domain has no DomainSsoConfig
+# Tests the fallback policy when a custom domain has no CustomDomain::SsoConfig
 # (or has a disabled one). The behavior is controlled by the config setting:
 #   site.sso.allow_platform_fallback_for_tenants
 #
 # Gap covered:
-#   - Custom domain, no DomainSsoConfig, fallback allowed -> proceeds
-#   - Custom domain, no DomainSsoConfig, fallback denied -> 403
-#   - Custom domain, disabled DomainSsoConfig, fallback allowed -> proceeds
-#   - Custom domain, disabled DomainSsoConfig, fallback denied -> 403
+#   - Custom domain, no CustomDomain::SsoConfig, fallback allowed -> proceeds
+#   - Custom domain, no CustomDomain::SsoConfig, fallback denied -> 403
+#   - Custom domain, disabled CustomDomain::SsoConfig, fallback allowed -> proceeds
+#   - Custom domain, disabled CustomDomain::SsoConfig, fallback denied -> 403
 #
 # REQUIREMENTS:
 # - Valkey running on port 2121: pnpm run test:database:start
@@ -115,10 +115,10 @@ RSpec.describe 'handle_missing_tenant_config Fallback Policy', type: :integratio
   end
 
   # ==========================================================================
-  # No DomainSsoConfig Scenarios
+  # No CustomDomain::SsoConfig Scenarios
   # ==========================================================================
 
-  describe 'custom domain with no DomainSsoConfig' do
+  describe 'custom domain with no CustomDomain::SsoConfig' do
     let(:host) { 'secrets.no-sso-config.example.com' }
 
     context 'when fallback is allowed (true)' do
@@ -177,20 +177,20 @@ RSpec.describe 'handle_missing_tenant_config Fallback Policy', type: :integratio
   end
 
   # ==========================================================================
-  # Disabled DomainSsoConfig Scenarios
+  # Disabled CustomDomain::SsoConfig Scenarios
   # ==========================================================================
   #
-  # When a DomainSsoConfig exists but is disabled (enabled: false), the
+  # When a CustomDomain::SsoConfig exists but is disabled (enabled: false), the
   # omniauth_setup hook calls handle_missing_tenant_config. These tests
   # verify that the same fallback policy applies.
   #
 
-  describe 'custom domain with disabled DomainSsoConfig' do
+  describe 'custom domain with disabled CustomDomain::SsoConfig' do
     include_context 'tenant fixtures'
 
     # Override the test_sso_config to be disabled
     let!(:test_sso_config) do
-      Onetime::DomainSsoConfig.create!(
+      Onetime::CustomDomain::SsoConfig.create!(
         domain_id: test_custom_domain.identifier,
         provider_type: 'entra_id',
         display_name: 'Disabled Entra ID',
@@ -201,11 +201,11 @@ RSpec.describe 'handle_missing_tenant_config Fallback Policy', type: :integratio
       )
     end
 
-    it 'confirms the DomainSsoConfig is disabled' do
-      config = Onetime::DomainSsoConfig.find_by_domain_id(test_custom_domain.identifier)
+    it 'confirms the CustomDomain::SsoConfig is disabled' do
+      config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
       expect(config).not_to be_nil
       expect(config.enabled?).to be(false),
-        "Test precondition: DomainSsoConfig should be disabled"
+        "Test precondition: CustomDomain::SsoConfig should be disabled"
     end
 
     context 'when fallback is allowed' do

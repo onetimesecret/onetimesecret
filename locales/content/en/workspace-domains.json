@@ -442,5 +442,13 @@
   "web.domains.sso.configure_sso": {
     "text": "Configure SSO",
     "sha256": "b8c9d0e1"
+  },
+  "web.domains.verified": {
+    "text": "Verified",
+    "sha256": "c9d0e1f2"
+  },
+  "web.domains.pending_verification": {
+    "text": "Pending Verification",
+    "sha256": "d0e1f2a3"
   }
 }

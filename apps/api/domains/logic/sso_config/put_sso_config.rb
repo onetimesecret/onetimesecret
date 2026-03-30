@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/domain_sso_config'
+require 'onetime/models/custom_domain/sso_config'
 require_relative 'base'
 require_relative 'serializers'
 require_relative 'audit_logger'
@@ -35,7 +35,7 @@ module DomainsAPI
         include AuditLogger
         include SsrfProtection
 
-        VALID_PROVIDER_TYPES = Onetime::DomainSsoConfig::PROVIDER_TYPES.freeze
+        VALID_PROVIDER_TYPES = Onetime::CustomDomain::SsoConfig::PROVIDER_TYPES.freeze
 
         attr_reader :sso_config, :existing_config
 
@@ -62,7 +62,7 @@ module DomainsAPI
           authorize_domain_sso!(@domain_id)
 
           # Check if config already exists
-          @existing_config = Onetime::DomainSsoConfig.find_by_domain_id(@custom_domain.identifier)
+          @existing_config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(@custom_domain.identifier)
 
           # Validate provider_type
           validate_provider_type
@@ -169,7 +169,7 @@ module DomainsAPI
         end
 
         def create_new_config
-          @sso_config = Onetime::DomainSsoConfig.create!(
+          @sso_config = Onetime::CustomDomain::SsoConfig.create!(
             domain_id: @custom_domain.identifier,
             provider_type: @provider_type,
             display_name: @display_name,

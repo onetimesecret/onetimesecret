@@ -12,4 +12,4 @@ require_relative 'models/custom_domain'
 # Receipt.participates_in declarations reference those classes
 require_relative 'models/receipt'
 require_relative 'models/feedback'
-require_relative 'models/domain_sso_config'
+require_relative 'models/custom_domain/sso_config'

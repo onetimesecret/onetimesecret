@@ -13,25 +13,21 @@
 
 import { z } from 'zod';
 import {
-  createOrUpdateSsoConfigPayloadSchema,
-  createOrUpdateSsoConfigPayloadStrictSchema,
   patchSsoConfigPayloadSchema,
   putSsoConfigPayloadStrictSchema,
 } from '@/schemas/shapes/sso-config';
 
-// Re-export response schemas for backward compatibility
+// Re-export response schemas
 export {
   getSsoConfigResponseSchema,
   putSsoConfigResponseSchema,
   patchSsoConfigResponseSchema,
   deleteSsoConfigResponseSchema,
-  createOrUpdateSsoConfigResponseSchema,
   ssoConfigDetailsSchema,
   type GetSsoConfigResponse,
   type PutSsoConfigResponse,
   type PatchSsoConfigResponse,
   type DeleteSsoConfigResponse,
-  type CreateOrUpdateSsoConfigResponse,
   type SsoConfigDetails,
 } from '../responses/sso-config';
 
@@ -110,21 +106,3 @@ export const deleteSsoConfigRequestSchema = z.object({
 });
 
 export type DeleteSsoConfigRequest = z.infer<typeof deleteSsoConfigRequestSchema>;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Legacy aliases (deprecated, use verb-specific schemas)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * @deprecated Use putSsoConfigRequestSchema or patchSsoConfigRequestSchema
- */
-export const createOrUpdateSsoConfigRequestSchema = createOrUpdateSsoConfigPayloadSchema;
-
-export type CreateOrUpdateSsoConfigRequest = z.infer<typeof createOrUpdateSsoConfigRequestSchema>;
-
-/**
- * @deprecated Use putSsoConfigRequestSchema
- */
-export const createOrUpdateSsoConfigRequestStrictSchema = createOrUpdateSsoConfigPayloadStrictSchema;
-
-export type CreateOrUpdateSsoConfigRequestStrict = z.infer<typeof createOrUpdateSsoConfigRequestStrictSchema>;

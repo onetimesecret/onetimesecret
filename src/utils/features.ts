@@ -244,11 +244,7 @@ export function isOrganizationSwitcherEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.organizations?.enabled === true;
-  console.log('[features] isOrganizationSwitcherEnabled:', {
-    organizations: features?.organizations,
-    enabled: features?.organizations?.enabled,
-    result,
-  });
+  debugLog.features('features.isOrganizationSwitcherEnabled', { enabled: features?.organizations?.enabled, result });
   return result;
 }
 
@@ -263,10 +259,6 @@ export function isOrgsSsoEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.organizations?.sso_enabled === true;
-  console.log('[features] isOrgsSsoEnabled:', {
-    organizations: features?.organizations,
-    sso_enabled: features?.organizations?.sso_enabled,
-    result,
-  });
+  debugLog.features('features.isOrgsSsoEnabled', { sso_enabled: features?.organizations?.sso_enabled, result });
   return result;
 }

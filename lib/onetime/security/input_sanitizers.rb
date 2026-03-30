@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'cgi'
 require 'sanitize'
 
 module Onetime
@@ -55,14 +56,37 @@ module Onetime
 
       # Sanitize plain text input (display names, titles, descriptions)
       #
-      # Strips all HTML tags and normalizes whitespace.
-      # Use for text that should never contain HTML markup.
+      # We store plain text and render plain text, but sanitize in the
+      # middle using HTML-centric tools. Sanitize.fragment returns HTML
+      # (e.g. `R&D` → `R&amp;D`), so the final step decodes the entities
+      # it introduces to get back to plain text for storage.
+      #
+      # Strips all HTML tags and decodes HTML entities so the stored value
+      # is raw text. Frontend frameworks (Vue, React) handle output encoding
+      # on render, so storing pre-encoded entities causes double-encoding
+      # (e.g. `R&D` → `R&amp;D` in storage → `R&amp;amp;D` on screen).
       #
       # @param value [String, nil] The text value to sanitize
       # @param max_length [Integer, nil] Optional maximum length
-      # @return [String] Sanitized text with HTML stripped and whitespace normalized
+      # @return [String] Sanitized plain text with HTML stripped, entities decoded,
+      #   and whitespace normalized
       def sanitize_plain_text(value, max_length: nil)
-        result = Sanitize.fragment(value.to_s).strip.gsub(WHITESPACE_NORMALIZE_PATTERN, ' ')
+        # Decode-then-sanitize in a loop until output stabilizes. A single
+        # pass misses multiply-encoded payloads (e.g. &amp;lt;script&amp;gt;)
+        # where step-1 decode reveals entity-encoded tags that Sanitize
+        # preserves, and a final blanket decode would re-introduce them.
+        result            = value.to_s
+        max_decode_passes = 10
+        max_decode_passes.times do
+          decoded   = CGI.unescapeHTML(result)
+          sanitized = Sanitize.fragment(decoded)
+          break if sanitized == result
+
+          result = sanitized
+        end
+        # Sanitize encodes literal & as &amp; — decode just that entity
+        # so we store raw text (frontend frameworks handle output encoding)
+        result            = result.gsub('&amp;', '&').strip.gsub(WHITESPACE_NORMALIZE_PATTERN, ' ')
         max_length ? result.slice(0, max_length) : result
       end
 

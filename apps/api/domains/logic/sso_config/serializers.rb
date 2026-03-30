@@ -17,7 +17,7 @@ module DomainsAPI
         # - client_secret_masked (not client_secret)
         # - created_at/updated_at as Unix timestamps
         #
-        # @param config [Onetime::DomainSsoConfig] SSO config to serialize
+        # @param config [Onetime::CustomDomain::SsoConfig] SSO config to serialize
         # @return [Hash] Serialized config matching TypeScript schema
         def serialize_sso_config(config)
           {

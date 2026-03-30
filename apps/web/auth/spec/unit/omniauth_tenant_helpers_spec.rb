@@ -301,7 +301,7 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
     end
 
     let(:sso_config) do
-      double('Onetime::DomainSsoConfig',
+      double('Onetime::CustomDomain::SsoConfig',
         domain_id: 'dom_test_123',
         provider_type: 'oidc',
         to_omniauth_options: {

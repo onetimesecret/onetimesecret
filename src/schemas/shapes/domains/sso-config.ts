@@ -1,6 +1,6 @@
 // src/schemas/shapes/domains/sso-config.ts
 //
-// DomainSsoConfig shapes with runtime transforms.
+// CustomDomain::SsoConfig shapes with runtime transforms.
 // Derives from contracts, adding timestamp transforms and null normalization.
 //
 // Architecture: contract → shape → API
@@ -14,7 +14,7 @@
 // - Optional form fields (tenant_id, issuer) → null (form uses undefined)
 
 import {
-  domainSsoConfigCanonical,
+  customDomainSsoConfigCanonical,
   ssoProviderTypeSchema,
 } from '@/schemas/contracts/sso-config';
 import { transforms } from '@/schemas/transforms';
@@ -37,13 +37,13 @@ const timestampOverrides = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DomainSsoConfig schema
+// CustomDomain::SsoConfig schema
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * DomainSsoConfig schema with transforms.
+ * CustomDomain::SsoConfig schema with transforms.
  *
- * Derives from domainSsoConfigCanonical contract, applies:
+ * Derives from customDomainSsoConfigCanonical contract, applies:
  * - Timestamps: number (Unix epoch seconds) → Date
  * - Required field normalization: null → empty string (client_id)
  * - Optional field normalization: null preserved for tenant_id, issuer
@@ -54,7 +54,7 @@ const timestampOverrides = {
  *
  * @example
  * ```typescript
- * const config = domainSsoConfigSchema.parse({
+ * const config = customDomainSsoConfigSchema.parse({
  *   domain_id: 'domain123',
  *   provider_type: 'entra_id',
  *   enabled: true,
@@ -72,7 +72,7 @@ const timestampOverrides = {
  * console.log(config.created_at instanceof Date); // true
  * ```
  */
-export const domainSsoConfigSchema = domainSsoConfigCanonical
+export const customDomainSsoConfigSchema = customDomainSsoConfigCanonical
   .extend({
     // Timestamp transforms
     ...timestampOverrides,
@@ -89,19 +89,19 @@ export const domainSsoConfigSchema = domainSsoConfigCanonical
     allowed_domains: z.array(z.string()).nullish().transform((v) => v ?? []),
   });
 
-export type DomainSsoConfig = z.infer<typeof domainSsoConfigSchema>;
+export type CustomDomainSsoConfig = z.infer<typeof customDomainSsoConfigSchema>;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Summary schema (for list views)
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * DomainSsoConfig summary schema for list views.
+ * CustomDomain::SsoConfig summary schema for list views.
  *
  * Contains only essential fields needed for displaying SSO configs in lists
  * without exposing all configuration details.
  */
-export const domainSsoConfigSummarySchema = z.object({
+export const customDomainSsoConfigSummarySchema = z.object({
   domain_id: z.string(),
   provider_type: ssoProviderTypeSchema,
   enabled: z.boolean(),
@@ -110,28 +110,4 @@ export const domainSsoConfigSummarySchema = z.object({
   updated_at: transforms.fromNumber.toDate,
 });
 
-export type DomainSsoConfigSummary = z.infer<typeof domainSsoConfigSummarySchema>;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Deprecated aliases (backward compatibility)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * @deprecated Use domainSsoConfigSchema. SSO config moved from per-org to per-domain.
- */
-export const orgSsoConfigSchema = domainSsoConfigSchema;
-
-/**
- * @deprecated Use DomainSsoConfig. SSO config moved from per-org to per-domain.
- */
-export type OrgSsoConfig = DomainSsoConfig;
-
-/**
- * @deprecated Use domainSsoConfigSummarySchema. SSO config moved from per-org to per-domain.
- */
-export const orgSsoConfigSummarySchema = domainSsoConfigSummarySchema;
-
-/**
- * @deprecated Use DomainSsoConfigSummary. SSO config moved from per-org to per-domain.
- */
-export type OrgSsoConfigSummary = DomainSsoConfigSummary;
+export type CustomDomainSsoConfigSummary = z.infer<typeof customDomainSsoConfigSummarySchema>;

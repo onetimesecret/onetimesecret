@@ -19,7 +19,7 @@ import {
   deleteSsoConfigResponseSchema,
   type DeleteSsoConfigResponse,
 } from '@/schemas/api/domains/responses/sso-config';
-import type { DomainSsoConfig, SsoProviderType } from '@/schemas/shapes/sso-config';
+import type { CustomDomainSsoConfig, SsoProviderType } from '@/schemas/shapes/sso-config';
 import { gracefulParse, strictParse } from '@/utils/schemaValidation';
 import axios from 'axios';
 
@@ -37,7 +37,7 @@ const $api = createApi();
  * - Optional fields are normalized (nullish -> null or default)
  */
 export interface SsoConfigResponse {
-  record: DomainSsoConfig | null;
+  record: CustomDomainSsoConfig | null;
 }
 
 /**

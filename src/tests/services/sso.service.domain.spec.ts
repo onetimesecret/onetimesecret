@@ -53,8 +53,8 @@ describe('SsoService domain methods', () => {
   const baseUrl = `/api/domains/${domainExtId}/sso`;
 
   // Complete mock config that passes schema validation
-  // Must include all required fields from domainSsoConfigCanonical
-  const mockDomainSsoConfig = {
+  // Must include all required fields from customDomainSsoConfigCanonical
+  const mockSsoConfig = {
     record: {
       domain_id: domainExtId,
       provider_type: 'entra_id',
@@ -78,7 +78,7 @@ describe('SsoService domain methods', () => {
 
   describe('getConfigForDomain', () => {
     it('fetches domain SSO config successfully', async () => {
-      mockGet.mockResolvedValueOnce({ data: mockDomainSsoConfig });
+      mockGet.mockResolvedValueOnce({ data: mockSsoConfig });
 
       const result = await SsoService.getConfigForDomain(domainExtId);
 
@@ -124,7 +124,7 @@ describe('SsoService domain methods', () => {
     });
 
     it('includes client_secret_masked in response', async () => {
-      mockGet.mockResolvedValueOnce({ data: mockDomainSsoConfig });
+      mockGet.mockResolvedValueOnce({ data: mockSsoConfig });
 
       const result = await SsoService.getConfigForDomain(domainExtId);
 
@@ -155,7 +155,7 @@ describe('SsoService domain methods', () => {
     };
 
     it('creates domain SSO config with PUT', async () => {
-      mockPut.mockResolvedValueOnce({ data: mockDomainSsoConfig });
+      mockPut.mockResolvedValueOnce({ data: mockSsoConfig });
 
       const result = await SsoService.putConfigForDomain(domainExtId, createPayload);
 
@@ -164,7 +164,7 @@ describe('SsoService domain methods', () => {
     });
 
     it('sends client_secret in request body', async () => {
-      mockPut.mockResolvedValueOnce({ data: mockDomainSsoConfig });
+      mockPut.mockResolvedValueOnce({ data: mockSsoConfig });
 
       await SsoService.putConfigForDomain(domainExtId, createPayload);
 
@@ -201,8 +201,8 @@ describe('SsoService domain methods', () => {
 
     it('updates domain SSO config with PATCH', async () => {
       const updatedConfig = {
-        ...mockDomainSsoConfig,
-        record: { ...mockDomainSsoConfig.record, ...updatePayload },
+        ...mockSsoConfig,
+        record: { ...mockSsoConfig.record, ...updatePayload },
       };
       mockPatch.mockResolvedValueOnce({ data: updatedConfig });
 
@@ -214,7 +214,7 @@ describe('SsoService domain methods', () => {
     });
 
     it('uses PATCH method for partial update', async () => {
-      mockPatch.mockResolvedValueOnce({ data: mockDomainSsoConfig });
+      mockPatch.mockResolvedValueOnce({ data: mockSsoConfig });
 
       await SsoService.patchConfigForDomain(domainExtId, updatePayload);
 
@@ -223,7 +223,7 @@ describe('SsoService domain methods', () => {
     });
 
     it('allows updating without client_secret (preserves existing)', async () => {
-      mockPatch.mockResolvedValueOnce({ data: mockDomainSsoConfig });
+      mockPatch.mockResolvedValueOnce({ data: mockSsoConfig });
 
       const payload = {
         provider_type: 'entra_id' as const,
@@ -244,7 +244,7 @@ describe('SsoService domain methods', () => {
 
   describe('saveConfigForDomain', () => {
     it('uses PUT when client_secret is provided and non-empty', async () => {
-      mockPut.mockResolvedValueOnce({ data: mockDomainSsoConfig });
+      mockPut.mockResolvedValueOnce({ data: mockSsoConfig });
 
       const payload = {
         provider_type: 'entra_id' as const,
@@ -261,7 +261,7 @@ describe('SsoService domain methods', () => {
     });
 
     it('uses PATCH when client_secret is omitted', async () => {
-      mockPatch.mockResolvedValueOnce({ data: mockDomainSsoConfig });
+      mockPatch.mockResolvedValueOnce({ data: mockSsoConfig });
 
       const payload = {
         provider_type: 'entra_id' as const,
@@ -278,7 +278,7 @@ describe('SsoService domain methods', () => {
     });
 
     it('uses PATCH when client_secret is empty string', async () => {
-      mockPatch.mockResolvedValueOnce({ data: mockDomainSsoConfig });
+      mockPatch.mockResolvedValueOnce({ data: mockSsoConfig });
 
       const payload = {
         provider_type: 'entra_id' as const,
@@ -465,7 +465,7 @@ describe('SsoService domain methods', () => {
 
   describe('URL construction', () => {
     it('constructs correct URL with domain ID', async () => {
-      mockGet.mockResolvedValueOnce({ data: mockDomainSsoConfig });
+      mockGet.mockResolvedValueOnce({ data: mockSsoConfig });
 
       await SsoService.getConfigForDomain(domainExtId);
 
@@ -474,7 +474,7 @@ describe('SsoService domain methods', () => {
 
     it('handles special characters in domain IDs', async () => {
       const specialDomainId = 'dm_test-domain_456';
-      mockGet.mockResolvedValueOnce({ data: mockDomainSsoConfig });
+      mockGet.mockResolvedValueOnce({ data: mockSsoConfig });
 
       await SsoService.getConfigForDomain(specialDomainId);
 
@@ -555,7 +555,7 @@ describe('SsoService domain methods', () => {
       });
 
       it('degrades to null record when API returns null (schema parse failure)', async () => {
-        // Note: The domainSsoConfigSchema doesn't allow null record, so this
+        // Note: The customDomainSsoConfigSchema doesn't allow null record, so this
         // triggers graceful degradation, not a pass-through
         const nullRecordResponse = {
           record: null,
@@ -572,7 +572,7 @@ describe('SsoService domain methods', () => {
       it('handles response with extra fields (should be passed through or stripped)', async () => {
         const responseWithExtraFields = {
           record: {
-            ...mockDomainSsoConfig.record,
+            ...mockSsoConfig.record,
             unexpected_field: 'should be ignored or passed through',
             another_extra: 12345,
           },
@@ -670,7 +670,7 @@ describe('SsoService domain methods', () => {
       it('parses valid partial update response', async () => {
         const validResponse = {
           record: {
-            ...mockDomainSsoConfig.record,
+            ...mockSsoConfig.record,
             display_name: 'Updated Domain SSO',
             enabled: false,
             updated_at: Date.now() / 1000,
@@ -775,7 +775,7 @@ describe('SsoService domain methods', () => {
       it('transforms timestamp edge values to Date objects', async () => {
         const edgeTimestampResponse = {
           record: {
-            ...mockDomainSsoConfig.record,
+            ...mockSsoConfig.record,
             created_at: 0, // Unix epoch start
             updated_at: 2147483647, // Max 32-bit signed int (Y2K38)
           },

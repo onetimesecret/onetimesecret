@@ -4,7 +4,7 @@
 
 # Shared contexts for integration tests requiring real Valkey fixtures.
 #
-# Factory methods, constants, and shared examples for DomainSsoConfig are
+# Factory methods, constants, and shared examples for CustomDomain::SsoConfig are
 # defined in DomainSsoTestFixtures (domain_sso_test_fixtures.rb), which is
 # the canonical source. This module provides only the 'tenant fixtures'
 # shared context used by integration specs.
@@ -21,7 +21,7 @@ end
 # Shared Context for Integration Tests with Real Valkey Fixtures
 # ==========================================================================
 #
-# This shared context creates actual Organization, CustomDomain, and DomainSsoConfig
+# This shared context creates actual Organization, CustomDomain, and CustomDomain::SsoConfig
 # records in Valkey for integration tests that require the full tenant resolution
 # chain. Each test run gets unique identifiers to prevent collision.
 #
@@ -51,7 +51,7 @@ RSpec.shared_context 'tenant fixtures' do
   end
 
   let!(:test_sso_config) do
-    Onetime::DomainSsoConfig.create!(
+    Onetime::CustomDomain::SsoConfig.create!(
       domain_id: test_custom_domain.identifier,
       provider_type: 'entra_id',
       display_name: 'Test Entra ID',
@@ -63,7 +63,7 @@ RSpec.shared_context 'tenant fixtures' do
   end
 
   after do
-    Onetime::DomainSsoConfig.delete_for_domain!(test_custom_domain.identifier) rescue nil
+    Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_custom_domain.identifier) rescue nil
     Onetime::CustomDomain.display_domains.remove(tenant_domain) rescue nil
     test_custom_domain&.destroy!
     test_organization&.destroy!
