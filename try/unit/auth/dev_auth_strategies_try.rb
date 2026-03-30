@@ -334,22 +334,13 @@ ENV['RACK_ENV'] = original_rack_env
 ]
 #=> [true, 72000]
 
-## DevBasicAuth#authenticate with nil customer uses dummy (timing-safe, still fails)
-# Simulate by using credentials where the username maps to a nonexistent customer
-# but valid_dev_credentials? passes. We pre-delete to ensure no customer exists.
-@timing_username = "dev_timing_#{SecureRandom.hex(4)}"
-@timing_apikey = "dev_timingkey_#{SecureRandom.hex(8)}"
-@identity_timing = Onetime::Application::AuthStrategies::DevWorkerIdentity
-@timing_base = @timing_username.delete_prefix('dev_')
-@timing_namespaced = "dev_#{@identity_timing.namespaced_username(@timing_base)}"
-@timing_email = "#{@timing_namespaced}@dev.local"
-# Ensure no customer exists with this email, then monkey-patch find_or_create to return nil
-@timing_strategy = DevBasicAuth.new
-# We cannot easily force find_or_create_dev_customer to return nil without deep stubbing,
-# but we can verify the dummy path by checking that a frozen dummy customer would
-# cause apitoken? to return false (which is the branch being tested).
+## Customer.dummy is frozen and rejects all apitoken checks (timing-safe path)
+# The dummy customer is used in the timing-safe comparison path when
+# find_or_create_dev_customer returns nil. It must be frozen and its
+# apitoken? must always return false to prevent credential validation
+# from succeeding.
 dummy = Onetime::Customer.dummy
-[dummy.frozen?, dummy.apitoken?(@timing_apikey)]
+[dummy.frozen?, dummy.apitoken?("any_key_will_do")]
 #=> [true, false]
 
 ## DevBasicAuth#authenticate reuses existing customer on second call
