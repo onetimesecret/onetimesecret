@@ -145,9 +145,13 @@ module Onetime
     # Returns one of RESTRICT_TO_VALUES ('password', 'email_auth',
     # 'webauthn', 'sso') or nil when all enabled methods are shown.
     #
-    # Guards: returns nil in simple mode or when the value is not
-    # recognised. For 'sso', also requires SSO to be enabled with
-    # at least one provider configured.
+    # Guards:
+    # - Returns nil in simple mode or when the value is unrecognised.
+    # - For 'sso': requires sso_enabled? and at least one provider.
+    # - For 'email_auth': requires email_auth_enabled?.
+    # - For 'webauthn': requires webauthn_enabled?.
+    # - 'password' has no prerequisite (passwords are always available
+    #   in full mode).
     def restrict_to
       return nil unless full_enabled?
 
@@ -157,6 +161,16 @@ module Onetime
 
       return nil unless RESTRICT_TO_VALUES.include?(value)
 
+      # Ensure the restriction refers to an actually enabled method.
+      case value
+      when 'sso'
+        return nil unless sso_enabled? && sso_providers.any?
+      when 'email_auth'
+        return nil unless email_auth_enabled?
+      when 'webauthn'
+        return nil unless webauthn_enabled?
+      end
+
       value
     end
 
@@ -164,14 +178,8 @@ module Onetime
     # When true, password-based account management is disabled (destroy
     # account, change password, change email). Users must manage their
     # credentials through the SSO identity provider.
-    #
-    # Returns false if SSO itself is disabled (no-op guard).
     def sso_only_enabled?
-      return false unless sso_enabled?
-      return false unless restrict_to == 'sso'
-
-      # Ensure at least one provider is actually configured
-      sso_providers.any?
+      restrict_to == 'sso'
     end
 
     # Whether password-only mode is active.
@@ -183,19 +191,13 @@ module Onetime
 
     # Whether email-auth-only (magic links) mode is active.
     # When true, only the email link form is shown on the login page.
-    # Returns false if email_auth itself is disabled (no-op guard).
     def email_auth_only_enabled?
-      return false unless email_auth_enabled?
-
       restrict_to == 'email_auth'
     end
 
     # Whether WebAuthn-only mode is active.
     # When true, only biometric/security-key authentication is shown.
-    # Returns false if webauthn itself is disabled (no-op guard).
     def webauthn_only_enabled?
-      return false unless webauthn_enabled?
-
       restrict_to == 'webauthn'
     end
 

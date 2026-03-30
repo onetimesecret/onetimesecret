@@ -152,8 +152,9 @@ export function getRestrictTo(): RestrictTo | null {
  * When true, password-based auth routes are disabled and the sign-in page
  * shows only SSO provider buttons.
  *
- * This is a no-op when SSO is not enabled -- the UI falls through to
- * default auth forms.
+ * The backend only sets restrict_to='sso' when SSO is enabled and at
+ * least one provider is configured, so no additional frontend guard is
+ * needed.
  */
 export function isSsoOnlyMode(): boolean {
   if (typeof window === 'undefined') return false;
