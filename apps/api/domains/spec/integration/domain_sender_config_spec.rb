@@ -155,15 +155,23 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
   # ==========================================================================
 
   def enable_sender_feature_flag
-    allow(OT).to receive(:conf).and_return({
-      'features' => { 'organizations' => { 'custom_mail_enabled' => true } },
-    })
+    real_conf = OT.conf.dup
+    real_conf['features'] = (real_conf['features'] || {}).merge(
+      'organizations' => ((real_conf.dig('features', 'organizations') || {}).merge(
+        'custom_mail_enabled' => true
+      ))
+    )
+    allow(OT).to receive(:conf).and_return(real_conf)
   end
 
   def disable_sender_feature_flag
-    allow(OT).to receive(:conf).and_return({
-      'features' => { 'organizations' => { 'custom_mail_enabled' => false } },
-    })
+    real_conf = OT.conf.dup
+    real_conf['features'] = (real_conf['features'] || {}).merge(
+      'organizations' => ((real_conf.dig('features', 'organizations') || {}).merge(
+        'custom_mail_enabled' => false
+      ))
+    )
+    allow(OT).to receive(:conf).and_return(real_conf)
   end
 
   def api_path(domain_extid)
