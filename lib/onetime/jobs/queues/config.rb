@@ -59,6 +59,11 @@ module Onetime
           auto_delete: false,
           arguments: { 'x-dead-letter-exchange' => 'dlx.billing.event' },
         },
+        'domain.validation.check' => {
+          durable: true,
+          auto_delete: false,
+          arguments: { 'x-dead-letter-exchange' => 'dlx.domain.validation' },
+        },
         'system.transient' => {
           durable: false,
           auto_delete: true,
@@ -91,6 +96,10 @@ module Onetime
         },
         'dlx.billing.event' => {
           queue: 'dlq.billing.event',
+          arguments: {},
+        },
+        'dlx.domain.validation' => {
+          queue: 'dlq.domain.validation',
           arguments: {},
         },
       }.freeze

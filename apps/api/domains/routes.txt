@@ -35,3 +35,4 @@ GET    /:extid/email-config              DomainsAPI::Logic::SenderConfig::GetSen
 PUT    /:extid/email-config              DomainsAPI::Logic::SenderConfig::PutSenderConfig response=json auth=sessionauth
 PATCH  /:extid/email-config              DomainsAPI::Logic::SenderConfig::PatchSenderConfig response=json auth=sessionauth
 DELETE /:extid/email-config              DomainsAPI::Logic::SenderConfig::DeleteSenderConfig response=json auth=sessionauth
+POST   /:extid/email-config/validate    DomainsAPI::Logic::SenderConfig::ValidateSenderConfig response=json auth=sessionauth
