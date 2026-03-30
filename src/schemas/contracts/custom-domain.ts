@@ -360,7 +360,7 @@ export const customDomainCanonical = z.object({
   brand: brandSettingsCanonical.nullable(),
 
   // ─────────────────────────────────────────────────────────────────────────
-  // SSO status (computed from DomainSsoConfig lookup)
+  // SSO status (computed from CustomDomain::SsoConfig lookup)
   // ─────────────────────────────────────────────────────────────────────────
 
   /** Whether SSO configuration exists for this domain. */

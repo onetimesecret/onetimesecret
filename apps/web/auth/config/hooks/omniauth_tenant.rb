@@ -12,7 +12,7 @@
 #
 # Flow (domain-based resolution):
 #   1. Host header -> CustomDomain lookup
-#   2. CustomDomain.identifier -> DomainSsoConfig
+#   2. CustomDomain.identifier -> CustomDomain::SsoConfig
 #   3. SSO config -> omniauth strategy.options injection
 #
 # Each domain has its own SSO configuration, enabling multi-IdP setups where
@@ -25,7 +25,7 @@
 #     or reject the request based on `allow_platform_fallback_for_tenants`
 #
 # See: docs/authentication/omniauth-sso.md (full configuration guide)
-# See: lib/onetime/models/domain_sso_config.rb (per-domain SSO config)
+# See: lib/onetime/models/custom_domain/sso_config.rb (per-domain SSO config)
 #
 
 module Auth::Config::Hooks
@@ -33,7 +33,7 @@ module Auth::Config::Hooks
     # Module reference for calling helper methods from within Rodauth blocks
     HELPERS = self
 
-    # Map DomainSsoConfig provider_type symbols to OmniAuth strategy class names.
+    # Map CustomDomain::SsoConfig provider_type symbols to OmniAuth strategy class names.
     # Used to validate that credentials are being injected into the correct strategy.
     STRATEGY_CLASS_MAP = {
       openid_connect: %w[OmniAuth::Strategies::OpenIDConnect],
@@ -88,7 +88,7 @@ module Auth::Config::Hooks
         end
 
         # Look up domain-specific SSO configuration
-        sso_config = Onetime::DomainSsoConfig.find_by_domain_id(custom_domain.identifier)
+        sso_config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(custom_domain.identifier)
 
         unless sso_config&.enabled?
           Auth::Logging.log_auth_event(
@@ -253,7 +253,7 @@ module Auth::Config::Hooks
     # Accesses the strategy from request.env['omniauth.strategy'] and
     # merges in the tenant's OAuth configuration.
     #
-    # @param sso_config [Onetime::DomainSsoConfig] The SSO config
+    # @param sso_config [Onetime::CustomDomain::SsoConfig] The SSO config
     # @param request [Rack::Request] The current request
     # @param rodauth [Rodauth] Rodauth instance (for throw_error_status)
     # @raise [Rodauth::Error] if strategy type doesn't match configuration
@@ -306,7 +306,7 @@ module Auth::Config::Hooks
     # Check if the active OmniAuth strategy matches the expected type.
     #
     # @param strategy [OmniAuth::Strategy] The active strategy instance
-    # @param expected_type [Symbol] Expected strategy type from DomainSsoConfig
+    # @param expected_type [Symbol] Expected strategy type from CustomDomain::SsoConfig
     # @return [Boolean] true if strategy class matches expected type
     def self.strategy_matches?(strategy, expected_type)
       return false unless strategy && expected_type

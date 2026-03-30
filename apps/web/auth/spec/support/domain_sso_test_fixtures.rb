@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-# Test fixtures and factory methods for DomainSsoConfig model testing.
+# Test fixtures and factory methods for CustomDomain::SsoConfig model testing.
 #
 # Issue: #2786 - Per-domain SSO configuration
 #
@@ -15,7 +15,7 @@
 #   let(:config) { build_domain_sso_config(:entra_id) }
 #
 # NOTE: This file mirrors the structure of tenant_test_fixtures.rb
-# but adapts it for the new DomainSsoConfig model.
+# but adapts it for the new CustomDomain::SsoConfig model.
 
 module DomainSsoTestFixtures
   # ==========================================================================
@@ -29,8 +29,8 @@ module DomainSsoTestFixtures
   TEST_ENCRYPTION_KEY = 'test_encryption_key_32_bytes_ok!'.freeze
 
   # Sample domain IDs for testing (mimics CustomDomain objid format)
-  # NOTE: DomainSsoConfig uses domain_id as its identifier, not org_id.
-  # The relationship is: CustomDomain -> DomainSsoConfig (1:1 by domain_id).
+  # NOTE: CustomDomain::SsoConfig uses domain_id as its identifier, not org_id.
+  # The relationship is: CustomDomain -> CustomDomain::SsoConfig (1:1 by domain_id).
   SAMPLE_DOMAIN_IDS = {
     primary: 'dom_test_primary_12345',
     secondary: 'dom_test_secondary_67890',
@@ -54,7 +54,7 @@ module DomainSsoTestFixtures
   }.freeze
 
   # Provider-specific default attributes
-  # Note: Matches expected DomainSsoConfig field structure
+  # Note: Matches expected CustomDomain::SsoConfig field structure
   PROVIDER_CONFIGS = {
     oidc: {
       provider_type: 'oidc',
@@ -92,7 +92,7 @@ module DomainSsoTestFixtures
   # Factory Methods
   # ==========================================================================
 
-  # Build DomainSsoConfig attributes hash for a given provider type
+  # Build CustomDomain::SsoConfig attributes hash for a given provider type
   #
   # @param provider [Symbol] one of :oidc, :entra_id, :google, :github
   # @param overrides [Hash] attributes to override defaults
@@ -111,14 +111,14 @@ module DomainSsoTestFixtures
       .merge(overrides)
   end
 
-  # Build a stubbed DomainSsoConfig instance for unit testing
+  # Build a stubbed CustomDomain::SsoConfig instance for unit testing
   #
   # This creates an instance with stubbed persistence methods,
   # suitable for testing model behavior without Redis.
   #
   # @param provider [Symbol] one of :oidc, :entra_id, :google, :github
   # @param overrides [Hash] attributes to override defaults
-  # @return [Onetime::DomainSsoConfig] stubbed instance
+  # @return [Onetime::CustomDomain::SsoConfig] stubbed instance
   #
   def build_domain_sso_config(provider = :oidc, overrides = {})
     attrs = build_domain_sso_config_attributes(provider, overrides)
@@ -127,7 +127,7 @@ module DomainSsoTestFixtures
     # The model has a custom setter that converts array to JSON
     allowed_domains = attrs.delete(:allowed_domains)
 
-    config = Onetime::DomainSsoConfig.new(attrs)
+    config = Onetime::CustomDomain::SsoConfig.new(attrs)
 
     # Set allowed_domains using the custom setter (converts to JSON internally)
     config.allowed_domains = allowed_domains if allowed_domains
@@ -138,13 +138,13 @@ module DomainSsoTestFixtures
     config
   end
 
-  # Build a minimal DomainSsoConfig with only required fields
+  # Build a minimal CustomDomain::SsoConfig with only required fields
   #
   # @param domain_id [String] domain identifier
   # @param provider_type [String] SSO provider type
-  # @return [Onetime::DomainSsoConfig] minimal stubbed instance
+  # @return [Onetime::CustomDomain::SsoConfig] minimal stubbed instance
   def build_minimal_domain_sso_config(domain_id:, provider_type: 'oidc')
-    config = Onetime::DomainSsoConfig.new(
+    config = Onetime::CustomDomain::SsoConfig.new(
       domain_id: domain_id,
       provider_type: provider_type,
       enabled: true
@@ -153,10 +153,10 @@ module DomainSsoTestFixtures
     config
   end
 
-  # Build an invalid DomainSsoConfig for negative testing
+  # Build an invalid CustomDomain::SsoConfig for negative testing
   #
   # @param invalid_attribute [Symbol] which attribute to make invalid
-  # @return [Onetime::DomainSsoConfig] instance with invalid data
+  # @return [Onetime::CustomDomain::SsoConfig] instance with invalid data
   def build_invalid_domain_sso_config(invalid_attribute)
     attrs = build_domain_sso_config_attributes(:oidc)
 
@@ -185,15 +185,15 @@ module DomainSsoTestFixtures
       attrs[:tenant_id] = nil
     end
 
-    config = Onetime::DomainSsoConfig.new(attrs)
+    config = Onetime::CustomDomain::SsoConfig.new(attrs)
     stub_domain_sso_config_persistence(config)
     config
   end
 
-  # Build a disabled DomainSsoConfig
+  # Build a disabled CustomDomain::SsoConfig
   #
   # @param provider [Symbol] provider type
-  # @return [Onetime::DomainSsoConfig] disabled config instance
+  # @return [Onetime::CustomDomain::SsoConfig] disabled config instance
   def build_disabled_domain_sso_config(provider = :oidc)
     build_domain_sso_config(provider, enabled: false)
   end
@@ -205,7 +205,7 @@ module DomainSsoTestFixtures
   # Expected OmniAuth options structure for a given provider
   #
   # Used to verify to_omniauth_options output. Matches the structure
-  # generated by DomainSsoConfig#to_omniauth_options.
+  # generated by CustomDomain::SsoConfig#to_omniauth_options.
   #
   # @param provider [Symbol] provider type
   # @param domain_id [String] domain ID (used as strategy name)
@@ -289,13 +289,13 @@ module DomainSsoTestFixtures
 
   private
 
-  # Stub persistence methods on a DomainSsoConfig instance
+  # Stub persistence methods on a CustomDomain::SsoConfig instance
   #
   # For unit tests, we don't need to actually persist to Redis.
   # The model already has these methods from Familia::Horreum.
   # We stub them to avoid Redis connections in unit tests.
   #
-  # @param config [Onetime::DomainSsoConfig] instance to stub
+  # @param config [Onetime::CustomDomain::SsoConfig] instance to stub
   def stub_domain_sso_config_persistence(config)
     # Use allow_any_instance_of pattern or define singleton methods
     # to avoid "does not implement" errors from RSpec's verified doubles
@@ -315,7 +315,7 @@ end
 # ==========================================================================
 #
 # This shared context creates actual Organization, CustomDomain, and
-# DomainSsoConfig records in Valkey for integration tests that require
+# CustomDomain::SsoConfig records in Valkey for integration tests that require
 # the full tenant resolution chain. Each test run gets unique identifiers
 # to prevent collision.
 #
@@ -347,10 +347,10 @@ RSpec.shared_context 'domain sso fixtures' do
     domain
   end
 
-  # NOTE: DomainSsoConfig only has domain_id, not org_id.
+  # NOTE: CustomDomain::SsoConfig only has domain_id, not org_id.
   # The organization relationship is via CustomDomain.org_id.
   let!(:test_domain_sso_config) do
-    Onetime::DomainSsoConfig.create!(
+    Onetime::CustomDomain::SsoConfig.create!(
       domain_id: test_domain_with_sso.objid,
       provider_type: 'entra_id',
       display_name: 'Test Domain Entra ID',
@@ -363,7 +363,7 @@ RSpec.shared_context 'domain sso fixtures' do
 
   after do
     # Cleanup in reverse order of creation
-    Onetime::DomainSsoConfig.delete_for_domain!(test_domain_with_sso.objid) rescue nil
+    Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_domain_with_sso.objid) rescue nil
     Onetime::CustomDomain.display_domains.remove(domain_sso_display_domain) rescue nil
     test_domain_with_sso&.destroy!
     test_sso_organization&.destroy!
@@ -371,7 +371,7 @@ RSpec.shared_context 'domain sso fixtures' do
 end
 
 # ==========================================================================
-# Shared Examples for DomainSsoConfig Tests
+# Shared Examples for CustomDomain::SsoConfig Tests
 # ==========================================================================
 
 RSpec.shared_examples 'a valid domain SSO config' do

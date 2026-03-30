@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/domain_sso_config'
+require 'onetime/models/custom_domain/sso_config'
 require_relative 'base'
 require_relative 'serializers'
 
@@ -47,7 +47,7 @@ module DomainsAPI
           authorize_domain_sso!(@domain_id)
 
           # Load SSO config
-          @sso_config = Onetime::DomainSsoConfig.find_by_domain_id(@custom_domain.identifier)
+          @sso_config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(@custom_domain.identifier)
           raise_not_found("SSO configuration not found for domain: #{@domain_id}") if @sso_config.nil?
         end
 

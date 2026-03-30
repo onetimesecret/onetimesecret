@@ -1,20 +1,19 @@
 // src/tests/contracts/sso-config-metadata-contract.spec.ts
 //
-// Contract tests for SSO_PROVIDER_METADATA constant and domainSsoConfigCanonical schema.
+// Contract tests for SSO_PROVIDER_METADATA constant and customDomainSsoConfigCanonical schema.
 // Verifies frontend metadata matches backend PROVIDER_METADATA constant in:
-// lib/onetime/models/domain_sso_config.rb
+// lib/onetime/models/custom_domain/sso_config.rb
 //
 // These tests ensure the frontend has accurate information about which
 // providers require domain filtering vs having IdP-controlled access.
 //
-// Note: SSO config moved from per-org to per-domain in #2786. The schema was
-// renamed to domainSsoConfigCanonical; orgSsoConfigCanonical is a deprecated alias.
+// Note: SSO config is per-domain. Model is CustomDomain::SsoConfig (#2786, #2801).
 
 import { describe, expect, it } from 'vitest';
 import {
   SSO_PROVIDER_METADATA,
   ssoProviderTypeSchema,
-  orgSsoConfigCanonical,
+  customDomainSsoConfigCanonical,
   type SsoProviderType,
 } from '@/schemas/contracts/sso-config';
 
@@ -48,7 +47,7 @@ describe('SSO_PROVIDER_METADATA constant', () => {
   });
 
   describe('provider-specific values (mirrors backend PROVIDER_METADATA)', () => {
-    // Values must match lib/onetime/models/domain_sso_config.rb PROVIDER_METADATA
+    // Values must match lib/onetime/models/custom_domain/sso_config.rb PROVIDER_METADATA
 
     describe('oidc', () => {
       it('requires domain filter (generic OIDC has no app assignment)', () => {
@@ -106,36 +105,35 @@ describe('SSO_PROVIDER_METADATA constant', () => {
   });
 });
 
-describe('orgSsoConfigCanonical schema', () => {
+describe('customDomainSsoConfigCanonical schema', () => {
   describe('metadata fields', () => {
     it('declares requires_domain_filter field', () => {
-      expect(orgSsoConfigCanonical.shape.requires_domain_filter).toBeDefined();
+      expect(customDomainSsoConfigCanonical.shape.requires_domain_filter).toBeDefined();
     });
 
     it('declares idp_controls_access field', () => {
-      expect(orgSsoConfigCanonical.shape.idp_controls_access).toBeDefined();
+      expect(customDomainSsoConfigCanonical.shape.idp_controls_access).toBeDefined();
     });
 
     it('requires_domain_filter is a boolean', () => {
-      const result = orgSsoConfigCanonical.shape.requires_domain_filter.safeParse(true);
+      const result = customDomainSsoConfigCanonical.shape.requires_domain_filter.safeParse(true);
       expect(result.success).toBe(true);
 
-      const invalidResult = orgSsoConfigCanonical.shape.requires_domain_filter.safeParse('true');
+      const invalidResult = customDomainSsoConfigCanonical.shape.requires_domain_filter.safeParse('true');
       expect(invalidResult.success).toBe(false);
     });
 
     it('idp_controls_access is a boolean', () => {
-      const result = orgSsoConfigCanonical.shape.idp_controls_access.safeParse(false);
+      const result = customDomainSsoConfigCanonical.shape.idp_controls_access.safeParse(false);
       expect(result.success).toBe(true);
 
-      const invalidResult = orgSsoConfigCanonical.shape.idp_controls_access.safeParse('false');
+      const invalidResult = customDomainSsoConfigCanonical.shape.idp_controls_access.safeParse('false');
       expect(invalidResult.success).toBe(false);
     });
   });
 
   describe('full payload parsing with metadata fields', () => {
-    // Note: Schema was renamed from orgSsoConfigCanonical to domainSsoConfigCanonical
-    // and uses domain_id instead of org_id (per #2786 domain SSO migration)
+    // Schema: customDomainSsoConfigCanonical (keyed by domain_id)
     const validPayload = {
       domain_id: 'dm_123',
       provider_type: 'github' as SsoProviderType,
@@ -153,7 +151,7 @@ describe('orgSsoConfigCanonical schema', () => {
     };
 
     it('parses payload with GitHub metadata values', () => {
-      const result = orgSsoConfigCanonical.safeParse(validPayload);
+      const result = customDomainSsoConfigCanonical.safeParse(validPayload);
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.requires_domain_filter).toBe(true);
@@ -169,7 +167,7 @@ describe('orgSsoConfigCanonical schema', () => {
         requires_domain_filter: false,
         idp_controls_access: true,
       };
-      const result = orgSsoConfigCanonical.safeParse(entraPayload);
+      const result = customDomainSsoConfigCanonical.safeParse(entraPayload);
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.requires_domain_filter).toBe(false);
@@ -179,13 +177,13 @@ describe('orgSsoConfigCanonical schema', () => {
 
     it('fails when requires_domain_filter is missing', () => {
       const { requires_domain_filter, ...incomplete } = validPayload;
-      const result = orgSsoConfigCanonical.safeParse(incomplete);
+      const result = customDomainSsoConfigCanonical.safeParse(incomplete);
       expect(result.success).toBe(false);
     });
 
     it('fails when idp_controls_access is missing', () => {
       const { idp_controls_access, ...incomplete } = validPayload;
-      const result = orgSsoConfigCanonical.safeParse(incomplete);
+      const result = customDomainSsoConfigCanonical.safeParse(incomplete);
       expect(result.success).toBe(false);
     });
   });

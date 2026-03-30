@@ -21,7 +21,7 @@ RSpec.describe Core::Views::ConfigSerializer do
   include TenantTestFixtures
   include DomainSsoTestFixtures
 
-  # Configure Familia encryption for DomainSsoConfig tests
+  # Configure Familia encryption for CustomDomain::SsoConfig tests
   before(:all) do
     @original_encryption_keys = Familia.encryption_keys&.dup
     @original_key_version = Familia.current_key_version
@@ -162,7 +162,7 @@ RSpec.describe Core::Views::ConfigSerializer do
       end
     end
 
-    describe 'on custom domain with DomainSsoConfig' do
+    describe 'on custom domain with CustomDomain::SsoConfig' do
       let(:custom_domain_obj) do
         instance_double(Onetime::CustomDomain, identifier: domain_id)
       end
@@ -174,10 +174,10 @@ RSpec.describe Core::Views::ConfigSerializer do
         )
       end
 
-      context 'when tenant has enabled DomainSsoConfig' do
+      context 'when tenant has enabled CustomDomain::SsoConfig' do
         let(:domain_sso_config) do
           instance_double(
-            Onetime::DomainSsoConfig,
+            Onetime::CustomDomain::SsoConfig,
             enabled?: true,
             provider_type: 'entra_id',
             display_name: 'Contoso Azure AD'
@@ -188,7 +188,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
-          allow(Onetime::DomainSsoConfig).to receive(:find_by_domain_id)
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
             .with(domain_id)
             .and_return(domain_sso_config)
         end
@@ -208,10 +208,10 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
       end
 
-      context 'when tenant has disabled DomainSsoConfig' do
+      context 'when tenant has disabled CustomDomain::SsoConfig' do
         let(:domain_sso_config) do
           instance_double(
-            Onetime::DomainSsoConfig,
+            Onetime::CustomDomain::SsoConfig,
             enabled?: false,
             provider_type: 'entra_id',
             display_name: 'Contoso Azure AD'
@@ -222,7 +222,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
-          allow(Onetime::DomainSsoConfig).to receive(:find_by_domain_id)
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
             .with(domain_id)
             .and_return(domain_sso_config)
         end
@@ -260,12 +260,12 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
       end
 
-      context 'when tenant has no DomainSsoConfig' do
+      context 'when tenant has no CustomDomain::SsoConfig' do
         before do
           allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
-          allow(Onetime::DomainSsoConfig).to receive(:find_by_domain_id)
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
             .with(domain_id)
             .and_return(nil)
         end
@@ -316,10 +316,10 @@ RSpec.describe Core::Views::ConfigSerializer do
         )
       end
 
-      context 'when CustomDomain exists with DomainSsoConfig' do
+      context 'when CustomDomain exists with CustomDomain::SsoConfig' do
         let(:domain_sso_config) do
           instance_double(
-            Onetime::DomainSsoConfig,
+            Onetime::CustomDomain::SsoConfig,
             enabled?: true,
             provider_type: 'entra_id',
             display_name: 'Acme Corp Entra'
@@ -330,12 +330,12 @@ RSpec.describe Core::Views::ConfigSerializer do
           allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
-          allow(Onetime::DomainSsoConfig).to receive(:find_by_domain_id)
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
             .with(domain_id)
             .and_return(domain_sso_config)
         end
 
-        it 'resolves tenant config from DomainSsoConfig' do
+        it 'resolves tenant config from CustomDomain::SsoConfig' do
           result = described_class.build_sso_config(custom_domain_view_vars)
 
           expect(result['enabled']).to be true

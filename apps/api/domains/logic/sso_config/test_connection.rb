@@ -61,7 +61,7 @@ module DomainsAPI
           issuer
         ].freeze
 
-        VALID_PROVIDER_TYPES = Onetime::DomainSsoConfig::PROVIDER_TYPES.freeze
+        VALID_PROVIDER_TYPES = Onetime::CustomDomain::SsoConfig::PROVIDER_TYPES.freeze
 
         def process_params
           @domain_id     = sanitize_identifier(params['extid'])

@@ -57,7 +57,7 @@ module DomainsAPI
         # Compares fields and returns a hash indicating what changed.
         # Sensitive fields only indicate whether they changed, not their values.
         #
-        # @param old_config [Onetime::DomainSsoConfig] Existing configuration
+        # @param old_config [Onetime::CustomDomain::SsoConfig] Existing configuration
         # @param new_params [Hash] New parameter values
         # @return [Hash] Changes hash with field names as keys
         def compute_sso_changes(old_config, new_params)
@@ -125,7 +125,7 @@ module DomainsAPI
 
         # Extract old value from config for a field.
         #
-        # @param config [Onetime::DomainSsoConfig] Config object
+        # @param config [Onetime::CustomDomain::SsoConfig] Config object
         # @param field [String] Field name
         # @return [Object] Field value
         def extract_old_value(config, field)

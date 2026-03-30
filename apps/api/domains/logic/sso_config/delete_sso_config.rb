@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/domain_sso_config'
+require 'onetime/models/custom_domain/sso_config'
 require_relative 'base'
 require_relative 'audit_logger'
 
@@ -39,7 +39,7 @@ module DomainsAPI
           authorize_domain_sso!(@domain_id)
 
           # Verify config exists and capture provider_type for audit
-          existing_config = Onetime::DomainSsoConfig.find_by_domain_id(@custom_domain.identifier)
+          existing_config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(@custom_domain.identifier)
           unless existing_config
             raise_not_found("SSO configuration not found for domain: #{@domain_id}")
           end
@@ -51,7 +51,7 @@ module DomainsAPI
           OT.ld "[DeleteSsoConfig] Deleting SSO config for domain #{@domain_id} by user #{cust.extid}"
 
           # Delete the config atomically
-          deleted = Onetime::DomainSsoConfig.delete_for_domain!(@custom_domain.identifier)
+          deleted = Onetime::CustomDomain::SsoConfig.delete_for_domain!(@custom_domain.identifier)
 
           if deleted
             log_sso_audit_event(
