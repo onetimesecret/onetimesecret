@@ -445,6 +445,189 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
     end
   end
 
+  describe '#find_domain_id (private, paginated)' do
+    let(:api_key) { 'SG.test-api-key-example' }
+
+    def make_domains(count, start_id: 1, domain_prefix: 'other')
+      count.times.map do |i|
+        { 'id' => start_id + i, 'domain' => "#{domain_prefix}#{start_id + i}.com" }
+      end
+    end
+
+    context 'when domain is found on the first page' do
+      before do
+        domains = make_domains(3) + [{ 'id' => 42, 'domain' => 'example.com' }]
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=0', api_key: api_key)
+          .and_return({ success: true, data: domains })
+      end
+
+      it 'returns the domain id' do
+        result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
+
+        expect(result).to eq(42)
+      end
+
+      it 'makes only one API call' do
+        strategy.send(:find_domain_id, 'example.com', api_key: api_key)
+
+        expect(strategy).to have_received(:get_request).once
+      end
+    end
+
+    context 'when domain is found on the second page' do
+      before do
+        # First page: 50 domains, none matching
+        page1 = make_domains(50, start_id: 1)
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=0', api_key: api_key)
+          .and_return({ success: true, data: page1 })
+
+        # Second page: fewer than 50, includes the target
+        page2 = make_domains(5, start_id: 51) + [{ 'id' => 99, 'domain' => 'example.com' }]
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=50', api_key: api_key)
+          .and_return({ success: true, data: page2 })
+      end
+
+      it 'returns the domain id from the second page' do
+        result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
+
+        expect(result).to eq(99)
+      end
+
+      it 'makes exactly two API calls' do
+        strategy.send(:find_domain_id, 'example.com', api_key: api_key)
+
+        expect(strategy).to have_received(:get_request).twice
+      end
+    end
+
+    context 'when domain is not found across all pages' do
+      before do
+        # First page: exactly 50 (triggers next page)
+        page1 = make_domains(50, start_id: 1)
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=0', api_key: api_key)
+          .and_return({ success: true, data: page1 })
+
+        # Second page: fewer than 50 (last page, no match)
+        page2 = make_domains(10, start_id: 51)
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=50', api_key: api_key)
+          .and_return({ success: true, data: page2 })
+      end
+
+      it 'returns nil' do
+        result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
+
+        expect(result).to be_nil
+      end
+    end
+
+    context 'when first page has fewer than limit results (single page)' do
+      before do
+        domains = make_domains(3)
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=0', api_key: api_key)
+          .and_return({ success: true, data: domains })
+      end
+
+      it 'returns nil without requesting a second page' do
+        result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
+
+        expect(result).to be_nil
+        expect(strategy).to have_received(:get_request).once
+      end
+    end
+
+    context 'when first page returns exactly limit results (boundary)' do
+      before do
+        page1 = make_domains(50, start_id: 1)
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=0', api_key: api_key)
+          .and_return({ success: true, data: page1 })
+
+        # Second page is empty
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=50', api_key: api_key)
+          .and_return({ success: true, data: [] })
+      end
+
+      it 'requests a second page since size == limit' do
+        strategy.send(:find_domain_id, 'example.com', api_key: api_key)
+
+        expect(strategy).to have_received(:get_request).twice
+      end
+
+      it 'returns nil when second page is empty' do
+        result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
+
+        expect(result).to be_nil
+      end
+    end
+
+    context 'when API returns failure on first request' do
+      before do
+        allow(strategy).to receive(:get_request)
+          .and_return({ success: false, error: 'Unauthorized' })
+      end
+
+      it 'returns nil' do
+        result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
+
+        expect(result).to be_nil
+      end
+    end
+
+    context 'when API returns failure on second page' do
+      before do
+        page1 = make_domains(50, start_id: 1)
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=0', api_key: api_key)
+          .and_return({ success: true, data: page1 })
+
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=50', api_key: api_key)
+          .and_return({ success: false, error: 'Rate limited' })
+      end
+
+      it 'returns nil' do
+        result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
+
+        expect(result).to be_nil
+      end
+    end
+
+    context 'when API returns non-array data' do
+      before do
+        allow(strategy).to receive(:get_request)
+          .and_return({ success: true, data: { 'error' => 'unexpected format' } })
+      end
+
+      it 'returns nil' do
+        result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
+
+        expect(result).to be_nil
+      end
+    end
+
+    context 'when API returns empty first page' do
+      before do
+        allow(strategy).to receive(:get_request)
+          .with('/whitelabel/domains?limit=50&offset=0', api_key: api_key)
+          .and_return({ success: true, data: [] })
+      end
+
+      it 'returns nil without requesting more pages' do
+        result = strategy.send(:find_domain_id, 'example.com', api_key: api_key)
+
+        expect(result).to be_nil
+        expect(strategy).to have_received(:get_request).once
+      end
+    end
+  end
+
   describe 'APIError' do
     it 'carries status_code and response_body' do
       error = described_class::APIError.new(
