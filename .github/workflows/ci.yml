@@ -287,7 +287,7 @@ jobs:
         ports:
           - 2121:6379
       rabbitmq: &rabbitmq-service
-        image: rabbitmq:4.0
+        image: rabbitmq:4.1@sha256:cfabf665c85af82e34f5a9a3abe3d64f10fe70ffed56db5629241fc602b5ccf5
         options: >-
           --health-cmd "rabbitmq-diagnostics check_port_connectivity"
           --health-interval 10s
