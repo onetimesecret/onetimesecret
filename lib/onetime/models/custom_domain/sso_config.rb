@@ -208,7 +208,9 @@ module Onetime
       #
       # @return [CustomDomain, nil] The domain or nil if not found
       def custom_domain
-        Onetime::CustomDomain.load(domain_id)
+        Onetime::CustomDomain.find_by_identifier(domain_id)
+      rescue Onetime::RecordNotFound
+        nil
       end
 
       # Load the owning Organization via the CustomDomain.

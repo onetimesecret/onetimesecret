@@ -191,7 +191,7 @@
     "text": "Extended Default Expiration",
     "sha256": "19b19637"
   },
-  "web.billing.overview.entitlements.custom_mail_defaults": {
+  "web.billing.overview.entitlements.custom_mail_sender": {
     "text": "Custom Mail Defaults",
     "sha256": "95aebfb9"
   },

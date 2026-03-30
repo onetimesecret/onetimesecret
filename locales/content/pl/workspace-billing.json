@@ -187,7 +187,7 @@
     "text": "Wydłużone domyślne wygasanie",
     "sha256": "19b19637"
   },
-  "web.billing.overview.entitlements.custom_mail_defaults": {
+  "web.billing.overview.entitlements.custom_mail_sender": {
     "text": "Niestandardowe domyślne ustawienia e-mail",
     "sha256": "95aebfb9"
   },

@@ -17,7 +17,7 @@ const FALLBACK_DISPLAY_KEYS: Record<string, string> = {
   [ENTITLEMENTS.CUSTOM_DOMAINS]: 'web.billing.overview.entitlements.custom_domains',
   [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'web.billing.overview.entitlements.custom_privacy_defaults',
   [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'web.billing.overview.entitlements.extended_default_expiration',
-  [ENTITLEMENTS.CUSTOM_MAIL_DEFAULTS]: 'web.billing.overview.entitlements.custom_mail_defaults',
+  [ENTITLEMENTS.CUSTOM_MAIL_SENDER]: 'web.billing.overview.entitlements.custom_mail_sender',
   [ENTITLEMENTS.CUSTOM_BRANDING]: 'web.billing.overview.entitlements.custom_branding',
   [ENTITLEMENTS.HOMEPAGE_SECRETS]: 'web.billing.overview.entitlements.homepage_secrets',
   [ENTITLEMENTS.INCOMING_SECRETS]: 'web.billing.overview.entitlements.incoming_secrets',
@@ -48,7 +48,7 @@ const FALLBACK_ENTITLEMENT_TO_PLAN: Record<string, string> = {
   [ENTITLEMENTS.HOMEPAGE_SECRETS]: 'identity_v1',
   [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'identity_v1',
   [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'identity_v1',
-  [ENTITLEMENTS.CUSTOM_MAIL_DEFAULTS]: 'identity_v1',
+  [ENTITLEMENTS.CUSTOM_MAIL_SENDER]: 'identity_v1',
   [ENTITLEMENTS.INCOMING_SECRETS]: 'identity_v1',
   [ENTITLEMENTS.AUDIT_LOGS]: 'multi_team_v1',
 };

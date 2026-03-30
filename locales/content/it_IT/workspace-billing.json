@@ -187,7 +187,7 @@
     "text": "Scadenza predefinita estesa",
     "sha256": "19b19637"
   },
-  "web.billing.overview.entitlements.custom_mail_defaults": {
+  "web.billing.overview.entitlements.custom_mail_sender": {
     "text": "Impostazioni email personalizzate",
     "sha256": "95aebfb9"
   },

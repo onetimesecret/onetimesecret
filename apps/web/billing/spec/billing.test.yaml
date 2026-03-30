@@ -67,6 +67,10 @@ entitlements:
     category: collaboration
     description: Can create and manage teams
 
+  custom_mail_sender:
+    category: branding
+    description: Custom email sender address for domain-specific notifications
+
   manage_members:
     category: collaboration
     description: Can add and manage team members
@@ -118,6 +122,7 @@ plans:
       - extended_default_expiration
       - custom_branding
       - homepage_secrets
+      - custom_mail_sender
 
     limits:
       teams: 0

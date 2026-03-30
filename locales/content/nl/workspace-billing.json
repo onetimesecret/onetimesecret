@@ -187,7 +187,7 @@
     "text": "Uitgebreide standaardverlooptijd",
     "sha256": "19b19637"
   },
-  "web.billing.overview.entitlements.custom_mail_defaults": {
+  "web.billing.overview.entitlements.custom_mail_sender": {
     "text": "Aangepaste e-mailstandaarden",
     "sha256": "95aebfb9"
   },

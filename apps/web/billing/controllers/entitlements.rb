@@ -136,7 +136,7 @@ module Billing
       #       "core": ["api_access", "custom_privacy_defaults", "extended_default_expiration"],
       #       "collaboration": ["manage_orgs", "manage_teams", "manage_members"],
       #       "infrastructure": ["custom_domains", "custom_branding", "homepage_secrets"],
-      #       "communication": ["incoming_secrets", "custom_mail_defaults"],
+      #       "communication": ["incoming_secrets", "custom_mail_sender"],
       #       "advanced": ["audit_logs"]
       #     },
       #     "plans": {
