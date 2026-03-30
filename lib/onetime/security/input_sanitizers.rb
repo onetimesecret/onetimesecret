@@ -66,13 +66,22 @@ module Onetime
       # @return [String] Sanitized plain text with HTML stripped, entities decoded,
       #   and whitespace normalized
       def sanitize_plain_text(value, max_length: nil)
-        # 1. Decode HTML entities so Sanitize sees real tags (prevents entity-encoded XSS bypass)
-        decoded  = CGI.unescapeHTML(value.to_s)
-        # 2. Strip HTML tags (XSS protection)
-        stripped = Sanitize.fragment(decoded)
-        # 3. Decode entities Sanitize introduced (e.g. & → &amp;) so we store raw text
-        result   = CGI.unescapeHTML(stripped)
-        result   = result.strip.gsub(WHITESPACE_NORMALIZE_PATTERN, ' ')
+        # Decode-then-sanitize in a loop until output stabilizes. A single
+        # pass misses multiply-encoded payloads (e.g. &amp;lt;script&amp;gt;)
+        # where step-1 decode reveals entity-encoded tags that Sanitize
+        # preserves, and a final blanket decode would re-introduce them.
+        result            = value.to_s
+        max_decode_passes = 10
+        max_decode_passes.times do
+          decoded   = CGI.unescapeHTML(result)
+          sanitized = Sanitize.fragment(decoded)
+          break if sanitized == result
+
+          result = sanitized
+        end
+        # Sanitize encodes literal & as &amp; — decode just that entity
+        # so we store raw text (frontend frameworks handle output encoding)
+        result            = result.gsub('&amp;', '&').strip.gsub(WHITESPACE_NORMALIZE_PATTERN, ' ')
         max_length ? result.slice(0, max_length) : result
       end
 

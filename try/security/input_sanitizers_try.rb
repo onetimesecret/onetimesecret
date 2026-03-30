@@ -171,6 +171,18 @@ result.include?('<')
 @sanitizer.sanitize_plain_text('R&D <b>Team</b>')
 #=> 'R&D Team'
 
+## sanitize_plain_text: strips double-encoded script tags (XSS bypass prevention)
+@sanitizer.sanitize_plain_text('&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;')
+#=> ''
+
+## sanitize_plain_text: strips double-encoded img onerror (XSS bypass prevention)
+@sanitizer.sanitize_plain_text('&amp;lt;img src=x onerror=alert(1)&amp;gt;')
+#=> ''
+
+## sanitize_plain_text: collapses deeply nested entity encoding
+@sanitizer.sanitize_plain_text('&amp;amp;amp;')
+#=> '&'
+
 ## sanitize_email: lowercases email
 @sanitizer.sanitize_email('User@Example.COM')
 #=> 'user@example.com'
