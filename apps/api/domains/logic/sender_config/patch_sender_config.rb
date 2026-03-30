@@ -227,8 +227,8 @@ module DomainsAPI
             @mailer_config.verification_status = VERIFICATION_STATUS_PENDING
           end
 
-          # Only update api_key if provided (preserves existing otherwise)
-          @mailer_config.api_key = @api_key unless @api_key.to_s.empty?
+          # Only update api_key if explicitly provided and non-empty
+          @mailer_config.api_key = @api_key if @api_key_provided && !@api_key.to_s.empty?
 
           # Update timestamp for partial update
           @mailer_config.updated = Familia.now.to_i
