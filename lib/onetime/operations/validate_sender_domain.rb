@@ -62,10 +62,13 @@ module Onetime
 
       # @param mailer_config [Onetime::CustomDomain::MailerConfig] The sender config to validate
       # @param strategy [Object, nil] Optional strategy override; auto-selected from provider if nil
+      # @param options [Hash] Provider-specific options forwarded to the strategy
+      #   constructor (e.g. region: for SES, subdomain: for SendGrid)
       # @param persist [Boolean] Whether to update the model with verification results
-      def initialize(mailer_config:, strategy: nil, persist: true)
+      def initialize(mailer_config:, strategy: nil, options: {}, persist: true)
         @mailer_config = mailer_config
         @strategy      = strategy
+        @options       = options
         @persist       = persist
       end
 
@@ -75,6 +78,7 @@ module Onetime
       #
       # @return [Result] Verification result
       def call
+        domain_name   = nil
         custom_domain = load_custom_domain
         domain_name   = custom_domain&.display_domain || extract_domain_from_address
 
@@ -113,6 +117,8 @@ module Onetime
           persisted: persisted,
           error: nil,
         )
+      rescue ArgumentError
+        raise # programming/config error — don't mask as validation failure
       rescue StandardError => ex
         logger.error 'Sender domain validation failed',
           domain: domain_name,
@@ -138,9 +144,10 @@ module Onetime
       #
       # @param mailer_config [Onetime::CustomDomain::MailerConfig] The sender config
       # @param strategy [Object, nil] Optional strategy override
+      # @param options [Hash] Provider-specific options (e.g. region: for SES)
       # @return [Array<Hash>] Required DNS records [{type:, host:, value:, purpose:}, ...]
-      def self.required_records(mailer_config:, strategy: nil)
-        resolved_strategy = strategy || resolve_strategy(mailer_config.provider)
+      def self.required_records(mailer_config:, strategy: nil, options: {})
+        resolved_strategy = strategy || resolve_strategy(mailer_config.provider, options)
         resolved_strategy.required_dns_records(mailer_config)
       end
 
@@ -151,15 +158,16 @@ module Onetime
       #
       # @return [Object] A strategy responding to #verify_dns_records and #required_dns_records
       def strategy
-        @strategy ||= self.class.send(:resolve_strategy, @mailer_config.provider)
+        @strategy ||= self.class.send(:resolve_strategy, @mailer_config.provider, @options)
       end
 
       # Factory lookup for sender strategies by provider name.
       #
       # @param provider [String] Provider type (e.g. "smtp", "ses", "sendgrid")
+      # @param options [Hash] Provider-specific options forwarded to the strategy
       # @return [Object] Strategy instance
-      private_class_method def self.resolve_strategy(provider)
-        Onetime::DomainValidation::SenderStrategies::SenderStrategy.for_provider(provider)
+      private_class_method def self.resolve_strategy(provider, options = {})
+        Onetime::DomainValidation::SenderStrategies::SenderStrategy.for_provider(provider, options)
       end
 
       # Load the CustomDomain associated with this mailer config.

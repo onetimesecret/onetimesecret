@@ -22,6 +22,10 @@ module Onetime
         SPF_INCLUDE       = 'sendgrid.net'
         DEFAULT_SUBDOMAIN = 'em'
 
+        def self.accepted_options
+          [:subdomain].freeze
+        end
+
         # @param subdomain [String] SendGrid branding subdomain (default: "em")
         def initialize(subdomain: DEFAULT_SUBDOMAIN)
           @subdomain = subdomain

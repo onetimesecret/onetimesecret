@@ -269,6 +269,81 @@ rescue ArgumentError => e
 end
 #=> true
 
+# --- accepted_options whitelist (#2833) ---
+
+## SES declares accepted_options as [:region]
+Onetime::DomainValidation::SenderStrategies::SesValidation.accepted_options
+#=> [:region]
+
+## SendGrid declares accepted_options as [:subdomain]
+Onetime::DomainValidation::SenderStrategies::SendgridValidation.accepted_options
+#=> [:subdomain]
+
+## Lettermint inherits empty accepted_options from BaseStrategy
+Onetime::DomainValidation::SenderStrategies::LettermintValidation.accepted_options
+#=> []
+
+## Factory rejects unknown option for SES with clear error
+begin
+  @factory.for_provider('ses', subdomain: 'mail')
+  'unexpected_success'
+rescue ArgumentError => e
+  e.message.include?("Unknown option(s)") && e.message.include?("'ses'")
+end
+#=> true
+
+## Factory rejects unknown option for SendGrid with clear error
+begin
+  @factory.for_provider('sendgrid', region: 'eu-west-1')
+  'unexpected_success'
+rescue ArgumentError => e
+  e.message.include?("Unknown option(s)") && e.message.include?("'sendgrid'")
+end
+#=> true
+
+## Factory rejects any option for Lettermint (accepts none)
+begin
+  @factory.for_provider('lettermint', region: 'eu-west-1')
+  'unexpected_success'
+rescue ArgumentError => e
+  e.message.include?("Unknown option(s)") && e.message.include?("Accepted: none")
+end
+#=> true
+
+# --- Options passthrough (#2833) ---
+
+## SES strategy accepts region via factory options
+@ses_eu = @factory.for_provider('ses', region: 'eu-west-1')
+@ses_eu_records = @ses_eu.required_dns_records(@mock_mailer_config)
+@ses_eu_mx = @ses_eu_records.find { |r| r[:type] == 'MX' }
+@ses_eu_mx[:value].include?('eu-west-1')
+#=> true
+
+## SES strategy defaults to us-east-1 when no region option given
+@ses_default = @factory.for_provider('ses')
+@ses_default_records = @ses_default.required_dns_records(@mock_mailer_config)
+@ses_default_mx = @ses_default_records.find { |r| r[:type] == 'MX' }
+@ses_default_mx[:value].include?('us-east-1')
+#=> true
+
+## SendGrid strategy accepts subdomain via factory options
+@sg_custom = @factory.for_provider('sendgrid', subdomain: 'mail')
+@sg_custom_records = @sg_custom.required_dns_records(@mock_mailer_config)
+@sg_custom_link = @sg_custom_records.find { |r| r[:purpose]&.include?('branding') || r[:host]&.start_with?('mail.') }
+@sg_custom_link[:host].start_with?('mail.')
+#=> true
+
+## SendGrid custom subdomain also appears in DKIM CNAME values
+@sg_custom_dkim = @sg_custom_records.select { |r| r[:type] == 'CNAME' && r[:host].include?('._domainkey.') }
+@sg_custom_dkim.all? { |r| r[:value].include?('.mail.') }
+#=> true
+
+## Lettermint strategy accepts empty options without error
+@factory.for_provider('lettermint', {}).class
+#=> Onetime::DomainValidation::SenderStrategies::LettermintValidation
+
+# --- Edge case: resolve_domain with missing custom_domain ---
+
 ## resolve_domain raises ArgumentError when display_domain is empty
 @empty_domain = Struct.new(:display_domain, :identifier).new('', 'cd:empty')
 @empty_config = Struct.new(:custom_domain, :domain_id).new(@empty_domain, 'cd:empty')

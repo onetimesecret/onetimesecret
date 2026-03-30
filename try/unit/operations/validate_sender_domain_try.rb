@@ -282,6 +282,50 @@ Onetime::Operations::ValidateSenderDomain.required_records(
 ).size
 #=> 3
 
+# --- Options forwarding through operation (#2833) ---
+
+## required_records forwards options to auto-resolved SES strategy
+@ses_eu_records = Onetime::Operations::ValidateSenderDomain.required_records(
+  mailer_config: @config,
+  options: { region: 'eu-west-1' },
+)
+@ses_eu_mx = @ses_eu_records.find { |r| r[:type] == 'MX' }
+@ses_eu_mx[:value].include?('eu-west-1')
+#=> true
+
+## required_records uses default region when no options given
+@ses_default_records = Onetime::Operations::ValidateSenderDomain.required_records(
+  mailer_config: @config,
+)
+@ses_default_mx = @ses_default_records.find { |r| r[:type] == 'MX' }
+@ses_default_mx[:value].include?('us-east-1')
+#=> true
+
+## required_records raises ArgumentError for wrong-provider options
+begin
+  Onetime::Operations::ValidateSenderDomain.required_records(
+    mailer_config: @config,
+    options: { subdomain: 'mail' },
+  )
+  'unexpected_success'
+rescue ArgumentError => e
+  e.message.include?("Unknown option(s)")
+end
+#=> true
+
+## ValidateSenderDomain.new re-raises ArgumentError from bad options
+begin
+  Onetime::Operations::ValidateSenderDomain.new(
+    mailer_config: @config,
+    options: { bogus: 'value' },
+    persist: false,
+  ).call
+  'unexpected_success'
+rescue ArgumentError => e
+  e.message.include?("Unknown option(s)")
+end
+#=> true
+
 # --- Result to_h ---
 
 ## to_h returns a Hash

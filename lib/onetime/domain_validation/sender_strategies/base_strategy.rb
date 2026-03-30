@@ -18,6 +18,15 @@ module Onetime
       # name used in record generation and verification.
       #
       class BaseStrategy
+        # Returns the keyword arguments accepted by this strategy's constructor.
+        # Subclasses override to declare their options (e.g. [:region]).
+        # The factory uses this to validate options before splatting.
+        #
+        # @return [Array<Symbol>] Accepted keyword argument names
+        def self.accepted_options
+          [].freeze
+        end
+
         # Returns the DNS records the customer must configure for this provider.
         #
         # @param mailer_config [Onetime::CustomDomain::MailerConfig]
