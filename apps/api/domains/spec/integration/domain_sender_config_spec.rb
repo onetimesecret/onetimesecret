@@ -556,8 +556,9 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
 
         expect(record).to have_key('verification_status')
         expect(record).to have_key('verified')
-        expect(record).to have_key('dkim_record')
-        expect(record).to have_key('spf_record')
+        expect(record).to have_key('sending_mode')
+        expect(record).to have_key('dns_records')
+        expect(record).to have_key('provider_dns_data')
       end
     end
 
@@ -904,6 +905,211 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
   end
 
   # ==========================================================================
+  # POST /api/domains/:extid/email-config/provision - Provision Sender Domain
+  # ==========================================================================
+
+  describe 'POST /api/domains/:extid/email-config/provision' do
+    before do
+      enable_sender_feature_flag
+    end
+
+    def provision_path(domain_extid)
+      "/api/domains/#{domain_extid}/email-config/provision"
+    end
+
+    context 'authorization checks' do
+      before do
+        Onetime::CustomDomain::MailerConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          provider: 'ses',
+          from_address: 'provision-test@acme-corp.example.com',
+          api_key: 'provision-test-key',
+          enabled: true,
+        )
+      end
+
+      it 'returns 401 for unauthenticated requests' do
+        header 'Accept', 'application/json'
+        header 'Content-Type', 'application/json'
+        post provision_path(test_custom_domain.extid)
+
+        expect(last_response.status).to eq(401)
+      end
+
+      it 'returns 403 for non-owner of organization' do
+        login_as(test_non_owner)
+
+        csrf_post provision_path(test_custom_domain.extid), {}
+
+        expect(last_response.status).to eq(403)
+        body = json_body
+        expect(body['message']).to include('owner')
+      end
+
+      it 'returns 403 when organization lacks custom_mail_sender entitlement' do
+        allow_any_instance_of(Onetime::Organization).to receive(:can?).with('custom_mail_sender').and_return(false)
+
+        login_as(test_owner)
+        csrf_post provision_path(test_custom_domain.extid), {}
+
+        expect(last_response.status).to eq(403)
+        body = json_body
+        expect(body['message']).to include('custom_mail_sender')
+      end
+
+      it 'returns 404 for non-existent domain' do
+        login_as(test_owner)
+        csrf_post provision_path('nonexistent-domain-extid'), {}
+
+        expect(last_response.status).to eq(404)
+        body = json_body
+        expect(body['message']).to include('Domain not found')
+      end
+    end
+
+    context 'precondition checks' do
+      before do
+        login_as(test_owner)
+      end
+
+      it 'returns 404 when sender config does not exist' do
+        csrf_post provision_path(test_custom_domain.extid), {}
+
+        expect(last_response.status).to eq(404)
+        body = json_body
+        expect(body['message']).to include('Sender configuration not found')
+      end
+
+      it 'returns 422 when provider is not configured' do
+        # Create config directly to bypass validation that prevents empty provider
+        config = Onetime::CustomDomain::MailerConfig.new(domain_id: test_custom_domain.identifier)
+        config.provider = ''  # Empty provider after creation
+        config.from_address = 'noprovider@acme-corp.example.com'
+        config.created = Familia.now.to_i
+        config.updated = Familia.now.to_i
+        config.save
+
+        csrf_post provision_path(test_custom_domain.extid), {}
+
+        expect(last_response.status).to eq(422)
+        body = json_body
+        expect(body['message']).to include('Provider')
+      end
+    end
+
+    context 'successful provisioning (mocked operation)' do
+      let!(:existing_config) do
+        config = Onetime::CustomDomain::MailerConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          provider: 'ses',
+          from_name: 'Provision Test Sender',
+          from_address: 'provision@acme-corp.example.com',
+          api_key: 'provision-test-key',
+          enabled: true,
+        )
+        Onetime::CustomDomain::MailerConfig.load(test_custom_domain.identifier)
+      end
+
+      before do
+        login_as(test_owner)
+
+        # Mock the ProvisionSenderDomain operation to avoid real provider API calls
+        mock_result = Onetime::Operations::ProvisionSenderDomain::Result.new(
+          success: true,
+          dns_records: [
+            { type: 'CNAME', name: 'token1._domainkey.acme-corp.example.com', value: 'token1.dkim.amazonses.com' },
+            { type: 'CNAME', name: 'token2._domainkey.acme-corp.example.com', value: 'token2.dkim.amazonses.com' },
+            { type: 'CNAME', name: 'token3._domainkey.acme-corp.example.com', value: 'token3.dkim.amazonses.com' },
+          ],
+          provider_data: {
+            dkim_tokens: %w[token1 token2 token3],
+            region: 'us-east-1',
+            identity: 'acme-corp.example.com',
+          },
+          error: nil,
+        )
+
+        allow_any_instance_of(Onetime::Operations::ProvisionSenderDomain).to receive(:call).and_return(mock_result)
+      end
+
+      it 'returns 200 with dns_records array' do
+        csrf_post provision_path(test_custom_domain.extid), {}
+
+        expect(last_response.status).to eq(200)
+
+        body = json_body
+        expect(body['dns_records']).to be_an(Array)
+        expect(body['dns_records'].size).to eq(3)
+      end
+
+      it 'returns dns_records with type, name, value keys' do
+        csrf_post provision_path(test_custom_domain.extid), {}
+
+        body = json_body
+        record = body['dns_records'].first
+
+        expect(record).to have_key('type')
+        expect(record).to have_key('name')
+        expect(record).to have_key('value')
+        expect(record['type']).to eq('CNAME')
+      end
+
+      it 'returns success message' do
+        csrf_post provision_path(test_custom_domain.extid), {}
+
+        body = json_body
+        expect(body['message']).to include('provisioned successfully')
+      end
+
+      it 'includes updated sender_config in response' do
+        csrf_post provision_path(test_custom_domain.extid), {}
+
+        body = json_body
+        expect(body).to have_key('record')
+        expect(body['record']['provider']).to eq('ses')
+        expect(body['record']['from_address']).to eq('provision@acme-corp.example.com')
+      end
+    end
+
+    context 'provisioning failure (mocked operation)' do
+      let!(:existing_config) do
+        Onetime::CustomDomain::MailerConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          provider: 'ses',
+          from_address: 'fail@acme-corp.example.com',
+          api_key: 'fail-test-key',
+          enabled: true,
+        )
+        Onetime::CustomDomain::MailerConfig.load(test_custom_domain.identifier)
+      end
+
+      before do
+        login_as(test_owner)
+
+        # Mock a failed operation
+        mock_result = Onetime::Operations::ProvisionSenderDomain::Result.new(
+          success: false,
+          dns_records: [],
+          provider_data: nil,
+          error: 'SES provisioning failed: Daily quota exceeded',
+        )
+
+        allow_any_instance_of(Onetime::Operations::ProvisionSenderDomain).to receive(:call).and_return(mock_result)
+      end
+
+      it 'returns error response when operation fails' do
+        csrf_post provision_path(test_custom_domain.extid), {}
+
+        # The endpoint returns error but may use different status codes
+        # Based on the implementation, errors go through error_response which defaults to 400
+        body = json_body
+        expect(body).to have_key('message')
+        expect(body['message']).to include('Daily quota exceeded')
+      end
+    end
+  end
+
+  # ==========================================================================
   # Response Serialization Tests
   # ==========================================================================
 
@@ -944,8 +1150,9 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         enabled
         verification_status
         verified
-        dkim_record
-        spf_record
+        sending_mode
+        dns_records
+        provider_dns_data
         api_key_masked
         created_at
         updated_at

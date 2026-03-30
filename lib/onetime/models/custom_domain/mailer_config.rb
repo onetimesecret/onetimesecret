@@ -23,6 +23,12 @@
 #   - Changing from_address resets verified_at (DNS verification no longer applies)
 #   - Changing api_key, from_name, or reply_to does NOT reset verified_at
 #
+# DNS Data Storage (two-field design):
+#   - provider_dns_data (jsonkey): Raw provider response hash, shape varies by provider.
+#     Preserved for re-normalization and provider-specific operations.
+#   - dns_records (jsonkey): Normalized Array of record hashes for UI display,
+#     each with :type, :name, :value keys. Populated during provisioning.
+#
 module Onetime
   class CustomDomain < Familia::Horreum
     class MailerConfig < Familia::Horreum
@@ -51,9 +57,23 @@ module Onetime
 
       # DNS verification state
       field :verification_status  # pending, verified, failed
-      field :dkim_record          # DKIM DNS record value
-      field :spf_record           # SPF DNS record value
       field :verified_at          # Timestamp, cleared when from_address changes
+
+      # Sending mode: 'platform' (OTS manages DNS via provider API) or
+      # future modes like 'byodns' (customer manages DNS manually).
+      # Currently only 'platform' is supported.
+      field :sending_mode
+
+      # Provider-specific DNS/identity data returned from provider APIs.
+      # Shape varies by provider:
+      #   SES: { dkim_tokens: [...], region: "us-east-1", identity_arn: "..." }
+      #   SendGrid: { subdomain: "em1234", dns_records: [...] }
+      jsonkey :provider_dns_data
+
+      # Normalized DNS records for UI display.
+      # Uniform array format: [{ type: 'CNAME', name: '...', value: '...' }, ...]
+      # Populated during provisioning from provider-specific dns_records.
+      jsonkey :dns_records
 
       # Encrypted credential storage with domain-bound AAD
       encrypted_field :api_key, aad_fields: [:domain_id]
@@ -68,6 +88,7 @@ module Onetime
       def init
         self.enabled             ||= 'false'
         self.verification_status ||= 'pending'
+        self.sending_mode        ||= 'platform'
       end
 
       # Check if this mailer config is enabled.
@@ -153,6 +174,47 @@ module Onetime
         validation_errors.empty?
       end
 
+      # Check if the sender domain has been provisioned.
+      #
+      # A domain is considered provisioned when dns_records contains
+      # normalized records from the provider API (SES, SendGrid, etc.).
+      #
+      # @return [Boolean] true if dns_records is populated
+      def provisioned?
+        data = dns_records&.value
+        data.is_a?(Array) && !data.empty?
+      end
+
+      # Build DNS records required for email authentication.
+      #
+      # Returns the DNS records that must be configured at the domain registrar.
+      # After provisioning, this returns the actual records from the provider.
+      # Before provisioning, returns an empty array.
+      #
+      # Each record includes:
+      #   - type: DNS record type (CNAME, TXT, etc.)
+      #   - name: DNS hostname
+      #   - value: DNS record value
+      #   - status: Verification status ('pending', 'verified', 'failed')
+      #
+      # @return [Array<Hash>] DNS records for user to configure
+      def required_dns_records
+        return [] unless provisioned?
+
+        data           = dns_records.value
+        current_status = verification_status || 'pending'
+
+        data.map do |record|
+          # Ensure consistent shape: type, name, value, status
+          {
+            type: record['type'] || record[:type],
+            name: record['name'] || record[:name],
+            value: record['value'] || record[:value],
+            status: current_status,
+          }.compact
+        end
+      end
+
       class << self
         # Find mailer config by domain ID.
         #
@@ -215,10 +277,9 @@ module Onetime
           config.reply_to     = attrs[:reply_to] if attrs.key?(:reply_to)
           config.enabled      = attrs[:enabled].to_s if attrs.key?(:enabled)
 
-          # Set DNS verification fields
+          # Set verification and mode fields
           config.verification_status = attrs[:verification_status] if attrs.key?(:verification_status)
-          config.dkim_record         = attrs[:dkim_record] if attrs.key?(:dkim_record)
-          config.spf_record          = attrs[:spf_record] if attrs.key?(:spf_record)
+          config.sending_mode        = attrs[:sending_mode] if attrs.key?(:sending_mode)
 
           # Initialize timestamps
           now            = Familia.now.to_i

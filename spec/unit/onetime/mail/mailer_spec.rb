@@ -269,4 +269,47 @@ RSpec.describe Onetime::Mail::Mailer do
       end
     end
   end
+
+  describe '.provider_credentials' do
+    before do
+      allow(described_class).to receive(:emailer_config).and_return(config)
+    end
+
+    context 'with SES config' do
+      let(:config) do
+        {
+          'region' => 'us-east-1',
+          'user' => 'AKIAEXAMPLE',
+          'pass' => 'secretkey123'
+        }
+      end
+
+      it 'returns SES credentials hash' do
+        result = described_class.provider_credentials('ses')
+        expect(result).to eq(
+          region: 'us-east-1',
+          access_key_id: 'AKIAEXAMPLE',
+          secret_access_key: 'secretkey123'
+        )
+      end
+    end
+
+    context 'with SendGrid config' do
+      let(:config) { { 'sendgrid_api_key' => 'SG.testkey' } }
+
+      it 'returns SendGrid credentials hash' do
+        result = described_class.provider_credentials('sendgrid')
+        expect(result).to eq(api_key: 'SG.testkey')
+      end
+    end
+
+    context 'with unknown provider' do
+      let(:config) { {} }
+
+      it 'returns empty hash' do
+        result = described_class.provider_credentials('unknown')
+        expect(result).to eq({})
+      end
+    end
+  end
 end
