@@ -56,6 +56,10 @@ module Onetime
 
         private
 
+        def logger
+          @logger ||= Onetime.get_logger('SenderStrategies')
+        end
+
         # Resolve the display_domain from a mailer_config's associated CustomDomain.
         #
         # @param mailer_config [Onetime::CustomDomain::MailerConfig]
@@ -89,10 +93,10 @@ module Onetime
           resources = dns.getresources(hostname, Resolv::DNS::Resource::IN::TXT)
           resources.map { |r| r.strings.join }
         rescue Resolv::ResolvError, Resolv::ResolvTimeout => ex
-          OT.ld "[SenderStrategies] TXT lookup failed for #{hostname}: #{ex.message}"
+          logger.debug "[SenderStrategies] TXT lookup failed for #{hostname}: #{ex.message}"
           []
         ensure
-          dns.close if dns && resolver.nil?
+          dns&.close unless resolver
         end
 
         # Query CNAME records for a hostname.
@@ -106,10 +110,10 @@ module Onetime
           resources = dns.getresources(hostname, Resolv::DNS::Resource::IN::CNAME)
           resources.map { |r| r.name.to_s }
         rescue Resolv::ResolvError, Resolv::ResolvTimeout => ex
-          OT.ld "[SenderStrategies] CNAME lookup failed for #{hostname}: #{ex.message}"
+          logger.debug "[SenderStrategies] CNAME lookup failed for #{hostname}: #{ex.message}"
           []
         ensure
-          dns.close if dns && resolver.nil?
+          dns&.close unless resolver
         end
 
         # Query MX records for a hostname.
@@ -123,10 +127,10 @@ module Onetime
           resources = dns.getresources(hostname, Resolv::DNS::Resource::IN::MX)
           resources.map { |r| r.exchange.to_s }
         rescue Resolv::ResolvError, Resolv::ResolvTimeout => ex
-          OT.ld "[SenderStrategies] MX lookup failed for #{hostname}: #{ex.message}"
+          logger.debug "[SenderStrategies] MX lookup failed for #{hostname}: #{ex.message}"
           []
         ensure
-          dns.close if dns && resolver.nil?
+          dns&.close unless resolver
         end
 
         # Verify a single DNS record by comparing expected value against live DNS.

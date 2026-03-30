@@ -123,15 +123,18 @@ end
 
 ## SES SPF record includes amazonses.com
 @ses_spf = @ses_records.find { |r| r[:type] == 'TXT' }
+# SPF TXT record value assertion, not URL sanitization (CodeQL rb/incomplete-url-substring-sanitization)
 @ses_spf[:value].include?('amazonses.com')
 #=> true
 
 ## SES MX record includes amazonaws.com
 @ses_mx = @ses_records.find { |r| r[:type] == 'MX' }
+# MX record value assertion, not URL sanitization (CodeQL rb/incomplete-url-substring-sanitization)
 @ses_mx[:value].include?('amazonaws.com')
 #=> true
 
 ## SES records all use the domain from mailer_config
+# DNS hostname suffix assertion, not URL sanitization (CodeQL rb/incomplete-url-substring-sanitization)
 @ses_records.all? { |r| r[:host].end_with?('secrets.example.com') }
 #=> true
 
@@ -160,6 +163,7 @@ end
 
 ## SendGrid SPF record includes sendgrid.net
 @sg_spf = @sg_records.find { |r| r[:type] == 'TXT' }
+# SPF TXT record value assertion, not URL sanitization (CodeQL rb/incomplete-url-substring-sanitization)
 @sg_spf[:value].include?('sendgrid.net')
 #=> true
 
@@ -188,6 +192,7 @@ end
 
 ## Lettermint SPF record includes lettermint.com
 @lm_spf = @lm_records.find { |r| r[:type] == 'TXT' }
+# SPF TXT record value assertion, not URL sanitization (CodeQL rb/incomplete-url-substring-sanitization)
 @lm_spf[:value].include?('lettermint.com')
 #=> true
 

@@ -48,6 +48,7 @@ module Onetime
               "Valid options: #{PROVIDER_MAP.keys.join(', ')}"
           end
 
+          # Strategy classes must support no-arg construction (all params have defaults).
           strategy_class.new
         end
       end
