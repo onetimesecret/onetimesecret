@@ -140,10 +140,36 @@ end
 @sanitizer.sanitize_plain_text('<style>body{display:none}</style>Visible')
 #=> 'Visible'
 
-## sanitize_plain_text: handles HTML entities (decoded by Sanitize)
-result = @sanitizer.sanitize_plain_text('&lt;script&gt;')
-result.include?('script')
-#=> true
+## sanitize_plain_text: strips entity-encoded script tags (XSS prevention)
+# Sanitize removes <script> elements entirely (including content)
+@sanitizer.sanitize_plain_text('&lt;script&gt;alert(1)&lt;/script&gt;')
+#=> ''
+
+## sanitize_plain_text: strips numeric entity-encoded tags
+@sanitizer.sanitize_plain_text('&#60;script&#62;alert(1)&#60;/script&#62;')
+#=> ''
+
+## sanitize_plain_text: strips hex entity-encoded tags
+@sanitizer.sanitize_plain_text('&#x3C;script&#x3E;alert(1)&#x3C;/script&#x3E;')
+#=> ''
+
+## sanitize_plain_text: result never contains angle brackets from entity-encoded input
+result = @sanitizer.sanitize_plain_text('&lt;script&gt;alert(1)&lt;/script&gt;')
+result.include?('<')
+#=> false
+
+## sanitize_plain_text: preserves ampersands without entity encoding
+# Prevents double-encoding when Vue/React re-encodes on render
+@sanitizer.sanitize_plain_text('R&D Department')
+#=> 'R&D Department'
+
+## sanitize_plain_text: preserves multiple special characters
+@sanitizer.sanitize_plain_text('AT&T + O\'Reilly')
+#=> "AT&T + O'Reilly"
+
+## sanitize_plain_text: strips tags but decodes entities from mixed input
+@sanitizer.sanitize_plain_text('R&D <b>Team</b>')
+#=> 'R&D Team'
 
 ## sanitize_email: lowercases email
 @sanitizer.sanitize_email('User@Example.COM')

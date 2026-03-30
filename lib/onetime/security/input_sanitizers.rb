@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'cgi'
 require 'sanitize'
 
 module Onetime
@@ -55,14 +56,23 @@ module Onetime
 
       # Sanitize plain text input (display names, titles, descriptions)
       #
-      # Strips all HTML tags and normalizes whitespace.
-      # Use for text that should never contain HTML markup.
+      # Strips all HTML tags and decodes HTML entities so the stored value
+      # is raw text. Frontend frameworks (Vue, React) handle output encoding
+      # on render, so storing pre-encoded entities causes double-encoding
+      # (e.g. `R&D` → `R&amp;D` in storage → `R&amp;amp;D` on screen).
       #
       # @param value [String, nil] The text value to sanitize
       # @param max_length [Integer, nil] Optional maximum length
-      # @return [String] Sanitized text with HTML stripped and whitespace normalized
+      # @return [String] Sanitized plain text with HTML stripped, entities decoded,
+      #   and whitespace normalized
       def sanitize_plain_text(value, max_length: nil)
-        result = Sanitize.fragment(value.to_s).strip.gsub(WHITESPACE_NORMALIZE_PATTERN, ' ')
+        # 1. Decode HTML entities so Sanitize sees real tags (prevents entity-encoded XSS bypass)
+        decoded  = CGI.unescapeHTML(value.to_s)
+        # 2. Strip HTML tags (XSS protection)
+        stripped = Sanitize.fragment(decoded)
+        # 3. Decode entities Sanitize introduced (e.g. & → &amp;) so we store raw text
+        result   = CGI.unescapeHTML(stripped)
+        result   = result.strip.gsub(WHITESPACE_NORMALIZE_PATTERN, ' ')
         max_length ? result.slice(0, max_length) : result
       end
 
