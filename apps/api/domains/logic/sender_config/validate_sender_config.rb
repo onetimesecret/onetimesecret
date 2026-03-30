@@ -52,12 +52,21 @@ module DomainsAPI
           OT.ld "[ValidateSenderConfig] Triggering async DNS validation for domain #{@domain_id} by user #{cust.extid}"
 
           # Set status to pending before enqueuing so the UI reflects immediately
+          previous_status                    = @mailer_config.verification_status
           @mailer_config.verification_status = VERIFICATION_STATUS_PENDING
           @mailer_config.updated             = Familia.now.to_i
           @mailer_config.save_fields(:verification_status, :updated)
 
           # Enqueue background validation job
-          Onetime::Jobs::Publisher.enqueue_domain_validation(@custom_domain.identifier)
+          begin
+            Onetime::Jobs::Publisher.enqueue_domain_validation(@custom_domain.identifier)
+          rescue StandardError
+            # Rollback: restore previous status so it doesn't stay stuck in 'pending'
+            @mailer_config.verification_status = previous_status
+            @mailer_config.updated             = Familia.now.to_i
+            @mailer_config.save_fields(:verification_status, :updated)
+            raise
+          end
 
           log_sender_audit_event(
             event: :domain_sender_validation_requested,

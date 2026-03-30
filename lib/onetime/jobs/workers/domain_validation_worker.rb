@@ -43,6 +43,9 @@ module Onetime
 
         QUEUE_NAME = 'domain.validation.check'
 
+        # Conservative defaults for initial rollout. DNS-bound workers spend
+        # most time in I/O wait, so 8-16 threads would be safe here. Tune
+        # via env vars once production telemetry shows DNS response distributions.
         from_queue QUEUE_NAME,
           **QueueDeclarator.sneakers_options_for(QUEUE_NAME),
           threads: ENV.fetch('DOMAIN_VALIDATION_WORKER_THREADS', 2).to_i,
@@ -76,7 +79,7 @@ module Onetime
           # Load the mailer config for this domain
           mailer_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(domain_id)
           unless mailer_config
-            log_error "MailerConfig not found for domain_id: #{domain_id}"
+            log_error "MailerConfig not found for domain_id: #{domain_id}", message_id: message_id, metadata: message_metadata
             return ack! # Don't retry -- config won't appear on its own
           end
 
@@ -87,6 +90,10 @@ module Onetime
               mailer_config: mailer_config,
               persist: true,
             ).call
+            # Re-raise so with_retry can retry transient DNS failures.
+            # ValidateSenderDomain#call rescues internally and returns a
+            # Result — without this, with_retry never sees an exception.
+            raise result.error if result.error
           end
 
           log_info "Sender domain validation complete: #{domain_id}",
