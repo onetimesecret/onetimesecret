@@ -120,7 +120,7 @@ module OAuthFlowHelper
     }
   end
 
-  # Create CustomDomain and DomainSsoConfig fixtures for testing
+  # Create CustomDomain and CustomDomain::SsoConfig fixtures for testing
   #
   # @param display_domain [String] The domain hostname
   # @return [Hash] Created fixtures
@@ -147,7 +147,7 @@ module OAuthFlowHelper
 
     # Create SSO config for this domain
     # Use OIDC provider type since that's what's registered in the test environment
-    sso_config = Onetime::DomainSsoConfig.create!(
+    sso_config = Onetime::CustomDomain::SsoConfig.create!(
       domain_id: domain.identifier,
       org_id: org.org_id,
       provider_type: 'oidc',
@@ -176,7 +176,7 @@ module OAuthFlowHelper
     return unless defined?(@oauth_test_fixtures) && @oauth_test_fixtures
 
     @oauth_test_fixtures.each do |fixture|
-      Onetime::DomainSsoConfig.delete_for_domain!(fixture[:domain].identifier) rescue nil
+      Onetime::CustomDomain::SsoConfig.delete_for_domain!(fixture[:domain].identifier) rescue nil
       Onetime::CustomDomain.display_domains.remove(fixture[:display_domain]) rescue nil
       fixture[:domain]&.destroy! rescue nil
       fixture[:org]&.destroy! rescue nil

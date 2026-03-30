@@ -54,7 +54,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
   before(:all) do
     Onetime.boot! :test
 
-    # Configure encryption for DomainSsoConfig
+    # Configure encryption for CustomDomain::SsoConfig
     key_v1 = 'test_encryption_key_32bytes_ok!!'
     key_v2 = 'another_test_key_for_testing_!!'
 
@@ -64,7 +64,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         v2: Base64.strict_encode64(key_v2),
       }
       config.current_key_version = :v1
-      config.encryption_personalization = 'DomainSsoConfigIntegrationTest'
+      config.encryption_personalization = 'CustomDomain::SsoConfigIntegrationTest'
     end
   end
 
@@ -145,7 +145,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
   # Clean up after each test
   after do
-    Onetime::DomainSsoConfig.delete_for_domain!(test_custom_domain.identifier) rescue nil
+    Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_custom_domain.identifier) rescue nil
     Onetime::CustomDomain.display_domains.remove(tenant_domain) rescue nil
     test_custom_domain&.destroy! rescue nil
     test_organization&.destroy! rescue nil
@@ -266,7 +266,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       context 'replacing existing SSO config' do
         before do
           # Create initial config
-          Onetime::DomainSsoConfig.create!(
+          Onetime::CustomDomain::SsoConfig.create!(
             domain_id: test_custom_domain.identifier,
             provider_type: 'oidc',
             client_id: 'old-client-id',
@@ -438,7 +438,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
     context 'when SSO config exists' do
       let!(:existing_config) do
-        Onetime::DomainSsoConfig.create!(
+        Onetime::CustomDomain::SsoConfig.create!(
           domain_id: test_custom_domain.identifier,
           provider_type: 'entra_id',
           display_name: 'Existing Config',
@@ -512,7 +512,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
     context 'authorization checks' do
       before do
-        Onetime::DomainSsoConfig.create!(
+        Onetime::CustomDomain::SsoConfig.create!(
           domain_id: test_custom_domain.identifier,
           provider_type: 'entra_id',
           client_id: 'client-id',
@@ -547,7 +547,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
     end
 
     let!(:existing_config) do
-      Onetime::DomainSsoConfig.create!(
+      Onetime::CustomDomain::SsoConfig.create!(
         domain_id: test_custom_domain.identifier,
         provider_type: 'entra_id',
         display_name: 'Original Name',
@@ -641,7 +641,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
     context 'when no existing config' do
       before do
         # Remove the existing config
-        Onetime::DomainSsoConfig.delete_for_domain!(test_custom_domain.identifier)
+        Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_custom_domain.identifier)
         login_as(test_owner)
       end
 
@@ -678,7 +678,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
     context 'when SSO config exists' do
       before do
-        Onetime::DomainSsoConfig.create!(
+        Onetime::CustomDomain::SsoConfig.create!(
           domain_id: test_custom_domain.identifier,
           provider_type: 'entra_id',
           client_id: 'delete-test-client',
@@ -699,7 +699,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         expect(body['message']).to include('deleted')
 
         # Verify deletion
-        config = Onetime::DomainSsoConfig.find_by_domain_id(test_custom_domain.identifier)
+        config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
         expect(config).to be_nil
       end
     end
@@ -720,7 +720,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
     context 'authorization checks' do
       before do
-        Onetime::DomainSsoConfig.create!(
+        Onetime::CustomDomain::SsoConfig.create!(
           domain_id: test_custom_domain.identifier,
           provider_type: 'entra_id',
           client_id: 'auth-test-client',
@@ -928,7 +928,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
     end
 
     let!(:config_with_all_fields) do
-      Onetime::DomainSsoConfig.create!(
+      Onetime::CustomDomain::SsoConfig.create!(
         domain_id: test_custom_domain.identifier,
         provider_type: 'entra_id',
         display_name: 'Full Config Test',

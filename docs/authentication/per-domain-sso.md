@@ -117,7 +117,7 @@ User visits https://{custom-domain}/signin
 POST /auth/sso/{provider}
     │
     ▼
-Host header → CustomDomain → DomainSsoConfig
+Host header → CustomDomain → CustomDomain::SsoConfig
     │
     ▼
 Inject domain credentials into OmniAuth strategy
@@ -136,7 +136,7 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 | 1 | `request.host` | `secrets.acme.com` |
 | 2 | `CustomDomain.load_by_display_domain(host)` | CustomDomain record |
 | 3 | `custom_domain.identifier` | Domain identifier |
-| 4 | `DomainSsoConfig.find_by_domain_id(domain_id)` | SSO credentials |
+| 4 | `CustomDomain::SsoConfig.find_by_domain_id(domain_id)` | SSO credentials |
 | 5 | `domain_config.to_omniauth_options` | OmniAuth strategy injection |
 
 **Security:** Tenant context (domain_id) stored in session during request phase, validated on callback to prevent cross-tenant redirect attacks.
@@ -213,7 +213,7 @@ The two features serve fundamentally different use cases:
 ├──────────────────┼──────────────────┼──────────────────────────────────┼─────────────────────────────────────────┤
 │ AUTH_SSO_ENABLED │ Canonical domain │ Env vars (OIDC_*, ENTRA_*, etc.) │ Self-hosted enterprise with single IdP  │
 ├──────────────────┼──────────────────┼──────────────────────────────────┼─────────────────────────────────────────┤
-│ ORGS_SSO_ENABLED │ Custom domains   │ DB per-domain (DomainSsoConfig)  │ SaaS offering enterprise SSO to tenants │
+│ ORGS_SSO_ENABLED │ Custom domains   │ DB per-domain (CustomDomain::SsoConfig)  │ SaaS offering enterprise SSO to tenants │
 └──────────────────┴──────────────────┴──────────────────────────────────┴─────────────────────────────────────────┘
 
 The key scenario that breaks hierarchical design:
@@ -225,7 +225,7 @@ install-level SSO (with dummy or unused providers) just to unlock the org-level 
 Why independent is more maintainable:
 
 1. Single responsibility: Each flag controls exactly one subsystem. AUTH_SSO flows through AuthConfig.sso_enabled? →
-Rodauth OmniAuth. ORGS_SSO flows through features.organizations.sso_enabled → DomainSsoConfig resolution.
+Rodauth OmniAuth. ORGS_SSO flows through features.organizations.sso_enabled → CustomDomain::SsoConfig resolution.
 2. No coupling bugs: Changes to install-level SSO can't accidentally break org-level SSO or vice versa.
 3. Clearer config intent: AUTH_SSO_ENABLED=false, ORGS_SSO_ENABLED=true explicitly communicates "no platform SSO, yes
 tenant SSO" without needing to understand implicit relationships.
@@ -241,7 +241,7 @@ install-level providers.
 
 - [SSO Configuration Guide](omniauth-sso.md) - platform-level SSO setup and provider configuration
 - [OmniAuth Tenant Resolution](../../apps/web/auth/config/hooks/omniauth_tenant.rb) - runtime credential injection
-- [DomainSsoConfig Model](../../lib/onetime/models/domain_sso_config.rb) - per-domain SSO storage
+- [CustomDomain::SsoConfig Model](../../lib/onetime/models/custom_domain/sso_config.rb) - per-domain SSO storage
 - [Billing Catalog Management](../billing/catalog-management.md)
 - [Entitlements System](../billing/entitlements.md)
 - [STANDALONE_ENTITLEMENTS](../../lib/onetime/models/features/with_entitlements.rb)

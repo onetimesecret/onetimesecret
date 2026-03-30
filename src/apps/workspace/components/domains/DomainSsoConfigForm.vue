@@ -15,7 +15,7 @@ import { classifyError } from '@/schemas/errors';
 import { SsoService, type TestSsoConnectionResponse } from '@/services/sso.service';
 import {
   SSO_PROVIDER_METADATA,
-  type DomainSsoConfig,
+  type CustomDomainSsoConfig,
   type SsoProviderType,
 } from '@/schemas/shapes/sso-config';
 import type { PatchSsoConfigRequest } from '@/schemas/api/domains/requests/sso-config';
@@ -86,7 +86,7 @@ const testResult = ref<TestSsoConnectionResponse | null>(null);
 const testError = ref('');
 
 // Existing config (null if no config exists)
-const existingConfig = ref<DomainSsoConfig | null>(null);
+const existingConfig = ref<CustomDomainSsoConfig | null>(null);
 
 // Form data - internal state with required fields; saveConfig auto-selects PUT/PATCH
 const formData = ref<SsoConfigFormData>({

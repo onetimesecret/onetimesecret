@@ -9,7 +9,7 @@
 # Issue: #2786 - Per-domain SSO configuration
 #
 # Tests the tenant resolution chain for domain-based SSO:
-#   Host header -> CustomDomain -> DomainSsoConfig
+#   Host header -> CustomDomain -> CustomDomain::SsoConfig
 #
 # Resolution is domain-only: each domain has its own SSO configuration.
 # There is no org-level fallback.
@@ -84,14 +84,14 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
   describe 'domain resolution' do
     # The resolution chain:
     #   1. Host -> CustomDomain
-    #   2. CustomDomain.identifier -> DomainSsoConfig
-    #   3. If no DomainSsoConfig -> platform env vars (if allowed)
+    #   2. CustomDomain.identifier -> CustomDomain::SsoConfig
+    #   3. If no CustomDomain::SsoConfig -> platform env vars (if allowed)
 
-    context 'when domain has DomainSsoConfig' do
+    context 'when domain has CustomDomain::SsoConfig' do
       include_context 'tenant fixtures'
 
-      it 'uses DomainSsoConfig credentials' do
-        domain_sso_config = Onetime::DomainSsoConfig.find_by_domain_id(test_custom_domain.identifier)
+      it 'uses CustomDomain::SsoConfig credentials' do
+        domain_sso_config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
         expect(domain_sso_config).not_to be_nil
         expect(domain_sso_config.enabled?).to be true
       end
@@ -113,11 +113,11 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
       end
     end
 
-    context 'when domain has no DomainSsoConfig' do
+    context 'when domain has no CustomDomain::SsoConfig' do
       it 'falls back to platform env vars if allowed' do
-        # Domain without DomainSsoConfig should use platform credentials
+        # Domain without CustomDomain::SsoConfig should use platform credentials
         # This is controlled by allow_platform_fallback_for_tenants config
-        expect(Onetime::DomainSsoConfig.find_by_domain_id('nonexistent_domain')).to be_nil
+        expect(Onetime::CustomDomain::SsoConfig.find_by_domain_id('nonexistent_domain')).to be_nil
       end
     end
   end
@@ -142,8 +142,8 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
   # ==========================================================================
 
   describe 'disabled config handling' do
-    context 'when DomainSsoConfig exists but is disabled' do
-      it 'skips disabled DomainSsoConfig' do
+    context 'when CustomDomain::SsoConfig exists but is disabled' do
+      it 'skips disabled CustomDomain::SsoConfig' do
         config = build_disabled_domain_sso_config(:oidc)
         expect(config.enabled?).to be false
       end

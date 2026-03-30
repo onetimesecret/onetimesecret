@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/domain_sso_config'
+require 'onetime/models/custom_domain/sso_config'
 require 'onetime/models/custom_domain'
 
 module Core
@@ -14,12 +14,12 @@ module Core
     #
     # SSO Provider Resolution:
     # The serializer returns domain-aware SSO providers based on request context:
-    #   1. If request is from a custom domain with DomainSsoConfig -> tenant's provider
+    #   1. If request is from a custom domain with CustomDomain::SsoConfig -> tenant's provider
     #   2. If tenant has no config or is disabled -> platform fallback (if allowed)
     #   3. If fallback disallowed -> empty providers array
     #
     # Resolution Flow:
-    #   view_vars['display_domain'] -> CustomDomain.load_by_display_domain -> DomainSsoConfig
+    #   view_vars['display_domain'] -> CustomDomain.load_by_display_domain -> CustomDomain::SsoConfig
     #
     module ConfigSerializer
       # Serializes configuration data from view variables
@@ -139,11 +139,11 @@ module Core
         # Build SSO configuration for frontend
         #
         # Returns domain-aware SSO provider configuration. For custom domains
-        # with DomainSsoConfig, returns the tenant's provider. Otherwise returns
+        # with CustomDomain::SsoConfig, returns the tenant's provider. Otherwise returns
         # platform SSO configuration (from env vars).
         #
         # Resolution priority:
-        #   1. DomainSsoConfig for tenant (if custom domain with domain SSO config)
+        #   1. CustomDomain::SsoConfig for tenant (if custom domain with domain SSO config)
         #   2. Platform SSO providers (from env vars, if fallback allowed)
         #   3. Disabled (empty providers)
         #
@@ -169,15 +169,15 @@ module Core
 
         # Resolve tenant SSO configuration from request context
         #
-        # Looks up DomainSsoConfig for the custom domain.
+        # Looks up CustomDomain::SsoConfig for the custom domain.
         #
         # @param view_vars [Hash] View variables
-        # @return [Onetime::DomainSsoConfig, nil] Config if found and enabled
+        # @return [Onetime::CustomDomain::SsoConfig, nil] Config if found and enabled
         def resolve_tenant_sso_config(view_vars)
           domain_id = resolve_domain_id(view_vars)
           return nil unless domain_id
 
-          domain_config = Onetime::DomainSsoConfig.find_by_domain_id(domain_id)
+          domain_config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
           return domain_config if domain_config&.enabled?
 
           nil
@@ -209,7 +209,7 @@ module Core
 
         # Check if platform fallback is allowed for tenant domains
         #
-        # When true, custom domains without DomainSsoConfig use platform SSO.
+        # When true, custom domains without CustomDomain::SsoConfig use platform SSO.
         # When false, such domains see no SSO buttons.
         #
         # @return [Boolean] true if fallback allowed (default: true)
@@ -221,7 +221,7 @@ module Core
 
         # Build SSO response for tenant configuration
         #
-        # @param config [Onetime::DomainSsoConfig] Tenant SSO config
+        # @param config [Onetime::CustomDomain::SsoConfig] Tenant SSO config
         # @return [Hash] SSO config hash for frontend
         def build_tenant_sso_response(config)
           {

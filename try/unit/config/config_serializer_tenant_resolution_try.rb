@@ -25,7 +25,7 @@ OT.boot! :test, false
 @original_key_version = Familia.config.current_key_version
 @original_personalization = Familia.config.encryption_personalization
 
-# Familia encryption for DomainSsoConfig
+# Familia encryption for CustomDomain::SsoConfig
 key_v1 = 'test_encryption_key_32bytes_ok!!'
 key_v2 = 'another_test_key_for_testing_!!'
 
@@ -82,7 +82,7 @@ ensure
   ENV['OIDC_CLIENT_ID'] = original_client
 end
 
-# Create a test CustomDomain + DomainSsoConfig for tenant resolution tests.
+# Create a test CustomDomain + CustomDomain::SsoConfig for tenant resolution tests.
 # Returns [custom_domain, sso_config] for use in assertions.
 @test_run_id = "try-#{SecureRandom.hex(4)}"
 @test_display_domain = "secrets-#{@test_run_id}.tenant-test.example.com"
@@ -104,7 +104,7 @@ end
 @test_custom_domain.save
 Onetime::CustomDomain.display_domains.put(@test_display_domain, @test_custom_domain.domainid)
 
-@test_sso_config = Onetime::DomainSsoConfig.create!(
+@test_sso_config = Onetime::CustomDomain::SsoConfig.create!(
   domain_id: @test_custom_domain.identifier,
   org_id: @test_org.org_id,
   provider_type: 'entra_id',
@@ -124,7 +124,7 @@ Onetime::CustomDomain.display_domains.put(@test_display_domain, @test_custom_dom
 @no_sso_custom_domain.save
 Onetime::CustomDomain.display_domains.put(@no_sso_display_domain, @no_sso_custom_domain.domainid)
 
-## Request from custom domain WITH DomainSsoConfig returns tenant provider
+## Request from custom domain WITH CustomDomain::SsoConfig returns tenant provider
 result = with_sso_platform_enabled do
   view_vars = {
     'display_domain' => @test_display_domain,
@@ -135,7 +135,7 @@ end
 [result['enabled'], result['providers'].length, result['providers'].first['display_name']]
 #=> [true, 1, "Try Test Entra ID"]
 
-## Tenant provider route_name matches the provider_type from DomainSsoConfig
+## Tenant provider route_name matches the provider_type from CustomDomain::SsoConfig
 result = with_sso_platform_enabled do
   view_vars = {
     'display_domain' => @test_display_domain,
@@ -146,7 +146,7 @@ end
 result['providers'].first['route_name']
 #=> "entra_id"
 
-## Request from custom domain WITHOUT DomainSsoConfig, fallback allowed returns platform providers
+## Request from custom domain WITHOUT CustomDomain::SsoConfig, fallback allowed returns platform providers
 result = with_sso_platform_enabled do
   with_fallback_config(true)
   view_vars = {
@@ -160,7 +160,7 @@ end
 result['enabled']
 #=> true
 
-## Request from custom domain WITHOUT DomainSsoConfig, fallback disallowed returns empty providers
+## Request from custom domain WITHOUT CustomDomain::SsoConfig, fallback disallowed returns empty providers
 result = with_sso_platform_enabled do
   with_fallback_config(false)
   view_vars = {
@@ -239,7 +239,7 @@ result
 #=> true
 
 # Teardown: clean up Valkey fixtures and restore Familia config
-Onetime::DomainSsoConfig.delete_for_domain!(@test_custom_domain.identifier) rescue nil
+Onetime::CustomDomain::SsoConfig.delete_for_domain!(@test_custom_domain.identifier) rescue nil
 Onetime::CustomDomain.display_domains.remove(@test_display_domain) rescue nil
 Onetime::CustomDomain.display_domains.remove(@no_sso_display_domain) rescue nil
 @test_custom_domain&.destroy! rescue nil

@@ -1,6 +1,6 @@
 // src/schemas/contracts/sso-config.ts
 //
-// DomainSsoConfig contracts defining field names and wire format types.
+// CustomDomain::SsoConfig contracts defining field names and wire format types.
 // Shapes transform these to runtime types (e.g., timestamps -> Date).
 //
 // Architecture: contract -> shape -> API
@@ -58,7 +58,7 @@ export type SsoProviderType = z.infer<typeof ssoProviderTypeSchema>;
 /**
  * Provider metadata for UI behavior.
  *
- * Mirrors PROVIDER_METADATA in lib/onetime/models/domain_sso_config.rb.
+ * Mirrors PROVIDER_METADATA in lib/onetime/models/custom_domain/sso_config.rb.
  * Used by forms to determine when domain filter field should be shown/required.
  */
 export const SSO_PROVIDER_METADATA: Record<SsoProviderType, {
@@ -93,19 +93,19 @@ export const SSO_PROVIDER_METADATA: Record<SsoProviderType, {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Canonical DomainSsoConfig contract schema.
+ * Canonical CustomDomain::SsoConfig contract schema.
  *
- * Defines field names matching the Ruby DomainSsoConfig model and wire format.
+ * Defines field names matching the Ruby CustomDomain::SsoConfig model and wire format.
  * Shapes transform timestamps (number -> Date) for runtime use.
  *
  * Note: client_id and client_secret are encrypted at rest in the backend.
  * API responses use client_secret_masked to indicate presence without exposing
  * the actual secret.
  *
- * @see lib/onetime/models/domain_sso_config.rb - Backend model
+ * @see lib/onetime/models/custom_domain/sso_config.rb - Backend model
  * @category Contracts
  */
-export const domainSsoConfigCanonical = z.object({
+export const customDomainSsoConfigCanonical = z.object({
   /** Domain ID (references CustomDomain.identifier). */
   domain_id: z.string(),
 
@@ -185,22 +185,8 @@ export const domainSsoConfigCanonical = z.object({
 // Type exports
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** TypeScript type for DomainSsoConfig wire format. */
-export type DomainSsoConfigCanonical = z.infer<typeof domainSsoConfigCanonical>;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Deprecated aliases (backward compatibility)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * @deprecated Use domainSsoConfigCanonical. SSO config moved from per-org to per-domain.
- */
-export const orgSsoConfigCanonical = domainSsoConfigCanonical;
-
-/**
- * @deprecated Use DomainSsoConfigCanonical. SSO config moved from per-org to per-domain.
- */
-export type OrgSsoConfigCanonical = DomainSsoConfigCanonical;
+/** TypeScript type for CustomDomain::SsoConfig wire format. */
+export type CustomDomainSsoConfigCanonical = z.infer<typeof customDomainSsoConfigCanonical>;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Request payload schemas

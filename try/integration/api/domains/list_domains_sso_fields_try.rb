@@ -60,7 +60,7 @@ def last_response; @test.last_response; end
 #=> 3
 
 ## TEST 1: Create SSO config for disabled domain (disabled by default)
-@sso_config_disabled = Onetime::DomainSsoConfig.create!(
+@sso_config_disabled = Onetime::CustomDomain::SsoConfig.create!(
   domain_id: @domain_sso_disabled.identifier,
   provider_type: 'oidc',
   client_id: 'test-client-id',
@@ -72,7 +72,7 @@ def last_response; @test.last_response; end
 #=> [false, @domain_sso_disabled.identifier]
 
 ## TEST 2: Create SSO config for enabled domain
-@sso_config_enabled = Onetime::DomainSsoConfig.create!(
+@sso_config_enabled = Onetime::CustomDomain::SsoConfig.create!(
   domain_id: @domain_sso_enabled.identifier,
   provider_type: 'entra_id',
   client_id: 'test-client-id-2',
@@ -86,9 +86,9 @@ def last_response; @test.last_response; end
 
 ## TEST 3: Verify SSO config existence checks work
 [
-  Onetime::DomainSsoConfig.exists_for_domain?(@domain_no_sso.identifier),
-  Onetime::DomainSsoConfig.exists_for_domain?(@domain_sso_disabled.identifier),
-  Onetime::DomainSsoConfig.exists_for_domain?(@domain_sso_enabled.identifier)
+  Onetime::CustomDomain::SsoConfig.exists_for_domain?(@domain_no_sso.identifier),
+  Onetime::CustomDomain::SsoConfig.exists_for_domain?(@domain_sso_disabled.identifier),
+  Onetime::CustomDomain::SsoConfig.exists_for_domain?(@domain_sso_enabled.identifier)
 ]
 #=> [false, true, true]
 

@@ -10,7 +10,7 @@
 
 import { z } from 'zod';
 import { createApiResponseSchema } from '@/schemas/api/base';
-import { domainSsoConfigSchema } from '@/schemas/shapes/sso-config';
+import { customDomainSsoConfigSchema } from '@/schemas/shapes/sso-config';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Response-specific details schema
@@ -42,7 +42,7 @@ export type SsoConfigDetails = z.infer<typeof ssoConfigDetailsSchema>;
  * Returns the full SSO config with masked credentials.
  */
 export const getSsoConfigResponseSchema = createApiResponseSchema(
-  domainSsoConfigSchema,
+  customDomainSsoConfigSchema,
   ssoConfigDetailsSchema
 );
 
@@ -54,7 +54,7 @@ export type GetSsoConfigResponse = z.infer<typeof getSsoConfigResponseSchema>;
  * Returns the replaced SSO config with masked credentials.
  */
 export const putSsoConfigResponseSchema = createApiResponseSchema(
-  domainSsoConfigSchema,
+  customDomainSsoConfigSchema,
   ssoConfigDetailsSchema
 );
 
@@ -66,7 +66,7 @@ export type PutSsoConfigResponse = z.infer<typeof putSsoConfigResponseSchema>;
  * Returns the updated SSO config with masked credentials.
  */
 export const patchSsoConfigResponseSchema = createApiResponseSchema(
-  domainSsoConfigSchema,
+  customDomainSsoConfigSchema,
   ssoConfigDetailsSchema
 );
 
@@ -83,14 +83,3 @@ export const deleteSsoConfigResponseSchema = z.object({
 });
 
 export type DeleteSsoConfigResponse = z.infer<typeof deleteSsoConfigResponseSchema>;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Legacy aliases (deprecated)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * @deprecated Use putSsoConfigResponseSchema or patchSsoConfigResponseSchema
- */
-export const createOrUpdateSsoConfigResponseSchema = putSsoConfigResponseSchema;
-
-export type CreateOrUpdateSsoConfigResponse = z.infer<typeof createOrUpdateSsoConfigResponseSchema>;

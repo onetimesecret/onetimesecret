@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-# Unit tests for DomainSsoConfig model (per-domain SSO configuration)
+# Unit tests for CustomDomain::SsoConfig model (per-domain SSO configuration)
 #
 # Issue: #2786 - Per-domain SSO configuration
 #
@@ -24,11 +24,11 @@
 require_relative '../spec_helper'
 require_relative '../support/domain_sso_test_fixtures'
 
-RSpec.describe Onetime::DomainSsoConfig do
+RSpec.describe Onetime::CustomDomain::SsoConfig do
   include DomainSsoTestFixtures
 
   # Configure Familia encryption for testing, saving originals for restoration
-  # DomainSsoConfig uses encrypted_field which requires key configuration
+  # CustomDomain::SsoConfig uses encrypted_field which requires key configuration
   # Keys must be Base64-encoded 32-byte values
   before(:all) do
     @original_encryption_keys = Familia.config.encryption_keys&.dup
@@ -45,7 +45,7 @@ RSpec.describe Onetime::DomainSsoConfig do
         v2: Base64.strict_encode64(key_v2),
       }
       config.current_key_version = :v1
-      config.encryption_personalization = 'DomainSsoConfigTest'
+      config.encryption_personalization = 'CustomDomain::SsoConfigTest'
     end
   end
 
@@ -127,10 +127,10 @@ RSpec.describe Onetime::DomainSsoConfig do
       expect(config.identifier).to eq(config.domain_id)
     end
 
-    it 'uses domain_sso_config prefix in class configuration' do
+    it 'uses custom_domain__sso_config prefix in class configuration' do
       # Verify the class is configured with the correct prefix
       # The actual Redis key is constructed internally by Familia
-      expect(Onetime::DomainSsoConfig.prefix).to eq(:domain_sso_config)
+      expect(Onetime::CustomDomain::SsoConfig.prefix).to eq(:custom_domain__sso_config)
     end
   end
 
@@ -314,21 +314,6 @@ RSpec.describe Onetime::DomainSsoConfig do
   end
 
   # ==========================================================================
-  # configs_by_domain Class Method Tests
-  # ==========================================================================
-
-  describe '.configs_by_domain' do
-    it 'responds to configs_by_domain' do
-      expect(described_class).to respond_to(:configs_by_domain)
-    end
-
-    it 'returns a Familia HashKey' do
-      hashkey = described_class.configs_by_domain
-      expect(hashkey).to be_a(Familia::HashKey)
-    end
-  end
-
-  # ==========================================================================
   # Finder Method Tests
   # ==========================================================================
 
@@ -429,7 +414,7 @@ RSpec.describe Onetime::DomainSsoConfig do
   # credential swapping even if an attacker has direct database access.
   #
   # Encryption context for unsaved records (exists? == false):
-  #   AAD = "Onetime::DomainSsoConfig:<field_name>:<domain_id>"
+  #   AAD = "Onetime::CustomDomain::SsoConfig:<field_name>:<domain_id>"
   #
   # Changing the domain_id changes both the encryption context string and
   # the derived key, so decryption under a different domain_id fails with
@@ -597,7 +582,7 @@ RSpec.describe Onetime::DomainSsoConfig do
 
         errors = config.validation_errors
         expect(errors).to include(
-          "provider_type must be one of: #{Onetime::DomainSsoConfig::PROVIDER_TYPES.join(', ')}"
+          "provider_type must be one of: #{Onetime::CustomDomain::SsoConfig::PROVIDER_TYPES.join(', ')}"
         )
       end
     end
