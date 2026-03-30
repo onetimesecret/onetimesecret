@@ -151,7 +151,7 @@ module Onetime
       #
       # @return [Object] A strategy responding to #verify_dns_records and #required_dns_records
       def strategy
-        @strategy ||= self.class.resolve_strategy(@mailer_config.provider)
+        @strategy ||= self.class.send(:resolve_strategy, @mailer_config.provider)
       end
 
       # Factory lookup for sender strategies by provider name.

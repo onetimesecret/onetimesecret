@@ -86,6 +86,18 @@ module Onetime
         def enqueue_billing_event(event, payload)
           new.enqueue_billing_event(event, payload)
         end
+
+        # Enqueue a domain DNS validation check for async processing
+        #
+        # Falls back to synchronous validation if jobs are disabled, ensuring
+        # domain validation works without RabbitMQ for dev/testing.
+        #
+        # @param domain_id [String] CustomDomain identifier (MailerConfig key)
+        # @return [Boolean] true if published to queue or processed synchronously
+        # @raise [Onetime::Problem] If RabbitMQ unavailable when jobs ARE enabled
+        def enqueue_domain_validation(domain_id)
+          new.enqueue_domain_validation(domain_id)
+        end
       end
 
       def initialize
@@ -203,6 +215,47 @@ module Onetime
           event_type: event.type,
           message_id: message_id,
           queue: 'billing.event.process'
+        true
+      end
+
+      # Enqueue a domain DNS validation check for async processing
+      #
+      # Falls back to synchronous validation if jobs are disabled, enabling
+      # development/testing without RabbitMQ. If jobs ARE enabled but RabbitMQ
+      # is unavailable, raises so the controller can return an error.
+      #
+      # @param domain_id [String] CustomDomain identifier (MailerConfig key)
+      # @return [Boolean] true if published to queue or processed synchronously
+      # @raise [Onetime::Problem] If RabbitMQ unavailable when jobs ARE enabled
+      def enqueue_domain_validation(domain_id)
+        unless jobs_enabled?
+          logger.info 'Jobs disabled, validating domain synchronously',
+            domain_id: domain_id
+
+          require 'onetime/operations/validate_sender_domain'
+          require 'onetime/models/custom_domain/mailer_config'
+
+          mailer_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(domain_id)
+          if mailer_config
+            Onetime::Operations::ValidateSenderDomain.new(
+              mailer_config: mailer_config,
+              persist: true,
+            ).call
+          end
+
+          return true
+        end
+
+        message = {
+          domain_id: domain_id,
+          requested_at: Time.now.utc.iso8601,
+        }
+
+        message_id = publish('domain.validation.check', message)
+        logger.info 'Enqueued domain validation',
+          domain_id: domain_id,
+          message_id: message_id,
+          queue: 'domain.validation.check'
         true
       end
 
