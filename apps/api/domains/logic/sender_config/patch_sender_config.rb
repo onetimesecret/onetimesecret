@@ -170,7 +170,7 @@ module DomainsAPI
           end
 
           # Validate email format when from_address is provided
-          if @from_address_provided && !@from_address.to_s.empty? && !valid_email?(@from_address)
+          if @from_address_provided && !valid_email?(@from_address)
             raise_form_error('Invalid email format for from_address', field: :from_address, error_type: :invalid)
           end
         end
