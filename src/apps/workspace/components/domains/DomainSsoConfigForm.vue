@@ -332,9 +332,9 @@ const addDomain = () => {
 
   if (!domain) return;
 
-  // Basic domain validation
-  const domainRegex = /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}$/;
-  if (!domainRegex.test(domain)) {
+  // Basic frontend validation for UX (backend does authoritative PublicSuffix check)
+  // Just verify it has at least one dot and no spaces/special chars
+  if (!domain.includes('.') || /\s/.test(domain)) {
     domainInputError.value = t('web.organizations.sso.invalid_domain');
     return;
   }

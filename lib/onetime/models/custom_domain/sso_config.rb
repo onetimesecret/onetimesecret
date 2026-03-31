@@ -164,10 +164,22 @@ module Onetime
 
       # Set the list of allowed email domains.
       #
+      # Validates each domain using PublicSuffix to ensure it has a valid TLD.
+      # Supports internationalized domain names (IDN).
+      #
       # @param domains [Array<String>] Domain names to allow
       # @return [void]
+      # @raise [Onetime::Problem] if any domain is invalid
       def allowed_domains=(domains)
-        normalized                = Array(domains).map { it.to_s.strip.downcase }.uniq.reject(&:empty?)
+        normalized = Array(domains).map { it.to_s.strip.downcase }.uniq.reject(&:empty?)
+
+        # Validate each domain using PublicSuffix (handles IDN, validates TLD)
+        normalized.each do |domain|
+            Utils::DomainParser.cached_parse(domain)
+        rescue PublicSuffix::Error => ex
+            raise Onetime::Problem, "Invalid domain: #{domain} (#{ex.message})"
+        end
+
         self.allowed_domains_json = normalized.empty? ? nil : JSON.generate(normalized)
       end
 
