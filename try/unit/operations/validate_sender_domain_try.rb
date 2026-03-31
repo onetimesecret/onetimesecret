@@ -53,7 +53,7 @@ class MockSenderStrategy
     @records
   end
 
-  def verify_dns_records(_mailer_config)
+  def verify_dns_records(_mailer_config, bypass_cache: false)
     @verify_results
   end
 
@@ -68,7 +68,7 @@ class ExplodingSenderStrategy
     raise StandardError, 'DNS provider unreachable'
   end
 
-  def verify_dns_records(_mailer_config)
+  def verify_dns_records(_mailer_config, bypass_cache: false)
     raise StandardError, 'DNS provider unreachable'
   end
 
