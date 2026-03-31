@@ -123,6 +123,11 @@ const showDomainFilter = computed(() => {
   return metadata?.requiresDomainFilter ?? false;
 });
 
+// Computed: current provider option (for locked display when editing)
+const currentProviderOption = computed(() =>
+  providerOptions.find((o) => o.value === formData.value.provider_type)
+);
+
 // Computed: form is valid
 const isFormValid = computed(() => {
   if (!formData.value.display_name.trim()) return false;
@@ -177,9 +182,7 @@ const handleTestConnection = async () => {
 
     testResult.value = await SsoService.testConnectionForDomain(props.domainExtId, payload);
 
-    if (testResult.value.success) {
-      success.value = testResult.value.message;
-    } else {
+    if (!testResult.value.success) {
       testError.value = testResult.value.message;
     }
   } catch (err) {
@@ -240,6 +243,8 @@ const handleSave = async () => {
   isSaving.value = true;
   error.value = '';
   success.value = '';
+  testResult.value = null;
+  testError.value = '';
   fieldErrors.value = {};
 
   try {
@@ -271,10 +276,6 @@ const handleSave = async () => {
 
     // Clear secret field after successful save
     formData.value.client_secret = undefined;
-
-    success.value = isEditing.value
-      ? t('web.organizations.sso.update_success')
-      : t('web.organizations.sso.create_success');
 
     emit('saved');
   } catch (err) {
@@ -358,20 +359,6 @@ watch(newDomain, () => {
   }
 });
 
-// Handle provider change - clear provider-specific fields
-watch(() => formData.value.provider_type, (newType, oldType) => {
-  if (newType !== oldType) {
-    // Clear tenant_id when switching away from entra_id
-    if (oldType === 'entra_id') {
-      formData.value.tenant_id = undefined;
-    }
-    // Clear issuer when switching away from oidc
-    if (oldType === 'oidc') {
-      formData.value.issuer = undefined;
-    }
-  }
-});
-
 onMounted(loadConfig);
 </script>
 
@@ -399,15 +386,40 @@ class="space-y-6">
         v-if="success"
         :success="success" />
 
-      <!-- Provider Selection -->
+      <!-- Provider Selection (locked when editing, selectable when creating) -->
       <fieldset>
         <legend class="text-sm font-medium text-gray-900 dark:text-white">
           {{ t('web.organizations.sso.provider_type') }}
         </legend>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p v-if="!isEditing" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.sso.provider_type_description') }}
         </p>
+
+        <!-- Locked display when editing existing config -->
+        <div v-if="isEditing && currentProviderOption" class="mt-4">
+          <div class="relative flex rounded-lg border border-brand-500 bg-brand-50 p-4 dark:border-brand-400 dark:bg-brand-900/20">
+            <span class="flex flex-1 flex-col">
+              <span class="block text-sm font-medium text-brand-900 dark:text-brand-100">
+                {{ currentProviderOption.label }}
+              </span>
+              <span class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {{ currentProviderOption.description }}
+              </span>
+              <span class="mt-2 text-xs text-gray-400 dark:text-gray-500">
+                {{ t('web.organizations.sso.provider_type_locked_hint') }}
+              </span>
+            </span>
+            <OIcon
+              collection="heroicons"
+              name="check-circle-solid"
+              class="size-5 text-brand-600 dark:text-brand-400"
+              aria-hidden="true" />
+          </div>
+        </div>
+
+        <!-- Selectable radio group when creating new config -->
         <div
+          v-else
           class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2"
           role="radiogroup"
           aria-labelledby="provider-type-legend">
@@ -649,24 +661,11 @@ aria-hidden="true">*</span>
                 <h5 class="text-sm font-medium text-green-800 dark:text-green-200">
                   {{ testResult.message }}
                 </h5>
-                <div
-                  v-if="testResult.details"
-                  class="mt-2 text-sm text-green-700 dark:text-green-300">
-                  <dl class="space-y-1">
-                    <div v-if="testResult.details.issuer" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.organizations.sso.issuer') }}:</dt>
-                      <dd class="truncate">{{ testResult.details.issuer }}</dd>
-                    </div>
-                    <div v-if="testResult.details.authorization_endpoint" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.organizations.sso.auth_endpoint') }}:</dt>
-                      <dd class="truncate">{{ testResult.details.authorization_endpoint }}</dd>
-                    </div>
-                    <div v-if="testResult.details.note" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.COMMON.note') }}:</dt>
-                      <dd>{{ testResult.details.note }}</dd>
-                    </div>
-                  </dl>
-                </div>
+                <p
+                  v-if="testResult.details?.note"
+                  class="mt-1 text-sm text-green-700 dark:text-green-300">
+                  {{ testResult.details.note }}
+                </p>
               </div>
             </div>
           </div>

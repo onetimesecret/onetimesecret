@@ -743,6 +743,10 @@
     "text": "Configure SSO for each verified domain",
     "sha256": "b2c3d4e6"
   },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "To change provider, delete this configuration first",
+    "sha256": "e2f3a4b5"
+  },
   "web.organizations.sso.status_not_configured": {
     "text": "Not Configured",
     "sha256": "d1e2f3a4"

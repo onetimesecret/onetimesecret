@@ -146,11 +146,13 @@ onMounted(() => {
         </div>
 
         <div class="p-6">
-          <BasicFormAlerts v-if="success" :success="success" />
           <DomainSsoConfigForm
             :domain-ext-id="props.extid"
             @saved="success = t('web.domains.sso.update_success')"
             @deleted="success = t('web.domains.sso.delete_success')" />
+          <BasicFormAlerts v-if="success"
+:success="success"
+class="mt-6" />
         </div>
       </div>
     </div>
