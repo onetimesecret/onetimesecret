@@ -144,6 +144,7 @@ dkim_record[:host].start_with?('dk1._domainkey.')
 #=> true
 
 ## SendGrid with custom spf_include uses it in CNAME values
+# Verifies custom SPF include domain appears in link branding record
 strategy = SenderStrategy.for_provider('sendgrid', spf_include: 'custom-sg.example.com')
 records = strategy.required_dns_records(@config)
 link_record = records.find { |r| r[:purpose].include?('link branding') }
