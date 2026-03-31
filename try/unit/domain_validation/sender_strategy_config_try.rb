@@ -117,7 +117,6 @@ dkim_records.size
 strategy = SenderStrategy.for_provider('ses', spf_include: 'custom-ses.example.com')
 records = strategy.required_dns_records(@config)
 dkim_record = records.find { |r| r[:purpose].include?('DKIM signature 1') }
-# lgtm[rb/incomplete-url-substring-sanitization] - test assertion, not URL validation
 dkim_record[:value].include?('custom-ses.example.com')
 #=> true
 
@@ -125,7 +124,6 @@ dkim_record[:value].include?('custom-ses.example.com')
 strategy = SenderStrategy.for_provider('ses', spf_include: 'custom-ses.example.com')
 records = strategy.required_dns_records(@config)
 spf_record = records.find { |r| r[:purpose] == 'SPF authentication' }
-# lgtm[rb/incomplete-url-substring-sanitization] - test assertion, not URL validation
 spf_record[:value].include?('custom-ses.example.com')
 #=> true
 
@@ -149,7 +147,6 @@ dkim_record[:host].start_with?('dk1._domainkey.')
 strategy = SenderStrategy.for_provider('sendgrid', spf_include: 'custom-sg.example.com')
 records = strategy.required_dns_records(@config)
 link_record = records.find { |r| r[:purpose].include?('link branding') }
-# lgtm[rb/incomplete-url-substring-sanitization] - test assertion, not URL validation
 link_record[:value].include?('custom-sg.example.com')
 #=> true
 
@@ -173,7 +170,6 @@ dkim_record[:host].start_with?('k1._domainkey.')
 strategy = SenderStrategy.for_provider('lettermint', spf_include: 'custom-lm.example.com')
 records = strategy.required_dns_records(@config)
 dkim_record = records.find { |r| r[:purpose].include?('DKIM signature 1') }
-# lgtm[rb/incomplete-url-substring-sanitization] - test assertion, not URL validation
 dkim_record[:value].include?('custom-lm.example.com')
 #=> true
 

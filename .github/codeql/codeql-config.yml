@@ -1,0 +1,18 @@
+# .github/codeql/codeql-config.yml
+# CodeQL configuration for security scanning
+#
+# This config excludes test files from security analysis since test assertions
+# (like checking if hostnames appear in generated values) trigger false positives
+# for patterns like "Incomplete URL substring sanitization".
+
+name: "OnetimeSecret CodeQL Config"
+
+paths-ignore:
+  # Test directories - assertions trigger false positives
+  - try/**
+  - spec/**
+  - test/**
+  - tests/**
+  # Vendor/third-party code
+  - vendor/**
+  - node_modules/**
