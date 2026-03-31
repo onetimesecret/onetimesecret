@@ -100,11 +100,6 @@ const handleSubmit = async () => {
       </form>
     </template>
     <template #footer>
-      <router-link
-        to="/signin"
-        class="text-gray-600 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-        {{ t('web.auth.magicLink.back_to_signin') }}
-      </router-link>
     </template>
   </AuthView>
 </template>

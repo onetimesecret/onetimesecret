@@ -37,7 +37,7 @@
     showReturnHome: true,
     featureIcon: () => ({
       collection: 'material-symbols',
-      name: 'mail-lock-outline',
+      name: 'shield-locked-outline',
     }),
   });
 
@@ -69,7 +69,7 @@
     }
     return props.featureIcon || {
       collection: 'material-symbols',
-      name: 'mail-lock-outline',
+      name: 'shield-locked-outline',
     };
   });
 
@@ -81,7 +81,7 @@
     }
     return props.featureIcon || {
       collection: 'material-symbols',
-      name: 'mail-lock-outline',
+      name: 'shield-locked-outline',
     };
   });
 </script>
