@@ -103,8 +103,10 @@ module Onetime
           bypass_cache: @bypass_cache,
           rate_limit_remaining: rate_limit[:remaining]
 
-        # Verify DNS records via the provider strategy
+        # Verify DNS records via the provider strategy (with timing for observability)
+        start_time   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         dns_records  = strategy.verify_dns_records(@mailer_config, bypass_cache: @bypass_cache)
+        duration_ms  = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000).round
         all_verified = dns_records.all? { |record| record[:verified] }
 
         verification_status = all_verified ? 'verified' : 'failed'
@@ -114,6 +116,7 @@ module Onetime
         persisted = false
         if @persist
           persisted = persist_verification(verification_status, verified_at)
+          @mailer_config.record_check_attempt(duration_ms, nil)
         end
 
         logger.info 'Sender domain validation complete',
@@ -121,6 +124,7 @@ module Onetime
           provider: @mailer_config.provider,
           status: verification_status,
           records_checked: dns_records.size,
+          duration_ms: duration_ms,
           persisted: persisted
 
         Result.new(
@@ -160,11 +164,19 @@ module Onetime
           },
         )
       rescue StandardError => ex
+        # Calculate duration if timing was started (exception may occur before DNS call)
+        error_duration_ms = start_time ? ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000).round : nil
+
         logger.error 'Sender domain validation failed',
           domain: domain_name,
           provider: @mailer_config&.provider,
+          status: 'failed',
           error: ex.message,
-          error_class: ex.class.name
+          error_class: ex.class.name,
+          duration_ms: error_duration_ms
+
+        # Record the failed attempt for observability
+        @mailer_config.record_check_attempt(error_duration_ms, ex.message) if @persist && @mailer_config
 
         Result.new(
           domain: domain_name,
