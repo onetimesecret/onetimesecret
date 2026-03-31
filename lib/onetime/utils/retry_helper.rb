@@ -55,14 +55,16 @@ module Onetime
       def with_retry(max_retries: 3, base_delay: 1.0, retriable: nil, logger: nil, context: nil)
         retries = 0
         log     = resolve_logger(logger)
-        ctx     = context ? "[#{context}] " : ''
 
         begin
           yield
         rescue StandardError => ex
           # Skip retries if the caller says this error is not retriable
           unless retriable.nil? || retriable.call(ex)
-            log&.error("#{ctx}Non-retriable error, skipping retries: #{ex.message}")
+            log&.error 'Non-retriable error, skipping retries',
+              context: context,
+              error_class: ex.class.name,
+              error_message: ex.message
             raise
           end
 

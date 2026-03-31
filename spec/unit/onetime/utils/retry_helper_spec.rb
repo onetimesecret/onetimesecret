@@ -183,7 +183,10 @@ RSpec.describe Onetime::Utils::RetryHelper do
       end
 
       it 'logs non-retriable errors' do
-        expect(mock_logger).to receive(:error).with(/Non-retriable error.*do-not-retry/)
+        expect(mock_logger).to receive(:error).with(
+          'Non-retriable error, skipping retries',
+          hash_including(error_class: 'StandardError', error_message: 'do-not-retry'),
+        )
 
         expect do
           described_class.with_retry(max_retries: 3, retriable: retriable, logger: mock_logger) do
