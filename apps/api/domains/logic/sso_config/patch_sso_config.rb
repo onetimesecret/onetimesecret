@@ -255,10 +255,8 @@ module DomainsAPI
           # Update timestamp for partial update
           @sso_config.updated = Familia.now.to_i
 
-          # Use transaction to ensure atomic update (prevents race with concurrent delete)
-          @sso_config.transaction do |_conn|
-            @sso_config.commit_fields
-          end
+          # commit_fields runs its own transaction internally for atomicity
+          @sso_config.commit_fields
         end
 
         # Log enabled/disabled state change if it occurred.
