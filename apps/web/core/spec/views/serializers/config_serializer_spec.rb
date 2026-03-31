@@ -181,7 +181,8 @@ RSpec.describe Core::Views::ConfigSerializer do
             Onetime::CustomDomain::SsoConfig,
             enabled?: true,
             provider_type: 'entra_id',
-            display_name: 'Contoso Azure AD'
+            display_name: 'Contoso Azure AD',
+            platform_route_name: 'entra'
           )
         end
 
@@ -199,7 +200,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
           expect(result['enabled']).to be true
           expect(result['providers'].length).to eq(1)
-          expect(result['providers'][0]['route_name']).to eq('entra_id')
+          expect(result['providers'][0]['route_name']).to eq('entra')
           expect(result['providers'][0]['display_name']).to eq('Contoso Azure AD')
         end
 
@@ -323,7 +324,8 @@ RSpec.describe Core::Views::ConfigSerializer do
             Onetime::CustomDomain::SsoConfig,
             enabled?: true,
             provider_type: 'entra_id',
-            display_name: 'Acme Corp Entra'
+            display_name: 'Acme Corp Entra',
+            platform_route_name: 'entra'
           )
         end
 
@@ -340,7 +342,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           result = described_class.build_sso_config(custom_domain_view_vars)
 
           expect(result['enabled']).to be true
-          expect(result['providers'][0]['route_name']).to eq('entra_id')
+          expect(result['providers'][0]['route_name']).to eq('entra')
           expect(result['providers'][0]['display_name']).to eq('Acme Corp Entra')
         end
       end
@@ -487,7 +489,7 @@ RSpec.describe Core::Views::ConfigSerializer do
       expect(result).to eq({
         'enabled' => true,
         'providers' => [
-          { 'route_name' => 'entra_id', 'display_name' => 'Microsoft Login' },
+          { 'route_name' => 'entra', 'display_name' => 'Microsoft Login' },
         ],
       })
     end

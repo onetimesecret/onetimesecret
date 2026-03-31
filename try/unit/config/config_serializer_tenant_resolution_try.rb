@@ -143,7 +143,7 @@ result = with_sso_platform_enabled do
   Core::Views::ConfigSerializer.send(:build_sso_config, view_vars)
 end
 result['providers'].first['route_name']
-#=> "entra_id"
+#=> "entra"
 
 ## Request from custom domain WITHOUT CustomDomain::SsoConfig, fallback allowed returns platform providers
 result = with_sso_platform_enabled do
