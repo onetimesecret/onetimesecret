@@ -50,6 +50,12 @@ module Auth::Config::Base
     auth.login_column :email
     auth.login_label 'Email'
 
+    # Normalize login to lowercase for consistent storage and Redis lookups.
+    # PostgreSQL uses citext (case-insensitive) but Redis requires exact match.
+    auth.normalize_login do |login|
+      login.to_s.strip.downcase
+    end
+
     # Session configuration
     # NOTE: session_key is the hash key where account_id is stored in session[]
     # Default is 'account_id', which is what we want to use
