@@ -515,6 +515,10 @@ module Onetime
         rescue JSON::ParserError => ex
           logger.debug "[SenderStrategies] Cache parse error for #{key}: #{ex.message}"
           nil
+        rescue StandardError => ex
+          # Cache failures should not break DNS lookups
+          logger.debug "[SenderStrategies] Cache fetch error: #{ex.message}"
+          nil
         end
 
         # Store DNS lookup result in cache.

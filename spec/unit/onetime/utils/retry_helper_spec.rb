@@ -14,7 +14,14 @@ RSpec.describe Onetime::Utils::RetryHelper do
   end
 
   let(:instance) { test_class.new }
-  let(:mock_logger) { instance_double('Logger', info: nil, error: nil) }
+  # Use a mock that accepts structured logging (message + keyword args)
+  # like SemanticLogger. Standard Logger only accepts 0-1 args.
+  let(:mock_logger) do
+    logger = Object.new
+    def logger.info(message = nil, **payload); end
+    def logger.error(message = nil, **payload); end
+    logger
+  end
 
   describe '.compute_delay' do
     it 'computes exponential backoff for retry 1' do
@@ -83,7 +90,8 @@ RSpec.describe Onetime::Utils::RetryHelper do
         call_count = 0
         delays = []
 
-        allow(described_class).to receive(:sleep) { |d| delays << d }
+        # Stub sleep on the instance receiving with_retry, not on the module
+        allow_any_instance_of(Object).to receive(:sleep) { |_obj, d| delays << d }
         allow(described_class).to receive(:rand).and_return(0)
 
         begin
@@ -101,11 +109,12 @@ RSpec.describe Onetime::Utils::RetryHelper do
       end
 
       it 'logs retry attempts' do
-        allow(described_class).to receive(:sleep)
+        allow_any_instance_of(Object).to receive(:sleep)
 
-        expect(mock_logger).to receive(:info).with(/Retry 1\/2.*transient/)
-        expect(mock_logger).to receive(:info).with(/Retry 2\/2.*transient/)
-        expect(mock_logger).to receive(:error).with(/Max retries.*exceeded/)
+        # Structured logging: message + keyword args
+        expect(mock_logger).to receive(:info).with('Retry attempt', hash_including(attempt: 1, max: 2))
+        expect(mock_logger).to receive(:info).with('Retry attempt', hash_including(attempt: 2, max: 2))
+        expect(mock_logger).to receive(:error).with('Max retries exceeded', hash_including(max: 2))
 
         expect do
           described_class.with_retry(max_retries: 2, logger: mock_logger) do
@@ -117,7 +126,7 @@ RSpec.describe Onetime::Utils::RetryHelper do
 
     context 'with max retries exceeded' do
       it 're-raises the exception' do
-        allow(described_class).to receive(:sleep)
+        allow_any_instance_of(Object).to receive(:sleep)
 
         expect do
           described_class.with_retry(max_retries: 2, logger: mock_logger) do
@@ -128,7 +137,7 @@ RSpec.describe Onetime::Utils::RetryHelper do
 
       it 'attempts max_retries times' do
         call_count = 0
-        allow(described_class).to receive(:sleep)
+        allow_any_instance_of(Object).to receive(:sleep)
 
         expect do
           described_class.with_retry(max_retries: 3, logger: mock_logger) do
@@ -147,7 +156,7 @@ RSpec.describe Onetime::Utils::RetryHelper do
 
       it 'retries when predicate returns true' do
         call_count = 0
-        allow(described_class).to receive(:sleep)
+        allow_any_instance_of(Object).to receive(:sleep)
 
         result = described_class.with_retry(max_retries: 3, retriable: retriable, logger: mock_logger) do
           call_count += 1
@@ -186,10 +195,11 @@ RSpec.describe Onetime::Utils::RetryHelper do
 
     context 'with context parameter' do
       it 'includes context in log messages' do
-        allow(described_class).to receive(:sleep)
+        allow_any_instance_of(Object).to receive(:sleep)
 
-        expect(mock_logger).to receive(:info).with(/\[DNS lookup\] Retry 1\/1/)
-        expect(mock_logger).to receive(:error).with(/\[DNS lookup\] Max retries/)
+        # Structured logging: context is passed as keyword arg, not in message string
+        expect(mock_logger).to receive(:info).with('Retry attempt', hash_including(context: 'DNS lookup', attempt: 1))
+        expect(mock_logger).to receive(:error).with('Max retries exceeded', hash_including(context: 'DNS lookup'))
 
         expect do
           described_class.with_retry(max_retries: 1, context: 'DNS lookup', logger: mock_logger) do

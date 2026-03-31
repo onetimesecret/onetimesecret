@@ -100,6 +100,14 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
       result = strategy.fetch_from_cache(hostname, 'TXT')
       expect(result).to be_nil
     end
+
+    it 'returns nil on Redis connection error (graceful degradation)' do
+      allow(mock_redis).to receive(:get).and_raise(Redis::ConnectionError, 'connection lost')
+
+      # Cache failure should not break DNS lookups - returns nil to trigger live lookup
+      result = strategy.fetch_from_cache(hostname, 'TXT')
+      expect(result).to be_nil
+    end
   end
 
   describe '#store_in_cache' do
@@ -411,8 +419,9 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
       allow(mock_dns).to receive(:close)
       allow(mock_redis).to receive(:get).and_return(nil)
       allow(mock_redis).to receive(:setex)
-      # Stub sleep to avoid test delays
-      allow(Onetime::Utils::RetryHelper).to receive(:sleep)
+      # Stub sleep on the strategy instance to avoid test delays
+      # (sleep resolves to Kernel#sleep on the instance, not the module)
+      allow(strategy).to receive(:sleep)
     end
 
     describe '#lookup_txt_records' do

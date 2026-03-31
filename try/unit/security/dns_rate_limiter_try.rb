@@ -4,7 +4,8 @@
 
 # These tryouts test the DnsRateLimiter module functionality.
 # The DnsRateLimiter prevents excessive DNS verification attempts
-# by tracking requests per domain with a sliding window.
+# by tracking requests per domain in a fixed time window using a key TTL
+# (the counter resets when the underlying Redis key expires).
 #
 # We're testing:
 # 1. Rate limit status reporting

@@ -37,10 +37,11 @@ module Onetime
       RATE_WINDOW = 3600
 
       # Lua script to atomically check and increment verification count.
-      # Returns: [current_count, ttl, was_new_key]
+      # Returns: [current_count, ttl, was_new_key, limit_exceeded]
       # - current_count: count after increment
-      # - ttl: seconds until key expires (-1 if key was just created)
+      # - ttl: seconds until key expires (for new keys this is set to rate_window)
       # - was_new_key: 1 if this was the first request in window, 0 otherwise
+      # - limit_exceeded: 1 if the max_verifications limit has been reached, 0 otherwise
       #
       # NOTE: redis.call('EVAL', ...) executes server-side Lua, not Ruby eval.
       # This is the standard Redis atomic scripting pattern.

@@ -69,11 +69,21 @@ module Onetime
           retries += 1
           if retries <= max_retries
             delay = compute_delay(base_delay, retries)
-            log&.info("#{ctx}Retry #{retries}/#{max_retries} after #{format('%.2f', delay)}s: #{ex.message}")
+            log&.info 'Retry attempt',
+              attempt: retries,
+              max: max_retries,
+              delay: format('%.2f', delay),
+              context: context,
+              error_class: ex.class.name,
+              error_message: ex.message
             sleep(delay)
             retry
           else
-            log&.error("#{ctx}Max retries (#{max_retries}) exceeded: #{ex.message}")
+            log&.error 'Max retries exceeded',
+              max: max_retries,
+              context: context,
+              error_class: ex.class.name,
+              error_message: ex.message
             raise
           end
         end

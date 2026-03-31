@@ -70,8 +70,11 @@ module Onetime
           defaults   = DEFAULTS.fetch(normalized, {})
           from_conf  = load_from_config(normalized)
 
+          # Filter out nil values to avoid overwriting defaults with nil
+          effective_overrides = overrides.compact
+
           # Merge with precedence: defaults < config < overrides
-          config = defaults.merge(from_conf).merge(overrides)
+          config = defaults.merge(from_conf).merge(effective_overrides)
           validate_config!(normalized, config)
           config
         end

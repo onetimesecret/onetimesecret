@@ -33,8 +33,8 @@ externalization, caching, retry with backoff, and tracking fields.
 | Parallel DNS lookups (`verify_all_records`) | IMPLEMENTED | TESTED |
 | Rate limiting for DNS queries | IMPLEMENTED | TESTED |
 | Provider settings externalization | Hardcoded defaults | Partial (via strategy tests) |
-| DNS result caching (Redis) | NOT IMPLEMENTED | NOT TESTED |
-| DNS retry with backoff | BaseWorker only | TESTED (job level) |
+| DNS result caching (Redis) | IMPLEMENTED | TESTED |
+| DNS retry with backoff | IMPLEMENTED | TESTED |
 | MailerConfig tracking fields | IMPLEMENTED | TESTED |
 
 ---

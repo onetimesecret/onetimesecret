@@ -78,7 +78,9 @@ module Onetime
 
       # Executes sender domain DNS validation.
       #
-      # Never raises exceptions -- all errors are captured in the Result.
+      # Validation-related failures are captured in the Result, but this method
+      # may still raise exceptions (e.g. ArgumentError or unexpected rate-limit
+      # errors) when configuration or environment is invalid.
       # Rate limits are enforced: max 10 verifications per domain per hour.
       #
       # @return [Result] Verification result

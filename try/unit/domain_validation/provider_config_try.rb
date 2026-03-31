@@ -168,12 +168,12 @@ rescue ArgumentError => e
 end
 #=> true
 
-## Nil region passes validation (uses default)
+## Nil region is filtered out and default is used
 config = ProviderConfig.for('ses', region: nil)
-config[:region].nil?
-#=> true
+config[:region]
+#=> 'us-east-1'
 
-## Nil subdomain passes validation (uses default)
+## Nil subdomain is filtered out and default is used
 config = ProviderConfig.for('sendgrid', subdomain: nil)
-config[:subdomain].nil?
-#=> true
+config[:subdomain]
+#=> 'em'
