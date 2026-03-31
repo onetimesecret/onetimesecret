@@ -58,6 +58,7 @@ module Onetime
         # Queries live DNS and compares against expected records.
         #
         # @param mailer_config [Onetime::CustomDomain::MailerConfig]
+        # @param bypass_cache [Boolean] Skip cache read/write when true
         # @return [Array<Hash>] Each hash contains:
         #   - :type [String] Record type (TXT, CNAME, MX)
         #   - :host [String] DNS hostname queried
@@ -66,7 +67,7 @@ module Onetime
         #   - :verified [Boolean] Whether a match was found
         #   - :purpose [String] Human-readable description
         #
-        def verify_dns_records(mailer_config)
+        def verify_dns_records(mailer_config, bypass_cache: false)
           raise NotImplementedError, "#{self.class} must implement #verify_dns_records"
         end
 
@@ -259,16 +260,17 @@ module Onetime
         #
         # @param record [Hash] A record hash from required_dns_records
         # @param resolver [Resolv::DNS] Shared resolver instance
+        # @param bypass_cache [Boolean] Skip cache read/write when true
         # @return [Hash] Verification result
         #
-        def verify_record(record, resolver:)
+        def verify_record(record, resolver:, bypass_cache: false)
           actual = case record[:type]
                    when 'TXT'
-                     lookup_txt_records(record[:host], resolver: resolver)
+                     lookup_txt_records(record[:host], resolver: resolver, bypass_cache: bypass_cache)
                    when 'CNAME'
-                     lookup_cname_records(record[:host], resolver: resolver)
+                     lookup_cname_records(record[:host], resolver: resolver, bypass_cache: bypass_cache)
                    when 'MX'
-                     lookup_mx_records(record[:host], resolver: resolver)
+                     lookup_mx_records(record[:host], resolver: resolver, bypass_cache: bypass_cache)
                    else
                      []
                    end
@@ -329,27 +331,29 @@ module Onetime
           end
         end
 
-        # Run verification for all required records using a single resolver.
+        # Run verification for all required records using per-thread resolvers.
         #
         # Performs DNS lookups in parallel using Concurrent::Promises. Each
-        # record verification runs in its own thread, reducing total latency
-        # from O(n * timeout) to O(timeout) for n records. The shared resolver
-        # is thread-safe; results are collected in original record order.
+        # record verification runs in its own thread with its own resolver,
+        # reducing total latency from O(n * timeout) to O(timeout) for n records.
+        # Each thread manages its own resolver lifecycle to avoid cleanup issues
+        # with shared resources in the thread pool.
         #
         # Concrete strategies can call this from verify_dns_records to avoid
         # duplicating the resolver lifecycle.
         #
         # @param mailer_config [Onetime::CustomDomain::MailerConfig]
+        # @param bypass_cache [Boolean] Skip cache read/write when true
         # @return [Array<Hash>] Verification results in same order as input
         #
-        def verify_all_records(mailer_config)
-          records  = required_dns_records(mailer_config)
-          resolver = Resolv::DNS.new
+        def verify_all_records(mailer_config, bypass_cache: false)
+          records = required_dns_records(mailer_config)
 
-          # Launch parallel lookups; each future captures errors independently
+          # Launch parallel lookups; each future manages its own resolver lifecycle
           futures = records.map do |record|
             Concurrent::Promises.future do
-              verify_record(record, resolver: resolver)
+              local_resolver = Resolv::DNS.new
+              verify_record(record, resolver: local_resolver, bypass_cache: bypass_cache)
             rescue StandardError => ex
               # Return a failed verification result rather than crashing
               logger.warn "[SenderStrategies] Record verification failed for #{record[:host]}: #{ex.message}"
@@ -362,23 +366,26 @@ module Onetime
                 purpose: record[:purpose],
                 error: ex.message,
               }
+            ensure
+              local_resolver&.close
             end
           end
 
           # Collect results preserving input order
           futures.map(&:value!)
-        ensure
-          resolver&.close
         end
 
         # Generate a Redis cache key for DNS lookups.
+        #
+        # Normalizes hostname by downcasing and stripping trailing dots to
+        # prevent cache fragmentation between "example.com" and "example.com."
         #
         # @param hostname [String] Fully qualified hostname
         # @param record_type [String] DNS record type (TXT, CNAME, MX)
         # @return [String] Redis key in format "dns:cache:{hostname}:{type}"
         #
         def dns_cache_key(hostname, record_type)
-          "dns:cache:#{hostname.downcase}:#{record_type.downcase}"
+          "dns:cache:#{hostname.to_s.downcase.chomp('.')}:#{record_type.to_s.downcase}"
         end
 
         # Check cache for DNS lookup result.

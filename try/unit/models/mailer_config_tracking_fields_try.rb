@@ -134,5 +134,35 @@ OT.boot! :test
 @config.last_error == @long_error
 #=> true
 
+# --- save_fields does not overwrite other fields (#2841 fix) ---
+# Uses the @config fixture from global setup with modified field values
+
+## record_check_attempt uses save_fields and does NOT overwrite from_name
+# Set up: store original values, modify from_name to a known value
+@config.from_name = 'Test From Name'
+@config.provider = 'ses'
+@config.save
+# Call record_check_attempt which uses save_fields
+@config.record_check_attempt(250, nil)
+# Reload and check from_name is preserved
+@fresh_reload = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@domain.identifier)
+@fresh_reload.from_name
+#=> 'Test From Name'
+
+## Provider field preserved after record_check_attempt
+@fresh_reload.provider
+#=> 'ses'
+
+## Tracking fields were actually updated after record_check_attempt
+@fresh_reload.check_duration_ms.to_i
+#=> 250
+
+## Multiple calls to record_check_attempt preserve non-tracking fields
+@fresh_reload.record_check_attempt(300, 'Error occurred')
+@fresh_reload.record_check_attempt(350, nil)
+@second_reload = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@domain.identifier)
+[@second_reload.from_name, @second_reload.provider, @second_reload.check_duration_ms.to_i]
+#=> ['Test From Name', 'ses', 350]
+
 # Teardown
 Familia.dbclient.flushdb

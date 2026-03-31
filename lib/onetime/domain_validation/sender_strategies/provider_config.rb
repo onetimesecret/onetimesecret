@@ -63,6 +63,7 @@ module Onetime
         # @param provider [String] Provider name ('ses', 'sendgrid', 'lettermint')
         # @param overrides [Hash] Explicit overrides that take precedence
         # @return [Hash] Merged configuration with symbol keys
+        # @raise [ArgumentError] If config values fail validation
         #
         def self.for(provider, **overrides)
           normalized = provider.to_s.downcase.strip
@@ -70,7 +71,9 @@ module Onetime
           from_conf  = load_from_config(normalized)
 
           # Merge with precedence: defaults < config < overrides
-          defaults.merge(from_conf).merge(overrides)
+          config = defaults.merge(from_conf).merge(overrides)
+          validate_config!(normalized, config)
+          config
         end
 
         # Loads provider config from OT.conf['email_providers'].
@@ -120,7 +123,29 @@ module Onetime
           end
         end
 
-        private_class_method :load_from_config, :symbolize_keys
+        # Validate provider-specific configuration values.
+        #
+        # @param provider [String] Provider name
+        # @param config [Hash] Merged configuration
+        # @raise [ArgumentError] If validation fails
+        #
+        def self.validate_config!(provider, config)
+          case provider
+          when 'ses'
+            region = config[:region]
+            unless region.nil? || region.match?(/\A[a-z]{2}-[a-z]+-\d+\z/)
+              raise ArgumentError, "Invalid SES region: #{region}"
+            end
+          when 'sendgrid'
+            subdomain = config[:subdomain]
+            unless subdomain.nil? || subdomain.match?(/\A[a-z0-9-]+\z/i)
+              raise ArgumentError, "Invalid subdomain: #{subdomain}"
+            end
+          end
+          # Other providers have no specific validation yet
+        end
+
+        private_class_method :load_from_config, :symbolize_keys, :validate_config!
       end
     end
   end

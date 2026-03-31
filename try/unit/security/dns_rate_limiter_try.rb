@@ -92,5 +92,47 @@ status = @tester.check_dns_rate_limit!(nil)
 [status[:remaining], status[:current], status[:limit]]
 #=> [10, 0, 10]
 
+# --- Rate limit key sanitization with special characters ---
+
+## Domain ID with colons produces valid Redis key
+@special_domain_id = "cd:org:abc123:domain"
+@tester.clear_dns_rate_limit!(@special_domain_id)
+status = @tester.check_dns_rate_limit!(@special_domain_id)
+[status[:remaining], status[:current]]
+#=> [9, 1]
+
+## Domain ID with Unicode characters produces valid Redis key
+@unicode_domain_id = "cd:unicode_\u00e9\u00f1\u00fc_test"
+@tester.clear_dns_rate_limit!(@unicode_domain_id)
+status = @tester.check_dns_rate_limit!(@unicode_domain_id)
+[status[:remaining], status[:current]]
+#=> [9, 1]
+
+## Domain ID with spaces works correctly
+@space_domain_id = "cd:domain with spaces"
+@tester.clear_dns_rate_limit!(@space_domain_id)
+status = @tester.check_dns_rate_limit!(@space_domain_id)
+[status[:remaining], status[:current]]
+#=> [9, 1]
+
+## Domain ID with newlines is handled safely
+@newline_domain_id = "cd:domain\nwith\nnewlines"
+@tester.clear_dns_rate_limit!(@newline_domain_id)
+status = @tester.check_dns_rate_limit!(@newline_domain_id)
+[status[:remaining], status[:current]]
+#=> [9, 1]
+
+## Domain ID with Redis special chars produces valid key
+@redis_special_id = "cd:test{curly}[bracket]*star"
+@tester.clear_dns_rate_limit!(@redis_special_id)
+status = @tester.check_dns_rate_limit!(@redis_special_id)
+[status[:remaining], status[:current]]
+#=> [9, 1]
+
 # Clean up test keys
 @redis.del("dns:ratelimit:#{@test_domain_id}")
+@redis.del("dns:ratelimit:#{@special_domain_id}")
+@redis.del("dns:ratelimit:#{@unicode_domain_id}")
+@redis.del("dns:ratelimit:#{@space_domain_id}")
+@redis.del("dns:ratelimit:#{@newline_domain_id}")
+@redis.del("dns:ratelimit:#{@redis_special_id}")

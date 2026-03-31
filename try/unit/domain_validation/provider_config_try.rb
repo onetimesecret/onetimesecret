@@ -127,3 +127,53 @@ providers == providers.sort
 config = ProviderConfig.for('ses')
 config.keys.all? { |k| k.is_a?(Symbol) }
 #=> true
+
+# --- Config validation ---
+
+## Valid SES region passes validation
+config = ProviderConfig.for('ses', region: 'eu-west-1')
+config[:region]
+#=> 'eu-west-1'
+
+## Valid SES region with number passes validation
+config = ProviderConfig.for('ses', region: 'ap-northeast-1')
+config[:region]
+#=> 'ap-northeast-1'
+
+## Invalid SES region raises ArgumentError
+begin
+  ProviderConfig.for('ses', region: 'invalid-region')
+  :no_error
+rescue ArgumentError => e
+  e.message.include?('Invalid SES region')
+end
+#=> true
+
+## Valid SendGrid subdomain passes validation
+config = ProviderConfig.for('sendgrid', subdomain: 'mail')
+config[:subdomain]
+#=> 'mail'
+
+## Valid SendGrid subdomain with numbers passes validation
+config = ProviderConfig.for('sendgrid', subdomain: 'em1234')
+config[:subdomain]
+#=> 'em1234'
+
+## Invalid SendGrid subdomain with special chars raises ArgumentError
+begin
+  ProviderConfig.for('sendgrid', subdomain: 'sub:domain')
+  :no_error
+rescue ArgumentError => e
+  e.message.include?('Invalid subdomain')
+end
+#=> true
+
+## Nil region passes validation (uses default)
+config = ProviderConfig.for('ses', region: nil)
+config[:region].nil?
+#=> true
+
+## Nil subdomain passes validation (uses default)
+config = ProviderConfig.for('sendgrid', subdomain: nil)
+config[:subdomain].nil?
+#=> true

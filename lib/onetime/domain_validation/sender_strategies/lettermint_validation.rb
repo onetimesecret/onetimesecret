@@ -64,10 +64,11 @@ module Onetime
         # Verifies Lettermint DNS records via live DNS lookup.
         #
         # @param mailer_config [Onetime::CustomDomain::MailerConfig]
+        # @param bypass_cache [Boolean] Skip cache read/write when true
         # @return [Array<Hash>]
         #
-        def verify_dns_records(mailer_config)
-          verify_all_records(mailer_config)
+        def verify_dns_records(mailer_config, bypass_cache: false)
+          verify_all_records(mailer_config, bypass_cache: bypass_cache)
         end
 
         # @return [String]

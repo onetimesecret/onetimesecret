@@ -48,6 +48,25 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
       key = strategy.dns_cache_key('TEST.Example.COM', 'CNAME')
       expect(key).to eq('dns:cache:test.example.com:cname')
     end
+
+    it 'strips trailing dots from hostname for consistent cache keys' do
+      key_with_dot = strategy.dns_cache_key('example.com.', 'TXT')
+      key_without_dot = strategy.dns_cache_key('example.com', 'TXT')
+      expect(key_with_dot).to eq(key_without_dot)
+      expect(key_with_dot).to eq('dns:cache:example.com:txt')
+    end
+
+    it 'normalizes FQDN with trailing dot to match non-FQDN' do
+      # DNS servers often return FQDNs with trailing dots
+      key_fqdn = strategy.dns_cache_key('selector._domainkey.example.com.', 'CNAME')
+      key_plain = strategy.dns_cache_key('selector._domainkey.example.com', 'CNAME')
+      expect(key_fqdn).to eq(key_plain)
+    end
+
+    it 'handles nil hostname gracefully' do
+      key = strategy.dns_cache_key(nil, 'TXT')
+      expect(key).to eq('dns:cache::txt')
+    end
   end
 
   describe '#fetch_from_cache' do

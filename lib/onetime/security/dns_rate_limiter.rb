@@ -159,8 +159,17 @@ module Onetime
 
       private
 
+      # Generate a safe Redis key for rate limiting.
+      #
+      # Sanitizes the domain_id to prevent key collisions from IDs containing
+      # special characters (e.g., colons). Only allows alphanumeric characters,
+      # dots, underscores, and hyphens.
+      #
+      # @param domain_id [String] The domain's unique identifier
+      # @return [String] Sanitized Redis key
       def dns_rate_limit_key(domain_id)
-        "dns:ratelimit:#{domain_id}"
+        sanitized_id = domain_id.to_s.gsub(/[^a-zA-Z0-9._-]/, '_')
+        "dns:ratelimit:#{sanitized_id}"
       end
 
       def default_rate_limit_status

@@ -46,7 +46,7 @@ class TestableParallelStrategy < Onetime::DomainValidation::SenderStrategies::Ba
   private
 
   # Override lookup methods to use mock data
-  def lookup_cname_records(hostname, resolver: nil)
+  def lookup_cname_records(hostname, resolver: nil, bypass_cache: false)
     @resolver_instances << resolver.object_id if resolver
     @lookup_calls << [:cname, hostname, Thread.current.object_id]
     sleep(@lookup_delays[hostname]) if @lookup_delays[hostname]
@@ -54,7 +54,7 @@ class TestableParallelStrategy < Onetime::DomainValidation::SenderStrategies::Ba
     ["#{hostname}.mock.result"]
   end
 
-  def lookup_txt_records(hostname, resolver: nil)
+  def lookup_txt_records(hostname, resolver: nil, bypass_cache: false)
     @resolver_instances << resolver.object_id if resolver
     @lookup_calls << [:txt, hostname, Thread.current.object_id]
     sleep(@lookup_delays[hostname]) if @lookup_delays[hostname]
@@ -62,7 +62,7 @@ class TestableParallelStrategy < Onetime::DomainValidation::SenderStrategies::Ba
     ["v=spf1 include:mock.com ~all"]
   end
 
-  def lookup_mx_records(hostname, resolver: nil)
+  def lookup_mx_records(hostname, resolver: nil, bypass_cache: false)
     @resolver_instances << resolver.object_id if resolver
     @lookup_calls << [:mx, hostname, Thread.current.object_id]
     sleep(@lookup_delays[hostname]) if @lookup_delays[hostname]
@@ -96,11 +96,41 @@ class ErrorIsolationStrategy < Onetime::DomainValidation::SenderStrategies::Base
   private
 
   # Return the expected value from the record for successful lookups
-  def lookup_cname_records(hostname, resolver: nil)
+  def lookup_cname_records(hostname, resolver: nil, bypass_cache: false)
     raise @lookup_errors[hostname] if @lookup_errors[hostname]
     # Find the record for this hostname and return its expected value
     record = @mock_records.find { |r| r[:host] == hostname }
     record ? [record[:value]] : []
+  end
+end
+
+# Test strategy that tracks bypass_cache parameter (for #2841 verification)
+class BypassCacheTrackingStrategy < Onetime::DomainValidation::SenderStrategies::BaseStrategy
+  attr_accessor :mock_records
+  attr_reader :bypass_cache_calls
+
+  def initialize
+    @mock_records = []
+    @bypass_cache_calls = []
+  end
+
+  def required_dns_records(_mailer_config)
+    @mock_records
+  end
+
+  def verify_dns_records(mailer_config, bypass_cache: false)
+    verify_all_records(mailer_config, bypass_cache: bypass_cache)
+  end
+
+  def strategy_name
+    'bypass_cache_tracking'
+  end
+
+  private
+
+  def lookup_cname_records(hostname, resolver: nil, bypass_cache: false)
+    @bypass_cache_calls << { hostname: hostname, bypass_cache: bypass_cache }
+    ['target.example.com']
   end
 end
 
@@ -277,5 +307,37 @@ end
 ## All-fail: second error is NXDOMAIN
 @all_fail_results[1][:error].include?('NXDOMAIN')
 #=> true
+
+# --- bypass_cache propagation through verify_all_records (#2841 fix) ---
+
+## verify_all_records with bypass_cache: false passes false to lookup methods
+@bypass_strategy = BypassCacheTrackingStrategy.new
+@bypass_strategy.mock_records = [
+  { type: 'CNAME', host: 'record1.example.com', value: 'target.example.com', purpose: 'Record 1' },
+  { type: 'CNAME', host: 'record2.example.com', value: 'target.example.com', purpose: 'Record 2' },
+]
+@bypass_strategy.verify_dns_records(@mock_mailer_config, bypass_cache: false)
+@bypass_strategy.bypass_cache_calls.all? { |c| c[:bypass_cache] == false }
+#=> true
+
+## verify_all_records with bypass_cache: true passes true to lookup methods
+@bypass_strategy = BypassCacheTrackingStrategy.new
+@bypass_strategy.mock_records = [
+  { type: 'CNAME', host: 'record1.example.com', value: 'target.example.com', purpose: 'Record 1' },
+  { type: 'CNAME', host: 'record2.example.com', value: 'target.example.com', purpose: 'Record 2' },
+]
+@bypass_strategy.verify_dns_records(@mock_mailer_config, bypass_cache: true)
+@bypass_strategy.bypass_cache_calls.all? { |c| c[:bypass_cache] == true }
+#=> true
+
+## All records receive the bypass_cache parameter (2 records total)
+@bypass_strategy = BypassCacheTrackingStrategy.new
+@bypass_strategy.mock_records = [
+  { type: 'CNAME', host: 'record1.example.com', value: 'target.example.com', purpose: 'Record 1' },
+  { type: 'CNAME', host: 'record2.example.com', value: 'target.example.com', purpose: 'Record 2' },
+]
+@bypass_strategy.verify_dns_records(@mock_mailer_config, bypass_cache: true)
+@bypass_strategy.bypass_cache_calls.size
+#=> 2
 
 # No Redis teardown needed for this test

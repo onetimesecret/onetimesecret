@@ -188,6 +188,10 @@ module Onetime
       # Updates tracking fields for caching decisions and operational metrics.
       # Called by ValidateSenderDomain after each verification attempt.
       #
+      # Uses save_fields for field-specific persistence to avoid race
+      # conditions where a full save could overwrite concurrent updates
+      # to other fields.
+      #
       # @param duration_ms [Integer] How long the check took in milliseconds
       # @param error [String, nil] Error message if the check failed
       # @return [void]
@@ -197,7 +201,7 @@ module Onetime
         self.check_count       = (check_count.to_i + 1).to_s
         self.last_error        = error
         self.updated           = Familia.now.to_i
-        save
+        save_fields(:last_check_at, :check_duration_ms, :check_count, :last_error, :updated)
       end
 
       # Check if a recent verification check was performed.
