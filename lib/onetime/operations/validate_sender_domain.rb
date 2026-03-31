@@ -147,6 +147,9 @@ module Onetime
           domain_id: @mailer_config&.domain_id,
           retry_after: ex.retry_after
 
+        # Record the rate-limited attempt for metrics (duration is 0 since no DNS lookup occurred)
+        @mailer_config.record_check_attempt(0, "Rate limited: retry after #{ex.retry_after}s") if @persist && @mailer_config
+
         Result.new(
           domain: domain_name,
           provider: @mailer_config&.provider.to_s,

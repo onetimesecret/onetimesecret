@@ -10,7 +10,7 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
   let(:test_strategy_class) do
     Class.new(described_class) do
       # Make private methods public for testing
-      public :lookup_txt_records, :lookup_cname_records, :lookup_mx_records
+      public :lookup_txt_records, :lookup_cname_records, :lookup_mx_records, :classify_dns_error
       public :dns_cache_key, :fetch_from_cache, :store_in_cache, :redis
       public :fetch_cache_bulk, :store_cache_bulk
       public :record_matches?, :txt_record_matches?, :spf_record_matches?
@@ -159,8 +159,9 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
       it 'returns cached value without DNS lookup' do
         expect(mock_dns).not_to receive(:getresources)
 
-        result = strategy.lookup_txt_records(hostname)
-        expect(result).to eq(['cached-record'])
+        values, error_type = strategy.lookup_txt_records(hostname)
+        expect(values).to eq(['cached-record'])
+        expect(error_type).to be_nil
       end
     end
 
@@ -187,9 +188,10 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
         strategy.lookup_txt_records(hostname)
       end
 
-      it 'returns DNS result' do
-        result = strategy.lookup_txt_records(hostname)
-        expect(result).to eq(['v=spf1 include:example.com ~all'])
+      it 'returns DNS result as tuple' do
+        values, error_type = strategy.lookup_txt_records(hostname)
+        expect(values).to eq(['v=spf1 include:example.com ~all'])
+        expect(error_type).to be_nil
       end
     end
 
@@ -215,8 +217,9 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
       it 'performs live DNS lookup' do
         expect(mock_dns).to receive(:getresources)
 
-        result = strategy.lookup_txt_records(hostname, bypass_cache: true)
-        expect(result).to eq(['v=spf1 include:example.com ~all'])
+        values, error_type = strategy.lookup_txt_records(hostname, bypass_cache: true)
+        expect(values).to eq(['v=spf1 include:example.com ~all'])
+        expect(error_type).to be_nil
       end
     end
 
@@ -226,9 +229,24 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
         allow(mock_dns).to receive(:getresources).and_raise(Resolv::ResolvError, 'NXDOMAIN')
       end
 
-      it 'returns empty array' do
-        result = strategy.lookup_txt_records(hostname)
-        expect(result).to eq([])
+      it 'returns empty array with not_found error_type' do
+        values, error_type = strategy.lookup_txt_records(hostname)
+        expect(values).to eq([])
+        expect(error_type).to eq('not_found')
+      end
+    end
+
+    context 'with DNS timeout' do
+      before do
+        allow(mock_redis).to receive(:get).and_return(nil)
+        allow(mock_dns).to receive(:getresources).and_raise(Resolv::ResolvTimeout, 'timeout')
+        allow(strategy).to receive(:sleep) # Skip retry delays
+      end
+
+      it 'returns empty array with timeout error_type' do
+        values, error_type = strategy.lookup_txt_records(hostname)
+        expect(values).to eq([])
+        expect(error_type).to eq('timeout')
       end
     end
   end
@@ -252,8 +270,9 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
       it 'returns cached value without DNS lookup' do
         expect(mock_dns).not_to receive(:getresources)
 
-        result = strategy.lookup_cname_records(hostname)
-        expect(result).to eq(['cached-target.example.com'])
+        values, error_type = strategy.lookup_cname_records(hostname)
+        expect(values).to eq(['cached-target.example.com'])
+        expect(error_type).to be_nil
       end
     end
 
@@ -270,8 +289,9 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
         expect(mock_redis).to receive(:setex)
           .with('dns:cache:test.example.com:cname', 600, '["target.example.com"]')
 
-        result = strategy.lookup_cname_records(hostname)
-        expect(result).to eq(['target.example.com'])
+        values, error_type = strategy.lookup_cname_records(hostname)
+        expect(values).to eq(['target.example.com'])
+        expect(error_type).to be_nil
       end
     end
 
@@ -286,8 +306,22 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
         expect(mock_redis).not_to receive(:get)
         expect(mock_redis).not_to receive(:setex)
 
-        result = strategy.lookup_cname_records(hostname, bypass_cache: true)
-        expect(result).to eq(['target.example.com'])
+        values, error_type = strategy.lookup_cname_records(hostname, bypass_cache: true)
+        expect(values).to eq(['target.example.com'])
+        expect(error_type).to be_nil
+      end
+    end
+
+    context 'with DNS error' do
+      before do
+        allow(mock_redis).to receive(:get).and_return(nil)
+        allow(mock_dns).to receive(:getresources).and_raise(Resolv::ResolvError, 'NXDOMAIN')
+      end
+
+      it 'returns empty array with not_found error_type' do
+        values, error_type = strategy.lookup_cname_records(hostname)
+        expect(values).to eq([])
+        expect(error_type).to eq('not_found')
       end
     end
   end
@@ -311,8 +345,9 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
       it 'returns cached value without DNS lookup' do
         expect(mock_dns).not_to receive(:getresources)
 
-        result = strategy.lookup_mx_records(hostname)
-        expect(result).to eq(['cached-mail.example.com'])
+        values, error_type = strategy.lookup_mx_records(hostname)
+        expect(values).to eq(['cached-mail.example.com'])
+        expect(error_type).to be_nil
       end
     end
 
@@ -329,8 +364,9 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
         expect(mock_redis).to receive(:setex)
           .with('dns:cache:test.example.com:mx', 600, '["mail.example.com"]')
 
-        result = strategy.lookup_mx_records(hostname)
-        expect(result).to eq(['mail.example.com'])
+        values, error_type = strategy.lookup_mx_records(hostname)
+        expect(values).to eq(['mail.example.com'])
+        expect(error_type).to be_nil
       end
     end
 
@@ -345,8 +381,22 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
         expect(mock_redis).not_to receive(:get)
         expect(mock_redis).not_to receive(:setex)
 
-        result = strategy.lookup_mx_records(hostname, bypass_cache: true)
-        expect(result).to eq(['mail.example.com'])
+        values, error_type = strategy.lookup_mx_records(hostname, bypass_cache: true)
+        expect(values).to eq(['mail.example.com'])
+        expect(error_type).to be_nil
+      end
+    end
+
+    context 'with DNS error' do
+      before do
+        allow(mock_redis).to receive(:get).and_return(nil)
+        allow(mock_dns).to receive(:getresources).and_raise(Resolv::ResolvError, 'NXDOMAIN')
+      end
+
+      it 'returns empty array with not_found error_type' do
+        values, error_type = strategy.lookup_mx_records(hostname)
+        expect(values).to eq([])
+        expect(error_type).to eq('not_found')
       end
     end
   end
@@ -434,8 +484,9 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
           [txt_resource]
         end
 
-        result = strategy.lookup_txt_records(hostname)
-        expect(result).to eq(['v=spf1 ~all'])
+        values, error_type = strategy.lookup_txt_records(hostname)
+        expect(values).to eq(['v=spf1 ~all'])
+        expect(error_type).to be_nil
         expect(call_count).to eq(2)
       end
 
@@ -446,20 +497,22 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
           raise Resolv::ResolvError, 'NXDOMAIN'
         end
 
-        result = strategy.lookup_txt_records(hostname)
-        expect(result).to eq([])
+        values, error_type = strategy.lookup_txt_records(hostname)
+        expect(values).to eq([])
+        expect(error_type).to eq('not_found')
         expect(call_count).to eq(1)
       end
 
-      it 'returns empty array after max retries on timeout' do
+      it 'returns empty array with timeout error_type after max retries' do
         call_count = 0
         allow(mock_dns).to receive(:getresources) do
           call_count += 1
           raise Resolv::ResolvTimeout, 'timeout'
         end
 
-        result = strategy.lookup_txt_records(hostname)
-        expect(result).to eq([])
+        values, error_type = strategy.lookup_txt_records(hostname)
+        expect(values).to eq([])
+        expect(error_type).to eq('timeout')
         # 1 initial + 2 retries = 3 total attempts
         expect(call_count).to eq(3)
       end
@@ -471,8 +524,9 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
 
         expect(mock_dns).not_to receive(:getresources)
 
-        result = strategy.lookup_txt_records(hostname)
-        expect(result).to eq(['cached'])
+        values, error_type = strategy.lookup_txt_records(hostname)
+        expect(values).to eq(['cached'])
+        expect(error_type).to be_nil
       end
     end
 
@@ -488,8 +542,9 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
           [cname_resource]
         end
 
-        result = strategy.lookup_cname_records(hostname)
-        expect(result).to eq(['target.example.com'])
+        values, error_type = strategy.lookup_cname_records(hostname)
+        expect(values).to eq(['target.example.com'])
+        expect(error_type).to be_nil
         expect(call_count).to eq(2)
       end
 
@@ -500,8 +555,9 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
           raise Resolv::ResolvError, 'NXDOMAIN'
         end
 
-        result = strategy.lookup_cname_records(hostname)
-        expect(result).to eq([])
+        values, error_type = strategy.lookup_cname_records(hostname)
+        expect(values).to eq([])
+        expect(error_type).to eq('not_found')
         expect(call_count).to eq(1)
       end
     end
@@ -518,8 +574,9 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
           [mx_resource]
         end
 
-        result = strategy.lookup_mx_records(hostname)
-        expect(result).to eq(['mail.example.com'])
+        values, error_type = strategy.lookup_mx_records(hostname)
+        expect(values).to eq(['mail.example.com'])
+        expect(error_type).to be_nil
         expect(call_count).to eq(2)
       end
 
@@ -530,8 +587,9 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
           raise Resolv::ResolvError, 'NXDOMAIN'
         end
 
-        result = strategy.lookup_mx_records(hostname)
-        expect(result).to eq([])
+        values, error_type = strategy.lookup_mx_records(hostname)
+        expect(values).to eq([])
+        expect(error_type).to eq('not_found')
         expect(call_count).to eq(1)
       end
     end
@@ -737,6 +795,97 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
     it 'returns false for unknown record types' do
       result = strategy.record_matches?('AAAA', '::1', ['::1'])
       expect(result).to be false
+    end
+  end
+
+  describe '#classify_dns_error' do
+    it 'returns timeout for Resolv::ResolvTimeout' do
+      error = Resolv::ResolvTimeout.new('DNS timeout')
+      expect(strategy.classify_dns_error(error)).to eq('timeout')
+    end
+
+    it 'returns not_found for Resolv::ResolvError' do
+      error = Resolv::ResolvError.new('NXDOMAIN')
+      expect(strategy.classify_dns_error(error)).to eq('not_found')
+    end
+
+    it 'returns network_error for SocketError' do
+      error = SocketError.new('connection refused')
+      expect(strategy.classify_dns_error(error)).to eq('network_error')
+    end
+
+    it 'returns network_error for other StandardError' do
+      error = StandardError.new('unknown error')
+      expect(strategy.classify_dns_error(error)).to eq('network_error')
+    end
+
+    it 'returns network_error for IOError' do
+      error = IOError.new('stream closed')
+      expect(strategy.classify_dns_error(error)).to eq('network_error')
+    end
+  end
+
+  describe 'error_type in verification results' do
+    let(:mock_dns) { instance_double('Resolv::DNS') }
+
+    before do
+      allow(Resolv::DNS).to receive(:new).and_return(mock_dns)
+      allow(mock_dns).to receive(:close)
+      allow(mock_redis).to receive(:get).and_return(nil)
+    end
+
+    context 'when DNS lookup fails with ResolvError' do
+      before do
+        allow(mock_dns).to receive(:getresources).and_raise(Resolv::ResolvError, 'NXDOMAIN')
+      end
+
+      it 'includes error_type in lookup result' do
+        values, error_type = strategy.lookup_txt_records(hostname)
+        expect(values).to eq([])
+        expect(error_type).to eq('not_found')
+      end
+    end
+
+    context 'when DNS lookup fails with ResolvTimeout' do
+      before do
+        allow(mock_dns).to receive(:getresources).and_raise(Resolv::ResolvTimeout, 'timeout')
+        allow(strategy).to receive(:sleep)
+      end
+
+      it 'includes error_type in lookup result' do
+        values, error_type = strategy.lookup_txt_records(hostname)
+        expect(values).to eq([])
+        expect(error_type).to eq('timeout')
+      end
+    end
+
+    context 'when DNS lookup succeeds' do
+      let(:txt_resource) { double('TXT', strings: ['v=spf1 ~all']) }
+
+      before do
+        allow(mock_dns).to receive(:getresources).and_return([txt_resource])
+        allow(mock_redis).to receive(:setex)
+      end
+
+      it 'returns nil error_type' do
+        values, error_type = strategy.lookup_txt_records(hostname)
+        expect(values).to eq(['v=spf1 ~all'])
+        expect(error_type).to be_nil
+      end
+    end
+
+    context 'when value is from cache' do
+      before do
+        allow(mock_redis).to receive(:get)
+          .with('dns:cache:test.example.com:txt')
+          .and_return('["cached-value"]')
+      end
+
+      it 'returns nil error_type for cache hits' do
+        values, error_type = strategy.lookup_txt_records(hostname)
+        expect(values).to eq(['cached-value'])
+        expect(error_type).to be_nil
+      end
     end
   end
 end

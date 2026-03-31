@@ -125,4 +125,113 @@ RSpec.describe Onetime::Operations::ValidateSenderDomain do
       expect(result.success?).to be true
     end
   end
+
+  # ==========================================================================
+  # Rate limit tracking
+  # ==========================================================================
+
+  describe 'rate limit tracking' do
+    let(:rate_limit_exception) do
+      Onetime::LimitExceeded.new(
+        'DNS verification rate limit exceeded',
+        retry_after: 3600,
+        attempts: 10,
+        max_attempts: 10,
+      )
+    end
+
+    before do
+      allow_any_instance_of(described_class).to receive(:check_dns_rate_limit!).and_raise(rate_limit_exception)
+    end
+
+    context 'with persist: true' do
+      before do
+        allow(mailer_config).to receive(:record_check_attempt)
+      end
+
+      it 'records check attempt when rate limited' do
+        operation = described_class.new(
+          mailer_config: mailer_config,
+          strategy: mock_strategy,
+          persist: true,
+        )
+
+        operation.call
+
+        expect(mailer_config).to have_received(:record_check_attempt).with(
+          0,
+          a_string_matching(/Rate limited.*retry after 3600s/),
+        )
+      end
+
+      it 'records duration_ms as 0 for rate-limited attempts' do
+        operation = described_class.new(
+          mailer_config: mailer_config,
+          strategy: mock_strategy,
+          persist: true,
+        )
+
+        operation.call
+
+        expect(mailer_config).to have_received(:record_check_attempt).with(0, anything)
+      end
+    end
+
+    context 'with persist: false' do
+      it 'does not record check attempt when rate limited' do
+        allow(mailer_config).to receive(:record_check_attempt)
+
+        operation = described_class.new(
+          mailer_config: mailer_config,
+          strategy: mock_strategy,
+          persist: false,
+        )
+
+        operation.call
+
+        expect(mailer_config).not_to have_received(:record_check_attempt)
+      end
+    end
+
+    it 'returns rate_limited verification_status' do
+      operation = described_class.new(
+        mailer_config: mailer_config,
+        strategy: mock_strategy,
+        persist: false,
+      )
+
+      result = operation.call
+
+      expect(result.verification_status).to eq('rate_limited')
+    end
+
+    it 'includes rate limit details in result' do
+      operation = described_class.new(
+        mailer_config: mailer_config,
+        strategy: mock_strategy,
+        persist: false,
+      )
+
+      result = operation.call
+
+      expect(result.rate_limit).to include(
+        remaining: 0,
+        reset_in: 3600,
+        current: 10,
+        limit: 10,
+      )
+    end
+
+    it 'does not call strategy.verify_dns_records when rate limited' do
+      operation = described_class.new(
+        mailer_config: mailer_config,
+        strategy: mock_strategy,
+        persist: false,
+      )
+
+      operation.call
+
+      expect(mock_strategy).not_to have_received(:verify_dns_records)
+    end
+  end
 end

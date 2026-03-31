@@ -121,12 +121,12 @@ module Onetime
         # @param hostname [String] Fully qualified hostname
         # @param resolver [Resolv::DNS] Optional resolver instance
         # @param bypass_cache [Boolean] Skip cache read/write when true
-        # @return [Array<String>] TXT record values found
+        # @return [Array] Tuple of [Array<String>, String|nil] - [values, error_type]
         #
         def lookup_txt_records(hostname, resolver: nil, bypass_cache: false)
           unless bypass_cache
             cached = fetch_from_cache(hostname, 'TXT')
-            return cached if cached
+            return [cached, nil] if cached
           end
 
           dns = resolver || Resolv::DNS.new
@@ -143,15 +143,10 @@ module Onetime
           end
 
           store_in_cache(hostname, 'TXT', values) unless bypass_cache
-          values
-        rescue Resolv::ResolvError => ex
-          # Authoritative "not found" - do not retry, return empty
+          [values, nil]
+        rescue Resolv::ResolvError, Resolv::ResolvTimeout => ex
           logger.debug "[SenderStrategies] TXT lookup failed for #{hostname}: #{ex.message}"
-          []
-        rescue Resolv::ResolvTimeout => ex
-          # Timeout after all retries exhausted
-          logger.debug "[SenderStrategies] TXT lookup timed out for #{hostname}: #{ex.message}"
-          []
+          [[], classify_dns_error(ex)]
         ensure
           dns&.close unless resolver
         end
@@ -170,12 +165,12 @@ module Onetime
         # @param hostname [String] Fully qualified hostname
         # @param resolver [Resolv::DNS] Optional resolver instance
         # @param bypass_cache [Boolean] Skip cache read/write when true
-        # @return [Array<String>] CNAME target values found
+        # @return [Array] Tuple of [Array<String>, String|nil] - [values, error_type]
         #
         def lookup_cname_records(hostname, resolver: nil, bypass_cache: false)
           unless bypass_cache
             cached = fetch_from_cache(hostname, 'CNAME')
-            return cached if cached
+            return [cached, nil] if cached
           end
 
           dns = resolver || Resolv::DNS.new
@@ -192,15 +187,10 @@ module Onetime
           end
 
           store_in_cache(hostname, 'CNAME', values) unless bypass_cache
-          values
-        rescue Resolv::ResolvError => ex
-          # Authoritative "not found" - do not retry, return empty
+          [values, nil]
+        rescue Resolv::ResolvError, Resolv::ResolvTimeout => ex
           logger.debug "[SenderStrategies] CNAME lookup failed for #{hostname}: #{ex.message}"
-          []
-        rescue Resolv::ResolvTimeout => ex
-          # Timeout after all retries exhausted
-          logger.debug "[SenderStrategies] CNAME lookup timed out for #{hostname}: #{ex.message}"
-          []
+          [[], classify_dns_error(ex)]
         ensure
           dns&.close unless resolver
         end
@@ -219,12 +209,12 @@ module Onetime
         # @param hostname [String] Fully qualified hostname
         # @param resolver [Resolv::DNS] Optional resolver instance
         # @param bypass_cache [Boolean] Skip cache read/write when true
-        # @return [Array<String>] MX exchange hostnames found
+        # @return [Array] Tuple of [Array<String>, String|nil] - [values, error_type]
         #
         def lookup_mx_records(hostname, resolver: nil, bypass_cache: false)
           unless bypass_cache
             cached = fetch_from_cache(hostname, 'MX')
-            return cached if cached
+            return [cached, nil] if cached
           end
 
           dns = resolver || Resolv::DNS.new
@@ -241,15 +231,10 @@ module Onetime
           end
 
           store_in_cache(hostname, 'MX', values) unless bypass_cache
-          values
-        rescue Resolv::ResolvError => ex
-          # Authoritative "not found" - do not retry, return empty
+          [values, nil]
+        rescue Resolv::ResolvError, Resolv::ResolvTimeout => ex
           logger.debug "[SenderStrategies] MX lookup failed for #{hostname}: #{ex.message}"
-          []
-        rescue Resolv::ResolvTimeout => ex
-          # Timeout after all retries exhausted
-          logger.debug "[SenderStrategies] MX lookup timed out for #{hostname}: #{ex.message}"
-          []
+          [[], classify_dns_error(ex)]
         ensure
           dns&.close unless resolver
         end
@@ -261,23 +246,23 @@ module Onetime
         # @param record [Hash] A record hash from required_dns_records
         # @param resolver [Resolv::DNS] Shared resolver instance
         # @param bypass_cache [Boolean] Skip cache read/write when true
-        # @return [Hash] Verification result
+        # @return [Hash] Verification result with optional :error_type
         #
         def verify_record(record, resolver:, bypass_cache: false)
-          actual = case record[:type]
-                   when 'TXT'
-                     lookup_txt_records(record[:host], resolver: resolver, bypass_cache: bypass_cache)
-                   when 'CNAME'
-                     lookup_cname_records(record[:host], resolver: resolver, bypass_cache: bypass_cache)
-                   when 'MX'
-                     lookup_mx_records(record[:host], resolver: resolver, bypass_cache: bypass_cache)
-                   else
-                     []
-                   end
+          actual, error_type = case record[:type]
+                               when 'TXT'
+                                 lookup_txt_records(record[:host], resolver: resolver, bypass_cache: bypass_cache)
+                               when 'CNAME'
+                                 lookup_cname_records(record[:host], resolver: resolver, bypass_cache: bypass_cache)
+                               when 'MX'
+                                 lookup_mx_records(record[:host], resolver: resolver, bypass_cache: bypass_cache)
+                               else
+                                 [[], nil]
+                               end
 
           verified = record_matches?(record[:type], record[:value], actual)
 
-          {
+          result              = {
             type: record[:type],
             host: record[:host],
             expected: record[:value],
@@ -285,6 +270,8 @@ module Onetime
             verified: verified,
             purpose: record[:purpose],
           }
+          result[:error_type] = error_type if error_type
+          result
         end
 
         # Check whether the expected value appears in the actual DNS results.
@@ -404,6 +391,7 @@ module Onetime
                 verified: false,
                 purpose: record[:purpose],
                 error: ex.message,
+                error_type: classify_dns_error(ex),
               }
             ensure
               local_resolver&.close
@@ -434,11 +422,11 @@ module Onetime
         # @param resolver [Resolv::DNS] Shared resolver instance
         # @param cached_value [Array<String>, nil] Pre-fetched cache value or nil
         # @param bypass_cache [Boolean] Skip cache when true
-        # @return [Hash] Verification result with :from_cache flag
+        # @return [Hash] Verification result with :from_cache flag and optional :error_type
         #
         def verify_record_with_cache(record, resolver:, cached_value:, bypass_cache:)
           if cached_value && !bypass_cache
-            # Use cached value directly
+            # Use cached value directly - no error_type since cache hit
             verified = record_matches?(record[:type], record[:value], cached_value)
             return {
               type: record[:type],
@@ -452,10 +440,10 @@ module Onetime
           end
 
           # Perform live DNS lookup
-          actual   = lookup_dns_by_type(record[:type], record[:host], resolver: resolver, bypass_cache: true)
-          verified = record_matches?(record[:type], record[:value], actual)
+          actual, error_type = lookup_dns_by_type(record[:type], record[:host], resolver: resolver, bypass_cache: true)
+          verified           = record_matches?(record[:type], record[:value], actual)
 
-          {
+          result              = {
             type: record[:type],
             host: record[:host],
             expected: record[:value],
@@ -464,6 +452,8 @@ module Onetime
             purpose: record[:purpose],
             from_cache: false,
           }
+          result[:error_type] = error_type if error_type
+          result
         end
 
         # Lookup DNS records by type.
@@ -472,7 +462,7 @@ module Onetime
         # @param hostname [String] Hostname to query
         # @param resolver [Resolv::DNS] DNS resolver instance
         # @param bypass_cache [Boolean] Skip cache when true
-        # @return [Array<String>] DNS values found
+        # @return [Array] Tuple of [Array<String>, String|nil] - [values, error_type]
         #
         def lookup_dns_by_type(type, hostname, resolver:, bypass_cache:)
           case type
@@ -483,7 +473,7 @@ module Onetime
           when 'MX'
             lookup_mx_records(hostname, resolver: resolver, bypass_cache: bypass_cache)
           else
-            []
+            [[], nil]
           end
         end
 
@@ -605,6 +595,23 @@ module Onetime
         #
         def redis
           Onetime::CustomDomain.dbclient
+        end
+
+        # Classify a DNS exception into an error type string.
+        #
+        # Used to provide structured error information in verification results,
+        # allowing consumers to distinguish between transient failures (timeouts)
+        # and authoritative failures (not found).
+        #
+        # @param exception [StandardError] The caught exception
+        # @return [String] One of 'timeout', 'not_found', or 'network_error'
+        #
+        def classify_dns_error(exception)
+          case exception
+          when Resolv::ResolvTimeout then 'timeout'
+          when Resolv::ResolvError then 'not_found'
+          else 'network_error'
+          end
         end
       end
     end

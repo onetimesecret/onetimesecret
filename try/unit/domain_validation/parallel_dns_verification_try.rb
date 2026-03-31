@@ -56,12 +56,13 @@ class TestableParallelStrategy < Onetime::DomainValidation::SenderStrategies::Ba
   end
 
   # Override lookup methods to use mock data
+  # Returns tuple [values, error_type] to match new API
   def lookup_cname_records(hostname, resolver: nil, bypass_cache: false)
     @resolver_instances << resolver.object_id if resolver
     @lookup_calls << [:cname, hostname, Thread.current.object_id]
     sleep(@lookup_delays[hostname]) if @lookup_delays[hostname]
     raise @lookup_errors[hostname] if @lookup_errors[hostname]
-    ["#{hostname}.mock.result"]
+    [["#{hostname}.mock.result"], nil]
   end
 
   def lookup_txt_records(hostname, resolver: nil, bypass_cache: false)
@@ -69,7 +70,7 @@ class TestableParallelStrategy < Onetime::DomainValidation::SenderStrategies::Ba
     @lookup_calls << [:txt, hostname, Thread.current.object_id]
     sleep(@lookup_delays[hostname]) if @lookup_delays[hostname]
     raise @lookup_errors[hostname] if @lookup_errors[hostname]
-    ["v=spf1 include:mock.com ~all"]
+    [["v=spf1 include:mock.com ~all"], nil]
   end
 
   def lookup_mx_records(hostname, resolver: nil, bypass_cache: false)
@@ -77,7 +78,7 @@ class TestableParallelStrategy < Onetime::DomainValidation::SenderStrategies::Ba
     @lookup_calls << [:mx, hostname, Thread.current.object_id]
     sleep(@lookup_delays[hostname]) if @lookup_errors[hostname]
     raise @lookup_errors[hostname] if @lookup_errors[hostname]
-    ["mx.mock.com"]
+    [["mx.mock.com"], nil]
   end
 end
 
@@ -116,11 +117,13 @@ class ErrorIsolationStrategy < Onetime::DomainValidation::SenderStrategies::Base
   end
 
   # Return the expected value from the record for successful lookups
+  # Returns tuple [values, error_type] to match new API
   def lookup_cname_records(hostname, resolver: nil, bypass_cache: false)
     raise @lookup_errors[hostname] if @lookup_errors[hostname]
     # Find the record for this hostname and return its expected value
     record = @mock_records.find { |r| r[:host] == hostname }
-    record ? [record[:value]] : []
+    values = record ? [record[:value]] : []
+    [values, nil]
   end
 end
 
@@ -157,9 +160,10 @@ class BypassCacheTrackingStrategy < Onetime::DomainValidation::SenderStrategies:
     {} # Return empty cache to force DNS lookups
   end
 
+  # Returns tuple [values, error_type] to match new API
   def lookup_cname_records(hostname, resolver: nil, bypass_cache: false)
     @lookup_count += 1
-    ['target.example.com']
+    [['target.example.com'], nil]
   end
 end
 
