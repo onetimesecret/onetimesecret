@@ -28,8 +28,8 @@ module Onetime
       # DNS Record Types by Provider:
       #
       #   SES:       3 CNAME records for DKIM tokens
-      #   SendGrid:  Multiple CNAME/TXT records (branded links, DKIM, etc.)
-      #   Lettermint: Provider-specific selector records
+      #   SendGrid:  Multiple CNAME/TXT records (branded links, DKIM, SPF)
+      #   Lettermint: CNAME/TXT records for DKIM selectors and SPF
       #
       class BaseSenderStrategy
         attr_reader :config
@@ -57,6 +57,7 @@ module Onetime
         #     - :type [String] Record type ('CNAME', 'TXT', etc.)
         #     - :name [String] DNS hostname
         #     - :value [String] DNS record value
+        #   - :provider_data [Hash] Raw provider metadata (tokens, regions, status)
         #   - :identity_id [String, nil] Provider's identity identifier
         #   - :error [String, nil] Error message if failed
         #

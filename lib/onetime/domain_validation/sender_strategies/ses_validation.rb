@@ -24,6 +24,10 @@ module Onetime
         SPF_INCLUDE         = 'amazonses.com'
         DEFAULT_REGION      = 'us-east-1'
 
+        def self.accepted_options
+          [:region].freeze
+        end
+
         # @param region [String] AWS region for MX record (default: us-east-1)
         def initialize(region: DEFAULT_REGION)
           @region = region

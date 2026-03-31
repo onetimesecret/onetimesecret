@@ -78,72 +78,82 @@ module Onetime
         validation_error = validate_config
         return failure_result(validation_error) if validation_error
 
-        provider = @mailer_config.provider
-
-        # Step 2: Verify provider supports provisioning
-        unless Onetime::Mail::SenderStrategies.supports_provisioning?(provider)
-          return failure_result(
-            "Provider '#{provider}' does not support automated DNS provisioning. " \
-            'Configure DNS records manually.',
-          )
+        # Acquire distributed lock to prevent concurrent provisioning
+        lock_token = @mailer_config.provisioning.acquire(ttl: 60)
+        unless lock_token
+          return failure_result("Domain provisioning already in progress for #{@mailer_config.domain_id}")
         end
 
-        # Step 3: Load platform credentials
-        credentials = load_credentials(provider)
-        return failure_result("Failed to load credentials for provider '#{provider}'") unless credentials
+        begin
+          provider = @mailer_config.provider
 
-        # Step 4: Select strategy
-        strategy = @strategy || Onetime::Mail::SenderStrategies.for_provider(provider)
+          # Step 2: Verify provider supports provisioning
+          unless Onetime::Mail::SenderStrategies.supports_provisioning?(provider)
+            return failure_result(
+              "Provider '#{provider}' does not support automated DNS provisioning. " \
+              'Configure DNS records manually.',
+            )
+          end
 
-        # Step 5: Call strategy.provision_dns_records
-        #
-        # NOTE: No client-side rate limiting is applied here. Currently
-        # each call is a single user-triggered action so throttling is
-        # unnecessary. If this operation is ever used in bulk (e.g.
-        # batch provisioning for multiple domains), add a rate_limit
-        # parameter with a sleep between calls — see VerifyDomain for
-        # the pattern (0.5s default between bulk API calls). Provider
-        # server-side limits to be aware of:
-        #   - SES: 1 req/sec for CreateEmailIdentity
-        #   - SendGrid: 600 req/min across all endpoints
-        #   - Lettermint: undocumented, expect standard API limits
-        #
-        logger.info 'Provisioning sender domain',
-          domain_id: @mailer_config.domain_id,
-          provider: provider,
-          from_address: @mailer_config.from_address
+          # Step 3: Load platform credentials
+          credentials = load_credentials(provider)
+          return failure_result("Failed to load credentials for provider '#{provider}'") unless credentials
 
-        provision_result = strategy.provision_dns_records(@mailer_config, credentials: credentials)
+          # Step 4: Select strategy
+          strategy = @strategy || Onetime::Mail::SenderStrategies.for_provider(provider)
 
-        # Step 6: Handle strategy result
-        unless provision_result[:success]
-          error_message = provision_result[:error] || provision_result[:message] || 'Provisioning failed'
-          logger.warn 'Sender domain provisioning failed',
+          # Step 5: Call strategy.provision_dns_records
+          #
+          # NOTE: No client-side rate limiting is applied here. Currently
+          # each call is a single user-triggered action so throttling is
+          # unnecessary. If this operation is ever used in bulk (e.g.
+          # batch provisioning for multiple domains), add a rate_limit
+          # parameter with a sleep between calls — see VerifyDomain for
+          # the pattern (0.5s default between bulk API calls). Provider
+          # server-side limits to be aware of:
+          #   - SES: 1 req/sec for CreateEmailIdentity
+          #   - SendGrid: 600 req/min across all endpoints
+          #   - Lettermint: undocumented, expect standard API limits
+          #
+          logger.info 'Provisioning sender domain',
             domain_id: @mailer_config.domain_id,
-            error: error_message
-          return failure_result(error_message)
+            provider: provider,
+            from_address: @mailer_config.from_address
+
+          provision_result = strategy.provision_dns_records(@mailer_config, credentials: credentials)
+
+          # Step 6: Handle strategy result
+          unless provision_result[:success]
+            error_message = provision_result[:error] || provision_result[:message] || 'Provisioning failed'
+            logger.warn 'Sender domain provisioning failed',
+              domain_id: @mailer_config.domain_id,
+              error: error_message
+            return failure_result(error_message)
+          end
+
+          # Step 7: Extract and normalize DNS records
+          dns_records   = normalize_dns_records(provision_result[:dns_records], provider)
+          provider_data = provision_result[:provider_data]
+
+          # Step 8: Store result in mailer_config and save if persist enabled
+          if @persist
+            persist_provider_data(provider_data, dns_records, provision_result[:identity_id])
+          end
+
+          logger.info 'Sender domain provisioned successfully',
+            domain_id: @mailer_config.domain_id,
+            provider: provider,
+            record_count: dns_records.size
+
+          Result.new(
+            success: true,
+            dns_records: dns_records,
+            provider_data: provider_data,
+            error: nil,
+          )
+        ensure
+          @mailer_config.provisioning.release(lock_token)
         end
-
-        # Step 7: Extract and normalize DNS records
-        dns_records   = normalize_dns_records(provision_result[:dns_records], provider)
-        provider_data = provision_result[:provider_data]
-
-        # Step 8: Store result in mailer_config and save if persist enabled
-        if @persist
-          persist_provider_data(provider_data, dns_records, provision_result[:identity_id])
-        end
-
-        logger.info 'Sender domain provisioned successfully',
-          domain_id: @mailer_config.domain_id,
-          provider: provider,
-          record_count: dns_records.size
-
-        Result.new(
-          success: true,
-          dns_records: dns_records,
-          provider_data: provider_data,
-          error: nil,
-        )
       rescue ArgumentError => ex
         # Strategy selection or validation errors
         logger.error 'Provisioning argument error',
@@ -243,6 +253,9 @@ module Onetime
         # Strategies return Arrays directly from :dns_records
         return dns_data if dns_data.is_a?(Array)
 
+        # Guard against non-Hash types (String, Integer, etc.)
+        return [] unless dns_data.is_a?(Hash)
+
         case provider.to_s.downcase
         when 'ses'
           normalize_ses_records(dns_data)
@@ -304,6 +317,9 @@ module Onetime
               value: record[:data] || record[:value],
             }
           end
+        elsif dns_data[:dns_records].is_a?(Array)
+          # Fallback: dns_records array already in normalized format
+          return dns_data[:dns_records]
         end
 
         records.compact
@@ -338,9 +354,15 @@ module Onetime
 
       # Persist provider data to the mailer config.
       #
+      # Raises on failure so the caller's rescue block can build a proper
+      # failure result.  Without this, a Redis failure would leave the
+      # provider-side domain registered while the local config has no
+      # record of it.
+      #
       # @param provider_data [Hash] Raw provider-specific data to store
       # @param dns_records [Array<Hash>] Normalized DNS records for UI display
       # @param identity_id [String, nil] Provider's identity identifier
+      # @raise [StandardError] if persistence fails
       def persist_provider_data(provider_data, dns_records, identity_id)
         @mailer_config.provider_dns_data = provider_data
         @mailer_config.dns_records       = dns_records
@@ -351,11 +373,6 @@ module Onetime
           domain_id: @mailer_config.domain_id,
           identity_id: identity_id,
           record_count: dns_records&.size
-      rescue StandardError => ex
-        logger.error 'Failed to persist provider data',
-          domain_id: @mailer_config.domain_id,
-          error: ex.message
-        # Don't fail the operation - provisioning succeeded even if persistence failed
       end
 
       # Create a failure result with the given error message.

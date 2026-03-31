@@ -34,10 +34,12 @@ module Onetime
         # Factory method to create appropriate strategy based on provider type.
         #
         # @param provider_type [String] One of 'ses', 'sendgrid', 'lettermint'
+        # @param options [Hash] Provider-specific options forwarded to the
+        #   strategy constructor (e.g. region: for SES, subdomain: for SendGrid).
         # @return [BaseStrategy] Appropriate strategy instance
         # @raise [ArgumentError] If provider type is unknown
         #
-        def self.for_provider(provider_type)
+        def self.for_provider(provider_type, options = {})
           normalized = provider_type.to_s.downcase.strip
 
           strategy_class = PROVIDER_MAP[normalized]
@@ -45,11 +47,22 @@ module Onetime
           unless strategy_class
             raise ArgumentError,
               "Unknown mail provider: '#{provider_type}'. " \
-              "Valid options: #{PROVIDER_MAP.keys.join(', ')}"
+              "Valid providers: #{PROVIDER_MAP.keys.join(', ')}"
           end
 
-          # Strategy classes must support no-arg construction (all params have defaults).
-          strategy_class.new
+          # Validate options against the strategy's declared whitelist.
+          # Reject unknown keys at the factory boundary with a clear
+          # error message naming the provider, rather than letting Ruby's
+          # kwarg check leak constructor details.
+          accepted = strategy_class.accepted_options
+          unknown  = options.keys - accepted
+          unless unknown.empty?
+            raise ArgumentError,
+              "Unknown option(s) #{unknown.inspect} for provider '#{normalized}'. " \
+              "Accepted: #{accepted.empty? ? 'none' : accepted.inspect}"
+          end
+
+          strategy_class.new(**options.slice(*accepted))
         end
       end
     end

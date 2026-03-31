@@ -316,6 +316,9 @@ module Onetime
         # Normalized to consistent shape matching SES/SendGrid:
         #   [{ type: 'CNAME', name: '...', value: '...' }, ...]
         #
+        # Returns Array<Hash> with {type:, name:, value:} entries, matching
+        # the shape used by SES and SendGrid strategies.
+        #
         # @param records [Array<Hash>] Raw DNS records from Lettermint
         # @return [Array<Hash>] Normalized records with symbolized keys
         #

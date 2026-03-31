@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'securerandom'
+require 'time'
 require_relative 'queues/config'
 
 module Onetime
