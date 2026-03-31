@@ -382,8 +382,11 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
       it 'logs non-retriable error before re-raising' do
         mock_logger = instance_double(SemanticLogger::Logger)
         allow(worker).to receive(:logger).and_return(mock_logger)
-        # RetryHelper logs with context prefix: "[EmailWorker] Non-retriable error, skipping retries: message"
-        expect(mock_logger).to receive(:error).with(/\[EmailWorker\] Non-retriable error/)
+        # RetryHelper uses structured logging with context in the payload
+        expect(mock_logger).to receive(:error).with(
+          'Non-retriable error, skipping retries',
+          hash_including(context: 'EmailWorker', error_class: 'StandardError', error_message: 'Stop immediately')
+        )
 
         non_retriable = ->(_ex) { false }
 
