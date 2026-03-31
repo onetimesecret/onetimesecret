@@ -6,13 +6,17 @@ require 'spec_helper'
 require 'onetime/operations/provision_sender_domain'
 
 RSpec.describe Onetime::Operations::ProvisionSenderDomain do
+  let(:mock_lock) { double('Lock', acquire: 'mock-token', release: true) }
+
   let(:mailer_config) do
     double(
       'MailerConfig',
       domain_id: 'cd:test123',
       provider: 'ses',
       from_address: 'sender@example.com',
+      provisioning: mock_lock,
       'provider_dns_data=' => nil,
+      'dns_records=' => nil,
       'updated=' => nil,
       save: true,
     )
@@ -296,7 +300,7 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
       end
 
       it 'returns failure for SMTP' do
-        config = double('MailerConfig', domain_id: 'cd:test', provider: 'smtp', from_address: 'a@b.com')
+        config = double('MailerConfig', domain_id: 'cd:test', provider: 'smtp', from_address: 'a@b.com', provisioning: mock_lock)
 
         result = described_class.new(mailer_config: config, persist: false).call
 

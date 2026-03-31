@@ -78,6 +78,9 @@ module Onetime
       # Encrypted credential storage with domain-bound AAD
       encrypted_field :api_key, aad_fields: [:domain_id]
 
+      # Distributed lock for concurrent provisioning protection
+      lock :provisioning
+
       # General state
       field :enabled          # Boolean string ('true'/'false')
 

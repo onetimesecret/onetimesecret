@@ -27,7 +27,8 @@ module Onetime
       #   https://docs.sendgrid.com/api-reference/domain-authentication
       #
       class SendGridSenderStrategy < BaseSenderStrategy
-        API_BASE_URI = 'https://api.sendgrid.com/v3'
+        API_BASE_URI          = 'https://api.sendgrid.com/v3'
+        DOMAIN_LIST_PAGE_SIZE = 50
 
         # Structured error for SendGrid API failures
         class APIError < StandardError
@@ -321,7 +322,7 @@ module Onetime
         # @return [Integer, nil] Domain ID or nil if not found
         #
         def find_domain_id(domain, api_key:)
-          limit  = 50
+          limit  = DOMAIN_LIST_PAGE_SIZE
           offset = 0
 
           loop do
