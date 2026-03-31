@@ -41,7 +41,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'saved'): void;
+  (e: 'saved', isUpdate: boolean): void;
   (e: 'deleted'): void;
 }>();
 
@@ -280,7 +280,7 @@ const handleSave = async () => {
     // Show success message
     success.value = t('web.organizations.sso.update_success');
 
-    emit('saved');
+    emit('saved', isEditing.value);
   } catch (err) {
     const classified = classifyError(err);
     error.value = classified.message || t('web.organizations.sso.save_error');

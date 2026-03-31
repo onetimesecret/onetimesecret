@@ -431,8 +431,12 @@
     "text": "You don't have permission to manage SSO settings for this domain. Contact your organization administrator.",
     "sha256": "e5f6a7b8"
   },
+  "web.domains.sso.create_success": {
+    "text": "SSO configuration created successfully",
+    "sha256": "e6f7a8b9"
+  },
   "web.domains.sso.update_success": {
-    "text": "SSO configuration saved successfully",
+    "text": "SSO configuration updated successfully",
     "sha256": "f6a7b8c9"
   },
   "web.domains.sso.delete_success": {
