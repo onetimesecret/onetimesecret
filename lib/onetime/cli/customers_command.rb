@@ -249,7 +249,6 @@ module Onetime
       end
     end
 
-    register 'customers', CustomersCommand
-    register 'customer', CustomersCommand
+    register 'customers', CustomersCommand, aliases: ['customer']
   end
 end

@@ -43,6 +43,11 @@ module Onetime
             bin/ots billing refunds create     Create refund for charge
             bin/ots billing payment-methods set-default  Set default payment method
 
+          Diagnostics:
+            bin/ots billing diagnose EMAIL        Diagnose entitlement resolution for a user
+            bin/ots billing diagnose EMAIL --entitlement custom_mail_sender
+            bin/ots billing diagnose EMAIL --verbose
+
           Testing:
             bin/ots billing test create-customer  Create test customer with card
             bin/ots billing test trigger-webhook  Trigger test webhook event

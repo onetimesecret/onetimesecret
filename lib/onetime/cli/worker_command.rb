@@ -343,7 +343,6 @@ module Onetime
         end
     end
 
-    register 'worker', WorkerCommand
-    register 'workers', WorkerCommand  # Alias
+    register 'worker', WorkerCommand, aliases: ['workers']
   end
 end
