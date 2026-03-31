@@ -223,6 +223,27 @@ const routes: Array<RouteRecordRaw> = [
       scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
+  // Developer tool: Icon gallery (not linked from navigation)
+  {
+    path: '/icons',
+    name: 'IconGallery',
+    component: () => import('@/views/IconGallery.vue'),
+    meta: {
+      title: 'Icon Gallery',
+      requiresAuth: false,
+      layout: TransactionalLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayPoweredBy: false,
+        displayVersion: false,
+        displayToggles: false,
+      },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+    },
+  },
 ];
 
 export default routes;
