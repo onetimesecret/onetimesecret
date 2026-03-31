@@ -124,6 +124,7 @@ module Onetime
           provider: @mailer_config.provider,
           status: verification_status,
           records_checked: dns_records.size,
+          duration_ms: duration_ms,
           persisted: persisted
 
         Result.new(
@@ -164,13 +165,15 @@ module Onetime
         )
       rescue StandardError => ex
         # Calculate duration if timing was started (exception may occur before DNS call)
-        error_duration_ms = start_time ? ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000).round : 0
+        error_duration_ms = start_time ? ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000).round : nil
 
         logger.error 'Sender domain validation failed',
           domain: domain_name,
           provider: @mailer_config&.provider,
+          status: 'failed',
           error: ex.message,
-          error_class: ex.class.name
+          error_class: ex.class.name,
+          duration_ms: error_duration_ms
 
         # Record the failed attempt for observability
         @mailer_config.record_check_attempt(error_duration_ms, ex.message) if @persist && @mailer_config
