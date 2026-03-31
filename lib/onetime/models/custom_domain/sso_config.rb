@@ -63,6 +63,17 @@ module Onetime
         },
       }.freeze
 
+      # Map provider_type to platform route name ENV var and default.
+      # Must match platform registration in omniauth.rb.
+      # Tenant requests reuse platform-registered strategies, so the
+      # route_name sent to frontend must match the registered route.
+      PROVIDER_ROUTE_MAP = {
+        'oidc' => { env_var: 'OIDC_ROUTE_NAME', default: 'oidc' },
+        'entra_id' => { env_var: 'ENTRA_ROUTE_NAME', default: 'entra' },
+        'google' => { env_var: 'GOOGLE_ROUTE_NAME', default: 'google' },
+        'github' => { env_var: 'GITHUB_ROUTE_NAME', default: 'github' },
+      }.freeze
+
       prefix :custom_domain__sso_config
 
       feature :encrypted_fields
@@ -137,6 +148,23 @@ module Onetime
         provider_metadata.fetch(:idp_controls_access, true)
       end
 
+      # Returns the platform route name for this provider.
+      #
+      # Tenant requests reuse platform-registered OmniAuth strategies.
+      # This method resolves the route name that matches the platform's
+      # registered route, ensuring the frontend constructs valid URLs.
+      #
+      # The route name is determined by ENV vars (e.g., ENTRA_ROUTE_NAME)
+      # that control platform strategy registration in omniauth.rb.
+      #
+      # @return [String] Platform route name (e.g., 'entra' for entra_id)
+      def platform_route_name
+        mapping = PROVIDER_ROUTE_MAP[provider_type]
+        return provider_type unless mapping
+
+        ENV.fetch(mapping[:env_var], mapping[:default])
+      end
+
       # Enable SSO for this domain.
       # @return [void]
       def enable!
@@ -164,10 +192,22 @@ module Onetime
 
       # Set the list of allowed email domains.
       #
+      # Validates each domain using PublicSuffix to ensure it has a valid TLD.
+      # Supports internationalized domain names (IDN).
+      #
       # @param domains [Array<String>] Domain names to allow
       # @return [void]
+      # @raise [Onetime::Problem] if any domain is invalid
       def allowed_domains=(domains)
-        normalized                = Array(domains).map { it.to_s.strip.downcase }.uniq.reject(&:empty?)
+        normalized = Array(domains).map { it.to_s.strip.downcase }.uniq.reject(&:empty?)
+
+        # Validate each domain using PublicSuffix (handles IDN, validates TLD)
+        normalized.each do |domain|
+          Utils::DomainParser.cached_parse(domain)
+        rescue PublicSuffix::Error => ex
+          raise Onetime::Problem, "Invalid domain: #{domain} (#{ex.message})"
+        end
+
         self.allowed_domains_json = normalized.empty? ? nil : JSON.generate(normalized)
       end
 

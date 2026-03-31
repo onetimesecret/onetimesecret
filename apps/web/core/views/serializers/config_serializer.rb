@@ -228,7 +228,7 @@ module Core
             'enabled' => true,
             'providers' => [
               {
-                'route_name' => config.provider_type.to_s,
+                'route_name' => config.platform_route_name,
                 'display_name' => config.display_name.to_s,
               },
             ],

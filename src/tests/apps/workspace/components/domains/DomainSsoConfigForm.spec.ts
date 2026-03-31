@@ -644,19 +644,8 @@ describe('DomainSsoConfigForm', () => {
       expect(wrapper.emitted('saved')).toBeTruthy();
     });
 
-    it('shows success message after save', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: mockExistingConfig });
-      wrapper = await mountComponent();
-
-      // Submit form
-      const form = wrapper.find('form');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      // Success message should be displayed
-      const alerts = wrapper.find('[data-testid="form-alerts"]');
-      expect(alerts.exists()).toBe(true);
-    });
+    // Note: Success messaging is handled by the parent component via @saved event
+    // The previous test verifies the event is emitted correctly
 
     it('displays error message when save fails', async () => {
       mockGetConfigForDomain.mockResolvedValue({ record: mockExistingConfig });
