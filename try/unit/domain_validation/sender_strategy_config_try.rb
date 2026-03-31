@@ -147,7 +147,7 @@ dkim_record[:host].start_with?('dk1._domainkey.')
 strategy = SenderStrategy.for_provider('sendgrid', spf_include: 'custom-sg.example.com')
 records = strategy.required_dns_records(@config)
 link_record = records.find { |r| r[:purpose].include?('link branding') }
-!!(link_record[:value] =~ /custom-sg\.example\.com/)
+link_record[:value].end_with?('custom-sg.example.com')
 #=> true
 
 # --- Lettermint uses instance variables for DNS record generation ---
