@@ -120,3 +120,90 @@ stored_email = cust.email
 cust.delete!
 stored_email
 #=> "positional_#{@test_id}@example.com"
+
+# =============================================================================
+# Unicode Email Normalization Tests (Issue #2843)
+# =============================================================================
+#
+# These tests verify proper handling of international email addresses using:
+#   - NFC normalization for consistent Unicode representation
+#   - :fold for proper case folding of international characters
+#
+# Example: "ÑOÑO@EXAMPLE.COM" -> "ñoño@example.com"
+#
+# The :fold parameter to String#downcase handles special cases like:
+#   - German sharp S (ß -> ss in some contexts)
+#   - Turkish dotless i (İ -> i with fold, not I)
+#   - Greek letters with different upper/lower forms
+
+## Customer.create! normalizes Unicode uppercase (Spanish ñ)
+unicode_spanish = "SEÑOR_#{@test_id}@EXAMPLE.COM"
+cust = Onetime::Customer.create!(email: unicode_spanish)
+stored_email = cust.email
+cust.delete!
+stored_email
+#=> "señor_#{@test_id}@example.com"
+
+## Customer.create! normalizes Unicode with accented characters
+unicode_accents = "CAFÉ_#{@test_id}@EXAMPLE.COM"
+cust = Onetime::Customer.create!(email: unicode_accents)
+stored_email = cust.email
+cust.delete!
+stored_email
+#=> "café_#{@test_id}@example.com"
+
+## Customer.create! normalizes German sharp S with case folding
+# Note: downcase(:fold) converts uppercase ẞ to "ss" per Unicode case folding rules
+# This is correct behavior - full case folding expands ẞ to ss for compatibility
+german_email = "STRAẞE_#{@test_id}@EXAMPLE.COM"
+cust = Onetime::Customer.create!(email: german_email)
+stored_email = cust.email
+cust.delete!
+stored_email
+#=> "strasse_#{@test_id}@example.com"
+
+## Customer.create! handles Greek uppercase letters
+greek_email = "ΕΛΛΗΝΙΚΆ_#{@test_id}@EXAMPLE.COM"
+cust = Onetime::Customer.create!(email: greek_email)
+stored_email = cust.email
+cust.delete!
+stored_email
+#=> "ελληνικά_#{@test_id}@example.com"
+
+## Customer.create! handles Cyrillic uppercase letters
+cyrillic_email = "ПРИВЕТ_#{@test_id}@EXAMPLE.COM"
+cust = Onetime::Customer.create!(email: cyrillic_email)
+stored_email = cust.email
+cust.delete!
+stored_email
+#=> "привет_#{@test_id}@example.com"
+
+## Customer.create! applies NFC normalization (composed form)
+# The same character can be represented differently in Unicode:
+# - NFD (decomposed): é = e + ́ (combining acute accent)
+# - NFC (composed): é = é (single codepoint)
+# NFC normalization ensures consistent storage for duplicate detection
+nfd_email = "nfctest_cafe\u0301_#{@test_id}@example.com"  # e + combining acute
+cust = Onetime::Customer.create!(email: nfd_email)
+stored_email = cust.email
+# After NFC normalization, should be composed form
+is_nfc_normalized = stored_email == stored_email.unicode_normalize(:nfc)
+cust.delete!
+is_nfc_normalized
+#=> true
+
+## Duplicate detection works with NFC vs NFD variations of same email
+# First create with NFC (composed) form
+nfc_email = "caf\u00e9_nfc_#{@test_id}@example.com"  # single é codepoint
+cust = Onetime::Customer.create!(email: nfc_email)
+begin
+  # Try to create with NFD (decomposed) form - should be detected as duplicate
+  nfd_variation = "cafe\u0301_nfc_#{@test_id}@example.com"  # e + combining acute
+  Onetime::Customer.create!(email: nfd_variation)
+rescue Familia::RecordExistsError => e
+  result = e.message.include?('Customer exists')
+ensure
+  cust.delete!
+end
+result
+#=> true
