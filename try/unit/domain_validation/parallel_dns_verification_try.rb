@@ -45,6 +45,16 @@ class TestableParallelStrategy < Onetime::DomainValidation::SenderStrategies::Ba
 
   private
 
+  # Skip bulk cache fetch to avoid Redis calls in tests
+  def fetch_cache_bulk(records)
+    {}
+  end
+
+  # Skip bulk cache store to avoid Redis calls in tests
+  def store_cache_bulk(results, ttl: nil)
+    # No-op
+  end
+
   # Override lookup methods to use mock data
   def lookup_cname_records(hostname, resolver: nil, bypass_cache: false)
     @resolver_instances << resolver.object_id if resolver
@@ -65,7 +75,7 @@ class TestableParallelStrategy < Onetime::DomainValidation::SenderStrategies::Ba
   def lookup_mx_records(hostname, resolver: nil, bypass_cache: false)
     @resolver_instances << resolver.object_id if resolver
     @lookup_calls << [:mx, hostname, Thread.current.object_id]
-    sleep(@lookup_delays[hostname]) if @lookup_delays[hostname]
+    sleep(@lookup_delays[hostname]) if @lookup_errors[hostname]
     raise @lookup_errors[hostname] if @lookup_errors[hostname]
     ["mx.mock.com"]
   end
@@ -95,6 +105,16 @@ class ErrorIsolationStrategy < Onetime::DomainValidation::SenderStrategies::Base
 
   private
 
+  # Skip bulk cache fetch to avoid Redis calls in tests
+  def fetch_cache_bulk(records)
+    {}
+  end
+
+  # Skip bulk cache store to avoid Redis calls in tests
+  def store_cache_bulk(results, ttl: nil)
+    # No-op
+  end
+
   # Return the expected value from the record for successful lookups
   def lookup_cname_records(hostname, resolver: nil, bypass_cache: false)
     raise @lookup_errors[hostname] if @lookup_errors[hostname]
@@ -104,14 +124,17 @@ class ErrorIsolationStrategy < Onetime::DomainValidation::SenderStrategies::Base
   end
 end
 
-# Test strategy that tracks bypass_cache parameter (for #2841 verification)
+# Test strategy that tracks bypass_cache behavior (for #2841 verification)
+# Updated for pipelined cache architecture: tracks whether cache was used
+# at the bulk fetch level, not individual lookup level.
 class BypassCacheTrackingStrategy < Onetime::DomainValidation::SenderStrategies::BaseStrategy
   attr_accessor :mock_records
-  attr_reader :bypass_cache_calls
+  attr_reader :bulk_cache_fetched, :lookup_count
 
   def initialize
     @mock_records = []
-    @bypass_cache_calls = []
+    @bulk_cache_fetched = false
+    @lookup_count = 0
   end
 
   def required_dns_records(_mailer_config)
@@ -128,8 +151,14 @@ class BypassCacheTrackingStrategy < Onetime::DomainValidation::SenderStrategies:
 
   private
 
+  # Track bulk cache fetch calls (new pipelined architecture)
+  def fetch_cache_bulk(records)
+    @bulk_cache_fetched = true
+    {} # Return empty cache to force DNS lookups
+  end
+
   def lookup_cname_records(hostname, resolver: nil, bypass_cache: false)
-    @bypass_cache_calls << { hostname: hostname, bypass_cache: bypass_cache }
+    @lookup_count += 1
     ['target.example.com']
   end
 end
@@ -308,36 +337,49 @@ end
 @all_fail_results[1][:error].include?('NXDOMAIN')
 #=> true
 
-# --- bypass_cache propagation through verify_all_records (#2841 fix) ---
+# --- bypass_cache behavior through verify_all_records (#2841 fix) ---
+# After pipelining changes, bypass_cache is handled at the bulk level:
+# - bypass_cache: false => fetch_cache_bulk is called, then lookups for cache misses
+# - bypass_cache: true => fetch_cache_bulk is skipped, all records go to DNS lookup
 
-## verify_all_records with bypass_cache: false passes false to lookup methods
+## verify_all_records with bypass_cache: false performs bulk cache fetch
 @bypass_strategy = BypassCacheTrackingStrategy.new
 @bypass_strategy.mock_records = [
   { type: 'CNAME', host: 'record1.example.com', value: 'target.example.com', purpose: 'Record 1' },
   { type: 'CNAME', host: 'record2.example.com', value: 'target.example.com', purpose: 'Record 2' },
 ]
 @bypass_strategy.verify_dns_records(@mock_mailer_config, bypass_cache: false)
-@bypass_strategy.bypass_cache_calls.all? { |c| c[:bypass_cache] == false }
+@bypass_strategy.bulk_cache_fetched
 #=> true
 
-## verify_all_records with bypass_cache: true passes true to lookup methods
-@bypass_strategy = BypassCacheTrackingStrategy.new
-@bypass_strategy.mock_records = [
+## verify_all_records with bypass_cache: true skips bulk cache fetch
+@bypass_strategy2 = BypassCacheTrackingStrategy.new
+@bypass_strategy2.mock_records = [
   { type: 'CNAME', host: 'record1.example.com', value: 'target.example.com', purpose: 'Record 1' },
   { type: 'CNAME', host: 'record2.example.com', value: 'target.example.com', purpose: 'Record 2' },
 ]
-@bypass_strategy.verify_dns_records(@mock_mailer_config, bypass_cache: true)
-@bypass_strategy.bypass_cache_calls.all? { |c| c[:bypass_cache] == true }
-#=> true
+@bypass_strategy2.verify_dns_records(@mock_mailer_config, bypass_cache: true)
+@bypass_strategy2.bulk_cache_fetched
+#=> false
 
-## All records receive the bypass_cache parameter (2 records total)
-@bypass_strategy = BypassCacheTrackingStrategy.new
-@bypass_strategy.mock_records = [
+## All records are processed regardless of bypass_cache setting
+@bypass_strategy3 = BypassCacheTrackingStrategy.new
+@bypass_strategy3.mock_records = [
   { type: 'CNAME', host: 'record1.example.com', value: 'target.example.com', purpose: 'Record 1' },
   { type: 'CNAME', host: 'record2.example.com', value: 'target.example.com', purpose: 'Record 2' },
 ]
-@bypass_strategy.verify_dns_records(@mock_mailer_config, bypass_cache: true)
-@bypass_strategy.bypass_cache_calls.size
+@bypass_strategy3.verify_dns_records(@mock_mailer_config, bypass_cache: true)
+@bypass_strategy3.lookup_count
+#=> 2
+
+## All records are processed with cache enabled (bypass_cache: false)
+@bypass_strategy4 = BypassCacheTrackingStrategy.new
+@bypass_strategy4.mock_records = [
+  { type: 'CNAME', host: 'record1.example.com', value: 'target.example.com', purpose: 'Record 1' },
+  { type: 'CNAME', host: 'record2.example.com', value: 'target.example.com', purpose: 'Record 2' },
+]
+@bypass_strategy4.verify_dns_records(@mock_mailer_config, bypass_cache: false)
+@bypass_strategy4.lookup_count
 #=> 2
 
 # No Redis teardown needed for this test

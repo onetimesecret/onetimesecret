@@ -12,6 +12,8 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
       # Make private methods public for testing
       public :lookup_txt_records, :lookup_cname_records, :lookup_mx_records
       public :dns_cache_key, :fetch_from_cache, :store_in_cache, :redis
+      public :fetch_cache_bulk, :store_cache_bulk
+      public :record_matches?, :txt_record_matches?, :spf_record_matches?
       public :with_retry
 
       def required_dns_records(_mailer_config)
@@ -533,6 +535,199 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
 
     it 'provides with_retry instance method' do
       expect(strategy).to respond_to(:with_retry)
+    end
+  end
+
+  describe '#fetch_cache_bulk' do
+    let(:records) do
+      [
+        { host: 'spf.example.com', type: 'TXT' },
+        { host: 'dkim.example.com', type: 'CNAME' },
+        { host: 'mx.example.com', type: 'MX' },
+      ]
+    end
+
+    it 'returns empty hash for empty records' do
+      result = strategy.fetch_cache_bulk([])
+      expect(result).to eq({})
+    end
+
+    it 'pipelines GET operations for all records' do
+      expect(mock_redis).to receive(:pipelined).and_yield(mock_redis).and_return([nil, nil, nil])
+      expect(mock_redis).to receive(:get).with('dns:cache:spf.example.com:txt')
+      expect(mock_redis).to receive(:get).with('dns:cache:dkim.example.com:cname')
+      expect(mock_redis).to receive(:get).with('dns:cache:mx.example.com:mx')
+
+      strategy.fetch_cache_bulk(records)
+    end
+
+    it 'returns parsed values keyed by cache key' do
+      cached_values = [
+        '["v=spf1 ~all"]',
+        '["target.example.com"]',
+        nil,
+      ]
+      allow(mock_redis).to receive(:pipelined).and_yield(mock_redis).and_return(cached_values)
+      allow(mock_redis).to receive(:get)
+
+      result = strategy.fetch_cache_bulk(records)
+
+      expect(result['dns:cache:spf.example.com:txt']).to eq(['v=spf1 ~all'])
+      expect(result['dns:cache:dkim.example.com:cname']).to eq(['target.example.com'])
+      expect(result).not_to have_key('dns:cache:mx.example.com:mx')
+    end
+
+    it 'handles JSON parse errors gracefully' do
+      cached_values = ['invalid{json', '["valid"]']
+      allow(mock_redis).to receive(:pipelined).and_yield(mock_redis).and_return(cached_values)
+      allow(mock_redis).to receive(:get)
+
+      result = strategy.fetch_cache_bulk(records.take(2))
+
+      expect(result).not_to have_key('dns:cache:spf.example.com:txt')
+      expect(result['dns:cache:dkim.example.com:cname']).to eq(['valid'])
+    end
+
+    it 'returns empty hash on Redis error' do
+      allow(mock_redis).to receive(:pipelined).and_raise(Redis::ConnectionError, 'lost connection')
+
+      result = strategy.fetch_cache_bulk(records)
+      expect(result).to eq({})
+    end
+  end
+
+  describe '#store_cache_bulk' do
+    let(:results) do
+      [
+        { host: 'spf.example.com', type: 'TXT', actual: ['v=spf1 ~all'] },
+        { host: 'dkim.example.com', type: 'CNAME', actual: ['target.example.com'] },
+      ]
+    end
+
+    it 'does nothing for empty results' do
+      expect(mock_redis).not_to receive(:pipelined)
+
+      strategy.store_cache_bulk([])
+    end
+
+    it 'pipelines SETEX operations for all results' do
+      expect(mock_redis).to receive(:pipelined).and_yield(mock_redis)
+      expect(mock_redis).to receive(:setex)
+        .with('dns:cache:spf.example.com:txt', 600, '["v=spf1 ~all"]')
+      expect(mock_redis).to receive(:setex)
+        .with('dns:cache:dkim.example.com:cname', 600, '["target.example.com"]')
+
+      strategy.store_cache_bulk(results)
+    end
+
+    it 'accepts custom TTL' do
+      expect(mock_redis).to receive(:pipelined).and_yield(mock_redis)
+      expect(mock_redis).to receive(:setex)
+        .with('dns:cache:spf.example.com:txt', 300, '["v=spf1 ~all"]')
+      expect(mock_redis).to receive(:setex)
+        .with('dns:cache:dkim.example.com:cname', 300, '["target.example.com"]')
+
+      strategy.store_cache_bulk(results, ttl: 300)
+    end
+
+    it 'handles Redis errors gracefully' do
+      allow(mock_redis).to receive(:pipelined).and_raise(Redis::ConnectionError, 'lost connection')
+
+      expect { strategy.store_cache_bulk(results) }.not_to raise_error
+    end
+  end
+
+  describe '#spf_record_matches?' do
+    it 'matches SPF record with correct include directive' do
+      expected = 'v=spf1 include:amazonses.com ~all'
+      actual = ['v=spf1 include:amazonses.com include:sendgrid.net ~all']
+
+      expect(strategy.spf_record_matches?(expected, actual)).to be true
+    end
+
+    it 'matches when include is present among multiple providers' do
+      expected = 'v=spf1 include:sendgrid.net ~all'
+      actual = ['v=spf1 include:amazonses.com include:sendgrid.net include:mailgun.org ~all']
+
+      expect(strategy.spf_record_matches?(expected, actual)).to be true
+    end
+
+    it 'does not match when include directive is missing' do
+      expected = 'v=spf1 include:amazonses.com ~all'
+      actual = ['v=spf1 include:sendgrid.net ~all']
+
+      expect(strategy.spf_record_matches?(expected, actual)).to be false
+    end
+
+    it 'does not match non-SPF records when looking for SPF' do
+      expected = 'v=spf1 include:amazonses.com ~all'
+      actual = ['some-other-txt-record include:amazonses.com']
+
+      expect(strategy.spf_record_matches?(expected, actual)).to be false
+    end
+
+    it 'falls back to substring match when no include directive in expected' do
+      expected = 'v=spf1 mx ~all'
+      actual = ['v=spf1 mx ~all']
+
+      expect(strategy.spf_record_matches?(expected, actual)).to be true
+    end
+
+    it 'is case insensitive for actual values' do
+      # Note: spf_record_matches? receives normalized (downcased) expected
+      # from record_matches?, so we test with lowercase expected
+      expected = 'v=spf1 include:amazonses.com ~all'
+      actual = ['V=SPF1 INCLUDE:AMAZONSES.COM ~ALL']
+
+      expect(strategy.spf_record_matches?(expected, actual)).to be true
+    end
+  end
+
+  describe '#txt_record_matches?' do
+    it 'delegates to spf_record_matches? for SPF records' do
+      expected = 'v=spf1 include:example.com ~all'
+      actual = ['v=spf1 include:example.com ~all']
+
+      expect(strategy).to receive(:spf_record_matches?).with(expected, actual).and_return(true)
+      expect(strategy.txt_record_matches?(expected, actual)).to be true
+    end
+
+    it 'uses substring match for non-SPF TXT records' do
+      expected = 'some-verification-token'
+      actual = ['prefix-some-verification-token-suffix']
+
+      expect(strategy.txt_record_matches?(expected, actual)).to be true
+    end
+
+    it 'is case insensitive for non-SPF records' do
+      expected = 'verification-token'
+      actual = ['VERIFICATION-TOKEN']
+
+      expect(strategy.txt_record_matches?(expected, actual)).to be true
+    end
+  end
+
+  describe '#record_matches?' do
+    it 'delegates TXT records to txt_record_matches?' do
+      expect(strategy).to receive(:txt_record_matches?).and_return(true)
+
+      result = strategy.record_matches?('TXT', 'expected', ['actual'])
+      expect(result).to be true
+    end
+
+    it 'matches CNAME records with exact match after normalization' do
+      result = strategy.record_matches?('CNAME', 'target.example.com.', ['target.example.com'])
+      expect(result).to be true
+    end
+
+    it 'matches MX records with exact match after normalization' do
+      result = strategy.record_matches?('MX', 'mail.example.com', ['MAIL.EXAMPLE.COM.'])
+      expect(result).to be true
+    end
+
+    it 'returns false for unknown record types' do
+      result = strategy.record_matches?('AAAA', '::1', ['::1'])
+      expect(result).to be false
     end
   end
 end

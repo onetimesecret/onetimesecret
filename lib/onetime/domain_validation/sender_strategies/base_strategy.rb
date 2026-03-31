@@ -289,15 +289,7 @@ module Onetime
 
         # Check whether the expected value appears in the actual DNS results.
         #
-        # For TXT/SPF records: customers commonly merge multiple provider
-        # includes into one SPF record (e.g., "v=spf1 include:amazonses.com
-        # include:sendgrid.net ~all"). We extract the include: directive from
-        # the expected value and check that it appears in any actual TXT record
-        # that starts with "v=spf1". For non-SPF TXT records, full substring
-        # match is used.
-        #
-        # For CNAME and MX records: exact match after downcasing and stripping
-        # trailing dots.
+        # Delegates to type-specific matchers for clarity and testability.
         #
         # @param type [String] Record type
         # @param expected [String] Expected value
@@ -309,25 +301,57 @@ module Onetime
 
           case type
           when 'TXT'
-            if normalized_expected.start_with?('v=spf1')
-              # Extract the include: directive and verify it appears in an
-              # actual SPF record, regardless of other mechanisms present
-              spf_include = normalized_expected[/include:\S+/]
-              if spf_include
-                actual_values.any? do |v|
-                  downcased = v.downcase
-                  downcased.start_with?('v=spf1') && downcased.include?(spf_include)
-                end
-              else
-                actual_values.any? { |v| v.downcase.include?(normalized_expected) }
-              end
-            else
-              actual_values.any? { |v| v.downcase.include?(normalized_expected) }
-            end
+            txt_record_matches?(normalized_expected, actual_values)
           when 'CNAME', 'MX'
             actual_values.any? { |v| v.downcase.chomp('.') == normalized_expected }
           else
             false
+          end
+        end
+
+        # Check whether a TXT record matches expected value.
+        #
+        # Handles SPF records specially: customers commonly merge multiple
+        # provider includes into one SPF record (e.g., "v=spf1 include:amazonses.com
+        # include:sendgrid.net ~all"). We extract the include: directive and verify
+        # it appears in any actual TXT record starting with "v=spf1".
+        #
+        # For non-SPF TXT records, full substring match is used.
+        #
+        # @param normalized_expected [String] Downcased expected value
+        # @param actual_values [Array<String>] DNS results
+        # @return [Boolean]
+        #
+        def txt_record_matches?(normalized_expected, actual_values)
+          if normalized_expected.start_with?('v=spf1')
+            spf_record_matches?(normalized_expected, actual_values)
+          else
+            actual_values.any? { |v| v.downcase.include?(normalized_expected) }
+          end
+        end
+
+        # Check whether an SPF record matches expected value.
+        #
+        # Extracts the include: directive from the expected SPF record and
+        # verifies it appears in any actual SPF record, regardless of other
+        # mechanisms present. This allows customers to combine multiple
+        # provider includes in a single record.
+        #
+        # @param normalized_expected [String] Downcased expected SPF value
+        # @param actual_values [Array<String>] DNS results
+        # @return [Boolean]
+        #
+        def spf_record_matches?(normalized_expected, actual_values)
+          spf_include = normalized_expected[/include:\S+/]
+
+          if spf_include
+            actual_values.any? do |v|
+              downcased = v.downcase
+              downcased.start_with?('v=spf1') && downcased.include?(spf_include)
+            end
+          else
+            # SPF without include: directive - match the full record
+            actual_values.any? { |v| v.downcase.include?(normalized_expected) }
           end
         end
 
@@ -339,6 +363,9 @@ module Onetime
         # Each thread manages its own resolver lifecycle to avoid cleanup issues
         # with shared resources in the thread pool.
         #
+        # Uses pipelined Redis operations to batch-fetch cached values before
+        # DNS lookups and batch-store results after lookups complete.
+        #
         # Concrete strategies can call this from verify_dns_records to avoid
         # duplicating the resolver lifecycle.
         #
@@ -347,13 +374,25 @@ module Onetime
         # @return [Array<Hash>] Verification results in same order as input
         #
         def verify_all_records(mailer_config, bypass_cache: false)
-          records = required_dns_records(mailer_config)
+          start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          records    = required_dns_records(mailer_config)
+
+          # Batch-fetch all cache entries in a single Redis round-trip
+          cached_values = bypass_cache ? {} : fetch_cache_bulk(records)
 
           # Launch parallel lookups; each future manages its own resolver lifecycle
           futures = records.map do |record|
+            cache_key = dns_cache_key(record[:host], record[:type])
+            cached    = cached_values[cache_key]
+
             Concurrent::Promises.future do
               local_resolver = Resolv::DNS.new
-              verify_record(record, resolver: local_resolver, bypass_cache: bypass_cache)
+              verify_record_with_cache(
+                record,
+                resolver: local_resolver,
+                cached_value: cached,
+                bypass_cache: bypass_cache,
+              )
             rescue StandardError => ex
               # Return a failed verification result rather than crashing
               logger.warn "[SenderStrategies] Record verification failed for #{record[:host]}: #{ex.message}"
@@ -372,7 +411,80 @@ module Onetime
           end
 
           # Collect results preserving input order
-          futures.map(&:value!)
+          results = futures.map(&:value!)
+
+          # Batch-store results that required DNS lookups (not from cache)
+          unless bypass_cache
+            store_results = results.reject { |r| r[:from_cache] }
+            store_cache_bulk(store_results) unless store_results.empty?
+          end
+
+          # Remove internal :from_cache flag before returning
+          results.each { |r| r.delete(:from_cache) }
+
+          duration_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000).round(2)
+          OT.info '[DNS] verify_all_records completed', duration_ms: duration_ms, record_count: records.size
+
+          results
+        end
+
+        # Verify a single record, using a pre-fetched cached value if available.
+        #
+        # @param record [Hash] A record hash from required_dns_records
+        # @param resolver [Resolv::DNS] Shared resolver instance
+        # @param cached_value [Array<String>, nil] Pre-fetched cache value or nil
+        # @param bypass_cache [Boolean] Skip cache when true
+        # @return [Hash] Verification result with :from_cache flag
+        #
+        def verify_record_with_cache(record, resolver:, cached_value:, bypass_cache:)
+          if cached_value && !bypass_cache
+            # Use cached value directly
+            verified = record_matches?(record[:type], record[:value], cached_value)
+            return {
+              type: record[:type],
+              host: record[:host],
+              expected: record[:value],
+              actual: cached_value,
+              verified: verified,
+              purpose: record[:purpose],
+              from_cache: true,
+            }
+          end
+
+          # Perform live DNS lookup
+          actual   = lookup_dns_by_type(record[:type], record[:host], resolver: resolver, bypass_cache: true)
+          verified = record_matches?(record[:type], record[:value], actual)
+
+          {
+            type: record[:type],
+            host: record[:host],
+            expected: record[:value],
+            actual: actual,
+            verified: verified,
+            purpose: record[:purpose],
+            from_cache: false,
+          }
+        end
+
+        # Lookup DNS records by type.
+        #
+        # @param type [String] Record type (TXT, CNAME, MX)
+        # @param hostname [String] Hostname to query
+        # @param resolver [Resolv::DNS] DNS resolver instance
+        # @param bypass_cache [Boolean] Skip cache when true
+        # @return [Array<String>] DNS values found
+        #
+        def lookup_dns_by_type(type, hostname, resolver:, bypass_cache:)
+          case type
+          when 'TXT'
+            lookup_txt_records(hostname, resolver: resolver, bypass_cache: bypass_cache)
+          when 'CNAME'
+            lookup_cname_records(hostname, resolver: resolver, bypass_cache: bypass_cache)
+          when 'MX'
+            lookup_mx_records(hostname, resolver: resolver, bypass_cache: bypass_cache)
+          else
+            []
+          end
         end
 
         # Generate a Redis cache key for DNS lookups.
@@ -419,6 +531,67 @@ module Onetime
         rescue StandardError => ex
           # Cache failures should not break DNS lookups
           logger.debug "[SenderStrategies] Cache store error for #{key}: #{ex.message}"
+        end
+
+        # Batch-fetch multiple DNS cache entries in a single Redis round-trip.
+        #
+        # Uses pipelining to reduce latency when checking cache for multiple
+        # records before performing DNS lookups.
+        #
+        # @param records [Array<Hash>] Records with :host and :type keys
+        # @return [Hash<String, Array<String>>] Map of cache key to parsed values
+        #
+        def fetch_cache_bulk(records)
+          return {} if records.empty?
+
+          keys = records.map { |r| dns_cache_key(r[:host], r[:type]) }
+
+          # Pipeline GET operations
+          cached_values = redis.pipelined do |pipe|
+            keys.each { |k| pipe.get(k) }
+          end
+
+          # Build result hash, parsing JSON and filtering out misses
+          result = {}
+          keys.each_with_index do |key, idx|
+            raw = cached_values[idx]
+            next unless raw
+
+            begin
+              result[key] = JSON.parse(raw)
+            rescue JSON::ParserError => ex
+              logger.debug "[SenderStrategies] Bulk cache parse error for #{key}: #{ex.message}"
+            end
+          end
+
+          result
+        rescue StandardError => ex
+          # Cache failures should not break DNS lookups
+          logger.debug "[SenderStrategies] Bulk cache fetch error: #{ex.message}"
+          {}
+        end
+
+        # Batch-store multiple DNS results in a single Redis round-trip.
+        #
+        # Uses pipelining to reduce latency when caching multiple DNS lookup
+        # results after parallel verification.
+        #
+        # @param results [Array<Hash>] Verification results with :host, :type, :actual
+        # @param ttl [Integer] Cache TTL in seconds (default: DNS_CACHE_TTL)
+        # @return [void]
+        #
+        def store_cache_bulk(results, ttl: DNS_CACHE_TTL)
+          return if results.empty?
+
+          redis.pipelined do |pipe|
+            results.each do |r|
+              key = dns_cache_key(r[:host], r[:type])
+              pipe.setex(key, ttl, JSON.generate(r[:actual]))
+            end
+          end
+        rescue StandardError => ex
+          # Cache failures should not break DNS lookups
+          logger.debug "[SenderStrategies] Bulk cache store error: #{ex.message}"
         end
 
         # Access to Redis connection via CustomDomain's dbclient.
