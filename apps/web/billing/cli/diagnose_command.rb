@@ -100,7 +100,7 @@ module Onetime
         end
 
         if verbose && billing_on
-          puts "  Stripe key: #{OT.billing_config.stripe_key.to_s[0..7]}..."
+          puts "  Stripe key: #{OT.billing_config.stripe_key.to_s.empty? ? 'not configured' : 'configured'}"
           puts
         end
 
