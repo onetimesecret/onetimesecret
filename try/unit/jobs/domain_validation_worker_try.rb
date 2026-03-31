@@ -101,8 +101,8 @@ Onetime::Jobs::Publisher.new.respond_to?(:enqueue_domain_validation)
 @pub_result_no_bypass
 #=> true
 
-## enqueue_domain_validation defaults bypass_cache to false
-# (verified by method signature accepting no keyword args)
+## enqueue_domain_validation defaults bypass_cache to false when omitted
+# (verified by calling without bypass_cache keyword arg)
 @pub_result_default = Onetime::Jobs::Publisher.enqueue_domain_validation(@domain.identifier)
 @pub_result_default
 #=> true

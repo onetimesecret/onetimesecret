@@ -45,7 +45,7 @@ RSpec.describe Onetime::Operations::ValidateSenderDomain do
   end
 
   before do
-    allow(Onetime::CustomDomain).to receive(:load).and_return(mock_custom_domain)
+    allow(Onetime::CustomDomain).to receive(:find_by_identifier).and_return(mock_custom_domain)
     # Stub the instance method from the included module
     allow_any_instance_of(described_class).to receive(:check_dns_rate_limit!).and_return({ allowed: true, remaining: 9 })
   end

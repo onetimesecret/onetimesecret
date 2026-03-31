@@ -69,6 +69,7 @@ module Onetime
       # @param options [Hash] Provider-specific options forwarded to the strategy
       #   constructor (e.g. region: for SES, subdomain: for SendGrid)
       # @param persist [Boolean] Whether to update the model with verification results
+      # @param bypass_cache [Boolean] When true, skips DNS cache and queries fresh records
       def initialize(mailer_config:, strategy: nil, options: {}, persist: true, bypass_cache: false)
         @mailer_config = mailer_config
         @strategy      = strategy
