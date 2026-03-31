@@ -4,6 +4,7 @@
 
 require 'spec_helper'
 require 'onetime/jobs/publisher'
+require 'onetime/operations/validate_sender_domain'
 
 RSpec.describe Onetime::Jobs::Publisher do
   describe 'class methods' do
@@ -545,6 +546,104 @@ RSpec.describe Onetime::Jobs::Publisher do
         expect {
           publisher.enqueue_billing_event(mock_event, payload)
         }.to raise_error(Bunny::ConnectionClosedError)
+      end
+    end
+  end
+
+  # ==========================================================================
+  # Domain Validation bypass_cache Tests
+  # ==========================================================================
+  # These tests verify that bypass_cache is correctly included in published
+  # message payloads and passed through to the sync fallback path.
+  # ==========================================================================
+
+  describe '#enqueue_domain_validation bypass_cache' do
+    subject(:publisher) { described_class.new }
+
+    describe 'with RabbitMQ' do
+      let(:mock_channel) { instance_double(Bunny::Channel) }
+      let(:mock_exchange) { instance_double(Bunny::Exchange) }
+      let(:mock_channel_pool) { instance_double(ConnectionPool) }
+
+      before do
+        allow(mock_channel_pool).to receive(:with).and_yield(mock_channel)
+        allow(mock_channel).to receive(:default_exchange).and_return(mock_exchange)
+        allow(mock_exchange).to receive(:publish)
+        $rmq_channel_pool = mock_channel_pool
+      end
+
+      after do
+        $rmq_channel_pool = nil
+      end
+
+      it 'includes bypass_cache: true in message payload when provided' do
+        publisher.enqueue_domain_validation('dom_123', bypass_cache: true)
+
+        expect(mock_exchange).to have_received(:publish) do |payload_json, _options|
+          payload = JSON.parse(payload_json, symbolize_names: true)
+          expect(payload[:bypass_cache]).to eq(true)
+          expect(payload[:domain_id]).to eq('dom_123')
+        end
+      end
+
+      it 'includes bypass_cache: false in message payload when explicitly false' do
+        publisher.enqueue_domain_validation('dom_456', bypass_cache: false)
+
+        expect(mock_exchange).to have_received(:publish) do |payload_json, _options|
+          payload = JSON.parse(payload_json, symbolize_names: true)
+          expect(payload[:bypass_cache]).to eq(false)
+        end
+      end
+
+      it 'defaults bypass_cache to false when not provided' do
+        publisher.enqueue_domain_validation('dom_789')
+
+        expect(mock_exchange).to have_received(:publish) do |payload_json, _options|
+          payload = JSON.parse(payload_json, symbolize_names: true)
+          expect(payload[:bypass_cache]).to eq(false)
+        end
+      end
+    end
+
+    describe 'sync fallback with bypass_cache' do
+      let(:mock_config) do
+        instance_double(
+          Onetime::CustomDomain::MailerConfig,
+          domain_id: 'dom_sync',
+        )
+      end
+
+      before do
+        $rmq_channel_pool = nil
+        allow(Onetime::CustomDomain::MailerConfig).to receive(:find_by_domain_id).and_return(mock_config)
+      end
+
+      it 'passes bypass_cache: true to ValidateSenderDomain operation' do
+        mock_operation = instance_double(Onetime::Operations::ValidateSenderDomain)
+        allow(mock_operation).to receive(:call)
+        allow(Onetime::Operations::ValidateSenderDomain).to receive(:new).and_return(mock_operation)
+
+        publisher.enqueue_domain_validation('dom_sync', bypass_cache: true)
+
+        expect(Onetime::Operations::ValidateSenderDomain).to have_received(:new).with(
+          mailer_config: mock_config,
+          persist: true,
+          bypass_cache: true,
+        )
+      end
+
+      it 'passes bypass_cache: false when not provided' do
+        mock_operation = instance_double(Onetime::Operations::ValidateSenderDomain)
+        allow(mock_operation).to receive(:call)
+        allow(Onetime::Operations::ValidateSenderDomain).to receive(:new).and_return(mock_operation)
+
+        publisher.enqueue_domain_validation('dom_sync')
+
+        expect(Onetime::Operations::ValidateSenderDomain).to have_received(:new).with(
+          mailer_config: mock_config,
+          persist: true,
+          bypass_cache: false,
+        )
       end
     end
   end

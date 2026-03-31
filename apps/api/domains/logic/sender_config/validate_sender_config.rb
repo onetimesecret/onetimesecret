@@ -57,9 +57,13 @@ module DomainsAPI
           @mailer_config.updated             = Familia.now.to_i
           @mailer_config.save_fields(:verification_status, :updated)
 
-          # Enqueue background validation job
+          # Enqueue background validation job with cache bypass
+          # (user explicitly requested fresh verification via "Verify Now")
           begin
-            Onetime::Jobs::Publisher.enqueue_domain_validation(@custom_domain.identifier)
+            Onetime::Jobs::Publisher.enqueue_domain_validation(
+              @custom_domain.identifier,
+              bypass_cache: true,
+            )
           rescue StandardError
             # Rollback: restore previous status so it doesn't stay stuck in 'pending'
             @mailer_config.verification_status = previous_status

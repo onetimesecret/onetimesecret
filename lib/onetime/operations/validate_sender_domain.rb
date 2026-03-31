@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../domain_validation/sender_strategies/strategy'
+require_relative '../security/dns_rate_limiter'
 
 module Onetime
   module Operations
@@ -30,6 +31,7 @@ module Onetime
     #
     class ValidateSenderDomain
       include Onetime::LoggerMethods
+      include Onetime::Security::DnsRateLimiter
 
       # Immutable result for sender domain validation
       Result = Data.define(
@@ -41,6 +43,7 @@ module Onetime
         :verified_at,         # Time or nil
         :persisted,           # Boolean - was the model updated?
         :error,               # String or nil
+        :rate_limit,          # Hash - rate limit status (remaining, reset_in, etc.)
       ) do
         def success?
           error.nil?
@@ -56,7 +59,8 @@ module Onetime
             verified_at: verified_at&.iso8601,
             persisted: persisted,
             error: error,
-          }
+            rate_limit: rate_limit,
+          }.compact
         end
       end
 
@@ -65,30 +69,44 @@ module Onetime
       # @param options [Hash] Provider-specific options forwarded to the strategy
       #   constructor (e.g. region: for SES, subdomain: for SendGrid)
       # @param persist [Boolean] Whether to update the model with verification results
-      def initialize(mailer_config:, strategy: nil, options: {}, persist: true)
+      # @param bypass_cache [Boolean] When true, skips DNS cache and queries fresh records
+      def initialize(mailer_config:, strategy: nil, options: {}, persist: true, bypass_cache: false)
         @mailer_config = mailer_config
         @strategy      = strategy
         @options       = options
         @persist       = persist
+        @bypass_cache  = bypass_cache
       end
 
       # Executes sender domain DNS validation.
       #
-      # Never raises exceptions -- all errors are captured in the Result.
+      # Validation-related failures are captured in the Result, but this method
+      # may still raise exceptions (e.g. ArgumentError or unexpected rate-limit
+      # errors) when configuration or environment is invalid.
+      # Rate limits are enforced: max 10 verifications per domain per hour.
       #
       # @return [Result] Verification result
       def call
         domain_name   = nil
+        rate_limit    = nil
         custom_domain = load_custom_domain
         domain_name   = custom_domain&.display_domain || extract_domain_from_address
+
+        # Check rate limit before performing DNS verification.
+        # This prevents excessive DNS queries and potential abuse.
+        rate_limit = check_dns_rate_limit!(@mailer_config.domain_id)
 
         logger.info 'Validating sender domain',
           domain: domain_name,
           provider: @mailer_config.provider,
-          persist: @persist
+          persist: @persist,
+          bypass_cache: @bypass_cache,
+          rate_limit_remaining: rate_limit[:remaining]
 
-        # Verify DNS records via the provider strategy
-        dns_records  = strategy.verify_dns_records(@mailer_config)
+        # Verify DNS records via the provider strategy (with timing for observability)
+        start_time   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        dns_records  = strategy.verify_dns_records(@mailer_config, bypass_cache: @bypass_cache)
+        duration_ms  = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000).round
         all_verified = dns_records.all? { |record| record[:verified] }
 
         verification_status = all_verified ? 'verified' : 'failed'
@@ -98,6 +116,7 @@ module Onetime
         persisted = false
         if @persist
           persisted = persist_verification(verification_status, verified_at)
+          @mailer_config.record_check_attempt(duration_ms, nil)
         end
 
         logger.info 'Sender domain validation complete',
@@ -105,6 +124,7 @@ module Onetime
           provider: @mailer_config.provider,
           status: verification_status,
           records_checked: dns_records.size,
+          duration_ms: duration_ms,
           persisted: persisted
 
         Result.new(
@@ -116,15 +136,50 @@ module Onetime
           verified_at: verified_at,
           persisted: persisted,
           error: nil,
+          rate_limit: rate_limit,
         )
       rescue ArgumentError
         raise # programming/config error — don't mask as validation failure
+      rescue Onetime::LimitExceeded => ex
+        # Rate limit exceeded - return error result with rate limit info
+        logger.warn 'DNS verification rate limited',
+          domain: domain_name,
+          domain_id: @mailer_config&.domain_id,
+          retry_after: ex.retry_after
+
+        # Record the rate-limited attempt for metrics (duration is 0 since no DNS lookup occurred)
+        @mailer_config.record_check_attempt(0, "Rate limited: retry after #{ex.retry_after}s") if @persist && @mailer_config
+
+        Result.new(
+          domain: domain_name,
+          provider: @mailer_config&.provider.to_s,
+          dns_records: [],
+          all_verified: false,
+          verification_status: 'rate_limited',
+          verified_at: nil,
+          persisted: false,
+          error: ex.message,
+          rate_limit: {
+            remaining: 0,
+            reset_in: ex.retry_after,
+            current: ex.attempts,
+            limit: ex.max_attempts,
+          },
+        )
       rescue StandardError => ex
+        # Calculate duration if timing was started (exception may occur before DNS call)
+        error_duration_ms = start_time ? ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000).round : nil
+
         logger.error 'Sender domain validation failed',
           domain: domain_name,
           provider: @mailer_config&.provider,
+          status: 'failed',
           error: ex.message,
-          error_class: ex.class.name
+          error_class: ex.class.name,
+          duration_ms: error_duration_ms
+
+        # Record the failed attempt for observability
+        @mailer_config.record_check_attempt(error_duration_ms, ex.message) if @persist && @mailer_config
 
         Result.new(
           domain: domain_name,
@@ -135,6 +190,7 @@ module Onetime
           verified_at: nil,
           persisted: false,
           error: ex.message,
+          rate_limit: rate_limit,
         )
       end
 

@@ -91,5 +91,21 @@ Onetime::Jobs::Publisher.new.respond_to?(:enqueue_domain_validation)
 %w[verified failed].include?(@reloaded.verification_status)
 #=> true
 
+## Sync fallback accepts bypass_cache: true
+@pub_result_bypass = Onetime::Jobs::Publisher.enqueue_domain_validation(@domain.identifier, bypass_cache: true)
+@pub_result_bypass
+#=> true
+
+## Sync fallback accepts bypass_cache: false (explicit)
+@pub_result_no_bypass = Onetime::Jobs::Publisher.enqueue_domain_validation(@domain.identifier, bypass_cache: false)
+@pub_result_no_bypass
+#=> true
+
+## enqueue_domain_validation defaults bypass_cache to false when omitted
+# (verified by calling without bypass_cache keyword arg)
+@pub_result_default = Onetime::Jobs::Publisher.enqueue_domain_validation(@domain.identifier)
+@pub_result_default
+#=> true
+
 # Teardown
 Familia.dbclient.flushdb

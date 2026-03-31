@@ -73,8 +73,9 @@ module Onetime
             return ack!
           end
 
-          domain_id = data[:domain_id]
-          log_debug "Validating sender domain DNS: #{domain_id} (metadata: #{message_metadata})"
+          domain_id    = data[:domain_id]
+          bypass_cache = data[:bypass_cache] || false  # Backward compat for in-flight messages
+          log_debug "Validating sender domain DNS: #{domain_id} (bypass_cache: #{bypass_cache}, metadata: #{message_metadata})"
 
           # Load the mailer config for this domain
           mailer_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(domain_id)
@@ -89,6 +90,7 @@ module Onetime
             result = Onetime::Operations::ValidateSenderDomain.new(
               mailer_config: mailer_config,
               persist: true,
+              bypass_cache: bypass_cache,
             ).call
             # Re-raise so with_retry can retry transient DNS failures.
             # ValidateSenderDomain#call rescues internally and returns a
@@ -100,6 +102,7 @@ module Onetime
             status: result.verification_status,
             all_verified: result.all_verified,
             persisted: result.persisted,
+            bypass_cache: bypass_cache,
             error: result.error
 
           ack!
