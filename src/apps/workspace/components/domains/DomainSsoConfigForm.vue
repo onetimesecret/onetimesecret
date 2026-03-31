@@ -78,7 +78,7 @@ const isDeleting = ref(false);
 const isTesting = ref(false);
 const showDeleteConfirm = ref(false);
 const error = ref('');
-const success = ref('');
+// Note: success messaging handled by parent via @saved/@deleted events
 const fieldErrors = ref<Record<string, string>>({});
 
 // Connection test state
@@ -170,7 +170,6 @@ const handleTestConnection = async () => {
   testResult.value = null;
   testError.value = '';
   error.value = '';
-  success.value = '';
 
   try {
     const payload = {
@@ -242,7 +241,6 @@ const handleSave = async () => {
 
   isSaving.value = true;
   error.value = '';
-  success.value = '';
   testResult.value = null;
   testError.value = '';
   fieldErrors.value = {};
@@ -271,16 +269,17 @@ const handleSave = async () => {
       payload.issuer = formData.value.issuer.trim();
     }
 
+    // Capture before save - isEditing will change once existingConfig is set
+    const wasEditing = isEditing.value;
+
     const response = await SsoService.saveConfigForDomain(props.domainExtId, payload);
     existingConfig.value = response.record;
 
     // Clear secret field after successful save
     formData.value.client_secret = undefined;
 
-    // Show success message
-    success.value = t('web.organizations.sso.update_success');
-
-    emit('saved', isEditing.value);
+    // Parent handles success messaging via @saved event
+    emit('saved', wasEditing);
   } catch (err) {
     const classified = classifyError(err);
     error.value = classified.message || t('web.organizations.sso.save_error');
@@ -296,7 +295,6 @@ const handleDelete = async () => {
 
   isDeleting.value = true;
   error.value = '';
-  success.value = '';
 
   try {
     await SsoService.deleteConfigForDomain(props.domainExtId);
@@ -315,7 +313,7 @@ const handleDelete = async () => {
     };
 
     showDeleteConfirm.value = false;
-    success.value = t('web.organizations.sso.delete_success');
+    // Parent handles success messaging via @deleted event
     emit('deleted');
   } catch (err) {
     const classified = classifyError(err);
@@ -333,7 +331,7 @@ const addDomain = () => {
   if (!domain) return;
 
   // Basic frontend validation for UX (backend does authoritative PublicSuffix check)
-  // Just verify it has at least one dot and no spaces/special chars
+  // Just verify it has at least one dot and no whitespace
   if (!domain.includes('.') || /\s/.test(domain)) {
     domainInputError.value = t('web.organizations.sso.invalid_domain');
     return;
@@ -381,13 +379,10 @@ onMounted(loadConfig);
     <form v-else
 @submit.prevent="handleSave"
 class="space-y-6">
-      <!-- Alerts -->
+      <!-- Error Alert (success handled by parent via @saved/@deleted events) -->
       <BasicFormAlerts
         v-if="error"
         :error="error" />
-      <BasicFormAlerts
-        v-if="success"
-        :success="success" />
 
       <!-- Provider Selection (locked when editing, selectable when creating) -->
       <fieldset>
@@ -916,12 +911,11 @@ aria-hidden="true">*</span>
       </div>
     </form>
 
-    <!-- Live region for status announcements -->
+    <!-- Live region for error announcements (success handled by parent) -->
     <div
       aria-live="polite"
       aria-atomic="true"
       class="sr-only">
-      <span v-if="success">{{ success }}</span>
       <span v-if="error">{{ error }}</span>
     </div>
   </div>

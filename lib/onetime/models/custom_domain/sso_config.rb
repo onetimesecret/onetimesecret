@@ -203,9 +203,9 @@ module Onetime
 
         # Validate each domain using PublicSuffix (handles IDN, validates TLD)
         normalized.each do |domain|
-            Utils::DomainParser.cached_parse(domain)
+          Utils::DomainParser.cached_parse(domain)
         rescue PublicSuffix::Error => ex
-            raise Onetime::Problem, "Invalid domain: #{domain} (#{ex.message})"
+          raise Onetime::Problem, "Invalid domain: #{domain} (#{ex.message})"
         end
 
         self.allowed_domains_json = normalized.empty? ? nil : JSON.generate(normalized)
