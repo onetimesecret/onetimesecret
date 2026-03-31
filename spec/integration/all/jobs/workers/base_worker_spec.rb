@@ -287,8 +287,11 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
         mock_logger = instance_double(SemanticLogger::Logger)
         allow(worker).to receive(:logger).and_return(mock_logger)
         allow(mock_logger).to receive(:info) # Allow retry info logs
-        # RetryHelper logs with context prefix: "[EmailWorker] Max retries (N) exceeded: message"
-        expect(mock_logger).to receive(:error).with(/\[EmailWorker\] Max retries.*exceeded/)
+        # RetryHelper uses structured logging: message + keyword args
+        expect(mock_logger).to receive(:error).with(
+          'Max retries exceeded',
+          hash_including(max: 1, context: 'EmailWorker', error_class: 'StandardError')
+        )
 
         expect {
           worker.with_retry(max_retries: 1, base_delay: 0.01) do
