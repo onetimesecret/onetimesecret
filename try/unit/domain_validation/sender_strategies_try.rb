@@ -269,23 +269,23 @@ rescue ArgumentError => e
 end
 #=> true
 
-# --- accepted_options whitelist (#2833) ---
+# --- accepted_options whitelist (#2833, #2835) ---
 
-## SES declares accepted_options as [:region]
+## SES declares accepted_options including region, dkim_selector_count, spf_include
 Onetime::DomainValidation::SenderStrategies::SesValidation.accepted_options
-#=> [:region]
+#=> [:region, :dkim_selector_count, :spf_include]
 
-## SendGrid declares accepted_options as [:subdomain]
+## SendGrid declares accepted_options including subdomain, dkim_selectors, spf_include
 Onetime::DomainValidation::SenderStrategies::SendgridValidation.accepted_options
-#=> [:subdomain]
+#=> [:subdomain, :dkim_selectors, :spf_include]
 
-## Lettermint inherits empty accepted_options from BaseStrategy
+## Lettermint declares accepted_options including dkim_selectors, spf_include
 Onetime::DomainValidation::SenderStrategies::LettermintValidation.accepted_options
-#=> []
+#=> [:dkim_selectors, :spf_include]
 
 ## Factory rejects unknown option for SES with clear error
 begin
-  @factory.for_provider('ses', subdomain: 'mail')
+  @factory.for_provider('ses', bogus_option: 'value')
   'unexpected_success'
 rescue ArgumentError => e
   e.message.include?("Unknown option(s)") && e.message.include?("'ses'")
@@ -294,19 +294,19 @@ end
 
 ## Factory rejects unknown option for SendGrid with clear error
 begin
-  @factory.for_provider('sendgrid', region: 'eu-west-1')
+  @factory.for_provider('sendgrid', bogus_option: 'value')
   'unexpected_success'
 rescue ArgumentError => e
   e.message.include?("Unknown option(s)") && e.message.include?("'sendgrid'")
 end
 #=> true
 
-## Factory rejects any option for Lettermint (accepts none)
+## Factory rejects unknown option for Lettermint with clear error
 begin
-  @factory.for_provider('lettermint', region: 'eu-west-1')
+  @factory.for_provider('lettermint', bogus_option: 'value')
   'unexpected_success'
 rescue ArgumentError => e
-  e.message.include?("Unknown option(s)") && e.message.include?("Accepted: none")
+  e.message.include?("Unknown option(s)") && e.message.include?("'lettermint'")
 end
 #=> true
 

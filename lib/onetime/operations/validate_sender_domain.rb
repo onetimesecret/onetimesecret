@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../domain_validation/sender_strategies/strategy'
+require_relative '../security/dns_rate_limiter'
 
 module Onetime
   module Operations
@@ -30,6 +31,7 @@ module Onetime
     #
     class ValidateSenderDomain
       include Onetime::LoggerMethods
+      include Onetime::Security::DnsRateLimiter
 
       # Immutable result for sender domain validation
       Result = Data.define(
@@ -41,6 +43,7 @@ module Onetime
         :verified_at,         # Time or nil
         :persisted,           # Boolean - was the model updated?
         :error,               # String or nil
+        :rate_limit,          # Hash - rate limit status (remaining, reset_in, etc.)
       ) do
         def success?
           error.nil?
@@ -56,7 +59,8 @@ module Onetime
             verified_at: verified_at&.iso8601,
             persisted: persisted,
             error: error,
-          }
+            rate_limit: rate_limit,
+          }.compact
         end
       end
 
@@ -75,17 +79,24 @@ module Onetime
       # Executes sender domain DNS validation.
       #
       # Never raises exceptions -- all errors are captured in the Result.
+      # Rate limits are enforced: max 10 verifications per domain per hour.
       #
       # @return [Result] Verification result
       def call
         domain_name   = nil
+        rate_limit    = nil
         custom_domain = load_custom_domain
         domain_name   = custom_domain&.display_domain || extract_domain_from_address
+
+        # Check rate limit before performing DNS verification.
+        # This prevents excessive DNS queries and potential abuse.
+        rate_limit = check_dns_rate_limit!(@mailer_config.domain_id)
 
         logger.info 'Validating sender domain',
           domain: domain_name,
           provider: @mailer_config.provider,
-          persist: @persist
+          persist: @persist,
+          rate_limit_remaining: rate_limit[:remaining]
 
         # Verify DNS records via the provider strategy
         dns_records  = strategy.verify_dns_records(@mailer_config)
@@ -116,9 +127,33 @@ module Onetime
           verified_at: verified_at,
           persisted: persisted,
           error: nil,
+          rate_limit: rate_limit,
         )
       rescue ArgumentError
         raise # programming/config error — don't mask as validation failure
+      rescue Onetime::LimitExceeded => ex
+        # Rate limit exceeded - return error result with rate limit info
+        logger.warn 'DNS verification rate limited',
+          domain: domain_name,
+          domain_id: @mailer_config&.domain_id,
+          retry_after: ex.retry_after
+
+        Result.new(
+          domain: domain_name,
+          provider: @mailer_config&.provider.to_s,
+          dns_records: [],
+          all_verified: false,
+          verification_status: 'rate_limited',
+          verified_at: nil,
+          persisted: false,
+          error: ex.message,
+          rate_limit: {
+            remaining: 0,
+            reset_in: ex.retry_after,
+            current: ex.attempts,
+            limit: ex.max_attempts,
+          },
+        )
       rescue StandardError => ex
         logger.error 'Sender domain validation failed',
           domain: domain_name,
@@ -135,6 +170,7 @@ module Onetime
           verified_at: nil,
           persisted: false,
           error: ex.message,
+          rate_limit: rate_limit,
         )
       end
 

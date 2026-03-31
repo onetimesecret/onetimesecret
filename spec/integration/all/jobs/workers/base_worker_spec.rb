@@ -287,7 +287,8 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
         mock_logger = instance_double(SemanticLogger::Logger)
         allow(worker).to receive(:logger).and_return(mock_logger)
         allow(mock_logger).to receive(:info) # Allow retry info logs
-        expect(mock_logger).to receive(:error).with(/Max retries exceeded/, hash_including(:worker))
+        # RetryHelper logs with context prefix: "[EmailWorker] Max retries (N) exceeded: message"
+        expect(mock_logger).to receive(:error).with(/\[EmailWorker\] Max retries.*exceeded/)
 
         expect {
           worker.with_retry(max_retries: 1, base_delay: 0.01) do
@@ -378,7 +379,8 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
       it 'logs non-retriable error before re-raising' do
         mock_logger = instance_double(SemanticLogger::Logger)
         allow(worker).to receive(:logger).and_return(mock_logger)
-        expect(mock_logger).to receive(:error).with(/Non-retriable error/, hash_including(:worker))
+        # RetryHelper logs with context prefix: "[EmailWorker] Non-retriable error, skipping retries: message"
+        expect(mock_logger).to receive(:error).with(/\[EmailWorker\] Non-retriable error/)
 
         non_retriable = ->(_ex) { false }
 
@@ -396,7 +398,8 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
         delays = []
         attempt = 0
 
-        allow(worker).to receive(:sleep) do |delay|
+        # Sleep is called on RetryHelper module, not on the worker instance
+        allow(Onetime::Utils::RetryHelper).to receive(:sleep) do |delay|
           delays << delay
         end
 

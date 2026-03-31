@@ -483,6 +483,48 @@ emailer:
   pass: "<%= ENV['SMTP_PASSWORD'] %>"
   auth: <%= ENV['SMTP_AUTH'] || nil %>
   tls: <%= ENV['SMTP_TLS'] %>
+
+# Email Provider DNS Validation Settings
+# --------------------------------------
+# Configuration for sender domain validation strategies. These settings
+# control how DNS records are generated for DKIM, SPF, and related email
+# authentication when setting up custom mail sender domains.
+#
+# Each provider has sensible defaults; override only when needed.
+# All settings are optional - the system works without this section.
+#
+email_providers:
+  # AWS SES configuration
+  ses:
+    # AWS region for SES endpoints (affects MX record values)
+    # Override via EMAIL_PROVIDERS_SES_REGION env var
+    region: <%= ENV['EMAIL_PROVIDERS_SES_REGION'] || 'us-east-1' %>
+    # Number of DKIM selectors (SES uses 3 by default)
+    dkim_selector_count: 3
+    # SPF include domain
+    spf_include: amazonses.com
+
+  # SendGrid configuration
+  sendgrid:
+    # Branding subdomain prefix (appears in CNAME records)
+    # Override via EMAIL_PROVIDERS_SENDGRID_SUBDOMAIN env var
+    subdomain: <%= ENV['EMAIL_PROVIDERS_SENDGRID_SUBDOMAIN'] || 'em' %>
+    # DKIM selector names
+    dkim_selectors:
+      - s1
+      - s2
+    # SPF include domain
+    spf_include: sendgrid.net
+
+  # Lettermint configuration
+  lettermint:
+    # DKIM selector names
+    dkim_selectors:
+      - lm1
+      - lm2
+    # SPF include domain
+    spf_include: lettermint.com
+
 mail:
   truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp

@@ -3,6 +3,9 @@
 # frozen_string_literal: true
 
 require 'resolv'
+require 'concurrent'
+require 'json'
+require_relative '../../utils/retry_helper'
 
 module Onetime
   module DomainValidation
@@ -18,6 +21,18 @@ module Onetime
       # name used in record generation and verification.
       #
       class BaseStrategy
+        include Onetime::Utils::RetryHelper
+
+        # Default TTL for DNS cache entries (10 minutes)
+        DNS_CACHE_TTL = 600
+
+        # DNS retry configuration for transient failures
+        DNS_RETRY_MAX        = 2
+        DNS_RETRY_BASE_DELAY = 0.5
+
+        # Predicate for retriable DNS errors (timeouts only, not NXDOMAIN)
+        DNS_RETRIABLE = ->(ex) { ex.is_a?(Resolv::ResolvTimeout) }
+
         # Returns the keyword arguments accepted by this strategy's constructor.
         # Subclasses override to declare their options (e.g. [:region]).
         # The factory uses this to validate options before splatting.
@@ -93,16 +108,48 @@ module Onetime
 
         # Query TXT records for a hostname.
         #
+        # Checks Redis cache first; on miss, performs live DNS lookup with
+        # retry logic for transient failures. Caches the result with
+        # DNS_CACHE_TTL. Empty results are cached to prevent repeated
+        # lookups for non-existent records.
+        #
+        # Retry behavior:
+        # - Retries on Resolv::ResolvTimeout (transient network issues)
+        # - Does NOT retry on Resolv::ResolvError (authoritative "not found")
+        #
         # @param hostname [String] Fully qualified hostname
         # @param resolver [Resolv::DNS] Optional resolver instance
+        # @param bypass_cache [Boolean] Skip cache read/write when true
         # @return [Array<String>] TXT record values found
         #
-        def lookup_txt_records(hostname, resolver: nil)
-          dns       = resolver || Resolv::DNS.new
-          resources = dns.getresources(hostname, Resolv::DNS::Resource::IN::TXT)
-          resources.map { |r| r.strings.join }
-        rescue Resolv::ResolvError, Resolv::ResolvTimeout => ex
+        def lookup_txt_records(hostname, resolver: nil, bypass_cache: false)
+          unless bypass_cache
+            cached = fetch_from_cache(hostname, 'TXT')
+            return cached if cached
+          end
+
+          dns = resolver || Resolv::DNS.new
+
+          values = with_retry(
+            max_retries: DNS_RETRY_MAX,
+            base_delay: DNS_RETRY_BASE_DELAY,
+            retriable: DNS_RETRIABLE,
+            logger: logger,
+            context: "TXT lookup #{hostname}",
+          ) do
+            resources = dns.getresources(hostname, Resolv::DNS::Resource::IN::TXT)
+            resources.map { |r| r.strings.join }
+          end
+
+          store_in_cache(hostname, 'TXT', values) unless bypass_cache
+          values
+        rescue Resolv::ResolvError => ex
+          # Authoritative "not found" - do not retry, return empty
           logger.debug "[SenderStrategies] TXT lookup failed for #{hostname}: #{ex.message}"
+          []
+        rescue Resolv::ResolvTimeout => ex
+          # Timeout after all retries exhausted
+          logger.debug "[SenderStrategies] TXT lookup timed out for #{hostname}: #{ex.message}"
           []
         ensure
           dns&.close unless resolver
@@ -110,16 +157,48 @@ module Onetime
 
         # Query CNAME records for a hostname.
         #
+        # Checks Redis cache first; on miss, performs live DNS lookup with
+        # retry logic for transient failures. Caches the result with
+        # DNS_CACHE_TTL. Empty results are cached to prevent repeated
+        # lookups for non-existent records.
+        #
+        # Retry behavior:
+        # - Retries on Resolv::ResolvTimeout (transient network issues)
+        # - Does NOT retry on Resolv::ResolvError (authoritative "not found")
+        #
         # @param hostname [String] Fully qualified hostname
         # @param resolver [Resolv::DNS] Optional resolver instance
+        # @param bypass_cache [Boolean] Skip cache read/write when true
         # @return [Array<String>] CNAME target values found
         #
-        def lookup_cname_records(hostname, resolver: nil)
-          dns       = resolver || Resolv::DNS.new
-          resources = dns.getresources(hostname, Resolv::DNS::Resource::IN::CNAME)
-          resources.map { |r| r.name.to_s }
-        rescue Resolv::ResolvError, Resolv::ResolvTimeout => ex
+        def lookup_cname_records(hostname, resolver: nil, bypass_cache: false)
+          unless bypass_cache
+            cached = fetch_from_cache(hostname, 'CNAME')
+            return cached if cached
+          end
+
+          dns = resolver || Resolv::DNS.new
+
+          values = with_retry(
+            max_retries: DNS_RETRY_MAX,
+            base_delay: DNS_RETRY_BASE_DELAY,
+            retriable: DNS_RETRIABLE,
+            logger: logger,
+            context: "CNAME lookup #{hostname}",
+          ) do
+            resources = dns.getresources(hostname, Resolv::DNS::Resource::IN::CNAME)
+            resources.map { |r| r.name.to_s }
+          end
+
+          store_in_cache(hostname, 'CNAME', values) unless bypass_cache
+          values
+        rescue Resolv::ResolvError => ex
+          # Authoritative "not found" - do not retry, return empty
           logger.debug "[SenderStrategies] CNAME lookup failed for #{hostname}: #{ex.message}"
+          []
+        rescue Resolv::ResolvTimeout => ex
+          # Timeout after all retries exhausted
+          logger.debug "[SenderStrategies] CNAME lookup timed out for #{hostname}: #{ex.message}"
           []
         ensure
           dns&.close unless resolver
@@ -127,16 +206,48 @@ module Onetime
 
         # Query MX records for a hostname.
         #
+        # Checks Redis cache first; on miss, performs live DNS lookup with
+        # retry logic for transient failures. Caches the result with
+        # DNS_CACHE_TTL. Empty results are cached to prevent repeated
+        # lookups for non-existent records.
+        #
+        # Retry behavior:
+        # - Retries on Resolv::ResolvTimeout (transient network issues)
+        # - Does NOT retry on Resolv::ResolvError (authoritative "not found")
+        #
         # @param hostname [String] Fully qualified hostname
         # @param resolver [Resolv::DNS] Optional resolver instance
+        # @param bypass_cache [Boolean] Skip cache read/write when true
         # @return [Array<String>] MX exchange hostnames found
         #
-        def lookup_mx_records(hostname, resolver: nil)
-          dns       = resolver || Resolv::DNS.new
-          resources = dns.getresources(hostname, Resolv::DNS::Resource::IN::MX)
-          resources.map { |r| r.exchange.to_s }
-        rescue Resolv::ResolvError, Resolv::ResolvTimeout => ex
+        def lookup_mx_records(hostname, resolver: nil, bypass_cache: false)
+          unless bypass_cache
+            cached = fetch_from_cache(hostname, 'MX')
+            return cached if cached
+          end
+
+          dns = resolver || Resolv::DNS.new
+
+          values = with_retry(
+            max_retries: DNS_RETRY_MAX,
+            base_delay: DNS_RETRY_BASE_DELAY,
+            retriable: DNS_RETRIABLE,
+            logger: logger,
+            context: "MX lookup #{hostname}",
+          ) do
+            resources = dns.getresources(hostname, Resolv::DNS::Resource::IN::MX)
+            resources.map { |r| r.exchange.to_s }
+          end
+
+          store_in_cache(hostname, 'MX', values) unless bypass_cache
+          values
+        rescue Resolv::ResolvError => ex
+          # Authoritative "not found" - do not retry, return empty
           logger.debug "[SenderStrategies] MX lookup failed for #{hostname}: #{ex.message}"
+          []
+        rescue Resolv::ResolvTimeout => ex
+          # Timeout after all retries exhausted
+          logger.debug "[SenderStrategies] MX lookup timed out for #{hostname}: #{ex.message}"
           []
         ensure
           dns&.close unless resolver
@@ -220,19 +331,96 @@ module Onetime
 
         # Run verification for all required records using a single resolver.
         #
+        # Performs DNS lookups in parallel using Concurrent::Promises. Each
+        # record verification runs in its own thread, reducing total latency
+        # from O(n * timeout) to O(timeout) for n records. The shared resolver
+        # is thread-safe; results are collected in original record order.
+        #
         # Concrete strategies can call this from verify_dns_records to avoid
         # duplicating the resolver lifecycle.
         #
         # @param mailer_config [Onetime::CustomDomain::MailerConfig]
-        # @return [Array<Hash>] Verification results
+        # @return [Array<Hash>] Verification results in same order as input
         #
         def verify_all_records(mailer_config)
           records  = required_dns_records(mailer_config)
           resolver = Resolv::DNS.new
 
-          records.map { |record| verify_record(record, resolver: resolver) }
+          # Launch parallel lookups; each future captures errors independently
+          futures = records.map do |record|
+            Concurrent::Promises.future do
+              verify_record(record, resolver: resolver)
+            rescue StandardError => ex
+              # Return a failed verification result rather than crashing
+              logger.warn "[SenderStrategies] Record verification failed for #{record[:host]}: #{ex.message}"
+              {
+                type: record[:type],
+                host: record[:host],
+                expected: record[:value],
+                actual: [],
+                verified: false,
+                purpose: record[:purpose],
+                error: ex.message,
+              }
+            end
+          end
+
+          # Collect results preserving input order
+          futures.map(&:value!)
         ensure
           resolver&.close
+        end
+
+        # Generate a Redis cache key for DNS lookups.
+        #
+        # @param hostname [String] Fully qualified hostname
+        # @param record_type [String] DNS record type (TXT, CNAME, MX)
+        # @return [String] Redis key in format "dns:cache:{hostname}:{type}"
+        #
+        def dns_cache_key(hostname, record_type)
+          "dns:cache:#{hostname.downcase}:#{record_type.downcase}"
+        end
+
+        # Check cache for DNS lookup result.
+        #
+        # @param hostname [String] Fully qualified hostname
+        # @param record_type [String] DNS record type
+        # @return [Array<String>, nil] Cached values or nil if not cached
+        #
+        def fetch_from_cache(hostname, record_type)
+          key    = dns_cache_key(hostname, record_type)
+          cached = redis.get(key)
+          return nil unless cached
+
+          JSON.parse(cached)
+        rescue JSON::ParserError => ex
+          logger.debug "[SenderStrategies] Cache parse error for #{key}: #{ex.message}"
+          nil
+        end
+
+        # Store DNS lookup result in cache.
+        #
+        # @param hostname [String] Fully qualified hostname
+        # @param record_type [String] DNS record type
+        # @param values [Array<String>] Record values to cache (may be empty)
+        # @param ttl [Integer] Cache TTL in seconds (default: DNS_CACHE_TTL)
+        # @return [void]
+        #
+        def store_in_cache(hostname, record_type, values, ttl: DNS_CACHE_TTL)
+          key = dns_cache_key(hostname, record_type)
+          redis.setex(key, ttl, JSON.generate(values))
+        rescue StandardError => ex
+          # Cache failures should not break DNS lookups
+          logger.debug "[SenderStrategies] Cache store error for #{key}: #{ex.message}"
+        end
+
+        # Access to Redis connection via CustomDomain's dbclient.
+        # Consistent with DnsRateLimiter pattern.
+        #
+        # @return [Redis] Redis client instance
+        #
+        def redis
+          Onetime::CustomDomain.dbclient
         end
       end
     end

@@ -20,17 +20,23 @@ module Onetime
       # Reference: https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html
       #
       class SesValidation < BaseStrategy
+        # Legacy constants preserved for backward compatibility.
+        # New code should rely on ProviderConfig defaults.
         DKIM_SELECTOR_COUNT = 3
         SPF_INCLUDE         = 'amazonses.com'
         DEFAULT_REGION      = 'us-east-1'
 
         def self.accepted_options
-          [:region].freeze
+          [:region, :dkim_selector_count, :spf_include].freeze
         end
 
-        # @param region [String] AWS region for MX record (default: us-east-1)
-        def initialize(region: DEFAULT_REGION)
-          @region = region
+        # @param region [String] AWS region for MX record (default from config or 'us-east-1')
+        # @param dkim_selector_count [Integer] Number of DKIM selectors (default: 3)
+        # @param spf_include [String] SPF include domain (default: 'amazonses.com')
+        def initialize(region: DEFAULT_REGION, dkim_selector_count: DKIM_SELECTOR_COUNT, spf_include: SPF_INCLUDE)
+          @region              = region
+          @dkim_selector_count = dkim_selector_count
+          @spf_include         = spf_include
         end
 
         # Returns the DNS records required for SES domain verification.
@@ -43,17 +49,17 @@ module Onetime
 
           records = []
 
-          # DKIM CNAME records (3 selectors)
+          # DKIM CNAME records (configurable count, default 3)
           # SES generates unique tokens per domain; these placeholders indicate
           # the record structure. Real selectors come from the SES API response
           # when calling VerifyDomainDkim.
-          DKIM_SELECTOR_COUNT.times do |i|
+          @dkim_selector_count.times do |i|
             selector = "ses-dkim-token-#{i + 1}"
             records << {
               type: 'CNAME',
               host: "#{selector}._domainkey.#{domain}",
-              value: "#{selector}.dkim.#{SPF_INCLUDE}",
-              purpose: "DKIM signature #{i + 1} of #{DKIM_SELECTOR_COUNT}",
+              value: "#{selector}.dkim.#{@spf_include}",
+              purpose: "DKIM signature #{i + 1} of #{@dkim_selector_count}",
             }
           end
 
@@ -61,7 +67,7 @@ module Onetime
           records << {
             type: 'TXT',
             host: domain,
-            value: "v=spf1 include:#{SPF_INCLUDE} ~all",
+            value: "v=spf1 include:#{@spf_include} ~all",
             purpose: 'SPF authentication',
           }
 

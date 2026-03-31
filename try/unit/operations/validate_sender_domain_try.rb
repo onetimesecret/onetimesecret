@@ -326,16 +326,34 @@ rescue ArgumentError => e
 end
 #=> true
 
+# --- Rate limit info in Result ---
+
+## Result includes rate_limit hash
+@result.rate_limit.is_a?(Hash)
+#=> true
+
+## Rate limit includes remaining count
+@result.rate_limit[:remaining].is_a?(Integer)
+#=> true
+
+## Rate limit includes limit (max verifications)
+@result.rate_limit[:limit]
+#=> 10
+
 # --- Result to_h ---
 
 ## to_h returns a Hash
 @result.to_h.is_a?(Hash)
 #=> true
 
-## to_h contains all expected keys
+## to_h contains all expected keys (rate_limit excluded when compact removes it)
 @expected_keys = [:domain, :provider, :dns_records, :all_verified,
-                  :verification_status, :verified_at, :persisted, :error]
+                  :verification_status, :verified_at, :persisted]
 (@expected_keys - @result.to_h.keys).empty?
+#=> true
+
+## to_h includes rate_limit when present
+@result.rate_limit.nil? || @result.to_h.key?(:rate_limit)
 #=> true
 
 ## to_h verified_at is ISO 8601 string when present

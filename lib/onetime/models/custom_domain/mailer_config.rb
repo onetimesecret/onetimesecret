@@ -84,6 +84,12 @@ module Onetime
       # General state
       field :enabled          # Boolean string ('true'/'false')
 
+      # Verification tracking fields (for caching and metrics)
+      field :last_check_at      # Unix timestamp of last verification attempt
+      field :check_duration_ms  # Duration of last check in milliseconds
+      field :check_count        # Total number of verification attempts
+      field :last_error         # Last error message if verification failed
+
       # Timestamps (Unix epoch integers)
       field :created
       field :updated
@@ -175,6 +181,35 @@ module Onetime
       # @return [Boolean] true if no validation errors
       def valid?
         validation_errors.empty?
+      end
+
+      # Record a verification check attempt with timing and optional error.
+      #
+      # Updates tracking fields for caching decisions and operational metrics.
+      # Called by ValidateSenderDomain after each verification attempt.
+      #
+      # @param duration_ms [Integer] How long the check took in milliseconds
+      # @param error [String, nil] Error message if the check failed
+      # @return [void]
+      def record_check_attempt(duration_ms, error = nil)
+        self.last_check_at     = Familia.now.to_i
+        self.check_duration_ms = duration_ms.to_i
+        self.check_count       = (check_count.to_i + 1).to_s
+        self.last_error        = error
+        self.updated           = Familia.now.to_i
+        save
+      end
+
+      # Check if a recent verification check was performed.
+      #
+      # Used for caching decisions to avoid excessive DNS lookups.
+      #
+      # @param max_age_seconds [Integer] Maximum age for a check to be considered recent
+      # @return [Boolean] true if a check was performed within max_age_seconds
+      def check_recent?(max_age_seconds = 300)
+        return false if last_check_at.to_s.empty?
+
+        (Familia.now.to_i - last_check_at.to_i) < max_age_seconds
       end
 
       # Check if the sender domain has been provisioned.

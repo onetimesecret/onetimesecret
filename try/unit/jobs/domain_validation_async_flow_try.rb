@@ -47,6 +47,7 @@ require 'onetime/models/custom_domain/mailer_config'
   verified_at: nil,
   persisted: false,
   error: 'DNS resolution timed out',
+  rate_limit: nil,
 )
 
 @ok_result = Onetime::Operations::ValidateSenderDomain::Result.new(
@@ -58,6 +59,7 @@ require 'onetime/models/custom_domain/mailer_config'
   verified_at: Time.now,
   persisted: true,
   error: nil,
+  rate_limit: { remaining: 9, limit: 10, current: 1, reset_in: 3600 },
 )
 
 @retry_helper = Class.new do
@@ -173,6 +175,7 @@ begin
       verified_at: nil,
       persisted: false,
       error: 'DNS resolution timed out',
+      rate_limit: nil,
     )
     raise @inner_result.error if @inner_result.error
   end
@@ -195,6 +198,7 @@ end
     verified_at: Time.now,
     persisted: true,
     error: nil,
+    rate_limit: { remaining: 9, limit: 10 },
   )
 end
 @no_error_count

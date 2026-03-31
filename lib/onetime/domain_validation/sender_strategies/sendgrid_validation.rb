@@ -18,17 +18,23 @@ module Onetime
       # Reference: https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication
       #
       class SendgridValidation < BaseStrategy
+        # Legacy constants preserved for backward compatibility.
+        # New code should rely on ProviderConfig defaults.
         DKIM_SELECTORS    = %w[s1 s2].freeze
         SPF_INCLUDE       = 'sendgrid.net'
         DEFAULT_SUBDOMAIN = 'em'
 
         def self.accepted_options
-          [:subdomain].freeze
+          [:subdomain, :dkim_selectors, :spf_include].freeze
         end
 
-        # @param subdomain [String] SendGrid branding subdomain (default: "em")
-        def initialize(subdomain: DEFAULT_SUBDOMAIN)
-          @subdomain = subdomain
+        # @param subdomain [String] SendGrid branding subdomain (default from config or 'em')
+        # @param dkim_selectors [Array<String>] DKIM selector names (default: ['s1', 's2'])
+        # @param spf_include [String] SPF include domain (default: 'sendgrid.net')
+        def initialize(subdomain: DEFAULT_SUBDOMAIN, dkim_selectors: DKIM_SELECTORS, spf_include: SPF_INCLUDE)
+          @subdomain      = subdomain
+          @dkim_selectors = dkim_selectors
+          @spf_include    = spf_include
         end
 
         # Returns the DNS records required for SendGrid domain authentication.
@@ -41,13 +47,13 @@ module Onetime
 
           records = []
 
-          # DKIM CNAME records (s1, s2 selectors)
-          DKIM_SELECTORS.each_with_index do |selector, i|
+          # DKIM CNAME records (configurable selectors, default s1, s2)
+          @dkim_selectors.each_with_index do |selector, i|
             records << {
               type: 'CNAME',
               host: "#{selector}._domainkey.#{domain}",
-              value: "#{selector}.domainkey.#{@subdomain}.#{domain}.#{SPF_INCLUDE}",
-              purpose: "DKIM signature #{i + 1} of #{DKIM_SELECTORS.size}",
+              value: "#{selector}.domainkey.#{@subdomain}.#{domain}.#{@spf_include}",
+              purpose: "DKIM signature #{i + 1} of #{@dkim_selectors.size}",
             }
           end
 
@@ -55,7 +61,7 @@ module Onetime
           records << {
             type: 'CNAME',
             host: "#{@subdomain}.#{domain}",
-            value: "u.#{SPF_INCLUDE}",
+            value: "u.#{@spf_include}",
             purpose: 'SendGrid link branding and return-path',
           }
 
@@ -63,7 +69,7 @@ module Onetime
           records << {
             type: 'TXT',
             host: domain,
-            value: "v=spf1 include:#{SPF_INCLUDE} ~all",
+            value: "v=spf1 include:#{@spf_include} ~all",
             purpose: 'SPF authentication',
           }
 

@@ -16,6 +16,7 @@
 #
 
 require_relative 'base_strategy'
+require_relative 'provider_config'
 require_relative 'ses_validation'
 require_relative 'sendgrid_validation'
 require_relative 'lettermint_validation'
@@ -33,9 +34,16 @@ module Onetime
 
         # Factory method to create appropriate strategy based on provider type.
         #
+        # Options are merged with precedence: defaults < config < explicit options.
+        # This allows:
+        #   - Hardcoded defaults for backward compatibility
+        #   - YAML config (OT.conf['email_providers']) for deployment customization
+        #   - Explicit options for per-call overrides
+        #
         # @param provider_type [String] One of 'ses', 'sendgrid', 'lettermint'
         # @param options [Hash] Provider-specific options forwarded to the
         #   strategy constructor (e.g. region: for SES, subdomain: for SendGrid).
+        #   These override both defaults and config values.
         # @return [BaseStrategy] Appropriate strategy instance
         # @raise [ArgumentError] If provider type is unknown
         #
@@ -50,7 +58,11 @@ module Onetime
               "Valid providers: #{PROVIDER_MAP.keys.join(', ')}"
           end
 
-          # Validate options against the strategy's declared whitelist.
+          # Merge config defaults with explicit options.
+          # ProviderConfig handles: hardcoded defaults < YAML config < options
+          merged_options = ProviderConfig.for(normalized, **options)
+
+          # Validate merged options against the strategy's declared whitelist.
           # Reject unknown keys at the factory boundary with a clear
           # error message naming the provider, rather than letting Ruby's
           # kwarg check leak constructor details.
@@ -62,7 +74,8 @@ module Onetime
               "Accepted: #{accepted.empty? ? 'none' : accepted.inspect}"
           end
 
-          strategy_class.new(**options.slice(*accepted))
+          # Only pass accepted options to the constructor
+          strategy_class.new(**merged_options.slice(*accepted))
         end
       end
     end
