@@ -364,5 +364,103 @@ end
 @fail_result.to_h[:verified_at]
 #=> nil
 
+# --- Tracking fields integration (#2835) ---
+
+## Tracking: check_count incremented after successful verification (persist: true)
+@track_entropy = SecureRandom.hex(4)
+@track_domain = Onetime::CustomDomain.create!("track-test-#{@timestamp}-#{@track_entropy}.example.com", @org.objid)
+@track_config = Onetime::CustomDomain::MailerConfig.create!(
+  domain_id: @track_domain.identifier,
+  provider: 'ses',
+  from_name: 'Tracking Test',
+  from_address: "noreply@track-test-#{@timestamp}-#{@track_entropy}.example.com",
+)
+Onetime::Operations::ValidateSenderDomain.new(
+  mailer_config: @track_config,
+  strategy: MockSenderStrategy.new(all_verified: true),
+  persist: true,
+).call
+@track_reloaded = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@track_domain.identifier)
+@track_reloaded.check_count.to_i
+#=> 1
+
+## Tracking: last_check_at is set after successful verification
+@track_reloaded.last_check_at.to_i > 0
+#=> true
+
+## Tracking: check_duration_ms is set after verification
+@track_reloaded.check_duration_ms.to_i >= 0
+#=> true
+
+## Tracking: last_error is empty after successful check
+@track_reloaded.last_error.to_s.empty?
+#=> true
+
+## Tracking: check_count incremented on failed verification (DNS mismatch)
+@fail_entropy = SecureRandom.hex(4)
+@fail_domain = Onetime::CustomDomain.create!("track-fail-#{@timestamp}-#{@fail_entropy}.example.com", @org.objid)
+@fail_config = Onetime::CustomDomain::MailerConfig.create!(
+  domain_id: @fail_domain.identifier,
+  provider: 'ses',
+  from_name: 'Track Fail Test',
+  from_address: "noreply@track-fail-#{@timestamp}-#{@fail_entropy}.example.com",
+)
+Onetime::Operations::ValidateSenderDomain.new(
+  mailer_config: @fail_config,
+  strategy: MockSenderStrategy.new(all_verified: false),
+  persist: true,
+).call
+@fail_reloaded = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@fail_domain.identifier)
+@fail_reloaded.check_count.to_i
+#=> 1
+
+## Tracking: last_error empty when DNS returned wrong values (not an exception)
+@fail_reloaded.last_error.to_s.empty?
+#=> true
+
+## Tracking: last_error set when exception occurs
+@error_entropy = SecureRandom.hex(4)
+@error_domain = Onetime::CustomDomain.create!("track-error-#{@timestamp}-#{@error_entropy}.example.com", @org.objid)
+@error_config = Onetime::CustomDomain::MailerConfig.create!(
+  domain_id: @error_domain.identifier,
+  provider: 'ses',
+  from_name: 'Track Error Test',
+  from_address: "noreply@track-error-#{@timestamp}-#{@error_entropy}.example.com",
+)
+Onetime::Operations::ValidateSenderDomain.new(
+  mailer_config: @error_config,
+  strategy: ExplodingSenderStrategy.new,
+  persist: true,
+).call
+@error_reloaded = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@error_domain.identifier)
+@error_reloaded.last_error
+#=> 'DNS provider unreachable'
+
+## Tracking: check_count incremented even on exception
+@error_reloaded.check_count.to_i
+#=> 1
+
+## Tracking: check_count NOT incremented when persist: false (dry-run)
+@dry_entropy = SecureRandom.hex(4)
+@dry_domain = Onetime::CustomDomain.create!("track-dry-#{@timestamp}-#{@dry_entropy}.example.com", @org.objid)
+@dry_config = Onetime::CustomDomain::MailerConfig.create!(
+  domain_id: @dry_domain.identifier,
+  provider: 'ses',
+  from_name: 'Track Dry Test',
+  from_address: "noreply@track-dry-#{@timestamp}-#{@dry_entropy}.example.com",
+)
+Onetime::Operations::ValidateSenderDomain.new(
+  mailer_config: @dry_config,
+  strategy: MockSenderStrategy.new(all_verified: true),
+  persist: false,
+).call
+@dry_reloaded = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@dry_domain.identifier)
+@dry_reloaded.check_count.to_i
+#=> 0
+
+## Tracking: last_check_at NOT set when persist: false
+@dry_reloaded.last_check_at.to_i
+#=> 0
+
 # Teardown
 Familia.dbclient.flushdb
