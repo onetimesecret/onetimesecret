@@ -138,21 +138,44 @@ module Onetime
         puts 'ORGANIZATION'
         puts '-' * 70
 
-        orgs = customer.organization_instances.to_a
-        if orgs.empty?
+        # Use organization_ids (shallow) to get the count without hydrating
+        # all orgs. Each organization_instances.to_a call does HGETALL per org,
+        # which is O(N) Redis calls for N memberships. Instead, load orgs
+        # individually and stop once we find the default.
+        org_ids = customer.organization_ids
+        if org_ids.empty?
           puts '  NOT FOUND: Customer has no organizations'
           puts '  Fix: Organization should be auto-created on account setup'
           puts
           return nil
         end
 
-        # Find default org (or first)
-        org = orgs.find(&:is_default) || orgs.first
+        # Find the default org by loading one at a time, stopping early.
+        # Typical customer has 1 org so this is a single HGETALL.
+        org       = nil
+        first_org = nil
+        org_ids.each do |oid|
+          loaded = Onetime::Organization.load(oid)
+          next unless loaded
+
+          first_org ||= loaded
+          if loaded.is_default
+            org = loaded
+            break
+          end
+        end
+        org     ||= first_org
+
+        unless org
+          puts '  NOT FOUND: Organization IDs exist but none could be loaded'
+          puts
+          return nil
+        end
 
         puts "  Org ID:       #{org.objid}"
         puts "  Display Name: #{org.display_name}" if org.respond_to?(:display_name)
         puts "  Is Default:   #{org.is_default}"
-        puts "  Org Count:    #{orgs.size}"
+        puts "  Org Count:    #{org_ids.size}"
 
         # Stripe fields
         stripe_cust = org.respond_to?(:stripe_customer_id) ? org.stripe_customer_id : nil
