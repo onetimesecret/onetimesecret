@@ -3,12 +3,16 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import { useProductIdentity } from '@/shared/stores/identityStore';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { ref } from 'vue';
+  import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
 
   const productIdentity = useProductIdentity();
+  const bootstrapStore = useBootstrapStore();
+  const { authentication } = storeToRefs(bootstrapStore);
   const imageError = ref(false);
 
   const handleImageError = () => {
@@ -29,7 +33,23 @@
 </script>
 
 <template>
-  <div class="bg-white py-8 transition-colors duration-200 dark:bg-gray-900">
+  <div class="relative bg-white py-8 transition-colors duration-200 dark:bg-gray-900">
+    <!-- Sign In Link (for custom domain SSO users) -->
+    <nav
+      v-if="authentication?.enabled && authentication?.signin"
+      class="absolute right-4 top-4"
+      role="navigation"
+      :aria-label="t('web.layout.main_navigation')">
+      <router-link
+        to="/signin"
+        :title="t('web.homepage.log_in_to_onetime_secret')"
+        data-testid="branded-signin-link"
+        class="text-sm text-gray-500 transition-colors duration-200
+          hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+        {{ t('web.COMMON.header_sign_in') }}
+      </router-link>
+    </nav>
+
     <div class="container mx-auto max-w-2xl px-4">
       <div class="flex flex-col items-center gap-8">
         <!-- Logo Section -->
