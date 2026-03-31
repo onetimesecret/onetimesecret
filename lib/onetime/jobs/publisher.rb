@@ -94,10 +94,11 @@ module Onetime
         # domain validation works without RabbitMQ for dev/testing.
         #
         # @param domain_id [String] CustomDomain identifier (MailerConfig key)
+        # @param bypass_cache [Boolean] Skip DNS cache for fresh lookup (default: false)
         # @return [Boolean] true if published to queue or processed synchronously
         # @raise [Onetime::Problem] If RabbitMQ unavailable when jobs ARE enabled
-        def enqueue_domain_validation(domain_id)
-          new.enqueue_domain_validation(domain_id)
+        def enqueue_domain_validation(domain_id, bypass_cache: false)
+          new.enqueue_domain_validation(domain_id, bypass_cache: bypass_cache)
         end
       end
 
@@ -226,12 +227,14 @@ module Onetime
       # is unavailable, raises so the controller can return an error.
       #
       # @param domain_id [String] CustomDomain identifier (MailerConfig key)
+      # @param bypass_cache [Boolean] Skip DNS cache for fresh lookup (default: false)
       # @return [Boolean] true if published to queue or processed synchronously
       # @raise [Onetime::Problem] If RabbitMQ unavailable when jobs ARE enabled
-      def enqueue_domain_validation(domain_id)
+      def enqueue_domain_validation(domain_id, bypass_cache: false)
         unless jobs_enabled?
           logger.info 'Jobs disabled, validating domain synchronously',
-            domain_id: domain_id
+            domain_id: domain_id,
+            bypass_cache: bypass_cache
 
           require 'onetime/operations/validate_sender_domain'
           require 'onetime/models/custom_domain/mailer_config'
@@ -241,6 +244,7 @@ module Onetime
             Onetime::Operations::ValidateSenderDomain.new(
               mailer_config: mailer_config,
               persist: true,
+              bypass_cache: bypass_cache,
             ).call
           end
 
@@ -249,12 +253,14 @@ module Onetime
 
         message = {
           domain_id: domain_id,
+          bypass_cache: bypass_cache,
           requested_at: Time.now.utc.iso8601,
         }
 
         message_id = publish('domain.validation.check', message)
         logger.info 'Enqueued domain validation',
           domain_id: domain_id,
+          bypass_cache: bypass_cache,
           message_id: message_id,
           queue: 'domain.validation.check'
         true
