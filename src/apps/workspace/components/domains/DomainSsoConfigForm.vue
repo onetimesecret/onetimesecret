@@ -277,6 +277,9 @@ const handleSave = async () => {
     // Clear secret field after successful save
     formData.value.client_secret = undefined;
 
+    // Show success message
+    success.value = t('web.organizations.sso.update_success');
+
     emit('saved');
   } catch (err) {
     const classified = classifyError(err);
