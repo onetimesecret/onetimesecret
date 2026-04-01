@@ -166,9 +166,8 @@ module Onetime
         errors = []
 
         errors << 'domain_id is required' if domain_id.to_s.empty?
-        if provider.to_s.empty?
-          errors << 'provider is required'
-        elsif !PROVIDER_TYPES.include?(provider)
+        # Provider is optional - when empty, resolved from installation config
+        if !provider.to_s.empty? && !PROVIDER_TYPES.include?(provider)
           errors << "provider must be one of: #{PROVIDER_TYPES.join(', ')}"
         end
         errors << 'from_address is required' if from_address.to_s.empty?

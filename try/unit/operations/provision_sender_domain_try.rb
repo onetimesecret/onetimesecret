@@ -342,7 +342,9 @@ data = @reloaded_persist.provider_dns_data.value
 @nil_config_result.error
 #=> 'mailer_config is required'
 
-## Returns failure when provider is empty
+## Returns failure when provider doesn't support provisioning
+# When provider is empty, it resolves from installation config (test env: 'logger')
+# 'logger' doesn't support provisioning, so the operation fails
 @empty_provider_config = Onetime::CustomDomain::MailerConfig.new(
   domain_id: @domain.identifier + '_emptyprovider',
 )
@@ -357,9 +359,9 @@ data = @reloaded_persist.provider_dns_data.value
 @empty_provider_result.success?
 #=> false
 
-## Empty provider error message mentions provider
-@empty_provider_result.error.include?('provider')
-#=> true
+## Check the actual error message
+@empty_provider_result.error
+#=~ /provider/i
 
 ## Returns failure when from_address is empty
 @empty_from_config = Onetime::CustomDomain::MailerConfig.new(
