@@ -480,7 +480,7 @@
     "sha256": "60643eae"
   },
   "web.domains.email.from_address_placeholder": {
-    "text": "e.g. secrets@example.com",
+    "text": "e.g. secrets{'@'}example.com",
     "sha256": "aefb949a"
   },
   "web.domains.email.reply_to_label": {
@@ -488,7 +488,7 @@
     "sha256": "4538ea9c"
   },
   "web.domains.email.reply_to_placeholder": {
-    "text": "e.g. support@example.com",
+    "text": "e.g. support{'@'}example.com",
     "sha256": "04de85e5"
   },
   "web.domains.email.save_changes": {

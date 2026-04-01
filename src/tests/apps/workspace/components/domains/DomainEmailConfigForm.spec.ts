@@ -1,13 +1,14 @@
 // src/tests/apps/workspace/components/domains/DomainEmailConfigForm.spec.ts
 //
 // Tests for DomainEmailConfigForm.vue covering:
-// 1. Provider selection rendering (all options present)
-// 2. Sender field visibility toggling (hidden for "inherit")
-// 3. Event emissions (save, discard, delete)
-// 4. Form validation (email format, required fields)
-// 5. Provider-specific description text
-// 6. Delete confirmation flow
-// 7. Accessibility attributes
+// 1. Sender identity fields rendering
+// 2. Event emissions (save, discard, delete)
+// 3. Form validation (email format, required fields)
+// 4. Delete confirmation flow
+// 5. Accessibility attributes
+//
+// Custom mail sender model: users configure sender identity only.
+// Provider credentials are resolved from installation-level configuration.
 
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -50,15 +51,6 @@ const i18n = createI18n({
           enabled: 'Enabled',
           are_you_sure_you_want_to_remove_this_domain: 'Are you sure you want to remove this configuration?',
           email: {
-            provider_label: 'Email Provider',
-            provider_ses: 'Amazon SES',
-            provider_ses_description: 'Use Amazon Simple Email Service',
-            provider_sendgrid: 'SendGrid',
-            provider_sendgrid_description: 'Use Twilio SendGrid',
-            provider_lettermint: 'Lettermint',
-            provider_lettermint_description: 'Use Lettermint transactional email',
-            provider_inherit: 'Inherit',
-            provider_inherit_description: 'Use system default email configuration',
             from_name_label: 'From Name',
             from_name_placeholder: 'Acme Corp',
             from_address_label: 'From Address',
@@ -86,16 +78,14 @@ const i18n = createI18n({
 // Test Fixtures
 // ─────────────────────────────────────────────────────────────────────────────
 
-const defaultFormState: EmailConfigFormState = {
-  provider: 'inherit',
+const emptyFormState: EmailConfigFormState = {
   from_name: '',
   from_address: '',
   reply_to: '',
   enabled: false,
 };
 
-const sesFormState: EmailConfigFormState = {
-  provider: 'ses',
+const configuredFormState: EmailConfigFormState = {
   from_name: 'Acme Corp',
   from_address: 'noreply@acme.com',
   reply_to: 'support@acme.com',
@@ -134,7 +124,7 @@ describe('DomainEmailConfigForm', () => {
   }> = {}) => {
     return mount(DomainEmailConfigForm, {
       props: {
-        formState: props.formState ?? defaultFormState,
+        formState: props.formState ?? emptyFormState,
         isConfigured: props.isConfigured ?? false,
         isSaving: props.isSaving ?? false,
         isDeleting: props.isDeleting ?? false,
@@ -148,85 +138,12 @@ describe('DomainEmailConfigForm', () => {
   };
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Provider selection
+  // Sender identity fields
   // ─────────────────────────────────────────────────────────────────────────
 
-  describe('Provider selection', () => {
-    it('renders all four provider options', () => {
+  describe('Sender identity fields', () => {
+    it('renders all sender identity fields', () => {
       wrapper = mountComponent();
-
-      const sesRadio = wrapper.find('#email-provider-ses');
-      const sendgridRadio = wrapper.find('#email-provider-sendgrid');
-      const lettermintRadio = wrapper.find('#email-provider-lettermint');
-      const inheritRadio = wrapper.find('#email-provider-inherit');
-
-      expect(sesRadio.exists()).toBe(true);
-      expect(sendgridRadio.exists()).toBe(true);
-      expect(lettermintRadio.exists()).toBe(true);
-      expect(inheritRadio.exists()).toBe(true);
-    });
-
-    it('checks the correct radio for the current provider', () => {
-      wrapper = mountComponent({ formState: sesFormState });
-
-      const sesRadio = wrapper.find('#email-provider-ses');
-      expect((sesRadio.element as HTMLInputElement).checked).toBe(true);
-    });
-
-    it('emits update:formState when provider is changed', async () => {
-      wrapper = mountComponent({ formState: defaultFormState });
-
-      const sesRadio = wrapper.find('#email-provider-ses');
-      await sesRadio.trigger('change');
-      await flushPromises();
-
-      const emitted = wrapper.emitted('update:formState');
-      expect(emitted).toBeTruthy();
-      expect(emitted![0][0]).toMatchObject({ provider: 'ses' });
-    });
-
-    it('displays provider description text for each option', () => {
-      wrapper = mountComponent();
-
-      const descriptions = wrapper.findAll('[id^="email-provider-"][id$="-description"]');
-      expect(descriptions).toHaveLength(4);
-
-      expect(descriptions[0].text()).toBe('Use Amazon Simple Email Service');
-      expect(descriptions[1].text()).toBe('Use Twilio SendGrid');
-      expect(descriptions[2].text()).toBe('Use Lettermint transactional email');
-      expect(descriptions[3].text()).toBe('Use system default email configuration');
-    });
-
-    it('has a radiogroup with accessible aria-label', () => {
-      wrapper = mountComponent();
-
-      const radiogroup = wrapper.find('[role="radiogroup"]');
-      expect(radiogroup.exists()).toBe(true);
-      expect(radiogroup.attributes('aria-label')).toBe('Email Provider');
-    });
-  });
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Sender field visibility
-  // ─────────────────────────────────────────────────────────────────────────
-
-  describe('Sender field visibility', () => {
-    it('hides sender fields when inherit provider is selected', () => {
-      wrapper = mountComponent({
-        formState: { ...defaultFormState, provider: 'inherit' },
-      });
-
-      const fromNameInput = wrapper.find('#email-from-name');
-      const fromAddressInput = wrapper.find('#email-from-address');
-      const replyToInput = wrapper.find('#email-reply-to');
-
-      expect(fromNameInput.exists()).toBe(false);
-      expect(fromAddressInput.exists()).toBe(false);
-      expect(replyToInput.exists()).toBe(false);
-    });
-
-    it('shows sender fields when SES provider is selected', () => {
-      wrapper = mountComponent({ formState: sesFormState });
 
       const fromNameInput = wrapper.find('#email-from-name');
       const fromAddressInput = wrapper.find('#email-from-address');
@@ -237,26 +154,8 @@ describe('DomainEmailConfigForm', () => {
       expect(replyToInput.exists()).toBe(true);
     });
 
-    it('shows sender fields when SendGrid provider is selected', () => {
-      wrapper = mountComponent({
-        formState: { ...defaultFormState, provider: 'sendgrid' },
-      });
-
-      expect(wrapper.find('#email-from-name').exists()).toBe(true);
-      expect(wrapper.find('#email-from-address').exists()).toBe(true);
-    });
-
-    it('shows sender fields when Lettermint provider is selected', () => {
-      wrapper = mountComponent({
-        formState: { ...defaultFormState, provider: 'lettermint' },
-      });
-
-      expect(wrapper.find('#email-from-name').exists()).toBe(true);
-      expect(wrapper.find('#email-from-address').exists()).toBe(true);
-    });
-
     it('populates sender fields from formState', () => {
-      wrapper = mountComponent({ formState: sesFormState });
+      wrapper = mountComponent({ formState: configuredFormState });
 
       const fromNameInput = wrapper.find('#email-from-name');
       const fromAddressInput = wrapper.find('#email-from-address');
@@ -265,6 +164,36 @@ describe('DomainEmailConfigForm', () => {
       expect((fromNameInput.element as HTMLInputElement).value).toBe('Acme Corp');
       expect((fromAddressInput.element as HTMLInputElement).value).toBe('noreply@acme.com');
       expect((replyToInput.element as HTMLInputElement).value).toBe('support@acme.com');
+    });
+
+    it('emits update:formState when from_name input changes', async () => {
+      wrapper = mountComponent({ formState: configuredFormState });
+
+      const fromNameInput = wrapper.find('#email-from-name');
+      await fromNameInput.trigger('input');
+      await flushPromises();
+
+      expect(wrapper.emitted('update:formState')).toBeTruthy();
+    });
+
+    it('emits update:formState when from_address input changes', async () => {
+      wrapper = mountComponent({ formState: configuredFormState });
+
+      const fromAddressInput = wrapper.find('#email-from-address');
+      await fromAddressInput.trigger('input');
+      await flushPromises();
+
+      expect(wrapper.emitted('update:formState')).toBeTruthy();
+    });
+
+    it('emits update:formState when reply_to input changes', async () => {
+      wrapper = mountComponent({ formState: configuredFormState });
+
+      const replyToInput = wrapper.find('#email-reply-to');
+      await replyToInput.trigger('input');
+      await flushPromises();
+
+      expect(wrapper.emitted('update:formState')).toBeTruthy();
     });
   });
 
@@ -275,7 +204,7 @@ describe('DomainEmailConfigForm', () => {
   describe('Form events', () => {
     it('emits save event on form submission when form is valid', async () => {
       wrapper = mountComponent({
-        formState: sesFormState,
+        formState: configuredFormState,
         hasUnsavedChanges: true,
       });
 
@@ -286,17 +215,9 @@ describe('DomainEmailConfigForm', () => {
       expect(wrapper.emitted('save')).toBeTruthy();
     });
 
-    it('does not emit save when form is invalid (inherit requires no fields)', async () => {
-      // With inherit, form is always valid, but the save button is disabled
-      // without unsaved changes. Test with a non-inherit provider missing fields.
+    it('does not emit save when form is invalid (missing required fields)', async () => {
       wrapper = mountComponent({
-        formState: {
-          provider: 'ses',
-          from_name: '',
-          from_address: '',
-          reply_to: '',
-          enabled: false,
-        },
+        formState: emptyFormState,
         hasUnsavedChanges: true,
       });
 
@@ -309,7 +230,7 @@ describe('DomainEmailConfigForm', () => {
 
     it('emits discard event when discard button is clicked', async () => {
       wrapper = mountComponent({
-        formState: sesFormState,
+        formState: configuredFormState,
         hasUnsavedChanges: true,
       });
 
@@ -324,7 +245,7 @@ describe('DomainEmailConfigForm', () => {
 
     it('emits delete event after confirmation', async () => {
       wrapper = mountComponent({
-        formState: sesFormState,
+        formState: configuredFormState,
         isConfigured: true,
       });
 
@@ -345,18 +266,8 @@ describe('DomainEmailConfigForm', () => {
       expect(wrapper.emitted('delete')).toBeTruthy();
     });
 
-    it('emits update:formState when from_name input changes', async () => {
-      wrapper = mountComponent({ formState: sesFormState });
-
-      const fromNameInput = wrapper.find('#email-from-name');
-      await fromNameInput.trigger('input');
-      await flushPromises();
-
-      expect(wrapper.emitted('update:formState')).toBeTruthy();
-    });
-
     it('emits update:formState when enabled toggle is clicked', async () => {
-      wrapper = mountComponent({ formState: sesFormState });
+      wrapper = mountComponent({ formState: configuredFormState });
 
       const toggle = wrapper.find('[role="switch"]');
       await toggle.trigger('click');
@@ -374,23 +285,9 @@ describe('DomainEmailConfigForm', () => {
   // ─────────────────────────────────────────────────────────────────────────
 
   describe('Form validation', () => {
-    it('form is valid for inherit provider regardless of sender fields', async () => {
-      wrapper = mountComponent({
-        formState: { ...defaultFormState, provider: 'inherit' },
-        hasUnsavedChanges: true,
-      });
-
-      const form = wrapper.find('form');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      expect(wrapper.emitted('save')).toBeTruthy();
-    });
-
-    it('form is invalid when from_name is empty for non-inherit provider', async () => {
+    it('form is invalid when from_name is empty', async () => {
       wrapper = mountComponent({
         formState: {
-          provider: 'ses',
           from_name: '',
           from_address: 'valid@example.com',
           reply_to: '',
@@ -406,10 +303,9 @@ describe('DomainEmailConfigForm', () => {
       expect(wrapper.emitted('save')).toBeFalsy();
     });
 
-    it('form is invalid when from_address is empty for non-inherit provider', async () => {
+    it('form is invalid when from_address is empty', async () => {
       wrapper = mountComponent({
         formState: {
-          provider: 'ses',
           from_name: 'Acme Corp',
           from_address: '',
           reply_to: '',
@@ -428,7 +324,6 @@ describe('DomainEmailConfigForm', () => {
     it('form is invalid when from_address is not a valid email', async () => {
       wrapper = mountComponent({
         formState: {
-          provider: 'ses',
           from_name: 'Acme Corp',
           from_address: 'not-an-email',
           reply_to: '',
@@ -447,7 +342,6 @@ describe('DomainEmailConfigForm', () => {
     it('form is invalid when reply_to is provided but not a valid email', async () => {
       wrapper = mountComponent({
         formState: {
-          provider: 'ses',
           from_name: 'Acme Corp',
           from_address: 'valid@example.com',
           reply_to: 'invalid-reply',
@@ -466,7 +360,6 @@ describe('DomainEmailConfigForm', () => {
     it('form is valid when reply_to is empty (optional field)', async () => {
       wrapper = mountComponent({
         formState: {
-          provider: 'ses',
           from_name: 'Acme Corp',
           from_address: 'valid@example.com',
           reply_to: '',
@@ -490,7 +383,7 @@ describe('DomainEmailConfigForm', () => {
   describe('Button states', () => {
     it('save button is disabled when no unsaved changes', () => {
       wrapper = mountComponent({
-        formState: sesFormState,
+        formState: configuredFormState,
         hasUnsavedChanges: false,
       });
 
@@ -500,7 +393,7 @@ describe('DomainEmailConfigForm', () => {
 
     it('save button is disabled when isSaving is true', () => {
       wrapper = mountComponent({
-        formState: sesFormState,
+        formState: configuredFormState,
         hasUnsavedChanges: true,
         isSaving: true,
       });
@@ -511,7 +404,7 @@ describe('DomainEmailConfigForm', () => {
 
     it('save button shows saving text when isSaving is true', () => {
       wrapper = mountComponent({
-        formState: sesFormState,
+        formState: configuredFormState,
         hasUnsavedChanges: true,
         isSaving: true,
       });
@@ -522,7 +415,7 @@ describe('DomainEmailConfigForm', () => {
 
     it('save button shows default text when not saving', () => {
       wrapper = mountComponent({
-        formState: sesFormState,
+        formState: configuredFormState,
         hasUnsavedChanges: true,
       });
 
@@ -532,7 +425,7 @@ describe('DomainEmailConfigForm', () => {
 
     it('discard button is hidden when no unsaved changes', () => {
       wrapper = mountComponent({
-        formState: sesFormState,
+        formState: configuredFormState,
         hasUnsavedChanges: false,
       });
 
@@ -543,7 +436,7 @@ describe('DomainEmailConfigForm', () => {
 
     it('discard button is visible when there are unsaved changes', () => {
       wrapper = mountComponent({
-        formState: sesFormState,
+        formState: configuredFormState,
         hasUnsavedChanges: true,
       });
 
@@ -554,7 +447,7 @@ describe('DomainEmailConfigForm', () => {
 
     it('remove button is hidden when not configured', () => {
       wrapper = mountComponent({
-        formState: sesFormState,
+        formState: configuredFormState,
         isConfigured: false,
       });
 
@@ -565,7 +458,7 @@ describe('DomainEmailConfigForm', () => {
 
     it('remove button is visible when configured', () => {
       wrapper = mountComponent({
-        formState: sesFormState,
+        formState: configuredFormState,
         isConfigured: true,
       });
 
@@ -582,7 +475,7 @@ describe('DomainEmailConfigForm', () => {
   describe('Delete confirmation', () => {
     it('shows confirmation text after clicking remove', async () => {
       wrapper = mountComponent({
-        formState: sesFormState,
+        formState: configuredFormState,
         isConfigured: true,
       });
 
@@ -596,7 +489,7 @@ describe('DomainEmailConfigForm', () => {
 
     it('shows cancel button in confirmation state', async () => {
       wrapper = mountComponent({
-        formState: sesFormState,
+        formState: configuredFormState,
         isConfigured: true,
       });
 
@@ -611,7 +504,7 @@ describe('DomainEmailConfigForm', () => {
 
     it('hides confirmation after clicking cancel', async () => {
       wrapper = mountComponent({
-        formState: sesFormState,
+        formState: configuredFormState,
         isConfigured: true,
       });
 
@@ -636,7 +529,7 @@ describe('DomainEmailConfigForm', () => {
 
   describe('Enabled toggle', () => {
     it('renders the enabled toggle switch', () => {
-      wrapper = mountComponent({ formState: sesFormState });
+      wrapper = mountComponent({ formState: configuredFormState });
 
       const toggle = wrapper.find('[role="switch"]');
       expect(toggle.exists()).toBe(true);
@@ -644,7 +537,7 @@ describe('DomainEmailConfigForm', () => {
 
     it('reflects the enabled state via aria-checked', () => {
       wrapper = mountComponent({
-        formState: { ...sesFormState, enabled: true },
+        formState: { ...configuredFormState, enabled: true },
       });
 
       const toggle = wrapper.find('[role="switch"]');
@@ -653,7 +546,7 @@ describe('DomainEmailConfigForm', () => {
 
     it('reflects the disabled state via aria-checked', () => {
       wrapper = mountComponent({
-        formState: { ...sesFormState, enabled: false },
+        formState: { ...configuredFormState, enabled: false },
       });
 
       const toggle = wrapper.find('[role="switch"]');
@@ -668,7 +561,7 @@ describe('DomainEmailConfigForm', () => {
   describe('Error display', () => {
     it('shows error alert when error prop is provided', () => {
       wrapper = mountComponent({
-        formState: sesFormState,
+        formState: configuredFormState,
         error: 'Something went wrong',
       });
 
@@ -678,7 +571,7 @@ describe('DomainEmailConfigForm', () => {
     });
 
     it('hides error alert when no error prop', () => {
-      wrapper = mountComponent({ formState: sesFormState });
+      wrapper = mountComponent({ formState: configuredFormState });
 
       const alerts = wrapper.find('[data-testid="form-alerts"]');
       expect(alerts.exists()).toBe(false);
@@ -691,7 +584,7 @@ describe('DomainEmailConfigForm', () => {
 
   describe('Accessibility', () => {
     it('sender input fields have associated labels', () => {
-      wrapper = mountComponent({ formState: sesFormState });
+      wrapper = mountComponent({ formState: configuredFormState });
 
       expect(wrapper.find('label[for="email-from-name"]').exists()).toBe(true);
       expect(wrapper.find('label[for="email-from-address"]').exists()).toBe(true);
@@ -699,7 +592,7 @@ describe('DomainEmailConfigForm', () => {
     });
 
     it('required fields are marked with asterisk', () => {
-      wrapper = mountComponent({ formState: sesFormState });
+      wrapper = mountComponent({ formState: configuredFormState });
 
       const fromNameLabel = wrapper.find('label[for="email-from-name"]');
       const fromAddressLabel = wrapper.find('label[for="email-from-address"]');
@@ -709,21 +602,21 @@ describe('DomainEmailConfigForm', () => {
     });
 
     it('reply_to label does not have asterisk (optional field)', () => {
-      wrapper = mountComponent({ formState: sesFormState });
+      wrapper = mountComponent({ formState: configuredFormState });
 
       const replyToLabel = wrapper.find('label[for="email-reply-to"]');
       expect(replyToLabel.text()).not.toContain('*');
     });
 
     it('enabled toggle has aria-describedby', () => {
-      wrapper = mountComponent({ formState: sesFormState });
+      wrapper = mountComponent({ formState: configuredFormState });
 
       const toggle = wrapper.find('[role="switch"]');
       expect(toggle.attributes('aria-describedby')).toBe('email-enabled-hint');
     });
 
     it('has live region for status announcements', () => {
-      wrapper = mountComponent({ formState: sesFormState });
+      wrapper = mountComponent({ formState: configuredFormState });
 
       const liveRegion = wrapper.find('[aria-live="polite"]');
       expect(liveRegion.exists()).toBe(true);

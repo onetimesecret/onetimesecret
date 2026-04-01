@@ -19,30 +19,27 @@ module DomainsAPI
       #   with custom_mail_sender entitlement.
       #
       # Request body:
-      # - provider: Required. One of: smtp, ses, sendgrid, lettermint
       # - from_address: Required. Sender email address
       # - from_name: Optional. Display name for sender (defaults to empty)
       # - reply_to: Optional. Reply-to address (defaults to empty)
-      # - api_key: Required. Provider API key or credentials
       # - enabled: Optional. Boolean to enable/disable (default: false)
       #
-      # Response includes the updated config with masked api_key_masked.
+      # Custom mail sender model: users configure sender identity only.
+      # Provider credentials are resolved from installation-level configuration.
+      #
+      # Response includes the updated config.
       #
       class PutSenderConfig < Base
         include Serializers
         include AuditLogger
 
-        VALID_PROVIDER_TYPES = Onetime::CustomDomain::MailerConfig::PROVIDER_TYPES.freeze
-
         attr_reader :mailer_config, :existing_config
 
         def process_params
           @domain_id    = sanitize_identifier(params['extid'])
-          @provider     = sanitize_plain_text(params['provider'])
           @from_name    = sanitize_plain_text(params['from_name'])
           @from_address = params['from_address'].to_s.strip
           @reply_to     = params['reply_to'].to_s.strip
-          @api_key      = params['api_key'].to_s.strip
           @enabled      = parse_boolean(params['enabled'])
         end
 
@@ -59,14 +56,8 @@ module DomainsAPI
           # Check if config already exists
           @existing_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@custom_domain.identifier)
 
-          # Validate provider
-          validate_provider
-
           # Validate required fields
           validate_required_fields
-
-          # Validate credentials (always required for PUT)
-          validate_credentials
         end
 
         def process
@@ -82,7 +73,6 @@ module DomainsAPI
               domain: @custom_domain,
               org: @organization,
               actor: cust,
-              provider: @provider,
             )
           else
             create_new_config
@@ -91,7 +81,6 @@ module DomainsAPI
               domain: @custom_domain,
               org: @organization,
               actor: cust,
-              provider: @provider,
             )
           end
 
@@ -111,7 +100,6 @@ module DomainsAPI
         def form_fields
           {
             domain_id: @domain_id,
-            provider: @provider,
             from_name: @from_name,
             from_address: @from_address,
             reply_to: @reply_to,
@@ -120,18 +108,6 @@ module DomainsAPI
         end
 
         private
-
-        def validate_provider
-          raise_form_error('Provider is required', field: :provider, error_type: :missing) if @provider.to_s.empty?
-
-          return if VALID_PROVIDER_TYPES.include?(@provider)
-
-          raise_form_error(
-            "Invalid provider. Must be one of: #{VALID_PROVIDER_TYPES.join(', ')}",
-            field: :provider,
-            error_type: :invalid,
-          )
-        end
 
         def validate_required_fields
           raise_form_error('From address is required', field: :from_address, error_type: :missing) if @from_address.to_s.empty?
@@ -142,19 +118,14 @@ module DomainsAPI
           end
         end
 
-        def validate_credentials
-          # PUT semantics: api_key is always required (full replacement)
-          raise_form_error('API key is required', field: :api_key, error_type: :missing) if @api_key.to_s.empty?
-        end
-
         def create_new_config
+          # Custom mail sender model: sender identity only, no provider/api_key
+          # Provider credentials resolved from installation-level configuration
           @mailer_config = Onetime::CustomDomain::MailerConfig.create!(
             domain_id: @custom_domain.identifier,
-            provider: @provider,
             from_name: @from_name,
             from_address: @from_address,
             reply_to: @reply_to,
-            api_key: @api_key,
             enabled: @enabled,
           )
         end
@@ -164,18 +135,18 @@ module DomainsAPI
         # Uses transaction with commit_fields to prevent race condition where
         # config could be deleted between existence check and update.
         #
+        # Custom mail sender model: sender identity only, no provider/api_key.
+        #
         def replace_existing_config
           @mailer_config = @existing_config
 
           # Capture original from_address BEFORE mutation (for verification reset check)
           original_from_address = @existing_config.from_address
 
-          # PUT semantics: full replacement - set ALL fields from request
-          @mailer_config.provider     = @provider
+          # PUT semantics: full replacement - set ALL sender identity fields
           @mailer_config.from_name    = @from_name        # Empty string clears the field
           @mailer_config.from_address = @from_address
           @mailer_config.reply_to     = @reply_to         # Empty string clears the field
-          @mailer_config.api_key      = @api_key          # Always required for PUT
           @mailer_config.enabled      = @enabled.to_s
 
           # Reset verification if from_address changed
@@ -206,7 +177,6 @@ module DomainsAPI
               domain: @custom_domain,
               org: @organization,
               actor: cust,
-              provider: @provider,
             )
           elsif was_enabled == true && !is_enabled
             log_sender_audit_event(
@@ -214,7 +184,6 @@ module DomainsAPI
               domain: @custom_domain,
               org: @organization,
               actor: cust,
-              provider: @provider,
             )
           end
         end

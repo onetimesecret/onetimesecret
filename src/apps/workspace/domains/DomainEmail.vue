@@ -83,6 +83,16 @@ const {
 } = useEmailConfig(props.extid);
 
 // ---------------------------------------------------------------------------
+// Form state handler
+// ---------------------------------------------------------------------------
+
+import type { EmailConfigFormState } from '@/shared/composables/useEmailConfig';
+
+const handleFormStateUpdate = (state: EmailConfigFormState) => {
+  formState.value = state;
+};
+
+// ---------------------------------------------------------------------------
 // Navigation
 // ---------------------------------------------------------------------------
 
@@ -252,14 +262,14 @@ onMounted(async () => {
                 :is-deleting="isDeleting"
                 :has-unsaved-changes="hasUnsavedChanges"
                 :error="emailError?.message"
-                @update:form-state="(state) => Object.assign(formState, state)"
+                @update:form-state="handleFormStateUpdate"
                 @save="saveConfig"
                 @discard="discardChanges"
                 @delete="deleteConfig" />
 
-              <!-- DNS Records Section (only show when config exists and provider is not inherit) -->
+              <!-- DNS Records Section (shown when config exists) -->
               <DomainEmailDnsRecords
-                v-if="isConfigured && formState.provider !== 'inherit'"
+                v-if="isConfigured"
                 :dns-records="dnsRecords"
                 :validation-status="validationStatus"
                 :last-validated-at="lastValidatedAt"

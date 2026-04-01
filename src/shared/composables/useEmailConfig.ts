@@ -19,10 +19,7 @@ import type {
   PutEmailConfigRequest,
   PatchEmailConfigRequest,
 } from '@/schemas/api/domains/requests/email-config';
-import type {
-  CustomDomainEmailConfig,
-  EmailProviderType,
-} from '@/schemas/shapes/domains/email-config';
+import type { CustomDomainEmailConfig } from '@/schemas/shapes/domains/email-config';
 import { useDomainsStore } from '@/shared/stores/domainsStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useNotificationsStore } from '@/shared/stores';
@@ -33,7 +30,6 @@ import { useRouter } from 'vue-router';
 import { type AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
 export interface EmailConfigFormState {
-  provider: EmailProviderType;
   from_name: string;
   from_address: string;
   reply_to: string;
@@ -42,7 +38,6 @@ export interface EmailConfigFormState {
 
 function createDefaultFormState(): EmailConfigFormState {
   return {
-    provider: 'inherit',
     from_name: '',
     from_address: '',
     reply_to: '',
@@ -52,7 +47,6 @@ function createDefaultFormState(): EmailConfigFormState {
 
 function configToFormState(config: CustomDomainEmailConfig): EmailConfigFormState {
   return {
-    provider: config.provider,
     from_name: config.from_name,
     from_address: config.from_address,
     reply_to: config.reply_to ?? '',
@@ -148,7 +142,6 @@ export function useEmailConfig(domainExtId: string) {
     const current = formState.value;
     const saved = savedFormState.value;
     return (
-      current.provider !== saved.provider ||
       current.from_name !== saved.from_name ||
       current.from_address !== saved.from_address ||
       current.reply_to !== saved.reply_to ||
@@ -188,26 +181,18 @@ export function useEmailConfig(domainExtId: string) {
 
     try {
       const result = await wrap(async () => {
+        // Sender identity payload (no provider or api_key - uses installation defaults)
+        const payload: PatchEmailConfigRequest = {
+          from_name: formState.value.from_name.trim(),
+          from_address: formState.value.from_address.trim(),
+          reply_to: formState.value.reply_to.trim(),
+          enabled: formState.value.enabled,
+        };
+
         if (isConfigured.value) {
-          // PATCH: update existing config
-          const payload: PatchEmailConfigRequest = {
-            provider: formState.value.provider,
-            from_name: formState.value.from_name.trim(),
-            from_address: formState.value.from_address.trim(),
-            enabled: formState.value.enabled,
-          };
-          payload.reply_to = formState.value.reply_to.trim();
           return await domainsStore.patchEmailConfig(domainExtId, payload);
         } else {
-          // PUT: create new config
-          const payload: PutEmailConfigRequest = {
-            provider: formState.value.provider,
-            from_name: formState.value.from_name.trim(),
-            from_address: formState.value.from_address.trim(),
-            enabled: formState.value.enabled,
-          };
-          payload.reply_to = formState.value.reply_to.trim();
-          return await domainsStore.putEmailConfig(domainExtId, payload);
+          return await domainsStore.putEmailConfig(domainExtId, payload as PutEmailConfigRequest);
         }
       });
 
