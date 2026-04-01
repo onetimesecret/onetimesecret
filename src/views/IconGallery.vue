@@ -92,20 +92,31 @@ function discoverIconsFromDOM(): Record<string, string[]> {
 }
 
 /**
- * Poll until symbols appear in the DOM, then populate the gallery
+ * Wait for symbols to appear in the DOM using MutationObserver, then populate the gallery
  */
 function waitForSpritesAndDiscover() {
-  const checkForSymbols = () => {
+  // Check if symbols already exist
+  const symbols = document.querySelectorAll('symbol[id]');
+  if (symbols.length > 0) {
+    iconsByLibrary.value = discoverIconsFromDOM();
+    isLoading.value = false;
+    return;
+  }
+
+  // Watch for symbols to be added to the DOM
+  const observer = new MutationObserver(() => {
     const symbols = document.querySelectorAll('symbol[id]');
     if (symbols.length > 0) {
+      observer.disconnect();
       iconsByLibrary.value = discoverIconsFromDOM();
       isLoading.value = false;
-    } else {
-      // Sprites not yet rendered, check again
-      setTimeout(checkForSymbols, 50);
     }
-  };
-  checkForSymbols();
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
 }
 
 onMounted(() => {
@@ -155,15 +166,26 @@ const getLibraryMeta = (libraryLabel: string) => {
   return iconLibraries[labelToKey[libraryLabel] || ''];
 };
 
+const copyError = ref<string | null>(null);
+
 const copyToClipboard = async (iconId: string) => {
+  copyError.value = null;
+
+  // Check for clipboard API support
+  if (!navigator.clipboard) {
+    copyError.value = iconId;
+    setTimeout(() => { copyError.value = null; }, 2000);
+    return;
+  }
+
   try {
     await navigator.clipboard.writeText(iconId);
     copiedId.value = iconId;
-    setTimeout(() => {
-      copiedId.value = null;
-    }, 2000);
+    setTimeout(() => { copiedId.value = null; }, 2000);
   } catch (err) {
     console.error('Failed to copy:', err);
+    copyError.value = iconId;
+    setTimeout(() => { copyError.value = null; }, 2000);
   }
 };
 
@@ -188,31 +210,13 @@ const getIconName = (iconId: string) => {
       aria-hidden="true"
     >
       <Suspense>
-        <component :is="spriteComponents.CarbonSprites" />
-      </Suspense>
-      <Suspense>
-        <component :is="spriteComponents.CriticalSprites" />
-      </Suspense>
-      <Suspense>
-        <component :is="spriteComponents.FontAwesome6Sprites" />
-      </Suspense>
-      <Suspense>
-        <component :is="spriteComponents.HeroiconsSprites" />
-      </Suspense>
-      <Suspense>
-        <component :is="spriteComponents.MaterialSymbolsSprites" />
-      </Suspense>
-      <Suspense>
-        <component :is="spriteComponents.MdiSprites" />
-      </Suspense>
-      <Suspense>
-        <component :is="spriteComponents.PhosphorSprites" />
-      </Suspense>
-      <Suspense>
-        <component :is="spriteComponents.TablerSprites" />
-      </Suspense>
-      <Suspense>
-        <component :is="spriteComponents.AlternateLogoSprites" />
+        <div>
+          <component
+            v-for="(comp, name) in spriteComponents"
+            :key="name"
+            :is="comp"
+          />
+        </div>
       </Suspense>
     </div>
 
@@ -356,6 +360,14 @@ const getIconName = (iconId: string) => {
                 >
                   <span class="text-sm font-medium text-white">Copied</span>
                 </div>
+
+                <!-- Copy error indicator -->
+                <div
+                  v-if="copyError === iconId"
+                  class="absolute inset-0 flex items-center justify-center rounded-lg bg-red-500/90"
+                >
+                  <span class="text-sm font-medium text-white">Failed</span>
+                </div>
               </button>
             </div>
           </section>
@@ -393,8 +405,8 @@ const getIconName = (iconId: string) => {
             Usage
           </h2>
           <pre class="overflow-x-auto rounded bg-gray-100 p-4 text-sm dark:bg-gray-900"><code class="text-gray-800 dark:text-gray-200">&lt;OIcon
-  collection="heroicons-solid"
-  name="check-circle"
+  collection="heroicons"
+  name="check-circle-solid"
   class="size-5"
   aria-label="Success"
 /&gt;</code></pre>

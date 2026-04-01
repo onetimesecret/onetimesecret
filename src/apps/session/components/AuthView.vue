@@ -67,22 +67,15 @@
     if (jurisdictionStore.enabled && getCurrentJurisdiction.value?.icon) {
       return getCurrentJurisdiction.value.icon;
     }
-    return props.featureIcon || {
-      collection: 'material-symbols',
-      name: 'shield-locked-outline',
-    };
+    return props.featureIcon;
   });
 
   // Compute the icon to show based on jurisdiction status
-
   const iconToShow = computed((): IconConfig => {
     if (jurisdictionStore.enabled && getCurrentJurisdiction.value?.icon) {
       return getCurrentJurisdiction.value.icon;
     }
-    return props.featureIcon || {
-      collection: 'material-symbols',
-      name: 'shield-locked-outline',
-    };
+    return props.featureIcon;
   });
 </script>
 
