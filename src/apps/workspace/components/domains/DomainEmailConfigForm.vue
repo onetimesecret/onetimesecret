@@ -50,6 +50,22 @@ const updateField = <K extends keyof EmailConfigFormState>(
   emit('update:formState', { ...props.formState, [key]: value });
 };
 
+// Individual field models for v-model binding (handles autocomplete reliably)
+const fromName = computed({
+  get: () => props.formState.from_name,
+  set: (value: string) => updateField('from_name', value),
+});
+
+const fromAddress = computed({
+  get: () => props.formState.from_address,
+  set: (value: string) => updateField('from_address', value),
+});
+
+const replyTo = computed({
+  get: () => props.formState.reply_to,
+  set: (value: string) => updateField('reply_to', value),
+});
+
 // Form validation
 const isFormValid = computed(() => {
   if (!localForm.value.from_name.trim()) return false;
@@ -99,13 +115,12 @@ const handleDelete = () => {
       </label>
       <input
         id="email-from-name"
-        :value="localForm.from_name"
+        v-model="fromName"
         type="text"
         required
         maxlength="100"
         :placeholder="t('web.domains.email.from_name_placeholder')"
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
-        @input="updateField('from_name', ($event.target as HTMLInputElement).value)" />
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
     </div>
 
     <!-- From Address -->
@@ -118,12 +133,11 @@ const handleDelete = () => {
       </label>
       <input
         id="email-from-address"
-        :value="localForm.from_address"
+        v-model="fromAddress"
         type="email"
         required
         :placeholder="t('web.domains.email.from_address_placeholder')"
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
-        @input="updateField('from_address', ($event.target as HTMLInputElement).value)" />
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
     </div>
 
     <!-- Reply-To Address -->
@@ -135,11 +149,10 @@ const handleDelete = () => {
       </label>
       <input
         id="email-reply-to"
-        :value="localForm.reply_to"
+        v-model="replyTo"
         type="email"
         :placeholder="t('web.domains.email.reply_to_placeholder')"
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
-        @input="updateField('reply_to', ($event.target as HTMLInputElement).value)" />
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
     </div>
 
     <!-- Enabled Toggle -->
