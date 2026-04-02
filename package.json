@@ -136,7 +136,7 @@
   "dependencies": {
     "@babel/helpers": "^7.29.2",
     "@codemirror/lang-json": "6.0.2",
-    "@codemirror/lang-yaml": "6.1.2",
+    "@codemirror/lang-yaml": "6.1.3",
     "@codemirror/state": "6.6.0",
     "@codemirror/theme-one-dark": "6.1.3",
     "@codemirror/view": "6.40.0",
