@@ -69,6 +69,16 @@ site:
         mode_header: <%= ENV['UI_HOMEPAGE_MODE_HEADER'] || 'O-Homepage-Mode' %>
         trusted_proxy_depth: <%= ENV['UI_HOMEPAGE_TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
         trusted_ip_header: <%= ENV['UI_HOMEPAGE_TRUSTED_IP_HEADER'] || 'X-Forwarded-For' %>
+
+      # Form field visibility flags
+      # Controls which optional fields appear on the secret creation form.
+      # All default to true (visible). Set to 'false' to hide from the UI.
+      # These are independent of API guest_routes, which gate endpoint access.
+      capabilities:
+        burn: <%= ENV['UI_CAPABILITIES_BURN'] != 'false' %>
+        show: <%= ENV['UI_CAPABILITIES_SHOW'] != 'false' %>
+        receipt: <%= ENV['UI_CAPABILITIES_RECEIPT'] != 'false' %>
+        recipient: <%= ENV['UI_CAPABILITIES_RECIPIENT'] != 'false' %>
       # Header configuration
       # Controls branding and navigation in the site header
       header:
@@ -97,7 +107,7 @@ site:
         navigation:
           # Enable/disable header navigation entirely
           enabled: <%= ENV['HEADER_NAV_ENABLED'] != 'false' %>
-      # Footer link configuration
+      # Footer link configuration (public pages)
       # These links appear in the footer of each page
       footer_links:
         # Global toggle to enable/disable all footer links
@@ -111,48 +121,46 @@ site:
                 i18n_key: web.layout.terms_of_service
                 # Replace with your own terms URL or use relative path like /terms
                 url: <%= ENV['TERMS_URL']  %>
-                external: <%= ENV['TERMS_EXTERNAL'] || false %>
               - text: Privacy Policy
                 i18n_key: web.layout.privacy_policy
                 # Replace with your own privacy URL or use relative path like /privacy
                 url: <%= ENV['PRIVACY_URL']  %>
-                external: <%= ENV['PRIVACY_EXTERNAL'] || false %>
           - name: resources
             i18n_key: web.footer.resources
             links:
+              - text: Docs
+                i18n_key: web.footer.docs
+                # Replace with your documentation URL
+                url: <%= ENV['DOCS_URL'] || 'https://docs.onetimesecret.com/' %>
               - text: Status
                 i18n_key: web.COMMON.status
                 # Replace with your status page URL if you have one
-                url: <%= ENV['STATUS_URL'] %>
-                external: <%= ENV['STATUS_EXTERNAL'] || true %>
-                icon: signal
-              - text: About
-                i18n_key: web.COMMON.about
-                # Replace with your about page URL
-                url: <%= ENV['ABOUT_URL'] %>
-                external: <%= ENV['ABOUT_EXTERNAL'] || false %>
+                url: <%= ENV['STATUS_URL'] || 'https://status.onetimesecret.com/' %>
           - name: support
             i18n_key: web.footer.support
             links:
+              - text: About
+                i18n_key: web.COMMON.about
+                # Replace with your about page URL
+                url: <%= ENV['ABOUT_URL'] || 'https://onetimesecret.com/about' %>
               - text: Contact
                 i18n_key: web.footer.contact
-                url: <%= ENV['CONTACT_URL'] %>
-                external: false
-          - name: workspace
-            i18n_key: web.footer.workspace
-            links:
-              - text: API Docs
-                i18n_key: web.footer.api_docs
-                url: <%= ENV['WORKSPACE_API_DOCS_URL'] %>
-                external: <%= ENV['WORKSPACE_API_DOCS_EXTERNAL'] != 'false' %>
-              - text: Branding Guide
-                i18n_key: web.footer.branding_guide
-                url: <%= ENV['WORKSPACE_BRANDING_GUIDE_URL'] %>
-                external: <%= ENV['WORKSPACE_BRANDING_GUIDE_EXTERNAL'] != 'false' %>
-              - text: Feedback
-                i18n_key: web.TITLES.feedback
-                url: <%= ENV['WORKSPACE_FEEDBACK_URL'] || '/feedback' %>
-                external: <%= ENV['WORKSPACE_FEEDBACK_EXTERNAL'] == 'true' %>
+                url: <%= ENV['CONTACT_URL'] || '/feedback' %>
+      # Workspace footer links (authenticated users only)
+      # Separate from footer_links which are for public pages
+      workspace_links:
+        # Global toggle to enable/disable all footer links
+        enabled: <%= ENV['WORKSPACE_LINKS'] == 'true' %>
+        links:
+        - text: API Docs
+          i18n_key: web.footer.api_docs
+          url: <%= ENV['WORKSPACE_API_DOCS_URL'] || 'https://api.onetimesecret.com/' %>
+        - text: Branding Guide
+          i18n_key: web.footer.branding_guide
+          url: <%= ENV['WORKSPACE_BRANDING_GUIDE_URL'] || 'https://docs.onetimesecret.com/' %>
+        - text: Feedback
+          i18n_key: web.TITLES.feedback
+          url: <%= ENV['WORKSPACE_FEEDBACK_URL'] || '/feedback' %>
     # Controls whether the API endpoints are available. When disabled, the API
     # is completely disabled. Requests to /api/* will return 404.
     api:
@@ -396,6 +404,14 @@ features:
       listen_address: <%= ENV['ACME_LISTEN_ADDRESS'] || '127.0.0.1' %>
       # Port for standalone mode (Caddy's ask directive points here)
       port: <%= ENV['ACME_PORT'] || '12020' %>
+  # Organizations UI
+  # Shows the organization switcher in the navigation bar. Organizations
+  # always exist under the hood (every customer has one for Stripe billing).
+  # This flag controls whether users can see and switch between multiple orgs.
+  organizations:
+    enabled: <%= ENV['ENABLE_ORGS'] == 'true' %>
+    sso_enabled: <%= ENV['ORGS_SSO_ENABLED'] == 'true' %>
+    custom_mail_enabled: <%= ENV['ORGS_CUSTOM_MAIL_ENABLED'] == 'true' %>
 
 # Main Database Configuration
 redis:
@@ -467,6 +483,69 @@ emailer:
   pass: "<%= ENV['SMTP_PASSWORD'] %>"
   auth: <%= ENV['SMTP_AUTH'] || nil %>
   tls: <%= ENV['SMTP_TLS'] %>
+
+# Email Provider DNS Validation Settings
+# --------------------------------------
+# Configuration for sender domain validation strategies. These settings
+# control how DNS records are generated for DKIM, SPF, and related email
+# authentication when setting up custom mail sender domains.
+#
+# Each provider has sensible defaults; override only when needed.
+# All settings are optional - the system works without this section.
+#
+email_providers:
+  # AWS SES configuration
+  ses:
+    # AWS region for SES endpoints (affects MX record values)
+    # Override via EMAIL_PROVIDERS_SES_REGION env var
+    region: <%= ENV['EMAIL_PROVIDERS_SES_REGION'] || 'us-east-1' %>
+    # Number of DKIM selectors (SES uses 3 by default)
+    dkim_selector_count: 3
+    # SPF include domain
+    spf_include: amazonses.com
+
+  # SendGrid configuration
+  sendgrid:
+    # Branding subdomain prefix (appears in CNAME records)
+    # Override via EMAIL_PROVIDERS_SENDGRID_SUBDOMAIN env var
+    subdomain: <%= ENV['EMAIL_PROVIDERS_SENDGRID_SUBDOMAIN'] || 'em' %>
+    # DKIM selector names
+    dkim_selectors:
+      - s1
+      - s2
+    # SPF include domain
+    spf_include: sendgrid.net
+
+  # Lettermint configuration
+  #
+  # Lettermint has TWO separate APIs with different auth:
+  #   1. Sending API - uses x-lettermint-token header (project token)
+  #   2. Team API    - uses Authorization: Bearer header (team token)
+  #
+  # Domain provisioning requires the Team API token.
+  #
+  lettermint:
+    # Project token for Lettermint Sending API (email delivery)
+    # Required when emailer.mode is 'lettermint'
+    # Override via LETTERMINT_API_TOKEN env var
+    api_token: <%= ENV['LETTERMINT_API_TOKEN'] %>
+    # Team token for Lettermint Team API (domain provisioning)
+    # Required for custom mail sender domain management
+    # Override via LETTERMINT_TEAM_TOKEN env var
+    team_token: <%= ENV['LETTERMINT_TEAM_TOKEN'] %>
+    # API base URL (for enterprise/on-premise deployments)
+    # Override via LETTERMINT_BASE_URL env var
+    api_base_url: <%= ENV['LETTERMINT_BASE_URL'] || 'https://api.lettermint.co/v1' %>
+    # DKIM selector names (comma-separated for env var)
+    # Override via EMAIL_PROVIDERS_LETTERMINT_DKIM_SELECTORS env var
+    dkim_selectors: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_DKIM_SELECTORS']&.split(',')&.map(&:strip) || ['lm1', 'lm2'] %>
+    # SPF CNAME subdomain prefix (e.g., 'lm-bounces' creates lm-bounces.yourdomain.com)
+    # Override via EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_PREFIX env var
+    spf_cname_prefix: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_PREFIX'] || 'lm-bounces' %>
+    # SPF CNAME target domain (Lettermint maintains SPF at this target)
+    # Override via EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_TARGET env var
+    spf_cname_target: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_TARGET'] || 'bounces.lmta.net' %>
+
 mail:
   truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp

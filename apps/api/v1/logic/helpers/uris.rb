@@ -19,7 +19,7 @@ module V1
       end
 
       def base_scheme
-        Onetime.conf['site']['ssl'] ? 'https://' : 'http://'
+        Onetime.conf.dig('site', 'ssl') != false ? 'https://' : 'http://'
       end
 
       def server_port

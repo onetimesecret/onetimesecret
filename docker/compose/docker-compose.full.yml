@@ -123,7 +123,7 @@ services:
       start_period: 10s
 
   rabbitmq:
-    image: rabbitmq:4.0-management
+    image: rabbitmq:4.2-management@sha256:23fe4f224d3d4d4e3c3904e82fb8a47824f0ee03412c33b7b21e6bf00b9852fa
     container_name: onetime-rabbitmq
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-guest}

@@ -410,5 +410,257 @@
   "web.domains.dns_widget_init_failed": {
     "text": "Failed to initialize DNS widget",
     "sha256": "c4d5e6f7"
+  },
+  "web.domains.sso.title": {
+    "text": "Single Sign-On",
+    "sha256": "a1b2c3d4"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO Configuration",
+    "sha256": "b2c3d4e5"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Configure single sign-on authentication for this domain",
+    "sha256": "c3d4e5f6"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Access Denied",
+    "sha256": "d4e5f6a7"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "You don't have permission to manage SSO settings for this domain. Contact your organization administrator.",
+    "sha256": "e5f6a7b8"
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO configuration created successfully",
+    "sha256": "e6f7a8b9"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO configuration updated successfully",
+    "sha256": "f6a7b8c9"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO configuration removed successfully",
+    "sha256": "a7b8c9d0"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Configure SSO",
+    "sha256": "b8c9d0e1"
+  },
+  "web.domains.email.title": {
+    "text": "Email Sending",
+    "sha256": "6c428e5f"
+  },
+  "web.domains.email.config_title": {
+    "text": "Email Configuration",
+    "sha256": "6f38aa51"
+  },
+  "web.domains.email.config_description": {
+    "text": "Configure email sending for this domain",
+    "sha256": "1c275ff0"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Email Provider",
+    "sha256": "a7ed3f4e"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Select an email provider",
+    "sha256": "63c8080c"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "From Name",
+    "sha256": "2f13b589"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "e.g. Acme Security",
+    "sha256": "03c0f138"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "From Address",
+    "sha256": "60643eae"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "e.g. secrets{'@'}example.com",
+    "sha256": "aefb949a"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Reply-To Address",
+    "sha256": "4538ea9c"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "e.g. support{'@'}example.com",
+    "sha256": "04de85e5"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Save Changes",
+    "sha256": "35322b5b"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Discard Changes",
+    "sha256": "e07e053c"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES",
+    "sha256": "15de4969"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid",
+    "sha256": "b889d002"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint",
+    "sha256": "ec994dad"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Use account defaults",
+    "sha256": "f6fa84e7"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Requires domain verification via DKIM and SPF records",
+    "sha256": "4df5aa60"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Requires domain authentication setup",
+    "sha256": "71b53242"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Requires domain verification",
+    "sha256": "87073c93"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Uses your account's default email sending configuration",
+    "sha256": "3f798263"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS Records",
+    "sha256": "34d2c307"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Add the following DNS records to verify your domain for email sending.",
+    "sha256": "9fa85863"
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Type",
+    "sha256": "baaddf70"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Name",
+    "sha256": "dcd1d522"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Value",
+    "sha256": "8e37953d"
+  },
+  "web.domains.email.copy": {
+    "text": "Copy",
+    "sha256": "e21f935f"
+  },
+  "web.domains.email.copied": {
+    "text": "Copied",
+    "sha256": "8d525e5f"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Verified",
+    "sha256": "4f783840"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Pending",
+    "sha256": "331551b0"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Failed",
+    "sha256": "031a8f0f"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Re-validate",
+    "sha256": "4918da12"
+  },
+  "web.domains.email.validating": {
+    "text": "Validating...",
+    "sha256": "b28b48d5"
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Domain verified",
+    "sha256": "08e0df67"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Validation failed",
+    "sha256": "23a86f5a"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Last validated",
+    "sha256": "887dd486"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Upgrade your plan to configure email sending for this domain.",
+    "sha256": "16a876f7"
+  },
+  "web.domains.email.configure_email": {
+    "text": "Configure Email",
+    "sha256": "a48c0d40"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Access Denied",
+    "sha256": "d134ca02"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "You don't have permission to manage email settings for this domain. Contact your organization administrator.",
+    "sha256": "32049ff0"
+  },
+  "web.domains.email.update_success": {
+    "text": "Email configuration saved successfully",
+    "sha256": "dd3607fc"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Email configuration removed successfully",
+    "sha256": "2ba99a91"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Emails for this domain are currently sent from the global sender. Complete email configuration to use your own sender identity.",
+    "sha256": "ffcf39fb"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Not configured",
+    "sha256": "dd1841d2"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Using default sender",
+    "sha256": "e1afb18f"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Verified",
+    "sha256": "4f783840"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Pending verification",
+    "sha256": "417a6b7e"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Disabled",
+    "sha256": "75081b59"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "No email sender configured \u2014 emails use the platform default sender",
+    "sha256": "360083bb"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Email sender configuration is pending verification \u2014 emails use the platform default sender",
+    "sha256": "c8c2449c"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Email sender is disabled \u2014 emails use the platform default sender",
+    "sha256": "64e84955"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Email sender verified \u2014 emails are sent from this domain",
+    "sha256": "0e9a005c"
+  },
+  "web.domains.verified": {
+    "text": "Verified",
+    "sha256": "c9d0e1f2"
+  },
+  "web.domains.pending_verification": {
+    "text": "Pending Verification",
+    "sha256": "d0e1f2a3"
   }
 }

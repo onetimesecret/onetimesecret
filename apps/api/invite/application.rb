@@ -16,6 +16,7 @@ module InviteAPI
   #
   # Public API for invitation token-based endpoints.
   # These endpoints handle invitation acceptance/decline flows.
+  # Follows V3 conventions: native JSON types, consistent field naming.
   #
   # ## Scope
   #

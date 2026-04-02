@@ -172,8 +172,7 @@ module Onetime
     end
 
     # Register simple commands
-    register 'version', VersionCommand
-    register 'build', VersionCommand  # Alias for version
+    register 'version', VersionCommand, aliases: ['build']
     register 'load-path', LoadPathCommand
     register 'console', ConsoleCommand
     register 'help', HelpCommand

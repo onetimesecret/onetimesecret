@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.21@sha256:27f9262d43452075f3c410287a2c43f5ef1bf7ec2bb06e8c9eeb1b8d453087bc
+# syntax=docker/dockerfile:1.22@sha256:4a43a54dd1fedceb30ba47e76cfcf2b47304f4161c0caeac2db1c61804ea3c91
 # check=error=true
 
 ##
@@ -21,7 +21,7 @@
 
 ARG APP_DIR=/app
 ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:510c441d2541a5ef8c6a657a67ae98d5b0c6acdd886691690ed30f986095f55e
-ARG NODE_IMAGE_TAG=22@sha256:b501c082306a4f528bc4038cbf2fbb58095d583d0419a259b2114b5ac53d12e9
+ARG NODE_IMAGE_TAG=22@sha256:7e791fc54bd02fc89fd4fb39eb37e5bea753c75679c8022478d81679367d995a
 
 ##
 # NODE: Node.js source for copying binaries

@@ -4,22 +4,29 @@
   Organization Context Bar Component
 
   A contextual navigation bar that displays workspace scope information.
-  Shows the domain switcher for the current workspace context.
+  Shows organization and domain switchers based on feature flags and route config.
 
-  Layout:
+  Layout (when both enabled):
   ┌────────────────────────────────────────────────────────────────┐
-  │ dev.onetime.dev ▼                                              │
+  │ Default Workspace ▼  dev.onetime.dev ▼                         │
   └────────────────────────────────────────────────────────────────┘
+
+  Visibility controlled by:
+  - ENABLE_ORGS env var (feature flag for org switcher)
+  - Route meta.scopesAvailable (per-route visibility control)
 -->
 
 <script setup lang="ts">
 import DomainContextSwitcher from '@/shared/components/navigation/DomainContextSwitcher.vue';
+import OrganizationScopeSwitcher from '@/apps/workspace/components/navigation/OrganizationScopeSwitcher.vue';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
 import { computed, onMounted, ref } from 'vue';
 import axios from 'axios';
 const organizationStore = useOrganizationStore();
 const {
+  showOrgSwitcher,
+  lockOrgSwitcher,
   showDomainSwitcher,
   lockDomainSwitcher,
 } = useScopeSwitcherVisibility();
@@ -56,19 +63,24 @@ onMounted(async () => {
 
 /**
  * Show context bar when user has any organizations (including default)
- * AND the domain switcher is visible based on route meta.
+ * AND at least one switcher is visible based on route meta and feature flags.
  * Wait for initial load to avoid flash of content.
  */
 const shouldShow = computed(() =>
   isLoaded.value &&
   organizationStore.hasOrganizations &&
-  showDomainSwitcher.value
+  (showOrgSwitcher.value || showDomainSwitcher.value)
 );
 </script>
 
 <template>
   <!-- Inline context switchers (wrapper styling provided by parent slot) -->
   <template v-if="shouldShow">
+    <!-- Organization Switcher -->
+    <OrganizationScopeSwitcher
+      v-if="showOrgSwitcher"
+      :locked="lockOrgSwitcher" />
+
     <!-- Domain Switcher -->
     <DomainContextSwitcher
       v-if="showDomainSwitcher"

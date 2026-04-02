@@ -187,7 +187,7 @@
     "text": "Uzatılmış Varsayılan Sona Erme Süresi",
     "sha256": "19b19637"
   },
-  "web.billing.overview.entitlements.custom_mail_defaults": {
+  "web.billing.overview.entitlements.custom_mail_sender": {
     "text": "Özel E-posta Varsayılanları",
     "sha256": "95aebfb9"
   },

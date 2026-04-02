@@ -34,7 +34,7 @@ RSpec.describe 'Admin Interface', type: :integration do
   end
 
   def app
-    Onetime::Application::Registry.generate_rack_url_map
+    @app ||= Onetime::Application::Registry.generate_rack_url_map
   end
 
   let(:colonel_user) do

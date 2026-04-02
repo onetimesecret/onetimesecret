@@ -4,6 +4,7 @@
 
 require 'sneakers'
 require 'json'
+require_relative '../../utils/retry_helper'
 
 module Onetime
   module Jobs
@@ -132,36 +133,27 @@ module Onetime
             logger.debug(log_msg(msg))
           end
 
-          # Retry logic with exponential backoff
+          # Retry logic with exponential backoff.
+          #
+          # Delegates to Onetime::Utils::RetryHelper with worker-specific logging.
+          #
           # @param max_retries [Integer] Maximum retry attempts
           # @param base_delay [Float] Base delay in seconds
           # @param retriable [Proc, nil] Optional predicate to check if an error
           #   should be retried. Receives the exception; returns true to retry,
           #   false to re-raise immediately. Defaults to retrying all StandardError.
-          def with_retry(max_retries: 3, base_delay: 1.0, retriable: nil)
-            retries = 0
-            begin
-              yield
-            rescue StandardError => ex
-              # Skip retries if the caller says this error is not retriable
-              unless retriable.nil? || retriable.call(ex)
-                log_error "Non-retriable error, skipping retries: #{ex.message}"
-                raise
-              end
-
-              retries += 1
-              if retries <= max_retries
-                delay  = base_delay * (2**(retries - 1))
-                jitter = rand * delay * 0.3
-                delay += jitter
-                log_info "Retry #{retries}/#{max_retries} after #{format('%.2f', delay)}s: #{ex.message}"
-                sleep(delay)
-                retry
-              else
-                log_error "Max retries exceeded: #{ex.message}"
-                raise # Re-raise to let caller handle reject!
-              end
-            end
+          #
+          # @see Onetime::Utils::RetryHelper#with_retry
+          #
+          def with_retry(max_retries: 3, base_delay: 1.0, retriable: nil, &)
+            Onetime::Utils::RetryHelper.with_retry(
+              max_retries: max_retries,
+              base_delay: base_delay,
+              retriable: retriable,
+              logger: logger,
+              context: worker_name,
+              &
+            )
           end
 
           # Extract metadata from message properties

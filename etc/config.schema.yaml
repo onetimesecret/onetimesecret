@@ -34,6 +34,8 @@ site:
       enabled: any(bool(), str())
       header: include('header', required=False)
       footer_links: include('footer_links', required=False)
+      workspace_links: include('workspace_links', required=False)
+      capabilities: include('ui_capabilities', required=False)
     api:
       enabled: any(bool(), str())
       guest_routes:
@@ -211,9 +213,16 @@ footer_link:
   text: str()
   i18n_key: str(required=False)
   url: str()
-  external: any(bool(), str(), required=False)
-  icon: str(required=False)
   visible: bool(required=False)
+
+workspace_links:
+  enabled: any(bool(), str())
+  links: list(include('workspace_link'), required=False)
+
+workspace_link:
+  text: str()
+  i18n_key: str(required=False)
+  url: str()
 
 header:
   enabled: any(bool(), str())
@@ -231,3 +240,9 @@ header_logo:
 
 header_navigation:
   enabled: any(bool(), str())
+
+ui_capabilities:
+  burn: any(bool(), str(), required=False)
+  show: any(bool(), str(), required=False)
+  receipt: any(bool(), str(), required=False)
+  recipient: any(bool(), str(), required=False)

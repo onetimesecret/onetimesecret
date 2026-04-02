@@ -235,8 +235,15 @@ module Onetime
         # Handle both positional email argument (legacy) and keyword argument
         email ||= kwargs[:email] || kwargs['email']
 
+        # Normalize email to lowercase for consistent storage and Redis lookups.
+        # Redis hash keys (unique_index :email) are case-sensitive, so we must
+        # store emails consistently lowercase. Uses NFC normalization for
+        # consistent Unicode representation and :fold for proper case folding
+        # of international characters.
+        email = email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
+
         loggable_email = OT::Utils.obscure_email(email)
-        raise Familia::Problem, 'email is required' if email.to_s.empty?
+        raise Familia::Problem, 'email is required' if email.empty?
 
         raise Familia::RecordExistsError, "Customer exists #{loggable_email}" if email_exists?(email)
 

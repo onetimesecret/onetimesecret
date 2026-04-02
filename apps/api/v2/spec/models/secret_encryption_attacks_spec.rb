@@ -310,9 +310,16 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       secret.encrypt_value(secret_value)
       encrypted_value         = secret.value.dup
 
-      # Try to decrypt with v1
+      # Try to decrypt with v1 key — AES-256-CBC is non-AEAD, so wrong-key
+      # decryption either raises CipherError (invalid PKCS7 padding) or
+      # silently produces garbage, depending on the OpenSSL version/platform.
       secret.value_encryption = 1
-      expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
+      begin
+        result = secret.decrypted_value
+        expect(result).not_to eq(secret_value)
+      rescue OpenSSL::Cipher::CipherError
+        # Expected on platforms where padding validation catches the mismatch
+      end
 
       # Try to decrypt with no encryption
       secret.value            = encrypted_value

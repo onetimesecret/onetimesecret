@@ -103,6 +103,46 @@ const routes: Array<RouteRecordRaw> = [
     },
     props: true,
   },
+  {
+    path: '/org/:orgid/domains/:extid/sso',
+    name: 'DomainSso',
+    component: () => import('@/apps/workspace/domains/DomainSso.vue'),
+    meta: {
+      title: 'web.TITLES.domain_sso',
+      requiresAuth: true,
+      layout: WorkspaceLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'show',
+        onOrgSwitch: '/dashboard',
+        onDomainSwitch: 'same',
+      },
+    },
+    props: true,
+  },
+  {
+    path: '/org/:orgid/domains/:extid/email',
+    name: 'DomainEmail',
+    component: () => import('@/apps/workspace/domains/DomainEmail.vue'),
+    meta: {
+      title: 'web.TITLES.domain_email',
+      requiresAuth: true,
+      layout: WorkspaceLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'show',
+        onOrgSwitch: '/dashboard',
+        onDomainSwitch: 'same',
+      },
+    },
+    props: true,
+  },
   // Legacy redirects for backward compatibility
   {
     path: '/domains',

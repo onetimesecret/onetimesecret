@@ -13,6 +13,7 @@ export const localeCodes = {
   el: 'Ελληνικά',
   el_GR: 'Ελληνικά (Ελλάδα)',
   en: 'English',
+  eo: 'Esperanto',
   es: 'Español',
   fr: 'Français',
   fr_CA: 'Français (Canada)',

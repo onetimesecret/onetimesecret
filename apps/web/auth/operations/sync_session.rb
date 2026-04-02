@@ -121,7 +121,7 @@ module Auth
 
       # Clears rate limiting keys for this account
       def clear_rate_limiting
-        rate_limit_key = "login_attempts:#{@account[:email]}"
+        rate_limit_key = "login_attempts:#{@account[:email].to_s.downcase}"
         Familia.dbclient.del(rate_limit_key)
       end
 

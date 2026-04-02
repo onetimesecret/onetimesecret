@@ -12,3 +12,6 @@ export * from './resend-invitation';
 export * from './revoke-invitation';
 export * from './update-member-role';
 export * from './update-organization';
+
+// Note: SSO config schemas moved to domains/requests/sso-config.ts
+// SSO is now per-domain, not per-organization.

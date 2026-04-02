@@ -191,7 +191,7 @@
     "text": "Extended Default Expiration",
     "sha256": "19b19637"
   },
-  "web.billing.overview.entitlements.custom_mail_defaults": {
+  "web.billing.overview.entitlements.custom_mail_sender": {
     "text": "Custom Mail Defaults",
     "sha256": "95aebfb9"
   },
@@ -218,6 +218,10 @@
   "web.billing.overview.entitlements.manage_members": {
     "text": "Manage Members",
     "sha256": "af812b01"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Single Sign-On (SSO)",
+    "sha256": "d9e2f3a4"
   },
   "web.billing.overview.entitlements.audit_logs": {
     "text": "Audit Logs",

@@ -11,6 +11,8 @@ vi.mock('vue-i18n', () => ({
       const translations: Record<string, string> = {
         'web.domains.manage_brand': 'Manage Brand',
         'web.domains.verify_domain': 'Verify Domain',
+        'web.domains.sso.configure_sso': 'Configure SSO',
+        'web.domains.email.configure_email': 'Configure Email',
         'web.COMMON.remove': 'Remove',
       };
       return translations[key] ?? key;
@@ -64,12 +66,14 @@ const mockDomain = {
   updated: new Date('2024-01-01'),
 };
 
-function mountComponent(canBrand = false) {
+function mountComponent({ canBrand = false, canManageSso = false, canEmailConfig = false } = {}) {
   return mount(DomainsTableActionsCell, {
     props: {
       domain: mockDomain,
       orgid: 'org_ext_123',
       canBrand,
+      canManageSso,
+      canEmailConfig,
     },
     global: {
       stubs: {
@@ -90,7 +94,7 @@ describe('DomainsTableActionsCell', () => {
 
   describe('canBrand entitlement gating', () => {
     it('hides "Manage Brand" menu item when canBrand is false', () => {
-      const wrapper = mountComponent(false);
+      const wrapper = mountComponent({ canBrand: false });
 
       const menuItems = wrapper.findAll('[role="menuitem"]');
       const texts = menuItems.map((item) => item.text());
@@ -101,7 +105,7 @@ describe('DomainsTableActionsCell', () => {
     });
 
     it('shows "Manage Brand" menu item when canBrand is true', () => {
-      const wrapper = mountComponent(true);
+      const wrapper = mountComponent({ canBrand: true });
 
       const menuItems = wrapper.findAll('[role="menuitem"]');
       const texts = menuItems.map((item) => item.text());
@@ -111,16 +115,30 @@ describe('DomainsTableActionsCell', () => {
       expect(texts).toContain('Remove');
     });
 
-    it('renders 2 menu items without branding, 3 with branding', () => {
-      const withoutBrand = mountComponent(false);
-      const withBrand = mountComponent(true);
+    it('renders correct menu item count based on entitlements', () => {
+      // Base: Verify Domain, Remove (2 items)
+      const base = mountComponent();
+      expect(base.findAll('[role="menuitem"]')).toHaveLength(2);
 
-      expect(withoutBrand.findAll('[role="menuitem"]')).toHaveLength(2);
+      // With branding only: Manage Brand, Verify Domain, Remove (3 items)
+      const withBrand = mountComponent({ canBrand: true });
       expect(withBrand.findAll('[role="menuitem"]')).toHaveLength(3);
+
+      // With SSO only: Verify Domain, Configure SSO, Remove (3 items)
+      const withSso = mountComponent({ canManageSso: true });
+      expect(withSso.findAll('[role="menuitem"]')).toHaveLength(3);
+
+      // With email config only: Verify Domain, Configure Email, Remove (3 items)
+      const withEmail = mountComponent({ canEmailConfig: true });
+      expect(withEmail.findAll('[role="menuitem"]')).toHaveLength(3);
+
+      // With all: Manage Brand, Verify Domain, Configure SSO, Configure Email, Remove (5 items)
+      const withAll = mountComponent({ canBrand: true, canManageSso: true, canEmailConfig: true });
+      expect(withAll.findAll('[role="menuitem"]')).toHaveLength(5);
     });
 
     it('links "Manage Brand" to DomainBrand route with correct params', () => {
-      const wrapper = mountComponent(true);
+      const wrapper = mountComponent({ canBrand: true });
 
       const links = wrapper.findAll('a[data-to]');
       const brandLink = links.find((link) => link.text() === 'Manage Brand');
@@ -131,6 +149,113 @@ describe('DomainsTableActionsCell', () => {
         name: 'DomainBrand',
         params: { orgid: 'org_ext_123', extid: 'dm-test-extid' },
       });
+    });
+  });
+
+  describe('canManageSso entitlement gating', () => {
+    it('hides "Configure SSO" menu item when canManageSso is false', () => {
+      const wrapper = mountComponent({ canManageSso: false });
+
+      const menuItems = wrapper.findAll('[role="menuitem"]');
+      const texts = menuItems.map((item) => item.text());
+
+      expect(texts).not.toContain('Configure SSO');
+      expect(texts).toContain('Verify Domain');
+      expect(texts).toContain('Remove');
+    });
+
+    it('shows "Configure SSO" menu item when canManageSso is true', () => {
+      const wrapper = mountComponent({ canManageSso: true });
+
+      const menuItems = wrapper.findAll('[role="menuitem"]');
+      const texts = menuItems.map((item) => item.text());
+
+      expect(texts).toContain('Configure SSO');
+    });
+
+    it('links "Configure SSO" to DomainSso route with correct params', () => {
+      const wrapper = mountComponent({ canManageSso: true });
+
+      const links = wrapper.findAll('a[data-to]');
+      const ssoLink = links.find((link) => link.text() === 'Configure SSO');
+
+      expect(ssoLink).toBeDefined();
+      const to = JSON.parse(ssoLink!.attributes('data-to')!);
+      expect(to).toEqual({
+        name: 'DomainSso',
+        params: { orgid: 'org_ext_123', extid: 'dm-test-extid' },
+      });
+    });
+  });
+
+  describe('canEmailConfig entitlement gating', () => {
+    it('hides "Configure Email" menu item when canEmailConfig is false', () => {
+      const wrapper = mountComponent({ canEmailConfig: false });
+
+      const menuItems = wrapper.findAll('[role="menuitem"]');
+      const texts = menuItems.map((item) => item.text());
+
+      expect(texts).not.toContain('Configure Email');
+      expect(texts).toContain('Verify Domain');
+      expect(texts).toContain('Remove');
+    });
+
+    it('shows "Configure Email" menu item when canEmailConfig is true', () => {
+      const wrapper = mountComponent({ canEmailConfig: true });
+
+      const menuItems = wrapper.findAll('[role="menuitem"]');
+      const texts = menuItems.map((item) => item.text());
+
+      expect(texts).toContain('Configure Email');
+    });
+
+    it('links "Configure Email" to DomainEmail route with correct params', () => {
+      const wrapper = mountComponent({ canEmailConfig: true });
+
+      const links = wrapper.findAll('a[data-to]');
+      const emailLink = links.find((link) => link.text() === 'Configure Email');
+
+      expect(emailLink).toBeDefined();
+      const to = JSON.parse(emailLink!.attributes('data-to')!);
+      expect(to).toEqual({
+        name: 'DomainEmail',
+        params: { orgid: 'org_ext_123', extid: 'dm-test-extid' },
+      });
+    });
+  });
+
+  describe('delete event emission', () => {
+    it('emits delete event with domain extid when Remove button is clicked', async () => {
+      const wrapper = mountComponent();
+
+      // Find the Remove button by its text content
+      const menuItems = wrapper.findAll('[role="menuitem"]');
+      const removeMenuItem = menuItems.find((item) => item.text().includes('Remove'));
+      expect(removeMenuItem).toBeDefined();
+
+      // Find and click the button inside the menu item
+      const removeButton = removeMenuItem!.find('button');
+      expect(removeButton.exists()).toBe(true);
+
+      await removeButton.trigger('click');
+
+      // Verify delete event was emitted with correct payload
+      const emitted = wrapper.emitted('delete');
+      expect(emitted).toBeDefined();
+      expect(emitted).toHaveLength(1);
+      expect(emitted![0]).toEqual(['dm-test-extid']);
+    });
+
+    it('passes domain.extid (not identifier) to delete event', async () => {
+      const wrapper = mountComponent();
+
+      const removeButton = wrapper.find('button');
+      await removeButton.trigger('click');
+
+      const emitted = wrapper.emitted('delete');
+      // extid should be 'dm-test-extid', not 'domain-123' (identifier)
+      expect(emitted![0][0]).toBe(mockDomain.extid);
+      expect(emitted![0][0]).not.toBe(mockDomain.identifier);
     });
   });
 });

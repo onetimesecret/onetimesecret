@@ -8,8 +8,14 @@ import {
   isSsoOnlyMode,
   isLockoutEnabled,
   isPasswordRequirementsEnabled,
+  isPasswordOnlyMode,
+  isEmailAuthOnlyMode,
+  isWebAuthnOnlyMode,
+  getRestrictTo,
   hasPasswordlessMethods,
   getAuthFeatures,
+  isOrganizationSwitcherEnabled,
+  isOrgsSsoEnabled,
 } from '@/utils/features';
 import { _resetForTesting } from '@/services/bootstrap.service';
 
@@ -395,120 +401,208 @@ describe('features utility', () => {
     });
   });
 
-  describe('isSsoOnlyMode', () => {
-    it('returns true when sso_only is true', () => {
-      getBootstrapValueMock.mockReturnValue({ sso_only: true });
+  // ── restrict_to / single-auth-method tests ────────────────────────
 
-      const result = isSsoOnlyMode();
-
-      expect(result).toBe(true);
-      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
-    });
-
-    it('returns false when sso_only is false', () => {
-      getBootstrapValueMock.mockReturnValue({ sso_only: false });
-
-      const result = isSsoOnlyMode();
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when sso_only is undefined', () => {
+  describe('getRestrictTo', () => {
+    it('returns null when restrict_to is not set', () => {
       getBootstrapValueMock.mockReturnValue({});
-
-      const result = isSsoOnlyMode();
-
-      expect(result).toBe(false);
+      expect(getRestrictTo()).toBeNull();
     });
 
-    it('returns false when features object is undefined', () => {
+    it('returns null when features is undefined', () => {
       getBootstrapValueMock.mockReturnValue(undefined);
-
-      const result = isSsoOnlyMode();
-
-      expect(result).toBe(false);
+      expect(getRestrictTo()).toBeNull();
     });
 
-    it('returns false when sso_only is truthy but not exactly true', () => {
-      getBootstrapValueMock.mockReturnValue({ sso_only: 'yes' });
-
-      const result = isSsoOnlyMode();
-
-      expect(result).toBe(false);
+    it('returns null when restrict_to is null', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: null });
+      expect(getRestrictTo()).toBeNull();
     });
 
-    it('returns false when sso_only is null', () => {
-      getBootstrapValueMock.mockReturnValue({ sso_only: null });
+    it('returns "password" when restrict_to is "password"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'password' });
+      expect(getRestrictTo()).toBe('password');
+    });
 
-      const result = isSsoOnlyMode();
+    it('returns "email_auth" when restrict_to is "email_auth"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'email_auth' });
+      expect(getRestrictTo()).toBe('email_auth');
+    });
 
-      expect(result).toBe(false);
+    it('returns "webauthn" when restrict_to is "webauthn"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'webauthn' });
+      expect(getRestrictTo()).toBe('webauthn');
+    });
+
+    it('returns "sso" when restrict_to is "sso"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'sso' });
+      expect(getRestrictTo()).toBe('sso');
+    });
+
+    it('returns null for unrecognised values', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'carrier_pigeon' });
+      expect(getRestrictTo()).toBeNull();
+    });
+
+    it('returns null for boolean true (not a valid value)', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: true });
+      expect(getRestrictTo()).toBeNull();
+    });
+
+    it('returns null for number (not a valid value)', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 42 });
+      expect(getRestrictTo()).toBeNull();
     });
   });
 
+  describe('isSsoOnlyMode', () => {
+    it('returns true when restrict_to is "sso"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'sso' });
+      expect(isSsoOnlyMode()).toBe(true);
+    });
+
+    it('returns false when restrict_to is null', () => {
+      getBootstrapValueMock.mockReturnValue({});
+      expect(isSsoOnlyMode()).toBe(false);
+    });
+
+    it('returns false when restrict_to is "password"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'password' });
+      expect(isSsoOnlyMode()).toBe(false);
+    });
+
+    it('returns false when features is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+      expect(isSsoOnlyMode()).toBe(false);
+    });
+  });
+
+  describe('isPasswordOnlyMode', () => {
+    it('returns true when restrict_to is "password"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'password' });
+      expect(isPasswordOnlyMode()).toBe(true);
+    });
+
+    it('returns false when restrict_to is null', () => {
+      getBootstrapValueMock.mockReturnValue({});
+      expect(isPasswordOnlyMode()).toBe(false);
+    });
+
+    it('returns false when restrict_to is "sso"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'sso' });
+      expect(isPasswordOnlyMode()).toBe(false);
+    });
+
+    it('returns false when features is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+      expect(isPasswordOnlyMode()).toBe(false);
+    });
+  });
+
+  describe('isEmailAuthOnlyMode', () => {
+    it('returns true when restrict_to is "email_auth"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'email_auth' });
+      expect(isEmailAuthOnlyMode()).toBe(true);
+    });
+
+    it('returns false when restrict_to is null', () => {
+      getBootstrapValueMock.mockReturnValue({});
+      expect(isEmailAuthOnlyMode()).toBe(false);
+    });
+
+    it('returns false when features is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+      expect(isEmailAuthOnlyMode()).toBe(false);
+    });
+  });
+
+  describe('isWebAuthnOnlyMode', () => {
+    it('returns true when restrict_to is "webauthn"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'webauthn' });
+      expect(isWebAuthnOnlyMode()).toBe(true);
+    });
+
+    it('returns false when restrict_to is null', () => {
+      getBootstrapValueMock.mockReturnValue({});
+      expect(isWebAuthnOnlyMode()).toBe(false);
+    });
+
+    it('returns false when features is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+      expect(isWebAuthnOnlyMode()).toBe(false);
+    });
+  });
+
+  // ── getAuthFeatures ───────────────────────────────────────────────
+
   describe('getAuthFeatures', () => {
-    it('returns correct object when all features enabled', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn: true, magic_links: true, sso: true, sso_only: true });
+    it('returns correct object when all features enabled with sso restriction', () => {
+      getBootstrapValueMock.mockReturnValue({
+        webauthn: true, magic_links: true, sso: true, restrict_to: 'sso',
+      });
 
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
+      expect(getAuthFeatures()).toEqual({
         magicLinksEnabled: true,
         webauthnEnabled: true,
         ssoEnabled: true,
-        ssoOnly: true,
+        restrictTo: 'sso',
       });
     });
 
     it('returns correct object when no features enabled', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn: false, magic_links: false, sso: false, sso_only: false });
+      getBootstrapValueMock.mockReturnValue({
+        webauthn: false, magic_links: false, sso: false,
+      });
 
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
+      expect(getAuthFeatures()).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: false,
         ssoEnabled: false,
-        ssoOnly: false,
+        restrictTo: null,
       });
     });
 
     it('returns correct object when features is undefined', () => {
       getBootstrapValueMock.mockReturnValue(undefined);
 
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
+      expect(getAuthFeatures()).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: false,
         ssoEnabled: false,
-        ssoOnly: false,
+        restrictTo: null,
       });
     });
 
-    it('returns correct object with mixed enabled states', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn: true, magic_links: false, sso: true });
+    it('returns restrictTo: "password" when set', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'password' });
 
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
-        magicLinksEnabled: false,
-        webauthnEnabled: true,
-        ssoEnabled: true,
-        ssoOnly: false,
-      });
-    });
-
-    it('returns correct object with only sso enabled', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn: false, magic_links: false, sso: true });
-
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
+      expect(getAuthFeatures()).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: false,
-        ssoEnabled: true,
-        ssoOnly: false,
+        ssoEnabled: false,
+        restrictTo: 'password',
+      });
+    });
+
+    it('returns restrictTo: "email_auth" when set', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'email_auth' });
+
+      expect(getAuthFeatures()).toEqual({
+        magicLinksEnabled: false,
+        webauthnEnabled: false,
+        ssoEnabled: false,
+        restrictTo: 'email_auth',
+      });
+    });
+
+    it('returns restrictTo: "webauthn" when set', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'webauthn' });
+
+      expect(getAuthFeatures()).toEqual({
+        magicLinksEnabled: false,
+        webauthnEnabled: false,
+        ssoEnabled: false,
+        restrictTo: 'webauthn',
       });
     });
 
@@ -519,13 +613,11 @@ describe('features utility', () => {
         sso: { enabled: true, provider_name: 'Zitadel' },
       });
 
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
+      expect(getAuthFeatures()).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: false,
         ssoEnabled: true,
-        ssoOnly: false,
+        restrictTo: null,
       });
     });
 
@@ -536,34 +628,172 @@ describe('features utility', () => {
         sso: { enabled: false },
       });
 
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
+      expect(getAuthFeatures()).toEqual({
         magicLinksEnabled: true,
         webauthnEnabled: true,
         ssoEnabled: false,
-        ssoOnly: false,
-      });
-    });
-
-    it('returns ssoOnly true when sso_only flag is set', () => {
-      getBootstrapValueMock.mockReturnValue({
-        webauthn: false,
-        magic_links: false,
-        sso: { enabled: true },
-        sso_only: true,
-      });
-
-      const result = getAuthFeatures();
-
-      expect(result).toEqual({
-        magicLinksEnabled: false,
-        webauthnEnabled: false,
-        ssoEnabled: true,
-        ssoOnly: true,
+        restrictTo: null,
       });
     });
   });
+
+  // ── Organizations ─────────────────────────────────────────────────
+
+  describe('isOrganizationSwitcherEnabled', () => {
+    it('returns true when organizations.enabled is true', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { enabled: true } });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when organizations.enabled is false', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { enabled: false } });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations object is empty', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: {} });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations is undefined', () => {
+      getBootstrapValueMock.mockReturnValue({});
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when features object is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations.enabled is truthy but not exactly true', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { enabled: 'yes' } });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations.enabled is null', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { enabled: null } });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations.enabled is 1 (number)', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { enabled: 1 } });
+
+      const result = isOrganizationSwitcherEnabled();
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isOrgsSsoEnabled', () => {
+    it('returns true when organizations.sso_enabled is true', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { sso_enabled: true } });
+
+      const result = isOrgsSsoEnabled();
+
+      expect(result).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when organizations.sso_enabled is false', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { sso_enabled: false } });
+
+      const result = isOrgsSsoEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations object is empty', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: {} });
+
+      const result = isOrgsSsoEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations is undefined', () => {
+      getBootstrapValueMock.mockReturnValue({});
+
+      const result = isOrgsSsoEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when features object is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      const result = isOrgsSsoEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations.sso_enabled is truthy but not exactly true', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { sso_enabled: 'yes' } });
+
+      const result = isOrgsSsoEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations.sso_enabled is null', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { sso_enabled: null } });
+
+      const result = isOrgsSsoEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations.sso_enabled is 1 (number)', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { sso_enabled: 1 } });
+
+      const result = isOrgsSsoEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when both enabled and sso_enabled are true', () => {
+      getBootstrapValueMock.mockReturnValue({
+        organizations: { enabled: true, sso_enabled: true },
+      });
+
+      const result = isOrgsSsoEnabled();
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when enabled is true but sso_enabled is false', () => {
+      getBootstrapValueMock.mockReturnValue({
+        organizations: { enabled: true, sso_enabled: false },
+      });
+
+      const result = isOrgsSsoEnabled();
+
+      expect(result).toBe(false);
+    });
+  });
+
+  // ── SSR safety (window undefined) ─────────────────────────────────
 
   describe('SSR safety (window undefined)', () => {
     // Store original window reference
@@ -610,19 +840,49 @@ describe('features utility', () => {
       expect(result).toBe(false);
     });
 
+    it('getRestrictTo returns null when window is undefined', () => {
+      const result = getRestrictTo();
+      expect(result).toBeNull();
+    });
+
     it('isSsoOnlyMode returns false when window is undefined', () => {
       const result = isSsoOnlyMode();
       expect(result).toBe(false);
     });
 
-    it('getAuthFeatures returns all false when window is undefined', () => {
+    it('isPasswordOnlyMode returns false when window is undefined', () => {
+      const result = isPasswordOnlyMode();
+      expect(result).toBe(false);
+    });
+
+    it('isEmailAuthOnlyMode returns false when window is undefined', () => {
+      const result = isEmailAuthOnlyMode();
+      expect(result).toBe(false);
+    });
+
+    it('isWebAuthnOnlyMode returns false when window is undefined', () => {
+      const result = isWebAuthnOnlyMode();
+      expect(result).toBe(false);
+    });
+
+    it('getAuthFeatures returns all defaults when window is undefined', () => {
       const result = getAuthFeatures();
       expect(result).toEqual({
         magicLinksEnabled: false,
         webauthnEnabled: false,
         ssoEnabled: false,
-        ssoOnly: false,
+        restrictTo: null,
       });
+    });
+
+    it('isOrganizationSwitcherEnabled returns false when window is undefined', () => {
+      const result = isOrganizationSwitcherEnabled();
+      expect(result).toBe(false);
+    });
+
+    it('isOrgsSsoEnabled returns false when window is undefined', () => {
+      const result = isOrgsSsoEnabled();
+      expect(result).toBe(false);
     });
   });
 });

@@ -187,7 +187,7 @@
     "text": "Expiración predeterminada extendida",
     "sha256": "19b19637"
   },
-  "web.billing.overview.entitlements.custom_mail_defaults": {
+  "web.billing.overview.entitlements.custom_mail_sender": {
     "text": "Configuración de correo personalizada",
     "sha256": "95aebfb9"
   },

@@ -176,6 +176,9 @@ module V3
         def send_recipient_notification
           return if recipient_email.nil? || recipient_email.empty?
 
+          # Resolve share_domain to domain_id for sender config (nil-safe)
+          domain_id = Onetime::CustomDomain.resolve_domain_id(secret.share_domain)
+
           Onetime::Jobs::Publisher.enqueue_email(
             :incoming_secret,
             {
@@ -186,6 +189,7 @@ module V3
               has_passphrase: !passphrase.to_s.empty?,
               locale: locale || OT.default_locale,
             },
+            domain_id: domain_id,
           )
 
           Onetime.secret_logger.info "[IncomingSecret] Notification enqueued for #{OT::Utils.obscure_email(recipient_email)} (receipt: #{receipt.shortid})"

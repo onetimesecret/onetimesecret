@@ -37,13 +37,17 @@
           }
         };
 
-        var config = visualSettings[isRestMode];
-        window.enjoyTheVue = hasHumanOverride; // Set a flag to indicate when Vue has taken control
+        // When the user has toggled dark mode in the app, honour that
+        // stored preference immediately (before Vue mounts) to avoid a
+        // flash of the wrong theme. Fall back to OS preference otherwise.
+        var effectiveMode = hasHumanOverride
+          ? localStorage.getItem('restMode') === 'true'
+          : isRestMode;
+        var config = visualSettings[effectiveMode];
+        window.enjoyTheVue = false; // Vue will reconcile on mount
 
         // Function to adjust the visual environment
         function adjustVisualEnvironment() {
-          if (window.enjoyTheVue) return;
-
           humanElement.style.setProperty('--bg-color', config.bgColor);
           humanElement.style.setProperty('--text-color', config.textColor);
           humanElement.classList.remove(config.removeClass);
@@ -53,8 +57,9 @@
         // Initial adjustment
         adjustVisualEnvironment();
 
-        // Re-adjust on system color scheme change
+        // Re-adjust on system color scheme change (only when no stored override)
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+          if (hasHumanOverride) return;
           isRestMode = e.matches;
           config = visualSettings[isRestMode];
           adjustVisualEnvironment();
@@ -64,7 +69,62 @@
     {{> partials/head}}
   </head>
   <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-    <div id="app"><router-view></router-view></div>
+    <div id="app">
+      <!-- Fallback: Vue replaces this on mount. If Vue fails to load, this remains visible. -->
+      <div class="app-fallback">
+        <div style="text-align: center;">
+          <div>Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
+          <noscript>
+            <p style="margin-top: 0.5rem;">JavaScript is required to use this application.</p>
+          </noscript>
+        </div>
+      </div>
+    </div>
+    <style>
+      /* Fallback styles - must be inline since CSS bundle may not load.
+         Tailwind v4 puts utilities in @layer, so un-layered styles here
+         win the cascade. Both .dark class AND prefers-color-scheme are
+         needed: the class handles the app toggle, the media query handles
+         the window before Vue mounts (when enjoyTheVue defers to Vue). */
+      body {
+        background-color: #ffffff;
+        color: #111827;
+      }
+      html.dark body {
+        background-color: rgb(17, 24, 39);
+        color: #f3f4f6;
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: rgb(17, 24, 39);
+          color: #f3f4f6;
+        }
+      }
+      .app-fallback {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+      }
+      html.dark .app-fallback { color: #9ca3af; }
+      @media (prefers-color-scheme: dark) {
+        .app-fallback { color: #9ca3af; }
+      }
+      .dot {
+        animation: blink 1.4s infinite;
+        opacity: 0;
+      }
+      .dot:nth-child(1) { animation-delay: 0s; }
+      .dot:nth-child(2) { animation-delay: 0.2s; }
+      .dot:nth-child(3) { animation-delay: 0.4s; }
+      @keyframes blink {
+        0%, 20% { opacity: 0; }
+        40%, 100% { opacity: 1; }
+      }
+      /* Hide fallback once Vue mounts (adds data-v-app attribute) */
+      #app[data-v-app] .app-fallback { display: none; }
+    </style>
   </body>
 </html>
 </template>

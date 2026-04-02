@@ -30,6 +30,7 @@
  */
 
 import { z } from 'zod';
+import { customDomainEmailConfigCanonical } from './email-config';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Domain status enum
@@ -358,6 +359,23 @@ export const customDomainCanonical = z.object({
 
   /** Brand appearance settings. */
   brand: brandSettingsCanonical.nullable(),
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // SSO status (computed from CustomDomain::SsoConfig lookup)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /** Whether SSO configuration exists for this domain. */
+  sso_configured: z.boolean().optional(),
+
+  /** Whether SSO is enabled (config exists AND enabled flag is true). */
+  sso_enabled: z.boolean().optional(),
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Email config status (computed from CustomDomain::MailerConfig lookup)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /** Email configuration for this domain, if any. Null when unconfigured. */
+  email_config: customDomainEmailConfigCanonical.nullable().optional(),
 
   // ─────────────────────────────────────────────────────────────────────────
   // Timestamps

@@ -56,8 +56,6 @@ export const footerLinkSchema = z.object({
   text: z.string().optional(),
   i18n_key: z.string().optional(),
   url: z.string(),
-  external: z.boolean().optional(),
-  icon: z.string().optional(),
 });
 
 export const footerGroupSchema = z.object({
@@ -116,20 +114,39 @@ export const headerConfigSchema = z.object({
  *     enabled: true,
  *     groups: [
  *       {
- *         name: 'workspace',
+ *         name: 'legal',
  *         links: [
- *           { text: 'API Docs', url: 'https://docs.example.com/api', external: true },
  *           { i18n_key: 'web.footer.privacy', url: '/privacy' },
  *         ],
  *       },
  *     ],
  *   },
+ *   workspace_links: {
+ *     enabled: true,
+ *     links: [
+ *       { text: 'API Docs', url: 'https://docs.example.com/api' },
+ *     ],
+ *   },
  * };
  */
+export const workspaceLinksConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  links: z.array(footerLinkSchema).default([]),
+});
+
+export const uiCapabilitiesSchema = z.object({
+  burn: z.boolean().optional(),
+  show: z.boolean().optional(),
+  receipt: z.boolean().optional(),
+  recipient: z.boolean().optional(),
+});
+
 export const uiInterfaceSchema = z.object({
   enabled: z.boolean().default(true),
   header: headerConfigSchema.optional(),
   footer_links: footerLinksConfigSchema.optional(),
+  workspace_links: workspaceLinksConfigSchema.optional(),
+  capabilities: uiCapabilitiesSchema.optional(),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -177,8 +194,13 @@ export const featuresSchema = z.object({
   email_auth: z.boolean().optional(),
   webauthn: z.boolean().optional(),
   sso: z.union([z.boolean(), ssoConfigSchema]).optional(),
-  sso_only: z.boolean().optional(),
+  // Single-auth-method restriction: 'password', 'email_auth', 'webauthn', 'sso', or null
+  restrict_to: z.enum(['password', 'email_auth', 'webauthn', 'sso']).nullable().optional(),
   magic_links: z.boolean().optional(),
+  organizations: z.object({
+    enabled: z.boolean().default(false),
+    sso_enabled: z.boolean().default(false),
+  }).optional().default({ enabled: false, sso_enabled: false }),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -307,10 +329,12 @@ export type Message = z.infer<typeof messageSchema>;
 export type FooterLink = z.infer<typeof footerLinkSchema>;
 export type FooterGroup = z.infer<typeof footerGroupSchema>;
 export type FooterLinksConfig = z.infer<typeof footerLinksConfigSchema>;
+export type WorkspaceLinksConfig = z.infer<typeof workspaceLinksConfigSchema>;
 export type HeaderLogo = z.infer<typeof headerLogoSchema>;
 export type HeaderBranding = z.infer<typeof headerBrandingSchema>;
 export type HeaderNavigation = z.infer<typeof headerNavigationSchema>;
 export type HeaderConfig = z.infer<typeof headerConfigSchema>;
+export type UiCapabilities = z.infer<typeof uiCapabilitiesSchema>;
 export type UiInterface = z.infer<typeof uiInterfaceSchema>;
 export type AuthenticationSettings = z.infer<typeof authenticationSettingsSchema>;
 export type SSOProvider = z.infer<typeof ssoProviderSchema>;

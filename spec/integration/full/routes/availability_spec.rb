@@ -38,7 +38,7 @@ RSpec.describe 'Auth Route Availability', type: :integration do
   include Rack::Test::Methods
 
   def app
-    Onetime::Application::Registry.generate_rack_url_map
+    @app ||= Onetime::Application::Registry.generate_rack_url_map
   end
 
   def json_get(path)

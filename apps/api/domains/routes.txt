@@ -25,3 +25,18 @@ GET    /:extid/recipients                 DomainsAPI::Logic::Domains::GetDomainR
 PUT    /:extid/recipients                 DomainsAPI::Logic::Domains::UpdateDomainRecipients response=json auth=sessionauth,basicauth
 DELETE /:extid/recipients                 DomainsAPI::Logic::Domains::RemoveDomainRecipients response=json auth=sessionauth,basicauth
 GET    /                                  DomainsAPI::Logic::Domains::ListDomains response=json auth=sessionauth,basicauth
+
+# Domain SSO Configuration
+GET    /:extid/sso                        DomainsAPI::Logic::SsoConfig::GetSsoConfig response=json auth=sessionauth
+PUT    /:extid/sso                        DomainsAPI::Logic::SsoConfig::PutSsoConfig response=json auth=sessionauth
+PATCH  /:extid/sso                        DomainsAPI::Logic::SsoConfig::PatchSsoConfig response=json auth=sessionauth
+DELETE /:extid/sso                        DomainsAPI::Logic::SsoConfig::DeleteSsoConfig response=json auth=sessionauth
+POST   /:extid/sso/test                   DomainsAPI::Logic::SsoConfig::TestConnection response=json auth=sessionauth
+
+# Domain Sender Configuration (Email)
+GET    /:extid/email-config              DomainsAPI::Logic::SenderConfig::GetSenderConfig response=json auth=sessionauth
+PUT    /:extid/email-config              DomainsAPI::Logic::SenderConfig::PutSenderConfig response=json auth=sessionauth
+PATCH  /:extid/email-config              DomainsAPI::Logic::SenderConfig::PatchSenderConfig response=json auth=sessionauth
+DELETE /:extid/email-config              DomainsAPI::Logic::SenderConfig::DeleteSenderConfig response=json auth=sessionauth
+POST   /:extid/email-config/validate    DomainsAPI::Logic::SenderConfig::ValidateSenderConfig response=json auth=sessionauth
+POST   /:extid/email-config/provision    DomainsAPI::Logic::SenderConfig::ProvisionSenderConfig response=json auth=sessionauth

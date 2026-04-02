@@ -35,8 +35,9 @@ RSpec.describe 'OmniAuth hooks' do
     # The method normalizes the IdP-provided email before account lookup.
 
     # Simulates the email normalization logic from the _account_from_omniauth hook
+    # Uses NFC normalization and :fold for proper Unicode case folding
     def normalize_email(omniauth_email)
-      omniauth_email.to_s.strip.downcase
+      omniauth_email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
     end
 
     describe 'email normalization behavior' do
@@ -89,6 +90,46 @@ RSpec.describe 'OmniAuth hooks' do
 
         it 'normalizes "\t User@Example.COM \n" to "user@example.com"' do
           expect(normalize_email("\t User@Example.COM \n")).to eq('user@example.com')
+        end
+      end
+
+      # ========================================================================
+      # Unicode Email Normalization (Issue #2843)
+      # ========================================================================
+      # IdPs may return emails with international characters in various forms.
+      # NFC normalization and :fold case folding ensure consistent matching.
+      context 'with Unicode/international email addresses' do
+        it 'normalizes Spanish ñ uppercase to lowercase' do
+          expect(normalize_email('SEÑOR@EXAMPLE.COM')).to eq('señor@example.com')
+        end
+
+        it 'normalizes accented characters (É -> é)' do
+          expect(normalize_email('CAFÉ@EXAMPLE.COM')).to eq('café@example.com')
+        end
+
+        it 'applies Unicode case folding for German sharp S (ẞ -> ss)' do
+          # Per Unicode case folding rules, uppercase ẞ folds to "ss"
+          expect(normalize_email('STRAẞE@EXAMPLE.COM')).to eq('strasse@example.com')
+        end
+
+        it 'normalizes Greek uppercase letters' do
+          expect(normalize_email('ΕΛΛΗΝΙΚΆ@EXAMPLE.COM')).to eq('ελληνικά@example.com')
+        end
+
+        it 'normalizes Cyrillic uppercase letters' do
+          expect(normalize_email('ПРИВЕТ@EXAMPLE.COM')).to eq('привет@example.com')
+        end
+
+        it 'applies NFC normalization (decomposed -> composed)' do
+          # NFD: e + combining acute accent
+          # NFC: single é codepoint
+          nfd_email = "cafe\u0301@example.com"
+          nfc_email = "caf\u00e9@example.com"
+          expect(normalize_email(nfd_email)).to eq(nfc_email)
+        end
+
+        it 'handles combined Unicode case and whitespace' do
+          expect(normalize_email('  SEÑOR@EXAMPLE.COM  ')).to eq('señor@example.com')
         end
       end
     end
@@ -562,4 +603,18 @@ RSpec.describe 'OmniAuth hooks' do
       expect(Auth::Config::Hooks::OmniAuth.method(:configure).arity).to eq(1)
     end
   end
+
+  # ==========================================================================
+  # after_omniauth_create_account operations
+  # ==========================================================================
+  #
+  # Integration tests for CreateCustomer and CreateDefaultWorkspace operations
+  # are in: spec/integration/omniauth_account_creation_spec.rb
+  #
+  # These operations are tested with real database/Redis operations to verify:
+  # - Customer creation with correct attributes (email, role, verified)
+  # - Account linking via external_id
+  # - Organization creation with is_default flag
+  # - Idempotency guarantees
+  #
 end

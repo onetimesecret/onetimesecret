@@ -287,7 +287,7 @@ jobs:
         ports:
           - 2121:6379
       rabbitmq: &rabbitmq-service
-        image: rabbitmq:4.0
+        image: rabbitmq:4.2@sha256:0ea64c69ef2ced52e7188c6db826152d42f78e448433ed8b4e570170c427a437
         options: >-
           --health-cmd "rabbitmq-diagnostics check_port_connectivity"
           --health-interval 10s
@@ -496,7 +496,7 @@ jobs:
       redis: *valkey-service
       rabbitmq: *rabbitmq-service
       postgres:
-        image: postgres:17@sha256:2cd82735a36356842d5eb1ef80db3ae8f1154172f0f653db48fde079b2a0b7f7
+        image: postgres:17@sha256:b994732fcf33f73776c65d3a5bf1f80c00120ba5007e8ab90307b1a743c1fc16
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -673,11 +673,12 @@ jobs:
         run: pnpm run build
 
       - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - name: Build Container image
         uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
         with:
+          source: .  # Use local checkout instead of fetching git URL (avoids PR merge ref issues)
           files: docker/bake.hcl
           targets: main
           load: true

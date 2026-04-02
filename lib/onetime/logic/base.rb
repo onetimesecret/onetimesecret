@@ -159,20 +159,21 @@ module Onetime
         # nil cust indicates anonymous (no Customer.anonymous singleton).
         return true if anonymous_user?
 
-        # Fail-closed: org context required for authenticated entitlement checks.
-        # OrganizationLoader self-heals, so nil org indicates a system issue.
-        unless org
+        # Fail-closed: auth_org context required for authenticated entitlement checks.
+        # OrganizationLoader self-heals, so nil auth_org indicates a system issue.
+        unless auth_org
+          OT.le format('[require_entitlement!] No auth_org for %s (cust=%s)', entitlement, cust&.custid)
           raise Onetime::EntitlementRequired.new(
             entitlement,
             message: 'Unable to verify entitlements (organization context unavailable)',
           )
         end
 
-        # Check if org has the entitlement
-        return true if org.can?(entitlement)
+        # Check if auth_org has the entitlement
+        return true if auth_org.can?(entitlement)
 
         # Build upgrade path info
-        current_plan = org.planid
+        current_plan = auth_org.planid
         upgrade_to   = if defined?(Billing::PlanHelpers)
                          Billing::PlanHelpers.upgrade_path_for(entitlement, current_plan)
                        end

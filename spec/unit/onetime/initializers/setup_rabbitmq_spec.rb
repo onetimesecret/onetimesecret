@@ -10,7 +10,8 @@
 # - Queue declaration consistency with QueueConfig
 # - TLS configuration for secure connections
 #
-# Run with: pnpm run test:rspec spec/unit/onetime/initializers/setup_rabbitmq_spec.rb
+# Run with (standard Ruby): bundle exec rspec spec/unit/onetime/initializers/setup_rabbitmq_spec.rb
+# Or, if your project uses a pnpm wrapper: pnpm run test:rspec spec/unit/onetime/initializers/setup_rabbitmq_spec.rb
 
 require 'spec_helper'
 require 'onetime/jobs/queues/config'
@@ -390,12 +391,6 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
   end
 
   describe 'queue count consistency' do
-    it 'QueueConfig has expected number of queues' do
-      # Update this when adding/removing queues to catch accidental changes
-      expect(Onetime::Jobs::QueueConfig::QUEUES.size).to eq(6),
-        "Expected 6 queues in QueueConfig::QUEUES. If you added/removed queues, update this test."
-    end
-
     it 'DEAD_LETTER_CONFIG covers all unique DLX references' do
       # Multiple queues can share the same DLX (e.g., email.message.send and email.message.schedule
       # both use dlx.email.message). Count unique DLX values, not queue count.

@@ -23,8 +23,9 @@ module Auth::Config::Hooks
       # - SQLite (dev/test) uses case-sensitive string comparison
       # - Redis Customer records require exact email match
       # - IdPs may return emails with different casing than stored
+      # Uses NFC normalization and :fold for international email addresses.
       auth.account_from_omniauth do
-        normalized_email = omniauth_email.to_s.strip.downcase
+        normalized_email = omniauth_email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
         _account_from_login(normalized_email)
       end
 

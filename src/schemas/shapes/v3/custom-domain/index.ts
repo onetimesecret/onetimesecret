@@ -4,6 +4,7 @@
 // Derives from contracts, adding V3-specific transforms (number -> Date, native types).
 
 import { customDomainCanonical } from '@/schemas/contracts';
+import { customDomainEmailConfigSchema } from '@/schemas/shapes/domains/email-config';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
@@ -95,6 +96,9 @@ export const customDomainSchema = customDomainCanonical.extend({
   // Nested objects with V3 transforms
   vhost: transforms.fromObject.nested(vhostSchema.passthrough().strip()).nullable().default(null),
   brand: transforms.fromObject.nested(brandSettingsSchema.passthrough().strip()).nullable().default(null),
+
+  // Nested email config with shape transforms
+  email_config: customDomainEmailConfigSchema.nullable().optional(),
 
   // Optional fields with defaults
   org_id: z.string().optional(),

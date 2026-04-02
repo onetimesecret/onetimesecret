@@ -102,6 +102,11 @@ If the outcome is **visible on the page**, intent is enough. If the outcome is *
 - `schema.ts` - Zod v4 schema (source of truth for field types)
 - `issue-{number}-{feature}.yaml` - Test cases linked to GitHub issues
 
+## Valiadating
+
+- `validate.ts` - Validates test plan YAML files against the Zod v4 schema.
+
+
 ## Running
 
 Use @browser-tester which has access to chrome devtools MCP and serena tools.

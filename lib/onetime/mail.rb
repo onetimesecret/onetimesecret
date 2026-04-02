@@ -66,14 +66,14 @@ module Onetime
 
     # Convenience method for delivering emails
     # @see Mailer.deliver
-    def self.deliver(template_name, data = {}, locale: 'en')
-      Mailer.deliver(template_name, data, locale: locale)
+    def self.deliver(template_name, data = {}, locale: 'en', sender_config: nil)
+      Mailer.deliver(template_name, data, locale: locale, sender_config: sender_config)
     end
 
     # Convenience method for delivering raw emails
     # @see Mailer.deliver_raw
-    def self.deliver_raw(email)
-      Mailer.deliver_raw(email)
+    def self.deliver_raw(email, sender_config: nil)
+      Mailer.deliver_raw(email, sender_config: sender_config)
     end
   end
 end

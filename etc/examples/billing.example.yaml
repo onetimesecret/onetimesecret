@@ -130,9 +130,13 @@ entitlements:
     category: advanced
     description: Access to audit log features
 
-  sso:
+  custom_mail_sender:
+    category: branding
+    description: Custom email sender address for domain-specific notifications
+
+  manage_sso:
     category: advanced
-    description: Single sign-on integration
+    description: Single sign-on configuration and management
 
 # Plan Definitions
 #
@@ -198,6 +202,7 @@ plans:
       - custom_privacy_defaults
       - homepage_secrets
       - incoming_secrets
+      - custom_mail_sender
       - api_access
 
     features:
@@ -235,6 +240,7 @@ plans:
       - custom_branding
       - homepage_secrets
       - incoming_secrets
+      - custom_mail_sender
 
     features:
       - web.billing.features.custom_domains
@@ -282,6 +288,7 @@ plans:
   #     - custom_branding
   #     - homepage_secrets
   #     - incoming_secrets
+  #     - custom_mail_sender
   #     - manage_teams
   #     - manage_members
   #

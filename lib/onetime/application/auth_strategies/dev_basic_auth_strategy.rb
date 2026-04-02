@@ -27,6 +27,20 @@
 # The user `dev_alice@dev.local` is auto-created on first request and
 # expires after 20 hours. Subsequent requests reuse the same user.
 #
+# ## Parallel CI Execution
+#
+# For collision-resistant parallel test execution, usernames are automatically
+# namespaced based on CI worker context. For example, `dev_alice` becomes
+# `dev_alice_w2dc1@dev.local` where the suffix is derived from:
+#
+# - `DEV_WORKER_ID` (explicit, highest priority)
+# - `GITHUB_JOB` (e.g., "ruby-integration-simple")
+# - `TEST_ENV_NUMBER` (parallel_tests gem)
+# - `CIRCLE_NODE_INDEX` (CircleCI)
+#
+# This ensures parallel CI jobs (simple, full-sqlite, full-postgres, disabled)
+# don't collide when sharing the same Redis instance.
+#
 # ## Security
 #
 # - BLOCKED in production (raises SecurityError on registration attempt)
@@ -34,10 +48,12 @@
 # - Ephemeral users auto-expire via Redis TTL, reducing data accumulation
 # - Generic "unavailable" errors prevent username enumeration
 #
+# @see DevWorkerIdentity for namespace generation details
 # @see Onetime::Application::AuthStrategies
 # @see https://github.com/onetimesecret/onetimesecret/issues/2735
 
 require_relative 'basic_auth_strategy'
+require_relative 'dev_worker_identity'
 
 module Onetime
   module Application
@@ -119,12 +135,20 @@ module Onetime
 
         # Find existing dev customer or create a new ephemeral one
         #
+        # Usernames are automatically namespaced for parallel CI execution.
+        # For example, `dev_alice` becomes `dev_alice_w2dc1` where the suffix
+        # is derived from CI worker context (GITHUB_JOB, DEV_WORKER_ID, etc.).
+        #
         # @param username [String] dev_* prefixed username (used as email)
         # @param apikey [String] dev_* prefixed API key
         # @return [Customer, nil] the customer or nil if creation failed
+        #
+        # @see DevWorkerIdentity for namespace generation details
         def find_or_create_dev_customer(username, apikey)
-          # Use username as a synthetic email for dev users
-          dev_email = "#{username}@dev.local"
+          # Apply worker namespace for parallel CI collision resistance
+          # dev_alice → dev_alice_w2dc1 (where w2dc1 is derived from GITHUB_JOB, etc.)
+          namespaced_username = namespace_dev_username(username)
+          dev_email           = "#{namespaced_username}@dev.local"
 
           existing = Onetime::Customer.find_by_email(dev_email)
           return existing if existing
@@ -173,9 +197,22 @@ module Onetime
               email: email,
               ttl_hours: DEV_CUSTOMER_TTL / 3600,
               action: 'dev_create',
+              worker_id: DevWorkerIdentity.worker_id_for_logging,
             }
 
           cust
+        end
+
+        # Apply worker namespace to a dev username for parallel CI collision resistance.
+        #
+        # @param username [String] The original username (e.g., "dev_alice")
+        # @return [String] Namespaced username (e.g., "dev_alice_w2dc1")
+        def namespace_dev_username(username)
+          # Strip dev_ prefix, apply namespace, re-add prefix
+          # This ensures the namespace is applied to the "alice" part, not the prefix
+          base_name  = username.delete_prefix(DEV_PREFIX)
+          namespaced = DevWorkerIdentity.namespaced_username(base_name)
+          "#{DEV_PREFIX}#{namespaced}"
         end
       end
     end

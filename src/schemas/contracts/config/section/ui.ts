@@ -61,8 +61,6 @@ const userInterfaceFooterLinkSchema = z.object({
   text: z.string().optional(),
   i18n_key: z.string().optional(),
   url: nullableString,
-  external: z.boolean().optional(),
-  icon: z.string().optional(),
 });
 
 /**
@@ -83,13 +81,30 @@ const userInterfaceFooterLinksSchema = z.object({
 });
 
 /**
- * UI configuration schema
+ * Workspace links configuration (authenticated users only)
  */
+const userInterfaceWorkspaceLinksSchema = z.object({
+  enabled: z.boolean().default(false),
+  links: z.array(userInterfaceFooterLinkSchema).default([]),
+});
+
+/**
+ * UI capabilities configuration
+ */
+const uiCapabilitiesSchema = z.object({
+  burn: z.boolean().optional(),
+  show: z.boolean().optional(),
+  receipt: z.boolean().optional(),
+  recipient: z.boolean().optional(),
+});
+
 const uiSchema = z.object({
   enabled: z.boolean().default(true),
   homepage: userInterfaceHomepageSchema.optional(),
   header: userInterfaceHeaderSchema.optional(),
   footer_links: userInterfaceFooterLinksSchema.optional(),
+  workspace_links: userInterfaceWorkspaceLinksSchema.optional(),
+  capabilities: uiCapabilitiesSchema.optional(),
 });
 
 /**
@@ -115,4 +130,5 @@ export {
   userInterfaceHeaderSchema,
   userInterfaceFooterLinksSchema,
   userInterfaceHomepageSchema,
+  uiCapabilitiesSchema,
 };

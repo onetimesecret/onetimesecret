@@ -75,7 +75,7 @@ gem 'truemail'
 # ORMs and database drivers
 # NOTE: We install both db drivers for the OCI images so that users can choose
 # which database to use at runtime via environment variable without rebuilding.
-gem 'familia', '2.3.2'
+gem 'familia', '2.3.3'
 gem 'pg', '~> 1.6'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'
@@ -122,7 +122,7 @@ gem 'rufus-scheduler', '~> 3.9'  # Cron-style job scheduling
 # ====================================
 
 gem 'aws-sdk-sesv2', '~> 1.74', require: false
-gem 'lettermint', '~> 0.1.0', require: false
+gem 'lettermint', '~> 0.2.0', require: false
 gem 'sendgrid-ruby', require: false
 gem 'sentry-ruby', require: false
 gem 'stackprof', require: false
@@ -147,12 +147,12 @@ group :development do
 
   # Code quality and language server
   gem 'kanayago', '~> 0.7', require: false
-  gem 'rubocop', '~> 1.85.1', require: false
+  gem 'rubocop', '~> 1.86.0', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-sequel', require: false
   gem 'rubocop-thread_safety', require: false
-  gem 'ruby-lsp', require: false
+  gem 'ruby-lsp', '~> 0.26.9', require: false
   gem 'solargraph', require: false # serena project index
   gem 'syntax_tree', require: false
 end

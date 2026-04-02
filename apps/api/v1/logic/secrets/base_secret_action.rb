@@ -157,8 +157,10 @@ module V1::Logic
 
         # Plan-aware TTL cap: resolve the customer's org for plan limits.
         # Falls back to V1_MAX_TTL when billing is disabled (self-hosted).
-        plan_max = if respond_to?(:org) && org&.respond_to?(:limit_for)
-                     org_limit = org.limit_for('secret_lifetime')
+        # V1::Logic::Base does not include OrganizationContext (no @strategy_result),
+        # so auth_org is unavailable — guard with respond_to? before calling.
+        plan_max = if respond_to?(:auth_org) && auth_org&.respond_to?(:limit_for)
+                     org_limit = auth_org.limit_for('secret_lifetime')
                      org_limit.positive? ? org_limit : max_ttl
                    else
                      resolve_ttl_limit(max_ttl)
@@ -182,7 +184,7 @@ module V1::Logic
         # Entitlement gate: requests beyond free tier TTL require extended_default_expiration.
         # Checked after clamping so the effective (clamped) value is evaluated.
         free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
-        if ttl > free_ttl && respond_to?(:org) && org && !org.can?('extended_default_expiration')
+        if ttl > free_ttl && respond_to?(:auth_org) && auth_org && !auth_org.can?('extended_default_expiration')
           require_entitlement!('extended_default_expiration')
         end
 

@@ -1,5 +1,16 @@
 [
   {
+    "name": "English",
+    "code": "en",
+    "translators": [
+      {
+        "name": "Onetime Secret",
+        "url": "https://github.com/onetimesecret",
+        "date": "Original"
+      }
+    ]
+  },
+  {
     "name": "Ukrainian",
     "code": "uk",
     "translators": [
@@ -121,7 +132,7 @@
   },
   {
     "name": "Chinese",
-    "code": "cn",
+    "code": "zh",
     "translators": [
       {
         "name": "Rayi_Yosoro",
@@ -264,6 +275,83 @@
         "name": "Duc Nguyen",
         "url": "https://fb.me/socthaovat",
         "date": "Nov, 2022"
+      }
+    ]
+  },
+  {
+    "name": "Esperanto",
+    "code": "eo",
+    "translators": [
+      {
+        "name": "Claude 3.5 Sonnet",
+        "url": "https://github.com/anthropics",
+        "date": "Mar, 2026"
+      }
+    ]
+  },
+  {
+    "name": "German (Austria)",
+    "code": "de_AT",
+    "translators": [
+      {
+        "name": "Claude 3.5 Sonnet",
+        "url": "https://github.com/anthropics",
+        "date": "Mar, 2026"
+      }
+    ]
+  },
+  {
+    "name": "French (Canada)",
+    "code": "fr_CA",
+    "translators": [
+      {
+        "name": "Claude 3.5 Sonnet",
+        "url": "https://github.com/anthropics",
+        "date": "Mar, 2026"
+      }
+    ]
+  },
+  {
+    "name": "French (France)",
+    "code": "fr_FR",
+    "translators": [
+      {
+        "name": "Claude 3.5 Sonnet",
+        "url": "https://github.com/anthropics",
+        "date": "Mar, 2026"
+      }
+    ]
+  },
+  {
+    "name": "Japanese",
+    "code": "ja",
+    "translators": [
+      {
+        "name": "Claude 3.5 Sonnet",
+        "url": "https://github.com/anthropics",
+        "date": "Mar, 2026"
+      }
+    ]
+  },
+  {
+    "name": "Korean",
+    "code": "ko",
+    "translators": [
+      {
+        "name": "Claude 3.5 Sonnet",
+        "url": "https://github.com/anthropics",
+        "date": "Mar, 2026"
+      }
+    ]
+  },
+  {
+    "name": "Māori",
+    "code": "mi_NZ",
+    "translators": [
+      {
+        "name": "Claude 3.5 Sonnet",
+        "url": "https://github.com/anthropics",
+        "date": "Mar, 2026"
       }
     ]
   }

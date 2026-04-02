@@ -14,6 +14,7 @@
 
 require 'redis'
 require 'uri'
+require 'json'
 
 redis_url = ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', 'redis://localhost:6379')
 
@@ -34,6 +35,43 @@ def redact_fqdn(fqdn)
   parts.join('.')
 end
 
+# Normalize a value that may or may not be JSON-encoded.
+# Familia HashKey values are JSON-serialized (strings have quotes),
+# but sorted set members are raw strings. This handles both.
+def normalize_value(raw)
+  return nil if raw.nil?
+  return raw unless raw.is_a?(String) # Non-strings already normalized
+  return raw if raw.empty?
+
+  JSON.parse(raw)
+rescue JSON::ParserError
+  raw
+end
+
+# Check if two values match, accounting for JSON encoding differences.
+def values_match?(val_a, val_b)
+  return true if val_a == val_b
+  normalize_value(val_a) == normalize_value(val_b)
+end
+
+# Try to find a value in a hash index, checking multiple key variants.
+# Returns [key_used, value] or [nil, nil] if not found.
+def hget_flexible(redis, hash_key, display_domain)
+  domain_str = display_domain.to_s
+  # Try exact case first
+  value = redis.hget(hash_key, domain_str)
+  return [domain_str, value] if value
+
+  # Try lowercase
+  lower = domain_str.downcase
+  if lower != domain_str
+    value = redis.hget(hash_key, lower)
+    return [lower, value] if value
+  end
+
+  [nil, nil]
+end
+
 instances_key = 'custom_domain:instances'
 display_domains_key = 'custom_domain:display_domains'
 
@@ -47,33 +85,37 @@ instance_ids.each do |domainid|
   object_key = "custom_domain:#{domainid}:object"
 
   # Read the display_domain field from the domain's object hash
-  display_domain = redis.hget(object_key, 'display_domain')
+  # May be JSON-encoded (Familia convention), so normalize it
+  display_domain_raw = redis.hget(object_key, 'display_domain')
+  display_domain = normalize_value(display_domain_raw)
 
-  if display_domain.nil? || display_domain.empty?
+  if display_domain.nil? || display_domain.to_s.empty?
     no_display_domain << domainid
     next
   end
 
   # Check the display_domains index maps this name back to this domainid
-  indexed_id = redis.hget(display_domains_key, display_domain.downcase)
+  # Try multiple key variants (exact case, lowercase)
+  key_used, indexed_id = hget_flexible(redis, display_domains_key, display_domain)
 
   if indexed_id.nil?
     missing_index << { domainid: domainid, display_domain: display_domain }
-  elsif indexed_id != domainid
+  elsif !values_match?(indexed_id, domainid)
     mismatched_index << {
       domainid: domainid,
       display_domain: display_domain,
-      indexed_as: indexed_id
+      indexed_as: normalize_value(indexed_id),
+      key_used: key_used
     }
   end
 end
 
 puts "=== DOM-VAL-024: Display Domains Index Completeness ==="
 puts ""
-printf "Domains in instances:           %d\n", instance_ids.size
-printf "Missing display_domain field:   %d\n", no_display_domain.size
-printf "Missing from display_domains:   %d\n", missing_index.size
-printf "Mismatched in display_domains:  %d\n", mismatched_index.size
+printf "%-32s %d\n", "Domains in instances:", instance_ids.size
+printf "%-32s %d\n", "Missing display_domain field:", no_display_domain.size
+printf "%-32s %d\n", "Missing from display_domains:", missing_index.size
+printf "%-32s %d\n", "Mismatched in display_domains:", mismatched_index.size
 puts ""
 
 all_ok = no_display_domain.empty? && missing_index.empty? && mismatched_index.empty?

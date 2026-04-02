@@ -51,7 +51,7 @@ export const ENTITLEMENTS = {
   // Privacy & Defaults
   CUSTOM_PRIVACY_DEFAULTS: 'custom_privacy_defaults',
   EXTENDED_DEFAULT_EXPIRATION: 'extended_default_expiration',
-  CUSTOM_MAIL_DEFAULTS: 'custom_mail_defaults',
+  CUSTOM_MAIL_SENDER: 'custom_mail_sender',
 
   // Branding
   CUSTOM_BRANDING: 'custom_branding',
@@ -64,6 +64,7 @@ export const ENTITLEMENTS = {
   MANAGE_ORGS: 'manage_orgs',
   MANAGE_TEAMS: 'manage_teams',
   MANAGE_MEMBERS: 'manage_members',
+  MANAGE_SSO: 'manage_sso',
 
   // Advanced
   AUDIT_LOGS: 'audit_logs',

@@ -555,6 +555,202 @@
     "text": "Domains",
     "sha256": "ced67718"
   },
+  "web.organizations.tabs.sso": {
+    "text": "SSO",
+    "sha256": "a93b3a9a"
+  },
+  "web.organizations.sso.title": {
+    "text": "Single Sign-On (SSO)",
+    "sha256": "b4c3d2e1"
+  },
+  "web.organizations.sso.description": {
+    "text": "Configure SSO to allow members to sign in with your organization's identity provider",
+    "sha256": "c5d4e3f2"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Provider Type",
+    "sha256": "d6e5f4a3"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Select your organization's identity provider",
+    "sha256": "e7f6a5b4"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Display Name",
+    "sha256": "f8a7b6c5"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "A friendly name shown to users when signing in",
+    "sha256": "a9b8c7d6"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "e.g. Acme Corp SSO",
+    "sha256": "b1c2d3e4"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Client ID",
+    "sha256": "c2d3e4f5"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Your OAuth client ID",
+    "sha256": "d3e4f5a6"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Client Secret",
+    "sha256": "e4f5a6b7"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Your OAuth client secret",
+    "sha256": "f5a6b7c8"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Leave blank to keep the existing secret",
+    "sha256": "a6b7c8d9"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Tenant ID",
+    "sha256": "b7c8d9e1"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Your Azure AD / Entra ID tenant identifier",
+    "sha256": "c8d9e1f2"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "e.g. 12345678-1234-1234-1234-123456789abc",
+    "sha256": "d9e1f2a3"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "Issuer URL",
+    "sha256": "e1f2a3b4"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "The OIDC discovery URL for your identity provider",
+    "sha256": "f2a3b4c5"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "e.g. https://login.example.com",
+    "sha256": "a3b4c5d6"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Allowed Email Domains",
+    "sha256": "b4c5d6e7"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Only users with email addresses from these domains can sign in. Leave empty to allow all domains.",
+    "sha256": "c5d6e7f8"
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "e.g. acme.com",
+    "sha256": "d6e7f8a9"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Please enter a valid domain (e.g. example.com)",
+    "sha256": "e7f8a9b1"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "This domain is already in the list",
+    "sha256": "f8a9b1c2"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Remove {domain}",
+    "sha256": "a9b1c2d3"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Enable SSO",
+    "sha256": "b1c2d3e4"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "When enabled, organization members can sign in using this SSO provider",
+    "sha256": "c2d3e4f5"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Save SSO Configuration",
+    "sha256": "d3e4f5a6"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Delete Configuration",
+    "sha256": "e4f5a6b7"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Are you sure? This will disable SSO for your organization.",
+    "sha256": "f5a6b7c8"
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Failed to load SSO configuration",
+    "sha256": "a6b7c8d9"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Failed to save SSO configuration",
+    "sha256": "b7c8d9e1"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "SSO configuration created successfully",
+    "sha256": "c8d9e1f2"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "SSO configuration updated successfully",
+    "sha256": "d9e1f2a3"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "SSO configuration deleted successfully",
+    "sha256": "e1f2a3b4"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Failed to delete SSO configuration",
+    "sha256": "f2a3b4c5"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Test Connection",
+    "sha256": "a1b2c3d4"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Verify the identity provider is reachable (does not validate credentials)",
+    "sha256": "b2c3d4e5"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Test Connection",
+    "sha256": "c3d4e5f6"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Testing...",
+    "sha256": "d4e5f6a7"
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Failed to test connection",
+    "sha256": "e5f6a7b8"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Authorization Endpoint",
+    "sha256": "f6a7b8c9"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Missing Fields",
+    "sha256": "a7b8c9d1"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Enabled",
+    "sha256": "b8c9d1e2"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Configured",
+    "sha256": "c9d1e2f3"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "Domain SSO",
+    "sha256": "a1b2c3d5"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Configure SSO for each verified domain",
+    "sha256": "b2c3d4e6"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "To change provider, delete this configuration first",
+    "sha256": "e2f3a4b5"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Not Configured",
+    "sha256": "d1e2f3a4"
+  },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Wrong Account",
     "sha256": "80c8ffa7"

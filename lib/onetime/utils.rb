@@ -6,6 +6,7 @@ require 'pathname'
 
 require_relative 'utils/domain_parser'
 require_relative 'utils/enumerables'
+require_relative 'utils/retry_helper'
 require_relative 'utils/strings'
 require_relative 'utils/time_utils'
 

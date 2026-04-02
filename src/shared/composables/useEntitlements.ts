@@ -17,13 +17,14 @@ const FALLBACK_DISPLAY_KEYS: Record<string, string> = {
   [ENTITLEMENTS.CUSTOM_DOMAINS]: 'web.billing.overview.entitlements.custom_domains',
   [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'web.billing.overview.entitlements.custom_privacy_defaults',
   [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'web.billing.overview.entitlements.extended_default_expiration',
-  [ENTITLEMENTS.CUSTOM_MAIL_DEFAULTS]: 'web.billing.overview.entitlements.custom_mail_defaults',
+  [ENTITLEMENTS.CUSTOM_MAIL_SENDER]: 'web.billing.overview.entitlements.custom_mail_sender',
   [ENTITLEMENTS.CUSTOM_BRANDING]: 'web.billing.overview.entitlements.custom_branding',
   [ENTITLEMENTS.HOMEPAGE_SECRETS]: 'web.billing.overview.entitlements.homepage_secrets',
   [ENTITLEMENTS.INCOMING_SECRETS]: 'web.billing.overview.entitlements.incoming_secrets',
   [ENTITLEMENTS.MANAGE_ORGS]: 'web.billing.overview.entitlements.manage_orgs',
   [ENTITLEMENTS.MANAGE_TEAMS]: 'web.billing.overview.entitlements.manage_teams',
   [ENTITLEMENTS.MANAGE_MEMBERS]: 'web.billing.overview.entitlements.manage_members',
+  [ENTITLEMENTS.MANAGE_SSO]: 'web.billing.overview.entitlements.manage_sso',
   [ENTITLEMENTS.AUDIT_LOGS]: 'web.billing.overview.entitlements.audit_logs',
 };
 
@@ -39,6 +40,7 @@ const FALLBACK_DISPLAY_KEYS: Record<string, string> = {
 const FALLBACK_ENTITLEMENT_TO_PLAN: Record<string, string> = {
   [ENTITLEMENTS.MANAGE_TEAMS]: 'identity_v1',
   [ENTITLEMENTS.MANAGE_MEMBERS]: 'identity_v1',
+  [ENTITLEMENTS.MANAGE_SSO]: 'identity_v1',
   [ENTITLEMENTS.MANAGE_ORGS]: 'identity_v1',
   [ENTITLEMENTS.API_ACCESS]: 'identity_v1',
   [ENTITLEMENTS.CUSTOM_DOMAINS]: 'identity_v1',
@@ -46,7 +48,7 @@ const FALLBACK_ENTITLEMENT_TO_PLAN: Record<string, string> = {
   [ENTITLEMENTS.HOMEPAGE_SECRETS]: 'identity_v1',
   [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'identity_v1',
   [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'identity_v1',
-  [ENTITLEMENTS.CUSTOM_MAIL_DEFAULTS]: 'identity_v1',
+  [ENTITLEMENTS.CUSTOM_MAIL_SENDER]: 'identity_v1',
   [ENTITLEMENTS.INCOMING_SECRETS]: 'identity_v1',
   [ENTITLEMENTS.AUDIT_LOGS]: 'multi_team_v1',
 };
@@ -93,9 +95,13 @@ export function useEntitlements(org: Ref<Organization | null>) {
    */
   const can = (entitlement: string): boolean => {
     // Standalone mode: all entitlements available
-    if (isStandaloneMode.value) return true;
+    if (isStandaloneMode.value) {
+      return true;
+    }
 
-    if (!org.value) return false;
+    if (!org.value) {
+      return false;
+    }
     return org.value.entitlements?.includes(entitlement as (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS]) ?? false;
   };
 

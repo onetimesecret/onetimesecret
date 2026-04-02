@@ -17,6 +17,7 @@
 // leaking to consuming code.
 
 import { z } from 'zod';
+import { captureException } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
 
 /**
@@ -50,7 +51,7 @@ function isDevOrTest(): boolean {
  *
  * Error reporting is environment-aware:
  * - Dev/test: console.error for immediate visibility
- * - Production: loggingService.error (Sentry integration tracked in #2755)
+ * - Production: captureException sends to Sentry with schema context
  *
  * @example
  * ```typescript
@@ -78,12 +79,14 @@ export function gracefulParse<T>(
   if (isDevOrTest()) {
     console.error(errorMessage, result.error.issues);
   } else {
-    loggingService.error(
-      Object.assign(new Error(errorMessage), {
-        cause: result.error,
-        issues: result.error.issues,
-      })
-    );
+    // Log locally and send to Sentry with structured context
+    const schemaError = new Error(errorMessage);
+    loggingService.error(schemaError);
+    captureException(schemaError, {
+      schema: context,
+      issues: result.error.issues,
+      issueCount: result.error.issues.length,
+    });
   }
 
   return { ok: false, error: result.error };

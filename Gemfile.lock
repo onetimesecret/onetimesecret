@@ -43,9 +43,9 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (8.1.2)
-      activesupport (= 8.1.2)
-    activesupport (8.1.2)
+    activemodel (8.1.2.1)
+      activesupport (= 8.1.2.1)
+    activesupport (8.1.2.1)
       base64
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.3.1)
@@ -85,7 +85,7 @@ GEM
       aws-eventstream (~> 1, >= 1.0.2)
     backport (1.2.0)
     base64 (0.3.0)
-    bcrypt (3.1.21)
+    bcrypt (3.1.22)
     benchmark (0.5.0)
     bigdecimal (4.0.1)
     bindata (2.5.1)
@@ -129,7 +129,7 @@ GEM
     facets (3.1.0)
     faker (3.6.1)
       i18n (>= 1.8.11, < 2)
-    familia (2.3.2)
+    familia (2.3.3)
       concurrent-ruby (~> 1.3)
       connection_pool (>= 2.4, < 4.0)
       csv (~> 3.3)
@@ -190,9 +190,6 @@ GEM
       bindata
       faraday (~> 2.0)
       faraday-follow_redirects
-    json-schema (6.2.0)
-      addressable (~> 2.8)
-      bigdecimal (>= 3.1, < 5)
     json_schemer (2.5.0)
       bigdecimal
       hana (~> 1.3)
@@ -213,7 +210,7 @@ GEM
     kramdown-parser-gfm (1.1.0)
       kramdown (~> 2.0)
     language_server-protocol (3.17.0.5)
-    lettermint (0.1.0)
+    lettermint (0.2.0)
       faraday (~> 2.0)
     lint_roller (1.1.0)
     listen (3.10.0)
@@ -230,8 +227,6 @@ GEM
       net-imap
       net-pop
       net-smtp
-    mcp (0.8.0)
-      json-schema (>= 4.1)
     mini_mime (1.1.5)
     mini_portile2 (2.8.9)
     minitest (5.27.0)
@@ -431,11 +426,10 @@ GEM
       chunky_png (~> 1.0)
       rqrcode_core (~> 2.0)
     rqrcode_core (2.1.0)
-    rubocop (1.85.1)
+    rubocop (1.86.0)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
-      mcp (~> 0.6)
       parallel (~> 1.10)
       parser (>= 3.3.0.2)
       rainbow (>= 2.2.2, < 4.0)
@@ -460,7 +454,7 @@ GEM
       lint_roller (~> 1.1)
       rubocop (~> 1.72, >= 1.72.1)
       rubocop-ast (>= 1.44.0, < 2.0)
-    ruby-lsp (0.26.8)
+    ruby-lsp (0.26.9)
       language_server-protocol (~> 3.17.0)
       prism (>= 1.2, < 2.0)
       rbs (>= 3, < 5)
@@ -629,7 +623,7 @@ DEPENDENCIES
   dry-cli (~> 1.2)
   encryptor (= 1.1.3)
   faker (~> 3.2)
-  familia (= 2.3.2)
+  familia (= 2.3.3)
   fastimage (~> 2.4)
   htmlbeautifier
   httparty
@@ -638,7 +632,7 @@ DEPENDENCIES
   json_schemer
   kanayago (~> 0.7)
   kicks (~> 3.0)
-  lettermint (~> 0.1.0)
+  lettermint (~> 0.2.0)
   logger
   mail
   mustache
@@ -676,12 +670,12 @@ DEPENDENCIES
   rspec-expectations!
   rspec-mocks!
   rspec-support!
-  rubocop (~> 1.85.1)
+  rubocop (~> 1.86.0)
   rubocop-performance
   rubocop-rspec
   rubocop-sequel
   rubocop-thread_safety
-  ruby-lsp
+  ruby-lsp (~> 0.26.9)
   rufus-scheduler (~> 3.9)
   sanitize
   semantic_logger (~> 4.17)

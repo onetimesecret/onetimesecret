@@ -4,6 +4,7 @@
 
 require 'spec_helper'
 require 'onetime/jobs/publisher'
+require 'onetime/operations/validate_sender_domain'
 
 RSpec.describe Onetime::Jobs::Publisher do
   describe 'class methods' do
@@ -81,7 +82,7 @@ RSpec.describe Onetime::Jobs::Publisher do
 
         publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :sync)
 
-        expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' })
+        expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' }, sender_config: nil)
       end
     end
 
@@ -96,7 +97,7 @@ RSpec.describe Onetime::Jobs::Publisher do
         # Wait for thread to complete with timeout
         Timeout.timeout(5) { sleep 0.05 until delivered.true? }
 
-        expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' })
+        expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' }, sender_config: nil)
       end
     end
 
@@ -142,7 +143,135 @@ RSpec.describe Onetime::Jobs::Publisher do
 
         publisher.enqueue_email_raw(raw_email, fallback: :sync)
 
-        expect(Onetime::Mail).to have_received(:deliver_raw).with(raw_email)
+        expect(Onetime::Mail).to have_received(:deliver_raw).with(raw_email, sender_config: nil)
+      end
+    end
+  end
+
+  # ==========================================================================
+  # Domain ID Threading Tests
+  # ==========================================================================
+  # These tests verify that domain_id is correctly included in published
+  # message payloads and threaded through to fallback delivery paths.
+  # ==========================================================================
+
+  describe 'domain_id threading' do
+    subject(:publisher) { described_class.new }
+
+    describe '#enqueue_email with RabbitMQ' do
+      let(:mock_channel) { instance_double(Bunny::Channel) }
+      let(:mock_exchange) { instance_double(Bunny::Exchange) }
+      let(:mock_channel_pool) { instance_double(ConnectionPool) }
+
+      before do
+        allow(mock_channel_pool).to receive(:with).and_yield(mock_channel)
+        allow(mock_channel).to receive(:default_exchange).and_return(mock_exchange)
+        allow(mock_exchange).to receive(:publish)
+        $rmq_channel_pool = mock_channel_pool
+      end
+
+      after do
+        $rmq_channel_pool = nil
+      end
+
+      it 'includes domain_id in published message payload when provided' do
+        publisher.enqueue_email(:secret_link, { secret_key: 'abc' }, domain_id: 'dom_xyz789')
+
+        expect(mock_exchange).to have_received(:publish) do |payload_json, _options|
+          payload = JSON.parse(payload_json, symbolize_names: true)
+          expect(payload[:domain_id]).to eq('dom_xyz789')
+          expect(payload[:template]).to eq('secret_link')
+          expect(payload[:data]).to eq({ secret_key: 'abc' })
+        end
+      end
+
+      it 'includes nil domain_id when not provided (backward compat)' do
+        publisher.enqueue_email(:secret_link, { secret_key: 'abc' })
+
+        expect(mock_exchange).to have_received(:publish) do |payload_json, _options|
+          payload = JSON.parse(payload_json, symbolize_names: true)
+          expect(payload[:domain_id]).to be_nil
+        end
+      end
+
+      it 'includes domain_id in scheduled email payload' do
+        publisher.schedule_email(:secret_link, { secret_key: 'abc' }, delay_seconds: 60, domain_id: 'dom_sched')
+
+        expect(mock_exchange).to have_received(:publish) do |payload_json, options|
+          payload = JSON.parse(payload_json, symbolize_names: true)
+          expect(payload[:domain_id]).to eq('dom_sched')
+          expect(options[:expiration]).to eq('60000')
+        end
+      end
+
+      it 'includes domain_id in raw email payload' do
+        raw_email = { to: 'user@example.com', from: 'noreply@example.com', subject: 'Test', body: 'Body' }
+        publisher.enqueue_email_raw(raw_email, domain_id: 'dom_raw123')
+
+        expect(mock_exchange).to have_received(:publish) do |payload_json, _options|
+          payload = JSON.parse(payload_json, symbolize_names: true)
+          expect(payload[:domain_id]).to eq('dom_raw123')
+          expect(payload[:raw]).to be true
+        end
+      end
+    end
+
+    describe 'fallback delivery with domain_id' do
+      before do
+        $rmq_channel_pool = nil
+      end
+
+      context 'with fallback: :sync and domain_id' do
+        it 'loads sender_config and passes it to Mail.deliver' do
+          mock_config = instance_double(
+            Onetime::CustomDomain::MailerConfig,
+            domain_id: 'dom_fallback',
+            from_address: 'custom@fallback.example.com',
+            enabled?: true,
+            verified?: true
+          )
+          allow(Onetime::CustomDomain::MailerConfig)
+            .to receive(:find_by_domain_id)
+            .with('dom_fallback')
+            .and_return(mock_config)
+          allow(Onetime::Mail).to receive(:deliver)
+
+          publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :sync, domain_id: 'dom_fallback')
+
+          expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' }, sender_config: mock_config)
+        end
+      end
+
+      context 'with fallback: :sync and no domain_id' do
+        it 'passes nil sender_config to Mail.deliver' do
+          allow(Onetime::Mail).to receive(:deliver)
+
+          publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :sync)
+
+          expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' }, sender_config: nil)
+        end
+      end
+
+      context 'with fallback: :sync for raw email with domain_id' do
+        it 'loads sender_config and passes it to Mail.deliver_raw' do
+          mock_config = instance_double(
+            Onetime::CustomDomain::MailerConfig,
+            domain_id: 'dom_rawfb',
+            from_address: 'custom@rawfb.example.com',
+            enabled?: true,
+            verified?: true
+          )
+          allow(Onetime::CustomDomain::MailerConfig)
+            .to receive(:find_by_domain_id)
+            .with('dom_rawfb')
+            .and_return(mock_config)
+          allow(Onetime::Mail).to receive(:deliver_raw)
+
+          raw_email = { to: 'user@example.com', from: 'noreply@example.com', subject: 'Test', body: 'Body' }
+          publisher.enqueue_email_raw(raw_email, fallback: :sync, domain_id: 'dom_rawfb')
+
+          expect(Onetime::Mail).to have_received(:deliver_raw).with(raw_email, sender_config: mock_config)
+        end
       end
     end
   end
@@ -417,6 +546,104 @@ RSpec.describe Onetime::Jobs::Publisher do
         expect {
           publisher.enqueue_billing_event(mock_event, payload)
         }.to raise_error(Bunny::ConnectionClosedError)
+      end
+    end
+  end
+
+  # ==========================================================================
+  # Domain Validation bypass_cache Tests
+  # ==========================================================================
+  # These tests verify that bypass_cache is correctly included in published
+  # message payloads and passed through to the sync fallback path.
+  # ==========================================================================
+
+  describe '#enqueue_domain_validation bypass_cache' do
+    subject(:publisher) { described_class.new }
+
+    describe 'with RabbitMQ' do
+      let(:mock_channel) { instance_double(Bunny::Channel) }
+      let(:mock_exchange) { instance_double(Bunny::Exchange) }
+      let(:mock_channel_pool) { instance_double(ConnectionPool) }
+
+      before do
+        allow(mock_channel_pool).to receive(:with).and_yield(mock_channel)
+        allow(mock_channel).to receive(:default_exchange).and_return(mock_exchange)
+        allow(mock_exchange).to receive(:publish)
+        $rmq_channel_pool = mock_channel_pool
+      end
+
+      after do
+        $rmq_channel_pool = nil
+      end
+
+      it 'includes bypass_cache: true in message payload when provided' do
+        publisher.enqueue_domain_validation('dom_123', bypass_cache: true)
+
+        expect(mock_exchange).to have_received(:publish) do |payload_json, _options|
+          payload = JSON.parse(payload_json, symbolize_names: true)
+          expect(payload[:bypass_cache]).to eq(true)
+          expect(payload[:domain_id]).to eq('dom_123')
+        end
+      end
+
+      it 'includes bypass_cache: false in message payload when explicitly false' do
+        publisher.enqueue_domain_validation('dom_456', bypass_cache: false)
+
+        expect(mock_exchange).to have_received(:publish) do |payload_json, _options|
+          payload = JSON.parse(payload_json, symbolize_names: true)
+          expect(payload[:bypass_cache]).to eq(false)
+        end
+      end
+
+      it 'defaults bypass_cache to false when not provided' do
+        publisher.enqueue_domain_validation('dom_789')
+
+        expect(mock_exchange).to have_received(:publish) do |payload_json, _options|
+          payload = JSON.parse(payload_json, symbolize_names: true)
+          expect(payload[:bypass_cache]).to eq(false)
+        end
+      end
+    end
+
+    describe 'sync fallback with bypass_cache' do
+      let(:mock_config) do
+        instance_double(
+          Onetime::CustomDomain::MailerConfig,
+          domain_id: 'dom_sync',
+        )
+      end
+
+      before do
+        $rmq_channel_pool = nil
+        allow(Onetime::CustomDomain::MailerConfig).to receive(:find_by_domain_id).and_return(mock_config)
+      end
+
+      it 'passes bypass_cache: true to ValidateSenderDomain operation' do
+        mock_operation = instance_double(Onetime::Operations::ValidateSenderDomain)
+        allow(mock_operation).to receive(:call)
+        allow(Onetime::Operations::ValidateSenderDomain).to receive(:new).and_return(mock_operation)
+
+        publisher.enqueue_domain_validation('dom_sync', bypass_cache: true)
+
+        expect(Onetime::Operations::ValidateSenderDomain).to have_received(:new).with(
+          mailer_config: mock_config,
+          persist: true,
+          bypass_cache: true,
+        )
+      end
+
+      it 'passes bypass_cache: false when not provided' do
+        mock_operation = instance_double(Onetime::Operations::ValidateSenderDomain)
+        allow(mock_operation).to receive(:call)
+        allow(Onetime::Operations::ValidateSenderDomain).to receive(:new).and_return(mock_operation)
+
+        publisher.enqueue_domain_validation('dom_sync')
+
+        expect(Onetime::Operations::ValidateSenderDomain).to have_received(:new).with(
+          mailer_config: mock_config,
+          persist: true,
+          bypass_cache: false,
+        )
       end
     end
   end

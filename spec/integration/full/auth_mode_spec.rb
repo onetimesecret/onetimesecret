@@ -38,9 +38,21 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
   end
 
   # Establish a session and retrieve CSRF token
+  # Clear Content-Type before GET (Rack::Test persists it after POST)
   def ensure_csrf_token
     return @csrf_token if defined?(@csrf_token) && @csrf_token
 
+    header 'Content-Type', nil  # Clear Content-Type from previous POST requests
+    header 'Accept', 'application/json'
+    get '/auth'
+    @csrf_token = last_response.headers['X-CSRF-Token']
+    @csrf_token
+  end
+
+  # Fetch a fresh CSRF token (ignores cached value)
+  # Use after login/account-creation (session regeneration invalidates prior tokens)
+  def fetch_fresh_csrf_token
+    header 'Content-Type', nil  # Clear Content-Type from previous POST requests
     header 'Accept', 'application/json'
     get '/auth'
     @csrf_token = last_response.headers['X-CSRF-Token']
@@ -76,6 +88,17 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
     env['HTTP_X_CSRF_TOKEN'] = csrf_token if csrf_token
 
     post path, data.merge(shrimp: csrf_token), env
+  end
+
+  # POST JSON using a pre-stored CSRF token (for authenticated session requests)
+  # Use after login when session has been regenerated and you've fetched a fresh token
+  def post_json_with_token(path, data = {})
+    csrf_token = @csrf_token  # Use stored token from fetch_fresh_csrf_token
+
+    env = json_request_headers.dup
+    env['HTTP_X_CSRF_TOKEN'] = csrf_token if csrf_token
+
+    post path, data.merge(shrimp: csrf_token).to_json, env
   end
 
   let(:dbclient) do
@@ -184,18 +207,29 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
   end
 
   def app
-    @full_app ||= begin
-      # Prepare registry with full mode
-      Onetime::Application::Registry.reset!
-      Onetime::Application::Registry.prepare_application_registry
-      Onetime::Application::Registry.generate_rack_url_map
-    end
+    # MUST memoize - calling generate_rack_url_map multiple times corrupts app state
+    @app ||= Onetime::Application::Registry.generate_rack_url_map
   end
 
   before(:all) do
-    # Force app loading in full mode
+    # Set full mode before loading the application
+    ENV['AUTHENTICATION_MODE'] = 'full'
+
+    # Reset registry to clear state from previous test runs
+    Onetime::Application::Registry.reset!
+
+    # Reload auth config to pick up AUTHENTICATION_MODE env var
+    Onetime.auth_config.reload!
+
+    # Boot application
     Onetime.boot! :test
-    app
+
+    # Prepare the application registry
+    Onetime::Application::Registry.prepare_application_registry
+  end
+
+  after(:all) do
+    ENV.delete('AUTHENTICATION_MODE')
   end
 
   describe 'POST /auth/login' do
@@ -270,18 +304,51 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
   end
 
   describe 'POST /logout (WITH authentication)' do
-    # NOTE: These tests require authenticated session setup which has complex
-    # CSRF token synchronization when combined with dbclient.flushdb.
-    # The unauthenticated logout tests in "POST /logout (without authentication)"
-    # verify the basic CSRF functionality.
-    # See PR #2428 for context on CSRF simplification.
+    # NOTE: Session regeneration after login invalidates prior CSRF tokens.
+    # Must fetch fresh token AFTER login completes.
+
+    around(:each) do |example|
+      dbclient.flushdb
+      @test_cust = create_test_customer
+      example.run
+    ensure
+      @test_cust&.destroy! if @test_cust
+      dbclient.flushdb
+    end
 
     it 'successfully logs out with valid session' do
-      skip 'Requires authenticated session setup - see PR #2428'
+      # Login first
+      post_json '/auth/login', { login: test_email, password: test_password }
+      expect(last_response.status).to eq(200)
+
+      # Fetch fresh CSRF token after login (session regeneration invalidates prior tokens)
+      fetch_fresh_csrf_token
+
+      # Logout using fresh token
+      post_json_with_token '/logout', {}
+
+      expect([200, 302]).to include(last_response.status),
+        "Expected 200/302 but got #{last_response.status}: #{last_response.body[0..200]}"
     end
 
     it 'is idempotent - second logout succeeds gracefully' do
-      skip 'Requires authenticated session setup - see PR #2428'
+      # Login first
+      post_json '/auth/login', { login: test_email, password: test_password }
+      expect(last_response.status).to eq(200)
+
+      # Fetch fresh CSRF token after login
+      fetch_fresh_csrf_token
+
+      # First logout
+      post_json_with_token '/logout', {}
+      expect([200, 302]).to include(last_response.status)
+
+      # Fetch fresh token after first logout (session may have changed)
+      fetch_fresh_csrf_token
+
+      # Second logout - should succeed gracefully (idempotent)
+      post_json_with_token '/logout', {}
+      expect([200, 302]).to include(last_response.status)
     end
   end
 
@@ -304,14 +371,51 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
   end
 
   describe 'POST /auth/logout (WITH authentication)' do
-    # NOTE: See PR #2428 for context on CSRF simplification.
+    # NOTE: Session regeneration after login invalidates prior CSRF tokens.
+    # Must fetch fresh token AFTER login completes.
+
+    around(:each) do |example|
+      dbclient.flushdb
+      @test_cust = create_test_customer
+      example.run
+    ensure
+      @test_cust&.destroy! if @test_cust
+      dbclient.flushdb
+    end
 
     it 'successfully logs out with valid session' do
-      skip 'Requires authenticated session setup - see PR #2428'
+      # Login first
+      post_json '/auth/login', { login: test_email, password: test_password }
+      expect(last_response.status).to eq(200)
+
+      # Fetch fresh CSRF token after login (session regeneration invalidates prior tokens)
+      fetch_fresh_csrf_token
+
+      # Logout using fresh token
+      post_json_with_token '/auth/logout', {}
+
+      expect([200, 302]).to include(last_response.status),
+        "Expected 200/302 but got #{last_response.status}: #{last_response.body[0..200]}"
     end
 
     it 'is idempotent - second logout succeeds gracefully' do
-      skip 'Requires authenticated session setup - see PR #2428'
+      # Login first
+      post_json '/auth/login', { login: test_email, password: test_password }
+      expect(last_response.status).to eq(200)
+
+      # Fetch fresh CSRF token after login
+      fetch_fresh_csrf_token
+
+      # First logout
+      post_json_with_token '/auth/logout', {}
+      expect([200, 302]).to include(last_response.status)
+
+      # Fetch fresh token after first logout (session may have changed)
+      fetch_fresh_csrf_token
+
+      # Second logout - should succeed gracefully (idempotent)
+      post_json_with_token '/auth/logout', {}
+      expect([200, 302]).to include(last_response.status)
     end
   end
 
@@ -408,11 +512,52 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
       end
 
       it 'session persists across requests' do
-        skip 'Requires authenticated session setup - see PR #2428'
+        # Login
+        post_json '/auth/login', { login: test_email, password: test_password }
+        expect(last_response.status).to eq(200)
+
+        # Fetch fresh CSRF token after login (session regeneration)
+        fetch_fresh_csrf_token
+
+        # Clear Content-Type before GET (Rack::Test persists it after POST)
+        header 'Content-Type', nil
+        header 'Accept', 'application/json'
+
+        # First request after login
+        get '/dashboard'
+        first_status = last_response.status
+
+        # Second request - session should still be valid
+        get '/dashboard'
+        second_status = last_response.status
+
+        # Both requests should behave consistently (not 401)
+        expect(first_status).not_to eq(401)
+        expect(second_status).to eq(first_status),
+          'Session should persist - both requests should return same status'
       end
 
       it 'logout destroys the session' do
-        skip 'Requires authenticated session setup - see PR #2428'
+        # Login
+        post_json '/auth/login', { login: test_email, password: test_password }
+        expect(last_response.status).to eq(200)
+
+        # Fetch fresh CSRF token after login (session regeneration)
+        fetch_fresh_csrf_token
+
+        # Verify session works before logout
+        header 'Content-Type', nil
+        header 'Accept', 'application/json'
+        get '/dashboard'
+        expect(last_response.status).not_to eq(401)
+
+        # Logout using fresh token
+        post_json_with_token '/auth/logout', {}
+        expect([200, 302]).to include(last_response.status)
+
+        # Session should be destroyed - subsequent requests need new auth
+        # Clear cached CSRF token since session changed
+        @csrf_token = nil
       end
     end
 

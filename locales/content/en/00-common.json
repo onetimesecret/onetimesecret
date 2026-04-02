@@ -144,6 +144,10 @@
     "text": "Save",
     "sha256": "1509f561"
   },
+  "web.COMMON.configure": {
+    "text": "Configure",
+    "sha256": "e2f3a4b5"
+  },
   "web.COMMON.burn": {
     "text": "Burn",
     "sha256": "926c5b43"
@@ -464,6 +468,14 @@
     "text": "Remove",
     "sha256": "c3812fc4"
   },
+  "web.COMMON.add": {
+    "text": "Add",
+    "sha256": "a1b2c3d4"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Yes, delete",
+    "sha256": "b2c3d4e5"
+  },
   "web.COMMON.press_esc_to_close": {
     "text": "Press ESC to close",
     "sha256": "5aa83883"
@@ -567,6 +579,18 @@
   "web.COMMON.other": {
     "text": "Other",
     "sha256": "f97e9da0"
+  },
+  "web.COMMON.error_code": {
+    "text": "Error Code",
+    "sha256": "a1b2c3d4"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP Status",
+    "sha256": "b2c3d4e5"
+  },
+  "web.COMMON.details": {
+    "text": "Details",
+    "sha256": "c3d4e5f6"
   },
   "web.COMMON.min_width_1024px": {
     "text": "(min-width: 1024px)",
@@ -679,6 +703,12 @@
   "web.LABELS.view_toggle.show_less": {
     "text": "Show Less",
     "sha256": "0264d7b0"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Show passphrase"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Hide passphrase"
   },
   "web.LABELS.enable": {
     "text": "Enable",
@@ -1277,6 +1307,14 @@
   "web.TITLES.organization_settings": {
     "text": "Organization Settings",
     "sha256": "cc1d9e61"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Domain SSO",
+    "sha256": "a1b2c3d5"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Email Configuration",
+    "sha256": "6f38aa51"
   },
   "web.TITLES.pricing": {
     "text": "Pricing",

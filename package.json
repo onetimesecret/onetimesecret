@@ -3,7 +3,7 @@
   "version": "0.0.0-rc0",
   "description": "",
   "type": "module",
-  "packageManager": "pnpm@10.30.3",
+  "packageManager": "pnpm@10.33.0",
   "scripts": {
     "prebuild": "pnpm run locales:sync",
     "build": "vite build --config vite.config.ts",
@@ -134,12 +134,12 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@babel/helpers": "^7.28.6",
+    "@babel/helpers": "^7.29.2",
     "@codemirror/lang-json": "6.0.2",
     "@codemirror/lang-yaml": "6.1.2",
-    "@codemirror/state": "6.5.4",
+    "@codemirror/state": "6.6.0",
     "@codemirror/theme-one-dark": "6.1.3",
-    "@codemirror/view": "6.39.17",
+    "@codemirror/view": "6.40.0",
     "@headlessui/vue": "^1.7.23",
     "@intlify/core": "^11.3.0",
     "@sentry/browser": "^10.43.0",
@@ -149,7 +149,8 @@
     "@vue/runtime-core": "^3.5.30",
     "@vueuse/core": "^14.2.1",
     "@vueuse/integrations": "^14.2.1",
-    "axios": "^1.13.6",
+    "axios": "^1.14.0",
+    "brace-expansion": "1.1.13",
     "codemirror": "^6.0.2",
     "date-fns": "^4.1.0",
     "dompurify": "^3.3.3",
@@ -166,6 +167,7 @@
     "vue-codemirror6": "^1.4.3",
     "vue-i18n": "^11.3.0",
     "vue-router": "^4.6.4",
+    "yaml": "^2.8.3",
     "zod": "^4.3.6",
     "zod-validation-error": "^5.0.0"
   },
@@ -207,10 +209,11 @@
     "eslint-plugin-tailwindcss": "4.0.0-beta.0",
     "eslint-plugin-vue": "^10.8.0",
     "fs-extra": "^11.3.4",
+    "flatted": "^3.4.2",
     "git-json-merge": "^1.0.0",
     "glob": "^13.0.6",
     "globals": "^17.4.0",
-    "happy-dom": "^20.8.4",
+    "happy-dom": "^20.8.8",
     "jiti": "^2.6.1",
     "jsdom": "^27.4.0",
     "lint-staged": "^16.4.0",
@@ -248,6 +251,11 @@
     ]
   },
   "pnpm": {
+    "overrides": {
+      "brace-expansion": "1.1.13",
+      "flatted": "^3.4.2",
+      "yaml": "^2.8.3"
+    },
     "ignoredBuiltDependencies": [
       "vue-demi"
     ],

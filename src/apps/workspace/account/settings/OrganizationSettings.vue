@@ -29,23 +29,27 @@ import { getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/
 import type { /* CreateInvitationPayload, */ Organization, OrganizationInvitation } from '@/types/organization';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in template
 import { formatDisplayDate } from '@/utils/format';
-import { computed, onMounted, ref, watch } from 'vue';
+import { isOrgsSsoEnabled } from '@/utils/features';
+import { SsoService } from '@/services/sso.service';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 // LAUNCH: Identity-only - zod hidden until team features enabled (used for invite form validation)
 // import { z } from 'zod';
 
-type TabType = 'general' | 'members' | 'domains' | 'subscription';
+type TabType = 'general' | 'members' | 'domains' | 'subscription' | 'sso';
 
 // URL tab names map to internal tab names
 // URL: team -> internal: members
 // URL: settings -> internal: general
 // URL: subscription -> internal: subscription (renamed from billing for clarity)
+// URL: sso -> internal: sso
 const URL_TO_TAB: Record<string, TabType> = {
   team: 'members',
   domains: 'domains',
   subscription: 'subscription',
   billing: 'subscription', // backwards compatibility for old URLs
   settings: 'general',
+  sso: 'sso',
 };
 
 const TAB_TO_URL: Record<TabType, string> = {
@@ -53,6 +57,7 @@ const TAB_TO_URL: Record<TabType, string> = {
   domains: 'domains',
   subscription: 'subscription',
   general: 'settings',
+  sso: 'sso',
 };
 
 const props = withDefaults(defineProps<{
@@ -138,10 +143,12 @@ const isLoadingBilling = ref(false);
 // Billing email editing has been moved to BillingOverview.vue
 const error = ref('');
 const success = ref('');
+const orgNotFound = ref(false);
 
 // Plan data from billing overview
 const planName = ref<string>('');
 const planFeatures = ref<string[]>([]);
+
 
 // LAUNCH: Identity-only - Invitation form state hidden until team features enabled
 /*
@@ -165,15 +172,64 @@ const { billing_enabled } = storeToRefs(bootstrapStore);
 const billingEnabled = computed(() => billing_enabled.value ?? false);
 
 // Entitlements - formatEntitlement uses API-driven i18n keys
-// LAUNCH: Identity-only - can and ENTITLEMENTS hidden until team features enabled
 const {
   entitlements,
-  // can,
+  can,
   formatEntitlement,
   initDefinitions,
-  // ENTITLEMENTS,
+  ENTITLEMENTS,
 } = useEntitlements(organization);
 
+// SSO visibility: feature flag AND entitlement must both pass (dual-control)
+const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
+
+// SSO status per domain — populated on-demand when SSO tab is shown
+interface DomainSsoStatus {
+  configured: boolean;
+  enabled: boolean;
+}
+const domainSsoStatus: Record<string, DomainSsoStatus> = reactive({});
+const isSsoStatusLoading = ref(false);
+const isSsoStatusLoaded = ref(false);
+
+/**
+ * Fetch SSO configuration status for each domain in the list.
+ * Only called when canManageSso is true and domains are loaded.
+ * Uses SsoService.getConfigForDomain which returns { record: null }
+ * for 404 (no config), so no error handling needed for that case.
+ */
+const loadDomainSsoStatus = async () => {
+  if (!canManageSso.value || !domainRecords.value?.length) return;
+  // Guard against concurrent calls and redundant loads
+  if (isSsoStatusLoading.value || isSsoStatusLoaded.value) return;
+  isSsoStatusLoading.value = true;
+
+  const domains = domainRecords.value;
+  const results = await Promise.allSettled(
+    domains.map(async (domain) => {
+      const { record } = await SsoService.getConfigForDomain(domain.extid);
+      return { extid: domain.extid, record };
+    })
+  );
+
+  try {
+    for (const result of results) {
+      if (result.status === 'fulfilled') {
+        const { extid, record } = result.value;
+        domainSsoStatus[extid] = {
+          configured: record !== null,
+          enabled: record?.enabled === true,
+        };
+      }
+      // Rejected promises (network errors) are silently skipped —
+      // the badge simply won't appear for that domain.
+    }
+
+    isSsoStatusLoaded.value = true;
+  } finally {
+    isSsoStatusLoading.value = false;
+  }
+};
 
 // Form data
 const formData = ref({
@@ -191,6 +247,13 @@ const isDirty = computed(() => {
   );
 });
 
+// Clear success banner when user starts editing again
+watch(formData, () => {
+  if (success.value && isDirty.value) {
+    success.value = '';
+  }
+}, { deep: true });
+
 // Billing email is only shown for paid plans (organizations with a planid set)
 const hasPaidPlan = computed(() => !!organization.value?.planid);
 
@@ -202,21 +265,24 @@ const isLegacyCustomer = computed(() =>
 const loadOrganization = async () => {
   isLoading.value = true;
   error.value = '';
+  orgNotFound.value = false;
   try {
     const org = await organizationStore.fetchOrganization(orgId.value);
-    if (org) {
-      organization.value = org;
-      formData.value = {
-        display_name: org.display_name,
-        description: org.description || '',
-        contact_email: org.contact_email || '',
-      };
-    } else {
-      error.value = t('web.organizations.not_found');
-    }
+    organization.value = org;
+    formData.value = {
+      display_name: org.display_name,
+      description: org.description || '',
+      contact_email: org.contact_email || '',
+    };
   } catch (err) {
+    organization.value = null;
     const classified = classifyError(err);
-    error.value = classified.message || t('web.organizations.load_error');
+    if (classified.code === 404) {
+      orgNotFound.value = true;
+      error.value = t('web.organizations.not_found');
+    } else {
+      error.value = classified.message || t('web.organizations.load_error');
+    }
     console.error('[OrganizationSettings] Error loading organization:', err);
   } finally {
     isLoading.value = false;
@@ -436,6 +502,9 @@ onMounted(async () => {
     await refreshDomains();
   } else if (activeTab.value === 'subscription' && billingEnabled.value) {
     await loadBilling();
+  } else if (activeTab.value === 'sso' && canManageSso.value) {
+    await refreshDomains();
+    await loadDomainSsoStatus();
   }
 });
 
@@ -457,6 +526,10 @@ watch(activeTab, async (newTab) => {
     await refreshDomains();
   } else if (newTab === 'subscription' && !subscription.value && billingEnabled.value) {
     await loadBilling();
+  } else if (newTab === 'sso' && canManageSso.value) {
+    // Ensure domains are loaded, then fetch SSO status for each
+    await refreshDomains();
+    await loadDomainSsoStatus();
   }
 });
 
@@ -465,17 +538,70 @@ watch(activeTab, async (newTab) => {
 // This ensures currentOrganization in the store is updated to match the URL.
 watch(orgId, async (newOrgId, oldOrgId) => {
   if (newOrgId && newOrgId !== oldOrgId) {
+    // Reset SSO status cache when switching orgs — domains differ per org
+    isSsoStatusLoaded.value = false;
+    for (const key of Object.keys(domainSsoStatus)) {
+      delete domainSsoStatus[key];
+    }
+
     await loadOrganization();
-    // Reload tab-specific data for the new org
-    if (activeTab.value === 'members') {
-      await Promise.all([loadMembers(), loadInvitations()]);
-    } else if (activeTab.value === 'domains') {
-      await refreshDomains();
-    } else if (activeTab.value === 'subscription' && billingEnabled.value) {
-      await loadBilling();
+    // Guard against stale responses from rapid org navigation — if the
+    // user navigated again while we were loading, orgId has already
+    // changed and a newer watcher invocation will handle it.
+    if (orgId.value !== newOrgId) return;
+    // Only load tab-specific data if the org loaded successfully
+    if (!orgNotFound.value && !error.value) {
+      if (activeTab.value === 'members') {
+        await Promise.all([loadMembers(), loadInvitations()]);
+      } else if (activeTab.value === 'domains') {
+        await refreshDomains();
+      } else if (activeTab.value === 'subscription' && billingEnabled.value) {
+        await loadBilling();
+      } else if (activeTab.value === 'sso' && canManageSso.value) {
+        await refreshDomains();
+        await loadDomainSsoStatus();
+      }
     }
   }
 });
+
+// Keyboard navigation for tabs (WCAG 2.1 AA)
+const handleTabKeydown = (e: KeyboardEvent) => {
+  // Build visible tabs array dynamically based on entitlements
+  const tabs: TabType[] = ['domains', 'subscription'];
+  if (canManageSso.value) {
+    tabs.push('sso');
+  }
+  tabs.push('general');
+
+  const currentIndex = tabs.indexOf(activeTab.value);
+  if (currentIndex === -1) return;
+
+  switch (e.key) {
+    case 'ArrowRight':
+    case 'ArrowDown':
+      e.preventDefault();
+      setActiveTab(tabs[(currentIndex + 1) % tabs.length]);
+      nextTick(() => document.getElementById(`org-tab-${activeTab.value}`)?.focus());
+      break;
+    case 'ArrowLeft':
+    case 'ArrowUp':
+      e.preventDefault();
+      setActiveTab(tabs[(currentIndex - 1 + tabs.length) % tabs.length]);
+      nextTick(() => document.getElementById(`org-tab-${activeTab.value}`)?.focus());
+      break;
+    case 'Home':
+      e.preventDefault();
+      setActiveTab(tabs[0]);
+      nextTick(() => document.getElementById(`org-tab-${tabs[0]}`)?.focus());
+      break;
+    case 'End':
+      e.preventDefault();
+      setActiveTab(tabs[tabs.length - 1]);
+      nextTick(() => document.getElementById(`org-tab-${tabs[tabs.length - 1]}`)?.focus());
+      break;
+  }
+};
 </script>
 
 <template>
@@ -502,8 +628,13 @@ watch(orgId, async (newOrgId, oldOrgId) => {
 
       <!-- Tabs: Domains, Billing (conditional), Settings (infrequent) -->
       <!-- LAUNCH: Identity-only - Team tab hidden until team features enabled -->
-      <div class="border-b border-gray-200 dark:border-gray-700">
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+      <div v-if="!orgNotFound && organization" class="border-b border-gray-200 dark:border-gray-700">
+        <nav
+          role="tablist"
+          aria-orientation="horizontal"
+          aria-label="Organization settings tabs"
+          class="-mb-px flex space-x-8"
+          @keydown="handleTabKeydown">
           <!-- LAUNCH: Team tab hidden - uncomment when team features enabled
           <button
             @click="setActiveTab('members')"
@@ -518,6 +649,11 @@ watch(orgId, async (newOrgId, oldOrgId) => {
           -->
           <!-- Domains tab -->
           <button
+            id="org-tab-domains"
+            role="tab"
+            :aria-selected="activeTab === 'domains'"
+            :tabindex="activeTab === 'domains' ? 0 : -1"
+            aria-controls="org-panel-domains"
             data-testid="org-tab-domains"
             @click="setActiveTab('domains')"
             :class="[
@@ -530,6 +666,11 @@ watch(orgId, async (newOrgId, oldOrgId) => {
           </button>
           <!-- Subscription tab - shown for all organizations -->
           <button
+            id="org-tab-subscription"
+            role="tab"
+            :aria-selected="activeTab === 'subscription'"
+            :tabindex="activeTab === 'subscription' ? 0 : -1"
+            aria-controls="org-panel-subscription"
             data-testid="org-tab-subscription"
             @click="setActiveTab('subscription')"
             :class="[
@@ -540,8 +681,31 @@ watch(orgId, async (newOrgId, oldOrgId) => {
             ]">
             {{ t('web.organizations.tabs.subscription') }}
           </button>
+          <!-- SSO tab - single sign-on configuration (entitlement-gated) -->
+          <button
+            v-if="canManageSso"
+            id="org-tab-sso"
+            role="tab"
+            :aria-selected="activeTab === 'sso'"
+            :tabindex="activeTab === 'sso' ? 0 : -1"
+            aria-controls="org-panel-sso"
+            data-testid="org-tab-sso"
+            @click="setActiveTab('sso')"
+            :class="[
+              'inline-flex items-center whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              activeTab === 'sso'
+                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+            ]">
+            {{ t('web.organizations.tabs.sso') }}
+          </button>
           <!-- Settings tab - infrequently changed fields -->
           <button
+            id="org-tab-general"
+            role="tab"
+            :aria-selected="activeTab === 'general'"
+            :tabindex="activeTab === 'general' ? 0 : -1"
+            aria-controls="org-panel-general"
             data-testid="org-tab-settings"
             @click="setActiveTab('general')"
             :class="[
@@ -569,11 +733,42 @@ watch(orgId, async (newOrgId, oldOrgId) => {
         </div>
       </div>
 
+      <!-- Error State: Organization not found or failed to load -->
+      <div v-else-if="orgNotFound || (error && !organization)" class="flex items-center justify-center py-12">
+        <div class="text-center">
+          <OIcon
+            collection="heroicons"
+            name="exclamation-triangle"
+            class="mx-auto size-12 text-gray-400"
+            aria-hidden="true" />
+          <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+            {{ orgNotFound ? t('web.organizations.not_found') : t('web.organizations.load_error') }}
+          </h3>
+          <p v-if="error && !orgNotFound" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ error }}
+          </p>
+          <router-link
+            to="/orgs"
+            class="mt-4 inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
+            <OIcon
+              collection="heroicons"
+              name="arrow-left"
+              class="size-4"
+              aria-hidden="true" />
+            {{ t('web.organizations.title') }}
+          </router-link>
+        </div>
+      </div>
+
       <!-- Content -->
       <div v-else>
         <!-- General Tab -->
         <section
           v-if="activeTab === 'general'"
+          id="org-panel-general"
+          role="tabpanel"
+          aria-labelledby="org-tab-general"
+          tabindex="0"
           data-testid="org-section-settings"
           class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
@@ -885,6 +1080,10 @@ watch(orgId, async (newOrgId, oldOrgId) => {
         <!-- Domains Tab -->
         <section
           v-if="activeTab === 'domains'"
+          id="org-panel-domains"
+          role="tabpanel"
+          aria-labelledby="org-tab-domains"
+          tabindex="0"
           data-testid="org-section-domains"
           class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
@@ -952,6 +1151,10 @@ watch(orgId, async (newOrgId, oldOrgId) => {
         <!-- Subscription Tab -->
         <section
           v-if="activeTab === 'subscription'"
+          id="org-panel-subscription"
+          role="tabpanel"
+          aria-labelledby="org-tab-subscription"
+          tabindex="0"
           data-testid="org-section-subscription"
           class="space-y-6">
           <!-- Billing Disabled Notice -->
@@ -1193,6 +1396,130 @@ watch(orgId, async (newOrgId, oldOrgId) => {
               </div>
             </div>
           </template>
+        </section>
+
+        <!-- SSO Tab (entitlement-gated) -->
+        <section
+          v-if="activeTab === 'sso' && canManageSso"
+          id="org-panel-sso"
+          role="tabpanel"
+          aria-labelledby="org-tab-sso"
+          tabindex="0"
+          data-testid="org-section-sso"
+          class="space-y-6">
+          <!-- Domain SSO Configuration -->
+          <div class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+              <div class="flex items-center gap-3">
+                <div class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
+                  <OIcon
+                    collection="heroicons"
+                    name="shield-check"
+                    class="size-5 text-brand-600 dark:text-brand-400"
+                    aria-hidden="true" />
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                    {{ t('web.organizations.sso.domain_sso_title') }}
+                  </h3>
+                  <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                    {{ t('web.organizations.sso.domain_sso_description') }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <!-- Loading state -->
+              <div v-if="isLoadingDomains" class="flex items-center justify-center py-8">
+                <OIcon
+                  collection="heroicons"
+                  name="arrow-path"
+                  class="size-6 animate-spin text-gray-400"
+                  aria-hidden="true" />
+                <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
+              </div>
+
+              <!-- Empty state -->
+              <div v-else-if="domainCount === 0" class="py-8 text-center">
+                <OIcon
+                  collection="heroicons"
+                  name="globe-alt"
+                  class="mx-auto size-12 text-gray-400"
+                  aria-hidden="true" />
+                <h4 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+                  {{ t('web.organizations.sso.no_domains') }}
+                </h4>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {{ t('web.organizations.sso.no_domains_description') }}
+                </p>
+                <router-link
+                  :to="`/org/${orgId}/domains/add`"
+                  class="mt-4 inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
+                  <OIcon
+                    collection="heroicons"
+                    name="plus"
+                    class="size-4"
+                    aria-hidden="true" />
+                  {{ t('web.domains.add_domain') }}
+                </router-link>
+              </div>
+
+              <!-- Domain list -->
+              <div v-else class="space-y-3">
+                <div
+                  v-for="domain in domainRecords"
+                  :key="domain.extid"
+                  class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-600 dark:bg-gray-700/50">
+                  <div class="flex items-center gap-3">
+                    <OIcon
+                      collection="heroicons"
+                      name="globe-alt"
+                      class="size-5 text-gray-400"
+                      aria-hidden="true" />
+                    <div>
+                      <p class="font-medium text-gray-900 dark:text-white">
+                        {{ domain.display_domain }}
+                      </p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ domain.verified ? t('web.domains.verified') : t('web.domains.pending_verification') }}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <!-- SSO Status Badge (driven by domainSsoStatus map) -->
+                    <span
+                      v-if="domainSsoStatus[domain.extid]?.enabled"
+                      class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                      {{ t('web.organizations.sso.status_enabled') }}
+                    </span>
+                    <span
+                      v-else-if="domainSsoStatus[domain.extid]?.configured"
+                      class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-600 dark:text-gray-300">
+                      {{ t('web.organizations.sso.status_configured') }}
+                    </span>
+                    <span
+                      v-else
+                      class="inline-flex items-center rounded-full bg-yellow-50 px-2 py-0.5 text-xs font-medium text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400">
+                      {{ t('web.organizations.sso.status_not_configured') }}
+                    </span>
+                    <!-- Configure SSO link -->
+                    <router-link
+                      :to="`/org/${orgId}/domains/${domain.extid}/sso`"
+                      class="inline-flex items-center gap-1 rounded-md bg-white px-2.5 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:ring-gray-500 dark:hover:bg-gray-500">
+                      <OIcon
+                        collection="heroicons"
+                        name="cog-6-tooth"
+                        class="size-4"
+                        aria-hidden="true" />
+                      {{ t('web.COMMON.configure') }}
+                    </router-link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </section>
       </div>
     </div>

@@ -57,7 +57,7 @@ Billing::Plan.clear_cache
 @identity_plan.entitlements.add('manage_teams')
 @identity_plan.entitlements.add('custom_domains')
 @identity_plan.entitlements.add('incoming_secrets')
-@identity_plan.entitlements.add('custom_mail_defaults')
+@identity_plan.entitlements.add('custom_mail_sender')
 @identity_plan.limits['teams.max']            = '1'
 @identity_plan.limits['members_per_team.max'] = 'unlimited'
 @identity_plan.limits['custom_domains.max']   = 'unlimited'
@@ -83,7 +83,7 @@ Billing::Plan.clear_cache
 @multi_plan.entitlements.add('custom_branding')
 @multi_plan.entitlements.add('homepage_secrets')
 @multi_plan.entitlements.add('incoming_secrets')
-@multi_plan.entitlements.add('custom_mail_defaults')
+@multi_plan.entitlements.add('custom_mail_sender')
 @multi_plan.entitlements.add('audit_logs')
 @multi_plan.limits['teams.max']            = 'unlimited'
 @multi_plan.limits['members_per_team.max'] = 'unlimited'

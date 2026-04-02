@@ -109,7 +109,7 @@ describe('jurisdictionStore', () => {
       }).toThrow(ApiError);
     });
 
-    it.skip('throws descriptive ApplicationError for non-existent jurisdiction', () => {
+    it('throws descriptive ApplicationError for non-existent jurisdiction', () => {
       store.init({ regions: mockRegionConfig });
 
       let thrownError: ApplicationError;
@@ -129,7 +129,7 @@ describe('jurisdictionStore', () => {
     });
 
     // Add a test for case sensitivity
-    it.skip('throws ApplicationError with correct details for case-sensitive match', () => {
+    it('throws ApplicationError with correct details for case-sensitive match', () => {
       store.init({ regions: mockRegionConfig });
 
       let thrownError: ApplicationError;
@@ -147,7 +147,7 @@ describe('jurisdictionStore', () => {
       });
     });
 
-    it.skip('throws ApplicationError for non-existent jurisdiction', () => {
+    it('throws ApplicationError for non-existent jurisdiction', () => {
       let thrownError: ApplicationError;
       try {
         store.findJurisdiction('non-existent');

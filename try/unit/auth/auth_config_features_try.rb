@@ -275,6 +275,131 @@ config.instance_variable_get(:@config)['mode'] = 'full'
 config.magic_links_enabled? == config.email_auth_enabled?
 #=> true
 
+# ── restrict_to tests ────────────────────────────────────────────────
+
+## restrict_to returns nil by default
+config = Onetime::AuthConfig.instance
+config.instance_variable_get(:@config)['mode'] = 'full'
+config.restrict_to
+#=> nil
+
+## restrict_to returns 'password' when set
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['restrict_to'] = 'password'
+result = config.restrict_to
+cfg['full']['restrict_to'] = nil
+result
+#=> "password"
+
+## restrict_to returns nil in simple mode
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'simple'
+cfg['full']['restrict_to'] = 'password'
+result = config.restrict_to
+cfg['full']['restrict_to'] = nil
+cfg['mode'] = 'full'
+result
+#=> nil
+
+## restrict_to ignores invalid values
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['restrict_to'] = 'carrier_pigeon'
+result = config.restrict_to
+cfg['full']['restrict_to'] = nil
+result
+#=> nil
+
+## password_only_enabled? returns true when restrict_to is 'password'
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['restrict_to'] = 'password'
+result = config.password_only_enabled?
+cfg['full']['restrict_to'] = nil
+result
+#=> true
+
+## password_only_enabled? returns false when restrict_to is something else
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['restrict_to'] = 'sso'
+result = config.password_only_enabled?
+cfg['full']['restrict_to'] = nil
+result
+#=> false
+
+## email_auth_only_enabled? returns false when email_auth is disabled
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['restrict_to'] = 'email_auth'
+cfg['full']['features']['email_auth'] = false
+result = config.email_auth_only_enabled?
+cfg['full']['restrict_to'] = nil
+result
+#=> false
+
+## email_auth_only_enabled? returns true when email_auth is enabled
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['restrict_to'] = 'email_auth'
+cfg['full']['features']['email_auth'] = true
+result = config.email_auth_only_enabled?
+cfg['full']['restrict_to'] = nil
+cfg['full']['features']['email_auth'] = false
+result
+#=> true
+
+## webauthn_only_enabled? returns false when webauthn is disabled
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['restrict_to'] = 'webauthn'
+cfg['full']['features']['webauthn'] = false
+result = config.webauthn_only_enabled?
+cfg['full']['restrict_to'] = nil
+result
+#=> false
+
+## webauthn_only_enabled? returns true when webauthn is enabled
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['restrict_to'] = 'webauthn'
+cfg['full']['features']['webauthn'] = true
+result = config.webauthn_only_enabled?
+cfg['full']['restrict_to'] = nil
+cfg['full']['features']['webauthn'] = false
+result
+#=> true
+
+## sso_only_enabled? returns true with restrict_to 'sso' and provider configured
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['features']['sso'] = true
+cfg['full']['restrict_to'] = 'sso'
+ENV['OIDC_ISSUER'] = 'https://example.com'
+ENV['OIDC_CLIENT_ID'] = 'test-client'
+result = config.sso_only_enabled?
+cfg['full']['features']['sso'] = false
+cfg['full']['restrict_to'] = nil
+ENV.delete('OIDC_ISSUER')
+ENV.delete('OIDC_CLIENT_ID')
+result
+#=> true
+
+## RESTRICT_TO_VALUES constant contains exactly four values
+Onetime::AuthConfig::RESTRICT_TO_VALUES
+#=> ["password", "email_auth", "webauthn", "sso"]
+
 # Teardown: Restore original method and clear singleton
 Onetime::Utils::ConfigResolver.define_singleton_method(:resolve, @original_resolve)
 Onetime::AuthConfig.instance_variable_set(:@singleton__instance__, nil)
