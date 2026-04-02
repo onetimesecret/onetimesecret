@@ -190,7 +190,46 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
     end
 
-    context 'when ValidationError is raised' do
+    context 'when ValidationError indicates domain already added' do
+      # Lettermint SDK quirk: sometimes returns ValidationError with "already added"
+      # message instead of 409 Conflict for duplicate domains. This test verifies
+      # we handle both error types identically.
+      let(:list_response) do
+        { 'data' => [{ 'id' => 'existing-uuid', 'domain' => 'example.com' }] }
+      end
+      let(:get_response) do
+        {
+          'id' => 'existing-uuid',
+          'domain' => 'example.com',
+          'status' => 'verified',
+          'created_at' => '2026-03-01T00:00:00Z',
+          'dns_records' => [
+            { 'type' => 'CNAME', 'name' => 'lm1._domainkey.example.com', 'value' => 'lm1.dkim.lettermint.com' },
+          ],
+        }
+      end
+
+      before do
+        allow(mock_domains).to receive(:create)
+          .with(domain: 'example.com')
+          .and_raise(Lettermint::ValidationError.new(message: 'Domain has already been added', error_type: 'validation'))
+        allow(mock_domains).to receive(:list)
+          .and_return(list_response)
+        allow(mock_domains).to receive(:find)
+          .with('existing-uuid', include: 'dnsRecords')
+          .and_return(get_response)
+      end
+
+      it 'falls back to GET and returns existing domain data' do
+        result = strategy.provision_dns_records(mailer_config, credentials: credentials)
+
+        expect(result[:success]).to be true
+        expect(result[:dns_records].size).to eq(1)
+        expect(result[:provider_data][:status]).to eq('verified')
+      end
+    end
+
+    context 'when ValidationError is raised (not duplicate)' do
       before do
         allow(mock_domains).to receive(:create)
           .and_raise(Lettermint::ValidationError.new(message: 'Invalid domain format', error_type: 'validation'))

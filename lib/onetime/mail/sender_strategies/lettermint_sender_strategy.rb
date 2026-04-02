@@ -362,10 +362,32 @@ module Onetime
 
           # Fetch full details with DNS records
           client.domains.find(domain_id, include: 'dnsRecords')
+        rescue Lettermint::ValidationError => ex
+          # KNOWN SDK QUIRK: Lettermint SDK (as of v0.2.x) sometimes returns
+          # ValidationError with message "Domain has already been added" instead
+          # of the expected 409 HttpRequestError for duplicate domains. We handle
+          # both error types identically to ensure idempotent domain provisioning.
+          # NOTE: ValidationError inherits from HttpRequestError, so this rescue
+          # must come BEFORE the HttpRequestError rescue.
+          msg = ex.message.to_s.downcase
+          log_info "[lettermint-sender] Caught ValidationError: #{ex.class} - #{msg.inspect}"
+          raise unless msg.include?('already') && msg.include?('added')
+
+          retrieve_existing_domain(client, domain)
         rescue Lettermint::HttpRequestError => ex
           raise unless ex.status_code == 409
 
-          # Domain already exists - find it in the list and retrieve
+          retrieve_existing_domain(client, domain)
+        end
+
+        # Retrieves an existing domain by name from Lettermint.
+        #
+        # @param client [Lettermint::TeamAPI] SDK client instance
+        # @param domain [String] Domain name (e.g., "example.com")
+        # @return [Hash] Parsed API response with id, domain, status, dns_records
+        # @raise [Lettermint::HttpRequestError] if domain not found
+        #
+        def retrieve_existing_domain(client, domain)
           log_info "[lettermint-sender] Domain #{domain} already exists, retrieving..."
           existing = find_domain_by_name(client, domain)
           raise Lettermint::HttpRequestError.new(message: "Domain #{domain} not found", status_code: 404) unless existing
