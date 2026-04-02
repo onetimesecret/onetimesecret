@@ -311,6 +311,25 @@ describe('incomingStore', () => {
       expect(store.isEntitlementBlocked).toBe(false);
     });
 
+    it('handles malformed 403 entitlement payload gracefully', async () => {
+      // Payload has entitlement field (so it's detected as entitlement error)
+      // but is missing required 'error' field, making it fail schema validation
+      axiosMock.onGet('/incoming/config').reply(403, {
+        entitlement: 'incoming_secrets',
+        // missing 'error' field required by entitlementErrorSchema
+        some_extra_field: 'unexpected',
+      });
+
+      const result = await store.loadConfig();
+
+      // Should not throw, instead use fallback entitlementError
+      expect(result).toBeUndefined();
+      expect(store.entitlementError).toEqual({
+        entitlement: 'incoming_secrets',
+      });
+      expect(store.isEntitlementBlocked).toBe(true);
+    });
+
     it('clears entitlementError on subsequent successful load', async () => {
       // First: entitlement error
       axiosMock.onGet('/incoming/config').replyOnce(403, {

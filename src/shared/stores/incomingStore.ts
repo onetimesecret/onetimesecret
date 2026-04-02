@@ -108,7 +108,15 @@ export const useIncomingStore = defineStore('incoming', () => {
         error.response?.status === 403 &&
         error.response.data?.entitlement === 'incoming_secrets'
       ) {
-        entitlementError.value = entitlementErrorSchema.parse(error.response.data);
+        // Use gracefulParse to avoid throwing inside catch block if payload is malformed
+        const entitlementResult = gracefulParse(
+          entitlementErrorSchema,
+          error.response.data,
+          'EntitlementError'
+        );
+        entitlementError.value = entitlementResult.ok
+          ? entitlementResult.data
+          : ({ entitlement: 'incoming_secrets' } as EntitlementError);
         return undefined;
       }
       throw error;
