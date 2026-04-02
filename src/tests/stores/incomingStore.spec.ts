@@ -268,7 +268,7 @@ describe('incomingStore', () => {
     });
 
     it('captures entitlement 403 without throwing', async () => {
-      axiosMock.onGet('/api/v3/incoming/config').reply(403, {
+      axiosMock.onGet('/incoming/config').reply(403, {
         error: 'Feature requires incoming secrets entitlement',
         entitlement: 'incoming_secrets',
       });
@@ -284,7 +284,7 @@ describe('incomingStore', () => {
     });
 
     it('parses full entitlement 403 payload with plan info', async () => {
-      axiosMock.onGet('/api/v3/incoming/config').reply(403, {
+      axiosMock.onGet('/incoming/config').reply(403, {
         error: 'Feature requires incoming secrets entitlement',
         entitlement: 'incoming_secrets',
         current_plan: 'free_v1',
@@ -302,7 +302,7 @@ describe('incomingStore', () => {
     });
 
     it('still throws non-entitlement 403 errors', async () => {
-      axiosMock.onGet('/api/v3/incoming/config').reply(403, {
+      axiosMock.onGet('/incoming/config').reply(403, {
         message: 'Access denied',
       });
 
@@ -313,7 +313,7 @@ describe('incomingStore', () => {
 
     it('clears entitlementError on subsequent successful load', async () => {
       // First: entitlement error
-      axiosMock.onGet('/api/v3/incoming/config').replyOnce(403, {
+      axiosMock.onGet('/incoming/config').replyOnce(403, {
         error: 'Feature requires incoming secrets entitlement',
         entitlement: 'incoming_secrets',
       });
@@ -321,7 +321,7 @@ describe('incomingStore', () => {
       expect(store.isEntitlementBlocked).toBe(true);
 
       // Second: success
-      axiosMock.onGet('/api/v3/incoming/config').replyOnce(200, {
+      axiosMock.onGet('/incoming/config').replyOnce(200, {
         config: mockConfig,
       });
       await store.loadConfig();
