@@ -64,8 +64,9 @@ module V3
 
           Onetime.secret_logger.debug "[IncomingSecret] Recipient hash: #{@recipient_hash} -> #{@recipient_email ? OT::Utils.obscure_email(@recipient_email) : 'not found'}"
 
-          # Set TTL from config or use default
-          @ttl = incoming_config['default_ttl'] || 604_800 # 7 days
+          # Set TTL from domain-aware config (custom domains use per-domain config)
+          domain_config = resolver.config_data
+          @ttl          = domain_config[:default_ttl] || 604_800 # 7 days fallback
 
           # Set passphrase from config (can be nil)
           @passphrase = incoming_config['default_passphrase']
