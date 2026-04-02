@@ -338,7 +338,7 @@ end
 
 ## Rate limit includes limit (max verifications)
 @result.rate_limit[:limit]
-#=> 10
+#=> 100
 
 # --- Result to_h ---
 
