@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/domain_validation/strategy'
+require 'onetime/domain_validation/features'
 require_relative '../base'
 
 module DomainsAPI::Logic
@@ -14,7 +15,7 @@ module DomainsAPI::Logic
     #   and default TTL. Requires the custom_branding entitlement.
     #   Returns the updated brand settings.
     class UpdateDomainBrand < DomainsAPI::Logic::Base
-      SCHEMAS = { response: 'brandSettings' }.freeze
+      SCHEMAS = { response: 'customDomain' }.freeze
 
       attr_reader :greenlighted, :brand_settings, :display_domain, :custom_domain
 
@@ -58,8 +59,10 @@ module DomainsAPI::Logic
         @custom_domain.instance_variable_set(:@brand_settings, nil)
         {
           user_id: @cust.objid,
-          record: @custom_domain.brand_settings.to_h,
-          details: {},
+          record: @custom_domain.safe_dump,
+          details: {
+            cluster: Onetime::DomainValidation::Features.safe_dump,
+          },
         }
       end
 
