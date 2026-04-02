@@ -12,16 +12,24 @@
 
   // Update control and scheduling
   timezone: 'America/Vancouver',
-  schedule: ['before 5am on Monday'],
+  schedule: ['before 5am on Thursday'],
+  minimumReleaseAge: '14 days',
   separateMinorPatch: false,
   separateMultipleMajor: true,
-  separateMultipleMinor: true,
+  separateMultipleMinor: false,
   recreateWhen: 'auto',
   rebaseWhen: 'auto',
 
+  // Security settings
+  vulnerabilityAlerts: {
+    labels: ['security'],
+    assignees: ['delano'],
+    schedule: 'at any time',
+  },
+
   // PR management
-  prConcurrentLimit: 15,
-  prHourlyLimit: 10,
+  prConcurrentLimit: 10,
+  prHourlyLimit: 5,
   labels: ['auto-update'],
   assignees: ['delano'],
   reviewers: [],
@@ -36,16 +44,9 @@
   automergeStrategy: 'merge-commit',
   major: { automerge: false },
   minor: { automerge: false },
-  patch: { automerge: true },
+  patch: { automerge: false },
   pin: { automerge: true },
   lockFileMaintenance: { automerge: true },
-
-  // Security settings
-  vulnerabilityAlerts: {
-    labels: ['security'],
-    assignees: ['delano'],
-    schedule: 'at any time',
-  },
 
   // Package-specific rules
   packageRules: [
