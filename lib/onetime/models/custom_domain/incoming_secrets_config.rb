@@ -37,7 +37,7 @@ module Onetime
         default_ttl: 604_800,
       }.freeze
 
-      MAX_RECIPIENTS = 20
+      MAX_RECIPIENTS  = 20
       MAX_NAME_LENGTH = 100
 
       attr_reader :recipients, :memo_max_length, :default_ttl
@@ -56,10 +56,10 @@ module Onetime
       end
 
       def initialize(data)
-        data = (data || {}).transform_keys(&:to_s)
-        @recipients = parse_recipients(data['recipients'])
-        @memo_max_length = data['memo_max_length'] || DEFAULTS[:memo_max_length]
-        @default_ttl = data['default_ttl'] || DEFAULTS[:default_ttl]
+        data             = (data || {}).transform_keys(&:to_s)
+        @recipients      = parse_recipients(data['recipients'])
+        @memo_max_length = normalize_positive_int(data['memo_max_length'], DEFAULTS[:memo_max_length])
+        @default_ttl     = normalize_positive_int(data['default_ttl'], DEFAULTS[:default_ttl])
       end
 
       # Serialize to JSON for Redis storage
@@ -91,7 +91,7 @@ module Onetime
       # @return [Hash<String, String>] Hash mapping recipient hashes to emails
       def incoming_recipient_lookup(site_secret)
         recipients.each_with_object({}) do |r, lookup|
-          hash_key = Digest::SHA256.hexdigest("#{r[:email]}:#{site_secret}")
+          hash_key         = Digest::SHA256.hexdigest("#{r[:email]}:#{site_secret}")
           lookup[hash_key] = r[:email]
         end
       end
@@ -106,9 +106,11 @@ module Onetime
       end
 
       # @return [Boolean] Whether any recipients are configured
+      # rubocop:disable Naming/PredicatePrefix
       def has_incoming_recipients?
         !recipients.empty?
       end
+      # rubocop:enable Naming/PredicatePrefix
 
       # Replace the recipients list
       #
@@ -129,15 +131,32 @@ module Onetime
 
       private
 
+      # Coerce value to a positive integer, falling back to default if invalid.
+      # Handles strings, nil, negative values, zero, and non-numeric types.
+      #
+      # @param value [Object] The value to coerce
+      # @param default [Integer] Fallback if coercion fails or result is non-positive
+      # @return [Integer] A positive integer
+      def normalize_positive_int(value, default)
+        int_val = value.to_i
+        int_val > 0 ? int_val : default
+      end
+
       def parse_recipients(raw)
         return [].freeze unless raw.is_a?(Array)
 
         raw.filter_map do |r|
-          r = r.transform_keys(&:to_s)
+          # Defensive: skip non-Hash entries (corrupted data, nil, strings, etc.)
+          next unless r.is_a?(Hash)
+
+          r     = r.transform_keys(&:to_s)
           email = r['email'].to_s.strip.downcase
           next if email.empty?
 
-          name = (r['name']&.strip || email.split('@').first).slice(0, MAX_NAME_LENGTH)
+          # Coerce name to string defensively (handles nil, non-string values)
+          name = r['name'].to_s.strip
+          name = email.split('@').first if name.empty?
+          name = name.slice(0, MAX_NAME_LENGTH)
           { email: email, name: name }
         end.take(MAX_RECIPIENTS).freeze
       end
