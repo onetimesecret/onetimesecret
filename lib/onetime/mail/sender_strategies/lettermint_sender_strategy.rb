@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require_relative 'base_sender_strategy'
-require 'lettermint'
 
 module Onetime
   module Mail
@@ -303,6 +302,18 @@ module Onetime
 
         private
 
+        # Lazy-loads the Lettermint gem on first use.
+        #
+        # Avoids loading the gem at boot time when Lettermint isn't configured.
+        # Thread-safe via Ruby's require semantics.
+        #
+        # @return [Module] The Lettermint module
+        #
+        def lettermint_sdk
+          require 'lettermint' unless defined?(::Lettermint)
+          ::Lettermint
+        end
+
         # Build Team API client from credentials.
         #
         # Domain provisioning uses the Team API with Bearer auth, NOT the
@@ -316,7 +327,7 @@ module Onetime
           base_url   = credentials[:base_url] || credentials['base_url']
           timeout    = credentials[:timeout] || credentials['timeout'] || 30
 
-          Lettermint::TeamAPI.new(
+          lettermint_sdk::TeamAPI.new(
             team_token: team_token,
             base_url: base_url || DEFAULT_BASE_URL,
             timeout: timeout,
