@@ -18,6 +18,7 @@ RSpec.describe Onetime::Operations::ValidateSenderDomain do
       'MailerConfig',
       domain_id: 'cd:test123',
       provider: 'ses',
+      effective_provider: 'ses',
       from_address: 'sender@example.com',
       custom_domain: mock_custom_domain,
       'verification_status=' => nil,
