@@ -42,9 +42,10 @@ module DomainsAPI
           @mailer_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@custom_domain.identifier)
           raise_form_error('No sender configuration found for this domain', field: :domain_id, error_type: :missing) unless @mailer_config
 
-          # Require a provider and from_address before validation makes sense
-          if @mailer_config.provider.to_s.empty? || @mailer_config.from_address.to_s.empty?
-            raise_form_error('Sender configuration must have provider and from_address before validation', field: :provider, error_type: :missing)
+          # Require from_address before validation makes sense
+          # (provider is resolved from installation-level configuration)
+          if @mailer_config.from_address.to_s.empty?
+            raise_form_error('Sender configuration must have from_address before validation', field: :from_address, error_type: :missing)
           end
         end
 

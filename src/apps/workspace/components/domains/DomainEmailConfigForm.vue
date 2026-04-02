@@ -133,11 +133,13 @@ const handleDelete = () => {
       </label>
       <input
         id="email-from-address"
-        v-model="fromAddress"
+        :value="fromAddress"
         type="email"
         required
+        autocomplete="off"
         :placeholder="t('web.domains.email.from_address_placeholder')"
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
+        @input="fromAddress = ($event.target as HTMLInputElement).value" />
     </div>
 
     <!-- Reply-To Address -->
@@ -149,10 +151,12 @@ const handleDelete = () => {
       </label>
       <input
         id="email-reply-to"
-        v-model="replyTo"
+        :value="replyTo"
         type="email"
+        autocomplete="off"
         :placeholder="t('web.domains.email.reply_to_placeholder')"
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
+        @input="replyTo = ($event.target as HTMLInputElement).value" />
     </div>
 
     <!-- Enabled Toggle -->

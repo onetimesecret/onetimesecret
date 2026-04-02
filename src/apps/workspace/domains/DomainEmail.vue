@@ -9,7 +9,7 @@
  * structure: header -> entitlement gate -> fallback notice -> form -> DNS.
  */
 import { useI18n } from 'vue-i18n';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -118,7 +118,16 @@ onBeforeRouteLeave((_to, _from, next) => {
 onMounted(async () => {
   await initializeDomain();
 
+  // Initialize email config if entitlement is already available
   if (hasEntitlement.value) {
+    await initializeEmailConfig();
+  }
+});
+
+// Handle race condition: organizations may load after onMounted runs.
+// Watch for entitlement to become true and initialize if needed.
+watch(hasEntitlement, async (entitled) => {
+  if (entitled && !isInitialized.value) {
     await initializeEmailConfig();
   }
 });

@@ -66,10 +66,10 @@ config = ProviderConfig.for('lettermint')
 config[:spf_cname_target]
 #=> 'bounces.lmta.net'
 
-## Lettermint default api_base_url is https://api.lettermint.com
+## Lettermint default api_base_url is https://api.lettermint.co
 config = ProviderConfig.for('lettermint')
 config[:api_base_url]
-#=> 'https://api.lettermint.com'
+#=> 'https://api.lettermint.co'
 
 # --- Explicit overrides take precedence ---
 
@@ -212,4 +212,4 @@ end
 ## Nil Lettermint api_base_url is filtered out and default is used
 config = ProviderConfig.for('lettermint', api_base_url: nil)
 config[:api_base_url]
-#=> 'https://api.lettermint.com'
+#=> 'https://api.lettermint.co'

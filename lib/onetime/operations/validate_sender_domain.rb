@@ -98,7 +98,7 @@ module Onetime
 
         logger.info 'Validating sender domain',
           domain: domain_name,
-          provider: @mailer_config.provider,
+          provider: effective_provider,
           persist: @persist,
           bypass_cache: @bypass_cache,
           rate_limit_remaining: rate_limit[:remaining]
@@ -121,7 +121,7 @@ module Onetime
 
         logger.info 'Sender domain validation complete',
           domain: domain_name,
-          provider: @mailer_config.provider,
+          provider: effective_provider,
           status: verification_status,
           records_checked: dns_records.size,
           duration_ms: duration_ms,
@@ -129,7 +129,7 @@ module Onetime
 
         Result.new(
           domain: domain_name,
-          provider: @mailer_config.provider.to_s,
+          provider: effective_provider.to_s,
           dns_records: dns_records,
           all_verified: all_verified,
           verification_status: verification_status,
@@ -152,7 +152,7 @@ module Onetime
 
         Result.new(
           domain: domain_name,
-          provider: @mailer_config&.provider.to_s,
+          provider: effective_provider.to_s,
           dns_records: [],
           all_verified: false,
           verification_status: 'rate_limited',
@@ -172,7 +172,7 @@ module Onetime
 
         logger.error 'Sender domain validation failed',
           domain: domain_name,
-          provider: @mailer_config&.provider,
+          provider: effective_provider,
           status: 'failed',
           error: ex.message,
           error_class: ex.class.name,
@@ -183,7 +183,7 @@ module Onetime
 
         Result.new(
           domain: domain_name,
-          provider: @mailer_config&.provider.to_s,
+          provider: effective_provider.to_s,
           dns_records: [],
           all_verified: false,
           verification_status: 'failed',
@@ -203,8 +203,24 @@ module Onetime
       # @param options [Hash] Provider-specific options (e.g. region: for SES)
       # @return [Array<Hash>] Required DNS records [{type:, host:, value:, purpose:}, ...]
       def self.required_records(mailer_config:, strategy: nil, options: {})
-        resolved_strategy = strategy || resolve_strategy(mailer_config.provider, options)
+        provider          = resolve_effective_provider(mailer_config)
+        resolved_strategy = strategy || resolve_strategy(provider, options)
         resolved_strategy.required_dns_records(mailer_config)
+      end
+
+      # Resolve effective provider for a mailer config.
+      #
+      # Uses mailer_config.provider if set, otherwise falls back to
+      # installation-level provider from Mailer.determine_provider.
+      #
+      # @param mailer_config [Onetime::CustomDomain::MailerConfig] The mailer config
+      # @return [String, nil] Provider name or nil if not resolvable
+      private_class_method def self.resolve_effective_provider(mailer_config)
+        provider = mailer_config.provider.to_s.strip
+        return provider unless provider.empty?
+
+        # Fallback to installation config
+        Onetime::Mail::Mailer.send(:determine_provider)
       end
 
       private
@@ -214,7 +230,21 @@ module Onetime
       #
       # @return [Object] A strategy responding to #verify_dns_records and #required_dns_records
       def strategy
-        @strategy ||= self.class.send(:resolve_strategy, @mailer_config.provider, @options)
+        @strategy ||= self.class.send(:resolve_strategy, effective_provider, @options)
+      end
+
+      # Resolve effective provider for this operation.
+      #
+      # Uses mailer_config.provider if set, otherwise falls back to
+      # installation-level provider from Mailer.determine_provider.
+      #
+      # @return [String, nil] Provider name or nil if not resolvable
+      def effective_provider
+        provider = @mailer_config.provider.to_s.strip
+        return provider unless provider.empty?
+
+        # Fallback to installation config
+        Onetime::Mail::Mailer.send(:determine_provider)
       end
 
       # Factory lookup for sender strategies by provider name.

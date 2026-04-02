@@ -131,6 +131,7 @@ module DomainsAPI
             from_address: @from_address,
             reply_to: @reply_to,
             enabled: @enabled,
+            sending_mode: 'platform',  # Platform mode: OTS provisions DNS via provider API
           )
         end
 
@@ -205,7 +206,8 @@ module DomainsAPI
         #
         def auto_provision_if_needed
           return if @mailer_config.provisioned?
-          return if @mailer_config.sending_mode != 'platform'
+          # Platform mode is the only supported mode; treat nil as platform for backwards compat
+          return unless @mailer_config.sending_mode.to_s.empty? || @mailer_config.sending_mode == 'platform'
 
           require 'onetime/operations/provision_sender_domain'
 
