@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { isSsoEnabled } from '@/utils/features';
+  import { isSsoEnabled, isOrgsSsoEnabled } from '@/utils/features';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { ref, computed } from 'vue';
   import { storeToRefs } from 'pinia';
@@ -19,7 +19,8 @@
   /**
    * Show Sign In link when signin route is available AND either:
    * - Platform authentication is enabled (authentication.enabled), OR
-   * - Domain-level SSO is configured (features.sso.enabled)
+   * - Platform-level SSO is configured (features.sso.enabled), OR
+   * - Domain-level SSO is enabled (features.organizations.sso_enabled)
    *
    * This ensures custom domains with SSO see the sign-in link even when
    * platform-level AUTH_ENABLED=false.
@@ -27,9 +28,10 @@
   const showSignIn = computed(() => {
     const hasSigninRoute = authentication.value?.signin === true;
     const platformAuthEnabled = authentication.value?.enabled === true;
-    const domainSsoEnabled = isSsoEnabled();
+    const platformSsoEnabled = isSsoEnabled();
+    const domainSsoEnabled = isOrgsSsoEnabled();
 
-    return hasSigninRoute && (platformAuthEnabled || domainSsoEnabled);
+    return hasSigninRoute && (platformAuthEnabled || platformSsoEnabled || domainSsoEnabled);
   });
 
   const handleImageError = () => {
