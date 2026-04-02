@@ -4,8 +4,9 @@
   import { useI18n } from 'vue-i18n';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { isSsoEnabled, isOrgsSsoEnabled } from '@/utils/features';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { ref } from 'vue';
+  import { ref, computed } from 'vue';
   import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
@@ -14,6 +15,24 @@
   const bootstrapStore = useBootstrapStore();
   const { authentication } = storeToRefs(bootstrapStore);
   const imageError = ref(false);
+
+  /**
+   * Show Sign In link when signin route is available AND either:
+   * - Platform authentication is enabled (authentication.enabled), OR
+   * - Platform-level SSO is configured (features.sso.enabled), OR
+   * - Domain-level SSO is enabled (features.organizations.sso_enabled)
+   *
+   * This ensures custom domains with SSO see the sign-in link even when
+   * platform-level AUTH_ENABLED=false.
+   */
+  const showSignIn = computed(() => {
+    const hasSigninRoute = authentication.value?.signin === true;
+    const platformAuthEnabled = authentication.value?.enabled === true;
+    const platformSsoEnabled = isSsoEnabled();
+    const domainSsoEnabled = isOrgsSsoEnabled();
+
+    return hasSigninRoute && (platformAuthEnabled || platformSsoEnabled || domainSsoEnabled);
+  });
 
   const handleImageError = () => {
     imageError.value = true;
@@ -36,7 +55,7 @@
   <div class="relative bg-white py-8 transition-colors duration-200 dark:bg-gray-900">
     <!-- Sign In Link (for custom domain SSO users) -->
     <nav
-      v-if="authentication?.enabled && authentication?.signin"
+      v-if="showSignIn"
       class="absolute right-4 top-4"
       role="navigation"
       :aria-label="t('web.layout.main_navigation')">

@@ -34,6 +34,7 @@ module AuthModeHelpers
       @email_auth_enabled = options.fetch(:email_auth_enabled, false)
       @webauthn_enabled = options.fetch(:webauthn_enabled, false)
       @sso_enabled = options.fetch(:sso_enabled, false)  # SSO disabled by default in tests
+      @orgs_sso_enabled = options.fetch(:orgs_sso_enabled, false)  # Domain-level SSO disabled by default
       @restrict_to = options.fetch(:restrict_to, nil)  # nil = show all enabled methods
       @omniauth_provider_name = options.fetch(:omniauth_provider_name, nil)
     end
@@ -85,6 +86,13 @@ module AuthModeHelpers
 
     def sso_enabled?
       @sso_enabled
+    end
+
+    # Domain-level SSO for custom domains (ORGS_SSO_ENABLED)
+    # Allows SSO routes to be registered even when platform AUTH_SSO_ENABLED=false,
+    # with credentials injected at runtime by OmniAuthTenant hook.
+    def orgs_sso_enabled?
+      @orgs_sso_enabled
     end
 
     # DEPRECATED: Alias for sso_enabled? — retained for Rodauth integration

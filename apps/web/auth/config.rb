@@ -130,7 +130,12 @@ module Auth
       end
 
       # OmniAuth: external identity providers (SSO via OIDC)
-      if Onetime.auth_config.omniauth_enabled?
+      # Routes are registered when either:
+      # - AUTH_SSO_ENABLED=true (platform-level SSO with env var credentials)
+      # - ORGS_SSO_ENABLED=true (domain-level SSO with DB credentials)
+      # When only orgs_sso_enabled?, platform providers may be empty but routes
+      # must exist for OmniAuthTenant hook to inject tenant credentials at runtime.
+      if Onetime.auth_config.omniauth_enabled? || Onetime.auth_config.orgs_sso_enabled?
         Features::OmniAuth.configure(self)
         Hooks::OmniAuth.configure(self)
         Hooks::OmniAuthTenant.configure(self)

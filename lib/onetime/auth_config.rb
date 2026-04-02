@@ -141,6 +141,20 @@ module Onetime
     # that reference omniauth_enabled? (apps/web/auth/).
     alias omniauth_enabled? sso_enabled?
 
+    # Whether organization-level SSO (per-domain SSO) is enabled.
+    # Default: false
+    #
+    # When true, organizations with manage_sso entitlement can configure
+    # domain-specific SSO via CustomDomain::SsoConfig. Credentials are
+    # injected at runtime by OmniAuthTenant hook rather than requiring
+    # platform-level environment variables.
+    #
+    # Reads from ORGS_SSO_ENABLED env var via features.organizations.sso_enabled
+    # in site config (etc/config.yaml).
+    def orgs_sso_enabled?
+      OT.conf.dig('features', 'organizations', 'sso_enabled') == true
+    end
+
     # The login-page restriction, if any.
     # Returns one of RESTRICT_TO_VALUES ('password', 'email_auth',
     # 'webauthn', 'sso') or nil when all enabled methods are shown.
