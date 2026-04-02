@@ -95,7 +95,7 @@ module Onetime
             },
           }
         rescue Lettermint::ValidationError => ex
-          log_error "[lettermint-sender] Validation error for #{domain}: #{ex.message}"
+          log_error "[lettermint-sende2] Validation error for #{domain}: #{ex.message}"
           {
             success: false,
             message: "Validation error: #{ex.message}",
@@ -365,7 +365,24 @@ module Onetime
         rescue Lettermint::HttpRequestError => ex
           raise unless ex.status_code == 409
 
-          # Domain already exists - find it in the list and retrieve
+          retrieve_existing_domain(client, domain)
+        rescue Lettermint::ValidationError => ex
+          # SDK raises ValidationError for "already added" instead of 409
+          msg = ex.message.to_s.downcase
+          log_info "[lettermint-sender] Caught ValidationError: #{ex.class} - #{msg.inspect}"
+          raise unless msg.include?('already') && msg.include?('added')
+
+          retrieve_existing_domain(client, domain)
+        end
+
+        # Retrieves an existing domain by name from Lettermint.
+        #
+        # @param client [Lettermint::TeamAPI] SDK client instance
+        # @param domain [String] Domain name (e.g., "example.com")
+        # @return [Hash] Parsed API response with id, domain, status, dns_records
+        # @raise [Lettermint::HttpRequestError] if domain not found
+        #
+        def retrieve_existing_domain(client, domain)
           log_info "[lettermint-sender] Domain #{domain} already exists, retrieving..."
           existing = find_domain_by_name(client, domain)
           raise Lettermint::HttpRequestError.new(message: "Domain #{domain} not found", status_code: 404) unless existing
