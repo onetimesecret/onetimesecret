@@ -9,7 +9,7 @@ require 'onetime/mail/sender_strategies/lettermint_sender_strategy'
 RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
   let(:strategy) { described_class.new }
   # Team API uses Bearer auth (team_token), not x-lettermint-token (api_token)
-  let(:credentials) { { team_token: 'lm-team-token-example', base_url: 'https://api.lettermint.com/v1' } }
+  let(:credentials) { { team_token: 'lm-team-token-example', base_url: 'https://api.lettermint.co/v1' } }
   let(:mailer_config) do
     double('MailerConfig', from_address: 'sender@example.com')
   end

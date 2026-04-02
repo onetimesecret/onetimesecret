@@ -535,7 +535,7 @@ email_providers:
     team_token: <%= ENV['LETTERMINT_TEAM_TOKEN'] %>
     # API base URL (for enterprise/on-premise deployments)
     # Override via LETTERMINT_BASE_URL env var
-    api_base_url: <%= ENV['LETTERMINT_BASE_URL'] || 'https://api.lettermint.com/v1' %>
+    api_base_url: <%= ENV['LETTERMINT_BASE_URL'] || 'https://api.lettermint.co/v1' %>
     # DKIM selector names (comma-separated for env var)
     # Override via EMAIL_PROVIDERS_LETTERMINT_DKIM_SELECTORS env var
     dkim_selectors: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_DKIM_SELECTORS']&.split(',')&.map(&:strip) || ['lm1', 'lm2'] %>

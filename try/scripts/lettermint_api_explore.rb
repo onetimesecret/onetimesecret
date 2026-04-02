@@ -29,7 +29,7 @@ require 'faraday'
 require 'json'
 
 class LettermintExplorer
-  BASE_URL = 'https://api.lettermint.com/v1'
+  BASE_URL = 'https://api.lettermint.co/v1'
 
   def initialize(team_token: nil, sending_token: nil, base_url: nil)
     @team_token = team_token
@@ -228,7 +228,7 @@ if team_token.nil? && sending_token.nil?
   puts "  LETTERMINT_API_TOKEN=xxx bundle exec ruby #{__FILE__} ping"
   puts
   puts "Options:"
-  puts "  LETTERMINT_BASE_URL - Override base URL (default: https://api.lettermint.com/v1)"
+  puts "  LETTERMINT_BASE_URL - Override base URL (default: https://api.lettermint.co/v1)"
   exit 1
 end
 

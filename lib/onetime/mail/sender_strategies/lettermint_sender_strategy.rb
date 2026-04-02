@@ -33,12 +33,12 @@ module Onetime
       # Configuration:
       #   team_token: Lettermint Team API token (for domain provisioning)
       #   api_token:  Lettermint Sending API token (for email delivery)
-      #   base_url:   Custom API base URL (optional, default: https://api.lettermint.com/v1)
+      #   base_url:   Custom API base URL (optional, default: https://api.lettermint.co/v1)
       #
       class LettermintSenderStrategy < BaseSenderStrategy
         # Default API base URL for Team API. Can be overridden via credentials[:base_url]
         # or LETTERMINT_BASE_URL env var (loaded via ProviderConfig).
-        DEFAULT_BASE_URL = 'https://api.lettermint.com/v1'
+        DEFAULT_BASE_URL = 'https://api.lettermint.co/v1'
 
         # Provisions sender DNS records through Lettermint's Domain API.
         #
