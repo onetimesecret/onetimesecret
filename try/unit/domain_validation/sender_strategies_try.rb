@@ -169,32 +169,31 @@ end
 
 # --- Lettermint record generation ---
 
-## Lettermint produces 3 DNS records (2 CNAME + 1 TXT)
+## Lettermint produces 3 DNS records (3 CNAME: 2 DKIM + 1 SPF)
 @lm_records.size
 #=> 3
 
-## Lettermint has 2 CNAME records (DKIM)
+## Lettermint has 3 CNAME records (2 DKIM + 1 SPF bounce handling)
 @lm_records.count { |r| r[:type] == 'CNAME' }
-#=> 2
+#=> 3
 
-## Lettermint has 1 TXT record (SPF)
+## Lettermint has no TXT records (SPF is via CNAME)
 @lm_records.count { |r| r[:type] == 'TXT' }
-#=> 1
+#=> 0
 
 ## Lettermint has no MX records
 @lm_records.count { |r| r[:type] == 'MX' }
 #=> 0
 
 ## Lettermint DKIM CNAMEs use lm1 and lm2 selectors
-@lm_dkim = @lm_records.select { |r| r[:type] == 'CNAME' }
+@lm_dkim = @lm_records.select { |r| r[:type] == 'CNAME' && r[:host].include?('._domainkey.') }
 @lm_dkim.map { |r| r[:host].split('.').first }.sort
 #=> ['lm1', 'lm2']
 
-## Lettermint SPF record includes lettermint.com
-@lm_spf = @lm_records.find { |r| r[:type] == 'TXT' }
-# SPF TXT record value assertion, not URL sanitization (CodeQL rb/incomplete-url-substring-sanitization)
-@lm_spf[:value].include?('lettermint.com')
-#=> true
+## Lettermint SPF CNAME points to bounces.lmta.net
+@lm_spf_cname = @lm_records.find { |r| r[:type] == 'CNAME' && r[:purpose].include?('SPF') }
+@lm_spf_cname[:value]
+#=> 'bounces.lmta.net'
 
 # --- Record hash structure ---
 
@@ -279,9 +278,9 @@ Onetime::DomainValidation::SenderStrategies::SesValidation.accepted_options
 Onetime::DomainValidation::SenderStrategies::SendgridValidation.accepted_options
 #=> [:subdomain, :dkim_selectors, :spf_include]
 
-## Lettermint declares accepted_options including dkim_selectors, spf_include
+## Lettermint declares accepted_options including dkim_selectors, spf_cname_prefix, spf_cname_target
 Onetime::DomainValidation::SenderStrategies::LettermintValidation.accepted_options
-#=> [:dkim_selectors, :spf_include]
+#=> [:dkim_selectors, :spf_cname_prefix, :spf_cname_target]
 
 ## Factory rejects unknown option for SES with clear error
 begin
