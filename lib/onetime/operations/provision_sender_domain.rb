@@ -229,7 +229,9 @@ module Onetime
                    when 'sendgrid'
                      [:api_key]
                    when 'lettermint'
-                     [:api_token]
+                     # Team API token for domain provisioning (Bearer auth)
+                     # Different from api_token used for Sending API (x-lettermint-token)
+                     [:team_token]
                    when 'smtp'
                      [:host]
                    else

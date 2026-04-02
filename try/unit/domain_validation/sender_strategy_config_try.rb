@@ -70,8 +70,12 @@ SendgridValidation.accepted_options.include?(:spf_include)
 LettermintValidation.accepted_options.include?(:dkim_selectors)
 #=> true
 
-## Lettermint accepts_options includes spf_include
-LettermintValidation.accepted_options.include?(:spf_include)
+## Lettermint accepts_options includes spf_cname_prefix
+LettermintValidation.accepted_options.include?(:spf_cname_prefix)
+#=> true
+
+## Lettermint accepts_options includes spf_cname_target
+LettermintValidation.accepted_options.include?(:spf_cname_target)
 #=> true
 
 # --- Factory uses ProviderConfig defaults ---
@@ -167,12 +171,12 @@ dkim_record = records.find { |r| r[:purpose].include?('DKIM signature 1') }
 dkim_record[:host].start_with?('k1._domainkey.')
 #=> true
 
-## Lettermint with custom spf_include uses it in CNAME values
-strategy = SenderStrategy.for_provider('lettermint', spf_include: 'custom-lm.example.com')
+## Lettermint with custom spf_cname_target uses it in SPF CNAME value
+strategy = SenderStrategy.for_provider('lettermint', spf_cname_target: 'custom.bounces.example.com')
 records = strategy.required_dns_records(@config)
-dkim_record = records.find { |r| r[:purpose].include?('DKIM signature 1') }
-dkim_record[:value].include?('custom-lm.example.com')
-#=> true
+spf_record = records.find { |r| r[:purpose].include?('SPF') }
+spf_record[:value]
+#=> 'custom.bounces.example.com'
 
 # --- Backward compatibility: default values match legacy constants ---
 
@@ -217,7 +221,7 @@ link_record[:host].start_with?('tracking.')
 #=> true
 
 ## Lettermint strategy can be instantiated directly with options
-strategy = LettermintValidation.new(dkim_selectors: ['custom1'], spf_include: 'custom.example.com')
+strategy = LettermintValidation.new(dkim_selectors: ['custom1'], spf_cname_target: 'custom.bounces.example.com')
 records = strategy.required_dns_records(@config)
 records.size
 #=> 2

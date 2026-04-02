@@ -210,7 +210,7 @@ GEM
     kramdown-parser-gfm (1.1.0)
       kramdown (~> 2.0)
     language_server-protocol (3.17.0.5)
-    lettermint (0.1.0)
+    lettermint (0.2.0)
       faraday (~> 2.0)
     lint_roller (1.1.0)
     listen (3.10.0)
@@ -632,7 +632,7 @@ DEPENDENCIES
   json_schemer
   kanayago (~> 0.7)
   kicks (~> 3.0)
-  lettermint (~> 0.1.0)
+  lettermint (~> 0.2.0)
   logger
   mail
   mustache

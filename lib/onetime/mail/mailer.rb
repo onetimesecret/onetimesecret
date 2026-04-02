@@ -265,9 +265,13 @@ module Onetime
               api_key: conf['sendgrid_api_key'] || conf['pass'] || ENV.fetch('SENDGRID_API_KEY', nil),
             }
           when 'lettermint'
+            lm_conf = provider_config('lettermint')
             {
-              api_token: conf['lettermint_api_token'] || conf['pass'] || ENV.fetch('LETTERMINT_API_TOKEN', nil),
-              base_url: conf['lettermint_base_url'] || ENV.fetch('LETTERMINT_BASE_URL', nil),
+              # Sending API token (x-lettermint-token header) - for email delivery
+              api_token: conf['lettermint_api_token'] || lm_conf['api_token'] || conf['pass'] || ENV.fetch('LETTERMINT_API_TOKEN', nil),
+              # Team API token (Authorization: Bearer header) - for domain provisioning
+              team_token: conf['lettermint_team_token'] || lm_conf['team_token'] || ENV.fetch('LETTERMINT_TEAM_TOKEN', nil),
+              base_url: conf['lettermint_base_url'] || lm_conf['api_base_url'] || ENV.fetch('LETTERMINT_BASE_URL', nil),
               timeout: conf['lettermint_timeout'],
             }.compact
           else
@@ -281,6 +285,13 @@ module Onetime
           OT.conf['emailer'] || OT.conf[:emailer] || {}
         end
 
+        def provider_config(provider)
+          return {} unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
+
+          providers = OT.conf['email_providers'] || OT.conf[:email_providers] || {}
+          providers[provider] || providers[provider.to_sym] || {}
+        end
+
         def reply_to_address(template)
           # Some templates may have a specific reply-to
           template.data[:reply_to] || template.data[:sender_email]
@@ -289,7 +300,9 @@ module Onetime
         def extract_email_address(value)
           return nil if value.nil?
 
-          if value.respond_to?(:first)
+          # Check for Array specifically, not respond_to?(:first)
+          # because String#first returns the first character in Ruby 3.x
+          if value.is_a?(Array)
             value.first&.to_s
           else
             value.to_s

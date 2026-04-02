@@ -12,24 +12,32 @@ module Onetime
       # Provisions sender authentication through Lettermint's Domain API.
       #
       # Lettermint provides DKIM configuration via selector-based CNAME records
-      # and SPF TXT records that must be added to the domain's DNS.
+      # and SPF via a Return-Path CNAME record (no direct SPF TXT record needed).
       #
       # Example DNS records for domain "example.com":
       #   lm1._domainkey.example.com CNAME lm1.dkim.lettermint.com
       #   lm2._domainkey.example.com CNAME lm2.dkim.lettermint.com
-      #   example.com TXT "v=spf1 include:lettermint.com ~all"
+      #   lm-bounces.example.com     CNAME bounces.lmta.net
       #
-      # API Endpoints:
-      #   - POST   /api/v1/domains          Create domain, returns DNS records
-      #   - GET    /api/v1/domains/:domain   Get domain status and records
-      #   - DELETE /api/v1/domains/:domain   Remove domain
+      # Lettermint has TWO separate APIs:
+      #   1. Sending API - uses x-lettermint-token header (project token)
+      #   2. Team API    - uses Authorization: Bearer header (team token)
+      #
+      # Domain provisioning uses the Team API:
+      #   - POST   /domains              Create domain, returns DNS records
+      #   - GET    /domains/:id          Get domain status and records
+      #   - DELETE /domains/:id          Remove domain
+      #   - POST   /domains/:id/dns-records/verify  Verify DNS records
       #
       # Configuration:
-      #   api_token: Lettermint API token
-      #   base_url:  Custom API base URL (optional)
+      #   team_token: Lettermint Team API token (for domain provisioning)
+      #   api_token:  Lettermint Sending API token (for email delivery)
+      #   base_url:   Custom API base URL (optional, default: https://api.lettermint.co/v1)
       #
       class LettermintSenderStrategy < BaseSenderStrategy
-        DEFAULT_BASE_URL = 'https://api.lettermint.com'
+        # Default API base URL for Team API. Can be overridden via credentials[:base_url]
+        # or LETTERMINT_BASE_URL env var (loaded via ProviderConfig).
+        DEFAULT_BASE_URL = 'https://api.lettermint.co/v1'
 
         # Provisions sender DNS records through Lettermint's Domain API.
         #
@@ -57,13 +65,13 @@ module Onetime
             }
           end
 
-          api_token = credentials[:api_token] || credentials['api_token']
-          unless api_token && !api_token.empty?
+          team_token = credentials[:team_token] || credentials['team_token']
+          unless team_token && !team_token.empty?
             return {
               success: false,
-              message: 'Lettermint API token is required',
+              message: 'Lettermint Team API token is required for domain provisioning',
               dns_records: [],
-              error: 'missing_api_token',
+              error: 'missing_team_token',
             }
           end
 
@@ -138,10 +146,11 @@ module Onetime
 
         # Checks verification status of a sender domain.
         #
-        # Queries Lettermint for the domain's current verification state.
+        # Queries Lettermint Team API for the domain's current verification state.
+        # Uses filter to find domain by name, then fetches details with DNS records.
         #
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
-        # @param credentials [Hash] Must include :api_token
+        # @param credentials [Hash] Must include :team_token
         # @return [Hash] Verification status:
         #   - :verified [Boolean]
         #   - :status [String] 'verified', 'pending', 'not_found', 'error'
@@ -159,48 +168,54 @@ module Onetime
             }
           end
 
-          api_token = credentials[:api_token] || credentials['api_token']
-          unless api_token && !api_token.empty?
+          team_token = credentials[:team_token] || credentials['team_token']
+          unless team_token && !team_token.empty?
             return {
               verified: false,
               status: 'error',
-              message: 'Lettermint API token is required',
+              message: 'Lettermint Team API token is required',
             }
           end
 
           log_info "[lettermint-sender] Checking verification status for #{domain}"
 
-          client   = build_client(credentials)
-          response = client.get(path: "/api/v1/domains/#{domain}")
+          client = build_client(credentials)
 
-          # Lettermint returns: { domain:, status:, verified:, dns_records: [...] }
-          verified = response['verified'] == true || response['status'] == 'verified'
-          status   = response['status'] || 'unknown'
+          # Find domain by name to get its ID
+          domain_entry = find_domain_by_name(client, domain)
 
-          {
-            verified: verified,
-            status: status.downcase,
-            message: verification_message(domain, verified, status),
-            details: {
-              dns_records: normalize_dns_records(response['dns_records'] || []),
-              domain: response['domain'],
-            },
-          }
-        rescue Lettermint::HttpRequestError => ex
-          if ex.status_code == 404
-            {
+          unless domain_entry
+            return {
               verified: false,
               status: 'not_found',
               message: "Domain #{domain} not found in Lettermint",
             }
-          else
-            log_error "[lettermint-sender] Verification check failed for #{domain}: #{ex.message}"
-            {
-              verified: false,
-              status: 'error',
-              message: "Verification check failed: #{ex.message}",
-            }
           end
+
+          # Fetch full details with DNS records
+          response = client.domains.find(domain_entry['id'], include: 'dnsRecords')
+
+          # Status enum: verified, partially_verified, pending_verification, failed_verification
+          status   = response['status'] || domain_entry['status'] || 'unknown'
+          verified = status == 'verified'
+
+          {
+            verified: verified,
+            status: status.downcase.tr('_', '-'),
+            message: verification_message(domain, verified, status),
+            details: {
+              dns_records: normalize_dns_records(response['dns_records'] || []),
+              domain: response['domain'],
+              domain_id: response['id'],
+            },
+          }
+        rescue Lettermint::HttpRequestError => ex
+          log_error "[lettermint-sender] Verification check failed for #{domain}: #{ex.message}"
+          {
+            verified: false,
+            status: 'error',
+            message: "Verification check failed: #{ex.message}",
+          }
         rescue StandardError => ex
           log_error "[lettermint-sender] Verification check failed: #{ex.message}"
           {
@@ -213,7 +228,7 @@ module Onetime
         # Deletes a sender domain from Lettermint.
         #
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
-        # @param credentials [Hash] Must include :api_token
+        # @param credentials [Hash] Must include :team_token
         # @return [Hash] Deletion result:
         #   - :deleted [Boolean]
         #   - :message [String]
@@ -228,18 +243,30 @@ module Onetime
             }
           end
 
-          api_token = credentials[:api_token] || credentials['api_token']
-          unless api_token && !api_token.empty?
+          team_token = credentials[:team_token] || credentials['team_token']
+          unless team_token && !team_token.empty?
             return {
               deleted: false,
-              message: 'Lettermint API token is required',
+              message: 'Lettermint Team API token is required',
             }
           end
 
           log_info "[lettermint-sender] Deleting sender domain for #{domain}"
 
           client = build_client(credentials)
-          client.delete(path: "/api/v1/domains/#{domain}")
+
+          # Find domain by name to get its ID
+          domain_entry = find_domain_by_name(client, domain)
+
+          unless domain_entry
+            # Domain doesn't exist - treat as successful deletion
+            return {
+              deleted: true,
+              message: "Domain #{domain} was already deleted or never existed",
+            }
+          end
+
+          client.domains.delete(domain_entry['id'])
 
           {
             deleted: true,
@@ -275,37 +302,75 @@ module Onetime
 
         private
 
-        # Build Lettermint HTTP client from credentials.
+        # Lazy-loads the Lettermint gem on first use.
         #
-        # @param credentials [Hash] Must include :api_token, optionally :base_url
-        # @return [Lettermint::HttpClient]
+        # Avoids loading the gem at boot time when Lettermint isn't configured.
+        # Thread-safe via Ruby's require semantics.
+        #
+        # @return [Module] The Lettermint module
+        #
+        def lettermint_sdk
+          require 'lettermint' unless defined?(::Lettermint)
+          ::Lettermint
+        end
+
+        # Build Team API client from credentials.
+        #
+        # Domain provisioning uses the Team API with Bearer auth, NOT the
+        # Sending API (x-lettermint-token).
+        #
+        # @param credentials [Hash] Must include :team_token, optionally :base_url
+        # @return [Lettermint::TeamAPI] SDK client instance
         #
         def build_client(credentials)
-          api_token = credentials[:api_token] || credentials['api_token']
-          base_url  = credentials[:base_url] || credentials['base_url'] || DEFAULT_BASE_URL
-          timeout   = credentials[:timeout] || credentials['timeout'] || 30
+          team_token = credentials[:team_token] || credentials['team_token']
+          base_url   = credentials[:base_url] || credentials['base_url']
+          timeout    = credentials[:timeout] || credentials['timeout'] || 30
 
-          require 'lettermint'
-          Lettermint::HttpClient.new(
-            api_token: api_token,
-            base_url: base_url,
+          lettermint_sdk::TeamAPI.new(
+            team_token: team_token,
+            base_url: base_url || DEFAULT_BASE_URL,
             timeout: timeout,
           )
         end
 
+        # Find a domain by name using the Team API.
+        #
+        # WARNING: This implementation does not handle pagination. If the account
+        # has many domains and the target domain is not in the first page of
+        # results, this lookup will fail to find it. For accounts with many
+        # domains, consider implementing cursor-based pagination.
+        #
+        # @param client [Lettermint::TeamAPI] SDK client instance
+        # @param domain [String] Domain name to find (e.g., "example.com")
+        # @return [Hash, nil] Domain entry hash with 'id' key, or nil if not found
+        #
+        def find_domain_by_name(client, domain)
+          result = client.domains.list
+          result['data']&.find { |d| d['domain'] == domain }
+        end
+
         # Creates a new domain or retrieves existing one on 409 conflict.
         #
-        # @param client [Lettermint::HttpClient]
-        # @param domain [String]
-        # @return [Hash] Parsed API response
+        # @param client [Lettermint::TeamAPI] SDK client instance
+        # @param domain [String] Domain name (e.g., "example.com")
+        # @return [Hash] Parsed API response with id, domain, status, dns_records
         #
         def create_or_get_domain(client, domain)
-          client.post(path: '/api/v1/domains', data: { domain: domain })
+          response  = client.domains.create(domain: domain)
+          domain_id = response['id']
+
+          # Fetch full details with DNS records
+          client.domains.find(domain_id, include: 'dnsRecords')
         rescue Lettermint::HttpRequestError => ex
           raise unless ex.status_code == 409
 
+          # Domain already exists - find it in the list and retrieve
           log_info "[lettermint-sender] Domain #{domain} already exists, retrieving..."
-          client.get(path: "/api/v1/domains/#{domain}")
+          existing = find_domain_by_name(client, domain)
+          raise Lettermint::HttpRequestError.new(message: "Domain #{domain} not found", status_code: 404) unless existing
+
+          client.domains.find(existing['id'], include: 'dnsRecords')
         end
 
         # Normalize Lettermint DNS records to standard format.

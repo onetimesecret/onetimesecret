@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative 'base_strategy'
+
 module Onetime
   module DomainValidation
     module SenderStrategies
@@ -9,25 +11,31 @@ module Onetime
       #
       # Lettermint domain verification requires:
       #   - 2 CNAME records for DKIM (lm1, lm2 selectors)
-      #   - 1 TXT record for SPF alignment
+      #   - 1 CNAME record for SPF/Return-Path (lm-bounces subdomain)
+      #
+      # SPF is handled via CNAME, not a direct TXT record. Lettermint maintains
+      # the SPF record at bounces.lmta.net, so users only need the CNAME.
       #
       # Reference: Lettermint documentation (provider-specific)
       #
       class LettermintValidation < BaseStrategy
         # Legacy constants preserved for backward compatibility.
         # New code should rely on ProviderConfig defaults.
-        DKIM_SELECTORS = %w[lm1 lm2].freeze
-        SPF_INCLUDE    = 'lettermint.com'
+        DKIM_SELECTORS   = %w[lm1 lm2].freeze
+        SPF_CNAME_PREFIX = 'lm-bounces'
+        SPF_CNAME_TARGET = 'bounces.lmta.net'
 
         def self.accepted_options
-          [:dkim_selectors, :spf_include].freeze
+          [:dkim_selectors, :spf_cname_prefix, :spf_cname_target].freeze
         end
 
         # @param dkim_selectors [Array<String>] DKIM selector names (default: ['lm1', 'lm2'])
-        # @param spf_include [String] SPF include domain (default: 'lettermint.com')
-        def initialize(dkim_selectors: DKIM_SELECTORS, spf_include: SPF_INCLUDE)
-          @dkim_selectors = dkim_selectors
-          @spf_include    = spf_include
+        # @param spf_cname_prefix [String] SPF CNAME subdomain prefix (default: 'lm-bounces')
+        # @param spf_cname_target [String] SPF CNAME target domain (default: 'bounces.lmta.net')
+        def initialize(dkim_selectors: DKIM_SELECTORS, spf_cname_prefix: SPF_CNAME_PREFIX, spf_cname_target: SPF_CNAME_TARGET)
+          @dkim_selectors   = dkim_selectors
+          @spf_cname_prefix = spf_cname_prefix
+          @spf_cname_target = spf_cname_target
         end
 
         # Returns the DNS records required for Lettermint domain verification.
@@ -45,17 +53,17 @@ module Onetime
             records << {
               type: 'CNAME',
               host: "#{selector}._domainkey.#{domain}",
-              value: "#{selector}.dkim.#{@spf_include}",
+              value: "#{selector}.dkim.lettermint.com",
               purpose: "DKIM signature #{i + 1} of #{@dkim_selectors.size}",
             }
           end
 
-          # SPF TXT record
+          # SPF/Return-Path CNAME record (Lettermint maintains SPF at the target)
           records << {
-            type: 'TXT',
-            host: domain,
-            value: "v=spf1 include:#{@spf_include} ~all",
-            purpose: 'SPF authentication',
+            type: 'CNAME',
+            host: "#{@spf_cname_prefix}.#{domain}",
+            value: @spf_cname_target,
+            purpose: 'SPF/Return-Path (bounce handling)',
           }
 
           records

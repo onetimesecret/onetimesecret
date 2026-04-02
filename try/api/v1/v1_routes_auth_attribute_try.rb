@@ -123,7 +123,7 @@ authcheck_route = @parsed_routes.find { |r| r[:verb] == 'GET' && r[:path] == '/a
 authcheck_route[:params]['openapi_auth']
 #=> 'basic'
 
-## TC-13: Every V1 route has response=json
-routes_without_json = @parsed_routes.reject { |r| r[:params]['response'] == 'json' }
-routes_without_json.map { |r| "#{r[:verb]} #{r[:path]}" }
+## TC-13: Every V1 route has response=default (V1 serializes directly, skips Otto's JSONHandler)
+routes_without_default = @parsed_routes.reject { |r| r[:params]['response'] == 'default' }
+routes_without_default.map { |r| "#{r[:verb]} #{r[:path]}" }
 #=> []

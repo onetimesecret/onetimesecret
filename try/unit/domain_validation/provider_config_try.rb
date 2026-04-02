@@ -56,10 +56,15 @@ config = ProviderConfig.for('lettermint')
 config[:dkim_selectors]
 #=> ['lm1', 'lm2']
 
-## Lettermint default spf_include is lettermint.com
+## Lettermint default spf_cname_prefix is lm-bounces
 config = ProviderConfig.for('lettermint')
-config[:spf_include]
-#=> 'lettermint.com'
+config[:spf_cname_prefix]
+#=> 'lm-bounces'
+
+## Lettermint default spf_cname_target is bounces.lmta.net
+config = ProviderConfig.for('lettermint')
+config[:spf_cname_target]
+#=> 'bounces.lmta.net'
 
 # --- Explicit overrides take precedence ---
 
