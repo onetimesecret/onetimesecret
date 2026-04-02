@@ -12,9 +12,8 @@ module DomainsAPI::Logic
     # JSON blob in the incoming_secrets jsonkey. Emails are validated
     # and stored; only hashed versions are returned in the response.
     #
-    # Requires the incoming_secrets entitlement. This is the entitlement
-    # gate: on plan downgrade, existing recipients continue working for
-    # submissions but this endpoint blocks configuration changes.
+    # Requires the incoming_secrets entitlement (available on all plans
+    # including free tier, matching custom_domains availability).
     #
     # @example Request
     #   PUT /api/domains/:extid/recipients
@@ -29,7 +28,7 @@ module DomainsAPI::Logic
       attr_reader :custom_domain, :recipients_input
 
       def process_params
-        @extid = sanitize_identifier(params['extid'])
+        @extid            = sanitize_identifier(params['extid'])
         @recipients_input = params['recipients']
       end
 
@@ -69,7 +68,7 @@ module DomainsAPI::Logic
       end
 
       def success_data
-        config = @custom_domain.incoming_secrets_config
+        config      = @custom_domain.incoming_secrets_config
         site_secret = OT.conf.dig('site', 'secret')
         {
           user_id: @cust.objid,
