@@ -95,7 +95,7 @@ module Onetime
             },
           }
         rescue Lettermint::ValidationError => ex
-          log_error "[lettermint-sende2] Validation error for #{domain}: #{ex.message}"
+          log_error "[lettermint-sender] Validation error for #{domain}: #{ex.message}"
           {
             success: false,
             message: "Validation error: #{ex.message}",
