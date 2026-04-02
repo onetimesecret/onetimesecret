@@ -2,7 +2,6 @@
 
 export * from './burn-secret';
 export * from './conceal-secret';
-export * from './create-incoming-secret';
 export * from './generate-secret';
 export * from './get-config';
 export * from './get-supported-locales';
@@ -17,4 +16,3 @@ export * from './show-secret-status';
 export * from './system-status';
 export * from './system-version';
 export * from './update-receipt';
-export * from './validate-recipient';
