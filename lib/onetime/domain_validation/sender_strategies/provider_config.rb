@@ -49,8 +49,8 @@ module Onetime
           }.freeze,
           'lettermint' => {
             dkim_selectors: %w[lm1 lm2].freeze,
-            spf_include: 'lettermint.co',
-            api_base_url: 'https://api.lettermint.co/v1',
+            spf_include: 'lettermint.com',
+            api_base_url: 'https://api.lettermint.com/v1',
           }.freeze,
         }.freeze
 

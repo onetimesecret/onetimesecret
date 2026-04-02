@@ -15,9 +15,9 @@ module Onetime
       # and SPF TXT records that must be added to the domain's DNS.
       #
       # Example DNS records for domain "example.com":
-      #   lm1._domainkey.example.com CNAME lm1.dkim.lettermint.co
-      #   lm2._domainkey.example.com CNAME lm2.dkim.lettermint.co
-      #   example.com TXT "v=spf1 include:lettermint.co ~all"
+      #   lm1._domainkey.example.com CNAME lm1.dkim.lettermint.com
+      #   lm2._domainkey.example.com CNAME lm2.dkim.lettermint.com
+      #   example.com TXT "v=spf1 include:lettermint.com ~all"
       #
       # Lettermint has TWO separate APIs:
       #   1. Sending API - uses x-lettermint-token header (project token)

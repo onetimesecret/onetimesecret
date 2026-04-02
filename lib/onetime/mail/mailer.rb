@@ -300,7 +300,9 @@ module Onetime
         def extract_email_address(value)
           return nil if value.nil?
 
-          if value.respond_to?(:first)
+          # Check for Array specifically, not respond_to?(:first)
+          # because String#first returns the first character in Ruby 3.x
+          if value.is_a?(Array)
             value.first&.to_s
           else
             value.to_s
