@@ -13,6 +13,7 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
       'MailerConfig',
       domain_id: 'cd:test123',
       provider: 'ses',
+      effective_provider: 'ses',
       from_address: 'sender@example.com',
       provisioning: mock_lock,
       'provider_dns_data=' => nil,
@@ -268,16 +269,16 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
 
     context 'validation errors' do
       it 'fails when provider is empty' do
-        config = double('MailerConfig', domain_id: 'cd:test', provider: '', from_address: 'a@b.com')
+        config = double('MailerConfig', domain_id: 'cd:test', provider: '', effective_provider: '', from_address: 'a@b.com')
 
         result = described_class.new(mailer_config: config, persist: false).call
 
         expect(result.success?).to be false
-        expect(result.error).to include('provider is required')
+        expect(result.error).to include('provider could not be resolved')
       end
 
       it 'fails when from_address is empty' do
-        config = double('MailerConfig', domain_id: 'cd:test', provider: 'ses', from_address: '')
+        config = double('MailerConfig', domain_id: 'cd:test', provider: 'ses', effective_provider: 'ses', from_address: '')
 
         result = described_class.new(mailer_config: config, persist: false).call
 
@@ -300,7 +301,7 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
       end
 
       it 'returns failure for SMTP' do
-        config = double('MailerConfig', domain_id: 'cd:test', provider: 'smtp', from_address: 'a@b.com', provisioning: mock_lock)
+        config = double('MailerConfig', domain_id: 'cd:test', provider: 'smtp', effective_provider: 'smtp', from_address: 'a@b.com', provisioning: mock_lock)
 
         result = described_class.new(mailer_config: config, persist: false).call
 
