@@ -47,10 +47,12 @@ module V3
           @payload = params['secret'] || {}
           raise_form_error 'Incorrect payload format' if @payload.is_a?(String)
 
+          # Get domain-aware config (custom domains use per-domain settings)
+          domain_config   = resolver.config_data
           incoming_config = OT.conf.dig('features', 'incoming') || {}
 
-          # Extract and validate memo
-          memo_max = incoming_config['memo_max_length'] || 50
+          # Extract and validate memo using domain-aware max length
+          memo_max = domain_config[:memo_max_length] || 50
           @memo    = sanitize_plain_text(@payload['memo'].to_s, max_length: memo_max)
 
           # Extract secret value
@@ -64,11 +66,10 @@ module V3
 
           Onetime.secret_logger.debug "[IncomingSecret] Recipient hash: #{@recipient_hash} -> #{@recipient_email ? OT::Utils.obscure_email(@recipient_email) : 'not found'}"
 
-          # Set TTL from domain-aware config (custom domains use per-domain config)
-          domain_config = resolver.config_data
-          @ttl          = domain_config[:default_ttl] || 604_800 # 7 days fallback
+          # Set TTL from domain-aware config
+          @ttl = domain_config[:default_ttl] || 604_800 # 7 days fallback
 
-          # Set passphrase from config (can be nil)
+          # Set passphrase from global config (not per-domain yet)
           @passphrase = incoming_config['default_passphrase']
         end
 
