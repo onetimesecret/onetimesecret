@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'base_sender_strategy'
+require 'lettermint'
 
 module Onetime
   module Mail
@@ -32,12 +33,12 @@ module Onetime
       # Configuration:
       #   team_token: Lettermint Team API token (for domain provisioning)
       #   api_token:  Lettermint Sending API token (for email delivery)
-      #   base_url:   Custom API base URL (optional, default: https://api.lettermint.co/v1)
+      #   base_url:   Custom API base URL (optional, default: https://api.lettermint.com/v1)
       #
       class LettermintSenderStrategy < BaseSenderStrategy
         # Default API base URL for Team API. Can be overridden via credentials[:base_url]
-        # or EMAIL_PROVIDERS_LETTERMINT_API_BASE_URL env var (loaded via ProviderConfig).
-        DEFAULT_BASE_URL = 'https://api.lettermint.co/v1'
+        # or LETTERMINT_BASE_URL env var (loaded via ProviderConfig).
+        DEFAULT_BASE_URL = 'https://api.lettermint.com/v1'
 
         # Provisions sender DNS records through Lettermint's Domain API.
         #
@@ -182,8 +183,7 @@ module Onetime
           client = build_client(credentials)
 
           # Find domain by name to get its ID
-          list         = client.get(path: "/domains?filter[domain]=#{domain}")
-          domain_entry = list['data']&.first
+          domain_entry = find_domain_by_name(client, domain)
 
           unless domain_entry
             return {
@@ -194,7 +194,7 @@ module Onetime
           end
 
           # Fetch full details with DNS records
-          response = client.get(path: "/domains/#{domain_entry['id']}?include=dnsRecords")
+          response = client.domains.find(domain_entry['id'], include: 'dnsRecords')
 
           # Status enum: verified, partially_verified, pending_verification, failed_verification
           status   = response['status'] || domain_entry['status'] || 'unknown'
@@ -257,8 +257,7 @@ module Onetime
           client = build_client(credentials)
 
           # Find domain by name to get its ID
-          list         = client.get(path: "/domains?filter[domain]=#{domain}")
-          domain_entry = list['data']&.first
+          domain_entry = find_domain_by_name(client, domain)
 
           unless domain_entry
             # Domain doesn't exist - treat as successful deletion
@@ -268,7 +267,7 @@ module Onetime
             }
           end
 
-          client.delete(path: "/domains/#{domain_entry['id']}")
+          client.domains.delete(domain_entry['id'])
 
           {
             deleted: true,
@@ -304,102 +303,69 @@ module Onetime
 
         private
 
-        # Build Team API HTTP client from credentials.
+        # Build Team API client from credentials.
         #
         # Domain provisioning uses the Team API with Bearer auth, NOT the
-        # Sending API (x-lettermint-token). The Lettermint gem's HttpClient
-        # is for the Sending API, so we use Faraday directly here.
+        # Sending API (x-lettermint-token).
         #
         # @param credentials [Hash] Must include :team_token, optionally :base_url
-        # @return [TeamApiClient] Simple wrapper around Faraday
+        # @return [Lettermint::TeamAPI] SDK client instance
         #
         def build_client(credentials)
           team_token = credentials[:team_token] || credentials['team_token']
-          base_url   = credentials[:base_url] || credentials['base_url'] || DEFAULT_BASE_URL
+          base_url   = credentials[:base_url] || credentials['base_url']
           timeout    = credentials[:timeout] || credentials['timeout'] || 30
 
-          TeamApiClient.new(team_token: team_token, base_url: base_url, timeout: timeout)
+          Lettermint::TeamAPI.new(
+            team_token: team_token,
+            base_url: base_url || DEFAULT_BASE_URL,
+            timeout: timeout,
+          )
         end
 
-        # Simple HTTP client for Lettermint Team API (Bearer auth).
-        class TeamApiClient
-          def initialize(team_token:, base_url:, timeout:)
-            require 'faraday'
-            @connection = Faraday.new(url: "#{base_url.chomp('/')}/") do |f|
-              f.request :json
-              f.response :json
-              f.options.timeout      = timeout
-              f.options.open_timeout = timeout
-              f.headers              = {
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-                'Authorization' => "Bearer #{team_token}",
-                'User-Agent' => 'OnetimeSecret/LettermintSenderStrategy',
-              }
-            end
-          end
-
-          def get(path:)
-            response = @connection.get(path.delete_prefix('/'))
-            handle_response(response)
-          end
-
-          def post(path:, data: nil)
-            response = @connection.post(path.delete_prefix('/')) { |req| req.body = data }
-            handle_response(response)
-          end
-
-          def delete(path:)
-            response = @connection.delete(path.delete_prefix('/'))
-            handle_response(response)
-          end
-
-          private
-
-          def handle_response(response)
-            return response.body if response.success?
-
-            raise_api_error(response.status, response.body)
-          end
-
-          def raise_api_error(status, body)
-            require 'lettermint'
-            msg = body.is_a?(Hash) ? (body['message'] || body['error'] || "HTTP #{status}") : "HTTP #{status}"
-            raise Lettermint::HttpRequestError.new(message: msg, status_code: status, response_body: body)
-          end
+        # Find a domain by name using the Team API.
+        #
+        # WARNING: This implementation does not handle pagination. If the account
+        # has many domains and the target domain is not in the first page of
+        # results, this lookup will fail to find it. For accounts with many
+        # domains, consider implementing cursor-based pagination.
+        #
+        # @param client [Lettermint::TeamAPI] SDK client instance
+        # @param domain [String] Domain name to find (e.g., "example.com")
+        # @return [Hash, nil] Domain entry hash with 'id' key, or nil if not found
+        #
+        def find_domain_by_name(client, domain)
+          result = client.domains.list
+          result['data']&.find { |d| d['domain'] == domain }
         end
 
         # Creates a new domain or retrieves existing one on 409 conflict.
         #
-        # POST /domains returns: { id, domain, status, dns_records[], ... }
-        # GET /domains/{id}?include=dnsRecords returns domain with DNS records
-        #
-        # @param client [TeamApiClient]
+        # @param client [Lettermint::TeamAPI] SDK client instance
         # @param domain [String] Domain name (e.g., "example.com")
         # @return [Hash] Parsed API response with id, domain, status, dns_records
         #
         def create_or_get_domain(client, domain)
-          response  = client.post(path: '/domains', data: { domain: domain })
+          response  = client.domains.create(domain: domain)
           domain_id = response['id']
 
           # Fetch full details with DNS records
-          client.get(path: "/domains/#{domain_id}?include=dnsRecords")
+          client.domains.find(domain_id, include: 'dnsRecords')
         rescue Lettermint::HttpRequestError => ex
           raise unless ex.status_code == 409
 
           # Domain already exists - find it in the list and retrieve
           log_info "[lettermint-sender] Domain #{domain} already exists, retrieving..."
-          list     = client.get(path: "/domains?filter[domain]=#{domain}")
-          existing = list['data']&.first
+          existing = find_domain_by_name(client, domain)
           raise Lettermint::HttpRequestError.new(message: "Domain #{domain} not found", status_code: 404) unless existing
 
-          client.get(path: "/domains/#{existing['id']}?include=dnsRecords")
+          client.domains.find(existing['id'], include: 'dnsRecords')
         end
 
         # Normalize Lettermint DNS records to standard format.
         #
         # Lettermint returns records as:
-        #   [{ "type": "CNAME", "name": "lm1._domainkey.example.com", "value": "lm1.dkim.lettermint.co" }, ...]
+        #   [{ "type": "CNAME", "name": "lm1._domainkey.example.com", "value": "lm1.dkim.lettermint.com" }, ...]
         #
         # Normalized to consistent shape matching SES/SendGrid:
         #   [{ type: 'CNAME', name: '...', value: '...' }, ...]

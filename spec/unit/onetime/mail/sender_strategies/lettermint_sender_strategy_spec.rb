@@ -9,12 +9,13 @@ require 'onetime/mail/sender_strategies/lettermint_sender_strategy'
 RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
   let(:strategy) { described_class.new }
   # Team API uses Bearer auth (team_token), not x-lettermint-token (api_token)
-  let(:credentials) { { team_token: 'lm-team-token-example', base_url: 'https://api.lettermint.co/v1' } }
+  let(:credentials) { { team_token: 'lm-team-token-example', base_url: 'https://api.lettermint.com/v1' } }
   let(:mailer_config) do
     double('MailerConfig', from_address: 'sender@example.com')
   end
-  # TeamApiClient is the inner class for Team API (Bearer auth)
-  let(:mock_client) { instance_double(described_class::TeamApiClient) }
+  # Mock the Lettermint::TeamAPI SDK client and its domains resource
+  let(:mock_domains) { double('DomainsResource') }
+  let(:mock_client) { instance_double(Lettermint::TeamAPI, domains: mock_domains) }
 
   before do
     allow(strategy).to receive(:build_client).and_return(mock_client)
@@ -42,11 +43,11 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
 
       before do
-        allow(mock_client).to receive(:post)
-          .with(path: '/domains', data: { domain: 'example.com' })
+        allow(mock_domains).to receive(:create)
+          .with(domain: 'example.com')
           .and_return(create_response)
-        allow(mock_client).to receive(:get)
-          .with(path: '/domains/domain-uuid-123?include=dnsRecords')
+        allow(mock_domains).to receive(:find)
+          .with('domain-uuid-123', include: 'dnsRecords')
           .and_return(get_response)
       end
 
@@ -93,14 +94,13 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
 
       before do
-        allow(mock_client).to receive(:post)
-          .with(path: '/domains', data: { domain: 'example.com' })
+        allow(mock_domains).to receive(:create)
+          .with(domain: 'example.com')
           .and_raise(Lettermint::HttpRequestError.new(message: 'Conflict', status_code: 409))
-        allow(mock_client).to receive(:get)
-          .with(path: '/domains?filter[domain]=example.com')
+        allow(mock_domains).to receive(:list)
           .and_return(list_response)
-        allow(mock_client).to receive(:get)
-          .with(path: '/domains/existing-uuid?include=dnsRecords')
+        allow(mock_domains).to receive(:find)
+          .with('existing-uuid', include: 'dnsRecords')
           .and_return(get_response)
       end
 
@@ -160,7 +160,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when Lettermint API fails (HttpRequestError)' do
       before do
-        allow(mock_client).to receive(:post)
+        allow(mock_domains).to receive(:create)
           .and_raise(Lettermint::HttpRequestError.new(message: 'Internal Server Error', status_code: 500))
       end
 
@@ -176,7 +176,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when ValidationError is raised' do
       before do
-        allow(mock_client).to receive(:post)
+        allow(mock_domains).to receive(:create)
           .and_raise(Lettermint::ValidationError.new(message: 'Invalid domain format', error_type: 'validation'))
       end
 
@@ -192,7 +192,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when AuthenticationError is raised' do
       before do
-        allow(mock_client).to receive(:post)
+        allow(mock_domains).to receive(:create)
           .and_raise(Lettermint::AuthenticationError.new(message: 'Invalid token', status_code: 401))
       end
 
@@ -208,7 +208,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when RateLimitError is raised' do
       before do
-        allow(mock_client).to receive(:post)
+        allow(mock_domains).to receive(:create)
           .and_raise(Lettermint::RateLimitError.new(message: 'Too many requests'))
       end
 
@@ -224,7 +224,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when TimeoutError is raised' do
       before do
-        allow(mock_client).to receive(:post)
+        allow(mock_domains).to receive(:create)
           .and_raise(Lettermint::TimeoutError, 'Connection timed out')
       end
 
@@ -240,7 +240,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when unexpected error occurs' do
       before do
-        allow(mock_client).to receive(:post)
+        allow(mock_domains).to receive(:create)
           .and_raise(StandardError, 'Network failure')
       end
 
@@ -272,11 +272,10 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
 
       before do
-        allow(mock_client).to receive(:get)
-          .with(path: '/domains?filter[domain]=example.com')
+        allow(mock_domains).to receive(:list)
           .and_return(list_response)
-        allow(mock_client).to receive(:get)
-          .with(path: '/domains/domain-uuid-123?include=dnsRecords')
+        allow(mock_domains).to receive(:find)
+          .with('domain-uuid-123', include: 'dnsRecords')
           .and_return(get_response)
       end
 
@@ -303,11 +302,10 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
 
       before do
-        allow(mock_client).to receive(:get)
-          .with(path: '/domains?filter[domain]=example.com')
+        allow(mock_domains).to receive(:list)
           .and_return(list_response)
-        allow(mock_client).to receive(:get)
-          .with(path: '/domains/domain-uuid-123?include=dnsRecords')
+        allow(mock_domains).to receive(:find)
+          .with('domain-uuid-123', include: 'dnsRecords')
           .and_return(get_response)
       end
 
@@ -322,8 +320,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when domain is not found' do
       before do
-        allow(mock_client).to receive(:get)
-          .with(path: '/domains?filter[domain]=example.com')
+        allow(mock_domains).to receive(:list)
           .and_return({ 'data' => [] })
       end
 
@@ -338,7 +335,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when API returns error' do
       before do
-        allow(mock_client).to receive(:get)
+        allow(mock_domains).to receive(:list)
           .and_raise(Lettermint::HttpRequestError.new(message: 'Server Error', status_code: 500))
       end
 
@@ -382,11 +379,10 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when deletion succeeds' do
       before do
-        allow(mock_client).to receive(:get)
-          .with(path: '/domains?filter[domain]=example.com')
+        allow(mock_domains).to receive(:list)
           .and_return(list_response)
-        allow(mock_client).to receive(:delete)
-          .with(path: '/domains/domain-uuid-123')
+        allow(mock_domains).to receive(:delete)
+          .with('domain-uuid-123')
           .and_return({})
       end
 
@@ -400,8 +396,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when domain not found in list (idempotent)' do
       before do
-        allow(mock_client).to receive(:get)
-          .with(path: '/domains?filter[domain]=example.com')
+        allow(mock_domains).to receive(:list)
           .and_return({ 'data' => [] })
       end
 
@@ -415,10 +410,9 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when delete API returns 404 (idempotent)' do
       before do
-        allow(mock_client).to receive(:get)
-          .with(path: '/domains?filter[domain]=example.com')
+        allow(mock_domains).to receive(:list)
           .and_return(list_response)
-        allow(mock_client).to receive(:delete)
+        allow(mock_domains).to receive(:delete)
           .and_raise(Lettermint::HttpRequestError.new(message: 'Not Found', status_code: 404))
       end
 
@@ -432,10 +426,9 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when API returns error' do
       before do
-        allow(mock_client).to receive(:get)
-          .with(path: '/domains?filter[domain]=example.com')
+        allow(mock_domains).to receive(:list)
           .and_return(list_response)
-        allow(mock_client).to receive(:delete)
+        allow(mock_domains).to receive(:delete)
           .and_raise(Lettermint::HttpRequestError.new(message: 'Forbidden', status_code: 403))
       end
 
@@ -449,10 +442,9 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when unexpected error occurs' do
       before do
-        allow(mock_client).to receive(:get)
-          .with(path: '/domains?filter[domain]=example.com')
+        allow(mock_domains).to receive(:list)
           .and_return(list_response)
-        allow(mock_client).to receive(:delete)
+        allow(mock_domains).to receive(:delete)
           .and_raise(StandardError, 'Connection reset')
       end
 

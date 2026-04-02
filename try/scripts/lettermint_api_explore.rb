@@ -29,7 +29,7 @@ require 'faraday'
 require 'json'
 
 class LettermintExplorer
-  BASE_URL = 'https://api.lettermint.co/v1'
+  BASE_URL = 'https://api.lettermint.com/v1'
 
   def initialize(team_token: nil, sending_token: nil, base_url: nil)
     @team_token = team_token
@@ -141,10 +141,18 @@ class LettermintExplorer
     result = request(team_connection, :post, '/domains', data: { domain: domain })
     return result if [200, 201].include?(result[:status])
 
-    # If 409 conflict, domain already exists - retrieve it
+    # If 409 conflict, domain already exists - lookup by name then retrieve by ID
     if result[:status] == 409
-      puts "Domain already exists, retrieving..."
-      return get_domain(domain)
+      puts "Domain already exists, looking up ID..."
+      list_result = request(team_connection, :get, "/domains?filter[domain]=#{domain}")
+      domain_entry = list_result.dig(:body, 'data', 0)
+
+      if domain_entry && domain_entry['id']
+        return get_domain(domain_entry['id'])
+      else
+        puts "  Error: Could not find domain '#{domain}' after 409 conflict."
+        return { status: 404, body: nil, error: "Domain not found after 409 conflict" }
+      end
     end
 
     # Try alternative payload format
@@ -220,7 +228,7 @@ if team_token.nil? && sending_token.nil?
   puts "  LETTERMINT_API_TOKEN=xxx bundle exec ruby #{__FILE__} ping"
   puts
   puts "Options:"
-  puts "  LETTERMINT_BASE_URL - Override base URL (default: https://api.lettermint.co/v1)"
+  puts "  LETTERMINT_BASE_URL - Override base URL (default: https://api.lettermint.com/v1)"
   exit 1
 end
 
