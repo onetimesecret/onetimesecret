@@ -23,7 +23,7 @@ module Onetime
       #       spf_include: sendgrid.net
       #     lettermint:
       #       dkim_selectors: [lm1, lm2]
-      #       spf_include: lettermint.com
+      #       spf_include: lettermint.co
       #
       # Usage:
       #   config = ProviderConfig.for('ses')
@@ -49,7 +49,8 @@ module Onetime
           }.freeze,
           'lettermint' => {
             dkim_selectors: %w[lm1 lm2].freeze,
-            spf_include: 'lettermint.com',
+            spf_include: 'lettermint.co',
+            api_base_url: 'https://api.lettermint.co/v1',
           }.freeze,
         }.freeze
 
@@ -144,8 +145,12 @@ module Onetime
             unless subdomain.nil? || subdomain.match?(/\A[a-z0-9-]+\z/i)
               raise ArgumentError, "Invalid subdomain: #{subdomain}"
             end
+          when 'lettermint'
+            api_base_url = config[:api_base_url]
+            unless api_base_url.nil? || api_base_url.match?(%r{\Ahttps?://[^\s]+\z})
+              raise ArgumentError, "Invalid API base URL: #{api_base_url}"
+            end
           end
-          # Other providers have no specific validation yet
         end
 
         private_class_method :load_from_config, :symbolize_keys, :validate_config!

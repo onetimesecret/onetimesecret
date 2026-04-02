@@ -265,9 +265,13 @@ module Onetime
               api_key: conf['sendgrid_api_key'] || conf['pass'] || ENV.fetch('SENDGRID_API_KEY', nil),
             }
           when 'lettermint'
+            lm_conf = provider_config('lettermint')
             {
-              api_token: conf['lettermint_api_token'] || conf['pass'] || ENV.fetch('LETTERMINT_API_TOKEN', nil),
-              base_url: conf['lettermint_base_url'] || ENV.fetch('LETTERMINT_BASE_URL', nil),
+              # Sending API token (x-lettermint-token header) - for email delivery
+              api_token: conf['lettermint_api_token'] || lm_conf['api_token'] || conf['pass'] || ENV.fetch('LETTERMINT_API_TOKEN', nil),
+              # Team API token (Authorization: Bearer header) - for domain provisioning
+              team_token: conf['lettermint_team_token'] || lm_conf['team_token'] || ENV.fetch('LETTERMINT_TEAM_TOKEN', nil),
+              base_url: conf['lettermint_base_url'] || lm_conf['api_base_url'] || ENV.fetch('LETTERMINT_BASE_URL', nil),
               timeout: conf['lettermint_timeout'],
             }.compact
           else
@@ -279,6 +283,13 @@ module Onetime
           return {} unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
 
           OT.conf['emailer'] || OT.conf[:emailer] || {}
+        end
+
+        def provider_config(provider)
+          return {} unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
+
+          providers = OT.conf['email_providers'] || OT.conf[:email_providers] || {}
+          providers[provider] || providers[provider.to_sym] || {}
         end
 
         def reply_to_address(template)

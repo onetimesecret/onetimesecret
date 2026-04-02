@@ -8,11 +8,13 @@ require 'onetime/mail/sender_strategies/lettermint_sender_strategy'
 
 RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
   let(:strategy) { described_class.new }
-  let(:credentials) { { api_token: 'lm-test-token-example', base_url: 'https://api.lettermint.com' } }
+  # Team API uses Bearer auth (team_token), not x-lettermint-token (api_token)
+  let(:credentials) { { team_token: 'lm-team-token-example', base_url: 'https://api.lettermint.co/v1' } }
   let(:mailer_config) do
     double('MailerConfig', from_address: 'sender@example.com')
   end
-  let(:mock_client) { instance_double('Lettermint::HttpClient') }
+  # TeamApiClient is the inner class for Team API (Bearer auth)
+  let(:mock_client) { instance_double(described_class::TeamApiClient) }
 
   before do
     allow(strategy).to receive(:build_client).and_return(mock_client)
@@ -22,10 +24,14 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
   describe '#provision_dns_records' do
     context 'with valid from_address' do
-      let(:api_response) do
+      let(:create_response) do
+        { 'id' => 'domain-uuid-123', 'domain' => 'example.com' }
+      end
+      let(:get_response) do
         {
+          'id' => 'domain-uuid-123',
           'domain' => 'example.com',
-          'status' => 'pending',
+          'status' => 'pending_verification',
           'created_at' => '2026-03-30T00:00:00Z',
           'dns_records' => [
             { 'type' => 'CNAME', 'name' => 'lm1._domainkey.example.com', 'value' => 'lm1.dkim.lettermint.com' },
@@ -37,8 +43,11 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
       before do
         allow(mock_client).to receive(:post)
-          .with(path: '/api/v1/domains', data: { domain: 'example.com' })
-          .and_return(api_response)
+          .with(path: '/domains', data: { domain: 'example.com' })
+          .and_return(create_response)
+        allow(mock_client).to receive(:get)
+          .with(path: '/domains/domain-uuid-123?include=dnsRecords')
+          .and_return(get_response)
       end
 
       it 'returns success with DNS records' do
@@ -56,7 +65,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
         result = strategy.provision_dns_records(mailer_config, credentials: credentials)
 
         expect(result[:provider_data][:domain]).to eq('example.com')
-        expect(result[:provider_data][:status]).to eq('pending')
+        expect(result[:provider_data][:status]).to eq('pending_verification')
         expect(result[:provider_data][:created_at]).to eq('2026-03-30T00:00:00Z')
       end
 
@@ -68,8 +77,12 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
     end
 
     context 'when domain already exists (409 conflict)' do
+      let(:list_response) do
+        { 'data' => [{ 'id' => 'existing-uuid', 'domain' => 'example.com' }] }
+      end
       let(:get_response) do
         {
+          'id' => 'existing-uuid',
           'domain' => 'example.com',
           'status' => 'verified',
           'created_at' => '2026-03-01T00:00:00Z',
@@ -81,9 +94,13 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
       before do
         allow(mock_client).to receive(:post)
+          .with(path: '/domains', data: { domain: 'example.com' })
           .and_raise(Lettermint::HttpRequestError.new(message: 'Conflict', status_code: 409))
         allow(mock_client).to receive(:get)
-          .with(path: '/api/v1/domains/example.com')
+          .with(path: '/domains?filter[domain]=example.com')
+          .and_return(list_response)
+        allow(mock_client).to receive(:get)
+          .with(path: '/domains/existing-uuid?include=dnsRecords')
           .and_return(get_response)
       end
 
@@ -119,25 +136,25 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
     end
 
-    context 'with missing api_token' do
-      let(:credentials) { { api_token: nil } }
+    context 'with missing team_token' do
+      let(:credentials) { { team_token: nil } }
 
       it 'returns error for missing token' do
         result = strategy.provision_dns_records(mailer_config, credentials: credentials)
 
         expect(result[:success]).to be false
-        expect(result[:error]).to eq('missing_api_token')
+        expect(result[:error]).to eq('missing_team_token')
       end
     end
 
-    context 'with empty api_token' do
-      let(:credentials) { { api_token: '' } }
+    context 'with empty team_token' do
+      let(:credentials) { { team_token: '' } }
 
       it 'returns error for empty token' do
         result = strategy.provision_dns_records(mailer_config, credentials: credentials)
 
         expect(result[:success]).to be false
-        expect(result[:error]).to eq('missing_api_token')
+        expect(result[:error]).to eq('missing_team_token')
       end
     end
 
@@ -238,12 +255,16 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
   end
 
   describe '#check_verification_status' do
+    let(:list_response) do
+      { 'data' => [{ 'id' => 'domain-uuid-123', 'domain' => 'example.com', 'status' => 'verified' }] }
+    end
+
     context 'when domain is verified' do
-      let(:api_response) do
+      let(:get_response) do
         {
+          'id' => 'domain-uuid-123',
           'domain' => 'example.com',
           'status' => 'verified',
-          'verified' => true,
           'dns_records' => [
             { 'type' => 'CNAME', 'name' => 'lm1._domainkey.example.com', 'value' => 'lm1.dkim.lettermint.com' },
           ],
@@ -252,8 +273,11 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
       before do
         allow(mock_client).to receive(:get)
-          .with(path: '/api/v1/domains/example.com')
-          .and_return(api_response)
+          .with(path: '/domains?filter[domain]=example.com')
+          .and_return(list_response)
+        allow(mock_client).to receive(:get)
+          .with(path: '/domains/domain-uuid-123?include=dnsRecords')
+          .and_return(get_response)
       end
 
       it 'returns verified status' do
@@ -265,35 +289,42 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
     end
 
-    context 'when domain is pending' do
-      let(:api_response) do
+    context 'when domain is pending verification' do
+      let(:list_response) do
+        { 'data' => [{ 'id' => 'domain-uuid-123', 'domain' => 'example.com', 'status' => 'pending_verification' }] }
+      end
+      let(:get_response) do
         {
+          'id' => 'domain-uuid-123',
           'domain' => 'example.com',
-          'status' => 'pending',
-          'verified' => false,
+          'status' => 'pending_verification',
           'dns_records' => [],
         }
       end
 
       before do
         allow(mock_client).to receive(:get)
-          .with(path: '/api/v1/domains/example.com')
-          .and_return(api_response)
+          .with(path: '/domains?filter[domain]=example.com')
+          .and_return(list_response)
+        allow(mock_client).to receive(:get)
+          .with(path: '/domains/domain-uuid-123?include=dnsRecords')
+          .and_return(get_response)
       end
 
       it 'returns pending status' do
         result = strategy.check_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be false
-        expect(result[:status]).to eq('pending')
-        expect(result[:message]).to include('awaiting propagation')
+        expect(result[:status]).to eq('pending-verification')
+        expect(result[:message]).to include('pending verification')
       end
     end
 
-    context 'when domain is not found (404)' do
+    context 'when domain is not found' do
       before do
         allow(mock_client).to receive(:get)
-          .and_raise(Lettermint::HttpRequestError.new(message: 'Not Found', status_code: 404))
+          .with(path: '/domains?filter[domain]=example.com')
+          .and_return({ 'data' => [] })
       end
 
       it 'returns not_found status' do
@@ -331,24 +362,31 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
     end
 
-    context 'with missing api_token' do
-      let(:credentials) { { api_token: nil } }
+    context 'with missing team_token' do
+      let(:credentials) { { team_token: nil } }
 
       it 'returns error status' do
         result = strategy.check_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be false
         expect(result[:status]).to eq('error')
-        expect(result[:message]).to include('API token is required')
+        expect(result[:message]).to include('Team API token is required')
       end
     end
   end
 
   describe '#delete_sender_identity' do
+    let(:list_response) do
+      { 'data' => [{ 'id' => 'domain-uuid-123', 'domain' => 'example.com' }] }
+    end
+
     context 'when deletion succeeds' do
       before do
+        allow(mock_client).to receive(:get)
+          .with(path: '/domains?filter[domain]=example.com')
+          .and_return(list_response)
         allow(mock_client).to receive(:delete)
-          .with(path: '/api/v1/domains/example.com')
+          .with(path: '/domains/domain-uuid-123')
           .and_return({})
       end
 
@@ -360,8 +398,26 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
     end
 
-    context 'when domain not found (404, idempotent)' do
+    context 'when domain not found in list (idempotent)' do
       before do
+        allow(mock_client).to receive(:get)
+          .with(path: '/domains?filter[domain]=example.com')
+          .and_return({ 'data' => [] })
+      end
+
+      it 'returns deleted true' do
+        result = strategy.delete_sender_identity(mailer_config, credentials: credentials)
+
+        expect(result[:deleted]).to be true
+        expect(result[:message]).to include('already deleted')
+      end
+    end
+
+    context 'when delete API returns 404 (idempotent)' do
+      before do
+        allow(mock_client).to receive(:get)
+          .with(path: '/domains?filter[domain]=example.com')
+          .and_return(list_response)
         allow(mock_client).to receive(:delete)
           .and_raise(Lettermint::HttpRequestError.new(message: 'Not Found', status_code: 404))
       end
@@ -376,6 +432,9 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when API returns error' do
       before do
+        allow(mock_client).to receive(:get)
+          .with(path: '/domains?filter[domain]=example.com')
+          .and_return(list_response)
         allow(mock_client).to receive(:delete)
           .and_raise(Lettermint::HttpRequestError.new(message: 'Forbidden', status_code: 403))
       end
@@ -390,6 +449,9 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
     context 'when unexpected error occurs' do
       before do
+        allow(mock_client).to receive(:get)
+          .with(path: '/domains?filter[domain]=example.com')
+          .and_return(list_response)
         allow(mock_client).to receive(:delete)
           .and_raise(StandardError, 'Connection reset')
       end
@@ -412,8 +474,8 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
     end
 
-    context 'with missing api_token' do
-      let(:credentials) { { api_token: nil } }
+    context 'with missing team_token' do
+      let(:credentials) { { team_token: nil } }
 
       it 'returns deleted false' do
         result = strategy.delete_sender_identity(mailer_config, credentials: credentials)

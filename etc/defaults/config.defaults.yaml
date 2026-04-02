@@ -404,7 +404,6 @@ features:
       listen_address: <%= ENV['ACME_LISTEN_ADDRESS'] || '127.0.0.1' %>
       # Port for standalone mode (Caddy's ask directive points here)
       port: <%= ENV['ACME_PORT'] || '12020' %>
-
   # Organizations UI
   # Shows the organization switcher in the navigation bar. Organizations
   # always exist under the hood (every customer has one for Stripe billing).
@@ -412,6 +411,7 @@ features:
   organizations:
     enabled: <%= ENV['ENABLE_ORGS'] == 'true' %>
     sso_enabled: <%= ENV['ORGS_SSO_ENABLED'] == 'true' %>
+    custom_mail_enabled: <%= ENV['ORGS_CUSTOM_MAIL_ENABLED'] == 'true' %>
 
 # Main Database Configuration
 redis:
@@ -517,13 +517,31 @@ email_providers:
     spf_include: sendgrid.net
 
   # Lettermint configuration
+  #
+  # Lettermint has TWO separate APIs with different auth:
+  #   1. Sending API - uses x-lettermint-token header (project token)
+  #   2. Team API    - uses Authorization: Bearer header (team token)
+  #
+  # Domain provisioning requires the Team API token.
+  #
   lettermint:
-    # DKIM selector names
-    dkim_selectors:
-      - lm1
-      - lm2
+    # Project token for Lettermint Sending API (email delivery)
+    # Required when emailer.mode is 'lettermint'
+    # Override via LETTERMINT_API_TOKEN env var
+    api_token: <%= ENV['LETTERMINT_API_TOKEN'] %>
+    # Team token for Lettermint Team API (domain provisioning)
+    # Required for custom mail sender domain management
+    # Override via LETTERMINT_TEAM_TOKEN env var
+    team_token: <%= ENV['LETTERMINT_TEAM_TOKEN'] %>
+    # API base URL (for enterprise/on-premise deployments)
+    # Override via LETTERMINT_BASE_URL or EMAIL_PROVIDERS_LETTERMINT_API_BASE_URL env var
+    api_base_url: <%= ENV['LETTERMINT_BASE_URL'] || ENV['EMAIL_PROVIDERS_LETTERMINT_API_BASE_URL'] || 'https://api.lettermint.co/v1' %>
+    # DKIM selector names (comma-separated for env var)
+    # Override via EMAIL_PROVIDERS_LETTERMINT_DKIM_SELECTORS env var
+    dkim_selectors: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_DKIM_SELECTORS']&.split(',')&.map(&:strip) || ['lm1', 'lm2'] %>
     # SPF include domain
-    spf_include: lettermint.com
+    # Override via EMAIL_PROVIDERS_LETTERMINT_SPF_INCLUDE env var
+    spf_include: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_SPF_INCLUDE'] || 'lettermint.com' %>
 
 mail:
   truemail:
