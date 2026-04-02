@@ -66,6 +66,11 @@ config = ProviderConfig.for('lettermint')
 config[:spf_cname_target]
 #=> 'bounces.lmta.net'
 
+## Lettermint default api_base_url is https://api.lettermint.co/v1
+config = ProviderConfig.for('lettermint')
+config[:api_base_url]
+#=> 'https://api.lettermint.co/v1'
+
 # --- Explicit overrides take precedence ---
 
 ## Explicit region override for SES
@@ -182,3 +187,29 @@ config[:region]
 config = ProviderConfig.for('sendgrid', subdomain: nil)
 config[:subdomain]
 #=> 'em'
+
+# --- Lettermint config validation ---
+
+## Valid Lettermint api_base_url passes validation
+config = ProviderConfig.for('lettermint', api_base_url: 'https://custom.lettermint.io')
+config[:api_base_url]
+#=> 'https://custom.lettermint.io'
+
+## Valid Lettermint api_base_url with http passes validation
+config = ProviderConfig.for('lettermint', api_base_url: 'http://localhost:3000')
+config[:api_base_url]
+#=> 'http://localhost:3000'
+
+## Invalid Lettermint api_base_url raises ArgumentError
+begin
+  ProviderConfig.for('lettermint', api_base_url: 'not-a-url')
+  :no_error
+rescue ArgumentError => e
+  e.message.include?('Invalid API base URL')
+end
+#=> true
+
+## Nil Lettermint api_base_url is filtered out and default is used
+config = ProviderConfig.for('lettermint', api_base_url: nil)
+config[:api_base_url]
+#=> 'https://api.lettermint.co/v1'

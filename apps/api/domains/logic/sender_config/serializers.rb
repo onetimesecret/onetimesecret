@@ -18,17 +18,19 @@ module DomainsAPI
         def serialize_sender_config(config)
           {
             domain_id: config.domain_id,
-            provider: config.provider,
+            provider: config.provider.to_s.empty? ? 'inherit' : config.provider,
             from_name: config.from_name,
             from_address: config.from_address,
             reply_to: config.reply_to,
             enabled: config.enabled?,
-            verification_status: config.verification_status,
+            validation_status: config.verification_status || 'pending',
             verified: config.verified?,
             sending_mode: config.sending_mode,
             dns_records: config.required_dns_records,
             provider_dns_data: config.provider_dns_data&.value,
+            provider_domain_id: nil,
             api_key_masked: mask_secret(config.api_key),
+            last_validated_at: config.verified_at.to_s.empty? ? nil : config.verified_at.to_i,
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,
           }

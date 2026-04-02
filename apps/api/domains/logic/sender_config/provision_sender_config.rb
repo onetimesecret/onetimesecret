@@ -56,8 +56,8 @@ module DomainsAPI
           @mailer_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@custom_domain.identifier)
           raise_not_found("Sender configuration not found for domain: #{@domain_id}") if @mailer_config.nil?
 
-          # Validate provider is configured
-          raise_form_error('Provider not configured', field: :provider, error_type: :missing) if @mailer_config.provider.to_s.empty?
+          # Provider is resolved from installation config when not set on mailer_config
+          # (see ProvisionSenderDomain#effective_provider)
         end
 
         def process

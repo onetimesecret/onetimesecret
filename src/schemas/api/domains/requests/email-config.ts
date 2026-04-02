@@ -14,7 +14,7 @@
 import { z } from 'zod';
 import {
   patchEmailConfigPayloadSchema,
-  putEmailConfigPayloadStrictSchema,
+  putEmailConfigPayloadSchema,
 } from '@/schemas/shapes/domains/email-config';
 
 // Re-export response schemas
@@ -56,14 +56,13 @@ export type GetEmailConfigRequest = z.infer<typeof getEmailConfigRequestSchema>;
  * Request body for PUT (full replacement) of email configuration.
  *
  * PUT semantics: the request body IS the new state.
- * - Required fields: provider, from_address, from_name
- * - Optional fields: reply_to
- * - Provider-specific validation:
- *   - 'inherit' does not require from_address/from_name
+ * - Required fields: from_address, from_name
+ * - Optional fields: reply_to, enabled
  *
- * Uses strict validation for provider-specific requirements.
+ * Custom mail sender model: users configure sender identity only.
+ * Provider credentials are resolved from installation-level configuration.
  */
-export const putEmailConfigRequestSchema = putEmailConfigPayloadStrictSchema;
+export const putEmailConfigRequestSchema = putEmailConfigPayloadSchema;
 
 export type PutEmailConfigRequest = z.infer<typeof putEmailConfigRequestSchema>;
 
@@ -79,10 +78,13 @@ export type PutEmailConfigRequest = z.infer<typeof putEmailConfigRequestSchema>;
  * - Omitted fields preserve existing values
  *
  * Fields:
- * - provider: optional enum ('ses' | 'sendgrid' | 'lettermint' | 'inherit')
  * - from_address: optional string (valid email)
  * - from_name: optional string
  * - reply_to: optional string (valid email or empty string)
+ * - enabled: optional boolean
+ *
+ * Custom mail sender model: users configure sender identity only.
+ * Provider credentials are resolved from installation-level configuration.
  */
 export const patchEmailConfigRequestSchema = patchEmailConfigPayloadSchema;
 

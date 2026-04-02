@@ -34,14 +34,14 @@ module DomainsAPI
         # @param domain [Onetime::CustomDomain] Domain being modified
         # @param org [Onetime::Organization] Organization that owns the domain
         # @param actor [Onetime::Customer] User performing the action
-        # @param provider [String] Mail provider type
+        # @param provider [String, nil] Mail provider type (optional, resolved from installation config)
         # @param changes [Hash, nil] Field changes for update events
         # @param details [Hash, nil] Additional event-specific details
         # @param timestamp [Integer] Unix timestamp; defaults to Time.now.to_i.
         #   Pass explicitly to ensure multiple audit events in one request share
         #   the same timestamp.
         # @return [void]
-        def log_sender_audit_event(event:, domain:, org:, actor:, provider:, changes: nil, details: nil, timestamp: Time.now.to_i)
+        def log_sender_audit_event(event:, domain:, org:, actor:, provider: nil, changes: nil, details: nil, timestamp: Time.now.to_i)
           payload = build_audit_payload(
             event: event,
             domain: domain,

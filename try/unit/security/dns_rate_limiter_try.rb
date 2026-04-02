@@ -35,63 +35,73 @@ end
 ## Initial status shows full quota available
 status = @tester.dns_rate_limit_status(@test_domain_id)
 [status[:remaining], status[:current], status[:limit]]
-#=> [10, 0, 10]
+#=> [100, 0, 100]
 
 ## First check increments counter and returns remaining
 status = @tester.check_dns_rate_limit!(@test_domain_id)
 [status[:remaining], status[:current], status[:limit]]
-#=> [9, 1, 10]
+#=> [99, 1, 100]
 
 ## Status check does not increment counter
 status = @tester.dns_rate_limit_status(@test_domain_id)
 [status[:remaining], status[:current]]
-#=> [9, 1]
+#=> [99, 1]
 
-## Second through ninth checks decrement remaining
+## Checks 2-9 decrement remaining
 8.times { @tester.check_dns_rate_limit!(@test_domain_id) }
 status = @tester.dns_rate_limit_status(@test_domain_id)
 [status[:remaining], status[:current]]
-#=> [1, 9]
+#=> [91, 9]
 
-## Tenth check succeeds but leaves no remaining
+## 10th check succeeds, many remaining
 status = @tester.check_dns_rate_limit!(@test_domain_id)
 [status[:remaining], status[:current]]
-#=> [0, 10]
+#=> [90, 10]
 
-## Eleventh check raises LimitExceeded
+## Use new domain to test exhaustion without prior state
+@exhaust_domain_id = "exhaust_#{Familia.now.to_i}_#{rand(10000)}"
+@tester.clear_dns_rate_limit!(@exhaust_domain_id)
+@exhaust_key = "dns:ratelimit:#{@exhaust_domain_id}"
+@redis.set(@exhaust_key, 99)
+@redis.expire(@exhaust_key, 3600)
+status = @tester.check_dns_rate_limit!(@exhaust_domain_id)
+[status[:remaining], status[:current]]
+#=> [0, 100]
+
+## Next check on exhausted domain raises LimitExceeded
 begin
-  @tester.check_dns_rate_limit!(@test_domain_id)
+  @tester.check_dns_rate_limit!(@exhaust_domain_id)
   :no_error
 rescue Onetime::LimitExceeded => e
   [e.class.name, e.retry_after.positive?, e.max_attempts]
 end
-#=> ['Onetime::LimitExceeded', true, 10]
+#=> ['Onetime::LimitExceeded', true, 100]
 
-## Status still shows exhausted quota
-status = @tester.dns_rate_limit_status(@test_domain_id)
+## Status shows exhausted quota
+status = @tester.dns_rate_limit_status(@exhaust_domain_id)
 [status[:remaining], status[:current]]
-#=> [0, 10]
+#=> [0, 100]
 
 ## Clear rate limit resets quota
 @tester.clear_dns_rate_limit!(@test_domain_id)
 status = @tester.dns_rate_limit_status(@test_domain_id)
 [status[:remaining], status[:current]]
-#=> [10, 0]
+#=> [100, 0]
 
 ## After clearing, check succeeds again
 status = @tester.check_dns_rate_limit!(@test_domain_id)
 [status[:remaining], status[:current]]
-#=> [9, 1]
+#=> [99, 1]
 
 ## Empty domain_id returns default status without error
 status = @tester.check_dns_rate_limit!('')
 [status[:remaining], status[:current], status[:limit]]
-#=> [10, 0, 10]
+#=> [100, 0, 100]
 
 ## Nil domain_id returns default status without error
 status = @tester.check_dns_rate_limit!(nil)
 [status[:remaining], status[:current], status[:limit]]
-#=> [10, 0, 10]
+#=> [100, 0, 100]
 
 # --- Rate limit key sanitization with special characters ---
 
@@ -100,35 +110,35 @@ status = @tester.check_dns_rate_limit!(nil)
 @tester.clear_dns_rate_limit!(@special_domain_id)
 status = @tester.check_dns_rate_limit!(@special_domain_id)
 [status[:remaining], status[:current]]
-#=> [9, 1]
+#=> [99, 1]
 
 ## Domain ID with Unicode characters produces valid Redis key
 @unicode_domain_id = "cd:unicode_\u00e9\u00f1\u00fc_test"
 @tester.clear_dns_rate_limit!(@unicode_domain_id)
 status = @tester.check_dns_rate_limit!(@unicode_domain_id)
 [status[:remaining], status[:current]]
-#=> [9, 1]
+#=> [99, 1]
 
 ## Domain ID with spaces works correctly
 @space_domain_id = "cd:domain with spaces"
 @tester.clear_dns_rate_limit!(@space_domain_id)
 status = @tester.check_dns_rate_limit!(@space_domain_id)
 [status[:remaining], status[:current]]
-#=> [9, 1]
+#=> [99, 1]
 
 ## Domain ID with newlines is handled safely
 @newline_domain_id = "cd:domain\nwith\nnewlines"
 @tester.clear_dns_rate_limit!(@newline_domain_id)
 status = @tester.check_dns_rate_limit!(@newline_domain_id)
 [status[:remaining], status[:current]]
-#=> [9, 1]
+#=> [99, 1]
 
 ## Domain ID with Redis special chars produces valid key
 @redis_special_id = "cd:test{curly}[bracket]*star"
 @tester.clear_dns_rate_limit!(@redis_special_id)
 status = @tester.check_dns_rate_limit!(@redis_special_id)
 [status[:remaining], status[:current]]
-#=> [9, 1]
+#=> [99, 1]
 
 # Clean up test keys
 @redis.del("dns:ratelimit:#{@test_domain_id}")

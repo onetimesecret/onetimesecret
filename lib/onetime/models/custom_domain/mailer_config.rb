@@ -166,9 +166,8 @@ module Onetime
         errors = []
 
         errors << 'domain_id is required' if domain_id.to_s.empty?
-        if provider.to_s.empty?
-          errors << 'provider is required'
-        elsif !PROVIDER_TYPES.include?(provider)
+        # Provider is optional - when empty, resolved from installation config
+        if !provider.to_s.empty? && !PROVIDER_TYPES.include?(provider)
           errors << "provider must be one of: #{PROVIDER_TYPES.join(', ')}"
         end
         errors << 'from_address is required' if from_address.to_s.empty?
@@ -255,6 +254,20 @@ module Onetime
             status: current_status,
           }.compact
         end
+      end
+
+      # Resolve effective provider for this mailer config.
+      #
+      # Uses the config's provider field if set, otherwise falls back to
+      # installation-level provider from Mailer.determine_provider.
+      #
+      # @return [String, nil] Provider name or nil if not resolvable
+      def effective_provider
+        resolved = provider.to_s.strip
+        return resolved unless resolved.empty?
+
+        # Fallback to installation config
+        Onetime::Mail::Mailer.send(:determine_provider)
       end
 
       class << self

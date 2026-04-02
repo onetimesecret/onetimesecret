@@ -85,8 +85,13 @@ module Onetime
           end
 
           # Delegate to operation with retry logic (DNS can be transiently flaky)
+          # Don't retry rate limits - they won't clear for ~60 minutes
           result = nil
-          with_retry(max_retries: 2, base_delay: 2.0) do
+          with_retry(
+            max_retries: 2,
+            base_delay: 2.0,
+            retriable: ->(ex) { !ex.is_a?(Onetime::LimitExceeded) },
+          ) do
             result = Onetime::Operations::ValidateSenderDomain.new(
               mailer_config: mailer_config,
               persist: true,
@@ -105,6 +110,15 @@ module Onetime
             bypass_cache: bypass_cache,
             error: result.error
 
+          ack!
+        rescue Onetime::LimitExceeded => ex
+          # Rate limited - ack the message (don't retry or DLQ)
+          # User can manually re-trigger after the rate limit window
+          log_info 'Sender domain validation rate limited',
+            domain_id: domain_id,
+            retry_after: ex.retry_after,
+            attempts: ex.attempts,
+            max_attempts: ex.max_attempts
           ack!
         rescue StandardError => ex
           log_error 'Unexpected error validating sender domain', ex

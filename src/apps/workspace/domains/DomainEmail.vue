@@ -9,7 +9,7 @@
  * structure: header -> entitlement gate -> fallback notice -> form -> DNS.
  */
 import { useI18n } from 'vue-i18n';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -83,6 +83,16 @@ const {
 } = useEmailConfig(props.extid);
 
 // ---------------------------------------------------------------------------
+// Form state handler
+// ---------------------------------------------------------------------------
+
+import type { EmailConfigFormState } from '@/shared/composables/useEmailConfig';
+
+const handleFormStateUpdate = (state: EmailConfigFormState) => {
+  formState.value = state;
+};
+
+// ---------------------------------------------------------------------------
 // Navigation
 // ---------------------------------------------------------------------------
 
@@ -108,7 +118,16 @@ onBeforeRouteLeave((_to, _from, next) => {
 onMounted(async () => {
   await initializeDomain();
 
+  // Initialize email config if entitlement is already available
   if (hasEntitlement.value) {
+    await initializeEmailConfig();
+  }
+});
+
+// Handle race condition: organizations may load after onMounted runs.
+// Watch for entitlement to become true and initialize if needed.
+watch(hasEntitlement, async (entitled) => {
+  if (entitled && !isInitialized.value) {
     await initializeEmailConfig();
   }
 });
@@ -252,14 +271,14 @@ onMounted(async () => {
                 :is-deleting="isDeleting"
                 :has-unsaved-changes="hasUnsavedChanges"
                 :error="emailError?.message"
-                @update:form-state="(state) => Object.assign(formState, state)"
+                @update:form-state="handleFormStateUpdate"
                 @save="saveConfig"
                 @discard="discardChanges"
                 @delete="deleteConfig" />
 
-              <!-- DNS Records Section (only show when config exists and provider is not inherit) -->
+              <!-- DNS Records Section (shown when config exists) -->
               <DomainEmailDnsRecords
-                v-if="isConfigured && formState.provider !== 'inherit'"
+                v-if="isConfigured"
                 :dns-records="dnsRecords"
                 :validation-status="validationStatus"
                 :last-validated-at="lastValidatedAt"

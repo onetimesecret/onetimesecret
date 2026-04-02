@@ -6,6 +6,7 @@ require 'onetime/models/custom_domain/mailer_config'
 require_relative 'base'
 require_relative 'serializers'
 require_relative 'audit_logger'
+require_relative 'auto_provisioning'
 
 module DomainsAPI
   module Logic
@@ -19,38 +20,34 @@ module DomainsAPI
       #   with custom_mail_sender entitlement.
       #
       # Request body:
-      # - provider: Required for create, optional for update (uses existing if empty)
       # - from_address: Required for create, optional for update (preserves existing if empty)
       # - from_name: Optional. Display name for sender (preserves existing if empty)
       # - reply_to: Optional. Reply-to address (preserves existing if empty)
-      # - api_key: Required for create, optional for update (preserves existing if empty)
       # - enabled: Optional. Boolean to enable/disable (preserves existing if omitted)
       #
-      # Response includes the updated config with masked api_key_masked.
+      # Custom mail sender model: users configure sender identity only.
+      # Provider credentials are resolved from installation-level configuration.
+      #
+      # Response includes the updated config.
       #
       class PatchSenderConfig < Base
         include Serializers
         include AuditLogger
-
-        VALID_PROVIDER_TYPES = Onetime::CustomDomain::MailerConfig::PROVIDER_TYPES.freeze
+        include AutoProvisioning
 
         attr_reader :mailer_config, :existing_config
 
         def process_params
           @domain_id    = sanitize_identifier(params['extid'])
-          @provider     = sanitize_plain_text(params['provider'])
           @from_name    = sanitize_plain_text(params['from_name'])
           @from_address = params['from_address'].to_s.strip
           @reply_to     = params['reply_to'].to_s.strip
-          @api_key      = params['api_key'].to_s.strip
           @enabled      = parse_boolean(params['enabled'])
 
           # Track which fields were explicitly provided (for PATCH semantics)
-          @provider_provided     = !params['provider'].nil?
           @from_name_provided    = !params['from_name'].nil?
           @from_address_provided = !params['from_address'].nil?
           @reply_to_provided     = !params['reply_to'].nil?
-          @api_key_provided      = !params['api_key'].nil?
           @enabled_provided      = !params['enabled'].nil?
         end
 
@@ -67,14 +64,8 @@ module DomainsAPI
           # Check if config already exists
           @existing_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@custom_domain.identifier)
 
-          # Validate provider
-          validate_provider
-
           # Validate required fields
           validate_required_fields
-
-          # Validate credentials
-          validate_credentials
         end
 
         def process
@@ -92,7 +83,6 @@ module DomainsAPI
               domain: @custom_domain,
               org: @organization,
               actor: cust,
-              provider: @provider,
               changes: changes,
             )
           else
@@ -102,7 +92,6 @@ module DomainsAPI
               domain: @custom_domain,
               org: @organization,
               actor: cust,
-              provider: @provider,
             )
           end
 
@@ -110,6 +99,10 @@ module DomainsAPI
           # Use actual state after update (which may be unchanged if enabled wasn't provided)
           current_enabled = @mailer_config.enabled?
           log_enabled_state_change(was_enabled, current_enabled)
+
+          # Auto-provision DNS records for platform mode
+          # Non-blocking: we continue even if provisioning fails
+          auto_provision_if_needed
 
           success_data
         end
@@ -124,7 +117,6 @@ module DomainsAPI
         def form_fields
           {
             domain_id: @domain_id,
-            provider: @provider,
             from_name: @from_name,
             from_address: @from_address,
             reply_to: @reply_to,
@@ -133,28 +125,6 @@ module DomainsAPI
         end
 
         private
-
-        # Validates and resolves provider with PATCH semantics.
-        #
-        # For new configs: provider is required
-        # For updates: falls back to existing config value when not provided
-        def validate_provider
-          if @provider.to_s.empty?
-            if @existing_config
-              @provider = @existing_config.provider
-            else
-              raise_form_error('Provider is required', field: :provider, error_type: :missing)
-            end
-          end
-
-          return if VALID_PROVIDER_TYPES.include?(@provider)
-
-          raise_form_error(
-            "Invalid provider. Must be one of: #{VALID_PROVIDER_TYPES.join(', ')}",
-            field: :provider,
-            error_type: :invalid,
-          )
-        end
 
         # Validates required fields with PATCH semantics.
         #
@@ -175,26 +145,16 @@ module DomainsAPI
           end
         end
 
-        # Validates credentials with PATCH semantics.
-        #
-        # For new configs: api_key is required
-        # For updates: preserves existing if not provided
-        def validate_credentials
-          # api_key is required for new configs, optional for updates (preserves existing)
-          if @existing_config.nil? && @api_key.to_s.empty?
-            raise_form_error('API key is required', field: :api_key, error_type: :missing)
-          end
-        end
-
         def create_new_config
+          # Custom mail sender model: sender identity only, no provider/api_key
+          # Provider credentials resolved from installation-level configuration
           @mailer_config = Onetime::CustomDomain::MailerConfig.create!(
             domain_id: @custom_domain.identifier,
-            provider: @provider,
             from_name: @from_name,
             from_address: @from_address,
             reply_to: @reply_to,
-            api_key: @api_key,
             enabled: @enabled,
+            sending_mode: 'platform',  # Platform mode: OTS provisions DNS via provider API
           )
         end
 
@@ -205,17 +165,18 @@ module DomainsAPI
         # - Omitted fields preserve their existing values
         #
         # from_address behavior:
-        # - Uses model's update_from_address if the address changed (resets verification)
+        # - Resets verification state when address changes
         # - Other fields updated directly without affecting verification state
         #
         # Uses transaction with commit_fields to prevent race condition where
         # config could be deleted between existence check and update.
         #
+        # Custom mail sender model: sender identity only, no provider/api_key.
+        #
         def update_existing_config
           @mailer_config = @existing_config
 
           # PATCH semantics: only update fields that are explicitly provided
-          @mailer_config.provider  = @provider if @provider_provided && !@provider.to_s.empty?
           @mailer_config.from_name = @from_name if @from_name_provided
           @mailer_config.reply_to  = @reply_to if @reply_to_provided
           @mailer_config.enabled   = @enabled.to_s if @enabled_provided
@@ -226,9 +187,6 @@ module DomainsAPI
             @mailer_config.verified_at         = nil
             @mailer_config.verification_status = VERIFICATION_STATUS_PENDING
           end
-
-          # Only update api_key if explicitly provided and non-empty
-          @mailer_config.api_key = @api_key if @api_key_provided && !@api_key.to_s.empty?
 
           # Update timestamp for partial update
           @mailer_config.updated = Familia.now.to_i
@@ -252,7 +210,6 @@ module DomainsAPI
               domain: @custom_domain,
               org: @organization,
               actor: cust,
-              provider: @provider,
             )
           elsif was_enabled == true && !is_enabled
             log_sender_audit_event(
@@ -260,7 +217,6 @@ module DomainsAPI
               domain: @custom_domain,
               org: @organization,
               actor: cust,
-              provider: @provider,
             )
           end
         end

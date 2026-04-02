@@ -74,6 +74,7 @@ jobs:
       - name: Build OCI image
         uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
         with:
+          source: .
           files: docker/bake.hcl
           targets: main
           load: true

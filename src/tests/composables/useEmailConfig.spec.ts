@@ -151,7 +151,6 @@ describe('useEmailConfig', () => {
 
       expect(composable.emailConfig.value).toEqual(mockEmailConfigData);
       expect(composable.formState.value).toEqual({
-        provider: 'ses',
         from_name: 'Acme Corp',
         from_address: 'noreply@example.com',
         reply_to: 'support@example.com',
@@ -167,7 +166,6 @@ describe('useEmailConfig', () => {
       await composable.initialize();
 
       expect(composable.formState.value).toEqual({
-        provider: 'inherit',
         from_name: '',
         from_address: '',
         reply_to: '',
@@ -218,7 +216,6 @@ describe('useEmailConfig', () => {
 
       // Fill in form
       composable.formState.value = {
-        provider: 'ses',
         from_name: 'Test Corp',
         from_address: 'test@example.com',
         reply_to: '',
@@ -228,7 +225,6 @@ describe('useEmailConfig', () => {
       await composable.saveConfig();
 
       expect(mockPutEmailConfig).toHaveBeenCalledWith('dm-ext-123', expect.objectContaining({
-        provider: 'ses',
         from_name: 'Test Corp',
         from_address: 'test@example.com',
         enabled: true,
@@ -261,7 +257,6 @@ describe('useEmailConfig', () => {
       await composable.initialize();
 
       composable.formState.value = {
-        provider: 'ses',
         from_name: '  Test Corp  ',
         from_address: '  test@example.com  ',
         reply_to: '  reply@example.com  ',
@@ -283,7 +278,6 @@ describe('useEmailConfig', () => {
       await composable.initialize();
 
       composable.formState.value = {
-        provider: 'ses',
         from_name: 'Test Corp',
         from_address: 'test@example.com',
         reply_to: '',
@@ -326,7 +320,6 @@ describe('useEmailConfig', () => {
       await composable.initialize();
 
       composable.formState.value = {
-        provider: 'ses',
         from_name: 'Updated Corp',
         from_address: 'test@example.com',
         reply_to: '',
@@ -345,7 +338,6 @@ describe('useEmailConfig', () => {
       await composable.initialize();
 
       composable.formState.value = {
-        provider: 'ses',
         from_name: 'Test',
         from_address: 'test@example.com',
         reply_to: '',
@@ -372,7 +364,6 @@ describe('useEmailConfig', () => {
       await composable.initialize();
 
       composable.formState.value = {
-        provider: 'ses',
         from_name: 'Test',
         from_address: 'test@example.com',
         reply_to: '',
@@ -398,7 +389,6 @@ describe('useEmailConfig', () => {
       await composable.initialize();
 
       composable.formState.value = {
-        provider: 'ses',
         from_name: 'Test',
         from_address: 'test@example.com',
         reply_to: '',
@@ -437,7 +427,6 @@ describe('useEmailConfig', () => {
       await composable.deleteConfig();
 
       expect(composable.formState.value).toEqual({
-        provider: 'inherit',
         from_name: '',
         from_address: '',
         reply_to: '',
@@ -510,19 +499,6 @@ describe('useEmailConfig', () => {
       await composable.initialize();
 
       expect(composable.hasUnsavedChanges.value).toBe(false);
-    });
-
-    it('returns true when provider is modified', async () => {
-      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
-      const composable = useEmailConfig('dm-ext-123');
-      await composable.initialize();
-
-      composable.formState.value = {
-        ...composable.formState.value,
-        provider: 'sendgrid',
-      };
-
-      expect(composable.hasUnsavedChanges.value).toBe(true);
     });
 
     it('returns true when from_name is modified', async () => {
@@ -617,7 +593,6 @@ describe('useEmailConfig', () => {
 
       // Modify multiple fields
       composable.formState.value = {
-        provider: 'sendgrid',
         from_name: 'Changed Corp',
         from_address: 'changed@example.com',
         reply_to: 'changed-reply@example.com',
@@ -640,7 +615,6 @@ describe('useEmailConfig', () => {
 
       // formState should remain at defaults
       expect(composable.formState.value).toEqual({
-        provider: 'inherit',
         from_name: '',
         from_address: '',
         reply_to: '',

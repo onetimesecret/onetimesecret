@@ -174,12 +174,12 @@ export type CustomDomainEmailConfigCanonical = z.infer<typeof customDomainEmailC
  * All fields are optional for partial update semantics.
  * Only provided fields are updated; omitted fields preserve existing values.
  *
+ * Custom mail sender model: users configure sender identity only.
+ * Provider credentials are resolved from installation-level configuration.
+ *
  * @category Contracts
  */
 export const patchEmailConfigPayloadSchema = z.object({
-  /** Email provider type. */
-  provider: emailProviderTypeSchema.optional(),
-
   /** Whether email config is enabled. */
   enabled: z.boolean().optional(),
 
@@ -205,12 +205,12 @@ export type PatchEmailConfigPayload = z.infer<typeof patchEmailConfigPayloadSche
  * Full replacement semantics - all required fields must be provided.
  * The request body IS the new state.
  *
+ * Custom mail sender model: users configure sender identity only.
+ * Provider credentials are resolved from installation-level configuration.
+ *
  * @category Contracts
  */
 export const putEmailConfigPayloadSchema = z.object({
-  /** Email provider type. */
-  provider: emailProviderTypeSchema,
-
   /** Whether email config is enabled. Defaults to false. */
   enabled: z.boolean().optional(),
 
@@ -224,32 +224,4 @@ export const putEmailConfigPayloadSchema = z.object({
   reply_to: z.string().email('Reply-to must be a valid email').optional().or(z.literal('')),
 });
 
-/**
- * PUT email config payload with provider-specific validation.
- *
- * - 'inherit' provider does not require from_address/from_name
- *   (they are inherited from system defaults).
- */
-export const putEmailConfigPayloadStrictSchema = putEmailConfigPayloadSchema.superRefine(
-  (data, ctx) => {
-    if (data.provider !== 'inherit') {
-      if (!data.from_address) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'From address is required for non-inherit providers',
-          path: ['from_address'],
-        });
-      }
-      if (!data.from_name) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'From name is required for non-inherit providers',
-          path: ['from_name'],
-        });
-      }
-    }
-  }
-);
-
 export type PutEmailConfigPayload = z.infer<typeof putEmailConfigPayloadSchema>;
-export type PutEmailConfigPayloadStrict = z.infer<typeof putEmailConfigPayloadStrictSchema>;

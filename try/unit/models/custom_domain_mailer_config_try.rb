@@ -151,17 +151,13 @@ end
 
 # --- Validation: provider ---
 
-## create! raises when provider is missing
+## create! succeeds when provider is omitted (resolved from installation config)
 @domain_noprov = Onetime::CustomDomain.create!("mc-noprov-#{@ts}.example.com", @org.objid)
-begin
-  Onetime::CustomDomain::MailerConfig.create!(
-    domain_id: @domain_noprov.identifier,
-    from_address: 'test@example.com'
-  )
-  'unexpected_success'
-rescue Onetime::Problem => e
-  e.message.include?('provider is required')
-end
+@config_noprov = Onetime::CustomDomain::MailerConfig.create!(
+  domain_id: @domain_noprov.identifier,
+  from_address: 'test@example.com'
+)
+@config_noprov.provider.to_s.empty?
 #=> true
 
 ## create! raises when provider is invalid

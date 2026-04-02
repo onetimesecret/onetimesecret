@@ -31,7 +31,7 @@ module Onetime
     #
     module DnsRateLimiter
       # Maximum verification attempts allowed per domain
-      MAX_VERIFICATIONS = 10
+      MAX_VERIFICATIONS = 100
 
       # Window in seconds for counting verifications (1 hour)
       RATE_WINDOW = 3600

@@ -85,7 +85,7 @@ module Onetime
         end
 
         begin
-          provider = @mailer_config.provider
+          provider = effective_provider
 
           # Step 2: Verify provider supports provisioning
           unless Onetime::Mail::SenderStrategies.supports_provisioning?(provider)
@@ -184,10 +184,18 @@ module Onetime
         return 'mailer_config is required' unless @mailer_config
 
         errors = []
-        errors << 'provider is required' if @mailer_config.provider.to_s.empty?
+        # Provider is resolved from installation config if not set on mailer_config
+        errors << 'provider could not be resolved' if effective_provider.to_s.empty?
         errors << 'from_address is required' if @mailer_config.from_address.to_s.empty?
 
         errors.empty? ? nil : errors.join('; ')
+      end
+
+      # Delegate to mailer_config's effective_provider method.
+      #
+      # @return [String, nil] Provider name or nil if not resolvable
+      def effective_provider
+        @mailer_config.effective_provider
       end
 
       # Load and validate platform credentials for the provider.

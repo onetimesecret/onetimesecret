@@ -9,12 +9,11 @@
  * auto PUT/PATCH selection, and delete support.
  */
 import { useI18n } from 'vue-i18n';
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import { z } from 'zod';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import type { EmailConfigFormState } from '@/shared/composables/useEmailConfig';
-import type { EmailProviderType } from '@/schemas/shapes/domains/email-config';
 
 const emailSchema = z.string().email();
 
@@ -51,38 +50,24 @@ const updateField = <K extends keyof EmailConfigFormState>(
   emit('update:formState', { ...props.formState, [key]: value });
 };
 
-// Provider options
-const providerOptions: { value: EmailProviderType; label: string; description: string }[] = [
-  {
-    value: 'ses',
-    label: t('web.domains.email.provider_ses'),
-    description: t('web.domains.email.provider_ses_description'),
-  },
-  {
-    value: 'sendgrid',
-    label: t('web.domains.email.provider_sendgrid'),
-    description: t('web.domains.email.provider_sendgrid_description'),
-  },
-  {
-    value: 'lettermint',
-    label: t('web.domains.email.provider_lettermint'),
-    description: t('web.domains.email.provider_lettermint_description'),
-  },
-  {
-    value: 'inherit',
-    label: t('web.domains.email.provider_inherit'),
-    description: t('web.domains.email.provider_inherit_description'),
-  },
-];
+// Individual field models for v-model binding (handles autocomplete reliably)
+const fromName = computed({
+  get: () => props.formState.from_name,
+  set: (value: string) => updateField('from_name', value),
+});
 
-// Whether the "inherit" provider is selected (hides sender fields)
-const isInheritProvider = computed(() => localForm.value.provider === 'inherit');
+const fromAddress = computed({
+  get: () => props.formState.from_address,
+  set: (value: string) => updateField('from_address', value),
+});
+
+const replyTo = computed({
+  get: () => props.formState.reply_to,
+  set: (value: string) => updateField('reply_to', value),
+});
 
 // Form validation
 const isFormValid = computed(() => {
-  // Inherit provider doesn't need sender fields
-  if (isInheritProvider.value) return true;
-
   if (!localForm.value.from_name.trim()) return false;
   if (!localForm.value.from_address.trim()) return false;
 
@@ -99,14 +84,6 @@ const isFormValid = computed(() => {
 
 // Delete confirmation
 const showDeleteConfirm = ref(false);
-
-// Reset delete confirmation when form data changes
-watch(
-  () => localForm.value.provider,
-  () => {
-    showDeleteConfirm.value = false;
-  }
-);
 
 const handleSave = () => {
   if (!isFormValid.value || props.isSaving) return;
@@ -128,114 +105,59 @@ const handleDelete = () => {
       v-if="error"
       :error="error" />
 
-    <!-- Provider Selection -->
-    <fieldset>
-      <legend class="text-sm font-medium text-gray-900 dark:text-white">
-        {{ t('web.domains.email.provider_label') }}
-      </legend>
-      <div
-        class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2"
-        role="radiogroup"
-        :aria-label="t('web.domains.email.provider_label')">
-        <label
-          v-for="option in providerOptions"
-          :key="option.value"
-          :class="[
-            'relative flex cursor-pointer rounded-lg border p-4 focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2',
-            localForm.provider === option.value
-              ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-900/20'
-              : 'border-gray-300 bg-white hover:border-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500',
-          ]">
-          <input
-            type="radio"
-            :id="`email-provider-${option.value}`"
-            name="email_provider"
-            :value="option.value"
-            :checked="localForm.provider === option.value"
-            class="sr-only"
-            :aria-describedby="`email-provider-${option.value}-description`"
-            @change="updateField('provider', option.value)" />
-          <span class="flex flex-1 flex-col">
-            <span
-              :class="[
-                'block text-sm font-medium',
-                localForm.provider === option.value
-                  ? 'text-brand-900 dark:text-brand-100'
-                  : 'text-gray-900 dark:text-white',
-              ]">
-              {{ option.label }}
-            </span>
-            <span
-              :id="`email-provider-${option.value}-description`"
-              class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {{ option.description }}
-            </span>
-          </span>
-          <OIcon
-            v-if="localForm.provider === option.value"
-            collection="heroicons"
-            name="check-circle-solid"
-            class="size-5 text-brand-600 dark:text-brand-400"
-            aria-hidden="true" />
-        </label>
-      </div>
-    </fieldset>
+    <!-- From Name -->
+    <div>
+      <label
+        for="email-from-name"
+        class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {{ t('web.domains.email.from_name_label') }}
+        <span class="text-red-500" aria-hidden="true">*</span>
+      </label>
+      <input
+        id="email-from-name"
+        v-model="fromName"
+        type="text"
+        required
+        maxlength="100"
+        :placeholder="t('web.domains.email.from_name_placeholder')"
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+    </div>
 
-    <!-- Sender Fields (hidden for inherit provider) -->
-    <template v-if="!isInheritProvider">
-      <!-- From Name -->
-      <div>
-        <label
-          for="email-from-name"
-          class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {{ t('web.domains.email.from_name_label') }}
-          <span class="text-red-500" aria-hidden="true">*</span>
-        </label>
-        <input
-          id="email-from-name"
-          :value="localForm.from_name"
-          type="text"
-          required
-          maxlength="100"
-          :placeholder="t('web.domains.email.from_name_placeholder')"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
-          @input="updateField('from_name', ($event.target as HTMLInputElement).value)" />
-      </div>
+    <!-- From Address -->
+    <div>
+      <label
+        for="email-from-address"
+        class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {{ t('web.domains.email.from_address_label') }}
+        <span class="text-red-500" aria-hidden="true">*</span>
+      </label>
+      <input
+        id="email-from-address"
+        :value="fromAddress"
+        type="email"
+        required
+        autocomplete="off"
+        :placeholder="t('web.domains.email.from_address_placeholder')"
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
+        @input="fromAddress = ($event.target as HTMLInputElement).value" />
+    </div>
 
-      <!-- From Address -->
-      <div>
-        <label
-          for="email-from-address"
-          class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {{ t('web.domains.email.from_address_label') }}
-          <span class="text-red-500" aria-hidden="true">*</span>
-        </label>
-        <input
-          id="email-from-address"
-          :value="localForm.from_address"
-          type="email"
-          required
-          :placeholder="t('web.domains.email.from_address_placeholder')"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
-          @input="updateField('from_address', ($event.target as HTMLInputElement).value)" />
-      </div>
-
-      <!-- Reply-To Address -->
-      <div>
-        <label
-          for="email-reply-to"
-          class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {{ t('web.domains.email.reply_to_label') }}
-        </label>
-        <input
-          id="email-reply-to"
-          :value="localForm.reply_to"
-          type="email"
-          :placeholder="t('web.domains.email.reply_to_placeholder')"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
-          @input="updateField('reply_to', ($event.target as HTMLInputElement).value)" />
-      </div>
-    </template>
+    <!-- Reply-To Address -->
+    <div>
+      <label
+        for="email-reply-to"
+        class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {{ t('web.domains.email.reply_to_label') }}
+      </label>
+      <input
+        id="email-reply-to"
+        :value="replyTo"
+        type="email"
+        autocomplete="off"
+        :placeholder="t('web.domains.email.reply_to_placeholder')"
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
+        @input="replyTo = ($event.target as HTMLInputElement).value" />
+    </div>
 
     <!-- Enabled Toggle -->
     <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
