@@ -539,9 +539,12 @@ email_providers:
     # DKIM selector names (comma-separated for env var)
     # Override via EMAIL_PROVIDERS_LETTERMINT_DKIM_SELECTORS env var
     dkim_selectors: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_DKIM_SELECTORS']&.split(',')&.map(&:strip) || ['lm1', 'lm2'] %>
-    # SPF include domain
-    # Override via EMAIL_PROVIDERS_LETTERMINT_SPF_INCLUDE env var
-    spf_include: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_SPF_INCLUDE'] || 'lettermint.com' %>
+    # SPF CNAME subdomain prefix (e.g., 'lm-bounces' creates lm-bounces.yourdomain.com)
+    # Override via EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_PREFIX env var
+    spf_cname_prefix: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_PREFIX'] || 'lm-bounces' %>
+    # SPF CNAME target domain (Lettermint maintains SPF at this target)
+    # Override via EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_TARGET env var
+    spf_cname_target: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_TARGET'] || 'bounces.lmta.net' %>
 
 mail:
   truemail:

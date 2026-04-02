@@ -37,7 +37,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
           'dns_records' => [
             { 'type' => 'CNAME', 'name' => 'lm1._domainkey.example.com', 'value' => 'lm1.dkim.lettermint.com' },
             { 'type' => 'CNAME', 'name' => 'lm2._domainkey.example.com', 'value' => 'lm2.dkim.lettermint.com' },
-            { 'type' => 'TXT', 'name' => 'example.com', 'value' => 'v=spf1 include:lettermint.com ~all' },
+            { 'type' => 'CNAME', 'name' => 'lm-bounces.example.com', 'value' => 'bounces.lmta.net' },
           ],
         }
       end
@@ -58,8 +58,24 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
         expect(result[:dns_records]).to eq([
           { type: 'CNAME', name: 'lm1._domainkey.example.com', value: 'lm1.dkim.lettermint.com' },
           { type: 'CNAME', name: 'lm2._domainkey.example.com', value: 'lm2.dkim.lettermint.com' },
-          { type: 'TXT', name: 'example.com', value: 'v=spf1 include:lettermint.com ~all' },
+          { type: 'CNAME', name: 'lm-bounces.example.com', value: 'bounces.lmta.net' },
         ])
+      end
+
+      it 'returns all CNAME records (DKIM + SPF bounce subdomain)' do
+        result = strategy.provision_dns_records(mailer_config, credentials: credentials)
+
+        expect(result[:dns_records].size).to eq(3)
+        expect(result[:dns_records].all? { |r| r[:type] == 'CNAME' }).to be true
+      end
+
+      it 'includes SPF bounce CNAME pointing to bounces.lmta.net' do
+        result = strategy.provision_dns_records(mailer_config, credentials: credentials)
+
+        spf_record = result[:dns_records].find { |r| r[:name] == 'lm-bounces.example.com' }
+        expect(spf_record).not_to be_nil
+        expect(spf_record[:type]).to eq('CNAME')
+        expect(spf_record[:value]).to eq('bounces.lmta.net')
       end
 
       it 'includes provider_data with domain info' do
@@ -534,6 +550,33 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       normalized = strategy.send(:normalize_dns_records, records)
 
       expect(normalized.size).to eq(1)
+    end
+
+    it 'normalizes all Lettermint record types to CNAME (DKIM + SPF bounce)' do
+      records = [
+        { 'type' => 'cname', 'name' => 'lm1._domainkey.example.com', 'value' => 'lm1.dkim.lettermint.com' },
+        { 'type' => 'CNAME', 'name' => 'lm2._domainkey.example.com', 'value' => 'lm2.dkim.lettermint.com' },
+        { 'type' => 'Cname', 'name' => 'lm-bounces.example.com', 'value' => 'bounces.lmta.net' },
+      ]
+
+      normalized = strategy.send(:normalize_dns_records, records)
+
+      expect(normalized.size).to eq(3)
+      expect(normalized.all? { |r| r[:type] == 'CNAME' }).to be true
+    end
+
+    it 'preserves SPF bounce CNAME record correctly' do
+      records = [
+        { 'type' => 'CNAME', 'name' => 'lm-bounces.example.com', 'value' => 'bounces.lmta.net' },
+      ]
+
+      normalized = strategy.send(:normalize_dns_records, records)
+
+      expect(normalized.first).to eq({
+        type: 'CNAME',
+        name: 'lm-bounces.example.com',
+        value: 'bounces.lmta.net',
+      })
     end
   end
 end

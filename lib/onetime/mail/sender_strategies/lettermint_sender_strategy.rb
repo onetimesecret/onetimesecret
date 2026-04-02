@@ -13,12 +13,12 @@ module Onetime
       # Provisions sender authentication through Lettermint's Domain API.
       #
       # Lettermint provides DKIM configuration via selector-based CNAME records
-      # and SPF TXT records that must be added to the domain's DNS.
+      # and SPF via a Return-Path CNAME record (no direct SPF TXT record needed).
       #
       # Example DNS records for domain "example.com":
       #   lm1._domainkey.example.com CNAME lm1.dkim.lettermint.com
       #   lm2._domainkey.example.com CNAME lm2.dkim.lettermint.com
-      #   example.com TXT "v=spf1 include:lettermint.com ~all"
+      #   lm-bounces.example.com     CNAME bounces.lmta.net
       #
       # Lettermint has TWO separate APIs:
       #   1. Sending API - uses x-lettermint-token header (project token)

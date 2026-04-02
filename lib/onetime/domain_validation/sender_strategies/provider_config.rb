@@ -23,7 +23,8 @@ module Onetime
       #       spf_include: sendgrid.net
       #     lettermint:
       #       dkim_selectors: [lm1, lm2]
-      #       spf_include: lettermint.co
+      #       spf_cname_prefix: lm-bounces
+      #       spf_cname_target: bounces.lmta.net
       #
       # Usage:
       #   config = ProviderConfig.for('ses')
@@ -49,7 +50,8 @@ module Onetime
           }.freeze,
           'lettermint' => {
             dkim_selectors: %w[lm1 lm2].freeze,
-            spf_include: 'lettermint.com',
+            spf_cname_prefix: 'lm-bounces',
+            spf_cname_target: 'bounces.lmta.net',
             api_base_url: 'https://api.lettermint.co/v1',
           }.freeze,
         }.freeze
