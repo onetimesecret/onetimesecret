@@ -34,6 +34,7 @@ module Onetime
         desc: 'Show all resolution details even when passing'
 
       def call(email:, entitlement: nil, verbose: false, **)
+        require_sudo
         boot_application!
 
         puts "Diagnosing: #{email}"

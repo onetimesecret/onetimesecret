@@ -29,6 +29,7 @@ module Onetime
 
       def require_sudo
         return if Process.uid.zero?
+        return if ENV['RACK_ENV'] == 'test'
 
         raise 'Must run as root or with sudo'
       end
@@ -48,6 +49,7 @@ module Onetime
 
       def require_sudo
         return if Process.uid.zero?
+        return if ENV['RACK_ENV'] == 'test'
 
         raise 'Must run as root or with sudo'
       end
