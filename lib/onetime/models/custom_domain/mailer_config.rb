@@ -256,6 +256,20 @@ module Onetime
         end
       end
 
+      # Resolve effective provider for this mailer config.
+      #
+      # Uses the config's provider field if set, otherwise falls back to
+      # installation-level provider from Mailer.determine_provider.
+      #
+      # @return [String, nil] Provider name or nil if not resolvable
+      def effective_provider
+        resolved = provider.to_s.strip
+        return resolved unless resolved.empty?
+
+        # Fallback to installation config
+        Onetime::Mail::Mailer.send(:determine_provider)
+      end
+
       class << self
         # Find mailer config by domain ID.
         #

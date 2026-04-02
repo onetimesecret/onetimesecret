@@ -191,18 +191,11 @@ module Onetime
         errors.empty? ? nil : errors.join('; ')
       end
 
-      # Resolve effective provider for this operation.
-      #
-      # Uses mailer_config.provider if set, otherwise falls back to
-      # installation-level provider from Mailer.determine_provider.
+      # Delegate to mailer_config's effective_provider method.
       #
       # @return [String, nil] Provider name or nil if not resolvable
       def effective_provider
-        provider = @mailer_config.provider.to_s.strip
-        return provider unless provider.empty?
-
-        # Fallback to installation config
-        Onetime::Mail::Mailer.send(:determine_provider)
+        @mailer_config.effective_provider
       end
 
       # Load and validate platform credentials for the provider.

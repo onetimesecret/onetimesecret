@@ -208,19 +208,12 @@ module Onetime
         resolved_strategy.required_dns_records(mailer_config)
       end
 
-      # Resolve effective provider for a mailer config.
-      #
-      # Uses mailer_config.provider if set, otherwise falls back to
-      # installation-level provider from Mailer.determine_provider.
+      # Delegate to mailer_config's effective_provider method.
       #
       # @param mailer_config [Onetime::CustomDomain::MailerConfig] The mailer config
       # @return [String, nil] Provider name or nil if not resolvable
       private_class_method def self.resolve_effective_provider(mailer_config)
-        provider = mailer_config.provider.to_s.strip
-        return provider unless provider.empty?
-
-        # Fallback to installation config
-        Onetime::Mail::Mailer.send(:determine_provider)
+        mailer_config.effective_provider
       end
 
       private
@@ -233,18 +226,11 @@ module Onetime
         @strategy ||= self.class.send(:resolve_strategy, effective_provider, @options)
       end
 
-      # Resolve effective provider for this operation.
-      #
-      # Uses mailer_config.provider if set, otherwise falls back to
-      # installation-level provider from Mailer.determine_provider.
+      # Delegate to mailer_config's effective_provider method.
       #
       # @return [String, nil] Provider name or nil if not resolvable
       def effective_provider
-        provider = @mailer_config.provider.to_s.strip
-        return provider unless provider.empty?
-
-        # Fallback to installation config
-        Onetime::Mail::Mailer.send(:determine_provider)
+        @mailer_config.effective_provider
       end
 
       # Factory lookup for sender strategies by provider name.
