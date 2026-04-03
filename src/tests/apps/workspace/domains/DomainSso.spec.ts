@@ -27,6 +27,12 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({
     push: mockRouterPush,
   }),
+  onBeforeRouteLeave: vi.fn(),
+  RouterLink: {
+    name: 'RouterLink',
+    template: '<a :href="to"><slot /></a>',
+    props: ['to'],
+  },
 }));
 
 // Mock child components
@@ -67,6 +73,56 @@ vi.mock('@/shared/composables/useDomain', () => ({
     isLoading: mockDomainLoading,
     error: mockDomainError,
     initialize: mockInitializeDomain,
+  }),
+}));
+
+// SSO config composable mock
+const mockSsoLoading = ref(false);
+const mockSsoInitialized = ref(true);
+const mockSsoSaving = ref(false);
+const mockSsoDeleting = ref(false);
+const mockSsoTesting = ref(false);
+const mockSsoError = ref<{ message: string } | null>(null);
+const mockSsoConfig = ref(null);
+const mockFormState = ref({
+  provider: 'oidc',
+  enabled: false,
+  allowed_domains: '',
+  client_id: '',
+  client_secret: '',
+  issuer_url: '',
+});
+const mockTestResult = ref(null);
+const mockTestError = ref(null);
+const mockIsConfigured = ref(false);
+const mockHasUnsavedChanges = ref(false);
+const mockClientSecretMasked = ref('');
+const mockInitializeSsoConfig = vi.fn();
+const mockSaveConfig = vi.fn();
+const mockDeleteConfig = vi.fn();
+const mockTestConnection = vi.fn();
+const mockDiscardChanges = vi.fn();
+
+vi.mock('@/shared/composables/useSsoConfig', () => ({
+  useSsoConfig: () => ({
+    isLoading: mockSsoLoading,
+    isInitialized: mockSsoInitialized,
+    isSaving: mockSsoSaving,
+    isDeleting: mockSsoDeleting,
+    isTesting: mockSsoTesting,
+    error: mockSsoError,
+    ssoConfig: mockSsoConfig,
+    formState: mockFormState,
+    testResult: mockTestResult,
+    testError: mockTestError,
+    isConfigured: mockIsConfigured,
+    hasUnsavedChanges: mockHasUnsavedChanges,
+    clientSecretMasked: mockClientSecretMasked,
+    initialize: mockInitializeSsoConfig,
+    saveConfig: mockSaveConfig,
+    deleteConfig: mockDeleteConfig,
+    testConnection: mockTestConnection,
+    discardChanges: mockDiscardChanges,
   }),
 }));
 
@@ -118,11 +174,21 @@ const i18n = createI18n({
             title: 'Domain SSO Configuration',
             access_denied: 'Access Denied',
             access_denied_description: 'You do not have permission to manage SSO for this domain.',
+            upgrade_to_configure: 'You do not have permission to manage SSO for this domain. Upgrade your plan to enable this feature.',
             config_title: 'SSO Provider Configuration',
             config_description: 'Configure single sign-on for this domain.',
             update_success: 'SSO configuration updated successfully',
             delete_success: 'SSO configuration deleted successfully',
+            not_configured_notice: 'SSO is not configured for this domain yet.',
           },
+        },
+        billing: {
+          overview: {
+            view_plans_action: 'View Plans',
+          },
+        },
+        branding: {
+          you_have_unsaved_changes_are_you_sure: 'You have unsaved changes. Are you sure you want to leave?',
         },
         COMMON: {
           back: 'Back',
@@ -144,10 +210,34 @@ describe('DomainSso', () => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
 
-    // Reset mocks to default state
+    // Reset domain mocks
     mockDomain.value = null;
     mockDomainLoading.value = false;
     mockDomainError.value = null;
+
+    // Reset SSO config mocks
+    mockSsoLoading.value = false;
+    mockSsoInitialized.value = true;
+    mockSsoSaving.value = false;
+    mockSsoDeleting.value = false;
+    mockSsoTesting.value = false;
+    mockSsoError.value = null;
+    mockSsoConfig.value = null;
+    mockFormState.value = {
+      provider: 'oidc',
+      enabled: false,
+      allowed_domains: '',
+      client_id: '',
+      client_secret: '',
+      issuer_url: '',
+    };
+    mockTestResult.value = null;
+    mockTestError.value = null;
+    mockIsConfigured.value = false;
+    mockHasUnsavedChanges.value = false;
+    mockClientSecretMasked.value = '';
+
+    // Reset entitlements and org mocks
     mockCanManageSso.value = true;
     mockOrganizations.value = [
       { extid: 'org_123', display_name: 'Test Org', entitlements: ['manage_sso'] },
