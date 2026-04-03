@@ -23,7 +23,7 @@ module Onetime
     class RecipientResolver
       def initialize(domain_strategy:, display_domain: nil)
         @domain_strategy = domain_strategy&.to_sym
-        @display_domain = display_domain
+        @display_domain  = display_domain
       end
 
       # Check if incoming secrets are enabled for this domain context
@@ -48,7 +48,7 @@ module Onetime
         when :canonical, nil
           OT.incoming_public_recipients # Global boot-time hashed list
         when :custom
-          custom_domain_record&.incoming_secrets_config&.public_incoming_recipients(site_secret) || []
+          custom_domain_record&.cached_public_incoming_recipients(site_secret) || []
         else
           []
         end
@@ -63,9 +63,7 @@ module Onetime
         when :canonical, nil
           OT.lookup_incoming_recipient(hash_key) # Global boot-time lookup
         when :custom
-          custom_domain_record&.incoming_secrets_config&.lookup_incoming_recipient(hash_key, site_secret)
-        else
-          nil
+          custom_domain_record&.cached_incoming_recipient_lookup(site_secret)&.[](hash_key)
         end
       end
 
