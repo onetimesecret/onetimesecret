@@ -76,8 +76,8 @@ module DomainsAPI
 
           if @incoming_config
             # Update existing
+            # Note: recipients= setter updates timestamp automatically
             @incoming_config.enabled    = @enabled.to_s
-            @incoming_config.updated    = Familia.now.to_i
             @incoming_config.recipients = @recipients
             @incoming_config.save
           else

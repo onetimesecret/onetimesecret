@@ -81,13 +81,15 @@ export type CustomDomainIncomingConfig = z.infer<typeof customDomainIncomingConf
 // ---------------------------------------------------------------------------
 
 /**
- * Request body for PUT (full replacement) of incoming configuration.
+ * Request body for PUT of incoming configuration (frontend use).
  *
- * PUT semantics: the request body IS the new state.
- * Only mutable fields are included (enabled can be toggled).
+ * This schema represents the frontend's intended payload - only the `enabled`
+ * toggle is sent via PUT. The backend API endpoint also accepts `recipients`,
+ * but the frontend manages recipients through separate add/remove endpoints
+ * (PUT /api/domains/:extid/recipients).
  *
- * Note: Recipients are managed separately via add/remove endpoints,
- * not via the config PUT/PATCH.
+ * This intentional separation allows toggling enabled/disabled state
+ * without requiring the frontend to re-send the (hashed) recipients list.
  */
 export const putIncomingConfigPayloadSchema = z.object({
   enabled: z.boolean(),
