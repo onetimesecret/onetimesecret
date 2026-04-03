@@ -210,6 +210,61 @@ resolver = Onetime::Incoming::RecipientResolver.new(
 resolver.require_domain_entitlement!('incoming_secrets')
 #=> true
 
+## NEW INCOMING_CONFIG MODEL: Setup for explicit enabled toggle tests
+# Create a second domain for testing the new IncomingConfig model
+@toggle_user = Onetime::Customer.create!(email: "toggle_test_#{@ts}_#{@entropy}@test.com")
+@toggle_org = Onetime::Organization.create!("Toggle Test Org #{@ts}", @toggle_user, "toggle_org_#{@ts}@test.com")
+@toggle_domain_display = "toggle-test-#{@ts}-#{@entropy}.example.com"
+@toggle_domain = Onetime::CustomDomain.create!(@toggle_domain_display, @toggle_org.objid)
+@toggle_domain.exists?
+#=> true
+
+## IncomingConfig with enabled=false returns false even with recipients configured
+# Create IncomingConfig with recipients but enabled=false
+@toggle_incoming_config = Onetime::CustomDomain::IncomingConfig.create!(
+  domain_id: @toggle_domain.identifier,
+  enabled: false,
+  recipients: [
+    { email: 'security@example.com', name: 'Security Team' }
+  ]
+)
+resolver = Onetime::Incoming::RecipientResolver.new(
+  domain_strategy: :custom,
+  display_domain: @toggle_domain_display
+)
+[resolver.enabled?, @toggle_incoming_config.recipients.size]
+#=> [false, 1]
+
+## IncomingConfig with enabled=true returns true
+@toggle_incoming_config.enable!
+resolver = Onetime::Incoming::RecipientResolver.new(
+  domain_strategy: :custom,
+  display_domain: @toggle_domain_display
+)
+resolver.enabled?
+#=> true
+
+## IncomingConfig disable! switches enabled to false
+@toggle_incoming_config.disable!
+resolver = Onetime::Incoming::RecipientResolver.new(
+  domain_strategy: :custom,
+  display_domain: @toggle_domain_display
+)
+resolver.enabled?
+#=> false
+
+## Cleanup toggle test data
+begin
+  @toggle_incoming_config.destroy! rescue nil
+  @toggle_domain.destroy!
+  @toggle_org.destroy!
+  @toggle_user.destroy!
+  true
+rescue => e
+  "cleanup_error: #{e.class}"
+end
+#=> true
+
 ## Teardown: Clean up test data
 begin
   @test_domain.destroy!

@@ -5,4 +5,5 @@
 export * from './domain-recipients';
 export * from './domains';
 export * from './email-config';
+export * from './incoming-config';
 export * from './sso-config';

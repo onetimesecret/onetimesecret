@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../models/custom_domain/incoming_config'
+
 module Onetime
   module Incoming
     # Domain-aware recipient resolution for incoming secrets.
@@ -28,9 +30,10 @@ module Onetime
 
       # Check if incoming secrets are enabled for this domain context
       #
-      # For custom domains, also verifies site_secret is configured.
-      # Without site_secret, recipient hashes cannot be computed, so the
-      # feature is effectively disabled (returns false, logs warning).
+      # For custom domains:
+      # - Uses IncomingConfig.enabled? toggle (new model with explicit toggle)
+      # - Falls back to legacy IncomingSecretsConfig.has_incoming_recipients? if no IncomingConfig exists
+      # - Verifies site_secret is configured (without it, recipient hashes cannot be computed)
       #
       # @return [Boolean]
       def enabled?
@@ -38,12 +41,21 @@ module Onetime
         when :canonical, nil
           incoming_config['enabled'] || false
         when :custom
-          has_recipients = custom_domain_record&.incoming_secrets_config&.has_incoming_recipients? || false
-          return false unless has_recipients
+          # Use new IncomingConfig model if it exists (explicit enabled toggle)
+          # Otherwise fall back to legacy IncomingSecretsConfig (has_incoming_recipients?)
+          config     = custom_domain_record&.incoming_config
+          is_enabled = if config
+                         config.enabled?
+                       else
+                         # Legacy fallback: enabled if recipients exist
+                         custom_domain_record&.incoming_secrets_config&.has_incoming_recipients? || false
+                       end
+
+          return false unless is_enabled
 
           # Fail closed if site_secret is missing - can't compute hashes
           if site_secret.nil? || site_secret.to_s.strip.empty?
-            OT.lw "[RecipientResolver] site_secret missing but custom domain #{@display_domain} has recipients configured"
+            OT.lw "[RecipientResolver] site_secret missing but custom domain #{@display_domain} has incoming enabled"
             return false
           end
 

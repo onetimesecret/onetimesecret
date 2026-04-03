@@ -8,6 +8,7 @@ export * from './get-domain';
 export * from './get-domain-brand';
 export * from './get-domain-icon';
 export * from './get-domain-logo';
+export * from './incoming-config';
 export * from './list-domains';
 export * from './remove-domain';
 export * from './remove-domain-icon';
