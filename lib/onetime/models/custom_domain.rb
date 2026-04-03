@@ -442,9 +442,12 @@ module Onetime
     # Returns incoming secrets configuration as an IncomingSecretsConfig object.
     # The JSON blob is parsed from the incoming_secrets jsonkey.
     #
+    # NOTE: incoming_secrets returns a JsonStringKey object, not a raw string.
+    # We must call .value to get the actual JSON string (or nil if not set).
+    #
     # @return [IncomingSecretsConfig] Parsed config instance
     def incoming_secrets_config
-      @incoming_secrets_config ||= IncomingSecretsConfig.from_json(incoming_secrets)
+      @incoming_secrets_config ||= IncomingSecretsConfig.from_json(incoming_secrets.value)
     end
 
     # Update the incoming secrets config and persist to Redis

@@ -47,13 +47,8 @@ module V3
           @payload = params['secret'] || {}
           raise_form_error 'Incorrect payload format' if @payload.is_a?(String)
 
-          # Get domain-aware config (custom domains use per-domain settings)
-          domain_config   = resolver.config_data
-          incoming_config = OT.conf.dig('features', 'incoming') || {}
-
-          # Extract and validate memo using domain-aware max length
-          memo_max = domain_config[:memo_max_length] || 50
-          @memo    = sanitize_plain_text(@payload['memo'].to_s, max_length: memo_max)
+          # Extract memo with safe default max length (domain config applied later)
+          @memo = sanitize_plain_text(@payload['memo'].to_s, max_length: 500)
 
           # Extract secret value
           @secret_value = @payload['secret'].to_s
@@ -61,16 +56,12 @@ module V3
           # Extract recipient hash instead of email
           @recipient_hash = sanitize_identifier(@payload['recipient'].to_s.strip)
 
-          # Look up actual email from hash via domain-aware resolver
-          @recipient_email = resolver.lookup(@recipient_hash)
-
-          Onetime.secret_logger.debug "[IncomingSecret] Recipient hash: #{@recipient_hash} -> #{@recipient_email ? OT::Utils.obscure_email(@recipient_email) : 'not found'}"
-
-          # Set TTL from domain-aware config
-          @ttl = domain_config[:default_ttl] || 604_800 # 7 days fallback
-
           # Set passphrase from global config (not per-domain yet)
-          @passphrase = incoming_config['default_passphrase']
+          incoming_config = OT.conf.dig('features', 'incoming') || {}
+          @passphrase     = incoming_config['default_passphrase']
+
+          # NOTE: Resolver calls (config_data, lookup) are deferred to
+          # raise_concerns/process to avoid Redis I/O before entitlement check
         end
 
         def raise_concerns
@@ -87,6 +78,9 @@ module V3
           # Validate required fields (memo is optional)
           raise_form_error 'Secret content is required' if secret_value.empty?
           raise_form_error 'Recipient is required' if @recipient_hash.to_s.empty?
+
+          # Now safe to perform resolver I/O (entitlement verified)
+          resolve_recipient_and_config
 
           # Validate recipient hash exists and maps to valid email
           if @recipient_email.nil?
@@ -147,6 +141,24 @@ module V3
             domain_strategy: domain_strategy,
             display_domain: display_domain,
           )
+        end
+
+        # Performs resolver I/O after entitlement check passes.
+        # Sets @recipient_email, @ttl, and re-truncates @memo per domain config.
+        def resolve_recipient_and_config
+          domain_config = resolver.config_data
+
+          # Look up actual email from hash via domain-aware resolver
+          @recipient_email = resolver.lookup(@recipient_hash)
+
+          Onetime.secret_logger.debug "[IncomingSecret] Recipient hash: #{@recipient_hash} -> #{@recipient_email ? OT::Utils.obscure_email(@recipient_email) : 'not found'}"
+
+          # Apply domain-aware memo max length (re-truncate if needed)
+          memo_max = domain_config[:memo_max_length] || 50
+          @memo    = @memo.slice(0, memo_max) if @memo.length > memo_max
+
+          # Set TTL from domain-aware config
+          @ttl = domain_config[:default_ttl] || 604_800 # 7 days fallback
         end
 
         def create_and_encrypt_secret

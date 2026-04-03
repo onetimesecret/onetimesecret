@@ -87,10 +87,13 @@ module Onetime
 
       # Returns {hash => email} mapping for backend validation
       #
+      # Memoized per site_secret since recipients is frozen and immutable.
+      #
       # @param site_secret [String] Site secret used as hash salt
       # @return [Hash<String, String>] Hash mapping recipient hashes to emails
       def incoming_recipient_lookup(site_secret)
-        recipients.each_with_object({}) do |r, lookup|
+        @incoming_recipient_lookup              ||= {}
+        @incoming_recipient_lookup[site_secret] ||= recipients.each_with_object({}) do |r, lookup|
           hash_key         = Digest::SHA256.hexdigest("#{r[:email]}:#{site_secret}")
           lookup[hash_key] = r[:email]
         end
