@@ -96,7 +96,7 @@ const handleBack = () => {
 // Unsaved changes guard
 onBeforeRouteLeave((_to, _from, next) => {
   if (hasUnsavedChanges.value) {
-    const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
+    const answer = window.confirm(t('web.domains.unsaved_changes_confirmation'));
     if (answer) next();
     else next(false);
   } else {

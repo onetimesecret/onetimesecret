@@ -850,5 +850,9 @@
   "web.domains.incoming.delete_all_recipients": {
     "text": "Delete All Recipients",
     "sha256": "e5f6a7b9"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "You have unsaved changes. Are you sure you want to leave?",
+    "sha256": "f6a7b8c0"
   }
 }
