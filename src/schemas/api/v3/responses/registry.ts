@@ -32,11 +32,6 @@ import {
 } from './domains';
 import { feedbackResponseSchema } from './feedback';
 import {
-  incomingConfigResponseSchema,
-  incomingSecretResponseSchema,
-  validateRecipientEnvelopeSchema,
-} from './incoming';
-import {
   supportedLocalesResponseSchema,
   systemStatusResponseSchema,
   systemVersionResponseSchema,
@@ -77,11 +72,6 @@ export const responseSchemas = {
   // Receipts
   receipt: receiptResponseSchema,
   receiptList: receiptListResponseSchema,
-
-  // Incoming
-  incomingConfig: incomingConfigResponseSchema,
-  incomingSecret: incomingSecretResponseSchema,
-  validateRecipient: validateRecipientEnvelopeSchema,
 
   // Meta
   systemStatus: systemStatusResponseSchema,

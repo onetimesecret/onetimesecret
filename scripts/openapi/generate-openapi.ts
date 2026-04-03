@@ -52,15 +52,18 @@ import { responseSchemas as v2ResponseSchemas } from '@/schemas/api/v2/responses
 import {
   burnSecretRequestSchema,
   concealSecretRequestSchema,
-  createIncomingSecretRequestSchema,
   generateSecretRequestSchema,
   listSecretStatusRequestSchema,
   receiveFeedbackRequestSchema,
   revealSecretRequestSchema,
   showMultipleReceiptsRequestSchema,
   updateReceiptRequestSchema,
-  validateRecipientRequestSchema,
 } from '@/schemas/api/v3/requests';
+import {
+  incomingSecretPayloadSchema,
+  validateRecipientPayloadSchema,
+} from '@/schemas/api/incoming';
+import { responseSchemas as incomingResponseSchemas } from '@/schemas/api/incoming/responses/registry';
 import { responseSchemas as v3ResponseSchemas } from '@/schemas/api/v3/responses/registry';
 
 // Version-aware registry selection
@@ -68,7 +71,8 @@ type ResponseSchemaRegistry =
   | typeof v1ResponseSchemas
   | typeof v2ResponseSchemas
   | typeof v3ResponseSchemas
-  | typeof internalResponseSchemas;
+  | typeof internalResponseSchemas
+  | typeof incomingResponseSchemas;
 
 const registryByVersion: Record<string, ResponseSchemaRegistry> = {
   v1: v1ResponseSchemas,
@@ -81,6 +85,8 @@ const registryByVersion: Record<string, ResponseSchemaRegistry> = {
   invite: internalResponseSchemas,
   account: internalResponseSchemas,
   domains: internalResponseSchemas,
+  // Incoming API has its own response schemas
+  incoming: incomingResponseSchemas,
 };
 
 function getResponseRegistry(apiName: string): ResponseSchemaRegistry {
@@ -162,8 +168,8 @@ const REQUEST_SCHEMA_REGISTRY: Record<string, z.ZodType> = {
   showMultipleReceipts: showMultipleReceiptsRequestSchema,
 
   // Incoming
-  createIncomingSecret: createIncomingSecretRequestSchema,
-  validateRecipient: validateRecipientRequestSchema,
+  createIncomingSecret: incomingSecretPayloadSchema,
+  validateRecipient: validateRecipientPayloadSchema,
 
   // Feedback
   receiveFeedback: receiveFeedbackRequestSchema,

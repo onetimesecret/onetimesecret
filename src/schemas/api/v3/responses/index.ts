@@ -43,11 +43,6 @@ export type {
   CustomerResponse,
 } from './account';
 export type { FeedbackResponse } from './feedback';
-export type {
-  IncomingConfigResponse,
-  IncomingSecretResponse,
-  ValidateRecipientResponse,
-} from './incoming';
 export type { SupportedLocalesResponse, SystemStatusResponse, SystemVersionResponse } from './meta';
 export type { ReceiptListResponse, ReceiptResponse } from './receipts';
 export type { ConcealDataResponse, SecretListResponse, SecretResponse } from './secrets';
