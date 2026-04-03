@@ -168,7 +168,19 @@ module V3
             ttl,
             secret_value,
             passphrase: passphrase,
+            domain: display_domain,
           )
+
+          # Index receipt to custom domain for analytics/auditing and scoped queries
+          # Must add to domain's sorted set so custom_domain.receipts includes this receipt
+          if display_domain && !display_domain.empty?
+            domain_record = Onetime::CustomDomain.from_display_domain(display_domain)
+            if domain_record
+              @resolved_domain_id = domain_record.objid
+              @receipt.domain_id  = @resolved_domain_id
+              @receipt.add_to_custom_domain_receipts(domain_record)
+            end
+          end
 
           # Store incoming-specific fields
           receipt.memo       = memo
@@ -190,8 +202,8 @@ module V3
         def send_recipient_notification
           return if recipient_email.nil? || recipient_email.empty?
 
-          # Resolve share_domain to domain_id for sender config (nil-safe)
-          domain_id = Onetime::CustomDomain.resolve_domain_id(secret.share_domain)
+          # Use cached domain_id if available, otherwise resolve from share_domain
+          domain_id = @resolved_domain_id || Onetime::CustomDomain.resolve_domain_id(secret.share_domain)
 
           Onetime::Jobs::Publisher.enqueue_email(
             :incoming_secret,
