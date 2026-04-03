@@ -56,6 +56,57 @@ def disable_incoming_feature(original_conf)
   OT.instance_variable_set(:@incoming_public_recipients, [].freeze)
 end
 
+# Helper to create a V3 strategy result with domain metadata
+# Used by V3 incoming secrets tests for domain_id feature (#2864)
+def create_v3_strategy_with_domain(customer, domain_fqdn, domain_strategy: :custom)
+  session = MockSession.new
+  org = customer.organization_instances.to_a.first
+  org_context = {
+    organization: org,
+    organization_id: org.objid,
+    expires_at: Familia.now.to_i + 300,
+  }
+  MockStrategyResult.new(
+    session: session,
+    user: customer,
+    auth_method: 'session',
+    metadata: {
+      organization_context: org_context,
+      domain_strategy: domain_strategy,
+      display_domain: domain_fqdn,
+    }
+  )
+end
+
+# V3 incoming secrets setup for domain_id tests (#2864)
+require 'apps/api/v3/logic/incoming'
+
+@v3_ts = Familia.now.to_i
+@v3_entropy = SecureRandom.hex(4)
+@v3_email = "tryouts+v3+#{@v3_ts}+#{@v3_entropy}@onetimesecret.com"
+@v3_cust = Onetime::Customer.create!(email: @v3_email)
+@v3_org = Onetime::Organization.create!("V3 Test Org #{@v3_ts}", @v3_cust, @v3_email)
+@v3_custom_fqdn = "incoming-v3-#{@v3_ts}-#{@v3_entropy}.example.com"
+@v3_custom_domain = Onetime::CustomDomain.create!(@v3_custom_fqdn, @v3_org.objid)
+@v3_recipient_email = "v3recipient+#{@v3_ts}@onetimesecret.com"
+@v3_recipient_hash = 'v3_recipient_hash_domain_test'
+
+# Configure incoming secrets on the custom domain for V3 tests
+# The recipient hash needs to match what the config will produce
+@v3_incoming_config = Onetime::CustomDomain::IncomingSecretsConfig.new({
+  'recipients' => [
+    { 'email' => @v3_recipient_email, 'name' => 'V3 Test Recipient' }
+  ],
+  'memo_max_length' => 100,
+  'default_ttl' => 604800
+})
+@v3_custom_domain.update_incoming_secrets_config(@v3_incoming_config)
+
+# Get the actual hashed recipient from the config (for use in tests)
+# Note: public_incoming_recipients returns hashes with string keys
+site_secret = OT.conf.dig('site', 'secret')
+@v3_recipient_hash = @v3_custom_domain.incoming_secrets_config.public_incoming_recipients(site_secret).first['hash']
+
 ## Incoming::Logic::GetConfig class exists
 defined?(Incoming::Logic::GetConfig)
 #=> 'constant'
@@ -479,5 +530,93 @@ reloaded_cust.receipts.to_a.size > initial_receipt_count
 ## Cleanup test data
 disable_incoming_feature(@original_conf)
 @cust.destroy! if @cust
+true
+#=> true
+
+# =============================================================================
+# V3::Logic::Incoming::CreateIncomingSecret - domain_id tests (#2864)
+# =============================================================================
+#
+# These tests verify the V3 incoming secrets logic correctly sets domain_id
+# on receipts when created via a custom domain.
+# Setup is done in global setup section above (before first ## marker).
+
+## V3 CreateIncomingSecret with custom domain sets receipt.domain_id to resolved domain objid
+# Custom domain uses its own incoming_secrets_config, not global config
+v3_strategy = create_v3_strategy_with_domain(@v3_cust, @v3_custom_fqdn)
+logic = V3::Logic::Incoming::CreateIncomingSecret.new(v3_strategy, {
+  'secret' => {
+    'memo' => 'V3 custom domain test',
+    'secret' => 'Secret for domain_id test',
+    'recipient' => @v3_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+# Receipt should have domain_id set to the custom domain's identifier
+logic.receipt.domain_id
+#=> @v3_custom_domain.identifier
+
+## V3 CreateIncomingSecret with canonical domain leaves receipt.domain_id as nil
+# Canonical domain uses global config - use the same recipient as global tests
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+canonical_strategy = create_v3_strategy_with_domain(@v3_cust, '', domain_strategy: :canonical)
+logic = V3::Logic::Incoming::CreateIncomingSecret.new(canonical_strategy, {
+  'secret' => {
+    'memo' => 'V3 canonical domain test',
+    'secret' => 'Secret for canonical domain',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+# Receipt should NOT have domain_id set when using canonical domain
+logic.receipt.domain_id
+#=> nil
+
+## V3 CreateIncomingSecret with unknown custom domain raises Forbidden error
+# Unknown custom domain should fail entitlement check before receipt creation
+unknown_domain_strategy = create_v3_strategy_with_domain(@v3_cust, 'unknown-domain.example.com', domain_strategy: :custom)
+logic = V3::Logic::Incoming::CreateIncomingSecret.new(unknown_domain_strategy, {
+  'secret' => {
+    'memo' => 'V3 unknown domain test',
+    'secret' => 'Secret for unknown domain',
+    'recipient' => 'any_hash'
+  }
+})
+logic.process_params
+begin
+  logic.raise_concerns
+  false # Should not reach here
+rescue OT::Forbidden => e
+  e.message.include?('organization could not be resolved')
+end
+#=> true
+
+## V3 CreateIncomingSecret with nil display_domain leaves receipt.domain_id as nil
+# nil display_domain treated as canonical, uses global config
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+nil_domain_strategy = create_v3_strategy_with_domain(@v3_cust, nil, domain_strategy: :canonical)
+logic = V3::Logic::Incoming::CreateIncomingSecret.new(nil_domain_strategy, {
+  'secret' => {
+    'memo' => 'V3 nil domain test',
+    'secret' => 'Secret for nil domain',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+# Receipt should NOT have domain_id set when display_domain is nil
+logic.receipt.domain_id
+#=> nil
+
+## Cleanup V3 test data
+disable_incoming_feature(@original_conf)
+@v3_custom_domain.destroy! if @v3_custom_domain
+@v3_org.destroy! if @v3_org
+@v3_cust.destroy! if @v3_cust
 true
 #=> true
