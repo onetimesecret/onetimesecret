@@ -41,7 +41,7 @@ module Incoming
   # - All routes are public (noauth) since they serve anonymous users
   #
   class Application < BaseJSONAPI
-    @uri_prefix = '/incoming'
+    @uri_prefix = '/api/incoming'
 
     warmup do
       # Empty warmup - just triggers the logging

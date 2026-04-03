@@ -95,7 +95,7 @@ export const useIncomingStore = defineStore('incoming', () => {
     configError.value = null;
     entitlementError.value = null;
     try {
-      const response = await $api.get('/incoming/config');
+      const response = await $api.get('/api/incoming/config');
       const result = gracefulParse(incomingConfigSchema, response.data.config, 'IncomingConfig');
       if (!result.ok) {
         throw new Error('Unable to load incoming configuration. Please try again.');
@@ -136,7 +136,7 @@ export const useIncomingStore = defineStore('incoming', () => {
       throw new Error('Incoming secrets feature is not enabled');
     }
 
-    const response = await $api.post('/incoming/secret', {
+    const response = await $api.post('/api/incoming/secret', {
       secret: payload,
     });
 
