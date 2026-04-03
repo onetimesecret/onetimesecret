@@ -34,9 +34,7 @@ module DomainsAPI
           {
             domain_id: config.domain_id,
             enabled: config.enabled?,
-            recipients: config.recipients.map do |r|
-              { email: r[:email], name: r[:name] }
-            end,
+            recipients: config.recipients,
             max_recipients: Onetime::CustomDomain::IncomingConfig::MAX_RECIPIENTS,
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,

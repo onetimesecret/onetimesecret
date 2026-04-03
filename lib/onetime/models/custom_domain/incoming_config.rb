@@ -102,13 +102,12 @@ module Onetime
       # Get recipients with hashed identifiers (safe for frontend).
       #
       # @return [Array<Hash>] Array of {hash:, name:} hashes
+      # @raise [Onetime::Problem] if site.secret is not configured
       def public_recipients
-        site_secret = OT.conf.dig('site', 'secret')
-        raise Onetime::Problem, 'site.secret must be configured' if site_secret.to_s.empty?
+        site_secret = require_site_secret
 
         recipients.map do |r|
-          hash = Digest::SHA256.hexdigest("#{r[:email]}:#{site_secret}")
-          { hash: hash, name: r[:name] }
+          { hash: hash_email(r[:email], site_secret), name: r[:name] }
         end
       end
 
@@ -116,13 +115,12 @@ module Onetime
       #
       # @param hash [String] The recipient hash
       # @return [String, nil] Email address if found, nil otherwise
+      # @raise [Onetime::Problem] if site.secret is not configured
       def lookup_recipient_email(hash)
-        site_secret = OT.conf.dig('site', 'secret')
-        return nil if site_secret.to_s.empty?
+        site_secret = require_site_secret
 
         recipients.find do |r|
-          computed_hash = Digest::SHA256.hexdigest("#{r[:email]}:#{site_secret}")
-          computed_hash == hash
+          hash_email(r[:email], site_secret) == hash
         end&.dig(:email)
       end
 
@@ -146,7 +144,8 @@ module Onetime
       # Remove a recipient by email.
       #
       # @param email [String] Recipient email to remove
-      # @return [Boolean] true if removed, false if not found
+      # @return [void]
+      # @raise [Onetime::Problem] if recipient not found
       def remove_recipient(email:)
         normalized_email = email.to_s.strip.downcase
         current          = recipients
@@ -154,12 +153,9 @@ module Onetime
 
         current.reject! { |r| r[:email] == normalized_email }
 
-        if current.size < initial_size
-          self.recipients = current
-          true
-        else
-          false
-        end
+        raise Onetime::Problem, 'Recipient not found' if current.size == initial_size
+
+        self.recipients = current
       end
 
       # Clear all recipients.
@@ -319,6 +315,26 @@ module Onetime
             raise Onetime::Problem, "Invalid email format: #{r[:email]}"
           end
         end
+      end
+
+      # Compute SHA256 hash of email with site secret.
+      #
+      # @param email [String] Email address to hash
+      # @param secret [String] Site secret for hashing
+      # @return [String] Hex-encoded SHA256 hash
+      def hash_email(email, secret)
+        Digest::SHA256.hexdigest("#{email}:#{secret}")
+      end
+
+      # Get site secret or raise if not configured.
+      #
+      # @return [String] The site secret
+      # @raise [Onetime::Problem] if site.secret is not configured
+      def require_site_secret
+        site_secret = OT.conf.dig('site', 'secret')
+        raise Onetime::Problem, 'site.secret must be configured' if site_secret.to_s.empty?
+
+        site_secret
       end
     end
   end

@@ -12,13 +12,13 @@ module DomainsAPI
       # Get Domain Incoming Configuration
       #
       # @api Retrieves the incoming secrets configuration for a custom domain.
-      #   Returns the config with recipient names and hashes (emails hidden).
-      #   Requires the requesting user to be an organization owner with incoming_secrets.
+      #   Returns the config with full recipient details including email addresses.
+      #   Only accessible by organization owners with incoming_secrets entitlement.
       #
       # Response includes:
       # - domain_id: The domain identifier
       # - enabled: Whether incoming secrets is active
-      # - recipients: Array of {hash, name} (emails are hashed)
+      # - recipients: Array of {email, name} (full details for admin view)
       # - max_recipients: Maximum allowed recipients (20)
       # - created_at: Unix timestamp
       # - updated_at: Unix timestamp

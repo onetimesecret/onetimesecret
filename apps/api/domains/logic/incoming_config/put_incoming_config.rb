@@ -75,10 +75,9 @@ module DomainsAPI
           @incoming_config = Onetime::CustomDomain::IncomingConfig.find_by_domain_id(@custom_domain.identifier)
 
           if @incoming_config
-            # Update existing
+            # Update existing (recipients= setter handles updated timestamp)
             @incoming_config.enabled    = @enabled.to_s
             @incoming_config.recipients = @recipients
-            @incoming_config.updated    = Familia.now.to_i
             @incoming_config.save
           else
             # Create new
