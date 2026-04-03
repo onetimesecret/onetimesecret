@@ -297,7 +297,7 @@ api_incoming_secrets_config = Onetime::CustomDomain::IncomingSecretsConfig.new({
 })
 @api_domain.update_incoming_secrets_config(api_incoming_secrets_config)
 site_secret = OT.conf.dig('site', 'secret')
-@api_recipient_hash = @api_domain.incoming_secrets_config.public_incoming_recipients(site_secret).first['hash']
+@api_recipient_hash = @api_domain.incoming_secrets_config.public_incoming_recipients(site_secret).first['digest']
 @api_incoming_config = IncomingConfig.create!(
   domain_id: @api_domain.identifier,
   enabled: false,
