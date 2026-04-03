@@ -8,7 +8,6 @@
 // 5. discardChanges(): restores saved state
 // 6. addRecipient(): adds with validation (email, duplicate, limit)
 // 7. removeRecipient(): removes by index
-// 8. updateRecipient(): modifies existing
 //
 // Data asymmetry note: form uses email (plaintext), server returns digest (hash)
 
@@ -585,47 +584,6 @@ describe('useIncomingConfig', () => {
       composable.removeRecipient(10);
 
       expect(composable.formState.value.recipients).toHaveLength(1);
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // updateRecipient
-  // ---------------------------------------------------------------------------
-
-  describe('updateRecipient', () => {
-    it('UC-RECIP-006: modifies existing recipient', async () => {
-      const composable = useIncomingConfig('dm-ext-123');
-      await composable.initialize();
-
-      composable.addRecipient('original@example.com', 'Original Name');
-      composable.updateRecipient(0, { email: 'updated@example.com', name: 'Updated Name' });
-
-      expect(composable.formState.value.recipients[0]).toEqual({
-        email: 'updated@example.com',
-        name: 'Updated Name',
-      });
-    });
-
-    it('trims whitespace on update', async () => {
-      const composable = useIncomingConfig('dm-ext-123');
-      await composable.initialize();
-
-      composable.addRecipient('test@example.com');
-      composable.updateRecipient(0, { email: '  updated@example.com  ' });
-
-      expect(composable.formState.value.recipients[0].email).toBe('updated@example.com');
-    });
-
-    it('ignores invalid index', async () => {
-      const composable = useIncomingConfig('dm-ext-123');
-      await composable.initialize();
-
-      composable.addRecipient('test@example.com');
-
-      // Should not throw
-      composable.updateRecipient(10, { email: 'updated@example.com' });
-
-      expect(composable.formState.value.recipients[0].email).toBe('test@example.com');
     });
   });
 

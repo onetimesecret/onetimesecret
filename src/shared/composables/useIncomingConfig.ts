@@ -152,8 +152,13 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
   /** Number of recipients in the form. */
   const recipientCount = computed(() => formState.value.recipients.length);
 
+  /** Total recipients across server and form state (for limit enforcement). */
+  const totalRecipientCount = computed(() =>
+    serverState.value.recipients.length + formState.value.recipients.length
+  );
+
   /** Whether more recipients can be added. */
-  const canAddMore = computed(() => recipientCount.value < maxRecipients.value);
+  const canAddMore = computed(() => totalRecipientCount.value < maxRecipients.value);
 
   /** Whether the form has been modified since last save/load. */
   const hasUnsavedChanges = computed(() => {
@@ -297,25 +302,6 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
   }
 
   /**
-   * Update a recipient in the form state.
-   *
-   * @param index - Index of recipient to update
-   * @param updates - Partial updates to apply
-   */
-  function updateRecipient(
-    index: number,
-    updates: Partial<DomainRecipientInput>
-  ): void {
-    if (index >= 0 && index < formState.value.recipients.length) {
-      const current = formState.value.recipients[index];
-      formState.value.recipients[index] = {
-        email: updates.email?.trim() ?? current.email,
-        name: updates.name?.trim() || current.name,
-      };
-    }
-  }
-
-  /**
    * Reset form to last-saved state.
    */
   function discardChanges(): void {
@@ -355,7 +341,6 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
     deleteConfig,
     addRecipient,
     removeRecipient,
-    updateRecipient,
     discardChanges,
     clearForm,
   };

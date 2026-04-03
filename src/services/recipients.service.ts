@@ -57,8 +57,8 @@ export const RecipientsService = {
         'GetDomainRecipientsResponse'
       );
       if (!result.ok) {
-        // Degrade gracefully on parse failure - treat as empty
-        return { recipients: [] };
+        console.error('Failed to parse recipients response:', result.error);
+        throw new Error('Failed to parse recipients response from server');
       }
       return {
         recipients: result.data.record.recipients,

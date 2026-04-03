@@ -58,7 +58,6 @@ const i18n = createI18n({
         domains: {
           verified: 'Verified',
           pending_verification: 'Pending Verification',
-          are_you_sure_you_want_to_remove_this_domain: 'Are you sure you want to remove all recipients?',
           incoming: {
             recipients_title: 'Recipients',
             recipients_description: 'Recipients will receive incoming secrets sent to this domain.',
@@ -69,6 +68,9 @@ const i18n = createI18n({
             name_label: 'Display Name (optional)',
             name_placeholder: 'Security Team',
             remove_recipient: 'Remove',
+            delete_all_recipients: 'Delete All Recipients',
+            remove_all_confirmation: 'Are you sure you want to remove all recipients? External users will no longer be able to send secrets to this domain.',
+            save_will_replace_confirmation: 'Saving will replace all existing recipients with your pending changes. Are you sure?',
             save_changes: 'Save Changes',
             discard_changes: 'Discard Changes',
             empty_state: 'No recipients configured',
@@ -77,6 +79,7 @@ const i18n = createI18n({
             validation_invalid_email: 'Enter a valid email address',
             validation_duplicate_email: 'This email is already added',
             validation_max_recipients: 'Maximum {max} recipients allowed',
+            remove_all_confirmation: 'Are you sure you want to remove all recipients? External users will no longer be able to send secrets to this domain.',
           },
         },
         COMMON: {
@@ -355,10 +358,10 @@ describe('DomainIncomingConfigForm', () => {
         serverState: singleRecipientServerState,
       });
 
-      // Click remove button to show confirmation
+      // Click delete all button to show confirmation
       const buttons = wrapper.findAll('button[type="button"]');
-      const removeButton = buttons.find((b) => b.text().includes('Remove'));
-      await removeButton!.trigger('click');
+      const deleteAllButton = buttons.find((b) => b.text().includes('Delete All Recipients'));
+      await deleteAllButton!.trigger('click');
       await flushPromises();
 
       // Click confirm delete button
@@ -510,7 +513,7 @@ describe('DomainIncomingConfigForm', () => {
       // Note: Individual "Remove" buttons for pending recipients will still exist
       const actionBar = wrapper.find('.border-t');
       const deleteAllButton = actionBar.findAll('button[type="button"]').find(
-        (b) => b.text().trim() === 'Remove'
+        (b) => b.text().includes('Delete All Recipients')
       );
       expect(deleteAllButton).toBeUndefined();
     });
@@ -531,17 +534,17 @@ describe('DomainIncomingConfigForm', () => {
   // ---------------------------------------------------------------------------
 
   describe('Delete confirmation', () => {
-    it('FC-DEL-001: shows confirmation text after clicking remove', async () => {
+    it('FC-DEL-001: shows confirmation text after clicking delete all', async () => {
       wrapper = mountComponent({
         serverState: singleRecipientServerState,
       });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const removeButton = buttons.find((b) => b.text().includes('Remove'));
-      await removeButton!.trigger('click');
+      const deleteAllButton = buttons.find((b) => b.text().includes('Delete All Recipients'));
+      await deleteAllButton!.trigger('click');
       await flushPromises();
 
-      expect(wrapper.text()).toContain('Are you sure you want to remove all recipients?');
+      expect(wrapper.text()).toContain('Are you sure you want to remove all recipients? External users will no longer be able to send secrets to this domain.');
     });
 
     it('FC-DEL-002: shows cancel button in confirmation state', async () => {
@@ -550,8 +553,8 @@ describe('DomainIncomingConfigForm', () => {
       });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const removeButton = buttons.find((b) => b.text().includes('Remove'));
-      await removeButton!.trigger('click');
+      const deleteAllButton = buttons.find((b) => b.text().includes('Delete All Recipients'));
+      await deleteAllButton!.trigger('click');
       await flushPromises();
 
       const cancelButton = wrapper.findAll('button[type="button"]').find(
@@ -567,8 +570,8 @@ describe('DomainIncomingConfigForm', () => {
 
       // Show confirmation
       const buttons = wrapper.findAll('button[type="button"]');
-      const removeButton = buttons.find((b) => b.text().includes('Remove'));
-      await removeButton!.trigger('click');
+      const deleteAllButton = buttons.find((b) => b.text().includes('Delete All Recipients'));
+      await deleteAllButton!.trigger('click');
       await flushPromises();
 
       // Click cancel
@@ -578,7 +581,7 @@ describe('DomainIncomingConfigForm', () => {
       await cancelButton!.trigger('click');
       await flushPromises();
 
-      expect(wrapper.text()).not.toContain('Are you sure you want to remove all recipients?');
+      expect(wrapper.text()).not.toContain('Are you sure you want to remove all recipients? External users will no longer be able to send secrets to this domain.');
     });
 
     it('FC-DEL-004: does not emit delete until confirm clicked', async () => {
@@ -586,10 +589,10 @@ describe('DomainIncomingConfigForm', () => {
         serverState: singleRecipientServerState,
       });
 
-      // First click on Remove
+      // First click on Delete All Recipients
       const buttons = wrapper.findAll('button[type="button"]');
-      const removeButton = buttons.find((b) => b.text().includes('Remove'));
-      await removeButton!.trigger('click');
+      const deleteAllButton = buttons.find((b) => b.text().includes('Delete All Recipients'));
+      await deleteAllButton!.trigger('click');
       await flushPromises();
 
       // Delete should NOT be emitted yet

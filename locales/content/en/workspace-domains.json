@@ -830,5 +830,25 @@
   "web.domains.incoming.url_copied": {
     "text": "URL copied to clipboard",
     "sha256": "d0e1f2a5"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Are you sure you want to remove all recipients? External users will no longer be able to send secrets to this domain.",
+    "sha256": "a1b2c3d5"
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Maximum number of recipients reached",
+    "sha256": "b2c3d4e6"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "This email address has already been added",
+    "sha256": "c3d4e5f7"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Saving will replace all existing recipients with your pending changes. Are you sure?",
+    "sha256": "d4e5f6a8"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Delete All Recipients",
+    "sha256": "e5f6a7b9"
   }
 }

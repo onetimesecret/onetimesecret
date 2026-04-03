@@ -80,9 +80,9 @@ public_recipients = @domain.cached_public_incoming_recipients(@site_secret)
 public_recipients.size
 #=> 3
 
-## cached_public_incoming_recipients entries have hash and name keys
+## cached_public_incoming_recipients entries have digest and display_name keys
 public_recipients = @domain.cached_public_incoming_recipients(@site_secret)
-public_recipients.all? { |r| r.key?('hash') && r.key?('name') }
+public_recipients.all? { |r| r.key?('digest') && r.key?('display_name') }
 #=> true
 
 ## cached_public_incoming_recipients does not expose email addresses
@@ -90,14 +90,14 @@ public_recipients = @domain.cached_public_incoming_recipients(@site_secret)
 public_recipients.none? { |r| r.key?('email') }
 #=> true
 
-## cached_public_incoming_recipients names are correct
+## cached_public_incoming_recipients display_names are correct
 public_recipients = @domain.cached_public_incoming_recipients(@site_secret)
-public_recipients.map { |r| r['name'] }.sort
+public_recipients.map { |r| r['display_name'] }.sort
 #=> ['Admin', 'Sales Department', 'Support Team']
 
-## cached_public_incoming_recipients hashes are SHA256 format
+## cached_public_incoming_recipients digests are SHA256 format
 public_recipients = @domain.cached_public_incoming_recipients(@site_secret)
-public_recipients.all? { |r| r['hash'].match?(/\A[a-f0-9]{64}\z/) }
+public_recipients.all? { |r| r['digest'].match?(/\A[a-f0-9]{64}\z/) }
 #=> true
 
 ## Caching: second call returns same object (object_id equality) for lookup
@@ -202,7 +202,7 @@ old_public_id = old_public.object_id
 @domain.update_incoming_secrets_config(@updated_config)
 # New call should return different object with new data
 new_public = @domain.cached_public_incoming_recipients(@site_secret)
-[old_public_id != new_public.object_id, new_public.first['name']]
+[old_public_id != new_public.object_id, new_public.first['display_name']]
 #=> [true, 'Updated Recipient']
 
 ## Empty recipients: cached_incoming_recipient_lookup returns empty hash
@@ -217,7 +217,7 @@ public_recipients = @domain.cached_public_incoming_recipients(@site_secret)
 [public_recipients.is_a?(Array), public_recipients.empty?, public_recipients.frozen?]
 #=> [true, true, true]
 
-## Consistency: lookup hash matches public recipients by hash key
+## Consistency: lookup hash matches public recipients by digest key
 @consistency_config = Onetime::CustomDomain::IncomingSecretsConfig.new({
   'recipients' => [
     { 'email' => 'verify@cache-test.com', 'name' => 'Verify User' }
@@ -226,16 +226,16 @@ public_recipients = @domain.cached_public_incoming_recipients(@site_secret)
 @domain.update_incoming_secrets_config(@consistency_config)
 lookup = @domain.cached_incoming_recipient_lookup(@site_secret)
 public_recipients = @domain.cached_public_incoming_recipients(@site_secret)
-# The hash in public_recipients should exist as a key in lookup
-public_hash = public_recipients.first['hash']
-lookup.key?(public_hash)
+# The digest in public_recipients should exist as a key in lookup
+public_digest = public_recipients.first['digest']
+lookup.key?(public_digest)
 #=> true
 
-## Consistency: can resolve email from public recipient hash
+## Consistency: can resolve email from public recipient digest
 lookup = @domain.cached_incoming_recipient_lookup(@site_secret)
 public_recipients = @domain.cached_public_incoming_recipients(@site_secret)
-public_hash = public_recipients.first['hash']
-lookup[public_hash]
+public_digest = public_recipients.first['digest']
+lookup[public_digest]
 #=> 'verify@cache-test.com'
 
 # Teardown

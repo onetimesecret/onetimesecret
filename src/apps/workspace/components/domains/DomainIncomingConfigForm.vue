@@ -87,6 +87,9 @@ const hasAnyRecipients = computed(() =>
 /** Whether there are pending recipients to save. */
 const hasPendingRecipients = computed(() => props.formState.recipients.length > 0);
 
+/** Whether saving will replace existing recipients on the server. */
+const willReplaceExisting = computed(() => props.serverState.recipients.length > 0);
+
 // ---------------------------------------------------------------------------
 // Validation
 // ---------------------------------------------------------------------------
@@ -150,6 +153,14 @@ function handleRemovePending(index: number): void {
 
 function handleSave(): void {
   if (!hasPendingRecipients.value || props.isSaving) return;
+
+  if (willReplaceExisting.value) {
+    const confirmed = window.confirm(
+      t('web.domains.incoming.save_will_replace_confirmation')
+    );
+    if (!confirmed) return;
+  }
+
   emit('save');
 }
 
@@ -402,14 +413,14 @@ function handleDelete(): void {
               name="trash"
               class="size-4"
               aria-hidden="true" />
-            {{ t('web.COMMON.remove') }}
+            {{ t('web.domains.incoming.delete_all_recipients') }}
           </button>
         </template>
 
         <!-- Delete confirmation -->
         <div v-if="showDeleteConfirm" class="flex items-center gap-2">
           <span class="text-sm text-gray-600 dark:text-gray-400">
-            {{ t('web.domains.are_you_sure_you_want_to_remove_this_domain') }}
+            {{ t('web.domains.incoming.remove_all_confirmation') }}
           </span>
           <button
             type="button"
