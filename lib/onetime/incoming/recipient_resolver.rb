@@ -28,13 +28,26 @@ module Onetime
 
       # Check if incoming secrets are enabled for this domain context
       #
+      # For custom domains, also verifies site_secret is configured.
+      # Without site_secret, recipient hashes cannot be computed, so the
+      # feature is effectively disabled (returns false, logs warning).
+      #
       # @return [Boolean]
       def enabled?
         case @domain_strategy
         when :canonical, nil
           incoming_config['enabled'] || false
         when :custom
-          custom_domain_record&.incoming_secrets_config&.has_incoming_recipients? || false
+          has_recipients = custom_domain_record&.incoming_secrets_config&.has_incoming_recipients? || false
+          return false unless has_recipients
+
+          # Fail closed if site_secret is missing - can't compute hashes
+          if site_secret.nil? || site_secret.to_s.strip.empty?
+            OT.lw "[RecipientResolver] site_secret missing but custom domain #{@display_domain} has recipients configured"
+            return false
+          end
+
+          true
         else
           false
         end
