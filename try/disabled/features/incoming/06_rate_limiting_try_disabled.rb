@@ -4,11 +4,11 @@
 
 # Rate Limiting Spec — spec-before-implement
 #
-# These tryouts document the intended rate-limiting behaviour for V3 incoming
+# These tryouts document the intended rate-limiting behaviour for Incoming API
 # endpoints. They are expected to FAIL until rate limiting is added to the
 # raise_concerns methods in:
-#   apps/api/v3/logic/incoming/create_incoming_secret.rb
-#   apps/api/v3/logic/incoming/get_config.rb
+#   apps/api/incoming/logic/create_incoming_secret.rb
+#   apps/api/incoming/logic/get_config.rb
 #
 # Intended behaviour (ported from v0.23 PR #2538):
 #   - CreateIncomingSecret#raise_concerns calls limit_action :create_secret
@@ -18,7 +18,7 @@
 #     proceeds to update_customer_stats or send_recipient_notification
 
 require_relative '../../support/test_logic'
-require 'apps/api/v3/logic'
+require 'apps/api/incoming/logic/incoming'
 
 OT.boot! :test, false
 
@@ -56,10 +56,10 @@ end
 # Currently there is no limit_action call so this spy test will fail.
 
 ## CreateIncomingSecret raise_concerns calls limit_action :create_secret
-# NOTE: expected to FAIL until rate limiting is implemented in V3
+# NOTE: expected to FAIL until rate limiting is implemented
 enable_incoming_feature_rl(@test_recipient_hash, @test_recipient_email)
 limit_actions_called = []
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
     'memo'      => 'Rate limit test memo',
     'secret'    => 'Rate limit test secret',
@@ -74,10 +74,10 @@ limit_actions_called.include?(:create_secret)
 #=> true
 
 ## CreateIncomingSecret raise_concerns calls limit_action :email_recipient
-# NOTE: expected to FAIL until rate limiting is implemented in V3
+# NOTE: expected to FAIL until rate limiting is implemented
 enable_incoming_feature_rl(@test_recipient_hash, @test_recipient_email)
 limit_actions_called2 = []
-logic2 = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+logic2 = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
     'memo'      => 'Rate limit test memo',
     'secret'    => 'Rate limit test secret',
@@ -96,10 +96,10 @@ limit_actions_called2.include?(:email_recipient)
 # The raise_concerns method should call limit_action :get_page.
 
 ## GetConfig raise_concerns calls limit_action :get_page
-# NOTE: expected to FAIL until rate limiting is implemented in V3
+# NOTE: expected to FAIL until rate limiting is implemented
 enable_incoming_feature_rl(@test_recipient_hash, @test_recipient_email)
 limit_actions_called3 = []
-config_logic = V3::Logic::Incoming::GetConfig.new(@strategy_result, {})
+config_logic = Incoming::Logic::GetConfig.new(@strategy_result, {})
 config_logic.process_params
 config_logic.define_singleton_method(:limit_action) { |action| limit_actions_called3 << action }
 config_logic.raise_concerns
@@ -113,10 +113,10 @@ limit_actions_called3.include?(:get_page)
 # raise_concerns without being swallowed.
 
 ## CreateIncomingSecret propagates OT::LimitExceeded from limit_action
-# NOTE: expected to FAIL until rate limiting is implemented in V3
+# NOTE: expected to FAIL until rate limiting is implemented
 enable_incoming_feature_rl(@test_recipient_hash, @test_recipient_email)
 begin
-  limit_logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+  limit_logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
     'secret' => {
       'memo'      => 'Over-limit test',
       'secret'    => 'Over-limit secret content',
