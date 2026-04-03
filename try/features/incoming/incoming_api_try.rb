@@ -105,7 +105,7 @@ require 'apps/api/v3/logic/incoming'
 # Get the actual hashed recipient from the config (for use in tests)
 # Note: public_incoming_recipients returns hashes with string keys
 site_secret = OT.conf.dig('site', 'secret')
-@v3_recipient_hash = @v3_custom_domain.incoming_secrets_config.public_incoming_recipients(site_secret).first['hash']
+@v3_recipient_hash = @v3_custom_domain.incoming_secrets_config.public_incoming_recipients(site_secret).first['digest']
 
 ## Incoming::Logic::GetConfig class exists
 defined?(Incoming::Logic::GetConfig)
