@@ -299,7 +299,7 @@ lookup_symbol.keys == lookup_string.keys
 
 ## Non-string site_secret: public_recipients also works with Symbol
 public_recipients = @domain.cached_public_incoming_recipients(:another_secret)
-[public_recipients.is_a?(Array), public_recipients.size, public_recipients.first['name']]
+[public_recipients.is_a?(Array), public_recipients.size, public_recipients.first['display_name']]
 #=> [true, 1, 'NonString Test']
 
 ## Non-string site_secret: public_recipients also works with Integer
