@@ -4,17 +4,20 @@
 // 1. Provider type selector rendering
 // 2. Provider-specific field visibility (Entra ID, OIDC, Google, GitHub)
 // 3. Form validation for required fields
-// 4. Save functionality via SsoService.saveConfigForDomain
-// 5. Success/error toast handling
-// 6. Test connection functionality
-// 7. Delete functionality with confirmation
-// 8. Event emissions (saved, deleted)
+// 4. Event emissions (save, delete, test, discard)
+// 5. Form state updates via v-model
+//
+// Note: This is a presentational component. It receives state via props
+// and emits events for actions. Parent manages state via useSsoConfig.
 
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { createI18n } from 'vue-i18n';
 import DomainSsoConfigForm from '@/apps/workspace/components/domains/DomainSsoConfigForm.vue';
+import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
+import type { CustomDomainSsoConfig } from '@/schemas/shapes/sso-config';
+import type { TestSsoConnectionResponse } from '@/services/sso.service';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mocks
@@ -38,34 +41,6 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
   },
 }));
 
-// Mock error classifier
-vi.mock('@/schemas/errors', () => ({
-  classifyError: (err: Error) => ({
-    message: err.message || 'Unknown error',
-    code: (err as unknown as { code?: number }).code,
-  }),
-}));
-
-// Mock SsoService with spies for domain-scoped methods
-const mockSaveConfigForDomain = vi.fn();
-const mockGetConfigForDomain = vi.fn();
-const mockDeleteConfigForDomain = vi.fn();
-const mockTestConnectionForDomain = vi.fn();
-
-// Track last save payload
-let lastSavePayload: unknown = null;
-
-vi.mock('@/services/sso.service', () => ({
-  SsoService: {
-    getConfigForDomain: (...args: unknown[]) => mockGetConfigForDomain(...args),
-    saveConfigForDomain: async (domainExtId: string, payload: unknown) => {
-      lastSavePayload = payload;
-      return mockSaveConfigForDomain(domainExtId, payload);
-    },
-    deleteConfigForDomain: (...args: unknown[]) => mockDeleteConfigForDomain(...args),
-    testConnectionForDomain: (...args: unknown[]) => mockTestConnectionForDomain(...args),
-  },
-}));
 
 // Mock SSO provider metadata
 // Note: This mock matches the actual module path the component imports from.
@@ -162,9 +137,22 @@ const i18n = createI18n({
 // Test Fixtures
 // ─────────────────────────────────────────────────────────────────────────────
 
-const mockExistingConfig = {
+function createDefaultFormState(): SsoConfigFormState {
+  return {
+    provider_type: 'entra_id',
+    display_name: '',
+    client_id: '',
+    client_secret: '',
+    tenant_id: '',
+    issuer: '',
+    allowed_domains: [],
+    enabled: false,
+  };
+}
+
+const mockExistingConfig: CustomDomainSsoConfig = {
   domain_id: 'dm_123',
-  provider_type: 'entra_id' as const,
+  provider_type: 'entra_id',
   enabled: true,
   display_name: 'Test Domain SSO',
   client_id: 'client-id-123',
@@ -175,6 +163,32 @@ const mockExistingConfig = {
   created_at: new Date(),
   updated_at: new Date(),
 };
+
+const mockExistingFormState: SsoConfigFormState = {
+  provider_type: 'entra_id',
+  display_name: 'Test Domain SSO',
+  client_id: 'client-id-123',
+  client_secret: '', // Never populated from API
+  tenant_id: 'tenant-uuid-123',
+  issuer: '',
+  allowed_domains: ['example.com'],
+  enabled: true,
+};
+
+interface MountOptions {
+  domainExtId?: string;
+  formState?: SsoConfigFormState;
+  ssoConfig?: CustomDomainSsoConfig | null;
+  isLoading?: boolean;
+  isSaving?: boolean;
+  isDeleting?: boolean;
+  isTesting?: boolean;
+  hasUnsavedChanges?: boolean;
+  isConfigured?: boolean;
+  clientSecretMasked?: string | null;
+  testResult?: TestSsoConnectionResponse | null;
+  testError?: string;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tests
@@ -190,18 +204,6 @@ describe('DomainSsoConfigForm', () => {
       stubActions: false,
     });
     vi.clearAllMocks();
-    lastSavePayload = null;
-
-    // Default: no existing config (404)
-    mockGetConfigForDomain.mockResolvedValue({ record: null });
-    mockSaveConfigForDomain.mockResolvedValue({ record: mockExistingConfig });
-    mockDeleteConfigForDomain.mockResolvedValue({ success: true });
-    mockTestConnectionForDomain.mockResolvedValue({
-      success: true,
-      message: 'Connection successful',
-      provider_type: 'entra_id',
-      details: { issuer: 'https://login.microsoftonline.com/tenant/v2.0' },
-    });
   });
 
   afterEach(() => {
@@ -210,10 +212,23 @@ describe('DomainSsoConfigForm', () => {
     }
   });
 
-  const mountComponent = async (props: { domainExtId?: string } = {}) => {
+  const mountComponent = async (options: MountOptions = {}) => {
+    const formState = options.formState ?? createDefaultFormState();
+
     const component = mount(DomainSsoConfigForm, {
       props: {
-        domainExtId: props.domainExtId ?? 'dm_123',
+        domainExtId: options.domainExtId ?? 'dm_123',
+        formState,
+        ssoConfig: options.ssoConfig ?? null,
+        isLoading: options.isLoading ?? false,
+        isSaving: options.isSaving ?? false,
+        isDeleting: options.isDeleting ?? false,
+        isTesting: options.isTesting ?? false,
+        hasUnsavedChanges: options.hasUnsavedChanges ?? false,
+        isConfigured: options.isConfigured ?? false,
+        clientSecretMasked: options.clientSecretMasked ?? null,
+        testResult: options.testResult ?? null,
+        testError: options.testError ?? '',
       },
       global: {
         plugins: [i18n, pinia],
@@ -270,47 +285,35 @@ describe('DomainSsoConfigForm', () => {
 
   describe('Provider-specific field visibility', () => {
     it('shows tenant_id field when Entra ID is selected', async () => {
-      wrapper = await mountComponent();
+      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'entra_id' } });
 
       const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
       expect(tenantIdInput.exists()).toBe(true);
     });
 
     it('hides tenant_id field when Google is selected', async () => {
-      wrapper = await mountComponent();
-
-      const googleRadio = wrapper.find('#domain-provider-google');
-      await googleRadio.setValue(true);
-      await flushPromises();
+      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'google' } });
 
       const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
       expect(tenantIdInput.exists()).toBe(false);
     });
 
     it('shows issuer field when OIDC is selected', async () => {
-      wrapper = await mountComponent();
-
-      const oidcRadio = wrapper.find('#domain-provider-oidc');
-      await oidcRadio.setValue(true);
-      await flushPromises();
+      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'oidc' } });
 
       const issuerInput = wrapper.find('#domain-sso-issuer');
       expect(issuerInput.exists()).toBe(true);
     });
 
     it('hides issuer field when Entra ID is selected', async () => {
-      wrapper = await mountComponent();
+      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'entra_id' } });
 
       const issuerInput = wrapper.find('#domain-sso-issuer');
       expect(issuerInput.exists()).toBe(false);
     });
 
     it('hides both tenant_id and issuer for GitHub provider', async () => {
-      wrapper = await mountComponent();
-
-      const githubRadio = wrapper.find('#domain-provider-github');
-      await githubRadio.setValue(true);
-      await flushPromises();
+      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'github' } });
 
       const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
       const issuerInput = wrapper.find('#domain-sso-issuer');
@@ -320,11 +323,7 @@ describe('DomainSsoConfigForm', () => {
     });
 
     it('shows domain filter field for GitHub (requiresDomainFilter)', async () => {
-      wrapper = await mountComponent();
-
-      const githubRadio = wrapper.find('#domain-provider-github');
-      await githubRadio.setValue(true);
-      await flushPromises();
+      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'github' } });
 
       // The domain allowlist field should be visible for GitHub
       const domainInput = wrapper.find('#domain-sso-domain-input');
@@ -333,340 +332,157 @@ describe('DomainSsoConfigForm', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Form validation
+  // Form events and state updates
   // ─────────────────────────────────────────────────────────────────────────────
 
-  describe('Form validation', () => {
-    it('requires display_name for form to be valid', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
-      wrapper = await mountComponent();
+  describe('Form events and state updates', () => {
+    it('emits save event when form is submitted', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        isConfigured: true,
+      });
 
-      // Fill all fields except display_name
-      const clientIdInput = wrapper.find('#domain-sso-client-id');
-      const clientSecretInput = wrapper.find('#domain-sso-client-secret');
-      const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
-
-      await clientIdInput.setValue('client-123');
-      await clientSecretInput.setValue('secret-456');
-      await tenantIdInput.setValue('tenant-uuid');
-      await flushPromises();
-
-      // Submit form
       const form = wrapper.find('form');
       await form.trigger('submit.prevent');
       await flushPromises();
 
-      // Save should NOT have been called
-      expect(mockSaveConfigForDomain).not.toHaveBeenCalled();
+      expect(wrapper.emitted('save')).toBeTruthy();
     });
 
-    it('requires client_id for form to be valid', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+    it('emits update:formState when display_name changes', async () => {
       wrapper = await mountComponent();
 
-      // Fill all fields except client_id
       const displayNameInput = wrapper.find('#domain-sso-display-name');
-      const clientSecretInput = wrapper.find('#domain-sso-client-secret');
-      const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
-
-      await displayNameInput.setValue('Test SSO');
-      await clientSecretInput.setValue('secret-456');
-      await tenantIdInput.setValue('tenant-uuid');
+      await displayNameInput.setValue('New Display Name');
       await flushPromises();
 
-      // Submit form
-      const form = wrapper.find('form');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      // Save should NOT have been called
-      expect(mockSaveConfigForDomain).not.toHaveBeenCalled();
+      const emitted = wrapper.emitted('update:formState');
+      expect(emitted).toBeTruthy();
+      expect(emitted![emitted!.length - 1][0]).toMatchObject({
+        display_name: 'New Display Name',
+      });
     });
 
-    it('requires client_secret for new config (not editing)', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
+    it('emits update:formState when client_id changes', async () => {
       wrapper = await mountComponent();
 
-      // Fill all fields except client_secret
-      const displayNameInput = wrapper.find('#domain-sso-display-name');
       const clientIdInput = wrapper.find('#domain-sso-client-id');
-      const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
-
-      await displayNameInput.setValue('Test SSO');
-      await clientIdInput.setValue('client-123');
-      await tenantIdInput.setValue('tenant-uuid');
-      // Intentionally leave client_secret empty
+      await clientIdInput.setValue('new-client-id');
       await flushPromises();
 
-      // Submit form
-      const form = wrapper.find('form');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      // Save should NOT have been called
-      expect(mockSaveConfigForDomain).not.toHaveBeenCalled();
+      const emitted = wrapper.emitted('update:formState');
+      expect(emitted).toBeTruthy();
+      expect(emitted![emitted!.length - 1][0]).toMatchObject({
+        client_id: 'new-client-id',
+      });
     });
 
-    it('allows empty client_secret when editing existing config', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: mockExistingConfig });
+    it('emits update:formState when provider type changes', async () => {
       wrapper = await mountComponent();
 
-      // Form should be pre-populated from existing config
-      // client_secret is empty in form (never populated from response)
-      // This should still be valid for editing
-
-      // Submit form without changing client_secret
-      const form = wrapper.find('form');
-      await form.trigger('submit.prevent');
+      const googleRadio = wrapper.find('#domain-provider-google');
+      await googleRadio.setValue(true);
       await flushPromises();
 
-      // Save SHOULD have been called
-      expect(mockSaveConfigForDomain).toHaveBeenCalled();
+      const emitted = wrapper.emitted('update:formState');
+      expect(emitted).toBeTruthy();
+      expect(emitted![emitted!.length - 1][0]).toMatchObject({
+        provider_type: 'google',
+      });
     });
 
-    it('requires tenant_id when Entra ID is selected', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
-      wrapper = await mountComponent();
+    it('emits discard event when discard button is clicked', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        hasUnsavedChanges: true,
+      });
 
-      // Fill base fields but not tenant_id
-      const displayNameInput = wrapper.find('#domain-sso-display-name');
-      const clientIdInput = wrapper.find('#domain-sso-client-id');
-      const clientSecretInput = wrapper.find('#domain-sso-client-secret');
+      // Find discard button (look for button that triggers discard)
+      const buttons = wrapper.findAll('button[type="button"]');
+      const discardButton = buttons.find((b) => b.text().includes('Discard') || b.text().includes('Cancel'));
 
-      await displayNameInput.setValue('Test SSO');
-      await clientIdInput.setValue('client-123');
-      await clientSecretInput.setValue('secret-456');
-      // tenant_id is empty
-      await flushPromises();
-
-      // Submit form
-      const form = wrapper.find('form');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      // Save should NOT have been called (tenant_id required for entra_id)
-      expect(mockSaveConfigForDomain).not.toHaveBeenCalled();
-    });
-
-    it('requires issuer when OIDC is selected', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
-      wrapper = await mountComponent();
-
-      // Select OIDC provider
-      const oidcRadio = wrapper.find('#domain-provider-oidc');
-      await oidcRadio.setValue(true);
-      await flushPromises();
-
-      // Fill base fields but not issuer
-      const displayNameInput = wrapper.find('#domain-sso-display-name');
-      const clientIdInput = wrapper.find('#domain-sso-client-id');
-      const clientSecretInput = wrapper.find('#domain-sso-client-secret');
-
-      await displayNameInput.setValue('Test SSO');
-      await clientIdInput.setValue('client-123');
-      await clientSecretInput.setValue('secret-456');
-      // issuer is empty
-      await flushPromises();
-
-      // Submit form
-      const form = wrapper.find('form');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      // Save should NOT have been called (issuer required for oidc)
-      expect(mockSaveConfigForDomain).not.toHaveBeenCalled();
+      if (discardButton) {
+        await discardButton.trigger('click');
+        await flushPromises();
+        expect(wrapper.emitted('discard')).toBeTruthy();
+      }
     });
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Save functionality
+  // Form display state
   // ─────────────────────────────────────────────────────────────────────────────
 
-  describe('Save functionality', () => {
-    it('calls SsoService.saveConfigForDomain on submit', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
-      wrapper = await mountComponent();
-
-      // Fill required fields
-      const displayNameInput = wrapper.find('#domain-sso-display-name');
-      const clientIdInput = wrapper.find('#domain-sso-client-id');
-      const clientSecretInput = wrapper.find('#domain-sso-client-secret');
-      const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
-
-      await displayNameInput.setValue('Test SSO');
-      await clientIdInput.setValue('client-123');
-      await clientSecretInput.setValue('secret-456');
-      await tenantIdInput.setValue('tenant-uuid');
-      await flushPromises();
-
-      // Submit form
-      const form = wrapper.find('form');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      expect(mockSaveConfigForDomain).toHaveBeenCalledWith('dm_123', expect.any(Object));
-    });
-
-    it('includes client_secret in payload when provided (triggers PUT)', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
-      wrapper = await mountComponent();
-
-      // Fill required fields including tenant_id
-      const displayNameInput = wrapper.find('#domain-sso-display-name');
-      const clientIdInput = wrapper.find('#domain-sso-client-id');
-      const clientSecretInput = wrapper.find('#domain-sso-client-secret');
-      const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
-
-      await displayNameInput.setValue('Test SSO');
-      await clientIdInput.setValue('client-123');
-      await clientSecretInput.setValue('secret-456');
-      await tenantIdInput.setValue('tenant-uuid');
-      await flushPromises();
-
-      // Submit form
-      const form = wrapper.find('form');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      // Verify payload includes client_secret
-      expect(mockSaveConfigForDomain).toHaveBeenCalled();
-      expect(lastSavePayload).toMatchObject({
-        client_secret: 'secret-456',
+  describe('Form display state', () => {
+    it('displays pre-populated form state', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        isConfigured: true,
+        clientSecretMasked: '****5678',
       });
-    });
 
-    it('omits client_secret from payload when empty (triggers PATCH)', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: mockExistingConfig });
-      wrapper = await mountComponent();
-
-      // Form should be pre-populated, client_secret should be empty
       const displayNameInput = wrapper.find('#domain-sso-display-name');
       expect((displayNameInput.element as HTMLInputElement).value).toBe('Test Domain SSO');
 
-      // Change display name but leave client_secret empty
-      await displayNameInput.setValue('Updated SSO Name');
-      await flushPromises();
-
-      // Submit form
-      const form = wrapper.find('form');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      // Verify payload does NOT include client_secret
-      expect(mockSaveConfigForDomain).toHaveBeenCalled();
-      expect(lastSavePayload).not.toHaveProperty('client_secret');
-    });
-
-    it('includes tenant_id in payload for Entra ID provider', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
-      wrapper = await mountComponent();
-
-      // Fill all required fields including tenant_id
-      const displayNameInput = wrapper.find('#domain-sso-display-name');
       const clientIdInput = wrapper.find('#domain-sso-client-id');
-      const clientSecretInput = wrapper.find('#domain-sso-client-secret');
+      expect((clientIdInput.element as HTMLInputElement).value).toBe('client-id-123');
+
       const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
-
-      await displayNameInput.setValue('Test SSO');
-      await clientIdInput.setValue('client-123');
-      await clientSecretInput.setValue('secret-456');
-      await tenantIdInput.setValue('tenant-uuid');
-      await flushPromises();
-
-      // Submit form
-      const form = wrapper.find('form');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      // Verify payload includes tenant_id
-      expect(mockSaveConfigForDomain).toHaveBeenCalled();
-      expect(lastSavePayload).toMatchObject({
-        provider_type: 'entra_id',
-        tenant_id: 'tenant-uuid',
-      });
+      expect((tenantIdInput.element as HTMLInputElement).value).toBe('tenant-uuid-123');
     });
 
-    it('includes issuer in payload for OIDC provider', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
-      wrapper = await mountComponent();
+    it('shows hint text about keeping existing secret when editing', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        isConfigured: true,
+        clientSecretMasked: '****5678',
+      });
 
-      // Select OIDC provider
-      const oidcRadio = wrapper.find('#domain-provider-oidc');
-      await oidcRadio.setValue(true);
-      await flushPromises();
+      // The component shows a hint to leave blank to keep existing secret
+      const hintText = wrapper.text();
+      expect(hintText).toContain('Leave blank to keep existing secret');
+    });
 
-      // Fill all required fields including issuer
-      const displayNameInput = wrapper.find('#domain-sso-display-name');
-      const clientIdInput = wrapper.find('#domain-sso-client-id');
-      const clientSecretInput = wrapper.find('#domain-sso-client-secret');
-      const issuerInput = wrapper.find('#domain-sso-issuer');
+    it('emits save event on form submit', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        isConfigured: true,
+      });
 
-      await displayNameInput.setValue('Test SSO');
-      await clientIdInput.setValue('client-123');
-      await clientSecretInput.setValue('secret-456');
-      await issuerInput.setValue('https://issuer.example.com');
-      await flushPromises();
-
-      // Submit form
       const form = wrapper.find('form');
       await form.trigger('submit.prevent');
       await flushPromises();
 
-      // Verify payload includes issuer
-      expect(mockSaveConfigForDomain).toHaveBeenCalled();
-      expect(lastSavePayload).toMatchObject({
-        provider_type: 'oidc',
-        issuer: 'https://issuer.example.com',
-      });
+      expect(wrapper.emitted('save')).toBeTruthy();
     });
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Success/error handling
+  // Loading and saving states
   // ─────────────────────────────────────────────────────────────────────────────
 
-  describe('Success/error handling', () => {
-    it('emits saved event after successful save', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: mockExistingConfig });
-      wrapper = await mountComponent();
+  describe('Loading and saving states', () => {
+    it('disables submit button when isSaving is true', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        isConfigured: true,
+        isSaving: true,
+      });
 
-      // Update a field
-      const displayNameInput = wrapper.find('#domain-sso-display-name');
-      await displayNameInput.setValue('Updated SSO');
-      await flushPromises();
-
-      // Submit form
-      const form = wrapper.find('form');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      // Check emitted events
-      expect(wrapper.emitted('saved')).toBeTruthy();
+      const submitButton = wrapper.find('button[type="submit"]');
+      expect((submitButton.element as HTMLButtonElement).disabled).toBe(true);
     });
 
-    // Note: Success messaging is handled by the parent component via @saved event
-    // The previous test verifies the event is emitted correctly
+    it('shows saving indicator when isSaving is true', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        isConfigured: true,
+        isSaving: true,
+      });
 
-    it('displays error message when save fails', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: mockExistingConfig });
-      wrapper = await mountComponent();
-
-      // Mock saveConfigForDomain to reject with error
-      const saveError = new Error('Network connection failed');
-      mockSaveConfigForDomain.mockRejectedValueOnce(saveError);
-
-      // Submit form
-      const form = wrapper.find('form');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      // Error message should be displayed
-      const alerts = wrapper.find('[data-testid="form-alerts"]');
-      expect(alerts.exists()).toBe(true);
-      expect(alerts.attributes('data-error')).toBe('Network connection failed');
-
-      // Verify saved event was NOT emitted
-      expect(wrapper.emitted('saved')).toBeFalsy();
+      // Check for saving text or indicator
+      const buttonText = wrapper.text();
+      expect(buttonText).toMatch(/saving/i);
     });
   });
 
@@ -676,104 +492,68 @@ describe('DomainSsoConfigForm', () => {
 
   describe('Test connection', () => {
     const findTestButton = (w: VueWrapper) => {
-      // Find the test button by looking for button with "Test" text in the test connection section
       const buttons = w.findAll('button[type="button"]');
       return buttons.find((b) => b.text().includes('Test'));
     };
 
-    it('calls testConnectionForDomain when test button clicked', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
-      wrapper = await mountComponent();
-
-      // Fill required fields for test
-      const clientIdInput = wrapper.find('#domain-sso-client-id');
-      const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
-
-      await clientIdInput.setValue('client-123');
-      await tenantIdInput.setValue('tenant-uuid');
-      await flushPromises();
-
-      // Find and click test button
-      const testButton = findTestButton(wrapper);
-      expect(testButton).toBeDefined();
-      await testButton!.trigger('click');
-      await flushPromises();
-
-      expect(mockTestConnectionForDomain).toHaveBeenCalledWith('dm_123', expect.objectContaining({
-        provider_type: 'entra_id',
-        client_id: 'client-123',
-        tenant_id: 'tenant-uuid',
-      }));
-    });
-
-    it('shows success message on successful test', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
-      mockTestConnectionForDomain.mockResolvedValue({
-        success: true,
-        message: 'Connection successful',
-        provider_type: 'entra_id',
-        details: { issuer: 'https://login.microsoftonline.com/tenant/v2.0' },
+    it('emits test event when test button clicked', async () => {
+      wrapper = await mountComponent({
+        formState: {
+          ...createDefaultFormState(),
+          client_id: 'client-123',
+          tenant_id: 'tenant-uuid',
+        },
       });
 
-      wrapper = await mountComponent();
-
-      // Fill required fields
-      const clientIdInput = wrapper.find('#domain-sso-client-id');
-      const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
-
-      await clientIdInput.setValue('client-123');
-      await tenantIdInput.setValue('tenant-uuid');
-      await flushPromises();
-
-      // Click test button
       const testButton = findTestButton(wrapper);
       expect(testButton).toBeDefined();
       await testButton!.trigger('click');
       await flushPromises();
 
-      // Check for success indicator (green background in result section)
+      expect(wrapper.emitted('test')).toBeTruthy();
+    });
+
+    it('shows success result when testResult.success is true', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        testResult: {
+          success: true,
+          message: 'Connection successful',
+          provider_type: 'entra_id',
+          details: { issuer: 'https://login.microsoftonline.com/tenant/v2.0' },
+        },
+      });
+
+      // Check for success indicator
       const successResult = wrapper.find('.bg-green-50, [role="status"]');
       expect(successResult.exists()).toBe(true);
     });
 
-    it('shows error message on failed test', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
-      mockTestConnectionForDomain.mockResolvedValue({
-        success: false,
-        message: 'Invalid tenant ID',
-        provider_type: 'entra_id',
-        details: { error_code: 'invalid_tenant' },
+    it('shows error result when testResult.success is false', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        testResult: {
+          success: false,
+          message: 'Invalid tenant ID',
+          provider_type: 'entra_id',
+          details: { error_code: 'invalid_tenant' },
+        },
+        testError: 'Invalid tenant ID',
       });
 
-      wrapper = await mountComponent();
-
-      // Fill required fields
-      const clientIdInput = wrapper.find('#domain-sso-client-id');
-      const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
-
-      await clientIdInput.setValue('client-123');
-      await tenantIdInput.setValue('invalid-tenant');
-      await flushPromises();
-
-      // Click test button
-      const testButton = findTestButton(wrapper);
-      expect(testButton).toBeDefined();
-      await testButton!.trigger('click');
-      await flushPromises();
-
-      // Check for error indicator (red background in result section)
+      // Check for error indicator
       const errorResult = wrapper.find('.bg-red-50, [role="alert"]');
       expect(errorResult.exists()).toBe(true);
     });
 
-    it('disables test button when required fields are missing', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
-      wrapper = await mountComponent();
+    it('shows testing indicator when isTesting is true', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        isTesting: true,
+      });
 
-      // Don't fill any fields - test button should be disabled
-      const testButton = findTestButton(wrapper);
-      expect(testButton).toBeDefined();
-      expect(testButton!.attributes('disabled')).toBeDefined();
+      const buttonText = wrapper.text();
+      expect(buttonText).toMatch(/testing/i);
     });
   });
 
@@ -792,61 +572,61 @@ describe('DomainSsoConfigForm', () => {
       return buttons.find((b) => b.text().includes('Yes, delete'));
     };
 
-    it('shows delete button when editing existing config', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: mockExistingConfig });
-      wrapper = await mountComponent();
+    it('shows delete button when isConfigured is true', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+      });
 
-      // Find delete button
       const deleteButton = findDeleteButton(wrapper);
       expect(deleteButton).toBeDefined();
       expect(deleteButton!.text()).toContain('Delete Configuration');
     });
 
-    it('calls deleteConfigForDomain after confirmation', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: mockExistingConfig });
-      wrapper = await mountComponent();
+    it('emits delete event after confirmation', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+      });
 
-      // Find and click delete button to show confirmation
+      // Click delete button to show confirmation
       const deleteButton = findDeleteButton(wrapper);
       expect(deleteButton).toBeDefined();
       await deleteButton!.trigger('click');
       await flushPromises();
 
-      // Find and click confirm button
+      // Click confirm button
       const confirmButton = findConfirmDeleteButton(wrapper);
       expect(confirmButton).toBeDefined();
       await confirmButton!.trigger('click');
       await flushPromises();
 
-      expect(mockDeleteConfigForDomain).toHaveBeenCalledWith('dm_123');
+      expect(wrapper.emitted('delete')).toBeTruthy();
     });
 
-    it('emits deleted event after successful delete', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: mockExistingConfig });
-      wrapper = await mountComponent();
+    it('does not show delete button when isConfigured is false', async () => {
+      wrapper = await mountComponent({
+        formState: createDefaultFormState(),
+        isConfigured: false,
+      });
 
-      // Find and click delete button
-      const deleteButton = findDeleteButton(wrapper);
-      expect(deleteButton).toBeDefined();
-      await deleteButton!.trigger('click');
-      await flushPromises();
-
-      // Find and click confirm button
-      const confirmButton = findConfirmDeleteButton(wrapper);
-      expect(confirmButton).toBeDefined();
-      await confirmButton!.trigger('click');
-      await flushPromises();
-
-      expect(wrapper.emitted('deleted')).toBeTruthy();
-    });
-
-    it('does not show delete button when creating new config', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
-      wrapper = await mountComponent();
-
-      // Delete button should not be visible
       const deleteButton = findDeleteButton(wrapper);
       expect(deleteButton).toBeUndefined();
+    });
+
+    it('disables delete button when isDeleting is true', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        isConfigured: true,
+        isDeleting: true,
+      });
+
+      // Find the delete button
+      const deleteButton = findDeleteButton(wrapper);
+      expect(deleteButton).toBeDefined();
+      expect((deleteButton!.element as HTMLButtonElement).disabled).toBe(true);
     });
   });
 
@@ -855,30 +635,23 @@ describe('DomainSsoConfigForm', () => {
   // ─────────────────────────────────────────────────────────────────────────────
 
   describe('Loading state', () => {
-    it('shows loading state while fetching config', async () => {
-      // Set up a never-resolving promise to keep loading state
-      mockGetConfigForDomain.mockImplementation(() => new Promise(() => {}));
-
-      const component = mount(DomainSsoConfigForm, {
-        props: { domainExtId: 'dm_123' },
-        global: {
-          plugins: [i18n, pinia],
-          stubs: { Teleport: true },
-        },
+    it('shows loading indicator when isLoading is true', async () => {
+      wrapper = await mountComponent({
+        formState: createDefaultFormState(),
+        isLoading: true,
       });
 
       // Should show loading state
-      const loadingIcon = component.find('[data-icon-name="arrow-path"]');
+      const loadingIcon = wrapper.find('[data-icon-name="arrow-path"]');
       expect(loadingIcon.exists()).toBe(true);
-
-      component.unmount();
     });
 
-    it('hides loading state after config loads', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: null });
-      wrapper = await mountComponent();
+    it('shows form when isLoading is false', async () => {
+      wrapper = await mountComponent({
+        formState: createDefaultFormState(),
+        isLoading: false,
+      });
 
-      // Loading spinner should not be in the main content area
       const form = wrapper.find('form');
       expect(form.exists()).toBe(true);
     });

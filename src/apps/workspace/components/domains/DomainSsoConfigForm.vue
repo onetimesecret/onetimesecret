@@ -4,50 +4,58 @@
 /**
  * Domain SSO Configuration Form
  *
- * This component mirrors SsoConfigForm but uses domain-scoped service methods.
- * It provides SSO configuration for individual custom domains.
+ * Presentational component that receives SSO config state via props
+ * and emits events for actions. Parent (DomainSso.vue) manages state
+ * via useSsoConfig composable.
  */
 import { useI18n } from 'vue-i18n';
-import { computed, onMounted, ref, watch } from 'vue';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import { computed, ref, watch } from 'vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import { classifyError } from '@/schemas/errors';
-import { SsoService, type TestSsoConnectionResponse } from '@/services/sso.service';
 import {
   SSO_PROVIDER_METADATA,
   type CustomDomainSsoConfig,
   type SsoProviderType,
 } from '@/schemas/shapes/sso-config';
-import type { PatchSsoConfigRequest } from '@/schemas/api/domains/requests/sso-config';
+import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
+import type { TestSsoConnectionResponse } from '@/services/sso.service';
 
-/**
- * Internal form state type.
- * Required fields are non-optional for form validation; client_secret is optional
- * (omit to preserve existing when editing).
- */
-interface SsoConfigFormData {
-  provider_type: SsoProviderType;
-  display_name: string;
-  client_id: string;
-  client_secret?: string;
-  tenant_id?: string;
-  issuer?: string;
-  allowed_domains: string[];
-  enabled: boolean;
-}
+// ---------------------------------------------------------------------------
+// Props
+// ---------------------------------------------------------------------------
 
 const props = defineProps<{
   domainExtId: string;
+  formState: SsoConfigFormState;
+  ssoConfig: CustomDomainSsoConfig | null;
+  isLoading: boolean;
+  isSaving: boolean;
+  isDeleting: boolean;
+  isTesting: boolean;
+  hasUnsavedChanges: boolean;
+  isConfigured: boolean;
+  clientSecretMasked: string | null;
+  testResult: TestSsoConnectionResponse | null;
+  testError: string;
 }>();
 
+// ---------------------------------------------------------------------------
+// Emits
+// ---------------------------------------------------------------------------
+
 const emit = defineEmits<{
-  (e: 'saved', isUpdate: boolean): void;
-  (e: 'deleted'): void;
+  (e: 'save'): void;
+  (e: 'delete'): void;
+  (e: 'test'): void;
+  (e: 'discard'): void;
+  (e: 'update:formState', value: SsoConfigFormState): void;
 }>();
 
 const { t } = useI18n();
 
-// Provider options with display info
+// ---------------------------------------------------------------------------
+// Provider options
+// ---------------------------------------------------------------------------
+
 const providerOptions: { value: SsoProviderType; label: string; description: string }[] = [
   {
     value: 'entra_id',
@@ -71,286 +79,126 @@ const providerOptions: { value: SsoProviderType; label: string; description: str
   },
 ];
 
-// Form state
-const isLoading = ref(true);
-const isSaving = ref(false);
-const isDeleting = ref(false);
-const isTesting = ref(false);
+// ---------------------------------------------------------------------------
+// Local UI state
+// ---------------------------------------------------------------------------
+
 const showDeleteConfirm = ref(false);
-const error = ref('');
-// Note: success messaging handled by parent via @saved/@deleted events
-const fieldErrors = ref<Record<string, string>>({});
-
-// Connection test state
-const testResult = ref<TestSsoConnectionResponse | null>(null);
-const testError = ref('');
-
-// Existing config (null if no config exists)
-const existingConfig = ref<CustomDomainSsoConfig | null>(null);
-
-// Form data - internal state with required fields; saveConfig auto-selects PUT/PATCH
-const formData = ref<SsoConfigFormData>({
-  provider_type: 'entra_id',
-  display_name: '',
-  client_id: '',
-  client_secret: undefined,
-  tenant_id: undefined,
-  issuer: undefined,
-  allowed_domains: [],
-  enabled: false,
-});
-
-// Show/hide password
 const showClientSecret = ref(false);
-
-// Domain input for adding new domains
 const newDomain = ref('');
 const domainInputError = ref('');
 
-// Computed: whether we're editing existing config
-const isEditing = computed(() => existingConfig.value !== null);
+// ---------------------------------------------------------------------------
+// Form state helpers (emit updates to parent)
+// ---------------------------------------------------------------------------
 
-// Computed: whether provider requires tenant_id
-const requiresTenantId = computed(() => formData.value.provider_type === 'entra_id');
+function updateField<K extends keyof SsoConfigFormState>(
+  field: K,
+  value: SsoConfigFormState[K]
+): void {
+  emit('update:formState', {
+    ...props.formState,
+    [field]: value,
+  });
+}
 
-// Computed: whether provider requires issuer
-const requiresIssuer = computed(() => formData.value.provider_type === 'oidc');
+// ---------------------------------------------------------------------------
+// Computed: form validation and display logic
+// ---------------------------------------------------------------------------
 
-// Computed: whether to show domain filter field
-// Only shown for providers without IdP-side user assignment (e.g., GitHub)
+const isEditing = computed(() => props.isConfigured);
+
+const requiresTenantId = computed(() => props.formState.provider_type === 'entra_id');
+
+const requiresIssuer = computed(() => props.formState.provider_type === 'oidc');
+
 const showDomainFilter = computed(() => {
-  const metadata = SSO_PROVIDER_METADATA[formData.value.provider_type];
+  const metadata = SSO_PROVIDER_METADATA[props.formState.provider_type];
   return metadata?.requiresDomainFilter ?? false;
 });
 
-// Computed: current provider option (for locked display when editing)
 const currentProviderOption = computed(() =>
-  providerOptions.find((o) => o.value === formData.value.provider_type)
+  providerOptions.find((o) => o.value === props.formState.provider_type)
 );
 
-// Computed: form is valid
 const isFormValid = computed(() => {
-  if (!formData.value.display_name.trim()) return false;
-  if (!formData.value.client_id.trim()) return false;
+  if (!props.formState.display_name.trim()) return false;
+  if (!props.formState.client_id.trim()) return false;
 
   // client_secret required for new configs
-  if (!isEditing.value && !formData.value.client_secret?.trim()) return false;
+  if (!isEditing.value && !props.formState.client_secret?.trim()) return false;
 
   // Provider-specific requirements
-  if (requiresTenantId.value && !formData.value.tenant_id?.trim()) return false;
-  if (requiresIssuer.value && !formData.value.issuer?.trim()) return false;
+  if (requiresTenantId.value && !props.formState.tenant_id?.trim()) return false;
+  if (requiresIssuer.value && !props.formState.issuer?.trim()) return false;
 
   return true;
 });
 
-// Computed: client secret placeholder text
 const clientSecretPlaceholder = computed(() => {
-  if (isEditing.value && existingConfig.value?.client_secret_masked) {
-    return existingConfig.value.client_secret_masked;
+  if (isEditing.value && props.clientSecretMasked) {
+    return props.clientSecretMasked;
   }
   return t('web.organizations.sso.client_secret_placeholder');
 });
 
-// Computed: can test connection (has required fields for testing)
 const canTestConnection = computed(() => {
-  if (!formData.value.client_id.trim()) return false;
+  if (!props.formState.client_id.trim()) return false;
 
   // Provider-specific requirements for testing
-  if (requiresTenantId.value && !formData.value.tenant_id?.trim()) return false;
-  if (requiresIssuer.value && !formData.value.issuer?.trim()) return false;
+  if (requiresTenantId.value && !props.formState.tenant_id?.trim()) return false;
+  if (requiresIssuer.value && !props.formState.issuer?.trim()) return false;
 
   return true;
 });
 
-// Test connection
-const handleTestConnection = async () => {
-  if (!canTestConnection.value || isTesting.value) return;
+// ---------------------------------------------------------------------------
+// Handlers
+// ---------------------------------------------------------------------------
 
-  isTesting.value = true;
-  testResult.value = null;
-  testError.value = '';
-  error.value = '';
-
-  try {
-    const payload = {
-      provider_type: formData.value.provider_type,
-      client_id: formData.value.client_id.trim(),
-      tenant_id: requiresTenantId.value ? formData.value.tenant_id?.trim() : undefined,
-      issuer: requiresIssuer.value ? formData.value.issuer?.trim() : undefined,
-    };
-
-    testResult.value = await SsoService.testConnectionForDomain(props.domainExtId, payload);
-
-    if (!testResult.value.success) {
-      testError.value = testResult.value.message;
-    }
-  } catch (err) {
-    const classified = classifyError(err);
-    testError.value = classified.message || t('web.organizations.sso.test_error');
-    console.error('[DomainSsoConfigForm] Error testing connection:', err);
-  } finally {
-    isTesting.value = false;
-  }
+const handleSave = () => {
+  if (!isFormValid.value || props.isSaving) return;
+  emit('save');
 };
 
-// Clear test result when form data changes
-watch(
-  () => [formData.value.provider_type, formData.value.client_id, formData.value.tenant_id, formData.value.issuer],
-  () => {
-    testResult.value = null;
-    testError.value = '';
-  }
-);
-
-// Load existing config
-const loadConfig = async () => {
-  isLoading.value = true;
-  error.value = '';
-
-  try {
-    const response = await SsoService.getConfigForDomain(props.domainExtId);
-    existingConfig.value = response.record;
-
-    if (response.record) {
-      // Populate form with existing data
-      formData.value = {
-        provider_type: response.record.provider_type,
-        display_name: response.record.display_name,
-        client_id: response.record.client_id,
-        client_secret: undefined, // Never populate secret from response
-        tenant_id: response.record.tenant_id ?? undefined,
-        issuer: response.record.issuer ?? undefined,
-        allowed_domains: response.record.allowed_domains ?? [],
-        enabled: response.record.enabled,
-      };
-    }
-  } catch (err) {
-    // 404 is handled by SsoService.getConfigForDomain (returns { record: null })
-    // Any error reaching here is a real failure
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.organizations.sso.load_error');
-    console.error('[DomainSsoConfigForm] Error loading config:', err);
-  } finally {
-    isLoading.value = false;
-  }
+const handleDelete = () => {
+  if (props.isDeleting) return;
+  emit('delete');
+  showDeleteConfirm.value = false;
 };
 
-// Save config
-const handleSave = async () => {
-  if (!isFormValid.value || isSaving.value) return;
-
-  isSaving.value = true;
-  error.value = '';
-  testResult.value = null;
-  testError.value = '';
-  fieldErrors.value = {};
-
-  try {
-    // Prepare payload - only include client_secret if provided
-    // saveConfigForDomain auto-selects PUT (with secret) or PATCH (without secret)
-    const payload: PatchSsoConfigRequest = {
-      provider_type: formData.value.provider_type,
-      display_name: formData.value.display_name.trim(),
-      client_id: formData.value.client_id.trim(),
-      allowed_domains: formData.value.allowed_domains,
-      enabled: formData.value.enabled,
-    };
-
-    // Only include client_secret if user entered a new one
-    if (formData.value.client_secret?.trim()) {
-      payload.client_secret = formData.value.client_secret.trim();
-    }
-
-    // Provider-specific fields
-    if (requiresTenantId.value && formData.value.tenant_id) {
-      payload.tenant_id = formData.value.tenant_id.trim();
-    }
-    if (requiresIssuer.value && formData.value.issuer) {
-      payload.issuer = formData.value.issuer.trim();
-    }
-
-    // Capture before save - isEditing will change once existingConfig is set
-    const wasEditing = isEditing.value;
-
-    const response = await SsoService.saveConfigForDomain(props.domainExtId, payload);
-    existingConfig.value = response.record;
-
-    // Clear secret field after successful save
-    formData.value.client_secret = undefined;
-
-    // Parent handles success messaging via @saved event
-    emit('saved', wasEditing);
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.organizations.sso.save_error');
-    console.error('[DomainSsoConfigForm] Error saving config:', err);
-  } finally {
-    isSaving.value = false;
-  }
+const handleTestConnection = () => {
+  if (!canTestConnection.value || props.isTesting) return;
+  emit('test');
 };
 
-// Delete config
-const handleDelete = async () => {
-  if (isDeleting.value) return;
-
-  isDeleting.value = true;
-  error.value = '';
-
-  try {
-    await SsoService.deleteConfigForDomain(props.domainExtId);
-    existingConfig.value = null;
-
-    // Reset form to defaults
-    formData.value = {
-      provider_type: 'entra_id',
-      display_name: '',
-      client_id: '',
-      client_secret: undefined,
-      tenant_id: undefined,
-      issuer: undefined,
-      allowed_domains: [],
-      enabled: false,
-    };
-
-    showDeleteConfirm.value = false;
-    // Parent handles success messaging via @deleted event
-    emit('deleted');
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.organizations.sso.delete_error');
-    console.error('[DomainSsoConfigForm] Error deleting config:', err);
-  } finally {
-    isDeleting.value = false;
-  }
-};
-
-// Add domain to allowlist
 const addDomain = () => {
   const domain = newDomain.value.trim().toLowerCase();
 
   if (!domain) return;
 
   // Basic frontend validation for UX (backend does authoritative PublicSuffix check)
-  // Just verify it has at least one dot and no whitespace
   if (!domain.includes('.') || /\s/.test(domain)) {
     domainInputError.value = t('web.organizations.sso.invalid_domain');
     return;
   }
 
   // Check for duplicates
-  if (formData.value.allowed_domains?.includes(domain)) {
+  if (props.formState.allowed_domains?.includes(domain)) {
     domainInputError.value = t('web.organizations.sso.domain_exists');
     return;
   }
 
-  formData.value.allowed_domains = [...(formData.value.allowed_domains || []), domain];
+  updateField('allowed_domains', [...(props.formState.allowed_domains || []), domain]);
   newDomain.value = '';
   domainInputError.value = '';
 };
 
-// Remove domain from allowlist
 const removeDomain = (domain: string) => {
-  formData.value.allowed_domains = formData.value.allowed_domains?.filter((d) => d !== domain) ?? [];
+  updateField(
+    'allowed_domains',
+    props.formState.allowed_domains?.filter((d) => d !== domain) ?? []
+  );
 };
 
 // Clear domain input error when typing
@@ -359,8 +207,6 @@ watch(newDomain, () => {
     domainInputError.value = '';
   }
 });
-
-onMounted(loadConfig);
 </script>
 
 <template>
@@ -379,11 +225,6 @@ onMounted(loadConfig);
     <form v-else
 @submit.prevent="handleSave"
 class="space-y-6">
-      <!-- Error Alert (success handled by parent via @saved/@deleted events) -->
-      <BasicFormAlerts
-        v-if="error"
-        :error="error" />
-
       <!-- Provider Selection (locked when editing, selectable when creating) -->
       <fieldset>
         <legend class="text-sm font-medium text-gray-900 dark:text-white">
@@ -426,7 +267,7 @@ class="space-y-6">
             :key="option.value"
             :class="[
               'relative flex cursor-pointer rounded-lg border p-4 focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2',
-              formData.provider_type === option.value
+              formState.provider_type === option.value
                 ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-900/20'
                 : 'border-gray-300 bg-white hover:border-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500',
             ]">
@@ -435,14 +276,15 @@ class="space-y-6">
               :id="`domain-provider-${option.value}`"
               :name="'provider_type'"
               :value="option.value"
-              v-model="formData.provider_type"
+              :checked="formState.provider_type === option.value"
+              @change="updateField('provider_type', option.value)"
               class="sr-only"
               :aria-describedby="`domain-provider-${option.value}-description`" />
             <span class="flex flex-1 flex-col">
               <span
                 :class="[
                   'block text-sm font-medium',
-                  formData.provider_type === option.value
+                  formState.provider_type === option.value
                     ? 'text-brand-900 dark:text-brand-100'
                     : 'text-gray-900 dark:text-white',
                 ]">
@@ -455,7 +297,7 @@ class="space-y-6">
               </span>
             </span>
             <OIcon
-              v-if="formData.provider_type === option.value"
+              v-if="formState.provider_type === option.value"
               collection="heroicons"
               name="check-circle-solid"
               class="size-5 text-brand-600 dark:text-brand-400"
@@ -479,21 +321,14 @@ class="space-y-6">
         </p>
         <input
           id="domain-sso-display-name"
-          v-model="formData.display_name"
+          :value="formState.display_name"
+          @input="updateField('display_name', ($event.target as HTMLInputElement).value)"
           type="text"
           required
           maxlength="100"
           :placeholder="t('web.organizations.sso.display_name_placeholder')"
           aria-describedby="domain-display-name-hint"
-          :aria-invalid="!!fieldErrors.display_name"
           class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
-        <p
-          v-if="fieldErrors.display_name"
-          :id="`domain-display-name-error`"
-          class="mt-1 text-sm text-red-600 dark:text-red-400"
-          role="alert">
-          {{ fieldErrors.display_name }}
-        </p>
       </div>
 
       <!-- Client ID -->
@@ -506,12 +341,12 @@ class="space-y-6">
         </label>
         <input
           id="domain-sso-client-id"
-          v-model="formData.client_id"
+          :value="formState.client_id"
+          @input="updateField('client_id', ($event.target as HTMLInputElement).value)"
           type="text"
           required
           autocomplete="off"
           :placeholder="t('web.organizations.sso.client_id_placeholder')"
-          :aria-invalid="!!fieldErrors.client_id"
           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
       </div>
 
@@ -534,13 +369,13 @@ aria-hidden="true">*</span>
         <div class="relative mt-1">
           <input
             id="domain-sso-client-secret"
-            v-model="formData.client_secret"
+            :value="formState.client_secret"
+            @input="updateField('client_secret', ($event.target as HTMLInputElement).value)"
             :type="showClientSecret ? 'text' : 'password'"
             :required="!isEditing"
             autocomplete="new-password"
             :placeholder="clientSecretPlaceholder"
             :aria-describedby="isEditing ? 'domain-client-secret-hint' : undefined"
-            :aria-invalid="!!fieldErrors.client_secret"
             class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
           <button
             type="button"
@@ -571,13 +406,13 @@ aria-hidden="true">*</span>
         </p>
         <input
           id="domain-sso-tenant-id"
-          v-model="formData.tenant_id"
+          :value="formState.tenant_id"
+          @input="updateField('tenant_id', ($event.target as HTMLInputElement).value)"
           type="text"
           required
           autocomplete="off"
           :placeholder="t('web.organizations.sso.tenant_id_placeholder')"
           aria-describedby="domain-tenant-id-hint"
-          :aria-invalid="!!fieldErrors.tenant_id"
           class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
       </div>
 
@@ -596,13 +431,13 @@ aria-hidden="true">*</span>
         </p>
         <input
           id="domain-sso-issuer"
-          v-model="formData.issuer"
+          :value="formState.issuer"
+          @input="updateField('issuer', ($event.target as HTMLInputElement).value)"
           type="url"
           required
           autocomplete="off"
           :placeholder="t('web.organizations.sso.issuer_placeholder')"
           aria-describedby="domain-issuer-hint"
-          :aria-invalid="!!fieldErrors.issuer"
           class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
       </div>
 
@@ -745,12 +580,12 @@ aria-hidden="true">*</span>
 
         <!-- Domain chips -->
         <div
-          v-if="formData.allowed_domains && formData.allowed_domains.length > 0"
+          v-if="formState.allowed_domains && formState.allowed_domains.length > 0"
           class="mt-2 flex flex-wrap gap-2"
           role="list"
           :aria-label="t('web.organizations.sso.allowed_domains')">
           <span
-            v-for="domain in formData.allowed_domains"
+            v-for="domain in formState.allowed_domains"
             :key="domain"
             role="listitem"
             class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-600 dark:text-gray-200">
@@ -815,23 +650,23 @@ aria-hidden="true">*</span>
         <button
           type="button"
           role="switch"
-          :aria-checked="formData.enabled"
+          :aria-checked="formState.enabled"
           aria-describedby="domain-enabled-hint"
-          @click="formData.enabled = !formData.enabled"
+          @click="updateField('enabled', !formState.enabled)"
           :class="[
             'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
-            formData.enabled ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600',
+            formState.enabled ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600',
           ]">
           <span class="sr-only">{{ t('web.organizations.sso.enabled') }}</span>
           <span
             :class="[
               'pointer-events-none relative inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-              formData.enabled ? 'translate-x-5' : 'translate-x-0',
+              formState.enabled ? 'translate-x-5' : 'translate-x-0',
             ]">
             <span
               :class="[
                 'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
-                formData.enabled ? 'opacity-0 duration-100 ease-out' : 'opacity-100 duration-200 ease-in',
+                formState.enabled ? 'opacity-0 duration-100 ease-out' : 'opacity-100 duration-200 ease-in',
               ]"
               aria-hidden="true">
               <OIcon
@@ -842,7 +677,7 @@ aria-hidden="true">*</span>
             <span
               :class="[
                 'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
-                formData.enabled ? 'opacity-100 duration-200 ease-in' : 'opacity-0 duration-100 ease-out',
+                formState.enabled ? 'opacity-100 duration-200 ease-in' : 'opacity-0 duration-100 ease-out',
               ]"
               aria-hidden="true">
               <OIcon
@@ -856,21 +691,23 @@ aria-hidden="true">*</span>
 
       <!-- Action Buttons -->
       <div class="flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">
-        <!-- Delete button (only if editing) -->
-        <div>
-          <button
-            v-if="isEditing && !showDeleteConfirm"
-            type="button"
-            @click="showDeleteConfirm = true"
-            :disabled="isDeleting || isSaving"
-            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
-            <OIcon
-              collection="heroicons"
-              name="trash"
-              class="size-4"
-              aria-hidden="true" />
-            {{ t('web.organizations.sso.delete_config') }}
-          </button>
+        <!-- Left: Delete + Discard -->
+        <div class="flex items-center gap-3">
+          <!-- Delete button (only when editing existing config) -->
+          <template v-if="isEditing && !showDeleteConfirm">
+            <button
+              type="button"
+              @click="showDeleteConfirm = true"
+              :disabled="isDeleting || isSaving"
+              class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
+              <OIcon
+                collection="heroicons"
+                name="trash"
+                class="size-4"
+                aria-hidden="true" />
+              {{ t('web.organizations.sso.delete_config') }}
+            </button>
+          </template>
 
           <!-- Delete confirmation -->
           <div v-if="showDeleteConfirm" class="flex items-center gap-2">
@@ -892,9 +729,19 @@ aria-hidden="true">*</span>
               {{ t('web.COMMON.word_cancel') }}
             </button>
           </div>
+
+          <!-- Discard changes button -->
+          <button
+            v-if="hasUnsavedChanges && !showDeleteConfirm"
+            type="button"
+            @click="emit('discard')"
+            :disabled="isSaving"
+            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+            {{ t('web.domains.email.discard_changes') }}
+          </button>
         </div>
 
-        <!-- Save button -->
+        <!-- Right: Save button -->
         <button
           type="submit"
           :disabled="!isFormValid || isSaving || isDeleting"
@@ -910,13 +757,5 @@ aria-hidden="true">*</span>
         </button>
       </div>
     </form>
-
-    <!-- Live region for error announcements (success handled by parent) -->
-    <div
-      aria-live="polite"
-      aria-atomic="true"
-      class="sr-only">
-      <span v-if="error">{{ error }}</span>
-    </div>
   </div>
 </template>
