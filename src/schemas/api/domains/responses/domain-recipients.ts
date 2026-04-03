@@ -91,6 +91,7 @@ export type PutDomainRecipientsResponse = z.infer<typeof putDomainRecipientsResp
  * Response schema for DELETE /api/domains/:domain_extid/recipients
  *
  * Returns a success confirmation with optional details.
+ * Note: Delete endpoints use bare objects, matching sso-config and email-config patterns.
  */
 export const deleteDomainRecipientsResponseSchema = z.object({
   success: z.boolean(),
