@@ -665,6 +665,22 @@ describe('useSsoConfig', () => {
       expect(composable.hasUnsavedChanges.value).toBe(true);
     });
 
+    it('returns false when allowed_domains has same items in different order', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockSsoConfigData, allowed_domains: ['acme.com', 'acme.org'] },
+      });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      // Reorder without changing content (simulates remove + re-add)
+      composable.formState.value = {
+        ...composable.formState.value,
+        allowed_domains: ['acme.org', 'acme.com'],
+      };
+
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
     it('returns false when changes are reverted to original values', async () => {
       mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
       const composable = useSsoConfig('dm-ext-123');
