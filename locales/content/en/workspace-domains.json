@@ -431,6 +431,10 @@
     "text": "You don't have permission to manage SSO settings for this domain. Contact your organization administrator.",
     "sha256": "e5f6a7b8"
   },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Upgrade your plan to configure single sign-on for this domain.",
+    "sha256": "f5a6b7c8"
+  },
   "web.domains.sso.create_success": {
     "text": "SSO configuration created successfully",
     "sha256": "e6f7a8b9"
@@ -446,6 +450,10 @@
   "web.domains.sso.configure_sso": {
     "text": "Configure SSO",
     "sha256": "b8c9d0e1"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO is not yet configured for this domain. Enable single sign-on to allow team members to authenticate using your organization's identity provider.",
+    "sha256": "c9d0e1f2"
   },
   "web.domains.email.title": {
     "text": "Email Sending",
