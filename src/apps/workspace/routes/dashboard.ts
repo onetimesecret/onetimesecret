@@ -143,6 +143,26 @@ const routes: Array<RouteRecordRaw> = [
     },
     props: true,
   },
+  {
+    path: '/org/:orgid/domains/:extid/incoming',
+    name: 'DomainIncoming',
+    component: () => import('@/apps/workspace/domains/DomainIncoming.vue'),
+    meta: {
+      title: 'web.TITLES.domain_incoming',
+      requiresAuth: true,
+      layout: WorkspaceLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'show',
+        onOrgSwitch: '/dashboard',
+        onDomainSwitch: 'same',
+      },
+    },
+    props: true,
+  },
   // Legacy redirects for backward compatibility
   {
     path: '/domains',

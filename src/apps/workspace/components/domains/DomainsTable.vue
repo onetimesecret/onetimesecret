@@ -50,6 +50,7 @@ const { t } = useI18n();
   const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
   const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
   const canEmailConfig = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
+  const canIncomingSecrets = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
 
   const emit = defineEmits<{
     (e: 'toggle-homepage', domain: CustomDomain): void;
@@ -185,6 +186,7 @@ const { t } = useI18n();
                   :can-brand="canBrand"
                   :can-manage-sso="canManageSso"
                   :can-email-config="canEmailConfig"
+                  :can-incoming-secrets="canIncomingSecrets"
                   @delete="handleDelete" />
               </td>
             </tr>
