@@ -724,7 +724,7 @@
     "sha256": "a3b4c5d7"
   },
   "web.domains.incoming.email_placeholder": {
-    "text": "recipient@example.com",
+    "text": "recipient{'@'}example.com",
     "sha256": "b4c5d6e8"
   },
   "web.domains.incoming.name_label": {
