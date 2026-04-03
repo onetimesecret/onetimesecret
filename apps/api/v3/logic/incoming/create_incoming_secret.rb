@@ -173,7 +173,8 @@ module V3
 
           # Index receipt to custom domain for analytics/auditing and scoped queries
           # Must add to domain's sorted set so custom_domain.receipts includes this receipt
-          if display_domain && !display_domain.empty?
+          # Skip Redis lookup on canonical domain where no custom domain record exists
+          if custom_domain?
             domain_record = Onetime::CustomDomain.from_display_domain(display_domain)
             if domain_record
               @resolved_domain_id = domain_record.objid
@@ -202,8 +203,9 @@ module V3
         def send_recipient_notification
           return if recipient_email.nil? || recipient_email.empty?
 
-          # Use cached domain_id if available, otherwise resolve from share_domain
-          domain_id = @resolved_domain_id || Onetime::CustomDomain.resolve_domain_id(secret.share_domain)
+          # Use cached domain_id if available; only resolve on custom domains
+          # (canonical domain secrets don't need domain_id for notifications)
+          domain_id = @resolved_domain_id || (custom_domain? && Onetime::CustomDomain.resolve_domain_id(secret.share_domain))
 
           Onetime::Jobs::Publisher.enqueue_email(
             :incoming_secret,
