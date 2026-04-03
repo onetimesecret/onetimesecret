@@ -458,14 +458,48 @@ module Onetime
       @incoming_secrets_config ||= IncomingSecretsConfig.from_json(incoming_secrets.value)
     end
 
+    # Cached lookup table for incoming recipient hash-to-email mapping.
+    # Avoids recomputing SHA256 hashes on every lookup (up to 20 ops/call).
+    #
+    # Keyed by site_secret hash to support multiple secrets (e.g., key rotation).
+    # Returns frozen hash for thread safety and to match canonical domain pattern.
+    #
+    # @param site_secret [String] Site secret used as hash salt
+    # @return [Hash<String, String>] Frozen hash mapping recipient hashes to emails
+    def cached_incoming_recipient_lookup(site_secret)
+      return {}.freeze if site_secret.nil? || site_secret.to_s.strip.empty?
+
+      cache_key                           = Digest::SHA256.hexdigest(site_secret)
+      (@incoming_recipient_lookup_cache ||= {})[cache_key] ||=
+        incoming_secrets_config.incoming_recipient_lookup(site_secret).freeze
+    end
+
+    # Cached public recipients list for frontend display.
+    # Avoids recomputing SHA256 hashes on every request.
+    #
+    # Keyed by site_secret hash to support multiple secrets (e.g., key rotation).
+    # Returns frozen array for thread safety and to match canonical domain pattern.
+    #
+    # @param site_secret [String] Site secret used as hash salt
+    # @return [Array<Hash>] Frozen array of {hash:, name:} hashes
+    def cached_public_incoming_recipients(site_secret)
+      return [].freeze if site_secret.nil? || site_secret.to_s.strip.empty?
+
+      cache_key                            = Digest::SHA256.hexdigest(site_secret)
+      (@public_incoming_recipients_cache ||= {})[cache_key] ||=
+        incoming_secrets_config.public_incoming_recipients(site_secret).freeze
+    end
+
     # Update the incoming secrets config and persist to Redis
     #
     # @param config [IncomingSecretsConfig] The config to persist
     # @return [void]
     def update_incoming_secrets_config(config)
-      @incoming_secrets_config = nil # clear cache
-      self.incoming_secrets    = config.to_json
-      self.updated             = OT.now.to_i
+      @incoming_secrets_config           = nil # clear config cache
+      @incoming_recipient_lookup_cache   = nil # clear lookup cache
+      @public_incoming_recipients_cache  = nil # clear public recipients cache
+      self.incoming_secrets              = config.to_json
+      self.updated                       = OT.now.to_i
       save
     end
 
