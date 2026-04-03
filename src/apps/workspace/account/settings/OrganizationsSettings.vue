@@ -67,14 +67,14 @@ const hasOrganizations = computed(() => visibleOrganizations.value.length > 0);
  * Uses entitlement-based framework instead of hardcoded plan checks.
  */
 const canCreateMultipleOrgs = computed(() =>
-  // Users with team management entitlement can manage multiple organizations
-  can(ENTITLEMENTS.MANAGE_TEAMS)
+  // Users with org management entitlement can create multiple organizations
+  can(ENTITLEMENTS.MANAGE_ORGS)
 );
 
 /**
- * Determine if user is on a single-user account (no team entitlements)
+ * Determine if user is on a single-user account (no org management entitlements)
  */
-const isSingleUserAccount = computed(() => !can(ENTITLEMENTS.MANAGE_TEAMS));
+const isSingleUserAccount = computed(() => !can(ENTITLEMENTS.MANAGE_ORGS));
 
 onMounted(async () => {
   isLoading.value = true;
@@ -139,7 +139,7 @@ const handleManageOrganization = (org: Organization) => {
               - This prevents both CTAs from appearing simultaneously and provides contextual action based on user state
             -->
             <button
-              v-if="false"
+              v-if="hasOrganizations && canCreateMultipleOrgs"
               @click="handleCreateOrganization"
               class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
               <OIcon
