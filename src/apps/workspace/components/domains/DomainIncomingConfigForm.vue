@@ -184,6 +184,7 @@ function handleDelete(): void {
 
 <template>
   <form
+    novalidate
     @submit.prevent="handleSave"
     class="space-y-6">
     <!-- Alerts -->
