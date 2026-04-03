@@ -108,8 +108,8 @@ resp = JSON.parse(last_response.body)
 recipients = resp['record']['recipients']
 [
   recipients.size,
-  recipients.first.key?('hash'),
-  recipients.first.key?('name'),
+  recipients.first.key?('digest'),
+  recipients.first.key?('display_name'),
   recipients.first.key?('email')
 ]
 #=> [2, true, true, false]
@@ -123,15 +123,15 @@ get "/api/domains/#{@domain.extid}/recipients",
   }
 resp = JSON.parse(last_response.body)
 recipients = resp['record']['recipients']
-[last_response.status, recipients.size, recipients.map { |r| r['name'] }.sort]
+[last_response.status, recipients.size, recipients.map { |r| r['display_name'] }.sort]
 #=> [200, 2, ["Admin", "Support Team"]]
 
-## Recipient hashes are deterministic (same email produces same hash)
+## Recipient digests are deterministic (same email produces same digest)
 site_secret = OT.conf.dig('site', 'secret')
-expected_hash = Digest::SHA256.hexdigest("support@example.com:#{site_secret}")
+expected_digest = Digest::SHA256.hexdigest("support@example.com:#{site_secret}")
 resp = JSON.parse(last_response.body)
-support_recipient = resp['record']['recipients'].find { |r| r['name'] == 'Support Team' }
-support_recipient['hash'] == expected_hash
+support_recipient = resp['record']['recipients'].find { |r| r['display_name'] == 'Support Team' }
+support_recipient['digest'] == expected_digest
 #=> true
 
 ## PUT with empty array clears all recipients
@@ -302,7 +302,7 @@ put "/api/domains/#{@domain.extid}/recipients",
     'HTTP_ACCEPT' => 'application/json'
   }
 resp = JSON.parse(last_response.body)
-resp['record']['recipients'].first['name']
+resp['record']['recipients'].first['display_name']
 #=> "noname"
 
 ## Teardown: Clean up test data

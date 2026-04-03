@@ -1,6 +1,7 @@
 // Auto-generated index — re-exports all request schemas in this directory.
 
 export * from './add-domain';
+export * from './domain-recipients';
 export * from './email-config';
 export * from './get-dns-widget-token';
 export * from './get-domain';

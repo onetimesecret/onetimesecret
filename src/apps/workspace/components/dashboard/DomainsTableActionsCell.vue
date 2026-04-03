@@ -15,12 +15,14 @@ const { t } = useI18n();
     canBrand?: boolean;
     canManageSso?: boolean;
     canEmailConfig?: boolean;
+    canIncomingSecrets?: boolean;
   }
 
   const props = withDefaults(defineProps<Props>(), {
     canBrand: false,
     canManageSso: false,
     canEmailConfig: false,
+    canIncomingSecrets: false,
   });
 
   const emit = defineEmits<{
@@ -95,6 +97,21 @@ const { t } = useI18n();
               'block px-4 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500',
             ]">
             {{ t('web.domains.email.configure_email') }}
+          </router-link>
+        </MenuItem>
+        <MenuItem v-if="canIncomingSecrets" v-slot="{ active }">
+          <router-link
+            :to="{
+              name: 'DomainIncoming',
+              params: { orgid: props.orgid, extid: domain.extid },
+            }"
+            :class="[
+              active
+                ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+                : 'text-gray-700 dark:text-gray-200',
+              'block px-4 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500',
+            ]">
+            {{ t('web.domains.incoming.configure_incoming') }}
           </router-link>
         </MenuItem>
         <MenuItem v-slot="{ active }">

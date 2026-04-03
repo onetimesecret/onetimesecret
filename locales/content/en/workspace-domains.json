@@ -670,5 +670,189 @@
   "web.domains.pending_verification": {
     "text": "Pending Verification",
     "sha256": "d0e1f2a3"
+  },
+  "web.domains.incoming.title": {
+    "text": "Incoming Secrets",
+    "sha256": "a1b2c3d5"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Incoming Secrets Configuration",
+    "sha256": "b2c3d4e6"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Allow external users to send secrets directly to designated recipients on this domain",
+    "sha256": "c3d4e5f7"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Access Denied",
+    "sha256": "d4e5f6a8"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "You don't have permission to manage incoming secrets settings for this domain. Contact your organization administrator.",
+    "sha256": "e5f6a7b9"
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Upgrade your plan to configure incoming secrets for this domain.",
+    "sha256": "f6a7b8c9"
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Configure Incoming Secrets",
+    "sha256": "a7b8c9d1"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Incoming secrets is not configured for this domain. Add recipients to allow external users to send secrets to your team.",
+    "sha256": "b8c9d0e2"
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Recipients",
+    "sha256": "c9d0e1f3"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Define who can receive incoming secrets on this domain. Recipients will receive email notifications when a secret is sent to them.",
+    "sha256": "d0e1f2a4"
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Add Recipient",
+    "sha256": "e1f2a3b5"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Remove",
+    "sha256": "f2a3b4c6"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "Email Address",
+    "sha256": "a3b4c5d7"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient@example.com",
+    "sha256": "b4c5d6e8"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Display Name",
+    "sha256": "c5d6e7f9"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "e.g. Security Team",
+    "sha256": "d6e7f8a0"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "No recipients configured",
+    "sha256": "e7f8a9b1"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Add recipients to allow external users to send secrets to your team.",
+    "sha256": "f8a9b0c2"
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Invalid email address",
+    "sha256": "a9b0c1d3"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "This email address is already added",
+    "sha256": "b0c1d2e4"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Maximum {max} recipients allowed",
+    "sha256": "c1d2e3f5"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Display name is required",
+    "sha256": "d2e3f4a6"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "Email address is required",
+    "sha256": "e3f4a5b7"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Save Changes",
+    "sha256": "f4a5b6c8"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Discard Changes",
+    "sha256": "a5b6c7d9"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Incoming secrets configuration saved successfully",
+    "sha256": "b6c7d8e0"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Incoming secrets configuration removed successfully",
+    "sha256": "c7d8e9f1"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} recipient | {count} recipients",
+    "sha256": "d8e9f0a2"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Not configured",
+    "sha256": "e9f0a1b3"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Configured",
+    "sha256": "f0a1b2c4"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Disabled",
+    "sha256": "a1b2c3d6"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Incoming secrets not configured - external users cannot send secrets to this domain",
+    "sha256": "b2c3d4e7"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Incoming secrets enabled with {count} recipient(s)",
+    "sha256": "c3d4e5f8"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Incoming secrets feature is disabled for this domain",
+    "sha256": "d4e5f6a9"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Enable Incoming Secrets",
+    "sha256": "e5f6a7b0"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Allow external users to send secrets to recipients on this domain",
+    "sha256": "f6a7b8c0"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Public URL",
+    "sha256": "a7b8c9d2"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Share this URL with external users to allow them to send secrets",
+    "sha256": "b8c9d0e3"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Copy URL",
+    "sha256": "c9d0e1f4"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL copied to clipboard",
+    "sha256": "d0e1f2a5"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Are you sure you want to remove all recipients? External users will no longer be able to send secrets to this domain.",
+    "sha256": "a1b2c3d5"
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Maximum number of recipients reached",
+    "sha256": "b2c3d4e6"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "This email address has already been added",
+    "sha256": "c3d4e5f7"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Saving will replace all existing recipients with your pending changes. Are you sure?",
+    "sha256": "d4e5f6a8"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Delete All Recipients",
+    "sha256": "e5f6a7b9"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "You have unsaved changes. Are you sure you want to leave?",
+    "sha256": "f6a7b8c0"
   }
 }

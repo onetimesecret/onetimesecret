@@ -77,11 +77,11 @@ module Onetime
       # Same hashing scheme as global SetupIncomingRecipients initializer.
       #
       # @param site_secret [String] Site secret used as hash salt
-      # @return [Array<Hash>] Array of {hash:, name:} hashes
+      # @return [Array<Hash>] Array of {digest:, display_name:} hashes
       def public_incoming_recipients(site_secret)
         recipients.map do |r|
           hash_key = Digest::SHA256.hexdigest("#{r[:email]}:#{site_secret}")
-          { 'hash' => hash_key, 'name' => r[:name] }
+          { 'digest' => hash_key, 'display_name' => r[:name] }
         end
       end
 

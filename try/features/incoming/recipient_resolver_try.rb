@@ -171,7 +171,7 @@ resolver = Onetime::Incoming::RecipientResolver.new(
 )
 recipients = resolver.public_recipients
 [recipients.size, recipients.first.keys.sort]
-#=> [2, ["hash", "name"]]
+#=> [2, ["digest", "display_name"]]
 
 ## Custom domain lookup resolves hash to email
 site_secret = OT.conf.dig('site', 'secret')
