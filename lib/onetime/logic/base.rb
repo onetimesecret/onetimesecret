@@ -195,6 +195,9 @@ module Onetime
         domain_strategy.to_s == 'custom'
       end
 
+      # Extract domain context from StrategyResult metadata
+      #
+      # @param strategy_result [Otto::Security::Authentication::StrategyResult]
       def extract_domain_context(strategy_result)
         return unless strategy_result
 

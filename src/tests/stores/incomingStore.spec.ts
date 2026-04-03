@@ -108,6 +108,10 @@ describe('incomingStore', () => {
       expect(store.configError).toBeNull();
     });
 
+    it('has null entitlementError', () => {
+      expect(store.entitlementError).toBeNull();
+    });
+
     it('is not initialized by default', () => {
       expect(store._initialized).toBe(false);
       expect(store.isInitialized).toBe(false);
@@ -115,6 +119,10 @@ describe('incomingStore', () => {
 
     it('reports feature as disabled when config is null', () => {
       expect(store.isFeatureEnabled).toBe(false);
+    });
+
+    it('reports entitlement as not blocked', () => {
+      expect(store.isEntitlementBlocked).toBe(false);
     });
 
     it('returns default memoMaxLength of 50', () => {
@@ -257,6 +265,89 @@ describe('incomingStore', () => {
       });
 
       await expect(store.loadConfig()).rejects.toThrow();
+    });
+
+    it('captures entitlement 403 without throwing', async () => {
+      axiosMock.onGet('/incoming/config').reply(403, {
+        error: 'Feature requires incoming secrets entitlement',
+        entitlement: 'incoming_secrets',
+      });
+
+      const result = await store.loadConfig();
+
+      expect(result).toBeUndefined();
+      expect(store.entitlementError).toEqual({
+        error: 'Feature requires incoming secrets entitlement',
+        entitlement: 'incoming_secrets',
+      });
+      expect(store.isEntitlementBlocked).toBe(true);
+    });
+
+    it('parses full entitlement 403 payload with plan info', async () => {
+      axiosMock.onGet('/incoming/config').reply(403, {
+        error: 'Feature requires incoming secrets entitlement',
+        entitlement: 'incoming_secrets',
+        current_plan: 'free_v1',
+        upgrade_to: 'identity_plus_v1',
+      });
+
+      await store.loadConfig();
+
+      expect(store.entitlementError).toEqual({
+        error: 'Feature requires incoming secrets entitlement',
+        entitlement: 'incoming_secrets',
+        current_plan: 'free_v1',
+        upgrade_to: 'identity_plus_v1',
+      });
+    });
+
+    it('still throws non-entitlement 403 errors', async () => {
+      axiosMock.onGet('/incoming/config').reply(403, {
+        message: 'Access denied',
+      });
+
+      await expect(store.loadConfig()).rejects.toThrow();
+      expect(store.entitlementError).toBeNull();
+      expect(store.isEntitlementBlocked).toBe(false);
+    });
+
+    it('handles malformed 403 entitlement payload gracefully', async () => {
+      // Payload has entitlement field (so it's detected as entitlement error)
+      // but is missing required 'error' field, making it fail schema validation
+      axiosMock.onGet('/incoming/config').reply(403, {
+        entitlement: 'incoming_secrets',
+        // missing 'error' field required by entitlementErrorSchema
+        some_extra_field: 'unexpected',
+      });
+
+      const result = await store.loadConfig();
+
+      // Should not throw, instead use fallback entitlementError
+      expect(result).toBeUndefined();
+      expect(store.entitlementError).toEqual({
+        entitlement: 'incoming_secrets',
+      });
+      expect(store.isEntitlementBlocked).toBe(true);
+    });
+
+    it('clears entitlementError on subsequent successful load', async () => {
+      // First: entitlement error
+      axiosMock.onGet('/incoming/config').replyOnce(403, {
+        error: 'Feature requires incoming secrets entitlement',
+        entitlement: 'incoming_secrets',
+      });
+      await store.loadConfig();
+      expect(store.isEntitlementBlocked).toBe(true);
+
+      // Second: success
+      axiosMock.onGet('/incoming/config').replyOnce(200, {
+        config: mockConfig,
+      });
+      await store.loadConfig();
+
+      expect(store.entitlementError).toBeNull();
+      expect(store.isEntitlementBlocked).toBe(false);
+      expect(store.config).toEqual(mockConfig);
     });
 
     it('preserves previous config state on error', async () => {
@@ -463,6 +554,16 @@ describe('incomingStore', () => {
       expect(store.configError).toBeNull();
     });
 
+    it('sets entitlementError to null', () => {
+      store.entitlementError = {
+        error: 'test',
+        entitlement: 'incoming_secrets',
+      };
+      store.clear();
+      expect(store.entitlementError).toBeNull();
+      expect(store.isEntitlementBlocked).toBe(false);
+    });
+
     it('sets isLoading to false', () => {
       store.clear();
       expect(store.isLoading).toBe(false);
@@ -503,6 +604,16 @@ describe('incomingStore', () => {
     it('sets configError to null', () => {
       store.$reset();
       expect(store.configError).toBeNull();
+    });
+
+    it('sets entitlementError to null', () => {
+      store.entitlementError = {
+        error: 'test',
+        entitlement: 'incoming_secrets',
+      };
+      store.$reset();
+      expect(store.entitlementError).toBeNull();
+      expect(store.isEntitlementBlocked).toBe(false);
     });
 
     it('sets isLoading to false', () => {

@@ -3,6 +3,20 @@
 import { z } from 'zod';
 
 /**
+ * Schema for an EntitlementRequired 403 response from the backend.
+ * Backend's `EntitlementRequired#to_h` calls `.compact`, so keys with
+ * nil values are omitted entirely — hence `.nullish()` for optional fields.
+ */
+export const entitlementErrorSchema = z.object({
+  error: z.string(),
+  entitlement: z.string(),
+  current_plan: z.string().nullish(),
+  upgrade_to: z.string().nullish(),
+});
+
+export type EntitlementError = z.infer<typeof entitlementErrorSchema>;
+
+/**
  * Schema for receipt record in the response
  * Note: Many fields can be null or absent from the API via safe_dump.
  * Use .nullish() to accept null, undefined, and missing fields.

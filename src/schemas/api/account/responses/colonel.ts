@@ -11,7 +11,10 @@ import { feedbackSchema } from '@/schemas/shapes/v3/feedback';
 import { z } from 'zod';
 
 // Import system settings schemas from config
-import { systemSettingsDetailsSchema, systemSettingsSchema } from '@/schemas/contracts/config/config';
+import {
+  systemSettingsDetailsSchema,
+  systemSettingsSchema,
+} from '@/schemas/contracts/config/config';
 
 // Re-export for backward compatibility
 export { systemSettingsDetailsSchema, systemSettingsSchema };

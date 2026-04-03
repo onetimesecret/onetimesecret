@@ -71,6 +71,10 @@ entitlements:
     category: branding
     description: Custom email sender address for domain-specific notifications
 
+  incoming_secrets:
+    category: core
+    description: Receive secrets via direct requests (public/private/disabled)
+
   manage_members:
     category: collaboration
     description: Can add and manage team members
@@ -91,6 +95,8 @@ plans:
       - create_secrets
       - view_receipt
       - api_access
+      - custom_domains
+      - incoming_secrets
 
     limits:
       teams: 0
@@ -122,6 +128,7 @@ plans:
       - extended_default_expiration
       - custom_branding
       - homepage_secrets
+      - incoming_secrets
       - custom_mail_sender
 
     limits:

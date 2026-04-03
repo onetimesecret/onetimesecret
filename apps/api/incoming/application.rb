@@ -10,11 +10,11 @@ require 'onetime/models'
 require_relative '../base_json_api'
 require_relative 'auth_strategies'
 
-# Load V2 logic helpers that V3 depends on (V3::Logic::Base includes V2::Logic::UriHelpers)
+# Load V2 logic helpers (UriHelpers used by Incoming::Logic::Base)
 require_relative '../v2/logic/helpers'
 
-# Load V3 logic classes that we delegate to
-require_relative '../v3/logic'
+# Load local Incoming logic classes
+require_relative 'logic/incoming'
 
 module Incoming
   # Incoming API Application
@@ -37,7 +37,7 @@ module Incoming
   # ## Architecture
   #
   # - Inherits from BaseJSONAPI for common JSON API setup
-  # - Delegates to V3::Logic::Incoming classes for implementation (avoids duplication)
+  # - Uses Incoming::Logic classes for implementation
   # - All routes are public (noauth) since they serve anonymous users
   #
   class Application < BaseJSONAPI

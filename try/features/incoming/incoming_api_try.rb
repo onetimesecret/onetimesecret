@@ -13,7 +13,7 @@
 # The enabled tests configure the feature inline within each test.
 
 require_relative '../../support/test_logic'
-require 'apps/api/v3/logic'
+require 'apps/api/incoming/logic/incoming'
 
 
 OT.boot! :test, false
@@ -56,20 +56,20 @@ def disable_incoming_feature(original_conf)
   OT.instance_variable_set(:@incoming_public_recipients, [].freeze)
 end
 
-## V3::Logic::Incoming::GetConfig class exists
-defined?(V3::Logic::Incoming::GetConfig)
+## Incoming::Logic::GetConfig class exists
+defined?(Incoming::Logic::GetConfig)
 #=> 'constant'
 
-## V3::Logic::Incoming::ValidateRecipient class exists
-defined?(V3::Logic::Incoming::ValidateRecipient)
+## Incoming::Logic::ValidateRecipient class exists
+defined?(Incoming::Logic::ValidateRecipient)
 #=> 'constant'
 
-## V3::Logic::Incoming::CreateIncomingSecret class exists
-defined?(V3::Logic::Incoming::CreateIncomingSecret)
+## Incoming::Logic::CreateIncomingSecret class exists
+defined?(Incoming::Logic::CreateIncomingSecret)
 #=> 'constant'
 
 ## GetConfig returns config with enabled:false when feature is disabled (no error raised)
-logic = V3::Logic::Incoming::GetConfig.new(@strategy_result, {})
+logic = Incoming::Logic::GetConfig.new(@strategy_result, {})
 logic.process_params
 logic.raise_concerns
 result = logic.process
@@ -78,7 +78,7 @@ result[:config][:enabled]
 
 ## ValidateRecipient raises error when feature is disabled
 begin
-  logic = V3::Logic::Incoming::ValidateRecipient.new(@strategy_result, { 'recipient' => 'test_hash' })
+  logic = Incoming::Logic::ValidateRecipient.new(@strategy_result, { 'recipient' => 'test_hash' })
   logic.process_params
   logic.raise_concerns
   false
@@ -89,7 +89,7 @@ end
 
 ## CreateIncomingSecret raises error when feature is disabled
 begin
-  logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+  logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
     'secret' => {
       'memo' => 'Test memo',
       'secret' => 'Test secret content',
@@ -106,7 +106,7 @@ end
 
 ## GetConfig returns config hash when feature is enabled
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::GetConfig.new(@strategy_result, {})
+logic = Incoming::Logic::GetConfig.new(@strategy_result, {})
 logic.process_params
 logic.raise_concerns
 result = logic.process
@@ -115,7 +115,7 @@ result.key?(:config)
 
 ## GetConfig result includes memo_max_length
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::GetConfig.new(@strategy_result, {})
+logic = Incoming::Logic::GetConfig.new(@strategy_result, {})
 logic.process_params
 logic.raise_concerns
 result = logic.process
@@ -124,7 +124,7 @@ result[:config][:memo_max_length]
 
 ## GetConfig result includes public recipients
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::GetConfig.new(@strategy_result, {})
+logic = Incoming::Logic::GetConfig.new(@strategy_result, {})
 logic.process_params
 logic.raise_concerns
 result = logic.process
@@ -133,7 +133,7 @@ result[:config][:recipients].first[:hash]
 
 ## ValidateRecipient returns valid true for valid hash
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::ValidateRecipient.new(@strategy_result, { 'recipient' => @test_recipient_hash })
+logic = Incoming::Logic::ValidateRecipient.new(@strategy_result, { 'recipient' => @test_recipient_hash })
 logic.process_params
 logic.raise_concerns
 result = logic.process
@@ -142,7 +142,7 @@ result[:valid]
 
 ## ValidateRecipient returns recipient hash (not email)
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::ValidateRecipient.new(@strategy_result, { 'recipient' => @test_recipient_hash })
+logic = Incoming::Logic::ValidateRecipient.new(@strategy_result, { 'recipient' => @test_recipient_hash })
 logic.process_params
 logic.raise_concerns
 result = logic.process
@@ -151,7 +151,7 @@ result[:recipient]
 
 ## ValidateRecipient returns valid false for invalid hash (no error raised)
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::ValidateRecipient.new(@strategy_result, { 'recipient' => 'invalid_hash_xyz' })
+logic = Incoming::Logic::ValidateRecipient.new(@strategy_result, { 'recipient' => 'invalid_hash_xyz' })
 logic.process_params
 logic.raise_concerns
 result = logic.process
@@ -160,7 +160,7 @@ result[:valid]
 
 ## CreateIncomingSecret succeeds with valid data
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
     'memo' => 'Test memo for secret',
     'secret' => 'This is the secret content',
@@ -175,7 +175,7 @@ result[:success]
 
 ## CreateIncomingSecret returns receipt in response
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
     'memo' => 'Another test memo',
     'secret' => 'More secret content',
@@ -190,7 +190,7 @@ result[:record].key?(:receipt) && result[:record][:receipt].key?(:identifier)
 
 ## CreateIncomingSecret returns secret in response
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
     'memo' => 'Memo for secret check',
     'secret' => 'Secret content here',
@@ -205,7 +205,7 @@ result[:record].key?(:secret) && result[:record][:secret].key?(:identifier)
 
 ## CreateIncomingSecret includes memo in details
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
     'memo' => 'Specific memo text',
     'secret' => 'Secret for memo test',
@@ -220,7 +220,7 @@ result[:details][:memo]
 
 ## CreateIncomingSecret includes recipient hash in details (not email)
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
     'memo' => 'Memo for recipient check',
     'secret' => 'Secret for recipient test',
@@ -235,7 +235,7 @@ result[:details][:recipient]
 
 ## CreateIncomingSecret works without memo (memo is optional)
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
     'secret' => 'Secret without memo',
     'recipient' => @test_recipient_hash
@@ -249,7 +249,7 @@ result[:success]
 
 ## CreateIncomingSecret returns empty memo when not provided
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
     'secret' => 'Another secret without memo',
     'recipient' => @test_recipient_hash
@@ -264,7 +264,7 @@ result[:details][:memo]
 ## CreateIncomingSecret fails with empty secret content
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
 begin
-  logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+  logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
     'secret' => {
       'memo' => 'Test memo',
       'secret' => '',
@@ -282,7 +282,7 @@ end
 ## CreateIncomingSecret fails with invalid recipient hash
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
 begin
-  logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+  logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
     'secret' => {
       'memo' => 'Test memo',
       'secret' => 'Valid secret content',
@@ -300,7 +300,7 @@ end
 ## CreateIncomingSecret fails with missing recipient
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
 begin
-  logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+  logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
     'secret' => {
       'memo' => 'Test memo',
       'secret' => 'Valid secret content'
@@ -316,7 +316,7 @@ end
 
 ## CreateIncomingSecret stores memo on receipt
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
     'memo' => 'Stored memo test',
     'secret' => 'Secret for stored memo',
@@ -331,7 +331,7 @@ logic.receipt.memo
 
 ## CreateIncomingSecret stores recipients on receipt
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
     'memo' => 'Recipients test',
     'secret' => 'Secret for recipients',
@@ -346,7 +346,7 @@ logic.receipt.recipients == @test_recipient_email
 
 ## CreateIncomingSecret greenlighted is true after successful process
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
     'memo' => 'Greenlighted check',
     'secret' => 'Valid secret for greenlighted test',
@@ -369,7 +369,7 @@ begin
   Onetime::Receipt.define_singleton_method(:spawn_pair) do |*_args, **_kwargs|
     [Onetime::Receipt.new, Onetime::Secret.new]
   end
-  logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+  logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
     'secret' => {
       'memo' => 'Guard test',
       'secret' => 'Secret for guard test',
@@ -394,7 +394,7 @@ end
 ## anonymous_user? returns true for anonymous strategy in CreateIncomingSecret
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
 anon_strategy = MockStrategyResult.anonymous
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(anon_strategy, {
+logic = Incoming::Logic::CreateIncomingSecret.new(anon_strategy, {
   'secret' => {
     'memo' => 'Anon test',
     'secret' => 'Anonymous secret',
@@ -406,7 +406,7 @@ logic.anonymous_user?
 
 ## anonymous_user? returns false for authenticated strategy in CreateIncomingSecret
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
     'memo' => 'Auth test',
     'secret' => 'Authenticated secret',
@@ -419,7 +419,7 @@ logic.anonymous_user?
 ## CreateIncomingSecret succeeds for anonymous user
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
 anon_strategy = MockStrategyResult.anonymous
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(anon_strategy, {
+logic = Incoming::Logic::CreateIncomingSecret.new(anon_strategy, {
   'secret' => {
     'memo' => 'Anonymous memo',
     'secret' => 'Anonymous secret content',
@@ -438,7 +438,7 @@ result[:success]
 # without the customer object, but we can verify the process completes successfully)
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
 anon_strategy = MockStrategyResult.anonymous
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(anon_strategy, {
+logic = Incoming::Logic::CreateIncomingSecret.new(anon_strategy, {
   'secret' => {
     'memo' => 'Stats skip test',
     'secret' => 'Secret for stats test',
@@ -460,7 +460,7 @@ auth_session = MockSession.new
 auth_strategy = MockStrategyResult.authenticated(@cust, session: auth_session)
 # Count initial receipts
 initial_receipt_count = @cust.receipts.to_a.size
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(auth_strategy, {
+logic = Incoming::Logic::CreateIncomingSecret.new(auth_strategy, {
   'secret' => {
     'memo' => 'Auth stats test',
     'secret' => 'Secret for auth stats',

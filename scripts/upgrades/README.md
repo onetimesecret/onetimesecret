@@ -5,13 +5,14 @@ contains scripts to migrate data from the previous version.
 
 ## Available Upgrades
 
-| Directory | From | To | Description |
-|-----------|------|-----|-------------|
+| Directory  | From   | To     | Description                      |
+| ---------- | ------ | ------ | -------------------------------- |
 | `v0.24.0/` | 0.23.x | 0.24.0 | Familia v1 to v2 data transforms |
 
 ## Structure
 
 Each upgrade directory contains:
+
 - `manifest.yaml` - Transform definitions and execution order
 - `run_pipeline.sh` - Execute all transforms in dependency order
 - `README.md` - Version-specific documentation

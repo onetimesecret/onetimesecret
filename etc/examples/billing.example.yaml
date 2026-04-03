@@ -163,6 +163,7 @@ plans:
       - view_receipt
       - custom_domains
       - api_access
+      - incoming_secrets
 
     # Features for UI display (i18n locale keys)
     features:
@@ -201,6 +202,7 @@ plans:
       - custom_branding
       - custom_privacy_defaults
       - homepage_secrets
+      - incoming_secrets
       - custom_mail_sender
       - api_access
 
@@ -238,6 +240,7 @@ plans:
       - custom_privacy_defaults
       - custom_branding
       - homepage_secrets
+      - incoming_secrets
       - custom_mail_sender
 
     features:

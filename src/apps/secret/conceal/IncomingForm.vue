@@ -31,7 +31,16 @@
   const isLoading = ref(true);
   const secretContentRef = ref<InstanceType<typeof SecretContentInputArea> | null>(null);
 
-  const showFeatureDisabled = computed(() => !isLoading.value && !isFeatureEnabled.value);
+  const showEntitlementBlocked = computed(
+    () => !isLoading.value && incomingStore.isEntitlementBlocked
+  );
+  const showFeatureDisabled = computed(
+    () =>
+      !isLoading.value &&
+      !showEntitlementBlocked.value &&
+      !incomingStore.configError &&
+      !isFeatureEnabled.value
+  );
 
   onMounted(async () => {
     await loadConfig();
@@ -68,9 +77,19 @@
 
 <template>
   <div class="container mx-auto mt-16 max-w-3xl px-4 pb-16 sm:mt-20 sm:pb-16">
+    <!-- Entitlement Required (custom domain without incoming_secrets) -->
+    <EmptyState v-if="showEntitlementBlocked" :show-action="false">
+      <template #title>
+        {{ t('incoming.upgrade_required_title') }}
+      </template>
+      <template #description>
+        {{ t('incoming.upgrade_required_description') }}
+      </template>
+    </EmptyState>
+
     <!-- Feature Disabled (no header) -->
     <EmptyState
-      v-if="showFeatureDisabled"
+      v-else-if="showFeatureDisabled"
       :show-action="false"
       testid="incoming-feature-disabled">
       <template #title>
@@ -81,7 +100,7 @@
       </template>
     </EmptyState>
 
-    <!-- Normal flow: header + content -->
+    <!-- Normal flow: header + content (feature enabled, not blocked) -->
     <template v-else>
       <!-- Header -->
       <div class="mb-10">

@@ -8,8 +8,8 @@
 #
 # Mounted at: /incoming
 #
-# Note: These routes delegate to V3::Logic classes for implementation.
-# This avoids code duplication while separating the URL namespace.
+# Note: These routes use Incoming::Logic classes, the dedicated logic module
+# for this API application.
 
 # Incoming secrets - anonymous submission to pre-configured recipients
 #
@@ -19,6 +19,6 @@
 # - Security reporting
 # - Anonymous tips
 #
-GET    /config                           V3::Logic::Incoming::GetConfig response=json auth=noauth
-POST   /secret                           V3::Logic::Incoming::CreateIncomingSecret response=json auth=noauth
-POST   /validate                         V3::Logic::Incoming::ValidateRecipient response=json auth=noauth
+GET    /config                           Incoming::Logic::GetConfig response=json auth=noauth
+POST   /secret                           Incoming::Logic::CreateIncomingSecret response=json auth=noauth
+POST   /validate                         Incoming::Logic::ValidateRecipient response=json auth=noauth

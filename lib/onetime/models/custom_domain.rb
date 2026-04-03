@@ -105,6 +105,7 @@ module Onetime
     hashkey :brand
     hashkey :logo # image fields need a corresponding v2 route and logic class
     hashkey :icon
+    jsonkey :incoming_secrets  # Per-domain incoming secrets config (JSON blob)
 
     # Familia v2 relationships
     # Participate in Organization.domains collection (auto-generated sorted_set)
@@ -436,6 +437,28 @@ module Onetime
     # @return [BrandSettings] Immutable brand settings instance
     def brand_settings
       @brand_settings ||= BrandSettings.from_hash(brand.hgetall)
+    end
+
+    # Returns incoming secrets configuration as an IncomingSecretsConfig object.
+    # The JSON blob is parsed from the incoming_secrets jsonkey.
+    #
+    # NOTE: incoming_secrets returns a JsonStringKey object, not a raw string.
+    # We must call .value to get the actual JSON string (or nil if not set).
+    #
+    # @return [IncomingSecretsConfig] Parsed config instance
+    def incoming_secrets_config
+      @incoming_secrets_config ||= IncomingSecretsConfig.from_json(incoming_secrets.value)
+    end
+
+    # Update the incoming secrets config and persist to Redis
+    #
+    # @param config [IncomingSecretsConfig] The config to persist
+    # @return [void]
+    def update_incoming_secrets_config(config)
+      @incoming_secrets_config = nil # clear cache
+      self.incoming_secrets    = config.to_json
+      self.updated             = OT.now.to_i
+      save
     end
 
     def allow_public_homepage?
@@ -972,3 +995,4 @@ end
 
 # Load after class definition to avoid superclass mismatch
 require_relative 'custom_domain/brand_settings'
+require_relative 'custom_domain/incoming_secrets_config'
