@@ -65,6 +65,16 @@ function createDefaultFormState(): SsoConfigFormState {
 }
 
 /**
+ * Order-insensitive array equality check for string arrays.
+ */
+function arraysEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((val, idx) => val === sortedB[idx]);
+}
+
+/**
  * Convert API response to form state.
  *
  * CRITICAL: Never populate client_secret from API response.
@@ -161,7 +171,7 @@ export function useSsoConfig(domainExtId: string) {
       current.tenant_id !== saved.tenant_id ||
       current.issuer !== saved.issuer ||
       current.enabled !== saved.enabled ||
-      JSON.stringify(current.allowed_domains) !== JSON.stringify(saved.allowed_domains)
+      !arraysEqual(current.allowed_domains, saved.allowed_domains)
     );
   });
 
@@ -204,9 +214,7 @@ export function useSsoConfig(domainExtId: string) {
           client_id: formState.value.client_id.trim(),
           tenant_id: formState.value.tenant_id.trim() || undefined,
           issuer: formState.value.issuer.trim() || undefined,
-          allowed_domains: formState.value.allowed_domains.length > 0
-            ? formState.value.allowed_domains
-            : undefined,
+          allowed_domains: formState.value.allowed_domains,
           enabled: formState.value.enabled,
         };
 
