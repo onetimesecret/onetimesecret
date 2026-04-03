@@ -6,9 +6,9 @@
 #
 # Review feedback coverage:
 # 1. Email hashing consistency (lines 110, 124 in incoming_config.rb)
-# 2. site.secret error handling: public_recipients raises, lookup returns nil
+# 2. site.secret error handling: public_recipients raises, lookup raises
 # 3. Recipient normalization in model layer
-# 4. add_recipient raises vs remove_recipient returns boolean
+# 4. add_recipient raises, remove_recipient raises on not-found
 # 5. MAX_RECIPIENTS edge cases
 # 6. Duplicate email handling
 

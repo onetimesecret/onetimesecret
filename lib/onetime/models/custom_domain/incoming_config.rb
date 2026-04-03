@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'digest/sha2'
+
 #
 # CustomDomain::IncomingConfig - Per-domain incoming secrets recipient storage
 #
