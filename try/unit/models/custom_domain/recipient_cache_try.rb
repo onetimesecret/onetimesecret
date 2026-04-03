@@ -238,6 +238,75 @@ public_digest = public_recipients.first['digest']
 lookup[public_digest]
 #=> 'verify@cache-test.com'
 
+## Nil site_secret with recipients configured: returns empty frozen hash
+# First ensure we have recipients configured
+@nil_secret_config = Onetime::CustomDomain::IncomingSecretsConfig.new({
+  'recipients' => [{ 'email' => 'test@nil-secret.com', 'name' => 'Test' }]
+})
+@domain.update_incoming_secrets_config(@nil_secret_config)
+lookup = @domain.cached_incoming_recipient_lookup(nil)
+[lookup.is_a?(Hash), lookup.empty?, lookup.frozen?]
+#=> [true, true, true]
+
+## Nil site_secret with recipients configured: returns empty frozen array
+public_recipients = @domain.cached_public_incoming_recipients(nil)
+[public_recipients.is_a?(Array), public_recipients.empty?, public_recipients.frozen?]
+#=> [true, true, true]
+
+## Empty string site_secret with recipients: returns empty frozen hash
+lookup = @domain.cached_incoming_recipient_lookup('')
+[lookup.is_a?(Hash), lookup.empty?, lookup.frozen?]
+#=> [true, true, true]
+
+## Whitespace-only site_secret with recipients: returns empty frozen hash
+lookup = @domain.cached_incoming_recipient_lookup('   ')
+[lookup.is_a?(Hash), lookup.empty?, lookup.frozen?]
+#=> [true, true, true]
+
+## Nil site_secret without recipients: returns empty hash (no error)
+@no_recipients_config = Onetime::CustomDomain::IncomingSecretsConfig.new({ 'recipients' => [] })
+@domain.update_incoming_secrets_config(@no_recipients_config)
+lookup = @domain.cached_incoming_recipient_lookup(nil)
+[lookup.is_a?(Hash), lookup.empty?, lookup.frozen?]
+#=> [true, true, true]
+
+## Non-string site_secret (Symbol): normalized via .to_s and works
+# Re-add recipients for non-string tests
+@nonstring_config = Onetime::CustomDomain::IncomingSecretsConfig.new({
+  'recipients' => [{ 'email' => 'nonstring@test.com', 'name' => 'NonString Test' }]
+})
+@domain.update_incoming_secrets_config(@nonstring_config)
+lookup = @domain.cached_incoming_recipient_lookup(:symbol_secret)
+[lookup.is_a?(Hash), lookup.size, lookup.values.first]
+#=> [true, 1, 'nonstring@test.com']
+
+## Non-string site_secret (Integer): normalized via .to_s and works
+lookup = @domain.cached_incoming_recipient_lookup(12345)
+[lookup.is_a?(Hash), lookup.size, lookup.values.first]
+#=> [true, 1, 'nonstring@test.com']
+
+## Non-string site_secret: Symbol and Integer produce different cache entries
+lookup_symbol = @domain.cached_incoming_recipient_lookup(:test_secret)
+lookup_int = @domain.cached_incoming_recipient_lookup(42)
+lookup_symbol.object_id != lookup_int.object_id
+#=> true
+
+## Non-string site_secret: Symbol hashes same as string equivalent
+lookup_symbol = @domain.cached_incoming_recipient_lookup(:my_secret)
+lookup_string = @domain.cached_incoming_recipient_lookup('my_secret')
+lookup_symbol.keys == lookup_string.keys
+#=> true
+
+## Non-string site_secret: public_recipients also works with Symbol
+public_recipients = @domain.cached_public_incoming_recipients(:another_secret)
+[public_recipients.is_a?(Array), public_recipients.size, public_recipients.first['name']]
+#=> [true, 1, 'NonString Test']
+
+## Non-string site_secret: public_recipients also works with Integer
+public_recipients = @domain.cached_public_incoming_recipients(99999)
+[public_recipients.is_a?(Array), public_recipients.size]
+#=> [true, 1]
+
 # Teardown
 @domain.destroy! if @domain&.exists?
 @org.destroy! if @org&.exists?

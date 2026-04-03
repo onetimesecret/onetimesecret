@@ -463,13 +463,14 @@ module Onetime
     #
     # Keyed by site_secret hash to support multiple secrets (e.g., key rotation).
     # Returns frozen hash for thread safety and to match canonical domain pattern.
+    # Returns empty frozen hash when site_secret is nil/blank (fail closed).
     #
     # @param site_secret [String] Site secret used as hash salt
     # @return [Hash<String, String>] Frozen hash mapping recipient hashes to emails
     def cached_incoming_recipient_lookup(site_secret)
       return {}.freeze if site_secret.nil? || site_secret.to_s.strip.empty?
 
-      cache_key                           = Digest::SHA256.hexdigest(site_secret)
+      cache_key                           = Digest::SHA256.hexdigest(site_secret.to_s)
       (@incoming_recipient_lookup_cache ||= {})[cache_key] ||=
         incoming_secrets_config.incoming_recipient_lookup(site_secret).freeze
     end
@@ -479,13 +480,14 @@ module Onetime
     #
     # Keyed by site_secret hash to support multiple secrets (e.g., key rotation).
     # Returns frozen array for thread safety and to match canonical domain pattern.
+    # Returns empty frozen array when site_secret is nil/blank (fail closed).
     #
     # @param site_secret [String] Site secret used as hash salt
     # @return [Array<Hash>] Frozen array of {hash:, name:} hashes
     def cached_public_incoming_recipients(site_secret)
       return [].freeze if site_secret.nil? || site_secret.to_s.strip.empty?
 
-      cache_key                            = Digest::SHA256.hexdigest(site_secret)
+      cache_key                            = Digest::SHA256.hexdigest(site_secret.to_s)
       (@public_incoming_recipients_cache ||= {})[cache_key] ||=
         incoming_secrets_config.public_incoming_recipients(site_secret).freeze
     end
