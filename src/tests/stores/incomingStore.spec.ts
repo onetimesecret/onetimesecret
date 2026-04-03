@@ -367,6 +367,16 @@ describe('incomingStore', () => {
       // Config should remain unchanged (store doesn't clear on error)
       expect(store.config).toEqual(previousConfig);
     });
+
+    it('leaves config null and isFeatureEnabled false after network error', async () => {
+      // Network error - config stays null, feature disabled
+      axiosMock.onGet('/incoming/config').networkError();
+
+      await expect(store.loadConfig()).rejects.toThrow();
+
+      expect(store.config).toBeNull();
+      expect(store.isFeatureEnabled).toBe(false);
+    });
   });
 
   describe('createIncomingSecret()', () => {
@@ -530,6 +540,73 @@ describe('incomingStore', () => {
       };
 
       await expect(store.createIncomingSecret(payload)).rejects.toThrow();
+    });
+
+    it('throws on 403 entitlement error from POST endpoint', async () => {
+      axiosMock.onPost('/incoming/secret').reply(403, {
+        error: 'Feature requires incoming secrets entitlement',
+        entitlement: 'incoming_secrets',
+      });
+
+      const payload = {
+        secret: 'my secret value',
+        recipient: 'abc123hash',
+      };
+
+      // Unlike loadConfig, createIncomingSecret does not capture entitlement errors
+      // It throws on all 403 responses since the pre-flight config check should catch this
+      await expect(store.createIncomingSecret(payload)).rejects.toThrow();
+    });
+
+    it('throws on 403 with plan upgrade info from POST endpoint', async () => {
+      axiosMock.onPost('/incoming/secret').reply(403, {
+        error: 'Feature requires incoming secrets entitlement',
+        entitlement: 'incoming_secrets',
+        current_plan: 'free_v1',
+        upgrade_to: 'identity_plus_v1',
+      });
+
+      const payload = {
+        secret: 'my secret value',
+        recipient: 'abc123hash',
+      };
+
+      await expect(store.createIncomingSecret(payload)).rejects.toThrow();
+    });
+
+    it('throws on 403 non-entitlement error from POST endpoint', async () => {
+      axiosMock.onPost('/incoming/secret').reply(403, {
+        message: 'Access denied - invalid session',
+      });
+
+      const payload = {
+        secret: 'my secret value',
+        recipient: 'abc123hash',
+      };
+
+      await expect(store.createIncomingSecret(payload)).rejects.toThrow();
+    });
+
+    it('does not set entitlementError on POST 403 (only loadConfig captures it)', async () => {
+      // POST endpoint throws on all 403s - entitlement gating should be caught
+      // by the pre-flight loadConfig call, not the POST. This verifies the
+      // architectural expectation that createIncomingSecret does not capture
+      // entitlement errors into store state.
+      axiosMock.onPost('/incoming/secret').reply(403, {
+        error: 'Feature requires incoming secrets entitlement',
+        entitlement: 'incoming_secrets',
+      });
+
+      const payload = {
+        secret: 'my secret value',
+        recipient: 'abc123hash',
+      };
+
+      await expect(store.createIncomingSecret(payload)).rejects.toThrow();
+
+      // entitlementError should remain null - POST path doesn't set it
+      expect(store.entitlementError).toBeNull();
+      expect(store.isEntitlementBlocked).toBe(false);
     });
   });
 
@@ -695,6 +772,267 @@ describe('incomingStore', () => {
       await store.loadConfig();
 
       expect(store.defaultTtl).toBeUndefined();
+    });
+  });
+
+  describe('Config Response Variations', () => {
+    // These tests verify the store correctly handles different config shapes
+    // returned by the backend. Domain routing (canonical vs custom) is handled
+    // server-side based on the request's Host header. The store receives the
+    // resolved config and exposes it via getters for UI consumption.
+    //
+    // Note: createIncomingSecret does not inject config values (TTL, memo limit)
+    // into the request - it only gates on `enabled`. The server applies domain-
+    // specific limits when processing the secret.
+
+    it('handles config with global recipients', async () => {
+      const config = {
+        enabled: true,
+        memo_max_length: 100,
+        recipients: [
+          { hash: 'global-hash-1', name: 'Global Recipient 1' },
+          { hash: 'global-hash-2', name: 'Global Recipient 2' },
+        ],
+        default_ttl: 86400,
+      };
+
+      axiosMock.onGet('/incoming/config').reply(200, {
+        config,
+      });
+
+      await store.loadConfig();
+
+      expect(store.isFeatureEnabled).toBe(true);
+      expect(store.recipients).toHaveLength(2);
+      expect(store.recipients[0].hash).toBe('global-hash-1');
+    });
+
+    it('handles config with multiple recipients and extended TTL', async () => {
+      const config = {
+        enabled: true,
+        memo_max_length: 200,
+        recipients: [
+          { hash: 'acme-hash-1', name: 'ACME Support' },
+          { hash: 'acme-hash-2', name: 'ACME Security' },
+          { hash: 'acme-hash-3', name: 'ACME HR' },
+        ],
+        default_ttl: 172800,
+      };
+
+      axiosMock.onGet('/incoming/config').reply(200, {
+        config,
+      });
+
+      await store.loadConfig();
+
+      expect(store.isFeatureEnabled).toBe(true);
+      expect(store.recipients).toHaveLength(3);
+      expect(store.memoMaxLength).toBe(200);
+      expect(store.defaultTtl).toBe(172800);
+    });
+
+    it('handles disabled config with empty recipients', async () => {
+      const config = {
+        enabled: false,
+        memo_max_length: 50,
+        recipients: [],
+      };
+
+      axiosMock.onGet('/incoming/config').reply(200, {
+        config,
+      });
+
+      await store.loadConfig();
+
+      expect(store.isFeatureEnabled).toBe(false);
+      expect(store.recipients).toEqual([]);
+    });
+
+    it('handles config with elevated memo limit and extended TTL', async () => {
+      const config = {
+        enabled: true,
+        memo_max_length: 500,
+        recipients: [{ hash: 'enterprise-hash', name: 'Enterprise Team' }],
+        default_ttl: 604800, // 7 days
+      };
+
+      axiosMock.onGet('/incoming/config').reply(200, {
+        config,
+      });
+
+      await store.loadConfig();
+
+      expect(store.memoMaxLength).toBe(500);
+      expect(store.defaultTtl).toBe(604800);
+    });
+
+    it('createIncomingSecret succeeds after loading domain-specific config', async () => {
+      // Load config with custom domain-like settings
+      const domainConfig = {
+        enabled: true,
+        memo_max_length: 300,
+        recipients: [
+          { hash: 'domain-recipient-1', name: 'Domain Support' },
+        ],
+        default_ttl: 259200, // 3 days
+      };
+
+      axiosMock.onGet('/incoming/config').reply(200, {
+        config: domainConfig,
+      });
+      await store.loadConfig();
+
+      // Verify store reflects loaded config
+      expect(store.memoMaxLength).toBe(300);
+      expect(store.defaultTtl).toBe(259200);
+
+      // Now create a secret - the store gates on enabled but doesn't inject TTL/memo
+      axiosMock.onPost('/incoming/secret').reply(200, mockSecretResponse);
+
+      const payload = {
+        secret: 'domain secret value',
+        recipient: 'domain-recipient-1',
+        memo: 'Test for domain context',
+      };
+
+      const result = await store.createIncomingSecret(payload);
+
+      expect(result.success).toBe(true);
+      // Verify the request was made (server applies domain config server-side)
+      expect(axiosMock.history.post).toHaveLength(1);
+    });
+  });
+
+  describe('Resolver Enabled Fallback Behavior', () => {
+    // Tests for when entitlement passes but resolver.enabled is false in the config response
+    // The config response includes enabled: boolean which reflects resolver.enabled? on backend
+
+    it('reports feature disabled when config.enabled is false despite valid recipients', async () => {
+      // Edge case: config has recipients but enabled is false
+      // This can happen when a custom domain has recipients but incoming is globally disabled
+      const configWithDisabledFeature = {
+        enabled: false,
+        memo_max_length: 100,
+        recipients: [
+          { hash: 'orphan-hash-1', name: 'Orphan Recipient' },
+        ],
+        default_ttl: 86400,
+      };
+
+      axiosMock.onGet('/incoming/config').reply(200, {
+        config: configWithDisabledFeature,
+      });
+
+      await store.loadConfig();
+
+      expect(store.config).not.toBeNull();
+      expect(store.config?.enabled).toBe(false);
+      expect(store.isFeatureEnabled).toBe(false);
+      // Recipients are present but feature is disabled
+      expect(store.recipients).toHaveLength(1);
+    });
+
+    it('blocks secret creation when config.enabled is false', async () => {
+      const disabledConfig = {
+        enabled: false,
+        memo_max_length: 50,
+        recipients: [{ hash: 'test-hash', name: 'Test' }],
+      };
+
+      axiosMock.onGet('/incoming/config').reply(200, {
+        config: disabledConfig,
+      });
+      await store.loadConfig();
+
+      const payload = {
+        secret: 'my secret value',
+        recipient: 'test-hash',
+      };
+
+      await expect(store.createIncomingSecret(payload)).rejects.toThrow(
+        'Incoming secrets feature is not enabled'
+      );
+    });
+
+    it('correctly transitions from disabled to enabled on config reload', async () => {
+      // First load: disabled
+      axiosMock.onGet('/incoming/config').replyOnce(200, {
+        config: {
+          enabled: false,
+          memo_max_length: 50,
+          recipients: [],
+        },
+      });
+
+      await store.loadConfig();
+      expect(store.isFeatureEnabled).toBe(false);
+
+      // Second load: enabled (admin configured the domain)
+      axiosMock.onGet('/incoming/config').replyOnce(200, {
+        config: {
+          enabled: true,
+          memo_max_length: 100,
+          recipients: [{ hash: 'new-hash', name: 'New Recipient' }],
+        },
+      });
+
+      await store.loadConfig();
+      expect(store.isFeatureEnabled).toBe(true);
+      expect(store.recipients).toHaveLength(1);
+    });
+
+    it('correctly transitions from enabled to disabled on config reload', async () => {
+      // First load: enabled
+      axiosMock.onGet('/incoming/config').replyOnce(200, {
+        config: mockConfig, // enabled: true
+      });
+
+      await store.loadConfig();
+      expect(store.isFeatureEnabled).toBe(true);
+
+      // Second load: disabled (admin removed recipients or disabled feature)
+      axiosMock.onGet('/incoming/config').replyOnce(200, {
+        config: {
+          enabled: false,
+          memo_max_length: 50,
+          recipients: [],
+        },
+      });
+
+      await store.loadConfig();
+      expect(store.isFeatureEnabled).toBe(false);
+    });
+
+    it('distinguishes between entitlement blocked and feature disabled states', async () => {
+      // Test that isEntitlementBlocked and isFeatureEnabled are independent
+
+      // Entitlement blocked state
+      axiosMock.onGet('/incoming/config').replyOnce(403, {
+        error: 'Feature requires incoming secrets entitlement',
+        entitlement: 'incoming_secrets',
+      });
+
+      await store.loadConfig();
+
+      expect(store.isEntitlementBlocked).toBe(true);
+      expect(store.isFeatureEnabled).toBe(false);
+      expect(store.config).toBeNull();
+
+      // Reset and test feature disabled state (different from entitlement blocked)
+      store.$reset();
+      axiosMock.onGet('/incoming/config').replyOnce(200, {
+        config: {
+          enabled: false,
+          memo_max_length: 50,
+          recipients: [],
+        },
+      });
+
+      await store.loadConfig();
+
+      expect(store.isEntitlementBlocked).toBe(false);
+      expect(store.isFeatureEnabled).toBe(false);
+      expect(store.config).not.toBeNull();
     });
   });
 
