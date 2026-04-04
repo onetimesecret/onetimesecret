@@ -79,6 +79,10 @@ entitlements:
     category: collaboration
     description: Can add and manage team members
 
+  manage_orgs:
+    category: collaboration
+    description: Can create and manage organizations
+
 # Test plans
 plans:
   # Free tier for baseline tests
@@ -97,6 +101,7 @@ plans:
       - api_access
       - custom_domains
       - incoming_secrets
+      - manage_orgs
 
     limits:
       teams: 0
@@ -130,6 +135,7 @@ plans:
       - homepage_secrets
       - incoming_secrets
       - custom_mail_sender
+      - manage_orgs
 
     limits:
       teams: 0
