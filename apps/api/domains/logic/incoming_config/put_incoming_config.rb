@@ -33,9 +33,10 @@ module DomainsAPI
         attr_reader :incoming_config
 
         def process_params
-          @domain_id  = sanitize_identifier(params['extid'])
-          @enabled    = parse_boolean(params['enabled'])
-          @recipients = parse_recipients(params['recipients'])
+          @domain_id           = sanitize_identifier(params['extid'])
+          @enabled             = parse_boolean(params['enabled'])
+          @recipients_provided = params.key?('recipients')
+          @recipients          = parse_recipients(params['recipients'])
         end
 
         def raise_concerns
@@ -75,9 +76,14 @@ module DomainsAPI
           @incoming_config = Onetime::CustomDomain::IncomingConfig.find_by_domain_id(@custom_domain.identifier)
 
           if @incoming_config
-            # Update existing (recipients= setter handles updated timestamp)
-            @incoming_config.enabled    = @enabled.to_s
-            @incoming_config.recipients = @recipients
+            # Update existing
+            @incoming_config.enabled = @enabled.to_s
+            # Only update recipients if explicitly provided in the request.
+            # This allows toggling enabled state without wiping recipients.
+            if @recipients_provided
+              @incoming_config.recipients = @recipients
+            end
+            @incoming_config.updated = Familia.now.to_i
             @incoming_config.save
           else
             # Create new

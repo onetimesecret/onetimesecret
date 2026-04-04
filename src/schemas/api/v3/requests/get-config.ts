@@ -1,7 +1,7 @@
 // src/schemas/api/v3/requests/get-config.ts
 //
 // Request schema for V3::Logic::Incoming::GetConfig
-// GET /incoming/config
+// GET /api/incoming/config
 //
 //
 // GET — no body. Returns incoming config.
