@@ -114,50 +114,39 @@ const handleManageOrganization = (org: Organization) => {
   <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
     <!-- Page Header -->
     <div class="mb-8">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-        {{ t('web.organizations.manage_organizations') }}
-      </h1>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        {{ t('web.organizations.page_description') }}
-      </p>
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+            {{ t('web.organizations.manage_organizations') }}
+          </h1>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.organizations.page_description_short') }}
+          </p>
+        </div>
+        <!--
+          Organization CTA Logic:
+          - Show "+ Create Organization" button ONLY when user has existing organizations
+          - Show "+ Create First Organization" button ONLY in empty state (no organizations)
+          - This prevents both CTAs from appearing simultaneously and provides contextual action based on user state
+        -->
+        <button
+          v-if="hasOrganizations && canCreateMultipleOrgs"
+          @click="handleCreateOrganization"
+          class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+          <OIcon
+            collection="heroicons"
+            name="plus"
+            class="size-4"
+            aria-hidden="true" />
+          {{ t('web.organizations.create_organization') }}
+        </button>
+      </div>
     </div>
 
     <div class="space-y-8">
-      <!-- Organizations Section -->
+      <!-- Organizations List -->
       <section
         class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <OIcon
-                collection="ph"
-                name="building-office-bold"
-                class="size-5 text-gray-500 dark:text-gray-400"
-                aria-hidden="true" />
-              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                {{ t('web.organizations.title') }}
-              </h2>
-            </div>
-            <!--
-              Organization CTA Logic:
-              - Show "+ Create Organization" button ONLY when user has existing organizations
-              - Show "+ Create First Organization" button ONLY in empty state (no organizations)
-              - This prevents both CTAs from appearing simultaneously and provides contextual action based on user state
-            -->
-            <button
-              v-if="hasOrganizations && canCreateMultipleOrgs"
-              @click="handleCreateOrganization"
-              class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
-              <OIcon
-                collection="heroicons"
-                name="plus"
-                class="size-4"
-                aria-hidden="true" />
-              {{ t('web.organizations.create_organization') }}
-            </button>
-          </div>
-        </div>
-
         <div class="p-6">
           <!-- Loading State -->
           <div v-if="isLoading" class="flex items-center justify-center py-12">
@@ -335,25 +324,7 @@ data-testid="organizations-list">
         </div>
       </section>
 
-      <section
-        v-else-if="canCreateMultipleOrgs"
-        class="rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-900/50 dark:bg-blue-900/10">
-        <div class="flex gap-3">
-          <OIcon
-            collection="heroicons"
-            name="information-circle"
-            class="size-5 shrink-0 text-blue-600 dark:text-blue-400"
-            aria-hidden="true" />
-          <div class="text-sm">
-            <h3 class="font-medium text-blue-900 dark:text-blue-300">
-              {{ t('web.organizations.about_title') }}
-            </h3>
-            <p class="mt-1 text-blue-700 dark:text-blue-400">
-              {{ t('web.organizations.about_description') }}
-            </p>
-          </div>
-        </div>
-      </section>
+
 
       <section
         v-else-if="!hasOrganizations"

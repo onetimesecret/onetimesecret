@@ -199,6 +199,10 @@
     "text": "Manage your organizations and team members",
     "sha256": "2d026be4"
   },
+  "web.organizations.page_description_short": {
+    "text": "View and configure your workspaces",
+    "sha256": "a1b2c3d5"
+  },
   "web.organizations.tabs.general": {
     "text": "Settings",
     "sha256": "74a883a0"

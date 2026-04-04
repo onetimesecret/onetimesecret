@@ -29,6 +29,15 @@
     props.domain
   );
 
+  /**
+   * Tooltip text that explains the actual status, not just "view status"
+   */
+  const statusTooltip = computed(() => {
+    if (isActive.value) return t('web.domains.status_tooltip_active');
+    if (isWarning.value) return t('web.domains.status_tooltip_dns_incorrect');
+    return t('web.domains.status_tooltip_not_verified');
+  });
+
   // const formatDate = (dateString: string): string => {
   //   const date = new Date(dateString);
   //   /**
@@ -54,7 +63,7 @@
       v-if="mode === 'icon'"
       :to="verifyRoute"
       class="tooltip inline-flex items-center gap-1.5"
-      :data-tooltip="t('web.domains.view_domain_verification_status')">
+      :data-tooltip="statusTooltip">
       <OIcon
         collection="mdi"
         :name="statusIcon"

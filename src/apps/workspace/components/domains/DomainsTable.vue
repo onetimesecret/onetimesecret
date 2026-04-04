@@ -123,26 +123,7 @@ const { t } = useI18n();
               <th
                 scope="col"
                 class="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
-                <div class="flex items-center justify-center">
-                  <span class="uppercase">{{ t('web.domains.homepage_access') }}</span>
-                  <div
-                    class="group relative ml-2"
-                    tabindex="0"
-                    :aria-label="t('web.domains.homepage_access')"
-                    aria-describedby="homepage-access-tooltip">
-                    <OIcon
-                      collection="heroicons"
-                      name="question-mark-circle"
-                      class="size-4 text-gray-400 transition-colors duration-200 hover:text-gray-500 focus:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300 dark:focus:text-gray-300"
-                      aria-hidden="true" />
-                    <div
-                      id="homepage-access-tooltip"
-                      role="tooltip"
-                      class="invisible absolute z-10 -ml-24 mt-2 w-48 rounded-md bg-white p-2 text-xs text-gray-900 shadow-lg ring-1 ring-black/5 transition-opacity duration-200 group-hover:visible group-focus-within:visible dark:bg-gray-800 dark:text-gray-100 dark:shadow-gray-900/50 dark:ring-white/10">
-                      {{ t('web.domains.control_whether_users_can_create_secret_links') }}
-                    </div>
-                  </div>
-                </div>
+                <span class="uppercase">{{ t('web.domains.public_homepage') }}</span>
               </th>
 
               <th

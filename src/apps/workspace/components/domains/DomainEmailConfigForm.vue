@@ -105,58 +105,78 @@ const handleDelete = () => {
       v-if="error"
       :error="error" />
 
-    <!-- From Name -->
-    <div>
-      <label
-        for="email-from-name"
-        class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        {{ t('web.domains.email.from_name_label') }}
-        <span class="text-red-500" aria-hidden="true">*</span>
-      </label>
-      <input
-        id="email-from-name"
-        v-model="fromName"
-        type="text"
-        required
-        maxlength="100"
-        :placeholder="t('web.domains.email.from_name_placeholder')"
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+    <!-- Disabled State Banner -->
+    <div
+      v-if="!localForm.enabled"
+      class="flex items-start gap-3 rounded-md bg-blue-50 px-4 py-3 dark:bg-blue-900/20">
+      <OIcon
+        collection="heroicons"
+        name="information-circle"
+        class="mt-0.5 size-5 flex-shrink-0 text-blue-500 dark:text-blue-400"
+        aria-hidden="true" />
+      <p class="flex-1 text-sm text-blue-700 dark:text-blue-300">
+        {{ t('web.domains.email.disabled_notice') }}
+      </p>
     </div>
 
-    <!-- From Address -->
-    <div>
-      <label
-        for="email-from-address"
-        class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        {{ t('web.domains.email.from_address_label') }}
-        <span class="text-red-500" aria-hidden="true">*</span>
-      </label>
-      <input
-        id="email-from-address"
-        :value="fromAddress"
-        type="email"
-        required
-        autocomplete="off"
-        :placeholder="t('web.domains.email.from_address_placeholder')"
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
-        @input="fromAddress = ($event.target as HTMLInputElement).value" />
-    </div>
+    <!-- Form Fields Container - grayed out when disabled -->
+    <div :class="{ 'opacity-60 pointer-events-none': !localForm.enabled }">
+      <!-- From Name -->
+      <div>
+        <label
+          for="email-from-name"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          {{ t('web.domains.email.from_name_label') }}
+          <span class="text-red-500" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="email-from-name"
+          v-model="fromName"
+          type="text"
+          required
+          maxlength="100"
+          :disabled="!localForm.enabled"
+          :placeholder="t('web.domains.email.from_name_placeholder')"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800 sm:text-sm" />
+      </div>
 
-    <!-- Reply-To Address -->
-    <div>
-      <label
-        for="email-reply-to"
-        class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        {{ t('web.domains.email.reply_to_label') }}
-      </label>
-      <input
-        id="email-reply-to"
-        :value="replyTo"
-        type="email"
-        autocomplete="off"
-        :placeholder="t('web.domains.email.reply_to_placeholder')"
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
-        @input="replyTo = ($event.target as HTMLInputElement).value" />
+      <!-- From Address -->
+      <div class="mt-6">
+        <label
+          for="email-from-address"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          {{ t('web.domains.email.from_address_label') }}
+          <span class="text-red-500" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="email-from-address"
+          :value="fromAddress"
+          type="email"
+          required
+          autocomplete="off"
+          :disabled="!localForm.enabled"
+          :placeholder="t('web.domains.email.from_address_placeholder')"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800 sm:text-sm"
+          @input="fromAddress = ($event.target as HTMLInputElement).value" />
+      </div>
+
+      <!-- Reply-To Address -->
+      <div class="mt-6">
+        <label
+          for="email-reply-to"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          {{ t('web.domains.email.reply_to_label') }}
+        </label>
+        <input
+          id="email-reply-to"
+          :value="replyTo"
+          type="email"
+          autocomplete="off"
+          :disabled="!localForm.enabled"
+          :placeholder="t('web.domains.email.reply_to_placeholder')"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800 sm:text-sm"
+          @input="replyTo = ($event.target as HTMLInputElement).value" />
+      </div>
     </div>
 
     <!-- Enabled Toggle -->

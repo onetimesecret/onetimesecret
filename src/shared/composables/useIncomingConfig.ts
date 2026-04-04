@@ -43,6 +43,8 @@ const MAX_RECIPIENTS = 20;
  * after save, so we track form state separately from server state.
  */
 export interface IncomingConfigFormState {
+  /** Whether incoming secrets are enabled for this domain. */
+  enabled: boolean;
   /** Array of recipients with email and optional display name. */
   recipients: DomainRecipientInput[];
 }
@@ -59,6 +61,7 @@ export interface IncomingConfigServerState {
 
 function createDefaultFormState(): IncomingConfigFormState {
   return {
+    enabled: false,
     recipients: [],
   };
 }
@@ -74,6 +77,7 @@ function createDefaultServerState(): IncomingConfigServerState {
  */
 function cloneFormState(state: IncomingConfigFormState): IncomingConfigFormState {
   return {
+    enabled: state.enabled,
     recipients: state.recipients.map((r) => ({ ...r })),
   };
 }
@@ -91,6 +95,17 @@ function recipientsEqual(
     const other = b[idx];
     return recipient.email === other.email && (recipient.name ?? '') === (other.name ?? '');
   });
+}
+
+/**
+ * Compare two form states for equality.
+ */
+function formStatesEqual(
+  a: IncomingConfigFormState,
+  b: IncomingConfigFormState
+): boolean {
+  if (a.enabled !== b.enabled) return false;
+  return recipientsEqual(a.recipients, b.recipients);
 }
 
 /* eslint max-lines-per-function: off */
@@ -163,7 +178,7 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
   /** Whether the form has been modified since last save/load. */
   const hasUnsavedChanges = computed(() => {
     if (!savedFormState.value) return false;
-    return !recipientsEqual(formState.value.recipients, savedFormState.value.recipients);
+    return !formStatesEqual(formState.value, savedFormState.value);
   });
 
   // ---------------------------------------------------------------------------
@@ -188,7 +203,11 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
       canManage.value = response.canManage ?? true;
 
       // Reset form state - we cannot populate emails from digests
-      formState.value = createDefaultFormState();
+      // Set enabled = true if recipients exist (backend doesn't yet return enabled flag)
+      formState.value = {
+        enabled: response.recipients.length > 0,
+        recipients: [],
+      };
       savedFormState.value = cloneFormState(formState.value);
       isInitialized.value = true;
     });
@@ -317,6 +336,15 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
     formState.value = createDefaultFormState();
   }
 
+  /**
+   * Update the enabled state in the form.
+   *
+   * @param enabled - Whether incoming secrets should be enabled
+   */
+  function updateEnabled(enabled: boolean): void {
+    formState.value.enabled = enabled;
+  }
+
   return {
     // State
     isLoading,
@@ -343,5 +371,6 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
     removeRecipient,
     discardChanges,
     clearForm,
+    updateEnabled,
   };
 }

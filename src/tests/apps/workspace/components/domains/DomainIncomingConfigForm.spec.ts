@@ -56,6 +56,7 @@ const i18n = createI18n({
     en: {
       web: {
         domains: {
+          enabled: 'Enabled',
           verified: 'Verified',
           pending_verification: 'Pending Verification',
           incoming: {
@@ -79,7 +80,8 @@ const i18n = createI18n({
             validation_invalid_email: 'Enter a valid email address',
             validation_duplicate_email: 'This email is already added',
             validation_max_recipients: 'Maximum {max} recipients allowed',
-            remove_all_confirmation: 'Are you sure you want to remove all recipients? External users will no longer be able to send secrets to this domain.',
+            disabled_notice: 'Incoming secrets are currently disabled. External users cannot send secrets to recipients on this domain. Enable the feature below to allow incoming secrets.',
+            enabled_hint: 'Allow external users to send secrets to recipients on this domain',
           },
         },
         COMMON: {
