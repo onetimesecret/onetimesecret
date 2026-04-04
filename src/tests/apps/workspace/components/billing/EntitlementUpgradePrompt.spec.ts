@@ -31,6 +31,13 @@ vi.mock('vue-router', () => ({
   useRouter: vi.fn(() => ({ push: vi.fn() })),
 }));
 
+// Mock useProductIdentity to avoid useI18n() in store
+vi.mock('@/shared/stores/identityStore', () => ({
+  useProductIdentity: () => ({
+    isCustom: false,
+  }),
+}));
+
 import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
 
 const i18n = createI18n({
@@ -88,6 +95,9 @@ describe('EntitlementUpgradePrompt', () => {
       initialState: {
         bootstrap: {
           billing_enabled: billingEnabled,
+        },
+        organization: {
+          currentOrganization: { current_user_role: 'owner' },
         },
       },
     });

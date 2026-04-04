@@ -3,6 +3,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { reactive, nextTick } from 'vue';
 
+// Mock vue-i18n before any imports that might use it
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
 // Create reactive mock route before vi.mock calls
 // Using reactive() so that changes trigger computed re-evaluation
 const mockRoute = reactive<{
@@ -25,6 +32,13 @@ vi.mock('vue-router', () => ({
 const mockIsOrganizationSwitcherEnabled = vi.fn(() => true);
 vi.mock('@/utils/features', () => ({
   isOrganizationSwitcherEnabled: () => mockIsOrganizationSwitcherEnabled(),
+}));
+
+// Mock identityStore - composable uses isCustom from it
+vi.mock('@/shared/stores/identityStore', () => ({
+  useProductIdentity: () => ({
+    isCustom: false,
+  }),
 }));
 
 // Single top-level import - no need for dynamic imports since mock is hoisted
