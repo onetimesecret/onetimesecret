@@ -178,10 +178,167 @@ declined.status
 @org.pending_invitation_count
 #=> 0
 
-# Teardown
-# Clean up declined invitation (still exists with 'declined' status)
+# Teardown for basic decline! test
 @invite_decline_record = Onetime::OrganizationMembership.load(@invite_decline_id)
 @invite_decline_record&.destroy!
+
+# --- Test decline! index cleanup behavior ---
+
+## Create invitation for index cleanup test
+@invite_idx = Onetime::OrganizationMembership.create_invitation!(
+  organization: @org,
+  email: "decline_idx_#{@timestamp}@example.com",
+  role: 'member',
+  inviter: @owner
+)
+@invite_idx_id = @invite_idx.objid
+@invite_idx_token = @invite_idx.token
+@invite_idx_email_key = @invite_idx.org_email_key
+@invite_idx.pending?
+#=> true
+
+## Verify token_lookup exists before decline
+Onetime::OrganizationMembership.find_by_token(@invite_idx_token).nil?
+#=> false
+
+## Verify org_email_lookup exists before decline
+Onetime::OrganizationMembership.org_email_lookup[@invite_idx_email_key].nil?
+#=> false
+
+## decline! the invitation
+@invite_idx.decline!
+@invite_idx.status
+#=> 'declined'
+
+## After decline!: token_lookup entry is removed (can't find by old token)
+Onetime::OrganizationMembership.find_by_token(@invite_idx_token)
+#=> nil
+
+## After decline!: org_email_lookup entry is removed
+Onetime::OrganizationMembership.org_email_lookup[@invite_idx_email_key]
+#=> nil
+
+## After decline!: record still exists with status='declined'
+@declined_record = Onetime::OrganizationMembership.load(@invite_idx_id)
+[@declined_record.nil?, @declined_record&.status]
+#=> [false, 'declined']
+
+## After decline!: token is cleared on the record
+@declined_record.token.nil?
+#=> true
+
+# Teardown for index cleanup test
+@declined_record&.destroy!
+
+# --- Test decline! allows re-invitation to same email ---
+
+## Create invitation that will be declined
+@reinvite_first = Onetime::OrganizationMembership.create_invitation!(
+  organization: @org,
+  email: "reinvite_test_#{@timestamp}@example.com",
+  role: 'member',
+  inviter: @owner
+)
+@reinvite_first_id = @reinvite_first.objid
+@reinvite_first.pending?
+#=> true
+
+## Decline the first invitation
+@reinvite_first.decline!
+@reinvite_first.status
+#=> 'declined'
+
+## After decline, can create new invitation to same email (org_email_lookup cleared)
+@reinvite_second = Onetime::OrganizationMembership.create_invitation!(
+  organization: @org,
+  email: "reinvite_test_#{@timestamp}@example.com",
+  role: 'member',
+  inviter: @owner
+)
+@reinvite_second.pending?
+#=> true
+
+## New invitation has different objid
+@reinvite_second.objid != @reinvite_first_id
+#=> true
+
+## New invitation has its own token
+@reinvite_second.token.nil?
+#=> false
+
+# Teardown for re-invitation test
+Onetime::OrganizationMembership.load(@reinvite_first_id)&.destroy!
+@reinvite_second&.destroy_with_index_cleanup!
+
+# --- Test decline! edge cases ---
+
+## Edge case: decline! with nil token does not crash
+@nil_token_invite = Onetime::OrganizationMembership.create_invitation!(
+  organization: @org,
+  email: "nil_token_#{@timestamp}@example.com",
+  role: 'member',
+  inviter: @owner
+)
+@nil_token_invite_id = @nil_token_invite.objid
+# Manually clear token to simulate edge case (e.g., data migration scenario)
+Onetime::OrganizationMembership.token_lookup.remove_field(@nil_token_invite.token)
+@nil_token_invite.token = nil
+@nil_token_invite.save
+# Now decline - should not crash
+@nil_token_result = begin
+  @nil_token_invite.decline!
+  'success'
+rescue => e
+  "error: #{e.class}"
+end
+@nil_token_result
+#=> 'success'
+
+## Edge case invitation has declined status after operation
+@nil_token_check = Onetime::OrganizationMembership.load(@nil_token_invite_id)
+@nil_token_check.status
+#=> 'declined'
+
+# Teardown for nil token edge case
+@nil_token_check&.destroy!
+
+## Edge case: decline! with nil org_email_key does not crash
+@nil_email_invite = Onetime::OrganizationMembership.create_invitation!(
+  organization: @org,
+  email: "nil_email_key_#{@timestamp}@example.com",
+  role: 'member',
+  inviter: @owner
+)
+@nil_email_invite_id = @nil_email_invite.objid
+@nil_email_invite_token = @nil_email_invite.token
+# Manually clear invited_email to make org_email_key return nil
+Onetime::OrganizationMembership.org_email_lookup.remove_field(@nil_email_invite.org_email_key)
+@nil_email_invite.invited_email = nil
+@nil_email_invite.save
+# Verify org_email_key is now nil
+@nil_email_invite.org_email_key.nil?
+#=> true
+
+## decline! with nil org_email_key does not crash
+@nil_email_result = begin
+  @nil_email_invite.decline!
+  'success'
+rescue => e
+  "error: #{e.class}"
+end
+@nil_email_result
+#=> 'success'
+
+## Edge case invitation has declined status
+@nil_email_check = Onetime::OrganizationMembership.load(@nil_email_invite_id)
+@nil_email_check.status
+#=> 'declined'
+
+# Teardown for nil email key edge case
+Onetime::OrganizationMembership.token_lookup.remove_field(@nil_email_invite_token) rescue nil
+@nil_email_check&.destroy!
+
+# Teardown
 
 @org&.destroy!
 @owner&.destroy!

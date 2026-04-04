@@ -209,14 +209,16 @@ Onetime::Organization.load(@org3_objid)
 Onetime::OrganizationMembership.load(@pending_invite_id)
 #=> nil
 
-## After org destroy: declined invitation record is NOT cleaned up (expected for #2878)
+## After org destroy: declined invitation record is NOT cleaned up by org.destroy!
 # NOTE: Issue #2878 focuses on pending invitations only. Declined invitations
-# retain their FK reference to the now-deleted org. This is currently accepted
-# as harmless historical data since:
-#   1. Declined records are not in pending_invitations set (so quota is correct)
-#   2. They don't affect any active functionality
-#   3. Cleaning up all membership types would require additional scanning
+# retain their FK reference to the now-deleted org. However, this is now less
+# problematic because:
+#   1. decline! now cleans up token_lookup and org_email_lookup indexes
+#   2. Declined records are not in pending_invitations set (so quota is correct)
+#   3. The record exists but has no active indexes pointing to it
+#   4. Re-invitation to the same email is now possible after decline!
 #
+# The declined record is essentially an audit trail showing invitation history.
 # If comprehensive cleanup is needed, a separate issue should address cleanup
 # of all OrganizationMembership records (declined, expired) on org deletion.
 @declined_after_destroy = Onetime::OrganizationMembership.load(@to_decline_id)
@@ -226,6 +228,11 @@ Onetime::OrganizationMembership.load(@pending_invite_id)
 ## Declined invitation still references the deleted organization
 @declined_after_destroy.organization_objid == @org3_objid
 #=> true
+
+## After decline!: token_lookup was already cleaned up (can't find by old token)
+# The decline! method now removes the token_lookup entry before clearing the token
+Onetime::OrganizationMembership.find_by_token(@to_decline_token)
+#=> nil
 
 # Manual cleanup of orphaned declined invitation for test isolation
 @declined_after_destroy.destroy!
