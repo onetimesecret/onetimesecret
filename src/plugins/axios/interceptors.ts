@@ -2,6 +2,7 @@
 
 import { useLanguageStore } from '@/shared/stores';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 /**
@@ -56,19 +57,26 @@ const getDomainContext = (): string | null => {
  * @returns Modified config with CSRF token in headers
  */
 export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
-  const csrfStore = useCsrfStore();
-  const languageStore = useLanguageStore();
-
-  // console.debug('[debug] Request config:', {
-  //   url: config.url,
-  //   method: config.method,
-  //   baseURL: config.baseURL,
-  // });
-
-  // Set CSRF token in headers (Rack::Protection::JsonCsrf expects X-CSRF-Token)
   config.headers = config.headers || {};
-  config.headers['X-CSRF-Token'] = csrfStore.shrimp;
-  config.headers['Accept-Language'] = languageStore.getCurrentLocale;
+
+  // Access all Pinia stores in a single try/catch block.
+  // Pinia throws if called before app.use(pinia) during bootstrap.
+  try {
+    const csrfStore = useCsrfStore();
+    const languageStore = useLanguageStore();
+    const organizationStore = useOrganizationStore();
+
+    // Set CSRF token (Rack::Protection::JsonCsrf expects X-CSRF-Token)
+    config.headers['X-CSRF-Token'] = csrfStore.shrimp;
+    config.headers['Accept-Language'] = languageStore.getCurrentLocale;
+
+    // Sync frontend org selection to backend on every request
+    if (organizationStore.currentOrganization?.objid) {
+      config.headers['X-Organization-ID'] = organizationStore.currentOrganization.objid;
+    }
+  } catch {
+    // Pinia not yet active during app bootstrap — request proceeds without store headers
+  }
 
   // Add domain context override header if set (development feature)
   const domainContext = getDomainContext();

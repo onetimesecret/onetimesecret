@@ -9,6 +9,7 @@
 # should be active for a given authenticated user request.
 #
 # Selection Priority (READ-ONLY):
+# 0. Explicit header override via X-Organization-ID (SPA org switches)
 # 1. Explicit selection via session['organization_id']
 # 2. Domain-based selection (custom domain routing)
 # 3. Default organization (is_default = true)
@@ -34,6 +35,9 @@
 module Onetime
   module Application
     module OrganizationLoader
+      # Cache TTL for organization context (seconds)
+      CACHE_TTL = 300
+
       # Load organization context for authenticated customer
       #
       # @param customer [Onetime::Customer] Authenticated customer
@@ -43,9 +47,34 @@ module Onetime
       def load_organization_context(customer, session, env)
         return {} if customer.nil? || customer&.anonymous?
 
-        # Check session cache first (only stores IDs, not full objects)
         cache_key = "org_context:#{customer.objid}"
-        cached    = session[cache_key] if session
+
+        # Check header override BEFORE cache — SPA org switches must bypass cache
+        org_id_header = env&.dig('HTTP_X_ORGANIZATION_ID')
+        if org_id_header.is_a?(String) && !org_id_header.empty?
+          org = Onetime::Organization.load(org_id_header)
+          if org && org.member?(customer)
+            OT.ld "[OrganizationLoader] Using header override (bypassing cache): #{org.objid}"
+            # Store in session cache so subsequent requests without header use this org
+            if session
+              session[cache_key] = {
+                organization_id: org.objid,
+                expires_at: Familia.now.to_i + CACHE_TTL,
+              }
+            end
+            return {
+              organization: org,
+              organization_id: org.objid,
+              expires_at: Familia.now.to_i + CACHE_TTL,
+            }
+          else
+            OT.ld "[OrganizationLoader] Header org invalid or unauthorized: #{org_id_header}"
+            # Invalid header — fall through to normal flow including cache
+          end
+        end
+
+        # Check session cache (only stores IDs, not full objects)
+        cached = session[cache_key] if session
 
         if cached && cached[:expires_at] && cached[:expires_at] > Familia.now.to_i
           OT.ld "[OrganizationLoader] Using cached IDs for #{customer.objid}"
@@ -69,7 +98,7 @@ module Onetime
         if session && org
           session[cache_key] = {
             organization_id: org.objid,
-            expires_at: Familia.now.to_i + 60, # 1 minute cache
+            expires_at: Familia.now.to_i + CACHE_TTL,
           }
         end
 
@@ -78,7 +107,7 @@ module Onetime
         {
           organization: org,
           organization_id: org&.objid,
-          expires_at: Familia.now.to_i + 60,
+          expires_at: Familia.now.to_i + CACHE_TTL,
         }
       end
 
@@ -106,6 +135,9 @@ module Onetime
       # @param env [Hash] Rack environment
       # @return [Onetime::Organization, nil] Selected organization
       def determine_organization(customer, session, env)
+        # NOTE: Header override (X-Organization-ID) is handled in load_organization_context
+        # BEFORE the cache check. If we reach here, no valid header was present.
+
         # 1. Explicit selection from session
         if session && session['organization_id']
           org = Onetime::Organization.load(session['organization_id'])

@@ -39,6 +39,51 @@ end
 @strategy.respond_to?(:load_organization_context)
 #=> true
 
+## Organization selection: Header override with valid membership
+@session.clear
+@env['HTTP_X_ORGANIZATION_ID'] = @org2.objid
+
+context = @strategy.load_organization_context(@cust, @session, @env)
+context[:organization]&.objid
+#=> @org2.objid
+
+## Organization selection: Header override takes precedence over session
+@session.clear
+@session['organization_id'] = @org1.objid
+@env['HTTP_X_ORGANIZATION_ID'] = @org2.objid
+
+context = @strategy.load_organization_context(@cust, @session, @env)
+context[:organization]&.objid
+#=> @org2.objid
+
+## Organization selection: Invalid header org falls through to session
+@session.clear
+@session['organization_id'] = @org1.objid
+@env['HTTP_X_ORGANIZATION_ID'] = 'nonexistent-org-id'
+
+context = @strategy.load_organization_context(@cust, @session, @env)
+context[:organization]&.objid
+#=> @org1.objid
+
+## Organization selection: Header org without membership falls through
+# Create org owned by different customer (cust2 is not a member of org3)
+test_email2 = "orgcontext2-#{Time.now.to_i}@onetimesecret.com"
+@cust2 = Onetime::Customer.create!(email: test_email2, role: 'customer')
+@org3 = Onetime::Organization.create!('Other Workspace', @cust2)
+
+@session.clear
+@env['HTTP_X_ORGANIZATION_ID'] = @org3.objid
+
+# @cust is NOT a member of @org3, should fall through to default
+context = @strategy.load_organization_context(@cust, @session, @env)
+context[:organization]&.objid
+#=> @org1.objid
+
+## Clean up header test data
+@org3.destroy!
+@cust2.destroy!
+@env.delete('HTTP_X_ORGANIZATION_ID')
+
 ## Organization selection: Default organization priority
 @session.delete('organization_id')
 
@@ -66,19 +111,17 @@ context[:organization]&.objid  # Should fall back to default
 @session.key?('organization_id')
 #=> false
 
-## Organization selection: Session caching
+## Organization selection: Session caching stores context
 @session.delete('organization_id')
 @session.delete("org_context:#{@cust.objid}")
+@context1 = @strategy.load_organization_context(@cust, @session, @env)
+@cache_key_test = "org_context:#{@cust.objid}"
+@session[@cache_key_test]
+#=:> Hash
 
-# First load - should cache
-context1 = @strategy.load_organization_context(@cust, @session, @env)
-cache_key = "org_context:#{@cust.objid}"
-@session[cache_key]
-#=: Hash
-
-# Second load - should use cache
-context2 = @strategy.load_organization_context(@cust, @session, @env)
-context1[:organization]&.objid == context2[:organization]&.objid
+## Organization selection: Cached context returns same organization
+@context2 = @strategy.load_organization_context(@cust, @session, @env)
+@context1[:organization]&.objid == @context2[:organization]&.objid
 #=> true
 
 ## Anonymous user with role 'anonymous': Returns empty context
@@ -100,6 +143,28 @@ context
 @strategy.clear_organization_cache(@cust, @session)
 @session["org_context:#{@cust.objid}"]
 #=> nil
+
+## Cache TTL: expires_at is set in the future using CACHE_TTL constant
+@session.clear
+@before_load = Familia.now.to_i
+@ttl_context = @strategy.load_organization_context(@cust, @session, @env)
+@after_load = Familia.now.to_i
+@ttl_constant = Onetime::Application::OrganizationLoader::CACHE_TTL
+@ttl_context[:expires_at] >= @before_load + @ttl_constant
+#=> true
+
+## Cache TTL: expires_at is not more than TTL + 1 second after load started
+@ttl_context[:expires_at] <= @after_load + @ttl_constant + 1
+#=> true
+
+## Cache TTL: session cache also has correct expires_at
+@cache_key = "org_context:#{@cust.objid}"
+@session[@cache_key][:expires_at] >= @before_load + @ttl_constant
+#=> true
+
+## Cache TTL: CACHE_TTL constant value is 300 (5 minutes)
+Onetime::Application::OrganizationLoader::CACHE_TTL
+#=> 300
 
 ## Clean up test data
 @org1.destroy!

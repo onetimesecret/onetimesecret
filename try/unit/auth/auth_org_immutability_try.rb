@@ -107,20 +107,22 @@ end
 @nil_harness.auth_org
 #=> nil
 
-## auth_org returns nil when metadata has no organization_context
+## auth_org returns nil when metadata has no organization_context (anonymous user)
+# Use anonymous user to test metadata edge case without triggering lazy creation
 @empty_meta_sr = MockStrategyResult.new(
   session: MockSession.new,
-  user: @auth_owner,
+  user: nil,
   metadata: {}
 )
 @empty_harness = AuthOrgTestHarness.new(@empty_meta_sr)
 @empty_harness.auth_org
 #=> nil
 
-## auth_org returns nil when organization_context exists but organization is nil
+## auth_org returns nil when organization_context exists but organization is nil (anonymous)
+# Use anonymous user to test metadata edge case without triggering lazy creation
 @nil_org_sr = MockStrategyResult.new(
   session: MockSession.new,
-  user: @auth_owner,
+  user: nil,
   metadata: { organization_context: { organization: nil } }
 )
 @nil_org_harness = AuthOrgTestHarness.new(@nil_org_sr)
