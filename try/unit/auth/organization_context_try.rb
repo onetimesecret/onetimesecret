@@ -111,19 +111,17 @@ context[:organization]&.objid  # Should fall back to default
 @session.key?('organization_id')
 #=> false
 
-## Organization selection: Session caching
+## Organization selection: Session caching stores context
 @session.delete('organization_id')
 @session.delete("org_context:#{@cust.objid}")
+@context1 = @strategy.load_organization_context(@cust, @session, @env)
+@cache_key_test = "org_context:#{@cust.objid}"
+@session[@cache_key_test]
+#=:> Hash
 
-# First load - should cache
-context1 = @strategy.load_organization_context(@cust, @session, @env)
-cache_key = "org_context:#{@cust.objid}"
-@session[cache_key]
-#=: Hash
-
-# Second load - should use cache
-context2 = @strategy.load_organization_context(@cust, @session, @env)
-context1[:organization]&.objid == context2[:organization]&.objid
+## Organization selection: Cached context returns same organization
+@context2 = @strategy.load_organization_context(@cust, @session, @env)
+@context1[:organization]&.objid == @context2[:organization]&.objid
 #=> true
 
 ## Anonymous user with role 'anonymous': Returns empty context
@@ -145,6 +143,28 @@ context
 @strategy.clear_organization_cache(@cust, @session)
 @session["org_context:#{@cust.objid}"]
 #=> nil
+
+## Cache TTL: expires_at is set in the future using CACHE_TTL constant
+@session.clear
+@before_load = Familia.now.to_i
+@ttl_context = @strategy.load_organization_context(@cust, @session, @env)
+@after_load = Familia.now.to_i
+@ttl_constant = Onetime::Application::OrganizationLoader::CACHE_TTL
+@ttl_context[:expires_at] >= @before_load + @ttl_constant
+#=> true
+
+## Cache TTL: expires_at is not more than TTL + 1 second after load started
+@ttl_context[:expires_at] <= @after_load + @ttl_constant + 1
+#=> true
+
+## Cache TTL: session cache also has correct expires_at
+@cache_key = "org_context:#{@cust.objid}"
+@session[@cache_key][:expires_at] >= @before_load + @ttl_constant
+#=> true
+
+## Cache TTL: CACHE_TTL constant value is 300 (5 minutes)
+Onetime::Application::OrganizationLoader::CACHE_TTL
+#=> 300
 
 ## Clean up test data
 @org1.destroy!
