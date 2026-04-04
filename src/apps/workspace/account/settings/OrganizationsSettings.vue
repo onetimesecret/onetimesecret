@@ -73,10 +73,13 @@ const canCreateMultipleOrgs = computed(() =>
 
 /**
  * Determine if user is on a single-user account (no collaborative entitlements).
- * Users with MANAGE_TEAMS but not MANAGE_ORGS are on team plans - not single-user.
+ * Any of MANAGE_ORGS, MANAGE_TEAMS, or MANAGE_MEMBERS indicates a collaborative plan.
  */
 const isSingleUserAccount = computed(
-  () => !can(ENTITLEMENTS.MANAGE_ORGS) && !can(ENTITLEMENTS.MANAGE_TEAMS)
+  () =>
+    !can(ENTITLEMENTS.MANAGE_ORGS) &&
+    !can(ENTITLEMENTS.MANAGE_TEAMS) &&
+    !can(ENTITLEMENTS.MANAGE_MEMBERS)
 );
 
 onMounted(async () => {
