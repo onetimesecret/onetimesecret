@@ -45,6 +45,8 @@ module OrganizationAPI::Logic
           @organization.remove_members_instance(member)
         end
 
+        # NOTE: pending invitations are cleaned up by Organization#destroy! (see #2878)
+
         # Remove from global instances set (Familia v2 uses 'remove' not 'rem')
         Onetime::Organization.instances.remove(objid)
 

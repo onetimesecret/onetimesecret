@@ -239,12 +239,27 @@ module Onetime
     end
 
     # Decline a pending invitation
+    #
+    # Cleans up indexes to prevent stale entries from accumulating:
+    #   - token_lookup: removed (token is cleared anyway)
+    #   - org_email_lookup: removed (allows re-invitation to same email)
+    #   - pending_invitations: removed (quota accuracy)
+    #
+    # The record itself is preserved with status='declined' for audit purposes.
+    #
     def decline!
       raise Onetime::Problem, 'Cannot decline active membership' if active?
+
+      # Capture old token before clearing (needed for index cleanup)
+      old_token = token
 
       self.status = 'declined'
       self.token  = nil
       save
+
+      # Clean up indexes AFTER save (save re-adds indexes via auto_update_class_indexes)
+      self.class.token_lookup.remove_field(old_token) if old_token
+      self.class.org_email_lookup.remove_field(org_email_key) if org_email_key
 
       # Remove from org's pending set
       organization&.pending_invitations&.remove(objid)
