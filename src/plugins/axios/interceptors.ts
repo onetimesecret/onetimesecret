@@ -57,35 +57,31 @@ const getDomainContext = (): string | null => {
  * @returns Modified config with CSRF token in headers
  */
 export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
-  const csrfStore = useCsrfStore();
-  const languageStore = useLanguageStore();
-
-  // console.debug('[debug] Request config:', {
-  //   url: config.url,
-  //   method: config.method,
-  //   baseURL: config.baseURL,
-  // });
-
-  // Set CSRF token in headers (Rack::Protection::JsonCsrf expects X-CSRF-Token)
   config.headers = config.headers || {};
-  config.headers['X-CSRF-Token'] = csrfStore.shrimp;
-  config.headers['Accept-Language'] = languageStore.getCurrentLocale;
+
+  // Access all Pinia stores in a single try/catch block.
+  // Pinia throws if called before app.use(pinia) during bootstrap.
+  try {
+    const csrfStore = useCsrfStore();
+    const languageStore = useLanguageStore();
+    const organizationStore = useOrganizationStore();
+
+    // Set CSRF token (Rack::Protection::JsonCsrf expects X-CSRF-Token)
+    config.headers['X-CSRF-Token'] = csrfStore.shrimp;
+    config.headers['Accept-Language'] = languageStore.getCurrentLocale;
+
+    // Sync frontend org selection to backend on every request
+    if (organizationStore.currentOrganization?.objid) {
+      config.headers['X-Organization-ID'] = organizationStore.currentOrganization.objid;
+    }
+  } catch {
+    // Pinia not yet active during app bootstrap — request proceeds without store headers
+  }
 
   // Add domain context override header if set (development feature)
   const domainContext = getDomainContext();
   if (domainContext) {
     config.headers[DOMAIN_CONTEXT_HEADER] = domainContext;
-  }
-
-  // Add organization context header if an org is selected
-  // This syncs the frontend's org selection with the backend on every request
-  try {
-    const organizationStore = useOrganizationStore();
-    if (organizationStore.currentOrganization?.objid) {
-      config.headers['X-Organization-ID'] = organizationStore.currentOrganization.objid;
-    }
-  } catch {
-    // Store may not be initialized (e.g., during app bootstrap)
   }
 
   // For FormData uploads, delete Content-Type so Axios sets it with the boundary
