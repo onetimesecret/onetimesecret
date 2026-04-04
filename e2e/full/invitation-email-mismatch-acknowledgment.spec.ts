@@ -365,7 +365,7 @@ test.describe('MISMATCH-004: Switch Account Triggers Logout', () => {
       // URL should contain the invited email (URL encoded)
       const urlHasInvitedEmail =
         url.includes(encodeURIComponent(invitedEmail)) ||
-        url.includes(invitedEmail.replace('@', '%40'));
+        url.includes(invitedEmail.replaceAll('@', '%40'));
       expect(urlHasInvitedEmail).toBe(true);
 
       // Verify URL contains redirect back to invitation
