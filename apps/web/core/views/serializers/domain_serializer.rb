@@ -30,6 +30,7 @@ module Core
         cust             = view_vars['cust']
 
         output['domain_strategy'] = view_vars['domain_strategy']
+        OT.ld "[DomainSerializer] domain_strategy=#{view_vars['domain_strategy'].inspect}, display_domain=#{view_vars['display_domain'].inspect}"
 
         output['canonical_domain'] = Onetime::Middleware::DomainStrategy.canonical_domain
         output['display_domain']   = view_vars['display_domain']

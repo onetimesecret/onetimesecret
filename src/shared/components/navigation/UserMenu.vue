@@ -69,9 +69,16 @@ const userRole = computed(() =>
 
 // Only restrict when we have a confirmed non-owner role
 // If org hasn't loaded yet (null role), show full menu to avoid blocking navigation
-const isCustomDomainNonOwner = computed(() =>
-  isCustom.value && !!userRole.value && userRole.value !== 'owner'
-);
+const isCustomDomainNonOwner = computed(() => {
+  const result = isCustom.value && !!userRole.value && userRole.value !== 'owner';
+  console.log('[UserMenu] Menu filter debug:', {
+    isCustom: isCustom.value,
+    userRole: userRole.value,
+    currentOrganization: organizationStore.currentOrganization,
+    isCustomDomainNonOwner: result,
+  });
+  return result;
+});
 
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);

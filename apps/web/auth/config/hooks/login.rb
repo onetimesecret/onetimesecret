@@ -144,6 +144,35 @@ module Auth::Config::Hooks
               correlation_id: correlation_id,
             )
           end
+
+          # Join domain organization for SSO logins on custom domains.
+          # This ensures OrganizationLoader returns the domain's org, not personal workspace.
+          # Only runs when session has SSO tenant context (set by omniauth_tenant.rb).
+          domain_id = session[:omniauth_tenant_domain_id]
+          if domain_id
+            # Load customer by external_id (extid) stored in the account record
+            customer = Onetime::Customer.load(account[:external_id])
+            if customer
+              result = Onetime::ErrorHandler.safe_execute(
+                'join_domain_organization_login',
+                account_id: account_id,
+                domain_id: domain_id,
+              ) do
+                Auth::Operations::JoinDomainOrganization.new(
+                  customer: customer,
+                  domain_id: domain_id,
+                ).call
+              end
+
+              # Clear org cache so next request picks up the domain org
+              # OrganizationLoader caches in session with key "org_context:#{customer.objid}"
+              if result&.dig(:joined)
+                cache_key = "org_context:#{customer.objid}"
+                session.delete(cache_key)
+                OT.ld "[after_login] Cleared org cache for #{customer.custid} after domain org join"
+              end
+            end
+          end
         end
       end
 
