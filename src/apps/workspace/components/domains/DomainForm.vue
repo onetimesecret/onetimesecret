@@ -47,7 +47,7 @@ const handleSubmit = () => {
 </script>
 
 <template>
-  <div class="mx-auto my-16 max-w-full space-y-9 px-4 dark:bg-gray-900 sm:px-6 lg:px-8">
+  <div class="mx-auto my-16 max-w-full space-y-10 px-4 dark:bg-gray-900 sm:px-6 lg:px-8">
     <form @submit.prevent="handleSubmit"
 data-testid="domain-add-form"
 class="space-y-6">

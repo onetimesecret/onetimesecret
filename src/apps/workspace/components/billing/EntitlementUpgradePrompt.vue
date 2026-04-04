@@ -63,7 +63,7 @@ const handleClose = () => {
 
       <!-- Content -->
       <div class="min-w-0 flex-1">
-        <h4 class="text-sm font-semibold text-gray-900 dark:text-white">
+        <h4 class="text-sm font-medium text-gray-900 dark:text-white">
           {{ t('web.billing.upgrade.required') }}
         </h4>
         <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">

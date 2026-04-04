@@ -90,7 +90,7 @@ describe('SettingsSection', () => {
                       h(
                         'h2',
                         {
-                          class: 'text-lg font-semibold text-gray-900 dark:text-white',
+                          class: 'text-lg font-medium text-gray-900 dark:text-white',
                         },
                         props.title
                       ),
@@ -191,7 +191,8 @@ describe('SettingsSection', () => {
 
       const title = wrapper.find('h2');
       expect(title.classes()).toContain('text-lg');
-      expect(title.classes()).toContain('font-semibold');
+      // Design system specifies font-medium for card headings
+      expect(title.classes()).toContain('font-medium');
     });
 
     it('handles long titles gracefully', () => {

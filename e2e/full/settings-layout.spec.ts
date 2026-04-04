@@ -202,9 +202,9 @@ test.describe('E2E - Settings Layout Refactoring', () => {
 
       expect(sectionCount).toBeGreaterThan(0);
 
-      // Verify first section has header
+      // Verify first section has header (h2 or heading element with font-medium/font-semibold)
       const firstSection = sections.first();
-      const header = firstSection.locator('h2, .font-semibold');
+      const header = firstSection.locator('h2, [class*="font-medium"], [class*="font-semibold"]');
       await expect(header.first()).toBeVisible();
     });
   });
