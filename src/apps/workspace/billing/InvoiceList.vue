@@ -93,7 +93,7 @@ onMounted(async () => {
       </div>
 
       <!-- Invoice Table -->
-      <div v-else-if="invoices.length > 0" class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div v-else-if="invoices.length > 0" class="overflow-hidden rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead class="bg-gray-50 dark:bg-gray-900/50">
@@ -171,13 +171,13 @@ onMounted(async () => {
       </div>
 
       <!-- Empty State -->
-      <div v-else class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-800">
+      <div v-else class="rounded-lg border border-gray-200/60 bg-white/60 p-12 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
         <OIcon
           collection="heroicons"
           name="document-text"
           class="mx-auto size-12 text-gray-400"
           aria-hidden="true" />
-        <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+        <h3 class="mt-2 text-sm font-medium text-gray-600 dark:text-gray-300">
           {{ t('web.billing.invoices.no_invoices') }}
         </h3>
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
