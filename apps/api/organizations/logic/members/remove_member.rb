@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/application/organization_loader'
+
 module OrganizationAPI::Logic
   module Members
     # Remove Member
@@ -21,6 +23,8 @@ module OrganizationAPI::Logic
     #   - Cannot remove yourself (use leave organization instead)
     #
     class RemoveMember < OrganizationAPI::Logic::Base
+      include Onetime::Application::OrganizationLoader
+
       SCHEMAS = { response: 'memberDelete' }.freeze
 
       attr_reader :organization, :target_member, :target_membership, :actor_membership
@@ -56,6 +60,10 @@ module OrganizationAPI::Logic
 
         # Destroy the membership record (with index cleanup)
         @target_membership.destroy_with_index_cleanup!
+
+        # Invalidate the removed member's cached org context so their next
+        # request reloads permissions immediately (vs waiting for TTL expiry)
+        clear_organization_cache(@target_member, sess) if sess
 
         # Audit log for member removal
         OT.info "[AUDIT] action=member_removed actor=#{cust.extid} target=#{target_extid} " \
