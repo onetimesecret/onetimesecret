@@ -248,7 +248,7 @@ onMounted(async () => {
       </div>
 
       <!-- Empty State: No Organizations -->
-      <div v-else-if="organizations.length === 0" class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-800">
+      <div v-else-if="organizations.length === 0" class="rounded-lg border border-gray-200/60 bg-white/60 p-12 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
         <OIcon
           collection="heroicons"
           name="building-office-2"
@@ -277,7 +277,7 @@ onMounted(async () => {
       <!-- Content -->
       <div v-else-if="selectedOrg" class="space-y-6">
         <!-- Current Plan Card -->
-        <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
               {{ t('web.billing.overview.current_plan') }}
@@ -380,7 +380,7 @@ onMounted(async () => {
         <!-- Billing Contact Card - only for paid plans -->
         <div
           v-if="hasPaidPlan"
-          class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
+          class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60"
           data-testid="billing-contact-card">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
