@@ -72,17 +72,6 @@
     can(ENTITLEMENTS.MANAGE_ORGS)
   );
 
-  /**
-   * Determine if user is on a single-user account (no collaborative entitlements).
-   * Any of MANAGE_ORGS, MANAGE_TEAMS, or MANAGE_MEMBERS indicates a collaborative plan.
-   */
-  const isSingleUserAccount = computed(
-    () =>
-      !can(ENTITLEMENTS.MANAGE_ORGS) &&
-      !can(ENTITLEMENTS.MANAGE_TEAMS) &&
-      !can(ENTITLEMENTS.MANAGE_MEMBERS)
-  );
-
   onMounted(async () => {
     isLoading.value = true;
     try {
@@ -309,47 +298,6 @@
                 {{ t('web.organizations.create_first_organization') }}
               </button>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Info Section - Personalized based on user entitlements -->
-      <section
-        v-if="isSingleUserAccount && hasOrganizations"
-        class="rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-900/50 dark:bg-blue-900/10">
-        <div class="flex gap-3">
-          <OIcon
-            collection="heroicons"
-            name="information-circle"
-            class="size-5 shrink-0 text-blue-600 dark:text-blue-400"
-            aria-hidden="true" />
-          <div class="text-sm">
-            <h3 class="font-medium text-blue-900 dark:text-blue-300">
-              {{ t('web.organizations.single_user_info_title') }}
-            </h3>
-            <p class="mt-1 text-blue-700 dark:text-blue-400">
-              {{ t('web.organizations.single_user_info_description') }}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section
-        v-else-if="!hasOrganizations"
-        class="rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-900/50 dark:bg-blue-900/10">
-        <div class="flex gap-3">
-          <OIcon
-            collection="heroicons"
-            name="information-circle"
-            class="size-5 shrink-0 text-blue-600 dark:text-blue-400"
-            aria-hidden="true" />
-          <div class="text-sm">
-            <h3 class="font-medium text-blue-900 dark:text-blue-300">
-              {{ t('web.organizations.getting_started_title') }}
-            </h3>
-            <p class="mt-1 text-blue-700 dark:text-blue-400">
-              {{ t('web.organizations.getting_started_description') }}
-            </p>
           </div>
         </div>
       </section>
