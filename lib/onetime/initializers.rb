@@ -37,13 +37,16 @@ require_relative 'initializers/print_log_banner'       # depends_on: [:logging]
 # Convention-based plugin discovery and initialization.
 #
 # Plugin Convention:
-#   1. Plugin directory: apps/web/<plugin_name>/
+#   1. Plugin directory: apps/web/<plugin_name>/ or apps/api/<plugin_name>/
 #   2. Config singleton: Onetime.<plugin_name>_config (responds to enabled? or full_enabled?)
-#   3. Initializers: apps/web/<plugin_name>/initializers/*.rb
+#   3. Initializers: apps/{web,api}/<plugin_name>/initializers/*.rb
 #
 # Adding a new plugin requires NO changes to this file. Simply:
-#   - Create apps/web/<plugin_name>/initializers/ directory
+#   - Create apps/{web,api}/<plugin_name>/initializers/ directory
 #   - Define Onetime.<plugin_name>_config singleton with enabled? method
+#
+# Plugins without a config singleton are always loaded (their initializers
+# use should_skip? internally to decide whether to run).
 #
 # Only requiring files when the plugin is enabled ensures that
 # defined?(Billing) returns nil when billing is disabled, and
@@ -53,9 +56,9 @@ require_relative 'initializers/print_log_banner'       # depends_on: [:logging]
 # Directories that are not plugins (e.g., shared code)
 PLUGIN_SKIP_LIST = %w[core].freeze
 
-# Discover plugin directories under apps/web/
-plugin_base = File.expand_path('../../apps/web', __dir__)
-plugin_dirs = Dir[File.join(plugin_base, '*/')]
+# Discover plugin directories under apps/web/ and apps/api/
+apps_base   = File.expand_path('../../apps', __dir__)
+plugin_dirs = Dir[File.join(apps_base, '{web,api}', '*/')]
 
 plugin_dirs.each do |plugin_dir|
   plugin_name = File.basename(plugin_dir)
@@ -65,22 +68,25 @@ plugin_dirs.each do |plugin_dir|
 
   # Check for <plugin>_config singleton with enabled? method
   config_method = "#{plugin_name}_config"
-  next unless Onetime.respond_to?(config_method)
+  has_config    = Onetime.respond_to?(config_method)
 
-  config = Onetime.public_send(config_method)
+  if has_config
+    config = Onetime.public_send(config_method)
 
-  # Support both enabled? and full_enabled? (auth uses full_enabled?)
-  enabled = if config.respond_to?(:full_enabled?)
-              config.full_enabled?
-            elsif config.respond_to?(:enabled?)
-              config.enabled?
-            else
-              false
-            end
+    # Support both enabled? and full_enabled? (auth uses full_enabled?)
+    enabled = if config.respond_to?(:full_enabled?)
+                config.full_enabled?
+              elsif config.respond_to?(:enabled?)
+                config.enabled?
+              else
+                false
+              end
 
-  next unless enabled
+    next unless enabled
+  end
+  # No config singleton = always load (initializers handle their own skip logic)
 
-  # Load initializers for enabled plugin (sorted for deterministic order)
+  # Load initializers for plugin (sorted for deterministic order)
   initializers_pattern = File.join(plugin_dir, 'initializers', '*.rb')
   initializer_files    = Dir[initializers_pattern]
 
