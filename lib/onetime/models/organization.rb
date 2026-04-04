@@ -244,12 +244,16 @@ module Onetime
         remove_members_instance(member)
       end
 
-      # Revoke all pending invitations
+      # Clean up all pending invitations
+      # Use destroy_with_index_cleanup! instead of revoke! to handle data
+      # inconsistency gracefully - if an invitation in the pending set has
+      # changed state (e.g., already declined), we still want org deletion
+      # to succeed rather than crash on revoke!'s state guard.
       # list_pending_invitations already calls .compact internally
       pending = list_pending_invitations
-      OT.ld "[Organization#destroy!] Revoking #{pending.size} pending invitation(s) for #{extid}"
+      OT.ld "[Organization#destroy!] Cleaning up #{pending.size} pending invitation(s) for #{extid}"
       pending.each do |invitation|
-        invitation.revoke!
+        invitation.destroy_with_index_cleanup!
       end
 
       # NOTE: contact_email_index cleanup is handled by delete! which is called by super
