@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+import { useProductIdentity } from '@/shared/stores/identityStore';
 import { isMagicLinksEnabled, isSsoEnabled, isWebAuthnEnabled, getSsoProviders, isSsoOnlyMode } from '@/utils/features';
 import { ref, computed } from 'vue';
 
@@ -25,6 +26,9 @@ const emit = defineEmits<{
   (e: 'mode-change', mode: AuthMode): void;
 }>();
 
+// Custom domains force SSO-only authentication
+const { isCustom } = useProductIdentity();
+
 // Check which methods are enabled
 const magicLinksEnabled = isMagicLinksEnabled();
 const webauthnEnabled = isWebAuthnEnabled();
@@ -34,8 +38,12 @@ const ssoOnly = computed(() => isSsoOnlyMode());
 // Extract SSO providers via feature utility
 const ssoProviders = computed(() => getSsoProviders());
 
-// SSO-only mode: show only SSO buttons when both sso_only and sso are active
-const showSsoOnly = computed(() => ssoOnly.value && ssoEnabled && ssoProviders.value.length > 0);
+// SSO-only mode: show only SSO buttons when:
+// - explicit sso_only mode is active, OR
+// - on a custom domain (org members must use SSO)
+const showSsoOnly = computed(() =>
+  (ssoOnly.value || isCustom) && ssoEnabled && ssoProviders.value.length > 0
+);
 
 // Show passwordless-first UI when any passwordless method is enabled
 const hasPasswordlessMethods = computed(() => magicLinksEnabled || webauthnEnabled);
