@@ -34,11 +34,23 @@ require_relative 'initializers/setup_connection_pool'  # depends_on: [:legacy_ch
 require_relative 'initializers/check_global_banner'    # depends_on: [:database]
 require_relative 'initializers/print_log_banner'       # depends_on: [:logging]
 
-# Auto-discover app initializers from apps/*/*/initializers/*.rb
+# Conditionally load plugin initializers based on feature configuration.
 #
-# App initializers follow the same pattern as core initializers but live
-# alongside their respective Rack applications (e.g., apps/web/billing/initializers/).
-# They auto-register via the inherited hook when required.
-Dir[File.expand_path('../../apps/*/*/initializers/*.rb', __dir__)].each do |file|
-  require file
+# Only requiring files when the plugin is enabled ensures that
+# defined?(Billing) returns nil when billing is disabled, and
+# defined?(Auth) returns nil when auth mode is not 'full'.
+#
+# This pattern supports future plugins (SSO providers, mail providers, etc.)
+# by making module existence a reliable feature detection mechanism.
+
+if Onetime.auth_config.full_enabled?
+  Dir[File.expand_path('../../apps/web/auth/initializers/*.rb', __dir__)].each do |file|
+    require file
+  end
+end
+
+if Onetime.billing_config.enabled?
+  Dir[File.expand_path('../../apps/web/billing/initializers/*.rb', __dir__)].each do |file|
+    require file
+  end
 end
