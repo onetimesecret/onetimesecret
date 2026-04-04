@@ -246,7 +246,9 @@ module Onetime
 
       # Revoke all pending invitations
       # list_pending_invitations already calls .compact internally
-      list_pending_invitations.each do |invitation|
+      pending = list_pending_invitations
+      OT.ld "[Organization#destroy!] Revoking #{pending.size} pending invitation(s) for #{extid}"
+      pending.each do |invitation|
         invitation.revoke!
       end
 
