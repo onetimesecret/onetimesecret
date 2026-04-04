@@ -214,7 +214,9 @@ describe('DomainIncomingConfigForm', () => {
 
   describe('Recipient input fields', () => {
     it('FC-INPUT-001: email input accepts valid email', async () => {
-      wrapper = mountComponent();
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: true },
+      });
 
       const emailInput = wrapper.find('#recipient-email');
       await emailInput.setValue('valid@example.com');
@@ -225,7 +227,9 @@ describe('DomainIncomingConfigForm', () => {
     });
 
     it('FC-INPUT-002: add button disabled for invalid email format', async () => {
-      wrapper = mountComponent();
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: true },
+      });
 
       const emailInput = wrapper.find('#recipient-email');
       // Use a clearly invalid email that Zod will reject
@@ -242,7 +246,9 @@ describe('DomainIncomingConfigForm', () => {
     });
 
     it('FC-INPUT-003: name input is optional', async () => {
-      wrapper = mountComponent();
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: true },
+      });
 
       // Set only email, no name
       const emailInput = wrapper.find('#recipient-email');
@@ -261,7 +267,9 @@ describe('DomainIncomingConfigForm', () => {
     });
 
     it('FC-INPUT-004: add button disabled when email empty', async () => {
-      wrapper = mountComponent();
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: true },
+      });
 
       const addButton = wrapper.findAll('button[type="button"]').find(
         (b) => b.text().includes('Add Recipient')
@@ -291,7 +299,9 @@ describe('DomainIncomingConfigForm', () => {
 
   describe('Event emissions', () => {
     it('FC-EMIT-001: emits addRecipient on add button click', async () => {
-      wrapper = mountComponent();
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: true },
+      });
 
       const emailInput = wrapper.find('#recipient-email');
       const nameInput = wrapper.find('#recipient-name');
@@ -376,7 +386,9 @@ describe('DomainIncomingConfigForm', () => {
     });
 
     it('clears input fields after successful add', async () => {
-      wrapper = mountComponent();
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: true },
+      });
 
       const emailInput = wrapper.find('#recipient-email') as VueWrapper<HTMLInputElement>;
       const nameInput = wrapper.find('#recipient-name') as VueWrapper<HTMLInputElement>;
@@ -714,7 +726,9 @@ describe('DomainIncomingConfigForm', () => {
 
   describe('Enter key handling', () => {
     it('adds recipient on Enter in email input', async () => {
-      wrapper = mountComponent();
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: true },
+      });
 
       const emailInput = wrapper.find('#recipient-email');
       await emailInput.setValue('test@example.com');
@@ -726,7 +740,9 @@ describe('DomainIncomingConfigForm', () => {
     });
 
     it('adds recipient on Enter in name input', async () => {
-      wrapper = mountComponent();
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: true },
+      });
 
       const emailInput = wrapper.find('#recipient-email');
       const nameInput = wrapper.find('#recipient-name');
@@ -739,6 +755,68 @@ describe('DomainIncomingConfigForm', () => {
       const emitted = wrapper.emitted('addRecipient');
       expect(emitted).toBeTruthy();
       expect(emitted![0]).toEqual(['test@example.com', 'Test User']);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Disabled state behavior (UI consistency)
+  // ---------------------------------------------------------------------------
+
+  describe('Disabled state behavior', () => {
+    it('shows disabled notice banner when enabled is false', () => {
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: false },
+      });
+
+      // Banner should be visible with info icon
+      const banner = wrapper.find('.bg-blue-50');
+      expect(banner.exists()).toBe(true);
+    });
+
+    it('hides disabled notice banner when enabled is true', () => {
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: true },
+      });
+
+      // Banner should NOT be visible
+      const banner = wrapper.find('.bg-blue-50');
+      expect(banner.exists()).toBe(false);
+    });
+
+    it('disables email input when enabled is false', () => {
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: false },
+      });
+
+      const emailInput = wrapper.find('#recipient-email');
+      expect(emailInput.attributes('disabled')).toBeDefined();
+    });
+
+    it('enables email input when enabled is true', () => {
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: true },
+      });
+
+      const emailInput = wrapper.find('#recipient-email');
+      expect(emailInput.attributes('disabled')).toBeUndefined();
+    });
+
+    it('applies opacity styling to form container when disabled', () => {
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: false },
+      });
+
+      const formFieldsContainer = wrapper.find('.opacity-60');
+      expect(formFieldsContainer.exists()).toBe(true);
+    });
+
+    it('does not apply opacity styling when enabled', () => {
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: true },
+      });
+
+      const formFieldsContainer = wrapper.find('.opacity-60');
+      expect(formFieldsContainer.exists()).toBe(false);
     });
   });
 });
