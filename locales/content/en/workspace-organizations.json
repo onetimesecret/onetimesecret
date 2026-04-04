@@ -767,6 +767,10 @@
     "text": "Sign In with Different Account",
     "sha256": "71b2bdf3"
   },
+  "web.organizations.invitations.accept_with_current_account": {
+    "text": "Accept with this account",
+    "sha256": "a1b2c3d4"
+  },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}d left",
     "sha256": "50ff6f2b"

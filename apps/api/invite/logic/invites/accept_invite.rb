@@ -16,7 +16,8 @@ module InviteAPI::Logic
       attr_reader :invitation, :organization, :membership
 
       def process_params
-        @token = sanitize_identifier(params['token'])
+        @token                      = sanitize_identifier(params['token'])
+        @acknowledge_email_mismatch = [true, 'true'].include?(params['acknowledge_email_mismatch'])
       end
 
       def raise_concerns
@@ -46,15 +47,16 @@ module InviteAPI::Logic
           raise_form_error('Invitation has expired', field: :token)
         end
 
-        # Verify email match (with normalization)
+        # Verify email match (case-insensitive)
         if @invitation.invited_email
           invited = normalize_email(@invitation.invited_email)
           user    = normalize_email(cust.email)
 
-          unless emails_match?(invited, user)
+          if invited != user && !@acknowledge_email_mismatch
             raise_form_error(
               'Your email address does not match the invitation',
               field: :email,
+              error_type: 'email_mismatch_requires_acknowledgment',
             )
           end
         end
@@ -69,7 +71,7 @@ module InviteAPI::Logic
         OT.ld "[AcceptInvite] Accepting invitation #{@invitation.objid} for user #{cust.obscure_email}"
 
         # Accept the invitation (updates membership status and adds to org)
-        @invitation.accept!(cust)
+        @invitation.accept!(cust, acknowledge_mismatch: @acknowledge_email_mismatch)
 
         OT.info "[AcceptInvite] User #{cust.obscure_email} joined organization #{@organization.extid}"
 
@@ -92,23 +94,6 @@ module InviteAPI::Logic
 
       def normalize_email(email)
         email.to_s.strip.downcase
-      end
-
-      # Match emails with support for + aliases
-      def emails_match?(email1, email2)
-        return false if email1.nil? || email2.nil?
-
-        local1, domain1 = email1.split('@', 2)
-        local2, domain2 = email2.split('@', 2)
-
-        # Domains must match exactly
-        return false unless domain1 == domain2
-
-        # Strip + suffix from local parts
-        base1 = local1.split('+', 2).first
-        base2 = local2.split('+', 2).first
-
-        base1 == base2
       end
     end
   end
