@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/logic/base'
+require_relative '../../auth/operations/create_default_workspace'
 
 module Billing
   module Logic
@@ -135,26 +136,34 @@ module Billing
         def update_organization_billing(customer)
           return unless stripe_subscription
 
-          # Find or create default organization
-          orgs = customer.organization_instances.to_a
-          org  = orgs.find(&:is_default)
-
-          # Self-healing fallback - see: apps/web/auth/operations/create_default_workspace.rb
-          unless org
-            OT.info "[FromStripePaymentLink] No default organization found, creating one for customer #{customer.obscure_email}"
-            org = Onetime::Organization.create!(
-              "#{customer.email}'s Workspace",
-              customer,
-              customer.email,
-              is_default: true,
-            )
-          end
+          # Find or create default organization via canonical operation
+          org = ensure_default_workspace(customer)
+          return unless org
 
           OT.info "[FromStripePaymentLink] Updating organization #{org.objid} billing from subscription #{stripe_subscription.id}"
           org.update_from_stripe_subscription(stripe_subscription)
         rescue Stripe::StripeError, Familia::Problem => ex
           # Log but don't fail the checkout flow - billing can be reconciled later
           OT.le "[FromStripePaymentLink] Error updating organization billing: #{ex.message}"
+        end
+
+        # Ensure customer has a default workspace, creating one if needed.
+        #
+        # Uses the canonical CreateDefaultWorkspace operation which includes
+        # federation checks and proper naming conventions.
+        #
+        # @param customer [Onetime::Customer] The customer needing a workspace
+        # @return [Onetime::Organization, nil] The default organization
+        def ensure_default_workspace(customer)
+          # Check for existing default org first
+          orgs = customer.organization_instances.to_a
+          org  = orgs.find(&:is_default) || orgs.first
+          return org if org
+
+          # Create via canonical operation (includes federation check)
+          OT.info "[FromStripePaymentLink] Creating default workspace for #{customer.obscure_email}"
+          result = Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+          result&.dig(:organization)
         end
 
         # Send verification email to a specific customer

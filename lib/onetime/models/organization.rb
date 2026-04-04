@@ -219,6 +219,18 @@ module Onetime
       owner?(current_user)
     end
 
+    # Low-level delete with index cleanup
+    #
+    # Overrides Familia::Horreum#delete! to ensure contact_email_index
+    # is cleaned up. Use destroy! for full cleanup including relations.
+    def delete!
+      # Remove from contact_email_index to prevent phantom entries
+      self.class.contact_email_index.remove(contact_email) if contact_email
+
+      # Call parent delete
+      super
+    end
+
     # Destroy organization with validation
     def destroy!
       # Prevent deletion if domains exist
@@ -232,11 +244,28 @@ module Onetime
         remove_members_instance(member)
       end
 
-      # Call parent destroy
+      # NOTE: contact_email_index cleanup is handled by delete! which is called by super
       super
     end
 
     class << self
+      # Creates a new organization with atomic uniqueness enforcement.
+      #
+      # Uses HSETNX to atomically reserve the contact_email before creating the
+      # organization, preventing duplicate orgs from concurrent requests (TOCTOU).
+      #
+      # The org's identifier is available immediately after new() (lazily generated),
+      # so we use it directly in the HSETNX call rather than a pending marker.
+      # This allows Familia's auto-generated unique_index guard to work correctly
+      # since the index value matches the org's identifier from the start.
+      #
+      # @param display_name [String] Human-readable organization name
+      # @param owner_customer [Onetime::Customer] The customer who will own this org
+      # @param contact_email [String, nil] Optional billing/contact email (must be unique)
+      # @param ** [Hash] Additional attributes passed to Organization.new
+      # @return [Onetime::Organization] The created organization
+      # @raise [Onetime::Problem] If owner missing, display_name empty, or email taken
+      #
       def create!(display_name, owner_customer, contact_email = nil, **)
         raise Onetime::Problem, 'Owner required' if owner_customer.nil?
 
@@ -244,25 +273,43 @@ module Onetime
         raise Onetime::Problem, 'Display name required' if display_name.empty?
 
         contact_email = contact_email.to_s.strip
-        # contact_email is optional - can be set later for billing
-        if !contact_email.empty? && contact_email_exists?(contact_email)
-          raise Onetime::Problem, 'Organization exists for that email address'
-        end
+        contact_email = nil if contact_email.empty?
 
+        # Create the org object first to get its identifier (lazy generated on access)
         org = new(
           display_name: display_name,
           owner_id: owner_customer.custid,
-          contact_email: contact_email.empty? ? nil : contact_email,
+          contact_email: contact_email,
           **,
         )
-        org.save
 
-        # Add owner as first member with owner role using Familia v2 auto-generated bidirectional method
-        org.add_members_instance(owner_customer, through_attrs: { role: 'owner' })
+        # Atomic check-and-reserve with HSETNX to prevent race conditions.
+        # Use the org's actual identifier so Familia's unique_index guard passes.
+        reserved = false
+        if contact_email
+          reserved = contact_email_index.hsetnx(contact_email, org.identifier)
 
-        OT.ld "[Organization.create!] org: extid.objid}, owner: #{owner_customer.custid}"
+          unless reserved
+            # Email already in index - another org exists with this email
+            raise Onetime::Problem, 'Organization exists for that email address'
+          end
+        end
 
-        org
+        begin
+          # Save the org - Familia's auto-indexing will find the value we already set
+          org.save
+
+          # Add owner as first member with owner role using Familia v2 auto-generated bidirectional method
+          org.add_members_instance(owner_customer, through_attrs: { role: 'owner' })
+
+          OT.ld "[Organization.create!] org: #{org.extid}, owner: #{owner_customer.custid}"
+
+          org
+        rescue StandardError
+          # Cleanup reservation on any failure to prevent phantom entries
+          contact_email_index.remove(contact_email) if contact_email && reserved
+          raise
+        end
       end
 
       def count

@@ -4,6 +4,7 @@
 
 require_relative 'base_handler'
 require 'onetime/utils/email_hash'
+require_relative '../../../auth/operations/create_default_workspace'
 
 module Billing
   module Operations
@@ -304,20 +305,16 @@ module Billing
             end
           end
 
-          # 3. Customer's default org
+          # 3. Customer's default or first org
           orgs = customer.organization_instances.to_a
-          org  = orgs.find { |o| o.is_default }
+          org  = orgs.find { |o| o.is_default } || orgs.first
           return org if org
 
-          # 4. Create default org (self-healing fallback - shouldn't happen, checkout requires org)
-          # See: apps/web/auth/operations/create_default_workspace.rb
+          # 4. Create default org via canonical operation (includes federation check)
+          # This fallback shouldn't happen in normal flow - checkout requires org
           billing_logger.warn 'Creating default org during checkout (unexpected)', { customer_extid: customer.extid }
-          Onetime::Organization.create!(
-            "#{customer.email}'s Workspace",
-            customer,
-            customer.email,
-            is_default: true,
-          )
+          result = Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+          result&.dig(:organization)
         end
       end
     end
