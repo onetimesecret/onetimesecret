@@ -90,9 +90,10 @@ module OrganizationAPI
       def determine_user_role(organization, user)
         return 'owner' if organization.owner?(user)
 
-        # For now, non-owners are 'member'
-        # Future: Add admin role support
-        'member'
+        membership = Onetime::OrganizationMembership.find_by_org_customer(
+          organization.objid, user.objid
+        )
+        membership&.role || 'member'
       end
 
       # Verify current user owns the organization
