@@ -225,7 +225,7 @@ module Onetime
     # is cleaned up. Use destroy! for full cleanup including relations.
     def delete!
       # Remove from contact_email_index to prevent phantom entries
-      remove_from_class_contact_email_index if contact_email
+      self.class.contact_email_index.remove(contact_email) if contact_email
 
       # Call parent delete
       super

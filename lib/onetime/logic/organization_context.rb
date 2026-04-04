@@ -70,7 +70,7 @@ module Onetime
       #
       # @return [Onetime::Organization, nil] The organization (lazy-created if needed)
       def auth_org
-        return @auth_org if defined?(@auth_org) && @auth_org
+        return @auth_org if defined?(@auth_org)
 
         org = @strategy_result&.metadata&.dig(:organization_context, :organization)
 
@@ -81,9 +81,13 @@ module Onetime
 
           # Update metadata so subsequent calls in same request see the org
           if result && (org = result[:organization]) && @strategy_result&.metadata&.dig(:organization_context)
-                        @strategy_result.metadata[:organization_context][:organization]    = org
-                        @strategy_result.metadata[:organization_context][:organization_id] = org.objid
-                      end
+            @strategy_result.metadata[:organization_context][:organization]    = org
+            @strategy_result.metadata[:organization_context][:organization_id] = org.objid
+          end
+
+          # Fallback: if creation returned nil but org now exists (race condition),
+          # fetch it from the customer's organizations
+          org ||= cust.organization_instances.first if org.nil?
         end
 
         @auth_org = org
