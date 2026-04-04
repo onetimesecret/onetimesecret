@@ -3,9 +3,9 @@
 // Request schemas for domain incoming configuration API endpoints.
 //
 // Endpoints:
-// - GET /api/v2/domains/:domain_id/incoming
-// - PUT /api/v2/domains/:domain_id/incoming (full replacement)
-// - PATCH /api/v2/domains/:domain_id/incoming (partial update)
+// - GET /api/domains/:extid/incoming-config
+// - PUT /api/domains/:extid/incoming-config
+// - DELETE /api/domains/:extid/incoming-config
 //
 // Response schemas are in ../responses/incoming-config.ts
 
@@ -28,7 +28,7 @@ export {
 } from '../responses/incoming-config';
 
 // ---------------------------------------------------------------------------
-// GET /api/v2/domains/:domain_id/incoming
+// GET /api/domains/:extid/incoming-config
 // ---------------------------------------------------------------------------
 
 /**
@@ -43,7 +43,7 @@ export const getDomainIncomingConfigRequestSchema = z.object({
 export type GetDomainIncomingConfigRequest = z.infer<typeof getDomainIncomingConfigRequestSchema>;
 
 // ---------------------------------------------------------------------------
-// PUT /api/v2/domains/:domain_id/incoming (full replacement)
+// PUT /api/domains/:extid/incoming-config
 // ---------------------------------------------------------------------------
 
 /**
@@ -59,7 +59,7 @@ export const putDomainIncomingConfigRequestSchema = putIncomingConfigPayloadSche
 export type PutDomainIncomingConfigRequest = z.infer<typeof putDomainIncomingConfigRequestSchema>;
 
 // ---------------------------------------------------------------------------
-// PATCH /api/v2/domains/:domain_id/incoming (partial update)
+// PATCH /api/domains/:extid/incoming-config (partial update - future)
 // ---------------------------------------------------------------------------
 
 /**

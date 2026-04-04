@@ -50,9 +50,9 @@ result
 ## enable! updates the updated timestamp
 config = IncomingConfig.create!(domain_id: "ts_enable_#{@ts}_1")
 initial_updated = config.updated.to_i
-sleep 0.01 # Small delay to ensure time difference
+sleep 1.01 # Sleep > 1 second to cross second boundary for integer timestamps
 config.enable!
-result = config.updated.to_i >= initial_updated
+result = config.updated.to_i > initial_updated
 config.destroy!
 result
 #=> true
@@ -60,9 +60,9 @@ result
 ## disable! updates the updated timestamp
 config = IncomingConfig.create!(domain_id: "ts_disable_#{@ts}_1", enabled: true)
 initial_updated = config.updated.to_i
-sleep 0.01
+sleep 1.01 # Sleep > 1 second to cross second boundary for integer timestamps
 config.disable!
-result = config.updated.to_i >= initial_updated
+result = config.updated.to_i > initial_updated
 config.destroy!
 result
 #=> true
@@ -70,9 +70,9 @@ result
 ## Setting recipients updates the updated timestamp
 config = IncomingConfig.create!(domain_id: "ts_recip_#{@ts}_1")
 initial_updated = config.updated.to_i
-sleep 0.01
+sleep 1.01 # Sleep > 1 second to cross second boundary for integer timestamps
 config.recipients = [{ email: 'test@example.com', name: 'Test' }]
-result = config.updated.to_i >= initial_updated
+result = config.updated.to_i > initial_updated
 config.destroy!
 result
 #=> true

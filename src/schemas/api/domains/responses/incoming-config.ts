@@ -3,9 +3,9 @@
 // Response schemas for domain incoming configuration API endpoints.
 //
 // Endpoints:
-// - GET /api/v2/domains/:domain_id/incoming
-// - PUT /api/v2/domains/:domain_id/incoming
-// - PATCH /api/v2/domains/:domain_id/incoming
+// - GET /api/domains/:extid/incoming-config
+// - PUT /api/domains/:extid/incoming-config
+// - DELETE /api/domains/:extid/incoming-config
 
 import { z } from 'zod';
 import { createApiResponseSchema } from '@/schemas/api/base';
@@ -34,7 +34,7 @@ export type IncomingConfigDetails = z.infer<typeof incomingConfigDetailsSchema>;
 // ---------------------------------------------------------------------------
 
 /**
- * Response schema for GET /api/v2/domains/:domain_id/incoming
+ * Response schema for GET /api/domains/:extid/incoming-config
  *
  * Returns the full incoming config for a domain.
  */
@@ -46,7 +46,7 @@ export const getDomainIncomingConfigResponseSchema = createApiResponseSchema(
 export type GetDomainIncomingConfigResponse = z.infer<typeof getDomainIncomingConfigResponseSchema>;
 
 /**
- * Response schema for PUT /api/v2/domains/:domain_id/incoming
+ * Response schema for PUT /api/domains/:extid/incoming-config
  *
  * Returns the replaced incoming config.
  */
@@ -58,7 +58,7 @@ export const putDomainIncomingConfigResponseSchema = createApiResponseSchema(
 export type PutDomainIncomingConfigResponse = z.infer<typeof putDomainIncomingConfigResponseSchema>;
 
 /**
- * Response schema for PATCH /api/v2/domains/:domain_id/incoming
+ * Response schema for PATCH /api/domains/:extid/incoming-config (future)
  *
  * Returns the updated incoming config.
  */
