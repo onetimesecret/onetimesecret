@@ -131,3 +131,11 @@ all_with_concrete = @all_subclasses + [stub_concrete]
 filtered = all_with_concrete.select { |k| has_own_schedule?(k) }
 filtered.include?(stub_concrete)
 #=> true
+
+## Billing-specific scheduled jobs are not defined when billing is disabled
+# Guard pattern at top of file prevents class definition
+billing_jobs_defined = [
+  defined?(Onetime::Jobs::Scheduled::PlanCacheRefreshJob),
+  defined?(Onetime::Jobs::Scheduled::CatalogRetryJob)
+].any?
+#=> false

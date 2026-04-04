@@ -120,6 +120,9 @@ module Auth
 
         return false if org.email_hash.to_s.empty?
 
+        # Guard: billing must be enabled for federation features
+        return false unless Onetime.billing_config.enabled?
+
         # Lazy load billing model (auth can operate without billing plugin)
         begin
           require_relative '../../billing/models/pending_federated_subscription'
