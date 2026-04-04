@@ -41,13 +41,17 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     end
   end
 
+  # Stub organization_instances with a non-empty array so CreateDefaultWorkspace
+  # sees the customer already has an org and skips creation (these tests are
+  # about TTL config, not workspace creation).
   let(:customer) {
     double('Customer',
       anonymous?: false,
       custid: 'cust123',
       objid: 'obj123',
       planid: 'anonymous',
-      email: 'cust123@example.com')
+      email: 'cust123@example.com',
+      organization_instances: [:existing_org])
   }
 
   let(:session) {
