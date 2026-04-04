@@ -398,14 +398,15 @@ describe('SecurityOverview', () => {
       expect(grid.classes()).toContain('sm:grid-cols-2');
     });
 
-    it('each card has consistent styling', () => {
+    it('each card has consistent styling with transparency', () => {
       wrapper = mountComponent();
 
       const cards = wrapper.findAll('.grid > div');
       cards.forEach((card) => {
         expect(card.classes()).toContain('rounded-lg');
         expect(card.classes()).toContain('border');
-        expect(card.classes()).toContain('bg-white');
+        // Design system uses transparency for glassmorphism
+        expect(card.classes()).toContain('bg-white/60');
       });
     });
 
@@ -514,6 +515,123 @@ describe('SecurityOverview', () => {
       wrapper = mountComponent();
 
       expect(wrapper.findAll('.grid > div').length).toBe(2);
+    });
+  });
+
+  describe('Design System Compliance - Card Surfaces', () => {
+    it('security cards use transparency classes (bg-white/60)', () => {
+      wrapper = mountComponent();
+
+      const cards = wrapper.findAll('.grid > div');
+      cards.forEach((card) => {
+        // After frontend-dev fixes, this should pass
+        // Current: bg-white (violation)
+        // Expected: bg-white/60
+        expect(card.classes()).toContain('bg-white/60');
+      });
+    });
+
+    it('security cards have border transparency (border-gray-200/60)', () => {
+      wrapper = mountComponent();
+
+      const cards = wrapper.findAll('.grid > div');
+      cards.forEach((card) => {
+        // After frontend-dev fixes, this should pass
+        // Current: border-gray-200 (violation)
+        // Expected: border-gray-200/60
+        expect(card.classes()).toContain('border-gray-200/60');
+      });
+    });
+
+    it('security cards have shadow-sm for subtle elevation', () => {
+      wrapper = mountComponent();
+
+      const cards = wrapper.findAll('.grid > div');
+      cards.forEach((card) => {
+        expect(card.classes()).toContain('shadow-sm');
+      });
+    });
+
+    it('security cards have backdrop-blur-sm for glassmorphism', () => {
+      wrapper = mountComponent();
+
+      const cards = wrapper.findAll('.grid > div');
+      cards.forEach((card) => {
+        expect(card.classes()).toContain('backdrop-blur-sm');
+      });
+    });
+
+    it('security cards have dark mode transparency (dark:bg-gray-800/60)', () => {
+      wrapper = mountComponent();
+
+      const cards = wrapper.findAll('.grid > div');
+      cards.forEach((card) => {
+        expect(card.classes()).toContain('dark:bg-gray-800/60');
+      });
+    });
+
+    it('security cards have dark mode border transparency (dark:border-gray-700/60)', () => {
+      wrapper = mountComponent();
+
+      const cards = wrapper.findAll('.grid > div');
+      cards.forEach((card) => {
+        expect(card.classes()).toContain('dark:border-gray-700/60');
+      });
+    });
+  });
+
+  describe('Design System Compliance - Typography', () => {
+    it('card titles use font-medium (not font-semibold)', () => {
+      wrapper = mountComponent();
+
+      const cards = wrapper.findAll('.grid > div');
+      cards.forEach((card) => {
+        const heading = card.find('h3');
+        if (heading.exists()) {
+          // Design system requires font-medium for card headings
+          expect(heading.classes()).toContain('font-medium');
+          expect(heading.classes()).not.toContain('font-semibold');
+        }
+      });
+    });
+
+    it('card titles have correct text color (text-gray-900)', () => {
+      wrapper = mountComponent();
+
+      const cards = wrapper.findAll('.grid > div');
+      cards.forEach((card) => {
+        const heading = card.find('h3');
+        if (heading.exists()) {
+          // Card headings use primary text color (text-gray-900), not section heading color
+          expect(heading.classes()).toContain('text-gray-900');
+        }
+      });
+    });
+
+    it('card titles have dark mode text color (dark:text-white)', () => {
+      wrapper = mountComponent();
+
+      const cards = wrapper.findAll('.grid > div');
+      cards.forEach((card) => {
+        const heading = card.find('h3');
+        if (heading.exists()) {
+          // Card headings use primary text color in dark mode (text-white)
+          expect(heading.classes()).toContain('dark:text-white');
+        }
+      });
+    });
+
+    it('card descriptions have correct text styling', () => {
+      wrapper = mountComponent();
+
+      const cards = wrapper.findAll('.grid > div');
+      cards.forEach((card) => {
+        const description = card.find('.text-sm.text-gray-600');
+        if (description.exists()) {
+          expect(description.classes()).toContain('text-sm');
+          expect(description.classes()).toContain('text-gray-600');
+        }
+      });
     });
   });
 });

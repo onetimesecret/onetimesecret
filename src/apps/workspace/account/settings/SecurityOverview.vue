@@ -189,10 +189,10 @@
       <!-- Security Score Card -->
       <div
         v-if="false"
-        class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+        class="rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
         <div class="flex items-start justify-between">
           <div>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            <h2 class="text-lg font-medium text-gray-600 dark:text-gray-300">
               {{ t('web.settings.security.security_score') }}
             </h2>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -255,7 +255,7 @@
         <div
           v-for="card in securityCards"
           :key="card.id"
-          class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+          class="rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
           <div class="flex items-start gap-4">
             <div
               class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
@@ -266,7 +266,7 @@
                 aria-hidden="true" />
             </div>
             <div class="flex-1">
-              <h3 class="font-semibold text-gray-900 dark:text-white">
+              <h3 class="text-base font-medium text-gray-900 dark:text-white">
                 {{ card.title }}
               </h3>
               <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
