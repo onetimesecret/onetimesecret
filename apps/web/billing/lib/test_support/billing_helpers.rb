@@ -41,7 +41,9 @@ module BillingTestHelpers
       return if defined?(::Billing::Plan)
 
       # Load the billing models which define the Billing module
-      require 'apps/web/billing/models/plan'
+      # Use absolute path to ensure it works regardless of $LOAD_PATH
+      billing_models_path = File.expand_path('../../models/plan', __dir__)
+      require billing_models_path
     end
 
     # Ensure Familia is configured with test Redis URI
