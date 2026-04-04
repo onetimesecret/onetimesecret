@@ -244,6 +244,12 @@ module Onetime
         remove_members_instance(member)
       end
 
+      # Revoke all pending invitations
+      # list_pending_invitations already calls .compact internally
+      list_pending_invitations.each do |invitation|
+        invitation.revoke!
+      end
+
       # NOTE: contact_email_index cleanup is handled by delete! which is called by super
       super
     end
