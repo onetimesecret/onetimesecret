@@ -32,6 +32,10 @@ POST  /auth/reset-password-request               Core::Controllers::Registration
 POST  /auth/reset-password                       Core::Controllers::Registration#reset_password auth=noauth response=json
 POST  /auth/reset-password/:key                  Core::Controllers::Registration#reset_password auth=noauth response=json
 
+# Invites routes
+GET   /invite/*                                  Core::Controllers::Page#index auth=noauth
+GET   /i/*                                  Core::Controllers::Page#index auth=noauth
+
 # Authentication routes - advanced mode routes that core delivers for the
 # frontend vue app to mount on. The frontend app then communicates via
 # the JSON API at /auth/verify-account etc.
