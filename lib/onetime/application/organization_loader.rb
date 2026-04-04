@@ -66,7 +66,7 @@ module Onetime
         if session
           session[cache_key] = {
             organization_id: org&.objid,
-            expires_at: Familia.now.to_i + 300, # 5 minute cache
+            expires_at: Familia.now.to_i + 60, # 1 minute cache
           }
         end
 
@@ -75,7 +75,7 @@ module Onetime
         {
           organization: org,
           organization_id: org&.objid,
-          expires_at: Familia.now.to_i + 300,
+          expires_at: Familia.now.to_i + 60,
         }
       end
 
