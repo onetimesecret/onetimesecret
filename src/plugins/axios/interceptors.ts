@@ -2,6 +2,7 @@
 
 import { useLanguageStore } from '@/shared/stores';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 /**
@@ -74,6 +75,17 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
   const domainContext = getDomainContext();
   if (domainContext) {
     config.headers[DOMAIN_CONTEXT_HEADER] = domainContext;
+  }
+
+  // Add organization context header if an org is selected
+  // This syncs the frontend's org selection with the backend on every request
+  try {
+    const organizationStore = useOrganizationStore();
+    if (organizationStore.currentOrganization?.objid) {
+      config.headers['X-Organization-ID'] = organizationStore.currentOrganization.objid;
+    }
+  } catch {
+    // Store may not be initialized (e.g., during app bootstrap)
   }
 
   // For FormData uploads, delete Content-Type so Axios sets it with the boundary

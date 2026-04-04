@@ -39,6 +39,51 @@ end
 @strategy.respond_to?(:load_organization_context)
 #=> true
 
+## Organization selection: Header override with valid membership
+@session.clear
+@env['HTTP_X_ORGANIZATION_ID'] = @org2.objid
+
+context = @strategy.load_organization_context(@cust, @session, @env)
+context[:organization]&.objid
+#=> @org2.objid
+
+## Organization selection: Header override takes precedence over session
+@session.clear
+@session['organization_id'] = @org1.objid
+@env['HTTP_X_ORGANIZATION_ID'] = @org2.objid
+
+context = @strategy.load_organization_context(@cust, @session, @env)
+context[:organization]&.objid
+#=> @org2.objid
+
+## Organization selection: Invalid header org falls through to session
+@session.clear
+@session['organization_id'] = @org1.objid
+@env['HTTP_X_ORGANIZATION_ID'] = 'nonexistent-org-id'
+
+context = @strategy.load_organization_context(@cust, @session, @env)
+context[:organization]&.objid
+#=> @org1.objid
+
+## Organization selection: Header org without membership falls through
+# Create org owned by different customer (cust2 is not a member of org3)
+test_email2 = "orgcontext2-#{Time.now.to_i}@onetimesecret.com"
+@cust2 = Onetime::Customer.create!(email: test_email2, role: 'customer')
+@org3 = Onetime::Organization.create!('Other Workspace', @cust2)
+
+@session.clear
+@env['HTTP_X_ORGANIZATION_ID'] = @org3.objid
+
+# @cust is NOT a member of @org3, should fall through to default
+context = @strategy.load_organization_context(@cust, @session, @env)
+context[:organization]&.objid
+#=> @org1.objid
+
+## Clean up header test data
+@org3.destroy!
+@cust2.destroy!
+@env.delete('HTTP_X_ORGANIZATION_ID')
+
 ## Organization selection: Default organization priority
 @session.delete('organization_id')
 
