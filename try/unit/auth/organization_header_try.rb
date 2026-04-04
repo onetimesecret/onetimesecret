@@ -237,6 +237,36 @@ context[:organization]&.objid
 
 
 # =============================================================================
+# Header Input Sanitization Edge Cases
+# =============================================================================
+# These tests verify that malformed or malicious header values are handled safely.
+
+## Header with leading/trailing whitespace: Falls back to default (invalid for Redis lookup)
+@session = {}
+@session.delete("org_context:#{@owner.objid}")
+@env = { 'HTTP_X_ORGANIZATION_ID' => "  #{@org2.objid}  " }
+context = @strategy.load_organization_context(@owner, @session, @env)
+context[:organization]&.objid
+#=> @org1.objid
+
+## Header with CRLF injection attempt: Falls back to default (invalid ID)
+@session = {}
+@session.delete("org_context:#{@owner.objid}")
+@env = { 'HTTP_X_ORGANIZATION_ID' => "#{@org2.objid}\r\nX-Injected: true" }
+context = @strategy.load_organization_context(@owner, @session, @env)
+context[:organization]&.objid
+#=> @org1.objid
+
+## Header with null byte injection: Falls back to default (invalid ID)
+@session = {}
+@session.delete("org_context:#{@owner.objid}")
+@env = { 'HTTP_X_ORGANIZATION_ID' => "#{@org2.objid}\x00malicious" }
+context = @strategy.load_organization_context(@owner, @session, @env)
+context[:organization]&.objid
+#=> @org1.objid
+
+
+# =============================================================================
 # Caching Behavior with Headers
 # =============================================================================
 
