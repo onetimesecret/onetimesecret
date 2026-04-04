@@ -8,15 +8,16 @@
 # This module provides centralized logic for determining which organization
 # should be active for a given authenticated user request.
 #
-# Selection Priority:
+# Selection Priority (READ-ONLY):
 # 1. Explicit selection via session['organization_id']
 # 2. Domain-based selection (custom domain routing)
 # 3. Default organization (is_default = true)
 # 4. First available organization
-# 5. Auto-create default workspace (self-healing)
+# 5. Return nil (lazy creation happens later in auth_org)
 #
 # Performance:
-# - Results cached in session for 5 minutes
+# - Positive results cached in session for 5 minutes
+# - Negative results (nil org) are NOT cached, allowing immediate retry
 # - Cache invalidated on explicit organization switch
 #
 # Usage:
@@ -59,13 +60,15 @@ module Onetime
           }
         end
 
-        # Determine organization
+        # Determine organization (read-only - no writes during auth phase)
         org = determine_organization(customer, session, env)
 
-        # Store only IDs in session cache (not full objects - they can't serialize)
-        if session
+        # Only cache positive results (when org is found).
+        # Negative results (nil) are NOT cached, allowing immediate retry
+        # when org creation fails or is pending.
+        if session && org
           session[cache_key] = {
-            organization_id: org&.objid,
+            organization_id: org.objid,
             expires_at: Familia.now.to_i + 60, # 1 minute cache
           }
         end
@@ -143,34 +146,16 @@ module Onetime
           return first_org
         end
 
-        # 5. Auto-create default workspace (self-healing)
-        OT.info "[OrganizationLoader] No organizations found for #{customer.objid}, creating default"
-        create_default_workspace(customer)
-      end
-
-      # Create default workspace (organization) for customer
-      #
-      # This is a self-healing mechanism for customers who don't have
-      # any organizations yet (e.g., legacy users, or edge cases).
-      #
-      # @param customer [Onetime::Customer] Customer needing workspace
-      # @return [Onetime::Organization] Created organization
-      def create_default_workspace(customer)
-        # Check if another request already created it
-        orgs = customer.organization_instances.to_a
-        return orgs.first if orgs.any?
-
-        # Create default organization (self-healing fallback)
+        # 5. No organization found - return nil (read-only phase)
+        #
+        # Previously this called create_default_workspace() which performed
+        # Redis writes during authentication. This caused race conditions,
+        # negative caching bugs, and skipped federation checks.
+        #
+        # Org creation now happens lazily in auth_org (Logic::OrganizationContext)
+        # when an entitlement-gated action actually needs the organization.
         # See: apps/web/auth/operations/create_default_workspace.rb
-        display_name = "#{customer.email}'s Workspace"
-        org          = Onetime::Organization.create!(display_name, customer, customer.email, is_default: true)
-
-        OT.info "[OrganizationLoader] Created default organization #{org.objid} for #{customer.objid}"
-
-        org
-      rescue StandardError => ex
-        OT.le "[OrganizationLoader] Failed to create default workspace: #{ex.message}"
-        OT.ld ex.backtrace.first(3).join("\n")
+        OT.ld "[OrganizationLoader] No organizations found for #{customer.objid}, deferring creation"
         nil
       end
     end

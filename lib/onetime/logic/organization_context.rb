@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../../../apps/web/auth/operations/create_default_workspace'
+
 #
 # Organization Context for Logic Classes
 #
@@ -10,6 +12,12 @@
 #
 # The organization is extracted from StrategyResult metadata
 # (populated by authentication strategies during RouteAuthWrapper execution).
+#
+# Lazy Creation:
+# The auth_org method performs lazy creation of default workspaces for
+# authenticated users who don't have an organization. This happens on
+# first entitlement-gated access, not during authentication (which is
+# read-only to avoid race conditions and negative caching bugs).
 #
 # Usage:
 #   class MyLogic < Onetime::Logic::Base
@@ -53,13 +61,32 @@ module Onetime
       attr_reader :organization
 
       # Immutable accessor: returns the organization from the authentication
-      # strategy result metadata. Distinct from @organization which may be
-      # mutated during request processing.
+      # strategy result metadata with lazy creation for authenticated users.
       #
-      # No memoization needed — the value is already a direct object
-      # reference held in the strategy_result metadata hash.
+      # If no organization exists in the metadata and we have an authenticated
+      # customer, creates a default workspace via the canonical operation.
+      # This defers org creation from auth phase (read-only) to first
+      # entitlement-gated access, avoiding race conditions and negative caching.
+      #
+      # @return [Onetime::Organization, nil] The organization (lazy-created if needed)
       def auth_org
-        @strategy_result&.metadata&.dig(:organization_context, :organization)
+        return @auth_org if defined?(@auth_org) && @auth_org
+
+        org = @strategy_result&.metadata&.dig(:organization_context, :organization)
+
+        # Lazy creation for authenticated users without org
+        if org.nil? && cust && !cust.anonymous?
+          OT.info "[auth_org] Lazy-creating default workspace for #{cust.custid}"
+          result = Auth::Operations::CreateDefaultWorkspace.new(customer: cust).call
+
+          # Update metadata so subsequent calls in same request see the org
+          if result && (org = result[:organization]) && @strategy_result&.metadata&.dig(:organization_context)
+                        @strategy_result.metadata[:organization_context][:organization]    = org
+                        @strategy_result.metadata[:organization_context][:organization_id] = org.objid
+                      end
+        end
+
+        @auth_org = org
       end
 
       # Require organization to be present

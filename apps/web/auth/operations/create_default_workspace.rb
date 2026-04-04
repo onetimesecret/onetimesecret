@@ -13,22 +13,16 @@ require_relative '../../billing/models/pending_federated_subscription'
 # Note: The org is hidden from individual plan users in the frontend via
 # plan-based feature flags, but the infrastructure exists for seamless upgrades.
 #
-# ## Why Fallbacks Exist Elsewhere
+# ## Callers
 #
-# Several other locations have "self-healing" fallback code that creates default
-# workspaces when one doesn't exist. This compensates for edge cases where this
-# canonical flow wasn't triggered (e.g., legacy accounts, failed transactions,
-# race conditions during signup, or Stripe webhook replays).
-#
-# Fallback locations (all should use `is_default: true` atomically):
-#   - lib/onetime/application/organization_loader.rb - Request-time self-healing
+# All workspace creation now routes through this operation:
+#   - lib/onetime/logic/organization_context.rb - Lazy creation in auth_org
 #   - apps/web/billing/logic/welcome.rb - Stripe payment link/checkout handlers
 #   - apps/web/billing/controllers/plans.rb - Billing flow fallback
 #   - apps/web/billing/operations/webhook_handlers/checkout_completed.rb
 #
-# Ideally, this class would be the single entry point and fallbacks wouldn't
-# be needed. Until the signup flow guarantees workspace creation, the fallbacks
-# provide resilience for production edge cases.
+# Note: lib/onetime/application/organization_loader.rb is READ-ONLY during
+# authentication and no longer creates workspaces (see #2880).
 #
 
 module Auth
