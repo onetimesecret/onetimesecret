@@ -34,23 +34,61 @@ require_relative 'initializers/setup_connection_pool'  # depends_on: [:legacy_ch
 require_relative 'initializers/check_global_banner'    # depends_on: [:database]
 require_relative 'initializers/print_log_banner'       # depends_on: [:logging]
 
-# Conditionally load plugin initializers based on feature configuration.
+# Convention-based plugin discovery and initialization.
+#
+# Plugin Convention:
+#   1. Plugin directory: apps/web/<plugin_name>/
+#   2. Config singleton: Onetime.<plugin_name>_config (responds to enabled? or full_enabled?)
+#   3. Initializers: apps/web/<plugin_name>/initializers/*.rb
+#
+# Adding a new plugin requires NO changes to this file. Simply:
+#   - Create apps/web/<plugin_name>/initializers/ directory
+#   - Define Onetime.<plugin_name>_config singleton with enabled? method
 #
 # Only requiring files when the plugin is enabled ensures that
 # defined?(Billing) returns nil when billing is disabled, and
 # defined?(Auth) returns nil when auth mode is not 'full'.
-#
-# This pattern supports future plugins (SSO providers, mail providers, etc.)
-# by making module existence a reliable feature detection mechanism.
+# This makes module existence a reliable feature detection mechanism.
 
-if Onetime.auth_config.full_enabled?
-  Dir[File.expand_path('../../apps/web/auth/initializers/*.rb', __dir__)].each do |file|
-    require file
-  end
-end
+# Directories that are not plugins (e.g., shared code)
+PLUGIN_SKIP_LIST = %w[core].freeze
 
-if Onetime.billing_config.enabled?
-  Dir[File.expand_path('../../apps/web/billing/initializers/*.rb', __dir__)].each do |file|
+# Discover plugin directories under apps/web/
+plugin_base = File.expand_path('../../apps/web', __dir__)
+plugin_dirs = Dir[File.join(plugin_base, '*/')]
+
+plugin_dirs.each do |plugin_dir|
+  plugin_name = File.basename(plugin_dir)
+
+  # Skip non-plugin directories
+  next if PLUGIN_SKIP_LIST.include?(plugin_name)
+
+  # Check for <plugin>_config singleton with enabled? method
+  config_method = "#{plugin_name}_config"
+  next unless Onetime.respond_to?(config_method)
+
+  config = Onetime.public_send(config_method)
+
+  # Support both enabled? and full_enabled? (auth uses full_enabled?)
+  enabled = if config.respond_to?(:full_enabled?)
+              config.full_enabled?
+            elsif config.respond_to?(:enabled?)
+              config.enabled?
+            else
+              false
+            end
+
+  next unless enabled
+
+  # Load initializers for enabled plugin (sorted for deterministic order)
+  initializers_pattern = File.join(plugin_dir, 'initializers', '*.rb')
+  initializer_files    = Dir[initializers_pattern]
+
+  next if initializer_files.empty?
+
+  OT.ld "[initializers] Loading #{plugin_name} plugin (#{initializer_files.size} initializers)"
+
+  initializer_files.each do |file|
     require file
   end
 end

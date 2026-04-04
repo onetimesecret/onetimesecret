@@ -29,9 +29,11 @@ File.exist?(Onetime::BillingConfig.instance.path)
 Onetime::BillingConfig.instance.enabled?
 #=> false
 
-## Billing::Plan cache is empty by default
-# This tests that no plans persist from previous test runs
-Billing::Plan.all.empty?
+## Billing::Plan cache is empty by default (or module not loaded)
+# This tests that no plans persist from previous test runs.
+# With true plugin extraction (#2887), Billing module may not be loaded
+# when billing is disabled - which also means no cached plans.
+defined?(Billing::Plan) ? Billing::Plan.all.empty? : true
 #=> true
 
 ## Creating a test class with entitlements mixin
