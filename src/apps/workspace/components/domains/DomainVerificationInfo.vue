@@ -29,6 +29,15 @@
     props.domain
   );
 
+  /**
+   * Tooltip text that explains the actual status, not just "view status"
+   */
+  const statusTooltip = computed(() => {
+    if (isActive.value) return t('web.domains.status_tooltip_active');
+    if (isWarning.value) return t('web.domains.status_tooltip_dns_incorrect');
+    return t('web.domains.status_tooltip_not_verified');
+  });
+
   // const formatDate = (dateString: string): string => {
   //   const date = new Date(dateString);
   //   /**
@@ -54,7 +63,7 @@
       v-if="mode === 'icon'"
       :to="verifyRoute"
       class="tooltip inline-flex items-center gap-1.5"
-      :data-tooltip="t('web.domains.view_domain_verification_status')">
+      :data-tooltip="statusTooltip">
       <OIcon
         collection="mdi"
         :name="statusIcon"
@@ -70,8 +79,8 @@
     </RouterLink>
     <div
       v-else
-      class="my-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-      <h2 class="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
+      class="my-8 rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+      <h2 class="mb-4 text-lg font-medium text-gray-900 dark:text-white">
         {{ t('web.domains.domain_status') }}
       </h2>
       <div class="flex flex-col">
@@ -129,7 +138,7 @@
             }}</span>
             <span
               class="text-base"
-              :class="domain?.vhost?.has_ssl ? 'text-green-600' : 'text-red-600'">
+              :class="domain?.vhost?.has_ssl ? 'text-emerald-600' : 'text-rose-600'">
               {{ domain?.vhost?.has_ssl ? t('web.COMMON.active') : t('web.COMMON.inactive') }}
             </span>
           </div>

@@ -24,11 +24,11 @@ const handleClick = () => {
   <button
     type="button"
     @click="handleClick"
-    class="group relative w-full rounded-lg border border-gray-200 bg-white p-6 text-left shadow-sm transition-all hover:border-brand-500 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-brand-400 dark:focus:ring-brand-400">
+    class="group relative w-full rounded-lg border border-gray-200/60 bg-white/60 p-6 text-left shadow-sm backdrop-blur-sm transition-all hover:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-700/60 dark:bg-gray-800/60 dark:hover:border-brand-400 dark:focus:ring-brand-400">
     <div class="flex items-start justify-between">
       <div class="min-w-0 flex-1">
         <h3
-          class="truncate text-lg font-semibold text-gray-900 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400">
+          class="truncate text-lg font-medium text-gray-900 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400">
           {{ organization.display_name }}
         </h3>
         <p

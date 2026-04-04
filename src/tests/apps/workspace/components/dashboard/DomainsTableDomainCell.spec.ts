@@ -1,7 +1,7 @@
 // src/tests/apps/workspace/components/dashboard/DomainsTableDomainCell.spec.ts
 
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import DomainsTableDomainCell from '@/apps/workspace/components/dashboard/DomainsTableDomainCell.vue';
 
 // Mock vue-i18n
@@ -20,9 +20,24 @@ vi.mock('date-fns', () => ({
 vi.mock('@/apps/workspace/components/domains/DomainVerificationInfo.vue', () => ({
   default: {
     name: 'DomainVerificationInfo',
-    template: '<div class="domain-verification-info" />',
+    template: '<div class="domain-verification-info" data-testid="verification-info" />',
     props: ['mode', 'domain', 'orgid'],
   },
+}));
+
+// Mock OIcon component
+vi.mock('@/shared/components/icons/OIcon.vue', () => ({
+  default: {
+    name: 'OIcon',
+    template: '<span class="o-icon" :data-icon-name="name" :data-collection="collection" />',
+    props: ['collection', 'name', 'class'],
+  },
+}));
+
+// Mock useDomainStatus composable
+const mockUseDomainStatus = vi.fn();
+vi.mock('@/shared/composables/useDomainStatus', () => ({
+  useDomainStatus: () => mockUseDomainStatus(),
 }));
 
 const mockDomain = {
@@ -46,18 +61,19 @@ const mockDomain = {
   updated: new Date('2024-01-01'),
 };
 
-function mountComponent(canBrand = false) {
+function mountComponent(options: { canBrand?: boolean; canEmailConfig?: boolean; domainOverrides?: object } = {}) {
   return mount(DomainsTableDomainCell, {
     props: {
-      domain: mockDomain,
+      domain: { ...mockDomain, ...(options.domainOverrides || {}) },
       orgid: 'org_ext_123',
-      canBrand,
+      canBrand: options.canBrand ?? false,
+      canEmailConfig: options.canEmailConfig ?? false,
     },
     global: {
       stubs: {
         RouterLink: {
           name: 'RouterLink',
-          template: '<a :data-to="JSON.stringify(to)"><slot /></a>',
+          template: '<a :data-to="JSON.stringify(to)" :class="$attrs.class"><slot /></a>',
           props: ['to'],
         },
       },
@@ -66,13 +82,22 @@ function mountComponent(canBrand = false) {
 }
 
 describe('DomainsTableDomainCell', () => {
+  beforeEach(() => {
+    // Default: no warning or error (verified state)
+    mockUseDomainStatus.mockReturnValue({
+      isWarning: false,
+      isError: false,
+      displayStatus: 'Verified',
+    });
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
   });
 
   describe('canBrand routing', () => {
     it('links to DomainVerify when canBrand is false', () => {
-      const wrapper = mountComponent(false);
+      const wrapper = mountComponent({ canBrand: false });
 
       const link = wrapper.find('a[data-to]');
       const to = JSON.parse(link.attributes('data-to')!);
@@ -85,7 +110,7 @@ describe('DomainsTableDomainCell', () => {
     });
 
     it('links to DomainBrand when canBrand is true', () => {
-      const wrapper = mountComponent(true);
+      const wrapper = mountComponent({ canBrand: true });
 
       const link = wrapper.find('a[data-to]');
       const to = JSON.parse(link.attributes('data-to')!);
@@ -98,11 +123,125 @@ describe('DomainsTableDomainCell', () => {
     });
 
     it('displays the domain name regardless of canBrand', () => {
-      const withoutBrand = mountComponent(false);
-      const withBrand = mountComponent(true);
+      const withoutBrand = mountComponent({ canBrand: false });
+      const withBrand = mountComponent({ canBrand: true });
 
       expect(withoutBrand.find('a[data-to]').text()).toBe('test.example.com');
       expect(withBrand.find('a[data-to]').text()).toBe('test.example.com');
+    });
+  });
+
+  describe('DNS warning/error states (UI consistency)', () => {
+    it('shows clickable warning link when isWarning is true', () => {
+      mockUseDomainStatus.mockReturnValue({
+        isWarning: true,
+        isError: false,
+        displayStatus: 'DNS Check Required',
+      });
+
+      const wrapper = mountComponent();
+
+      // Should show warning link
+      const warningLink = wrapper.find('.text-amber-600');
+      expect(warningLink.exists()).toBe(true);
+      expect(warningLink.text()).toContain('DNS Check Required');
+    });
+
+    it('shows clickable warning link when isError is true', () => {
+      mockUseDomainStatus.mockReturnValue({
+        isWarning: false,
+        isError: true,
+        displayStatus: 'DNS Error',
+      });
+
+      const wrapper = mountComponent();
+
+      // Should show error link (same amber styling)
+      const errorLink = wrapper.find('.text-amber-600');
+      expect(errorLink.exists()).toBe(true);
+      expect(errorLink.text()).toContain('DNS Error');
+    });
+
+    it('warning link routes to verify page', () => {
+      mockUseDomainStatus.mockReturnValue({
+        isWarning: true,
+        isError: false,
+        displayStatus: 'DNS Check Required',
+      });
+
+      const wrapper = mountComponent();
+
+      const warningLink = wrapper.find('.text-amber-600');
+      const to = warningLink.attributes('data-to');
+      expect(to).toBe('"/org/org_ext_123/domains/dm-test-extid/verify"');
+    });
+
+    it('shows alert icon in warning state', () => {
+      mockUseDomainStatus.mockReturnValue({
+        isWarning: true,
+        isError: false,
+        displayStatus: 'DNS Check Required',
+      });
+
+      const wrapper = mountComponent();
+
+      const alertIcon = wrapper.find('[data-icon-name="alert-circle"]');
+      expect(alertIcon.exists()).toBe(true);
+    });
+
+    it('hides DomainVerificationInfo when in warning/error state', () => {
+      mockUseDomainStatus.mockReturnValue({
+        isWarning: true,
+        isError: false,
+        displayStatus: 'DNS Check Required',
+      });
+
+      const wrapper = mountComponent();
+
+      // Should NOT show the verification info component
+      const verificationInfo = wrapper.find('[data-testid="verification-info"]');
+      expect(verificationInfo.exists()).toBe(false);
+    });
+
+    it('shows DomainVerificationInfo when no warning/error', () => {
+      mockUseDomainStatus.mockReturnValue({
+        isWarning: false,
+        isError: false,
+        displayStatus: 'Verified',
+      });
+
+      const wrapper = mountComponent();
+
+      // Should show the verification info component
+      const verificationInfo = wrapper.find('[data-testid="verification-info"]');
+      expect(verificationInfo.exists()).toBe(true);
+    });
+
+    it('hides age timestamp when in warning/error state', () => {
+      mockUseDomainStatus.mockReturnValue({
+        isWarning: true,
+        isError: false,
+        displayStatus: 'DNS Check Required',
+      });
+
+      const wrapper = mountComponent();
+
+      // Should NOT show age timestamp (which uses 3 days ago from mock)
+      expect(wrapper.text()).not.toContain('3 days ago');
+    });
+
+    it('shows age timestamp when no warning/error', () => {
+      mockUseDomainStatus.mockReturnValue({
+        isWarning: false,
+        isError: false,
+        displayStatus: 'Verified',
+      });
+
+      const wrapper = mountComponent();
+
+      // Should show the i18n key for age (which contains formatDistanceToNow)
+      // The actual rendered text will use i18n interpolation with the mocked date-fns
+      expect(wrapper.text()).toContain('web.domains.added_formatdistancetonow_domain_created_addsuffix_true');
     });
   });
 });

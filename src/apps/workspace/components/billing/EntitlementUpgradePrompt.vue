@@ -6,6 +6,8 @@ import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import type { ApplicationError } from '@/schemas/errors';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useProductIdentity } from '@/shared/stores/identityStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { storeToRefs } from 'pinia';
 
 const { t } = useI18n();
@@ -31,6 +33,19 @@ const bootstrapStore = useBootstrapStore();
 const { billing_enabled } = storeToRefs(bootstrapStore);
 const billingEnabled = computed(() => billing_enabled.value || false);
 
+// Hide upgrade prompts on custom domains (managed by org admin, not end users)
+const { isCustom } = useProductIdentity();
+
+// Only show upgrade prompts to organization owners (not members/admins)
+const organizationStore = useOrganizationStore();
+const isOwner = computed(() => {
+  const role = organizationStore.currentOrganization?.current_user_role;
+  return role === 'owner';
+});
+
+// Combined visibility: not custom domain, billing enabled, and user is owner
+const canShowUpgrade = computed(() => !isCustom && billingEnabled.value && isOwner.value);
+
 const displayMessage = computed(() => {
   if (!props.error) return '';
   return props.error.message || t('web.billing.upgrade.required');
@@ -45,9 +60,9 @@ const handleClose = () => {
 </script>
 
 <template>
-  <!-- Only show when billing is enabled and component is visible -->
+  <!-- Only show when not on custom domain, billing enabled, user is owner, and component is visible -->
   <div
-    v-if="billingEnabled && show && error"
+    v-if="canShowUpgrade && show && error"
     role="alert"
     aria-live="polite"
     class="rounded-lg border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/50 p-4 dark:border-amber-800 dark:from-amber-900/20 dark:to-amber-900/10">
@@ -63,7 +78,7 @@ const handleClose = () => {
 
       <!-- Content -->
       <div class="min-w-0 flex-1">
-        <h4 class="text-sm font-semibold text-gray-900 dark:text-white">
+        <h4 class="text-sm font-medium text-gray-900 dark:text-white">
           {{ t('web.billing.upgrade.required') }}
         </h4>
         <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">

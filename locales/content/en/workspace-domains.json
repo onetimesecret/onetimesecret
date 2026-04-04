@@ -147,6 +147,26 @@
     "text": "Homepage Access",
     "sha256": "00c89609"
   },
+  "web.domains.public_homepage": {
+    "text": "Public Homepage",
+    "sha256": "b1c2d3e4"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domain verified and active",
+    "sha256": "c2d3e4f5"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS not configured — click to fix",
+    "sha256": "d3e4f5g6"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domain not verified — click to verify",
+    "sha256": "e4f5g6h7"
+  },
+  "web.domains.click_to_verify": {
+    "text": "click to verify",
+    "sha256": "f5g6h7i8"
+  },
   "web.domains.and_status": {
     "text": "& Status",
     "sha256": "fe871d2c"
@@ -627,6 +647,10 @@
     "text": "Emails for this domain are currently sent from the global sender. Complete email configuration to use your own sender identity.",
     "sha256": "ffcf39fb"
   },
+  "web.domains.email.disabled_notice": {
+    "text": "Custom email sending is currently disabled. Emails will be sent from the global sender. Enable the feature below to use your custom sender identity.",
+    "sha256": "a1b2c3d4"
+  },
   "web.domains.email.badge_not_configured": {
     "text": "Not configured",
     "sha256": "dd1841d2"
@@ -702,6 +726,10 @@
   "web.domains.incoming.not_configured_notice": {
     "text": "Incoming secrets is not configured for this domain. Add recipients to allow external users to send secrets to your team.",
     "sha256": "b8c9d0e2"
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Incoming secrets are currently disabled. External users cannot send secrets to recipients on this domain. Enable the feature below to allow incoming secrets.",
+    "sha256": "c9d0e1f4"
   },
   "web.domains.incoming.recipients_title": {
     "text": "Recipients",

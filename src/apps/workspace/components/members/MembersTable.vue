@@ -86,17 +86,17 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
   <div>
     <section
       :class="[
-        compact ? '' : 'rounded-lg bg-white p-4 shadow-sm dark:bg-gray-900 sm:p-6 lg:p-8'
+        compact ? '' : 'rounded-lg bg-white/60 p-4 shadow-sm backdrop-blur-sm dark:bg-gray-900/60 sm:p-6 lg:p-8'
       ]"
       aria-labelledby="members-heading">
       <!-- Header Section (hidden in compact mode) -->
       <div
         v-if="!compact"
-        class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1
             id="members-heading"
-            class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+            class="text-xl font-medium tracking-tight text-gray-900 dark:text-white">
             {{ t('web.organizations.members.title') }}
           </h1>
           <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">

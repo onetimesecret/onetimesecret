@@ -60,6 +60,7 @@ const i18n = createI18n({
             config_description: 'When enabled, this domain uses its own email sender',
             discard_changes: 'Discard Changes',
             save_changes: 'Save Changes',
+            disabled_notice: 'Email sending is currently disabled. Enable the feature to configure email settings.',
           },
         },
         COMMON: {
@@ -551,6 +552,93 @@ describe('DomainEmailConfigForm', () => {
 
       const toggle = wrapper.find('[role="switch"]');
       expect(toggle.attributes('aria-checked')).toBe('false');
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Disabled state behavior (UI consistency)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('Disabled state behavior', () => {
+    it('shows disabled notice banner when enabled is false', () => {
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: false },
+      });
+
+      // Banner should be visible with info icon
+      const banner = wrapper.find('.bg-blue-50');
+      expect(banner.exists()).toBe(true);
+    });
+
+    it('hides disabled notice banner when enabled is true', () => {
+      wrapper = mountComponent({
+        formState: { ...configuredFormState, enabled: true },
+      });
+
+      // Banner should NOT be visible
+      const banner = wrapper.find('.bg-blue-50');
+      expect(banner.exists()).toBe(false);
+    });
+
+    it('disables form inputs when enabled is false', () => {
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: false },
+      });
+
+      const fromNameInput = wrapper.find('#email-from-name');
+      const fromAddressInput = wrapper.find('#email-from-address');
+      const replyToInput = wrapper.find('#email-reply-to');
+
+      expect(fromNameInput.attributes('disabled')).toBeDefined();
+      expect(fromAddressInput.attributes('disabled')).toBeDefined();
+      expect(replyToInput.attributes('disabled')).toBeDefined();
+    });
+
+    it('enables form inputs when enabled is true', () => {
+      wrapper = mountComponent({
+        formState: { ...configuredFormState, enabled: true },
+      });
+
+      const fromNameInput = wrapper.find('#email-from-name');
+      const fromAddressInput = wrapper.find('#email-from-address');
+      const replyToInput = wrapper.find('#email-reply-to');
+
+      expect(fromNameInput.attributes('disabled')).toBeUndefined();
+      expect(fromAddressInput.attributes('disabled')).toBeUndefined();
+      expect(replyToInput.attributes('disabled')).toBeUndefined();
+    });
+
+    it('applies opacity styling to form container when disabled', () => {
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: false },
+      });
+
+      const formFieldsContainer = wrapper.find('.opacity-60');
+      expect(formFieldsContainer.exists()).toBe(true);
+    });
+
+    it('does not apply opacity styling when enabled', () => {
+      wrapper = mountComponent({
+        formState: { ...configuredFormState, enabled: true },
+      });
+
+      const formFieldsContainer = wrapper.find('.opacity-60');
+      expect(formFieldsContainer.exists()).toBe(false);
+    });
+
+    it('toggle remains interactive when form is disabled', async () => {
+      wrapper = mountComponent({
+        formState: { ...emptyFormState, enabled: false },
+      });
+
+      const toggle = wrapper.find('[role="switch"]');
+      await toggle.trigger('click');
+      await flushPromises();
+
+      const emitted = wrapper.emitted('update:formState');
+      expect(emitted).toBeTruthy();
+      // Should enable the form
+      expect(emitted![0][0]).toMatchObject({ enabled: true });
     });
   });
 

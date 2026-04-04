@@ -79,6 +79,7 @@ const {
   addRecipient,
   removeRecipient,
   discardChanges,
+  updateEnabled,
 } = useIncomingConfig(props.extid);
 
 // ---------------------------------------------------------------------------
@@ -275,7 +276,8 @@ watch(() => props.extid, async () => {
               @delete="deleteConfig"
               @discard="discardChanges"
               @add-recipient="(email, name) => addRecipient(email, name)"
-              @remove-recipient="removeRecipient" />
+              @remove-recipient="removeRecipient"
+              @update:enabled="updateEnabled" />
           </template>
         </div>
       </div>

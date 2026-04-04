@@ -143,7 +143,7 @@ begin
   ]
   OT.send(:conf=, conf_copy)
   Onetime::Initializers::SetupIncomingRecipients.new.execute(nil)
-  OT.incoming_public_recipients.first['name']
+  OT.incoming_public_recipients.first['display_name']
 ensure
   OT.send(:conf=, @_saved_conf_name_ws) rescue nil
   OT.instance_variable_set(:@incoming_recipient_lookup, {}.freeze)

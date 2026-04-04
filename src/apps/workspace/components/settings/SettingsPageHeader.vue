@@ -19,10 +19,10 @@ defineSlots<{
 </script>
 
 <template>
-  <div class="mb-8">
+  <div class="mb-10">
     <div class="flex items-start justify-between">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 class="text-xl font-medium text-gray-900 dark:text-white">
           {{ title ?? t('web.TITLES.account') }}
         </h1>
         <p

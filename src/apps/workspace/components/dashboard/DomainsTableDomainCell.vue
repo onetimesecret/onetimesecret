@@ -5,8 +5,9 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import DomainVerificationInfo from '@/apps/workspace/components/domains/DomainVerificationInfo.vue';
   import type { CustomDomain } from '@/schemas/shapes/v3/custom-domain';
+  import { useDomainStatus } from '@/shared/composables/useDomainStatus';
   import { formatDistanceToNow } from 'date-fns';
-  import { computed } from 'vue';
+  import { computed, toRef } from 'vue';
 
 const { t } = useI18n();
 
@@ -21,6 +22,14 @@ const { t } = useI18n();
     canBrand: false,
     canEmailConfig: false,
   });
+
+  // Domain verification status
+  const { isWarning, isError, displayStatus } = useDomainStatus(toRef(() => props.domain));
+
+  /**
+   * Route to verify the domain (shown when DNS issues exist).
+   */
+  const verifyRoute = computed(() => `/org/${props.orgid}/domains/${props.domain.extid}/verify`);
 
   /**
    * Email config status for the domain row badge.
@@ -105,34 +114,52 @@ const { t } = useI18n();
       </a>
     </div>
 
-    <div class="flex items-start space-x-2">
-      <DomainVerificationInfo
-        mode="icon"
-        :domain="domain"
-        :orgid="props.orgid"
-        class="-mt-0.5 shrink-0" />
+    <div class="flex items-center gap-2">
+      <!-- When DNS issues exist: show only clickable status text (no icons) -->
+      <template v-if="isWarning || isError">
+        <router-link
+          :to="verifyRoute"
+          class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300">
+          <OIcon
+            collection="mdi"
+            name="alert-circle"
+            class="size-4"
+            aria-hidden="true" />
+          {{ displayStatus }}
+        </router-link>
+      </template>
 
-      <!-- Email config status badge: always shown when entitlement is present -->
-      <router-link
-        v-if="canEmailConfig"
-        :to="{ name: 'DomainEmail', params: { orgid: props.orgid, extid: domain.extid } }"
-        class="tooltip -mt-0.5 inline-flex shrink-0 items-center"
-        :data-tooltip="emailStatusTooltip">
-        <OIcon
-          collection="heroicons"
-          :name="emailStatusIcon"
-          class="size-4 opacity-75 transition-opacity hover:opacity-100"
-          :class="emailStatusColorClass"
-          aria-hidden="true" />
-      </router-link>
+      <!-- When OK: show status icons + age -->
+      <template v-else>
+        <!-- Domain verification status icon -->
+        <DomainVerificationInfo
+          mode="icon"
+          :domain="domain"
+          :orgid="props.orgid"
+          class="shrink-0" />
 
-      <span class="text-xs text-gray-500 dark:text-gray-400">
-        {{
-          t('web.domains.added_formatdistancetonow_domain_created_addsuffix_true', [
-            formatDistanceToNow(domain.created, { addSuffix: true }),
-          ])
-        }}
-      </span>
+        <!-- Email config status badge -->
+        <router-link
+          v-if="canEmailConfig"
+          :to="{ name: 'DomainEmail', params: { orgid: props.orgid, extid: domain.extid } }"
+          class="tooltip inline-flex shrink-0 items-center"
+          :data-tooltip="emailStatusTooltip">
+          <OIcon
+            collection="heroicons"
+            :name="emailStatusIcon"
+            class="size-4 opacity-75 transition-opacity hover:opacity-100"
+            :class="emailStatusColorClass"
+            aria-hidden="true" />
+        </router-link>
+
+        <span class="text-xs text-gray-500 dark:text-gray-400">
+          {{
+            t('web.domains.added_formatdistancetonow_domain_created_addsuffix_true', [
+              formatDistanceToNow(domain.created, { addSuffix: true }),
+            ])
+          }}
+        </span>
+      </template>
     </div>
   </div>
 </template>

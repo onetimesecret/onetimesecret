@@ -12,16 +12,19 @@ import type { IncomingConfigFormState, IncomingConfigServerState } from '@/share
 // ---------------------------------------------------------------------------
 
 export const emptyFormState: IncomingConfigFormState = {
+  enabled: false,
   recipients: [],
 };
 
 export const singleRecipientFormState: IncomingConfigFormState = {
+  enabled: true,
   recipients: [
     { email: 'security@acme.com', name: 'Security Team' },
   ],
 };
 
 export const multipleRecipientsFormState: IncomingConfigFormState = {
+  enabled: true,
   recipients: [
     { email: 'security@acme.com', name: 'Security Team' },
     { email: 'support@acme.com', name: 'Support' },
@@ -30,6 +33,7 @@ export const multipleRecipientsFormState: IncomingConfigFormState = {
 };
 
 export const maxRecipientsFormState: IncomingConfigFormState = {
+  enabled: true,
   recipients: Array.from({ length: 20 }, (_, i) => ({
     email: `recipient${i + 1}@acme.com`,
     name: `Recipient ${i + 1}`,
@@ -37,6 +41,7 @@ export const maxRecipientsFormState: IncomingConfigFormState = {
 };
 
 export const nearLimitFormState: IncomingConfigFormState = {
+  enabled: true,
   recipients: Array.from({ length: 18 }, (_, i) => ({
     email: `recipient${i + 1}@acme.com`,
     name: `Recipient ${i + 1}`,

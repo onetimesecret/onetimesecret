@@ -43,6 +43,13 @@ vi.mock('vue-router', () => ({
   useRouter: vi.fn(() => ({ push: vi.fn() })),
 }));
 
+// Mock useProductIdentity to avoid useI18n() in store
+vi.mock('@/shared/stores/identityStore', () => ({
+  useProductIdentity: () => ({
+    isCustom: false,
+  }),
+}));
+
 import UpgradeBanner from '@/apps/workspace/dashboard/components/UpgradeBanner.vue';
 
 const i18n = createI18n({
@@ -106,7 +113,7 @@ describe('UpgradeBanner', () => {
           billing_enabled: billingEnabled,
         },
         organization: {
-          organizations: [{ extid: orgExtid }],
+          organizations: [{ extid: orgExtid, current_user_role: 'owner' }],
         },
       },
     });

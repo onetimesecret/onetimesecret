@@ -1,11 +1,14 @@
 <!-- src/apps/secret/conceal/BrandedHomepage.vue -->
 
 <script setup lang="ts">
-  import { ref } from 'vue';
+  import { ref, computed } from 'vue';
   import { useI18n } from 'vue-i18n';
   import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useProductIdentity } from '@/shared/stores/identityStore';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { isSsoEnabled, isOrgsSsoEnabled } from '@/utils/features';
+  import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
 
@@ -18,6 +21,24 @@
     displayName,
   } = useProductIdentity();
 
+  const bootstrapStore = useBootstrapStore();
+  const { authentication } = storeToRefs(bootstrapStore);
+
+  /**
+   * Show Sign In link when signin route is available AND either:
+   * - Platform authentication is enabled, OR
+   * - Platform-level SSO is configured, OR
+   * - Domain-level SSO is enabled
+   */
+  const showSignIn = computed(() => {
+    const hasSigninRoute = authentication.value?.signin === true;
+    const platformAuthEnabled = authentication.value?.enabled === true;
+    const platformSsoEnabled = isSsoEnabled();
+    const domainSsoEnabled = isOrgsSsoEnabled();
+
+    return hasSigninRoute && (platformAuthEnabled || platformSsoEnabled || domainSsoEnabled);
+  });
+
   // Handle logo 404 errors gracefully
   const imageError = ref(false);
   const handleImageError = () => {
@@ -26,7 +47,23 @@
 </script>
 
 <template>
-  <div class="mx-auto w-full max-w-xl px-4">
+  <div class="relative mx-auto w-full max-w-xl px-4">
+    <!-- Sign In Link (for custom domain SSO users) -->
+    <nav
+      v-if="showSignIn"
+      class="absolute right-4 top-0"
+      role="navigation"
+      :aria-label="t('web.layout.main_navigation')">
+      <router-link
+        to="/signin"
+        :title="t('web.homepage.log_in_to_onetime_secret')"
+        data-testid="branded-signin-link"
+        class="text-sm text-gray-500 transition-colors duration-200
+          hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+        {{ t('web.COMMON.header_sign_in') }}
+      </router-link>
+    </nav>
+
     <!-- Logo + Taglines (since MastHead is disabled for custom domains) -->
     <div class="mb-8 text-center">
       <!-- Logo with error handling - hides if 404 -->

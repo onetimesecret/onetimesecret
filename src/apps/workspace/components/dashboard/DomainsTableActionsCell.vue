@@ -6,6 +6,8 @@
   import MinimalDropdownMenu from '@/shared/components/ui/MinimalDropdownMenu.vue';
   import { CustomDomain } from '@/schemas/shapes/v3'
   import { MenuItem } from '@headlessui/vue';
+  import { useDomainStatus } from '@/shared/composables/useDomainStatus';
+  import { computed, toRef } from 'vue';
 
 const { t } = useI18n();
 
@@ -25,6 +27,30 @@ const { t } = useI18n();
     canIncomingSecrets: false,
   });
 
+  // Domain verification status
+  const { isActive } = useDomainStatus(toRef(() => props.domain));
+
+  /**
+   * Primary action to surface outside the kebab menu.
+   * Only shown when domain is verified (no issues) — when there ARE issues,
+   * the clickable status text in the domain cell already serves as the action.
+   */
+  const primaryAction = computed(() => {
+    // Don't show button when domain has issues — status text is already clickable
+    if (!isActive.value) return null;
+
+    // When verified, surface "Manage Brand" if entitled
+    if (props.canBrand) {
+      return {
+        label: t('web.domains.manage_brand'),
+        route: { name: 'DomainBrand', params: { orgid: props.orgid, extid: props.domain.extid } },
+        icon: 'paint-brush',
+        style: 'default',
+      };
+    }
+    return null;
+  });
+
   const emit = defineEmits<{
     (e: 'delete', domain: string): void
   }>();
@@ -36,7 +62,22 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <MinimalDropdownMenu>
+  <div class="flex items-center justify-end gap-2">
+    <!-- Primary action button (surfaced for quick access when domain is healthy) -->
+    <router-link
+      v-if="primaryAction"
+      :to="primaryAction.route"
+      class="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+      <OIcon
+        collection="heroicons"
+        :name="primaryAction.icon"
+        class="size-3.5"
+        aria-hidden="true" />
+      {{ primaryAction.label }}
+    </router-link>
+
+    <!-- Kebab menu for all actions -->
+    <MinimalDropdownMenu>
     <template #menu-items>
       <div class="py-1">
         <MenuItem v-if="canBrand" v-slot="{ active }">
@@ -132,4 +173,5 @@ const { t } = useI18n();
       </div>
     </template>
   </MinimalDropdownMenu>
+  </div>
 </template>

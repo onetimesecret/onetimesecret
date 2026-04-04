@@ -199,6 +199,10 @@
     "text": "Manage your organizations and team members",
     "sha256": "2d026be4"
   },
+  "web.organizations.page_description_short": {
+    "text": "View and configure your workspaces",
+    "sha256": "a1b2c3d5"
+  },
   "web.organizations.tabs.general": {
     "text": "Settings",
     "sha256": "74a883a0"
@@ -762,6 +766,10 @@
   "web.organizations.invitations.switch_account": {
     "text": "Sign In with Different Account",
     "sha256": "71b2bdf3"
+  },
+  "web.organizations.invitations.accept_with_current_account": {
+    "text": "Accept with this account",
+    "sha256": "a1b2c3d4"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}d left",

@@ -43,6 +43,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (e: 'update:formState', value: IncomingConfigFormState): void;
+  (e: 'update:enabled', value: boolean): void;
   (e: 'save'): void;
   (e: 'delete'): void;
   (e: 'discard'): void;
@@ -63,6 +64,9 @@ const emailError = ref<string | null>(null);
 // ---------------------------------------------------------------------------
 // Computed
 // ---------------------------------------------------------------------------
+
+/** Whether incoming secrets are enabled. */
+const isEnabled = computed(() => props.formState.enabled);
 
 /** Total recipients (existing on server + pending in form). */
 const totalRecipientCount = computed(() =>
@@ -152,9 +156,9 @@ function handleRemovePending(index: number): void {
 }
 
 function handleSave(): void {
-  if (!hasPendingRecipients.value || props.isSaving) return;
+  if (!props.hasUnsavedChanges || props.isSaving) return;
 
-  if (willReplaceExisting.value) {
+  if (hasPendingRecipients.value && willReplaceExisting.value) {
     const confirmed = window.confirm(
       t('web.domains.incoming.save_will_replace_confirmation')
     );
@@ -180,6 +184,10 @@ function handleDelete(): void {
   emit('delete');
   showDeleteConfirm.value = false;
 }
+
+function handleToggleEnabled(): void {
+  emit('update:enabled', !props.formState.enabled);
+}
 </script>
 
 <template>
@@ -192,15 +200,31 @@ function handleDelete(): void {
       v-if="error"
       :error="error" />
 
-    <!-- Recipients Section Header -->
-    <div>
-      <h3 class="text-base font-semibold text-gray-900 dark:text-white">
-        {{ t('web.domains.incoming.recipients_title') }}
-      </h3>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        {{ t('web.domains.incoming.recipients_description') }}
+    <!-- Disabled State Banner -->
+    <div
+      v-if="!isEnabled"
+      class="flex items-start gap-3 rounded-md bg-blue-50 px-4 py-3 dark:bg-blue-900/20">
+      <OIcon
+        collection="heroicons"
+        name="information-circle"
+        class="mt-0.5 size-5 flex-shrink-0 text-blue-500 dark:text-blue-400"
+        aria-hidden="true" />
+      <p class="flex-1 text-sm text-blue-700 dark:text-blue-300">
+        {{ t('web.domains.incoming.disabled_notice') }}
       </p>
     </div>
+
+    <!-- Form Container - grayed out when disabled -->
+    <div :class="{ 'opacity-60 pointer-events-none': !isEnabled }">
+      <!-- Recipients Section Header -->
+      <div>
+        <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+          {{ t('web.domains.incoming.recipients_title') }}
+        </h3>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.domains.incoming.recipients_description') }}
+        </p>
+      </div>
 
     <!-- Existing Recipients (from server, read-only) -->
     <div
@@ -276,7 +300,7 @@ function handleDelete(): void {
           <button
             type="button"
             @click="handleRemovePending(index)"
-            :disabled="isSaving"
+            :disabled="!isEnabled || isSaving"
             class="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/20"
             :aria-label="t('web.domains.incoming.remove_recipient')">
             <OIcon
@@ -332,10 +356,11 @@ function handleDelete(): void {
             type="email"
             required
             autocomplete="off"
+            :disabled="!isEnabled"
             :placeholder="t('web.domains.incoming.email_placeholder')"
             :aria-invalid="!!emailError"
             :aria-describedby="emailError ? 'email-error' : undefined"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800 sm:text-sm"
             :class="{ 'border-red-300 dark:border-red-600': emailError }"
             @input="handleEmailInput"
             @keydown.enter.prevent="handleAddRecipient" />
@@ -360,8 +385,9 @@ function handleDelete(): void {
             type="text"
             maxlength="100"
             autocomplete="off"
+            :disabled="!isEnabled"
             :placeholder="t('web.domains.incoming.name_placeholder')"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800 sm:text-sm"
             @keydown.enter.prevent="handleAddRecipient" />
         </div>
       </div>
@@ -371,7 +397,7 @@ function handleDelete(): void {
         <button
           type="button"
           @click="handleAddRecipient"
-          :disabled="!isAddFormValid || isSaving"
+          :disabled="!isEnabled || !isAddFormValid || isSaving"
           class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-white dark:ring-gray-500 dark:hover:bg-gray-500">
           <OIcon
             collection="heroicons"
@@ -384,19 +410,78 @@ function handleDelete(): void {
     </div>
 
     <!-- Max Recipients Warning -->
-    <p
-      v-if="!canAddMore"
-      class="text-sm text-amber-600 dark:text-amber-400">
-      {{ t('web.domains.incoming.validation_max_recipients', { max: maxRecipients }) }}
-    </p>
+      <p
+        v-if="!canAddMore"
+        class="mt-4 text-sm text-amber-600 dark:text-amber-400">
+        {{ t('web.domains.incoming.validation_max_recipients', { max: maxRecipients }) }}
+      </p>
 
-    <!-- Recipient Count -->
-    <p
-      v-if="hasAnyRecipients"
-      class="text-sm text-gray-500 dark:text-gray-400">
-      {{ totalRecipientCount }} / {{ maxRecipients }}
-      {{ t('web.domains.incoming.recipients_title').toLowerCase() }}
-    </p>
+      <!-- Recipient Count -->
+      <p
+        v-if="hasAnyRecipients"
+        class="mt-4 text-sm text-gray-500 dark:text-gray-400">
+        {{ totalRecipientCount }} / {{ maxRecipients }}
+        {{ t('web.domains.incoming.recipients_title').toLowerCase() }}
+      </p>
+    </div>
+    <!-- End of disabled form container -->
+
+    <!-- Enabled Toggle -->
+    <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+      <div>
+        <label
+          for="incoming-enabled"
+          class="text-sm font-medium text-gray-900 dark:text-white">
+          {{ t('web.domains.enabled') }}
+        </label>
+        <p
+          id="incoming-enabled-hint"
+          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.domains.incoming.enabled_hint') }}
+        </p>
+      </div>
+      <button
+        id="incoming-enabled"
+        type="button"
+        role="switch"
+        :aria-checked="isEnabled"
+        aria-describedby="incoming-enabled-hint"
+        @click="handleToggleEnabled"
+        :class="[
+          'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
+          isEnabled ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600',
+        ]">
+        <span class="sr-only">{{ t('web.domains.enabled') }}</span>
+        <span
+          :class="[
+            'pointer-events-none relative inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+            isEnabled ? 'translate-x-5' : 'translate-x-0',
+          ]">
+          <span
+            :class="[
+              'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
+              isEnabled ? 'opacity-0 duration-100 ease-out' : 'opacity-100 duration-200 ease-in',
+            ]"
+            aria-hidden="true">
+            <OIcon
+              collection="heroicons"
+              name="x-mark"
+              class="size-3 text-gray-400" />
+          </span>
+          <span
+            :class="[
+              'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
+              isEnabled ? 'opacity-100 duration-200 ease-in' : 'opacity-0 duration-100 ease-out',
+            ]"
+            aria-hidden="true">
+            <OIcon
+              collection="heroicons"
+              name="check"
+              class="size-3 text-brand-600" />
+          </span>
+        </span>
+      </button>
+    </div>
 
     <!-- Action Buttons -->
     <div class="flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">
@@ -453,7 +538,7 @@ function handleDelete(): void {
       <!-- Right: Save -->
       <button
         type="submit"
-        :disabled="!hasPendingRecipients || isSaving || isDeleting"
+        :disabled="!hasUnsavedChanges || isSaving || isDeleting"
         class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
         <OIcon
           v-if="isSaving"

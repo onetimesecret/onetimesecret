@@ -585,10 +585,10 @@ aria-live="polite">
       <!-- Free Tier Section (standalone banner mode) -->
       <div
         v-if="freePlanStandalone && freePlan && !isLoadingContent"
-        class="rounded-lg border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-900/50">
+        class="rounded-lg border border-gray-200/60 bg-gray-50/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-900/50">
         <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            <h3 class="text-lg font-medium text-gray-600 dark:text-gray-300">
               {{ freePlan.name }}
             </h3>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -604,7 +604,7 @@ aria-live="polite">
       </div>
 
       <!-- No Plans Message -->
-      <div v-else-if="!isLoadingContent && filteredPlans.length === 0" class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-900/50">
+      <div v-else-if="!isLoadingContent && filteredPlans.length === 0" class="rounded-lg border border-gray-200/60 bg-gray-50/60 p-8 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-900/50">
         <p class="text-gray-600 dark:text-gray-400">
           {{ t('web.billing.plans.no_plans_available', { interval: billingInterval === 'year' ? t('web.billing.plans.yearly').toLowerCase() : t('web.billing.plans.monthly').toLowerCase() }) }}
         </p>
@@ -645,8 +645,8 @@ aria-live="polite">
       </div>
 
       <!-- Custom Needs -->
-      <div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-900/50">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+      <div class="rounded-lg border border-gray-200/60 bg-gray-50/60 p-8 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-900/50">
+        <h3 class="text-lg font-medium text-gray-600 dark:text-gray-300">
           {{ t('web.billing.plans.custom_needs_title') }}
         </h3>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">

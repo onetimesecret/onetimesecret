@@ -42,7 +42,7 @@ defineSlots<{
             class="size-5 text-gray-500 dark:text-gray-400"
             aria-hidden="true" />
           <div>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            <h2 class="text-lg font-medium text-gray-900 dark:text-white">
               {{ title }}
             </h2>
             <p

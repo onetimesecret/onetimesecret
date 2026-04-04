@@ -56,26 +56,19 @@
   });
 
   /**
-   * Normalizes an email address for comparison.
-   * - Lowercases the entire email
-   * - Strips Gmail-style + suffixes (user+tag@gmail.com → user@gmail.com)
+   * Tracks whether user has acknowledged accepting with a different email.
    */
-  function normalizeEmail(email: string): string {
-    const [local, domain] = email.toLowerCase().split('@');
-    if (!domain) return email.toLowerCase();
-    const normalizedLocal = local.split('+')[0];
-    return `${normalizedLocal}@${domain}`;
-  }
+  const acknowledgeEmailMismatch = ref(false);
 
   /**
    * Detects if the currently logged-in user has a different email
-   * than the one the invitation was sent to.
+   * than the one the invitation was sent to (case-insensitive comparison).
    */
   const emailMismatch = computed(() => {
     if (!authStore.isAuthenticated || !invitation.value?.email) return false;
     const currentEmail = bootstrapStore.email;
     if (!currentEmail) return false;
-    return normalizeEmail(currentEmail) !== normalizeEmail(invitation.value.email);
+    return currentEmail.toLowerCase() !== invitation.value.email.toLowerCase();
   });
 
   /**
@@ -114,6 +107,11 @@
     isLoading.value = false;
   });
 
+  const handleAcceptWithMismatch = async () => {
+    acknowledgeEmailMismatch.value = true;
+    await handleAccept();
+  };
+
   const handleAccept = async () => {
     if (!authStore.isAuthenticated) {
       router.push({
@@ -126,12 +124,20 @@
       return;
     }
 
+    // If there's an email mismatch and user hasn't acknowledged, don't proceed
+    if (emailMismatch.value && !acknowledgeEmailMismatch.value) {
+      return;
+    }
+
     isProcessing.value = true;
     error.value = '';
     success.value = '';
 
     try {
-      await $api.post(`/api/invite/${invitationToken.value}/accept`);
+      const payload = acknowledgeEmailMismatch.value
+        ? { acknowledge_email_mismatch: true }
+        : {};
+      await $api.post(`/api/invite/${invitationToken.value}/accept`, payload);
 
       success.value = t('web.organizations.invitations.accept_success');
 
@@ -271,7 +277,7 @@
 
         <!-- Email Mismatch Warning (authenticated but wrong email) -->
         <div
-          v-if="emailMismatch"
+          v-if="emailMismatch && !acknowledgeEmailMismatch"
           data-testid="email-mismatch-warning"
           class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
           <div class="flex">
@@ -285,12 +291,9 @@
                 {{ t('web.organizations.invitations.email_mismatch_title') }}
               </p>
               <p class="mt-1 text-sm text-amber-700 dark:text-amber-300">
-                {{ t('web.organizations.invitations.email_mismatch_body', {
-                  invitedEmail: invitation?.email,
-                  currentEmail: bootstrapStore.email
-                }) }}
+                {{ t('web.organizations.invitations.email_mismatch_body', { invitedEmail: invitation?.email, currentEmail: bootstrapStore.email }) }}
               </p>
-              <div class="mt-3">
+              <div class="mt-3 flex flex-wrap gap-2">
                 <button
                   type="button"
                   @click="handleSwitchAccount"
@@ -298,6 +301,14 @@
                   data-testid="switch-account-btn"
                   class="inline-flex items-center rounded-md bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700">
                   {{ t('web.organizations.invitations.switch_account') }}
+                </button>
+                <button
+                  type="button"
+                  @click="handleAcceptWithMismatch"
+                  :disabled="isProcessing"
+                  data-testid="accept-with-mismatch-btn"
+                  class="inline-flex items-center rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                  {{ t('web.organizations.invitations.accept_with_current_account') }}
                 </button>
               </div>
             </div>
@@ -328,7 +339,7 @@
           <button
             type="button"
             @click="handleAccept"
-            :disabled="isProcessing"
+            :disabled="isProcessing || (emailMismatch && !acknowledgeEmailMismatch)"
             data-testid="accept-invitation-btn"
             class="inline-flex w-full justify-center rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400 sm:w-auto">
             <span v-if="!isProcessing">

@@ -5,12 +5,16 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { storeToRefs } from 'pinia';
 
 const { t } = useI18n();
 const organizationStore = useOrganizationStore();
+
+// Hide upgrade banners on custom domains (managed by org admin, not end users)
+const { isCustom } = useProductIdentity();
 
 const STORAGE_KEY = 'ots_upgrade_banner_dismissed';
 
@@ -34,8 +38,21 @@ const isFreePlan = computed(() => {
   return !plan || plan === 'free';
 });
 
-// Show banner only when billing is enabled, user is on free plan, and not dismissed
-const showBanner = computed(() => billingEnabled.value && isFreePlan.value && !dismissed.value);
+// Only show upgrade prompts to organization owners (not members/admins)
+const isOwner = computed(() => {
+  const role = currentOrg.value?.current_user_role;
+  return role === 'owner';
+});
+
+// Show banner only when:
+// - Not on custom domain (org members don't control billing)
+// - Billing is enabled
+// - User is org owner
+// - On free plan
+// - Not dismissed
+const showBanner = computed(() =>
+  !isCustom && billingEnabled.value && isOwner.value && isFreePlan.value && !dismissed.value
+);
 
 const handleDismiss = () => {
   dismissed.value = true;

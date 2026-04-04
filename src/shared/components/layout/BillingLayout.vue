@@ -28,7 +28,7 @@ const sections: NavigationItem[] = [
   {
     section: 'plans',
     icon: { collection: 'tabler', name: 'square-letter-s' },
-    label: t('web.billing.subscription.title'),
+    label: t('web.billing.plans.title'),
   },
   {
     section: 'invoices',
@@ -52,7 +52,7 @@ const isActiveSection = (section: string): boolean => route.path.endsWith(`/${se
   <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
     <!-- Page Header -->
     <div class="mb-6">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+      <h1 class="text-xl font-medium text-gray-900 dark:text-white">
         {{ t('web.navigation.billing') }}
       </h1>
       <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">

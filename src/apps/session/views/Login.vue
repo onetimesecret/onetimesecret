@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import AuthMethodSelector from '@/apps/session/components/AuthMethodSelector.vue';
 import AuthView from '@/apps/session/components/AuthView.vue';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useLanguageStore } from '@/shared/stores/languageStore';
 import { hasPasswordlessMethods } from '@/utils/features';
 import { storeToRefs } from 'pinia';
@@ -18,8 +19,11 @@ const router = useRouter();
 const languageStore = useLanguageStore();
 const bootstrapStore = useBootstrapStore();
 const { authentication } = storeToRefs(bootstrapStore);
+
+// Disable signup on custom domains (users must be provisioned by org admin)
+const { isCustom } = useProductIdentity();
 const signupEnabled = computed(
-  () => authentication.value?.enabled && authentication.value?.signup
+  () => !isCustom && authentication.value?.enabled && authentication.value?.signup
 );
 
 // Handle auth errors passed via query params (from SSO/magic link failures)
