@@ -237,7 +237,6 @@
                   <span>{{ getOrgPlanName(org) }}</span>
                 </span>
 
-                <!-- LAUNCH: Identity-only - Members link hidden until team features enabled
                 <router-link
                   v-if="org.extid"
                   :to="`/org/${org.extid}/members`"
@@ -250,7 +249,6 @@
                     aria-hidden="true" />
                   <span>{{ t('web.organizations.member_count', { count: org.member_count ?? 1 }) }}</span>
                 </router-link>
-                -->
 
                 <!-- Domains (links to org settings page, domains tab is default) -->
                 <router-link
