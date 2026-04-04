@@ -294,7 +294,7 @@ module Onetime
               upgrade_needed: !allowed,
             }
 
-            unless allowed
+            if !allowed && defined?(Billing::PlanHelpers)
               result[:upgrade_to] = Billing::PlanHelpers.upgrade_path_for(entitlement, planid)
             end
 
@@ -327,6 +327,11 @@ module Onetime
           # @param test_planid [String] Plan ID to test
           # @return [Array<String>] List of entitlements for the test plan
           def test_plan_entitlements(test_planid)
+            # Guard: billing must be enabled and Billing::Plan must exist
+            unless billing_enabled? && defined?(::Billing::Plan)
+              return WithEntitlements::STANDALONE_ENTITLEMENTS.dup
+            end
+
             # Check Billing::Plan cache first (production/Stripe-synced)
             plan = ::Billing::Plan.load(test_planid)
             return plan.entitlements.to_a if plan
@@ -347,6 +352,9 @@ module Onetime
           # @param resource [String, Symbol] Resource to check limit for
           # @return [Numeric] Limit value (Float::INFINITY for unlimited)
           def test_plan_limit_for(test_planid, resource)
+            # Guard: billing must be enabled and Billing::Plan must exist
+            return Float::INFINITY unless billing_enabled? && defined?(::Billing::Plan)
+
             # Flattened key: "teams" => "teams.max"
             key = resource.to_s.include?('.') ? resource.to_s : "#{resource}.max"
 

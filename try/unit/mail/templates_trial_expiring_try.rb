@@ -7,11 +7,19 @@
 # TrialExpiring is sent when a customer's trial period is about to end.
 # Required data: email_address, plan_name, trial_ends_at, days_remaining
 # Optional: upgrade_url
+#
+# NOTE: These tests require billing to be enabled (etc/billing.yaml with enabled: true)
 
 require_relative '../../support/test_helpers'
 
 # Load the app
 OT.boot! :test, false
+
+# Skip tests if billing is disabled - these templates only load with billing enabled
+unless OT.billing_config.enabled?
+  puts 'SKIP: Billing mail template tests require billing to be enabled'
+  exit 0
+end
 
 # Load the mail module
 require 'onetime/mail'

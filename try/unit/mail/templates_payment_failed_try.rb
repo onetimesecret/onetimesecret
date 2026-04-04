@@ -7,11 +7,19 @@
 # PaymentFailed is sent when a payment attempt fails.
 # Required data: email_address, amount, currency, plan_name, failure_reason
 # Optional: retry_date, update_payment_url
+#
+# NOTE: These tests require billing to be enabled (etc/billing.yaml with enabled: true)
 
 require_relative '../../support/test_helpers'
 
 # Load the app
 OT.boot! :test, false
+
+# Skip tests if billing is disabled - these templates only load with billing enabled
+unless OT.billing_config.enabled?
+  puts 'SKIP: Billing mail template tests require billing to be enabled'
+  exit 0
+end
 
 # Load the mail module
 require 'onetime/mail'

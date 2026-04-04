@@ -7,11 +7,19 @@
 # PaymentReceipt is sent after successful payment processing.
 # Required data: email_address, amount, currency, plan_name, invoice_id, paid_at
 # Optional: invoice_url
+#
+# NOTE: These tests require billing to be enabled (etc/billing.yaml with enabled: true)
 
 require_relative '../../support/test_helpers'
 
 # Load the app
 OT.boot! :test, false
+
+# Skip tests if billing is disabled - these templates only load with billing enabled
+unless OT.billing_config.enabled?
+  puts 'SKIP: Billing mail template tests require billing to be enabled'
+  exit 0
+end
 
 # Load the mail module
 require 'onetime/mail'

@@ -19,25 +19,32 @@ require 'sneakers'
 require 'onetime/jobs/queues/config'
 require 'onetime/jobs/workers/email_worker'
 require 'onetime/jobs/workers/notification_worker'
-require 'onetime/jobs/workers/billing_worker'
 require 'onetime/jobs/workers/transient_worker'
+
+# Load billing worker only when billing is enabled
+if Onetime.billing_config.enabled?
+  require 'billing/workers/billing_worker'
+end
 
 RSpec.describe 'Sneakers Worker Configuration' do
   # All workers that should be tested - add new workers here
+  # BillingWorker is conditionally included when billing is enabled
   WORKERS = [
     Onetime::Jobs::Workers::EmailWorker,
     Onetime::Jobs::Workers::NotificationWorker,
-    Onetime::Jobs::Workers::BillingWorker,
     Onetime::Jobs::Workers::TransientWorker,
-  ].freeze
+    (Billing::Workers::BillingWorker if Onetime.billing_config.enabled?),
+  ].compact.freeze
 
   # Expected worker-to-queue mappings (contract specification)
+  # BillingWorker mapping included when billing is enabled
   WORKER_QUEUE_CONTRACTS = {
     'EmailWorker' => 'email.message.send',
     'NotificationWorker' => 'notifications.alert.push',
-    'BillingWorker' => 'billing.event.process',
     'TransientWorker' => 'system.transient',
-  }.freeze
+  }.tap do |contracts|
+    contracts['BillingWorker'] = 'billing.event.process' if Onetime.billing_config.enabled?
+  end.freeze
 
   describe 'QueueConfig completeness' do
     it 'defines all queues referenced by workers' do
@@ -201,16 +208,22 @@ RSpec.describe 'Sneakers Worker Configuration' do
 
   describe 'environment variable configuration' do
     # Workers should support ENV-based thread/prefetch configuration
-    {
+    # BillingWorker config is conditionally included when billing is enabled
+    env_var_configs = {
       'EMAIL_WORKER_THREADS' => Onetime::Jobs::Workers::EmailWorker,
       'EMAIL_WORKER_PREFETCH' => Onetime::Jobs::Workers::EmailWorker,
       'NOTIFICATION_WORKER_THREADS' => Onetime::Jobs::Workers::NotificationWorker,
       'NOTIFICATION_WORKER_PREFETCH' => Onetime::Jobs::Workers::NotificationWorker,
-      'BILLING_WORKER_THREADS' => Onetime::Jobs::Workers::BillingWorker,
-      'BILLING_WORKER_PREFETCH' => Onetime::Jobs::Workers::BillingWorker,
       'TRANSIENT_WORKER_THREADS' => Onetime::Jobs::Workers::TransientWorker,
       'TRANSIENT_WORKER_PREFETCH' => Onetime::Jobs::Workers::TransientWorker,
-    }.each do |env_var, worker_class|
+    }
+
+    if Onetime.billing_config.enabled?
+      env_var_configs['BILLING_WORKER_THREADS'] = Billing::Workers::BillingWorker
+      env_var_configs['BILLING_WORKER_PREFETCH'] = Billing::Workers::BillingWorker
+    end
+
+    env_var_configs.each do |env_var, worker_class|
       it "#{worker_class.name} reads #{env_var}" do
         # The worker class body uses ENV.fetch, so the env var is read at class load time
         # We just verify the pattern exists in the expected workers

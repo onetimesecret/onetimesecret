@@ -4,6 +4,9 @@
 
 require_relative '../scheduled_job'
 
+# Guard: This job requires Billing::Plan. Only define when billing is enabled.
+return unless Onetime.billing_config.enabled?
+
 module Onetime
   module Jobs
     module Scheduled

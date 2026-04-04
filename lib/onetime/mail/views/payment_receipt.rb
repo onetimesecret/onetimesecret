@@ -3,6 +3,13 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+
+# Guard: This billing-specific template should only load when billing is enabled
+unless Onetime.billing_config.enabled?
+  OT.ld '[mail/views] Skipping PaymentReceipt (billing disabled)'
+  return
+end
+
 require_relative 'billing_template_helpers'
 
 module Onetime
