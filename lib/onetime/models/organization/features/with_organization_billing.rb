@@ -2,11 +2,13 @@
 #
 # frozen_string_literal: true
 
-require 'billing/metadata'
-require 'billing/models/plan'
-require 'billing/lib/billing_service'
-require 'billing/lib/plan_validator'
-require 'billing/operations/apply_subscription_to_org'
+if Onetime.billing_config.enabled?
+  require 'billing/metadata'
+  require 'billing/models/plan'
+  require 'billing/lib/billing_service'
+  require 'billing/lib/plan_validator'
+  require 'billing/operations/apply_subscription_to_org'
+end
 require_relative '../../../utils/email_hash'
 
 module Onetime
@@ -173,9 +175,12 @@ module Onetime
           #   org.paid?  # => false (active sub + free_v1)
           #
           def paid?
-            active_subscription? &&
-              !planid.to_s.empty? &&
-              !Billing::Metadata::FREE_PLAN_IDS.include?(planid.to_s)
+            return false unless active_subscription? && !planid.to_s.empty?
+
+            # When billing is disabled, treat all plans as free
+            return false unless defined?(Billing::Metadata::FREE_PLAN_IDS)
+
+            !Billing::Metadata::FREE_PLAN_IDS.include?(planid.to_s)
           end
 
           # Check if organization has a complimentary (pro-bono) subscription
@@ -345,15 +350,15 @@ module Onetime
               raise ArgumentError, 'Subscription missing required fields (id, customer, status)'
             end
 
-            # Validate subscription status is known value
-            unless Billing::Metadata::VALID_SUBSCRIPTION_STATUSES.include?(subscription.status)
-              OT.lw '[Organization.update_from_stripe_subscription] Unknown subscription status',
-                {
-                  subscription_id: subscription.id,
-                  status: subscription.status,
-                  orgid: objid,
-                }
-            end
+            # Validate subscription status is known value (when billing loaded)
+            if defined?(Billing::Metadata::VALID_SUBSCRIPTION_STATUSES) && !Billing::Metadata::VALID_SUBSCRIPTION_STATUSES.include?(subscription.status)
+                OT.lw '[Organization.update_from_stripe_subscription] Unknown subscription status',
+                  {
+                    subscription_id: subscription.id,
+                    status: subscription.status,
+                    orgid: objid,
+                  }
+              end
 
             # ==========================================================================
             # REPLAY-SAFE CUSTOMER ID HANDLING
@@ -372,6 +377,10 @@ module Onetime
             end
 
             # Delegate field-setting to shared operation (owner path)
+            unless defined?(Billing::Operations::ApplySubscriptionToOrg)
+              raise OT::Problem, 'Billing module not loaded - cannot process subscription'
+            end
+
             Billing::Operations::ApplySubscriptionToOrg.call(
               self, subscription, owner: true
             )
@@ -407,6 +416,10 @@ module Onetime
           # @raise [Billing::CatalogMissError] If price_id not in catalog
           # @see Billing::PlanValidator.resolve_plan_id
           def extract_plan_id_from_subscription(subscription)
+            unless defined?(Billing::PlanValidator)
+              raise OT::Problem, 'Billing module not loaded - cannot resolve plan ID'
+            end
+
             price    = subscription.items.data.first&.price
             price_id = price&.id
 
@@ -444,6 +457,9 @@ module Onetime
           # @param subscription [Stripe::Subscription] Stripe subscription
           # @return [String, nil] Plan ID from metadata or nil
           def extract_metadata_plan_id(subscription)
+            # Return nil if billing metadata constants not available
+            return nil unless defined?(Billing::Metadata::FIELD_PLAN_ID)
+
             price = subscription.items.data.first&.price
 
             # Check price-level metadata first (defensive: VCR cassettes may have

@@ -17,6 +17,7 @@ require 'spec_helper'
 require_relative '../../../../../apps/web/billing/metadata'
 require_relative '../../../../../apps/web/billing/models/plan'
 require_relative '../../../../../apps/web/billing/lib/plan_validator'
+require_relative '../../../../../apps/web/billing/operations/apply_subscription_to_org'
 
 RSpec.describe 'WithOrganizationBilling', billing: true do
   # Test class that includes the module under test
