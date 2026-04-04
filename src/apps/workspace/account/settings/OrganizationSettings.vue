@@ -605,7 +605,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
     <div class="space-y-6">
       <!-- Page Header -->
       <div class="flex items-center justify-between">
@@ -619,7 +619,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               name="arrow-left"
               class="size-5"
               aria-hidden="true" />
-            <h1 class="m-0 text-xl font-brand font-semibold text-gray-900 dark:text-white">
+            <h1 class="m-0 text-xl font-medium text-gray-900 dark:text-white">
               {{ organization?.display_name || t('web.COMMON.loading') }}
             </h1>
           </router-link>
@@ -770,7 +770,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           aria-labelledby="org-tab-general"
           tabindex="0"
           data-testid="org-section-settings"
-          class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+          class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
             <h3 class="text-base font-semibold text-gray-900 dark:text-white">
               {{ t('web.organizations.general_settings') }}
@@ -868,7 +868,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
         <!--
         <section
           v-if="activeTab === 'members'"
-          class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+          class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
             <div class="flex items-center justify-between">
               <div>
@@ -1085,7 +1085,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           aria-labelledby="org-tab-domains"
           tabindex="0"
           data-testid="org-section-domains"
-          class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+          class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
             <div class="flex items-center justify-between">
               <div>
@@ -1158,7 +1158,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           data-testid="org-section-subscription"
           class="space-y-6">
           <!-- Billing Disabled Notice -->
-          <div v-if="!billingEnabled" class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+          <div v-if="!billingEnabled" class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
             <div class="p-6">
               <div class="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center dark:border-gray-600">
                 <OIcon
@@ -1179,7 +1179,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           <!-- Billing Enabled -->
           <template v-else>
             <!-- Subscription Overview -->
-            <div class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <div class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
               <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
                 <h3 class="text-base font-semibold text-gray-900 dark:text-white">
                   {{ t('web.billing.subscription.status') }}
@@ -1408,7 +1408,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           data-testid="org-section-sso"
           class="space-y-6">
           <!-- Domain SSO Configuration -->
-          <div class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+          <div class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
             <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
               <div class="flex items-center gap-3">
                 <div class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">

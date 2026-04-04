@@ -116,7 +116,7 @@ const handleManageOrganization = (org: Organization) => {
     <div class="mb-8">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 class="text-xl font-medium text-gray-900 dark:text-white">
             {{ t('web.organizations.manage_organizations') }}
           </h1>
           <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -146,7 +146,7 @@ const handleManageOrganization = (org: Organization) => {
     <div class="space-y-8">
       <!-- Organizations List -->
       <section
-        class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
         <div class="p-6">
           <!-- Loading State -->
           <div v-if="isLoading" class="flex items-center justify-center py-12">
@@ -170,7 +170,7 @@ data-testid="organizations-list">
               v-for="org in visibleOrganizations"
               :key="org.objid"
               :data-testid="`org-card-${org.extid}`"
-              class="rounded-lg border border-gray-200 p-4 transition-colors hover:border-brand-300 dark:border-gray-700 dark:hover:border-brand-600">
+              class="rounded-lg border border-gray-200/60 bg-white/60 p-4 shadow-sm backdrop-blur-sm transition-colors hover:border-brand-300 dark:border-gray-700/60 dark:bg-gray-800/60 dark:hover:border-brand-600">
               <!-- Header row: Name + badges -->
               <div class="flex items-start justify-between">
                 <div class="min-w-0 flex-1">
