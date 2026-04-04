@@ -422,35 +422,35 @@ describe('incomingConfigSchema', () => {
       expect(parsed.recipients).toEqual([]);
     });
 
-    it('accepts recipients with hash and name', () => {
+    it('accepts recipients with digest and display_name', () => {
       const config = {
         enabled: true,
         memo_max_length: 50,
         recipients: [
-          { hash: 'abc123def456', name: 'Alice' },
-          { hash: 'xyz789uvw012', name: 'Bob' },
+          { digest: 'abc123def456', display_name: 'Alice' },
+          { digest: 'xyz789uvw012', display_name: 'Bob' },
         ],
       };
       const parsed = incomingConfigSchema.parse(config);
       expect(parsed.recipients).toHaveLength(2);
-      expect(parsed.recipients[0].hash).toBe('abc123def456');
-      expect(parsed.recipients[0].name).toBe('Alice');
+      expect(parsed.recipients[0].digest).toBe('abc123def456');
+      expect(parsed.recipients[0].display_name).toBe('Alice');
     });
 
-    it('rejects recipient with empty hash', () => {
+    it('rejects recipient with empty digest', () => {
       const config = {
         enabled: true,
         memo_max_length: 50,
-        recipients: [{ hash: '', name: 'Alice' }],
+        recipients: [{ digest: '', display_name: 'Alice' }],
       };
       expect(() => incomingConfigSchema.parse(config)).toThrow();
     });
 
-    it('rejects recipient missing hash', () => {
+    it('rejects recipient missing digest', () => {
       const config = {
         enabled: true,
         memo_max_length: 50,
-        recipients: [{ name: 'Alice' }],
+        recipients: [{ display_name: 'Alice' }],
       };
       expect(() => incomingConfigSchema.parse(config)).toThrow();
     });

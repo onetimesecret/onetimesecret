@@ -4,11 +4,11 @@ import { z } from 'zod';
 
 /**
  * Schema for incoming recipient configuration
- * Note: Uses hash instead of email to prevent exposing recipient addresses
+ * Note: Uses digest instead of email to prevent exposing recipient addresses
  */
 export const incomingRecipientSchema = z.object({
-  hash: z.string().min(1),
-  name: z.string(),
+  digest: z.string().min(1),
+  display_name: z.string(),
 });
 
 export type IncomingRecipient = z.infer<typeof incomingRecipientSchema>;

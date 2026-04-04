@@ -140,29 +140,29 @@ describe('patchIncomingConfigPayloadSchema', () => {
 // -----------------------------------------------------------------------------
 
 describe('domainIncomingRecipientSchema', () => {
-  it('accepts valid recipient with hash and name', () => {
-    const recipient = { hash: 'abc123def456', name: 'Alice' };
+  it('accepts valid recipient with digest and display_name', () => {
+    const recipient = { digest: 'abc123def456', display_name: 'Alice' };
     const result = domainIncomingRecipientSchema.parse(recipient);
-    expect(result.hash).toBe('abc123def456');
-    expect(result.name).toBe('Alice');
+    expect(result.digest).toBe('abc123def456');
+    expect(result.display_name).toBe('Alice');
   });
 
-  it('accepts recipient with empty name', () => {
-    const recipient = { hash: 'abc123', name: '' };
+  it('accepts recipient with empty display_name', () => {
+    const recipient = { digest: 'abc123', display_name: '' };
     const result = domainIncomingRecipientSchema.parse(recipient);
-    expect(result.name).toBe('');
+    expect(result.display_name).toBe('');
   });
 
-  it('rejects missing hash', () => {
-    expect(() => domainIncomingRecipientSchema.parse({ name: 'Alice' })).toThrow();
+  it('rejects missing digest', () => {
+    expect(() => domainIncomingRecipientSchema.parse({ display_name: 'Alice' })).toThrow();
   });
 
-  it('rejects missing name', () => {
-    expect(() => domainIncomingRecipientSchema.parse({ hash: 'abc123' })).toThrow();
+  it('rejects missing display_name', () => {
+    expect(() => domainIncomingRecipientSchema.parse({ digest: 'abc123' })).toThrow();
   });
 
-  it('rejects empty hash (min length 1)', () => {
-    expect(() => domainIncomingRecipientSchema.parse({ hash: '', name: 'Alice' })).toThrow();
+  it('rejects empty digest (min length 1)', () => {
+    expect(() => domainIncomingRecipientSchema.parse({ digest: '', display_name: 'Alice' })).toThrow();
   });
 });
 
@@ -175,8 +175,8 @@ describe('customDomainIncomingConfigSchema', () => {
     domain_id: 'domain_123abc',
     enabled: true,
     recipients: [
-      { hash: 'hash1', name: 'Alice' },
-      { hash: 'hash2', name: 'Bob' },
+      { digest: 'hash1', display_name: 'Alice' },
+      { digest: 'hash2', display_name: 'Bob' },
     ],
     max_recipients: 20,
     created_at: 1609459200, // Unix timestamp
@@ -258,7 +258,7 @@ describe('customDomainIncomingConfigSchema', () => {
     it('rejects invalid recipient in array', () => {
       const config = {
         ...validConfig,
-        recipients: [{ hash: '', name: 'Invalid' }], // empty hash
+        recipients: [{ digest: '', display_name: 'Invalid' }], // empty digest
       };
       expect(() => customDomainIncomingConfigSchema.parse(config)).toThrow();
     });
@@ -272,7 +272,7 @@ describe('customDomainIncomingConfigSchema', () => {
       // Type assertions
       const _domainId: string = config.domain_id;
       const _enabled: boolean = config.enabled;
-      const _recipients: Array<{ hash: string; name: string }> = config.recipients;
+      const _recipients: Array<{ digest: string; display_name: string }> = config.recipients;
       const _maxRecipients: number = config.max_recipients;
       const _createdAt: Date = config.created_at;
       const _updatedAt: Date = config.updated_at;

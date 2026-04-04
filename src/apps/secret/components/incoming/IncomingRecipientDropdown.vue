@@ -33,9 +33,11 @@
     isOpen.value = false;
   });
 
-  const selectedRecipient = computed(() => props.recipients.find((r) => r.hash === props.modelValue));
+  const selectedRecipient = computed(() =>
+    props.recipients.find((r) => r.digest === props.modelValue)
+  );
 
-  const displayText = computed(() => selectedRecipient.value?.name || props.placeholder);
+  const displayText = computed(() => selectedRecipient.value?.display_name || props.placeholder);
 
   const statusColor = computed(() => {
     if (props.error) return 'border-red-500 focus:border-red-500 focus:ring-red-500';
@@ -127,21 +129,21 @@
           data-testid="recipient-listbox">
           <li
             v-for="recipient in recipients"
-            :key="recipient.hash"
+            :key="recipient.digest"
             role="option"
-            :aria-selected="modelValue === recipient.hash"
+            :aria-selected="modelValue === recipient.digest"
             :class="[
               'cursor-pointer px-4 py-2 transition-colors duration-150',
-              modelValue === recipient.hash
+              modelValue === recipient.digest
                 ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                 : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-slate-700',
             ]"
-            @click="selectRecipient(recipient.hash)"
-            :data-testid="`recipient-option-${recipient.hash}`">
+            @click="selectRecipient(recipient.digest)"
+            :data-testid="`recipient-option-${recipient.digest}`">
             <div class="flex items-center justify-between">
-              <span class="font-medium">{{ recipient.name }}</span>
+              <span class="font-medium">{{ recipient.display_name }}</span>
               <svg
-                v-if="modelValue === recipient.hash"
+                v-if="modelValue === recipient.digest"
                 class="size-5 text-blue-600 dark:text-blue-400"
                 fill="currentColor"
                 viewBox="0 0 20 20">

@@ -22,11 +22,11 @@ import { z } from 'zod';
 /**
  * Schema for incoming recipient in admin view.
  *
- * Uses hash instead of email to prevent exposing recipient addresses.
+ * Uses digest instead of email to prevent exposing recipient addresses.
  */
 export const domainIncomingRecipientSchema = z.object({
-  hash: z.string().min(1),
-  name: z.string(),
+  digest: z.string().min(1),
+  display_name: z.string(),
 });
 
 export type DomainIncomingRecipient = z.infer<typeof domainIncomingRecipientSchema>;
@@ -55,7 +55,7 @@ export type DomainIncomingRecipient = z.infer<typeof domainIncomingRecipientSche
  * const config = customDomainIncomingConfigSchema.parse({
  *   domain_id: 'domain123',
  *   enabled: true,
- *   recipients: [{ hash: 'abc123', name: 'Alice' }],
+ *   recipients: [{ digest: 'abc123', display_name: 'Alice' }],
  *   max_recipients: 20,
  *   created_at: 1609459200,
  *   updated_at: 1609545600,

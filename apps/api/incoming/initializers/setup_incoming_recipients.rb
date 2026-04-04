@@ -1,4 +1,4 @@
-# apps/api/v3/initializers/setup_incoming_recipients.rb
+# apps/api/incoming/initializers/setup_incoming_recipients.rb
 #
 # frozen_string_literal: true
 
@@ -72,8 +72,8 @@ module Onetime
 
           # Store for frontend display (without email)
           public_recipients << {
-            'hash' => hash_key,
-            'name' => name,
+            'digest' => hash_key,
+            'display_name' => name,
           }
 
           OT.info "[IncomingSecrets] Registered recipient: #{name} (#{OT::Utils.obscure_email(email)}) [#{hash_key[0..7]}...]"

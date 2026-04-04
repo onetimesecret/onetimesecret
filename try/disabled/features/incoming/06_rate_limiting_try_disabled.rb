@@ -39,7 +39,7 @@ def enable_incoming_feature_rl(recipient_hash, recipient_email)
     recipient_hash => recipient_email
   }.freeze)
   OT.instance_variable_set(:@incoming_public_recipients, [
-    { hash: recipient_hash, name: 'Rate Limit Test Recipient' }
+    { 'digest' => recipient_hash, 'display_name' => 'Rate Limit Test Recipient' }
   ].freeze)
 end
 

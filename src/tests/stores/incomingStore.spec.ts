@@ -23,8 +23,8 @@ describe('incomingStore', () => {
     enabled: true,
     memo_max_length: 100,
     recipients: [
-      { hash: 'abc123hash', name: 'Alice' },
-      { hash: 'def456hash', name: 'Bob' },
+      { digest: 'abc123hash', display_name: 'Alice' },
+      { digest: 'def456hash', display_name: 'Bob' },
     ],
     default_ttl: 86400,
   };
@@ -745,7 +745,7 @@ describe('incomingStore', () => {
       await store.loadConfig();
 
       expect(store.recipients).toHaveLength(2);
-      expect(store.recipients[0]).toEqual({ hash: 'abc123hash', name: 'Alice' });
+      expect(store.recipients[0]).toEqual({ digest: 'abc123hash', display_name: 'Alice' });
     });
 
     it('defaultTtl reflects config.default_ttl', async () => {
@@ -790,8 +790,8 @@ describe('incomingStore', () => {
         enabled: true,
         memo_max_length: 100,
         recipients: [
-          { hash: 'global-hash-1', name: 'Global Recipient 1' },
-          { hash: 'global-hash-2', name: 'Global Recipient 2' },
+          { digest: 'global-hash-1', display_name: 'Global Recipient 1' },
+          { digest: 'global-hash-2', display_name: 'Global Recipient 2' },
         ],
         default_ttl: 86400,
       };
@@ -804,7 +804,7 @@ describe('incomingStore', () => {
 
       expect(store.isFeatureEnabled).toBe(true);
       expect(store.recipients).toHaveLength(2);
-      expect(store.recipients[0].hash).toBe('global-hash-1');
+      expect(store.recipients[0].digest).toBe('global-hash-1');
     });
 
     it('handles config with multiple recipients and extended TTL', async () => {
@@ -812,9 +812,9 @@ describe('incomingStore', () => {
         enabled: true,
         memo_max_length: 200,
         recipients: [
-          { hash: 'acme-hash-1', name: 'ACME Support' },
-          { hash: 'acme-hash-2', name: 'ACME Security' },
-          { hash: 'acme-hash-3', name: 'ACME HR' },
+          { digest: 'acme-hash-1', display_name: 'ACME Support' },
+          { digest: 'acme-hash-2', display_name: 'ACME Security' },
+          { digest: 'acme-hash-3', display_name: 'ACME HR' },
         ],
         default_ttl: 172800,
       };
@@ -852,7 +852,7 @@ describe('incomingStore', () => {
       const config = {
         enabled: true,
         memo_max_length: 500,
-        recipients: [{ hash: 'enterprise-hash', name: 'Enterprise Team' }],
+        recipients: [{ digest: 'enterprise-hash', display_name: 'Enterprise Team' }],
         default_ttl: 604800, // 7 days
       };
 
@@ -872,7 +872,7 @@ describe('incomingStore', () => {
         enabled: true,
         memo_max_length: 300,
         recipients: [
-          { hash: 'domain-recipient-1', name: 'Domain Support' },
+          { digest: 'domain-recipient-1', display_name: 'Domain Support' },
         ],
         default_ttl: 259200, // 3 days
       };
@@ -914,7 +914,7 @@ describe('incomingStore', () => {
         enabled: false,
         memo_max_length: 100,
         recipients: [
-          { hash: 'orphan-hash-1', name: 'Orphan Recipient' },
+          { digest: 'orphan-hash-1', display_name: 'Orphan Recipient' },
         ],
         default_ttl: 86400,
       };
@@ -936,7 +936,7 @@ describe('incomingStore', () => {
       const disabledConfig = {
         enabled: false,
         memo_max_length: 50,
-        recipients: [{ hash: 'test-hash', name: 'Test' }],
+        recipients: [{ digest: 'test-hash', display_name: 'Test' }],
       };
 
       axiosMock.onGet('/api/incoming/config').reply(200, {
@@ -972,7 +972,7 @@ describe('incomingStore', () => {
         config: {
           enabled: true,
           memo_max_length: 100,
-          recipients: [{ hash: 'new-hash', name: 'New Recipient' }],
+          recipients: [{ digest: 'new-hash', display_name: 'New Recipient' }],
         },
       });
 
@@ -1119,22 +1119,22 @@ describe('incomingStore', () => {
       ).toThrow();
     });
 
-    it('rejects recipient with missing hash', () => {
+    it('rejects recipient with missing digest', () => {
       expect(() =>
         incomingConfigSchema.parse({
           enabled: true,
           memo_max_length: 50,
-          recipients: [{ name: 'Alice' }],
+          recipients: [{ display_name: 'Alice' }],
         })
       ).toThrow();
     });
 
-    it('rejects recipient with empty hash', () => {
+    it('rejects recipient with empty digest', () => {
       expect(() =>
         incomingConfigSchema.parse({
           enabled: true,
           memo_max_length: 50,
-          recipients: [{ hash: '', name: 'Alice' }],
+          recipients: [{ digest: '', display_name: 'Alice' }],
         })
       ).toThrow();
     });
