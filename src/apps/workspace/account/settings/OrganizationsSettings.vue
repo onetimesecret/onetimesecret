@@ -6,108 +6,109 @@
 -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import CreateOrganizationModal from '@/apps/workspace/components/organizations/CreateOrganizationModal.vue';
-import { useEntitlements } from '@/shared/composables/useEntitlements';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import type { Organization } from '@/types/organization';
-import { getPlanDisplayName, isLegacyPlan } from '@/types/billing';
-import { computed, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import CreateOrganizationModal from '@/apps/workspace/components/organizations/CreateOrganizationModal.vue';
+  import { useEntitlements } from '@/shared/composables/useEntitlements';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import type { Organization } from '@/types/organization';
+  import { getPlanDisplayName, isLegacyPlan } from '@/types/billing';
+  import { computed, onMounted, ref } from 'vue';
+  import { useRouter } from 'vue-router';
 
-const { t } = useI18n();
-const router = useRouter();
-const organizationStore = useOrganizationStore();
-const bootstrapStore = useBootstrapStore();
+  const { t } = useI18n();
+  const router = useRouter();
+  const organizationStore = useOrganizationStore();
+  const bootstrapStore = useBootstrapStore();
 
-const isLoading = ref(false);
-const showCreateModal = ref(false);
+  const isLoading = ref(false);
+  const showCreateModal = ref(false);
 
-/**
- * Check if billing is enabled
- */
-const billingEnabled = computed(() => bootstrapStore.billing_enabled);
+  /**
+   * Check if billing is enabled
+   */
+  const billingEnabled = computed(() => bootstrapStore.billing_enabled);
 
-/**
- * Check if an organization has a paid plan
- * Paid = planid exists and doesn't start with "free"
- */
-const hasPaidPlan = (org: Organization): boolean => {
-  if (!org.planid) return false;
-  return !org.planid.toLowerCase().startsWith('free');
-};
+  /**
+   * Check if an organization has a paid plan
+   * Paid = planid exists and doesn't start with "free"
+   */
+  const hasPaidPlan = (org: Organization): boolean => {
+    if (!org.planid) return false;
+    return !org.planid.toLowerCase().startsWith('free');
+  };
 
-/**
- * Get display-friendly plan name for an organization
- */
-const getOrgPlanName = (org: Organization): string => {
-  if (!org.planid) return t('web.billing.plans.free_plan');
-  return getPlanDisplayName(org.planid);
-};
+  /**
+   * Get display-friendly plan name for an organization
+   */
+  const getOrgPlanName = (org: Organization): string => {
+    if (!org.planid) return t('web.billing.plans.free_plan');
+    return getPlanDisplayName(org.planid);
+  };
 
-// Use the first organization to check entitlements for single-org users
-const primaryOrg = computed(() => organizationStore.organizations[0] || null);
-const primaryOrgRef = computed(() => primaryOrg.value);
-const { can, ENTITLEMENTS } = useEntitlements(primaryOrgRef);
+  // Use the first organization to check entitlements for single-org users
+  const primaryOrg = computed(() => organizationStore.organizations[0] || null);
+  const primaryOrgRef = computed(() => primaryOrg.value);
+  const { can, ENTITLEMENTS } = useEntitlements(primaryOrgRef);
 
-// Filter out default orgs for individual plan users (future plan-gating logic)
-const visibleOrganizations = computed(() =>
-  // For now, show all orgs. In future, filter by:
-  // - User's plan (hide default org for individual plans)
-  // - User's role (show only orgs where user is owner/admin)
-   organizationStore.organizations
-);
+  // Filter out default orgs for individual plan users (future plan-gating logic)
+  const visibleOrganizations = computed(
+    () =>
+      // For now, show all orgs. In future, filter by:
+      // - User's plan (hide default org for individual plans)
+      // - User's role (show only orgs where user is owner/admin)
+      organizationStore.organizations
+  );
 
-const hasOrganizations = computed(() => visibleOrganizations.value.length > 0);
+  const hasOrganizations = computed(() => visibleOrganizations.value.length > 0);
 
-/**
- * Determine if user can create multiple organizations based on entitlements.
- * Uses entitlement-based framework instead of hardcoded plan checks.
- */
-const canCreateMultipleOrgs = computed(() =>
-  // Users with org management entitlement can create multiple organizations
-  can(ENTITLEMENTS.MANAGE_ORGS)
-);
+  /**
+   * Determine if user can create multiple organizations based on entitlements.
+   * Uses entitlement-based framework instead of hardcoded plan checks.
+   */
+  const canCreateMultipleOrgs = computed(() =>
+    // Users with org management entitlement can create multiple organizations
+    can(ENTITLEMENTS.MANAGE_ORGS)
+  );
 
-/**
- * Determine if user is on a single-user account (no collaborative entitlements).
- * Any of MANAGE_ORGS, MANAGE_TEAMS, or MANAGE_MEMBERS indicates a collaborative plan.
- */
-const isSingleUserAccount = computed(
-  () =>
-    !can(ENTITLEMENTS.MANAGE_ORGS) &&
-    !can(ENTITLEMENTS.MANAGE_TEAMS) &&
-    !can(ENTITLEMENTS.MANAGE_MEMBERS)
-);
+  /**
+   * Determine if user is on a single-user account (no collaborative entitlements).
+   * Any of MANAGE_ORGS, MANAGE_TEAMS, or MANAGE_MEMBERS indicates a collaborative plan.
+   */
+  const isSingleUserAccount = computed(
+    () =>
+      !can(ENTITLEMENTS.MANAGE_ORGS) &&
+      !can(ENTITLEMENTS.MANAGE_TEAMS) &&
+      !can(ENTITLEMENTS.MANAGE_MEMBERS)
+  );
 
-onMounted(async () => {
-  isLoading.value = true;
-  try {
-    // Fetch organizations - each org includes domain_count from backend
-    await organizationStore.fetchOrganizations();
-  } catch (error) {
-    console.error('[OrganizationsSettings] Error fetching organizations:', error);
-  } finally {
-    isLoading.value = false;
-  }
-});
+  onMounted(async () => {
+    isLoading.value = true;
+    try {
+      // Fetch organizations - each org includes domain_count from backend
+      await organizationStore.fetchOrganizations();
+    } catch (error) {
+      console.error('[OrganizationsSettings] Error fetching organizations:', error);
+    } finally {
+      isLoading.value = false;
+    }
+  });
 
-const handleCreateOrganization = () => {
-  showCreateModal.value = true;
-};
+  const handleCreateOrganization = () => {
+    showCreateModal.value = true;
+  };
 
-const handleOrganizationCreated = (orgExtid: string) => {
-  showCreateModal.value = false;
-  // Navigate to the new organization's settings (using extid for URL)
-  router.push(`/org/${orgExtid}`);
-};
+  const handleOrganizationCreated = (orgExtid: string) => {
+    showCreateModal.value = false;
+    // Navigate to the new organization's settings (using extid for URL)
+    router.push(`/org/${orgExtid}`);
+  };
 
-const handleManageOrganization = (org: Organization) => {
-  // IMPORTANT: Always use extid (not id) for URL paths
-  router.push(`/org/${org.extid}`);
-};
+  const handleManageOrganization = (org: Organization) => {
+    // IMPORTANT: Always use extid (not id) for URL paths
+    router.push(`/org/${org.extid}`);
+  };
 </script>
 
 <template>
@@ -149,7 +150,9 @@ const handleManageOrganization = (org: Organization) => {
         class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
         <div class="p-6">
           <!-- Loading State -->
-          <div v-if="isLoading" class="flex items-center justify-center py-12">
+          <div
+            v-if="isLoading"
+            class="flex items-center justify-center py-12">
             <div class="text-center">
               <OIcon
                 collection="heroicons"
@@ -163,9 +166,10 @@ const handleManageOrganization = (org: Organization) => {
           </div>
 
           <!-- Organizations List -->
-          <div v-else-if="hasOrganizations"
-class="space-y-4"
-data-testid="organizations-list">
+          <div
+            v-else-if="hasOrganizations"
+            class="space-y-4"
+            data-testid="organizations-list">
             <div
               v-for="org in visibleOrganizations"
               :key="org.objid"
@@ -190,7 +194,9 @@ data-testid="organizations-list">
                       class="size-4 text-gray-400 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-500"
                       aria-hidden="true" />
                   </button>
-                  <p v-if="org.description" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  <p
+                    v-if="org.description"
+                    class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     {{ org.description }}
                   </p>
                 </div>
@@ -268,14 +274,18 @@ data-testid="organizations-list">
                     name="globe-alt"
                     class="size-4"
                     aria-hidden="true" />
-                  <span>{{ t('web.organizations.domain_count', { count: org.domain_count ?? 0 }) }}</span>
+                  <span>{{
+                    t('web.organizations.domain_count', { count: org.domain_count ?? 0 })
+                  }}</span>
                 </router-link>
               </div>
             </div>
           </div>
 
           <!-- Empty State -->
-          <div v-else class="py-12 text-center">
+          <div
+            v-else
+            class="py-12 text-center">
             <OIcon
               collection="ph"
               name="building-office-bold"
@@ -323,8 +333,6 @@ data-testid="organizations-list">
           </div>
         </div>
       </section>
-
-
 
       <section
         v-else-if="!hasOrganizations"
