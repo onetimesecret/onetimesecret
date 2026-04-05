@@ -22,9 +22,16 @@ SOURCE_LOCALE = "en"
 
 # Known fake hash patterns
 FAKE_PATTERNS = {
-    "", "placeholder",
-    "a1b2c3d4", "b2c3d4e5", "c3d4e5f6", "d4e5f6a7",
-    "e5f6a7b8", "f6a7b8c9", "a7b8c9d0",
+    "",
+    "placeholder",
+    "a1b2c3d4",
+    "b2c3d4e5",
+    "c3d4e5f6",
+    "d4e5f6a7",
+    "e5f6a7b8",
+    "f6a7b8c9",
+    "a7b8c9d0",
+    "cafecafe",
 }
 
 
@@ -38,7 +45,7 @@ def is_fake_hash(h: str) -> bool:
     if h in FAKE_PATTERNS:
         return True
     # Sequential hex pattern like a1b2c3d4
-    if re.match(r'^[a-f][0-9][a-f][0-9][a-f][0-9][a-f][0-9]$', h):
+    if re.match(r"^[a-f][0-9][a-f][0-9][a-f][0-9][a-f][0-9]$", h):
         return True
     return False
 
@@ -71,12 +78,15 @@ def load_source_hashes() -> dict[str, dict[str, str]]:
     return all_hashes
 
 
-def fix_locale_hashes(source_hashes: dict[str, dict[str, str]], dry_run: bool = False) -> int:
+def fix_locale_hashes(
+    source_hashes: dict[str, dict[str, str]], dry_run: bool = False
+) -> int:
     """Fix bad hashes in all non-source locale files."""
     total_fixed = 0
 
     locale_dirs = sorted(
-        d for d in CONTENT_DIR.iterdir()
+        d
+        for d in CONTENT_DIR.iterdir()
         if d.is_dir() and d.name != SOURCE_LOCALE and not d.name.startswith(".")
     )
 
@@ -121,8 +131,12 @@ def fix_locale_hashes(source_hashes: dict[str, dict[str, str]], dry_run: bool = 
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Fix invalid sha256 hashes in locale files.")
-    parser.add_argument("--dry-run", "-n", action="store_true", help="Show what would be done")
+    parser = argparse.ArgumentParser(
+        description="Fix invalid sha256 hashes in locale files."
+    )
+    parser.add_argument(
+        "--dry-run", "-n", action="store_true", help="Show what would be done"
+    )
     args = parser.parse_args()
 
     print("Loading source hashes...")
@@ -158,7 +172,9 @@ def main() -> None:
 
     print("Fixing locale hashes...")
     total = fix_locale_hashes(source_hashes, dry_run=args.dry_run)
-    print(f"\nTotal: {total + source_fixed} hashes {'would be ' if args.dry_run else ''}fixed")
+    print(
+        f"\nTotal: {total + source_fixed} hashes {'would be ' if args.dry_run else ''}fixed"
+    )
 
 
 if __name__ == "__main__":
