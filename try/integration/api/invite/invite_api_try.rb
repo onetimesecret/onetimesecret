@@ -49,11 +49,18 @@ end
 
 # Helper to fully enable domains for branding tests
 def enable_domains_for_branding_tests!
-  # Configure middleware with canonical domain
-  config = { 'enabled' => true, 'default' => 'onetimesecret.com' }
-  Onetime::Middleware::DomainStrategy.initialize_from_config(config)
+  # IMPORTANT: Must modify OT.conf directly because DomainStrategy.initialize
+  # reads from OT.conf when middleware instances are created.
+  # Simply calling initialize_from_config is not enough since it gets overwritten.
+  OT.conf['features'] ||= {}
+  OT.conf['features']['domains'] = {
+    'enabled' => true,
+    'default' => 'onetimesecret.com'
+  }
+  OT.conf['development'] ||= {}
+  OT.conf['development']['domain_context_enabled'] = true
+
   enable_runtime_domains!
-  enable_domain_context!
 end
 
 # Setup test data
@@ -270,6 +277,16 @@ last_response.status >= 400
 ## Setup branding test infrastructure - create org, domain, and invitation
 # First enable domains feature for these tests
 enable_domains_for_branding_tests!
+# Force Rack::Test to rebuild the app with the new config by creating a new test object
+@test = Object.new
+@test.extend Rack::Test::Methods
+def @test.app
+  Onetime::Application::Registry.generate_rack_url_map
+end
+# Re-delegate to new test object
+def get(*args); @test.get(*args); end
+def post(*args); @test.post(*args); end
+def last_response; @test.last_response; end
 @branding_owner = Onetime::Customer.create!(email: generate_unique_test_email("branding_owner"))
 @branding_invitee_email = generate_unique_test_email("branding_invitee")
 @branding_org = Onetime::Organization.create!(
@@ -471,6 +488,14 @@ sso_method.keys.all? { |k| allowed_fields.include?(k) }
 # ============================================================================
 # CLEANUP
 # ============================================================================
+
+# Reset domain config to test defaults to avoid affecting other tests
+OT.conf['features'] ||= {}
+OT.conf['features']['domains'] = { 'enabled' => false, 'default' => nil }
+OT.conf['development'] ||= {}
+OT.conf['development']['domain_context_enabled'] = false
+Onetime::Runtime.features = Onetime::Runtime.features.with(domains_enabled: false)
+Onetime::Middleware::DomainStrategy.reset! if Onetime::Middleware::DomainStrategy.respond_to?(:reset!)
 
 # Clean up branding/SSO test resources
 @sso_config.destroy! if @sso_config

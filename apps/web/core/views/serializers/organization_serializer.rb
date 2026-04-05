@@ -77,7 +77,6 @@ module Core
           if org.owner?(cust)
             'owner'
           elsif org.member?(cust)
-            # Check through model for specific role
             membership = Onetime::OrganizationMembership.find_by_org_customer(
               org.objid, cust.objid
             )

@@ -65,11 +65,12 @@ module InviteAPI
       def serialize_brand_public(brand_settings, custom_domain)
         return nil unless brand_settings && custom_domain
 
-        has_logo = !custom_domain.logo&.dig('filename').to_s.empty?
-        has_icon = !custom_domain.icon&.dig('filename').to_s.empty?
+        # Familia::HashKey uses [] accessor, not dig
+        has_logo = !custom_domain.logo['filename'].to_s.empty?
+        has_icon = !custom_domain.icon['filename'].to_s.empty?
         {
           primary_color: brand_settings.primary_color,
-          display_name: custom_domain.brand&.dig('name'),
+          display_name: custom_domain.brand['name'],
           logo_url: has_logo ? "/imagine/#{custom_domain.domainid}/logo.png" : nil,
           icon_url: has_icon ? "/imagine/#{custom_domain.domainid}/icon.png" : nil,
         }

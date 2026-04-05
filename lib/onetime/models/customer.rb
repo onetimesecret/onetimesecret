@@ -127,6 +127,13 @@ module Onetime
     # Notification preferences
     field :notify_on_reveal  # Boolean string: 'true' or 'false'
 
+    # Per-customer default organization preference
+    # Stores the objid of the customer's preferred default organization.
+    # When set, OrganizationLoader prioritizes this org over the org's is_default flag.
+    # This allows customer support to set a specific org as default for a customer
+    # without affecting the org's global is_default setting.
+    field :default_org_id
+
     def init
       super
 

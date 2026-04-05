@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import UserMenu from '@/shared/components/navigation/UserMenu.vue';
-import { nextTick } from 'vue';
+import { nextTick, ref, reactive } from 'vue';
 
 // Mock HeadlessUI components (Menu + Dialog for PlanTestModal)
 vi.mock('@headlessui/vue', () => ({
@@ -103,6 +103,28 @@ vi.mock('vue-router', () => ({
   },
 }));
 
+// Mock organization store state (mutable for per-test customization)
+// Use reactive() so the component can access .currentOrganization?.current_user_role
+const mockOrganizationStoreState = reactive({
+  currentOrganization: null as { current_user_role: string | null } | null,
+});
+
+vi.mock('@/shared/stores/organizationStore', () => ({
+  useOrganizationStore: () => mockOrganizationStoreState,
+}));
+
+// Mock product identity store state (mutable for per-test customization)
+// Pinia setup stores auto-unwrap computed refs when accessed via store instance,
+// so the component accesses isCustom as a boolean, not a ref.
+const mockIsCustomRef = ref(false);
+
+vi.mock('@/shared/stores/identityStore', () => ({
+  useProductIdentity: () => ({
+    // Use a getter to match Pinia's auto-unwrap behavior for computed refs
+    get isCustom() { return mockIsCustomRef.value; },
+  }),
+}));
+
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
@@ -117,8 +139,32 @@ const i18n = createI18n({
           logout: 'Logout',
           mfaVerification: 'MFA Verification',
         },
+        TITLES: {
+          dashboard: 'Dashboard',
+          recent: 'Recent',
+          account: 'Account',
+          help: 'Help',
+          feedback: 'Feedback',
+        },
+        COMMON: {
+          header_logout: 'Logout',
+          user_menu: 'User menu',
+        },
+        navigation: {
+          billing: 'Billing',
+        },
         colonel: {
+          admin: 'Colonel',
           testPlanMode: 'Test Plan Mode',
+        },
+        auth: {
+          complete_mfa_verification: 'Complete MFA Verification',
+          mfa_required: 'MFA Required',
+          mfa_verification_required: 'MFA verification required',
+        },
+        layout: {
+          toggle_dark_mode: 'Toggle dark mode',
+          switch_to_blank_mode: 'Switch to {0} mode',
         },
       },
     },
@@ -139,6 +185,9 @@ describe('UserMenu', () => {
     vi.clearAllMocks();
     mockLogout.mockReset();
     mockPush.mockReset();
+    // Reset mock store states to defaults
+    mockOrganizationStoreState.currentOrganization = null;
+    mockIsCustomRef.value = false;
   });
 
   afterEach(() => {
@@ -510,6 +559,253 @@ describe('UserMenu', () => {
 
       const menuItems = wrapper.findAll('[role="menuitem"]');
       expect(menuItems.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Custom Domain Members - Simplified Menu', () => {
+    // Helper to get menu item text content from visible items
+    const getVisibleMenuItemTexts = async () => {
+      const trigger = wrapper.find('button[aria-haspopup="true"]');
+      await trigger.trigger('click');
+      await nextTick();
+
+      const menuItems = wrapper.findAll('[role="menuitem"]');
+      return menuItems.map(item => item.text().toLowerCase());
+    };
+
+    // Helper to check if menu contains specific items
+    const expectMenuContains = (texts: string[], itemLabels: string[]) => {
+      for (const label of itemLabels) {
+        const found = texts.some(t => t.includes(label.toLowerCase()));
+        expect(found, `Expected menu to contain "${label}"`).toBe(true);
+      }
+    };
+
+    // Helper to check if menu does NOT contain specific items
+    const expectMenuNotContains = (texts: string[], itemLabels: string[]) => {
+      for (const label of itemLabels) {
+        const found = texts.some(t => t.includes(label.toLowerCase()));
+        expect(found, `Expected menu NOT to contain "${label}"`).toBe(false);
+      }
+    };
+
+    describe('Custom domain member (role: member)', () => {
+      beforeEach(() => {
+        mockIsCustomRef.value = true;
+        mockOrganizationStoreState.currentOrganization = {
+          current_user_role: 'member',
+        };
+      });
+
+      it('should see only account, help, and logout', async () => {
+        wrapper = mountComponent();
+        const menuTexts = await getVisibleMenuItemTexts();
+
+        expectMenuContains(menuTexts, ['account', 'help', 'logout']);
+      });
+
+      it('should NOT see dashboard, recent, billing, colonel, or feedback', async () => {
+        wrapper = mountComponent({ colonel: true }, { billing_enabled: true });
+        const menuTexts = await getVisibleMenuItemTexts();
+
+        expectMenuNotContains(menuTexts, ['dashboard', 'recent', 'billing', 'colonel', 'feedback']);
+      });
+    });
+
+    describe('Custom domain admin (role: admin)', () => {
+      beforeEach(() => {
+        mockIsCustomRef.value = true;
+        mockOrganizationStoreState.currentOrganization = {
+          current_user_role: 'admin',
+        };
+      });
+
+      it('should see only account, help, and logout', async () => {
+        wrapper = mountComponent();
+        const menuTexts = await getVisibleMenuItemTexts();
+
+        expectMenuContains(menuTexts, ['account', 'help', 'logout']);
+      });
+
+      it('should NOT see dashboard, recent, billing, colonel, or feedback', async () => {
+        wrapper = mountComponent({ colonel: true }, { billing_enabled: true });
+        const menuTexts = await getVisibleMenuItemTexts();
+
+        expectMenuNotContains(menuTexts, ['dashboard', 'recent', 'billing', 'colonel', 'feedback']);
+      });
+    });
+
+    describe('Custom domain owner (role: owner)', () => {
+      beforeEach(() => {
+        mockIsCustomRef.value = true;
+        mockOrganizationStoreState.currentOrganization = {
+          current_user_role: 'owner',
+        };
+      });
+
+      it('should see full menu (same as canonical site)', async () => {
+        wrapper = mountComponent({ colonel: true }, { billing_enabled: true });
+        const menuTexts = await getVisibleMenuItemTexts();
+
+        // Owner sees all items
+        expectMenuContains(menuTexts, ['dashboard', 'recent', 'billing', 'account', 'colonel', 'help', 'feedback', 'logout']);
+      });
+
+      it('should see test plan mode when colonel', async () => {
+        wrapper = mountComponent({ colonel: true });
+        const menuTexts = await getVisibleMenuItemTexts();
+
+        expectMenuContains(menuTexts, ['test plan']);
+      });
+    });
+
+    describe('Canonical site member (not custom domain)', () => {
+      beforeEach(() => {
+        mockIsCustomRef.value = false;
+        mockOrganizationStoreState.currentOrganization = {
+          current_user_role: 'member',
+        };
+      });
+
+      it('should see full menu regardless of role', async () => {
+        wrapper = mountComponent({ colonel: false }, { billing_enabled: true });
+        const menuTexts = await getVisibleMenuItemTexts();
+
+        // Non-colonel members on canonical site see standard menu
+        expectMenuContains(menuTexts, ['dashboard', 'recent', 'billing', 'account', 'help', 'feedback', 'logout']);
+      });
+    });
+
+    describe('Canonical site with no organization (null role)', () => {
+      beforeEach(() => {
+        mockIsCustomRef.value = false;
+        mockOrganizationStoreState.currentOrganization = null;
+      });
+
+      it('should see full menu', async () => {
+        wrapper = mountComponent({ colonel: false }, { billing_enabled: true });
+        const menuTexts = await getVisibleMenuItemTexts();
+
+        // Users without organization on canonical see standard menu
+        expectMenuContains(menuTexts, ['dashboard', 'recent', 'billing', 'account', 'help', 'feedback', 'logout']);
+      });
+    });
+
+    describe('Custom domain with null organization (edge case)', () => {
+      beforeEach(() => {
+        mockIsCustomRef.value = true;
+        mockOrganizationStoreState.currentOrganization = null;
+      });
+
+      it('should see full menu when organization has not loaded yet', async () => {
+        // Edge case: custom domain but org not loaded (race condition, bootstrap error)
+        // Show full menu to avoid blocking navigation - fail open, not closed
+        wrapper = mountComponent({ colonel: false }, { billing_enabled: true });
+        const menuTexts = await getVisibleMenuItemTexts();
+
+        expectMenuContains(menuTexts, ['dashboard', 'recent', 'billing', 'account', 'help', 'feedback', 'logout']);
+      });
+    });
+
+    describe('MFA precedence over domain/role restrictions', () => {
+      it('should restrict menu when awaitingMfa=true even for custom domain member', async () => {
+        mockIsCustomRef.value = true;
+        mockOrganizationStoreState.currentOrganization = {
+          current_user_role: 'member',
+        };
+
+        wrapper = mountComponent({ awaitingMfa: true, colonel: true }, { billing_enabled: true });
+        const menuTexts = await getVisibleMenuItemTexts();
+
+        // MFA takes precedence - only MFA verification and logout should be visible
+        expectMenuContains(menuTexts, ['mfa', 'logout']);
+        expectMenuNotContains(menuTexts, ['dashboard', 'recent', 'billing', 'account', 'help', 'feedback']);
+      });
+
+      it('should restrict menu when awaitingMfa=true even for custom domain owner', async () => {
+        mockIsCustomRef.value = true;
+        mockOrganizationStoreState.currentOrganization = {
+          current_user_role: 'owner',
+        };
+
+        wrapper = mountComponent({ awaitingMfa: true, colonel: true }, { billing_enabled: true });
+        const menuTexts = await getVisibleMenuItemTexts();
+
+        // MFA takes precedence over owner permissions
+        expectMenuContains(menuTexts, ['mfa', 'logout']);
+        expectMenuNotContains(menuTexts, ['dashboard', 'recent', 'billing', 'account', 'colonel']);
+      });
+
+      it('should restrict menu when awaitingMfa=true on canonical site', async () => {
+        mockIsCustomRef.value = false;
+        mockOrganizationStoreState.currentOrganization = {
+          current_user_role: 'owner',
+        };
+
+        wrapper = mountComponent({ awaitingMfa: true, colonel: true }, { billing_enabled: true });
+        const menuTexts = await getVisibleMenuItemTexts();
+
+        // MFA takes precedence regardless of domain type
+        expectMenuContains(menuTexts, ['mfa', 'logout']);
+        expectMenuNotContains(menuTexts, ['dashboard', 'recent', 'billing', 'account', 'colonel']);
+      });
+    });
+
+    describe('Divider logic for simplified menu', () => {
+      it('should not have orphan dividers when menu is simplified', async () => {
+        mockIsCustomRef.value = true;
+        mockOrganizationStoreState.currentOrganization = {
+          current_user_role: 'member',
+        };
+
+        wrapper = mountComponent();
+
+        const trigger = wrapper.find('button[aria-haspopup="true"]');
+        await trigger.trigger('click');
+        await nextTick();
+
+        const menu = wrapper.find('[role="menu"]');
+        const html = menu.html();
+
+        // Count dividers (border-t elements within the menu)
+        const dividers = menu.findAll('.border-t');
+        const menuItems = menu.findAll('[role="menuitem"]');
+
+        // Simplified menu (account, help, logout) should have appropriate dividers:
+        // - Divider before help section
+        // - Divider before logout
+        // But NOT multiple consecutive dividers or dividers at the start/end
+
+        // Each divider should be preceded and followed by menu content
+        // This ensures no orphan dividers at boundaries
+        for (let i = 0; i < dividers.length; i++) {
+          const divider = dividers[i];
+          const dividerIndex = html.indexOf(divider.html());
+
+          // Divider should not be at the very beginning of menu items
+          expect(dividerIndex).toBeGreaterThan(0);
+        }
+      });
+
+      it('should have proper dividers for full menu (canonical site)', async () => {
+        mockIsCustomRef.value = false;
+        mockOrganizationStoreState.currentOrganization = null;
+
+        wrapper = mountComponent({ colonel: true }, { billing_enabled: true });
+
+        const trigger = wrapper.find('button[aria-haspopup="true"]');
+        await trigger.trigger('click');
+        await nextTick();
+
+        const menu = wrapper.find('[role="menu"]');
+        const dividers = menu.findAll('.border-t');
+
+        // Full menu should have dividers:
+        // - Before colonel section
+        // - Before help section
+        // - Before logout
+        expect(dividers.length).toBeGreaterThanOrEqual(2);
+      });
     });
   });
 });

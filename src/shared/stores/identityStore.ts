@@ -119,7 +119,8 @@ export const useProductIdentity = defineStore('productIdentity', () => {
       state.siteHost = host;
       state.canonicalDomain = canonical;
       state.domainId = id;
-    }
+    },
+    { immediate: true }
   );
 
   /** Whether serving from primary domain */

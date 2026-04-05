@@ -33,6 +33,8 @@ import { useTheme } from '@/shared/composables/useTheme';
 import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
 import { type Customer } from '@/schemas/shapes/v3';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useProductIdentity } from '@/shared/stores/identityStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import PlanTestModal from '@/shared/components/modals/PlanTestModal.vue';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
@@ -56,6 +58,18 @@ const { isTestModeActive } = useTestPlanMode();
 
 const bootstrapStore = useBootstrapStore();
 const { billing_enabled } = storeToRefs(bootstrapStore);
+
+// Custom domain filtering: non-owners on custom domains see limited menu
+const { isCustom } = useProductIdentity();
+const organizationStore = useOrganizationStore();
+
+const userRole = computed(() =>
+  organizationStore.currentOrganization?.current_user_role || null
+);
+
+// Only restrict when we have a confirmed non-owner role
+// If org hasn't loaded yet (null role), show full menu to avoid blocking navigation
+const isCustomDomainNonOwner = computed(() => isCustom && !!userRole.value && userRole.value !== 'owner');
 
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
@@ -90,25 +104,25 @@ const menuItems = computed<MenuItem[]>(() => [
     variant: 'caution' as const, condition: () => props.awaitingMfa },
   { id: 'dashboard', to: '/dashboard', label: t('web.TITLES.dashboard'),
     icon: { collection: 'heroicons', name: 'shield-check-solid' },
-    condition: () => !props.awaitingMfa },
+    condition: () => !props.awaitingMfa && !isCustomDomainNonOwner.value },
   { id: 'recent', to: '/recent', label: t('web.TITLES.recent'),
     icon: { collection: 'heroicons', name: 'clock' },
-    condition: () => !props.awaitingMfa },
+    condition: () => !props.awaitingMfa && !isCustomDomainNonOwner.value },
   { id: 'billing', to: '/billing', label: t('web.navigation.billing'),
     icon: { collection: 'heroicons', name: 'credit-card' },
-    condition: () => !props.awaitingMfa && !!billing_enabled.value },
+    condition: () => !props.awaitingMfa && !!billing_enabled.value && !isCustomDomainNonOwner.value },
   { id: 'account', to: '/account', label: t('web.TITLES.account'),
     icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
     condition: () => !props.awaitingMfa },
   { id: 'colonel', to: '/colonel', label: t('web.colonel.admin'),
     icon: { collection: 'mdi', name: 'star' },
-    condition: () => !props.awaitingMfa && props.colonel },
+    condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainNonOwner.value },
   {
     id: 'test-plan',
     label: t('web.colonel.testPlanMode'),
     icon: { collection: 'heroicons', name: 'beaker' },
     variant: isTestModeActive.value ? 'caution' : 'default',
-    condition: () => !props.awaitingMfa && props.colonel,
+    condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainNonOwner.value,
     onClick: openPlanTestModal,
   },
   {
@@ -123,7 +137,7 @@ const menuItems = computed<MenuItem[]>(() => [
     to: '/feedback',
     label: t('web.TITLES.feedback'),
     icon: { collection: 'heroicons', name: 'chat-bubble-bottom-center-text' },
-    condition: () => !props.awaitingMfa,
+    condition: () => !props.awaitingMfa && !isCustomDomainNonOwner.value,
   },
   {
     id: 'logout',

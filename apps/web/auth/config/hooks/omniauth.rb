@@ -211,6 +211,22 @@ module Auth::Config::Hooks
           ) do
             Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
           end
+
+          # Join domain's organization if SSO came from a custom domain
+          # This enables domain-based org selection in OrganizationLoader
+          domain_id = session[:omniauth_tenant_domain_id]
+          if domain_id
+            Onetime::ErrorHandler.safe_execute(
+              'join_domain_organization_omniauth',
+              extid: customer.extid,
+              domain_id: domain_id,
+            ) do
+              Auth::Operations::JoinDomainOrganization.new(
+                customer: customer,
+                domain_id: domain_id,
+              ).call
+            end
+          end
         end
       end
 

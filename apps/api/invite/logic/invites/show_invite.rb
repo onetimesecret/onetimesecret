@@ -52,8 +52,12 @@ module InviteAPI::Logic
       def success_data
         result = { record: serialize_invitation_public(@invitation) }
 
+        OT.ld "[ShowInvite.success_data] domain_strategy=#{domain_strategy.inspect} display_domain=#{display_domain.inspect}"
+        OT.ld "[ShowInvite.success_data] custom_domain?=#{custom_domain?}"
+
         if custom_domain?
           domain = Onetime::CustomDomain.from_display_domain(display_domain)
+          OT.ld "[ShowInvite.success_data] found domain=#{domain&.display_domain.inspect}"
           if domain
             result[:record][:branding]     = serialize_brand_public(domain.brand_settings, domain)
             result[:record][:auth_methods] = build_auth_methods(domain.sso_config)
