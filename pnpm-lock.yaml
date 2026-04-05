@@ -14,7 +14,7 @@ importers:
   .:
     dependencies:
       '@babel/helpers':
-        specifier: ^7.29.2
+        specifier: 7.29.2
         version: 7.29.2
       '@codemirror/lang-json':
         specifier: 6.0.2
@@ -32,143 +32,143 @@ importers:
         specifier: 6.40.0
         version: 6.40.0
       '@headlessui/vue':
-        specifier: ^1.7.23
+        specifier: 1.7.23
         version: 1.7.23(vue@3.5.30(typescript@5.9.3))
       '@intlify/core':
-        specifier: ^11.3.0
+        specifier: 11.3.0
         version: 11.3.0
       '@sentry/browser':
-        specifier: ^10.43.0
+        specifier: 10.43.0
         version: 10.43.0
       '@sentry/core':
-        specifier: ^10.43.0
+        specifier: 10.43.0
         version: 10.43.0
       '@sentry/vue':
-        specifier: ^10.43.0
+        specifier: 10.43.0
         version: 10.43.0(pinia@3.0.4(typescript@5.9.3)(vue@3.5.30(typescript@5.9.3)))(vue@3.5.30(typescript@5.9.3))
       '@simplewebauthn/browser':
-        specifier: ^13.3.0
+        specifier: 13.3.0
         version: 13.3.0
       '@vue/runtime-core':
-        specifier: ^3.5.30
+        specifier: 3.5.30
         version: 3.5.30
       '@vueuse/core':
-        specifier: ^14.2.1
+        specifier: 14.2.1
         version: 14.2.1(vue@3.5.30(typescript@5.9.3))
       '@vueuse/integrations':
-        specifier: ^14.2.1
+        specifier: 14.2.1
         version: 14.2.1(axios@1.14.0)(focus-trap@7.8.0)(qrcode@1.5.4)(vue@3.5.30(typescript@5.9.3))
       axios:
-        specifier: ^1.14.0
+        specifier: 1.14.0
         version: 1.14.0
       brace-expansion:
         specifier: 1.1.13
         version: 1.1.13
       codemirror:
-        specifier: ^6.0.2
+        specifier: 6.0.2
         version: 6.0.2
       date-fns:
-        specifier: ^4.1.0
+        specifier: 4.1.0
         version: 4.1.0
       dompurify:
-        specifier: ^3.3.3
+        specifier: 3.3.3
         version: 3.3.3
       focus-trap:
-        specifier: ^7.8.0
+        specifier: 7.8.0
         version: 7.8.0
       focus-trap-vue:
-        specifier: ^4.1.0
+        specifier: 4.1.0
         version: 4.1.0(focus-trap@7.8.0)(vue@3.5.30(typescript@5.9.3))
       highlight.js:
-        specifier: ^11.11.1
+        specifier: 11.11.1
         version: 11.11.1
       marked:
-        specifier: ^17.0.4
+        specifier: 17.0.4
         version: 17.0.4
       marked-highlight:
-        specifier: ^2.2.3
+        specifier: 2.2.3
         version: 2.2.3(marked@17.0.4)
       nanoid:
-        specifier: ^5.1.7
+        specifier: 5.1.7
         version: 5.1.7
       pinia:
-        specifier: ^3.0.4
+        specifier: 3.0.4
         version: 3.0.4(typescript@5.9.3)(vue@3.5.30(typescript@5.9.3))
       qrcode:
-        specifier: ^1.5.4
+        specifier: 1.5.4
         version: 1.5.4
       stripe:
-        specifier: ^20.4.1
+        specifier: 20.4.1
         version: 20.4.1(@types/node@22.19.15)
       vue:
-        specifier: ^3.5.30
+        specifier: 3.5.30
         version: 3.5.30(typescript@5.9.3)
       vue-codemirror6:
-        specifier: ^1.4.3
+        specifier: 1.4.3
         version: 1.4.3(@codemirror/autocomplete@6.20.1)(@codemirror/commands@6.10.3)(@codemirror/language@6.12.2)(@codemirror/lint@6.9.5)(@codemirror/search@6.6.0)(@codemirror/state@6.6.0)(@codemirror/view@6.40.0)(codemirror@6.0.2)(style-mod@4.1.3)(vue@3.5.30(typescript@5.9.3))
       vue-i18n:
-        specifier: ^11.3.0
+        specifier: 11.3.0
         version: 11.3.0(vue@3.5.30(typescript@5.9.3))
       vue-router:
-        specifier: ^4.6.4
+        specifier: 4.6.4
         version: 4.6.4(vue@3.5.30(typescript@5.9.3))
       yaml:
         specifier: ^2.8.3
         version: 2.8.3
       zod:
-        specifier: ^4.3.6
+        specifier: 4.3.6
         version: 4.3.6
       zod-validation-error:
-        specifier: ^5.0.0
+        specifier: 5.0.0
         version: 5.0.0(zod@4.3.6)
     devDependencies:
       '@apidevtools/swagger-parser':
-        specifier: ^12.1.0
+        specifier: 12.1.0
         version: 12.1.0(openapi-types@12.1.3)
       '@eslint/js':
-        specifier: ^9.39.4
+        specifier: 9.39.4
         version: 9.39.4
       '@eslint/plugin-kit':
-        specifier: ^0.6.1
+        specifier: 0.6.1
         version: 0.6.1
       '@intlify/devtools-types':
-        specifier: ^11.3.0
+        specifier: 11.3.0
         version: 11.3.0
       '@intlify/eslint-plugin-vue-i18n':
-        specifier: ^4.3.0
+        specifier: 4.3.0
         version: 4.3.0(eslint@9.39.4(jiti@2.6.1))(jsonc-eslint-parser@2.4.2)(vue-eslint-parser@10.4.0(eslint@9.39.4(jiti@2.6.1)))(yaml-eslint-parser@1.3.2)
       '@intlify/unplugin-vue-i18n':
-        specifier: ^11.0.7
+        specifier: 11.0.7
         version: 11.0.7(@vue/compiler-dom@3.5.30)(eslint@9.39.4(jiti@2.6.1))(rollup@4.59.0)(typescript@5.9.3)(vue-i18n@11.3.0(vue@3.5.30(typescript@5.9.3)))(vue@3.5.30(typescript@5.9.3))
       '@pinia/testing':
-        specifier: ^1.0.3
+        specifier: 1.0.3
         version: 1.0.3(pinia@3.0.4(typescript@5.9.3)(vue@3.5.30(typescript@5.9.3)))
       '@playwright/test':
-        specifier: ^1.58.2
+        specifier: 1.58.2
         version: 1.58.2
       '@prettier/plugin-ruby':
-        specifier: ^4.0.4
+        specifier: 4.0.4
         version: 4.0.4(prettier@3.8.1)
       '@ruby/prism':
-        specifier: ^1.9.0
+        specifier: 1.9.0
         version: 1.9.0
       '@sentry/cli':
-        specifier: ^3.3.3
+        specifier: 3.3.3
         version: 3.3.3
       '@sentry/vite-plugin':
-        specifier: ^4.9.1
+        specifier: 4.9.1
         version: 4.9.1
       '@tailwindcss/forms':
-        specifier: ^0.5.11
+        specifier: 0.5.11
         version: 0.5.11(tailwindcss@4.2.1)
       '@tailwindcss/typography':
-        specifier: ^0.5.19
+        specifier: 0.5.19
         version: 0.5.19(tailwindcss@4.2.1)
       '@tailwindcss/vite':
-        specifier: ^4.2.1
+        specifier: 4.2.1
         version: 4.2.1(vite@7.3.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.21.0)(yaml@2.8.3))
       '@tsconfig/node24':
-        specifier: ^24.0.4
+        specifier: 24.0.4
         version: 24.0.4
       '@types/estree':
         specifier: 1.0.8
@@ -186,154 +186,154 @@ importers:
         specifier: 1.5.6
         version: 1.5.6
       '@typescript-eslint/eslint-plugin':
-        specifier: ^8.57.0
+        specifier: 8.57.0
         version: 8.57.0(@typescript-eslint/parser@8.57.0(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)
       '@typescript-eslint/parser':
-        specifier: ^8.57.0
+        specifier: 8.57.0
         version: 8.57.0(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)
       '@vitejs/plugin-vue':
-        specifier: ^6.0.5
+        specifier: 6.0.5
         version: 6.0.5(vite@7.3.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.21.0)(yaml@2.8.3))(vue@3.5.30(typescript@5.9.3))
       '@vitest/coverage-v8':
-        specifier: ^4.1.0
+        specifier: 4.1.0
         version: 4.1.0(vitest@4.1.0)
       '@vitest/ui':
-        specifier: ^4.1.0
+        specifier: 4.1.0
         version: 4.1.0(vitest@4.1.0)
       '@vue/compiler-dom':
-        specifier: ^3.5.30
+        specifier: 3.5.30
         version: 3.5.30
       '@vue/test-utils':
-        specifier: ^2.4.6
+        specifier: 2.4.6
         version: 2.4.6
       axios-mock-adapter:
-        specifier: ^2.1.0
+        specifier: 2.1.0
         version: 2.1.0(axios@1.14.0)
       esbuild:
-        specifier: ^0.27.4
+        specifier: 0.27.4
         version: 0.27.4
       eslint:
-        specifier: ^9.39.4
+        specifier: 9.39.4
         version: 9.39.4(jiti@2.6.1)
       eslint-config-prettier:
-        specifier: ^10.1.8
+        specifier: 10.1.8
         version: 10.1.8(eslint@9.39.4(jiti@2.6.1))
       eslint-import-resolver-typescript:
-        specifier: ^4.4.4
+        specifier: 4.4.4
         version: 4.4.4(eslint-plugin-import@2.32.0)(eslint@9.39.4(jiti@2.6.1))
       eslint-plugin-import:
-        specifier: ^2.32.0
+        specifier: 2.32.0
         version: 2.32.0(@typescript-eslint/parser@8.57.0(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@4.4.4)(eslint@9.39.4(jiti@2.6.1))
       eslint-plugin-tailwindcss:
         specifier: 4.0.0-beta.0
         version: 4.0.0-beta.0(tailwindcss@4.2.1)
       eslint-plugin-vue:
-        specifier: ^10.8.0
+        specifier: 10.8.0
         version: 10.8.0(@typescript-eslint/parser@8.57.0(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(vue-eslint-parser@10.4.0(eslint@9.39.4(jiti@2.6.1)))
       flatted:
         specifier: ^3.4.2
         version: 3.4.2
       fs-extra:
-        specifier: ^11.3.4
+        specifier: 11.3.4
         version: 11.3.4
       git-json-merge:
-        specifier: ^1.0.0
+        specifier: 1.0.0
         version: 1.0.0
       glob:
-        specifier: ^13.0.6
+        specifier: 13.0.6
         version: 13.0.6
       globals:
-        specifier: ^17.4.0
+        specifier: 17.4.0
         version: 17.4.0
       happy-dom:
-        specifier: ^20.8.8
+        specifier: 20.8.9
         version: 20.8.9
       jiti:
-        specifier: ^2.6.1
+        specifier: 2.6.1
         version: 2.6.1
       jsdom:
-        specifier: ^27.4.0
+        specifier: 27.4.0
         version: 27.4.0
       lint-staged:
-        specifier: ^16.4.0
+        specifier: 16.4.0
         version: 16.4.0
       playwright:
-        specifier: ^1.58.2
+        specifier: 1.58.2
         version: 1.58.2
       postcss:
-        specifier: ^8.5.8
+        specifier: 8.5.8
         version: 8.5.8
       prettier:
-        specifier: ^3.8.1
+        specifier: 3.8.1
         version: 3.8.1
       prettier-plugin-tailwindcss:
-        specifier: ^0.7.2
+        specifier: 0.7.2
         version: 0.7.2(prettier@3.8.1)
       prettier-plugin-vue:
-        specifier: ^1.1.6
+        specifier: 1.1.6
         version: 1.1.6
       rimraf:
-        specifier: ^6.1.3
+        specifier: 6.1.3
         version: 6.1.3
       rollup:
-        specifier: ^4.59.0
+        specifier: 4.59.0
         version: 4.59.0
       rollup-plugin-visualizer:
-        specifier: ^6.0.11
+        specifier: 6.0.11
         version: 6.0.11(rollup@4.59.0)
       tailwindcss:
-        specifier: ^4.2.1
+        specifier: 4.2.1
         version: 4.2.1
       ts-morph:
-        specifier: ^27.0.2
+        specifier: 27.0.2
         version: 27.0.2
       ts-node:
-        specifier: ^10.9.2
+        specifier: 10.9.2
         version: 10.9.2(@types/node@22.19.15)(typescript@5.9.3)
       tsx:
-        specifier: ^4.21.0
+        specifier: 4.21.0
         version: 4.21.0
       typedoc:
-        specifier: ^0.28.17
+        specifier: 0.28.17
         version: 0.28.17(typescript@5.9.3)
       typedoc-plugin-mdn-links:
-        specifier: ^5.1.1
+        specifier: 5.1.1
         version: 5.1.1(typedoc@0.28.17(typescript@5.9.3))
       typedoc-plugin-zod:
-        specifier: ^1.4.3
+        specifier: 1.4.3
         version: 1.4.3(typedoc@0.28.17(typescript@5.9.3))
       typescript:
-        specifier: ^5.9.3
+        specifier: 5.9.3
         version: 5.9.3
       typescript-eslint:
-        specifier: ^8.57.0
+        specifier: 8.57.0
         version: 8.57.0(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)
       unplugin-vue-markdown:
-        specifier: ^29.2.0
+        specifier: 29.2.0
         version: 29.2.0(vite@7.3.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.21.0)(yaml@2.8.3))
       vite:
-        specifier: ^7.3.1
+        specifier: 7.3.1
         version: 7.3.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.21.0)(yaml@2.8.3)
       vite-plugin-checker:
-        specifier: ^0.12.0
+        specifier: 0.12.0
         version: 0.12.0(eslint@9.39.4(jiti@2.6.1))(optionator@0.9.4)(typescript@5.9.3)(vite@7.3.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.21.0)(yaml@2.8.3))(vue-tsc@3.2.5(typescript@5.9.3))
       vite-plugin-vue-devtools:
-        specifier: ^8.1.0
+        specifier: 8.1.0
         version: 8.1.0(vite@7.3.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.21.0)(yaml@2.8.3))(vue@3.5.30(typescript@5.9.3))
       vite-plugin-vue-inspector:
-        specifier: ^5.4.0
+        specifier: 5.4.0
         version: 5.4.0(vite@7.3.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.21.0)(yaml@2.8.3))
       vitest:
-        specifier: ^4.1.0
+        specifier: 4.1.0
         version: 4.1.0(@types/node@22.19.15)(@vitest/ui@4.1.0)(happy-dom@20.8.9)(jsdom@27.4.0)(vite@7.3.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.21.0)(yaml@2.8.3))
       vue-eslint-parser:
-        specifier: ^10.4.0
+        specifier: 10.4.0
         version: 10.4.0(eslint@9.39.4(jiti@2.6.1))
       vue-router-mock:
-        specifier: ^2.0.2
+        specifier: 2.0.2
         version: 2.0.2(vue-router@4.6.4(vue@3.5.30(typescript@5.9.3)))(vue@3.5.30(typescript@5.9.3))
       vue-tsc:
-        specifier: ^3.2.5
+        specifier: 3.2.5
         version: 3.2.5(typescript@5.9.3)
 
 packages:
