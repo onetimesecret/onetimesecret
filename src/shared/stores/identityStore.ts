@@ -113,14 +113,6 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   watch(
     [domain_strategy, domains_enabled, display_domain, site_host, canonical_domain, domain_id],
     ([strategy, enabled, display, host, canonical, id]) => {
-      console.log('[IdentityStore] Domain config update:', {
-        domain_strategy: strategy,
-        domains_enabled: enabled,
-        display_domain: display,
-        site_host: host,
-        canonical_domain: canonical,
-        domain_id: id,
-      });
       state.domainStrategy = strategy;
       state.domainsEnabled = enabled;
       state.displayDomain = display;

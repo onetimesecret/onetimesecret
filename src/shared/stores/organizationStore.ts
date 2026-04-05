@@ -520,13 +520,6 @@ export const useOrganizationStore = defineStore('organization', () => {
           updated: new Date(),
         } as Organization;
 
-        console.log('[OrganizationStore] Initialized from bootstrap:', {
-          objid: bootstrapOrg.objid,
-          extid: bootstrapOrg.extid,
-          display_name: bootstrapOrg.display_name,
-          current_user_role: bootstrapOrg.current_user_role,
-          is_default: bootstrapOrg.is_default,
-        });
         loggingService.debug('[organizationStore] Initialized from bootstrap', { objid: bootstrapOrg.objid });
       }
     },

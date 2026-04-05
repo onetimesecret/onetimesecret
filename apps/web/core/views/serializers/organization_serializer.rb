@@ -72,26 +72,16 @@ module Core
         # @param cust [Onetime::Customer] Current user
         # @return [String, nil] Role name or nil
         def determine_user_role(org, cust)
-          OT.ld "[OrganizationSerializer] determine_user_role: org=#{org&.objid}, cust=#{cust&.custid}"
           return nil unless cust && !cust.anonymous?
 
-          role = if org.owner?(cust)
-            OT.ld "[OrganizationSerializer] User #{cust.custid} is owner of #{org.objid}"
+          if org.owner?(cust)
             'owner'
           elsif org.member?(cust)
-            # Check through model for specific role
-            membership  = Onetime::OrganizationMembership.find_by_org_customer(
+            membership = Onetime::OrganizationMembership.find_by_org_customer(
               org.objid, cust.objid
             )
-            actual_role = membership&.role || 'member'
-            OT.ld "[OrganizationSerializer] User #{cust.custid} is member of #{org.objid} with role: #{actual_role}"
-            actual_role
-          else
-            OT.ld "[OrganizationSerializer] User #{cust.custid} is NOT a member of #{org.objid}"
-            nil
+            membership&.role || 'member'
           end
-          OT.ld "[OrganizationSerializer] Final role: #{role.inspect}"
-          role
         end
       end
 

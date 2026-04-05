@@ -151,7 +151,7 @@ module Auth::Config::Hooks
           domain_id = session[:omniauth_tenant_domain_id]
           if domain_id
             # Load customer by external_id (extid) stored in the account record
-            customer = Onetime::Customer.load(account[:external_id])
+            customer = Onetime::Customer.find_by_extid(account[:external_id])
             if customer
               result = Onetime::ErrorHandler.safe_execute(
                 'join_domain_organization_login',

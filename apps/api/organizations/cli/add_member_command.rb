@@ -96,7 +96,7 @@ module Onetime
       end
 
       def find_customer!(email)
-        customer = Onetime::Customer.find_by_email(email.to_s.strip.downcase)
+        customer = Onetime::Customer.find_by_email(email.to_s.strip.unicode_normalize(:nfc).downcase(:fold))
         unless customer
           puts "Error: Customer not found with email: #{email}"
           puts '  The customer must have an existing account before being added to an organization.'
@@ -207,7 +207,7 @@ module Onetime
       end
 
       def check_pending_invitation(organization, email)
-        invite = Onetime::OrganizationMembership.find_by_org_email(organization.objid, email.to_s.strip.downcase)
+        invite = Onetime::OrganizationMembership.find_by_org_email(organization.objid, email.to_s.strip.unicode_normalize(:nfc).downcase(:fold))
         return nil unless invite&.pending?
 
         invite
