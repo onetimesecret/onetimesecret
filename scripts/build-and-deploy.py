@@ -5,7 +5,7 @@ Git post-receive hook: Build and push OCI images with Podman.
 
 Runs as a Gitolite hook. Derives image name from the repo.
 
-Updated: 2026-03-02
+Updated: 2026-04-05
 
 Install:
     pip install GitPython
@@ -378,23 +378,39 @@ def checkout(repo: Repo, rev: str, dest: Path) -> None:
         raise subprocess.CalledProcessError(rc, "git archive")
 
 
-def read_build_args(work_dir: Path, short_sha: str) -> dict[str, str]:
+def read_build_args(work_dir: Path, ref: PushRef) -> dict[str, str]:
     """
     Collect build arguments from the working tree.
 
-    Reads VERSION from package.json if present; always includes COMMIT_HASH.
-    Projects without package.json simply skip the VERSION arg.
-    """
-    args = {"COMMIT_HASH": short_sha}
+    Version resolution order:
+      1. Git tag (v1.2.3 -> 1.2.3) when pushing a tag
+      2. package.json version field
 
-    pkg_path = work_dir / "package.json"
-    if pkg_path.exists():
-        version = json.loads(pkg_path.read_text()).get("version")
-        if version:
-            args["VERSION"] = version
+    When version is the archetype placeholder (0.0.0-rc0), automatically
+    sets ALLOW_DEV_VERSION=true so branch builds proceed without manual
+    intervention. Tag pushes should never have the placeholder.
+    """
+    args = {"COMMIT_HASH": ref.short_sha}
+
+    # Prefer tag-derived version over package.json
+    if ref.is_tag:
+        version = ref.tag.lstrip("v")
+        log.info("Using version from tag: %s", version)
+    else:
+        pkg_path = work_dir / "package.json"
+        version = None
+        if pkg_path.exists():
+            version = json.loads(pkg_path.read_text()).get("version")
+
+    if version:
+        args["VERSION"] = version
+        # Allow dev builds when version is placeholder (branch pushes)
+        if version == "0.0.0-rc0":
+            args["ALLOW_DEV_VERSION"] = "true"
+            log.info("Placeholder version detected, enabling dev build")
 
     # Stamp commit hash file for Dockerfiles that COPY it
-    (work_dir / ".commit_hash.txt").write_text(short_sha)
+    (work_dir / ".commit_hash.txt").write_text(ref.short_sha)
 
     return args
 
@@ -468,7 +484,7 @@ def build_variant(
     suffix = variant["suffix"]
     label = suffix or "main"
     tags = ref.image_tags(config.image_base, suffix)
-    build_args = read_build_args(work_dir, ref.short_sha)
+    build_args = read_build_args(work_dir, ref)
 
     log.info("Building %s (%d tags)", label, len(tags))
 
