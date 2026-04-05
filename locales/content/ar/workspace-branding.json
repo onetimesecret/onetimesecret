@@ -60,7 +60,7 @@
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "تواصل مع onboarding{'@'}example.com لأي أسئلة",
+    "text": "تواصل مع support{'@'}example.com لأي أسئلة",
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
