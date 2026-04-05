@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """
-Fix invalid sha256 hashes in locale files.
+Fix invalid hashes in locale files.
 
 Replaces empty strings, "placeholder", and known fake sequential patterns
 (a1b2c3d4, b2c3d4e5, etc.) with the correct hash from the English source.
+
+Hash field names:
+  - Source locale (en): content_hash (hash of own text)
+  - Translation locales: source_hash (staleness watermark from English)
 
 Usage:
     python fix_hashes.py              # Fix all bad hashes
@@ -66,7 +70,7 @@ def load_source_hashes() -> dict[str, dict[str, str]]:
             text = entry.get("text", "")
             if not text:
                 continue
-            h = entry.get("sha256", "")
+            h = entry.get("content_hash", "")
             if h and not is_fake_hash(h):
                 file_hashes[key_path] = h
             else:
@@ -111,9 +115,9 @@ def fix_locale_hashes(
                 if not isinstance(entry, dict):
                     continue
 
-                current = entry.get("sha256", "")
+                current = entry.get("source_hash", "")
                 if is_fake_hash(current):
-                    entry["sha256"] = correct_hash
+                    entry["source_hash"] = correct_hash
                     modified = True
                     locale_fixed += 1
 
@@ -132,7 +136,7 @@ def fix_locale_hashes(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Fix invalid sha256 hashes in locale files."
+        description="Fix invalid hashes in locale files."
     )
     parser.add_argument(
         "--dry-run", "-n", action="store_true", help="Show what would be done"
@@ -157,9 +161,9 @@ def main() -> None:
             text = entry.get("text", "")
             if not text:
                 continue
-            current = entry.get("sha256", "")
+            current = entry.get("content_hash", "")
             if is_fake_hash(current):
-                entry["sha256"] = compute_hash(text)
+                entry["content_hash"] = compute_hash(text)
                 modified = True
                 source_fixed += 1
         if modified and not args.dry_run:
