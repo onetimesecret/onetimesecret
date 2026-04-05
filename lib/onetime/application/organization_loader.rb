@@ -12,9 +12,10 @@
 # 0. Explicit header override via X-Organization-ID (SPA org switches)
 # 1. Explicit selection via session['organization_id']
 # 2. Domain-based selection (custom domain routing)
-# 3. Default organization (is_default = true)
-# 4. First available organization
-# 5. Return nil (lazy creation happens later in auth_org)
+# 3. Customer's default_org_id (per-customer preference set by support)
+# 4. Organization with is_default flag (typically personal workspace)
+# 5. First available organization
+# 6. Return nil (lazy creation happens later in auth_org)
 #
 # Performance:
 # - Positive results cached in session for 5 minutes
@@ -163,22 +164,37 @@ module Onetime
           end
         end
 
-        # 3. Default organization (preferred workspace)
-        orgs        = customer.organization_instances.to_a
+        # 3. Customer's explicitly set default organization
+        # This takes precedence over the org's is_default flag, allowing
+        # customer support to set a specific org as default per-customer.
+        orgs = customer.organization_instances.to_a
+        if customer.default_org_id.to_s.length.positive?
+          customer_default = orgs.find { |o| o.objid == customer.default_org_id }
+          if customer_default
+            OT.ld "[OrganizationLoader] Using customer's default_org_id: #{customer_default.objid}"
+            return customer_default
+          else
+            # Customer's default_org_id references an org they're not a member of
+            # Fall through to other selection methods
+            OT.ld "[OrganizationLoader] Customer default_org_id invalid/not member: #{customer.default_org_id}"
+          end
+        end
+
+        # 4. Organization with is_default flag (typically personal workspace)
         default_org = orgs.find { |o| o.is_default }
         if default_org
-          OT.ld "[OrganizationLoader] Using default organization: #{default_org.objid}"
+          OT.ld "[OrganizationLoader] Using organization is_default flag: #{default_org.objid}"
           return default_org
         end
 
-        # 4. First available organization
+        # 5. First available organization
         first_org = orgs.first
         if first_org
           OT.ld "[OrganizationLoader] Using first organization: #{first_org.objid}"
           return first_org
         end
 
-        # 5. No organization found - return nil (read-only phase)
+        # 6. No organization found - return nil (read-only phase)
         #
         # Previously this called create_default_workspace() which performed
         # Redis writes during authentication. This caused race conditions,

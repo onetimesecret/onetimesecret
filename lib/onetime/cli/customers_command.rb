@@ -63,6 +63,7 @@ module Onetime
           puts '  bin/ots customers --create EMAIL --role colonel  # Create admin'
           puts
           puts 'Subcommands:'
+          puts '  bin/ots customers show EMAIL               # Show customer details'
           puts '  bin/ots customers dates                    # Count by creation year'
           puts '  bin/ots customers dates --by-age           # Count by age bucket'
           puts '  bin/ots customers dates --refresh          # Force cache rebuild'
