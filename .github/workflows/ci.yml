@@ -172,7 +172,7 @@ jobs:
     steps:
       - *checkout-step
 
-      - uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
+      - uses: ruby/setup-ruby@ba696adf55506673e48342a66e30f1f53cadeae0
         with:
           ruby-version: '3.4.9'
           bundler-cache: true

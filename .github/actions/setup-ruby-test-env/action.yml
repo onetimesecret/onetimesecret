@@ -77,7 +77,7 @@ runs:
       run: sudo sysctl -w vm.overcommit_memory=1
 
     - name: Setup Ruby
-      uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
+      uses: ruby/setup-ruby@ba696adf55506673e48342a66e30f1f53cadeae0
       with:
         ruby-version: ${{ inputs.ruby-version }}
         bundler-cache: true
