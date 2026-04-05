@@ -80,7 +80,7 @@
     "sha256": "b8794f11"
   },
   "web.auth.sso.signing_in": {
-    "text": "Alidirektas al identecprovizanto...",
+    "text": "Alidirektante al identeca provizanto...",
     "sha256": "4d1213f9"
   },
   "web.auth.sso.error": {
@@ -92,15 +92,15 @@
     "sha256": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "La aŭtentikiga ligo estas nekompleta. Bonvolu peti novan ensalutan ligon.",
+    "text": "La aŭtentikiga ligilo estas nekompleta. Bonvolu peti novan ensalutan ligilon.",
     "sha256": "f4a10652"
   },
   "web.login.errors.token_expired": {
-    "text": "Ĉi tiu ensaluta ligo eksvalidiĝis. Bonvolu peti novan.",
+    "text": "Ĉi tiu ensaluta ligilo eksvalidiĝis. Bonvolu peti novan.",
     "sha256": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "Ĉi tiu ensaluta ligo estas nevalida. Bonvolu peti novan.",
+    "text": "Ĉi tiu ensaluta ligilo estas nevalida. Bonvolu peti novan.",
     "sha256": "270c6401"
   },
   "web.signup.create_your_account": {
@@ -395,5 +395,8 @@
   "web.help.contact_support": {
     "text": "Kontakti Subtenon",
     "sha256": "f8d47b82"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Retpoŝta konfirmfluo post registriĝo"
   }
 }

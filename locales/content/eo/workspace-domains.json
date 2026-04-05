@@ -398,5 +398,335 @@
   "web.domains.dns_widget_description": {
     "text": "Uzu la ilon sube por aŭtomate detekti vian DNS-provizanton kaj akiri paŝ-post-paŝajn instrukciojn por agordi vian domajnon.",
     "sha256": "91c1af2e"
+  },
+  "web.domains.email.title": {
+    "text": "Retpoŝta Sendado"
+  },
+  "web.domains.email.config_title": {
+    "text": "Retpoŝta Agordo"
+  },
+  "web.domains.email.config_description": {
+    "text": "Agordu retpoŝtan sendadon por ĉi tiu domajno"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Retpoŝta Provizanto"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Elektu retpoŝtan provizanton"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "De-Nomo"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "ekz. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "De-Adreso"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "ekz. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Respondo-Al Adreso"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "ekz. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Konservi Ŝanĝojn"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Forĵeti Ŝanĝojn"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Uzi kontajn defaŭltojn"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Bezonas domajnan konfirmon per DKIM kaj SPF-registroj"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Bezonas agordadon de domajn-aŭtentikigo"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Bezonas domajnan konfirmon"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Uzas la defaŭltan retpoŝtan sendadagordon de via konto"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS-Registroj"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Aldonu la sekvajn DNS-registrojn por kontroligi vian domajnon por retpoŝta sendado."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Tipo"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Nomo"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Valoro"
+  },
+  "web.domains.email.copy": {
+    "text": "Kopii"
+  },
+  "web.domains.email.copied": {
+    "text": "Kopiita"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Kontrolita"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Atendanta"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Malsukcesis"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Rekontroligi"
+  },
+  "web.domains.email.validating": {
+    "text": "Kontrolante..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Domajno kontrolita"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Kontrolo malsukcesis"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Lastfoje kontrolita"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Altniveligu vian planon por agordi retpoŝtan sendadon por ĉi tiu domajno."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Agordi Retpoŝton"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Aliro Rifuzita"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Vi ne havas permeson administri retpoŝtajn agordojn por ĉi tiu domajno. Kontaktu vian organizan administranton."
+  },
+  "web.domains.email.update_success": {
+    "text": "Retpoŝta agordo sukcese konservita"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Retpoŝta agordo sukcese forigita"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Retpoŝtoj por ĉi tiu domajno estas nuntempe sendataj de la tutmonda sendanto. Kompletigu retpoŝtan agordadon por uzi vian propran sendantan identecon."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Propra retpoŝta sendado estas nuntempe malŝaltita. Retpoŝtoj estos sendataj de la tutmonda sendanto. Ebligu la funkcion sube por uzi vian propran sendantan identecon."
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Ne agordita"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Uzanta defaŭltan sendanton"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Kontrolita"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Atendanta konfirmon"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Malŝaltita"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Neniu retpoŝta sendanto agordita — retpoŝtoj uzas la platforman defaŭltan sendanton"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Retpoŝta sendanta agordo atendas konfirmon — retpoŝtoj uzas la platforman defaŭltan sendanton"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Retpoŝta sendanto estas malŝaltita — retpoŝtoj uzas la platforman defaŭltan sendanton"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Retpoŝta sendanto kontrolita — retpoŝtoj estas sendataj de ĉi tiu domajno"
+  },
+  "web.domains.incoming.title": {
+    "text": "Envenantaj Sekretoj"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Agordo de Envenantaj Sekretoj"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Permesu al eksteraj uzantoj sendi sekretojn rekte al elektitaj ricevantoj sur ĉi tiu domajno"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Aliro Rifuzita"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Vi ne havas permeson administri agordojn de envenantaj sekretoj por ĉi tiu domajno. Kontaktu vian organizan administranton."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Altniveligu vian planon por agordi envenantajn sekretojn por ĉi tiu domajno."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Agordi Envenantajn Sekretojn"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Envenantaj sekretoj ne estas agordita por ĉi tiu domajno. Aldonu ricevantojn por permesi al eksteraj uzantoj sendi sekretojn al via teamo."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Envenantaj sekretoj estas nuntempe malŝaltitaj. Eksteraj uzantoj ne povas sendi sekretojn al ricevantoj sur ĉi tiu domajno. Ebligu la funkcion sube por permesi envenantajn sekretojn."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Ricevantoj"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Difinu kiu povas ricevi envenantajn sekretojn sur ĉi tiu domajno. Ricevantoj ricevos retpoŝtajn sciigojn kiam sekreto estas sendita al ili."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Aldoni Ricevanton"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Forigi"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "Retpoŝtadreso"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Montrnomo"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "ekz. Sekureca Teamo"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Neniuj ricevantoj agordita"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Aldonu ricevantojn por permesi al eksteraj uzantoj sendi sekretojn al via teamo."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Nevalida retpoŝtadreso"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Ĉi tiu retpoŝtadreso jam estas aldonita"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Maksimume {max} ricevantoj permesitaj"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Montrnomo estas bezonata"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "Retpoŝtadreso estas bezonata"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Konservi Ŝanĝojn"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Forĵeti Ŝanĝojn"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Agordo de envenantaj sekretoj sukcese konservita"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Agordo de envenantaj sekretoj sukcese forigita"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} ricevanto | {count} ricevantoj"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Ne agordita"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Agordita"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Malŝaltita"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Envenantaj sekretoj ne agordita - eksteraj uzantoj ne povas sendi sekretojn al ĉi tiu domajno"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Envenantaj sekretoj ebligitaj kun {count} ricevanto(j)"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Funkcio de envenantaj sekretoj estas malŝaltita por ĉi tiu domajno"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Ebligi Envenantajn Sekretojn"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Permesu al eksteraj uzantoj sendi sekretojn al ricevantoj sur ĉi tiu domajno"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Publika URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Kunhavigu ĉi tiun URL kun eksteraj uzantoj por permesi al ili sendi sekretojn"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Kopii URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL kopiita al tondujo"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Ĉu vi certas, ke vi volas forigi ĉiujn ricevantojn? Eksteraj uzantoj ne plu povos sendi sekretojn al ĉi tiu domajno."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Maksimuma nombro da ricevantoj atingita"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Ĉi tiu retpoŝtadreso jam estis aldonita"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Konservado anstataŭigos ĉiujn ekzistantajn ricevantojn per viaj atendantaj ŝanĝoj. Ĉu vi certas?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Forigi Ĉiujn Ricevantojn"
+  },
+  "web.domains.sso.title": {
+    "text": "Unuopa Ensaluto"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO-Agordo"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Agordu unuopan ensalutan aŭtentikigon por ĉi tiu domajno"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Aliro Rifuzita"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Vi ne havas permeson administri SSO-agordojn por ĉi tiu domajno. Kontaktu vian organizan administranton."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Altniveligu vian planon por agordi unuopan ensaluton por ĉi tiu domajno."
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO-agordo sukcese kreita"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO-agordo sukcese ĝisdatigita"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO-agordo sukcese forigita"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Agordi SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO ankoraŭ ne estas agordita por ĉi tiu domajno. Ebligu unuopan ensaluton por permesi al teamanoj aŭtentikiĝi uzante la identecan provizanton de via organizo."
   }
 }

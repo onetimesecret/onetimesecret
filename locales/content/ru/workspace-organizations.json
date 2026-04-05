@@ -578,5 +578,149 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Скоро истечёт",
     "sha256": "a5dcfef9"
+  },
+  "web.organizations.sso.title": {
+    "text": "Единый вход (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Настройте SSO, чтобы участники могли входить через провайдера идентификации вашей организации"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Тип провайдера"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Выберите провайдера идентификации вашей организации"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Отображаемое имя"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Понятное имя, показываемое пользователям при входе"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "напр. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "ID клиента"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Ваш OAuth client ID"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Секрет клиента"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Ваш OAuth client secret"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Оставьте пустым, чтобы сохранить существующий секрет"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "ID тенанта"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Идентификатор вашего тенанта Azure AD / Entra ID"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "напр. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL издателя"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "URL обнаружения OIDC для вашего провайдера идентификации"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "напр. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Разрешённые email домены"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Только пользователи с email адресами этих доменов смогут входить. Оставьте пустым, чтобы разрешить все домены."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "напр. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Пожалуйста, введите корректный домен (напр. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Этот домен уже есть в списке"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Удалить {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Включить SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Когда включено, участники организации могут входить через этого SSO провайдера"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Сохранить конфигурацию SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Удалить конфигурацию"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Вы уверены? Это отключит SSO для вашей организации."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Не удалось загрузить конфигурацию SSO"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Не удалось сохранить конфигурацию SSO"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Конфигурация SSO успешно создана"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Конфигурация SSO успешно обновлена"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Конфигурация SSO успешно удалена"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Не удалось удалить конфигурацию SSO"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Проверить подключение"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Проверить доступность провайдера идентификации (не проверяет учётные данные)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Проверить подключение"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Тестирование..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Не удалось проверить подключение"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Endpoint авторизации"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Отсутствующие поля"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Включён"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Настроено"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO домена"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Настройте SSO для каждого подтверждённого домена"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Чтобы сменить провайдера, сначала удалите эту конфигурацию"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Не настроено"
   }
 }

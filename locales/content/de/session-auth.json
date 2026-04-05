@@ -88,7 +88,7 @@
     "sha256": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "SSO-Authentifizierung fehlgeschlagen. Bitte versuche es erneut oder melde dich mit Passwort an.",
+    "text": "SSO-Authentifizierung fehlgeschlagen. Bitte versuche es erneut oder melde dich mit deinem Passwort an.",
     "sha256": "13a2210a"
   },
   "web.login.errors.token_missing": {
@@ -395,5 +395,8 @@
   "web.help.contact_support": {
     "text": "Support kontaktieren",
     "sha256": "f8d47b82"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "E-Mail-Verifizierungsablauf nach der Registrierung"
   }
 }

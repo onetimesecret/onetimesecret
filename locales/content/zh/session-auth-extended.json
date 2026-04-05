@@ -232,7 +232,7 @@
     "sha256": "c87ccdb4"
   },
   "web.auth.passkeys.description": {
-    "text": "使用 Face ID、Touch ID、Windows Hello 或安全密钥登录",
+    "text": "使用面容 ID、触控 ID、Windows Hello 或安全密钥登录",
     "context": "Description of passkey authentication",
     "sha256": "a513ed5c"
   },
@@ -247,7 +247,7 @@
     "sha256": "dd1841d2"
   },
   "web.auth.passkeys.count": {
-    "text": "已注册 {count} 个通行密钥 | 已注册 {count} 个通行密钥",
+    "text": "已注册 {count} 个通行密钥",
     "context": "Number of registered passkeys",
     "sha256": "82e6681f"
   },
@@ -267,17 +267,17 @@
     "sha256": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "确定要移除此通行密钥吗？移除后将无法再使用该密钥登录。",
+    "text": "确定要移除此通行密钥吗？移除后您将无法再使用它登录。",
     "context": "Confirmation message for passkey removal",
     "sha256": "487ab72c"
   },
   "web.auth.passkeys.removed_success": {
-    "text": "通行密钥已移除",
+    "text": "通行密钥已成功移除",
     "context": "Success message after removing passkey",
     "sha256": "436c1050"
   },
   "web.auth.passkeys.registered_success": {
-    "text": "通行密钥已注册",
+    "text": "通行密钥注册成功",
     "context": "Success message after registering passkey",
     "sha256": "fbfb0713"
   },
@@ -297,12 +297,12 @@
     "sha256": "22eefa67"
   },
   "web.auth.passkeys.created": {
-    "text": "创建时间",
+    "text": "已创建",
     "context": "Label for creation date",
     "sha256": "d70b9e24"
   },
   "web.auth.passkeys.last_used": {
-    "text": "上次使用: {time}",
+    "text": "上次使用：{time}",
     "context": "Last used timestamp",
     "sha256": "e1af94fe"
   },
@@ -312,17 +312,17 @@
     "sha256": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "比密码更安全 - 可抵御钓鱼攻击",
+    "text": "比密码更安全——可抵御钓鱼攻击",
     "context": "Passkey benefit",
     "sha256": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "快速便捷 - 使用指纹、面容或安全密钥即可",
+    "text": "快速便捷——只需使用指纹、面容或安全密钥",
     "context": "Passkey benefit",
     "sha256": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "使用平台身份验证器时可在设备间同步",
+    "text": "使用平台认证器时可跨设备同步",
     "context": "Passkey benefit",
     "sha256": "7480c7ae"
   },
@@ -710,5 +710,11 @@
   "web.auth.recovery_codes.link_title": {
     "text": "恢复代码",
     "sha256": "579c7f4e"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ 安全关键：消息用于防止信息泄露。请参阅 src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "用户已登录设备/浏览器管理页面"
   }
 }

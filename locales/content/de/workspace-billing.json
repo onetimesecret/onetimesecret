@@ -20,7 +20,7 @@
     "sha256": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Benutzerdefinierte Domains erfordern Identity Plus oder höher",
+    "text": "Eigene Domains erfordern Identity Plus oder höher",
     "sha256": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
@@ -176,7 +176,7 @@
     "sha256": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "Benutzerdefinierte Domains",
+    "text": "Eigene Domains",
     "sha256": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
@@ -887,24 +887,24 @@
     "sha256": "158f558e"
   },
   "web.billing.currency_migration.title": {
-    "text": "Währungsänderung erforderlich",
+    "text": "Währungswechsel erforderlich",
     "context": "Modal title when plan requires different currency than current subscription",
     "sha256": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
-    "text": "Dein aktuelles Abonnement verwendet {from}. Der gewählte Tarif wird in {to} abgerechnet. Dies erfordert eine Migration deines Abonnements zur neuen Währung.",
+    "text": "Dein aktuelles Abonnement verwendet {from}. Der ausgewählte Plan wird in {to} abgerechnet. Dafür muss dein Abonnement auf die neue Währung migriert werden.",
     "sha256": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
-    "text": "Aktueller Tarif:",
+    "text": "Aktueller Plan:",
     "sha256": "648a0ab2"
   },
   "web.billing.currency_migration.new_plan": {
-    "text": "Neuer Tarif:",
+    "text": "Neuer Plan:",
     "sha256": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
-    "text": "Aktuelle Periode endet:",
+    "text": "Aktueller Zeitraum endet:",
     "sha256": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
@@ -912,11 +912,11 @@
     "sha256": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
-    "text": "Wechsel am Ende der Abrechnungsperiode",
+    "text": "Am Ende des Abrechnungszeitraums wechseln",
     "sha256": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "Dein aktueller Tarif bleibt aktiv bis {date}. Danach schließt du den Checkout für deinen neuen Tarif ab.",
+    "text": "Dein aktueller Plan bleibt bis zum {date} aktiv. Danach schließt du den Checkout für deinen neuen Plan ab.",
     "sha256": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
@@ -924,11 +924,11 @@
     "sha256": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Dein aktueller Tarif wird jetzt gekündigt. Du erhältst eine Rückerstattung für die ungenutzte Zeit und schließt den Checkout für den neuen Tarif ab.",
+    "text": "Dein aktueller Plan wird jetzt gekündigt. Du erhältst eine Rückerstattung für die nicht genutzte Zeit und schließt den Checkout für den neuen Plan ab.",
     "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
-    "text": "Währungsänderung bestätigen",
+    "text": "Währungswechsel bestätigen",
     "sha256": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
@@ -936,11 +936,11 @@
     "sha256": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
-    "text": "Deine Abonnementwährung wurde erfolgreich aktualisiert.",
+    "text": "Die Währung deines Abonnements wurde erfolgreich aktualisiert.",
     "sha256": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "Dein aktueller Tarif bleibt bis zum Ende der Abrechnungsperiode aktiv. Danach wirst du aufgefordert, den Checkout für deinen neuen Tarif abzuschließen.",
+    "text": "Dein aktueller Plan bleibt bis zum Ende des Abrechnungszeitraums aktiv. Danach wirst du aufgefordert, den Checkout für deinen neuen Plan abzuschließen.",
     "sha256": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
@@ -948,11 +948,11 @@
     "sha256": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "Du hast ausstehende Rechnungsposten, die vor der Migration geklärt werden müssen.",
+    "text": "Du hast ausstehende Rechnungspositionen, die vor der Migration geklärt werden müssen.",
     "sha256": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
-    "text": "Aktive Gutscheine auf deinem Konto sind möglicherweise nicht mit der neuen Währung kompatibel.",
+    "text": "Aktive Gutscheine in deinem Konto sind möglicherweise nicht mit der neuen Währung kompatibel.",
     "sha256": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
@@ -961,7 +961,7 @@
     "sha256": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "Dein aktueller Tarif endet am {date}. Schließe deinen Wechsel zu {plan} ({currency}) ab.",
+    "text": "Dein aktueller Plan endet am {date}. Schließe deinen Wechsel zu {plan} ({currency}) ab.",
     "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {

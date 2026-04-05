@@ -887,12 +887,12 @@
     "sha256": "158f558e"
   },
   "web.billing.currency_migration.title": {
-    "text": "Cambio de moneda requerido",
+    "text": "Se requiere cambio de moneda",
     "context": "Modal title when plan requires different currency than current subscription",
     "sha256": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
-    "text": "Tu suscripción actual utiliza {from}. El plan seleccionado se factura en {to}. Esto requiere migrar tu suscripción a la nueva moneda.",
+    "text": "Tu suscripción actual usa {from}. El plan seleccionado se factura en {to}. Esto requiere migrar tu suscripción a la nueva moneda.",
     "sha256": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
@@ -908,7 +908,7 @@
     "sha256": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
-    "text": "¿Cuándo debería realizarse el cambio?",
+    "text": "¿Cuándo debe realizarse el cambio?",
     "sha256": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
@@ -916,7 +916,7 @@
     "sha256": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "Tu plan actual permanece activo hasta {date}. Después de eso, completarás el pago de tu nuevo plan.",
+    "text": "Tu plan actual permanece activo hasta {date}. Después de eso, completarás el proceso de pago para tu nuevo plan.",
     "sha256": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
@@ -924,7 +924,7 @@
     "sha256": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Tu plan actual se cancela ahora. Recibirás un reembolso por el tiempo no utilizado y completarás el pago del nuevo plan.",
+    "text": "Tu plan actual se cancela ahora. Recibirás un reembolso por el tiempo no utilizado y completarás el proceso de pago para el nuevo plan.",
     "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
@@ -936,15 +936,15 @@
     "sha256": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
-    "text": "La moneda de tu suscripción ha sido actualizada correctamente.",
+    "text": "La moneda de tu suscripción se ha actualizado con éxito.",
     "sha256": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "Tu plan actual permanecerá activo hasta el final del período de facturación. Se te pedirá que completes el pago de tu nuevo plan después de eso.",
+    "text": "Tu plan actual permanecerá activo hasta el final del período de facturación. Se te pedirá que completes el proceso de pago para tu nuevo plan después de eso.",
     "sha256": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
-    "text": "Tienes un saldo de crédito en {currency} que no puede ser transferido a la nueva moneda.",
+    "text": "Tienes un saldo de crédito en {currency} que no puede transferirse a la nueva moneda.",
     "sha256": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
@@ -952,7 +952,7 @@
     "sha256": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
-    "text": "Los cupones activos en tu cuenta podrían no ser compatibles con la nueva moneda.",
+    "text": "Los cupones activos en tu cuenta pueden no ser compatibles con la nueva moneda.",
     "sha256": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
@@ -961,7 +961,7 @@
     "sha256": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "Tu plan actual termina el {date}. Completa tu cambio a {plan} ({currency}).",
+    "text": "Tu plan actual termina el {date}. Completa el cambio a {plan} ({currency}).",
     "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {

@@ -887,36 +887,36 @@
     "sha256": "158f558e"
   },
   "web.billing.currency_migration.title": {
-    "text": "需要变更货币",
+    "text": "需要更改货币",
     "context": "Modal title when plan requires different currency than current subscription",
     "sha256": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
-    "text": "您当前的订阅使用 {from}。所选方案以 {to} 计费。这需要将您的订阅迁移至新货币。",
+    "text": "您当前的订阅使用 {from}。所选套餐以 {to} 计费。这需要将您的订阅迁移到新货币。",
     "sha256": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
-    "text": "当前方案:",
+    "text": "当前套餐：",
     "sha256": "648a0ab2"
   },
   "web.billing.currency_migration.new_plan": {
-    "text": "新方案:",
+    "text": "新套餐：",
     "sha256": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
-    "text": "当前周期结束:",
+    "text": "当前周期结束于：",
     "sha256": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
-    "text": "何时切换？",
+    "text": "何时进行切换？",
     "sha256": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
-    "text": "在账单周期结束时切换",
+    "text": "在计费周期结束时切换",
     "sha256": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "您当前的方案将保持有效至 {date}。之后，您将完成新方案的结账。",
+    "text": "您的当前套餐将保持有效直到 {date}。届时您将完成新套餐的结账。",
     "sha256": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
@@ -924,11 +924,11 @@
     "sha256": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "您当前的方案将立即取消。未使用的时间将退款，随后完成新方案的结账。",
+    "text": "您的当前套餐将立即取消。您将获得未使用时间的退款，并完成新套餐的结账。",
     "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
-    "text": "确认货币变更",
+    "text": "确认更改货币",
     "sha256": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
@@ -936,19 +936,19 @@
     "sha256": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
-    "text": "订阅货币已成功更新。",
+    "text": "您的订阅货币已成功更新。",
     "sha256": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "您当前的方案将保持有效至账单周期结束。届时系统将提示您完成新方案的结账。",
+    "text": "您的当前套餐将在计费周期结束前保持有效。届时系统将提示您完成新套餐的结账。",
     "sha256": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
-    "text": "您有 {currency} 的余额无法转换为新货币。",
+    "text": "您有 {currency} 的余额，无法转移到新货币。",
     "sha256": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "您有待处理的发票项目需要在迁移前解决。",
+    "text": "您有待处理的账单项目，需要在迁移前解决。",
     "sha256": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
@@ -961,7 +961,7 @@
     "sha256": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "您当前的方案将于 {date} 结束。请完成切换至 {plan} ({currency})。",
+    "text": "您的当前套餐将于 {date} 结束。请完成切换到 {plan}（{currency}）。",
     "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {

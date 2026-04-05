@@ -578,5 +578,149 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Expira em breve",
     "sha256": "a5dcfef9"
+  },
+  "web.organizations.sso.title": {
+    "text": "Login Único (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Configure SSO para permitir que membros entrem com o provedor de identidade da sua organização"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Tipo de Provedor"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Selecione o provedor de identidade da sua organização"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Nome de Exibição"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Um nome amigável exibido aos usuários ao entrar"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "ex. SSO Acme Corp"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "ID do Cliente"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Seu ID de cliente OAuth"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Segredo do Cliente"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Seu segredo de cliente OAuth"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Deixe em branco para manter o segredo existente"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "ID do Locatário"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "O identificador do seu locatário Azure AD / Entra ID"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "ex. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL do Emissor"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "A URL de descoberta OIDC do seu provedor de identidade"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "ex. https://login.exemplo.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Domínios de E-mail Permitidos"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Apenas usuários com endereços de e-mail desses domínios podem entrar. Deixe vazio para permitir todos os domínios."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "ex. acme.com.br"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Por favor, insira um domínio válido (ex. exemplo.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Este domínio já está na lista"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Remover {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Ativar SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Quando ativado, membros da organização podem entrar usando este provedor de SSO"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Salvar Configuração de SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Excluir Configuração"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Tem certeza? Isso desativará o SSO para sua organização."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Falha ao carregar configuração de SSO"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Falha ao salvar configuração de SSO"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Configuração de SSO criada com sucesso"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Configuração de SSO atualizada com sucesso"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Configuração de SSO excluída com sucesso"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Falha ao excluir configuração de SSO"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Testar Conexão"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Verifica se o provedor de identidade está acessível (não valida credenciais)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Testar Conexão"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Testando..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Falha ao testar conexão"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Endpoint de Autorização"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Campos Ausentes"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Ativado"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Configurado"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO do Domínio"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Configure SSO para cada domínio verificado"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Para alterar o provedor, exclua esta configuração primeiro"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Não Configurado"
   }
 }

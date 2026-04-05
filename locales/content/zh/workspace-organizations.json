@@ -578,5 +578,149 @@
   "web.organizations.invitations.expires_soon": {
     "text": "即将过期",
     "sha256": "a5dcfef9"
+  },
+  "web.organizations.sso.title": {
+    "text": "单点登录（SSO）"
+  },
+  "web.organizations.sso.description": {
+    "text": "配置 SSO 以允许成员使用您组织的身份提供商登录"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "提供商类型"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "选择您组织的身份提供商"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "显示名称"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "登录时向用户显示的友好名称"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "例如：Acme 公司 SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "客户端 ID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "您的 OAuth 客户端 ID"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "客户端密钥"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "您的 OAuth 客户端密钥"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "留空以保留现有密钥"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "租户 ID"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "您的 Azure AD / Entra ID 租户标识符"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "例如：12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "颁发者网址"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "您的身份提供商的 OIDC 发现网址"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "例如：https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "允许的邮箱域名"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "只有使用这些域名邮箱地址的用户才能登录。留空则允许所有域名。"
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "例如：acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "请输入有效的域名（例如：example.com）"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "此域名已在列表中"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "移除 {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "启用 SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "启用后，组织成员可以使用此 SSO 提供商登录"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "保存 SSO 配置"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "删除配置"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "确定吗？这将禁用您组织的 SSO。"
+  },
+  "web.organizations.sso.load_error": {
+    "text": "加载 SSO 配置失败"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "保存 SSO 配置失败"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "SSO 配置已成功创建"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "SSO 配置已成功更新"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "SSO 配置已成功删除"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "删除 SSO 配置失败"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "测试连接"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "验证身份提供商是否可达（不验证凭据）"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "测试连接"
+  },
+  "web.organizations.sso.testing": {
+    "text": "测试中..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "测试连接失败"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "授权端点"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "缺少字段"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "已启用"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "已配置"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "域名 SSO"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "为每个已验证的域名配置 SSO"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "如需更改提供商，请先删除此配置"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "未配置"
   }
 }

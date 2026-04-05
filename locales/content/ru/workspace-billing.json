@@ -360,11 +360,11 @@
     "sha256": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Одна команда",
+    "text": "Single Team",
     "sha256": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Много команд",
+    "text": "Multi Team",
     "sha256": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
@@ -892,7 +892,7 @@
     "sha256": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
-    "text": "Ваша текущая подписка использует {from}. Выбранный план оплачивается в {to}. Для этого необходимо перевести Вашу подписку на новую валюту.",
+    "text": "Ваша текущая подписка использует {from}. Выбранный план оплачивается в {to}. Для этого требуется перевести подписку на новую валюту.",
     "sha256": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
@@ -908,23 +908,23 @@
     "sha256": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
-    "text": "Когда выполнить переход?",
+    "text": "Когда выполнить переключение?",
     "sha256": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
-    "text": "Переход в конце расчётного периода",
+    "text": "Переключить в конце расчётного периода",
     "sha256": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "Ваш текущий план остаётся активным до {date}. После этого Вы оформите новый план.",
+    "text": "Ваш текущий план остаётся активным до {date}. После этого вам нужно будет оформить новый план.",
     "sha256": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
-    "text": "Переход немедленно",
+    "text": "Переключить сейчас",
     "sha256": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Ваш текущий план будет отменён сейчас. Вы получите возврат за неиспользованное время и оформите новый план.",
+    "text": "Ваш текущий план отменяется сейчас. Вы получите возврат за неиспользованное время и оформите новый план.",
     "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
@@ -932,31 +932,31 @@
     "sha256": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
-    "text": "Ошибка смены валюты. Пожалуйста, попробуйте снова.",
+    "text": "Ошибка миграции валюты. Пожалуйста, попробуйте снова.",
     "sha256": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
-    "text": "Валюта Вашей подписки успешно обновлена.",
+    "text": "Валюта вашей подписки успешно обновлена.",
     "sha256": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "Ваш текущий план останется активным до конца расчётного периода. После этого Вам будет предложено оформить новый план.",
+    "text": "Ваш текущий план останется активным до конца расчётного периода. После этого вам будет предложено оформить новый план.",
     "sha256": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
-    "text": "У Вас есть кредитный баланс в {currency}, который не может быть переведён в новую валюту.",
+    "text": "У вас есть кредитный баланс в {currency}, который нельзя перевести в новую валюту.",
     "sha256": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "У Вас есть ожидающие позиции в счёте, которые необходимо закрыть перед переходом.",
+    "text": "У вас есть незавершённые позиции в счёте, которые необходимо обработать перед миграцией.",
     "sha256": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
-    "text": "Активные купоны в Вашем аккаунте могут быть несовместимы с новой валютой.",
+    "text": "Активные купоны в вашем аккаунте могут быть несовместимы с новой валютой.",
     "sha256": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
-    "text": "Ожидание смены валюты",
+    "text": "Ожидается миграция валюты",
     "context": "Banner heading when graceful migration is scheduled",
     "sha256": "018ae653"
   },
@@ -965,7 +965,7 @@
     "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
-    "text": "Завершить переход",
+    "text": "Завершить миграцию",
     "context": "Button to start checkout for the new currency plan",
     "sha256": "fa794e0c"
   },

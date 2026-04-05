@@ -232,12 +232,12 @@
     "sha256": "c87ccdb4"
   },
   "web.auth.passkeys.description": {
-    "text": "Inloggen met Face ID, Touch ID, Windows Hello of beveiligingssleutel",
+    "text": "Log in met Face ID, Touch ID, Windows Hello of een beveiligingssleutel",
     "context": "Description of passkey authentication",
     "sha256": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "Met passkeys kun je veilig inloggen zonder wachtwoord",
+    "text": "Met passkeys log je veilig in zonder wachtwoord",
     "context": "Setup page description",
     "sha256": "85630bef"
   },
@@ -267,7 +267,7 @@
     "sha256": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "Weet je zeker dat je deze passkey wilt verwijderen? Je kunt er daarna niet meer mee inloggen.",
+    "text": "Weet je zeker dat je deze passkey wilt verwijderen? Je kunt er dan niet meer mee inloggen.",
     "context": "Confirmation message for passkey removal",
     "sha256": "487ab72c"
   },
@@ -292,7 +292,7 @@
     "sha256": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Naam passkey",
+    "text": "Passkey naam",
     "context": "Label for passkey name field",
     "sha256": "22eefa67"
   },
@@ -317,12 +317,12 @@
     "sha256": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Snel en eenvoudig - gebruik je vingerafdruk, gezicht of beveiligingssleutel",
+    "text": "Snel en eenvoudig - gebruik gewoon je vingerafdruk, gezicht of beveiligingssleutel",
     "context": "Passkey benefit",
     "sha256": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Gesynchroniseerd tussen je apparaten bij gebruik van platformauthenticators",
+    "text": "Gesynchroniseerd tussen je apparaten bij gebruik van platform-authenticators",
     "context": "Passkey benefit",
     "sha256": "7480c7ae"
   },
@@ -710,5 +710,11 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Herstelcodes",
     "sha256": "579c7f4e"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ BEVEILIGINGSKRITISCH: Berichten voorkomen informatielekken. Zie src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Beheerpagina voor ingelogde apparaten/browsers van de gebruiker"
   }
 }

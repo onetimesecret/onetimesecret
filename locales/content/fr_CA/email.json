@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "L'adresse courriel de votre compte %{product_name} a été changée pour %{new_email_masked}.",
+    "text": "L'adresse courriel de votre compte %{product_name} a été changée pour %{new_email_masked} le %{date}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
@@ -376,7 +376,7 @@
     "sha256": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "Une demande de changement d'adresse courriel a été effectuée sur votre compte %{product_name}.",
+    "text": "Une demande de changement d'adresse courriel a été faite sur votre compte %{product_name}.",
     "sha256": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
@@ -388,7 +388,7 @@
     "sha256": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Si vous avez fait cette demande, vérifiez votre nouveau courriel pour un lien de confirmation. Aucun changement n'a encore été effectué.",
+    "text": "Si vous avez fait cette demande, vérifiez votre nouveau courriel pour un lien de confirmation. Aucune modification n'a encore été effectuée.",
     "sha256": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
@@ -404,7 +404,7 @@
     "sha256": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. Ce courriel a été envoyé à %{email_address} parce qu'un changement de courriel a été demandé pour votre compte.",
+    "text": "P.S. Ce courriel a été envoyé à %{email_address} car une demande de changement de courriel a été faite pour votre compte.",
     "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {

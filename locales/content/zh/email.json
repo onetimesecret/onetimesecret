@@ -8,11 +8,11 @@
     "sha256": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} 向您发送了一条机密信息",
+    "text": "%{sender_email} 向您发送了一条加密信息",
     "sha256": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "向您发送了一条机密信息：",
+    "text": "向您发送了一条加密信息：",
     "sha256": "c0571266"
   },
   "email.secret_link.important_label": {
@@ -20,7 +20,7 @@
     "sha256": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "此链接仅可使用一次。查看后，机密信息将被永久删除。",
+    "text": "此链接仅可使用一次。查看后，内容将被永久删除。",
     "sha256": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
@@ -124,7 +124,7 @@
     "sha256": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "您收到了一条机密信息",
+    "text": "您收到了一条加密信息",
     "sha256": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
@@ -140,7 +140,7 @@
     "sha256": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "点击下方链接查看此机密信息：",
+    "text": "点击下方链接查看此内容：",
     "sha256": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
@@ -148,7 +148,7 @@
     "sha256": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "此链接仅可使用一次。查看后，机密信息将被永久删除。",
+    "text": "此链接仅可使用一次。查看后，内容将被永久删除。",
     "sha256": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
@@ -164,19 +164,19 @@
     "sha256": "d01479b3"
   },
   "email.secret_revealed.subject": {
-    "text": "您的机密信息已被查看",
+    "text": "您的内容已被查看",
     "sha256": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "您的机密信息已被查看",
+    "text": "您的内容已被查看",
     "sha256": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "您的机密信息于 %{date} 被查看。",
+    "text": "您的内容于 %{date} 被查看。",
     "sha256": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "机密信息 ID：",
+    "text": "内容 ID：",
     "sha256": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
@@ -204,7 +204,7 @@
     "sha256": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "在过期前查看您的机密信息",
+    "text": "在过期前查看您的内容",
     "sha256": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
@@ -212,7 +212,7 @@
     "sha256": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "过期后，机密信息将被永久删除且无法恢复。",
+    "text": "过期后，内容将被永久删除且无法恢复。",
     "sha256": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
@@ -224,7 +224,7 @@
     "sha256": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "过期后，机密信息将被永久删除。",
+    "text": "过期后，内容将被永久删除。",
     "sha256": "bd0a9bee"
   },
   "email.feedback_email.subject": {
@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "您 %{product_name} 账户的邮箱地址已更改为 %{new_email_masked}。",
+    "text": "您 %{product_name} 账户的邮箱地址已于 %{date} 更改为 %{new_email_masked}。",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
@@ -368,7 +368,7 @@
     "sha256": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "邮箱更改请求 (%{display_domain})",
+    "text": "邮箱更改请求（%{display_domain}）",
     "sha256": "be3441d6"
   },
   "email.email_change_requested.title": {
@@ -380,19 +380,19 @@
     "sha256": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
-    "text": "请求的新邮箱:",
+    "text": "请求的新邮箱：",
     "sha256": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
-    "text": "请求时间:",
+    "text": "请求时间：",
     "sha256": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "如果此请求由您本人发起，请检查新邮箱中的确认链接。目前尚未做任何更改。",
+    "text": "如果是您发起的请求，请检查新邮箱中的确认链接。目前尚未进行任何更改。",
     "sha256": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "如果此请求并非由您发起，您可以安全地忽略此邮件。您的账户未被更改。",
+    "text": "如果您没有发起此请求，可以安全地忽略此邮件。您的账户未被更改。",
     "sha256": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
@@ -404,7 +404,7 @@
     "sha256": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "附: 此邮件已发送至 %{email_address}，因为有人请求更改您的账户邮箱。",
+    "text": "附：此邮件发送至 %{email_address}，因为有人请求更改您账户的邮箱地址。",
     "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {

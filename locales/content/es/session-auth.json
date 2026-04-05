@@ -84,7 +84,7 @@
     "sha256": "4d1213f9"
   },
   "web.auth.sso.error": {
-    "text": "Error en el inicio de sesión con SSO. Por favor, inténtalo de nuevo.",
+    "text": "Error en el inicio de sesión SSO. Por favor, inténtalo de nuevo.",
     "sha256": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
@@ -395,5 +395,8 @@
   "web.help.contact_support": {
     "text": "Contactar con soporte",
     "sha256": "f8d47b82"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Flujo de verificación de correo electrónico después del registro"
   }
 }

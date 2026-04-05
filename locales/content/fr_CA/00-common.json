@@ -1369,7 +1369,7 @@
     "sha256": "cc078766"
   },
   "api.errors.unexpected_error": {
-    "text": "Un bug inattendu s'est produit",
+    "text": "Une erreur inattendue s'est produite",
     "context": "Generic error message for unhandled exceptions in API",
     "sha256": "6615bf1c"
   },

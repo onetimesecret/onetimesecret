@@ -125,7 +125,7 @@
     "sha256": "d0527e4b"
   },
   "web.COMMON.secret": {
-    "text": "机密信息 | 机密信息",
+    "text": "内容 | 内容",
     "sha256": "c7ebd045"
   },
   "web.COMMON.recent": {
@@ -157,15 +157,15 @@
     "sha256": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "销毁此机密信息",
+    "text": "销毁此内容",
     "sha256": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "销毁机密信息将在查看前将其删除（点击确认）",
+    "text": "销毁内容将在查看前将其删除（点击确认）",
     "sha256": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "销毁机密信息是永久性的，无法撤销",
+    "text": "销毁内容是永久性的，无法撤销",
     "sha256": "ab774967"
   },
   "web.COMMON.msg_check_email": {
@@ -193,7 +193,7 @@
     "sha256": "ee855dad"
   },
   "web.COMMON.view_secret": {
-    "text": "查看机密信息",
+    "text": "查看内容",
     "sha256": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
@@ -309,7 +309,7 @@
     "sha256": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "永久销毁此机密信息",
+    "text": "永久销毁此内容",
     "sha256": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
@@ -317,15 +317,15 @@
     "sha256": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "确定要销毁此机密信息吗？此操作无法撤销。",
+    "text": "确定要销毁此内容吗？此操作无法撤销。",
     "sha256": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "是的，销毁此机密信息",
+    "text": "是的，销毁此内容",
     "sha256": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "销毁机密信息将在查看前将其永久删除。",
+    "text": "销毁内容将在查看前将其永久删除。",
     "sha256": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
@@ -645,11 +645,11 @@
     "sha256": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "复制机密信息",
+    "text": "复制内容",
     "sha256": "a2ceff6d"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "机密信息已复制",
+    "text": "内容已复制",
     "sha256": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
@@ -753,7 +753,7 @@
     "sha256": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
-    "text": "创建新机密信息",
+    "text": "创建新内容",
     "sha256": "311d266c"
   },
   "web.LABELS.actions": {
@@ -829,7 +829,7 @@
     "sha256": "286a3af7"
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "最近的机密信息",
+    "text": "最近的内容",
     "sha256": "0b907f8b"
   },
   "web.LABELS.pricing": {
@@ -886,7 +886,7 @@
     "sha256": "57db069e"
   },
   "web.LABELS.scope_indicator": {
-    "text": "正在 {domain} 中创建机密信息",
+    "text": "正在 {domain} 中创建内容",
     "sha256": "3bbed96b"
   },
   "web.STATUS.new": {
@@ -1062,19 +1062,19 @@
     "sha256": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "天 | 天",
+    "text": "剩余天 | 剩余天",
     "sha256": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "小时 | 小时",
+    "text": "剩余小时 | 剩余小时",
     "sha256": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "分钟 | 分钟",
+    "text": "剩余分钟 | 剩余分钟",
     "sha256": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "秒 | 秒",
+    "text": "剩余秒 | 剩余秒",
     "sha256": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
@@ -1098,7 +1098,7 @@
     "sha256": "d322f4c5"
   },
   "web.TITLES.incoming": {
-    "text": "接收的机密信息",
+    "text": "接收的内容",
     "sha256": "883dbca9"
   },
   "web.TITLES.feedback": {
@@ -1146,7 +1146,7 @@
     "sha256": "ce7cfeaf"
   },
   "web.TITLES.secret": {
-    "text": "机密信息",
+    "text": "内容",
     "sha256": "7e32a729"
   },
   "web.TITLES.metadata": {
@@ -1158,7 +1158,7 @@
     "sha256": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
-    "text": "销毁机密信息",
+    "text": "销毁内容",
     "sha256": "28785b83"
   },
   "web.TITLES.dashboard": {
@@ -1166,7 +1166,7 @@
     "sha256": "67b69646"
   },
   "web.TITLES.recent": {
-    "text": "最近的机密信息",
+    "text": "最近的内容",
     "sha256": "0b907f8b"
   },
   "web.TITLES.domains": {
@@ -1374,12 +1374,12 @@
     "sha256": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "服务暂时不可用，请稍后重试。",
+    "text": "服务暂时不可用。请稍后再试。",
     "context": "Error message when database connection fails",
     "sha256": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "目前无法处理您的请求",
+    "text": "暂时无法处理您的请求",
     "context": "Error message for recoverable server errors",
     "sha256": "fb961f3f"
   },

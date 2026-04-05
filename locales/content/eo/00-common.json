@@ -1134,7 +1134,7 @@
     "sha256": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Dufaktora aŭtentikigo",
+    "text": "Dufaktora aŭtentigo",
     "sha256": "bc074b60"
   },
   "web.TITLES.email_login": {
@@ -1238,7 +1238,7 @@
     "sha256": "a949f462"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Dufaktora aŭtentikigo",
+    "text": "Dufaktora aŭtentigo",
     "sha256": "bc074b60"
   },
   "web.TITLES.active_sessions": {
@@ -1369,7 +1369,7 @@
     "sha256": "cc078766"
   },
   "api.errors.unexpected_error": {
-    "text": "Neatendita eraro okazis",
+    "text": "Okazis neatendita eraro",
     "context": "Generic error message for unhandled exceptions in API",
     "sha256": "6615bf1c"
   },
@@ -1379,7 +1379,7 @@
     "sha256": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "Ne eblas procezi vian peton ĉi-momente",
+    "text": "Ne eblas procezi vian peton nun",
     "context": "Error message for recoverable server errors",
     "sha256": "fb961f3f"
   },

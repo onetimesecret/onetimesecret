@@ -9,7 +9,7 @@
     "sha256": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "Bereitgestellt von",
+    "text": "Powered by",
     "sha256": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
@@ -73,7 +73,7 @@
     "sha256": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "nachricht,passwortgenerator,nachricht teilen,einmalig",
+    "text": "geheimnis,passwortgenerator,nachricht teilen,einmalig",
     "sha256": "52728258"
   },
   "web.COMMON.button_create_secret": {
@@ -1303,7 +1303,7 @@
     "sha256": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Überprüfe immer, ob du auf der offiziellen Onetime Secret-Website bist. Betrüger erstellen manchmal gefälschte Websites, die genau wie Onetime Secret aussehen, um deine Nachrichten zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfe die Domain, bevor du neue Links erstellst.",
+    "text": "Überprüfe immer, ob du auf der offiziellen Onetime Secret-Website bist. Betrüger erstellen manchmal gefälschte Websites, die genau wie Onetime Secret aussehen, um deine Geheimnisse zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfe die Domain, bevor du neue Links erstellst.",
     "sha256": "b588f5b2"
   },
   "web.pricing.title": {

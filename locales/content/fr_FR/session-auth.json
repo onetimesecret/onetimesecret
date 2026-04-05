@@ -395,5 +395,8 @@
   "web.help.contact_support": {
     "text": "Contacter le support",
     "sha256": "f8d47b82"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Flux de vérification d'e-mail après inscription"
   }
 }

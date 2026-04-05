@@ -918,7 +918,7 @@
     "sha256": "6d747b33"
   },
   "web.STATUS.destroyed": {
-    "text": "破棄済み",
+    "text": "削除済み",
     "sha256": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
@@ -1374,12 +1374,12 @@
     "sha256": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "サービスは一時的に利用できません。しばらくしてからもう一度お試しください。",
+    "text": "サービスが一時的に利用できません。しばらくしてから再度お試しください。",
     "context": "Error message when database connection fails",
     "sha256": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "現在リクエストを処理できません",
+    "text": "現在、リクエストを処理できません",
     "context": "Error message for recoverable server errors",
     "sha256": "fb961f3f"
   },

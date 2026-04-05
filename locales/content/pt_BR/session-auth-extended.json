@@ -227,7 +227,7 @@
     "sha256": "3ea1c1a2"
   },
   "web.auth.passkeys.title": {
-    "text": "Passkeys",
+    "text": "Chaves de Acesso",
     "context": "Title for passkey management section",
     "sha256": "c87ccdb4"
   },
@@ -237,7 +237,7 @@
     "sha256": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "Passkeys permitem que você entre com segurança sem uma senha",
+    "text": "Chaves de acesso permitem que você entre com segurança sem uma senha",
     "context": "Setup page description",
     "sha256": "85630bef"
   },
@@ -247,52 +247,52 @@
     "sha256": "dd1841d2"
   },
   "web.auth.passkeys.count": {
-    "text": "{count} passkey registrada | {count} passkeys registradas",
+    "text": "{count} chave de acesso registrada | {count} chaves de acesso registradas",
     "context": "Number of registered passkeys",
     "sha256": "82e6681f"
   },
   "web.auth.passkeys.add_passkey": {
-    "text": "Adicionar passkey",
+    "text": "Adicionar Chave de Acesso",
     "context": "Button to add a new passkey",
     "sha256": "93713ad7"
   },
   "web.auth.passkeys.register_passkey": {
-    "text": "Registrar passkey",
+    "text": "Registrar Chave de Acesso",
     "context": "Button to register a new passkey",
     "sha256": "26db6968"
   },
   "web.auth.passkeys.remove_passkey": {
-    "text": "Remover passkey",
+    "text": "Remover Chave de Acesso",
     "context": "Button to remove a passkey",
     "sha256": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "Tem certeza de que deseja remover esta passkey? Você não poderá mais usá-la para entrar.",
+    "text": "Tem certeza de que deseja remover esta chave de acesso? Você não poderá mais entrar com ela.",
     "context": "Confirmation message for passkey removal",
     "sha256": "487ab72c"
   },
   "web.auth.passkeys.removed_success": {
-    "text": "Passkey removida com sucesso",
+    "text": "Chave de acesso removida com sucesso",
     "context": "Success message after removing passkey",
     "sha256": "436c1050"
   },
   "web.auth.passkeys.registered_success": {
-    "text": "Passkey registrada com sucesso",
+    "text": "Chave de acesso registrada com sucesso",
     "context": "Success message after registering passkey",
     "sha256": "fbfb0713"
   },
   "web.auth.passkeys.no_passkeys": {
-    "text": "Nenhuma passkey registrada",
+    "text": "Nenhuma chave de acesso registrada",
     "context": "Empty state when no passkeys exist",
     "sha256": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
-    "text": "Adicione uma passkey para entrar com mais segurança sem digitar uma senha",
+    "text": "Adicione uma chave de acesso para entrar com mais segurança sem digitar uma senha",
     "context": "Description for empty state",
     "sha256": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Nome da passkey",
+    "text": "Nome da Chave de Acesso",
     "context": "Label for passkey name field",
     "sha256": "22eefa67"
   },
@@ -322,12 +322,12 @@
     "sha256": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Sincronizada entre seus dispositivos ao usar autenticadores de plataforma",
+    "text": "Sincronizada em todos os seus dispositivos ao usar autenticadores de plataforma",
     "context": "Passkey benefit",
     "sha256": "7480c7ae"
   },
   "web.auth.passkeys.link_title": {
-    "text": "Passkeys",
+    "text": "Chaves de Acesso",
     "context": "Navigation link title",
     "sha256": "c87ccdb4"
   },
@@ -710,5 +710,11 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Códigos de recuperação",
     "sha256": "579c7f4e"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SEGURANÇA-CRÍTICA: Mensagens previnem divulgação de informações. Veja src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Página de gerenciamento de dispositivos/navegadores conectados do usuário"
   }
 }

@@ -994,7 +994,7 @@
     "sha256": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Le secret est devenu orphelin et sera bientôt détruit",
+    "text": "Le secret a été orphelin et sera bientôt détruit",
     "sha256": "49b87422"
   },
   "web.STATUS.expired_description": {
@@ -1058,7 +1058,7 @@
     "sha256": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} restant(s)",
+    "text": "{count} {unit} restantes",
     "sha256": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
@@ -1374,7 +1374,7 @@
     "sha256": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "Service temporairement indisponible. Veuillez réessayer dans quelques instants.",
+    "text": "Service temporairement indisponible. Veuillez réessayer sous peu.",
     "context": "Error message when database connection fails",
     "sha256": "343ccdcb"
   },

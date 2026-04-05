@@ -237,7 +237,7 @@
     "sha256": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "Pasŝlosiloj ebligas al vi ensaluti sekure sen pasvorto",
+    "text": "Pasŝlosiloj permesas vin ensaluti sekure sen pasvorto",
     "context": "Setup page description",
     "sha256": "85630bef"
   },
@@ -252,17 +252,17 @@
     "sha256": "82e6681f"
   },
   "web.auth.passkeys.add_passkey": {
-    "text": "Aldoni pasŝlosilon",
+    "text": "Aldoni Pasŝlosilon",
     "context": "Button to add a new passkey",
     "sha256": "93713ad7"
   },
   "web.auth.passkeys.register_passkey": {
-    "text": "Registri pasŝlosilon",
+    "text": "Registri Pasŝlosilon",
     "context": "Button to register a new passkey",
     "sha256": "26db6968"
   },
   "web.auth.passkeys.remove_passkey": {
-    "text": "Forigi pasŝlosilon",
+    "text": "Forigi Pasŝlosilon",
     "context": "Button to remove a passkey",
     "sha256": "67b1d47c"
   },
@@ -292,7 +292,7 @@
     "sha256": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Nomo de pasŝlosilo",
+    "text": "Nomo de Pasŝlosilo",
     "context": "Label for passkey name field",
     "sha256": "22eefa67"
   },
@@ -302,7 +302,7 @@
     "sha256": "d70b9e24"
   },
   "web.auth.passkeys.last_used": {
-    "text": "Laste uzita: {time}",
+    "text": "Lastfoje uzita: {time}",
     "context": "Last used timestamp",
     "sha256": "e1af94fe"
   },
@@ -312,17 +312,17 @@
     "sha256": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "Pli sekura ol pasvortoj - rezistema kontraŭ fiŝkaptaj atakoj",
+    "text": "Pli sekura ol pasvortoj - rezistema al phishing-atakoj",
     "context": "Passkey benefit",
     "sha256": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Rapida kaj facila - simple uzu vian fingrospuron, vizaĝon, aŭ sekurecan ŝlosilon",
+    "text": "Rapida kaj facila - simple uzu vian fingropresaĵon, vizaĝon, aŭ sekurecan ŝlosilon",
     "context": "Passkey benefit",
     "sha256": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Sinkronigita trans viaj aparatoj kiam vi uzas platformajn aŭtentikigilojn",
+    "text": "Sinkronigita tra viaj aparatoj kiam vi uzas platformajn aŭtentikilojn",
     "context": "Passkey benefit",
     "sha256": "7480c7ae"
   },
@@ -710,5 +710,11 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Reakirkodoj",
     "sha256": "579c7f4e"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SEKURECOKRITIKA: Mesaĝoj malhelpas informrevelon. Vidu src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Administra paĝo por ensalutitaj aparatoj/folumiloj de uzanto"
   }
 }

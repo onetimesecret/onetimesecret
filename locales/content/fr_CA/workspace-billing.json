@@ -892,7 +892,7 @@
     "sha256": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
-    "text": "Votre abonnement actuel utilise {from}. Le forfait sélectionné est facturé en {to}. Cela nécessite la migration de votre abonnement vers la nouvelle devise.",
+    "text": "Votre abonnement actuel utilise {from}. Le forfait sélectionné est facturé en {to}. Cela nécessite de migrer votre abonnement vers la nouvelle devise.",
     "sha256": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
@@ -924,7 +924,7 @@
     "sha256": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Votre forfait actuel est annulé maintenant. Vous recevrez un remboursement pour le temps inutilisé et compléterez le paiement pour le nouveau forfait.",
+    "text": "Votre forfait actuel est annulé maintenant. Vous recevrez un remboursement pour le temps non utilisé et compléterez le paiement pour le nouveau forfait.",
     "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
@@ -948,11 +948,11 @@
     "sha256": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "Vous avez des éléments de facturation en attente qui doivent être résolus avant la migration.",
+    "text": "Vous avez des éléments de facture en attente qui devront être résolus avant la migration.",
     "sha256": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
-    "text": "Les coupons actifs sur votre compte pourraient ne pas être compatibles avec la nouvelle devise.",
+    "text": "Les coupons actifs sur votre compte peuvent ne pas être compatibles avec la nouvelle devise.",
     "sha256": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
@@ -961,7 +961,7 @@
     "sha256": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "Votre forfait actuel se termine le {date}. Complétez votre passage à {plan} ({currency}).",
+    "text": "Votre forfait actuel se termine le {date}. Complétez votre passage au forfait {plan} ({currency}).",
     "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {

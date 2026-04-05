@@ -892,7 +892,7 @@
     "sha256": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
-    "text": "Votre abonnement actuel utilise {from}. Le forfait sélectionné est facturé en {to}. Cela nécessite la migration de votre abonnement vers la nouvelle devise.",
+    "text": "Votre abonnement actuel utilise {from}. Le forfait sélectionné est facturé en {to}. Cela nécessite de migrer votre abonnement vers la nouvelle devise.",
     "sha256": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
@@ -916,7 +916,7 @@
     "sha256": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "Votre forfait actuel reste actif jusqu'au {date}. Ensuite, vous compléterez le paiement pour votre nouveau forfait.",
+    "text": "Votre forfait actuel reste actif jusqu'au {date}. Après cela, vous finaliserez le paiement de votre nouveau forfait.",
     "sha256": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
@@ -924,7 +924,7 @@
     "sha256": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Votre forfait actuel est annulé maintenant. Vous recevrez un remboursement pour le temps non utilisé et compléterez le paiement pour le nouveau forfait.",
+    "text": "Votre forfait actuel est annulé maintenant. Vous recevrez un remboursement pour le temps non utilisé et finaliserez le paiement du nouveau forfait.",
     "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
@@ -932,7 +932,7 @@
     "sha256": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
-    "text": "La migration de devise a échoué. Veuillez réessayer.",
+    "text": "Échec de la migration de devise. Veuillez réessayer.",
     "sha256": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
@@ -940,7 +940,7 @@
     "sha256": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "Votre forfait actuel restera actif jusqu'à la fin de la période de facturation. Vous serez invité à compléter le paiement pour votre nouveau forfait ensuite.",
+    "text": "Votre forfait actuel restera actif jusqu'à la fin de la période de facturation. Vous serez invité à finaliser le paiement de votre nouveau forfait après cela.",
     "sha256": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
@@ -948,11 +948,11 @@
     "sha256": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "Vous avez des éléments de facturation en attente qui doivent être résolus avant la migration.",
+    "text": "Vous avez des éléments de facture en attente qui devront être résolus avant la migration.",
     "sha256": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
-    "text": "Les coupons actifs sur votre compte pourraient ne pas être compatibles avec la nouvelle devise.",
+    "text": "Les coupons actifs sur votre compte peuvent ne pas être compatibles avec la nouvelle devise.",
     "sha256": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
@@ -965,7 +965,7 @@
     "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
-    "text": "Compléter la migration",
+    "text": "Terminer la migration",
     "context": "Button to start checkout for the new currency plan",
     "sha256": "fa794e0c"
   },

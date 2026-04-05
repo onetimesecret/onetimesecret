@@ -88,19 +88,19 @@
     "sha256": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "A autenticação SSO falhou. Tente novamente ou use o login com senha.",
+    "text": "Falha na autenticação SSO. Por favor, tente novamente ou use o login com senha.",
     "sha256": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "O link de autenticação está incompleto. Solicite um novo link de acesso.",
+    "text": "O link de autenticação está incompleto. Por favor, solicite um novo link de login.",
     "sha256": "f4a10652"
   },
   "web.login.errors.token_expired": {
-    "text": "Este link de acesso expirou. Solicite um novo.",
+    "text": "Este link de login expirou. Por favor, solicite um novo.",
     "sha256": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "Este link de acesso é inválido. Solicite um novo.",
+    "text": "Este link de login é inválido. Por favor, solicite um novo.",
     "sha256": "270c6401"
   },
   "web.signup.create_your_account": {
@@ -395,5 +395,8 @@
   "web.help.contact_support": {
     "text": "Contatar Suporte",
     "sha256": "f8d47b82"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Fluxo de verificação de e-mail após o cadastro"
   }
 }

@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Адрес электронной почты Вашего аккаунта %{product_name} был изменён на %{new_email_masked}.",
+    "text": "Адрес электронной почты Вашего аккаунта %{product_name} был изменён на %{new_email_masked} %{date}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
@@ -368,19 +368,19 @@
     "sha256": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "Запрос на смену электронной почты (%{display_domain})",
+    "text": "Запрос на изменение email (%{display_domain})",
     "sha256": "be3441d6"
   },
   "email.email_change_requested.title": {
-    "text": "Запрос на смену электронной почты",
+    "text": "Запрос на изменение email",
     "sha256": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "Был получен запрос на смену адреса электронной почты в Вашем аккаунте %{product_name}.",
+    "text": "Был получен запрос на изменение адреса электронной почты в вашем аккаунте %{product_name}.",
     "sha256": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
-    "text": "Запрошенный новый адрес:",
+    "text": "Запрошенный новый email:",
     "sha256": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
@@ -388,11 +388,11 @@
     "sha256": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Если Вы сделали этот запрос, проверьте новый адрес электронной почты на наличие ссылки для подтверждения. Изменения ещё не были внесены.",
+    "text": "Если вы сделали этот запрос, проверьте новый email для получения ссылки подтверждения. Изменения ещё не внесены.",
     "sha256": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "Если Вы не делали этот запрос, можете спокойно проигнорировать это письмо. Ваш аккаунт не был изменён.",
+    "text": "Если вы не делали этот запрос, можете просто проигнорировать это письмо. Ваш аккаунт не был изменён.",
     "sha256": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
@@ -404,7 +404,7 @@
     "sha256": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. Это письмо было отправлено на %{email_address}, так как был запрошен запрос на смену адреса электронной почты для Вашего аккаунта.",
+    "text": "P.S. Это письмо было отправлено на адрес %{email_address}, так как был получен запрос на изменение email вашего аккаунта.",
     "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {

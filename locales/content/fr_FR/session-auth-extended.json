@@ -232,7 +232,7 @@
     "sha256": "c87ccdb4"
   },
   "web.auth.passkeys.description": {
-    "text": "Se connecter avec Face ID, Touch ID, Windows Hello ou une clé de sécurité",
+    "text": "Connectez-vous avec Face ID, Touch ID, Windows Hello ou une clé de sécurité",
     "context": "Description of passkey authentication",
     "sha256": "a513ed5c"
   },
@@ -242,7 +242,7 @@
     "sha256": "85630bef"
   },
   "web.auth.passkeys.not_configured": {
-    "text": "Non configuré",
+    "text": "Non configurée",
     "context": "Status when no passkeys are registered",
     "sha256": "dd1841d2"
   },
@@ -267,7 +267,7 @@
     "sha256": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "Êtes-vous sûr de vouloir supprimer cette clé d'accès ? Vous ne pourrez plus vous connecter avec celle-ci.",
+    "text": "Êtes-vous sûr de vouloir supprimer cette clé d'accès ? Vous ne pourrez plus vous connecter avec elle.",
     "context": "Confirmation message for passkey removal",
     "sha256": "487ab72c"
   },
@@ -287,7 +287,7 @@
     "sha256": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
-    "text": "Ajoutez une clé d'accès pour vous connecter de manière plus sécurisée sans saisir de mot de passe",
+    "text": "Ajoutez une clé d'accès pour vous connecter plus facilement sans saisir de mot de passe",
     "context": "Description for empty state",
     "sha256": "e5bc07f1"
   },
@@ -312,17 +312,17 @@
     "sha256": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "Plus sécurisé que les mots de passe — résistant aux attaques par hameçonnage",
+    "text": "Plus sécurisées que les mots de passe - résistantes aux attaques de phishing",
     "context": "Passkey benefit",
     "sha256": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Rapide et simple — utilisez simplement votre empreinte digitale, votre visage ou votre clé de sécurité",
+    "text": "Rapide et facile - utilisez simplement votre empreinte digitale, votre visage ou une clé de sécurité",
     "context": "Passkey benefit",
     "sha256": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Synchronisé sur tous vos appareils avec les authentificateurs de plateforme",
+    "text": "Synchronisées sur tous vos appareils lors de l'utilisation d'authentificateurs de plateforme",
     "context": "Passkey benefit",
     "sha256": "7480c7ae"
   },
@@ -710,5 +710,11 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Codes de récupération",
     "sha256": "579c7f4e"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ CRITIQUE POUR LA SÉCURITÉ : Ces messages empêchent la divulgation d'informations. Voir src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Page de gestion des appareils/navigateurs connectés de l'utilisateur"
   }
 }

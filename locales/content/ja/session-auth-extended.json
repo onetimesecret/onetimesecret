@@ -232,12 +232,12 @@
     "sha256": "c87ccdb4"
   },
   "web.auth.passkeys.description": {
-    "text": "Face ID、Touch ID、Windows Hello、またはセキュリティキーでログイン",
+    "text": "Face ID、Touch ID、Windows Hello、またはセキュリティキーでサインイン",
     "context": "Description of passkey authentication",
     "sha256": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "パスキーを使えばパスワードなしで安全にログインできます",
+    "text": "パスキーを使用すると、パスワードなしで安全にサインインできます",
     "context": "Setup page description",
     "sha256": "85630bef"
   },
@@ -247,7 +247,7 @@
     "sha256": "dd1841d2"
   },
   "web.auth.passkeys.count": {
-    "text": "{count}個のパスキーが登録済み | {count}個のパスキーが登録済み",
+    "text": "{count}個のパスキーが登録されています",
     "context": "Number of registered passkeys",
     "sha256": "82e6681f"
   },
@@ -267,17 +267,17 @@
     "sha256": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "このパスキーを削除してもよろしいですか？このパスキーではログインできなくなります。",
+    "text": "このパスキーを削除してもよろしいですか?削除すると、このパスキーでサインインできなくなります。",
     "context": "Confirmation message for passkey removal",
     "sha256": "487ab72c"
   },
   "web.auth.passkeys.removed_success": {
-    "text": "パスキーが削除されました",
+    "text": "パスキーが正常に削除されました",
     "context": "Success message after removing passkey",
     "sha256": "436c1050"
   },
   "web.auth.passkeys.registered_success": {
-    "text": "パスキーが登録されました",
+    "text": "パスキーが正常に登録されました",
     "context": "Success message after registering passkey",
     "sha256": "fbfb0713"
   },
@@ -287,7 +287,7 @@
     "sha256": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
-    "text": "パスキーを追加して、パスワードなしでより安全にログインしましょう",
+    "text": "パスキーを追加して、パスワードを入力せずにより安全にサインインしましょう",
     "context": "Description for empty state",
     "sha256": "e5bc07f1"
   },
@@ -312,17 +312,17 @@
     "sha256": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "パスワードより安全 - フィッシング攻撃に対する耐性があります",
+    "text": "パスワードより安全 - フィッシング攻撃に強い",
     "context": "Passkey benefit",
     "sha256": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "高速で簡単 - 指紋、顔、またはセキュリティキーを使うだけ",
+    "text": "高速で簡単 - 指紋、顔認証、またはセキュリティキーを使用するだけ",
     "context": "Passkey benefit",
     "sha256": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "プラットフォーム認証を使用するとデバイス間で同期されます",
+    "text": "プラットフォーム認証を使用すると、デバイス間で同期されます",
     "context": "Passkey benefit",
     "sha256": "7480c7ae"
   },
@@ -710,5 +710,11 @@
   "web.auth.recovery_codes.link_title": {
     "text": "リカバリーコード",
     "sha256": "579c7f4e"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ セキュリティ重要: メッセージは情報漏洩を防ぎます。src/locales/SECURITY-TRANSLATION-GUIDE.mdを参照"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "ユーザーのログイン済みデバイス/ブラウザ管理ページ"
   }
 }

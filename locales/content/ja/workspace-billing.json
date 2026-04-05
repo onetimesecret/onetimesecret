@@ -904,19 +904,19 @@
     "sha256": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
-    "text": "現在の期間終了日:",
+    "text": "現在の期間の終了:",
     "sha256": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
-    "text": "いつ切り替えますか？",
+    "text": "いつ切り替えますか?",
     "sha256": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
-    "text": "請求期間終了時に切り替え",
+    "text": "請求期間の終了時に切り替え",
     "sha256": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "現在のプランは{date}まで有効です。その後、新しいプランのチェックアウトを完了していただきます。",
+    "text": "現在のプランは{date}まで有効です。その後、新しいプランのお支払いを完了していただきます。",
     "sha256": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
@@ -924,7 +924,7 @@
     "sha256": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "現在のプランは即時キャンセルされます。未使用期間分の返金を受け取り、新しいプランのチェックアウトを完了していただきます。",
+    "text": "現在のプランは今すぐキャンセルされます。未使用期間の払い戻しを受け、新しいプランのお支払いを完了していただきます。",
     "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
@@ -932,7 +932,7 @@
     "sha256": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
-    "text": "通貨の移行に失敗しました。もう一度お試しください。",
+    "text": "通貨移行に失敗しました。もう一度お試しください。",
     "sha256": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
@@ -940,28 +940,28 @@
     "sha256": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "現在のプランは請求期間の終了まで有効です。その後、新しいプランのチェックアウトを完了するよう案内されます。",
+    "text": "現在のプランは請求期間の終了まで有効です。その後、新しいプランのお支払いを完了するよう案内されます。",
     "sha256": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
-    "text": "{currency}のクレジット残高があり、新しい通貨に移行できません。",
+    "text": "{currency}のクレジット残高があり、新しい通貨に移行することはできません。",
     "sha256": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "移行前に解決が必要な未処理の請求項目があります。",
+    "text": "移行前に解決する必要がある未処理の請求項目があります。",
     "sha256": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
-    "text": "アカウントの有効なクーポンが新しい通貨に対応していない場合があります。",
+    "text": "アカウントの有効なクーポンは、新しい通貨と互換性がない場合があります。",
     "sha256": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
-    "text": "通貨移行保留中",
+    "text": "通貨移行を保留中",
     "context": "Banner heading when graceful migration is scheduled",
     "sha256": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "現在のプランは{date}に終了します。{plan}（{currency}）への切り替えを完了してください。",
+    "text": "現在のプランは{date}に終了します。{plan}({currency})への切り替えを完了してください。",
     "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {

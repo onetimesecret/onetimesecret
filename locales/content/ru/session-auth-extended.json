@@ -237,7 +237,7 @@
     "sha256": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "Ключи доступа позволяют безопасно входить в систему без пароля",
+    "text": "Ключи доступа позволяют безопасно входить без пароля",
     "context": "Setup page description",
     "sha256": "85630bef"
   },
@@ -282,7 +282,7 @@
     "sha256": "fbfb0713"
   },
   "web.auth.passkeys.no_passkeys": {
-    "text": "Нет зарегистрированных ключей доступа",
+    "text": "Ключи доступа не зарегистрированы",
     "context": "Empty state when no passkeys exist",
     "sha256": "1d97fde4"
   },
@@ -317,12 +317,12 @@
     "sha256": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Быстро и просто — используйте отпечаток пальца, лицо или ключ безопасности",
+    "text": "Быстро и удобно — просто используйте отпечаток пальца, лицо или ключ безопасности",
     "context": "Passkey benefit",
     "sha256": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Синхронизируются между Вашими устройствами при использовании платформенных аутентификаторов",
+    "text": "Синхронизируются между устройствами при использовании платформенных аутентификаторов",
     "context": "Passkey benefit",
     "sha256": "7480c7ae"
   },
@@ -710,5 +710,11 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Коды восстановления",
     "sha256": "579c7f4e"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ КРИТИЧНО ДЛЯ БЕЗОПАСНОСТИ: Сообщения предотвращают раскрытие информации. См. src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Страница управления устройствами/браузерами пользователя"
   }
 }

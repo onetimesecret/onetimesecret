@@ -92,15 +92,15 @@
     "sha256": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "认证链接不完整。请申请新的登录链接。",
+    "text": "认证链接不完整。请重新获取登录链接。",
     "sha256": "f4a10652"
   },
   "web.login.errors.token_expired": {
-    "text": "此登录链接已过期。请申请新的链接。",
+    "text": "此登录链接已过期。请重新获取。",
     "sha256": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "此登录链接无效。请申请新的链接。",
+    "text": "此登录链接无效。请重新获取。",
     "sha256": "270c6401"
   },
   "web.signup.create_your_account": {
@@ -395,5 +395,8 @@
   "web.help.contact_support": {
     "text": "联系支持",
     "sha256": "f8d47b82"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "注册后的邮箱验证流程"
   }
 }

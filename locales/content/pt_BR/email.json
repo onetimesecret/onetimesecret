@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "O endereço de e-mail da sua conta %{product_name} foi alterado para %{new_email_masked}.",
+    "text": "O endereço de e-mail da sua conta %{product_name} foi alterado para %{new_email_masked} em %{date}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
@@ -372,7 +372,7 @@
     "sha256": "be3441d6"
   },
   "email.email_change_requested.title": {
-    "text": "Alteração de e-mail solicitada",
+    "text": "Alteração de E-mail Solicitada",
     "sha256": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
@@ -388,15 +388,15 @@
     "sha256": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Se você fez essa solicitação, verifique seu novo e-mail para encontrar o link de confirmação. Nenhuma alteração foi feita ainda.",
+    "text": "Se você fez esta solicitação, verifique seu novo e-mail para encontrar o link de confirmação. Nenhuma alteração foi feita ainda.",
     "sha256": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "Se você não fez essa solicitação, pode ignorar este e-mail com segurança. Sua conta não foi alterada.",
+    "text": "Se você não fez esta solicitação, pode ignorar este e-mail com segurança. Sua conta não foi alterada.",
     "sha256": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
-    "text": "Contatar suporte",
+    "text": "Contatar Suporte",
     "sha256": "f8d47b82"
   },
   "email.email_change_requested.signature": {

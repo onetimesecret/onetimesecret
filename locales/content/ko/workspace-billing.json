@@ -892,15 +892,15 @@
     "sha256": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
-    "text": "현재 구독은 {from}을(를) 사용합니다. 선택한 요금제은 {to}(으)로 청구됩니다. 구독을 새 통화로 전환해야 합니다.",
+    "text": "현재 구독은 {from}을(를) 사용합니다. 선택한 플랜은 {to}(으)로 청구됩니다. 구독을 새 통화로 마이그레이션해야 합니다.",
     "sha256": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
-    "text": "현재 요금제:",
+    "text": "현재 플랜:",
     "sha256": "648a0ab2"
   },
   "web.billing.currency_migration.new_plan": {
-    "text": "새 요금제:",
+    "text": "새 플랜:",
     "sha256": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
@@ -908,7 +908,7 @@
     "sha256": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
-    "text": "전환은 언제 진행할까요?",
+    "text": "언제 전환하시겠습니까?",
     "sha256": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
@@ -916,7 +916,7 @@
     "sha256": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "현재 요금제은 {date}까지 유지됩니다. 이후 새 요금제의 결제를 완료하게 됩니다.",
+    "text": "현재 플랜은 {date}까지 유지됩니다. 이후 새 플랜의 결제를 완료하게 됩니다.",
     "sha256": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
@@ -924,7 +924,7 @@
     "sha256": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "현재 요금제이 즉시 취소됩니다. 미사용 기간에 대한 환불을 받고 새 요금제의 결제를 완료하게 됩니다.",
+    "text": "현재 플랜이 즉시 취소됩니다. 미사용 기간에 대한 환불을 받고 새 플랜 결제를 완료하게 됩니다.",
     "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
@@ -932,7 +932,7 @@
     "sha256": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
-    "text": "통화 전환에 실패했습니다. 다시 시도해 주세요.",
+    "text": "통화 마이그레이션에 실패했습니다. 다시 시도해 주세요.",
     "sha256": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
@@ -940,15 +940,15 @@
     "sha256": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "현재 요금제은 결제 기간이 끝날 때까지 유지됩니다. 이후 새 요금제의 결제를 완료하라는 안내를 받게 됩니다.",
+    "text": "현재 플랜은 결제 기간이 끝날 때까지 유지됩니다. 이후 새 플랜의 결제를 완료하라는 메시지가 표시됩니다.",
     "sha256": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
-    "text": "{currency}의 크레딧 잔액이 있으며 새 통화로 이전할 수 없습니다.",
+    "text": "{currency}에 크레딧 잔액이 있으며, 이는 새 통화로 이전할 수 없습니다.",
     "sha256": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "전환 전에 처리해야 할 미결 청구 항목이 있습니다.",
+    "text": "마이그레이션 전에 해결해야 할 미결제 인보이스 항목이 있습니다.",
     "sha256": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
@@ -956,16 +956,16 @@
     "sha256": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
-    "text": "통화 전환 대기 중",
+    "text": "통화 마이그레이션 대기 중",
     "context": "Banner heading when graceful migration is scheduled",
     "sha256": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "현재 요금제은 {date}에 종료됩니다. {plan} ({currency})으로의 전환을 완료하세요.",
+    "text": "현재 플랜이 {date}에 종료됩니다. {plan} ({currency})으로 전환을 완료하세요.",
     "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
-    "text": "전환 완료",
+    "text": "마이그레이션 완료",
     "context": "Button to start checkout for the new currency plan",
     "sha256": "fa794e0c"
   },

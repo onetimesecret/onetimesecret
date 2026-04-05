@@ -398,5 +398,335 @@
   "web.domains.dns_widget_description": {
     "text": "以下のツールを使用してDNSプロバイダーを自動検出し、ドメイン設定のステップバイステップの手順を取得できます。",
     "sha256": "91c1af2e"
+  },
+  "web.domains.email.title": {
+    "text": "メール送信"
+  },
+  "web.domains.email.config_title": {
+    "text": "メール設定"
+  },
+  "web.domains.email.config_description": {
+    "text": "このドメインのメール送信を設定します"
+  },
+  "web.domains.email.provider_label": {
+    "text": "メールプロバイダー"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "メールプロバイダーを選択"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "送信者名"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "例: Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "送信元アドレス"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "例: secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "返信先アドレス"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "例: support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "変更を保存"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "変更を破棄"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "アカウントのデフォルトを使用"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "DKIMおよびSPFレコードによるドメイン検証が必要です"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "ドメイン認証の設定が必要です"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "ドメイン検証が必要です"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "アカウントのデフォルトのメール送信設定を使用します"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNSレコード"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "メール送信用にドメインを検証するため、以下のDNSレコードを追加してください。"
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "タイプ"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "名前"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "値"
+  },
+  "web.domains.email.copy": {
+    "text": "コピー"
+  },
+  "web.domains.email.copied": {
+    "text": "コピーしました"
+  },
+  "web.domains.email.status_verified": {
+    "text": "検証済み"
+  },
+  "web.domains.email.status_pending": {
+    "text": "保留中"
+  },
+  "web.domains.email.status_failed": {
+    "text": "失敗"
+  },
+  "web.domains.email.revalidate": {
+    "text": "再検証"
+  },
+  "web.domains.email.validating": {
+    "text": "検証中..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "ドメイン検証済み"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "検証に失敗しました"
+  },
+  "web.domains.email.last_validated": {
+    "text": "最終検証日"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "このドメインのメール送信を設定するには、プランをアップグレードしてください。"
+  },
+  "web.domains.email.configure_email": {
+    "text": "メールを設定"
+  },
+  "web.domains.email.access_denied": {
+    "text": "アクセス拒否"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "このドメインのメール設定を管理する権限がありません。組織の管理者にお問い合わせください。"
+  },
+  "web.domains.email.update_success": {
+    "text": "メール設定が正常に保存されました"
+  },
+  "web.domains.email.delete_success": {
+    "text": "メール設定が正常に削除されました"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "このドメインのメールは現在グローバル送信者から送信されています。独自の送信者IDを使用するには、メール設定を完了してください。"
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "カスタムメール送信は現在無効です。メールはグローバル送信者から送信されます。カスタム送信者IDを使用するには、以下の機能を有効にしてください。"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "未設定"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "デフォルト送信者を使用中"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "検証済み"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "検証待ち"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "無効"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "メール送信者が未設定 — メールはプラットフォームのデフォルト送信者を使用します"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "メール送信者の設定が検証待ち — メールはプラットフォームのデフォルト送信者を使用します"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "メール送信者が無効 — メールはプラットフォームのデフォルト送信者を使用します"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "メール送信者が検証済み — このドメインからメールが送信されます"
+  },
+  "web.domains.incoming.title": {
+    "text": "シークレット受信"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "シークレット受信設定"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "外部ユーザーがこのドメインの指定された受信者に直接シークレットを送信できるようにします"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "アクセス拒否"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "このドメインのシークレット受信設定を管理する権限がありません。組織の管理者にお問い合わせください。"
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "このドメインのシークレット受信を設定するには、プランをアップグレードしてください。"
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "シークレット受信を設定"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "このドメインではシークレット受信が設定されていません。外部ユーザーがチームにシークレットを送信できるよう、受信者を追加してください。"
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "シークレット受信は現在無効です。外部ユーザーはこのドメインの受信者にシークレットを送信できません。シークレット受信を許可するには、以下の機能を有効にしてください。"
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "受信者"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "このドメインでシークレットを受信できる人を定義します。シークレットが送信されると、受信者にメール通知が届きます。"
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "受信者を追加"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "削除"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "メールアドレス"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "表示名"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "例: セキュリティチーム"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "受信者が設定されていません"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "外部ユーザーがチームにシークレットを送信できるよう、受信者を追加してください。"
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "メールアドレスが無効です"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "このメールアドレスは既に追加されています"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "受信者は最大{max}名までです"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "表示名は必須です"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "メールアドレスは必須です"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "変更を保存"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "変更を破棄"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "シークレット受信設定が正常に保存されました"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "シークレット受信設定が正常に削除されました"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "受信者{count}名"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "未設定"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "設定済み"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "無効"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "シークレット受信が未設定 - 外部ユーザーはこのドメインにシークレットを送信できません"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "シークレット受信が有効（受信者{count}名）"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "このドメインではシークレット受信機能が無効です"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "シークレット受信を有効化"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "このドメインの受信者に外部ユーザーがシークレットを送信できるようにします"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "公開URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "外部ユーザーがシークレットを送信できるよう、このURLを共有してください"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "URLをコピー"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URLがクリップボードにコピーされました"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "すべての受信者を削除してもよろしいですか?外部ユーザーはこのドメインにシークレットを送信できなくなります。"
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "受信者の最大数に達しました"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "このメールアドレスは既に追加されています"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "保存すると、既存のすべての受信者が保留中の変更で置き換えられます。よろしいですか?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "すべての受信者を削除"
+  },
+  "web.domains.sso.title": {
+    "text": "シングルサインオン"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO設定"
+  },
+  "web.domains.sso.config_description": {
+    "text": "このドメインのシングルサインオン認証を設定します"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "アクセス拒否"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "このドメインのSSO設定を管理する権限がありません。組織の管理者にお問い合わせください。"
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "このドメインのシングルサインオンを設定するには、プランをアップグレードしてください。"
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO設定が正常に作成されました"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO設定が正常に更新されました"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO設定が正常に削除されました"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "SSOを設定"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "このドメインではSSOがまだ設定されていません。シングルサインオンを有効にして、チームメンバーが組織のIDプロバイダーを使用して認証できるようにしましょう。"
   }
 }

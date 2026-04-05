@@ -145,11 +145,11 @@
     "sha256": "1509f561"
   },
   "web.COMMON.burn": {
-    "text": "Destruir",
+    "text": "Queimar",
     "sha256": "926c5b43"
   },
   "web.COMMON.burned": {
-    "text": "Destruído",
+    "text": "Queimado",
     "sha256": "6d747b33"
   },
   "web.COMMON.expires_in": {
@@ -157,15 +157,15 @@
     "sha256": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Destruir esta mensagem confidencial",
+    "text": "Queimar esta mensagem confidencial",
     "sha256": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Destruir uma mensagem confidencial irá excluí-la antes de ser lida (clique para confirmar)",
+    "text": "Queimar uma mensagem confidencial irá excluí-la antes de ser lida (clique para confirmar)",
     "sha256": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Destruir uma mensagem confidencial é permanente e não pode ser desfeito",
+    "text": "Queimar uma mensagem confidencial é permanente e não pode ser desfeito",
     "sha256": "ab774967"
   },
   "web.COMMON.msg_check_email": {
@@ -261,7 +261,7 @@
     "sha256": "dc937b59"
   },
   "web.COMMON.word_burned": {
-    "text": "destruído",
+    "text": "queimado",
     "sha256": "2f79ea62"
   },
   "web.COMMON.word_received": {
@@ -309,7 +309,7 @@
     "sha256": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Destruir esta mensagem confidencial permanentemente",
+    "text": "Queimar esta mensagem confidencial permanentemente",
     "sha256": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
@@ -317,15 +317,15 @@
     "sha256": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Tem certeza de que deseja destruir esta mensagem confidencial? Esta ação não pode ser desfeita.",
+    "text": "Tem certeza de que deseja queimar esta mensagem confidencial? Esta ação não pode ser desfeita.",
     "sha256": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Sim, destruir esta mensagem confidencial",
+    "text": "Sim, queimar esta mensagem confidencial",
     "sha256": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Destruir uma mensagem confidencial irá excluí-la antes de ser recebida.",
+    "text": "Queimar uma mensagem confidencial irá excluí-la antes de ser recebida.",
     "sha256": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
@@ -914,11 +914,11 @@
     "sha256": "17376ee4"
   },
   "web.STATUS.burned": {
-    "text": "Destruído",
+    "text": "Queimado",
     "sha256": "6d747b33"
   },
   "web.STATUS.destroyed": {
-    "text": "Destruído",
+    "text": "Queimado",
     "sha256": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
@@ -982,7 +982,7 @@
     "sha256": "39b32f80"
   },
   "web.STATUS.burned_description": {
-    "text": "A mensagem confidencial foi destruída manualmente antes de ser visualizada",
+    "text": "A mensagem confidencial foi queimada manualmente antes de ser visualizada",
     "sha256": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
@@ -1158,7 +1158,7 @@
     "sha256": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
-    "text": "Destruir mensagem confidencial",
+    "text": "Queimar mensagem confidencial",
     "sha256": "28785b83"
   },
   "web.TITLES.dashboard": {
@@ -1374,12 +1374,12 @@
     "sha256": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "Serviço temporariamente indisponível. Tente novamente em breve.",
+    "text": "Serviço temporariamente indisponível. Por favor, tente novamente em breve.",
     "context": "Error message when database connection fails",
     "sha256": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "Não foi possível processar sua solicitação neste momento",
+    "text": "Não foi possível processar sua solicitação no momento",
     "context": "Error message for recoverable server errors",
     "sha256": "fb961f3f"
   },

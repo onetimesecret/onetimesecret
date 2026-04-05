@@ -578,5 +578,149 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Verloopt binnenkort",
     "sha256": "a5dcfef9"
+  },
+  "web.organizations.sso.title": {
+    "text": "Single Sign-On (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Configureer SSO om leden te laten inloggen met de identiteitsprovider van je organisatie"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Providertype"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Selecteer de identiteitsprovider van je organisatie"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Weergavenaam"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Een vriendelijke naam die gebruikers zien bij het inloggen"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "bijv. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Client-ID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Je OAuth client-ID"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Client Secret"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Je OAuth client secret"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Laat leeg om het bestaande secret te behouden"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Tenant-ID"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Je Azure AD / Entra ID tenant-identificatie"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "bijv. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "Issuer-URL"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "De OIDC discovery-URL voor je identiteitsprovider"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "bijv. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Toegestane e-maildomeinen"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Alleen gebruikers met e-mailadressen van deze domeinen kunnen inloggen. Laat leeg om alle domeinen toe te staan."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "bijv. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Voer een geldig domein in (bijv. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Dit domein staat al in de lijst"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "{domain} verwijderen"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "SSO inschakelen"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Wanneer ingeschakeld kunnen organisatieleden inloggen met deze SSO-provider"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "SSO-configuratie opslaan"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Configuratie verwijderen"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Weet je het zeker? Dit schakelt SSO uit voor je organisatie."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "SSO-configuratie laden mislukt"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "SSO-configuratie opslaan mislukt"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "SSO-configuratie succesvol aangemaakt"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "SSO-configuratie succesvol bijgewerkt"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "SSO-configuratie succesvol verwijderd"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "SSO-configuratie verwijderen mislukt"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Verbinding testen"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Controleer of de identiteitsprovider bereikbaar is (valideert geen inloggegevens)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Verbinding testen"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Testen..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Verbinding testen mislukt"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Autorisatie-endpoint"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Ontbrekende velden"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Ingeschakeld"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Geconfigureerd"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "Domein-SSO"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Configureer SSO voor elk geverifieerd domein"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Verwijder eerst deze configuratie om van provider te wisselen"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Niet geconfigureerd"
   }
 }

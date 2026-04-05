@@ -1369,12 +1369,12 @@
     "sha256": "cc078766"
   },
   "api.errors.unexpected_error": {
-    "text": "예기치 않은 오류가 발생했습니다",
+    "text": "예상치 못한 오류가 발생했습니다",
     "context": "Generic error message for unhandled exceptions in API",
     "sha256": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    "text": "서비스가 일시적으로 이용 불가합니다. 잠시 후 다시 시도해 주세요.",
     "context": "Error message when database connection fails",
     "sha256": "343ccdcb"
   },

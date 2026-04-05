@@ -578,5 +578,149 @@
   "web.organizations.invitations.expires_soon": {
     "text": "まもなく期限切れ",
     "sha256": "a5dcfef9"
+  },
+  "web.organizations.sso.title": {
+    "text": "シングルサインオン（SSO）"
+  },
+  "web.organizations.sso.description": {
+    "text": "組織のIDプロバイダーを使用してメンバーがサインインできるようにSSOを設定します"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "プロバイダータイプ"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "組織のIDプロバイダーを選択してください"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "表示名"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "サインイン時にユーザーに表示されるフレンドリー名"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "例: Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "クライアントID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "OAuthクライアントID"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "クライアントシークレット"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "OAuthクライアントシークレット"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "既存のシークレットを維持する場合は空白のままにしてください"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "テナントID"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Azure AD / Entra IDのテナント識別子"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "例: 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "発行者URL"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "IDプロバイダーのOIDCディスカバリURL"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "例: https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "許可するメールドメイン"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "これらのドメインのメールアドレスを持つユーザーのみがサインインできます。すべてのドメインを許可する場合は空白のままにしてください。"
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "例: acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "有効なドメインを入力してください（例: example.com）"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "このドメインは既にリストに含まれています"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "{domain}を削除"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "SSOを有効化"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "有効にすると、組織のメンバーはこのSSOプロバイダーを使用してサインインできます"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "SSO設定を保存"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "設定を削除"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "本当に削除しますか?組織のSSOが無効になります。"
+  },
+  "web.organizations.sso.load_error": {
+    "text": "SSO設定の読み込みに失敗しました"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "SSO設定の保存に失敗しました"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "SSO設定が正常に作成されました"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "SSO設定が正常に更新されました"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "SSO設定が正常に削除されました"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "SSO設定の削除に失敗しました"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "接続をテスト"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "IDプロバイダーに到達可能かどうかを確認します（認証情報の検証は行いません）"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "接続をテスト"
+  },
+  "web.organizations.sso.testing": {
+    "text": "テスト中..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "接続テストに失敗しました"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "認証エンドポイント"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "未入力の項目"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "有効"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "設定済み"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "ドメインSSO"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "検証済みの各ドメインにSSOを設定します"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "プロバイダーを変更するには、まずこの設定を削除してください"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "未設定"
   }
 }

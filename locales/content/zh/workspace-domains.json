@@ -398,5 +398,335 @@
   "web.domains.dns_widget_description": {
     "text": "使用下方工具自动检测您的 DNS 提供商，并获取配置域名的分步说明。",
     "sha256": "91c1af2e"
+  },
+  "web.domains.email.title": {
+    "text": "邮件发送"
+  },
+  "web.domains.email.config_title": {
+    "text": "邮件配置"
+  },
+  "web.domains.email.config_description": {
+    "text": "为此域名配置邮件发送"
+  },
+  "web.domains.email.provider_label": {
+    "text": "邮件提供商"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "选择邮件提供商"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "发件人名称"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "例如：安全团队"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "发件人地址"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "例如：secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "回复地址"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "例如：support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "保存更改"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "放弃更改"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "使用账户默认设置"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "需要通过 DKIM 和 SPF 记录进行域名验证"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "需要域名认证设置"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "需要域名验证"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "使用您账户的默认邮件发送配置"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS 记录"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "添加以下 DNS 记录以验证您的域名用于邮件发送。"
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "类型"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "名称"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "值"
+  },
+  "web.domains.email.copy": {
+    "text": "复制"
+  },
+  "web.domains.email.copied": {
+    "text": "已复制"
+  },
+  "web.domains.email.status_verified": {
+    "text": "已验证"
+  },
+  "web.domains.email.status_pending": {
+    "text": "待处理"
+  },
+  "web.domains.email.status_failed": {
+    "text": "失败"
+  },
+  "web.domains.email.revalidate": {
+    "text": "重新验证"
+  },
+  "web.domains.email.validating": {
+    "text": "验证中..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "域名已验证"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "验证失败"
+  },
+  "web.domains.email.last_validated": {
+    "text": "上次验证"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "升级您的套餐以配置此域名的邮件发送。"
+  },
+  "web.domains.email.configure_email": {
+    "text": "配置邮件"
+  },
+  "web.domains.email.access_denied": {
+    "text": "访问被拒绝"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "您没有权限管理此域名的邮件设置。请联系您的组织管理员。"
+  },
+  "web.domains.email.update_success": {
+    "text": "邮件配置已成功保存"
+  },
+  "web.domains.email.delete_success": {
+    "text": "邮件配置已成功移除"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "此域名的邮件目前从全局发件人发送。完成邮件配置以使用您自己的发件人身份。"
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "自定义邮件发送目前已禁用。邮件将从全局发件人发送。启用以下功能以使用您的自定义发件人身份。"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "未配置"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "使用默认发件人"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "已验证"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "待验证"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "已禁用"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "未配置发件人——邮件使用平台默认发件人"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "发件人配置待验证——邮件使用平台默认发件人"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "发件人已禁用——邮件使用平台默认发件人"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "发件人已验证——邮件将从此域名发送"
+  },
+  "web.domains.incoming.title": {
+    "text": "接收内容"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "接收内容配置"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "允许外部用户直接向此域名的指定接收人发送内容"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "访问被拒绝"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "您没有权限管理此域名的接收内容设置。请联系您的组织管理员。"
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "升级您的套餐以配置此域名的接收内容。"
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "配置接收内容"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "此域名未配置接收内容。添加接收人以允许外部用户向您的团队发送内容。"
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "接收内容目前已禁用。外部用户无法向此域名的接收人发送内容。启用以下功能以允许接收内容。"
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "接收人"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "定义谁可以接收此域名的内容。当有内容发送给接收人时，他们将收到邮件通知。"
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "添加接收人"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "移除"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "邮箱地址"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "显示名称"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "例如：安全团队"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "未配置接收人"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "添加接收人以允许外部用户向您的团队发送内容。"
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "邮箱地址无效"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "此邮箱地址已添加"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "最多允许 {max} 个接收人"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "显示名称为必填项"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "邮箱地址为必填项"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "保存更改"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "放弃更改"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "接收内容配置已成功保存"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "接收内容配置已成功移除"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} 个接收人"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "未配置"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "已配置"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "已禁用"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "未配置接收内容——外部用户无法向此域名发送内容"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "已启用接收内容，共 {count} 个接收人"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "此域名的接收内容功能已禁用"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "启用接收内容"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "允许外部用户向此域名的接收人发送内容"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "公开网址"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "与外部用户分享此网址，允许他们发送内容"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "复制网址"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "网址已复制到剪贴板"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "确定要移除所有接收人吗？外部用户将无法再向此域名发送内容。"
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "已达到接收人数量上限"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "此邮箱地址已添加"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "保存将用您的待处理更改替换所有现有接收人。确定吗？"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "删除所有接收人"
+  },
+  "web.domains.sso.title": {
+    "text": "单点登录"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO 配置"
+  },
+  "web.domains.sso.config_description": {
+    "text": "为此域名配置单点登录认证"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "访问被拒绝"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "您没有权限管理此域名的 SSO 设置。请联系您的组织管理员。"
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "升级您的套餐以配置此域名的单点登录。"
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO 配置已成功创建"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO 配置已成功更新"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO 配置已成功移除"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "配置 SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "此域名尚未配置 SSO。启用单点登录以允许团队成员使用您组织的身份提供商进行认证。"
   }
 }

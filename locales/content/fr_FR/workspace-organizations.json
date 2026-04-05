@@ -578,5 +578,149 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Expire bientôt",
     "sha256": "a5dcfef9"
+  },
+  "web.organizations.sso.title": {
+    "text": "Authentification unique (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Configurez le SSO pour permettre aux membres de se connecter avec le fournisseur d'identité de votre organisation"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Type de fournisseur"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Sélectionnez le fournisseur d'identité de votre organisation"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Nom d'affichage"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Un nom convivial affiché aux utilisateurs lors de la connexion"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "ex. SSO Acme Corp"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "ID client"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Votre ID client OAuth"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Secret client"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Votre secret client OAuth"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Laissez vide pour conserver le secret existant"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "ID de locataire"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "L'identifiant de votre locataire Azure AD / Entra ID"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "ex. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL de l'émetteur"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "L'URL de découverte OIDC de votre fournisseur d'identité"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "ex. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Domaines e-mail autorisés"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Seuls les utilisateurs avec des adresses e-mail de ces domaines peuvent se connecter. Laissez vide pour autoriser tous les domaines."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "ex. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Veuillez entrer un domaine valide (ex. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Ce domaine est déjà dans la liste"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Supprimer {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Activer le SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Lorsqu'il est activé, les membres de l'organisation peuvent se connecter avec ce fournisseur SSO"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Enregistrer la configuration SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Supprimer la configuration"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Êtes-vous sûr ? Cela désactivera le SSO pour votre organisation."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Échec du chargement de la configuration SSO"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Échec de l'enregistrement de la configuration SSO"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Configuration SSO créée avec succès"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Configuration SSO mise à jour avec succès"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Configuration SSO supprimée avec succès"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Échec de la suppression de la configuration SSO"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Tester la connexion"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Vérifier que le fournisseur d'identité est accessible (ne valide pas les identifiants)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Tester la connexion"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Test en cours..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Échec du test de connexion"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Point de terminaison d'autorisation"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Champs manquants"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Activé"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Configuré"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO par domaine"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Configurer le SSO pour chaque domaine vérifié"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Pour changer de fournisseur, supprimez d'abord cette configuration"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Non configuré"
   }
 }

@@ -432,7 +432,7 @@
     "sha256": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0} активная сессия | {0} активные сессии | {0} активных сессий",
+    "text": "{0} активная сессия | {0} активных сессий",
     "sha256": "30737484"
   },
   "web.settings.security.best_practices": {

@@ -242,7 +242,7 @@
     "sha256": "85630bef"
   },
   "web.auth.passkeys.not_configured": {
-    "text": "Nicht konfiguriert",
+    "text": "Nicht eingerichtet",
     "context": "Status when no passkeys are registered",
     "sha256": "dd1841d2"
   },
@@ -287,7 +287,7 @@
     "sha256": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
-    "text": "Füge einen Passkey hinzu, um dich sicherer ohne Passworteingabe anzumelden",
+    "text": "Füge einen Passkey hinzu, um dich sicherer ohne Passwort anzumelden",
     "context": "Description for empty state",
     "sha256": "e5bc07f1"
   },
@@ -307,7 +307,7 @@
     "sha256": "e1af94fe"
   },
   "web.auth.passkeys.never_used": {
-    "text": "Nie verwendet",
+    "text": "Noch nie verwendet",
     "context": "Status when passkey has not been used",
     "sha256": "24d3236c"
   },
@@ -317,7 +317,7 @@
     "sha256": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Schnell und einfach - verwende einfach deinen Fingerabdruck, dein Gesicht oder deinen Sicherheitsschlüssel",
+    "text": "Schnell und einfach - nutze einfach deinen Fingerabdruck, dein Gesicht oder einen Sicherheitsschlüssel",
     "context": "Passkey benefit",
     "sha256": "5a0ce96c"
   },
@@ -710,5 +710,11 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Wiederherstellungscodes",
     "sha256": "579c7f4e"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SICHERHEITSKRITISCH: Nachrichten verhindern Informationsoffenlegung. Siehe src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Verwaltungsseite für angemeldete Geräte/Browser des Benutzers"
   }
 }

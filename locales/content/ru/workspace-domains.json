@@ -398,5 +398,335 @@
   "web.domains.dns_widget_description": {
     "text": "Используйте инструмент ниже для автоматического определения Вашего DNS-провайдера и получения пошаговых инструкций по настройке домена.",
     "sha256": "91c1af2e"
+  },
+  "web.domains.email.title": {
+    "text": "Отправка email"
+  },
+  "web.domains.email.config_title": {
+    "text": "Настройка email"
+  },
+  "web.domains.email.config_description": {
+    "text": "Настройте отправку email для этого домена"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Email-провайдер"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Выберите email-провайдера"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Имя отправителя"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "напр. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Адрес отправителя"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "напр. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Адрес для ответа"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "напр. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Сохранить изменения"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Отменить изменения"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Использовать настройки аккаунта"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Требуется подтверждение домена через DKIM и SPF записи"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Требуется настройка аутентификации домена"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Требуется подтверждение домена"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Используются настройки отправки email по умолчанию для вашего аккаунта"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS-записи"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Добавьте следующие DNS-записи для подтверждения вашего домена для отправки email."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Тип"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Имя"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Значение"
+  },
+  "web.domains.email.copy": {
+    "text": "Копировать"
+  },
+  "web.domains.email.copied": {
+    "text": "Скопировано"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Подтверждён"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Ожидание"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Ошибка"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Проверить повторно"
+  },
+  "web.domains.email.validating": {
+    "text": "Проверка..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Домен подтверждён"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Ошибка проверки"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Последняя проверка"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Обновите тарифный план для настройки отправки email с этого домена."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Настроить email"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Доступ запрещён"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "У вас нет прав для управления настройками email этого домена. Обратитесь к администратору вашей организации."
+  },
+  "web.domains.email.update_success": {
+    "text": "Настройки email успешно сохранены"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Настройки email успешно удалены"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Письма для этого домена сейчас отправляются от глобального отправителя. Завершите настройку email, чтобы использовать собственный адрес отправителя."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Пользовательская отправка email сейчас отключена. Письма будут отправляться от глобального отправителя. Включите функцию ниже, чтобы использовать собственный адрес отправителя."
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Не настроено"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Используется отправитель по умолчанию"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Подтверждён"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Ожидает подтверждения"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Отключён"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Отправитель email не настроен — письма отправляются от имени платформы по умолчанию"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Настройки отправителя email ожидают подтверждения — письма отправляются от имени платформы по умолчанию"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Отправитель email отключён — письма отправляются от имени платформы по умолчанию"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Отправитель email подтверждён — письма отправляются с этого домена"
+  },
+  "web.domains.incoming.title": {
+    "text": "Входящие секреты"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Настройка входящих секретов"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Разрешить внешним пользователям отправлять секреты напрямую назначенным получателям на этом домене"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Доступ запрещён"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "У вас нет прав для управления настройками входящих секретов этого домена. Обратитесь к администратору вашей организации."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Обновите тарифный план для настройки входящих секретов для этого домена."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Настроить входящие секреты"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Входящие секреты не настроены для этого домена. Добавьте получателей, чтобы внешние пользователи могли отправлять секреты вашей команде."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Входящие секреты сейчас отключены. Внешние пользователи не могут отправлять секреты получателям на этом домене. Включите функцию ниже, чтобы разрешить входящие секреты."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Получатели"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Определите, кто может получать входящие секреты на этом домене. Получатели будут получать email уведомления при отправке им секрета."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Добавить получателя"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Удалить"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "Email адрес"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Отображаемое имя"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "напр. Служба безопасности"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Получатели не настроены"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Добавьте получателей, чтобы внешние пользователи могли отправлять секреты вашей команде."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Неверный email адрес"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Этот email адрес уже добавлен"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Максимум {max} получателей"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Требуется отображаемое имя"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "Требуется email адрес"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Сохранить изменения"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Отменить изменения"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Настройки входящих секретов успешно сохранены"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Настройки входящих секретов успешно удалены"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} получатель | {count} получателя | {count} получателей"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Не настроено"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Настроено"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Отключён"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Входящие секреты не настроены — внешние пользователи не могут отправлять секреты на этот домен"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Входящие секреты включены с {count} получателем | Входящие секреты включены с {count} получателями | Входящие секреты включены с {count} получателями"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Функция входящих секретов отключена для этого домена"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Включить входящие секреты"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Разрешить внешним пользователям отправлять секреты получателям на этом домене"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Публичный URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Поделитесь этим URL с внешними пользователями, чтобы они могли отправлять секреты"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Копировать URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL скопирован в буфер обмена"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Вы уверены, что хотите удалить всех получателей? Внешние пользователи больше не смогут отправлять секреты на этот домен."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Достигнуто максимальное количество получателей"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Этот email адрес уже добавлен"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Сохранение заменит всех существующих получателей на ваши текущие изменения. Вы уверены?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Удалить всех получателей"
+  },
+  "web.domains.sso.title": {
+    "text": "Единый вход"
+  },
+  "web.domains.sso.config_title": {
+    "text": "Настройка SSO"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Настройте аутентификацию единого входа для этого домена"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Доступ запрещён"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "У вас нет прав для управления настройками SSO этого домена. Обратитесь к администратору вашей организации."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Обновите тарифный план для настройки единого входа для этого домена."
+  },
+  "web.domains.sso.create_success": {
+    "text": "Настройки SSO успешно созданы"
+  },
+  "web.domains.sso.update_success": {
+    "text": "Настройки SSO успешно обновлены"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "Настройки SSO успешно удалены"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Настроить SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO ещё не настроен для этого домена. Включите единый вход, чтобы участники команды могли проходить аутентификацию через провайдера идентификации вашей организации."
   }
 }

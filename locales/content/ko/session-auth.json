@@ -84,7 +84,7 @@
     "sha256": "4d1213f9"
   },
   "web.auth.sso.error": {
-    "text": "SSO 로그인 실패. 다시 시도해 주세요.",
+    "text": "SSO 로그인에 실패했습니다. 다시 시도해 주세요.",
     "sha256": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
@@ -100,7 +100,7 @@
     "sha256": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "이 로그인 링크가 유효하지 않습니다. 새 링크를 요청해 주세요.",
+    "text": "이 로그인 링크는 유효하지 않습니다. 새 링크를 요청해 주세요.",
     "sha256": "270c6401"
   },
   "web.signup.create_your_account": {
@@ -395,5 +395,8 @@
   "web.help.contact_support": {
     "text": "고객 지원 문의",
     "sha256": "f8d47b82"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "가입 후 이메일 인증 흐름"
   }
 }

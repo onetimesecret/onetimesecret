@@ -220,7 +220,7 @@
     "sha256": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Eenmalige aanmelding",
+    "text": "Single Sign-On",
     "sha256": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
@@ -280,7 +280,7 @@
     "sha256": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Eenmalige aanmelding (SSO)",
+    "text": "Single Sign-On (SSO)",
     "sha256": "5db5c812"
   },
   "web.billing.features.priority_support": {
@@ -360,11 +360,11 @@
     "sha256": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Enkel team",
+    "text": "Single Team",
     "sha256": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Multi-team",
+    "text": "Multi Team",
     "sha256": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
@@ -892,7 +892,7 @@
     "sha256": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
-    "text": "Je huidige abonnement gebruikt {from}. Het geselecteerde plan wordt gefactureerd in {to}. Hiervoor moet je abonnement naar de nieuwe valuta worden gemigreerd.",
+    "text": "Je huidige abonnement gebruikt {from}. Het geselecteerde plan wordt gefactureerd in {to}. Hiervoor moet je abonnement worden gemigreerd naar de nieuwe valuta.",
     "sha256": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
@@ -904,27 +904,27 @@
     "sha256": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
-    "text": "Huidige periode eindigt op:",
+    "text": "Huidige periode eindigt:",
     "sha256": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
-    "text": "Wanneer moet de overstap plaatsvinden?",
+    "text": "Wanneer moet de overschakeling plaatsvinden?",
     "sha256": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
-    "text": "Overstappen aan het einde van de facturatieperiode",
+    "text": "Overschakelen aan het einde van de factureringsperiode",
     "sha256": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "Je huidige plan blijft actief tot {date}. Daarna rond je de betaling af voor je nieuwe plan.",
+    "text": "Je huidige plan blijft actief tot {date}. Daarna voltooi je de afrekening voor je nieuwe plan.",
     "sha256": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
-    "text": "Direct overstappen",
+    "text": "Direct overschakelen",
     "sha256": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Je huidige plan wordt nu geannuleerd. Je ontvangt een terugbetaling voor de ongebruikte tijd en rondt de betaling af voor het nieuwe plan.",
+    "text": "Je huidige plan wordt nu geannuleerd. Je ontvangt een terugbetaling voor ongebruikte tijd en voltooit de afrekening voor het nieuwe plan.",
     "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
@@ -936,11 +936,11 @@
     "sha256": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
-    "text": "De valuta van je abonnement is succesvol bijgewerkt.",
+    "text": "Je abonnementsvaluta is succesvol bijgewerkt.",
     "sha256": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "Je huidige plan blijft actief tot het einde van de facturatieperiode. Daarna word je gevraagd om de betaling voor je nieuwe plan af te ronden.",
+    "text": "Je huidige plan blijft actief tot het einde van de factureringsperiode. Daarna word je gevraagd de afrekening voor je nieuwe plan te voltooien.",
     "sha256": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
@@ -956,12 +956,12 @@
     "sha256": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
-    "text": "Valutamigratie in afwachting",
+    "text": "Valutamigratie in behandeling",
     "context": "Banner heading when graceful migration is scheduled",
     "sha256": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "Je huidige plan eindigt op {date}. Rond je overstap naar {plan} ({currency}) af.",
+    "text": "Je huidige plan eindigt op {date}. Voltooi je overschakeling naar {plan} ({currency}).",
     "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {

@@ -887,7 +887,7 @@
     "sha256": "158f558e"
   },
   "web.billing.currency_migration.title": {
-    "text": "Valutŝanĝo bezonata",
+    "text": "Valutŝanĝo Bezonata",
     "context": "Modal title when plan requires different currency than current subscription",
     "sha256": "2cd800c5"
   },
@@ -916,7 +916,7 @@
     "sha256": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "Via nuna plano restas aktiva ĝis {date}. Post tio, vi kompletigos la pagon por via nova plano.",
+    "text": "Via nuna plano restas aktiva ĝis {date}. Post tio, vi kompletigos la pagproceson por via nova plano.",
     "sha256": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
@@ -924,23 +924,23 @@
     "sha256": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Via nuna plano estas nuligita nun. Vi ricevos repagon por via neuzita tempo kaj kompletos la pagon por la nova plano.",
+    "text": "Via nuna plano estas nuligita nun. Vi ricevos repagon por via neuzita tempo kaj kompletigos la pagproceson por la nova plano.",
     "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
-    "text": "Konfirmi valutŝanĝon",
+    "text": "Konfirmi Valutŝanĝon",
     "sha256": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
-    "text": "Valutmigrado malsukcesis. Bonvolu reprovi.",
+    "text": "Valutmigro malsukcesis. Bonvolu reprovi.",
     "sha256": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
-    "text": "Via abona valuto estis sukcese ĝisdatigita.",
+    "text": "Via abon-valuto estis sukcese ĝisdatigita.",
     "sha256": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "Via nuna plano restos aktiva ĝis la fino de la faktura periodo. Vi estos invitita kompletigi la pagon por via nova plano post tio.",
+    "text": "Via nuna plano restos aktiva ĝis la fino de la faktura periodo. Vi estos instigita kompletigi la pagproceson por via nova plano post tio.",
     "sha256": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
@@ -948,15 +948,15 @@
     "sha256": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "Vi havas ankoraŭ ne solvitajn fakturajn erojn, kiuj devas esti solvitaj antaŭ la migrado.",
+    "text": "Vi havas atendantajn fakturajn erojn, kiujn oni devas solvi antaŭ la migro.",
     "sha256": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
-    "text": "Aktivaj kuponoj en via konto eble ne estas kongruaj kun la nova valuto.",
+    "text": "Aktivaj kuponoj sur via konto eble ne estas kongruaj kun la nova valuto.",
     "sha256": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
-    "text": "Valutmigrado atendanta",
+    "text": "Valutmigro Atendanta",
     "context": "Banner heading when graceful migration is scheduled",
     "sha256": "018ae653"
   },
@@ -965,7 +965,7 @@
     "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
-    "text": "Kompletigi migradon",
+    "text": "Kompletigi Migron",
     "context": "Button to start checkout for the new currency plan",
     "sha256": "fa794e0c"
   },

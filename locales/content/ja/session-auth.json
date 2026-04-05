@@ -84,7 +84,7 @@
     "sha256": "4d1213f9"
   },
   "web.auth.sso.error": {
-    "text": "SSOログインに失敗しました。もう一度お試しください。",
+    "text": "SSOサインインに失敗しました。もう一度お試しください。",
     "sha256": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
@@ -92,15 +92,15 @@
     "sha256": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "認証リンクが不完全です。新しいログインリンクをリクエストしてください。",
+    "text": "認証リンクが不完全です。新しいサインインリンクをリクエストしてください。",
     "sha256": "f4a10652"
   },
   "web.login.errors.token_expired": {
-    "text": "このログインリンクは期限切れです。新しいリンクをリクエストしてください。",
+    "text": "このサインインリンクは期限切れです。新しいリンクをリクエストしてください。",
     "sha256": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "このログインリンクは無効です。新しいリンクをリクエストしてください。",
+    "text": "このサインインリンクは無効です。新しいリンクをリクエストしてください。",
     "sha256": "270c6401"
   },
   "web.signup.create_your_account": {
@@ -395,5 +395,8 @@
   "web.help.contact_support": {
     "text": "サポートに連絡",
     "sha256": "f8d47b82"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "サインアップ後のメール認証フロー"
   }
 }

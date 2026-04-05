@@ -145,11 +145,11 @@
     "sha256": "1509f561"
   },
   "web.COMMON.burn": {
-    "text": "Vernietigen",
+    "text": "Verbranden",
     "sha256": "926c5b43"
   },
   "web.COMMON.burned": {
-    "text": "Vernietigd",
+    "text": "Verbrand",
     "sha256": "6d747b33"
   },
   "web.COMMON.expires_in": {
@@ -157,15 +157,15 @@
     "sha256": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Dit bericht vernietigen",
+    "text": "Dit bericht verbranden",
     "sha256": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Een bericht vernietigen verwijdert het voordat het is gelezen (klik om te bevestigen)",
+    "text": "Een bericht verbranden verwijdert het voordat het is gelezen (klik om te bevestigen)",
     "sha256": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Een bericht vernietigen is permanent en kan niet ongedaan worden gemaakt",
+    "text": "Een bericht verbranden is permanent en kan niet ongedaan worden gemaakt",
     "sha256": "ab774967"
   },
   "web.COMMON.msg_check_email": {
@@ -261,7 +261,7 @@
     "sha256": "dc937b59"
   },
   "web.COMMON.word_burned": {
-    "text": "vernietigd",
+    "text": "verbrand",
     "sha256": "2f79ea62"
   },
   "web.COMMON.word_received": {
@@ -309,7 +309,7 @@
     "sha256": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Dit bericht permanent vernietigen",
+    "text": "Dit bericht permanent verbranden",
     "sha256": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
@@ -317,15 +317,15 @@
     "sha256": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Weet je zeker dat je dit bericht wilt vernietigen? Deze actie kan niet ongedaan worden gemaakt.",
+    "text": "Weet je zeker dat je dit bericht wilt verbranden? Deze actie kan niet ongedaan worden gemaakt.",
     "sha256": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Ja, dit bericht vernietigen",
+    "text": "Ja, dit bericht verbranden",
     "sha256": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Een bericht vernietigen verwijdert het voordat het is ontvangen.",
+    "text": "Een bericht verbranden verwijdert het voordat het is ontvangen.",
     "sha256": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
@@ -914,7 +914,7 @@
     "sha256": "17376ee4"
   },
   "web.STATUS.burned": {
-    "text": "Vernietigd",
+    "text": "Verbrand",
     "sha256": "6d747b33"
   },
   "web.STATUS.destroyed": {
@@ -982,7 +982,7 @@
     "sha256": "39b32f80"
   },
   "web.STATUS.burned_description": {
-    "text": "Bericht is handmatig vernietigd voordat het werd bekeken",
+    "text": "Bericht is handmatig verbrand voordat het werd bekeken",
     "sha256": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
@@ -1158,7 +1158,7 @@
     "sha256": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
-    "text": "Bericht vernietigen",
+    "text": "Bericht verbranden",
     "sha256": "28785b83"
   },
   "web.TITLES.dashboard": {
@@ -1379,7 +1379,7 @@
     "sha256": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "Je verzoek kan op dit moment niet worden verwerkt",
+    "text": "Je verzoek kan momenteel niet worden verwerkt",
     "context": "Error message for recoverable server errors",
     "sha256": "fb961f3f"
   },

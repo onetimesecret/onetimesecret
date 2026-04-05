@@ -578,5 +578,149 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Baldaŭ senvalidiĝas",
     "sha256": "a5dcfef9"
+  },
+  "web.organizations.sso.title": {
+    "text": "Unuopa Ensaluto (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Agordu SSO por permesi al membroj ensaluti per la identeca provizanto de via organizo"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Provizanttipo"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Elektu la identecan provizanton de via organizo"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Montrnomo"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Amika nomo montrata al uzantoj dum ensalutado"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "ekz. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Klienta ID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Via OAuth klienta ID"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Klienta Sekreto"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Via OAuth klienta sekreto"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Lasu malplena por konservi la ekzistantan sekreton"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Luanta ID"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Via Azure AD / Entra ID luanta identigilo"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "ekz. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "Eldonanta URL"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "La OIDC-malkovra URL por via identeca provizanto"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "ekz. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Permesitaj Retpoŝtaj Domajnoj"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Nur uzantoj kun retpoŝtadresoj de ĉi tiuj domajnoj povas ensaluti. Lasu malplena por permesi ĉiujn domajnojn."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "ekz. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Bonvolu enigi validan domajnon (ekz. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Ĉi tiu domajno jam estas en la listo"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Forigi {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Ebligi SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Kiam ebligita, organizaj membroj povas ensaluti uzante ĉi tiun SSO-provizanton"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Konservi SSO-Agordon"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Forigi Agordon"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Ĉu vi certas? Ĉi tio malŝaltos SSO por via organizo."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Malsukcesis ŝargi SSO-agordon"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Malsukcesis konservi SSO-agordon"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "SSO-agordo sukcese kreita"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "SSO-agordo sukcese ĝisdatigita"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "SSO-agordo sukcese forigita"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Malsukcesis forigi SSO-agordon"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Testi Konekton"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Kontrolu, ke la identeca provizanto estas atingebla (ne kontrolas akreditaĵojn)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Testi Konekton"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Testante..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Malsukcesis testi konekton"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Rajtigiga Finpunkto"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Mankantaj Kampoj"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Ebligita"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Agordita"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "Domajn-SSO"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Agordu SSO por ĉiu kontrolita domajno"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Por ŝanĝi provizanton, unue forigu ĉi tiun agordon"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Ne Agordita"
   }
 }

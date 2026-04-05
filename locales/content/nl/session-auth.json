@@ -80,7 +80,7 @@
     "sha256": "b8794f11"
   },
   "web.auth.sso.signing_in": {
-    "text": "Doorverwijzen naar identiteitsprovider...",
+    "text": "Doorsturen naar identiteitsprovider...",
     "sha256": "4d1213f9"
   },
   "web.auth.sso.error": {
@@ -88,19 +88,19 @@
     "sha256": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "SSO-authenticatie mislukt. Probeer het opnieuw of log in met je wachtwoord.",
+    "text": "SSO-authenticatie mislukt. Probeer het opnieuw of gebruik wachtwoord-login.",
     "sha256": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "De authenticatielink is onvolledig. Vraag een nieuwe inloglink aan.",
+    "text": "De authenticatielink is onvolledig. Vraag een nieuwe aanmeldlink aan.",
     "sha256": "f4a10652"
   },
   "web.login.errors.token_expired": {
-    "text": "Deze inloglink is verlopen. Vraag een nieuwe aan.",
+    "text": "Deze aanmeldlink is verlopen. Vraag een nieuwe aan.",
     "sha256": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "Deze inloglink is ongeldig. Vraag een nieuwe aan.",
+    "text": "Deze aanmeldlink is ongeldig. Vraag een nieuwe aan.",
     "sha256": "270c6401"
   },
   "web.signup.create_your_account": {
@@ -395,5 +395,8 @@
   "web.help.contact_support": {
     "text": "Contact ondersteuning",
     "sha256": "f8d47b82"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "E-mailverificatieproces na aanmelden"
   }
 }

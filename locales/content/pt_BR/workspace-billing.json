@@ -887,7 +887,7 @@
     "sha256": "158f558e"
   },
   "web.billing.currency_migration.title": {
-    "text": "Alteração de moeda necessária",
+    "text": "Alteração de Moeda Necessária",
     "context": "Modal title when plan requires different currency than current subscription",
     "sha256": "2cd800c5"
   },
@@ -928,11 +928,11 @@
     "sha256": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
-    "text": "Confirmar alteração de moeda",
+    "text": "Confirmar Alteração de Moeda",
     "sha256": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
-    "text": "Falha na migração de moeda. Tente novamente.",
+    "text": "Falha na migração de moeda. Por favor, tente novamente.",
     "sha256": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
@@ -940,7 +940,7 @@
     "sha256": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "Seu plano atual permanecerá ativo até o final do período de cobrança. Você será solicitado a concluir o checkout do seu novo plano depois disso.",
+    "text": "Seu plano atual permanecerá ativo até o final do período de cobrança. Você será solicitado a concluir o checkout do seu novo plano após isso.",
     "sha256": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
@@ -956,7 +956,7 @@
     "sha256": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
-    "text": "Migração de moeda pendente",
+    "text": "Migração de Moeda Pendente",
     "context": "Banner heading when graceful migration is scheduled",
     "sha256": "018ae653"
   },
@@ -965,7 +965,7 @@
     "sha256": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
-    "text": "Concluir migração",
+    "text": "Concluir Migração",
     "context": "Button to start checkout for the new currency plan",
     "sha256": "fa794e0c"
   },

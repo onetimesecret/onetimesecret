@@ -540,7 +540,7 @@
     "sha256": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "不可妥协",
+    "text": "不可商量",
     "sha256": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
@@ -568,19 +568,19 @@
     "sha256": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "机密信息查看通知",
+    "text": "内容查看通知",
     "sha256": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "当有人查看您的机密信息时收到邮件通知",
+    "text": "当有人查看您的内容时收到邮件通知",
     "sha256": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "每当接收者查看您的机密信息时，您都会收到通知",
+    "text": "每当接收者查看您的内容时，您都会收到通知",
     "sha256": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "通知邮件仅包含时间戳和机密信息 ID。绝不包含查看者信息。",
+    "text": "通知邮件仅包含时间戳和内容 ID。绝不包含查看者信息。",
     "sha256": "7aac282f"
   },
   "web.settings.caution.title": {
@@ -620,11 +620,11 @@
     "sha256": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "永久删除您的所有机密信息",
+    "text": "永久删除您的所有内容",
     "sha256": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "删除所有机密信息的元数据和历史记录",
+    "text": "删除所有内容的元数据和历史记录",
     "sha256": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {

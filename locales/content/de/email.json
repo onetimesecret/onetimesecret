@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Die E-Mail-Adresse für dein %{product_name}-Konto wurde auf %{new_email_masked} geändert.",
+    "text": "Die E-Mail-Adresse für dein %{product_name}-Konto wurde am %{date} auf %{new_email_masked} geändert.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
@@ -376,7 +376,7 @@
     "sha256": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "Es wurde eine Anfrage gestellt, die E-Mail-Adresse deines %{product_name}-Kontos zu ändern.",
+    "text": "Es wurde eine Änderung der E-Mail-Adresse für dein %{product_name}-Konto angefordert.",
     "sha256": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {

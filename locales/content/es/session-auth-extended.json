@@ -227,7 +227,7 @@
     "sha256": "3ea1c1a2"
   },
   "web.auth.passkeys.title": {
-    "text": "Claves de acceso",
+    "text": "Llaves de acceso",
     "context": "Title for passkey management section",
     "sha256": "c87ccdb4"
   },
@@ -237,7 +237,7 @@
     "sha256": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "Las claves de acceso te permiten iniciar sesión de forma segura sin contraseña",
+    "text": "Las llaves de acceso te permiten iniciar sesión de forma segura sin contraseña",
     "context": "Setup page description",
     "sha256": "85630bef"
   },
@@ -247,57 +247,57 @@
     "sha256": "dd1841d2"
   },
   "web.auth.passkeys.count": {
-    "text": "{count} clave de acceso registrada | {count} claves de acceso registradas",
+    "text": "{count} llave de acceso registrada | {count} llaves de acceso registradas",
     "context": "Number of registered passkeys",
     "sha256": "82e6681f"
   },
   "web.auth.passkeys.add_passkey": {
-    "text": "Añadir clave de acceso",
+    "text": "Añadir llave de acceso",
     "context": "Button to add a new passkey",
     "sha256": "93713ad7"
   },
   "web.auth.passkeys.register_passkey": {
-    "text": "Registrar clave de acceso",
+    "text": "Registrar llave de acceso",
     "context": "Button to register a new passkey",
     "sha256": "26db6968"
   },
   "web.auth.passkeys.remove_passkey": {
-    "text": "Eliminar clave de acceso",
+    "text": "Eliminar llave de acceso",
     "context": "Button to remove a passkey",
     "sha256": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "¿Estás seguro de que deseas eliminar esta clave de acceso? Ya no podrás iniciar sesión con ella.",
+    "text": "¿Estás seguro de que quieres eliminar esta llave de acceso? Ya no podrás iniciar sesión con ella.",
     "context": "Confirmation message for passkey removal",
     "sha256": "487ab72c"
   },
   "web.auth.passkeys.removed_success": {
-    "text": "Clave de acceso eliminada correctamente",
+    "text": "Llave de acceso eliminada con éxito",
     "context": "Success message after removing passkey",
     "sha256": "436c1050"
   },
   "web.auth.passkeys.registered_success": {
-    "text": "Clave de acceso registrada correctamente",
+    "text": "Llave de acceso registrada con éxito",
     "context": "Success message after registering passkey",
     "sha256": "fbfb0713"
   },
   "web.auth.passkeys.no_passkeys": {
-    "text": "No hay claves de acceso registradas",
+    "text": "No hay llaves de acceso registradas",
     "context": "Empty state when no passkeys exist",
     "sha256": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
-    "text": "Añade una clave de acceso para iniciar sesión de forma más segura sin introducir una contraseña",
+    "text": "Añade una llave de acceso para iniciar sesión de forma más segura sin introducir una contraseña",
     "context": "Description for empty state",
     "sha256": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Nombre de la clave de acceso",
+    "text": "Nombre de la llave de acceso",
     "context": "Label for passkey name field",
     "sha256": "22eefa67"
   },
   "web.auth.passkeys.created": {
-    "text": "Creada",
+    "text": "Creado",
     "context": "Label for creation date",
     "sha256": "d70b9e24"
   },
@@ -312,22 +312,22 @@
     "sha256": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "Más seguras que las contraseñas: resistentes a ataques de phishing",
+    "text": "Más seguras que las contraseñas - resistentes a ataques de phishing",
     "context": "Passkey benefit",
     "sha256": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Rápidas y fáciles: solo usa tu huella dactilar, rostro o llave de seguridad",
+    "text": "Rápido y fácil - solo usa tu huella dactilar, rostro o llave de seguridad",
     "context": "Passkey benefit",
     "sha256": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Sincronizadas en todos tus dispositivos al usar autenticadores de plataforma",
+    "text": "Sincronizadas en todos tus dispositivos cuando usas autenticadores de plataforma",
     "context": "Passkey benefit",
     "sha256": "7480c7ae"
   },
   "web.auth.passkeys.link_title": {
-    "text": "Claves de acceso",
+    "text": "Llaves de acceso",
     "context": "Navigation link title",
     "sha256": "c87ccdb4"
   },
@@ -710,5 +710,11 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Códigos de recuperación",
     "sha256": "579c7f4e"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SEGURIDAD CRÍTICA: Los mensajes previenen la divulgación de información. Ver src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Página de gestión de dispositivos/navegadores con sesión iniciada"
   }
 }

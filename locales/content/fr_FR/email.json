@@ -328,7 +328,7 @@
     "sha256": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "L'adresse e-mail de votre compte %{product_name} a été modifiée en %{new_email_masked}.",
+    "text": "L'adresse e-mail de votre compte %{product_name} a été modifiée en %{new_email_masked} le %{date}.",
     "sha256": "6f3419d1"
   },
   "email.email_changed.security_notice": {
@@ -388,7 +388,7 @@
     "sha256": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Si vous avez fait cette demande, vérifiez votre nouvel e-mail pour un lien de confirmation. Aucun changement n'a encore été effectué.",
+    "text": "Si vous avez fait cette demande, vérifiez votre nouvelle adresse e-mail pour un lien de confirmation. Aucune modification n'a encore été effectuée.",
     "sha256": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
@@ -404,7 +404,7 @@
     "sha256": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. Cet e-mail a été envoyé à %{email_address} car un changement d'e-mail a été demandé pour votre compte.",
+    "text": "P.S. Cet e-mail a été envoyé à %{email_address} car un changement d'adresse e-mail a été demandé pour votre compte.",
     "sha256": "500e085e"
   },
   "email.email_change_confirmation.subject": {

@@ -1369,7 +1369,7 @@
     "sha256": "cc078766"
   },
   "api.errors.unexpected_error": {
-    "text": "Ha ocurrido un error inesperado",
+    "text": "Se ha producido un error inesperado",
     "context": "Generic error message for unhandled exceptions in API",
     "sha256": "6615bf1c"
   },
@@ -1379,7 +1379,7 @@
     "sha256": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "No es posible procesar tu solicitud en este momento",
+    "text": "No se puede procesar tu solicitud en este momento",
     "context": "Error message for recoverable server errors",
     "sha256": "fb961f3f"
   },

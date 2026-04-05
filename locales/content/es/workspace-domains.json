@@ -398,5 +398,335 @@
   "web.domains.dns_widget_description": {
     "text": "Usa la herramienta de abajo para detectar automáticamente tu proveedor de DNS y obtener instrucciones paso a paso para configurar tu dominio.",
     "sha256": "91c1af2e"
+  },
+  "web.domains.email.title": {
+    "text": "Envío de correo electrónico"
+  },
+  "web.domains.email.config_title": {
+    "text": "Configuración de correo electrónico"
+  },
+  "web.domains.email.config_description": {
+    "text": "Configura el envío de correo electrónico para este dominio"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Proveedor de correo electrónico"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Selecciona un proveedor de correo electrónico"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Nombre del remitente"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "ej. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Dirección del remitente"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "ej. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Dirección de respuesta"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "ej. soporte{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Guardar cambios"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Descartar cambios"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Usar configuración predeterminada de la cuenta"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Requiere verificación del dominio mediante registros DKIM y SPF"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Requiere configuración de autenticación del dominio"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Requiere verificación del dominio"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Usa la configuración predeterminada de envío de correo electrónico de tu cuenta"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "Registros DNS"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Añade los siguientes registros DNS para verificar tu dominio para el envío de correo electrónico."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Tipo"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Nombre"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Valor"
+  },
+  "web.domains.email.copy": {
+    "text": "Copiar"
+  },
+  "web.domains.email.copied": {
+    "text": "Copiado"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Verificado"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Pendiente"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Fallido"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Revalidar"
+  },
+  "web.domains.email.validating": {
+    "text": "Validando..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Dominio verificado"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "La validación ha fallado"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Última validación"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Mejora tu plan para configurar el envío de correo electrónico para este dominio."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Configurar correo electrónico"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Acceso denegado"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "No tienes permiso para gestionar la configuración de correo electrónico para este dominio. Contacta con el administrador de tu organización."
+  },
+  "web.domains.email.update_success": {
+    "text": "Configuración de correo electrónico guardada con éxito"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Configuración de correo electrónico eliminada con éxito"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Los correos electrónicos para este dominio se envían actualmente desde el remitente global. Completa la configuración de correo electrónico para usar tu propia identidad de remitente."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "El envío de correo electrónico personalizado está actualmente deshabilitado. Los correos electrónicos se enviarán desde el remitente global. Habilita la función a continuación para usar tu identidad de remitente personalizada."
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "No configurado"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Usando remitente predeterminado"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Verificado"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Verificación pendiente"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Deshabilitado"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "No hay remitente de correo configurado — los correos usan el remitente predeterminado de la plataforma"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "La configuración del remitente de correo está pendiente de verificación — los correos usan el remitente predeterminado de la plataforma"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "El remitente de correo está deshabilitado — los correos usan el remitente predeterminado de la plataforma"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Remitente de correo verificado — los correos se envían desde este dominio"
+  },
+  "web.domains.incoming.title": {
+    "text": "Secretos entrantes"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Configuración de secretos entrantes"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Permitir a usuarios externos enviar secretos directamente a destinatarios designados en este dominio"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Acceso denegado"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "No tienes permiso para gestionar la configuración de secretos entrantes para este dominio. Contacta con el administrador de tu organización."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Mejora tu plan para configurar secretos entrantes para este dominio."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Configurar secretos entrantes"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Los secretos entrantes no están configurados para este dominio. Añade destinatarios para permitir a usuarios externos enviar secretos a tu equipo."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Los secretos entrantes están actualmente deshabilitados. Los usuarios externos no pueden enviar secretos a destinatarios en este dominio. Habilita la función a continuación para permitir secretos entrantes."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Destinatarios"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Define quién puede recibir secretos entrantes en este dominio. Los destinatarios recibirán notificaciones por correo electrónico cuando se les envíe un secreto."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Añadir destinatario"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Eliminar"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "Dirección de correo electrónico"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "destinatario{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Nombre para mostrar"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "ej. Equipo de Seguridad"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "No hay destinatarios configurados"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Añade destinatarios para permitir a usuarios externos enviar secretos a tu equipo."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Dirección de correo electrónico no válida"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Esta dirección de correo electrónico ya está añadida"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Máximo {max} destinatarios permitidos"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "El nombre para mostrar es obligatorio"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "La dirección de correo electrónico es obligatoria"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Guardar cambios"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Descartar cambios"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Configuración de secretos entrantes guardada con éxito"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Configuración de secretos entrantes eliminada con éxito"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} destinatario | {count} destinatarios"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "No configurado"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Configurado"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Deshabilitado"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Secretos entrantes no configurados - los usuarios externos no pueden enviar secretos a este dominio"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Secretos entrantes habilitados con {count} destinatario(s)"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "La función de secretos entrantes está deshabilitada para este dominio"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Habilitar secretos entrantes"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Permitir a usuarios externos enviar secretos a destinatarios en este dominio"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "URL pública"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Comparte esta URL con usuarios externos para permitirles enviar secretos"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Copiar URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL copiada al portapapeles"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "¿Estás seguro de que quieres eliminar todos los destinatarios? Los usuarios externos ya no podrán enviar secretos a este dominio."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Se ha alcanzado el número máximo de destinatarios"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Esta dirección de correo electrónico ya ha sido añadida"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Guardar reemplazará todos los destinatarios existentes con tus cambios pendientes. ¿Estás seguro?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Eliminar todos los destinatarios"
+  },
+  "web.domains.sso.title": {
+    "text": "Inicio de sesión único"
+  },
+  "web.domains.sso.config_title": {
+    "text": "Configuración de SSO"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Configura la autenticación de inicio de sesión único para este dominio"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Acceso denegado"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "No tienes permiso para gestionar la configuración de SSO para este dominio. Contacta con el administrador de tu organización."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Mejora tu plan para configurar el inicio de sesión único para este dominio."
+  },
+  "web.domains.sso.create_success": {
+    "text": "Configuración de SSO creada con éxito"
+  },
+  "web.domains.sso.update_success": {
+    "text": "Configuración de SSO actualizada con éxito"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "Configuración de SSO eliminada con éxito"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Configurar SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "El SSO aún no está configurado para este dominio. Habilita el inicio de sesión único para permitir que los miembros del equipo se autentiquen usando el proveedor de identidad de tu organización."
   }
 }

@@ -398,5 +398,335 @@
   "web.domains.dns_widget_description": {
     "text": "Gebruik de onderstaande tool om automatisch je DNS-provider te detecteren en stapsgewijze instructies te krijgen voor het configureren van je domein.",
     "sha256": "91c1af2e"
+  },
+  "web.domains.email.title": {
+    "text": "E-mailverzending"
+  },
+  "web.domains.email.config_title": {
+    "text": "E-mailconfiguratie"
+  },
+  "web.domains.email.config_description": {
+    "text": "Configureer e-mailverzending voor dit domein"
+  },
+  "web.domains.email.provider_label": {
+    "text": "E-mailprovider"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Selecteer een e-mailprovider"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Afzendernaam"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "bijv. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Afzenderadres"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "bijv. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Antwoordadres"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "bijv. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Wijzigingen opslaan"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Wijzigingen annuleren"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Accountstandaarden gebruiken"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Vereist domeinverificatie via DKIM- en SPF-records"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Vereist domeinauthenticatie-configuratie"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Vereist domeinverificatie"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Gebruikt de standaard e-mailverzendconfiguratie van je account"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS-records"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Voeg de volgende DNS-records toe om je domein te verifiëren voor e-mailverzending."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Type"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Naam"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Waarde"
+  },
+  "web.domains.email.copy": {
+    "text": "Kopiëren"
+  },
+  "web.domains.email.copied": {
+    "text": "Gekopieerd"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Geverifieerd"
+  },
+  "web.domains.email.status_pending": {
+    "text": "In behandeling"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Mislukt"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Opnieuw valideren"
+  },
+  "web.domains.email.validating": {
+    "text": "Valideren..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Domein geverifieerd"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Validatie mislukt"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Laatst gevalideerd"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Upgrade je plan om e-mailverzending voor dit domein te configureren."
+  },
+  "web.domains.email.configure_email": {
+    "text": "E-mail configureren"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Toegang geweigerd"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Je hebt geen toestemming om e-mailinstellingen voor dit domein te beheren. Neem contact op met je organisatiebeheerder."
+  },
+  "web.domains.email.update_success": {
+    "text": "E-mailconfiguratie succesvol opgeslagen"
+  },
+  "web.domains.email.delete_success": {
+    "text": "E-mailconfiguratie succesvol verwijderd"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "E-mails voor dit domein worden momenteel verzonden vanaf de globale afzender. Voltooi de e-mailconfiguratie om je eigen afzenderidentiteit te gebruiken."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Aangepaste e-mailverzending is momenteel uitgeschakeld. E-mails worden verzonden vanaf de globale afzender. Schakel de functie hieronder in om je aangepaste afzenderidentiteit te gebruiken."
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Niet geconfigureerd"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Standaard afzender wordt gebruikt"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Geverifieerd"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Verificatie in behandeling"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Uitgeschakeld"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Geen e-mailafzender geconfigureerd — e-mails gebruiken de standaard platformafzender"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "E-mailafzenderconfiguratie wacht op verificatie — e-mails gebruiken de standaard platformafzender"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "E-mailafzender is uitgeschakeld — e-mails gebruiken de standaard platformafzender"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "E-mailafzender geverifieerd — e-mails worden verzonden vanaf dit domein"
+  },
+  "web.domains.incoming.title": {
+    "text": "Inkomende berichten"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Configuratie inkomende berichten"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Sta externe gebruikers toe om berichten rechtstreeks naar aangewezen ontvangers op dit domein te sturen"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Toegang geweigerd"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Je hebt geen toestemming om instellingen voor inkomende berichten voor dit domein te beheren. Neem contact op met je organisatiebeheerder."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Upgrade je plan om inkomende berichten voor dit domein te configureren."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Inkomende berichten configureren"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Inkomende berichten is niet geconfigureerd voor dit domein. Voeg ontvangers toe om externe gebruikers berichten naar je team te laten sturen."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Inkomende berichten zijn momenteel uitgeschakeld. Externe gebruikers kunnen geen berichten naar ontvangers op dit domein sturen. Schakel de functie hieronder in om inkomende berichten toe te staan."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Ontvangers"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Bepaal wie inkomende berichten op dit domein kan ontvangen. Ontvangers ontvangen een e-mailmelding wanneer een bericht naar hen wordt gestuurd."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Ontvanger toevoegen"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Verwijderen"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "E-mailadres"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "ontvanger{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Weergavenaam"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "bijv. Beveiligingsteam"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Geen ontvangers geconfigureerd"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Voeg ontvangers toe om externe gebruikers berichten naar je team te laten sturen."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Ongeldig e-mailadres"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Dit e-mailadres is al toegevoegd"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Maximaal {max} ontvangers toegestaan"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Weergavenaam is vereist"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "E-mailadres is vereist"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Wijzigingen opslaan"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Wijzigingen annuleren"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Configuratie inkomende berichten succesvol opgeslagen"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Configuratie inkomende berichten succesvol verwijderd"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} ontvanger | {count} ontvangers"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Niet geconfigureerd"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Geconfigureerd"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Uitgeschakeld"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Inkomende berichten niet geconfigureerd - externe gebruikers kunnen geen berichten naar dit domein sturen"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Inkomende berichten ingeschakeld met {count} ontvanger(s)"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Inkomende berichten-functie is uitgeschakeld voor dit domein"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Inkomende berichten inschakelen"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Sta externe gebruikers toe om berichten naar ontvangers op dit domein te sturen"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Publieke URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Deel deze URL met externe gebruikers om hen berichten te laten versturen"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "URL kopiëren"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL gekopieerd naar klembord"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Weet je zeker dat je alle ontvangers wilt verwijderen? Externe gebruikers kunnen dan geen berichten meer naar dit domein sturen."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Maximaal aantal ontvangers bereikt"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Dit e-mailadres is al toegevoegd"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Opslaan vervangt alle bestaande ontvangers door je wijzigingen. Weet je het zeker?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Alle ontvangers verwijderen"
+  },
+  "web.domains.sso.title": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO-configuratie"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Configureer single sign-on authenticatie voor dit domein"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Toegang geweigerd"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Je hebt geen toestemming om SSO-instellingen voor dit domein te beheren. Neem contact op met je organisatiebeheerder."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Upgrade je plan om single sign-on voor dit domein te configureren."
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO-configuratie succesvol aangemaakt"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO-configuratie succesvol bijgewerkt"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO-configuratie succesvol verwijderd"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "SSO configureren"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO is nog niet geconfigureerd voor dit domein. Schakel single sign-on in om teamleden te laten authenticeren via de identiteitsprovider van je organisatie."
   }
 }
