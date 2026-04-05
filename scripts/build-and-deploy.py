@@ -5,12 +5,18 @@ Git post-receive hook: Build and push OCI images with Podman.
 
 Runs as a Gitolite hook. Derives image name from the repo.
 
-Updated: 2026-04-05
-
 Install:
     pip install GitPython
     podman login <registry>
     mkdir -p /opt/builds && chown <hook-user>:<hook-user> /opt/builds
+
+Build isolation:
+    Each build starts with a clean checkout — the work directory is fully
+    removed before extracting the new revision. This is critical for
+    correctness: `tar xf` overwrites existing files but does not delete
+    files absent from the archive. Without cleaning, renamed or deleted
+    files persist from previous builds, causing subtle failures (e.g.,
+    Node resolving a stale `foo.ts` instead of the new `foo/index.ts`).
 
 Config:
     Repos that contain a .oci-build.json at their root get built on push.
@@ -68,6 +74,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -75,6 +82,8 @@ from pathlib import Path
 
 from git import Repo
 from git.exc import GitCommandError
+
+__version__ = "v1-2026-04-05"
 
 # ─── Logging ─────────────────────────────────────────────────────────────────
 
@@ -352,7 +361,14 @@ def build_multi_platform(
 
 def checkout(repo: Repo, rev: str, dest: Path) -> None:
     """
-    Export a revision from the bare repo into a working directory.
+    Export a revision from the bare repo into a clean working directory.
+
+    IMPORTANT: The destination is fully removed before extraction to ensure
+    a clean slate. This prevents stale files from previous builds causing
+    issues when files are renamed or deleted between commits. For example,
+    if `foo.ts` is restructured into `foo/index.ts`, both would exist
+    without cleaning — and Node/Rollup resolves files before directories,
+    causing import failures.
 
     Uses git-archive rather than checkout — avoids index contention
     in bare repos if two pushes arrive concurrently.
@@ -360,6 +376,8 @@ def checkout(repo: Repo, rev: str, dest: Path) -> None:
     Pipes git-archive directly to tar as raw bytes, avoiding any
     text encoding of the binary tar stream.
     """
+    if dest.exists():
+        shutil.rmtree(dest)
     dest.mkdir(parents=True, exist_ok=True)
     git_archive = subprocess.Popen(
         ["git", "archive", "--format=tar", rev],
@@ -510,6 +528,7 @@ def build_variant(
 
 
 def main() -> None:
+    log.info("build-and-deploy %s", __version__)
     repo_path = Path.cwd()  # post-receive runs in the bare repo dir
     repo = Repo(repo_path)
     results: list[BuildResult] = []
