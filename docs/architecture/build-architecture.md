@@ -251,9 +251,21 @@ docker buildx bake -f docker/bake.hcl --print          # all targets resolve wit
 docker buildx bake -f docker/bake.hcl main              # main image builds successfully
 docker run --rm <image>:<tag> ruby --version             # Ruby present in final image
 
-# Podman (Gitolite path) — run on the build server
+# Podman (standalone local build — uses native arch, add --platform linux/amd64 for x86)
+podman build -f docker/base.dockerfile --tag ots-base:local .
+podman build -f Dockerfile \
+  --target final \
+  --build-context base=container-image://ots-base:local \
+  --build-arg VERSION=dev \
+  --build-arg ALLOW_DEV_VERSION=true \
+  --build-arg COMMIT_HASH=$(git rev-parse --short HEAD) \
+  --tag onetimesecret:local .
+podman rmi ots-base:local                                 # cleanup base
+
+# Podman (quick verification)
 podman build -f docker/base.dockerfile --tag ots-base:test .
 podman build -f Dockerfile --target final \
+  --build-arg ALLOW_DEV_VERSION=true \
   --build-context base=container-image://ots-base:test \
   --tag ots-main:test .
 podman build -f docker/variants/lite.dockerfile \
@@ -264,6 +276,27 @@ podman rmi ots-base:test ots-main:test ots-lite:test     # cleanup
 # Post-receive hook (end-to-end)
 git push build main                                      # triggers hook, check remote: output
 ```
+
+### Platform targeting
+
+Local builds default to your machine's native architecture. Add `--platform` when you need a specific target:
+
+```bash
+--platform linux/amd64    # x86_64 (Intel/AMD, most cloud VMs)
+--platform linux/arm64    # ARM64 (Apple Silicon, Graviton)
+```
+
+**When to specify platform:**
+- Building on Apple Silicon for deployment to x86 servers
+- Testing architecture-specific issues
+- Creating images for a different architecture than your dev machine
+
+**When to omit it:**
+- Local development and testing (native builds are 5-10x faster)
+- Quick verification that the build succeeds
+- Your deployment target matches your dev machine
+
+The CI/CD pipeline and post-receive hook always specify `linux/amd64` for consistent production builds.
 
 ## Decisions
 
