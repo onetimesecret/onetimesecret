@@ -20,10 +20,18 @@ export interface Props {
    * Falls back to generic SSO label when not provided.
    */
   displayName?: string;
+
+  /**
+   * URL to redirect back to after successful SSO authentication.
+   * Example: '/invite/abc123'
+   * When provided, this is passed to the backend as form data.
+   */
+  redirect?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   displayName: '',
+  redirect: '',
 });
 
 const { t } = useI18n();
@@ -62,6 +70,18 @@ const handleSsoLogin = () => {
   csrfInput.name = 'shrimp';
   csrfInput.value = csrfStore.shrimp;
   form.appendChild(csrfInput);
+
+  /**
+   * Include redirect URL when provided.
+   * The backend will store this and redirect the user after successful SSO.
+   */
+  if (props.redirect) {
+    const redirectInput = document.createElement('input');
+    redirectInput.type = 'hidden';
+    redirectInput.name = 'redirect';
+    redirectInput.value = props.redirect;
+    form.appendChild(redirectInput);
+  }
 
   document.body.appendChild(form);
   form.submit();

@@ -4,20 +4,16 @@
 import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-// LAUNCH: Identity-only - MembersTable hidden until team features enabled
-// import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
+import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
 import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
 import EmptyState from '@/shared/components/ui/EmptyState.vue';
-// LAUNCH: Identity-only - EntitlementUpgradePrompt hidden until team features enabled
-// import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
+import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
-// LAUNCH: Identity-only - useAsyncHandler and useEntitlementError hidden until team features enabled
-// import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
-// import { useEntitlementError } from '@/shared/composables/useEntitlementError';
+import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
+import { useEntitlementError } from '@/shared/composables/useEntitlementError';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { classifyError } from '@/schemas/errors';
-// LAUNCH: Identity-only - ApplicationError hidden until team features enabled
-// import type { ApplicationError } from '@/schemas/errors';
+import type { ApplicationError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -25,16 +21,14 @@ import { storeToRefs } from 'pinia';
 import { useMembersStore } from '@/shared/stores/membersStore';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/billing';
-// LAUNCH: Identity-only - CreateInvitationPayload hidden until team features enabled
-import type { /* CreateInvitationPayload, */ Organization, OrganizationInvitation } from '@/types/organization';
+import type { CreateInvitationPayload, Organization, OrganizationInvitation } from '@/types/organization';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in template
 import { formatDisplayDate } from '@/utils/format';
 import { isOrgsSsoEnabled } from '@/utils/features';
 import { SsoService } from '@/services/sso.service';
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-// LAUNCH: Identity-only - zod hidden until team features enabled (used for invite form validation)
-// import { z } from 'zod';
+import { z } from 'zod';
 
 type TabType = 'general' | 'members' | 'domains' | 'subscription' | 'sso';
 
@@ -63,8 +57,7 @@ const TAB_TO_URL: Record<TabType, string> = {
 const props = withDefaults(defineProps<{
   initialTab?: TabType;
 }>(), {
-  // LAUNCH: Identity-only - default to domains instead of members (team)
-  initialTab: 'domains',
+  initialTab: 'members',
 });
 
 const { t } = useI18n();
@@ -122,8 +115,7 @@ watch(
     if (urlTab && URL_TO_TAB[urlTab]) {
       activeTab.value = URL_TO_TAB[urlTab];
     } else if (!urlTab) {
-      // LAUNCH: Identity-only - default to domains instead of members (team)
-      activeTab.value = 'domains';
+      activeTab.value = 'members';
     }
   }
 );
@@ -150,8 +142,6 @@ const planName = ref<string>('');
 const planFeatures = ref<string[]>([]);
 
 
-// LAUNCH: Identity-only - Invitation form state hidden until team features enabled
-/*
 const showInviteForm = ref(false);
 const inviteFormData = ref<CreateInvitationPayload>({
   email: '',
@@ -165,7 +155,6 @@ const isInviting = ref(false);
 const { wrap } = useAsyncHandler({
   notify: false,
 });
-*/
 
 const bootstrapStore = useBootstrapStore();
 const { billing_enabled } = storeToRefs(bootstrapStore);
@@ -382,8 +371,6 @@ const handleCancel = () => {
   }
 };
 
-// LAUNCH: Identity-only - Team member management functions hidden until team features enabled
-/*
 const handleInviteMember = async () => {
   if (isInviting.value) return;
 
@@ -487,7 +474,6 @@ const handleMemberUpdated = () => {
 const handleMemberRemoved = () => {
   success.value = t('web.organizations.members.member_removed');
 };
-*/
 
 onMounted(async () => {
   // Initialize entitlement definitions for formatting
@@ -568,7 +554,7 @@ watch(orgId, async (newOrgId, oldOrgId) => {
 // Keyboard navigation for tabs (WCAG 2.1 AA)
 const handleTabKeydown = (e: KeyboardEvent) => {
   // Build visible tabs array dynamically based on entitlements
-  const tabs: TabType[] = ['domains', 'subscription'];
+  const tabs: TabType[] = ['members', 'domains', 'subscription'];
   if (canManageSso.value) {
     tabs.push('sso');
   }
@@ -626,8 +612,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
         </div>
       </div>
 
-      <!-- Tabs: Domains, Billing (conditional), Settings (infrequent) -->
-      <!-- LAUNCH: Identity-only - Team tab hidden until team features enabled -->
+      <!-- Tabs: Team, Domains, Billing (conditional), Settings (infrequent) -->
       <div v-if="!orgNotFound && organization" class="border-b border-gray-200 dark:border-gray-700">
         <nav
           role="tablist"
@@ -635,8 +620,14 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           aria-label="Organization settings tabs"
           class="-mb-px flex space-x-8"
           @keydown="handleTabKeydown">
-          <!-- LAUNCH: Team tab hidden - uncomment when team features enabled
+          <!-- Team tab -->
           <button
+            id="org-tab-members"
+            role="tab"
+            :aria-selected="activeTab === 'members'"
+            :tabindex="activeTab === 'members' ? 0 : -1"
+            aria-controls="org-panel-members"
+            data-testid="org-tab-members"
             @click="setActiveTab('members')"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
@@ -646,7 +637,6 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             ]">
             {{ t('web.organizations.tabs.members') }}
           </button>
-          -->
           <!-- Domains tab -->
           <button
             id="org-tab-domains"
@@ -864,10 +854,14 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           </div>
         </section>
 
-        <!-- LAUNCH: Identity-only - Members Tab hidden until team features enabled -->
-        <!--
+        <!-- Members Tab -->
         <section
           v-if="activeTab === 'members'"
+          id="org-panel-members"
+          role="tabpanel"
+          aria-labelledby="org-tab-members"
+          tabindex="0"
+          data-testid="org-section-members"
           class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
             <div class="flex items-center justify-between">
@@ -1074,8 +1068,6 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             </div>
           </div>
         </section>
-        -->
-        <!-- End LAUNCH: Identity-only - Members Tab -->
 
         <!-- Domains Tab -->
         <section

@@ -60,6 +60,32 @@ module InviteAPI
           status: invitation.status,
         }
       end
+
+      # Serialize brand settings for public API response (guest-safe)
+      def serialize_brand_public(brand_settings, custom_domain)
+        return nil unless brand_settings && custom_domain
+
+        has_logo = !custom_domain.logo&.dig('filename').to_s.empty?
+        has_icon = !custom_domain.icon&.dig('filename').to_s.empty?
+        {
+          primary_color: brand_settings.primary_color,
+          display_name: custom_domain.brand&.dig('name'),
+          logo_url: has_logo ? "/imagine/#{custom_domain.domainid}/logo.png" : nil,
+          icon_url: has_icon ? "/imagine/#{custom_domain.domainid}/icon.png" : nil,
+        }
+      end
+
+      # Serialize SSO config for public API response (guest-safe)
+      def serialize_sso_public(sso_config)
+        return nil unless sso_config&.enabled?
+
+        {
+          provider_type: sso_config.provider_type,
+          display_name: sso_config.display_name,
+          enabled: true,
+          platform_route_name: sso_config.platform_route_name,
+        }
+      end
     end
   end
 end
