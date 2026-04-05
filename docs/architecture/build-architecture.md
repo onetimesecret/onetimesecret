@@ -257,6 +257,7 @@ podman build -f Dockerfile \
   --platform linux/amd64 \
   --target final \
   --build-context base=container-image://ots-base:local \
+  --build-arg VERSION=dev \
   --build-arg ALLOW_DEV_VERSION=true \
   --build-arg COMMIT_HASH=$(git rev-parse --short HEAD) \
   --tag onetimesecret:local .
