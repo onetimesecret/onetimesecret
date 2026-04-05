@@ -63,11 +63,15 @@ module Rack
         logger.debug("[EntitlementCheck] #{org.objid} has #{@entitlement}")
         @app.call(env)
       else
+        upgrade_to = if defined?(Billing::PlanHelpers)
+                       Billing::PlanHelpers.upgrade_path_for(@entitlement, org.planid)
+                     end
+
         logger.info(
           "[EntitlementCheck] #{org.objid} denied #{@entitlement}",
           {
             current_plan: org.planid,
-            upgrade_to: Billing::PlanHelpers.upgrade_path_for(@entitlement, org.planid),
+            upgrade_to: upgrade_to,
           },
         )
 
@@ -75,7 +79,7 @@ module Rack
           error: 'Feature not available',
           entitlement: @entitlement,
           current_plan: org.planid,
-          upgrade_to: Billing::PlanHelpers.upgrade_path_for(@entitlement, org.planid),
+          upgrade_to: upgrade_to,
           message: upgrade_message(org),
         )
       end
@@ -102,6 +106,8 @@ module Rack
     # @param org [Onetime::Organization] Organization
     # @return [String] Upgrade message
     def upgrade_message(org)
+      return 'This feature is not available on your current plan.' unless defined?(Billing::PlanHelpers)
+
       upgrade_plan = Billing::PlanHelpers.upgrade_path_for(@entitlement, org.planid)
       plan_name    = Billing::PlanHelpers.plan_name(upgrade_plan) if upgrade_plan
 

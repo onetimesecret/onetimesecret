@@ -2,8 +2,6 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../billing/models/pending_federated_subscription'
-
 #
 # CANONICAL SOURCE FOR DEFAULT WORKSPACE CREATION
 #
@@ -121,6 +119,17 @@ module Auth
         end
 
         return false if org.email_hash.to_s.empty?
+
+        # Lazy load billing model (auth can operate without billing plugin)
+        begin
+          require_relative '../../billing/models/pending_federated_subscription'
+        rescue LoadError
+          auth_logger.debug '[create-default-workspace] Billing plugin not available, skipping federation check'
+          return false
+        end
+
+        # Guard: billing module may not be loaded
+        return false unless defined?(Billing::PendingFederatedSubscription)
 
         # Check for pending subscription
         pending = Billing::PendingFederatedSubscription.find_by_email_hash(org.email_hash)

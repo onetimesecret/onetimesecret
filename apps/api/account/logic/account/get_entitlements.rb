@@ -83,6 +83,8 @@ module AccountAPI::Logic
       #
       # @return [Array<Hash>] Array of entitlement definitions
       def build_entitlements_list
+        return [] unless defined?(::Billing::Config)
+
         entitlements_hash = ::Billing::Config.load_entitlements
         return [] if entitlements_hash.empty?
 
@@ -127,6 +129,8 @@ module AccountAPI::Logic
       #
       # @return [Array<Hash>] Array of plan hashes with entitlements
       def load_plans_from_stripe_cache
+        return [] unless defined?(::Billing::Plan)
+
         plans = ::Billing::Plan.list_plans.compact
 
         # Group by tier, preferring monthly plans over yearly
@@ -163,6 +167,8 @@ module AccountAPI::Logic
       #
       # @return [Array<Hash>] Array of plan hashes with entitlements
       def load_plans_from_config
+        return [] unless defined?(::Billing::Config)
+
         plans_hash = ::Billing::Config.load_plans
         return [] if plans_hash.empty?
 

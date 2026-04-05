@@ -7,6 +7,10 @@
 # Tests the billing worker that consumes messages from the
 # billing.event.process queue and delegates to ProcessWebhookEvent operation.
 #
+# NOTE: This spec only runs when billing is enabled. The BillingWorker has
+# been moved to apps/web/billing/workers/billing_worker.rb as part of
+# decoupling billing from core (#2887).
+#
 # Test Categories:
 #
 #   1. Message processing (Unit)
@@ -26,6 +30,7 @@
 # Setup Requirements:
 #   - Redis test instance at VALKEY_URL='valkey://127.0.0.1:2121/0'
 #   - Mocked ProcessWebhookEvent operation
+#   - Billing enabled in etc/billing.yaml
 #
 # Run with: pnpm run test:rspec spec/onetime/jobs/workers/billing_worker_spec.rb
 
@@ -34,13 +39,25 @@ require 'support/amqp_stubs'
 require 'integration/integration_spec_helper'
 require 'sneakers'
 require 'stripe'
-require 'onetime/jobs/workers/billing_worker'
 require 'onetime/jobs/queues/config'
 
-RSpec.describe Onetime::Jobs::Workers::BillingWorker, type: :integration do
+# Load billing worker from new location when billing is enabled
+if Onetime.billing_config.enabled?
+  require 'billing/workers/billing_worker'
+end
+
+RSpec.describe 'Billing::Workers::BillingWorker', type: :integration do
+  # Skip entire suite when billing is disabled
+  before(:all) do
+    skip 'Billing is disabled - skipping BillingWorker tests' unless Onetime.billing_config.enabled?
+  end
+
+  # Use let to defer class resolution until after before(:all) check
+  let(:billing_worker_class) { Billing::Workers::BillingWorker }
+
   # Create test worker class with accessible delivery_info
   let(:test_worker_class) do
-    Class.new(Onetime::Jobs::Workers::BillingWorker) do
+    Class.new(billing_worker_class) do
       attr_accessor :delivery_info, :acked, :rejected
 
       def self.name
@@ -279,13 +296,13 @@ RSpec.describe Onetime::Jobs::Workers::BillingWorker, type: :integration do
 
   describe 'queue configuration' do
     it 'uses correct queue name' do
-      expect(described_class::QUEUE_NAME).to eq('billing.event.process')
+      expect(billing_worker_class::QUEUE_NAME).to eq('billing.event.process')
     end
 
     it 'uses queue config from QueueConfig' do
       # Workers use QueueDeclarator.sneakers_options_for which wraps config under :queue_options
       expected_config = Onetime::Jobs::QueueConfig::QUEUES['billing.event.process']
-      queue_options = described_class.queue_opts[:queue_options] || {}
+      queue_options = billing_worker_class.queue_opts[:queue_options] || {}
 
       expect(queue_options[:durable]).to eq(expected_config[:durable])
       expect(queue_options[:auto_delete]).to eq(expected_config[:auto_delete])

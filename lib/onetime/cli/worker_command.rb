@@ -319,10 +319,16 @@ module Onetime
           workers_path = File.join(Onetime::HOME, 'lib', 'onetime', 'jobs', 'workers')
           return [] unless Dir.exist?(workers_path)
 
-          # Load all worker files
+          # Load core worker files
+          # Excludes billing_worker.rb stub which just re-exports from billing app
           Dir.glob(File.join(workers_path, '**', '*_worker.rb')).each do |file|
+            next if file.end_with?('billing_worker.rb')
+
             require file
           end
+
+          # Load billing workers only when billing is enabled
+          load_billing_workers if Onetime.billing_config.enabled?
 
           # Get all worker classes
           worker_classes = ObjectSpace.each_object(Class).select do |klass|
@@ -340,6 +346,26 @@ module Onetime
           end
 
           worker_classes
+        end
+
+        # Load billing workers from the billing app
+        #
+        # Only called when billing is enabled. Workers live in
+        # apps/web/billing/workers/ to keep billing concerns isolated.
+        #
+        # Ensures lib/ is in load path since billing app dependencies
+        # use `require 'onetime/...'` paths.
+        def load_billing_workers
+          billing_workers_path = File.join(Onetime::HOME, 'apps', 'web', 'billing', 'workers')
+          return unless Dir.exist?(billing_workers_path)
+
+          # Ensure lib is in load path for billing app dependencies
+          lib_path = File.join(Onetime::HOME, 'lib')
+          $LOAD_PATH.unshift(lib_path) unless $LOAD_PATH.include?(lib_path)
+
+          Dir.glob(File.join(billing_workers_path, '**', '*_worker.rb')).each do |file|
+            require file
+          end
         end
     end
 

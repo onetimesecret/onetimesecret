@@ -26,11 +26,24 @@ module BillingTestHelpers
     #   than standalone mode.
     def restore_billing!(enabled: false)
       ensure_familia_configured!
+      ensure_billing_loaded! if enabled
       clear_plan_cache!
       reset_billing_singleton!
 
       # Override config file setting with the enabled parameter value
       Onetime::BillingConfig.instance.config['enabled'] = enabled
+    end
+
+    # Load billing module if not already defined
+    # Required for tests that need billing functionality when billing
+    # plugin was not loaded at boot time (true plugin extraction per #2887)
+    def ensure_billing_loaded!
+      return if defined?(::Billing::Plan)
+
+      # Load the billing models which define the Billing module
+      # Use absolute path to ensure it works regardless of $LOAD_PATH
+      billing_models_path = File.expand_path('../../models/plan', __dir__)
+      require billing_models_path
     end
 
     # Ensure Familia is configured with test Redis URI

@@ -20,23 +20,29 @@ require 'spec_helper'
 require 'sneakers'
 require 'onetime/jobs/workers/email_worker'
 require 'onetime/jobs/workers/notification_worker'
-require 'onetime/jobs/workers/billing_worker'
 require 'onetime/jobs/queues/config'
+
+# Load billing worker only when billing is enabled
+if Onetime.billing_config.enabled?
+  require 'billing/workers/billing_worker'
+end
 
 RSpec.describe 'Sneakers Worker Harness', type: :integration do
   # All available workers (constant for use in describe blocks)
+  # BillingWorker is conditionally included when billing is enabled
   ALL_WORKERS = [
     Onetime::Jobs::Workers::EmailWorker,
     Onetime::Jobs::Workers::NotificationWorker,
-    Onetime::Jobs::Workers::BillingWorker,
-  ].freeze
+    (Billing::Workers::BillingWorker if Onetime.billing_config.enabled?),
+  ].compact.freeze
 
   # Required queues that must have workers
-  REQUIRED_QUEUES = %w[
-    email.message.send
-    notifications.alert.push
-    billing.event.process
-  ].freeze
+  # billing.event.process is conditionally included when billing is enabled
+  REQUIRED_QUEUES = [
+    'email.message.send',
+    'notifications.alert.push',
+    (Onetime.billing_config.enabled? ? 'billing.event.process' : nil),
+  ].compact.freeze
 
   # Let blocks for use within examples
   let(:all_workers) { ALL_WORKERS }
@@ -44,15 +50,15 @@ RSpec.describe 'Sneakers Worker Harness', type: :integration do
 
   describe 'worker class configuration' do
     all_workers_data = [
-      { class_name: 'EmailWorker', queue: 'email.message.send' },
-      { class_name: 'NotificationWorker', queue: 'notifications.alert.push' },
-      { class_name: 'BillingWorker', queue: 'billing.event.process' },
-    ]
+      { class_name: 'EmailWorker', queue: 'email.message.send', namespace: Onetime::Jobs::Workers },
+      { class_name: 'NotificationWorker', queue: 'notifications.alert.push', namespace: Onetime::Jobs::Workers },
+      (Onetime.billing_config.enabled? ? { class_name: 'BillingWorker', queue: 'billing.event.process', namespace: Billing::Workers } : nil),
+    ].compact
 
     all_workers_data.each do |worker_data|
       context worker_data[:class_name] do
         let(:worker_class) do
-          Onetime::Jobs::Workers.const_get(worker_data[:class_name])
+          worker_data[:namespace].const_get(worker_data[:class_name])
         end
 
         it 'includes Sneakers::Worker module' do
