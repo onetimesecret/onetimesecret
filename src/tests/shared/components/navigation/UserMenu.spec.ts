@@ -114,11 +114,15 @@ vi.mock('@/shared/stores/organizationStore', () => ({
 }));
 
 // Mock product identity store state (mutable for per-test customization)
-// Use ref() so the component can access isCustom.value
+// Pinia setup stores auto-unwrap computed refs when accessed via store instance,
+// so the component accesses isCustom as a boolean, not a ref.
 const mockIsCustomRef = ref(false);
 
 vi.mock('@/shared/stores/identityStore', () => ({
-  useProductIdentity: () => ({ isCustom: mockIsCustomRef }),
+  useProductIdentity: () => ({
+    // Use a getter to match Pinia's auto-unwrap behavior for computed refs
+    get isCustom() { return mockIsCustomRef.value; },
+  }),
 }));
 
 const i18n = createI18n({
