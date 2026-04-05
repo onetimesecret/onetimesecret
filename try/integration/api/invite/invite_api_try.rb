@@ -32,6 +32,30 @@ def put(*args); @test.put(*args); end
 def delete(*args); @test.delete(*args); end
 def last_response; @test.last_response; end
 
+# Helper to enable domains feature at runtime level
+def enable_runtime_domains!
+  current_features = Onetime::Runtime.features
+  Onetime::Runtime.features = Onetime::Runtime::Features.new(
+    domains_enabled: true,
+    global_banner: current_features.global_banner,
+    fortunes: current_features.fortunes,
+  )
+end
+
+# Helper to enable domain context override at middleware level
+def enable_domain_context!
+  Onetime::Middleware::DomainStrategy.class_eval { @domain_context_enabled = true }
+end
+
+# Helper to fully enable domains for branding tests
+def enable_domains_for_branding_tests!
+  # Configure middleware with canonical domain
+  config = { 'enabled' => true, 'default' => 'onetimesecret.com' }
+  Onetime::Middleware::DomainStrategy.initialize_from_config(config)
+  enable_runtime_domains!
+  enable_domain_context!
+end
+
 # Setup test data
 @owner = Onetime::Customer.create!(email: generate_unique_test_email("invite_owner"))
 @invitee_email = generate_unique_test_email("invite_recipient")
@@ -237,7 +261,224 @@ post "/api/invite/#{@token5}/decline",
 last_response.status >= 400
 #=> true
 
-# Cleanup
+# ============================================================================
+# BRANDING AND AUTH METHODS TESTS
+# ============================================================================
+# These tests verify that GET /api/invite/:token returns branding and
+# auth_methods when accessed from a custom domain.
+
+## Setup branding test infrastructure - create org, domain, and invitation
+# First enable domains feature for these tests
+enable_domains_for_branding_tests!
+@branding_owner = Onetime::Customer.create!(email: generate_unique_test_email("branding_owner"))
+@branding_invitee_email = generate_unique_test_email("branding_invitee")
+@branding_org = Onetime::Organization.create!(
+  'Branded Test Org',
+  @branding_owner,
+  generate_unique_test_email("branding_org_contact")
+)
+@custom_domain = Onetime::CustomDomain.create!("secrets.branding-test-#{SecureRandom.hex(4)}.example.com", @branding_org.objid)
+@custom_domain.brand['name'] = 'ACME Corp'
+@custom_domain.brand['primary_color'] = '#FF5500'
+@custom_domain.save
+@branding_invitation = Onetime::OrganizationMembership.create_invitation!(
+  organization: @branding_org,
+  email: @branding_invitee_email,
+  role: 'member',
+  inviter: @branding_owner
+)
+@branding_token = @branding_invitation.token
+[@branding_org.nil?, @custom_domain.nil?, @branding_invitation.nil?]
+#=> [false, false, false]
+
+## GET /api/invite/:token on canonical domain - branding is NOT present
+# When accessing from canonical domain, branding should not be included
+get "/api/invite/#{@branding_token}", {}, { 'HTTP_ACCEPT' => 'application/json' }
+resp = JSON.parse(last_response.body)
+[last_response.status, resp['record'].key?('branding')]
+#=> [200, false]
+
+## GET /api/invite/:token on canonical domain - auth_methods is NOT present
+resp = JSON.parse(last_response.body)
+resp['record'].key?('auth_methods')
+#=> false
+
+## Setup custom domain env and request - returns branding when custom domain configured
+# The middleware sets these env vars when domain_strategy is :custom
+@custom_domain_env = {
+  'HTTP_ACCEPT' => 'application/json',
+  'HTTP_O_DOMAIN_CONTEXT' => @custom_domain.display_domain,
+  'onetime.domain_strategy' => :custom,
+  'onetime.display_domain' => @custom_domain.display_domain,
+}
+get "/api/invite/#{@branding_token}", {}, @custom_domain_env
+resp = JSON.parse(last_response.body)
+[last_response.status, resp['record'].key?('branding')]
+#=> [200, true]
+
+## GET /api/invite/:token on custom domain - branding contains primary_color
+resp = JSON.parse(last_response.body)
+branding = resp['record']['branding']
+branding.key?('primary_color')
+#=> true
+
+## GET /api/invite/:token on custom domain - primary_color value matches configured value
+resp = JSON.parse(last_response.body)
+branding = resp['record']['branding']
+branding['primary_color']
+#=> '#FF5500'
+
+## GET /api/invite/:token on custom domain - branding contains display_name
+resp = JSON.parse(last_response.body)
+branding = resp['record']['branding']
+branding.key?('display_name')
+#=> true
+
+## GET /api/invite/:token on custom domain - branding contains logo_url key
+resp = JSON.parse(last_response.body)
+branding = resp['record']['branding']
+branding.key?('logo_url')
+#=> true
+
+## GET /api/invite/:token on custom domain - branding contains icon_url key
+resp = JSON.parse(last_response.body)
+branding = resp['record']['branding']
+branding.key?('icon_url')
+#=> true
+
+## GET /api/invite/:token on custom domain - auth_methods present (password always enabled)
+resp = JSON.parse(last_response.body)
+resp['record'].key?('auth_methods')
+#=> true
+
+## GET /api/invite/:token on custom domain - auth_methods includes password type
+resp = JSON.parse(last_response.body)
+auth_methods = resp['record']['auth_methods']
+auth_methods.any? { |m| m['type'] == 'password' }
+#=> true
+
+## GET /api/invite/:token on custom domain - password auth is enabled
+resp = JSON.parse(last_response.body)
+auth_methods = resp['record']['auth_methods']
+password_method = auth_methods.find { |m| m['type'] == 'password' }
+password_method['enabled']
+#=> true
+
+# ============================================================================
+# SSO CONFIGURED TESTS
+# ============================================================================
+
+## Setup SSO config and verify it includes SSO in auth_methods
+@sso_config = Onetime::CustomDomain::SsoConfig.create!(
+  domain_id: @custom_domain.identifier,
+  provider_type: 'entra_id',
+  display_name: 'ACME Corp SSO',
+  client_id: 'test-client-id-12345',
+  client_secret: 'test-client-secret-67890',
+  tenant_id: 'test-tenant-id-abcde',
+  enabled: true
+)
+# Re-request with SSO now configured
+get "/api/invite/#{@branding_token}", {}, @custom_domain_env
+resp = JSON.parse(last_response.body)
+auth_methods = resp['record']['auth_methods']
+[@sso_config.nil?, auth_methods.any? { |m| m['type'] == 'sso' }]
+#=> [false, true]
+
+## GET /api/invite/:token with SSO configured - auth_methods has both password and sso
+resp = JSON.parse(last_response.body)
+auth_methods = resp['record']['auth_methods']
+types = auth_methods.map { |m| m['type'] }.sort
+types
+#=> ['password', 'sso']
+
+## GET /api/invite/:token with SSO configured - SSO includes provider_type
+resp = JSON.parse(last_response.body)
+auth_methods = resp['record']['auth_methods']
+sso_method = auth_methods.find { |m| m['type'] == 'sso' }
+sso_method.key?('provider_type')
+#=> true
+
+## GET /api/invite/:token with SSO configured - SSO provider_type is entra_id
+resp = JSON.parse(last_response.body)
+auth_methods = resp['record']['auth_methods']
+sso_method = auth_methods.find { |m| m['type'] == 'sso' }
+sso_method['provider_type']
+#=> 'entra_id'
+
+## GET /api/invite/:token with SSO configured - SSO includes display_name
+resp = JSON.parse(last_response.body)
+auth_methods = resp['record']['auth_methods']
+sso_method = auth_methods.find { |m| m['type'] == 'sso' }
+sso_method.key?('display_name')
+#=> true
+
+## GET /api/invite/:token with SSO configured - SSO includes platform_route_name
+resp = JSON.parse(last_response.body)
+auth_methods = resp['record']['auth_methods']
+sso_method = auth_methods.find { |m| m['type'] == 'sso' }
+sso_method.key?('platform_route_name')
+#=> true
+
+## GET /api/invite/:token with SSO configured - SSO enabled is true
+resp = JSON.parse(last_response.body)
+auth_methods = resp['record']['auth_methods']
+sso_method = auth_methods.find { |m| m['type'] == 'sso' }
+sso_method['enabled']
+#=> true
+
+# ============================================================================
+# SECURITY: NO CREDENTIAL EXPOSURE TESTS
+# ============================================================================
+# Critical: Verify that SSO credentials are NOT exposed in the API response
+
+## Security: SSO response does NOT contain client_id
+resp = JSON.parse(last_response.body)
+auth_methods = resp['record']['auth_methods']
+sso_method = auth_methods.find { |m| m['type'] == 'sso' }
+sso_method.key?('client_id')
+#=> false
+
+## Security: SSO response does NOT contain client_secret
+resp = JSON.parse(last_response.body)
+auth_methods = resp['record']['auth_methods']
+sso_method = auth_methods.find { |m| m['type'] == 'sso' }
+sso_method.key?('client_secret')
+#=> false
+
+## Security: SSO response does NOT contain tenant_id
+resp = JSON.parse(last_response.body)
+auth_methods = resp['record']['auth_methods']
+sso_method = auth_methods.find { |m| m['type'] == 'sso' }
+sso_method.key?('tenant_id')
+#=> false
+
+## Security: SSO response does NOT contain issuer
+resp = JSON.parse(last_response.body)
+auth_methods = resp['record']['auth_methods']
+sso_method = auth_methods.find { |m| m['type'] == 'sso' }
+sso_method.key?('issuer')
+#=> false
+
+## Security: SSO fields are limited to safe public fields only
+resp = JSON.parse(last_response.body)
+auth_methods = resp['record']['auth_methods']
+sso_method = auth_methods.find { |m| m['type'] == 'sso' }
+allowed_fields = %w[type provider_type display_name enabled platform_route_name]
+sso_method.keys.all? { |k| allowed_fields.include?(k) }
+#=> true
+
+# ============================================================================
+# CLEANUP
+# ============================================================================
+
+# Clean up branding/SSO test resources
+@sso_config.destroy! if @sso_config
+@custom_domain.destroy! if @custom_domain
+@branding_org.destroy! if @branding_org
+@branding_owner.destroy! if @branding_owner
+
+# Original cleanup
 @org.destroy!
 @owner.destroy!
 @invitee.destroy!

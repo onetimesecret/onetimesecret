@@ -50,9 +50,24 @@ module InviteAPI::Logic
       end
 
       def success_data
-        {
-          record: serialize_invitation_public(@invitation),
-        }
+        result = { record: serialize_invitation_public(@invitation) }
+
+        if custom_domain?
+          domain = Onetime::CustomDomain.from_display_domain(display_domain)
+          if domain
+            result[:record][:branding]     = serialize_brand_public(domain.brand_settings, domain)
+            result[:record][:auth_methods] = build_auth_methods(domain.sso_config)
+          end
+        end
+        result
+      end
+
+      private
+
+      def build_auth_methods(sso_config)
+        methods = [{ type: 'password', enabled: true }]
+        methods << serialize_sso_public(sso_config).merge(type: 'sso') if sso_config&.enabled?
+        methods
       end
     end
   end

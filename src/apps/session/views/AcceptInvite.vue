@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import SsoButton from '@/apps/session/components/SsoButton.vue';
   import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
   import { classifyError } from '@/schemas/errors';
   import { useAuth } from '@/shared/composables/useAuth';
@@ -29,31 +30,43 @@
     notify: false,
   });
 
-  const invitationToken = ref<string>(route.params.token as string);
-  const invitation = ref<{
-    organization_name: string;
-    organization_id: string;
-    email: string;
-    role: string;
-    invited_by_email: string;
-    expires_at: number;
-    status: string;
-  } | null>(null);
+  const brandingSchema = z.object({
+    primary_color: z.string(),
+    display_name: z.string().nullable(),
+    logo_url: z.string().nullable(),
+    icon_url: z.string().nullable(),
+  });
 
-  const isLoading = ref(true);
-  const error = ref('');
-  const success = ref('');
-  const isProcessing = ref(false);
+  const authMethodSchema = z.discriminatedUnion('type', [
+    z.object({ type: z.literal('password'), enabled: z.boolean() }),
+    z.object({
+      type: z.literal('sso'),
+      provider_type: z.string(),
+      display_name: z.string().nullable(),
+      enabled: z.boolean(),
+      platform_route_name: z.string(),
+    }),
+  ]);
 
   const invitationSchema = z.object({
     organization_name: z.string(),
     organization_id: z.string(),
     email: z.email(),
     role: z.string(),
-    invited_by_email: z.string(),
+    invited_by_email: z.string().nullable(),
     expires_at: z.number(),
     status: z.string(),
+    branding: brandingSchema.nullable().optional(),
+    auth_methods: z.array(authMethodSchema).optional(),
   });
+
+  const invitationToken = ref<string>(route.params.token as string);
+  const invitation = ref<z.infer<typeof invitationSchema> | null>(null);
+
+  const isLoading = ref(true);
+  const error = ref('');
+  const success = ref('');
+  const isProcessing = ref(false);
 
   /**
    * Tracks whether user has acknowledged accepting with a different email.
@@ -70,6 +83,18 @@
     if (!currentEmail) return false;
     return currentEmail.toLowerCase() !== invitation.value.email.toLowerCase();
   });
+
+  /**
+   * Returns the organization's primary brand color, falling back to domain branding
+   * or a default brand color.
+   */
+  const primaryColor = computed(() => invitation.value?.branding?.primary_color || bootstrapStore.domain_branding?.primary_color || '#d45a2a');
+
+  /**
+   * Returns the first enabled SSO auth method if available.
+   * Used to display the SSO button for unauthenticated users.
+   */
+  const ssoMethod = computed(() => invitation.value?.auth_methods?.find(m => m.type === 'sso' && m.enabled));
 
   /**
    * Logs out the current user and redirects to sign in with the invited email prefilled.
@@ -203,6 +228,7 @@
     <!-- Invitation Content -->
     <div
       v-else
+      :style="{ '--brand-primary': primaryColor }"
       class="rounded-lg border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
       <!-- Header -->
       <div class="mb-6 text-center">
@@ -261,7 +287,7 @@
               {{ t('web.organizations.invitations.invited_by') }}
             </span>
             <span class="font-medium text-gray-900 dark:text-white">
-              {{ invitation.invited_by_email }}
+              {{ invitation.invited_by_email ?? '—' }}
             </span>
           </div>
 
@@ -319,19 +345,28 @@
         <div
           v-else-if="!authStore.isAuthenticated"
           data-testid="sign-in-notice"
-          class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
-          <div class="flex">
-            <OIcon
-              collection="heroicons"
-              name="information-circle"
-              class="size-5 text-blue-400"
-              aria-hidden="true" />
-            <div class="ml-3">
-              <p class="text-sm text-blue-800 dark:text-blue-400">
-                {{ t('web.organizations.invitations.must_sign_in') }}
-              </p>
+          class="space-y-4">
+          <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+            <div class="flex">
+              <OIcon
+                collection="heroicons"
+                name="information-circle"
+                class="size-5 text-blue-400"
+                aria-hidden="true" />
+              <div class="ml-3">
+                <p class="text-sm text-blue-800 dark:text-blue-400">
+                  {{ t('web.organizations.invitations.must_sign_in') }}
+                </p>
+              </div>
             </div>
           </div>
+
+          <!-- SSO Button for organization's identity provider -->
+          <SsoButton
+            v-if="ssoMethod && ssoMethod.type === 'sso'"
+            :route-name="ssoMethod.platform_route_name"
+            :display-name="ssoMethod.display_name ?? undefined"
+            :redirect="`/invite/${invitationToken}`" />
         </div>
 
         <!-- Action Buttons -->
