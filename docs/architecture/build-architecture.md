@@ -251,13 +251,13 @@ docker buildx bake -f docker/bake.hcl --print          # all targets resolve wit
 docker buildx bake -f docker/bake.hcl main              # main image builds successfully
 docker run --rm <image>:<tag> ruby --version             # Ruby present in final image
 
-# Podman (standalone build with full metadata)
+# Podman (standalone local build)
 podman build -f docker/base.dockerfile --platform linux/amd64 --tag ots-base:local .
 podman build -f Dockerfile \
   --platform linux/amd64 \
   --target final \
   --build-context base=container-image://ots-base:local \
-  --build-arg VERSION=$(node -p "require('./package.json').version") \
+  --build-arg ALLOW_DEV_VERSION=true \
   --build-arg COMMIT_HASH=$(git rev-parse --short HEAD) \
   --tag onetimesecret:local .
 podman rmi ots-base:local                                 # cleanup base
