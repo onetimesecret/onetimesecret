@@ -40,33 +40,16 @@ module Auth
         if Onetime::Customer.exists?(@account[:email])
           customer = Onetime::Customer.find_by_email(@account[:email])
           auth_logger.info "[create-customer] Found existing customer: #{customer.custid}"
-
-          # Enforce colonel role against config (promotes or demotes as needed)
-          Onetime::Customer::Features::ColonelAssignment.ensure_colonel_role(
-            customer, context: 'full auth signup'
-          )
         else
-          # Determine role based on colonels config list
-          role = Onetime::Customer::Features::ColonelAssignment.determine_role(@account[:email])
-
+          # New accounts default to 'customer' role. Colonel promotion
+          # is handled exclusively via CLI: bin/ots customers role promote user@example.com
           customer = Onetime::Customer.create!(
             email: @account[:email],
-            role: role,
+            role: 'customer',
             verified: false, # needs to be updated in after_verify_account
           )
 
-          # Log privilege escalation if colonel was auto-assigned
-          if role == 'colonel'
-            Onetime.auth_logger.warn 'SECURITY: Colonel role auto-assigned (full mode)',
-              {
-                customer_id: customer.custid,
-                email: OT::Utils.obscure_email(@account[:email]),
-                action: 'colonel_auto_assign',
-                auth_mode: 'full',
-              }
-          end
-
-          auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: #{role})"
+          auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: customer)"
         end
 
         customer

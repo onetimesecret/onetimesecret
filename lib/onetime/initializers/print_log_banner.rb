@@ -193,7 +193,7 @@ module Onetime
       end
 
       # Builds authentication section rows
-      # Note: Colonels are now managed via CLI (bin/ots role) rather than config
+      # Note: Colonels are now managed via CLI (bin/ots customers role) rather than config
       def build_auth_section(site_config)
         auth_rows = []
 

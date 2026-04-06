@@ -138,7 +138,7 @@ module Core::Logic
         sess['authenticated_at'] = Familia.now.to_i
 
         # Role is stored on the customer record and managed via CLI:
-        # bin/ots role promote user@example.com --role colonel
+        # bin/ots customers role promote user@example.com --role colonel
         sess['role'] = cust.role
         cust.save
 

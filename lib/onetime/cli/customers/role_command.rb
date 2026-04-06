@@ -1,4 +1,4 @@
-# lib/onetime/cli/role_command.rb
+# lib/onetime/cli/customers/role_command.rb
 #
 # frozen_string_literal: true
 
@@ -6,15 +6,15 @@
 # colonel assignment with explicit role management via command line.
 #
 # Usage:
-#   bin/ots role promote user@example.com              # Promote to colonel (default)
-#   bin/ots role promote user@example.com --role admin # Promote to specific role
-#   bin/ots role demote user@example.com               # Demote to customer
-#   bin/ots role list                                  # List all colonels
-#   bin/ots role list --role admin                     # List users with specific role
+#   bin/ots customers role promote user@example.com              # Promote to colonel (default)
+#   bin/ots customers role promote user@example.com --role admin # Promote to specific role
+#   bin/ots customers role demote user@example.com               # Demote to customer
+#   bin/ots customers role list                                  # List all colonels
+#   bin/ots customers role list --role admin                     # List users with specific role
 
 module Onetime
   module CLI
-    class RoleCommand < Command
+    class CustomersRoleCommand < Command
       desc 'Manage customer roles (promote, demote, list)'
 
       argument :action,
@@ -140,7 +140,7 @@ module Onetime
         return if email && !email.empty?
 
         puts "Error: Email address required for '#{action}' action"
-        puts "Usage: bin/ots role #{action} user@example.com"
+        puts "Usage: bin/ots customers role #{action} user@example.com"
         exit 1
       end
 
@@ -163,6 +163,6 @@ module Onetime
       end
     end
 
-    register 'role', RoleCommand
+    register 'customers role', CustomersRoleCommand
   end
 end

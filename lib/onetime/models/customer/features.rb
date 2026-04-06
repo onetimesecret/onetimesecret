@@ -5,10 +5,10 @@
 # Example of a features.rb without the Autoloader
 
 require_relative 'features/role_index'
-require_relative 'features/colonel_assignment'
 require_relative 'features/counter_fields'
 require_relative 'features/deprecated_fields'
 require_relative 'features/legacy_secrets_fields'
 require_relative 'features/safe_dump_fields'
 require_relative 'features/status'
 require_relative 'features/migration_fields'
+require_relative 'features/colonel_assignment'

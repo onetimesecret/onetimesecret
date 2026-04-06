@@ -129,9 +129,6 @@ module Auth
       # @return [Onetime::Customer]
       def ensure_customer_exists
         customer = find_existing_customer || create_customer
-        Onetime::Customer::Features::ColonelAssignment.ensure_colonel_role(
-          customer, context: 'full auth login sync'
-        )
         link_customer_to_account(customer) unless customer_linked?(customer)
         customer
       end
@@ -147,38 +144,28 @@ module Auth
       # Creates a new customer from Rodauth account data
       # @return [Onetime::Customer]
       def create_customer
-        role = Onetime::Customer::Features::ColonelAssignment.determine_role(@account[:email])
-
+        # New accounts default to 'customer' role. Colonel promotion
+        # is handled exclusively via CLI: bin/ots customers role promote user@example.com
         Auth::Logging.log_operation(
           :customer_create_start,
           level: :info,
           email: @account[:email],
-          role: role,
+          role: 'customer',
           correlation_id: @correlation_id,
         )
 
         customer = Onetime::Customer.create!(
           email: @account[:email],
-          role: role,
+          role: 'customer',
           verified: rodauth_status_verified? ? '1' : '0',
         )
-
-        if role == 'colonel'
-          Onetime.auth_logger.warn 'SECURITY: Colonel role auto-assigned (login sync)',
-            {
-              customer_id: customer.custid,
-              email: OT::Utils.obscure_email(@account[:email]),
-              action: 'colonel_auto_assign',
-              auth_mode: 'full',
-            }
-        end
 
         Auth::Logging.log_operation(
           :customer_created,
           level: :info,
           customer_id: customer.custid,
           external_id: customer.extid,
-          role: role,
+          role: 'customer',
           correlation_id: @correlation_id,
         )
         customer

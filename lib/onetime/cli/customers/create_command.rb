@@ -61,7 +61,7 @@ module Onetime
         if Onetime::Customer.email_exists?(email)
           obscured = OT::Utils.obscure_email(email)
           puts "Error: Customer already exists: #{obscured}"
-          puts "Use 'bin/ots role promote #{email}' to change their role."
+          puts "Use 'bin/ots customers role promote #{email}' to change their role."
           exit 1
         end
 

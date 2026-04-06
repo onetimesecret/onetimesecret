@@ -67,11 +67,6 @@ module AccountAPI::Logic
             send_verification_email
           end
 
-          # Enforce colonel role against config (promotes or demotes as needed)
-          Onetime::Customer::Features::ColonelAssignment.ensure_colonel_role(
-            @cust, context: 'simple auth signup'
-          )
-
           # Use existing customer attributes
           @customer_role = @cust.role || 'customer'
         else
@@ -80,25 +75,14 @@ module AccountAPI::Logic
 
           cust.update_passphrase password
 
-          # Determine role based on colonels config list
-          @customer_role = Onetime::Customer::Features::ColonelAssignment.determine_role(email)
+          # New accounts default to 'customer' role. Colonel promotion
+          # is handled exclusively via CLI: bin/ots customers role promote user@example.com
+          @customer_role = 'customer'
 
           cust.verified    = @autoverify
           cust.verified_by = 'autoverify' if @autoverify  # Track verification method
           cust.role        = @customer_role
           cust.save
-
-          # Log privilege escalation if colonel was auto-assigned
-          if @customer_role == 'colonel'
-            Onetime.auth_logger.warn 'SECURITY: Colonel role auto-assigned (simple mode)',
-              {
-                customer_id: cust.custid,
-                email: cust.obscure_email,
-                action: 'colonel_auto_assign',
-                auth_mode: 'simple',
-                autoverify: @autoverify,
-              }
-          end
 
           session_id = @strategy_result.session['id']
           ip_address = @strategy_result.metadata['ip']
