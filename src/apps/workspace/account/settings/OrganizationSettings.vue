@@ -57,7 +57,7 @@ const TAB_TO_URL: Record<TabType, string> = {
 const props = withDefaults(defineProps<{
   initialTab?: TabType;
 }>(), {
-  initialTab: 'members',
+  initialTab: 'domains',
 });
 
 const { t } = useI18n();
@@ -87,13 +87,15 @@ const invitations = ref<OrganizationInvitation[]>([]);
  * performed actions should require the fewest clicks. When users navigate to an
  * organization's detail page, their intent hierarchy is typically:
  *
- *   1. Team (members)  - Most frequent: invite members, manage roles, review team
- *   2. Billing         - Occasional: check plan, view usage, upgrade
- *   3. Settings        - Rare: change org name or billing email (set-and-forget)
+ *   1. Domains         - Most frequent: managing sender domains for platform operators
+ *   2. Members         - Team management: invite members, manage roles, review team
+ *   3. Subscription    - Occasional: check plan, view usage, upgrade
+ *   4. Settings        - Rare: change org name or billing email (set-and-forget)
+ *   5. SSO             - Rarest: configuration that's set once and rarely touched
  *
- * By defaulting to the Team tab, we eliminate one click for the most common
- * workflow. Settings (formerly "General") is placed last since org name and
- * billing email rarely change after initial setup.
+ * By defaulting to the Domains tab, we eliminate one click for the most common
+ * workflow. SSO is placed last since it's configured once during setup and
+ * rarely revisited.
  *
  * This aligns with Fitts's Law corollary: reduce interaction cost for frequent
  * actions, accept higher cost for infrequent ones.
@@ -115,7 +117,7 @@ watch(
     if (urlTab && URL_TO_TAB[urlTab]) {
       activeTab.value = URL_TO_TAB[urlTab];
     } else if (!urlTab) {
-      activeTab.value = 'members';
+      activeTab.value = 'domains';
     }
   }
 );
@@ -554,11 +556,10 @@ watch(orgId, async (newOrgId, oldOrgId) => {
 // Keyboard navigation for tabs (WCAG 2.1 AA)
 const handleTabKeydown = (e: KeyboardEvent) => {
   // Build visible tabs array dynamically based on entitlements
-  const tabs: TabType[] = ['members', 'domains', 'subscription'];
+  const tabs: TabType[] = ['domains', 'members', 'subscription', 'general'];
   if (canManageSso.value) {
     tabs.push('sso');
   }
-  tabs.push('general');
 
   const currentIndex = tabs.indexOf(activeTab.value);
   if (currentIndex === -1) return;
@@ -612,7 +613,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
         </div>
       </div>
 
-      <!-- Tabs: Team, Domains, Billing (conditional), Settings (infrequent) -->
+      <!-- Tabs: Domains, Members, Subscription, Settings, SSO (conditional) -->
       <div v-if="!orgNotFound && organization" class="border-b border-gray-200 dark:border-gray-700">
         <nav
           role="tablist"
@@ -620,23 +621,6 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           aria-label="Organization settings tabs"
           class="-mb-px flex space-x-8"
           @keydown="handleTabKeydown">
-          <!-- Team tab -->
-          <button
-            id="org-tab-members"
-            role="tab"
-            :aria-selected="activeTab === 'members'"
-            :tabindex="activeTab === 'members' ? 0 : -1"
-            aria-controls="org-panel-members"
-            data-testid="org-tab-members"
-            @click="setActiveTab('members')"
-            :class="[
-              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
-              activeTab === 'members'
-                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
-            ]">
-            {{ t('web.organizations.tabs.members') }}
-          </button>
           <!-- Domains tab -->
           <button
             id="org-tab-domains"
@@ -653,6 +637,23 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.domains') }}
+          </button>
+          <!-- Team tab -->
+          <button
+            id="org-tab-members"
+            role="tab"
+            :aria-selected="activeTab === 'members'"
+            :tabindex="activeTab === 'members' ? 0 : -1"
+            aria-controls="org-panel-members"
+            data-testid="org-tab-members"
+            @click="setActiveTab('members')"
+            :class="[
+              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              activeTab === 'members'
+                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+            ]">
+            {{ t('web.organizations.tabs.members') }}
           </button>
           <!-- Subscription tab - shown for all organizations -->
           <button
@@ -671,6 +672,23 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             ]">
             {{ t('web.organizations.tabs.subscription') }}
           </button>
+          <!-- Settings tab - infrequently changed fields -->
+          <button
+            id="org-tab-general"
+            role="tab"
+            :aria-selected="activeTab === 'general'"
+            :tabindex="activeTab === 'general' ? 0 : -1"
+            aria-controls="org-panel-general"
+            data-testid="org-tab-settings"
+            @click="setActiveTab('general')"
+            :class="[
+              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              activeTab === 'general'
+                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+            ]">
+            {{ t('web.organizations.tabs.general')  }}
+          </button>
           <!-- SSO tab - single sign-on configuration (entitlement-gated) -->
           <button
             v-if="canManageSso"
@@ -688,23 +706,6 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.sso') }}
-          </button>
-          <!-- Settings tab - infrequently changed fields -->
-          <button
-            id="org-tab-general"
-            role="tab"
-            :aria-selected="activeTab === 'general'"
-            :tabindex="activeTab === 'general' ? 0 : -1"
-            aria-controls="org-panel-general"
-            data-testid="org-tab-settings"
-            @click="setActiveTab('general')"
-            :class="[
-              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
-              activeTab === 'general'
-                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
-            ]">
-            {{ t('web.organizations.tabs.general')  }}
           </button>
         </nav>
       </div>
