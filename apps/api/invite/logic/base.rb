@@ -57,8 +57,16 @@ module InviteAPI
           role: invitation.role,
           invited_by_email: inviter&.safe_dump&.dig(:email),
           expires_at: invitation.invitation_expires_at,
-          status: invitation.status,
+          status: effective_invitation_status(invitation),
         }
+      end
+
+      # Compute effective status accounting for expiration
+      # The stored status may be 'pending' but if past expiry, return 'expired'
+      def effective_invitation_status(invitation)
+        return 'expired' if invitation.pending? && invitation.expired?
+
+        invitation.status
       end
 
       # Serialize brand settings for public API response (guest-safe)
