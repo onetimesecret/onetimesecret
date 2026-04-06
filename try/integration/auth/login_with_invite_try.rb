@@ -15,6 +15,8 @@ require_relative '../../support/test_helpers'
 
 OT.boot! :test
 
+# Auth::Logging is required by accept_invitation but not auto-loaded
+require 'web/auth/lib/logging'
 require 'web/auth/operations/accept_invitation'
 
 # Setup: Create organization owner

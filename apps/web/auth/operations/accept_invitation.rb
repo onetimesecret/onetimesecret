@@ -63,7 +63,17 @@ module Auth
         customer.verified_by = 'invite_token'
         customer.save
 
-        auth_logger.info "[accept-invitation] Accepted invite for #{customer.email} to org #{invitation.organization_objid} as #{invitation.role}"
+        Auth::Logging.log_operation(
+          :invitation_accepted,
+          level: :info,
+          customer_id: customer.custid,
+          email: customer.email,  # Use :email for automatic obscuring
+          organization_id: invitation.organization_objid,
+          organization_name: invitation.organization&.display_name,
+          role: invitation.role,
+          invite_token_prefix: token[0..7],
+          verified_by: 'invite_token',
+        )
 
         {
           accepted: true,
@@ -71,7 +81,13 @@ module Auth
           role: invitation.role,
         }
       rescue StandardError => ex
-        auth_logger.error "[accept-invitation] Error: #{ex.message} for #{customer&.email}"
+        Auth::Logging.log_error(
+          :invitation_accept_error,
+          exception: ex,
+          customer_id: customer&.custid,
+          email: customer&.email,  # Use :email for automatic obscuring
+          invite_token_prefix: token.to_s[0..7],
+        )
         {
           accepted: false,
           reason: 'error',
@@ -82,7 +98,14 @@ module Auth
       private
 
       def skip_result(reason)
-        OT.ld "[AcceptInvitation] Skipped: #{reason}"
+        Auth::Logging.log_operation(
+          :invitation_skipped,
+          level: :debug,
+          customer_id: customer&.custid,
+          email: customer&.email,  # Use :email for automatic obscuring
+          reason: reason,
+          invite_token_prefix: token.to_s[0..7],
+        )
         { accepted: false, reason: reason }
       end
 

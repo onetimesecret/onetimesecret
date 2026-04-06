@@ -13,9 +13,12 @@
 # Run: bundle exec try try/integration/auth/signup_with_invite_try.rb
 
 require_relative '../../support/test_helpers'
-require 'apps/web/auth/operations'
 
 OT.boot! :test
+
+# Auth::Logging is required by accept_invitation but not auto-loaded
+require 'web/auth/lib/logging'
+require 'apps/web/auth/operations'
 
 # Setup test data with unique identifiers
 @test_suffix = "#{Familia.now.to_i}_#{rand(10000)}"
@@ -179,9 +182,10 @@ result[:accepted]
 # Simulate an error by passing a customer that causes issues in accept!
 # The operation catches StandardError and returns a structured result
 class BrokenCustomer
-  attr_reader :email
+  attr_reader :email, :custid
   def initialize(email)
     @email = email
+    @custid = 'broken-customer-id'
   end
   def objid
     raise StandardError, 'Simulated internal error'

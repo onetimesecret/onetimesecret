@@ -96,7 +96,8 @@ export function useInviteAuth() {
     email: string,
     password: string,
     termsAgreed: boolean,
-    inviteToken: string
+    inviteToken: string,
+    skill: string = ''
   ): Promise<InviteAuthResult> {
     isLoading.value = true;
     error.value = null;
@@ -110,6 +111,7 @@ export function useInviteAuth() {
         password,
         agree: termsAgreed,
         invite_token: inviteToken,
+        skill,
         shrimp: csrfStore.shrimp,
         locale: locale.value,
       });

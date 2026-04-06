@@ -63,6 +63,7 @@ const termsAgreed = ref(false);
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 const isSubmitting = ref(false);
+const honeypot = ref('');
 
 /**
  * Local validation error for password confirmation.
@@ -172,7 +173,8 @@ const handleSubmit = async () => {
       props.invitedEmail,
       password.value,
       termsAgreed.value,
-      props.inviteToken
+      props.inviteToken,
+      honeypot.value
     );
 
     if (result.success) {
@@ -269,11 +271,12 @@ const handleSubmit = async () => {
             <input
               type="text"
               name="skill"
+              v-model="honeypot"
               class="hidden"
               aria-hidden="true"
               aria-disabled="true"
               tabindex="-1"
-              value="" />
+              autocomplete="off" />
 
             <!-- Error message -->
             <div
@@ -653,11 +656,12 @@ const handleSubmit = async () => {
         <input
           type="text"
           name="skill"
+          v-model="honeypot"
           class="hidden"
           aria-hidden="true"
           aria-disabled="true"
           tabindex="-1"
-          value="" />
+          autocomplete="off" />
 
         <!-- Error message -->
         <div
