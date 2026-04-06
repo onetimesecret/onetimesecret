@@ -44,7 +44,7 @@ module V3
 
         begin
           # Find the first colonel in the database to send feedback notification
-          # Colonels are managed via CLI: bin/ots role promote email --role colonel
+          # Colonels are managed via CLI: bin/ots customers role promote email --role colonel
           first_colonel = find_first_colonel
           if first_colonel
             OT.ld "[receive_feedback] Sending feedback to colonel: #{first_colonel.obscure_email}"

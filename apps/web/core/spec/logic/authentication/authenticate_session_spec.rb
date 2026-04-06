@@ -281,7 +281,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         end
 
         it 'stores customer role in session' do
-          # Role is managed via CLI (bin/ots role promote) and stored on customer record
+          # Role is managed via CLI (bin/ots customers role promote) and stored on customer record
           # Authentication just reads the existing role and stores it in session
           allow(customer).to receive(:role).and_return('colonel')
           logic.process

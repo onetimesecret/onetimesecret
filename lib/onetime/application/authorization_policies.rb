@@ -43,10 +43,17 @@ module Onetime
       # - colonel: Site administrators with full access
       # - admin: Future system admin role
       #
+      # Defense in depth: System roles require email verification.
+      # This prevents privilege escalation attacks where an attacker
+      # registers an admin email before the legitimate owner verifies.
+      #
       # @param role [String, Symbol] Role name to check
-      # @return [Boolean] true if user has the role
+      # @return [Boolean] true if user has the role AND is verified
       def has_system_role?(role)
         return false if anonymous_user?
+
+        # Defense in depth: elevated roles require verified email
+        return false unless cust.verified?
 
         case role.to_s
         when 'colonel'

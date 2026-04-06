@@ -75,8 +75,8 @@ module AccountAPI::Logic
 
           cust.update_passphrase password
 
-          # All new accounts get 'customer' role by default.
-          # Use `bin/ots role promote` to grant elevated roles.
+          # New accounts default to 'customer' role. Colonel promotion
+          # is handled exclusively via CLI: bin/ots customers role promote user@example.com
           @customer_role = 'customer'
 
           cust.verified    = @autoverify

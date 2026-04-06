@@ -242,6 +242,10 @@ site:
     # a more restrictive mode where only authenticated users can create
     # secrets while maintaining site navigation and branding.
     required: <%= ENV['AUTH_REQUIRED'] == 'true' %>
+    # Colonel (admin) accounts are managed via the CLI:
+    #   bin/ots customers role promote user@example.com
+    #   bin/ots customers role demote user@example.com
+    #   bin/ots customers role list
     # Restrict account creation to specific email domains while allowing
     # secret-sharing with any email address. When set, only email addresses
     # from the listed domains can create accounts. This is useful for

@@ -144,10 +144,13 @@ module Auth
       # Creates a new customer from Rodauth account data
       # @return [Onetime::Customer]
       def create_customer
+        # New accounts default to 'customer' role. Colonel promotion
+        # is handled exclusively via CLI: bin/ots customers role promote user@example.com
         Auth::Logging.log_operation(
           :customer_create_start,
           level: :info,
           email: @account[:email],
+          role: 'customer',
           correlation_id: @correlation_id,
         )
 
@@ -162,6 +165,7 @@ module Auth
           level: :info,
           customer_id: customer.custid,
           external_id: customer.extid,
+          role: 'customer',
           correlation_id: @correlation_id,
         )
         customer

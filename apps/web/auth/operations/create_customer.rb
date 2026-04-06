@@ -41,12 +41,15 @@ module Auth
           customer = Onetime::Customer.find_by_email(@account[:email])
           auth_logger.info "[create-customer] Found existing customer: #{customer.custid}"
         else
+          # New accounts default to 'customer' role. Colonel promotion
+          # is handled exclusively via CLI: bin/ots customers role promote user@example.com
           customer = Onetime::Customer.create!(
             email: @account[:email],
             role: 'customer',
             verified: false, # needs to be updated in after_verify_account
           )
-          auth_logger.info "[create-customer] Created new customer: #{customer.custid}"
+
+          auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: customer)"
         end
 
         customer

@@ -90,6 +90,23 @@ module Auth
         apply_pending_federation!(org)
 
         org
+      rescue Onetime::Problem => ex
+        raise unless ex.message.include?('Organization exists')
+
+        # Org exists in the email index but customer has no membership link
+        # (e.g., incomplete prior creation, data inconsistency after SSO).
+        # Find the existing org and repair the membership.
+        existing = Onetime::Organization.find_by_contact_email(@customer.email)
+        raise unless existing
+
+        if existing.member_count > 0
+          auth_logger.warn "[create-default-workspace] Existing org #{existing.extid} already has members, skipping adoption for #{@customer.custid}"
+          raise
+        end
+
+        auth_logger.info "[create-default-workspace] Adopting orphaned org #{existing.extid} for #{@customer.custid}"
+        existing.add_members_instance(@customer, through_attrs: { role: 'owner' })
+        existing
       rescue StandardError => ex
         auth_logger.error "[create-default-workspace] Failed to create organization: #{ex.message}"
         raise

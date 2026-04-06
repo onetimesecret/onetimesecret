@@ -29,6 +29,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
       objid: 'owner123',
       extid: 'ext-owner123',
       anonymous?: false,
+      verified?: true,
     )
   end
 
@@ -39,6 +40,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
       objid: 'nonowner123',
       extid: 'ext-nonowner123',
       anonymous?: false,
+      verified?: true,
     )
   end
 

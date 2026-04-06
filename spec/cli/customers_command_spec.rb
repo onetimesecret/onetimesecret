@@ -31,9 +31,9 @@ RSpec.describe 'Customers Command', type: :cli do
     allow(Onetime::Customer).to receive(:load).with('customer2@example.com').and_return(customer2)
   end
 
-  describe '--list option' do
+  describe 'list subcommand' do
     it 'lists customer domains sorted by count' do
-      output = run_cli_command_quietly('customers', '--list')
+      output = run_cli_command_quietly('customers', 'list')
       expect(output[:stdout]).to include('2 customers')
       expect(output[:stdout]).to include('example.com')
     end
@@ -45,7 +45,7 @@ RSpec.describe 'Customers Command', type: :cli do
       allow(Onetime::Customer).to receive(:instances).and_return(instances_double)
       allow(Onetime::Customer).to receive(:load).with('customer2@example.com').and_return(customer2)
 
-      output = run_cli_command_quietly('customers', '--list')
+      output = run_cli_command_quietly('customers', 'list')
       expect(output[:stdout]).to include('1 customers')
     end
   end
