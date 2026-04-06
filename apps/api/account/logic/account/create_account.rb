@@ -67,6 +67,9 @@ module AccountAPI::Logic
             send_verification_email
           end
 
+          # Check if existing customer should be promoted to colonel
+          promote_to_colonel_if_eligible(@cust)
+
           # Use existing customer attributes
           @customer_role = @cust.role || 'customer'
         else
@@ -162,6 +165,27 @@ module AccountAPI::Logic
         # Case-insensitive domain matching
         normalized_domains = allowed_domains.compact.map(&:downcase)
         normalized_domains.include?(email_domain)
+      end
+
+      # Promote existing customer to colonel if they match the colonels list
+      # but don't already have an elevated role
+      #
+      # @param customer [Onetime::Customer]
+      def promote_to_colonel_if_eligible(customer)
+        return unless Onetime::Customer::Features::ColonelAssignment.colonel?(customer.email)
+        return if %w[colonel admin].include?(customer.role)
+
+        customer.role = 'colonel'
+        customer.save
+
+        Onetime.auth_logger.warn 'SECURITY: Existing customer promoted to colonel (simple mode)',
+          {
+            customer_id: customer.custid,
+            email: customer.obscure_email,
+            action: 'colonel_promotion',
+            auth_mode: 'simple',
+            previous_role: 'customer',
+          }
       end
     end
   end

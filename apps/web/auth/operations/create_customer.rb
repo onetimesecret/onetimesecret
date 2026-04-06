@@ -40,6 +40,10 @@ module Auth
         if Onetime::Customer.exists?(@account[:email])
           customer = Onetime::Customer.find_by_email(@account[:email])
           auth_logger.info "[create-customer] Found existing customer: #{customer.custid}"
+
+          # Check if existing customer should be promoted to colonel
+          # This handles cases where colonel config was added after account creation
+          promote_to_colonel_if_eligible(customer)
         else
           # Determine role based on colonels config list
           role = Onetime::Customer::Features::ColonelAssignment.determine_role(@account[:email])
@@ -65,6 +69,27 @@ module Auth
         end
 
         customer
+      end
+
+      # Promote existing customer to colonel if they match the colonels list
+      # but don't already have an elevated role
+      #
+      # @param customer [Onetime::Customer]
+      def promote_to_colonel_if_eligible(customer)
+        return unless Onetime::Customer::Features::ColonelAssignment.colonel?(customer.email)
+        return if %w[colonel admin].include?(customer.role)
+
+        customer.role = 'colonel'
+        customer.save
+
+        Onetime.auth_logger.warn 'SECURITY: Existing customer promoted to colonel (full mode)',
+          {
+            customer_id: customer.custid,
+            email: OT::Utils.obscure_email(customer.email),
+            action: 'colonel_promotion',
+            auth_mode: 'full',
+            previous_role: 'customer',
+          }
       end
 
       # Links the customer to the Rodauth account via external_id

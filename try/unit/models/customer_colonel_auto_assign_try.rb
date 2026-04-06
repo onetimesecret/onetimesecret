@@ -62,6 +62,23 @@ list = @colonel_assignment.colonels_list
 list.include?('colonel@test.example.com') && list.include?('admin@test.example.com')
 #=> true
 
+## With comma-separated colonels: colonels_list splits and normalizes
+set_colonels(['first@test.example.com,SECOND@TEST.EXAMPLE.COM'])
+list = @colonel_assignment.colonels_list
+list.include?('first@test.example.com') && list.include?('second@test.example.com')
+#=> true
+
+## With comma-separated colonels: colonel? matches individual emails
+set_colonels(['first@test.example.com,second@test.example.com'])
+@colonel_assignment.colonel?('second@test.example.com')
+#=> true
+
+## With mixed array and comma-separated: all emails are found
+set_colonels(['solo@test.example.com', 'pair1@test.example.com,pair2@test.example.com'])
+list = @colonel_assignment.colonels_list
+list.size == 3 && list.include?('solo@test.example.com') && list.include?('pair1@test.example.com') && list.include?('pair2@test.example.com')
+#=> true
+
 ## With configured colonels: colonel? returns true for exact match
 set_colonels(['colonel@test.example.com', 'ADMIN@TEST.EXAMPLE.COM'])
 @colonel_assignment.colonel?('colonel@test.example.com')

@@ -129,6 +129,7 @@ module Auth
       # @return [Onetime::Customer]
       def ensure_customer_exists
         customer = find_existing_customer || create_customer
+        promote_to_colonel_if_eligible(customer)
         link_customer_to_account(customer) unless customer_linked?(customer)
         customer
       end
@@ -144,27 +145,62 @@ module Auth
       # Creates a new customer from Rodauth account data
       # @return [Onetime::Customer]
       def create_customer
+        role = Onetime::Customer::Features::ColonelAssignment.determine_role(@account[:email])
+
         Auth::Logging.log_operation(
           :customer_create_start,
           level: :info,
           email: @account[:email],
+          role: role,
           correlation_id: @correlation_id,
         )
 
         customer = Onetime::Customer.create!(
           email: @account[:email],
-          role: 'customer',
+          role: role,
           verified: rodauth_status_verified? ? '1' : '0',
         )
+
+        if role == 'colonel'
+          Onetime.auth_logger.warn 'SECURITY: Colonel role auto-assigned (login sync)',
+            {
+              customer_id: customer.custid,
+              email: OT::Utils.obscure_email(@account[:email]),
+              action: 'colonel_auto_assign',
+              auth_mode: 'full',
+            }
+        end
 
         Auth::Logging.log_operation(
           :customer_created,
           level: :info,
           customer_id: customer.custid,
           external_id: customer.extid,
+          role: role,
           correlation_id: @correlation_id,
         )
         customer
+      end
+
+      # Promote existing customer to colonel if they match the colonels list
+      # but don't already have an elevated role
+      #
+      # @param customer [Onetime::Customer]
+      def promote_to_colonel_if_eligible(customer)
+        return unless Onetime::Customer::Features::ColonelAssignment.colonel?(customer.email)
+        return if %w[colonel admin].include?(customer.role)
+
+        customer.role = 'colonel'
+        customer.save
+
+        Onetime.auth_logger.warn 'SECURITY: Existing customer promoted to colonel (login sync)',
+          {
+            customer_id: customer.custid,
+            email: OT::Utils.obscure_email(customer.email),
+            action: 'colonel_promotion',
+            auth_mode: 'full',
+            previous_role: 'customer',
+          }
       end
 
       # Checks if the Rodauth account status is verified (status_id == 2)

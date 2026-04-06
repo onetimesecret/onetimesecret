@@ -49,11 +49,19 @@ module Onetime
 
         # Get the normalized colonels list from config
         #
+        # Handles both YAML array entries and comma-separated values within entries.
+        # This supports the common pattern: COLONEL=admin@example.com,backup@example.com
+        #
         # @return [Array<String>] Normalized email addresses
         def colonels_list
           raw_list = OT.conf.dig('site', 'authentication', 'colonels') || []
 
-          raw_list.map { |col| normalize_email(col) }.compact.reject(&:empty?)
+          # Flatten comma-separated values and normalize each email
+          raw_list
+            .flat_map { |entry| entry.to_s.split(',') }
+            .map { |col| normalize_email(col) }
+            .compact
+            .reject(&:empty?)
         end
 
         # Normalize an email for consistent comparison
