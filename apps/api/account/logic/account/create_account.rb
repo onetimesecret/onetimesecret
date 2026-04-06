@@ -75,14 +75,25 @@ module AccountAPI::Logic
 
           cust.update_passphrase password
 
-          # All new accounts get 'customer' role by default.
-          # Use `bin/ots role promote` to grant elevated roles.
-          @customer_role = 'customer'
+          # Determine role based on colonels config list
+          @customer_role = Onetime::Customer::Features::ColonelAssignment.determine_role(email)
 
           cust.verified    = @autoverify
           cust.verified_by = 'autoverify' if @autoverify  # Track verification method
           cust.role        = @customer_role
           cust.save
+
+          # Log privilege escalation if colonel was auto-assigned
+          if @customer_role == 'colonel'
+            Onetime.auth_logger.warn 'SECURITY: Colonel role auto-assigned (simple mode)',
+              {
+                customer_id: cust.custid,
+                email: cust.obscure_email,
+                action: 'colonel_auto_assign',
+                auth_mode: 'simple',
+                autoverify: @autoverify,
+              }
+          end
 
           session_id = @strategy_result.session['id']
           ip_address = @strategy_result.metadata['ip']

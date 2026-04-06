@@ -41,12 +41,27 @@ module Auth
           customer = Onetime::Customer.find_by_email(@account[:email])
           auth_logger.info "[create-customer] Found existing customer: #{customer.custid}"
         else
+          # Determine role based on colonels config list
+          role = Onetime::Customer::Features::ColonelAssignment.determine_role(@account[:email])
+
           customer = Onetime::Customer.create!(
             email: @account[:email],
-            role: 'customer',
+            role: role,
             verified: false, # needs to be updated in after_verify_account
           )
-          auth_logger.info "[create-customer] Created new customer: #{customer.custid}"
+
+          # Log privilege escalation if colonel was auto-assigned
+          if role == 'colonel'
+            Onetime.auth_logger.warn 'SECURITY: Colonel role auto-assigned (full mode)',
+              {
+                customer_id: customer.custid,
+                email: OT::Utils.obscure_email(@account[:email]),
+                action: 'colonel_auto_assign',
+                auth_mode: 'full',
+              }
+          end
+
+          auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: #{role})"
         end
 
         customer
