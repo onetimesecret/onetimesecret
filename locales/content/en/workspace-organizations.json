@@ -782,5 +782,30 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Expires soon",
     "content_hash": "a5dcfef9"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "This invitation was sent to this email address",
+    "context": "Hint text explaining why email field is readonly",
+    "content_hash": "3d4e5f6a"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Create Account & Join {orgName}",
+    "context": "Button text for signup form in invitation flow",
+    "content_hash": "7b8c9d0e"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Sign In & Accept Invitation",
+    "context": "Button text for signin form in invitation flow",
+    "content_hash": "1f2a3b4c"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Go to Organizations",
+    "context": "Button text for navigating to organizations page",
+    "content_hash": "5d6e7f8a"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "You are already a member of this organization",
+    "context": "Message shown when invitation was already accepted",
+    "content_hash": "9b0c1d2e"
   }
 }

@@ -47,17 +47,27 @@ const generateTestEmail = (prefix: string) =>
 // -----------------------------------------------------------------------------
 
 /**
- * Authenticate user via login form
+ * Authenticate user via login form using password tab
  */
 async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
   await page.goto('/signin');
 
-  const emailInput = page.getByLabel(/email/i);
-  const passwordInput = page.getByLabel(/password/i);
-  const submitButton = page.getByRole('button', { name: /sign in/i });
+  // Click Password tab - Magic Link is the default, password input is hidden
+  const passwordTab = page.getByRole('tab', { name: /password/i });
+  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
+  await passwordTab.click();
 
+  // Wait for password input to be visible after tab switch
+  const passwordInput = page.locator('input[type="password"]');
+  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
+
+  // Fill the form
+  const emailInput = page.locator('#signin-email-password');
   await emailInput.fill(email || process.env.TEST_USER_EMAIL || '');
   await passwordInput.fill(password || process.env.TEST_USER_PASSWORD || '');
+
+  // Submit
+  const submitButton = page.locator('button[type="submit"]');
   await submitButton.click();
 
   // Wait for redirect to dashboard/account
@@ -221,19 +231,19 @@ test.describe('INV-001: Organization Invitation Sending', () => {
 });
 
 // -----------------------------------------------------------------------------
-// SECTION 2: Invitation Acceptance Flow
+// SECTION 2: Invitation Acceptance Flow (Updated for Inline Forms)
 // -----------------------------------------------------------------------------
 
-test.describe('INV-002: Unauthenticated User Redirect Flow', () => {
+test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test('Unauthenticated user clicking invitation link is redirected to signin with redirect preserved', async ({
+  test('Unauthenticated user sees inline signup/signin form on invitation page', async ({
     page,
     context,
   }) => {
     // First, create an invitation as org owner
     await loginUser(page);
-    const testEmail = generateTestEmail('redirect-test');
+    const testEmail = generateTestEmail('inline-auth-test');
     await navigateToOrgTeam(page);
     await createInvitation(page, testEmail);
 
@@ -251,17 +261,32 @@ test.describe('INV-002: Unauthenticated User Redirect Flow', () => {
     // Verify invitation details page loads
     await expect(page.getByText(/invitation/i)).toBeVisible();
 
-    // Verify sign-in notice is visible
-    const signInNotice = page.locator('.bg-blue-50, .bg-blue-900\\/20');
-    await expect(signInNotice).toBeVisible();
+    // With Phase 7 inline forms, unauthenticated users see one of:
+    // - signup_required state (new user, no account) with inline signup form
+    // - signin_required state (existing user) with inline signin form
+    const signupState = page.getByTestId('invite-signup-required');
+    const signinState = page.getByTestId('invite-signin-required');
 
-    // Click accept - should redirect to signin
-    const acceptButton = page.getByRole('button', { name: /accept/i });
-    await acceptButton.click();
+    const hasSignupForm = await signupState.isVisible().catch(() => false);
+    const hasSigninForm = await signinState.isVisible().catch(() => false);
 
-    // Verify redirected to signin with redirect param
-    await page.waitForURL(/\/signin/);
-    expect(page.url()).toContain(`redirect=%2Finvite%2F${token}`);
+    // One of these states should be shown for unauthenticated user
+    expect(hasSignupForm || hasSigninForm).toBe(true);
+
+    if (hasSignupForm) {
+      // Inline signup form should be visible
+      const signupForm = page.getByTestId('invite-signup-form');
+      await expect(signupForm).toBeVisible();
+      // Email should be displayed from invitation
+      await expect(page.getByText(testEmail)).toBeVisible();
+    } else if (hasSigninForm) {
+      // Inline signin form should be visible
+      const signinForm = page.getByTestId('invite-signin-form');
+      await expect(signinForm).toBeVisible();
+      // Sign-in notice should be visible
+      const signInNotice = page.locator('.bg-blue-50, .bg-blue-900\\/20');
+      await expect(signInNotice).toBeVisible();
+    }
   });
 });
 
@@ -293,10 +318,12 @@ test.describe('INV-003: Email Mismatch Warning', () => {
       await wrongUserPage.goto(`/invite/${token}`);
       await wrongUserPage.waitForLoadState('networkidle');
 
-      // Verify email mismatch warning is visible with amber styling
-      const mismatchWarning = wrongUserPage.locator(
-        '.border-amber-200, .border-amber-800, [class*="amber"]'
-      );
+      // Verify wrong_email state is shown
+      const wrongEmailState = wrongUserPage.getByTestId('invite-wrong-email');
+      await expect(wrongEmailState).toBeVisible();
+
+      // Verify email mismatch warning is visible (using testid)
+      const mismatchWarning = wrongUserPage.getByTestId('email-mismatch-warning');
       await expect(mismatchWarning).toBeVisible();
 
       // Verify warning shows "Wrong Account" or similar
@@ -305,15 +332,13 @@ test.describe('INV-003: Email Mismatch Warning', () => {
       // Verify invited email is shown
       await expect(wrongUserPage.getByText(invitedEmail)).toBeVisible();
 
-      // Verify "Switch Account" button is visible
-      const switchButton = wrongUserPage.getByRole('button', { name: /switch/i });
+      // Verify "Switch Account" button is visible (using testid)
+      const switchButton = wrongUserPage.getByTestId('switch-account-btn');
       await expect(switchButton).toBeVisible();
 
-      // Verify sign-in notice is NOT visible (mismatch takes precedence)
-      const signInNotice = wrongUserPage.locator('.bg-blue-50').filter({
-        hasText: /sign in/i,
-      });
-      await expect(signInNotice).not.toBeVisible();
+      // Verify accept button is NOT visible (strict email binding - no "Accept with this account")
+      const acceptButton = wrongUserPage.getByTestId('accept-invitation-btn');
+      await expect(acceptButton).not.toBeVisible();
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();

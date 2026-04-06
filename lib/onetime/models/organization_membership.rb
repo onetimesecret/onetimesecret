@@ -205,16 +205,15 @@ module Onetime
     # to the organization's member sorted set.
     #
     # @param customer [Onetime::Customer] The customer accepting the invite
-    # @param acknowledge_mismatch [Boolean] If true, allows accepting with different email
     # @return [Boolean] true if acceptance succeeded
-    def accept!(customer, acknowledge_mismatch: false)
+    def accept!(customer)
       raise Onetime::Problem, 'Invitation already accepted' if active?
       raise Onetime::Problem, 'Invitation expired' if expired?
       raise Onetime::Problem, 'Invitation declined' if status == 'declined'
 
       emails_match = invited_email.nil? ||
                      customer.email.to_s.downcase == invited_email.to_s.downcase
-      raise Onetime::Problem, 'Email mismatch' if !emails_match && !acknowledge_mismatch
+      raise Onetime::Problem, 'Email mismatch' unless emails_match
 
       # Capture old token before clearing (needed for index cleanup)
       old_token = token

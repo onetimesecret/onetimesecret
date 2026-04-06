@@ -44,6 +44,11 @@ module Onetime
         end
         router.register_error_handler(Onetime::Forbidden, status: 403, log_level: :warn)
 
+        # Rate limit exceeded errors return 429 with retry info
+        router.register_error_handler(Onetime::LimitExceeded, status: 429, log_level: :warn) do |error, _req|
+          error.to_h
+        end
+
         # Entitlement errors return 403 with upgrade path info
         # NOTE: Otto handles Content-Type header automatically; handler returns body hash only
         router.register_error_handler(Onetime::EntitlementRequired, status: 403, log_level: :info) do |error, _req|

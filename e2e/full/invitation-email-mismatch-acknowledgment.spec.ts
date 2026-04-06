@@ -1,14 +1,19 @@
 // e2e/full/invitation-email-mismatch-acknowledgment.spec.ts
 
 /**
- * E2E Tests for Invitation Email Mismatch Acknowledgment Flow
+ * E2E Tests for Invitation Email Mismatch Flow (Strict Email Binding)
  *
- * Tests the specific flow when a user logged in with a different email
+ * Phase 4+ Security Change: The acknowledge_email_mismatch flag has been removed.
+ * Phase 7 Update: Inline forms on invite page - signup/signin without redirect.
+ *
+ * Invitations are strictly email-bound - users must switch to the correct account.
+ * The wrong_email state shows only a "Switch Account" button, no accept option.
+ *
+ * Tests the flow when a user logged in with a different email
  * than the invited email attempts to accept an invitation:
- * 1. Email mismatch detection shows warning with both options
- * 2. Accept button is disabled when mismatch exists without acknowledgment
- * 3. "Accept with this account" button sends acknowledge_email_mismatch flag
- * 4. "Switch Account" triggers logout and redirect to signin
+ * 1. Email mismatch detection shows wrong_email state
+ * 2. Accept button is NOT visible in wrong_email state (strict binding)
+ * 3. "Switch Account" triggers logout and redirect to signin
  *
  * Prerequisites:
  * - Set TEST_USER_EMAIL, TEST_USER_PASSWORD environment variables
@@ -33,17 +38,27 @@ const generateTestEmail = (prefix: string) =>
 // -----------------------------------------------------------------------------
 
 /**
- * Authenticate user via login form
+ * Authenticate user via login form using password tab
  */
 async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
   await page.goto('/signin');
 
-  const emailInput = page.getByLabel(/email/i);
-  const passwordInput = page.getByLabel(/password/i);
-  const submitButton = page.getByRole('button', { name: /sign in/i });
+  // Click Password tab - Magic Link is the default, password input is hidden
+  const passwordTab = page.getByRole('tab', { name: /password/i });
+  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
+  await passwordTab.click();
 
+  // Wait for password input to be visible after tab switch
+  const passwordInput = page.locator('input[type="password"]');
+  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
+
+  // Fill the form
+  const emailInput = page.locator('#signin-email-password');
   await emailInput.fill(email || process.env.TEST_USER_EMAIL || '');
   await passwordInput.fill(password || process.env.TEST_USER_PASSWORD || '');
+
+  // Submit
+  const submitButton = page.locator('button[type="submit"]');
   await submitButton.click();
 
   // Wait for redirect to dashboard/account
@@ -128,7 +143,7 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
 test.describe('MISMATCH-001: Email Mismatch Warning Display', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test('When logged in with different email, mismatch warning shows both "Switch Account" and "Accept anyway" options', async ({
+  test('When logged in with different email, mismatch warning shows Switch Account option only', async ({
     browser,
   }) => {
     const ownerContext = await browser.newContext();
@@ -140,7 +155,7 @@ test.describe('MISMATCH-001: Email Mismatch Warning Display', () => {
     try {
       // Owner creates invitation for a different email
       await loginUser(ownerPage);
-      const invitedEmail = generateTestEmail('mismatch-ack');
+      const invitedEmail = generateTestEmail('mismatch-strict');
       await navigateToOrgTeam(ownerPage);
       await createInvitation(ownerPage, invitedEmail);
       const token = await getInvitationToken(ownerPage, invitedEmail);
@@ -160,10 +175,9 @@ test.describe('MISMATCH-001: Email Mismatch Warning Display', () => {
       await expect(switchButton).toBeVisible();
       await expect(switchButton).toHaveText(/switch account/i);
 
-      // Verify "Accept with this account" button is present
+      // Verify "Accept with this account" button is NOT present (removed in Phase 4)
       const acceptMismatchButton = wrongUserPage.locator('[data-testid="accept-with-mismatch-btn"]');
-      await expect(acceptMismatchButton).toBeVisible();
-      await expect(acceptMismatchButton).toHaveText(/accept with this account/i);
+      await expect(acceptMismatchButton).not.toBeVisible();
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
@@ -172,13 +186,13 @@ test.describe('MISMATCH-001: Email Mismatch Warning Display', () => {
 });
 
 // -----------------------------------------------------------------------------
-// SECTION 2: Accept Button Disabled State
+// SECTION 2: Accept Button Not Visible in Wrong Email State
 // -----------------------------------------------------------------------------
 
-test.describe('MISMATCH-002: Accept Button Disabled When Mismatch Not Acknowledged', () => {
+test.describe('MISMATCH-002: Accept Button Hidden When Email Mismatch', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test('Main accept button is disabled when email mismatch exists and not acknowledged', async ({
+  test('Accept button is NOT visible when email mismatch exists (strict binding)', async ({
     browser,
   }) => {
     const ownerContext = await browser.newContext();
@@ -190,7 +204,7 @@ test.describe('MISMATCH-002: Accept Button Disabled When Mismatch Not Acknowledg
     try {
       // Owner creates invitation
       await loginUser(ownerPage);
-      const invitedEmail = generateTestEmail('mismatch-disabled');
+      const invitedEmail = generateTestEmail('mismatch-hidden');
       await navigateToOrgTeam(ownerPage);
       await createInvitation(ownerPage, invitedEmail);
       const token = await getInvitationToken(ownerPage, invitedEmail);
@@ -200,18 +214,18 @@ test.describe('MISMATCH-002: Accept Button Disabled When Mismatch Not Acknowledg
       await wrongUserPage.goto(`/invite/${token}`);
       await wrongUserPage.waitForLoadState('networkidle');
 
-      // Main accept button should be disabled
-      const acceptButton = wrongUserPage.locator('[data-testid="accept-invitation-btn"]');
-      await expect(acceptButton).toBeVisible();
-      await expect(acceptButton).toBeDisabled();
+      // Verify wrong_email state is shown
+      const wrongEmailState = wrongUserPage.getByTestId('invite-wrong-email');
+      await expect(wrongEmailState).toBeVisible();
 
-      // Clicking disabled button should have no effect (no API call)
-      // We verify this by checking that no success message appears
-      await acceptButton.click({ force: true }); // force because disabled
-      await wrongUserPage.waitForTimeout(500);
+      // Accept button should NOT be visible in wrong_email state
+      // Phase 7 change: The wrong_email state has no accept button at all
+      const acceptButton = wrongUserPage.getByTestId('accept-invitation-btn');
+      await expect(acceptButton).not.toBeVisible();
 
-      // No success message should appear
-      await expect(wrongUserPage.getByText(/accept_success|joined/i)).not.toBeVisible();
+      // Only switch account button should be available
+      const switchButton = wrongUserPage.getByTestId('switch-account-btn');
+      await expect(switchButton).toBeVisible();
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
@@ -220,113 +234,10 @@ test.describe('MISMATCH-002: Accept Button Disabled When Mismatch Not Acknowledg
 });
 
 // -----------------------------------------------------------------------------
-// SECTION 3: Accept With Mismatch Flow
+// SECTION 3: Switch Account Flow
 // -----------------------------------------------------------------------------
 
-test.describe('MISMATCH-003: Accept With Mismatch Acknowledgment', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
-  test('"Accept with this account" button sends acknowledge_email_mismatch flag to API', async ({
-    browser,
-  }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
-
-    const ownerPage = await ownerContext.newPage();
-    const wrongUserPage = await wrongUserContext.newPage();
-
-    try {
-      // Owner creates invitation
-      await loginUser(ownerPage);
-      const invitedEmail = generateTestEmail('mismatch-accept');
-      await navigateToOrgTeam(ownerPage);
-      await createInvitation(ownerPage, invitedEmail);
-      const token = await getInvitationToken(ownerPage, invitedEmail);
-      expect(token).toBeTruthy();
-
-      // Wrong user logs in and visits invitation
-      await loginUser(wrongUserPage);
-      await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
-
-      // Set up request interception to verify payload
-      let acceptRequestPayload: Record<string, unknown> | null = null;
-      await wrongUserPage.route(`**/api/invite/${token}/accept`, async (route) => {
-        const request = route.request();
-        if (request.method() === 'POST') {
-          acceptRequestPayload = request.postDataJSON();
-        }
-        await route.continue();
-      });
-
-      // Click "Accept with this account" button
-      const acceptMismatchButton = wrongUserPage.locator('[data-testid="accept-with-mismatch-btn"]');
-      await expect(acceptMismatchButton).toBeVisible();
-      await acceptMismatchButton.click();
-
-      // Wait for the request to be made
-      await wrongUserPage.waitForTimeout(1000);
-
-      // Verify the request was made with acknowledge_email_mismatch flag
-      expect(acceptRequestPayload).toBeTruthy();
-      expect(acceptRequestPayload).toHaveProperty('acknowledge_email_mismatch', true);
-    } finally {
-      await ownerContext.close();
-      await wrongUserContext.close();
-    }
-  });
-
-  test('After clicking "Accept with this account", mismatch warning hides and accept proceeds', async ({
-    browser,
-  }) => {
-    const ownerContext = await browser.newContext();
-    const wrongUserContext = await browser.newContext();
-
-    const ownerPage = await ownerContext.newPage();
-    const wrongUserPage = await wrongUserContext.newPage();
-
-    try {
-      // Owner creates invitation
-      await loginUser(ownerPage);
-      const invitedEmail = generateTestEmail('mismatch-hide');
-      await navigateToOrgTeam(ownerPage);
-      await createInvitation(ownerPage, invitedEmail);
-      const token = await getInvitationToken(ownerPage, invitedEmail);
-
-      // Wrong user visits invitation
-      await loginUser(wrongUserPage);
-      await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
-
-      // Verify mismatch warning is initially visible
-      const mismatchWarning = wrongUserPage.locator('[data-testid="email-mismatch-warning"]');
-      await expect(mismatchWarning).toBeVisible();
-
-      // Click "Accept with this account"
-      const acceptMismatchButton = wrongUserPage.locator('[data-testid="accept-with-mismatch-btn"]');
-      await acceptMismatchButton.click();
-
-      // Warning should hide (v-if="emailMismatch && !acknowledgeEmailMismatch")
-      await expect(mismatchWarning).not.toBeVisible();
-
-      // Processing state or result should show
-      // The API may return success or error depending on backend implementation
-      // We just verify the UI flow proceeded
-      const processingOrResult = wrongUserPage.locator('button:has-text("Processing"), .text-green-600, .text-red-600');
-      // At least one of these should be visible after clicking
-      await wrongUserPage.waitForTimeout(500);
-    } finally {
-      await ownerContext.close();
-      await wrongUserContext.close();
-    }
-  });
-});
-
-// -----------------------------------------------------------------------------
-// SECTION 4: Switch Account Flow
-// -----------------------------------------------------------------------------
-
-test.describe('MISMATCH-004: Switch Account Triggers Logout', () => {
+test.describe('MISMATCH-003: Switch Account Triggers Logout', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
   test('Clicking "Switch Account" logs out user and redirects to signin with email prefilled', async ({
@@ -384,13 +295,13 @@ test.describe('MISMATCH-004: Switch Account Triggers Logout', () => {
 });
 
 // -----------------------------------------------------------------------------
-// SECTION 5: No Mismatch - Normal Flow
+// SECTION 4: No Mismatch - Unauthenticated Flow with Inline Forms
 // -----------------------------------------------------------------------------
 
-test.describe('MISMATCH-005: No Mismatch Shows Normal Accept Button', () => {
+test.describe('MISMATCH-004: Unauthenticated User Sees Inline Auth Forms', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test('When emails match, no mismatch warning shown and accept button is enabled', async ({
+  test('When unauthenticated, shows signup or signin inline form (no mismatch)', async ({
     page,
     context,
   }) => {
@@ -402,12 +313,9 @@ test.describe('MISMATCH-005: No Mismatch Shows Normal Accept Button', () => {
     const currentEmail = bootstrapData.record?.email;
     expect(currentEmail).toBeTruthy();
 
-    // Create invitation for same email (different org or self-test)
-    // Note: This may fail if user is already member - that's expected behavior
-    // For this test, we create invitation and check UI elements
-
+    // Create invitation for a different test email
     await navigateToOrgTeam(page);
-    const testEmail = generateTestEmail('match-test');
+    const testEmail = generateTestEmail('unauthenticated-test');
     await createInvitation(page, testEmail);
     const token = await getInvitationToken(page, testEmail);
 
@@ -419,28 +327,40 @@ test.describe('MISMATCH-005: No Mismatch Shows Normal Accept Button', () => {
     await page.waitForLoadState('networkidle');
 
     // When unauthenticated, no mismatch warning (can't compare emails)
-    const mismatchWarning = page.locator('[data-testid="email-mismatch-warning"]');
+    const mismatchWarning = page.getByTestId('email-mismatch-warning');
     await expect(mismatchWarning).not.toBeVisible();
 
-    // Sign-in notice should be visible instead
-    const signInNotice = page.locator('[data-testid="sign-in-notice"]');
-    await expect(signInNotice).toBeVisible();
+    // Phase 7: Should see either signup_required or signin_required state
+    // with inline forms instead of redirect to signin
+    const signupState = page.getByTestId('invite-signup-required');
+    const signinState = page.getByTestId('invite-signin-required');
 
-    // Accept button should be visible and enabled (will redirect to signin)
-    const acceptButton = page.locator('[data-testid="accept-invitation-btn"]');
-    await expect(acceptButton).toBeVisible();
-    await expect(acceptButton).not.toBeDisabled();
+    const hasSignupForm = await signupState.isVisible().catch(() => false);
+    const hasSigninForm = await signinState.isVisible().catch(() => false);
+
+    // One of these states should be shown for unauthenticated user
+    expect(hasSignupForm || hasSigninForm).toBe(true);
+
+    if (hasSignupForm) {
+      // Inline signup form should be visible
+      const signupForm = page.getByTestId('invite-signup-form');
+      await expect(signupForm).toBeVisible();
+    } else if (hasSigninForm) {
+      // Inline signin form should be visible
+      const signinForm = page.getByTestId('invite-signin-form');
+      await expect(signinForm).toBeVisible();
+    }
   });
 });
 
 // -----------------------------------------------------------------------------
-// SECTION 6: API Error Handling
+// SECTION 5: API Rejects Mismatch
 // -----------------------------------------------------------------------------
 
-test.describe('MISMATCH-006: API Error Response Handling', () => {
+test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test('When API rejects mismatch acceptance, error message is displayed', async ({ browser }) => {
+  test('Direct API call with mismatched email returns error', async ({ browser }) => {
     const ownerContext = await browser.newContext();
     const wrongUserContext = await browser.newContext();
 
@@ -450,36 +370,60 @@ test.describe('MISMATCH-006: API Error Response Handling', () => {
     try {
       // Owner creates invitation
       await loginUser(ownerPage);
-      const invitedEmail = generateTestEmail('mismatch-error');
+      const invitedEmail = generateTestEmail('mismatch-api');
       await navigateToOrgTeam(ownerPage);
       await createInvitation(ownerPage, invitedEmail);
       const token = await getInvitationToken(ownerPage, invitedEmail);
 
-      // Wrong user visits invitation
+      // Wrong user logs in
       await loginUser(wrongUserPage);
-      await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
 
-      // Mock API error response
-      await wrongUserPage.route(`**/api/invite/${token}/accept`, async (route) => {
-        await route.fulfill({
-          status: 400,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            success: false,
-            message: 'Email mismatch - model validation failed',
-          }),
-        });
+      // Try to accept directly via API (bypassing UI disabled state)
+      const response = await wrongUserPage.request.post(`/api/invite/${token}/accept`, {
+        data: {},
+        headers: { 'Content-Type': 'application/json' },
       });
 
-      // Click "Accept with this account"
-      const acceptMismatchButton = wrongUserPage.locator('[data-testid="accept-with-mismatch-btn"]');
-      await acceptMismatchButton.click();
+      // Should be rejected with error
+      expect(response.status()).toBeGreaterThanOrEqual(400);
 
-      // Error message should be displayed
-      await expect(
-        wrongUserPage.getByText(/email|mismatch|error/i)
-      ).toBeVisible({ timeout: 5000 });
+      const data = await response.json();
+      expect(data.message).toContain('match');
+    } finally {
+      await ownerContext.close();
+      await wrongUserContext.close();
+    }
+  });
+
+  test('API rejects even with acknowledge_email_mismatch flag (security change)', async ({ browser }) => {
+    const ownerContext = await browser.newContext();
+    const wrongUserContext = await browser.newContext();
+
+    const ownerPage = await ownerContext.newPage();
+    const wrongUserPage = await wrongUserContext.newPage();
+
+    try {
+      // Owner creates invitation
+      await loginUser(ownerPage);
+      const invitedEmail = generateTestEmail('mismatch-bypass');
+      await navigateToOrgTeam(ownerPage);
+      await createInvitation(ownerPage, invitedEmail);
+      const token = await getInvitationToken(ownerPage, invitedEmail);
+
+      // Wrong user logs in
+      await loginUser(wrongUserPage);
+
+      // Try to bypass by sending the old acknowledgment flag
+      const response = await wrongUserPage.request.post(`/api/invite/${token}/accept`, {
+        data: { acknowledge_email_mismatch: true },
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      // Should STILL be rejected - flag is now ignored
+      expect(response.status()).toBeGreaterThanOrEqual(400);
+
+      const data = await response.json();
+      expect(data.message).toContain('match');
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
@@ -492,10 +436,9 @@ test.describe('MISMATCH-006: API Error Response Handling', () => {
  *
  * | ID            | Intent                                                        | Priority   |
  * |---------------|---------------------------------------------------------------|------------|
- * | MISMATCH-001  | Mismatch warning shows both Switch and Accept options         | High       |
- * | MISMATCH-002  | Accept button disabled when mismatch not acknowledged         | High       |
- * | MISMATCH-003  | Accept with mismatch sends acknowledge_email_mismatch flag   | Critical   |
- * | MISMATCH-004  | Switch account logs out and redirects with email prefill     | High       |
- * | MISMATCH-005  | No mismatch shows normal accept flow                          | Medium     |
- * | MISMATCH-006  | API error displays error message to user                      | Medium     |
+ * | MISMATCH-001  | Mismatch warning shows Switch Account only (no Accept option) | High       |
+ * | MISMATCH-002  | Accept button disabled when email mismatch exists            | High       |
+ * | MISMATCH-003  | Switch account logs out and redirects with email prefill     | High       |
+ * | MISMATCH-004  | Unauthenticated shows normal accept flow                      | Medium     |
+ * | MISMATCH-005  | API rejects mismatch (even with old acknowledgment flag)     | Critical   |
  */
