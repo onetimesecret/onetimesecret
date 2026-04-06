@@ -1,26 +1,26 @@
 {
   "web.dashboard.title_received": {
     "text": "Reçu",
-    "sha256": "49f19bee"
+    "source_hash": "49f19bee"
   },
   "web.dashboard.title_not_received": {
     "text": "Non reçu",
-    "sha256": "a4cf12ca"
+    "source_hash": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
     "text": "Aucun secret récent",
-    "sha256": "02b7b86b"
+    "source_hash": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
     "text": "Commencez par créer votre premier secret.",
-    "sha256": "e96db24d"
+    "source_hash": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
     "text": "Impossible de charger les données",
-    "sha256": "ba7df1be"
+    "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
     "text": "Un problème est survenu lors du chargement de vos données. Veuillez réessayer.",
-    "sha256": "ff0d904e"
+    "source_hash": "ff0d904e"
   }
 }

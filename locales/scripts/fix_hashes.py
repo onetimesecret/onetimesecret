@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """
-Fix invalid sha256 hashes in locale files.
+Fix invalid hashes in locale files.
 
 Replaces empty strings, "placeholder", and known fake sequential patterns
 (a1b2c3d4, b2c3d4e5, etc.) with the correct hash from the English source.
+
+Hash field names:
+  - Source locale (en): content_hash (hash of own text)
+  - Translation locales: source_hash (staleness watermark from English)
 
 Usage:
     python fix_hashes.py              # Fix all bad hashes
@@ -22,9 +26,16 @@ SOURCE_LOCALE = "en"
 
 # Known fake hash patterns
 FAKE_PATTERNS = {
-    "", "placeholder",
-    "a1b2c3d4", "b2c3d4e5", "c3d4e5f6", "d4e5f6a7",
-    "e5f6a7b8", "f6a7b8c9", "a7b8c9d0",
+    "",
+    "placeholder",
+    "a1b2c3d4",
+    "b2c3d4e5",
+    "c3d4e5f6",
+    "d4e5f6a7",
+    "e5f6a7b8",
+    "f6a7b8c9",
+    "a7b8c9d0",
+    "cafecafe",
 }
 
 
@@ -38,7 +49,7 @@ def is_fake_hash(h: str) -> bool:
     if h in FAKE_PATTERNS:
         return True
     # Sequential hex pattern like a1b2c3d4
-    if re.match(r'^[a-f][0-9][a-f][0-9][a-f][0-9][a-f][0-9]$', h):
+    if re.match(r"^[a-f][0-9][a-f][0-9][a-f][0-9][a-f][0-9]$", h):
         return True
     return False
 
@@ -59,7 +70,7 @@ def load_source_hashes() -> dict[str, dict[str, str]]:
             text = entry.get("text", "")
             if not text:
                 continue
-            h = entry.get("sha256", "")
+            h = entry.get("content_hash", "")
             if h and not is_fake_hash(h):
                 file_hashes[key_path] = h
             else:
@@ -71,12 +82,15 @@ def load_source_hashes() -> dict[str, dict[str, str]]:
     return all_hashes
 
 
-def fix_locale_hashes(source_hashes: dict[str, dict[str, str]], dry_run: bool = False) -> int:
+def fix_locale_hashes(
+    source_hashes: dict[str, dict[str, str]], dry_run: bool = False
+) -> int:
     """Fix bad hashes in all non-source locale files."""
     total_fixed = 0
 
     locale_dirs = sorted(
-        d for d in CONTENT_DIR.iterdir()
+        d
+        for d in CONTENT_DIR.iterdir()
         if d.is_dir() and d.name != SOURCE_LOCALE and not d.name.startswith(".")
     )
 
@@ -101,9 +115,9 @@ def fix_locale_hashes(source_hashes: dict[str, dict[str, str]], dry_run: bool = 
                 if not isinstance(entry, dict):
                     continue
 
-                current = entry.get("sha256", "")
+                current = entry.get("source_hash", "")
                 if is_fake_hash(current):
-                    entry["sha256"] = correct_hash
+                    entry["source_hash"] = correct_hash
                     modified = True
                     locale_fixed += 1
 
@@ -121,8 +135,12 @@ def fix_locale_hashes(source_hashes: dict[str, dict[str, str]], dry_run: bool = 
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Fix invalid sha256 hashes in locale files.")
-    parser.add_argument("--dry-run", "-n", action="store_true", help="Show what would be done")
+    parser = argparse.ArgumentParser(
+        description="Fix invalid hashes in locale files."
+    )
+    parser.add_argument(
+        "--dry-run", "-n", action="store_true", help="Show what would be done"
+    )
     args = parser.parse_args()
 
     print("Loading source hashes...")
@@ -143,9 +161,9 @@ def main() -> None:
             text = entry.get("text", "")
             if not text:
                 continue
-            current = entry.get("sha256", "")
+            current = entry.get("content_hash", "")
             if is_fake_hash(current):
-                entry["sha256"] = compute_hash(text)
+                entry["content_hash"] = compute_hash(text)
                 modified = True
                 source_fixed += 1
         if modified and not args.dry_run:
@@ -158,7 +176,9 @@ def main() -> None:
 
     print("Fixing locale hashes...")
     total = fix_locale_hashes(source_hashes, dry_run=args.dry_run)
-    print(f"\nTotal: {total + source_fixed} hashes {'would be ' if args.dry_run else ''}fixed")
+    print(
+        f"\nTotal: {total + source_fixed} hashes {'would be ' if args.dry_run else ''}fixed"
+    )
 
 
 if __name__ == "__main__":

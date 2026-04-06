@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """
-Add SHA256 hashes to source language keys.
+Add content hashes to source language keys.
 
 Hashes are computed from normalized source text and stored in each locale
-file. The hash represents the source version that the translation was
-based on.
+file under context-specific field names:
 
-When the source text changes, its hash updates. Translators can compare
-their locale's stored hash against the current source hash to detect
-which strings need re-translation.
+  - Source locale (e.g. en): "content_hash" — hash of this entry's own text
+  - Translation locales: "source_hash" — snapshot of the source content_hash
+    at translation time, used as a staleness watermark
+
+When the source text changes, its content_hash updates. Translators can
+compare their locale's stored source_hash against the current source
+content_hash to detect which strings need re-translation.
 
 The source locale defaults to 'en' but can be overridden via the
 I18N_DEFAULT_LOCALE environment variable.
@@ -46,7 +49,7 @@ def compute_hash(text: str) -> str:
 
 
 def add_hashes_to_source(dry_run: bool = False) -> dict[str, dict[str, str]]:
-    """Add sha256 hashes to all English source files.
+    """Add content_hash to all source locale files.
 
     Returns:
         Dict mapping filename -> {key_path: hash}
@@ -72,8 +75,8 @@ def add_hashes_to_source(dry_run: bool = False) -> dict[str, dict[str, str]]:
             new_hash = compute_hash(text)
             file_hashes[key_path] = new_hash
 
-            if entry.get("sha256") != new_hash:
-                entry["sha256"] = new_hash
+            if entry.get("content_hash") != new_hash:
+                entry["content_hash"] = new_hash
                 modified = True
 
         all_hashes[json_file.name] = file_hashes
@@ -94,11 +97,11 @@ def add_hashes_to_source(dry_run: bool = False) -> dict[str, dict[str, str]]:
 def init_missing_hashes_in_locales(
     source_hashes: dict[str, dict[str, str]], dry_run: bool = False
 ) -> None:
-    """Initialize missing hashes in locale files.
+    """Initialize missing source_hash in translation locale files.
 
     Only adds hashes to entries that don't have one yet. Existing hashes
-    are preserved so translators can compare against current English hashes
-    to detect which strings need re-translation.
+    are preserved so translators can compare against current source
+    content_hash to detect which strings need re-translation.
     """
     locale_dirs = [
         d
@@ -129,8 +132,8 @@ def init_missing_hashes_in_locales(
 
                 # Only set hash if missing — preserve existing hashes
                 # so translators can detect when source text changed
-                if "sha256" not in entry:
-                    entry["sha256"] = source_hash
+                if "source_hash" not in entry:
+                    entry["source_hash"] = source_hash
                     modified = True
                     updates += 1
 
@@ -146,7 +149,7 @@ def init_missing_hashes_in_locales(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Add SHA256 hashes to source keys and propagate to locales."
+        description="Add content hashes to source keys and propagate to locales."
     )
     parser.add_argument(
         "--dry-run", "-n", action="store_true", help="Show what would be done"
@@ -156,10 +159,10 @@ def main() -> None:
     print(f"Source locale: {SOURCE_LOCALE}")
     print(f"Content dir: {CONTENT_DIR}\n")
 
-    print("=== Adding hashes to source ===")
+    print("=== Adding content_hash to source ===")
     source_hashes = add_hashes_to_source(dry_run=args.dry_run)
 
-    print("\n=== Initializing missing hashes in locales ===")
+    print("\n=== Initializing missing source_hash in locales ===")
     init_missing_hashes_in_locales(source_hashes, dry_run=args.dry_run)
 
     print("\nDone.")

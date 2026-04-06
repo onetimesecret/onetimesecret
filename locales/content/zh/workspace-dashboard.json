@@ -1,26 +1,26 @@
 {
   "web.dashboard.title_received": {
     "text": "已查看",
-    "sha256": "49f19bee"
+    "source_hash": "49f19bee"
   },
   "web.dashboard.title_not_received": {
     "text": "未查看",
-    "sha256": "a4cf12ca"
+    "source_hash": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
     "text": "没有最近的内容",
-    "sha256": "02b7b86b"
+    "source_hash": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
     "text": "创建您的第一个内容来开始使用。",
-    "sha256": "e96db24d"
+    "source_hash": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
     "text": "无法加载数据",
-    "sha256": "ba7df1be"
+    "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
     "text": "加载数据时出现问题，请重试。",
-    "sha256": "ff0d904e"
+    "source_hash": "ff0d904e"
   }
 }

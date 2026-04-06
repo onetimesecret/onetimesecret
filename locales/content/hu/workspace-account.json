@@ -1,686 +1,686 @@
 {
   "web.account.settings": {
     "text": "Beállítások",
-    "sha256": "74a883a0"
+    "source_hash": "74a883a0"
   },
   "web.account.change_password": {
     "text": "Jelszó módosítása",
-    "sha256": "a949f462"
+    "source_hash": "a949f462"
   },
   "web.account.close_account": {
     "text": "Fiók bezárása",
-    "sha256": "e1513814"
+    "source_hash": "e1513814"
   },
   "web.account.verify_account": {
     "text": "Fiók ellenőrzése",
-    "sha256": "2f3ea760"
+    "source_hash": "2f3ea760"
   },
   "web.account.subscription_title": {
     "text": "Előfizetés",
-    "sha256": "4999c6c6"
+    "source_hash": "4999c6c6"
   },
   "web.account.manage_subscription": {
     "text": "Előfizetés kezelése",
-    "sha256": "cbc4ef92"
+    "source_hash": "cbc4ef92"
   },
   "web.account.customer_information": {
     "text": "Ügyféladatok",
-    "sha256": "8258db6d"
+    "source_hash": "8258db6d"
   },
   "web.account.customer_since": {
     "text": "Ügyfél óta:",
-    "sha256": "0b37cff3"
+    "source_hash": "0b37cff3"
   },
   "web.account.email": {
     "text": "E-mail:",
-    "sha256": "17507dcf"
+    "source_hash": "17507dcf"
   },
   "web.account.region": {
     "text": "Régió",
-    "sha256": "d3a008ef"
+    "source_hash": "d3a008ef"
   },
   "web.account.account_balance": {
     "text": "Egyenleg:",
-    "sha256": "e0351221"
+    "source_hash": "e0351221"
   },
   "web.account.default_payment_method": {
     "text": "Alapértelmezett fizetési mód",
-    "sha256": "c60f014b"
+    "source_hash": "c60f014b"
   },
   "web.account.card_ending": {
     "text": "végződéssel",
-    "sha256": "0195bccf"
+    "source_hash": "0195bccf"
   },
   "web.account.subscriptions_title": {
     "text": "Előfizetések",
-    "sha256": "a151f2e9"
+    "source_hash": "a151f2e9"
   },
   "web.account.quantity": {
     "text": "Mennyiség:",
-    "sha256": "d4b2cb96"
+    "source_hash": "d4b2cb96"
   },
   "web.account.next_billing_date": {
     "text": "Következő számlázási dátum:",
-    "sha256": "8e6f9cfe"
+    "source_hash": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
     "text": "Felhasználónév",
-    "sha256": "e3b89e9d"
+    "source_hash": "e3b89e9d"
   },
   "web.account.changePassword.currentPassword": {
     "text": "Jelenlegi jelszó",
-    "sha256": "8ac76099"
+    "source_hash": "8ac76099"
   },
   "web.account.changePassword.newPassword": {
     "text": "Új jelszó",
-    "sha256": "7c451e0f"
+    "source_hash": "7c451e0f"
   },
   "web.account.changePassword.confirmPassword": {
     "text": "Megerősítés",
-    "sha256": "eebdd24a"
+    "source_hash": "eebdd24a"
   },
   "web.account.changePassword.updatePassword": {
     "text": "Jelszó frissítése",
-    "sha256": "557be0da"
+    "source_hash": "557be0da"
   },
   "web.account.changePassword.updating": {
     "text": "Frissítés...",
-    "sha256": "0a4e0b71"
+    "source_hash": "0a4e0b71"
   },
   "web.account.timezone": {
     "text": "Időzóna",
-    "sha256": "4ceca1d5"
+    "source_hash": "4ceca1d5"
   },
   "web.account.customer_id": {
     "text": "Ügyfél azonosító",
-    "sha256": "62566c64"
+    "source_hash": "62566c64"
   },
   "web.account.account_id_customerid": {
     "text": "Fiók azonosító",
-    "sha256": "919bb4cb"
+    "source_hash": "919bb4cb"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
     "text": "{0} titok létrehozva {1} óta.",
-    "sha256": "8cb99810"
+    "source_hash": "8cb99810"
   },
   "web.account.delete_account": {
     "text": "Fiók törlése",
-    "sha256": "c031bf99"
+    "source_hash": "c031bf99"
   },
   "web.account.api_key": {
     "text": "API kulcs",
-    "sha256": "23189d55"
+    "source_hash": "23189d55"
   },
   "web.account.account_type_windowprops_plan_options_name": {
     "text": "Fiók típus: {0}",
-    "sha256": "617bfe67"
+    "source_hash": "617bfe67"
   },
   "web.account.your_account": {
     "text": "Az Ön fiókja",
-    "sha256": "89e60bfb"
+    "source_hash": "89e60bfb"
   },
   "web.account.support_details": {
     "text": "Támogatási részletek",
-    "sha256": "cbad8751"
+    "source_hash": "cbad8751"
   },
   "web.account.back_to_details": {
     "text": "Vissza a részletekhez",
-    "sha256": "f6f841b9"
+    "source_hash": "f6f841b9"
   },
   "web.account.customer_id_cust_custid": {
     "text": "Ügyfél azonosító: {0}",
-    "sha256": "7e2d4201"
+    "source_hash": "7e2d4201"
   },
   "web.account.token_generated": {
     "text": "Token létrehozva.",
-    "sha256": "05986d95"
+    "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
     "text": "🔐 Tartsa biztonságban ezt a tokent! Teljes hozzáférést biztosít fiókjához.",
-    "sha256": "8839aa4d"
+    "source_hash": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
     "text": "Erősítse meg jelszavával",
-    "sha256": "ff2147fd"
+    "source_hash": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
     "text": "Biztosan véglegesen törölni szeretné fiókját? Ez a művelet nem vonható vissza.",
-    "sha256": "4fa3e4b8"
+    "source_hash": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
     "text": "Fiók törlésének megerősítése",
-    "sha256": "bb3fc7e5"
+    "source_hash": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
     "text": "{0} törlése",
-    "sha256": "81d21828"
+    "source_hash": "81d21828"
   },
   "web.account.deleting_ellipsis": {
     "text": "Törlés...",
-    "sha256": "685ecb98"
+    "source_hash": "685ecb98"
   },
   "web.account.permanently_delete_account": {
     "text": "Fiók végleges törlése",
-    "sha256": "f894e42c"
+    "source_hash": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
     "text": "végleges és visszafordíthatatlan.",
-    "sha256": "6121225e"
+    "source_hash": "6121225e"
   },
   "web.account.deleting_your_account_is": {
     "text": "A fiókja törlése",
-    "sha256": "ec31577b"
+    "source_hash": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
     "text": "törölje véglegesen őket a folytatás előtt",
-    "sha256": "f89a5794"
+    "source_hash": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
     "text": "Ha bármilyen titkot el szeretne távolítani,",
-    "sha256": "b45e2dd5"
+    "source_hash": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
     "text": "A titkok aktívak maradnak, amíg le nem járnak.",
-    "sha256": "ddb4e2b5"
+    "source_hash": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
     "text": "Kérjük, vegye figyelembe:",
-    "sha256": "086020fd"
+    "source_hash": "086020fd"
   },
   "web.account.account_deleted_successfully": {
     "text": "Fiók sikeresen törölve.",
-    "sha256": "afcfdd58"
+    "source_hash": "afcfdd58"
   },
   "web.account.deactivate": {
     "text": "Deaktiválás",
-    "sha256": "fb1e6fa5"
+    "source_hash": "fb1e6fa5"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
     "text": "Biztosan deaktiválni szeretné fiókját? Összes adata véglegesen eltávolításra kerül szervereinkről. Ez a művelet nem vonható vissza.",
-    "sha256": "4940e20a"
+    "source_hash": "4940e20a"
   },
   "web.account.deactivate_account": {
     "text": "Fiók deaktiválása",
-    "sha256": "5e31b73d"
+    "source_hash": "5e31b73d"
   },
   "web.settings.title": {
     "text": "Beállítások",
-    "sha256": "74a883a0"
+    "source_hash": "74a883a0"
   },
   "web.settings.description": {
     "text": "Fiókbeállítások és preferenciák kezelése",
-    "sha256": "2ff0853c"
+    "source_hash": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
     "text": "Fiókbeállítások és preferenciák kezelése",
-    "sha256": "2ff0853c"
+    "source_hash": "2ff0853c"
   },
   "web.settings.back_to_dashboard": {
     "text": "Vissza az irányítópulthoz",
-    "sha256": "97ba1d39"
+    "source_hash": "97ba1d39"
   },
   "web.settings.sections.account": {
     "text": "Fiók",
-    "sha256": "7e1b0d56"
+    "source_hash": "7e1b0d56"
   },
   "web.settings.sections.billing": {
     "text": "Számlázás",
-    "sha256": "3ac8bbca"
+    "source_hash": "3ac8bbca"
   },
   "web.settings.sections.advanced": {
     "text": "Speciális",
-    "sha256": "9f088dbe"
+    "source_hash": "9f088dbe"
   },
   "web.settings.general": {
     "text": "Általános",
-    "sha256": "c910d474"
+    "source_hash": "c910d474"
   },
   "web.settings.preferences": {
     "text": "Beállítások",
-    "sha256": "66962f72"
+    "source_hash": "66962f72"
   },
   "web.settings.appearance": {
     "text": "Megjelenés",
-    "sha256": "3907fa7f"
+    "source_hash": "3907fa7f"
   },
   "web.settings.theme.title": {
     "text": "Téma",
-    "sha256": "efb52e71"
+    "source_hash": "efb52e71"
   },
   "web.settings.theme.description": {
     "text": "Válasszon világos vagy sötét témát",
-    "sha256": "ff0ae84f"
+    "source_hash": "ff0ae84f"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
     "text": "Válasszon világos vagy sötét témát",
-    "sha256": "ff0ae84f"
+    "source_hash": "ff0ae84f"
   },
   "web.settings.language.title": {
     "text": "Nyelv",
-    "sha256": "a4fe6526"
+    "source_hash": "a4fe6526"
   },
   "web.settings.language.description": {
     "text": "Válassza ki a kívánt nyelvet",
-    "sha256": "475bba7a"
+    "source_hash": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
     "text": "Válassza ki a kívánt nyelvet",
-    "sha256": "475bba7a"
+    "source_hash": "475bba7a"
   },
   "web.settings.security_settings_description": {
     "text": "Hitelesítés és fiókbiztonság kezelése",
-    "sha256": "945109d1"
+    "source_hash": "945109d1"
   },
   "web.settings.profile_settings_description": {
     "text": "Fiókadatok kezelése",
-    "sha256": "4a23a29f"
+    "source_hash": "4a23a29f"
   },
   "web.settings.profile.title": {
     "text": "Profil",
-    "sha256": "d696a35b"
+    "source_hash": "d696a35b"
   },
   "web.settings.profile.change_email": {
     "text": "E-mail módosítása",
-    "sha256": "18c3f2d5"
+    "source_hash": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
     "text": "Jelenlegi e-mail",
-    "sha256": "5f1cab64"
+    "source_hash": "5f1cab64"
   },
   "web.settings.profile.current_password": {
     "text": "Jelenlegi jelszó",
-    "sha256": "8ac76099"
+    "source_hash": "8ac76099"
   },
   "web.settings.profile.new_email": {
     "text": "Új e-mail",
-    "sha256": "5bafb4be"
+    "source_hash": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
     "text": "Adja meg jelenlegi jelszavát",
-    "sha256": "27814c03"
+    "source_hash": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
     "text": "Jelszava biztonsági okokból szükséges",
-    "sha256": "d18f62f2"
+    "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
     "text": "Ellenőrző e-mailt küldünk az új címre",
-    "sha256": "575082a1"
+    "source_hash": "575082a1"
   },
   "web.settings.profile.update_email": {
     "text": "E-mail frissítése",
-    "sha256": "6ec61b2e"
+    "source_hash": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
     "text": "Frissítse a fiókjához tartozó e-mail címet",
-    "sha256": "636abb16"
+    "source_hash": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
     "text": "Minden mező kitöltése kötelező",
-    "sha256": "04814271"
+    "source_hash": "04814271"
   },
   "web.settings.profile.invalid_email": {
     "text": "Kérjük, adjon meg érvényes e-mail címet",
-    "sha256": "b00f7e3a"
+    "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
     "text": "Az új e-mailnek különböznie kell a jelenlegitől",
-    "sha256": "f7cfed6e"
+    "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
     "text": "Az e-mail sikeresen frissítve. Kérjük, ellenőrizze postafiókját az új e-mail cím megerősítéséhez.",
-    "sha256": "58de2536"
+    "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
     "text": "Az e-mail frissítése sikertelen. Kérjük, próbálja újra.",
-    "sha256": "aeba6591"
+    "source_hash": "aeba6591"
   },
   "web.settings.sessions.title": {
     "text": "Aktív munkamenetek",
-    "sha256": "b58fa4e0"
+    "source_hash": "b58fa4e0"
   },
   "web.settings.sessions.description": {
     "text": "Aktív munkamenetek kezelése",
-    "sha256": "e5646da4"
+    "source_hash": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
     "text": "Aktív munkamenetek kezelése",
-    "sha256": "e5646da4"
+    "source_hash": "e5646da4"
   },
   "web.settings.password.title": {
     "text": "Jelszó",
-    "sha256": "e7cf3ef4"
+    "source_hash": "e7cf3ef4"
   },
   "web.settings.password.description": {
     "text": "Fiók jelszavának frissítése",
-    "sha256": "cb3ae40b"
+    "source_hash": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
     "text": "Fiók jelszavának frissítése",
-    "sha256": "cb3ae40b"
+    "source_hash": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
     "text": "Fiók törlése",
-    "sha256": "c031bf99"
+    "source_hash": "c031bf99"
   },
   "web.settings.delete_account.description": {
     "text": "Fiók és minden adat végleges törlése",
-    "sha256": "7a3a6da2"
+    "source_hash": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
     "text": "Fiók és minden adat végleges törlése",
-    "sha256": "7a3a6da2"
+    "source_hash": "7a3a6da2"
   },
   "web.settings.security.security_score": {
     "text": "Biztonsági pontszám",
-    "sha256": "02d2f374"
+    "source_hash": "02d2f374"
   },
   "web.settings.security.score_description": {
     "text": "A fiókja általános biztonsági állapota",
-    "sha256": "cf20935e"
+    "source_hash": "cf20935e"
   },
   "web.settings.security.excellent": {
     "text": "Kiváló",
-    "sha256": "0dc8ee55"
+    "source_hash": "0dc8ee55"
   },
   "web.settings.security.good": {
     "text": "Jó",
-    "sha256": "c939327c"
+    "source_hash": "c939327c"
   },
   "web.settings.security.fair": {
     "text": "Elfogadható",
-    "sha256": "f7b19afc"
+    "source_hash": "f7b19afc"
   },
   "web.settings.security.weak": {
     "text": "Gyenge",
-    "sha256": "8d6cea25"
+    "source_hash": "8d6cea25"
   },
   "web.settings.security.improve_security": {
     "text": "Javítsa a biztonságát",
-    "sha256": "c38bcbf5"
+    "source_hash": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
     "text": "Engedélyezze a kétfaktoros hitelesítést az erősebb védelem érdekében",
-    "sha256": "6beda528"
+    "source_hash": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
     "text": "Hozzon létre helyreállítási kódokat tartalékként",
-    "sha256": "eb5f3ebd"
+    "source_hash": "eb5f3ebd"
   },
   "web.settings.security.configured": {
     "text": "Konfigurálva",
-    "sha256": "84aebc69"
+    "source_hash": "84aebc69"
   },
   "web.settings.security.change": {
     "text": "Módosítás",
-    "sha256": "c0bf75bd"
+    "source_hash": "c0bf75bd"
   },
   "web.settings.security.manage": {
     "text": "Kezelés",
-    "sha256": "5a234448"
+    "source_hash": "5a234448"
   },
   "web.settings.security.enable": {
     "text": "Engedélyezés",
-    "sha256": "5342e09f"
+    "source_hash": "5342e09f"
   },
   "web.settings.security.codes_available": {
     "text": "{0} kód elérhető",
-    "sha256": "76d6236d"
+    "source_hash": "76d6236d"
   },
   "web.settings.security.no_codes": {
     "text": "Nincsenek kódok generálva",
-    "sha256": "3b2eae20"
+    "source_hash": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
     "text": "{0} aktív munkamenet",
-    "sha256": "30737484"
+    "source_hash": "30737484"
   },
   "web.settings.security.best_practices": {
     "text": "Biztonsági bevált gyakorlatok",
-    "sha256": "fd71b2da"
+    "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
     "text": "Használjon erős, egyedi jelszót a fiókjához",
-    "sha256": "5fc8cbf4"
+    "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
     "text": "Engedélyezze a kétfaktoros hitelesítést a további védelem érdekében",
-    "sha256": "107e4898"
+    "source_hash": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
     "text": "Mentse el a helyreállítási kódokat biztonságos helyre",
-    "sha256": "605513fc"
+    "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
     "text": "Rendszeresen tekintse át és vonja vissza a nem használt munkameneteket",
-    "sha256": "efe59445"
+    "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
     "text": "Részletek megtekintése",
-    "sha256": "d1bf045b"
+    "source_hash": "d1bf045b"
   },
   "web.settings.api.title": {
     "text": "API és integrációk",
-    "sha256": "21fc84f3"
+    "source_hash": "21fc84f3"
   },
   "web.settings.api.description": {
     "text": "API kulcsok és integrációk kezelése",
-    "sha256": "70976099"
+    "source_hash": "70976099"
   },
   "web.settings.api.manage_api_keys": {
     "text": "API kulcsok és integrációk kezelése",
-    "sha256": "70976099"
+    "source_hash": "70976099"
   },
   "web.settings.api.documentation": {
     "text": "API dokumentáció",
-    "sha256": "1cc77e60"
+    "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
     "text": "Ismerje meg, hogyan integrálhatja az Onetime Secret-et alkalmazásaiba",
-    "sha256": "6e8f910f"
+    "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
     "text": "REST API referencia",
-    "sha256": "26a5af61"
+    "source_hash": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
     "text": "Teljes API dokumentáció és végpontok",
-    "sha256": "c1c87ad8"
+    "source_hash": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
     "text": "Kódpéldák",
-    "sha256": "216d28e4"
+    "source_hash": "216d28e4"
   },
   "web.settings.api.example_code_and_libraries": {
     "text": "Példakód és kliens könyvtárak",
-    "sha256": "61c5956f"
+    "source_hash": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
     "text": "Biztonsági bevált gyakorlatok",
-    "sha256": "fd71b2da"
+    "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
     "text": "Soha ne tárolja az API kulcsokat verziókezelő rendszerben",
-    "sha256": "cc8c327e"
+    "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
     "text": "Használjon környezeti változókat az API kulcsok tárolásához",
-    "sha256": "c05e8802"
+    "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
     "text": "Rendszeresen cserélje az API kulcsokat a biztonság érdekében",
-    "sha256": "eda6a5db"
+    "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
     "text": "Mindig használjon HTTPS-t az API kérésekhez",
-    "sha256": "b3f405ef"
+    "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
     "text": "Figyelje az API használatot és állítson be riasztásokat",
-    "sha256": "abb08beb"
+    "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
     "text": "Fontos tudnivaló",
-    "sha256": "03d3ba93"
+    "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
     "text": "Az API kulcs újragenerálása érvényteleníti a jelenlegi kulcsot. Frissítse az összes alkalmazást, amely a régi kulcsot használja.",
-    "sha256": "ab168f83"
+    "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
     "text": "Adatvédelmi beállítások",
-    "sha256": "eefad6ba"
+    "source_hash": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
     "text": "Adatvédelmi beállítások kezelése",
-    "sha256": "add087da"
+    "source_hash": "add087da"
   },
   "web.settings.privacy.your_privacy": {
     "text": "Az Ön adatvédelme",
-    "sha256": "cad972db"
+    "source_hash": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
     "text": "Nem alku tárgya",
-    "sha256": "ad090a29"
+    "source_hash": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
     "text": "Nem beállítás",
-    "sha256": "41278ece"
+    "source_hash": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
     "text": "Nincs analitika. Nincs nyomkövetés. Pont.",
-    "sha256": "3e154b1c"
+    "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
     "text": "Ez nem beállítás, mert nincs mit be- vagy kikapcsolni. Az Ön adatvédelme a működésünk alapja.",
-    "sha256": "ed943792"
+    "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
     "text": "Értesítési beállítások",
-    "sha256": "07a063ca"
+    "source_hash": "07a063ca"
   },
   "web.settings.notifications.description": {
     "text": "Kezelje, hogyan kapja az értesítéseket",
-    "sha256": "148c5ff6"
+    "source_hash": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
     "text": "Az értesítési beállítás frissítése sikertelen. Kérjük, próbálja újra.",
-    "sha256": "c08abc04"
+    "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
     "text": "Titok megtekintési értesítések",
-    "sha256": "c0fb2e25"
+    "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
     "text": "Kapjon e-mailt, amikor valaki megtekinti a titkát",
-    "sha256": "a3a67095"
+    "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
     "text": "Értesítést kap minden alkalommal, amikor egy címzett felfedi az egyik titkát",
-    "sha256": "ba93106d"
+    "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
     "text": "Az értesítési e-mailek csak az időbélyeget és a titok azonosítóját tartalmazzák. A megtekintő adatai soha nem szerepelnek.",
-    "sha256": "7aac282f"
+    "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
     "text": "Körültekintést igénylő terület",
-    "sha256": "fe27a3a8"
+    "source_hash": "fe27a3a8"
   },
   "web.settings.caution.description": {
     "text": "Speciális beállítások és adatkezelés",
-    "sha256": "223ee55d"
+    "source_hash": "223ee55d"
   },
   "web.settings.caution.data_export": {
     "text": "Adatexport",
-    "sha256": "bdcea052"
+    "source_hash": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
     "text": "Fiókadatok exportálása",
-    "sha256": "dc5ffcb0"
+    "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
     "text": "Kérjen teljes másolatot a fiókadatairól géppel olvasható formátumban",
-    "sha256": "369c3391"
+    "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
     "text": "Adatexport kérése",
-    "sha256": "902394be"
+    "source_hash": "902394be"
   },
   "web.settings.caution.export_info": {
     "text": "Export feldolgozási idő",
-    "sha256": "2ebb2d44"
+    "source_hash": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
     "text": "Az exportok 24 órán belül kerülnek feldolgozásra és az e-mail címére küldjük",
-    "sha256": "a2f81e3b"
+    "source_hash": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
     "text": "A fiók törlésének következményei:",
-    "sha256": "17a8a676"
+    "source_hash": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
     "text": "Az összes titok végleges törlése",
-    "sha256": "974ccdb9"
+    "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
     "text": "Az összes titok metaadat és előzmény eltávolítása",
-    "sha256": "ec4ee372"
+    "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
     "text": "Az összes API kulcs érvénytelenítése",
-    "sha256": "7581333b"
+    "source_hash": "7581333b"
   },
   "web.settings.caution.deletion_warning_irreversible": {
     "text": "Ez a művelet nem vonható vissza",
-    "sha256": "02ccc074"
+    "source_hash": "02ccc074"
   },
   "web.settings.profile.confirm_email_change_title": {
     "text": "E-mail cím frissítve",
-    "sha256": "cf02eb0c"
+    "source_hash": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
     "text": "Az e-mail címe sikeresen frissítve. Kérjük, jelentkezzen be az új e-mail címével.",
-    "sha256": "a84efcea"
+    "source_hash": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
     "text": "Az új e-mail cím ellenőrzése...",
-    "sha256": "a6a4745f"
+    "source_hash": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
     "text": "E-mail módosítás sikertelen",
-    "sha256": "953f3936"
+    "source_hash": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
     "text": "Ez az ellenőrzési hivatkozás érvénytelen vagy lejárt.",
-    "sha256": "f54594c2"
+    "source_hash": "f54594c2"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
     "text": "Vissza a fiókbeállításokhoz",
-    "sha256": "fd49b66b"
+    "source_hash": "fd49b66b"
   },
   "web.settings.profile.redirecting_to_signin": {
     "text": "Átirányítás a bejelentkezéshez...",
-    "sha256": "c65f7dcc"
+    "source_hash": "c65f7dcc"
   },
   "web.settings.profile.resend_confirmation": {
     "text": "Megerősítő e-mail újraküldése",
-    "sha256": "c617fff7"
+    "source_hash": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
     "text": "A megerősítő e-mail sikeresen újraküldve.",
-    "sha256": "2287783b"
+    "source_hash": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {
     "text": "Küldés...",
-    "sha256": "286a3af7"
+    "source_hash": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
     "text": "Ellenőrző e-mail elküldve. Ellenőrizze a bejövő üzeneteit, és kattintson a megerősítő hivatkozásra.",
-    "sha256": "5806c93f"
+    "source_hash": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {
     "text": "Nem kapta meg az e-mailt?",
-    "sha256": "fe3ac3ad"
+    "source_hash": "fe3ac3ad"
   }
 }

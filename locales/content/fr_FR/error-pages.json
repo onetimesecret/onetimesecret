@@ -1,78 +1,78 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
     "text": "Pourquoi ce secret est-il indisponible ?",
-    "sha256": "bd545472"
+    "source_hash": "bd545472"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
     "text": "Les secrets sont conçus pour n'être consultés qu'une seule fois. Ce lien a peut-être déjà été consulté, a expiré, ou a été supprimé manuellement par l'expéditeur.",
-    "sha256": "44c54ed2"
+    "source_hash": "44c54ed2"
   },
   "web.errors.what_should_i_do_now": {
     "text": "Que dois-je faire maintenant ?",
-    "sha256": "fbf3e67f"
+    "source_hash": "fbf3e67f"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
     "text": "Veuillez contacter la personne qui vous a envoyé ce lien et demandez-lui de créer un nouveau secret. Informez-la que vous n'avez pas pu accéder aux informations originales.",
-    "sha256": "d9f4f41a"
+    "source_hash": "d9f4f41a"
   },
   "web.errors.warning_dismissed": {
     "text": "Avertissement ignoré",
-    "sha256": "e6d67409"
+    "source_hash": "e6d67409"
   },
   "web.errors.dismiss_truncation_warning": {
     "text": "Ignorer l'avertissement de troncature",
-    "sha256": "79e02fe6"
+    "source_hash": "79e02fe6"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
     "text": "Oups ! La page que vous recherchez n'existe pas ou a été déplacée.",
-    "sha256": "78207a09"
+    "source_hash": "78207a09"
   },
   "web.errors.404_page_not_found_0": {
     "text": "404 - Page introuvable",
-    "sha256": "27595daa"
+    "source_hash": "27595daa"
   },
   "web.errors.404_page_not_found": {
     "text": "404 - Page introuvable",
-    "sha256": "27595daa"
+    "source_hash": "27595daa"
   },
   "web.errors.dismiss_warning": {
     "text": "Ignorer l'avertissement",
-    "sha256": "9f6e4da3"
+    "source_hash": "9f6e4da3"
   },
   "web.errors.dismiss_notification": {
     "text": "Ignorer la notification",
-    "sha256": "b7bb3f34"
+    "source_hash": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
     "text": "Si vous n'êtes pas sûr de la marche à suivre, veuillez contacter la personne qui vous a envoyé ce lien pour plus d'informations.",
-    "sha256": "0df00d3f"
+    "source_hash": "0df00d3f"
   },
   "web.errors.information_shared_through_our_service_can_only_": {
     "text": "Les informations partagées par le biais de notre service ne peuvent être consultées qu'une seule fois. Une fois consulté, le contenu est définitivement supprimé de nos serveurs afin de garantir la confidentialité. Cette approche permet de protéger vos données sensibles en limitant leur exposition et en empêchant tout accès non autorisé.",
-    "sha256": "a3fd8283"
+    "source_hash": "a3fd8283"
   },
   "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
     "text": "Nous sommes désolés, mais une erreur inattendue s'est produite lors du traitement de votre demande. Notre équipe en a été informée et nous travaillons à sa résolution.",
-    "sha256": "f3b50965"
+    "source_hash": "f3b50965"
   },
   "web.errors.t_web_common_oops_something_went_wrong": {
     "text": "{0} Quelque chose s'est mal passé",
-    "sha256": "93529f24"
+    "source_hash": "93529f24"
   },
   "web.errors.go_share_a_secret": {
     "text": "Allez partager un secret !",
-    "sha256": "04c04b1a"
+    "source_hash": "04c04b1a"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
     "text": "La page que vous recherchez n'existe pas ou a été déplacée. Ne vous inquiétez pas, cela arrive aux meilleurs d'entre nous !",
-    "sha256": "e26522de"
+    "source_hash": "e26522de"
   },
   "web.errors.t_web_common_oops_404": {
     "text": "{0} 404",
-    "sha256": "ba5b5737"
+    "source_hash": "ba5b5737"
   },
   "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
     "text": "Impossible de charger les données en raison d'un problème de format. Veuillez réessayer plus tard.",
-    "sha256": "a7b6f998"
+    "source_hash": "a7b6f998"
   }
 }
