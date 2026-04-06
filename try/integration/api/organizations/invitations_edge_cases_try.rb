@@ -93,15 +93,17 @@ reset_invite_rate_limiter!
 @expired_invite.expired?
 #=> true
 
-## GET /api/invite/:token - Returns 400 for expired invitation
+## GET /api/invite/:token - Returns 200 with structured response for expired invitation
+# Note: API intentionally returns 200 for all invitation states (including expired)
+# with structured response containing status and actionable fields
 get "/api/invite/#{@expired_token}", {}, { 'HTTP_ACCEPT' => 'application/json' }
-last_response.status >= 400
-#=> true
+last_response.status
+#=> 200
 
-## GET /api/invite/:token - Expired invitation error response contains expired indicator
+## GET /api/invite/:token - Expired invitation response indicates not actionable
 resp = JSON.parse(last_response.body)
-resp['error'].to_s.downcase.include?('expired') || resp['message'].to_s.downcase.include?('expired') || last_response.status == 400
-#=> true
+[resp['record']['status'], resp['record']['actionable']]
+#=> ['expired', false]
 
 ## Setup invitee for expired acceptance test
 @expired_invitee = Onetime::Customer.create!(email: @expired_email)
