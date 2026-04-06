@@ -59,6 +59,10 @@ module Auth
 
         invitation.accept!(customer)
 
+        # Record verification method for audit trail
+        customer.verified_by = 'invite_token'
+        customer.save
+
         auth_logger.info "[accept-invitation] Accepted invite for #{customer.email} to org #{invitation.organization_objid} as #{invitation.role}"
 
         {

@@ -14,6 +14,7 @@ import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import SsoButton from '@/apps/session/components/SsoButton.vue';
 import { useInviteAuth } from '@/apps/session/composables/useInviteAuth';
+import { useMagicLink } from '@/shared/composables/useMagicLink';
 import type { AuthMethod } from '@/schemas/api/invite/responses/show-invite';
 import { ref, computed } from 'vue';
 
@@ -48,6 +49,13 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const { loginAndAccept, isLoading, error, fieldErrors, clearErrors } = useInviteAuth();
+const {
+  requestMagicLink,
+  sent: magicLinkSent,
+  isLoading: isMagicLinkLoading,
+  error: magicLinkError,
+  clearState: clearMagicLinkState
+} = useMagicLink();
 
 const password = ref('');
 const showPassword = ref(false);
@@ -61,6 +69,13 @@ const ssoMethod = computed(() =>
 );
 
 /**
+ * Whether magic link auth is enabled.
+ */
+const hasMagicLink = computed(() =>
+  props.authMethods?.some(m => m.type === 'magic_link' && m.enabled)
+);
+
+/**
  * Whether password auth is enabled.
  */
 const passwordEnabled = computed(() => {
@@ -71,6 +86,20 @@ const passwordEnabled = computed(() => {
 
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
+};
+
+/**
+ * Sends a magic link to the invited email address.
+ */
+const handleMagicLinkRequest = async () => {
+  await requestMagicLink(props.invitedEmail);
+};
+
+/**
+ * Resets the magic link sent state for retry.
+ */
+const handleMagicLinkTryAgain = () => {
+  clearMagicLinkState();
 };
 
 const handleSubmit = async () => {
@@ -273,12 +302,120 @@ const handleSubmit = async () => {
       </div>
     </form>
 
-    <!-- Divider when both password and SSO are available -->
+    <!-- Divider when password and magic link are available -->
     <div
-      v-if="passwordEnabled && ssoMethod"
+      v-if="passwordEnabled && hasMagicLink"
       class="relative">
       <div class="absolute inset-0 flex items-center">
-        <div class="w-full border-t border-gray-300 dark:border-gray-600" ></div>
+        <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
+      </div>
+      <div class="relative flex justify-center text-sm">
+        <span class="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+          {{ t('web.COMMON.or') }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Magic Link section when available -->
+    <template v-if="hasMagicLink">
+      <!-- Magic link sent confirmation -->
+      <div
+        v-if="magicLinkSent"
+        class="rounded-md bg-green-50 p-6 text-center dark:bg-green-900/20"
+        data-testid="invite-signin-magic-link-sent">
+        <svg
+          class="mx-auto size-12 text-green-600 dark:text-green-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76" />
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-green-900 dark:text-green-100">
+          {{ t('web.auth.magicLink.checkEmail') }}
+        </h3>
+        <p class="mt-2 text-sm text-green-800 dark:text-green-200">
+          {{ t('web.auth.magicLink.sentTo', { email: invitedEmail }) }}
+        </p>
+        <p class="mt-3 text-xs text-green-700 dark:text-green-300">
+          {{ t('web.auth.magicLink.linkExpiresIn') }}
+        </p>
+        <button
+          type="button"
+          @click="handleMagicLinkTryAgain"
+          class="mt-4 text-sm text-brand-600 transition duration-300 ease-in-out hover:underline dark:text-brand-400"
+          data-testid="invite-signin-magic-link-try-again">
+          {{ t('web.auth.magicLink.tryDifferentEmail') }}
+        </button>
+      </div>
+
+      <!-- Magic link request button -->
+      <div v-else>
+        <!-- Error message for magic link -->
+        <div
+          v-if="magicLinkError"
+          class="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20"
+          role="alert"
+          data-testid="invite-signin-magic-link-error">
+          <p class="text-sm text-red-800 dark:text-red-200">
+            {{ magicLinkError }}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          :disabled="isMagicLinkLoading"
+          @click="handleMagicLinkRequest"
+          class="group relative flex w-full justify-center
+                 rounded-md
+                 border border-gray-300
+                 bg-white px-4 py-2
+                 text-lg font-medium
+                 text-gray-700 hover:bg-gray-50
+                 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+                 disabled:cursor-not-allowed disabled:opacity-50
+                 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200
+                 dark:hover:bg-gray-600 dark:focus:ring-offset-gray-800"
+          data-testid="invite-signin-magic-link-button">
+          <span v-if="isMagicLinkLoading" class="flex items-center">
+            <svg
+              class="-ml-1 mr-3 size-5 animate-spin text-gray-500"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              aria-hidden="true">
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4" />
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            {{ t('web.COMMON.processing') }}
+          </span>
+          <span v-else>{{ t('web.login.send_sign_in_link') }}</span>
+        </button>
+        <p class="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.login.secure_link_helper') }}
+        </p>
+      </div>
+    </template>
+
+    <!-- Divider when SSO is available (after password or magic link) -->
+    <div
+      v-if="ssoMethod && (passwordEnabled || hasMagicLink)"
+      class="relative">
+      <div class="absolute inset-0 flex items-center">
+        <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
       </div>
       <div class="relative flex justify-center text-sm">
         <span class="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">

@@ -131,7 +131,8 @@ export function useInviteAuth() {
   }
 
   /**
-   * Logs in an existing user and then accepts the invitation.
+   * Logs in an existing user and accepts the invitation atomically.
+   * The backend after_login hook handles invite acceptance when invite_token is present.
    * Handles MFA by returning requiresMfa: true for parent to redirect.
    */
   async function loginAndAccept(
@@ -146,9 +147,12 @@ export function useInviteAuth() {
     try {
       await refreshCsrf();
 
+      // Single call - backend after_login hook handles invite acceptance
+      // when invite_token is provided in the login request
       const loginResp = await $api.post('/auth/login', {
         login: email,
         password,
+        invite_token: inviteToken,
         shrimp: csrfStore.shrimp,
         locale: locale.value,
       });
@@ -160,20 +164,14 @@ export function useInviteAuth() {
       }
 
       if (loginResp.data?.mfa_required) {
+        // MFA flow - invite_token is preserved in session by backend
+        // User will return to invite page after MFA completion
         bootstrapStore.update({ awaiting_mfa: true, authenticated: false });
         return { success: false, requiresMfa: true, redirect: `/invite/${inviteToken}` };
       }
 
+      // Login successful - membership already created by after_login hook
       await authStore.setAuthenticated(true);
-
-      const acceptResp = await $api.post(`/api/invite/${inviteToken}/accept`, {
-        shrimp: csrfStore.shrimp,
-      });
-
-      if (acceptResp.data?.error) {
-        error.value = acceptResp.data.error;
-        return { success: false, error: error.value };
-      }
 
       return { success: true };
     } catch (e) {
