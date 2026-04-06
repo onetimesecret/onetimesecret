@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'ipaddr'
+
 module Onetime
   module Security
     # InviteTokenRateLimiter - Prevents token enumeration attacks on invite endpoints
@@ -49,9 +51,8 @@ module Onetime
 
         local current_attempts = redis.call('INCR', attempts_key)
 
-        if current_attempts == 1 then
-          redis.call('EXPIRE', attempts_key, window_seconds)
-        end
+        -- Always refresh TTL to ensure consistent cleanup on every request
+        redis.call('EXPIRE', attempts_key, window_seconds)
 
         local limit_exceeded = 0
         local ttl = redis.call('TTL', attempts_key)
@@ -180,12 +181,18 @@ module Onetime
         @lockout_key ||= "invite_locked:#{@ip_address}"
       end
 
-      # Sanitize IP to prevent key injection attacks
+      # Sanitize and validate IP address using Ruby's IPAddr
+      # Returns canonical form of the IP or empty string if invalid
       def sanitize_ip(ip)
-        return '' if ip.nil?
+        return '' if ip.nil? || ip.to_s.strip.empty?
 
-        # Only allow valid IP characters (digits, dots, colons for IPv6)
-        ip.to_s.gsub(/[^0-9a-fA-F.:]/, '')[0..45]
+        begin
+          parsed = IPAddr.new(ip.to_s.strip)
+          parsed.to_s
+        rescue IPAddr::InvalidAddressError
+          OT.ld "[InviteTokenRateLimiter] Invalid IP address rejected: #{ip.to_s[0..20]}"
+          ''
+        end
       end
 
       # Obscure IP for logging (show first part only)

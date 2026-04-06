@@ -11,6 +11,7 @@
   import { useAuth } from '@/shared/composables/useAuth';
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useCsrfStore } from '@/shared/stores/csrfStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { formatDisplayDate } from '@/utils/format';
   import { onMounted, ref, computed } from 'vue';
@@ -26,6 +27,7 @@
   const router = useRouter();
   const authStore = useAuthStore();
   const bootstrapStore = useBootstrapStore();
+  const csrfStore = useCsrfStore();
   const organizationStore = useOrganizationStore();
   const { logout } = useAuth();
   const $api = useApi();
@@ -64,7 +66,9 @@
     | 'invalid';
 
   const inviteState = computed<InviteState>(() => {
-    if (isLoading.value || !invitation.value) return 'loading';
+    if (isLoading.value) return 'loading';
+    // If loading finished but no invitation (API error), show invalid state
+    if (!invitation.value) return 'invalid';
 
     // Check for non-actionable states first
     if (!invitation.value.actionable) {
@@ -162,7 +166,9 @@
     success.value = '';
 
     try {
-      await $api.post(`/api/invite/${invitationToken.value}/accept`);
+      await $api.post(`/api/invite/${invitationToken.value}/accept`, {
+        shrimp: csrfStore.shrimp,
+      });
 
       success.value = t('web.organizations.invitations.accept_success');
 

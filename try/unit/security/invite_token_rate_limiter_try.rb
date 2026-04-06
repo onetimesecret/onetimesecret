@@ -143,6 +143,85 @@ result = limiter.record_attempt
 [result[:attempts], result[:locked]]
 #=> [1, false]
 
+# --- IP Validation Tests (using IPAddr) ---
+
+## Valid IPv4 address returns canonical form
+@test_ipv4_valid = "192.168.1.100"
+@redis.del("invite_attempts:#{@test_ipv4_valid}")
+limiter = Onetime::Security::InviteTokenRateLimiter.new(@test_ipv4_valid)
+limiter.instance_variable_get(:@ip_address)
+#=> "192.168.1.100"
+
+## Valid IPv4 with leading/trailing whitespace is normalized
+limiter = Onetime::Security::InviteTokenRateLimiter.new("  10.0.0.1  ")
+limiter.instance_variable_get(:@ip_address)
+#=> "10.0.0.1"
+
+## Valid IPv6 address returns canonical form
+limiter = Onetime::Security::InviteTokenRateLimiter.new("2001:0db8:0000:0000:0000:0000:0000:0001")
+limiter.instance_variable_get(:@ip_address)
+#=> "2001:db8::1"
+
+## Valid IPv6 compressed form is accepted
+limiter = Onetime::Security::InviteTokenRateLimiter.new("::1")
+limiter.instance_variable_get(:@ip_address)
+#=> "::1"
+
+## Invalid IP address returns empty string
+limiter = Onetime::Security::InviteTokenRateLimiter.new("not.an.ip.address")
+limiter.instance_variable_get(:@ip_address)
+#=> ""
+
+## Malformed IP with extra octets returns empty string
+limiter = Onetime::Security::InviteTokenRateLimiter.new("192.168.1.1.1")
+limiter.instance_variable_get(:@ip_address)
+#=> ""
+
+## IP with injection attempt returns empty string
+limiter = Onetime::Security::InviteTokenRateLimiter.new("192.168.1.1; DROP TABLE users")
+limiter.instance_variable_get(:@ip_address)
+#=> ""
+
+## Nil IP returns empty string (handled gracefully)
+limiter = Onetime::Security::InviteTokenRateLimiter.new(nil)
+limiter.instance_variable_get(:@ip_address)
+#=> ""
+
+## Empty string IP returns empty string
+limiter = Onetime::Security::InviteTokenRateLimiter.new("")
+limiter.instance_variable_get(:@ip_address)
+#=> ""
+
+## Whitespace-only IP returns empty string
+limiter = Onetime::Security::InviteTokenRateLimiter.new("   ")
+limiter.instance_variable_get(:@ip_address)
+#=> ""
+
+# --- TTL Refresh Tests ---
+
+## TTL is set on first attempt
+@test_ip_ttl = "192.168.#{rand(1..254)}.#{rand(1..254)}"
+@redis.del("invite_attempts:#{@test_ip_ttl}")
+@redis.del("invite_locked:#{@test_ip_ttl}")
+@limiter_ttl = Onetime::Security::InviteTokenRateLimiter.new(@test_ip_ttl)
+@limiter_ttl.record_attempt
+ttl_after_first = @redis.ttl("invite_attempts:#{@test_ip_ttl}")
+ttl_after_first > 0 && ttl_after_first <= 600
+#=> true
+
+## TTL is refreshed on subsequent attempts (not just first)
+# Wait a brief moment and record another attempt
+sleep(0.1)
+@limiter_ttl.record_attempt
+ttl_after_second = @redis.ttl("invite_attempts:#{@test_ip_ttl}")
+# TTL should be close to WINDOW_SECONDS (600) after refresh
+ttl_after_second > 590 && ttl_after_second <= 600
+#=> true
+
+## TTL refresh test cleanup
+@redis.del("invite_attempts:#{@test_ip_ttl}")
+@redis.del("invite_locked:#{@test_ip_ttl}")
+
 # Clean up test keys
 @redis.del("invite_attempts:#{@test_ip}")
 @redis.del("invite_locked:#{@test_ip}")
