@@ -183,12 +183,9 @@ module Billing
             'last_federation_at' => Time.now.utc.iso8601,
           }
 
-          # Merge with existing metadata (Stripe replaces all metadata on update)
-          stripe_customer   = Stripe::Customer.retrieve(stripe_customer_id)
-          existing_metadata = stripe_customer.metadata.to_h
-          merged_metadata   = existing_metadata.merge(note)
-
-          Stripe::Customer.update(stripe_customer_id, metadata: merged_metadata)
+          # Stripe's Customer.update merges provided keys with existing
+          # metadata server-side — no need to retrieve first.
+          Stripe::Customer.update(stripe_customer_id, metadata: note)
 
           billing_logger.info '[SubscriptionFederation] Recorded federation note on Stripe Customer',
             stripe_customer_id: stripe_customer_id,

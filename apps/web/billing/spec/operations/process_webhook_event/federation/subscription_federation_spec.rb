@@ -523,19 +523,7 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
     end
 
     describe 'successful note recording' do
-      let(:existing_metadata) { { 'email_hash' => 'existing_hash_12345', 'region' => 'US' } }
-
       before do
-        # Stub Stripe::Customer.retrieve
-        stripe_customer = build_stripe_customer(
-          id: stripe_customer_id,
-          email: federated_email,
-          metadata: existing_metadata,
-        )
-        allow(Stripe::Customer).to receive(:retrieve)
-          .with(stripe_customer_id)
-          .and_return(stripe_customer)
-
         # Mock OT.conf for region lookup
         allow(OT).to receive(:conf).and_return({
           'site' => { 'region' => 'EU' },
@@ -575,16 +563,12 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
         handler.send(:record_federation_note, subscription, federated_org, false)
       end
 
-      it 'preserves existing metadata when merging' do
-        # Stripe metadata converts to symbol keys, so verify the merged result
-        # contains both original and new values (checking symbol keys)
+      it 'passes only federation keys (Stripe merges with existing metadata server-side)' do
         expect(Stripe::Customer).to receive(:update).with(
           stripe_customer_id,
           metadata: satisfy { |m|
-            # Existing metadata preserved (symbol keys from Stripe)
-            m[:email_hash] == 'existing_hash_12345' &&
-            m[:region] == 'US' &&
-            # New federation metadata added (string keys)
+            # Only federation keys are sent — Stripe preserves existing metadata
+            m.keys.all? { |k| k.start_with?('last_federation_') } &&
             m['last_federation_region'] == 'EU'
           }
         )
@@ -595,15 +579,6 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
 
     describe 'Stripe API error handling' do
       before do
-        stripe_customer = build_stripe_customer(
-          id: stripe_customer_id,
-          email: federated_email,
-          metadata: {},
-        )
-        allow(Stripe::Customer).to receive(:retrieve)
-          .with(stripe_customer_id)
-          .and_return(stripe_customer)
-
         allow(OT).to receive(:conf).and_return({ 'site' => { 'region' => 'EU' } })
 
         # Simulate Stripe API error on update
@@ -669,15 +644,6 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
       end
 
       before do
-        stripe_customer = build_stripe_customer(
-          id: stripe_customer_id,
-          email: noplan_email,
-          metadata: {},
-        )
-        allow(Stripe::Customer).to receive(:retrieve)
-          .with(stripe_customer_id)
-          .and_return(stripe_customer)
-
         allow(OT).to receive(:conf).and_return({ 'site' => { 'region' => 'EU' } })
       end
 

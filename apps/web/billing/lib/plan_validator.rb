@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../errors'
+require_relative '../metadata'
 require_relative '../models/plan'
 require_relative '../config'
 
@@ -177,7 +178,7 @@ module Billing
     #
     def resolve_plan_id_for_federation(subscription)
       # Try subscription metadata first (most reliable for cross-region)
-      plan_id = subscription.metadata['plan_id']
+      plan_id = subscription.metadata[Billing::Metadata::FIELD_PLAN_ID]
       if plan_id && valid_plan_id?(plan_id)
         billing_logger.debug '[PlanValidator.resolve_plan_id_for_federation] Found in subscription metadata',
           plan_id: plan_id
@@ -186,7 +187,7 @@ module Billing
 
       # Try price metadata as fallback
       price   = subscription.items.data.first&.price
-      plan_id = price&.metadata&.[]('plan_id')
+      plan_id = price&.metadata&.[](Billing::Metadata::FIELD_PLAN_ID)
       if plan_id && valid_plan_id?(plan_id)
         billing_logger.debug '[PlanValidator.resolve_plan_id_for_federation] Found in price metadata',
           plan_id: plan_id
@@ -195,11 +196,13 @@ module Billing
 
       # Log failure but don't raise - retries won't help, and sync health
       # check will catch the drift (federated org with nil/free planid)
-      billing_logger.error '[PlanValidator.resolve_plan_id_for_federation] No valid plan_id in metadata',
+      # Log only non-sensitive fields — avoid dumping full metadata which
+      # may contain PII (email_hash, customer_extid, etc.)
+      billing_logger.warn '[PlanValidator.resolve_plan_id_for_federation] No valid plan_id in metadata',
         subscription_id: subscription.id,
-        subscription_metadata: subscription.metadata.to_h,
+        subscription_plan_id: subscription.metadata[Billing::Metadata::FIELD_PLAN_ID],
         price_id: price&.id,
-        price_metadata: price&.metadata&.to_h
+        price_plan_id: price&.metadata&.[](Billing::Metadata::FIELD_PLAN_ID)
 
       nil
     end
