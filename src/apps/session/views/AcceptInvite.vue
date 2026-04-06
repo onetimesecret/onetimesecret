@@ -339,7 +339,7 @@
           class="mx-auto size-12 text-brand-600 dark:text-brand-400"
           aria-hidden="true" />
         <h1 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
-          {{ t('web.organizations.invitations.invitation_details') }}
+          {{ t('web.organizations.invitations.join_organization', { orgName: invitation?.organization_name ?? '' }) }}
         </h1>
       </div>
 
@@ -411,7 +411,8 @@
         :org-name="invitation.organization_name"
         :auth-methods="invitation.auth_methods || []"
         @success="onAcceptSuccess"
-        @error="onFormError" />
+        @error="onFormError"
+        @decline="handleDecline" />
     </div>
 
     <!-- Signin Required State (existing user, must authenticate) -->
@@ -428,7 +429,7 @@
           class="mx-auto size-12 text-brand-600 dark:text-brand-400"
           aria-hidden="true" />
         <h1 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
-          {{ t('web.organizations.invitations.invitation_details') }}
+          {{ t('web.organizations.invitations.sign_in_to_join', { orgName: invitation?.organization_name ?? '' }) }}
         </h1>
       </div>
 
@@ -518,7 +519,8 @@
           :auth-methods="invitation.auth_methods || []"
           @success="onAcceptSuccess"
           @error="onFormError"
-          @mfa-required="onMfaRequired" />
+          @mfa-required="onMfaRequired"
+          @decline="handleDecline" />
       </div>
     </div>
 

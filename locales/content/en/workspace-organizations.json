@@ -807,5 +807,20 @@
     "text": "You are already a member of this organization",
     "context": "Message shown when invitation was already accepted",
     "content_hash": "9b0c1d2e"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Join {orgName}",
+    "context": "Dynamic page title for signup flow",
+    "content_hash": "a1c2d3e4"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Sign in to join {orgName}",
+    "context": "Dynamic page title for signin flow",
+    "content_hash": "b2d3e4f5"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Decline",
+    "context": "Button text for declining an invitation inline",
+    "content_hash": "c3e4f5a6"
   }
 }
