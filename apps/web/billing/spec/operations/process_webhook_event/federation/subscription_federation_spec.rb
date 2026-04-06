@@ -656,5 +656,118 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
         handler.send(:record_federation_note, subscription, org_no_plan, true)
       end
     end
+
+    describe 'idempotency (last-write-wins)' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => { 'region' => 'EU' },
+        })
+      end
+
+      it 'calls Stripe::Customer.update twice without error when called in sequence' do
+        expect(Stripe::Customer).to receive(:update).with(
+          stripe_customer_id,
+          metadata: hash_including('last_federation_region' => 'EU')
+        ).twice
+
+        handler.send(:record_federation_note, subscription, federated_org, true)
+        handler.send(:record_federation_note, subscription, federated_org, false)
+      end
+    end
+
+    describe 'region config missing' do
+      before do
+        # OT.conf returns empty hash — no site/region key
+        allow(OT).to receive(:conf).and_return({})
+      end
+
+      it 'falls back to "unknown" when site region is not configured' do
+        expect(Stripe::Customer).to receive(:update).with(
+          stripe_customer_id,
+          metadata: hash_including('last_federation_region' => 'unknown')
+        )
+
+        handler.send(:record_federation_note, subscription, federated_org, true)
+      end
+    end
+  end
+
+  describe 'process_with_federation :stripe_error return path' do
+    context 'when Stripe::Customer.retrieve fails' do
+      let(:subscription) do
+        build_stripe_subscription(
+          id: stripe_subscription_id,
+          customer: stripe_customer_id,
+          status: 'active',
+          metadata: {
+            'email_hash' => 'some_hash_value',
+          },
+        )
+      end
+
+      let(:event) { build_stripe_event(type: 'customer.subscription.updated', data_object: subscription) }
+      let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
+
+      before do
+        # Simulate Stripe::Customer.retrieve raising an error
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with(stripe_customer_id)
+          .and_raise(Stripe::APIError.new('Service unavailable'))
+      end
+
+      it 'returns :stripe_error when retrieve_stripe_customer fails' do
+        expect(operation.call).to eq(:stripe_error)
+      end
+
+      it 'does not attempt organization lookups' do
+        expect(Onetime::Organization).not_to receive(:find_by_stripe_customer_id)
+        expect(Onetime::Organization).not_to receive(:find_federated_by_email_hash)
+
+        operation.call
+      end
+    end
+  end
+
+  describe 'store_pending_federation empty email_hash' do
+    # Test the SubscriptionFederation#store_pending_federation method directly
+    # via the module test class pattern used in record_federation_note tests
+
+    let(:test_class) do
+      Class.new do
+        include Billing::Operations::WebhookHandlers::SubscriptionFederation
+      end
+    end
+
+    let(:handler) { test_class.new }
+
+    let(:subscription) do
+      build_stripe_subscription(
+        id: stripe_subscription_id,
+        customer: stripe_customer_id,
+        status: 'active',
+        metadata: {
+          'email_hash' => '',
+        },
+      )
+    end
+
+    let(:stripe_customer) do
+      build_stripe_customer(
+        id: stripe_customer_id,
+        email: 'test@example.com',
+        metadata: { 'email_hash' => '' },
+      )
+    end
+
+    it 'returns nil when email_hash is empty' do
+      result = handler.send(:store_pending_federation, '', subscription, stripe_customer)
+      expect(result).to be_nil
+    end
+
+    it 'does not create a pending record when email_hash is empty' do
+      expect(Billing::PendingFederatedSubscription).not_to receive(:store_from_webhook)
+
+      handler.send(:store_pending_federation, '', subscription, stripe_customer)
+    end
   end
 end

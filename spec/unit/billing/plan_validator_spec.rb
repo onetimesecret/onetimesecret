@@ -221,6 +221,36 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
         end
       end
     end
+
+    describe 'stale cache entry: Plan.load returns plan where exists? is false' do
+      before do
+        stale_plan = instance_double(Billing::Plan, plan_id: 'stale_plan_v1')
+        allow(stale_plan).to receive(:exists?).and_return(false)
+        allow(Billing::Plan).to receive(:load).with('stale_plan_v1').and_return(stale_plan)
+      end
+
+      context 'when plan_id is in static config' do
+        before do
+          allow(Billing::Config).to receive(:load_plans).and_return({
+            'stale_plan_v1' => { 'tier' => 'plus' },
+          })
+        end
+
+        it 'falls through to static config and returns true' do
+          expect(validator.valid_plan_id?('stale_plan_v1')).to be true
+        end
+      end
+
+      context 'when plan_id is NOT in static config' do
+        before do
+          allow(Billing::Config).to receive(:load_plans).and_return({})
+        end
+
+        it 'returns false' do
+          expect(validator.valid_plan_id?('stale_plan_v1')).to be false
+        end
+      end
+    end
   end
 
   # ============================================================================
@@ -255,6 +285,148 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
     it 'returns a unique sorted list' do
       result = validator.available_plan_ids
       expect(result).to eq(result.uniq.sort)
+    end
+
+    describe 'deduplication: same plan_id in both catalog and static config' do
+      before do
+        plan1 = instance_double(Billing::Plan, plan_id: 'identity_plus_v1_monthly')
+        plan2 = instance_double(Billing::Plan, plan_id: 'multi_team_v1_yearly')
+        allow(Billing::Plan).to receive(:list_plans).and_return([plan1, plan2])
+
+        # identity_plus_v1_monthly appears in BOTH catalog and static config
+        allow(Billing::Config).to receive(:load_plans).and_return({
+          'identity_plus_v1_monthly' => { 'tier' => 'plus' },
+          'legacy_v1' => { 'tier' => 'legacy' },
+        })
+      end
+
+      it 'includes the duplicated plan_id only once' do
+        result = validator.available_plan_ids
+        expect(result.count('identity_plus_v1_monthly')).to eq(1)
+      end
+
+      it 'includes all unique plan_ids' do
+        result = validator.available_plan_ids
+        expect(result).to contain_exactly('identity_plus_v1_monthly', 'legacy_v1', 'multi_team_v1_yearly')
+      end
+    end
+  end
+
+  # ============================================================================
+  # SECTION 3b: Billing::PlanValidator.detect_drift
+  # ============================================================================
+  #
+  # Compares plan_id from catalog (via price_id) against metadata plan_id.
+  # Returns nil when they match, drift hash when they differ.
+  #
+  describe 'Billing::PlanValidator.detect_drift' do
+    let(:validator) { Billing::PlanValidator }
+
+    before do
+      mock_plan = instance_double(
+        Billing::Plan,
+        plan_id: 'identity_plus_v1_monthly',
+        stripe_price_id: 'price_drift_test'
+      )
+      allow(Billing::Plan).to receive(:find_by_stripe_price_id)
+        .with('price_drift_test')
+        .and_return(mock_plan)
+    end
+
+    describe 'no drift: catalog and metadata match' do
+      it 'returns nil when plan_ids are identical' do
+        result = validator.detect_drift(
+          price_id: 'price_drift_test',
+          metadata_plan_id: 'identity_plus_v1_monthly'
+        )
+        expect(result).to be_nil
+      end
+    end
+
+    describe 'drift detected: catalog and metadata differ' do
+      it 'returns a hash with catalog_plan_id, metadata_plan_id, and price_id' do
+        result = validator.detect_drift(
+          price_id: 'price_drift_test',
+          metadata_plan_id: 'old_stale_plan'
+        )
+
+        expect(result).to eq({
+          catalog_plan_id: 'identity_plus_v1_monthly',
+          metadata_plan_id: 'old_stale_plan',
+          price_id: 'price_drift_test',
+        })
+      end
+
+      it 'emits a warn-level log' do
+        logger = instance_double(SemanticLogger::Logger)
+        allow(Onetime).to receive(:get_logger).with('Billing').and_return(logger)
+        allow(logger).to receive(:warn)
+
+        expect(logger).to receive(:warn).with(
+          '[PlanValidator] Drift detected: metadata differs from catalog',
+          hash_including(
+            catalog_plan_id: 'identity_plus_v1_monthly',
+            metadata_plan_id: 'wrong_plan',
+            price_id: 'price_drift_test'
+          )
+        )
+
+        validator.detect_drift(
+          price_id: 'price_drift_test',
+          metadata_plan_id: 'wrong_plan'
+        )
+      end
+    end
+
+    describe 'drift with nil metadata_plan_id' do
+      it 'returns drift hash when metadata_plan_id is nil' do
+        result = validator.detect_drift(
+          price_id: 'price_drift_test',
+          metadata_plan_id: nil
+        )
+
+        expect(result).to eq({
+          catalog_plan_id: 'identity_plus_v1_monthly',
+          metadata_plan_id: nil,
+          price_id: 'price_drift_test',
+        })
+      end
+
+      it 'emits a warn-level log for nil metadata' do
+        logger = instance_double(SemanticLogger::Logger)
+        allow(Onetime).to receive(:get_logger).with('Billing').and_return(logger)
+        allow(logger).to receive(:warn)
+
+        expect(logger).to receive(:warn).with(
+          '[PlanValidator] Drift detected: metadata differs from catalog',
+          hash_including(
+            catalog_plan_id: 'identity_plus_v1_monthly',
+            metadata_plan_id: nil
+          )
+        )
+
+        validator.detect_drift(
+          price_id: 'price_drift_test',
+          metadata_plan_id: nil
+        )
+      end
+    end
+
+    describe 'price_id not in catalog' do
+      before do
+        allow(Billing::Plan).to receive(:find_by_stripe_price_id)
+          .with('price_missing')
+          .and_return(nil)
+      end
+
+      it 'raises CatalogMissError (delegates to resolve_plan_id)' do
+        expect {
+          validator.detect_drift(
+            price_id: 'price_missing',
+            metadata_plan_id: 'any_plan'
+          )
+        }.to raise_error(Billing::CatalogMissError)
+      end
     end
   end
 end
@@ -742,17 +914,19 @@ RSpec.describe 'Billing::PlanValidator.resolve_plan_id_for_federation', billing:
       expect(validator.resolve_plan_id_for_federation(subscription)).to be_nil
     end
 
-    it 'logs error with subscription details' do
+    it 'logs warn with subscription details (no PII)' do
       logger = instance_double(SemanticLogger::Logger)
       allow(Onetime).to receive(:get_logger).with('Billing').and_return(logger)
       allow(logger).to receive(:debug)
-      allow(logger).to receive(:error)
+      allow(logger).to receive(:warn)
 
-      expect(logger).to receive(:error).with(
+      expect(logger).to receive(:warn).with(
         '[PlanValidator.resolve_plan_id_for_federation] No valid plan_id in metadata',
         hash_including(
           subscription_id: 'sub_federation_test',
-          price_id: 'price_cross_region_xyz'
+          subscription_plan_id: nil,
+          price_id: 'price_cross_region_xyz',
+          price_plan_id: nil
         )
       )
 
@@ -804,6 +978,67 @@ RSpec.describe 'Billing::PlanValidator.resolve_plan_id_for_federation', billing:
 
     it 'returns subscription metadata plan_id, ignoring price metadata' do
       expect(validator.resolve_plan_id_for_federation(subscription)).to eq('identity_plus_v1')
+    end
+  end
+
+  describe 'empty items.data array (no subscription items)' do
+    before do
+      allow(Billing::Plan).to receive(:load).and_return(nil)
+      allow(Billing::Config).to receive(:load_plans).and_return({})
+    end
+
+    let(:subscription) do
+      Stripe::Subscription.construct_from({
+        id: 'sub_empty_items',
+        object: 'subscription',
+        customer: 'cus_test',
+        status: 'active',
+        metadata: {},
+        items: {
+          data: [],
+        },
+      })
+    end
+
+    it 'returns nil without raising' do
+      expect(validator.resolve_plan_id_for_federation(subscription)).to be_nil
+    end
+
+    it 'does not crash on safe navigation through empty items' do
+      expect { validator.resolve_plan_id_for_federation(subscription) }.not_to raise_error
+    end
+  end
+
+  describe 'price exists but price.metadata is nil or empty' do
+    before do
+      allow(Billing::Plan).to receive(:load).and_return(nil)
+      allow(Billing::Config).to receive(:load_plans).and_return({})
+    end
+
+    context 'when price.metadata is an empty hash' do
+      let(:subscription) do
+        build_subscription(
+          subscription_metadata: {},
+          price_metadata: {}
+        )
+      end
+
+      it 'returns nil' do
+        expect(validator.resolve_plan_id_for_federation(subscription)).to be_nil
+      end
+    end
+
+    context 'when subscription metadata has invalid plan but price metadata is empty' do
+      let(:subscription) do
+        build_subscription(
+          subscription_metadata: { 'plan_id' => 'bogus_plan' },
+          price_metadata: {}
+        )
+      end
+
+      it 'returns nil when neither metadata source has a valid plan_id' do
+        expect(validator.resolve_plan_id_for_federation(subscription)).to be_nil
+      end
     end
   end
 end
