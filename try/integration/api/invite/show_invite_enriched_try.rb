@@ -172,10 +172,10 @@ get "/api/invite/#{@token_expired}", {}, { 'HTTP_ACCEPT' => 'application/json' }
 last_response.status
 #=> 200
 
-## GET expired invitation - status is still 'pending' (expired is computed)
+## GET expired invitation - effective status is 'expired' (computed from pending + past TTL)
 resp = JSON.parse(last_response.body)
 resp['record']['status']
-#=> 'pending'
+#=> 'expired'
 
 ## GET expired invitation - actionable is false (expired)
 resp = JSON.parse(last_response.body)
