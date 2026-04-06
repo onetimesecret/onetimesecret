@@ -164,8 +164,9 @@ module Onetime
 
       # Check if rate limiting should be bypassed in test environment.
       # Returns true if RACK_ENV=test and force_enabled is not set.
+      # Note: OT.env returns 'testing' when RACK_ENV=test
       def test_bypass?
-        OT.env?(:test) && !self.class.force_enabled
+        OT.env?(:testing) && !self.class.force_enabled
       end
 
       # Execute the Lua script via Redis EVAL command (server-side execution)
