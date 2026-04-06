@@ -30,6 +30,8 @@ module Billing
       # @see https://github.com/onetimesecret/onetimesecret/issues/2471
       #
       module SubscriptionFederation
+        include Onetime::LoggerMethods
+
         private
 
         # Path 1: Find owner organization by direct stripe_customer_id link
@@ -109,6 +111,9 @@ module Billing
         # Marks the organization as federated (if first time) and updates
         # subscription status fields from the Stripe subscription.
         #
+        # Also records an internal note on the Stripe Customer for visibility
+        # into cross-region federation events.
+        #
         # @param org [Onetime::Organization] Organization to update
         # @param subscription [Stripe::Subscription] Stripe subscription
         # @return [Boolean] True if this was the first federation (for notification)
@@ -128,7 +133,68 @@ module Billing
 
           org.save
 
+          # Record federation event on Stripe Customer for visibility
+          record_federation_note(subscription, org, first_federation)
+
           first_federation
+        end
+
+        # Record federation event on Stripe Customer via metadata
+        #
+        # Adds metadata to the Stripe Customer record documenting the cross-region
+        # federation. This provides visibility for support and debugging.
+        #
+        # ## Why metadata instead of "internal notes"?
+        #
+        # Stripe does not provide an API endpoint for adding internal notes to
+        # customer records. The Dashboard's "Internal notes" feature is UI-only.
+        # Updating metadata via `Stripe::Customer.update` is the recommended
+        # programmatic approach for attaching custom data.
+        #
+        # ## Visibility
+        #
+        # - **Events/Webhooks**: Metadata changes fire `customer.updated` events
+        #   with `previous_attributes` showing what changed. Fully captured in
+        #   webhooks and the Events API.
+        # - **Dashboard caveat**: Metadata changes via API may not appear in the
+        #   Dashboard's "Recent activity" feed the same way manually-added notes
+        #   do. The Dashboard activity feed and API events are different systems.
+        #
+        # @see https://docs.stripe.com/changelog/clover/2025-11-17/thin-events-changes
+        #
+        # @param subscription [Stripe::Subscription] Stripe subscription
+        # @param org [Onetime::Organization] Federated organization
+        # @param first_federation [Boolean] Whether this was the initial federation
+        #
+        def record_federation_note(subscription, org, first_federation)
+          stripe_customer_id = subscription.customer
+          return if stripe_customer_id.to_s.empty?
+
+          local_region = OT.conf.dig('site', 'region') || 'unknown'
+          plan_id      = org.planid || 'unresolved'
+          event_type   = first_federation ? 'initial' : 'update'
+
+          # Build federation note with key details for future debugging
+          note = {
+            'last_federation_region' => local_region,
+            'last_federation_org' => org.extid,
+            'last_federation_plan' => plan_id,
+            'last_federation_type' => event_type,
+            'last_federation_at' => Time.now.utc.iso8601,
+          }
+
+          # Stripe's Customer.update merges provided keys with existing
+          # metadata server-side — no need to retrieve first.
+          Stripe::Customer.update(stripe_customer_id, metadata: note)
+
+          billing_logger.info '[SubscriptionFederation] Recorded federation note on Stripe Customer',
+            stripe_customer_id: stripe_customer_id,
+            federation_note: note
+        rescue Stripe::StripeError => ex
+          # Don't fail the federation if note recording fails - it's informational
+          billing_logger.warn '[SubscriptionFederation] Failed to record federation note',
+            stripe_customer_id: stripe_customer_id,
+            error: ex.message
         end
 
         # Process subscription event with two-path matching

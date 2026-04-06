@@ -72,18 +72,33 @@ module Billing
         @org.subscription_period_end = period_end.to_s if period_end
       end
 
-      # Resolve plan from catalog (fail-closed), or use explicit override
+      # Resolve plan from catalog (owner) or metadata (federated)
+      #
+      # Owner orgs use catalog-first resolution (fail-closed) because the
+      # price_id is from the local Stripe account and must exist in catalog.
+      #
+      # Federated orgs use metadata-first resolution because cross-region
+      # price IDs won't exist in the local catalog. The universal plan name
+      # (e.g., 'identity_plus_v1') is stored in Stripe metadata.
+      #
       def apply_plan_id
         if @planid_override
           @org.planid = @planid_override
           return
         end
 
-        price    = @subscription.items.data.first&.price
-        price_id = price&.id
-        return unless price_id
+        plan_id = if @owner
+                    # Owner path: catalog lookup (fail-closed on miss)
+                    price    = @subscription.items.data.first&.price
+                    price_id = price&.id
+                    return unless price_id
 
-        plan_id     = Billing::PlanValidator.resolve_plan_id(price_id)
+                    Billing::PlanValidator.resolve_plan_id(price_id)
+                  else
+                    # Federated path: metadata lookup (logs on miss, no raise)
+                    Billing::PlanValidator.resolve_plan_id_for_federation(@subscription)
+                  end
+
         @org.planid = plan_id if plan_id
       end
 
@@ -93,7 +108,7 @@ module Billing
       # stores it on the org for fast local queries. This is the only
       # codepath that should write org.complimentary.
       def apply_complimentary_marker
-        meta = @subscription.metadata
+        meta               = @subscription.metadata
         @org.complimentary = if meta && meta[Billing::Metadata::FIELD_COMPLIMENTARY].to_s == 'true'
                                'true'
                              end

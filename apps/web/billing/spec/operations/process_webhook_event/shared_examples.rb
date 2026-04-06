@@ -26,14 +26,22 @@ module ProcessWebhookEventHelpers
   # @param metadata [Hash] Subscription-level metadata (e.g., customer_extid, plan_id)
   # @param price_metadata [Hash] Price-level metadata (fallback for plan_id)
   # @param current_period_end [Integer] Unix timestamp
+  #
+  # NOTE: Includes 'plan_id' => 'identity_plus_v1' in metadata by default to avoid
+  # error log noise from resolve_plan_id_for_federation. Override metadata to test
+  # missing plan_id scenarios explicitly.
   def build_stripe_subscription(id:, customer:, status:, metadata: {}, price_metadata: {}, current_period_end: nil)
     period_end = current_period_end || (Time.now + 30 * 24 * 60 * 60).to_i
+    # Default plan_id in metadata for federation tests (cross-region price IDs
+    # are not in local catalog, so federation uses metadata lookup)
+    default_metadata = { 'plan_id' => 'identity_plus_v1' }
+    merged_metadata = default_metadata.merge(metadata)
     Stripe::Subscription.construct_from({
       id: id,
       object: 'subscription',
       customer: customer,
       status: status,
-      metadata: metadata,
+      metadata: merged_metadata,
       current_period_end: period_end,
       items: {
         data: [{
