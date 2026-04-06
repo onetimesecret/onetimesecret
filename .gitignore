@@ -16,6 +16,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Directories
+.gems/
 .certs/
 .claude
 .continue/

@@ -49,7 +49,12 @@ export const useLanguageStore = defineStore('language', () => {
       if (localeCode in localeCodes) {
         result[localeCode] = localeCodes[localeCode as keyof typeof localeCodes];
       } else {
-        console.warn(`[languageStore] Locale code "${localeCode}" not found in localeCodes map.`);
+        console.warn(`[languageStore] Locale code "${localeCode}" not found in localeCodes map.`, {
+          localeCode,
+          hasKey: Object.hasOwn(localeCodes, localeCode),
+          availableKeys: Object.keys(localeCodes).slice(0, 20),
+          localeCodesType: typeof localeCodes,
+        });
       }
     }
     return result;
