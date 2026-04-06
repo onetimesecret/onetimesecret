@@ -103,7 +103,7 @@ extract_description(@help_cache[:customers]) == extract_description(@help_cache[
 
 ## 'customers' description is correct
 extract_description(@help_cache[:customers])
-#=> "Manage customer records (create, list)"
+#=> "Manage customer records (create, list, show, purge)"
 
 # -------------------------------------------------------------------
 # worker / workers alias equivalence
