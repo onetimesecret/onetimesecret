@@ -42,6 +42,15 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
     ENV['FEDERATION_SECRET'] = original_secret
   end
 
+  # Stub Stripe::Customer.update globally to prevent real API calls from
+  # record_federation_note. The unit tests for record_federation_note verify
+  # the actual behavior; here we just prevent network calls.
+  before do
+    allow(Stripe::Customer).to receive(:update).and_return(
+      Stripe::Customer.construct_from({ id: 'cus_stubbed', object: 'customer', metadata: {} })
+    )
+  end
+
   # Build a mock Stripe::Customer for testing
   def build_stripe_customer(id:, email:, metadata: {})
     Stripe::Customer.construct_from({
@@ -475,6 +484,210 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
         # the code computes a hash from the email and does a federation lookup
         expect(Onetime::Organization).to receive(:find_federated_by_email_hash).once
         operation.call
+      end
+    end
+  end
+
+  describe 'record_federation_note' do
+    # Test the SubscriptionFederation#record_federation_note method directly
+    # by creating a test class that includes the module
+
+    let(:test_class) do
+      Class.new do
+        include Billing::Operations::WebhookHandlers::SubscriptionFederation
+      end
+    end
+
+    let(:handler) { test_class.new }
+
+    let!(:federated_customer) { create_test_customer(email: federated_email) }
+    let!(:federated_org) do
+      org = create_test_organization(customer: federated_customer)
+      org.stripe_customer_id = nil
+      org.planid = 'identity_plus_v1'
+      org.compute_email_hash!
+      org.save
+      org
+    end
+
+    let(:subscription) do
+      build_stripe_subscription(
+        id: stripe_subscription_id,
+        customer: stripe_customer_id,
+        status: 'active',
+        metadata: {
+          'plan_id' => 'identity_plus_v1',
+          'email_hash' => federated_org.email_hash,
+        },
+      )
+    end
+
+    describe 'successful note recording' do
+      let(:existing_metadata) { { 'email_hash' => 'existing_hash_12345', 'region' => 'US' } }
+
+      before do
+        # Stub Stripe::Customer.retrieve
+        stripe_customer = build_stripe_customer(
+          id: stripe_customer_id,
+          email: federated_email,
+          metadata: existing_metadata,
+        )
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with(stripe_customer_id)
+          .and_return(stripe_customer)
+
+        # Mock OT.conf for region lookup
+        allow(OT).to receive(:conf).and_return({
+          'site' => { 'region' => 'EU' },
+        })
+      end
+
+      it 'calls Stripe::Customer.update with correct metadata structure' do
+        expect(Stripe::Customer).to receive(:update).with(
+          stripe_customer_id,
+          metadata: hash_including(
+            'last_federation_region' => 'EU',
+            'last_federation_org' => federated_org.extid,
+            'last_federation_plan' => 'identity_plus_v1',
+            'last_federation_type' => 'initial',
+            'last_federation_at' => satisfy { |v| v.is_a?(String) && v.match?(/\d{4}-\d{2}-\d{2}T/) }
+          )
+        )
+
+        handler.send(:record_federation_note, subscription, federated_org, true)
+      end
+
+      it 'sets federation_type to initial for first federation' do
+        expect(Stripe::Customer).to receive(:update).with(
+          stripe_customer_id,
+          metadata: hash_including('last_federation_type' => 'initial')
+        )
+
+        handler.send(:record_federation_note, subscription, federated_org, true)
+      end
+
+      it 'sets federation_type to update for subsequent federations' do
+        expect(Stripe::Customer).to receive(:update).with(
+          stripe_customer_id,
+          metadata: hash_including('last_federation_type' => 'update')
+        )
+
+        handler.send(:record_federation_note, subscription, federated_org, false)
+      end
+
+      it 'preserves existing metadata when merging' do
+        # Stripe metadata converts to symbol keys, so verify the merged result
+        # contains both original and new values (checking symbol keys)
+        expect(Stripe::Customer).to receive(:update).with(
+          stripe_customer_id,
+          metadata: satisfy { |m|
+            # Existing metadata preserved (symbol keys from Stripe)
+            m[:email_hash] == 'existing_hash_12345' &&
+            m[:region] == 'US' &&
+            # New federation metadata added (string keys)
+            m['last_federation_region'] == 'EU'
+          }
+        )
+
+        handler.send(:record_federation_note, subscription, federated_org, true)
+      end
+    end
+
+    describe 'Stripe API error handling' do
+      before do
+        stripe_customer = build_stripe_customer(
+          id: stripe_customer_id,
+          email: federated_email,
+          metadata: {},
+        )
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with(stripe_customer_id)
+          .and_return(stripe_customer)
+
+        allow(OT).to receive(:conf).and_return({ 'site' => { 'region' => 'EU' } })
+
+        # Simulate Stripe API error on update
+        allow(Stripe::Customer).to receive(:update)
+          .and_raise(Stripe::APIError.new('Rate limit exceeded'))
+      end
+
+      it 'does not raise when Stripe update fails' do
+        expect {
+          handler.send(:record_federation_note, subscription, federated_org, true)
+        }.not_to raise_error
+      end
+
+      it 'logs warning when note recording fails' do
+        logger = instance_double(SemanticLogger::Logger)
+        # Allow other logger categories (cleanup calls OT.ld which uses 'App' category)
+        allow(Onetime).to receive(:get_logger).and_call_original
+        allow(Onetime).to receive(:get_logger).with('Billing').and_return(logger)
+        allow(logger).to receive(:info)
+
+        expect(logger).to receive(:warn).with(
+          '[SubscriptionFederation] Failed to record federation note',
+          hash_including(
+            stripe_customer_id: stripe_customer_id,
+            error: 'Rate limit exceeded'
+          )
+        )
+
+        handler.send(:record_federation_note, subscription, federated_org, true)
+      end
+    end
+
+    describe 'empty customer ID handling' do
+      let(:subscription_no_customer) do
+        Stripe::Subscription.construct_from({
+          id: stripe_subscription_id,
+          object: 'subscription',
+          customer: '',
+          status: 'active',
+          metadata: {},
+          items: { data: [] },
+        })
+      end
+
+      it 'returns early without calling Stripe API when customer is empty' do
+        expect(Stripe::Customer).not_to receive(:retrieve)
+        expect(Stripe::Customer).not_to receive(:update)
+
+        handler.send(:record_federation_note, subscription_no_customer, federated_org, true)
+      end
+    end
+
+    describe 'unresolved plan_id handling' do
+      # Use a separate customer to avoid "Organization exists" conflict
+      let(:noplan_email) { "noplan-#{SecureRandom.hex(4)}@example.com" }
+      let!(:noplan_customer) { create_test_customer(email: noplan_email) }
+      let!(:org_no_plan) do
+        org = create_test_organization(customer: noplan_customer)
+        org.stripe_customer_id = nil
+        org.planid = nil
+        org.save
+        org
+      end
+
+      before do
+        stripe_customer = build_stripe_customer(
+          id: stripe_customer_id,
+          email: noplan_email,
+          metadata: {},
+        )
+        allow(Stripe::Customer).to receive(:retrieve)
+          .with(stripe_customer_id)
+          .and_return(stripe_customer)
+
+        allow(OT).to receive(:conf).and_return({ 'site' => { 'region' => 'EU' } })
+      end
+
+      it 'uses "unresolved" when org has no planid' do
+        expect(Stripe::Customer).to receive(:update).with(
+          stripe_customer_id,
+          metadata: hash_including('last_federation_plan' => 'unresolved')
+        )
+
+        handler.send(:record_federation_note, subscription, org_no_plan, true)
       end
     end
   end

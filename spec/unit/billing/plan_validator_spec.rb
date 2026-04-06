@@ -623,3 +623,187 @@ RSpec.describe 'Billing::CatalogMissError', billing: true do
     expect(error.price_id).to eq('price_123')
   end
 end
+
+# ==============================================================================
+# SECTION 8: Billing::PlanValidator.resolve_plan_id_for_federation
+# ==============================================================================
+#
+# Federation plan resolution from metadata (not catalog) for cross-region orgs.
+# Unlike resolve_plan_id, this method does NOT raise on failure - it returns nil
+# and logs an error because retries don't help when metadata is missing.
+#
+RSpec.describe 'Billing::PlanValidator.resolve_plan_id_for_federation', billing: true do
+  let(:validator) { Billing::PlanValidator }
+
+  def build_subscription(subscription_metadata: {}, price_metadata: {})
+    Stripe::Subscription.construct_from({
+      id: 'sub_federation_test',
+      object: 'subscription',
+      customer: 'cus_test',
+      status: 'active',
+      metadata: subscription_metadata,
+      items: {
+        data: [{
+          price: {
+            id: 'price_cross_region_xyz',
+            product: 'prod_cross_region',
+            metadata: price_metadata,
+          },
+          current_period_end: (Time.now + 30 * 24 * 60 * 60).to_i,
+        }],
+      },
+    })
+  end
+
+  describe 'happy path: plan_id found in subscription metadata' do
+    before do
+      # Mock valid_plan_id? to return true for the test plan
+      mock_plan = instance_double(Billing::Plan, plan_id: 'identity_plus_v1')
+      allow(Billing::Plan).to receive(:load).with('identity_plus_v1').and_return(mock_plan)
+      allow(mock_plan).to receive(:exists?).and_return(true)
+    end
+
+    let(:subscription) do
+      build_subscription(
+        subscription_metadata: { 'plan_id' => 'identity_plus_v1' },
+        price_metadata: {}
+      )
+    end
+
+    it 'returns the plan_id from subscription metadata' do
+      expect(validator.resolve_plan_id_for_federation(subscription)).to eq('identity_plus_v1')
+    end
+
+    it 'logs successful resolution' do
+      logger = instance_double(SemanticLogger::Logger)
+      allow(Onetime).to receive(:get_logger).with('Billing').and_return(logger)
+      allow(logger).to receive(:debug)
+
+      expect(logger).to receive(:debug).with(
+        '[PlanValidator.resolve_plan_id_for_federation] Found in subscription metadata',
+        hash_including(plan_id: 'identity_plus_v1')
+      )
+
+      validator.resolve_plan_id_for_federation(subscription)
+    end
+  end
+
+  describe 'fallback: plan_id found in price metadata' do
+    before do
+      # Mock valid_plan_id? to return true for price metadata plan
+      mock_plan = instance_double(Billing::Plan, plan_id: 'multi_team_v1')
+      allow(Billing::Plan).to receive(:load).with('multi_team_v1').and_return(mock_plan)
+      allow(mock_plan).to receive(:exists?).and_return(true)
+
+      # Subscription metadata plan_id is NOT valid (or missing)
+      allow(Billing::Plan).to receive(:load).with(nil).and_return(nil)
+    end
+
+    let(:subscription) do
+      build_subscription(
+        subscription_metadata: {},
+        price_metadata: { 'plan_id' => 'multi_team_v1' }
+      )
+    end
+
+    it 'returns the plan_id from price metadata when not in subscription metadata' do
+      expect(validator.resolve_plan_id_for_federation(subscription)).to eq('multi_team_v1')
+    end
+
+    it 'logs that plan_id was found in price metadata' do
+      logger = instance_double(SemanticLogger::Logger)
+      allow(Onetime).to receive(:get_logger).with('Billing').and_return(logger)
+      allow(logger).to receive(:debug)
+
+      expect(logger).to receive(:debug).with(
+        '[PlanValidator.resolve_plan_id_for_federation] Found in price metadata',
+        hash_including(plan_id: 'multi_team_v1')
+      )
+
+      validator.resolve_plan_id_for_federation(subscription)
+    end
+  end
+
+  describe 'failure: no valid plan_id anywhere' do
+    before do
+      # Neither metadata location has a valid plan_id
+      allow(Billing::Plan).to receive(:load).and_return(nil)
+      allow(Billing::Config).to receive(:load_plans).and_return({})
+    end
+
+    let(:subscription) do
+      build_subscription(
+        subscription_metadata: {},
+        price_metadata: {}
+      )
+    end
+
+    it 'returns nil (does NOT raise)' do
+      expect(validator.resolve_plan_id_for_federation(subscription)).to be_nil
+    end
+
+    it 'logs error with subscription details' do
+      logger = instance_double(SemanticLogger::Logger)
+      allow(Onetime).to receive(:get_logger).with('Billing').and_return(logger)
+      allow(logger).to receive(:debug)
+      allow(logger).to receive(:error)
+
+      expect(logger).to receive(:error).with(
+        '[PlanValidator.resolve_plan_id_for_federation] No valid plan_id in metadata',
+        hash_including(
+          subscription_id: 'sub_federation_test',
+          price_id: 'price_cross_region_xyz'
+        )
+      )
+
+      validator.resolve_plan_id_for_federation(subscription)
+    end
+  end
+
+  describe 'invalid plan_id: exists in metadata but fails validation' do
+    before do
+      # Plan exists in metadata but valid_plan_id? returns false
+      allow(Billing::Plan).to receive(:load).with('nonexistent_plan').and_return(nil)
+      allow(Billing::Config).to receive(:load_plans).and_return({})
+    end
+
+    let(:subscription) do
+      build_subscription(
+        subscription_metadata: { 'plan_id' => 'nonexistent_plan' },
+        price_metadata: {}
+      )
+    end
+
+    it 'returns nil when plan_id is invalid' do
+      expect(validator.resolve_plan_id_for_federation(subscription)).to be_nil
+    end
+
+    it 'does not raise an error' do
+      expect { validator.resolve_plan_id_for_federation(subscription) }.not_to raise_error
+    end
+  end
+
+  describe 'subscription metadata takes precedence over price metadata' do
+    before do
+      # Both locations have valid plan_ids
+      mock_sub_plan = instance_double(Billing::Plan, plan_id: 'identity_plus_v1')
+      mock_price_plan = instance_double(Billing::Plan, plan_id: 'multi_team_v1')
+
+      allow(Billing::Plan).to receive(:load).with('identity_plus_v1').and_return(mock_sub_plan)
+      allow(mock_sub_plan).to receive(:exists?).and_return(true)
+      allow(Billing::Plan).to receive(:load).with('multi_team_v1').and_return(mock_price_plan)
+      allow(mock_price_plan).to receive(:exists?).and_return(true)
+    end
+
+    let(:subscription) do
+      build_subscription(
+        subscription_metadata: { 'plan_id' => 'identity_plus_v1' },
+        price_metadata: { 'plan_id' => 'multi_team_v1' }
+      )
+    end
+
+    it 'returns subscription metadata plan_id, ignoring price metadata' do
+      expect(validator.resolve_plan_id_for_federation(subscription)).to eq('identity_plus_v1')
+    end
+  end
+end

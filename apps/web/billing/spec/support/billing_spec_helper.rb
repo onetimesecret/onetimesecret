@@ -122,6 +122,9 @@ module BillingSpecHelper
   # Billing::Plan.find_by_stripe_price_id to return mock plans for common
   # test price IDs (price_test, price_test_mock, etc).
   #
+  # Also stubs valid_plan_id? to accept common test plan IDs like
+  # 'identity_plus_v1' used in federation metadata.
+  #
   # Call this in before(:each) blocks for tests that process subscriptions.
   #
   def stub_test_plan_catalog!
@@ -137,6 +140,13 @@ module BillingSpecHelper
       currency: 'cad',
     )
 
+    # Mock plan for federation metadata validation
+    identity_plus_plan = instance_double(
+      Billing::Plan,
+      plan_id: 'identity_plus_v1',
+    )
+    allow(identity_plus_plan).to receive(:exists?).and_return(true)
+
     # Stub find_by_stripe_price_id to return mock plan for test price IDs
     allow(Billing::Plan).to receive(:find_by_stripe_price_id).and_call_original
     allow(Billing::Plan).to receive(:find_by_stripe_price_id)
@@ -148,6 +158,13 @@ module BillingSpecHelper
     allow(Billing::Plan).to receive(:find_by_stripe_price_id)
       .with(satisfy { |id| id&.start_with?('price_test_') })
       .and_return(mock_plan)
+
+    # Stub Plan.load to validate plan IDs used in federation metadata
+    # This is called by PlanValidator.valid_plan_id? for metadata lookups
+    allow(Billing::Plan).to receive(:load).and_call_original
+    allow(Billing::Plan).to receive(:load)
+      .with('identity_plus_v1')
+      .and_return(identity_plus_plan)
   end
 
   # Generate valid Stripe webhook signature

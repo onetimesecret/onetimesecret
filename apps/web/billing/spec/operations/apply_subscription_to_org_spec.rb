@@ -27,6 +27,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
     )
   end
 
+  # Build subscription for owner path (uses catalog resolution via price_id)
   def build_subscription(status: 'active', metadata: {}, price_id: 'price_test')
     mock_plan = instance_double(Billing::Plan, plan_id: 'identity_plus_v1')
     allow(Billing::Plan).to receive(:find_by_stripe_price_id)
@@ -43,6 +44,34 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
         data: [{
           price: {
             id: price_id,
+            product: 'prod_test',
+            metadata: {},
+          },
+          current_period_end: period_end,
+        }],
+      },
+    })
+  end
+
+  # Build subscription for federated path (uses metadata resolution)
+  # Federated orgs receive subscriptions from other regions where the
+  # price_id is not in the local catalog, so plan_id comes from metadata.
+  def build_federated_subscription(status: 'active', plan_id: 'identity_plus_v1')
+    # Mock valid_plan_id? to return true for the plan in metadata
+    allow(Billing::PlanValidator).to receive(:valid_plan_id?)
+      .with(plan_id)
+      .and_return(true)
+
+    Stripe::Subscription.construct_from({
+      id: 'sub_test_123',
+      object: 'subscription',
+      customer: 'cus_test_456',
+      status: status,
+      metadata: { 'plan_id' => plan_id },
+      items: {
+        data: [{
+          price: {
+            id: 'price_eu_region',  # Cross-region price, not in local catalog
             product: 'prod_test',
             metadata: {},
           },
@@ -80,7 +109,8 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
 
   describe 'federated path' do
     it 'sets status and plan but NOT Stripe IDs' do
-      subscription = build_subscription
+      # Federated path uses metadata-based resolution (not catalog)
+      subscription = build_federated_subscription
 
       expect(org).to receive(:subscription_status=).with('active')
       expect(org).to receive(:planid=).with('identity_plus_v1')
@@ -126,7 +156,8 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
 
   describe 'save: false' do
     it 'applies fields but does not call save' do
-      subscription = build_subscription
+      # Uses federated path (owner: false) with metadata-based resolution
+      subscription = build_federated_subscription
 
       expect(org).to receive(:subscription_status=).with('active')
       expect(org).to receive(:planid=).with('identity_plus_v1')

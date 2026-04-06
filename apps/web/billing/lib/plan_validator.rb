@@ -148,6 +148,62 @@ module Billing
       (catalog_plan_ids + static_plan_ids).uniq.sort
     end
 
+    # Resolve plan_id for federated organizations using metadata
+    #
+    # Federated orgs receive subscriptions from other regions where the
+    # Stripe price_id is not in the local catalog (each region has its own
+    # Stripe account with different price IDs). However, the logical plan
+    # name (e.g., 'identity_plus_v1') is universal across all regions and
+    # stored in Stripe subscription/price metadata.
+    #
+    # This method reads plan_id directly from metadata, bypassing the
+    # catalog lookup that would fail for cross-region price IDs.
+    #
+    # ## Why we don't raise on failure
+    #
+    # Unlike resolve_plan_id (which raises CatalogMissError), this method
+    # logs and returns nil on failure. Rationale:
+    #
+    # 1. Retries don't help - if metadata is missing, Stripe won't magically
+    #    populate it on retry. The webhook would just fail repeatedly.
+    # 2. Partial success is better - the org still gets subscription_status
+    #    and period_end, just not planid. A sync health check can catch this.
+    # 3. Federation is best-effort - the owner org (in another region) has
+    #    the authoritative subscription. Federated orgs receive benefits
+    #    passively; a missing planid degrades gracefully to free-tier UX.
+    #
+    # @param subscription [Stripe::Subscription] Stripe subscription object
+    # @return [String, nil] The plan_id from metadata, or nil if not found
+    #
+    def resolve_plan_id_for_federation(subscription)
+      # Try subscription metadata first (most reliable for cross-region)
+      plan_id = subscription.metadata['plan_id']
+      if plan_id && valid_plan_id?(plan_id)
+        billing_logger.debug '[PlanValidator.resolve_plan_id_for_federation] Found in subscription metadata',
+          plan_id: plan_id
+        return plan_id
+      end
+
+      # Try price metadata as fallback
+      price   = subscription.items.data.first&.price
+      plan_id = price&.metadata&.[]('plan_id')
+      if plan_id && valid_plan_id?(plan_id)
+        billing_logger.debug '[PlanValidator.resolve_plan_id_for_federation] Found in price metadata',
+          plan_id: plan_id
+        return plan_id
+      end
+
+      # Log failure but don't raise - retries won't help, and sync health
+      # check will catch the drift (federated org with nil/free planid)
+      billing_logger.error '[PlanValidator.resolve_plan_id_for_federation] No valid plan_id in metadata',
+        subscription_id: subscription.id,
+        subscription_metadata: subscription.metadata.to_h,
+        price_id: price&.id,
+        price_metadata: price&.metadata&.to_h
+
+      nil
+    end
+
     # Detect drift between subscription metadata and catalog
     #
     # Compares the plan_id in subscription metadata against what the
