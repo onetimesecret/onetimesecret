@@ -258,6 +258,15 @@ export default defineConfig({
    */
   server: {
     origin: viteBaseUrl,
+    // HMR must use the same host as the browser to avoid WebSocket connection failures.
+    // When the browser is at dev.onetime.dev but HMR tries localhost:5173, the connection
+    // fails and can cause components to re-mount outside the Vue app context.
+    hmr: viteBaseUrl
+      ? {
+          host: new URL(viteBaseUrl).hostname,
+          protocol: 'wss',
+        }
+      : true,
     allowedHosts: (() => {
       // NOTE: This is an Immediately Invoked Function Expression (IIFE)
       // that executes exactly once during config load/parsing time.
