@@ -18,6 +18,9 @@ require 'onetime/security/invite_token_rate_limiter'
 
 OT.boot! :test, true
 
+# Force rate limiter to work in test environment for these unit tests
+Onetime::Security::InviteTokenRateLimiter.force_enabled = true
+
 @test_ip = "192.168.1.#{rand(100..199)}"
 @test_ip2 = "10.0.0.#{rand(100..199)}"
 @redis = Onetime::Secret.dbclient

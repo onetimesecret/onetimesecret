@@ -37,6 +37,12 @@ module Onetime
       # Lockout duration in seconds after max attempts exceeded (30 minutes)
       LOCKOUT_SECONDS = 1800
 
+      class << self
+        # Force rate limiting even in test environment (for unit testing the limiter)
+        attr_accessor :force_enabled
+      end
+      self.force_enabled = false
+
       # Lua script to atomically increment attempts and handle expiration/lockout.
       # Returns: [current_attempts, limit_exceeded, ttl]
       #
@@ -80,6 +86,7 @@ module Onetime
       # @return [void]
       def check!
         return if @ip_address.empty?
+        return if test_bypass? # Bypass rate limiting in test environment
 
         is_locked, ttl = redis.pipelined do |pipe|
           pipe.exists?(lockout_key)
@@ -103,6 +110,7 @@ module Onetime
       # @return [Hash] Status with :attempts, :locked, :retry_after keys
       def record_attempt
         return { attempts: 0, locked: false } if @ip_address.empty?
+        return { attempts: 0, locked: false } if test_bypass? # Bypass in test environment
 
         current_attempts, limit_exceeded, ttl = run_record_script
 
@@ -153,6 +161,12 @@ module Onetime
       end
 
       private
+
+      # Check if rate limiting should be bypassed in test environment.
+      # Returns true if RACK_ENV=test and force_enabled is not set.
+      def test_bypass?
+        OT.env?(:test) && !self.class.force_enabled
+      end
 
       # Execute the Lua script via Redis EVAL command (server-side execution)
       def run_record_script
