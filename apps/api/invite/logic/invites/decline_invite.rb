@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/invite_token_rate_limiter'
+
 module InviteAPI::Logic
   module Invites
     # Decline an invitation to join an organization
@@ -20,6 +22,12 @@ module InviteAPI::Logic
       end
 
       def raise_concerns
+        # Rate limiting for noauth endpoint - prevents token enumeration
+        client_ip    = @strategy_result&.metadata&.dig(:ip) || @strategy_result&.metadata&.dig('ip') || '0.0.0.0'
+        rate_limiter = Onetime::Security::InviteTokenRateLimiter.new(client_ip)
+        rate_limiter.check!
+        rate_limiter.record_attempt
+
         raise_form_error('Token is required', field: :token) if @token.nil? || @token.empty?
 
         @invitation = load_invitation(@token)

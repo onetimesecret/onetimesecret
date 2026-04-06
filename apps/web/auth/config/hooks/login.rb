@@ -173,6 +173,15 @@ module Auth::Config::Hooks
               end
             end
           end
+
+          # Accept pending invitation if token provided in login request
+          Login.accept_invite_on_login(
+            request: request,
+            account: account,
+            account_id: account_id,
+            session: session,
+            correlation_id: correlation_id,
+          )
         end
       end
 
@@ -218,6 +227,46 @@ module Auth::Config::Hooks
             level: :warn,
             email: OT::Utils.obscure_email(email),
             ip: request.ip,
+            correlation_id: correlation_id,
+          )
+        end
+      end
+    end
+
+    # Accept pending invitation if token provided in login request
+    # Extracted to reduce complexity in configure method
+    def self.accept_invite_on_login(request:, account:, account_id:, session:, correlation_id:)
+      invite_token = request.params['invite_token']
+      return unless invite_token && !invite_token.to_s.strip.empty?
+
+      customer = Onetime::Customer.find_by_email(account[:email])
+      return unless customer
+
+      Onetime::ErrorHandler.safe_execute('accept_invitation_on_login', token: invite_token) do
+        result = Auth::Operations::AcceptInvitation.new(
+          customer: customer,
+          token: invite_token,
+        ).call
+
+        if result[:accepted]
+          Auth::Logging.log_auth_event(
+            :invitation_accepted_on_login,
+            level: :info,
+            account_id: account_id,
+            organization_id: result[:organization_id],
+            role: result[:role],
+            correlation_id: correlation_id,
+          )
+
+          # Clear org cache so next request picks up the new org
+          cache_key = "org_context:#{customer.objid}"
+          session.delete(cache_key)
+        else
+          Auth::Logging.log_auth_event(
+            :invitation_skipped_on_login,
+            level: :info,
+            account_id: account_id,
+            reason: result[:reason],
             correlation_id: correlation_id,
           )
         end

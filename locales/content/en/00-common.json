@@ -1429,5 +1429,25 @@
     "text": "Upgrade to unlock more features",
     "context": "Description shown for free plan users encouraging upgrade",
     "content_hash": "783f174c"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Confirm Password",
+    "context": "Label for password confirmation field",
+    "content_hash": "7a8b9c0d"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Passwords must match",
+    "context": "Error message when password confirmation doesn't match",
+    "content_hash": "1e2f3a4b"
+  },
+  "web.COMMON.and": {
+    "text": "and",
+    "context": "Conjunction between terms (e.g., Terms and Privacy)",
+    "content_hash": "5c6d7e8f"
+  },
+  "web.COMMON.or": {
+    "text": "or",
+    "context": "Alternative conjunction (e.g., Sign in or use SSO)",
+    "content_hash": "9a0b1c2d"
   }
 }

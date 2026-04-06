@@ -83,9 +83,13 @@
     <style>
       /* Fallback styles - must be inline since CSS bundle may not load.
          Tailwind v4 puts utilities in @layer, so un-layered styles here
-         win the cascade. Both .dark class AND prefers-color-scheme are
-         needed: the class handles the app toggle, the media query handles
-         the window before Vue mounts (when enjoyTheVue defers to Vue). */
+         win the cascade.
+
+         Body background controlled solely by .dark class on <html>.
+         The inline script in <head> already converts prefers-color-scheme
+         to the appropriate class, so no media query fallback is needed.
+         Using both created a conflict when user had stored light preference
+         but system was in dark mode. */
       body {
         background-color: #ffffff;
         color: #111827;
@@ -93,12 +97,6 @@
       html.dark body {
         background-color: rgb(17, 24, 39);
         color: #f3f4f6;
-      }
-      @media (prefers-color-scheme: dark) {
-        body {
-          background-color: rgb(17, 24, 39);
-          color: #f3f4f6;
-        }
       }
       .app-fallback {
         min-height: 100vh;
@@ -108,9 +106,6 @@
         color: #6b7280;
       }
       html.dark .app-fallback { color: #9ca3af; }
-      @media (prefers-color-scheme: dark) {
-        .app-fallback { color: #9ca3af; }
-      }
       .dot {
         animation: blink 1.4s infinite;
         opacity: 0;

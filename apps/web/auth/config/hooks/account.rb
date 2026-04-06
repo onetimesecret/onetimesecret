@@ -85,6 +85,34 @@ module Auth::Config::Hooks
           Onetime::ErrorHandler.safe_execute('create_default_workspace', extid: customer.extid) do
             Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
           end
+
+          # Accept pending invitation if token provided in signup request
+          invite_token = request.params['invite_token']
+          if invite_token && !invite_token.to_s.strip.empty?
+            Onetime::ErrorHandler.safe_execute('accept_invitation', token: invite_token) do
+              result = Auth::Operations::AcceptInvitation.new(
+                customer: customer,
+                token: invite_token,
+              ).call
+
+              if result[:accepted]
+                Auth::Logging.log_auth_event(
+                  :invitation_accepted,
+                  level: :info,
+                  email: customer.email,
+                  organization_id: result[:organization_id],
+                  role: result[:role],
+                )
+              else
+                Auth::Logging.log_auth_event(
+                  :invitation_not_accepted,
+                  level: :info,
+                  email: customer.email,
+                  reason: result[:reason],
+                )
+              end
+            end
+          end
         end
       end
 

@@ -3,21 +3,16 @@
 # frozen_string_literal: true
 
 #
-# Tests for AcceptInvite email matching and mismatch acknowledgment logic.
+# Tests for AcceptInvite strict email matching logic.
+#
+# Phase 4 Security Change: Email mismatch acknowledgment has been removed.
+# Invitations are now strictly email-bound - no exceptions.
 #
 # Tests cover:
-# 1. Exact email match - accepts without acknowledgment
-# 2. Case difference only - accepts without acknowledgment (case-insensitive)
-# 3. Different emails without acknowledgment - rejects with specific error
-# 4. Different emails with acknowledgment - accepts (WHEN MODEL UPDATED)
-#
-# CURRENT IMPLEMENTATION STATE:
-# - AcceptInvite logic: Has acknowledge_email_mismatch param support
-# - OrganizationMembership.accept!: Does strict equality check (no normalization)
-# - GAP: Model doesn't accept force_accept param, so acknowledgment fails at model layer
-#
-# The logic layer correctly validates and allows mismatch with acknowledgment,
-# but the model layer blocks it. Tests document current behavior and expected fixes.
+# 1. Exact email match - accepts
+# 2. Case difference only - accepts (case-insensitive)
+# 3. Different emails - always rejects (no acknowledgment bypass)
+# 4. Plus-tag difference - rejects (treated as different email)
 
 require_relative '../../../../support/test_models'
 require 'securerandom'
@@ -95,10 +90,10 @@ rescue OT::FormError => e
 end
 
 # ============================================================================
-# Test: Exact email match - accepts without acknowledgment
+# Test: Exact email match - accepts without any special flags
 # ============================================================================
 
-## Exact email match - accepts without acknowledgment param
+## Exact email match - accepts
 @exact_email = "exact_match_#{@test_suffix}@test.com"
 @exact_user = Onetime::Customer.create!(email: @exact_email)
 @exact_invite = create_test_invitation(@exact_email)
@@ -119,25 +114,27 @@ Onetime::OrganizationMembership.load(@exact_invite.objid).status
 #=> 'active'
 
 # ============================================================================
-# Test: Case difference - current model does strict equality
+# Test: Case difference - case-insensitive matching succeeds
 # ============================================================================
 
-## Case difference - model uses strict equality so this should fail
+## Case difference - model uses case-insensitive comparison
 @case_email_invited = "CASE_MATCH_#{@test_suffix}@TEST.COM"
 @case_email_user = "case_match_#{@test_suffix}@test.com"
 @case_user = Onetime::Customer.create!(email: @case_email_user)
 @case_invite = create_test_invitation(@case_email_invited)
-# Note: Model's accept! does customer.email != invited_email (strict)
 @case_result, @case_error, _ = try_accept_invitation(@case_user, @case_invite)
-# This tests CURRENT behavior - may fail at model layer due to case sensitivity
-@case_error.nil? || @case_error.message.include?('mismatch')
+@case_error.nil?
+#=> true
+
+## Case difference - user is now member of org
+@org.member?(@case_user)
 #=> true
 
 # ============================================================================
-# Test: Different emails WITHOUT acknowledgment - rejects at logic layer
+# Test: Different emails - ALWAYS rejects (strict email binding)
 # ============================================================================
 
-## Different emails without acknowledgment - logic layer rejects
+## Different emails - logic layer rejects
 @diff_invited_email = "invited_#{@test_suffix}@company.com"
 @diff_user_email = "different_#{@test_suffix}@other.com"
 @diff_user = Onetime::Customer.create!(email: @diff_user_email)
@@ -150,15 +147,19 @@ Onetime::OrganizationMembership.load(@exact_invite.objid).status
 @diff_error.message.include?('match')
 #=> true
 
-## Different emails - user NOT added to org (blocked at logic layer)
+## Different emails - error type is email_mismatch (not acknowledgment type)
+@diff_error.error_type
+#=> 'email_mismatch'
+
+## Different emails - user NOT added to org
 @org.member?(@diff_user)
 #=> false
 
 # ============================================================================
-# Test: Different emails WITH acknowledgment - logic layer passes
+# Test: acknowledge_email_mismatch param is IGNORED (security change)
 # ============================================================================
 
-## Logic layer accepts mismatch when acknowledge_email_mismatch=true
+## Passing acknowledge_email_mismatch=true still fails (param removed)
 @ack_invited_email = "ack_invited_#{@test_suffix}@company.com"
 @ack_user_email = "ack_different_#{@test_suffix}@other.com"
 @ack_user = Onetime::Customer.create!(email: @ack_user_email)
@@ -168,10 +169,11 @@ Onetime::OrganizationMembership.load(@exact_invite.objid).status
   @ack_invite,
   { 'acknowledge_email_mismatch' => true }
 )
+# Should FAIL - acknowledgment no longer bypasses the check
 @ack_passed
-#=> true
+#=> false
 
-## Logic layer passes with string 'true' for acknowledgment
+## String 'true' acknowledgment also fails
 @str_invite = create_test_invitation("str_invited_#{@test_suffix}@a.com")
 @str_user = Onetime::Customer.create!(email: "str_user_#{@test_suffix}@b.com")
 @str_passed, _, _ = try_raise_concerns(
@@ -179,54 +181,23 @@ Onetime::OrganizationMembership.load(@exact_invite.objid).status
   @str_invite,
   { 'acknowledge_email_mismatch' => 'true' }
 )
+# Should FAIL - acknowledgment no longer bypasses the check
 @str_passed
-#=> true
+#=> false
 
 # ============================================================================
-# Test: Full acceptance with acknowledgment - model layer behavior
+# Test: Plus-tag difference - treated as different email
 # ============================================================================
 
-## Full acceptance with acknowledgment succeeds end-to-end
-@full_invite = create_test_invitation("full_invited_#{@test_suffix}@a.com")
-@full_user = Onetime::Customer.create!(email: "full_user_#{@test_suffix}@b.com")
-@full_result, @full_error, _ = try_accept_invitation(
-  @full_user,
-  @full_invite,
-  { 'acknowledge_email_mismatch' => true }
-)
-# Model's accept! respects acknowledge_mismatch: flag
-@full_error.nil?
-#=> true
-
-## User is added to org with acknowledged mismatch
-@org.member?(@full_user)
-#=> true
-
-# ============================================================================
-# Test: Plus-tag difference behavior
-# ============================================================================
-
-## Plus-tag emails treated as different (no normalization in current impl)
+## Plus-tag emails treated as different (no normalization)
 @plus_base = "plus_#{@test_suffix}@test.com"
 @plus_tagged = "plus_#{@test_suffix}+work@test.com"
 @plus_user = Onetime::Customer.create!(email: @plus_base)
 @plus_invite = create_test_invitation(@plus_tagged)
 @plus_passed, @plus_error, _ = try_raise_concerns(@plus_user, @plus_invite)
 # normalize_email only lowercases, doesn't strip +tags
-# So plus_#{suffix}@test.com != plus_#{suffix}+work@test.com
 @plus_passed
 #=> false
-
-## Plus-tag with acknowledgment passes logic layer
-@plus2_invite = create_test_invitation("plus2_#{@test_suffix}+tag@test.com")
-@plus2_user = Onetime::Customer.create!(email: "plus2_#{@test_suffix}@test.com")
-@plus2_passed, _, _ = try_raise_concerns(
-  @plus2_user,
-  @plus2_invite,
-  { 'acknowledge_email_mismatch' => true }
-)
-@plus2_passed
-#=> true
 
 # ============================================================================
 # Test: normalize_email behavior via logic instance
@@ -262,7 +233,7 @@ _, @err_error, _ = try_raise_concerns(@err_user, @err_invite)
 
 [
   @org, @owner, @exact_user, @case_user, @diff_user, @ack_user, @str_user,
-  @full_user, @plus_user, @plus2_user, @err_user
+  @plus_user, @err_user
 ].compact.each do |obj|
   obj.destroy! if obj.respond_to?(:destroy!) && obj.exists?
 rescue StandardError

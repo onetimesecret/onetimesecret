@@ -25,6 +25,19 @@ OT.boot! :test
 require 'onetime/application/registry'
 Onetime::Application::Registry.prepare_application_registry
 
+# Helper to reset invite rate limiter for all test IPs
+# This prevents 429 responses when tests make many GET requests to /api/invite/:token
+# Uses direct Redis DEL to clear all possible rate limiter keys
+def reset_invite_rate_limiter!
+  redis = Onetime::Secret.dbclient
+  # Clear all invite rate limiter keys (attempts and lockouts) for any IP
+  keys = redis.keys('invite_attempts:*') + redis.keys('invite_locked:*')
+  redis.del(*keys) unless keys.empty?
+end
+
+# Clear any existing rate limit state before tests begin
+reset_invite_rate_limiter!
+
 # Create test instance with Rack::Test::Methods
 @test = Object.new
 @test.extend Rack::Test::Methods
@@ -59,6 +72,9 @@ def last_response; @test.last_response; end
 # HIGH PRIORITY: Expired Invitation API Test
 # ============================================================================
 
+# Reset rate limiter before expired invitation tests
+reset_invite_rate_limiter!
+
 ## Setup expired invitation - set invited_at to 8 days ago
 @expired_email = generate_unique_test_email("expired_invite")
 @expired_invite = Onetime::OrganizationMembership.create_invitation!(
@@ -77,15 +93,17 @@ def last_response; @test.last_response; end
 @expired_invite.expired?
 #=> true
 
-## GET /api/invite/:token - Returns 400 for expired invitation
+## GET /api/invite/:token - Returns 200 with structured response for expired invitation
+# Note: API intentionally returns 200 for all invitation states (including expired)
+# with structured response containing status and actionable fields
 get "/api/invite/#{@expired_token}", {}, { 'HTTP_ACCEPT' => 'application/json' }
-last_response.status >= 400
-#=> true
+last_response.status
+#=> 200
 
-## GET /api/invite/:token - Expired invitation error response contains expired indicator
+## GET /api/invite/:token - Expired invitation response indicates not actionable
 resp = JSON.parse(last_response.body)
-resp['error'].to_s.downcase.include?('expired') || resp['message'].to_s.downcase.include?('expired') || last_response.status == 400
-#=> true
+[resp['record']['status'], resp['record']['actionable']]
+#=> ['expired', false]
 
 ## Setup invitee for expired acceptance test
 @expired_invitee = Onetime::Customer.create!(email: @expired_email)
@@ -119,6 +137,9 @@ last_response.status
 # ============================================================================
 # HIGH PRIORITY: Invite Without Existing Account (Core Use Case)
 # ============================================================================
+
+# Reset rate limiter before non-existent user tests
+reset_invite_rate_limiter!
 
 ## Create invitation for email without existing customer account
 @nonexistent_email = generate_unique_test_email("no_account")
@@ -272,6 +293,9 @@ last_response.status >= 400
 # MEDIUM PRIORITY: Token Format Validation
 # ============================================================================
 
+# Reset rate limiter before token validation tests (many GET requests)
+reset_invite_rate_limiter!
+
 ## GET /api/invite/:token - Returns 400 for empty token
 get "/api/invite/", {}, { 'HTTP_ACCEPT' => 'application/json' }
 last_response.status >= 400
@@ -305,6 +329,9 @@ last_response.status >= 400
 # ============================================================================
 # MEDIUM PRIORITY: Resend Progressive Behavior (Token Invalidation)
 # ============================================================================
+
+# Reset rate limiter before token invalidation tests (many GET requests)
+reset_invite_rate_limiter!
 
 ## Setup for token invalidation test
 @token_inv_email = generate_unique_test_email("token_inv")
@@ -406,6 +433,9 @@ last_response.status >= 400
 # ============================================================================
 # MEDIUM PRIORITY: Organization Deletion Impact
 # ============================================================================
+
+# Reset rate limiter before org deletion tests
+reset_invite_rate_limiter!
 
 ## Setup second org with pending invitation for deletion test
 @org2_owner = Onetime::Customer.create!(email: generate_unique_test_email("org2_owner"))

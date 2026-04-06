@@ -16,8 +16,7 @@ module InviteAPI::Logic
       attr_reader :invitation, :organization, :membership
 
       def process_params
-        @token                      = sanitize_identifier(params['token'])
-        @acknowledge_email_mismatch = [true, 'true'].include?(params['acknowledge_email_mismatch'])
+        @token = sanitize_identifier(params['token'])
       end
 
       def raise_concerns
@@ -47,16 +46,16 @@ module InviteAPI::Logic
           raise_form_error('Invitation has expired', field: :token)
         end
 
-        # Verify email match (case-insensitive)
+        # Strict email binding - no exceptions
         if @invitation.invited_email
           invited = normalize_email(@invitation.invited_email)
           user    = normalize_email(cust.email)
 
-          if invited != user && !@acknowledge_email_mismatch
+          unless invited == user
             raise_form_error(
               'Your email address does not match the invitation',
               field: :email,
-              error_type: 'email_mismatch_requires_acknowledgment',
+              error_type: 'email_mismatch',
             )
           end
         end
@@ -71,7 +70,7 @@ module InviteAPI::Logic
         OT.ld "[AcceptInvite] Accepting invitation #{@invitation.objid} for user #{cust.obscure_email}"
 
         # Accept the invitation (updates membership status and adds to org)
-        @invitation.accept!(cust, acknowledge_mismatch: @acknowledge_email_mismatch)
+        @invitation.accept!(cust)
 
         OT.info "[AcceptInvite] User #{cust.obscure_email} joined organization #{@organization.extid}"
 

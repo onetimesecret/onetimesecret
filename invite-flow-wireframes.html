@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OTS Invite Flow Wireframes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    /* OTS brand tokens (from screenshots) */
+    --ots-bg: #1a1e2e;
+    --ots-surface: #242a3d;
+    --ots-surface-raised: #2c3349;
+    --ots-border: rgba(255,255,255,0.08);
+    --ots-border-strong: rgba(255,255,255,0.15);
+    --ots-text: #e8e9ec;
+    --ots-text-muted: #8b91a8;
+    --ots-text-label: #9ca3bf;
+    --ots-accent: #d45a2a;
+    --ots-accent-hover: #e06530;
+    --ots-topbar: #d45a2a;
+    --ots-icon: #d4956a;
+    --ots-info-bg: rgba(59,130,246,0.08);
+    --ots-info-border: rgba(59,130,246,0.25);
+    --ots-info-text: #7cacf0;
+    --ots-warn-bg: rgba(234,179,8,0.08);
+    --ots-warn-border: rgba(234,179,8,0.25);
+    --ots-warn-text: #e0c55a;
+    --ots-error-bg: rgba(220,38,38,0.12);
+    --ots-error-border: rgba(220,38,38,0.3);
+    --ots-error-text: #f08080;
+    --ots-success-bg: rgba(34,197,94,0.08);
+    --ots-success-border: rgba(34,197,94,0.25);
+    --ots-success-text: #6dd4a0;
+    --ots-radius: 8px;
+
+    /* Wireframe chrome */
+    --chrome-bg: #f5f5f7;
+    --chrome-surface: #ffffff;
+    --chrome-border: #e0e0e4;
+    --chrome-text: #1d1d1f;
+    --chrome-text-sec: #6e6e73;
+    --chrome-accent: #0066ff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--chrome-bg);
+    color: var(--chrome-text);
+    line-height: 1.5;
+  }
+
+  /* ── Navigation ── */
+  .nav {
+    background: var(--chrome-surface);
+    border-bottom: 1px solid var(--chrome-border);
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .nav h1 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+
+  .nav-tabs {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+
+  .nav-tab {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--chrome-border);
+    border-radius: 6px;
+    background: var(--chrome-surface);
+    color: var(--chrome-text-sec);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .nav-tab:hover { border-color: #999; color: var(--chrome-text); }
+  .nav-tab.active {
+    background: var(--chrome-text);
+    color: white;
+    border-color: var(--chrome-text);
+  }
+
+  .nav-tab .state-num {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    width: 1.1em;
+    height: 1.1em;
+    line-height: 1.1em;
+    text-align: center;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.1);
+    margin-right: 0.3rem;
+    vertical-align: middle;
+  }
+
+  .nav-tab.active .state-num { background: rgba(255,255,255,0.2); }
+
+  /* ── Layout ── */
+  .content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .state-panel { display: none; }
+  .state-panel.active { display: block; }
+
+  .state-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .state-header h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  .state-header p {
+    font-size: 0.85rem;
+    color: var(--chrome-text-sec);
+  }
+
+  /* ── Annotations ── */
+  .annotations {
+    background: var(--chrome-surface);
+    border: 1px solid var(--chrome-border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    color: var(--chrome-text-sec);
+  }
+
+  .annotations strong { color: var(--chrome-text); }
+
+  .annotation-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+    margin-bottom: 0.4rem;
+  }
+
+  .annotation-row:last-child { margin-bottom: 0; }
+
+  .ann-marker {
+    flex-shrink: 0;
+    display: inline-block;
+    width: 1.3em;
+    height: 1.3em;
+    line-height: 1.3em;
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: 50%;
+    background: var(--chrome-accent);
+    color: white;
+  }
+
+  .branding-note {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+  }
+
+  .branding-custom {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+  }
+
+  .branding-canonical {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+  }
+
+  .branding-both {
+    background: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffe0b2;
+  }
+
+  /* ── OTS Screen Frame ── */
+  .screen-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .screen-col {
+    flex: 1;
+    min-width: 320px;
+  }
+
+  .screen-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--chrome-text-sec);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+
+  .screen {
+    background: var(--ots-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+
+  .screen-topbar {
+    height: 4px;
+    background: var(--ots-topbar);
+  }
+
+  .screen-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1.25rem;
+  }
+
+  .screen-logo {
+    width: 32px;
+    height: 32px;
+    background: var(--ots-accent);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    color: white;
+  }
+
+  .screen-brand {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ots-text);
+  }
+
+  .screen-brand small {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: var(--ots-text-muted);
+    font-style: italic;
+  }
+
+  /* For org-branded variant */
+  .screen-header.org-branded .screen-logo {
+    background: #3b82f6;
+    border-radius: 50%;
+    font-size: 0.75rem;
+  }
+
+  .screen-body {
+    padding: 1.5rem 1.25rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── OTS Card ── */
+  .ots-card {
+    background: var(--ots-surface);
+    border: 1px solid var(--ots-border-strong);
+    border-radius: var(--ots-radius);
+    padding: 1.75rem 1.5rem;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .ots-card-icon {
+    text-align: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .ots-card-icon svg {
+    width: 40px;
+    height: 40px;
+    color: var(--ots-icon);
+  }
+
+  .ots-card-title {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ots-text);
+    margin-bottom: 1.25rem;
+  }
+
+  /* Invite context block */
+  .invite-context {
+    background: var(--ots-surface-raised);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .invite-context-label {
+    font-size: 0.75rem;
+    color: var(--ots-text-muted);
+    margin-bottom: 0.15rem;
+  }
+
+  .invite-context-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ots-text);
+  }
+
+  /* Detail rows */
+  .invite-details {
+    margin-bottom: 1.25rem;
+  }
+
+  .invite-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--ots-border);
+    font-size: 0.8rem;
+  }
+
+  .invite-detail-row:last-child { border-bottom: none; }
+
+  .invite-detail-label { color: var(--ots-text-label); }
+  .invite-detail-value { color: var(--ots-text); font-weight: 500; }
+
+  /* Alert boxes */
+  .ots-alert {
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.8rem;
+    border: 1px solid;
+  }
+
+  .ots-alert-title {
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+    font-size: 0.85rem;
+  }
+
+  .ots-alert-info {
+    background: var(--ots-info-bg);
+    border-color: var(--ots-info-border);
+    color: var(--ots-info-text);
+  }
+
+  .ots-alert-warn {
+    background: var(--ots-warn-bg);
+    border-color: var(--ots-warn-border);
+    color: var(--ots-warn-text);
+  }
+
+  .ots-alert-error {
+    background: var(--ots-error-bg);
+    border-color: var(--ots-error-border);
+    color: var(--ots-error-text);
+  }
+
+  .ots-alert-success {
+    background: var(--ots-success-bg);
+    border-color: var(--ots-success-border);
+    color: var(--ots-success-text);
+  }
+
+  /* Buttons */
+  .ots-btn-row {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+
+  .ots-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.55rem 1.25rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+
+  .ots-btn-primary {
+    background: var(--ots-accent);
+    color: white;
+  }
+
+  .ots-btn-secondary {
+    background: var(--ots-surface-raised);
+    color: var(--ots-text);
+    border: 1px solid var(--ots-border-strong);
+  }
+
+  .ots-btn-ghost {
+    background: transparent;
+    color: var(--ots-text-muted);
+    border: 1px solid var(--ots-border);
+    font-weight: 500;
+  }
+
+  .ots-btn-link {
+    background: none;
+    border: none;
+    color: var(--ots-info-text);
+    font-weight: 500;
+    padding: 0;
+    font-size: 0.8rem;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+
+  /* Form elements */
+  .ots-form-group {
+    margin-bottom: 0.85rem;
+    width: 100%;
+  }
+
+  .ots-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ots-text-label);
+    margin-bottom: 0.3rem;
+  }
+
+  .ots-input {
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    background: var(--ots-surface-raised);
+    border: 1px solid var(--ots-border-strong);
+    border-radius: 6px;
+    color: var(--ots-text);
+  }
+
+  .ots-input-readonly {
+    opacity: 0.6;
+  }
+
+  .ots-input-placeholder {
+    color: var(--ots-text-muted);
+  }
+
+  /* Tabs */
+  .ots-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--ots-border);
+    margin-bottom: 1rem;
+  }
+
+  .ots-tab {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--ots-text-muted);
+    padding: 0.5rem 1rem;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+  }
+
+  .ots-tab.active {
+    color: var(--ots-accent);
+    border-bottom-color: var(--ots-accent);
+  }
+
+  /* Divider */
+  .ots-divider {
+    border: none;
+    border-top: 1px solid var(--ots-border);
+    margin: 1rem 0;
+  }
+
+  .ots-divider-text {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--ots-text-muted);
+    font-size: 0.75rem;
+    margin: 1rem 0;
+  }
+
+  .ots-divider-text::before,
+  .ots-divider-text::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid var(--ots-border);
+  }
+
+  /* Annotation markers on screens */
+  .ann-point {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.2em;
+    height: 1.2em;
+    font-size: 0.6rem;
+    font-weight: 700;
+    border-radius: 50%;
+    background: var(--chrome-accent);
+    color: white;
+    vertical-align: middle;
+    margin-left: 0.25rem;
+  }
+
+  .screen-footer-note {
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--ots-text-muted);
+    margin-top: 1rem;
+    padding: 0 1rem;
+  }
+
+  /* Flow arrow between screens */
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--chrome-text-sec);
+    font-size: 0.75rem;
+    font-weight: 500;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+
+  .flow-arrow svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  @media (max-width: 700px) {
+    .content { padding: 1rem; }
+    .screen-row { flex-direction: column; }
+    .screen-col { min-width: unset; }
+    .nav { padding: 0.75rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <h1>OTS Invite Flow Wireframes</h1>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showState(1)"><span class="state-num">1</span>New user</button>
+    <button class="nav-tab" onclick="showState(2)"><span class="state-num">2</span>Existing user, not signed in</button>
+    <button class="nav-tab" onclick="showState(3)"><span class="state-num">3</span>Signed in, correct email</button>
+    <button class="nav-tab" onclick="showState(4)"><span class="state-num">4</span>Signed in, wrong email</button>
+    <button class="nav-tab" onclick="showState(5)"><span class="state-num">5</span>Already a member</button>
+    <button class="nav-tab" onclick="showState(6)"><span class="state-num">6</span>Expired / Revoked</button>
+  </div>
+</nav>
+
+<div class="content">
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STATE 1: New user, no account                               -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="state-panel active" id="state-1">
+  <div class="state-header">
+    <h2>State 1: New User (no account for invited email)</h2>
+    <p>Invite details and account creation on one screen. Signup + accept collapsed into a single action.</p>
+  </div>
+
+  <div class="annotations">
+    <span class="branding-both">Both paths: identical layout, branding source differs</span>
+    <div class="annotation-row"><span class="ann-marker">A</span> <span>Email field is <strong>read-only</strong>, pre-filled from the invite. The invite is email-bound; there's nothing to edit. Displaying it reinforces "this is your identity here."</span></div>
+    <div class="annotation-row"><span class="ann-marker">B</span> <span>Auth method tabs reflect <strong>the org's configured auth methods</strong>, not the global OTS defaults. If the org only allows SSO, only SSO shows. If password + magic link, both show.</span></div>
+    <div class="annotation-row"><span class="ann-marker">C</span> <span>Single primary action: "Create Account &amp; Join". No separate accept step. The account is created and the invite accepted atomically.</span></div>
+    <div class="annotation-row"><span class="ann-marker">D</span> <span>Decline is present but de-emphasized. Declining here means the invite is marked declined (visible to admin in audit log) and the user is not redirected to signup.</span></div>
+  </div>
+
+  <div class="screen-row">
+    <div class="screen-col">
+      <div class="screen-label">Custom domain &middot; secrets.acme.com/invite/TOKEN</div>
+      <div class="screen">
+        <div class="screen-topbar"></div>
+        <div class="screen-header org-branded">
+          <div class="screen-logo">A</div>
+          <div class="screen-brand">Acme Corp<small>secrets.acme.com</small></div>
+        </div>
+        <div class="screen-body">
+          <div class="ots-card">
+            <div class="ots-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+            </div>
+            <div class="ots-card-title">Join Acme Corp</div>
+
+            <div class="invite-context">
+              <div class="invite-context-label">You've been invited to</div>
+              <div class="invite-context-value">Acme Corp Workspace</div>
+            </div>
+
+            <div class="invite-details">
+              <div class="invite-detail-row">
+                <span class="invite-detail-label">Role</span>
+                <span class="invite-detail-value">Admin</span>
+              </div>
+              <div class="invite-detail-row">
+                <span class="invite-detail-label">Invited by</span>
+                <span class="invite-detail-value">cto@acme.com</span>
+              </div>
+              <div class="invite-detail-row">
+                <span class="invite-detail-label">Expires</span>
+                <span class="invite-detail-value">Apr 11, 2026</span>
+              </div>
+            </div>
+
+            <hr class="ots-divider">
+
+            <div class="ots-form-group">
+              <label class="ots-label">Email Address <span class="ann-point">A</span></label>
+              <input class="ots-input ots-input-readonly" type="text" value="alice@newco.com" readonly>
+            </div>
+
+            <div class="ots-tabs">
+              <span class="ots-tab active">Password <span class="ann-point">B</span></span>
+              <span class="ots-tab">Magic Link</span>
+            </div>
+
+            <div class="ots-form-group">
+              <label class="ots-label">Create Password</label>
+              <input class="ots-input" type="password" value="" placeholder="Choose a strong password">
+            </div>
+
+            <div class="ots-form-group">
+              <label class="ots-label">Confirm Password</label>
+              <input class="ots-input" type="password" value="" placeholder="Confirm password">
+            </div>
+
+            <div class="ots-btn-row">
+              <button class="ots-btn ots-btn-ghost">Decline <span class="ann-point">D</span></button>
+              <button class="ots-btn ots-btn-primary">Create Account &amp; Join <span class="ann-point">C</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-col">
+      <div class="screen-label">Canonical site &middot; onetimesecret.com/invite/TOKEN</div>
+      <div class="screen">
+        <div class="screen-topbar"></div>
+        <div class="screen-header">
+          <div class="screen-logo">S</div>
+          <div class="screen-brand">One-Time Secret<small>Signed. <em>Sealed.</em> Delivered.</small></div>
+        </div>
+        <div class="screen-body">
+          <div class="ots-card">
+            <div class="ots-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+            </div>
+            <div class="ots-card-title">Join Acme Corp</div>
+
+            <!-- Org branding injected into card context -->
+            <div class="invite-context" style="border-left: 3px solid #3b82f6;">
+              <div class="invite-context-label">You've been invited to</div>
+              <div class="invite-context-value" style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="display:inline-flex;width:1.4em;height:1.4em;background:#3b82f6;border-radius:50%;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:white;">A</span>
+                Acme Corp Workspace
+              </div>
+            </div>
+
+            <div class="invite-details">
+              <div class="invite-detail-row">
+                <span class="invite-detail-label">Role</span>
+                <span class="invite-detail-value">Admin</span>
+              </div>
+              <div class="invite-detail-row">
+                <span class="invite-detail-label">Invited by</span>
+                <span class="invite-detail-value">cto@acme.com</span>
+              </div>
+              <div class="invite-detail-row">
+                <span class="invite-detail-label">Expires</span>
+                <span class="invite-detail-value">Apr 11, 2026</span>
+              </div>
+            </div>
+
+            <hr class="ots-divider">
+
+            <div class="ots-form-group">
+              <label class="ots-label">Email Address</label>
+              <input class="ots-input ots-input-readonly" type="text" value="alice@newco.com" readonly>
+            </div>
+
+            <div class="ots-tabs">
+              <span class="ots-tab active">Password</span>
+              <span class="ots-tab">Magic Link</span>
+            </div>
+
+            <div class="ots-form-group">
+              <label class="ots-label">Create Password</label>
+              <input class="ots-input" type="password" value="" placeholder="Choose a strong password">
+            </div>
+
+            <div class="ots-form-group">
+              <label class="ots-label">Confirm Password</label>
+              <input class="ots-input" type="password" value="" placeholder="Confirm password">
+            </div>
+
+            <div class="ots-btn-row">
+              <button class="ots-btn ots-btn-ghost">Decline</button>
+              <button class="ots-btn ots-btn-primary">Create Account &amp; Join</button>
+            </div>
+          </div>
+
+          <div class="screen-footer-note">
+            Powered by One-Time Secret
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotations">
+    <strong>Branding difference:</strong> On the custom domain, the page header carries the org's brand natively (it's their domain). On the canonical site, the page header stays OTS-branded but the invite card itself contains the org's identity (logo, name, accent color on the context block). The canonical path adds a "Powered by" footer, reinforcing that OTS is the platform while the org is the context.
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STATE 2: Existing user, not signed in                       -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="state-panel" id="state-2">
+  <div class="state-header">
+    <h2>State 2: Existing User, Not Signed In</h2>
+    <p>Account exists for invited email. User must authenticate to prove ownership, then auto-accept.</p>
+  </div>
+
+  <div class="annotations">
+    <span class="branding-both">Same layout both paths</span>
+    <div class="annotation-row"><span class="ann-marker">A</span> <span>The heading changes to <strong>"Sign in to join"</strong> rather than generic "Sign in to your account." The invite context stays visible throughout auth, so the user never loses sight of why they're here.</span></div>
+    <div class="annotation-row"><span class="ann-marker">B</span> <span>Email is <strong>read-only</strong>. No "Create account" link. The system knows this account exists (resolved at page load from the invite token). The user can't switch to a signup flow or change the email.</span></div>
+    <div class="annotation-row"><span class="ann-marker">C</span> <span>On successful authentication, <strong>auto-accept the invite and redirect to the workspace</strong>. No intermediate confirmation screen. The user already saw the invite details; authenticating is the consent act.</span></div>
+    <div class="annotation-row"><span class="ann-marker">D</span> <span>Password reset must preserve the invite token. If the user clicks "Forgot password," the reset flow must return them here, not to a generic login page. This is the fragile state-preservation point from the analysis.</span></div>
+  </div>
+
+  <div class="screen-row">
+    <div class="screen-col">
+      <div class="screen-label">Single screen &middot; authenticate + context</div>
+      <div class="screen">
+        <div class="screen-topbar"></div>
+        <div class="screen-header org-branded">
+          <div class="screen-logo">A</div>
+          <div class="screen-brand">Acme Corp<small>secrets.acme.com</small></div>
+        </div>
+        <div class="screen-body">
+          <div class="ots-card">
+            <div class="ots-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C9.24 2 7 4.24 7 7v4H6a2 2 0 00-2 2v7a2 2 0 002 2h12a2 2 0 002-2v-7a2 2 0 00-2-2h-1V7c0-2.76-2.24-5-5-5z"/><circle cx="12" cy="17" r="1.5"/></svg>
+            </div>
+            <div class="ots-card-title">Sign in to join Acme Corp <span class="ann-point">A</span></div>
+
+            <div class="invite-context">
+              <div class="invite-context-label">You've been invited to</div>
+              <div class="invite-context-value">Acme Corp Workspace</div>
+            </div>
+
+            <div class="invite-details">
+              <div class="invite-detail-row">
+                <span class="invite-detail-label">Role</span>
+                <span class="invite-detail-value">Admin</span>
+              </div>
+              <div class="invite-detail-row">
+                <span class="invite-detail-label">Invited by</span>
+                <span class="invite-detail-value">cto@acme.com</span>
+              </div>
+            </div>
+
+            <hr class="ots-divider">
+
+            <div class="ots-form-group">
+              <label class="ots-label">Email Address <span class="ann-point">B</span></label>
+              <input class="ots-input ots-input-readonly" type="text" value="bob@acme.com" readonly>
+            </div>
+
+            <div class="ots-tabs">
+              <span class="ots-tab active">Magic Link</span>
+              <span class="ots-tab">Password</span>
+            </div>
+
+            <div class="ots-alert ots-alert-info" style="text-align:center;">
+              A secure sign-in link will be sent to your email.
+            </div>
+
+            <div class="ots-btn-row" style="flex-direction:column;gap:0.5rem;">
+              <button class="ots-btn ots-btn-primary" style="width:100%;">Send Sign-in Link <span class="ann-point">C</span></button>
+              <div style="text-align:center;">
+                <button class="ots-btn-link">Forgot password? <span class="ann-point">D</span></button>
+              </div>
+            </div>
+
+            <hr class="ots-divider">
+
+            <div style="text-align:center;">
+              <button class="ots-btn ots-btn-ghost" style="font-size:0.78rem;">Decline Invitation</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-col">
+      <div class="screen-label">After successful auth &middot; auto-redirect</div>
+      <div class="screen">
+        <div class="screen-topbar"></div>
+        <div class="screen-header org-branded">
+          <div class="screen-logo">A</div>
+          <div class="screen-brand">Acme Corp<small>secrets.acme.com</small></div>
+        </div>
+        <div class="screen-body">
+          <div class="ots-card" style="text-align:center;">
+            <div class="ots-alert ots-alert-success">
+              <div class="ots-alert-title">Welcome to Acme Corp</div>
+              You've joined as Admin. Redirecting to your workspace&hellip;
+            </div>
+            <div style="margin-top:0.75rem;">
+              <button class="ots-btn-link">Go to workspace now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotations">
+    <strong>Key difference from current flow:</strong> The current "Please sign in to accept this invitation" sends the user to a <em>separate</em> login page (screenshot 5 in current flow). The wireframed version keeps auth inline on the invite page. The invite context is never out of view. This eliminates the state-preservation problem across the redirect to /login and back.
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STATE 3: Signed in as invited email                         -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="state-panel" id="state-3">
+  <div class="state-header">
+    <h2>State 3: Signed In as Invited Email</h2>
+    <p>Identity matches. Minimal friction. Show details, single action.</p>
+  </div>
+
+  <div class="annotations">
+    <span class="branding-both">Same layout both paths</span>
+    <div class="annotation-row"><span class="ann-marker">A</span> <span><strong>No auth form.</strong> The user is already authenticated as the correct email. The page is purely confirmatory.</span></div>
+    <div class="annotation-row"><span class="ann-marker">B</span> <span>Shows <strong>who they're signed in as</strong> explicitly, so there's no ambiguity about which identity is accepting.</span></div>
+    <div class="annotation-row"><span class="ann-marker">C</span> <span>Decline is a first-class action here (not just a footer link). At this point the user is making a deliberate choice, not navigating auth machinery.</span></div>
+  </div>
+
+  <div class="screen-row">
+    <div class="screen-col" style="max-width:480px;">
+      <div class="screen-label">Single screen &middot; confirm and accept</div>
+      <div class="screen">
+        <div class="screen-topbar"></div>
+        <div class="screen-header org-branded">
+          <div class="screen-logo">A</div>
+          <div class="screen-brand">Acme Corp<small>secrets.acme.com</small></div>
+        </div>
+        <div class="screen-body">
+          <div class="ots-card">
+            <div class="ots-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+            </div>
+            <div class="ots-card-title">Join Acme Corp <span class="ann-point">A</span></div>
+
+            <div class="invite-context">
+              <div class="invite-context-label">You've been invited to</div>
+              <div class="invite-context-value">Acme Corp Workspace</div>
+            </div>
+
+            <div class="invite-details">
+              <div class="invite-detail-row">
+                <span class="invite-detail-label">Email Address</span>
+                <span class="invite-detail-value">bob@acme.com</span>
+              </div>
+              <div class="invite-detail-row">
+                <span class="invite-detail-label">Role</span>
+                <span class="invite-detail-value">Admin</span>
+              </div>
+              <div class="invite-detail-row">
+                <span class="invite-detail-label">Invited by</span>
+                <span class="invite-detail-value">cto@acme.com</span>
+              </div>
+              <div class="invite-detail-row">
+                <span class="invite-detail-label">Expires</span>
+                <span class="invite-detail-value">Apr 11, 2026</span>
+              </div>
+            </div>
+
+            <div class="ots-alert ots-alert-info">
+              Signed in as <strong>bob@acme.com</strong> <span class="ann-point">B</span>
+            </div>
+
+            <div class="ots-btn-row">
+              <button class="ots-btn ots-btn-secondary">Decline <span class="ann-point">C</span></button>
+              <button class="ots-btn ots-btn-primary">Accept &amp; Join</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STATE 4: Signed in as wrong email                           -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="state-panel" id="state-4">
+  <div class="state-header">
+    <h2>State 4: Signed In as Wrong Email</h2>
+    <p>Email-bound invite. No "accept with this account" option. The user must authenticate as the invited email.</p>
+  </div>
+
+  <div class="annotations">
+    <span class="branding-both">Same layout both paths</span>
+    <div class="annotation-row"><span class="ann-marker">A</span> <span>The mismatch is stated as <strong>fact, not error</strong>. The framing isn't "wrong account" (which implies the user did something wrong). It's "this invite is for X, and you're Y."</span></div>
+    <div class="annotation-row"><span class="ann-marker">B</span> <span><strong>Single action: "Continue as [invited email]".</strong> This signs the user out of the current session and reloads the invite page, which now renders as State 1 (no account) or State 2 (account exists). No "Sign in with different account" framing, because there's no choice involved. The invite determines the email.</span></div>
+    <div class="annotation-row"><span class="ann-marker">C</span> <span>The invited email is shown prominently. The current session email is shown for context. The user can see both and understand the situation without interpreting an error code.</span></div>
+    <div class="annotation-row"><span class="ann-marker">D</span> <span>Decline is still available. The user might have received this invite by mistake, or they might not want to create/use a separate account for this email.</span></div>
+  </div>
+
+  <div class="screen-row">
+    <div class="screen-col" style="max-width:480px;">
+      <div class="screen-label">Mismatch screen</div>
+      <div class="screen">
+        <div class="screen-topbar"></div>
+        <div class="screen-header org-branded">
+          <div class="screen-logo">A</div>
+          <div class="screen-brand">Acme Corp<small>secrets.acme.com</small></div>
+        </div>
+        <div class="screen-body">
+          <div class="ots-card">
+            <div class="ots-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+            </div>
+            <div class="ots-card-title">Join Acme Corp</div>
+
+            <div class="invite-context">
+              <div class="invite-context-label">You've been invited to</div>
+              <div class="invite-context-value">Acme Corp Workspace</div>
+            </div>
+
+            <div class="invite-details">
+              <div class="invite-detail-row">
+                <span class="invite-detail-label">Invitation for</span>
+                <span class="invite-detail-value">alice@newco.com <span class="ann-point">C</span></span>
+              </div>
+              <div class="invite-detail-row">
+                <span class="invite-detail-label">Role</span>
+                <span class="invite-detail-value">Admin</span>
+              </div>
+              <div class="invite-detail-row">
+                <span class="invite-detail-label">Invited by</span>
+                <span class="invite-detail-value">cto@acme.com</span>
+              </div>
+            </div>
+
+            <div class="ots-alert ots-alert-warn">
+              <div class="ots-alert-title">Different account <span class="ann-point">A</span></div>
+              This invitation is for <strong>alice@newco.com</strong>.<br>
+              You're currently signed in as <strong>delbo2@solutious.com</strong>.
+            </div>
+
+            <div class="ots-btn-row" style="flex-direction:column;gap:0.5rem;">
+              <button class="ots-btn ots-btn-primary" style="width:100%;">Continue as alice@newco.com <span class="ann-point">B</span></button>
+              <div style="text-align:center;">
+                <button class="ots-btn ots-btn-ghost">Decline Invitation <span class="ann-point">D</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-col" style="max-width:480px;">
+      <div class="screen-label">After clicking "Continue as..." &middot; session cleared, page reloads</div>
+      <div class="screen">
+        <div class="screen-topbar"></div>
+        <div class="screen-header org-branded">
+          <div class="screen-logo">A</div>
+          <div class="screen-brand">Acme Corp<small>secrets.acme.com</small></div>
+        </div>
+        <div class="screen-body">
+          <div class="ots-card">
+            <div class="ots-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+            </div>
+            <div class="ots-card-title">Join Acme Corp</div>
+
+            <div class="invite-context">
+              <div class="invite-context-label">You've been invited to</div>
+              <div class="invite-context-value">Acme Corp Workspace</div>
+            </div>
+
+            <div class="ots-alert ots-alert-info" style="font-size:0.78rem;">
+              Renders as <strong>State 1</strong> (new user: account creation inline) or <strong>State 2</strong> (existing user: auth inline), depending on whether an account exists for alice@newco.com.
+            </div>
+
+            <div style="text-align:center;color:var(--ots-text-muted);font-size:0.78rem;margin-top:0.75rem;">
+              The invite token is preserved in the URL.<br>
+              The cleared session means no stale identity context.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotations">
+    <strong>What's removed vs. current flow:</strong> The current screenshots show both "Sign In with Different Account" and "Accept with this account." Both are gone. "Accept with this account" contradicts email-bound semantics. "Sign In with Different Account" implies the user picks which account to use. The replacement, "Continue as [invited email]," is a statement of what will happen, not a choice between options.
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STATE 5: Already a member                                   -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="state-panel" id="state-5">
+  <div class="state-header">
+    <h2>State 5: Already a Member</h2>
+    <p>Edge case. Ideally blocked at invite-send time. If it reaches the user anyway: non-error, soft redirect.</p>
+  </div>
+
+  <div class="annotations">
+    <span class="branding-both">Same layout both paths</span>
+    <div class="annotation-row"><span class="ann-marker">A</span> <span><strong>Not an error.</strong> The current flow shows a red "Error" banner with a fire icon. This is a successful state (user is already where they need to be). The tone should reflect that.</span></div>
+    <div class="annotation-row"><span class="ann-marker">B</span> <span>If the invite specifies a <strong>different role</strong> than the user's current membership, that's noted here. Whether it triggers a role change is a separate backend decision, but the user should see the discrepancy rather than have it silently swallowed.</span></div>
+    <div class="annotation-row"><span class="ann-marker">C</span> <span>Single action: go to the workspace. No Accept/Decline buttons (there's nothing to accept).</span></div>
+  </div>
+
+  <div class="screen-row">
+    <div class="screen-col" style="max-width:480px;">
+      <div class="screen-label">Already a member &middot; same role</div>
+      <div class="screen">
+        <div class="screen-topbar"></div>
+        <div class="screen-header org-branded">
+          <div class="screen-logo">A</div>
+          <div class="screen-brand">Acme Corp<small>secrets.acme.com</small></div>
+        </div>
+        <div class="screen-body">
+          <div class="ots-card" style="text-align:center;">
+            <div class="ots-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+            </div>
+            <div class="ots-card-title">You're already a member <span class="ann-point">A</span></div>
+
+            <div class="invite-context">
+              <div class="invite-context-label">Workspace</div>
+              <div class="invite-context-value">Acme Corp Workspace</div>
+            </div>
+
+            <div style="color:var(--ots-text-muted);font-size:0.82rem;margin:0.75rem 0;">
+              You're a member of this workspace as <strong style="color:var(--ots-text);">Admin</strong>.
+            </div>
+
+            <div class="ots-btn-row">
+              <button class="ots-btn ots-btn-primary">Go to Workspace <span class="ann-point">C</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-col" style="max-width:480px;">
+      <div class="screen-label">Already a member &middot; role mismatch</div>
+      <div class="screen">
+        <div class="screen-topbar"></div>
+        <div class="screen-header org-branded">
+          <div class="screen-logo">A</div>
+          <div class="screen-brand">Acme Corp<small>secrets.acme.com</small></div>
+        </div>
+        <div class="screen-body">
+          <div class="ots-card" style="text-align:center;">
+            <div class="ots-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+            </div>
+            <div class="ots-card-title">You're already a member</div>
+
+            <div class="invite-context">
+              <div class="invite-context-label">Workspace</div>
+              <div class="invite-context-value">Acme Corp Workspace</div>
+            </div>
+
+            <div class="ots-alert ots-alert-info" style="text-align:left;">
+              <div class="ots-alert-title">Role note <span class="ann-point">B</span></div>
+              This invitation was for the <strong>Admin</strong> role. Your current role is <strong>Member</strong>. Contact your workspace administrator if your role needs to change.
+            </div>
+
+            <div class="ots-btn-row">
+              <button class="ots-btn ots-btn-primary">Go to Workspace</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STATE 6: Expired / Revoked                                  -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="state-panel" id="state-6">
+  <div class="state-header">
+    <h2>State 6: Expired or Revoked</h2>
+    <p>Terminal states. Indistinguishable to the recipient (no information leak on revocation). Clear next step.</p>
+  </div>
+
+  <div class="annotations">
+    <span class="branding-canonical">Canonical site only (org branding may not load if invite is fully expired from DB)</span>
+    <div class="annotation-row"><span class="ann-marker">A</span> <span><strong>Same message for expired and revoked.</strong> "This invitation is no longer valid." Revoked invites don't reveal that someone actively cancelled them.</span></div>
+    <div class="annotation-row"><span class="ann-marker">B</span> <span>If the inviter's email is available from the (expired) invite record, show it as the contact point. If the invite record is fully purged, fall back to generic "contact your administrator" language.</span></div>
+    <div class="annotation-row"><span class="ann-marker">C</span> <span>No Accept/Decline buttons. No auth form. This is a dead end with a clear escape hatch.</span></div>
+  </div>
+
+  <div class="screen-row">
+    <div class="screen-col" style="max-width:480px;">
+      <div class="screen-label">Expired &middot; inviter info available</div>
+      <div class="screen">
+        <div class="screen-topbar"></div>
+        <div class="screen-header">
+          <div class="screen-logo">S</div>
+          <div class="screen-brand">One-Time Secret<small>Signed. <em>Sealed.</em> Delivered.</small></div>
+        </div>
+        <div class="screen-body">
+          <div class="ots-card" style="text-align:center;">
+            <div class="ots-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div class="ots-card-title">Invitation Expired <span class="ann-point">A</span></div>
+
+            <div style="color:var(--ots-text-muted);font-size:0.85rem;margin:0.75rem 0 1rem;">
+              This invitation is no longer valid.
+            </div>
+
+            <div class="ots-alert ots-alert-info" style="text-align:left;">
+              Contact <strong>cto@acme.com</strong> to request a new invitation. <span class="ann-point">B</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-col" style="max-width:480px;">
+      <div class="screen-label">Expired &middot; inviter info unavailable</div>
+      <div class="screen">
+        <div class="screen-topbar"></div>
+        <div class="screen-header">
+          <div class="screen-logo">S</div>
+          <div class="screen-brand">One-Time Secret<small>Signed. <em>Sealed.</em> Delivered.</small></div>
+        </div>
+        <div class="screen-body">
+          <div class="ots-card" style="text-align:center;">
+            <div class="ots-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div class="ots-card-title">Invitation Expired</div>
+
+            <div style="color:var(--ots-text-muted);font-size:0.85rem;margin:0.75rem 0 1rem;">
+              This invitation is no longer valid. Contact your workspace administrator to request a new one. <span class="ann-point">C</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+function showState(n) {
+  document.querySelectorAll('.state-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('state-' + n).classList.add('active');
+  document.querySelectorAll('.nav-tab')[n - 1].classList.add('active');
+}
+</script>
+
+</body>
+</html>

@@ -78,11 +78,14 @@ describe('AcceptInvite', () => {
     invited_by_email: 'admin@acme.com',
     expires_at: Math.floor(Date.now() / 1000) + 604800, // 7 days from now
     status: 'pending',
+    account_exists: false, // No existing account for invited email (shows signup form)
+    actionable: true, // Invitation can be acted upon
   };
 
   const mockExpiredInvitation = {
     ...mockInvitation,
     status: 'expired',
+    actionable: false, // Expired invitations cannot be acted upon
   };
 
   beforeEach(() => {
@@ -164,10 +167,22 @@ describe('AcceptInvite', () => {
       expect(wrapper.text()).toContain('Admin');
     });
 
-    it('shows accept and decline buttons for pending invitation', async () => {
+    it('shows accept and decline buttons for authenticated user with pending invitation', async () => {
+      // Must be authenticated to see direct Accept/Decline buttons
+      authStore.$patch({
+        isAuthenticated: true,
+        cust: {
+          custid: 'cust-123',
+          email: 'invitee@example.com',
+          verified: true,
+          created: new Date(),
+          updated: new Date(),
+        },
+      });
+
       const axiosMock = getGlobalAxiosMock();
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
-        record: mockInvitation,
+        record: { ...mockInvitation, account_exists: true },
       });
 
       const wrapper = await mountComponent();
@@ -201,7 +216,12 @@ describe('AcceptInvite', () => {
       });
 
       const wrapper = await mountComponent('invalid-token');
+      // Multiple flushPromises to allow all async cycles to complete
+      await flushPromises();
+      await flushPromises();
 
+      // Component should show invalid state with error message
+      expect(wrapper.find('[data-testid="invite-invalid"]').exists()).toBe(true);
       expect(wrapper.text()).toContain('Invalid or expired invitation');
     });
 
@@ -212,17 +232,23 @@ describe('AcceptInvite', () => {
       });
 
       const wrapper = await mountComponent('error-token');
+      // Multiple flushPromises to allow all async cycles to complete
+      await flushPromises();
+      await flushPromises();
 
+      // Component should show invalid state with error message
+      expect(wrapper.find('[data-testid="invite-invalid"]').exists()).toBe(true);
       expect(wrapper.text()).toContain('Invalid or expired invitation');
     });
   });
 
   describe('Unauthenticated User', () => {
-    it('shows sign-in notice when user is not authenticated', async () => {
+    it('shows sign-in notice when user is not authenticated and account exists', async () => {
       authStore.$patch({ cust: null });
       const axiosMock = getGlobalAxiosMock();
+      // account_exists: true triggers signin_required state which shows the sign-in notice
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
-        record: mockInvitation,
+        record: { ...mockInvitation, account_exists: true },
       });
 
       const wrapper = await mountComponent();
@@ -230,25 +256,18 @@ describe('AcceptInvite', () => {
       expect(wrapper.text()).toContain('Please sign in to accept this invitation');
     });
 
-    it('redirects to sign in when accept is clicked by unauthenticated user', async () => {
+    it('shows signup form when user is not authenticated and no account exists', async () => {
       authStore.$patch({ cust: null });
-      const routerPushSpy = vi.spyOn(router, 'push');
       const axiosMock = getGlobalAxiosMock();
+      // account_exists: false triggers signup_required state which shows inline signup form
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
-        record: mockInvitation,
+        record: mockInvitation, // account_exists: false by default
       });
 
       const wrapper = await mountComponent();
-      const acceptButton = wrapper.findAll('button').find((b) => b.text().includes('Accept'));
-      await acceptButton?.trigger('click');
 
-      expect(routerPushSpy).toHaveBeenCalledWith({
-        name: 'Sign In',
-        query: {
-          email: mockInvitation.email,
-          redirect: '/invite/test-token-123',
-        },
-      });
+      // Component should show the signup_required state testid
+      expect(wrapper.find('[data-testid="invite-signup-required"]').exists()).toBe(true);
     });
   });
 
@@ -347,10 +366,22 @@ describe('AcceptInvite', () => {
   });
 
   describe('UI Layout', () => {
-    it('renders invitation header correctly', async () => {
+    it('renders invitation header correctly for authenticated user', async () => {
+      // Authenticated user sees "Invitation Details" header in direct_accept state
+      authStore.$patch({
+        isAuthenticated: true,
+        cust: {
+          custid: 'cust-123',
+          email: 'invitee@example.com',
+          verified: true,
+          created: new Date(),
+          updated: new Date(),
+        },
+      });
+
       const axiosMock = getGlobalAxiosMock();
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
-        record: mockInvitation,
+        record: { ...mockInvitation, account_exists: true },
       });
 
       const wrapper = await mountComponent();
@@ -371,10 +402,22 @@ describe('AcceptInvite', () => {
   });
 
   describe('Accessibility', () => {
-    it('has accessible buttons', async () => {
+    it('has accessible buttons with type attributes', async () => {
+      // Use authenticated user to see direct Accept/Decline buttons (type="button")
+      authStore.$patch({
+        isAuthenticated: true,
+        cust: {
+          custid: 'cust-123',
+          email: 'invitee@example.com',
+          verified: true,
+          created: new Date(),
+          updated: new Date(),
+        },
+      });
+
       const axiosMock = getGlobalAxiosMock();
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
-        record: mockInvitation,
+        record: { ...mockInvitation, account_exists: true },
       });
 
       const wrapper = await mountComponent();
@@ -382,9 +425,10 @@ describe('AcceptInvite', () => {
       const buttons = wrapper.findAll('button');
       expect(buttons.length).toBeGreaterThan(0);
 
-      // Check buttons have proper type attribute
+      // Check all buttons have explicit type attribute (either "button" or "submit")
       buttons.forEach((button) => {
-        expect(button.attributes('type')).toBe('button');
+        const type = button.attributes('type');
+        expect(['button', 'submit']).toContain(type);
       });
     });
   });
