@@ -154,26 +154,28 @@ module Onetime
         # status_id: 1=Unverified, 2=Verified (per Rodauth convention)
         status_id = verified ? 2 : 1
 
-        # Insert into accounts table
-        account_id = db[:accounts].insert(
-          email: email,
-          status_id: status_id,
-          external_id: external_id,
-          created_at: Time.now,
-          updated_at: Time.now,
-        )
+        db.transaction do
+          # Insert into accounts table
+          account_id = db[:accounts].insert(
+            email: email,
+            status_id: status_id,
+            external_id: external_id,
+            created_at: Time.now,
+            updated_at: Time.now,
+          )
 
-        # Insert password hash into separate table (Rodauth's password storage pattern)
-        db[:account_password_hashes].insert(
-          id: account_id,
-          password_hash: password_hash,
-          created_at: Time.now,
-        )
+          # Insert password hash into separate table (Rodauth's password storage pattern)
+          db[:account_password_hashes].insert(
+            id: account_id,
+            password_hash: password_hash,
+            created_at: Time.now,
+          )
 
-        account_id
+          account_id
+        end
       rescue Sequel::UniqueConstraintViolation => ex
         puts "Error: Account already exists in auth database: #{ex.message}"
-        exit 1
+        raise ex
       end
 
       # Generate cryptographically secure random password

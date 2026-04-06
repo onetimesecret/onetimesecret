@@ -99,7 +99,12 @@ module Auth
         existing = Onetime::Organization.find_by_contact_email(@customer.email)
         raise unless existing
 
-        auth_logger.info "[create-default-workspace] Adopting existing org #{existing.extid} for #{@customer.custid}"
+        if existing.member_count > 0
+          auth_logger.warn "[create-default-workspace] Existing org #{existing.extid} already has members, skipping adoption for #{@customer.custid}"
+          raise
+        end
+
+        auth_logger.info "[create-default-workspace] Adopting orphaned org #{existing.extid} for #{@customer.custid}"
         existing.add_members_instance(@customer, through_attrs: { role: 'owner' })
         existing
       rescue StandardError => ex
