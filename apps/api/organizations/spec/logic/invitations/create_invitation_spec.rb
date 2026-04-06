@@ -14,6 +14,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       extid: 'ext-cust-owner',
       email: 'owner@example.com',
       anonymous?: false,
+      verified?: true,
       role: 'customer'
     )
   end

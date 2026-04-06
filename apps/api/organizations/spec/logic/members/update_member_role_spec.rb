@@ -14,6 +14,7 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       extid: 'ext-cust-owner',
       email: 'owner@example.com',
       anonymous?: false,
+      verified?: true,
       role: 'customer',
       'role?': false
     )
@@ -26,7 +27,8 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       custid: 'cust-target-456',
       extid: 'ext-cust-target',
       email: 'member@example.com',
-      anonymous?: false
+      anonymous?: false,
+      verified?: true
     )
   end
 
