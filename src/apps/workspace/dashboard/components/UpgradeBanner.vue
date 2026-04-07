@@ -14,7 +14,7 @@ const { t } = useI18n();
 const organizationStore = useOrganizationStore();
 
 // Hide upgrade banners on custom domains (managed by org admin, not end users)
-const { isCustom } = useProductIdentity();
+const { isCustom } = storeToRefs(useProductIdentity());
 
 const STORAGE_KEY = 'ots_upgrade_banner_dismissed';
 

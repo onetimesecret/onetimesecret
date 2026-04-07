@@ -21,7 +21,7 @@ const bootstrapStore = useBootstrapStore();
 const { authentication } = storeToRefs(bootstrapStore);
 
 // Disable signup on custom domains (users must be provisioned by org admin)
-const { isCustom } = useProductIdentity();
+const { isCustom } = storeToRefs(useProductIdentity());
 const signupEnabled = computed(
   () => !isCustom.value && authentication.value?.enabled && authentication.value?.signup
 );

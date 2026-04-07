@@ -34,7 +34,7 @@ const { billing_enabled } = storeToRefs(bootstrapStore);
 const billingEnabled = computed(() => billing_enabled.value || false);
 
 // Hide upgrade prompts on custom domains (managed by org admin, not end users)
-const { isCustom } = useProductIdentity();
+const { isCustom } = storeToRefs(useProductIdentity());
 
 // Only show upgrade prompts to organization owners (not members/admins)
 const organizationStore = useOrganizationStore();

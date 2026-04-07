@@ -60,7 +60,7 @@ const bootstrapStore = useBootstrapStore();
 const { billing_enabled } = storeToRefs(bootstrapStore);
 
 // Custom domain filtering: non-owners on custom domains see limited menu
-const { isCustom } = useProductIdentity();
+const { isCustom } = storeToRefs(useProductIdentity());
 const organizationStore = useOrganizationStore();
 
 const userRole = computed(() =>
