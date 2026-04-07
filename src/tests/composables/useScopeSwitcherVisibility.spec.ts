@@ -34,11 +34,12 @@ vi.mock('@/utils/features', () => ({
   isOrganizationSwitcherEnabled: () => mockIsOrganizationSwitcherEnabled(),
 }));
 
-// Mock identityStore - composable uses storeToRefs(useProductIdentity())
-// so isCustom must be a ref for storeToRefs to extract it
+// Mock identityStore - composable uses storeToRefs(useProductIdentity()) to get isCustom,
+// so the mock must return a ref that storeToRefs can extract.
+const mockIsCustomRef = ref(false);
 vi.mock('@/shared/stores/identityStore', () => ({
   useProductIdentity: () => ({
-    isCustom: ref(false),
+    isCustom: mockIsCustomRef,
   }),
 }));
 
