@@ -244,23 +244,31 @@ module Onetime
       self.class.token_lookup.remove_field(old_token) if old_token
       self.class.org_email_lookup.remove_field(old_org_email_key) if old_org_email_key
 
-      # Activate via Familia staged relationships: handles the three-structure
-      # invariant (active set + reverse index + staging set removal) atomically,
-      # then creates composite-keyed through model and destroys this UUID model.
-      activated = org.activate_members_instance(
-        self,
-        customer,
-        through_attrs: {
-          role: carry_role,
-          status: 'active',
-          invited_email: carry_invited_email,
-          invited_by: carry_invited_by,
-          invited_at: carry_invited_at,
-          joined_at: Familia.now.to_f,
-          resend_count: carry_resend_count,
-          token: nil, # Clear token for security
-        },
-      )
+      begin
+        # Activate via Familia staged relationships: handles the three-structure
+        # invariant (active set + reverse index + staging set removal) atomically,
+        # then creates composite-keyed through model and destroys this UUID model.
+        activated = org.activate_members_instance(
+          self,
+          customer,
+          through_attrs: {
+            role: carry_role,
+            status: 'active',
+            invited_email: carry_invited_email,
+            invited_by: carry_invited_by,
+            invited_at: carry_invited_at,
+            joined_at: Familia.now.to_f,
+            resend_count: carry_resend_count,
+            token: nil, # Clear token for security
+          },
+        )
+      rescue StandardError
+        # Restore pending-state indexes so the invitation remains discoverable
+        # if activation fails (e.g. Redis/network error, validation error).
+        self.class.token_lookup[old_token]             = objid if old_token
+        self.class.org_email_lookup[old_org_email_key] = objid if old_org_email_key
+        raise
+      end
 
       # Populate active-state OTS index on the NEW composite-keyed model
       if activated.org_customer_key
@@ -315,14 +323,21 @@ module Onetime
     def revoke!
       raise Onetime::Problem, 'Can only revoke pending invitations' unless pending?
 
+      org = organization
+
       # Clean up OTS-specific indexes before unstaging destroys the model
       self.class.token_lookup.remove_field(token) if token
       self.class.org_email_lookup.remove_field(org_email_key) if org_email_key
       self.class.org_customer_lookup.remove_field(org_customer_key) if org_customer_key
 
-      # Use Familia staged relationship: removes from pending_invitations set
-      # and destroys the UUID-keyed through model
-      organization&.unstage_members_instance(self)
+      if org
+        # Use Familia staged relationship: removes from pending_invitations set
+        # and destroys the UUID-keyed through model
+        org.unstage_members_instance(self)
+      else
+        # Organization was deleted — destroy the orphaned model directly
+        destroy!
+      end
     end
 
     # Destroy the membership with proper index cleanup
@@ -485,6 +500,10 @@ module Onetime
           pending.accept!(customer)
           find_by_org_customer(organization.objid, customer.objid)
         else
+          # Clean up expired/declined pending invitation before direct add
+          # to prevent stale entries from counting against quotas.
+          pending.revoke! if pending&.pending?
+
           organization.add_members_instance(
             customer,
             through_attrs: {

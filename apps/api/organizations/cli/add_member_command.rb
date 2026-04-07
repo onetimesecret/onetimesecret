@@ -130,7 +130,7 @@ module Onetime
         puts "Would add #{OT::Utils.obscure_email(customer.email)} to #{organization.display_name}"
         puts "  Role: #{role}"
         puts "  Set as default: #{set_default ? 'yes' : 'no'}"
-        puts '  Note: If a pending invitation exists, it will be activated instead of creating a new membership'
+        puts '  Note: A non-expired pending invitation will be activated; an expired one will be cleaned up'
         puts '==============='
         true
       end
