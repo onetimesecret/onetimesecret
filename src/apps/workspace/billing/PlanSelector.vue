@@ -70,6 +70,9 @@ const cancelAtFormatted = computed(() => {
 const showPlanChangeModal = ref(false);
 const targetPlan = ref<BillingPlan | null>(null);
 
+// Reactivation state
+const isReactivating = ref(false);
+
 // Cancel subscription modal state
 const showCancelModal = ref(false);
 
@@ -178,8 +181,22 @@ const canDowngrade = (plan: BillingPlan): boolean => {
   return false;
 };
 
+const isPlanButtonDisabled = (plan: BillingPlan): boolean =>
+  (isPlanCurrent(plan) && !isCancelScheduled.value) ||
+  isCreatingCheckout.value ||
+  isReactivating.value ||
+  (plan.tier === 'free' && !hasActiveSubscription.value) ||
+  isPlanCurrencyMismatch(plan);
+
+const isPlanProcessing = (plan: BillingPlan): boolean =>
+  (isCreatingCheckout.value && !isPlanCurrent(plan)) || (isReactivating.value && isPlanCurrent(plan));
+
 const getButtonLabel = (plan: BillingPlan): string => {
-  if (isPlanCurrent(plan)) return t('web.billing.plans.current');
+  if (isPlanCurrent(plan)) {
+    // When cancellation is scheduled, show "Reactivate" instead of "Current Plan"
+    if (isCancelScheduled.value) return t('web.billing.plans.reactivate');
+    return t('web.billing.plans.current');
+  }
   if (canUpgrade(plan)) return t('web.billing.plans.upgrade');
 
   if (canDowngrade(plan)) {
@@ -208,7 +225,13 @@ const loadPlans = async () => {
 };
 
 const handlePlanSelect = async (plan: BillingPlan) => {
-  if (isPlanCurrent(plan) || !selectedOrg.value?.extid) return;
+  if (!selectedOrg.value?.extid) return;
+
+  if (isPlanCurrent(plan)) {
+    // When cancellation is scheduled, clicking the current plan reactivates
+    if (isCancelScheduled.value) await handleReactivateSubscription();
+    return;
+  }
 
   // Free plan: open the cancel subscription modal instead of checkout
   if (plan.tier === 'free') {
@@ -267,18 +290,19 @@ const handlePlanChangeClose = () => {
   targetPlan.value = null;
 };
 
+// Refresh subscription + org data after any billing state change
+const refreshBillingData = async () => {
+  if (!orgExtid.value) return;
+  await loadSubscriptionStatus(orgExtid.value);
+  const org = await organizationStore.fetchOrganization(orgExtid.value);
+  selectedOrg.value = org;
+};
+
 const handlePlanChangeSuccess = async (newPlan: string) => {
   showPlanChangeModal.value = false;
   targetPlan.value = null;
   successMessage.value = t('web.billing.plan_switch_success', { plan: newPlan });
-
-  // Refresh subscription status and organization data
-  if (orgExtid.value) {
-    await loadSubscriptionStatus(orgExtid.value);
-    // Refresh org data
-    const org = await organizationStore.fetchOrganization(orgExtid.value);
-    selectedOrg.value = org;
-  }
+  await refreshBillingData();
 };
 
 // Cancel subscription handlers
@@ -293,12 +317,27 @@ const handleCancelModalClose = () => {
 const handleCancelSuccess = async () => {
   showCancelModal.value = false;
   successMessage.value = t('web.billing.cancel.success');
+  await refreshBillingData();
+};
 
-  // Refresh subscription status and organization data
-  if (orgExtid.value) {
-    await loadSubscriptionStatus(orgExtid.value);
-    const org = await organizationStore.fetchOrganization(orgExtid.value);
-    selectedOrg.value = org;
+// Reactivation handler
+const handleReactivateSubscription = async () => {
+  if (!selectedOrg.value?.extid || isReactivating.value) return;
+
+  isReactivating.value = true;
+  error.value = '';
+  successMessage.value = '';
+
+  try {
+    await BillingService.reactivateSubscription(selectedOrg.value.extid);
+    successMessage.value = t('web.billing.cancel.reactivate_success');
+    await refreshBillingData();
+  } catch (err) {
+    const classified = classifyError(err);
+    error.value = classified.message || t('web.billing.cancel.reactivate_error');
+    console.error('[PlanSelector] Error reactivating subscription:', err);
+  } finally {
+    isReactivating.value = false;
   }
 };
 
@@ -312,13 +351,7 @@ const handleGracefulConfirmed = async (_cancelAt: number) => {
   showCurrencyMigrationModal.value = false;
   currencyConflict.value = null;
   successMessage.value = t('web.billing.currency_migration.graceful_success');
-
-  // Refresh subscription status — will now include pending_migration
-  if (orgExtid.value) {
-    await loadSubscriptionStatus(orgExtid.value);
-    const org = await organizationStore.fetchOrganization(orgExtid.value);
-    selectedOrg.value = org;
-  }
+  await refreshBillingData();
 };
 
 const handleImmediateRedirect = (checkoutUrl: string) => {
@@ -482,6 +515,14 @@ onMounted(async () => {
             <p class="mt-2 text-sm text-amber-600 dark:text-amber-400">
               {{ t('web.billing.cancel.scheduled_note') }}
             </p>
+            <button
+              type="button"
+              :disabled="isReactivating"
+              @click="handleReactivateSubscription"
+              class="mt-3 inline-flex items-center rounded-md bg-amber-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-500 disabled:opacity-50 dark:bg-amber-500 dark:hover:bg-amber-400">
+              <span v-if="isReactivating">{{ t('web.COMMON.processing') }}</span>
+              <span v-else>{{ t('web.billing.cancel.reactivate_button') }}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -625,9 +666,9 @@ aria-live="polite">
             :is-recommended="isPlanRecommended(plan)"
             :is-suggested="suggestedPlanId === plan.id"
             :button-label="getButtonLabel(plan)"
-            :button-disabled="isPlanCurrent(plan) || isCreatingCheckout || (plan.tier === 'free' && !hasActiveSubscription) || isPlanCurrencyMismatch(plan)"
+            :button-disabled="isPlanButtonDisabled(plan)"
             :disabled-reason="isPlanCurrencyMismatch(plan) ? $t('web.billing.plan_unavailable_region_mismatch') : undefined"
-            :is-processing="isCreatingCheckout && !isPlanCurrent(plan)"
+            :is-processing="isPlanProcessing(plan)"
             @select="handlePlanSelect" />
         </div>
       </div>

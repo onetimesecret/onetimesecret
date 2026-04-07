@@ -235,6 +235,15 @@ export interface CancelSubscriptionResponse {
 }
 
 /**
+ * Reactivate subscription result response
+ */
+export interface ReactivateSubscriptionResponse {
+  success: boolean;
+  /** Subscription status after reactivation (typically 'active') */
+  status: string;
+}
+
+/**
  * Create a BillingService bound to a specific Axios instance.
  * Use this in Vue components/composables to share the injected API instance.
  *
@@ -261,6 +270,7 @@ export function createBillingService(api: AxiosInstance): typeof BillingService 
     previewPlanChange: (orgExtId, newPriceId) => api.post(`/billing/api/org/${orgExtId}/preview-plan-change`, { new_price_id: newPriceId }).then(r => r.data),
     changePlan: (orgExtId, newPriceId) => api.post(`/billing/api/org/${orgExtId}/change-plan`, { new_price_id: newPriceId }).then(r => r.data),
     cancelSubscription: (orgExtId) => api.post(`/billing/api/org/${orgExtId}/cancel-subscription`).then(r => r.data),
+    reactivateSubscription: (orgExtId) => api.post(`/billing/api/org/${orgExtId}/reactivate-subscription`).then(r => r.data),
     migrateCurrency: (orgExtId, request) => api.post(`/billing/api/org/${orgExtId}/migrate-currency`, request).then(r => r.data),
   };
 }
@@ -391,6 +401,20 @@ export const BillingService = {
    */
   async cancelSubscription(orgExtId: string): Promise<CancelSubscriptionResponse> {
     const response = await getDefaultApi().post(`/billing/api/org/${orgExtId}/cancel-subscription`);
+    return response.data;
+  },
+
+  /**
+   * Reactivate a subscription scheduled for cancellation
+   *
+   * Clears the cancel_at_period_end flag, keeping the subscription active
+   * on the same plan beyond the original cancellation date.
+   *
+   * @param orgExtId - Organization external ID
+   * @returns Result of reactivation with subscription status
+   */
+  async reactivateSubscription(orgExtId: string): Promise<ReactivateSubscriptionResponse> {
+    const response = await getDefaultApi().post(`/billing/api/org/${orgExtId}/reactivate-subscription`);
     return response.data;
   },
 

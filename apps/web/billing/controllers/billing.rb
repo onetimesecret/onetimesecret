@@ -759,19 +759,8 @@ module Billing
       #
       # @return [Hash] Result with cancel_at timestamp and status
       def cancel_subscription
-        org = load_organization(req.params['extid'], require_owner: true)
-
-        unless org.active_subscription?
-          return json_error('No active subscription to cancel', status: 400)
-        end
-
-        unless org.stripe_subscription_id
-          return json_error('No Stripe subscription found', status: 400)
-        end
-
-        if stripe_api_key_missing?('cancel_subscription')
-          return json_error('Billing service temporarily unavailable', status: 503)
-        end
+        org, err = validate_subscription_management('cancel')
+        return err if err
 
         # Cancel at period end (standard SaaS pattern - customer keeps access until paid period ends)
         canceled_subscription = Stripe::Subscription.update(
@@ -814,6 +803,73 @@ module Billing
             extid: req.params['extid'],
           }
         json_error('Failed to cancel subscription', status: 500)
+      end
+
+      # Reactivate a subscription scheduled for cancellation
+      #
+      # Clears cancel_at_period_end on the Stripe subscription, reversing a
+      # previously scheduled cancellation. The subscription continues as-is
+      # on the same plan.
+      #
+      # POST /billing/api/org/:extid/reactivate-subscription
+      #
+      # @return [Hash] Result with subscription status
+      def reactivate_subscription
+        org, err = validate_subscription_management('reactivate')
+        return err if err
+
+        subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
+
+        unless subscription.cancel_at_period_end
+          return json_error('Subscription is not scheduled for cancellation', status: 400)
+        end
+
+        # Capture pre-reactivation state for logging
+        first_item         = subscription.items&.data&.first
+        previous_cancel_at = first_item&.current_period_end
+
+        updated_subscription = Stripe::Subscription.update(
+          org.stripe_subscription_id,
+          { cancel_at_period_end: false },
+        )
+
+        billing_logger.info 'Subscription reactivated',
+          {
+            extid: org.extid,
+            custid: cust.custid,
+            subscription_id: updated_subscription.id,
+            customer_id: updated_subscription.customer,
+            plan_id: org.planid,
+            status: updated_subscription.status,
+            previous_cancel_at: previous_cancel_at,
+          }
+
+        json_response(
+          {
+            success: true,
+            status: updated_subscription.status,
+          },
+        )
+      rescue OT::Problem => ex
+        json_error(ex.message, status: 403)
+      rescue Stripe::InvalidRequestError => ex
+        billing_logger.warn 'Invalid subscription reactivation request',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+            custid: cust&.custid,
+            subscription_id: org&.stripe_subscription_id,
+          }
+        json_error(ex.message, status: 400)
+      rescue Stripe::StripeError => ex
+        billing_logger.error 'Failed to reactivate subscription',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+            custid: cust&.custid,
+            subscription_id: org&.stripe_subscription_id,
+          }
+        json_error('Failed to reactivate subscription', status: 500)
       end
 
       # Pre-check for currency mismatch
@@ -989,6 +1045,29 @@ module Billing
 
       module PrivateMethods
         private
+
+        # Validate org has an active Stripe subscription and API key is present.
+        # Returns [org, nil] on success or [nil, error_response] on failure.
+        #
+        # @param action_name [String] Action name for error messages and logging
+        # @return [Array<(Object, nil), (nil, Object)>]
+        def validate_subscription_management(action_name)
+          org = load_organization(req.params['extid'], require_owner: true)
+
+          unless org.active_subscription?
+            return [nil, json_error("No active subscription to #{action_name}", status: 400)]
+          end
+
+          unless org.stripe_subscription_id
+            return [nil, json_error('No Stripe subscription found', status: 400)]
+          end
+
+          if stripe_api_key_missing?(action_name)
+            return [nil, json_error('Billing service temporarily unavailable', status: 503)]
+          end
+
+          [org, nil]
+        end
 
         # Build the base URL (protocol + host) from site configuration
         #
