@@ -192,8 +192,8 @@ cli_lookup = cli_normalize_email(email_input)
 model_stored == cli_lookup
 #=> true
 
-## check_pending_invitation also uses correct normalization (add_member_command.rb:210)
-# The same normalization is used in find_by_org_email for invitation lookup
+## find_by_org_email uses correct normalization for invitation lookup
+# ensure_membership calls find_by_org_email which normalizes with strip.downcase
 # This ensures consistent behavior between member lookup and invitation lookup
 test_email = "INVITATION_#{@test_id}@EXAMPLE.COM"
 OT::Utils.normalize_email(test_email) == cli_normalize_email(test_email)

@@ -66,10 +66,9 @@ module Onetime
         validate_role!(role)
         organization   = find_organization!(org)
         customer       = find_customer!(email)
-        pending_invite = warn_pending_invitation(organization, email)
 
         return if handle_existing_member(organization, customer, default)
-        return if output_dry_run(organization, customer, role, default, pending_invite)
+        return if output_dry_run(organization, customer, role, default)
 
         add_member_and_verify(organization, customer, role, default)
       end
@@ -107,20 +106,6 @@ module Onetime
         customer
       end
 
-      def warn_pending_invitation(organization, email)
-        pending_invite = check_pending_invitation(organization, email)
-        return nil unless pending_invite
-
-        puts "Warning: Pending invitation exists for #{email} to this organization"
-        puts "  Invitation ID: #{pending_invite.objid}"
-        puts "  Invited at: #{Time.at(pending_invite.invited_at.to_f).utc}" if pending_invite.invited_at
-        puts "  Status: #{pending_invite.status}"
-        puts
-        puts '  Adding as member will bypass the invitation flow.'
-        puts
-        pending_invite
-      end
-
       def handle_existing_member(organization, customer, set_default)
         return false unless organization.member?(customer)
 
@@ -137,7 +122,7 @@ module Onetime
         true
       end
 
-      def output_dry_run(organization, customer, role, set_default, pending_invite)
+      def output_dry_run(organization, customer, role, set_default)
         return false unless @dry_run
 
         puts
@@ -145,7 +130,7 @@ module Onetime
         puts "Would add #{OT::Utils.obscure_email(customer.email)} to #{organization.display_name}"
         puts "  Role: #{role}"
         puts "  Set as default: #{set_default ? 'yes' : 'no'}"
-        puts '  Note: Existing pending invitation would remain (not auto-revoked)' if pending_invite
+        puts '  Note: If a pending invitation exists, it will be activated instead of creating a new membership'
         puts '==============='
         true
       end
@@ -153,14 +138,16 @@ module Onetime
       def add_member_and_verify(organization, customer, role, set_default)
         puts "Adding #{OT::Utils.obscure_email(customer.email)} to #{organization.display_name} as #{role}..."
 
-        membership = organization.add_members_instance(customer, through_attrs: { role: role })
+        membership = Onetime::OrganizationMembership.ensure_membership(
+          organization, customer, role: role
+        )
 
         unless membership
           puts 'Error: Failed to create membership record'
           exit 1
         end
 
-        puts "Success: Member added with role '#{role}'"
+        puts "Success: Member added with role '#{membership.role}'"
         log "  Membership ID: #{membership.objid}"
         log "  Joined at: #{Time.at(membership.joined_at.to_f).utc}" if membership.joined_at
 
@@ -204,13 +191,6 @@ module Onetime
 
         log "Found domain: #{domain.display_domain}"
         domain.primary_organization
-      end
-
-      def check_pending_invitation(organization, email)
-        invite = Onetime::OrganizationMembership.find_by_org_email(organization.objid, email.to_s.strip.unicode_normalize(:nfc).downcase(:fold))
-        return nil unless invite&.pending?
-
-        invite
       end
 
       def handle_set_default(customer, organization)

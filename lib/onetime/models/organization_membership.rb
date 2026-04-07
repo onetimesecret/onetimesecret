@@ -458,6 +458,44 @@ module Onetime
         load(objid)
       end
 
+      # Ensure a customer has an active membership in an organization.
+      #
+      # Convergence point for all "add a known customer" paths (SSO, CLI,
+      # join request approval). Checks for a pending invitation first --
+      # if one exists, activates it (staged -> active). Otherwise creates
+      # a new membership directly.
+      #
+      # Familia provides four primitives: stage, activate, unstage, add.
+      # This method composes activate + add with a domain-specific lookup
+      # (find_by_org_email) that Familia can't perform -- matching a staged
+      # model's invited_email against the participant's email is OTS
+      # domain knowledge.
+      #
+      # @param organization [Organization]
+      # @param customer [Customer]
+      # @param role [String] 'member' or 'admin' (only used for direct add;
+      #   when activating a pending invitation, the invitation's role is used)
+      # @return [OrganizationMembership] the active membership (composite-keyed)
+      def ensure_membership(organization, customer, role: 'member')
+        return find_by_org_customer(organization.objid, customer.objid) if organization.member?(customer)
+
+        pending = find_by_org_email(organization.objid, customer.email)
+
+        if pending&.pending? && !pending.expired?
+          pending.accept!(customer)
+          find_by_org_customer(organization.objid, customer.objid)
+        else
+          organization.add_members_instance(
+            customer,
+            through_attrs: {
+              role: role,
+              status: 'active',
+              joined_at: Familia.now.to_f,
+            },
+          )
+        end
+      end
+
       # Find pending invitations for an organization
       #
       # Uses the organization's pending_invitations sorted set for O(n) lookup
