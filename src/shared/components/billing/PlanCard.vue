@@ -73,7 +73,7 @@
   const cardZIndex = computed(() => (props.isHighlighted || props.isRecommended ? 10 : 1));
 
   const buttonClasses = computed(() => {
-    if (props.isCurrent) {
+    if (props.isCurrent && props.buttonDisabled) {
       return 'cursor-default bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
     }
     if (props.isRecommended || props.isHighlighted) {

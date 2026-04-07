@@ -816,6 +816,72 @@ module Billing
         json_error('Failed to cancel subscription', status: 500)
       end
 
+      # Reactivate a subscription scheduled for cancellation
+      #
+      # Clears cancel_at_period_end on the Stripe subscription, reversing a
+      # previously scheduled cancellation. The subscription continues as-is
+      # on the same plan.
+      #
+      # POST /billing/api/org/:extid/reactivate-subscription
+      #
+      # @return [Hash] Result with subscription status
+      def reactivate_subscription
+        org = load_organization(req.params['extid'], require_owner: true)
+
+        unless org.active_subscription?
+          return json_error('No active subscription to reactivate', status: 400)
+        end
+
+        unless org.stripe_subscription_id
+          return json_error('No Stripe subscription found', status: 400)
+        end
+
+        if stripe_api_key_missing?('reactivate_subscription')
+          return json_error('Billing service temporarily unavailable', status: 503)
+        end
+
+        subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
+
+        unless subscription.cancel_at_period_end
+          return json_error('Subscription is not scheduled for cancellation', status: 400)
+        end
+
+        updated_subscription = Stripe::Subscription.update(
+          org.stripe_subscription_id,
+          { cancel_at_period_end: false },
+        )
+
+        billing_logger.info 'Subscription reactivated',
+          {
+            extid: org.extid,
+            subscription_id: updated_subscription.id,
+            status: updated_subscription.status,
+          }
+
+        json_response(
+          {
+            success: true,
+            status: updated_subscription.status,
+          },
+        )
+      rescue OT::Problem => ex
+        json_error(ex.message, status: 403)
+      rescue Stripe::InvalidRequestError => ex
+        billing_logger.warn 'Invalid subscription reactivation request',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
+        json_error(ex.message, status: 400)
+      rescue Stripe::StripeError => ex
+        billing_logger.error 'Failed to reactivate subscription',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
+        json_error('Failed to reactivate subscription', status: 500)
+      end
+
       # Pre-check for currency mismatch
       #
       # Detects currency mismatch between current subscription and target plan
