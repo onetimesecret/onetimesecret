@@ -8,6 +8,8 @@
 !examples/*.yaml
 !examples/*-example
 !examples/puma*.rb
+!examples/systemd/
+!examples/systemd/*
 !init.d/
 !systemd/
 !systemd/*

@@ -142,7 +142,7 @@ namespace :ots do
     else
       require 'passforge/wordlist'
       require 'passforge/passphrase'
-      updates['FEDERATION_SECRET'] = PassForge::Passphrase.generate(words: 3, separator: '-', capitalize: false)
+      updates['FEDERATION_SECRET'] = PassForge::Passphrase.generate(words: 5, separator: '-', capitalize: false)
     end
 
     OTSInit.write_env(env_path, existing_lines, updates)
@@ -188,7 +188,7 @@ namespace :ots do
     end
     fed_kept   = federation && !federation.empty? && federation != 'CHANGEME'
     fed_suffix = fed_kept ? ' (kept existing)' : ''
-    puts "  #{'FEDERATION_SECRET'.ljust(max_name)}  3-word passphrase#{fed_suffix}"
+    puts "  #{'FEDERATION_SECRET'.ljust(max_name)}  5-word passphrase#{fed_suffix}"
 
     puts
     puts 'Back up this file.'
