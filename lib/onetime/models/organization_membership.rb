@@ -71,6 +71,8 @@ module Onetime
       { expired: ->(obj) { obj.expired? } },
       :resend_count,
       :token,
+      :domain_scope_id,
+      { domain_scoped: ->(obj) { obj.domain_scoped? } },
     )
 
     # Foreign keys - auto-set by ThroughModelOperations
@@ -102,6 +104,8 @@ module Onetime
     # Secure token for invitation links
     # Format: /invite/:token
     field :token
+
+    field :domain_scope_id
 
     # Indexes for fast lookups
     unique_index :token, :token_lookup
@@ -201,6 +205,18 @@ module Onetime
       role == 'member' || admin?
     end
 
+    def org_scoped?
+      domain_scope_id.to_s.empty?
+    end
+
+    def domain_scoped?
+      !org_scoped?
+    end
+
+    def can_access_domain?(domain)
+      org_scoped? || domain_scope_id == domain.objid
+    end
+
     # Accept a pending invitation
     #
     # Uses Familia's staged relationship activation to atomically:
@@ -228,13 +244,14 @@ module Onetime
       raise Onetime::Problem, 'Email mismatch' unless emails_match
 
       # Capture values from staged model before activation destroys it
-      old_token           = token
-      old_org_email_key   = org_email_key
-      carry_role          = role
-      carry_invited_email = invited_email
-      carry_invited_by    = invited_by
-      carry_invited_at    = invited_at
-      carry_resend_count  = resend_count
+      old_token              = token
+      old_org_email_key      = org_email_key
+      carry_role             = role
+      carry_invited_email    = invited_email
+      carry_invited_by       = invited_by
+      carry_invited_at       = invited_at
+      carry_resend_count     = resend_count
+      carry_domain_scope_id  = domain_scope_id
 
       org = organization
       raise Onetime::Problem, 'Organization not found' unless org
@@ -261,6 +278,7 @@ module Onetime
             invited_at: carry_invited_at,
             joined_at: Familia.now.to_f,
             resend_count: carry_resend_count,
+            domain_scope_id: carry_domain_scope_id,
             token: nil, # Clear token for security
           },
         )
@@ -513,7 +531,7 @@ module Onetime
       # @param role [String] 'member' or 'admin' (only used for direct add;
       #   when activating a pending invitation, the invitation's role is used)
       # @return [OrganizationMembership] the active membership (composite-keyed)
-      def ensure_membership(organization, customer, role: 'member')
+      def ensure_membership(organization, customer, role: 'member', domain_scope_id: nil)
         return find_by_org_customer(organization.objid, customer.objid) if organization.member?(customer)
 
         pending = find_by_org_email(organization.objid, customer.email)
@@ -532,6 +550,7 @@ module Onetime
               role: role,
               status: 'active',
               joined_at: Familia.now.to_f,
+              domain_scope_id: domain_scope_id,
             },
           )
         end

@@ -158,8 +158,12 @@ module Onetime
           if domain
             org = domain.primary_organization
             if org && org.member?(customer)
-              OT.ld "[OrganizationLoader] Using domain-based selection: #{org.objid} (#{host})"
-              return org
+              membership = Onetime::OrganizationMembership.find_by_org_customer(org.objid, customer.objid)
+              if membership&.can_access_domain?(domain) != false
+                OT.ld "[OrganizationLoader] Using domain-based selection: #{org.objid} (#{host})"
+                return org
+              end
+              OT.ld "[OrganizationLoader] Domain-scoped member cannot access #{host}: #{customer.objid}"
             end
           end
         end
