@@ -159,7 +159,7 @@ describe('MastHead', () => {
   };
 
   describe('Logo Sizing', () => {
-    it('uses 64px logo for unauthenticated users', async () => {
+    it('uses 48px logo for unauthenticated users', async () => {
       wrapper = mountComponent({}, {
         authenticated: false,
         cust: null,
@@ -168,7 +168,7 @@ describe('MastHead', () => {
 
       await nextTick();
       const logo = wrapper.find('.default-logo');
-      expect(logo.attributes('data-size')).toBe('64');
+      expect(logo.attributes('data-size')).toBe('48');
     });
 
     it('uses 40px logo for authenticated users', async () => {
@@ -205,10 +205,11 @@ describe('MastHead', () => {
       });
 
       await nextTick();
-      // Custom domain logo uses img element with size-20 class (80px)
+      // Custom domain logo uses img element with h-20 + w-auto (height-only constraint)
       const img = wrapper.find('img#logo');
       if (img.exists()) {
-        expect(img.classes()).toContain('size-20');
+        expect(img.classes()).toContain('h-20');
+        expect(img.classes()).toContain('w-auto');
         expect(img.attributes('height')).toBe('80');
       }
     });
@@ -224,6 +225,48 @@ describe('MastHead', () => {
       await nextTick();
       const logo = wrapper.find('.default-logo');
       expect(logo.attributes('data-size')).toBe('48');
+    });
+  });
+
+  describe('Image logo sizing (non-Vue URL)', () => {
+    it('uses h-12 and w-auto classes for unauthenticated users with image URL', async () => {
+      wrapper = mountComponent({
+        logo: { url: '/static/brand.png' },
+      }, {
+        authenticated: false,
+        cust: null,
+        email: null,
+      });
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      expect(img.classes()).toContain('h-12');
+      expect(img.classes()).toContain('w-auto');
+      expect(img.attributes('height')).toBeTruthy();
+      expect(img.attributes('width')).toBeUndefined();
+      // Regression: old square class should not be present
+      expect(img.classes()).not.toContain('size-12');
+    });
+
+    it('uses h-10 and w-auto classes for authenticated users with image URL', async () => {
+      wrapper = mountComponent({
+        logo: { url: '/static/brand.png' },
+      }, {
+        authenticated: true,
+        cust: mockCustomer,
+        email: mockCustomer.email,
+      });
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      expect(img.classes()).toContain('h-10');
+      expect(img.classes()).toContain('w-auto');
+      expect(img.attributes('height')).toBeTruthy();
+      expect(img.attributes('width')).toBeUndefined();
+      // Regression: old square class should not be present
+      expect(img.classes()).not.toContain('size-10');
     });
   });
 

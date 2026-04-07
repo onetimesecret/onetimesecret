@@ -182,7 +182,7 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       expect(logo.attributes('data-show-site-name')).toBe('true');
     });
 
-    it('uses 64px logo for unauthenticated users on canonical domain', async () => {
+    it('uses 48px logo for unauthenticated users on canonical domain', async () => {
       wrapper = mountComponent({}, {
         authenticated: false,
         domain_strategy: 'canonical',
@@ -191,7 +191,7 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
 
       await nextTick();
       const logo = wrapper.find('.default-logo');
-      expect(logo.attributes('data-size')).toBe('64');
+      expect(logo.attributes('data-size')).toBe('48');
     });
 
     it('uses 40px logo for authenticated users on canonical domain', async () => {
@@ -236,7 +236,7 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       expect(img.attributes('src')).toBe(customLogoUrl);
     });
 
-    it('uses 80px size for custom domain logo', async () => {
+    it('uses 80px height for custom domain logo without forcing width', async () => {
       wrapper = mountComponent({}, {
         authenticated: false,
         domain_strategy: 'custom',
@@ -247,10 +247,10 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
       expect(img.attributes('height')).toBe('80');
-      expect(img.attributes('width')).toBe('80');
+      expect(img.attributes('width')).toBeUndefined();
     });
 
-    it('applies size-20 class to custom domain logo', async () => {
+    it('applies h-20 and w-auto classes to custom domain logo', async () => {
       wrapper = mountComponent({}, {
         authenticated: false,
         domain_strategy: 'custom',
@@ -260,7 +260,10 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.classes()).toContain('size-20');
+      expect(img.classes()).toContain('h-20');
+      expect(img.classes()).toContain('w-auto');
+      // Regression: old square class should not be present
+      expect(img.classes()).not.toContain('size-20');
     });
 
     it('hides site name when custom domain logo is present', async () => {
@@ -339,8 +342,8 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       await nextTick();
       const logo = wrapper.find('.default-logo');
       expect(logo.exists()).toBe(true);
-      // Should use 64px (unauthenticated default), NOT 80px (custom domain logo size)
-      expect(logo.attributes('data-size')).toBe('64');
+      // Should use 48px (unauthenticated default), NOT 80px (custom domain logo size)
+      expect(logo.attributes('data-size')).toBe('48');
     });
   });
 

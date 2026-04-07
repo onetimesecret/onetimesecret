@@ -52,11 +52,11 @@
   // Custom domain logos are larger to emphasize brand identity
   const isCustomDomainLogo = computed(() => !!domain_logo.value);
   // Authenticated users get a smaller logo (40px) to balance visual weight with context switchers
-  // Custom domain logos remain at 80px, unauthenticated users get 64px
+  // Custom domain logos remain at 80px, unauthenticated users get 48px
   const getLogoSize = () => {
     if (props.logo?.size) return props.logo.size;
     if (isCustomDomainLogo.value) return 80;
-    return isUserPresent.value ? 40 : 64;
+    return isUserPresent.value ? 40 : 48;
   };
   // Hide site name when custom domain logo is displayed (unless explicitly configured)
   // Priority: props > custom domain (hide by default) > logo.show_name config > site_name presence
@@ -172,16 +172,15 @@
               <img
                 id="logo"
                 :src="logoConfig.url"
-                class="transition-transform"
+                class="w-auto transition-transform"
                 :class="[
                   isCustomDomainLogo
-                    ? 'size-20'
+                    ? 'h-20'
                     : isUserPresent
-                      ? 'size-10'
-                      : 'size-12'
+                      ? 'h-10'
+                      : 'h-12'
                 ]"
                 :height="logoConfig.size"
-                :width="logoConfig.size"
                 :alt="logoConfig.alt" />
               <span
                 v-if="logoConfig.showSiteName"
