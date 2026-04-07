@@ -6,14 +6,14 @@
  * Phase 4+ Security Change: The acknowledge_email_mismatch flag has been removed.
  * Phase 7 Update: Inline forms on invite page - signup/signin without redirect.
  *
- * Invitations are strictly email-bound - users must switch to the correct account.
- * The wrong_email state shows only a "Switch Account" button, no accept option.
+ * Invitations are strictly email-bound - users must continue as the invited email.
+ * The wrong_email state shows a "Continue as" button and a decline option.
  *
  * Tests the flow when a user logged in with a different email
  * than the invited email attempts to accept an invitation:
  * 1. Email mismatch detection shows wrong_email state
  * 2. Accept button is NOT visible in wrong_email state (strict binding)
- * 3. "Switch Account" triggers logout and redirect to signin
+ * 3. "Continue as" triggers logout and redirect to invite page
  *
  * Prerequisites:
  * - Set TEST_USER_EMAIL, TEST_USER_PASSWORD environment variables
@@ -143,7 +143,7 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
 test.describe('MISMATCH-001: Email Mismatch Warning Display', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test('When logged in with different email, mismatch warning shows Switch Account option only', async ({
+  test('When logged in with different email, mismatch warning shows Continue As option', async ({
     browser,
   }) => {
     const ownerContext = await browser.newContext();
@@ -170,10 +170,10 @@ test.describe('MISMATCH-001: Email Mismatch Warning Display', () => {
       const mismatchWarning = wrongUserPage.locator('[data-testid="email-mismatch-warning"]');
       await expect(mismatchWarning).toBeVisible();
 
-      // Verify "Switch Account" button is present
-      const switchButton = wrongUserPage.locator('[data-testid="switch-account-btn"]');
-      await expect(switchButton).toBeVisible();
-      await expect(switchButton).toHaveText(/switch account/i);
+      // Verify "Continue as" button is present
+      const continueAsBtn = wrongUserPage.locator('[data-testid="continue-as-btn"]');
+      await expect(continueAsBtn).toBeVisible();
+      await expect(continueAsBtn).toHaveText(/continue as/i);
 
       // Verify "Accept with this account" button is NOT present (removed in Phase 4)
       const acceptMismatchButton = wrongUserPage.locator('[data-testid="accept-with-mismatch-btn"]');
@@ -223,9 +223,9 @@ test.describe('MISMATCH-002: Accept Button Hidden When Email Mismatch', () => {
       const acceptButton = wrongUserPage.getByTestId('accept-invitation-btn');
       await expect(acceptButton).not.toBeVisible();
 
-      // Only switch account button should be available
-      const switchButton = wrongUserPage.getByTestId('switch-account-btn');
-      await expect(switchButton).toBeVisible();
+      // Continue-as button should be available
+      const continueAsBtn = wrongUserPage.getByTestId('continue-as-btn');
+      await expect(continueAsBtn).toBeVisible();
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
@@ -234,13 +234,13 @@ test.describe('MISMATCH-002: Accept Button Hidden When Email Mismatch', () => {
 });
 
 // -----------------------------------------------------------------------------
-// SECTION 3: Switch Account Flow
+// SECTION 3: Continue As Flow
 // -----------------------------------------------------------------------------
 
-test.describe('MISMATCH-003: Switch Account Triggers Logout', () => {
+test.describe('MISMATCH-003: Continue As Triggers Logout', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test('Clicking "Switch Account" logs out user and redirects to signin with email prefilled', async ({
+  test('Clicking "Continue as" logs out user and redirects to invite page', async ({
     browser,
   }) => {
     const ownerContext = await browser.newContext();
@@ -263,25 +263,12 @@ test.describe('MISMATCH-003: Switch Account Triggers Logout', () => {
       await wrongUserPage.goto(`/invite/${token}`);
       await wrongUserPage.waitForLoadState('networkidle');
 
-      // Click switch account
-      const switchButton = wrongUserPage.locator('[data-testid="switch-account-btn"]');
-      await switchButton.click();
+      // Click continue as — logs out and redirects to invite page
+      const continueAsBtn = wrongUserPage.locator('[data-testid="continue-as-btn"]');
+      await continueAsBtn.click();
 
-      // Verify redirected to signin
-      await wrongUserPage.waitForURL(/\/signin/, { timeout: 10000 });
-
-      // Verify URL contains email parameter with invited email
-      const url = wrongUserPage.url();
-      expect(url).toContain('email=');
-      // URL should contain the invited email (URL encoded)
-      const urlHasInvitedEmail =
-        url.includes(encodeURIComponent(invitedEmail)) ||
-        url.includes(invitedEmail.replaceAll('@', '%40'));
-      expect(urlHasInvitedEmail).toBe(true);
-
-      // Verify URL contains redirect back to invitation
-      expect(url).toContain('redirect=');
-      expect(url).toContain(token);
+      // Verify redirected back to invite page (not signin)
+      await wrongUserPage.waitForURL(/\/invite\//, { timeout: 10000 });
 
       // Verify user is logged out
       const response = await wrongUserPage.request.get('/api/v2/bootstrap/authenticated');
@@ -436,9 +423,9 @@ test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
  *
  * | ID            | Intent                                                        | Priority   |
  * |---------------|---------------------------------------------------------------|------------|
- * | MISMATCH-001  | Mismatch warning shows Switch Account only (no Accept option) | High       |
+ * | MISMATCH-001  | Mismatch warning shows Continue As option (no Accept option) | High       |
  * | MISMATCH-002  | Accept button disabled when email mismatch exists            | High       |
- * | MISMATCH-003  | Switch account logs out and redirects with email prefill     | High       |
+ * | MISMATCH-003  | Continue as logs out and redirects to invite page            | High       |
  * | MISMATCH-004  | Unauthenticated shows normal accept flow                      | Medium     |
  * | MISMATCH-005  | API rejects mismatch (even with old acknowledgment flag)     | Critical   |
  */

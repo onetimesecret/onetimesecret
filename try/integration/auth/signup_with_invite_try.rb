@@ -62,6 +62,11 @@ result = Auth::Operations::AcceptInvitation.new(
 [result[:accepted], result[:organization_id] == @org.objid, result[:role]]
 #=> [true, true, 'member']
 
+## After acceptance, customer is verified (invite proves email ownership)
+refreshed = Onetime::Customer.find_by_email(@invited_email)
+[refreshed.verified?, refreshed.verified_by]
+#=> [true, 'invite_token']
+
 ## After acceptance, invitation status is active
 # After accept!, the UUID-keyed staged model is destroyed. Look up the activated
 # composite-keyed membership via org+customer index instead of refresh! on the old key.

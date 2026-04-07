@@ -61,6 +61,10 @@ invitee_after = Onetime::Customer.find_by_email(@invitee_email)
 invitee_after.verified_by
 #=> 'invite_token'
 
+## After acceptance, customer is verified
+Onetime::Customer.find_by_email(@invitee_email).verified?
+#=> true
+
 ## Result includes organization_id matching the org
 result = Auth::Operations::AcceptInvitation.new(
   customer: @invitee,

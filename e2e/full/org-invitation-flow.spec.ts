@@ -293,7 +293,7 @@ test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
 test.describe('INV-003: Email Mismatch Warning', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test('User logged in with different email sees clear mismatch warning with switch account option', async ({
+  test('User logged in with different email sees clear mismatch warning with continue-as option', async ({
     browser,
   }) => {
     // Create two browser contexts - one for owner, one for wrong user
@@ -326,15 +326,15 @@ test.describe('INV-003: Email Mismatch Warning', () => {
       const mismatchWarning = wrongUserPage.getByTestId('email-mismatch-warning');
       await expect(mismatchWarning).toBeVisible();
 
-      // Verify warning shows "Wrong Account" or similar
-      await expect(wrongUserPage.getByText(/wrong|mismatch/i)).toBeVisible();
+      // Verify warning shows factual "Different account" framing
+      await expect(wrongUserPage.getByText(/different|mismatch/i)).toBeVisible();
 
       // Verify invited email is shown
       await expect(wrongUserPage.getByText(invitedEmail)).toBeVisible();
 
-      // Verify "Switch Account" button is visible (using testid)
-      const switchButton = wrongUserPage.getByTestId('switch-account-btn');
-      await expect(switchButton).toBeVisible();
+      // Verify "Continue as" button is visible (using testid)
+      const continueAsBtn = wrongUserPage.getByTestId('continue-as-btn');
+      await expect(continueAsBtn).toBeVisible();
 
       // Verify accept button is NOT visible (strict email binding - no "Accept with this account")
       const acceptButton = wrongUserPage.getByTestId('accept-invitation-btn');
@@ -346,10 +346,10 @@ test.describe('INV-003: Email Mismatch Warning', () => {
   });
 });
 
-test.describe('INV-004: Switch Account Flow', () => {
+test.describe('INV-004: Continue As Invited Email Flow', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test('Clicking Switch Account logs out and redirects to signin with email prefilled', async ({
+  test('Clicking Continue As logs out and redirects to invite page', async ({
     browser,
   }) => {
     const ownerContext = await browser.newContext();
@@ -372,19 +372,12 @@ test.describe('INV-004: Switch Account Flow', () => {
       await wrongUserPage.goto(`/invite/${token}`);
       await wrongUserPage.waitForLoadState('networkidle');
 
-      // Click switch account
-      const switchButton = wrongUserPage.getByRole('button', { name: /switch/i });
-      await switchButton.click();
+      // Click continue as — logs out and redirects to invite page
+      const continueAsBtn = wrongUserPage.getByRole('button', { name: /continue as/i });
+      await continueAsBtn.click();
 
-      // Verify redirected to signin
-      await wrongUserPage.waitForURL(/\/signin/, { timeout: 10000 });
-
-      // Verify URL contains email and redirect params
-      const url = wrongUserPage.url();
-      expect(url).toContain('email=');
-      expect(url).toContain(encodeURIComponent(invitedEmail).replace(/%40/g, '@').toLowerCase());
-      expect(url).toContain('redirect=');
-      expect(url).toContain(token);
+      // Verify redirected back to invite page (not signin)
+      await wrongUserPage.waitForURL(/\/invite\//, { timeout: 10000 });
 
       // Verify user is logged out by checking API
       const response = await wrongUserPage.request.get('/api/v2/bootstrap/authenticated');
@@ -734,7 +727,7 @@ test.describe('INV-SEC-001: Open Redirect Prevention', () => {
 test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test('Switch account flow does not reveal whether invited email has existing account', async ({
+  test('Continue-as flow does not reveal whether invited email has existing account', async ({
     browser,
   }) => {
     const ownerContext = await browser.newContext();
@@ -756,25 +749,17 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
       await wrongUserPage.goto(`/invite/${token}`);
       await wrongUserPage.waitForLoadState('networkidle');
 
-      // Click switch account
-      const switchButton = wrongUserPage.getByRole('button', { name: /switch/i });
-      await switchButton.click();
+      // Click continue as — logs out and redirects to invite page
+      const continueAsBtn = wrongUserPage.getByRole('button', { name: /continue as/i });
+      await continueAsBtn.click();
 
-      // Should redirect to signin (not signup)
-      await wrongUserPage.waitForURL(/\/signin/, { timeout: 10000 });
+      // Should redirect to invite page (not signin)
+      await wrongUserPage.waitForURL(/\/invite\//, { timeout: 10000 });
 
       // URL should not indicate whether account exists
       const url = wrongUserPage.url();
       expect(url).not.toContain('account_exists');
       expect(url).not.toContain('new_account');
-
-      // "Create account" link should be available if user needs it
-      // Link may or may not be visible depending on UI, but clicking switch should not auto-determine
-      await expect(wrongUserPage.getByRole('link', { name: /create account|sign up/i }))
-        .toBeVisible()
-        .catch(() => {
-          // Link visibility varies by UI state - not a test failure
-        });
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
@@ -810,8 +795,8 @@ test.describe('INV-017: Complete Invitation Acceptance Flow', () => {
  * |--------------|-----------------------------------------------------------|------------|
  * | INV-001      | Owner sends invitation with validation                    | Critical   |
  * | INV-002      | Unauthenticated redirect to signin with redirect param    | Critical   |
- * | INV-003      | Email mismatch warning with switch account option         | High       |
- * | INV-004      | Switch account logs out and redirects with email prefill  | High       |
+ * | INV-003      | Email mismatch warning with continue-as option            | High       |
+ * | INV-004      | Continue as logs out and redirects to invite page         | High       |
  * | INV-005      | Matching email user can immediately accept                | High       |
  * | INV-007a     | Authenticated decline with redirect home                  | Medium     |
  * | INV-007b     | Unauthenticated decline without signing in                | Medium     |
