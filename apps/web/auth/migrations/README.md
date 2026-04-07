@@ -100,7 +100,7 @@ sequel -m apps/web/auth/migrations -M 0 $AUTH_DATABASE_URL_MIGRATIONS
 ```bash
 export AUTHENTICATION_MODE=full
 export AUTH_DATABASE_URL=sqlite::memory:
-bundle exec thin start
+bundle exec puma -C etc/puma.rb
 # Migrations run automatically on boot
 ```
 
@@ -108,7 +108,7 @@ bundle exec thin start
 ```bash
 export AUTHENTICATION_MODE=full
 export AUTH_DATABASE_URL=sqlite://data/auth.db
-bundle exec thin start
+bundle exec puma -C etc/puma.rb
 # Database file created if missing, migrations applied automatically
 ```
 
@@ -121,7 +121,7 @@ psql -U postgres -f apps/web/auth/migrations/schemas/postgres/initialize_auth_db
 export AUTHENTICATION_MODE=full
 export AUTH_DATABASE_URL=postgresql://onetime_user:pass@localhost/onetime_auth
 export AUTH_DATABASE_URL_MIGRATIONS=postgresql://postgres:pass@localhost/onetime_auth
-bundle exec thin start
+bundle exec puma -C etc/puma.rb
 ```
 
 ## PostgreSQL Test Database Setup

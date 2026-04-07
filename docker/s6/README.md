@@ -38,7 +38,7 @@ docker/s6/services/
 ├── config-check/         # Oneshot: Config validation (v0.24.0 migration)
 │   ├── type
 │   └── up
-├── web/                  # Longrun: Puma/Thin web server
+├── web/                  # Longrun: Puma web server
 │   ├── type
 │   ├── dependencies
 │   ├── run
@@ -74,7 +74,7 @@ Run once at container startup before longrun services start.
 
 Continuous processes supervised by S6. Automatically restart on crash.
 
-- **web**: Puma or Thin web server (controlled by `SERVER_TYPE` env var)
+- **web**: Puma web server
 - **scheduler**: Job scheduler (`bin/ots scheduler`)
 - **worker**: Job worker (`bin/ots worker`)
 
@@ -152,10 +152,9 @@ docker run onetimesecret:s6 \
 
 ### Web Server Configuration
 
-- `SERVER_TYPE`: Server to run (`puma` or `thin`, default: `puma`)
 - `PORT`: Port to bind (default: `3000`)
 
-### Puma Configuration (when SERVER_TYPE=puma)
+### Puma Configuration
 
 - `PUMA_WORKERS`: Number of worker processes (default: `2`)
 - `PUMA_MIN_THREADS`: Minimum threads per worker (default: `4`)
