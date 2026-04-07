@@ -117,13 +117,13 @@ resp = JSON.parse(last_response.body)
 [@accepted_invitation.status, @accepted_invitation.active?]
 #=> ['active', true]
 
-## GET accepted invitation - returns 200 (not 400 error)
-# Note: token is cleared after accept!, so we need to reload and check
-# Actually, after accept! the token is nil, so this tests that case
-# We need a fresh token lookup - but token is cleared. This is expected behavior.
-# Testing via direct load instead since token is cleared after acceptance.
-@accepted_invitation = Onetime::OrganizationMembership.load(@accepted_invitation.objid)
-@accepted_invitation.token.nil?
+## GET accepted invitation - token is nil on activated membership
+# After accept!, the UUID-keyed staged model is destroyed. The composite-keyed
+# activated model has token=nil (cleared for security). Look up via org+customer index.
+@activated_membership = Onetime::OrganizationMembership.find_by_org_customer(
+  @accepted_invitation.organization_objid, @accepted_user.objid
+)
+@activated_membership.token.nil?
 #=> true
 
 # ============================================================================

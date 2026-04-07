@@ -201,8 +201,17 @@ module Onetime
 
     # Accept a pending invitation
     #
-    # Updates the membership record to active status and adds the customer
-    # to the organization's member sorted set.
+    # Uses Familia's staged relationship activation to atomically:
+    # - Add customer to org.members (active sorted set)
+    # - Add org to customer's participation reverse index
+    # - Remove from org.pending_invitations (staging set)
+    # - Create composite-keyed through model
+    # - Destroy UUID-keyed staged model
+    #
+    # OTS-specific index transitions are handled before/after activation:
+    # - token_lookup: removed (pending-only index, token cleared for security)
+    # - org_email_lookup: removed (pending-only index)
+    # - org_customer_lookup: populated (active-only index)
     #
     # @param customer [Onetime::Customer] The customer accepting the invite
     # @return [Boolean] true if acceptance succeeded
@@ -215,37 +224,58 @@ module Onetime
                      customer.email.to_s.downcase == invited_email.to_s.downcase
       raise Onetime::Problem, 'Email mismatch' unless emails_match
 
-      # Capture old token before clearing (needed for index cleanup)
-      old_token = token
+      # Capture values from staged model before activation destroys it
+      old_token           = token
+      old_org_email_key   = org_email_key
+      carry_role          = role
+      carry_invited_email = invited_email
+      carry_invited_by    = invited_by
+      carry_invited_at    = invited_at
+      carry_resend_count  = resend_count
 
+      org = organization
+      raise Onetime::Problem, 'Organization not found' unless org
+
+      # Clean up pending-state OTS indexes BEFORE activation.
+      # The staged model's save populated these indexes. The activated model
+      # will re-populate org_email_lookup (same key, new objid) during its save,
+      # so we must remove the old entry first to avoid RecordExistsError.
+      self.class.token_lookup.remove_field(old_token) if old_token
+      self.class.org_email_lookup.remove_field(old_org_email_key) if old_org_email_key
+
+      # Activate via Familia staged relationships: handles the three-structure
+      # invariant (active set + reverse index + staging set removal) atomically,
+      # then creates composite-keyed through model and destroys this UUID model.
+      activated = org.activate_members_instance(
+        self,
+        customer,
+        through_attrs: {
+          role: carry_role,
+          status: 'active',
+          invited_email: carry_invited_email,
+          invited_by: carry_invited_by,
+          invited_at: carry_invited_at,
+          joined_at: Familia.now.to_f,
+          resend_count: carry_resend_count,
+          token: nil, # Clear token for security
+        },
+      )
+
+      # Populate active-state OTS index on the NEW composite-keyed model
+      if activated.org_customer_key
+        self.class.org_customer_lookup[activated.org_customer_key] = activated.objid
+      end
+
+      # Update in-memory state so callers see the accepted state.
+      # The UUID-keyed Redis entry is already destroyed by activate.
+      # Setting objid to the composite key ensures that refresh! and
+      # load(objid) work correctly post-accept.
+      self.objid          = activated.objid
       self.customer_objid = customer.objid
       self.status         = 'active'
-      self.joined_at      = Familia.now.to_f
-      self.token          = nil  # Clear token for security
-      save
+      self.joined_at      = activated.joined_at
+      self.token          = nil
 
-      # Clean up pending invitation indexes AFTER save
-      # (save re-adds indexes via auto_update_class_indexes)
-      self.class.token_lookup.remove_field(old_token) if old_token
-      self.class.org_email_lookup.remove_field(org_email_key) if org_email_key
-
-      # Update the org_customer_lookup index since customer_objid changed
-      # This index enables find_by_org_customer to work for active memberships
-      if org_customer_key
-        self.class.org_customer_lookup[org_customer_key] = objid
-      end
-
-      # Add customer to organization's member sorted set directly
-      # We bypass add_members_instance because that uses :through which would
-      # try to create a new OrganizationMembership (we already have one - this invitation)
-      # NOTE: Pass the Customer object (not objid string) so Familia v2 serialize_value
-      # extracts the identifier consistently (strings get JSON-encoded, objects don't)
-      org   = organization
-      score = Familia.now.to_f
-      if org
-        org.members.add(customer, score)
-        org.pending_invitations.remove(objid) # Remove from pending set
-      end
       true
     end
 
@@ -254,9 +284,10 @@ module Onetime
     # Cleans up indexes to prevent stale entries from accumulating:
     #   - token_lookup: removed (token is cleared anyway)
     #   - org_email_lookup: removed (allows re-invitation to same email)
-    #   - pending_invitations: removed (quota accuracy)
+    #   - pending_invitations: removed from staging set (quota accuracy)
     #
     # The record itself is preserved with status='declined' for audit purposes.
+    # Does NOT use unstage_members_instance because that destroys the model.
     #
     def decline!
       raise Onetime::Problem, 'Cannot decline active membership' if active?
@@ -272,19 +303,25 @@ module Onetime
       self.class.token_lookup.remove_field(old_token) if old_token
       self.class.org_email_lookup.remove_field(org_email_key) if org_email_key
 
-      # Remove from org's pending set
+      # Remove from org's pending_invitations staging set (preserves the record)
       organization&.pending_invitations&.remove(objid)
     end
 
     # Revoke a pending invitation (by org owner/admin)
+    #
+    # Uses Familia's unstage to remove from staging set and destroy the model,
+    # plus OTS-specific index cleanup for token_lookup and org_email_lookup.
     def revoke!
       raise Onetime::Problem, 'Can only revoke pending invitations' unless pending?
 
-      # Remove from org's pending set before destroying
-      organization&.pending_invitations&.remove(objid)
+      # Clean up OTS-specific indexes before unstaging destroys the model
+      self.class.token_lookup.remove_field(token) if token
+      self.class.org_email_lookup.remove_field(org_email_key) if org_email_key
+      self.class.org_customer_lookup.remove_field(org_customer_key) if org_customer_key
 
-      # Use destroy_with_index_cleanup! to prevent orphaned Redis index entries
-      destroy_with_index_cleanup!
+      # Use Familia staged relationship: removes from pending_invitations set
+      # and destroys the UUID-keyed through model
+      organization&.unstage_members_instance(self)
     end
 
     # Destroy the membership with proper index cleanup
@@ -305,7 +342,7 @@ module Onetime
     #   - org_email_lookup (allows email to be re-invited)
     #   - org_customer_lookup
     #   - token_lookup
-    #   - pending_invitations set (prevents stale quota counts)
+    #   - pending_invitations staging set (prevents stale quota counts)
     #
     def destroy_with_index_cleanup!
       # Remove org_email_lookup entry if exists
@@ -324,7 +361,7 @@ module Onetime
         self.class.token_lookup.remove_field(token)
       end
 
-      # Remove from org's pending_invitations set if still pending
+      # Remove from org's pending_invitations staging set if still pending
       # This prevents stale objids from affecting quota calculations
       organization&.pending_invitations&.remove(objid) if pending?
 
@@ -340,11 +377,15 @@ module Onetime
     class << self
       # Create a new invitation for an organization
       #
+      # Uses Familia's staged relationships to create a UUID-keyed through model
+      # in the pending_invitations staging set. The model is NOT in the active
+      # members set until accept! is called (which triggers activate_members_instance).
+      #
       # @param organization [Organization] the organization inviting
       # @param email [String] the email address to invite
       # @param role [String] the role to assign ('member', 'admin')
       # @param inviter [Customer] the customer creating the invite
-      # @return [OrganizationMembership] the created invitation
+      # @return [OrganizationMembership] the created invitation (UUID-keyed staged model)
       # @raise [Onetime::Problem] if invitation already exists for this email
       def create_invitation!(organization:, email:, inviter:, role: 'member')
         email = email.to_s.strip.downcase
@@ -353,26 +394,24 @@ module Onetime
         existing = find_by_org_email(organization.objid, email)
         raise Onetime::Problem, 'Invitation already pending for this email' if existing&.pending?
 
-        # Generate token before create! so it's included in index population
+        # Generate token before staging so it's included in index population
         token = SecureRandom.urlsafe_base64(32)
 
-        # Use create! for proper Familia index auto-population
-        membership = create!(
-          organization_objid: organization.objid,
-          invited_email: email,
-          role: role,
-          status: 'pending',
-          invited_by: inviter.objid,
-          invited_at: Familia.now.to_f,
-          joined_at: nil,
-          resend_count: 0,
-          token: token,
+        # Use Familia staged relationship: creates UUID-keyed through model
+        # and adds its objid to the org's pending_invitations staging sorted set.
+        # The stage method sets organization_objid automatically via target FK.
+        organization.stage_members_instance(
+          through_attrs: {
+            invited_email: email,
+            role: role,
+            status: 'pending',
+            invited_by: inviter.objid,
+            invited_at: Familia.now.to_f,
+            joined_at: nil,
+            resend_count: 0,
+            token: token,
+          },
         )
-
-        # Add to org's pending_invitations set for efficient querying
-        organization.pending_invitations.add(membership.objid)
-
-        membership
       end
 
       # Find an invitation by its secure token

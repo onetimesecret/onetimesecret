@@ -141,8 +141,10 @@ resp = JSON.parse(last_response.body)
 #=> true
 
 ## POST /api/invite/:token/accept - Invitation status updated to accepted
-@invitation = Onetime::OrganizationMembership.load(@invitation.objid)
-@invitation.status
+# After accept!, the UUID-keyed staged model is destroyed and replaced with a
+# composite-keyed model. Use find_by_org_customer to look up the activated membership.
+@activated_membership = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @invitee.objid)
+@activated_membership.status
 #=> 'active'
 
 ## Setup for accept/decline tests - create second invitation

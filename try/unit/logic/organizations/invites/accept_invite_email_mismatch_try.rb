@@ -110,7 +110,9 @@ end
 #=> true
 
 ## Exact match - invitation status changed to active (reload from Redis)
-Onetime::OrganizationMembership.load(@exact_invite.objid).status
+# After accept!, the UUID-keyed staged model is destroyed. Look up the activated
+# composite-keyed membership via org+customer index.
+Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @exact_user.objid).status
 #=> 'active'
 
 # ============================================================================
