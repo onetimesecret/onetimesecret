@@ -290,8 +290,15 @@ test.describe('E2E Integration - Environment Validation', () => {
     // Note: window.__BOOTSTRAP_ME__ starts as an object with server config,
     // then is replaced with `true` after consumption by the bootstrap service.
     // This allows memory to be reclaimed while preserving a testable marker.
+    //
+    // We wait for the Vue app to mount (#app[data-v-app]) to ensure the
+    // module script has fully executed — Rolldown's lazy module init may
+    // defer execution slightly beyond the `load` event in CI environments.
 
     await page.goto('/');
+
+    // Wait for Vue app to mount before checking bootstrap state
+    await page.waitForSelector('#app[data-v-app]', { timeout: 15000 });
 
     // Verify bootstrap data was successfully consumed (marker is set to true)
     const bootstrapConsumed = await page.evaluate(() => {
