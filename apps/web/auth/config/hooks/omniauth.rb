@@ -25,7 +25,7 @@ module Auth::Config::Hooks
       # - IdPs may return emails with different casing than stored
       # Uses NFC normalization and :fold for international email addresses.
       auth.account_from_omniauth do
-        normalized_email = omniauth_email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
+        normalized_email = OT::Utils.normalize_email(omniauth_email)
         _account_from_login(normalized_email)
       end
 

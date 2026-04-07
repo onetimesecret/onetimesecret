@@ -92,7 +92,7 @@ module InviteAPI::Logic
       protected
 
       def normalize_email(email)
-        email.to_s.strip.downcase
+        OT::Utils.normalize_email(email)
       end
     end
   end

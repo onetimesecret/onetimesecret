@@ -96,7 +96,7 @@ module Onetime
       end
 
       def find_customer!(email)
-        customer = Onetime::Customer.find_by_email(email.to_s.strip.unicode_normalize(:nfc).downcase(:fold))
+        customer = Onetime::Customer.find_by_email(OT::Utils.normalize_email(email))
         unless customer
           puts "Error: Customer not found with email: #{email}"
           puts '  The customer must have an existing account before being added to an organization.'

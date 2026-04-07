@@ -72,9 +72,9 @@ def add_member_cli(org:, email:, role: 'member', default_org: false, dry_run: fa
     return { success: false, error: "Organization not found: #{org}" }
   end
 
-  # Find customer - normalize email to lowercase for consistent Redis lookup
-  # (Customer emails are stored lowercase via Customer.create! normalization)
-  normalized_email = email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
+  # Find customer - normalize email for consistent Redis lookup
+  # (Customer emails are stored normalized via Customer.create!)
+  normalized_email = OT::Utils.normalize_email(email)
   customer = Onetime::Customer.find_by_email(normalized_email)
   unless customer
     return { success: false, error: "Customer not found: #{email}" }

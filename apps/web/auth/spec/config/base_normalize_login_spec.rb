@@ -22,8 +22,9 @@
 require 'rspec'
 
 RSpec.describe 'Auth::Config::Base normalize_login' do
-  # Simulates the normalize_login logic from auth/config/base.rb:
-  #   login.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
+  # Simulates the normalize_login logic from auth/config/base.rb.
+  # Canonical implementation: OT::Utils.normalize_email
+  # Inlined here to test the specific chain the Rodauth hook uses.
   def normalize_login(login)
     login.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
   end
