@@ -35,7 +35,7 @@ module Auth::Config::Features
                            invitation.pending? &&
                            !invitation.expired? &&
                            OT::Utils.normalize_email(invitation.invited_email) ==
-                           OT::Utils.normalize_email(param('login'))
+                           OT::Utils.normalize_email(param(login_param))
           end
         end
       end

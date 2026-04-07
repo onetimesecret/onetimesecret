@@ -14,7 +14,7 @@ module Auth::Config::Hooks
       auth.before_create_account do
         # Check if email already exists in either database
         # SECURITY: Two-database consistency check prevents orphaned accounts
-        email = param('login')
+        email = param(login_param)
 
         # Check SQLite (auth database)
         existing_account = db[:accounts].where(email: email).first
