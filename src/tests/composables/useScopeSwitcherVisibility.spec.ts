@@ -1,7 +1,7 @@
 // src/tests/composables/useScopeSwitcherVisibility.spec.ts
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { reactive, nextTick } from 'vue';
+import { reactive, ref, nextTick } from 'vue';
 
 // Mock vue-i18n before any imports that might use it
 vi.mock('vue-i18n', () => ({
@@ -34,10 +34,11 @@ vi.mock('@/utils/features', () => ({
   isOrganizationSwitcherEnabled: () => mockIsOrganizationSwitcherEnabled(),
 }));
 
-// Mock identityStore - composable uses isCustom from it
+// Mock identityStore - composable uses storeToRefs(useProductIdentity())
+// so isCustom must be a ref for storeToRefs to extract it
 vi.mock('@/shared/stores/identityStore', () => ({
   useProductIdentity: () => ({
-    isCustom: false,
+    isCustom: ref(false),
   }),
 }));
 

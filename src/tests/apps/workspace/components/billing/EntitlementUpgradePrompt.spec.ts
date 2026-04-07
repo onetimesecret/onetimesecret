@@ -7,6 +7,7 @@
 
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ref } from 'vue';
 import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import type { Pinia } from 'pinia';
@@ -31,10 +32,10 @@ vi.mock('vue-router', () => ({
   useRouter: vi.fn(() => ({ push: vi.fn() })),
 }));
 
-// Mock useProductIdentity to avoid useI18n() in store
+// Mock useProductIdentity — must be a ref since source uses storeToRefs()
 vi.mock('@/shared/stores/identityStore', () => ({
   useProductIdentity: () => ({
-    isCustom: false,
+    isCustom: ref(false),
   }),
 }));
 
