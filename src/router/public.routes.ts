@@ -74,12 +74,14 @@ function getLayoutPropsForMode(componentMode: string, domainStrategy: string) {
   }
 
   // Apply custom domain overrides if needed
-  // Custom domains get minimal layout - logo goes in content area, not MastHead
+  // Custom domains get minimal layout - logo goes in content area, not MastHead.
+  // Navigation stays enabled so TransactionalHeader can render a minimal
+  // Sign In link above the page content.
   if (domainStrategy === 'custom') {
     layoutProps = {
       ...layoutProps,
       displayMasthead: false, // Logo goes in page content for centered experience
-      displayNavigation: false,
+      displayNavigation: true, // Sign In handled by TransactionalHeader minimal nav
       displayFooterLinks: false,
       displayFeedback: false,
       displayVersion: false,
