@@ -213,7 +213,11 @@ module Onetime
       !org_scoped?
     end
 
+    # Fail-closed: nil domain = no access (either a bug upstream
+    # or a legitimate "no domain context" case — deny either way).
     def can_access_domain?(domain)
+      return false if domain.nil?
+
       org_scoped? || domain_scope_id == domain.objid
     end
 
@@ -530,6 +534,9 @@ module Onetime
       # @param customer [Customer]
       # @param role [String] 'member' or 'admin' (only used for direct add;
       #   when activating a pending invitation, the invitation's role is used)
+      # @param domain_scope_id [String, nil] Set once at first join. Re-login
+      #   returns existing membership unchanged — scope is immutable short of
+      #   explicit admin upgrade to org-scope.
       # @return [OrganizationMembership] the active membership (composite-keyed)
       def ensure_membership(organization, customer, role: 'member', domain_scope_id: nil)
         return find_by_org_customer(organization.objid, customer.objid) if organization.member?(customer)
