@@ -36,7 +36,7 @@ export default mergeConfig(
     build: {
       // Generate sourcemaps for easier debugging
       sourcemap: true,
-      rollupOptions: {
+      rolldownOptions: {
         output: {
           // Generate predictable filenames without hashes
           entryFileNames: `assets/[name].js`,

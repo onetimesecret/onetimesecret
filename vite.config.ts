@@ -169,7 +169,7 @@ export default defineConfig({
      *
      * @see ./src/build/plugins/addTrailingNewline.ts for implementation details.
      */
-    addTrailingNewline() as any,
+    addTrailingNewline(),
   ],
 
   resolve: {
@@ -213,13 +213,13 @@ export default defineConfig({
     // require generating and tracking nonces for each chunk, adding
     // complexity without significant benefit for our use case.
     manifest: true,
-    rollupOptions: {
+    rolldownOptions: {
       input: {
         main: 'src/main.ts',
       },
       output: {
-        // Enforce single chunk output
-        inlineDynamicImports: true,
+        // Enforce single chunk output (replaces deprecated inlineDynamicImports)
+        codeSplitting: false,
         format: 'es',
         entryFileNames: 'assets/[name].[hash].js',
         assetFileNames: 'assets/[name].[hash].[ext]',
