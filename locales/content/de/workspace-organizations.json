@@ -556,16 +556,16 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Falsches Konto",
-    "source_hash": "80c8ffa7"
+    "text": "Anderes Konto angemeldet",
+    "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Diese Einladung wurde an {invitedEmail} gesendet, aber du bist als {currentEmail} angemeldet.",
-    "source_hash": "937e08e7"
+    "text": "Diese Einladung ist für {invitedEmail}. Du bist derzeit als {currentEmail} angemeldet.",
+    "source_hash": "b8d3e5f7"
   },
-  "web.organizations.invitations.switch_account": {
-    "text": "Mit anderem Konto anmelden",
-    "source_hash": "71b2bdf3"
+  "web.organizations.invitations.continue_as_invited_email": {
+    "text": "Weiter als {email}",
+    "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}T verbleibend",

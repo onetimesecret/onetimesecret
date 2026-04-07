@@ -68,6 +68,10 @@ existing_user_after = Onetime::Customer.find_by_email(@existing_email)
 existing_user_after.verified_by
 #=> 'invite_token'
 
+## Customer is verified after acceptance (invite proves email ownership)
+Onetime::Customer.find_by_email(@existing_email).verified?
+#=> true
+
 ## Customer is now a member of the organization
 members = @org.members.to_a
 member_objids = members.map { |m| m.is_a?(String) ? m : m.customer_objid }

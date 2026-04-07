@@ -14,7 +14,7 @@ module Auth::Config::Hooks
       auth.before_create_account do
         # Check if email already exists in either database
         # SECURITY: Two-database consistency check prevents orphaned accounts
-        email = param('login')
+        email = param(login_param)
 
         # Check SQLite (auth database)
         existing_account = db[:accounts].where(email: email).first
@@ -96,6 +96,15 @@ module Auth::Config::Hooks
               ).call
 
               if result[:accepted]
+                # Auto-verify at SQL level — invite link proves email ownership
+                update_account(account_status_column => account_open_status_value)
+                # Remove verification key — clean up the key row
+                remove_verify_account_key if respond_to?(:remove_verify_account_key)
+
+                # Signal to create_account_autologin? that this signup has a verified invite.
+                # Set AFTER DB operations so autologin only fires if verification succeeded.
+                @invite_accepted = true
+
                 Auth::Logging.log_auth_event(
                   :invitation_accepted,
                   level: :info,

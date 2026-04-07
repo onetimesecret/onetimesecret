@@ -122,6 +122,8 @@ export function useInviteAuth() {
         return { success: false, error: info.message };
       }
 
+      // Server set session cookie via create_account_autologin — sync frontend state
+      await authStore.setAuthenticated(true);
       return { success: true };
     } catch (e) {
       const info = extractErrorInfo(undefined, e as AxiosLikeError);

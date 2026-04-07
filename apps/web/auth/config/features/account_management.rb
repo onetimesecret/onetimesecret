@@ -19,6 +19,30 @@ module Auth::Config::Features
         # Password is set during account creation, not during verification
         # This prevents verify_account from requiring password fields
         auth.verify_account_set_password? false
+
+        # Suppress verification email only for valid invite signups.
+        # The invite link proves email ownership, so no extra verification needed.
+        # SECURITY: Token must be validated here — checking the raw param alone
+        # would let an attacker add invite_token=garbage to suppress the email
+        # for any signup, enabling email squatting.
+        auth.send_verify_account_email do
+          invite_token = request.params['invite_token'].to_s.strip
+          if invite_token.empty?
+            super()
+          else
+            invitation = Onetime::OrganizationMembership.find_by_token(invite_token)
+            super() unless invitation &&
+                           invitation.pending? &&
+                           !invitation.expired? &&
+                           OT::Utils.normalize_email(invitation.invited_email) ==
+                           OT::Utils.normalize_email(param(login_param))
+          end
+        end
+      end
+
+      # Auto-login after invite signup (flag set in after_create_account hook)
+      auth.create_account_autologin? do
+        @invite_accepted == true
       end
 
       # Have successful login redirect back to originally requested page

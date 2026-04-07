@@ -431,13 +431,13 @@ test.describe('INV-006: Direct Accept Flow', () => {
 });
 
 // -----------------------------------------------------------------------------
-// INV-007: Signed-in User with Wrong Email (Switch Account Required)
+// INV-007: Signed-in User with Wrong Email (Continue As Invited Email)
 // -----------------------------------------------------------------------------
 
 test.describe('INV-007: Wrong Email State', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test('signed-in user with wrong email sees switch account prompt', async ({ browser }) => {
+  test('signed-in user with wrong email sees continue-as prompt', async ({ browser }) => {
     const ownerContext = await browser.newContext();
     const wrongUserContext = await browser.newContext();
 
@@ -473,24 +473,20 @@ test.describe('INV-007: Wrong Email State', () => {
       const acceptButton = wrongUserPage.getByTestId('accept-invitation-btn');
       await expect(acceptButton).not.toBeVisible();
 
-      // "Switch Account" button should be visible
-      const switchButton = wrongUserPage.getByTestId('switch-account-btn');
-      await expect(switchButton).toBeVisible();
-      await expect(switchButton).toHaveText(/switch account/i);
+      // "Continue as" button should be visible
+      const continueAsBtn = wrongUserPage.getByTestId('continue-as-btn');
+      await expect(continueAsBtn).toBeVisible();
+      await expect(continueAsBtn).toHaveText(/continue as/i);
 
-      // Click switch account
-      await switchButton.click();
+      // Decline button should also be visible in wrong_email state
+      const declineButton = wrongUserPage.getByTestId('decline-invitation-btn');
+      await expect(declineButton).toBeVisible();
 
-      // Should logout and redirect to signin with email prefilled
-      await wrongUserPage.waitForURL(/\/signin/, { timeout: 10000 });
+      // Click continue as — logs out and redirects to invite page
+      await continueAsBtn.click();
 
-      // Verify URL contains email parameter with invited email
-      const url = wrongUserPage.url();
-      expect(url).toContain('email=');
-
-      // Verify URL contains redirect back to invitation
-      expect(url).toContain('redirect=');
-      expect(url).toContain(encodeURIComponent(`/invite/${token}`));
+      // Should logout and redirect back to invite page (not signin)
+      await wrongUserPage.waitForURL(/\/invite\//, { timeout: 10000 });
 
       // Verify user is logged out
       const response = await wrongUserPage.request.get('/api/v2/bootstrap/authenticated');
@@ -704,7 +700,7 @@ test.describe('Invite Flow State Transitions', () => {
  * | INV-004  | Existing user signin + accept                            | Implemented|
  * | INV-005  | Existing user MFA flow (requires MFA setup)              | Skipped    |
  * | INV-006  | Signed-in user direct accept (matching email)            | Implemented|
- * | INV-007  | Signed-in user wrong email - switch account              | Implemented|
+ * | INV-007  | Signed-in user wrong email - continue as invited email   | Implemented|
  * | INV-008  | Already a member shows info message                      | Implemented|
  * | INV-009  | Expired invitation shows error state                     | Implemented|
  * | INV-010  | Invalid/revoked token shows error state                  | Implemented|
