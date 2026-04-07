@@ -9,7 +9,7 @@
 # should be active for a given authenticated user request.
 #
 # Selection Priority (READ-ONLY):
-# 0. Explicit header override via X-Organization-ID (SPA org switches)
+# 0. Explicit header override via O-Organization-ID (SPA org switches)
 # 1. Explicit selection via session['organization_id']
 # 2. Domain-based selection (custom domain routing)
 # 3. Customer's default_org_id (per-customer preference set by support)
@@ -129,7 +129,7 @@ module Onetime
       # @param env [Hash] Rack environment
       # @return [Onetime::Organization, nil] Selected organization
       def determine_organization(customer, session, env)
-        # NOTE: Header override (X-Organization-ID) is handled in load_organization_context
+        # NOTE: Header override (O-Organization-ID) is handled in load_organization_context
         # BEFORE the cache check. If we reach here, no valid header was present.
 
         # 1. Explicit selection from session
@@ -204,10 +204,10 @@ module Onetime
         nil
       end
 
-      # Resolve org from X-Organization-ID header, verifying membership
+      # Resolve org from O-Organization-ID header, verifying membership
       # and domain scope. Returns nil if header absent, invalid, or denied.
       def resolve_header_org(customer, env)
-        org_id_header = env&.dig('HTTP_X_ORGANIZATION_ID')
+        org_id_header = env&.dig('HTTP_O_ORGANIZATION_ID')
         return unless org_id_header.is_a?(String) && !org_id_header.empty?
 
         org = Onetime::Organization.load(org_id_header)
