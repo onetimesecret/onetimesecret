@@ -44,7 +44,7 @@ const isOwner = computed(() => {
 });
 
 // Combined visibility: not custom domain, billing enabled, and user is owner
-const canShowUpgrade = computed(() => !isCustom && billingEnabled.value && isOwner.value);
+const canShowUpgrade = computed(() => !isCustom.value && billingEnabled.value && isOwner.value);
 
 const displayMessage = computed(() => {
   if (!props.error) return '';

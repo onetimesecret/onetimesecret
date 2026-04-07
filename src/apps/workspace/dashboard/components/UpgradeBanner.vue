@@ -51,7 +51,7 @@ const isOwner = computed(() => {
 // - On free plan
 // - Not dismissed
 const showBanner = computed(() =>
-  !isCustom && billingEnabled.value && isOwner.value && isFreePlan.value && !dismissed.value
+  !isCustom.value && billingEnabled.value && isOwner.value && isFreePlan.value && !dismissed.value
 );
 
 const handleDismiss = () => {

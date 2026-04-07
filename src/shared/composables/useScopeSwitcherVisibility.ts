@@ -41,7 +41,7 @@ export function useScopeSwitcherVisibility() {
 
   // Hide org switcher on custom domains (the domain IS the org scope)
   const showOrgSwitcher = computed(
-    () => !isCustom && visibility.value.organization !== 'hide' && isOrganizationSwitcherEnabled()
+    () => !isCustom.value && visibility.value.organization !== 'hide' && isOrganizationSwitcherEnabled()
   );
   const lockOrgSwitcher = computed(() => visibility.value.organization === 'locked');
 

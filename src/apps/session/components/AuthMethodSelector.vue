@@ -42,7 +42,7 @@ const ssoProviders = computed(() => getSsoProviders());
 // - explicit sso_only mode is active, OR
 // - on a custom domain (org members must use SSO)
 const showSsoOnly = computed(() =>
-  (ssoOnly.value || isCustom) && ssoEnabled && ssoProviders.value.length > 0
+  (ssoOnly.value || isCustom.value) && ssoEnabled && ssoProviders.value.length > 0
 );
 
 // Show passwordless-first UI when any passwordless method is enabled

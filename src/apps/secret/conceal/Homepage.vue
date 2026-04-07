@@ -28,7 +28,7 @@
         return DisabledHomepage;
       case 'normal':
       default:
-        return isCustom ? BrandedHomepage : HomepageContent;
+        return isCustom.value ? BrandedHomepage : HomepageContent;
     }
   });
 

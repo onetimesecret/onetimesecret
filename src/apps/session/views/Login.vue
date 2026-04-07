@@ -23,7 +23,7 @@ const { authentication } = storeToRefs(bootstrapStore);
 // Disable signup on custom domains (users must be provisioned by org admin)
 const { isCustom } = useProductIdentity();
 const signupEnabled = computed(
-  () => !isCustom && authentication.value?.enabled && authentication.value?.signup
+  () => !isCustom.value && authentication.value?.enabled && authentication.value?.signup
 );
 
 // Handle auth errors passed via query params (from SSO/magic link failures)
