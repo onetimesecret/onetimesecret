@@ -108,14 +108,10 @@ namespace :ots do
 
     if derive
       abort "ERROR: DERIVE=1 requires SECRET to be set in #{env_path}" unless has_secret
-      puts "Reading existing SECRET from #{env_path}"
     elsif has_secret && !force
-      puts "SECRET already set in #{env_path} (use FORCE=1 to regenerate)"
-      puts 'Deriving child keys from existing SECRET.'
       derive = true
     else
       secret = SecureRandom.hex(64)
-      puts 'Generated new SECRET (128 hex chars, 64 bytes entropy)'
     end
 
     updates           = {}
@@ -125,52 +121,67 @@ namespace :ots do
     Onetime::KeyDerivation::PURPOSES.each do |purpose, config|
       next unless config[:env_var] # skip runtime-only purposes (e.g. familia_enc)
 
-      value                     = Onetime::KeyDerivation.derive_hex(secret, purpose)
-      updates[config[:env_var]] = value
-      puts "  #{config[:env_var]} ← HKDF(SECRET, info=#{config[:info].inspect}, len=#{config[:length]})"
+      updates[config[:env_var]] = Onetime::KeyDerivation.derive_hex(secret, purpose)
     end
 
     # Independent secrets (ADR-008 Category 2): random, NOT derived from SECRET.
     OTSInit::INDEPENDENT_SECRETS.each do |env_var|
       if existing[env_var] && !existing[env_var].empty? && existing[env_var] != 'CHANGEME'
-        puts "  #{env_var} already set (keeping existing value)"
+        # Keep existing value — do not overwrite
       else
         updates[env_var] = SecureRandom.hex(OTSInit::INDEPENDENT_SECRET_BYTES)
-        puts "  #{env_var} ← SecureRandom.hex(#{OTSInit::INDEPENDENT_SECRET_BYTES}) [independent]"
       end
     end
 
-    # Federation secret (ADR-008 Category 3): shared across instances.
-    # Never generated here — must be distributed manually or via passforge.
+    # Federation secret (ADR-008 Category 3): passphrase, shared across instances.
     federation = existing['FEDERATION_SECRET']
     if federation && !federation.empty? && federation != 'CHANGEME'
-      puts '  FEDERATION_SECRET already set (keeping existing value)'
+      # Keep existing value — do not overwrite
     else
       require 'passforge/wordlist'
       require 'passforge/passphrase'
-      suggested = PassForge::Passphrase.generate(words: 5, separator: '-', capitalize: false)
-
-      puts
-      puts '  FEDERATION_SECRET not set.'
-      puts '  Suggested value (generated via passforge):'
-      puts
-      puts "    #{suggested}"
-      puts
-      puts '  This must be identical across all instances in a federation group.'
-      puts '  (Not written to .env — must be set manually on every instance before starting)'
-      puts '  Copy this value to FEDERATION_SECRET in .env on every instance,'
-      puts '  or generate your own with:'
-      puts '    bundle exec ruby -e "require \'passforge/wordlist\'; require \'passforge/passphrase\'; puts PassForge::Passphrase.generate(words: 5, separator: \'-\', capitalize: false)"'
-      puts
+      updates['FEDERATION_SECRET'] = PassForge::Passphrase.generate(words: 3, separator: '-', capitalize: false)
     end
 
     OTSInit.write_env(env_path, existing_lines, updates)
 
+    # --- Structured output ---
     puts
-    puts "Written to #{env_path}"
+    puts "Generated #{env_path}"
     puts
-    puts 'IMPORTANT: Back up SECRET and the independent secrets (AUTH_SECRET,'
-    puts 'ARGON2_SECRET). SECRET is the root for derived keys; independent'
-    puts 'secrets cannot be regenerated if lost.'
+    if derive
+      puts 'SECRET'
+      puts '  (existing, unchanged)'
+    else
+      puts 'SECRET'
+      puts '  64 bytes entropy (128 hex chars)'
+    end
+    puts
+
+    # Derived secrets summary
+    derived_configs = Onetime::KeyDerivation::PURPOSES.select { |_, c| c[:env_var] }
+    max_name        = derived_configs.map { |_, c| c[:env_var].length }.max
+    puts 'Derived from SECRET (recoverable via HKDF)'
+    derived_configs.each do |_purpose, config|
+      name = config[:env_var].ljust(max_name)
+      puts "  #{name}  info: #{config[:info].ljust(14)} len: #{config[:length]}"
+    end
+    puts
+
+    # Independent secrets summary
+    puts 'Independent (irrecoverable, tied to stored credentials)'
+    OTSInit::INDEPENDENT_SECRETS.each do |env_var|
+      kept   = existing[env_var] && !existing[env_var].empty? && existing[env_var] != 'CHANGEME'
+      suffix = kept ? ' (kept existing)' : ''
+      puts "  #{env_var.ljust(max_name)}  #{OTSInit::INDEPENDENT_SECRET_BYTES} bytes#{suffix}"
+    end
+    fed_kept   = federation && !federation.empty? && federation != 'CHANGEME'
+    fed_suffix = fed_kept ? ' (kept existing)' : ''
+    puts "  #{'FEDERATION_SECRET'.ljust(max_name)}  3-word passphrase#{fed_suffix}"
+
+    puts
+    puts 'Back up this file.'
+    puts 'Derived secrets can be regenerated from SECRET.'
+    puts 'Independent secrets cannot be recovered if lost.'
   end
 end
