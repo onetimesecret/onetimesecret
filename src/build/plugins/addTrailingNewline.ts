@@ -2,7 +2,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import type { OutputBundle, OutputOptions, Plugin } from 'rollup';
+import type { Plugin } from 'vite';
 
 /**
  * Vite plugin to ensure all text output files have a trailing newline.
@@ -15,7 +15,7 @@ import type { OutputBundle, OutputOptions, Plugin } from 'rollup';
  */
 export const addTrailingNewline = (): Plugin => ({
   name: 'add-trailing-newline',
-  async writeBundle(options: OutputOptions, bundle: OutputBundle): Promise<void> {
+  async writeBundle(options, bundle) {
     const outputDir = options.dir!;
 
     await Promise.all(

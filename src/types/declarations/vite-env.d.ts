@@ -1,6 +1,6 @@
 // src/types/declarations/vite-env.d.ts
 
-import type { Plugin } from 'rollup';
+import type { Plugin } from 'vite';
 
 /**
  * This file is here because:

@@ -186,7 +186,7 @@
     "@sentry/vite-plugin": "^4.9.1",
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/typography": "^0.5.19",
-    "@tailwindcss/vite": "^4.2.1",
+    "@tailwindcss/vite": "^4.2.2",
     "@tsconfig/node24": "^24.0.4",
     "@types/estree": "1.0.8",
     "@types/fs-extra": "11.0.4",
@@ -224,7 +224,7 @@
     "prettier-plugin-vue": "^1.1.6",
     "rimraf": "^6.1.3",
     "rollup": "^4.59.0",
-    "rollup-plugin-visualizer": "^6.0.11",
+    "rollup-plugin-visualizer": "^7.0.0",
     "tailwindcss": "^4.2.1",
     "ts-morph": "^27.0.2",
     "ts-node": "^10.9.2",
@@ -235,7 +235,7 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.0",
     "unplugin-vue-markdown": "^29.2.0",
-    "vite": "^7.3.1",
+    "vite": "^8.0.0",
     "vite-plugin-checker": "^0.12.0",
     "vite-plugin-vue-devtools": "^8.1.0",
     "vite-plugin-vue-inspector": "^5.4.0",
@@ -266,7 +266,11 @@
     ],
     "peerDependencyRules": {
       "allowedVersions": {
-        "typescript": "5.9.3"
+        "typescript": "5.9.3",
+        "unplugin-vue-markdown>vite": "8",
+        "vite-plugin-inspect>vite": "8",
+        "vite-dev-rpc>vite": "8",
+        "vite-hot-client>vite": "8"
       }
     }
   }
