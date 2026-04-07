@@ -15,6 +15,12 @@ Login → Rodauth validates (SQL) → DetectMfaRequirement → SyncSession → C
 - **Eventual Consistency**: Compensating transactions fix temporary inconsistency
 - **Correlation IDs**: End-to-end request tracking
 
+## Identity Model
+
+Rodauth manages a single global identity pool — one email = one account. Organization membership is resolved post-authentication in Redis via `OrganizationLoader`. This design allows users to belong to multiple organizations with one login and lets SSO accounts merge correctly with password accounts.
+
+Per-organization credential policies (password rules, lockout thresholds, branded reset emails) are delegated to the IdP for SSO-enabled orgs. Password auth uses platform-wide defaults. If tenant-scoped identities become necessary (same email as independent accounts per org), Rodauth queries would need `tenant_id` filtering — see `config/base.rb`.
+
 **Testing**:
 ```bash
 pnpm run test:tryouts:agent try/integration/authentication/

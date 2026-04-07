@@ -102,19 +102,25 @@ module Onetime
       #   obscure_email("user@mail.example.co.uk")
       #   # => "us***@m***.co.uk"
       #
-      # @note Uses Mail::Address for parsing, avoiding hand-rolled parsing
-      #   edge cases while keeping the code short and auditable.
       # Normalize an email address for consistent storage and comparison.
+      #
+      # NFC matters because e-acute can be encoded two ways:
+      #   NFC (composed):   U+00E9        -> single codepoint
+      #   NFD (decomposed): U+0065 U+0301 -> e + combining accent
+      # Without normalization, identical-looking emails hash differently.
       #
       # @param email [String] Raw email address
       # @return [String] Normalized email (NFC, case-folded, stripped)
       #
       # @see Onetime::Utils::EmailHash.normalize_email (private, parallel copy
-      #   kept to avoid load-order dependency)
+      #   kept to avoid load-order dependency — EmailHash loads early in boot
+      #   before the full Utils module is available)
       def normalize_email(email)
         email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
       end
 
+      # @note Uses Mail::Address for parsing, avoiding hand-rolled parsing
+      #   edge cases while keeping the code short and auditable.
       def obscure_email(text)
         return text if text.nil? || text.empty?
 

@@ -136,7 +136,10 @@ module Onetime
     end
 
     def list_pending_invitations
-      # Load staged models with lazy ghost cleanup (removes stale entries from staging set)
+      # Intentionally not using load_multi here: load_staged performs per-entry
+      # ghost cleanup (removing stale objids from the staging set when the
+      # underlying model no longer exists). Pending invitation counts are
+      # org-scoped and small, so the N+1 cost is negligible.
       pending_invitations.to_a.filter_map do |objid|
         Familia::Features::Relationships::Participation::StagedOperations.load_staged(
           through_class: OrganizationMembership,

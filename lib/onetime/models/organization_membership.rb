@@ -47,6 +47,8 @@ module Onetime
   class OrganizationMembership < Familia::Horreum
     using Familia::Refinements::TimeLiterals
 
+    INVITATION_TTL_SECONDS = 7.days.to_i
+
     # REQUIRED: Through models must have object_identifier for deterministic keys
     feature :object_identifier
     feature :relationships
@@ -147,7 +149,7 @@ module Onetime
     end
 
     # Check if invitation has expired (7 days by default)
-    def expired?(ttl_seconds = 7.days.to_i)
+    def expired?(ttl_seconds = INVITATION_TTL_SECONDS)
       return false unless pending?
       return false unless invited_at
 
@@ -159,7 +161,7 @@ module Onetime
     def invitation_expires_at
       return nil unless invited_at
 
-      invited_at.to_f + 7.days.to_i
+      invited_at.to_f + INVITATION_TTL_SECONDS
     end
 
     # Get the organization this membership belongs to
@@ -244,23 +246,31 @@ module Onetime
       self.class.token_lookup.remove_field(old_token) if old_token
       self.class.org_email_lookup.remove_field(old_org_email_key) if old_org_email_key
 
-      # Activate via Familia staged relationships: handles the three-structure
-      # invariant (active set + reverse index + staging set removal) atomically,
-      # then creates composite-keyed through model and destroys this UUID model.
-      activated = org.activate_members_instance(
-        self,
-        customer,
-        through_attrs: {
-          role: carry_role,
-          status: 'active',
-          invited_email: carry_invited_email,
-          invited_by: carry_invited_by,
-          invited_at: carry_invited_at,
-          joined_at: Familia.now.to_f,
-          resend_count: carry_resend_count,
-          token: nil, # Clear token for security
-        },
-      )
+      begin
+        # Activate via Familia staged relationships: handles the three-structure
+        # invariant (active set + reverse index + staging set removal) atomically,
+        # then creates composite-keyed through model and destroys this UUID model.
+        activated = org.activate_members_instance(
+          self,
+          customer,
+          through_attrs: {
+            role: carry_role,
+            status: 'active',
+            invited_email: carry_invited_email,
+            invited_by: carry_invited_by,
+            invited_at: carry_invited_at,
+            joined_at: Familia.now.to_f,
+            resend_count: carry_resend_count,
+            token: nil, # Clear token for security
+          },
+        )
+      rescue Familia::Problem, Redis::BaseError, Onetime::Problem
+        # Restore pending-state indexes so the invitation remains discoverable
+        # if activation fails (e.g. Redis/network error, validation error).
+        self.class.token_lookup[old_token]             = objid if old_token
+        self.class.org_email_lookup[old_org_email_key] = objid if old_org_email_key
+        raise
+      end
 
       # Populate active-state OTS index on the NEW composite-keyed model
       if activated.org_customer_key
@@ -315,14 +325,21 @@ module Onetime
     def revoke!
       raise Onetime::Problem, 'Can only revoke pending invitations' unless pending?
 
+      org = organization
+
       # Clean up OTS-specific indexes before unstaging destroys the model
       self.class.token_lookup.remove_field(token) if token
       self.class.org_email_lookup.remove_field(org_email_key) if org_email_key
       self.class.org_customer_lookup.remove_field(org_customer_key) if org_customer_key
 
-      # Use Familia staged relationship: removes from pending_invitations set
-      # and destroys the UUID-keyed through model
-      organization&.unstage_members_instance(self)
+      if org
+        # Use Familia staged relationship: removes from pending_invitations set
+        # and destroys the UUID-keyed through model
+        org.unstage_members_instance(self)
+      else
+        # Organization was deleted — destroy the orphaned model directly
+        destroy!
+      end
     end
 
     # Destroy the membership with proper index cleanup
@@ -340,12 +357,32 @@ module Onetime
     # Only use raw destroy! when you explicitly want no cleanup.
     #
     # Cleans up:
+    #   - org.members sorted set (ZREM customer from org's active members)
+    #   - customer.participations reverse index (SREM org collection key)
     #   - org_email_lookup (allows email to be re-invited)
     #   - org_customer_lookup
     #   - token_lookup
     #   - pending_invitations staging set (prevents stale quota counts)
     #
     def destroy_with_index_cleanup!
+      org  = organization
+      cust = customer
+
+      # Remove from Familia sorted sets (the same work remove_members_instance does).
+      # Guard on both org and cust existing — pending invitations have no customer.
+      if org && cust
+        # ZREM customer from org's members sorted set.
+        # Pass the Customer object, not a string — the sorted set was created
+        # without reference: true, so a raw string would be JSON-encoded and
+        # not match the identifier stored when the object was added.
+        org.members.remove(cust)
+
+        # SREM org's members collection key from customer's participations reverse index
+        cust.untrack_participation_in(org.members.dbkey) if cust.respond_to?(:untrack_participation_in)
+      end
+
+      # Remove OTS application-level indexes
+
       # Remove org_email_lookup entry if exists
       # Use remove_field since the index is a Familia::HashKey
       if org_email_key
@@ -456,6 +493,48 @@ module Onetime
         return nil unless objid
 
         load(objid)
+      end
+
+      # Ensure a customer has an active membership in an organization.
+      #
+      # Convergence point for all "add a known customer" paths (SSO, CLI,
+      # join request approval). Checks for a pending invitation first --
+      # if one exists, activates it (staged -> active). Otherwise creates
+      # a new membership directly.
+      #
+      # Familia provides four primitives: stage, activate, unstage, add.
+      # This method composes activate + add with a domain-specific lookup
+      # (find_by_org_email) that Familia can't perform -- matching a staged
+      # model's invited_email against the participant's email is OTS
+      # domain knowledge.
+      #
+      # @param organization [Organization]
+      # @param customer [Customer]
+      # @param role [String] 'member' or 'admin' (only used for direct add;
+      #   when activating a pending invitation, the invitation's role is used)
+      # @return [OrganizationMembership] the active membership (composite-keyed)
+      def ensure_membership(organization, customer, role: 'member')
+        return find_by_org_customer(organization.objid, customer.objid) if organization.member?(customer)
+
+        pending = find_by_org_email(organization.objid, customer.email)
+
+        if pending&.pending? && !pending.expired?
+          pending.accept!(customer)
+          find_by_org_customer(organization.objid, customer.objid)
+        else
+          # Clean up expired/declined pending invitation before direct add
+          # to prevent stale entries from counting against quotas.
+          pending.revoke! if pending&.pending?
+
+          organization.add_members_instance(
+            customer,
+            through_attrs: {
+              role: role,
+              status: 'active',
+              joined_at: Familia.now.to_f,
+            },
+          )
+        end
       end
 
       # Find pending invitations for an organization

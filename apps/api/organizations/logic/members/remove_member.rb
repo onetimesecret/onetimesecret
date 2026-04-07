@@ -51,10 +51,8 @@ module OrganizationAPI::Logic
 
         target_extid = @target_member.extid
 
-        # Remove from organization's member sorted set
-        @organization.remove_members_instance(@target_member)
-
-        # Destroy the membership record (with index cleanup)
+        # Single call handles all cleanup: Familia sorted sets (org.members +
+        # customer.participations), OTS app indexes, and the membership hash.
         @target_membership.destroy_with_index_cleanup!
 
         # Audit log for member removal

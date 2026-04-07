@@ -50,6 +50,9 @@ module Auth::Config::Base
     auth.login_column :email
     auth.login_label 'Email'
 
+    # Identity model: global (no tenant scoping). Org context resolved post-auth.
+    # See apps/web/auth/README.md "Identity Model" for rationale.
+
     # Normalize login to lowercase for consistent storage and Redis lookups.
     # PostgreSQL uses citext (case-insensitive) but Redis requires exact match.
     # Uses NFC normalization for consistent Unicode representation and :fold

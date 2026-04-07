@@ -501,7 +501,9 @@
 
       <!-- Sign-in Notice -->
       <div class="mt-6">
-        <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+        <div
+          data-testid="sign-in-notice"
+          class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
           <div class="flex">
             <OIcon
               collection="heroicons"
