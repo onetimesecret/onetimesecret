@@ -160,7 +160,7 @@ async function createInvitation(
   await roleSelect.selectOption(role);
 
   // Submit
-  const sendButton = page.getByRole('button', { name: /send invite/i });
+  const sendButton = page.getByRole('button', { name: /send invitation/i });
   await sendButton.click();
 
   // Wait for success
@@ -172,7 +172,7 @@ async function createInvitation(
  */
 async function getInvitationToken(page: Page, email: string): Promise<string | null> {
   const orgExtid = getCurrentOrgExtid(page);
-  const response = await page.request.get(`/api/v2/org/${orgExtid}/invitations`);
+  const response = await page.request.get(`/api/organizations/${orgExtid}/invitations`);
   const data = await response.json();
 
   const invitation = data.records?.find((inv: { email: string }) => inv.email === email);
@@ -804,7 +804,7 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
     await expect(page.getByText(/invited/i)).toBeVisible();
   });
 
-  test('MBR-ACCEPT-002: Unauthenticated user clicking Accept redirects to signin', async ({
+  test('MBR-ACCEPT-002: Unauthenticated user sees sign-in form (signin_required state)', async ({
     page,
     context,
   }) => {
@@ -823,28 +823,27 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
     const token = await getInvitationToken(page, testEmail);
     expect(token).toBeTruthy();
 
-    // Clear cookies
+    // Clear cookies to become unauthenticated
     await context.clearCookies();
 
-    // Visit invitation
+    // Visit invitation as unauthenticated user
     await page.goto(`/invite/${token}`);
     await page.waitForLoadState('networkidle');
 
-    // Sign-in notice should be visible
+    // In signin_required state, the component shows inline sign-in form
+    // Sign-in notice should be visible (not accept/decline buttons)
     const signInNotice = page.getByTestId('sign-in-notice');
     await expect(signInNotice).toBeVisible();
 
-    // Click accept
+    // Accept/decline buttons should NOT be visible in this state
     const acceptButton = page.getByTestId('accept-invitation-btn');
-    await acceptButton.click();
+    await expect(acceptButton).not.toBeVisible();
 
-    // Should redirect to signin with redirect param
-    await page.waitForURL(/\/signin/);
-    expect(page.url()).toContain('redirect=');
-    expect(page.url()).toContain(token);
+    const declineButton = page.getByTestId('decline-invitation-btn');
+    await expect(declineButton).not.toBeVisible();
   });
 
-  test('MBR-ACCEPT-003: Decline button allows declining without auth', async ({
+  test('MBR-ACCEPT-003: Unauthenticated user cannot decline (signin_required state)', async ({
     page,
     context,
   }) => {
@@ -863,22 +862,21 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
     const token = await getInvitationToken(page, testEmail);
     expect(token).toBeTruthy();
 
-    // Clear cookies
+    // Clear cookies to become unauthenticated
     await context.clearCookies();
 
-    // Visit invitation
+    // Visit invitation as unauthenticated user
     await page.goto(`/invite/${token}`);
     await page.waitForLoadState('networkidle');
 
-    // Click decline
+    // In signin_required state, decline button is NOT shown
+    // User must authenticate first to accept or decline
     const declineButton = page.getByTestId('decline-invitation-btn');
-    await declineButton.click();
+    await expect(declineButton).not.toBeVisible();
 
-    // Success message should appear
-    await expect(page.getByText(/declined/i)).toBeVisible({ timeout: 10000 });
-
-    // Should redirect to home
-    await page.waitForURL(/^\/$/, { timeout: 5000 });
+    // Sign-in notice should be visible instead
+    const signInNotice = page.getByTestId('sign-in-notice');
+    await expect(signInNotice).toBeVisible();
   });
 });
 
