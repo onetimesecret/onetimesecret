@@ -159,7 +159,7 @@ describe('MastHead', () => {
   };
 
   describe('Logo Sizing', () => {
-    it('uses 64px logo for unauthenticated users', async () => {
+    it('uses 48px logo for unauthenticated users', async () => {
       wrapper = mountComponent({}, {
         authenticated: false,
         cust: null,
@@ -168,7 +168,7 @@ describe('MastHead', () => {
 
       await nextTick();
       const logo = wrapper.find('.default-logo');
-      expect(logo.attributes('data-size')).toBe('64');
+      expect(logo.attributes('data-size')).toBe('48');
     });
 
     it('uses 40px logo for authenticated users', async () => {

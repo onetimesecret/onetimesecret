@@ -182,7 +182,7 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       expect(logo.attributes('data-show-site-name')).toBe('true');
     });
 
-    it('uses 64px logo for unauthenticated users on canonical domain', async () => {
+    it('uses 48px logo for unauthenticated users on canonical domain', async () => {
       wrapper = mountComponent({}, {
         authenticated: false,
         domain_strategy: 'canonical',
@@ -191,7 +191,7 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
 
       await nextTick();
       const logo = wrapper.find('.default-logo');
-      expect(logo.attributes('data-size')).toBe('64');
+      expect(logo.attributes('data-size')).toBe('48');
     });
 
     it('uses 40px logo for authenticated users on canonical domain', async () => {
@@ -342,8 +342,8 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       await nextTick();
       const logo = wrapper.find('.default-logo');
       expect(logo.exists()).toBe(true);
-      // Should use 64px (unauthenticated default), NOT 80px (custom domain logo size)
-      expect(logo.attributes('data-size')).toBe('64');
+      // Should use 48px (unauthenticated default), NOT 80px (custom domain logo size)
+      expect(logo.attributes('data-size')).toBe('48');
     });
   });
 
