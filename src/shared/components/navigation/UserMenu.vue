@@ -67,9 +67,9 @@ const userRole = computed(() =>
   organizationStore.currentOrganization?.current_user_role || null
 );
 
-// Only restrict when we have a confirmed non-owner role
-// If org hasn't loaded yet (null role), show full menu to avoid blocking navigation
-const isCustomDomainNonOwner = computed(() => isCustom && !!userRole.value && userRole.value !== 'owner');
+// Only restrict members on custom domains — admins see the full menu like owners.
+// If org hasn't loaded yet (null role), show full menu to avoid blocking navigation.
+const isCustomDomainMember = computed(() => isCustom && !!userRole.value && userRole.value === 'member');
 
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
@@ -104,25 +104,25 @@ const menuItems = computed<MenuItem[]>(() => [
     variant: 'caution' as const, condition: () => props.awaitingMfa },
   { id: 'dashboard', to: '/dashboard', label: t('web.TITLES.dashboard'),
     icon: { collection: 'heroicons', name: 'shield-check-solid' },
-    condition: () => !props.awaitingMfa && !isCustomDomainNonOwner.value },
+    condition: () => !props.awaitingMfa && !isCustomDomainMember.value },
   { id: 'recent', to: '/recent', label: t('web.TITLES.recent'),
     icon: { collection: 'heroicons', name: 'clock' },
-    condition: () => !props.awaitingMfa && !isCustomDomainNonOwner.value },
+    condition: () => !props.awaitingMfa && !isCustomDomainMember.value },
   { id: 'billing', to: '/billing', label: t('web.navigation.billing'),
     icon: { collection: 'heroicons', name: 'credit-card' },
-    condition: () => !props.awaitingMfa && !!billing_enabled.value && !isCustomDomainNonOwner.value },
+    condition: () => !props.awaitingMfa && !!billing_enabled.value && !isCustomDomainMember.value },
   { id: 'account', to: '/account', label: t('web.TITLES.account'),
     icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
     condition: () => !props.awaitingMfa },
   { id: 'colonel', to: '/colonel', label: t('web.colonel.admin'),
     icon: { collection: 'mdi', name: 'star' },
-    condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainNonOwner.value },
+    condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainMember.value },
   {
     id: 'test-plan',
     label: t('web.colonel.testPlanMode'),
     icon: { collection: 'heroicons', name: 'beaker' },
     variant: isTestModeActive.value ? 'caution' : 'default',
-    condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainNonOwner.value,
+    condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainMember.value,
     onClick: openPlanTestModal,
   },
   {
@@ -137,7 +137,7 @@ const menuItems = computed<MenuItem[]>(() => [
     to: '/feedback',
     label: t('web.TITLES.feedback'),
     icon: { collection: 'heroicons', name: 'chat-bubble-bottom-center-text' },
-    condition: () => !props.awaitingMfa && !isCustomDomainNonOwner.value,
+    condition: () => !props.awaitingMfa && !isCustomDomainMember.value,
   },
   {
     id: 'logout',
