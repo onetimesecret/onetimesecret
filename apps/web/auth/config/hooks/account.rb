@@ -96,6 +96,14 @@ module Auth::Config::Hooks
               ).call
 
               if result[:accepted]
+                # Signal to create_account_autologin? that this signup has a verified invite
+                @invite_accepted = true
+
+                # Auto-verify at SQL level — invite link proves email ownership
+                db[:accounts].where(id: account_id).update(status_id: account_open_status_value)
+                # Remove verification key — no email was sent, but clean up the key row
+                remove_verify_account_key if respond_to?(:remove_verify_account_key)
+
                 Auth::Logging.log_auth_event(
                   :invitation_accepted,
                   level: :info,

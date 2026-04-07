@@ -19,6 +19,16 @@ module Auth::Config::Features
         # Password is set during account creation, not during verification
         # This prevents verify_account from requiring password fields
         auth.verify_account_set_password? false
+
+        # Skip verification email for invite signups — invite link proves ownership
+        auth.send_verify_account_email do
+          super() if request.params['invite_token'].to_s.strip.empty?
+        end
+      end
+
+      # Auto-login after invite signup (flag set in after_create_account hook)
+      auth.create_account_autologin? do
+        @invite_accepted == true
       end
 
       # Have successful login redirect back to originally requested page

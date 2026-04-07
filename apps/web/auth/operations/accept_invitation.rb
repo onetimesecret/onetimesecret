@@ -59,7 +59,8 @@ module Auth
 
         invitation.accept!(customer)
 
-        # Record verification method for audit trail
+        # Invite link click proves email ownership — mark verified at Redis layer
+        customer.verified    = true
         customer.verified_by = 'invite_token'
         customer.save
 
