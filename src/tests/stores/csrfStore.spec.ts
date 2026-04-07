@@ -1,7 +1,8 @@
 // src/tests/stores/csrfStore.spec.ts
 
 import { setupTestPinia } from '../setup';
-import { setupBootstrapMock, baseBootstrap } from '../setup-bootstrap';
+import { setupBootstrapMock } from '../setup-bootstrap';
+import { baseBootstrap } from '@/tests/fixtures/bootstrap.fixture';
 
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';

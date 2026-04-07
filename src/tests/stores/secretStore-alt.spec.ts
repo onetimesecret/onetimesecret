@@ -12,7 +12,8 @@ import {
   mockSecretRevealed,
 } from '../fixtures/receipt.fixture';
 import { setupTestPinia } from '../setup';
-import { setupBootstrapMock, baseBootstrap } from '../setup-bootstrap';
+import { setupBootstrapMock } from '../setup-bootstrap';
+import { baseBootstrap } from '@/tests/fixtures/bootstrap.fixture';
 import AxiosMockAdapter from 'axios-mock-adapter';
 
 /**
