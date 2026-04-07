@@ -94,20 +94,30 @@
 
     <!-- Page Title -->
     <div class="relative z-10 w-full min-w-[320px] max-w-md space-y-12">
-      <!-- Title Icon -->
+      <!-- Title Icon / Logo -->
       <div class="flex flex-col items-center" :class="{ 'invisible': hideIcon }">
         <RouterLink to="/" class="group">
           <div class="relative">
-            <!-- Subtle glow effect -->
-            <div class="absolute inset-0 rounded-full bg-brand-500/10 blur-xl transition-all duration-300 group-hover:bg-brand-500/20 dark:bg-brand-400/10 dark:group-hover:bg-brand-400/20"></div>
-            <!-- Icon -->
-            <OIcon
-              v-if="iconToShow && iconToShow.collection && iconToShow.name"
-              :collection="iconToShow.collection"
-              :name="iconToShow.name"
-              size="32"
-              class="relative size-24 transition-transform duration-300 group-hover:scale-105 text-brand-600 dark:text-brand-400"
-              aria-hidden="true" />
+            <!-- Custom logo (for branded/custom domain pages) -->
+            <template v-if="titleLogo">
+              <img
+                :src="titleLogo"
+                :alt="title ?? ''"
+                class="relative h-16 max-w-[200px] object-contain transition-transform duration-300 group-hover:scale-105" />
+            </template>
+            <!-- Default icon -->
+            <template v-else>
+              <!-- Subtle glow effect -->
+              <div class="absolute inset-0 rounded-full bg-brand-500/10 blur-xl transition-all duration-300 group-hover:bg-brand-500/20 dark:bg-brand-400/10 dark:group-hover:bg-brand-400/20"></div>
+              <!-- Icon -->
+              <OIcon
+                v-if="iconToShow && iconToShow.collection && iconToShow.name"
+                :collection="iconToShow.collection"
+                :name="iconToShow.name"
+                size="32"
+                class="relative size-24 transition-transform duration-300 group-hover:scale-105 text-brand-600 dark:text-brand-400"
+                aria-hidden="true" />
+            </template>
           </div>
         </RouterLink>
       </div>

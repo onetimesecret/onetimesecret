@@ -217,20 +217,13 @@ module Auth::Config::Hooks
     # Handle requests where no tenant SSO config is available.
     # Either allows fallback to platform credentials or rejects.
     #
-    # Configured via site.sso.allow_platform_fallback_for_tenants
+    # Configured via auth_config.allow_platform_fallback_for_tenants?
     #
     # @param host [String] Request hostname for logging
     # @param rodauth [Rodauth] Rodauth instance (for throw_error_status)
     # @raise [Rodauth::Error] if fallback not allowed
     def self.handle_missing_tenant_config(host, rodauth)
-      # Check platform configuration for fallback policy
-      allow_fallback = OT.conf.dig('site', 'sso', 'allow_platform_fallback_for_tenants')
-
-      # Default to true for backward compatibility - existing platforms
-      # without tenant configs should continue working with ENV-based creds.
-      allow_fallback = true if allow_fallback.nil?
-
-      if allow_fallback
+      if Onetime.auth_config.allow_platform_fallback_for_tenants?
         Auth::Logging.log_auth_event(
           :omniauth_tenant_fallback_to_platform,
           level: :debug,

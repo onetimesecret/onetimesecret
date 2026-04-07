@@ -157,6 +157,17 @@ module Onetime
           "#{prefix}:*:#{SUFFIX}"
         end
 
+        # Parse a JSON-encoded value from Redis.
+        # Familia stores all Horreum field values as JSON strings.
+        # Returns the raw value if JSON parsing fails (legacy data).
+        def parse_redis_value(raw_value)
+          return nil if raw_value.nil?
+
+          Familia::JsonSerializer.parse(raw_value)
+        rescue Familia::SerializerError, JSON::ParserError
+          raw_value
+        end
+
         # Extract the identifier from a full dbkey by stripping
         # the known prefix and suffix. Handles compound identifiers
         # containing the delimiter (e.g., OrganizationMembership keys).

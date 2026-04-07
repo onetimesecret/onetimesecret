@@ -59,6 +59,7 @@ module Onetime
               report[:models]        = models_report
               report[:participation] = audit_participation(redis, samples)
               report[:indexes]       = audit_indexes(redis, samples)
+              report[:org_ownership] = audit_org_ownership(redis, samples)
             end
 
             # Audit a single model's instances sorted set
@@ -86,8 +87,8 @@ module Onetime
                   next
                 end
 
-                # Verify objid field matches the identifier
-                stored_objid = redis.hget(redis_key, 'objid')
+                # Verify objid field matches the identifier (Familia stores values as JSON)
+                stored_objid = parse_redis_value(redis.hget(redis_key, 'objid'))
                 if stored_objid && stored_objid != member
                   objid_mismatches += 1
                 end
@@ -167,6 +168,55 @@ module Onetime
               end
 
               { total: total_entries, sampled: sampled, stale: stale }
+            end
+
+            # Audit organization ownership integrity by checking:
+            # 1. owner_id points to existing customer
+            # 2. owner_id customer is in the members sorted set
+            #
+            # These checks catch data corruption that causes billing
+            # permission failures (403 "Owner access required").
+            def audit_org_ownership(redis, samples)
+              orgs_checked      = 0
+              orphan_owner_ids  = 0
+              owner_not_member  = 0
+              problem_orgs      = []
+
+              redis.scan_each(match: model_scan_pattern('organization'), count: MaintenanceJob::SCAN_COUNT) do |key|
+                orgs_checked += 1
+
+                owner_id = parse_redis_value(redis.hget(key, 'owner_id'))
+                next if owner_id.nil? || owner_id.to_s.empty?
+
+                org_objid = extract_identifier('organization', key)
+                next unless org_objid
+
+                # Check 1: owner_id points to existing customer
+                owner_exists = redis.exists?(backing_key('customer', owner_id))
+                unless owner_exists
+                  orphan_owner_ids += 1
+                  problem_orgs << { org: org_objid, issue: :orphan_owner_id, owner_id: owner_id }
+                  next # Skip member check if owner doesn't exist
+                end
+
+                # Check 2: owner is in members sorted set
+                members_key   = "organization:#{org_objid}:members"
+                owner_score   = redis.zscore(members_key, owner_id)
+                unless owner_score
+                  owner_not_member += 1
+                  problem_orgs << { org: org_objid, issue: :owner_not_in_members, owner_id: owner_id }
+                end
+
+                # Stop after sampling enough orgs (full scan can be expensive)
+                break if orgs_checked >= samples * 10
+              end
+
+              {
+                orgs_checked: orgs_checked,
+                orphan_owner_ids: orphan_owner_ids,
+                owner_not_member: owner_not_member,
+                problem_orgs: problem_orgs.first(10), # Limit output size
+              }
             end
           end
         end

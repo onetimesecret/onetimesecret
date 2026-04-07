@@ -118,6 +118,19 @@ full:
     # Retained for backward compatibility with single-provider OIDC setups.
     sso_display_name: <%= ENV.fetch('SSO_DISPLAY_NAME', '') %>
 
+    # Multi-tenant SSO fallback policy
+    #
+    # Controls whether custom domains without their own CustomDomain::SsoConfig
+    # can fall back to platform ENV-based SSO credentials.
+    #
+    # When true, any custom domain can piggyback on platform SSO — convenient
+    # for single-tenant deployments but a security concern in multi-tenant setups.
+    # When false, custom domains must have explicit per-domain SSO configuration
+    # or SSO will be unavailable on that domain.
+    #
+    # Default: false (require explicit per-domain SSO configuration)
+    allow_platform_fallback_for_tenants: <%= ENV['SSO_ALLOW_PLATFORM_FALLBACK'] == 'true' %>
+
   # Argon2 secret key (pepper) for password hashing defense-in-depth.
   # Folded into password hashes — if the hash database is compromised,
   # passwords remain protected unless this secret is also leaked.

@@ -14,13 +14,24 @@ export async function setupRouterGuards(router: Router): Promise<void> {
   const { setTitle } = usePageTitle();
   let currentTitle: string | null = null;
 
-  // Apply custom domain layout defaults for ALL routes.
+  // Apply custom domain layout defaults for guest/public routes only.
   // Prevents the canonical OTS logo/branding from leaking on custom domain
-  // pages that lack explicit beforeEnter guards. Runs before per-route
-  // beforeEnter guards, so route-specific overrides still take precedence.
+  // pages that lack explicit beforeEnter guards (e.g. secret reveal pages).
+  //
+  // Authenticated workspace routes (requiresAuth) skip this guard so they
+  // get the canonical logo, full navigation, and user menu. Context switchers
+  // (org/domain) independently hide themselves on custom domains via
+  // useScopeSwitcherVisibility (isCustom check).
   router.beforeEach((to: RouteLocationNormalized) => {
     const bootstrapStore = useBootstrapStore();
     if (bootstrapStore.domain_strategy !== 'custom') return true;
+
+    // Authenticated routes use default layout — canonical logo, full nav.
+    if (to.meta.requiresAuth) return true;
+
+    // Auth routes (signin, signup, etc.) handle their own branding via
+    // titleLogo in AuthView — don't override their layout props.
+    if (to.meta.isAuthRoute) return true;
 
     const hasDomainLogo = !!bootstrapStore.domain_logo;
     const existing = (to.meta.layoutProps ?? {}) as Record<string, unknown>;

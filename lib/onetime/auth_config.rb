@@ -228,6 +228,14 @@ module Onetime
       name.to_s.strip.empty? ? nil : name
     end
 
+    # Whether custom domains without their own CustomDomain::SsoConfig
+    # can fall back to platform ENV-based SSO credentials.
+    #
+    # Default: false (require explicit per-domain SSO configuration)
+    def allow_platform_fallback_for_tenants?
+      sso_config['allow_platform_fallback_for_tenants'] == true
+    end
+
     # DEPRECATED: Use sso_display_name
     def omniauth_provider_name
       sso_display_name

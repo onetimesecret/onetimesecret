@@ -135,8 +135,8 @@ namespace :ots do
       if existing[env_var] && !existing[env_var].empty? && existing[env_var] != 'CHANGEME'
         puts "  #{env_var} already set (keeping existing value)"
       else
-        updates[env_var] = SecureRandom.hex(INDEPENDENT_SECRET_BYTES)
-        puts "  #{env_var} ← SecureRandom.hex(#{INDEPENDENT_SECRET_BYTES}) [independent]"
+        updates[env_var] = SecureRandom.hex(OTSInit::INDEPENDENT_SECRET_BYTES)
+        puts "  #{env_var} ← SecureRandom.hex(#{OTSInit::INDEPENDENT_SECRET_BYTES}) [independent]"
       end
     end
 

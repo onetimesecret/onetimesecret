@@ -7,10 +7,15 @@
 # =============================================================================
 #
 # Issue: #2786 - Per-domain SSO configuration
+# Issue: #2918 - SSO platform fallback config moved to auth.defaults.yaml
 #
 # Tests the fallback policy when a custom domain has no CustomDomain::SsoConfig
-# (or has a disabled one). The behavior is controlled by the config setting:
-#   site.sso.allow_platform_fallback_for_tenants
+# (or has a disabled one). The behavior is controlled by:
+#   Onetime.auth_config.allow_platform_fallback_for_tenants?
+#
+# As of #2918, this setting lives in auth config (full.sso section) and
+# defaults to false (deny fallback). Previously it lived in site config
+# under site.sso and defaulted to true when absent.
 #
 # Gap covered:
 #   - Custom domain, no CustomDomain::SsoConfig, fallback allowed -> proceeds
@@ -81,22 +86,6 @@ RSpec.describe 'handle_missing_tenant_config Fallback Policy', type: :integratio
 
   let(:helpers) { Auth::Config::Hooks::OmniAuthTenant }
 
-  # Helper to temporarily set the fallback config value.
-  # Modifies OT.conf in place and restores after the block.
-  def with_fallback_config(allow_fallback)
-    original_sso = OT.conf.dig('site', 'sso')&.dup
-    OT.conf['site'] ||= {}
-    OT.conf['site']['sso'] ||= {}
-    OT.conf['site']['sso']['allow_platform_fallback_for_tenants'] = allow_fallback
-    yield
-  ensure
-    if original_sso
-      OT.conf['site']['sso'] = original_sso
-    else
-      OT.conf['site'].delete('sso')
-    end
-  end
-
   # Mock Rodauth instance that captures throw_error_status calls
   # instead of actually halting the request.
   class MockRodauth
@@ -122,56 +111,62 @@ RSpec.describe 'handle_missing_tenant_config Fallback Policy', type: :integratio
     let(:host) { 'secrets.no-sso-config.example.com' }
 
     context 'when fallback is allowed (true)' do
+      before do
+        allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      end
+
       it 'returns without raising (proceeds with platform defaults)' do
         mock_rodauth = MockRodauth.new
 
-        with_fallback_config(true) do
-          # Should return normally, no error thrown
-          result = catch(:error) do
-            helpers.handle_missing_tenant_config(host, mock_rodauth)
-            :no_error
-          end
-
-          expect(result).to eq(:no_error),
-            "Expected handle_missing_tenant_config to return normally when fallback is allowed"
-          expect(mock_rodauth.error_thrown?).to be(false)
+        # Should return normally, no error thrown
+        result = catch(:error) do
+          helpers.handle_missing_tenant_config(host, mock_rodauth)
+          :no_error
         end
+
+        expect(result).to eq(:no_error),
+          "Expected handle_missing_tenant_config to return normally when fallback is allowed"
+        expect(mock_rodauth.error_thrown?).to be(false)
       end
     end
 
-    context 'when fallback is denied (false)' do
+    context 'when fallback is denied (false) — the default' do
+      before do
+        allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+      end
+
       it 'raises 403 sso_not_configured' do
         mock_rodauth = MockRodauth.new
 
-        with_fallback_config(false) do
-          result = catch(:error) do
-            helpers.handle_missing_tenant_config(host, mock_rodauth)
-            :no_error
-          end
-
-          expect(result).not_to eq(:no_error),
-            "Expected handle_missing_tenant_config to throw an error when fallback is denied"
-          expect(result[:status]).to eq(403)
-          expect(result[:field]).to eq('sso_not_configured')
-          expect(result[:message]).to eq('SSO not configured for this domain')
+        result = catch(:error) do
+          helpers.handle_missing_tenant_config(host, mock_rodauth)
+          :no_error
         end
+
+        expect(result).not_to eq(:no_error),
+          "Expected handle_missing_tenant_config to throw an error when fallback is denied"
+        expect(result[:status]).to eq(403)
+        expect(result[:field]).to eq('sso_not_configured')
+        expect(result[:message]).to eq('SSO not configured for this domain')
       end
     end
 
-    context 'when fallback config is nil (not set)' do
-      it 'defaults to allowing fallback (backward compatibility)' do
+    context 'when auth_config returns default (no stub, exercises real accessor)' do
+      # Since auth.defaults.yaml sets allow_platform_fallback_for_tenants to false
+      # by default (ENV['SSO_ALLOW_PLATFORM_FALLBACK'] is not set in test), the
+      # real accessor should return false, denying fallback.
+      it 'denies fallback by default (secure default from #2918)' do
         mock_rodauth = MockRodauth.new
 
-        with_fallback_config(nil) do
-          result = catch(:error) do
-            helpers.handle_missing_tenant_config(host, mock_rodauth)
-            :no_error
-          end
-
-          expect(result).to eq(:no_error),
-            "Nil fallback config should default to true for backward compatibility"
-          expect(mock_rodauth.error_thrown?).to be(false)
+        result = catch(:error) do
+          helpers.handle_missing_tenant_config(host, mock_rodauth)
+          :no_error
         end
+
+        expect(result).not_to eq(:no_error),
+          "Default config should deny fallback (allow_platform_fallback_for_tenants defaults to false)"
+        expect(result[:status]).to eq(403)
+        expect(result[:field]).to eq('sso_not_configured')
       end
     end
   end
@@ -209,38 +204,42 @@ RSpec.describe 'handle_missing_tenant_config Fallback Policy', type: :integratio
     end
 
     context 'when fallback is allowed' do
+      before do
+        allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      end
+
       it 'proceeds with platform defaults (does not raise)' do
         mock_rodauth = MockRodauth.new
 
-        with_fallback_config(true) do
-          # The hook checks sso_config&.enabled? -> false, then calls
-          # handle_missing_tenant_config, which should allow fallback
-          result = catch(:error) do
-            helpers.handle_missing_tenant_config(tenant_domain, mock_rodauth)
-            :no_error
-          end
-
-          expect(result).to eq(:no_error),
-            "Disabled config with fallback allowed should proceed with platform defaults"
+        # The hook checks sso_config&.enabled? -> false, then calls
+        # handle_missing_tenant_config, which should allow fallback
+        result = catch(:error) do
+          helpers.handle_missing_tenant_config(tenant_domain, mock_rodauth)
+          :no_error
         end
+
+        expect(result).to eq(:no_error),
+          "Disabled config with fallback allowed should proceed with platform defaults"
       end
     end
 
     context 'when fallback is denied' do
+      before do
+        allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+      end
+
       it 'raises 403 sso_not_configured' do
         mock_rodauth = MockRodauth.new
 
-        with_fallback_config(false) do
-          result = catch(:error) do
-            helpers.handle_missing_tenant_config(tenant_domain, mock_rodauth)
-            :no_error
-          end
-
-          expect(result).not_to eq(:no_error),
-            "Disabled config with fallback denied should raise 403"
-          expect(result[:status]).to eq(403)
-          expect(result[:field]).to eq('sso_not_configured')
+        result = catch(:error) do
+          helpers.handle_missing_tenant_config(tenant_domain, mock_rodauth)
+          :no_error
         end
+
+        expect(result).not_to eq(:no_error),
+          "Disabled config with fallback denied should raise 403"
+        expect(result[:status]).to eq(403)
+        expect(result[:field]).to eq('sso_not_configured')
       end
     end
   end
@@ -250,50 +249,54 @@ RSpec.describe 'handle_missing_tenant_config Fallback Policy', type: :integratio
   # ==========================================================================
 
   describe 'edge cases' do
-    context 'when site.sso config section does not exist at all' do
-      it 'defaults to allowing fallback' do
+    context 'when sso section is missing from auth config (legacy/broken config)' do
+      it 'denies fallback (secure default)' do
         mock_rodauth = MockRodauth.new
 
-        # Temporarily remove the entire sso section
-        original_sso = OT.conf.dig('site', 'sso')&.dup
-        OT.conf['site']&.delete('sso')
+        # When sso_config returns the legacy fallback hash (no full.sso section),
+        # allow_platform_fallback_for_tenants won't be present, so the accessor
+        # returns false. Stub to simulate this explicitly.
+        allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
 
-        begin
-          result = catch(:error) do
-            helpers.handle_missing_tenant_config('orphan.example.com', mock_rodauth)
-            :no_error
-          end
-
-          expect(result).to eq(:no_error),
-            "Missing site.sso config section should default to allowing fallback"
-        ensure
-          OT.conf['site'] ||= {}
-          OT.conf['site']['sso'] = original_sso if original_sso
+        result = catch(:error) do
+          helpers.handle_missing_tenant_config('orphan.example.com', mock_rodauth)
+          :no_error
         end
+
+        expect(result).not_to eq(:no_error),
+          "Missing sso config section should deny fallback (secure default)"
+        expect(result[:status]).to eq(403)
       end
     end
 
-    context 'when site config section does not exist' do
-      it 'defaults to allowing fallback' do
-        mock_rodauth = MockRodauth.new
+    context 'when allow_platform_fallback_for_tenants? accessor behavior with nil sso section' do
+      it 'returns false when full.sso section is absent (legacy fallback hash)' do
+        # Verify the accessor itself handles missing sso config gracefully.
+        # When full['sso'] is nil, sso_config returns a legacy fallback hash
+        # that does not contain allow_platform_fallback_for_tenants, so
+        # the == true check returns false.
+        auth_config = Onetime.auth_config
+        original_full = auth_config.send(:full)
 
-        original_site = OT.conf['site']&.dup
+        # Temporarily remove the sso section to test accessor resilience
+        allow(auth_config).to receive(:full).and_return(original_full.merge('sso' => nil))
 
-        # When OT.conf.dig('site', 'sso', ...) returns nil because
-        # 'site' itself is missing, nil fallback should default to true
-        OT.conf['site'] = {}
+        expect(auth_config.allow_platform_fallback_for_tenants?).to be(false)
+      end
+    end
 
-        begin
-          result = catch(:error) do
-            helpers.handle_missing_tenant_config('no-site.example.com', mock_rodauth)
-            :no_error
-          end
+    context 'when allow_platform_fallback_for_tenants is string "true" instead of boolean' do
+      it 'returns false (strict boolean check)' do
+        auth_config = Onetime.auth_config
+        original_full = auth_config.send(:full)
 
-          expect(result).to eq(:no_error),
-            "Missing site config should default to allowing fallback"
-        ensure
-          OT.conf['site'] = original_site if original_site
-        end
+        # Simulate a misconfiguration where the value is a string not a boolean
+        allow(auth_config).to receive(:full).and_return(
+          original_full.merge('sso' => { 'allow_platform_fallback_for_tenants' => 'true' })
+        )
+
+        expect(auth_config.allow_platform_fallback_for_tenants?).to be(false),
+          "String 'true' should not satisfy == true check (strict boolean)"
       end
     end
   end

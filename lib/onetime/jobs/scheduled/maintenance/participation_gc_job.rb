@@ -62,9 +62,11 @@ module Onetime
               end
 
               invitation_report = gc_pending_invitations(redis, repair, limit)
+              ownership_report  = gc_orphan_owners(redis, repair, limit)
 
               report[:participation] = participation_report
               report[:invitations]   = invitation_report
+              report[:org_ownership] = ownership_report
               report[:auto_repair]   = repair
             end
 
@@ -150,6 +152,82 @@ module Onetime
               end
 
               { keys_scanned: keys_scanned, expired: expired, orphaned: orphaned, removed: removed, errors: errors }
+            end
+
+            # GC organizations with orphan owner_id (pointing to deleted customer).
+            # When auto_repair is enabled, promotes a member with role:'owner' if available.
+            #
+            # This addresses the data corruption where org.owner_id references a
+            # deleted customer, causing billing permission failures.
+            def gc_orphan_owners(redis, repair, limit)
+              orgs_scanned     = 0
+              orphans_found    = 0
+              owners_promoted  = 0
+              promotion_failed = 0
+              errors           = 0
+
+              redis.scan_each(match: model_scan_pattern('organization'), count: MaintenanceJob::SCAN_COUNT) do |key|
+                orgs_scanned += 1
+                break if orphans_found >= limit
+
+                begin
+                  owner_id = redis.hget(key, 'owner_id')
+                  next if owner_id.nil? || owner_id.empty?
+
+                  # Check if owner customer exists
+                  next if redis.exists?(backing_key('customer', owner_id))
+
+                  orphans_found += 1
+                  org_objid      = extract_identifier('organization', key)
+
+                  scheduler_logger.warn "[ParticipationGCJob] Orphan owner_id in org #{org_objid}: #{owner_id}"
+
+                  next unless repair
+
+                  # Try to promote a member with role:'owner'
+                  promoted = promote_owner_for_org(redis, org_objid, key)
+                  if promoted
+                    owners_promoted += 1
+                    scheduler_logger.info "[ParticipationGCJob] Promoted #{promoted} as owner of #{org_objid}"
+                  else
+                    promotion_failed += 1
+                    scheduler_logger.warn "[ParticipationGCJob] No eligible owner candidate for #{org_objid}"
+                  end
+                rescue StandardError => ex
+                  errors += 1
+                  scheduler_logger.error "[ParticipationGCJob] Error checking org ownership: #{ex.message}"
+                end
+              end
+
+              {
+                orgs_scanned: orgs_scanned,
+                orphans_found: orphans_found,
+                owners_promoted: owners_promoted,
+                promotion_failed: promotion_failed,
+                errors: errors,
+              }
+            end
+
+            # Find a member with role:'owner' in their membership record and promote them.
+            # Returns the new owner's custid on success, nil on failure.
+            def promote_owner_for_org(redis, org_objid, org_key)
+              members_key = "organization:#{org_objid}:members"
+
+              zscan_each(redis, members_key) do |member_id|
+                # Check if this customer exists
+                next unless redis.exists?(backing_key('customer', member_id))
+
+                # Check membership role (Familia stores values as JSON)
+                membership_key = "org_membership:organization:#{org_objid}:customer:#{member_id}:org_membership:object"
+                role           = parse_redis_value(redis.hget(membership_key, 'role'))
+                next unless role == 'owner'
+
+                # Promote this member
+                redis.hset(org_key, 'owner_id', member_id)
+                return member_id
+              end
+
+              nil
             end
           end
         end

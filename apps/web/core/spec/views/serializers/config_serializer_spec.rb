@@ -102,7 +102,8 @@ RSpec.describe Core::Views::ConfigSerializer do
       sso_enabled?: false,
       sso_only_enabled?: false,
       restrict_to: nil,
-      sso_providers: []
+      sso_providers: [],
+      allow_platform_fallback_for_tenants?: false
     )
   end
 
@@ -229,9 +230,9 @@ RSpec.describe Core::Views::ConfigSerializer do
             .and_return(domain_sso_config)
         end
 
-        context 'with platform fallback allowed (default)' do
+        context 'with platform fallback allowed' do
           before do
-            allow(OT).to receive(:conf).and_return({})
+            allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
             allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
             allow(mock_auth_config).to receive(:sso_providers).and_return([
               { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
@@ -246,11 +247,9 @@ RSpec.describe Core::Views::ConfigSerializer do
           end
         end
 
-        context 'with platform fallback disabled' do
+        context 'with platform fallback denied (default)' do
           before do
-            allow(OT).to receive(:conf).and_return({
-              'site' => { 'sso' => { 'allow_platform_fallback_for_tenants' => false } },
-            })
+            allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
           end
 
           it 'returns disabled SSO with empty providers' do
@@ -274,7 +273,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
         context 'with platform fallback allowed' do
           before do
-            allow(OT).to receive(:conf).and_return({})
+            allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
             allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
             allow(mock_auth_config).to receive(:sso_providers).and_return([
               { 'route_name' => 'google', 'display_name' => 'Google' },
@@ -289,11 +288,9 @@ RSpec.describe Core::Views::ConfigSerializer do
           end
         end
 
-        context 'with platform fallback disabled' do
+        context 'with platform fallback denied (default)' do
           before do
-            allow(OT).to receive(:conf).and_return({
-              'site' => { 'sso' => { 'allow_platform_fallback_for_tenants' => false } },
-            })
+            allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
           end
 
           it 'returns disabled SSO' do
@@ -351,7 +348,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         before do
           allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
             .and_raise(Redis::ConnectionError.new('Connection refused'))
-          allow(OT).to receive(:conf).and_return({})
+          allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
           allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
           allow(mock_auth_config).to receive(:sso_providers).and_return([
             { 'route_name' => 'oidc', 'display_name' => 'Fallback SSO' },
@@ -434,9 +431,15 @@ RSpec.describe Core::Views::ConfigSerializer do
   end
 
   describe '.allow_platform_fallback?' do
-    context 'when not configured (default)' do
+    context 'when not configured (default is false per #2918)' do
+      it 'returns false' do
+        expect(described_class.allow_platform_fallback?).to be false
+      end
+    end
+
+    context 'when auth_config returns true' do
       before do
-        allow(OT).to receive(:conf).and_return({})
+        allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
       end
 
       it 'returns true' do
@@ -444,23 +447,9 @@ RSpec.describe Core::Views::ConfigSerializer do
       end
     end
 
-    context 'when explicitly set to true' do
+    context 'when auth_config returns false' do
       before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => { 'sso' => { 'allow_platform_fallback_for_tenants' => true } },
-        })
-      end
-
-      it 'returns true' do
-        expect(described_class.allow_platform_fallback?).to be true
-      end
-    end
-
-    context 'when explicitly set to false' do
-      before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => { 'sso' => { 'allow_platform_fallback_for_tenants' => false } },
-        })
+        allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
       end
 
       it 'returns false' do

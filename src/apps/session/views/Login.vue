@@ -20,8 +20,10 @@ const languageStore = useLanguageStore();
 const bootstrapStore = useBootstrapStore();
 const { authentication } = storeToRefs(bootstrapStore);
 
-// Disable signup on custom domains (users must be provisioned by org admin)
-const { isCustom } = storeToRefs(useProductIdentity());
+// Custom domain branding: replace generic icon with domain logo on sign-in page
+const identityStore = useProductIdentity();
+const { isCustom } = storeToRefs(identityStore);
+const { logoUri, displayName } = identityStore;
 const signupEnabled = computed(
   () => !isCustom.value && authentication.value?.enabled && authentication.value?.signup
 );
@@ -78,9 +80,11 @@ const handleModeChange = (_mode: AuthMode) => {
   <AuthView
     :heading="t('web.COMMON.login_to_your_account')"
     heading-id="signin-heading"
+    :title-logo="isCustom ? logoUri : null"
+    :title="isCustom ? displayName : null"
     :with-subheading="true"
     :hide-icon="false"
-    :hide-background-icon="false"
+    :hide-background-icon="isCustom"
     :show-return-home="false">
     <template #form>
       <!-- Auth error from redirects (SSO failure, invalid magic link, etc.) -->

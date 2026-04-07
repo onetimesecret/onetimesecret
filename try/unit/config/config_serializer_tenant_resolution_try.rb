@@ -7,6 +7,7 @@
 # canonical domains.
 #
 # Issue: #2786 - Per-domain SSO configuration
+# Issue: #2918 - SSO platform fallback config moved to auth.defaults.yaml
 
 ENV['AUTHENTICATION_MODE'] = 'full'
 
@@ -41,22 +42,23 @@ end
 @original_features = Onetime.auth_config.features.dup
 
 # Store original fallback setting for restoration
-@original_sso_config = OT.conf.dig('site', 'sso')&.dup
+@original_fallback_value = Onetime.auth_config.instance_variable_get(:@config).dig('full', 'sso', 'allow_platform_fallback_for_tenants')
 
-# Helper to set fallback config
+# Helper to set fallback config via auth_config internals
+# (mirrors with_sso_platform_enabled pattern)
 def with_fallback_config(allow)
-  OT.conf['site'] ||= {}
-  OT.conf['site']['sso'] ||= {}
-  OT.conf['site']['sso']['allow_platform_fallback_for_tenants'] = allow
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  config['full'] ||= {}
+  config['full']['sso'] ||= {}
+  config['full']['sso']['allow_platform_fallback_for_tenants'] = allow
 end
 
 # Helper to restore fallback config
 def restore_fallback_config
-  if @original_sso_config
-    OT.conf['site']['sso'] = @original_sso_config.dup
-  else
-    OT.conf['site']&.delete('sso')
-  end
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  config['full'] ||= {}
+  config['full']['sso'] ||= {}
+  config['full']['sso']['allow_platform_fallback_for_tenants'] = @original_fallback_value
 end
 
 # Helper to enable SSO at platform level with env vars
@@ -230,14 +232,15 @@ restore_fallback_config
 result
 #=> false
 
-## allow_platform_fallback? defaults to true when config is nil
+## allow_platform_fallback? defaults to false when config is nil (secure default per #2918)
 with_fallback_config(nil)
 result = Core::Views::ConfigSerializer.send(:allow_platform_fallback?)
 restore_fallback_config
 result
-#=> true
+#=> false
 
-# Teardown: clean up Valkey fixtures and restore Familia config
+# Teardown: clean up Valkey fixtures, restore Familia and auth config
+restore_fallback_config
 Onetime::CustomDomain::SsoConfig.delete_for_domain!(@test_custom_domain.identifier) rescue nil
 Onetime::CustomDomain.display_domains.remove(@test_display_domain) rescue nil
 Onetime::CustomDomain.display_domains.remove(@no_sso_display_domain) rescue nil

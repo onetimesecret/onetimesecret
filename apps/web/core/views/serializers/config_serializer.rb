@@ -212,11 +212,9 @@ module Core
         # When true, custom domains without CustomDomain::SsoConfig use platform SSO.
         # When false, such domains see no SSO buttons.
         #
-        # @return [Boolean] true if fallback allowed (default: true)
+        # @return [Boolean] true if fallback allowed (default: false)
         def allow_platform_fallback?
-          setting = OT.conf.dig('site', 'sso', 'allow_platform_fallback_for_tenants')
-          # Default to true for backward compatibility
-          setting.nil? || setting
+          Onetime.auth_config.allow_platform_fallback_for_tenants?
         end
 
         # Build SSO response for tenant configuration
