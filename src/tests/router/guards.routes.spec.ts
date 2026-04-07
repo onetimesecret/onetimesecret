@@ -108,6 +108,139 @@ describe('Router Guards', () => {
     expect(router.beforeEach).toHaveBeenCalled();
   });
 
+  describe('custom domain layout guard (guard index 0)', () => {
+    /**
+     * The first beforeEach guard applies custom domain layout defaults
+     * for guest/public routes. It skips:
+     * - Non-custom domains (domain_strategy !== 'custom')
+     * - Routes with requiresAuth (authenticated workspace pages)
+     * - Routes with isAuthRoute (signin/signup handle their own branding)
+     */
+
+    type LayoutGuard = (to: RouteLocationNormalized) => true | undefined;
+
+    const getLayoutGuard = (): LayoutGuard => {
+      setupRouterGuards(router);
+      return vi.mocked(router.beforeEach).mock.calls[0][0] as LayoutGuard;
+    };
+
+    it('returns early for non-custom domains', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({ domain_strategy: 'canonical' });
+
+      const guard = getLayoutGuard();
+      const to = {
+        meta: {},
+        path: '/secret/abc123',
+        name: 'SecretReveal',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/secret/abc123',
+        matched: [],
+        redirectedFrom: undefined,
+      } as RouteLocationNormalized;
+
+      const result = guard(to);
+      expect(result).toBe(true);
+      // meta.layoutProps should NOT be set
+      expect(to.meta.layoutProps).toBeUndefined();
+    });
+
+    it('returns early for requiresAuth routes on custom domain', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({ domain_strategy: 'custom' });
+
+      const guard = getLayoutGuard();
+      const to = {
+        meta: { requiresAuth: true },
+        path: '/dashboard',
+        name: 'Dashboard',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/dashboard',
+        matched: [],
+        redirectedFrom: undefined,
+      } as RouteLocationNormalized;
+
+      const result = guard(to);
+      expect(result).toBe(true);
+      expect(to.meta.layoutProps).toBeUndefined();
+    });
+
+    it('returns early for isAuthRoute routes on custom domain (signin/signup handle own branding)', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({ domain_strategy: 'custom' });
+
+      const guard = getLayoutGuard();
+      const to = {
+        meta: { isAuthRoute: true },
+        path: '/signin',
+        name: 'Sign In',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/signin',
+        matched: [],
+        redirectedFrom: undefined,
+      } as RouteLocationNormalized;
+
+      const result = guard(to);
+      expect(result).toBe(true);
+      // Auth routes handle their own layout — guard should NOT override layoutProps
+      expect(to.meta.layoutProps).toBeUndefined();
+    });
+
+    it('overrides layoutProps for public routes on custom domain', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({ domain_strategy: 'custom', domain_logo: 'https://example.com/logo.png' });
+
+      const guard = getLayoutGuard();
+      const to = {
+        meta: {},
+        path: '/secret/abc123',
+        name: 'SecretReveal',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/secret/abc123',
+        matched: [],
+        redirectedFrom: undefined,
+      } as RouteLocationNormalized;
+
+      guard(to);
+      const layoutProps = to.meta.layoutProps as Record<string, unknown>;
+      expect(layoutProps).toBeDefined();
+      expect(layoutProps.displayMasthead).toBe(true);
+      expect(layoutProps.displayNavigation).toBe(false);
+      expect(layoutProps.displayFooterLinks).toBe(false);
+      expect(layoutProps.displayFeedback).toBe(false);
+    });
+
+    it('sets displayMasthead to false when custom domain has no logo', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({ domain_strategy: 'custom', domain_logo: null });
+
+      const guard = getLayoutGuard();
+      const to = {
+        meta: {},
+        path: '/secret/abc123',
+        name: 'SecretReveal',
+        query: {},
+        params: {},
+        hash: '',
+        fullPath: '/secret/abc123',
+        matched: [],
+        redirectedFrom: undefined,
+      } as RouteLocationNormalized;
+
+      guard(to);
+      const layoutProps = to.meta.layoutProps as Record<string, unknown>;
+      expect(layoutProps.displayMasthead).toBe(false);
+    });
+  });
+
   it('should redirect authenticated users from auth routes', async () => {
     setupRouterGuards(router);
 

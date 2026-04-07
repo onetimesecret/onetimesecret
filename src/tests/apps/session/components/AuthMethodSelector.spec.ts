@@ -36,6 +36,16 @@ vi.mock('@/utils/features', () => ({
   getSsoProviders: () => mockProviders.value,
 }));
 
+// Mock useProductIdentity store — the component uses storeToRefs(useProductIdentity()),
+// so isCustom must be a ref for storeToRefs to extract it properly.
+const mockIsCustomRef = ref(false);
+
+vi.mock('@/shared/stores/identityStore', () => ({
+  useProductIdentity: () => ({
+    isCustom: mockIsCustomRef,
+  }),
+}));
+
 // Mock child components
 vi.mock('@/apps/session/components/PasswordlessFirstSignIn.vue', () => ({
   default: {
@@ -69,6 +79,8 @@ const i18n = createI18n({
       web: {
         login: {
           or_continue_with: 'Or continue with',
+          custom_domain_sso_title: 'Single sign-on required',
+          custom_domain_sso_description: 'Contact your administrator to configure SSO for this domain.',
         },
       },
     },
@@ -191,6 +203,7 @@ describe('AuthMethodSelector', () => {
     mockFeatures.ssoEnabled.value = false;
     mockFeatures.ssoOnlyMode.value = false;
     mockProviders.value = [];
+    mockIsCustomRef.value = false;
   });
 
   afterEach(() => {
@@ -701,6 +714,179 @@ describe('AuthMethodSelector', () => {
         expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(expected.password);
         expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(expected.sso);
       });
+    });
+  });
+
+  describe('Custom Domain Authentication (showCustomDomainNoSso)', () => {
+    /**
+     * Tests for the custom domain fallback behavior using the REAL component.
+     *
+     * On custom domains (isCustom=true), the component enforces SSO-only auth.
+     * When SSO is not configured (no providers or SSO disabled), it shows a
+     * friendly "SSO required" message instead of password/passwordless forms.
+     *
+     * The stub does not replicate isCustom logic, so these tests use the
+     * real component via dynamic import (same pattern as Multi-Provider tests).
+     */
+
+    const mountRealForCustomDomain = async (opts: {
+      isCustom: boolean;
+      ssoEnabled?: boolean;
+      ssoOnlyMode?: boolean;
+      providers?: Array<{ route_name: string; display_name: string }>;
+      magic?: boolean;
+      webauthn?: boolean;
+    }) => {
+      mockIsCustomRef.value = opts.isCustom;
+      mockFeatures.ssoEnabled.value = opts.ssoEnabled ?? false;
+      mockFeatures.ssoOnlyMode.value = opts.ssoOnlyMode ?? false;
+      mockFeatures.magicLinksEnabled.value = opts.magic ?? false;
+      mockFeatures.webauthnEnabled.value = opts.webauthn ?? false;
+      mockProviders.value = opts.providers ?? [];
+
+      const { default: AuthMethodSelector } = await import(
+        '@/apps/session/components/AuthMethodSelector.vue'
+      );
+
+      const pinia = createTestingPinia({
+        createSpy: vi.fn,
+      });
+
+      const w = mount(AuthMethodSelector, {
+        props: { locale: 'en' },
+        global: {
+          plugins: [i18n, pinia],
+        },
+      });
+
+      await w.vm.$nextTick();
+      return w;
+    };
+
+    it('shows no-sso message on custom domain when SSO is not configured', async () => {
+      wrapper = await mountRealForCustomDomain({
+        isCustom: true,
+        ssoEnabled: false,
+        providers: [],
+      });
+
+      const noSsoMessage = wrapper.find('[data-testid="auth-custom-domain-no-sso"]');
+      expect(noSsoMessage.exists()).toBe(true);
+      expect(noSsoMessage.attributes('role')).toBe('note');
+
+      // Should NOT show password form, passwordless form, or SSO buttons
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(false);
+    });
+
+    it('shows no-sso message on custom domain when SSO is enabled but no providers', async () => {
+      // SSO enabled in config but providers array is empty — showSsoOnly is false
+      // because it requires providers.length > 0, so showCustomDomainNoSso is true
+      wrapper = await mountRealForCustomDomain({
+        isCustom: true,
+        ssoEnabled: true,
+        providers: [],
+      });
+
+      expect(wrapper.find('[data-testid="auth-custom-domain-no-sso"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(false);
+    });
+
+    it('shows SSO-only section on custom domain when SSO is configured with providers', async () => {
+      wrapper = await mountRealForCustomDomain({
+        isCustom: true,
+        ssoEnabled: true,
+        providers: [
+          { route_name: 'entra', display_name: 'Microsoft' },
+        ],
+      });
+
+      expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="auth-custom-domain-no-sso"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(false);
+    });
+
+    it('shows multiple SSO buttons on custom domain with multiple providers', async () => {
+      wrapper = await mountRealForCustomDomain({
+        isCustom: true,
+        ssoEnabled: true,
+        providers: [
+          { route_name: 'entra', display_name: 'Microsoft' },
+          { route_name: 'google', display_name: 'Google' },
+        ],
+      });
+
+      expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(2);
+    });
+
+    it('never shows no-sso message on canonical domain regardless of SSO state', async () => {
+      // Canonical domain (isCustom=false) without SSO should show standard auth forms
+      wrapper = await mountRealForCustomDomain({
+        isCustom: false,
+        ssoEnabled: false,
+        providers: [],
+      });
+
+      expect(wrapper.find('[data-testid="auth-custom-domain-no-sso"]').exists()).toBe(false);
+      // Should fall through to standard auth forms
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(true);
+    });
+
+    it('never shows no-sso message on canonical domain even with no providers', async () => {
+      wrapper = await mountRealForCustomDomain({
+        isCustom: false,
+        ssoEnabled: true,
+        providers: [],
+      });
+
+      expect(wrapper.find('[data-testid="auth-custom-domain-no-sso"]').exists()).toBe(false);
+    });
+
+    it('shows no-sso message when custom domain has sso_only but no providers', async () => {
+      // Edge case: sso_only mode is on at platform level, custom domain is active,
+      // but no providers are configured — showSsoOnly is false (needs providers),
+      // so showCustomDomainNoSso is true
+      wrapper = await mountRealForCustomDomain({
+        isCustom: true,
+        ssoEnabled: true,
+        ssoOnlyMode: true,
+        providers: [],
+      });
+
+      expect(wrapper.find('[data-testid="auth-custom-domain-no-sso"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+    });
+
+    it('no-sso message contains expected text content', async () => {
+      wrapper = await mountRealForCustomDomain({
+        isCustom: true,
+        ssoEnabled: false,
+        providers: [],
+      });
+
+      const noSsoMessage = wrapper.find('[data-testid="auth-custom-domain-no-sso"]');
+      expect(noSsoMessage.text()).toContain('Single sign-on required');
+      expect(noSsoMessage.text()).toContain('Contact your administrator');
+    });
+
+    it('custom domain with SSO ignores passwordless flags (SSO takes precedence)', async () => {
+      // Even if magic links and webauthn are enabled, custom domain forces SSO-only
+      wrapper = await mountRealForCustomDomain({
+        isCustom: true,
+        ssoEnabled: true,
+        providers: [{ route_name: 'entra', display_name: 'Microsoft' }],
+        magic: true,
+        webauthn: true,
+      });
+
+      expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(false);
     });
   });
 });
