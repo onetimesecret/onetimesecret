@@ -18,6 +18,7 @@ require_relative '../../application'
 RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
   include Rack::Test::Methods
   include BillingSpecHelper
+  include StripeMockFactory
   include_context 'with_test_plans'
   include_context 'with_authenticated_customer'
   include_context 'with_organization'
@@ -323,6 +324,155 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
       clear_authentication
 
       get "/billing/api/org/#{organization.extid}/invoices"
+
+      expect(last_response.status).to eq(401)
+    end
+  end
+
+  describe 'POST /billing/api/org/:extid/reactivate-subscription' do
+    let(:stripe_subscription_id) { 'sub_test_reactivate' }
+
+    let(:mock_subscription) do
+      build_subscription(
+        'id' => stripe_subscription_id,
+        'status' => 'active',
+        'cancel_at_period_end' => true,
+      )
+    end
+
+    let(:mock_updated_subscription) do
+      build_subscription(
+        'id' => stripe_subscription_id,
+        'status' => 'active',
+        'cancel_at_period_end' => false,
+      )
+    end
+
+    before do
+      # Set up organization with an active subscription
+      # Use commit_fields (not save) because the org already exists from the
+      # shared context and save would re-trigger unique index guards.
+      organization.subscription_status = 'active'
+      organization.stripe_subscription_id = stripe_subscription_id
+      organization.commit_fields
+    end
+
+    context 'when subscription is scheduled for cancellation' do
+      before do
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with(stripe_subscription_id)
+          .and_return(mock_subscription)
+        allow(Stripe::Subscription).to receive(:update)
+          .with(stripe_subscription_id, { cancel_at_period_end: false })
+          .and_return(mock_updated_subscription)
+      end
+
+      it 'returns 200 with success true' do
+        post "/billing/api/org/#{organization.extid}/reactivate-subscription"
+
+        expect(last_response.status).to eq(200)
+        expect(last_response.content_type).to include('application/json')
+
+        data = JSON.parse(last_response.body)
+        expect(data['success']).to be true
+        expect(data['status']).to eq('active')
+      end
+    end
+
+    context 'when subscription is not scheduled for cancellation' do
+      before do
+        not_cancelling = build_subscription(
+          'id' => stripe_subscription_id,
+          'status' => 'active',
+          'cancel_at_period_end' => false,
+        )
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with(stripe_subscription_id)
+          .and_return(not_cancelling)
+      end
+
+      it 'returns 400' do
+        post "/billing/api/org/#{organization.extid}/reactivate-subscription"
+
+        expect(last_response.status).to eq(400)
+        expect(last_response.body).to include('not scheduled for cancellation')
+      end
+    end
+
+    context 'when organization has no active subscription' do
+      before do
+        organization.subscription_status = 'canceled'
+        organization.commit_fields
+      end
+
+      it 'returns 400' do
+        post "/billing/api/org/#{organization.extid}/reactivate-subscription"
+
+        expect(last_response.status).to eq(400)
+        expect(last_response.body).to include('No active subscription')
+      end
+    end
+
+    context 'when organization has no stripe subscription ID' do
+      before do
+        organization.stripe_subscription_id = nil
+        organization.commit_fields
+      end
+
+      it 'returns 400' do
+        post "/billing/api/org/#{organization.extid}/reactivate-subscription"
+
+        expect(last_response.status).to eq(400)
+        expect(last_response.body).to include('No Stripe subscription found')
+      end
+    end
+
+    context 'when Stripe raises InvalidRequestError' do
+      before do
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with(stripe_subscription_id)
+          .and_raise(Stripe::InvalidRequestError.new('No such subscription', 'id'))
+      end
+
+      it 'returns 400 with the Stripe error message' do
+        post "/billing/api/org/#{organization.extid}/reactivate-subscription"
+
+        expect(last_response.status).to eq(400)
+        expect(last_response.body).to include('No such subscription')
+      end
+    end
+
+    context 'when Stripe raises StripeError' do
+      before do
+        allow(Stripe::Subscription).to receive(:retrieve)
+          .with(stripe_subscription_id)
+          .and_raise(Stripe::StripeError.new('Connection error'))
+      end
+
+      it 'returns 500 with a generic message' do
+        post "/billing/api/org/#{organization.extid}/reactivate-subscription"
+
+        expect(last_response.status).to eq(500)
+        expect(last_response.body).to include('Failed to reactivate subscription')
+      end
+    end
+
+    context 'when customer is not organization owner' do
+      it 'returns 403' do
+        member = create_organization_member
+        authenticate_as(member)
+
+        post "/billing/api/org/#{organization.extid}/reactivate-subscription"
+
+        expect(last_response.status).to eq(403)
+        expect(last_response.body).to include('Owner access required')
+      end
+    end
+
+    it 'requires authentication' do
+      clear_authentication
+
+      post "/billing/api/org/#{organization.extid}/reactivate-subscription"
 
       expect(last_response.status).to eq(401)
     end

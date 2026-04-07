@@ -846,7 +846,7 @@
   },
   "web.billing.cancel.reactivate_success": {
     "text": "Your subscription has been reactivated. You will continue to be billed as normal.",
-    "context": "Success message after reactivating a cancelled subscription",
+    "context": "Success message after undoing a scheduled cancellation",
     "content_hash": "e5f6a7b8"
   },
   "web.billing.cancel.reactivate_error": {
