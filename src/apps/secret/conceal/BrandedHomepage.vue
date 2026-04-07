@@ -30,7 +30,7 @@
     <!-- Logo + Taglines (centered brand hero for custom domains) -->
     <div class="mb-8 text-center">
       <!-- Logo with error handling - hides if 404 -->
-      <div v-if="logoUri && !imageError" class="mb-4 flex justify-center">
+      <div v-if="logoUri && !imageError" class="mb-24 flex justify-center">
         <img
           :src="logoUri"
           class="h-16 max-w-[200px] object-contain"
@@ -45,7 +45,22 @@
       </p>
     </div>
 
-    <!-- Public homepage with secret form -->
+    <!--
+      Custom Domain Homepage (branded landing for self-hosted workspaces)
+
+      Audiences:
+      - Recipients arriving via a shared link
+      - Team members who need to sign in (via TransactionalHeader)
+      - Admins verifying the branded landing page
+
+      Design notes:
+      - Minimal, trust-focused with brand color accents
+      - Sign In handled at layout level, not here
+      - Public mode (allowPublicHomepage): shows secret form
+      - Private mode: status card with trust signals, no form
+    -->
+
+    <!-- Public: secret form -->
     <SecretForm
       v-if="allowPublicHomepage"
       class="mb-8"
@@ -56,22 +71,7 @@
       :with-asterisk="false"
       :with-generate="false" />
 
-    <!--
-      Private Instance Landing
-
-      Purpose: Landing page for custom domains with restricted access.
-
-      Key audiences:
-      - Recipients: People who received/viewed a secure message
-      - Internal teams: Employees who need to know how to share sensitive info
-      - Admins: People managing the service
-
-      Design notes:
-      - Professional, minimal appearance
-      - Uses brand color as accent
-      - Trust-focused messaging
-    -->
-
+    <!-- Private: trust signals only -->
     <div v-else class="space-y-8">
       <!-- Status Card -->
       <div

@@ -22,7 +22,7 @@
   // Custom domains (no MastHead) get extra top padding to compensate
   const mainClasses = computed(() => {
     const base = 'container mx-auto flex min-w-[320px] max-w-full flex-1 flex-col px-0 justify-start';
-    return props.displayMasthead ? `${base} py-8` : `${base} pt-16 pb-8`;
+    return props.displayMasthead ? `${base} py-8` : `${base} pt-8 pb-8`;
   });
 </script>
 

@@ -36,12 +36,13 @@
     <div class="container mx-auto min-w-[320px] max-w-2xl p-4">
       <MastHead v-if="displayMasthead" v-bind="props" />
 
-      <!-- Minimal nav for custom domain pages without MastHead -->
+      <!-- Minimal nav for custom domain pages without MastHead.
+           max-w-xl aligns with BrandedHomepage content column. -->
       <nav
         v-else-if="showMinimalNav"
         role="navigation"
         :aria-label="t('web.layout.main_navigation')"
-        class="flex justify-end font-brand text-sm sm:text-base">
+        class="mx-auto flex w-full max-w-xl justify-end font-brand text-sm sm:text-base">
         <template v-if="authentication?.enabled">
           <router-link
             v-if="authentication?.signin"
