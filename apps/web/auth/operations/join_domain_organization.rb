@@ -64,7 +64,7 @@ module Auth
         # Add as member — activates pending invitation if one exists,
         # otherwise creates membership directly
         membership = Onetime::OrganizationMembership.ensure_membership(
-          organization, customer, role: 'member'
+          organization, customer, role: 'member', domain_scope_id: domain.objid
         )
 
         OT.info "[JoinDomainOrganization] Added #{customer.custid} to #{organization.objid} as member (via SSO on #{domain.display_domain})"

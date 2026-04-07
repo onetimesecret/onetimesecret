@@ -9,7 +9,7 @@
 # should be active for a given authenticated user request.
 #
 # Selection Priority (READ-ONLY):
-# 0. Explicit header override via X-Organization-ID (SPA org switches)
+# 0. Explicit header override via O-Organization-ID (SPA org switches)
 # 1. Explicit selection via session['organization_id']
 # 2. Domain-based selection (custom domain routing)
 # 3. Customer's default_org_id (per-customer preference set by support)
@@ -51,28 +51,8 @@ module Onetime
         cache_key = "org_context:#{customer.objid}"
 
         # Check header override BEFORE cache — SPA org switches must bypass cache
-        org_id_header = env&.dig('HTTP_X_ORGANIZATION_ID')
-        if org_id_header.is_a?(String) && !org_id_header.empty?
-          org = Onetime::Organization.load(org_id_header)
-          if org && org.member?(customer)
-            OT.ld "[OrganizationLoader] Using header override (bypassing cache): #{org.objid}"
-            # Store in session cache so subsequent requests without header use this org
-            if session
-              session[cache_key] = {
-                organization_id: org.objid,
-                expires_at: Familia.now.to_i + CACHE_TTL,
-              }
-            end
-            return {
-              organization: org,
-              organization_id: org.objid,
-              expires_at: Familia.now.to_i + CACHE_TTL,
-            }
-          else
-            OT.ld "[OrganizationLoader] Header org invalid or unauthorized: #{org_id_header}"
-            # Invalid header — fall through to normal flow including cache
-          end
-        end
+        header_result = resolve_header_context(customer, session, cache_key, env)
+        return header_result if header_result
 
         # Check session cache (only stores IDs, not full objects)
         cached = session[cache_key] if session
@@ -131,13 +111,18 @@ module Onetime
 
       # Determine which organization should be active for this request
       #
+      # rubocop:disable Metrics/PerceivedComplexity -- 6-step priority chain is inherently branchy
       # @param customer [Onetime::Customer] Authenticated customer
       # @param session [Hash] Rack session
       # @param env [Hash] Rack environment
       # @return [Onetime::Organization, nil] Selected organization
       def determine_organization(customer, session, env)
-        # NOTE: Header override (X-Organization-ID) is handled in load_organization_context
+        # NOTE: Header override (O-Organization-ID) is handled in load_organization_context
         # BEFORE the cache check. If we reach here, no valid header was present.
+
+        # Track orgs explicitly denied by domain-scope checks so that
+        # steps 3-5 cannot return them via a different selection path.
+        denied_org_ids = Set.new
 
         # 1. Explicit selection from session
         if session && session['organization_id']
@@ -158,8 +143,13 @@ module Onetime
           if domain
             org = domain.primary_organization
             if org && org.member?(customer)
-              OT.ld "[OrganizationLoader] Using domain-based selection: #{org.objid} (#{host})"
-              return org
+              membership = Onetime::OrganizationMembership.find_by_org_customer(org.objid, customer.objid)
+              if membership&.can_access_domain?(domain)
+                OT.ld "[OrganizationLoader] Using domain-based selection: #{org.objid} (#{host})"
+                return org
+              end
+              OT.ld "[OrganizationLoader] Domain-scoped member cannot access #{host}: #{customer.objid}"
+              denied_org_ids << org.objid
             end
           end
         end
@@ -168,6 +158,8 @@ module Onetime
         # This takes precedence over the org's is_default flag, allowing
         # customer support to set a specific org as default per-customer.
         orgs = customer.organization_instances.to_a
+        orgs = orgs.reject { |o| denied_org_ids.include?(o.objid) } unless denied_org_ids.empty?
+
         if customer.default_org_id.to_s.length.positive?
           customer_default = orgs.find { |o| o.objid == customer.default_org_id }
           if customer_default
@@ -205,6 +197,65 @@ module Onetime
         # See: apps/web/auth/operations/create_default_workspace.rb
         OT.ld "[OrganizationLoader] No organizations found for #{customer.objid}, deferring creation"
         nil
+      end
+      # rubocop:enable Metrics/PerceivedComplexity
+
+      # Handle header-based org selection with cache short-circuit.
+      # Returns a context hash if header resolves, nil otherwise.
+      def resolve_header_context(customer, session, cache_key, env)
+        org_id_header = env&.dig('HTTP_O_ORGANIZATION_ID')
+        return unless org_id_header.is_a?(String) && !org_id_header.empty?
+
+        # Short-circuit: if header matches cached org and TTL is valid,
+        # skip full re-validation (1 Redis lookup vs 4).
+        cached = session[cache_key] if session
+        if cached && cached[:organization_id] == org_id_header && cached[:expires_at]&.>(Familia.now.to_i)
+          org = Onetime::Organization.load(cached[:organization_id])
+          if org
+            OT.ld "[OrganizationLoader] Header cache hit for #{org.objid}"
+            return { organization: org, organization_id: org.objid, expires_at: cached[:expires_at] }
+          end
+        end
+
+        # Cache miss or org switch — full membership + scope validation
+        header_org = resolve_header_org(customer, env)
+        return unless header_org
+
+        OT.ld "[OrganizationLoader] Using header override: #{header_org.objid}"
+        expires = Familia.now.to_i + CACHE_TTL
+        if session
+          session[cache_key] = { organization_id: header_org.objid, expires_at: expires }
+        end
+        { organization: header_org, organization_id: header_org.objid, expires_at: expires }
+      end
+
+      # Resolve org from O-Organization-ID header, verifying membership
+      # and domain scope. Returns nil if header absent, invalid, or denied.
+      def resolve_header_org(customer, env)
+        org_id_header = env&.dig('HTTP_O_ORGANIZATION_ID')
+        return unless org_id_header.is_a?(String) && !org_id_header.empty?
+
+        org = Onetime::Organization.load(org_id_header)
+        unless org && org.member?(customer) && header_org_accessible?(org, customer, env)
+          OT.ld "[OrganizationLoader] Header org invalid or unauthorized: #{org_id_header}"
+          return
+        end
+
+        org
+      end
+
+      # Verify that the header-selected org is accessible given domain scope.
+      # The header should select among accessible orgs, not bypass scoping.
+      def header_org_accessible?(org, customer, env)
+        http_host = env&.dig('HTTP_HOST')
+        return true unless http_host
+
+        host   = http_host.split(':').first
+        domain = Onetime::CustomDomain.from_display_domain(host)
+        return true unless domain # No custom domain context — no scope restriction
+
+        membership = Onetime::OrganizationMembership.find_by_org_customer(org.objid, customer.objid)
+        membership&.can_access_domain?(domain)
       end
     end
   end

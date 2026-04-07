@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { isMagicLinksEnabled, isSsoEnabled, isWebAuthnEnabled, getSsoProviders, isSsoOnlyMode } from '@/utils/features';
 import { ref, computed } from 'vue';
+import { storeToRefs } from 'pinia';
 
 import PasswordlessFirstSignIn from './PasswordlessFirstSignIn.vue';
 import SignInForm from './SignInForm.vue';
@@ -27,7 +28,7 @@ const emit = defineEmits<{
 }>();
 
 // Custom domains force SSO-only authentication
-const { isCustom } = useProductIdentity();
+const { isCustom } = storeToRefs(useProductIdentity());
 
 // Check which methods are enabled
 const magicLinksEnabled = isMagicLinksEnabled();
@@ -42,7 +43,7 @@ const ssoProviders = computed(() => getSsoProviders());
 // - explicit sso_only mode is active, OR
 // - on a custom domain (org members must use SSO)
 const showSsoOnly = computed(() =>
-  (ssoOnly.value || isCustom) && ssoEnabled && ssoProviders.value.length > 0
+  (ssoOnly.value || isCustom.value) && ssoEnabled && ssoProviders.value.length > 0
 );
 
 // Show passwordless-first UI when any passwordless method is enabled

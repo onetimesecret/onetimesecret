@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { computed } from 'vue';
+  import { storeToRefs } from 'pinia';
   import { useRoute } from 'vue-router';
 
   import BrandedHomepage from './BrandedHomepage.vue';
@@ -13,7 +14,9 @@
   interface Props {}
   defineProps<Props>();
 
-  const { isCustom, displayDomain, siteHost } = useProductIdentity();
+  const identityStore = useProductIdentity();
+  const { isCustom } = storeToRefs(identityStore);
+  const { displayDomain, siteHost } = identityStore;
   const route = useRoute();
 
   // Get component mode from route meta (set by beforeEnter hook)
@@ -28,7 +31,7 @@
         return DisabledHomepage;
       case 'normal':
       default:
-        return isCustom ? BrandedHomepage : HomepageContent;
+        return isCustom.value ? BrandedHomepage : HomepageContent;
     }
   });
 

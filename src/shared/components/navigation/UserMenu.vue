@@ -60,7 +60,7 @@ const bootstrapStore = useBootstrapStore();
 const { billing_enabled } = storeToRefs(bootstrapStore);
 
 // Custom domain filtering: non-owners on custom domains see limited menu
-const { isCustom } = useProductIdentity();
+const { isCustom } = storeToRefs(useProductIdentity());
 const organizationStore = useOrganizationStore();
 
 const userRole = computed(() =>
@@ -69,7 +69,7 @@ const userRole = computed(() =>
 
 // Only restrict members on custom domains — admins see the full menu like owners.
 // If org hasn't loaded yet (null role), show full menu to avoid blocking navigation.
-const isCustomDomainMember = computed(() => isCustom && !!userRole.value && userRole.value === 'member');
+const isCustomDomainMember = computed(() => isCustom.value && !!userRole.value && userRole.value === 'member');
 
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);

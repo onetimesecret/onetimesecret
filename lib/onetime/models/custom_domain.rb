@@ -400,6 +400,27 @@ module Onetime
     #
     # @return [void]
     def destroy!
+      # Clean up domain-specific configurations (idempotent, safe to call if none exist)
+      Onetime::CustomDomain::SsoConfig.delete_for_domain!(identifier)
+      Onetime::CustomDomain::MailerConfig.delete_for_domain!(identifier)
+      Onetime::CustomDomain::IncomingConfig.delete_for_domain!(identifier)
+
+      # Remove domain-scoped memberships (SSO-provisioned users restricted to this domain)
+      scoped_memberships = Onetime::OrganizationMembership.find_all_by_domain_scope(objid)
+      scoped_memberships.each do |membership|
+        OT.info "[CustomDomain.destroy!] Removing domain-scoped membership: #{membership.objid} (customer: #{membership.customer_objid})"
+        org      = Onetime::Organization.load(membership.organization_objid)
+        customer = Onetime::Customer.load(membership.customer_objid)
+        if org && customer
+          org.remove_members_instance(customer)
+          membership.destroy_with_index_cleanup!
+        else
+          # Orphaned membership — just destroy the hash
+          membership.destroy!
+        end
+      end
+      OT.info "[CustomDomain.destroy!] Cascade complete for #{display_domain}: removed #{scoped_memberships.size} domain-scoped membership(s)"
+
       # Remove from organization participations before Familia cleanup
       organization_instances.each do |o|
         remove_from_organization_domains(o)

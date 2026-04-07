@@ -72,7 +72,7 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
 
     // Sync frontend org selection to backend on every request
     if (organizationStore.currentOrganization?.objid) {
-      config.headers['X-Organization-ID'] = organizationStore.currentOrganization.objid;
+      config.headers['O-Organization-ID'] = organizationStore.currentOrganization.objid;
     }
   } catch {
     // Pinia not yet active during app bootstrap — request proceeds without store headers

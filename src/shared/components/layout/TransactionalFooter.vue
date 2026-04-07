@@ -33,11 +33,11 @@
     ui,
   } = storeToRefs(bootstrapStore);
 
-  const { isCustom } = useProductIdentity();
+  const { isCustom } = storeToRefs(useProductIdentity());
 
   // Hide regions toggle on custom domains (they're tied to a specific deployment)
   const showRegionsToggle = computed(
-    () => regions_enabled.value && !!regions?.value && !isCustom
+    () => regions_enabled.value && !!regions?.value && !isCustom.value
   );
 </script>
 

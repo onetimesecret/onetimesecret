@@ -19,6 +19,7 @@ import { useRoute } from 'vue-router';
 import type { ScopeSwitcherState } from '@/types/router';
 import { isOrganizationSwitcherEnabled } from '@/utils/features';
 import { useProductIdentity } from '@/shared/stores/identityStore';
+import { storeToRefs } from 'pinia';
 
 interface ScopeSwitcherVisibility {
   organization: ScopeSwitcherState;
@@ -32,7 +33,7 @@ const defaults: ScopeSwitcherVisibility = {
 
 export function useScopeSwitcherVisibility() {
   const route = useRoute();
-  const { isCustom } = useProductIdentity();
+  const { isCustom } = storeToRefs(useProductIdentity());
 
   const visibility = computed<ScopeSwitcherVisibility>(() => ({
     organization: route.meta.scopesAvailable?.organization ?? defaults.organization,
@@ -41,7 +42,7 @@ export function useScopeSwitcherVisibility() {
 
   // Hide org switcher on custom domains (the domain IS the org scope)
   const showOrgSwitcher = computed(
-    () => !isCustom && visibility.value.organization !== 'hide' && isOrganizationSwitcherEnabled()
+    () => !isCustom.value && visibility.value.organization !== 'hide' && isOrganizationSwitcherEnabled()
   );
   const lockOrgSwitcher = computed(() => visibility.value.organization === 'locked');
 
