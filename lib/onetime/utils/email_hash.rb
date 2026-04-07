@@ -79,14 +79,21 @@ module Onetime
       # and :fold for proper case folding of international characters,
       # matching Customer.create! normalization.
       #
+      # NFC matters because e-acute can be encoded two ways:
+      #   NFC (composed):   U+00E9        -> single codepoint
+      #   NFD (decomposed): U+0065 U+0301 -> e + combining accent
+      # Without normalization, identical-looking emails hash differently.
+      #
       # Parallel copy kept here to avoid load-order dependency on Utils.
+      # EmailHash loads early in boot before the full Utils module is
+      # available; the two implementations MUST stay in sync manually.
       # @see OT::Utils.normalize_email (canonical public version in Strings)
       #
       # @param email [String] Raw email address
-      # @return [String] Normalized email (lowercase, trimmed)
+      # @return [String] Normalized email (NFC, case-folded, stripped)
       #
       def normalize_email(email)
-        email.to_s.downcase.strip
+        email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
       end
 
       # Fetch the HMAC secret from configuration
