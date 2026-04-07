@@ -620,18 +620,19 @@ describe('UserMenu', () => {
         };
       });
 
-      it('should see only account, help, and logout', async () => {
-        wrapper = mountComponent();
-        const menuTexts = await getVisibleMenuItemTexts();
-
-        expectMenuContains(menuTexts, ['account', 'help', 'logout']);
-      });
-
-      it('should NOT see dashboard, recent, billing, colonel, or feedback', async () => {
+      it('should see full menu (same as owner on custom domain)', async () => {
         wrapper = mountComponent({ colonel: true }, { billing_enabled: true });
         const menuTexts = await getVisibleMenuItemTexts();
 
-        expectMenuNotContains(menuTexts, ['dashboard', 'recent', 'billing', 'colonel', 'feedback']);
+        // Admin sees all items, same as owner
+        expectMenuContains(menuTexts, ['dashboard', 'recent', 'billing', 'account', 'colonel', 'help', 'feedback', 'logout']);
+      });
+
+      it('should see test plan mode when colonel', async () => {
+        wrapper = mountComponent({ colonel: true });
+        const menuTexts = await getVisibleMenuItemTexts();
+
+        expectMenuContains(menuTexts, ['test plan']);
       });
     });
 
