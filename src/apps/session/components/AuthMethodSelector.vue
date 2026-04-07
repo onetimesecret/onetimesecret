@@ -46,6 +46,13 @@ const showSsoOnly = computed(() =>
   (ssoOnly.value || isCustom.value) && ssoEnabled && ssoProviders.value.length > 0
 );
 
+// Custom domain without SSO configured: show friendly availability message
+// instead of standard auth forms (password auth isn't appropriate here —
+// org members are expected to use domain-level SSO)
+const showCustomDomainNoSso = computed(() =>
+  isCustom.value && !showSsoOnly.value
+);
+
 // Show passwordless-first UI when any passwordless method is enabled
 const hasPasswordlessMethods = computed(() => magicLinksEnabled || webauthnEnabled);
 
@@ -63,8 +70,23 @@ defineExpose({ currentMode });
 
 <template>
   <div class="space-y-6" data-testid="auth-standard-section">
+    <!-- Custom domain without SSO: friendly availability message -->
+    <template v-if="showCustomDomainNoSso">
+      <div
+        role="note"
+        class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-800/50"
+        data-testid="auth-custom-domain-no-sso">
+        <p class="text-sm font-medium text-gray-900 dark:text-white/90">
+          {{ t('web.login.custom_domain_sso_title') }}
+        </p>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.login.custom_domain_sso_description') }}
+        </p>
+      </div>
+    </template>
+
     <!-- SSO-only mode: render only SSO provider buttons -->
-    <template v-if="showSsoOnly">
+    <template v-else-if="showSsoOnly">
       <div class="space-y-3" data-testid="auth-sso-only-section">
         <SsoButton
           v-for="provider in ssoProviders"

@@ -79,6 +79,14 @@
     "text": "Sign in with {provider}",
     "content_hash": "b8794f11"
   },
+  "web.login.custom_domain_sso_title": {
+    "text": "Single sign-on is available for this domain",
+    "context": "Shown on custom domain signin page when SSO is not yet configured"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Your organization administrator can enable SSO to allow team members to sign in here. Contact your admin for access.",
+    "context": "Explains next steps when SSO is not configured on a custom domain"
+  },
   "web.auth.sso.signing_in": {
     "text": "Redirecting to identity provider...",
     "content_hash": "4d1213f9"
