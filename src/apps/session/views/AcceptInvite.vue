@@ -106,18 +106,11 @@
   const primaryColor = computed(() => invitation.value?.branding?.primary_color || bootstrapStore.domain_branding?.primary_color || '#d45a2a');
 
   /**
-   * Logs out the current user and redirects to sign in with the invited email prefilled.
+   * Logs out the current user and redirects back to the invite page.
    */
-  async function handleSwitchAccount() {
-    const invitedEmail = invitation.value?.email;
+  async function handleContinueAs() {
     const token = invitationToken.value;
-
-    // Build the signin URL with email prefill and redirect back to invitation
-    const signinUrl = `/signin?email=${encodeURIComponent(invitedEmail || '')}&redirect=${encodeURIComponent(`/invite/${token}`)}`;
-
-    // Pass the redirect URL to logout - it handles the navigation via window.location.href
-    await logout(signinUrl);
-    // No router.push needed - logout handles the redirect
+    await logout(`/invite/${token}`);
   }
 
   onMounted(async () => {
@@ -711,14 +704,14 @@
           </div>
         </div>
 
-        <!-- Email Mismatch Warning -->
+        <!-- Email Mismatch Notice -->
         <div
           data-testid="email-mismatch-warning"
           class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
           <div class="flex">
             <OIcon
               collection="heroicons"
-              name="exclamation-triangle"
+              name="information-circle"
               class="size-5 shrink-0 text-amber-500"
               aria-hidden="true" />
             <div class="ml-3">
@@ -731,15 +724,27 @@
               <div class="mt-3">
                 <button
                   type="button"
-                  @click="handleSwitchAccount"
+                  @click="handleContinueAs"
                   :disabled="isProcessing"
-                  data-testid="switch-account-btn"
+                  data-testid="continue-as-btn"
                   class="inline-flex items-center rounded-md bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700">
-                  {{ t('web.organizations.invitations.switch_account') }}
+                  {{ t('web.organizations.invitations.continue_as_invited_email', { email: invitation?.email }) }}
                 </button>
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="mt-6 text-center">
+          <button
+            type="button"
+            @click="handleDecline"
+            :disabled="isProcessing"
+            data-testid="decline-invitation-btn"
+            class="text-sm font-medium text-gray-500 underline hover:text-gray-700
+                   dark:text-gray-400 dark:hover:text-gray-300">
+            {{ t('web.organizations.invitations.decline_invitation') }}
+          </button>
         </div>
       </div>
     </div>

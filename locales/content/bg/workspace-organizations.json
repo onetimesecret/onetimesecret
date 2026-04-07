@@ -556,16 +556,16 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Грешен акаунт",
-    "source_hash": "80c8ffa7"
+    "text": "Влезли сте с друг акаунт",
+    "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Тази покана беше изпратена до {invitedEmail}, но вие сте влезли като {currentEmail}.",
-    "source_hash": "937e08e7"
+    "text": "Тази покана е за {invitedEmail}. В момента сте влезли като {currentEmail}.",
+    "source_hash": "b8d3e5f7"
   },
-  "web.organizations.invitations.switch_account": {
-    "text": "Влезте с друг акаунт",
-    "source_hash": "71b2bdf3"
+  "web.organizations.invitations.continue_as_invited_email": {
+    "text": "Продължи като {email}",
+    "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}д оставащи",

@@ -556,16 +556,16 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "账户不匹配",
-    "source_hash": "80c8ffa7"
+    "text": "已登录其他账户",
+    "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "此邀请发送给 {invitedEmail}，但您当前登录的是 {currentEmail}。",
-    "source_hash": "937e08e7"
+    "text": "此邀请发送给 {invitedEmail}。您当前登录的是 {currentEmail}。",
+    "source_hash": "b8d3e5f7"
   },
-  "web.organizations.invitations.switch_account": {
-    "text": "使用其他账户登录",
-    "source_hash": "71b2bdf3"
+  "web.organizations.invitations.continue_as_invited_email": {
+    "text": "以 {email} 身份继续",
+    "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "剩余 {days} 天",

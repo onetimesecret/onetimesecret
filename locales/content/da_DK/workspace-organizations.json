@@ -556,16 +556,16 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Forkert konto",
-    "source_hash": "80c8ffa7"
+    "text": "Logget ind med en anden konto",
+    "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Denne invitation blev sendt til {invitedEmail}, men du er logget ind som {currentEmail}.",
-    "source_hash": "937e08e7"
+    "text": "Denne invitation er til {invitedEmail}. Du er i øjeblikket logget ind som {currentEmail}.",
+    "source_hash": "b8d3e5f7"
   },
-  "web.organizations.invitations.switch_account": {
-    "text": "Log ind med en anden konto",
-    "source_hash": "71b2bdf3"
+  "web.organizations.invitations.continue_as_invited_email": {
+    "text": "Fortsæt som {email}",
+    "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}d tilbage",

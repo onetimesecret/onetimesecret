@@ -556,16 +556,16 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Napačen račun",
-    "source_hash": "80c8ffa7"
+    "text": "Prijavljeni z drugim računom",
+    "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "To povabilo je bilo poslano na {invitedEmail}, vendar ste prijavljeni kot {currentEmail}.",
-    "source_hash": "937e08e7"
+    "text": "To povabilo je za {invitedEmail}. Trenutno ste prijavljeni kot {currentEmail}.",
+    "source_hash": "b8d3e5f7"
   },
-  "web.organizations.invitations.switch_account": {
-    "text": "Prijavite se z drugim računom",
-    "source_hash": "71b2bdf3"
+  "web.organizations.invitations.continue_as_invited_email": {
+    "text": "Nadaljuj kot {email}",
+    "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "še {days}d",

@@ -556,16 +556,16 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Conta Incorreta",
-    "source_hash": "80c8ffa7"
+    "text": "Conectado com outra conta",
+    "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Este convite foi enviado para {invitedEmail}, mas você está conectado como {currentEmail}.",
-    "source_hash": "937e08e7"
+    "text": "Este convite é para {invitedEmail}. Você está conectado como {currentEmail}.",
+    "source_hash": "b8d3e5f7"
   },
-  "web.organizations.invitations.switch_account": {
-    "text": "Entrar com Conta Diferente",
-    "source_hash": "71b2bdf3"
+  "web.organizations.invitations.continue_as_invited_email": {
+    "text": "Continuar como {email}",
+    "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}d restantes",

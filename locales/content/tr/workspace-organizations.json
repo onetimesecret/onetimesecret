@@ -556,16 +556,16 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Yanlış Hesap",
-    "source_hash": "80c8ffa7"
+    "text": "Farklı bir hesapla giriş yapılmış",
+    "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Bu davet {invitedEmail} adresine gönderildi, ancak şu anda {currentEmail} olarak giriş yapmış durumdasınız.",
-    "source_hash": "937e08e7"
+    "text": "Bu davet {invitedEmail} için. Şu anda {currentEmail} olarak giriş yapmış durumdasınız.",
+    "source_hash": "b8d3e5f7"
   },
-  "web.organizations.invitations.switch_account": {
-    "text": "Farklı Hesapla Giriş Yap",
-    "source_hash": "71b2bdf3"
+  "web.organizations.invitations.continue_as_invited_email": {
+    "text": "{email} olarak devam et",
+    "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}g kaldı",

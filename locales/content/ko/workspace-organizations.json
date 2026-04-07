@@ -556,16 +556,16 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "잘못된 계정",
-    "source_hash": "80c8ffa7"
+    "text": "다른 계정으로 로그인됨",
+    "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "이 초대는 {invitedEmail}(으)로 전송되었지만 현재 {currentEmail}(으)로 로그인되어 있습니다.",
-    "source_hash": "937e08e7"
+    "text": "이 초대는 {invitedEmail} 대상입니다. 현재 {currentEmail}(으)로 로그인되어 있습니다.",
+    "source_hash": "b8d3e5f7"
   },
-  "web.organizations.invitations.switch_account": {
-    "text": "다른 계정으로 로그인",
-    "source_hash": "71b2bdf3"
+  "web.organizations.invitations.continue_as_invited_email": {
+    "text": "{email}(으)로 계속",
+    "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}일 남음",
