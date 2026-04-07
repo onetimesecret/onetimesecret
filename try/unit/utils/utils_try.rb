@@ -123,4 +123,58 @@ Onetime::Utils.fortunes = error_fortunes
 Onetime::Utils.random_fortune
 #=> "Unexpected outcomes bring valuable lessons."
 
+## normalize_email lowercases ASCII
+OT::Utils.normalize_email('Alice@EXAMPLE.COM')
+#=> 'alice@example.com'
+
+## normalize_email strips leading/trailing whitespace and tabs
+OT::Utils.normalize_email("  \t user@example.com \t ")
+#=> 'user@example.com'
+
+## normalize_email NFC: NFD input (e + combining accent) matches NFC input
+nfd = "e\u0301@example.com"  # e + combining acute
+nfc = "\u00E9@example.com"   # e-acute precomposed
+OT::Utils.normalize_email(nfd) == OT::Utils.normalize_email(nfc)
+#=> true
+
+## normalize_email NFC: result uses composed form
+OT::Utils.normalize_email("e\u0301@example.com")
+#=> "\u00E9@example.com"
+
+## normalize_email folds German umlaut U+00DC to lowercase
+OT::Utils.normalize_email("\u00DC ser@example.com")
+#=> "\u00FC ser@example.com"
+
+## normalize_email folds Turkish dotted I (U+0130) consistently
+result = OT::Utils.normalize_email("\u0130@example.com")
+result == "i\u0307@example.com"
+#=> true
+
+## normalize_email folds lowercase eszett to ss (Unicode case folding)
+OT::Utils.normalize_email("stra\u00DFe@example.com")
+#=> "strasse@example.com"
+
+## normalize_email folds capital eszett U+1E9E to ss
+OT::Utils.normalize_email("\u1E9E@example.com")
+#=> "ss@example.com"
+
+## normalize_email folds Cyrillic uppercase to lowercase
+OT::Utils.normalize_email("\u0414\u041C@example.com")
+#=> "\u0434\u043C@example.com"
+
+## normalize_email is idempotent
+input = "  Alice@EXAMPLE.COM  "
+once = OT::Utils.normalize_email(input)
+twice = OT::Utils.normalize_email(once)
+once == twice
+#=> true
+
+## normalize_email handles nil input
+OT::Utils.normalize_email(nil)
+#=> ''
+
+## normalize_email handles empty string
+OT::Utils.normalize_email('')
+#=> ''
+
 Onetime::Utils.instance_variable_set(:@fortunes, @original_fortunes)
