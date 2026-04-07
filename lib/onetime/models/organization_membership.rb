@@ -355,12 +355,32 @@ module Onetime
     # Only use raw destroy! when you explicitly want no cleanup.
     #
     # Cleans up:
+    #   - org.members sorted set (ZREM customer from org's active members)
+    #   - customer.participations reverse index (SREM org collection key)
     #   - org_email_lookup (allows email to be re-invited)
     #   - org_customer_lookup
     #   - token_lookup
     #   - pending_invitations staging set (prevents stale quota counts)
     #
     def destroy_with_index_cleanup!
+      org  = organization
+      cust = customer
+
+      # Remove from Familia sorted sets (the same work remove_members_instance does).
+      # Guard on both org and cust existing — pending invitations have no customer.
+      if org && cust
+        # ZREM customer from org's members sorted set.
+        # Pass the Customer object, not a string — the sorted set was created
+        # without reference: true, so a raw string would be JSON-encoded and
+        # not match the identifier stored when the object was added.
+        org.members.remove(cust)
+
+        # SREM org's members collection key from customer's participations reverse index
+        cust.untrack_participation_in(org.members.dbkey) if cust.respond_to?(:untrack_participation_in)
+      end
+
+      # Remove OTS application-level indexes
+
       # Remove org_email_lookup entry if exists
       # Use remove_field since the index is a Familia::HashKey
       if org_email_key
