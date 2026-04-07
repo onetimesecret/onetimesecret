@@ -172,16 +172,15 @@
               <img
                 id="logo"
                 :src="logoConfig.url"
-                class="transition-transform"
+                class="w-auto transition-transform"
                 :class="[
                   isCustomDomainLogo
-                    ? 'size-20'
+                    ? 'h-20'
                     : isUserPresent
-                      ? 'size-10'
-                      : 'size-12'
+                      ? 'h-10'
+                      : 'h-12'
                 ]"
                 :height="logoConfig.size"
-                :width="logoConfig.size"
                 :alt="logoConfig.alt" />
               <span
                 v-if="logoConfig.showSiteName"
