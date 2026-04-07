@@ -80,6 +80,8 @@ require_relative 'cli/customers/show_command'
 require_relative 'cli/customers/list_command'
 require_relative 'cli/customers/create_command'
 require_relative 'cli/customers_command'
+require_relative 'cli/org/doctor_command'
+require_relative 'cli/org_command'
 require_relative 'cli/apitoken_command'
 
 # Load migration CLI commands
