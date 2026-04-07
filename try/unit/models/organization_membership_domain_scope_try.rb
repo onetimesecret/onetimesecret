@@ -88,6 +88,14 @@ OT.boot! :test
 @scoped_result.can_access_domain?(@domain_b)
 #=> false
 
+## can_access_domain?(nil) returns false for org-scoped member (fail closed)
+@owner_membership.can_access_domain?(nil)
+#=> false
+
+## can_access_domain?(nil) returns false for domain-scoped member (fail closed)
+@scoped_result.can_access_domain?(nil)
+#=> false
+
 
 # =============================================================================
 # ensure_membership with domain_scope_id Tests

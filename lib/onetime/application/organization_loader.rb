@@ -111,6 +111,7 @@ module Onetime
 
       # Determine which organization should be active for this request
       #
+      # rubocop:disable Metrics/PerceivedComplexity -- 6-step priority chain is inherently branchy
       # @param customer [Onetime::Customer] Authenticated customer
       # @param session [Hash] Rack session
       # @param env [Hash] Rack environment
@@ -118,6 +119,10 @@ module Onetime
       def determine_organization(customer, session, env)
         # NOTE: Header override (O-Organization-ID) is handled in load_organization_context
         # BEFORE the cache check. If we reach here, no valid header was present.
+
+        # Track orgs explicitly denied by domain-scope checks so that
+        # steps 3-5 cannot return them via a different selection path.
+        denied_org_ids = Set.new
 
         # 1. Explicit selection from session
         if session && session['organization_id']
@@ -144,6 +149,7 @@ module Onetime
                 return org
               end
               OT.ld "[OrganizationLoader] Domain-scoped member cannot access #{host}: #{customer.objid}"
+              denied_org_ids << org.objid
             end
           end
         end
@@ -152,6 +158,8 @@ module Onetime
         # This takes precedence over the org's is_default flag, allowing
         # customer support to set a specific org as default per-customer.
         orgs = customer.organization_instances.to_a
+        orgs = orgs.reject { |o| denied_org_ids.include?(o.objid) } unless denied_org_ids.empty?
+
         if customer.default_org_id.to_s.length.positive?
           customer_default = orgs.find { |o| o.objid == customer.default_org_id }
           if customer_default
@@ -190,6 +198,7 @@ module Onetime
         OT.ld "[OrganizationLoader] No organizations found for #{customer.objid}, deferring creation"
         nil
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       # Handle header-based org selection with cache short-circuit.
       # Returns a context hash if header resolves, nil otherwise.

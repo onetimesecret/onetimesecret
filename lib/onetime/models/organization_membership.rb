@@ -546,7 +546,7 @@ module Onetime
 
         org = organization
         unless org
-          domain = Onetime::CustomDomain.load(domain_objid)
+          domain = Onetime::CustomDomain.find_by_identifier(domain_objid)
           org    = domain&.primary_organization
         end
         return [] unless org
