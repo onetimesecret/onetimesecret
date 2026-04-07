@@ -117,7 +117,7 @@ watch(
     if (urlTab && URL_TO_TAB[urlTab]) {
       activeTab.value = URL_TO_TAB[urlTab];
     } else if (!urlTab) {
-      activeTab.value = 'domains';
+      activeTab.value = props.initialTab;
     }
   }
 );
