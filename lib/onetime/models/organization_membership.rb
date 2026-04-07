@@ -47,6 +47,8 @@ module Onetime
   class OrganizationMembership < Familia::Horreum
     using Familia::Refinements::TimeLiterals
 
+    INVITATION_TTL_SECONDS = 7.days.to_i
+
     # REQUIRED: Through models must have object_identifier for deterministic keys
     feature :object_identifier
     feature :relationships
@@ -147,7 +149,7 @@ module Onetime
     end
 
     # Check if invitation has expired (7 days by default)
-    def expired?(ttl_seconds = 7.days.to_i)
+    def expired?(ttl_seconds = INVITATION_TTL_SECONDS)
       return false unless pending?
       return false unless invited_at
 
@@ -159,7 +161,7 @@ module Onetime
     def invitation_expires_at
       return nil unless invited_at
 
-      invited_at.to_f + 7.days.to_i
+      invited_at.to_f + INVITATION_TTL_SECONDS
     end
 
     # Get the organization this membership belongs to
@@ -262,7 +264,7 @@ module Onetime
             token: nil, # Clear token for security
           },
         )
-      rescue StandardError
+      rescue Familia::Problem, Redis::BaseError, Onetime::Problem
         # Restore pending-state indexes so the invitation remains discoverable
         # if activation fails (e.g. Redis/network error, validation error).
         self.class.token_lookup[old_token]             = objid if old_token

@@ -6,12 +6,15 @@
 # Tests member removal and invitation revocation codepaths, verifying that
 # all Redis indexes are properly cleaned up.
 #
-# Issue #2906 consolidates removal to avoid a double-destroy pattern.
+# Issue #2906 consolidates removal so each path is a single call.
 # The two primary removal paths are:
 #
 #   1. Active member removal (RemoveMember API logic):
-#      - org.remove_members_instance(customer)  -- Familia sorted set + reverse index
-#      - membership.destroy_with_index_cleanup!  -- OTS indexes + model hash
+#      - membership.destroy_with_index_cleanup!
+#        Single authoritative method. Handles Familia sorted sets
+#        (org.members ZREM + customer.participations SREM), OTS
+#        app-level indexes (org_email_lookup, org_customer_lookup,
+#        token_lookup), and destroys the Redis hash.
 #
 #   2. Pending invitation revocation (revoke!):
 #      - Cleans OTS indexes (token_lookup, org_email_lookup, org_customer_lookup)
@@ -83,6 +86,51 @@ Onetime::OrganizationMembership.load(@membership.objid)
 
 ## After removal: reverse index cleaned (Familia remove_members_instance handles this)
 @member.organization_instances.any? { |o| o.objid == @org.objid }
+#=> false
+
+# ============================================================================
+# Single-call removal: destroy_with_index_cleanup! alone is sufficient
+# Mirrors the actual RemoveMember API path (no remove_members_instance)
+# ============================================================================
+
+## Single-call setup: add a member and capture baseline state
+@sc_member = Onetime::Customer.create!(email: generate_unique_test_email("removal_singlecall"))
+@sc_membership = Onetime::OrganizationMembership.ensure_membership(@org, @sc_member)
+@sc_objid = @sc_membership.objid
+@org.member?(@sc_member)
+#=> true
+
+## Single-call baseline: org_customer_lookup populated
+Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @sc_member.objid).nil?
+#=> false
+
+## Single-call baseline: reverse index populated
+@sc_member.organization_instances.any? { |o| o.objid == @org.objid }
+#=> true
+
+## Single-call removal: only call destroy_with_index_cleanup! (no remove_members_instance)
+@sc_membership.destroy_with_index_cleanup!
+@org.member?(@sc_member)
+#=> false
+
+## Single-call: member count decremented (owner only again)
+@org.member_count
+#=> 1
+
+## Single-call: org_customer_lookup cleaned
+Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @sc_member.objid)
+#=> nil
+
+## Single-call: org_email_lookup clean (direct-add has no invited_email)
+Onetime::OrganizationMembership.find_by_org_email(@org.objid, @sc_member.email)
+#=> nil
+
+## Single-call: membership model destroyed
+Onetime::OrganizationMembership.load(@sc_objid)
+#=> nil
+
+## Single-call: reverse index cleaned (customer no longer sees org)
+@sc_member.organization_instances.any? { |o| o.objid == @org.objid }
 #=> false
 
 # ============================================================================
@@ -310,6 +358,6 @@ if @reinvite_active
   @org.remove_members_instance(@reinvite_customer)
   @reinvite_active.destroy_with_index_cleanup!
 end
-[@org, @owner, @member, @full_cleanup_customer, @idempotent_customer, @reinvite_customer, @count_member_a, @count_member_b].each do |obj|
+[@org, @owner, @member, @sc_member, @full_cleanup_customer, @idempotent_customer, @reinvite_customer, @count_member_a, @count_member_b].each do |obj|
   obj.destroy! if obj&.respond_to?(:destroy!) && obj.exists?
 end
