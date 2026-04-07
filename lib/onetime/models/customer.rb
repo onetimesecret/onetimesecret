@@ -247,7 +247,7 @@ module Onetime
         # store emails consistently lowercase. Uses NFC normalization for
         # consistent Unicode representation and :fold for proper case folding
         # of international characters.
-        email = email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
+        email = OT::Utils.normalize_email(email)
 
         loggable_email = OT::Utils.obscure_email(email)
         raise Familia::Problem, 'email is required' if email.empty?

@@ -28,7 +28,7 @@ module Onetime
         def colonel?(email)
           return false if email.nil? || email.empty?
 
-          normalized = email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
+          normalized = OT::Utils.normalize_email(email)
           colonels_list.include?(normalized)
         end
 
@@ -43,7 +43,7 @@ module Onetime
 
           raw_list
             .flat_map { |entry| entry.to_s.split(',') }
-            .map { |col| col.to_s.strip.unicode_normalize(:nfc).downcase(:fold) }
+            .map { |col| OT::Utils.normalize_email(col) }
             .compact
             .reject(&:empty?)
         end

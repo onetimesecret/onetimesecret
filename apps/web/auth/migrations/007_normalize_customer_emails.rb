@@ -100,7 +100,7 @@ Sequel.migration do
         duplicates = []
 
         entries.each do |email, objid_json|
-          lowercase_email = email.to_s.unicode_normalize(:nfc).downcase(:fold)
+          lowercase_email = OT::Utils.normalize_email(email)
 
           if email == lowercase_email
             stats[:skipped_already_lower] += 1

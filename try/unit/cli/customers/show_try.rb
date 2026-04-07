@@ -41,8 +41,8 @@ OT.info "Cleaned Redis for fresh test run"
 # -------------------------------------------------------------------
 
 def show_customer_cli(identifier:, full: false, json: false)
-  # Normalize email for lookup: strip, NFC normalize, case-fold
-  normalized = identifier.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
+  # Normalize email for lookup via canonical method
+  normalized = OT::Utils.normalize_email(identifier)
 
   if normalized.empty?
     return { success: false, error: 'Identifier is required' }

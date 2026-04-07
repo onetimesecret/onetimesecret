@@ -75,6 +75,13 @@ module Onetime
 
       # Normalize email for consistent hashing
       #
+      # Uses NFC normalization for consistent Unicode representation
+      # and :fold for proper case folding of international characters,
+      # matching Customer.create! normalization.
+      #
+      # Parallel copy kept here to avoid load-order dependency on Utils.
+      # @see OT::Utils.normalize_email (canonical public version in Strings)
+      #
       # @param email [String] Raw email address
       # @return [String] Normalized email (lowercase, trimmed)
       #

@@ -104,6 +104,17 @@ module Onetime
       #
       # @note Uses Mail::Address for parsing, avoiding hand-rolled parsing
       #   edge cases while keeping the code short and auditable.
+      # Normalize an email address for consistent storage and comparison.
+      #
+      # @param email [String] Raw email address
+      # @return [String] Normalized email (NFC, case-folded, stripped)
+      #
+      # @see Onetime::Utils::EmailHash.normalize_email (private, parallel copy
+      #   kept to avoid load-order dependency)
+      def normalize_email(email)
+        email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
+      end
+
       def obscure_email(text)
         return text if text.nil? || text.empty?
 

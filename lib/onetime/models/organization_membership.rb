@@ -125,7 +125,7 @@ module Onetime
     def org_email_key
       return nil unless organization_objid && invited_email
 
-      "#{organization_objid}:#{invited_email.to_s.downcase}"
+      "#{organization_objid}:#{OT::Utils.normalize_email(invited_email)}"
     end
 
     # Key for finding active memberships by org + customer
@@ -221,7 +221,8 @@ module Onetime
       raise Onetime::Problem, 'Invitation declined' if status == 'declined'
 
       emails_match = invited_email.nil? ||
-                     customer.email.to_s.downcase == invited_email.to_s.downcase
+                     OT::Utils.normalize_email(customer.email) ==
+                     OT::Utils.normalize_email(invited_email)
       raise Onetime::Problem, 'Email mismatch' unless emails_match
 
       # Capture values from staged model before activation destroys it
@@ -388,7 +389,7 @@ module Onetime
       # @return [OrganizationMembership] the created invitation (UUID-keyed staged model)
       # @raise [Onetime::Problem] if invitation already exists for this email
       def create_invitation!(organization:, email:, inviter:, role: 'member')
-        email = email.to_s.strip.downcase
+        email = OT::Utils.normalize_email(email)
 
         # Check for existing pending invitation
         existing = find_by_org_email(organization.objid, email)
@@ -435,7 +436,7 @@ module Onetime
       def find_by_org_email(org_objid, email)
         return nil if org_objid.nil? || email.nil?
 
-        key   = "#{org_objid}:#{email.to_s.strip.downcase}"
+        key   = "#{org_objid}:#{OT::Utils.normalize_email(email)}"
         objid = org_email_lookup[key]
         return nil unless objid
 

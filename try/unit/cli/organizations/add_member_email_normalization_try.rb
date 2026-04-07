@@ -5,11 +5,11 @@
 # Tests for email normalization consistency in add_member_command.rb
 #
 # Issue: The CLI command was using `email.to_s.strip.downcase` but the model
-# uses `unicode_normalize(:nfc).downcase(:fold)` for storage. Without matching
-# normalization, lookups for internationalized emails could fail.
+# uses `OT::Utils.normalize_email` (NFC + case fold) for storage. Without
+# matching normalization, lookups for internationalized emails could fail.
 #
-# The fix ensures the CLI uses the same normalization chain:
-#   email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
+# The fix ensures the CLI uses the canonical normalization:
+#   OT::Utils.normalize_email(email)
 #
 # This test verifies:
 # 1. Email lookup works with unicode characters (e.g., "MULLER@example.com" finds "muller@example.com")
@@ -28,7 +28,8 @@ OT.info "Cleaned Redis for fresh test run"
 
 @test_id = SecureRandom.hex(6)
 
-# Helper to normalize email the same way the CLI command does (after fix)
+# Helper to normalize email the same way the CLI command does (after fix).
+# Inlined here deliberately to test that the chain matches OT::Utils.normalize_email.
 def cli_normalize_email(email)
   email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
 end
@@ -173,21 +174,20 @@ result
 #=> true
 
 ## Demonstrate the old bug: simple downcase fails for German sharp S
-# Without unicode_normalize(:nfc).downcase(:fold), lookups could fail
+# Without OT::Utils.normalize_email, lookups could fail
 # when CLI and model use different normalization
 old_style_normalize = ->(e) { e.to_s.strip.downcase }  # Old CLI behavior
-new_style_normalize = ->(e) { e.to_s.strip.unicode_normalize(:nfc).downcase(:fold) }  # Fixed CLI behavior
 
 # For basic ASCII, both produce the same result
 ascii_test = "TEST@EXAMPLE.COM"
-old_style_normalize.call(ascii_test) == new_style_normalize.call(ascii_test)
+old_style_normalize.call(ascii_test) == OT::Utils.normalize_email(ascii_test)
 #=> true
 
 ## Demonstrate consistency: CLI and model normalize to same value
 email_input = "MULLER_#{@test_id}@EXAMPLE.COM"
-# Simulate what model stores after normalization
-model_stored = email_input.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
-# Simulate what CLI normalizes for lookup
+# What model stores via canonical normalization
+model_stored = OT::Utils.normalize_email(email_input)
+# What CLI normalizes for lookup
 cli_lookup = cli_normalize_email(email_input)
 model_stored == cli_lookup
 #=> true
@@ -195,7 +195,6 @@ model_stored == cli_lookup
 ## check_pending_invitation also uses correct normalization (add_member_command.rb:210)
 # The same normalization is used in find_by_org_email for invitation lookup
 # This ensures consistent behavior between member lookup and invitation lookup
-org_email_normalize = ->(e) { e.to_s.strip.unicode_normalize(:nfc).downcase(:fold) }
 test_email = "INVITATION_#{@test_id}@EXAMPLE.COM"
-org_email_normalize.call(test_email) == cli_normalize_email(test_email)
+OT::Utils.normalize_email(test_email) == cli_normalize_email(test_email)
 #=> true

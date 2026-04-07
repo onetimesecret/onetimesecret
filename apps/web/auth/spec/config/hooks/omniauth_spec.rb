@@ -34,8 +34,9 @@ RSpec.describe 'OmniAuth hooks' do
     #
     # The method normalizes the IdP-provided email before account lookup.
 
-    # Simulates the email normalization logic from the _account_from_omniauth hook
-    # Uses NFC normalization and :fold for proper Unicode case folding
+    # Simulates the email normalization logic from the _account_from_omniauth hook.
+    # Canonical implementation: OT::Utils.normalize_email
+    # Inlined here to test the specific chain the OmniAuth hook uses.
     def normalize_email(omniauth_email)
       omniauth_email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
     end

@@ -55,7 +55,7 @@ module Auth::Config::Base
     # Uses NFC normalization for consistent Unicode representation and :fold
     # for proper case folding of international characters.
     auth.normalize_login do |login|
-      login.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
+      OT::Utils.normalize_email(login)
     end
 
     # Session configuration
