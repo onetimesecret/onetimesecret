@@ -22,6 +22,13 @@ module Auth::Config::Features
 
         # Suppress verification email only for valid invite signups.
         # The invite link proves email ownership, so no extra verification needed.
+        #
+        # HOOK ORDERING: verify_account's after_create_account calls
+        # setup_account_verification (which calls send_verify_account_email)
+        # BEFORE the user's after_create_account block runs. This means the
+        # token has NOT yet been consumed by AcceptInvitation when this code
+        # executes, so find_by_token correctly finds it.
+        #
         # SECURITY: Token must be validated here — checking the raw param alone
         # would let an attacker add invite_token=garbage to suppress the email
         # for any signup, enabling email squatting.
