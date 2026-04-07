@@ -29,6 +29,10 @@ export async function setupRouterGuards(router: Router): Promise<void> {
     // Authenticated routes use default layout — canonical logo, full nav.
     if (to.meta.requiresAuth) return true;
 
+    // Auth routes (signin, signup, etc.) handle their own branding via
+    // titleLogo in AuthView — don't override their layout props.
+    if (to.meta.isAuthRoute) return true;
+
     const hasDomainLogo = !!bootstrapStore.domain_logo;
     const existing = (to.meta.layoutProps ?? {}) as Record<string, unknown>;
 
