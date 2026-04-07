@@ -275,14 +275,9 @@ end
 @dup_error.include?('already pending')
 #=> true
 
-## Cannot accept already active invitation
-@accept_error = begin
-  @accept_invite.accept!(@accept_customer)
-  nil
-rescue Onetime::Problem => e
-  e.message
-end
-@accept_error.include?('already accepted')
+## Accepting already active invitation is idempotent (returns true, no raise)
+@accept_again = @accept_invite.accept!(@accept_customer)
+@accept_again
 #=> true
 
 ## Cannot decline active membership

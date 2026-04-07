@@ -237,8 +237,17 @@ module Onetime
     #
     # @param customer [Onetime::Customer] The customer accepting the invite
     # @return [Boolean] true if acceptance succeeded
+    # @raise [Onetime::Problem] if invitation is expired or declined
     def accept!(customer)
-      raise Onetime::Problem, 'Invitation already accepted' if active?
+      # Idempotency guard: if the customer was concurrently added to the org
+      # (e.g. by another process calling add_members_instance), return the
+      # existing membership rather than attempting a second activation that
+      # could corrupt indexes or fail on the already-destroyed staged model.
+      if active? || organization&.member?(customer)
+        OT.info "[accept!] Customer #{customer.custid} already active in org #{organization_objid} — skipping activation"
+        return true
+      end
+
       raise Onetime::Problem, 'Invitation expired' if expired?
       raise Onetime::Problem, 'Invitation declined' if status == 'declined'
 
@@ -517,6 +526,34 @@ module Onetime
         load(objid)
       end
 
+      # Find all memberships scoped to a specific custom domain.
+      #
+      # Used for cascade cleanup when a domain is deleted — all memberships
+      # whose access was granted by that domain's IdP should be removed.
+      #
+      # Scans the organization's active members and filters by domain_scope_id.
+      # This is O(n) over the org's member count, which is acceptable because:
+      # - Domain deletion is rare (admin action)
+      # - Per-org member counts are small (tens to low hundreds)
+      # - Avoids maintaining an additional global index
+      #
+      # @param domain_objid [String] the custom domain's objid
+      # @param organization [Organization, nil] optional — if not provided,
+      #   loads the domain to find its primary organization
+      # @return [Array<OrganizationMembership>] memberships scoped to this domain
+      def find_all_by_domain_scope(domain_objid, organization: nil)
+        return [] if domain_objid.nil? || domain_objid.to_s.empty?
+
+        org = organization
+        unless org
+          domain = Onetime::CustomDomain.load(domain_objid)
+          org    = domain&.primary_organization
+        end
+        return [] unless org
+
+        active_for_org(org).select { |m| m.domain_scope_id == domain_objid }
+      end
+
       # Ensure a customer has an active membership in an organization.
       #
       # Convergence point for all "add a known customer" paths (SSO, CLI,
@@ -529,6 +566,15 @@ module Onetime
       # (find_by_org_email) that Familia can't perform -- matching a staged
       # model's invited_email against the participant's email is OTS
       # domain knowledge.
+      #
+      # Race safety: Between the member? check (ZSCORE) and mutation
+      # (accept! or add_members_instance), another process may complete
+      # the same work. Both code paths handle this:
+      # - accept! may raise if the staged model was already activated;
+      #   we rescue and return the now-existing membership.
+      # - add_members_instance is idempotent (Familia find_or_create).
+      # - revoke! may raise if another process activated the invitation
+      #   between our check and revoke; we rescue and fall through.
       #
       # @param organization [Organization]
       # @param customer [Customer]
@@ -544,12 +590,27 @@ module Onetime
         pending = find_by_org_email(organization.objid, customer.email)
 
         if pending&.pending? && !pending.expired?
-          pending.accept!(customer)
-          find_by_org_customer(organization.objid, customer.objid)
+          begin
+            pending.accept!(customer)
+          rescue Onetime::Problem, Familia::Problem, ArgumentError
+            # Another process already activated this invitation or the staged
+            # model was destroyed mid-flight. The customer may now be a member
+            # — fall through to the final lookup below.
+            nil
+          end
         else
           # Clean up expired/declined pending invitation before direct add
           # to prevent stale entries from counting against quotas.
-          pending.revoke! if pending&.pending?
+          if pending&.pending?
+            begin
+              pending.revoke!
+            rescue Onetime::Problem
+              # Another process activated the invitation between our check
+              # and the revoke attempt. No cleanup needed — the invitation
+              # is no longer pending.
+              nil
+            end
+          end
 
           organization.add_members_instance(
             customer,
@@ -561,6 +622,10 @@ module Onetime
             },
           )
         end
+
+        # Final convergence lookup: regardless of which path succeeded
+        # (this process or a concurrent one), the membership now exists.
+        find_by_org_customer(organization.objid, customer.objid)
       end
 
       # Find pending invitations for an organization
