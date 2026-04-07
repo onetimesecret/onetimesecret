@@ -50,7 +50,8 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       'updated_at=': nil,
       active?: true,
       owner?: false,
-      save: true
+      save: true,
+      joined_at: 1700000000.0
     )
   end
 
@@ -336,14 +337,29 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       expect(result.keys).to include(:user_id, :organization_id, :record)
     end
 
-    it 'includes member id in record' do
+    it 'includes member extid in record' do
       result = logic.send(:success_data)
-      expect(result[:record][:id]).to eq('ext-cust-target')
+      expect(result[:record][:extid]).to eq('ext-cust-target')
     end
 
     it 'includes member email in record' do
       result = logic.send(:success_data)
       expect(result[:record][:email]).to eq('member@example.com')
+    end
+
+    it 'includes joined_at timestamp in record' do
+      result = logic.send(:success_data)
+      expect(result[:record][:joined_at]).to eq(1700000000.0)
+    end
+
+    it 'includes is_owner flag in record' do
+      result = logic.send(:success_data)
+      expect(result[:record][:is_owner]).to eq(false)
+    end
+
+    it 'includes is_current_user flag in record' do
+      result = logic.send(:success_data)
+      expect(result[:record][:is_current_user]).to eq(false)
     end
   end
 

@@ -75,9 +75,12 @@ module OrganizationAPI::Logic
           user_id: cust.extid,
           organization_id: @organization.extid,
           record: {
-            id: @target_member.extid,
+            extid: @target_member.extid,
             email: @target_member.email,
             role: @target_membership.role,
+            joined_at: @target_membership.joined_at,
+            is_owner: @target_membership.owner?,
+            is_current_user: @target_member.objid == cust.objid,
             previous_role: @old_role,
           },
         }

@@ -16,6 +16,7 @@
  *
  * - OrganizationSettings (/org/:extid/:tab?):
  *   - org-tab-domains: Domains tab button
+ *   - org-tab-members: Members tab button
  *   - org-tab-subscription: Subscription tab button
  *   - org-tab-sso: SSO tab button (entitlement-gated)
  *   - org-tab-settings: Settings tab button
@@ -529,6 +530,24 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     await page.waitForLoadState('networkidle');
     expect(getCurrentTab(page)).toBe('subscription');
   });
+
+  test('ORG-TAB-ORDER-001: Tabs render in correct visual order', async ({ page }) => {
+    if (!testOrg) {
+      test.skip(true, 'No organizations available for testing');
+      return;
+    }
+
+    await page.goto(`/org/${testOrg.extid}`);
+    await page.waitForLoadState('networkidle');
+
+    // Get all tab buttons in DOM order
+    const tabList = page.locator('[role="tablist"] button[role="tab"]');
+    const tabTexts = await tabList.allTextContents();
+
+    // Expected order (SSO may or may not be present based on entitlements)
+    const expectedBase = ['Domains', 'Members', 'Subscription', 'Settings'];
+    expect(tabTexts.slice(0, 4)).toEqual(expectedBase);
+  });
 });
 
 // -----------------------------------------------------------------------------
@@ -587,29 +606,43 @@ test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
     await page.goto(`/org/${testOrg.extid}`);
     await page.waitForLoadState('networkidle');
 
+    // Tab order: Domains -> Members -> Subscription -> Settings (-> SSO if entitled)
     // Focus the domains tab
     const domainsTab = page.getByTestId('org-tab-domains');
     await domainsTab.focus();
 
-    // Press ArrowRight to move to next tab
+    // Press ArrowRight to move to members tab
+    await page.keyboard.press('ArrowRight');
+
+    // Members tab should now be focused
+    const membersTab = page.getByTestId('org-tab-members');
+    await expect(membersTab).toBeFocused();
+
+    // Press ArrowRight to move to subscription tab
     await page.keyboard.press('ArrowRight');
 
     // Subscription tab should now be focused
     const subscriptionTab = page.getByTestId('org-tab-subscription');
     await expect(subscriptionTab).toBeFocused();
 
-    // Press ArrowRight again
+    // Press ArrowRight to move to settings tab
     await page.keyboard.press('ArrowRight');
 
-    // Next visible tab should be focused (either SSO or Settings)
+    // Settings tab should now be focused
+    const settingsTab = page.getByTestId('org-tab-settings');
+    await expect(settingsTab).toBeFocused();
+
+    // Press ArrowRight again - should go to SSO if entitled, or wrap to domains
+    await page.keyboard.press('ArrowRight');
+
     const ssoTab = page.getByTestId('org-tab-sso');
     const hasSsoTab = await ssoTab.isVisible().catch(() => false);
 
     if (hasSsoTab) {
       await expect(ssoTab).toBeFocused();
     } else {
-      const settingsTab = page.getByTestId('org-tab-settings');
-      await expect(settingsTab).toBeFocused();
+      // Wraps back to domains
+      await expect(domainsTab).toBeFocused();
     }
   });
 
@@ -657,6 +690,7 @@ test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
  * | ORG-DETAIL-008  | Back navigation to /orgs works                 | High       | Automated  |
  * | ORG-DETAIL-009  | Direct URL navigation to specific tabs works   | High       | Automated  |
  * | ORG-DETAIL-010  | Browser back/forward preserves tab state       | Medium     | Automated  |
+ * | ORG-TAB-ORDER-001| Tabs render in correct visual order           | High       | Automated  |
  * | ORG-ERROR-001   | Invalid org extid shows error state            | High       | Automated  |
  * | ORG-A11Y-001    | Tab navigation with keyboard (Arrow keys)      | Medium     | Automated  |
  * | ORG-A11Y-002    | Tab panels have correct ARIA attributes        | Medium     | Automated  |
