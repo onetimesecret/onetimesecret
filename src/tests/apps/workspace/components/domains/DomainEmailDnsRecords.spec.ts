@@ -105,6 +105,8 @@ describe('DomainEmailDnsRecords', () => {
     dnsRecords: EmailDnsRecord[];
     validationStatus: EmailValidationStatus;
     lastValidatedAt: Date | null;
+    dnsCheckCompletedAt: Date | null;
+    providerCheckCompletedAt: Date | null;
     isValidating: boolean;
   }> = {}) => {
     return mount(DomainEmailDnsRecords, {
@@ -112,6 +114,8 @@ describe('DomainEmailDnsRecords', () => {
         dnsRecords: props.dnsRecords ?? mockDnsRecords,
         validationStatus: props.validationStatus ?? 'pending',
         lastValidatedAt: props.lastValidatedAt ?? null,
+        dnsCheckCompletedAt: props.dnsCheckCompletedAt ?? null,
+        providerCheckCompletedAt: props.providerCheckCompletedAt ?? null,
         isValidating: props.isValidating ?? false,
       },
       global: {
@@ -177,77 +181,70 @@ describe('DomainEmailDnsRecords', () => {
   // Per-record status indicators
   // ─────────────────────────────────────────────────────────────────────────
 
-  describe('Per-record status indicators', () => {
-    it('shows Verified label for verified records', () => {
+  describe('Per-record dual indicators (DNS + Resolving)', () => {
+    it('shows DNS and Resolving labels in each card', () => {
       wrapper = mountComponent();
 
       const cards = wrapper.findAll('.rounded-lg.border.bg-white');
-      expect(cards[0].text()).toContain('Verified');
+      expect(cards[0].text()).toContain('DNS');
+      expect(cards[0].text()).toContain('Resolving');
     });
 
-    it('shows Pending label for pending records', () => {
-      wrapper = mountComponent();
+    it('applies emerald to DNS indicator when dns_exists is true', () => {
+      const records: EmailDnsRecord[] = [
+        { type: 'TXT', name: 'example.com', value: 'v=spf1', status: 'verified', dns_exists: true, value_matches: true },
+      ];
+      wrapper = mountComponent({ dnsRecords: records });
 
       const cards = wrapper.findAll('.rounded-lg.border.bg-white');
-      expect(cards[1].text()).toContain('Pending');
+      const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
+      const dnsIndicator = indicators.find((i) => i.text().includes('DNS'));
+      expect(dnsIndicator!.classes()).toContain('text-emerald-600');
     });
 
-    it('shows Failed label for failed records', () => {
-      wrapper = mountComponent();
+    it('applies gray to DNS indicator when dns_exists is not true', () => {
+      const records: EmailDnsRecord[] = [
+        { type: 'TXT', name: 'example.com', value: 'v=spf1', status: 'pending', dns_exists: null },
+      ];
+      wrapper = mountComponent({ dnsRecords: records });
 
       const cards = wrapper.findAll('.rounded-lg.border.bg-white');
-      expect(cards[2].text()).toContain('Failed');
+      const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
+      const dnsIndicator = indicators.find((i) => i.text().includes('DNS'));
+      expect(dnsIndicator!.classes()).toContain('text-gray-300');
     });
 
-    it('applies emerald color classes for verified status', () => {
-      wrapper = mountComponent();
+    it('applies emerald to Resolving indicator when validationStatus is verified', () => {
+      wrapper = mountComponent({
+        validationStatus: 'verified',
+        dnsCheckCompletedAt: new Date(),
+        providerCheckCompletedAt: new Date(),
+      });
 
       const cards = wrapper.findAll('.rounded-lg.border.bg-white');
-      const statusSpan = cards[0].find('.inline-flex.items-center.gap-1\\.5');
-      expect(statusSpan.classes()).toContain('text-emerald-600');
+      const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
+      const resolvingIndicator = indicators.find((i) => i.text().includes('Resolving'));
+      expect(resolvingIndicator!.classes()).toContain('text-emerald-600');
     });
 
-    it('applies amber color classes for pending status', () => {
-      wrapper = mountComponent();
+    it('applies gray to Resolving indicator when validationStatus is not verified', () => {
+      wrapper = mountComponent({ validationStatus: 'pending' });
 
       const cards = wrapper.findAll('.rounded-lg.border.bg-white');
-      const statusSpan = cards[1].find('.inline-flex.items-center.gap-1\\.5');
-      expect(statusSpan.classes()).toContain('text-amber-500');
+      const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
+      const resolvingIndicator = indicators.find((i) => i.text().includes('Resolving'));
+      expect(resolvingIndicator!.classes()).toContain('text-gray-300');
     });
 
-    it('applies rose color classes for failed status', () => {
+    it('uses check-circle-solid icon for both indicators', () => {
       wrapper = mountComponent();
 
       const cards = wrapper.findAll('.rounded-lg.border.bg-white');
-      const statusSpan = cards[2].find('.inline-flex.items-center.gap-1\\.5');
-      expect(statusSpan.classes()).toContain('text-rose-600');
-    });
-
-    it('uses correct icon name for verified records', () => {
-      wrapper = mountComponent();
-
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
-      const statusSpan = cards[0].find('.inline-flex.items-center.gap-1\\.5');
-      const icon = statusSpan.find('.o-icon');
-      expect(icon.attributes('data-icon-name')).toBe('check-circle-solid');
-    });
-
-    it('uses correct icon name for pending records', () => {
-      wrapper = mountComponent();
-
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
-      const statusSpan = cards[1].find('.inline-flex.items-center.gap-1\\.5');
-      const icon = statusSpan.find('.o-icon');
-      expect(icon.attributes('data-icon-name')).toBe('clock');
-    });
-
-    it('uses correct icon name for failed records', () => {
-      wrapper = mountComponent();
-
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
-      const statusSpan = cards[2].find('.inline-flex.items-center.gap-1\\.5');
-      const icon = statusSpan.find('.o-icon');
-      expect(icon.attributes('data-icon-name')).toBe('x-circle-solid');
+      const dualContainer = cards[0].find('.inline-flex.items-center.gap-3');
+      const icons = dualContainer.findAll('.o-icon');
+      icons.forEach((icon) => {
+        expect(icon.attributes('data-icon-name')).toBe('check-circle-solid');
+      });
     });
   });
 
@@ -300,27 +297,55 @@ describe('DomainEmailDnsRecords', () => {
   // ─────────────────────────────────────────────────────────────────────────
 
   describe('Validation status banner', () => {
-    it('shows verified banner with role=status when status is verified', () => {
-      wrapper = mountComponent({ validationStatus: 'verified' });
+    const completedTimestamps = {
+      dnsCheckCompletedAt: new Date('2025-06-15T14:00:00Z'),
+      providerCheckCompletedAt: new Date('2025-06-15T14:30:00Z'),
+    };
+
+    it('shows verified banner when status is verified and both checks complete', () => {
+      wrapper = mountComponent({ validationStatus: 'verified', ...completedTimestamps });
 
       const banner = wrapper.find('[role="status"]');
       expect(banner.exists()).toBe(true);
       expect(banner.text()).toContain('Domain email sending is verified');
     });
 
-    it('shows failed banner with role=alert when status is failed', () => {
-      wrapper = mountComponent({ validationStatus: 'failed' });
+    it('shows failed banner when status is failed and both checks complete', () => {
+      wrapper = mountComponent({ validationStatus: 'failed', ...completedTimestamps });
 
       const banner = wrapper.find('[role="alert"]');
       expect(banner.exists()).toBe(true);
       expect(banner.text()).toContain('Validation failed');
     });
 
-    it('shows pending banner with role=status when status is pending', () => {
+    it('shows pending banner when status is pending', () => {
       wrapper = mountComponent({ validationStatus: 'pending' });
 
       const banners = wrapper.findAll('[role="status"]');
-      // There should be a status banner showing pending state
+      const pendingBanner = banners.find((b) => b.text().includes('Pending'));
+      expect(pendingBanner).toBeDefined();
+    });
+
+    it('shows pending banner when status is verified but checks incomplete', () => {
+      wrapper = mountComponent({
+        validationStatus: 'verified',
+        dnsCheckCompletedAt: new Date(),
+        providerCheckCompletedAt: null,
+      });
+
+      const banners = wrapper.findAll('[role="status"]');
+      const pendingBanner = banners.find((b) => b.text().includes('Pending'));
+      expect(pendingBanner).toBeDefined();
+    });
+
+    it('shows pending banner when isValidating is true regardless of status', () => {
+      wrapper = mountComponent({
+        validationStatus: 'verified',
+        isValidating: true,
+        ...completedTimestamps,
+      });
+
+      const banners = wrapper.findAll('[role="status"]');
       const pendingBanner = banners.find((b) => b.text().includes('Pending'));
       expect(pendingBanner).toBeDefined();
     });
@@ -330,6 +355,7 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent({
         validationStatus: 'verified',
         lastValidatedAt: lastValidated,
+        ...completedTimestamps,
       });
 
       const banner = wrapper.find('[role="status"]');
@@ -341,6 +367,7 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent({
         validationStatus: 'failed',
         lastValidatedAt: lastValidated,
+        ...completedTimestamps,
       });
 
       const banner = wrapper.find('[role="alert"]');
@@ -351,6 +378,7 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent({
         validationStatus: 'verified',
         lastValidatedAt: null,
+        ...completedTimestamps,
       });
 
       const banner = wrapper.find('[role="status"]');
@@ -358,14 +386,14 @@ describe('DomainEmailDnsRecords', () => {
     });
 
     it('uses emerald background for verified banner', () => {
-      wrapper = mountComponent({ validationStatus: 'verified' });
+      wrapper = mountComponent({ validationStatus: 'verified', ...completedTimestamps });
 
       const banner = wrapper.find('[role="status"]');
       expect(banner.classes()).toContain('bg-emerald-50');
     });
 
     it('uses rose background for failed banner', () => {
-      wrapper = mountComponent({ validationStatus: 'failed' });
+      wrapper = mountComponent({ validationStatus: 'failed', ...completedTimestamps });
 
       const banner = wrapper.find('[role="alert"]');
       expect(banner.classes()).toContain('bg-rose-50');
