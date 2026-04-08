@@ -104,14 +104,21 @@
     useSecretConcealer({
       onSuccess: async (response) => {
         const timestamp = Date.now();
-        loggingService.debug('[DEBUG:WorkspaceSecretForm] onSuccess started', {
+        const action = selectedAction.value;
+        const domain = currentContext.value.domain;
+
+        loggingService.debug('[WorkspaceSecretForm] onSuccess', {
           timestamp,
+          action,
+          domain,
           receiptId: response?.record?.receipt?.identifier,
           receiptShortid: response?.record?.receipt?.shortid,
           workspaceMode: localReceiptStore.workspaceMode,
+          hasPassphrase: !!form.passphrase,
+          ttl: form.ttl,
         });
 
-        if (!response) throw 'Response is missing';
+        if (!response) throw new Error('Response is missing');
         const newMessage: LocalReceipt = {
           id: nanoid(),
           receiptExtid: response.record.receipt.identifier,
@@ -135,10 +142,12 @@
         // Restore TTL to previous value (sticky across submissions)
         operations.updateField('ttl', preservedTtl as number);
 
-        // Emit event for parent components
-        loggingService.debug('[DEBUG:WorkspaceSecretForm] Emitting created event', {
+        loggingService.debug('[WorkspaceSecretForm] receipt created', {
           timestamp,
+          action,
+          domain,
           receiptShortid: newMessage.receiptShortid,
+          secretShortid: newMessage.secretShortid,
         });
         emit('created', newMessage);
 
@@ -147,8 +156,11 @@
         if (!localReceiptStore.workspaceMode || selectedAction.value === 'generate-password') {
           router.push(`/receipt/${newMessage.receiptExtid}`);
         } else {
-          loggingService.debug('[DEBUG:WorkspaceSecretForm] Staying on page (workspace mode)', {
+          loggingService.debug('[WorkspaceSecretForm] staying on page', {
             timestamp,
+            action,
+            domain,
+            workspaceMode: true,
           });
         }
       },

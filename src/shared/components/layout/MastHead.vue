@@ -8,8 +8,7 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { storeToRefs } from 'pinia';
-  import { computed, watch, type Component, onMounted } from 'vue';
-  import { shallowRef } from 'vue';
+  import { computed, watch, type Component, onMounted, shallowRef } from 'vue';
 
   const authStore = useAuthStore();
   const bootstrapStore = useBootstrapStore();

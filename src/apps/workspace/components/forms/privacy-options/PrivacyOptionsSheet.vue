@@ -185,7 +185,7 @@
             </div>
 
             <!-- Passphrase Section -->
-            <form class="mb-6" @submit.prevent>
+            <form class="mb-6" @submit.prevent="closeSheet">
               <label
                 for="sheet-passphrase-input"
                 class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">

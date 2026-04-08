@@ -333,8 +333,11 @@ describe('DomainIncoming', () => {
       wrapper = mountComponent({ orgid: 'org-456' });
       await flushPromises();
 
-      const upgradeLink = wrapper.find('a');
-      expect(upgradeLink.attributes('href')).toBe('/billing/org-456/plans');
+      const upgradeLink = wrapper.findAll('a').find(
+        (a) => a.attributes('href')?.includes('/billing/')
+      );
+      expect(upgradeLink).toBeDefined();
+      expect(upgradeLink!.attributes('href')).toBe('/billing/org-456/plans');
     });
 
     it('does not call initializeIncomingConfig when entitlement missing', async () => {
@@ -466,7 +469,7 @@ describe('DomainIncoming', () => {
   // ---------------------------------------------------------------------------
 
   describe('Not configured notice', () => {
-    it('shows not configured notice when empty', async () => {
+    it('shows form with empty recipients when not configured', async () => {
       mockIncomingConfigState = createMockIncomingConfigState({
         serverState: ref({ recipients: [] }),
         formState: ref({ recipients: [] }),
@@ -475,7 +478,11 @@ describe('DomainIncoming', () => {
       wrapper = mountComponent();
       await flushPromises();
 
-      expect(wrapper.text()).toContain('No recipients are configured');
+      // The page delegates empty-state display to the form component.
+      // Verify the form is rendered with empty recipient lists.
+      const form = wrapper.find('[data-testid="incoming-config-form"]');
+      expect(form.exists()).toBe(true);
+      expect(wrapper.find('[data-testid="form-state"]').text()).toContain('"recipients":[]');
     });
 
     it('hides not configured notice when recipients exist in server state', async () => {
