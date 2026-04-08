@@ -26,6 +26,45 @@ require_relative '../../models/custom_domain/mailer_config'
 # DNS lookups can block for up to 5 seconds per record under degraded
 # conditions. Moving this to a worker keeps the user-facing response instant.
 #
+# ## Data Flow
+#
+# This worker calls Mail::SenderStrategies::BaseSenderStrategy#check_dns_records
+# -- NOT the DomainValidation::SenderStrategies used by DomainValidationWorker.
+#
+# Input (from mailer_config.dns_records.value, provisioned from Lettermint API):
+#   [
+#     { 'type' => 'TXT', 'name' => 'lettermint._domainkey.example.com',
+#       'value' => 'v=DKIM1;k=rsa;p=...' },
+#     { 'type' => 'CNAME', 'name' => 'lm-bounces.example.com',
+#       'value' => 'bounces.lmta.net' },
+#     { 'type' => 'TXT', 'name' => '_dmarc.example.com',
+#       'value' => 'v=DMARC1;p=none' },
+#   ]
+#
+# Output (check_dns_records result, stored to mailer_config.dns_check_results):
+#   {
+#     records: [
+#       {
+#         'type' => 'TXT',
+#         'name' => 'lettermint._domainkey.example.com',
+#         'value' => 'v=DKIM1;k=rsa;p=...',   # expected value
+#         'dns_exists' => true,                # record exists in DNS
+#         'value_matches' => true,             # expected == actual
+#         'error' => nil,                      # DNS lookup error (if any)
+#         'expected_digest' => 'sha256...',
+#         'actual_digest' => 'sha256...',
+#       },
+#       # ...
+#     ],
+#     checked_at: Time.now,
+#   }
+#
+# Persists: mailer_config.dns_check_results.value (Array of record check results)
+#           mailer_config.dns_check_completed_at (timestamp)
+#
+# NOTE: This worker does NOT set verification_status -- that's DomainValidationWorker.
+# The 'dns_exists' and 'value_matches' booleans are fact-finding, not verification.
+#
 
 module Onetime
   module Jobs

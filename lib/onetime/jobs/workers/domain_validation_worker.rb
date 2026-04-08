@@ -34,6 +34,39 @@ require 'onetime/mail/mailer'
 # pending/verified/failed status) already supports async execution --
 # the web request just needs to enqueue and return 'pending'.
 #
+# ## Data Flow
+#
+# This worker calls ValidateSenderDomain which uses the DomainValidation::
+# SenderStrategies (e.g., LettermintValidation) -- NOT Mail::SenderStrategies.
+#
+# Input (from mailer_config.dns_records.value, normalized by required_dns_records):
+#   [
+#     { type: 'TXT', host: 'lettermint._domainkey.example.com',
+#       value: 'v=DKIM1;k=rsa;p=...', purpose: 'DKIM' },
+#     { type: 'CNAME', host: 'lm-bounces.example.com',
+#       value: 'bounces.lmta.net', purpose: 'SPF/Return-Path' },
+#     { type: 'TXT', host: '_dmarc.example.com',
+#       value: 'v=DMARC1;p=none', purpose: 'DMARC' },
+#   ]
+#
+# Output (ValidateSenderDomain::Result):
+#   Result.new(
+#     domain: 'example.com',
+#     provider: 'lettermint',
+#     dns_records: [
+#       { type: 'TXT', host: '...', expected: '...', actual: ['...'],
+#         verified: true, purpose: 'DKIM', error_type: nil },
+#     ],
+#     all_verified: true,           # All records passed verification
+#     verification_status: 'verified',  # Persisted to mailer_config
+#     verified_at: Time.now,
+#     persisted: true,
+#     error: nil,
+#     rate_limit: { remaining: 99, ... },
+#   )
+#
+# Persists: mailer_config.verification_status ('verified' | 'failed' | 'pending')
+#
 
 module Onetime
   module Jobs
@@ -165,6 +198,11 @@ module Onetime
             mailer_config.updated                     = Familia.now.to_i
             mailer_config.save_fields(:provider_check_completed_at, :updated)
           end
+
+          # Final determination: log the verification status set by this worker
+          log_info "Domain validation final determination: #{domain_id}",
+            verification_status: result.verification_status,
+            all_verified: result.all_verified
 
           ack!
         rescue Onetime::LimitExceeded => ex
