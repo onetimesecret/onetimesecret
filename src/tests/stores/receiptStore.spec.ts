@@ -4,7 +4,6 @@
 // DO NOT revert to individual axios.create() - use setupTestPinia() instead
 import { useReceiptStore } from '@/shared/stores/receiptStore';
 import { setupTestPinia } from '../setup';
-import type AxiosMockAdapter from 'axios-mock-adapter';
 import type { AxiosInstance } from 'axios';
 import type { ComponentPublicInstance } from 'vue';
 import axios from 'axios';

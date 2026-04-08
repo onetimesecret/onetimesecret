@@ -13,7 +13,7 @@ import {
   standaloneBootstrap,
   baseBootstrap,
   mockCustomer,
-} from '../setup-bootstrap';
+} from '@/tests/fixtures/bootstrap.fixture';
 import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 
 // Mock the bootstrap service

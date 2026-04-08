@@ -2,9 +2,6 @@
 
 import { test, expect } from '@playwright/test';
 
-/** Window with bootstrap state (object before consumption, true after) */
-type BootstrapWindow = Window & { __BOOTSTRAP_ME__?: unknown };
-
 /**
  * E2E Integration Tests
  *
@@ -126,6 +123,12 @@ test.describe('E2E Integration - Production Build Validation', () => {
   });
 
   test('homepage loads successfully with all assets', async ({ page }) => {
+    // Register error listener BEFORE navigation to catch module evaluation errors
+    const jsErrors: string[] = [];
+    page.on('pageerror', (error) => {
+      jsErrors.push(error.message);
+    });
+
     await page.goto('/');
 
     // Verify page loads - title varies by environment
@@ -136,22 +139,17 @@ test.describe('E2E Integration - Production Build Validation', () => {
     // Check for main content areas
     await expect(page.locator('body')).toBeVisible();
 
-    // Verify no JavaScript errors (asset loading issues often cause JS errors)
-    const jsErrors: string[] = [];
-    page.on('pageerror', (error) => {
-      jsErrors.push(error.message);
-    });
-
     // Wait for page to fully load
     await page.waitForLoadState('networkidle');
 
     // Verify no critical JavaScript errors occurred
-    expect(
-      jsErrors.filter(
-        (error) =>
-          !error.includes('Non-Error promise rejection') && // Filter minor errors
-          !error.includes('Script error')
-      )
+    const criticalErrors = jsErrors.filter(
+      (error) =>
+        !error.includes('Non-Error promise rejection') && // Filter minor errors
+        !error.includes('Script error')
+    );
+    expect(criticalErrors,
+      `Critical JS errors during page load:\n${criticalErrors.join('\n')}`
     ).toHaveLength(0);
   });
 
@@ -291,13 +289,49 @@ test.describe('E2E Integration - Environment Validation', () => {
     // then is replaced with `true` after consumption by the bootstrap service.
     // This allows memory to be reclaimed while preserving a testable marker.
 
-    await page.goto('/');
+    // Capture diagnostics BEFORE navigation to catch early errors
+    const pageErrors: string[] = [];
+    const failedRequests: string[] = [];
 
-    // Verify bootstrap data was successfully consumed (marker is set to true)
-    const bootstrapConsumed = await page.evaluate(() => {
-      return (window as BootstrapWindow).__BOOTSTRAP_ME__ === true;
+    page.on('pageerror', (error) => {
+      pageErrors.push(error.message);
+    });
+    page.on('requestfailed', (request) => {
+      failedRequests.push(`${request.url()} (${request.failure()?.errorText})`);
     });
 
-    expect(bootstrapConsumed, 'Bootstrap state should be consumed (value === true)').toBe(true);
+    await page.goto('/');
+
+    // Wait for bootstrap data to be consumed (Vue must mount and run
+    // consumeBootstrapData which replaces the object with `true`)
+    const bootstrapConsumed = await page.waitForFunction(() => {
+      return (window as any).__BOOTSTRAP_ME__ === true;
+    }, { timeout: 30000 }).then(() => true).catch(() => false);
+
+    // Build a diagnostic message that surfaces in the GitHub reporter
+    // (console.log only appears in raw stdout, not the failure summary)
+    let diagnosticMsg = 'Bootstrap state should be consumed (value === true). ' +
+      'If this fails, Vue may not be mounting in the production build.';
+
+    if (!bootstrapConsumed) {
+      const diagnostic = await page.evaluate(() => {
+        const app = document.querySelector('#app');
+        return {
+          bootstrapType: typeof (window as any).__BOOTSTRAP_ME__,
+          vueMounted: app?.hasAttribute('data-v-app') ?? false,
+          appChildren: app?.childElementCount ?? 0,
+          readyState: document.readyState,
+        };
+      });
+
+      const parts = [diagnosticMsg];
+      parts.push(`DOM: vueMounted=${diagnostic.vueMounted}, appChildren=${diagnostic.appChildren}, readyState=${diagnostic.readyState}`);
+      parts.push(`Bootstrap type: ${diagnostic.bootstrapType}`);
+      if (pageErrors.length) parts.push(`Page errors: ${pageErrors.join('; ')}`);
+      if (failedRequests.length) parts.push(`Failed requests: ${failedRequests.join('; ')}`);
+      diagnosticMsg = parts.join('\n');
+    }
+
+    expect(bootstrapConsumed, diagnosticMsg).toBe(true);
   });
 });

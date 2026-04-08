@@ -17,7 +17,7 @@ import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
-import { mockCustomer } from '../setup-bootstrap';
+import { mockCustomer } from '@/tests/fixtures/bootstrap.fixture';
 
 describe('authStore.logoutMinimal', () => {
   let store: ReturnType<typeof useAuthStore>;

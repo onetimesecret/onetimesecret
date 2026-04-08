@@ -81,7 +81,7 @@ const FRONTEND_ONLY_FIELDS: Record<string, string> = {
 // We need to get the keys from the BootstrapPayload interface.
 // Since TypeScript interfaces don't exist at runtime, we use the baseBootstrap
 // fixture which implements the interface completely.
-import { baseBootstrap } from '@/tests/setup-bootstrap';
+import { baseBootstrap } from '@/tests/fixtures/bootstrap.fixture';
 
 const BOOTSTRAP_PAYLOAD_KEYS = Object.keys(baseBootstrap) as (keyof BootstrapPayload)[];
 

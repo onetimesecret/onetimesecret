@@ -169,7 +169,7 @@ export default defineConfig({
      *
      * @see ./src/build/plugins/addTrailingNewline.ts for implementation details.
      */
-    addTrailingNewline() as any,
+    addTrailingNewline(),
   ],
 
   resolve: {
@@ -188,14 +188,7 @@ export default defineConfig({
 
   // be simpler and more efficient.
   build: {
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-        passes: 2, // Number of compression passes
-      },
-    },
+    minify: true,
     outDir: '../public/web/dist',
 
     // It's important in staging to keep the previous files around during and
@@ -213,18 +206,28 @@ export default defineConfig({
     // require generating and tracking nonces for each chunk, adding
     // complexity without significant benefit for our use case.
     manifest: true,
-    rollupOptions: {
+    rolldownOptions: {
       input: {
         main: 'src/main.ts',
       },
       output: {
-        // Enforce single chunk output
-        inlineDynamicImports: true,
+        // Enforce single chunk output (replaces deprecated inlineDynamicImports)
+        codeSplitting: false,
         format: 'es',
         entryFileNames: 'assets/[name].[hash].js',
         assetFileNames: 'assets/[name].[hash].[ext]',
         // Prevent dynamic imports
         preserveModules: false,
+        // Rolldown native minification options (replaces terserOptions).
+        // Terser is incompatible with Rolldown's output format and produces
+        // "undefined is not a function" at runtime.
+        minify: {
+          compress: {
+            dropConsole: true,
+            dropDebugger: true,
+          },
+          mangle: true,
+        },
       },
     },
 
@@ -312,5 +315,8 @@ export default defineConfig({
       viteAdditionalServerAllowedHosts
     ),
     __VUE_PROD_DEVTOOLS__: DEBUG,
+    // vue-i18n (intlify) feature flags — Rollup auto-replaced these but
+    // Rolldown requires explicit definition to avoid ReferenceError at runtime
+    __INTLIFY_PROD_DEVTOOLS__: false,
   },
 });

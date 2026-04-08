@@ -12,7 +12,8 @@ import {
   mockSecretResponse,
 } from '../fixtures/receipt.fixture';
 import { setupTestPinia } from '../setup';
-import { setupBootstrapMock, baseBootstrap } from '../setup-bootstrap';
+import { setupBootstrapMock } from '../setup-bootstrap';
+import { baseBootstrap } from '@/tests/fixtures/bootstrap.fixture';
 
 describe('secretStore', () => {
   let axiosMock: AxiosMockAdapter | null;
