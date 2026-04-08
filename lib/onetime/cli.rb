@@ -116,6 +116,12 @@ require_relative 'cli/email/templates_command'
 require_relative 'cli/email/preview_command'
 require_relative 'cli/email/config_command'
 
+# Load diagnostics CLI commands
+require_relative 'cli/diagnostics'
+require_relative 'cli/diagnostics/sentry/doctor_command'
+require_relative 'cli/diagnostics/sentry/send_test_event_command'
+require_relative 'cli/diagnostics/sentry/check_dsn_command'
+
 # Load install CLI commands
 require_relative 'cli/install_command'
 
