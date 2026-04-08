@@ -262,3 +262,33 @@ export function isOrgsSsoEnabled(): boolean {
   debugLog.features('features.isOrgsSsoEnabled', { sso_enabled: features?.organizations?.sso_enabled, result });
   return result;
 }
+
+/**
+ * Checks if organization-level custom mail configuration is enabled.
+ * When true, organizations with custom_mail_sender entitlement can configure
+ * custom email sending for their domains.
+ * Default is OFF - requires explicit opt-in via ORGS_CUSTOM_MAIL_ENABLED=true.
+ */
+export function isOrgsCustomMailEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  const result = features?.organizations?.custom_mail_enabled === true;
+  debugLog.features('features.isOrgsCustomMailEnabled', { custom_mail_enabled: features?.organizations?.custom_mail_enabled, result });
+  return result;
+}
+
+/**
+ * Checks if organization-level incoming secrets configuration is enabled.
+ * When true, organizations with incoming_secrets entitlement can configure
+ * incoming secret receiving for their domains.
+ * Default is OFF - requires explicit opt-in via ORGS_INCOMING_SECRETS_ENABLED=true.
+ */
+export function isOrgsIncomingSecretsEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  const result = features?.organizations?.incoming_secrets_enabled === true;
+  debugLog.features('features.isOrgsIncomingSecretsEnabled', { incoming_secrets_enabled: features?.organizations?.incoming_secrets_enabled, result });
+  return result;
+}

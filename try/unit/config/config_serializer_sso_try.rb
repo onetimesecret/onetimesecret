@@ -76,6 +76,27 @@ ensure
   end
 end
 
+# Helper to modify organizations feature flags with all four keys
+def with_orgs_features(orgs_enabled: false, sso_enabled: false, custom_mail_enabled: false, incoming_secrets_enabled: false)
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  features = config['full']['features'] ||= {}
+  original_orgs = features['organizations']
+
+  features['organizations'] = {
+    'enabled' => orgs_enabled,
+    'sso_enabled' => sso_enabled,
+    'custom_mail_enabled' => custom_mail_enabled,
+    'incoming_secrets_enabled' => incoming_secrets_enabled,
+  }
+  yield
+ensure
+  if original_orgs.nil?
+    features.delete('organizations')
+  else
+    features['organizations'] = original_orgs
+  end
+end
+
 ## build_sso_config returns false when SSO is disabled
 result = with_sso_config(enabled: false) do
   Core::Views::ConfigSerializer.send(:build_sso_config, {})
@@ -231,3 +252,86 @@ result = with_orgs_sso_enabled(enabled: true, orgs_enabled: false) do
 end
 [result['organizations']['enabled'], result['organizations']['sso_enabled']]
 #=> [false, true]
+
+## build_feature_flags includes organizations.custom_mail_enabled as false when disabled
+result = with_orgs_features(custom_mail_enabled: false) do
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  view_vars = { 'features' => config['full']['features'] }
+  Core::Views::ConfigSerializer.send(:build_feature_flags, view_vars)
+end
+result['organizations']['custom_mail_enabled']
+#=> false
+
+## build_feature_flags includes organizations.custom_mail_enabled as true when enabled
+result = with_orgs_features(custom_mail_enabled: true) do
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  view_vars = { 'features' => config['full']['features'] }
+  Core::Views::ConfigSerializer.send(:build_feature_flags, view_vars)
+end
+result['organizations']['custom_mail_enabled']
+#=> true
+
+## build_feature_flags includes organizations.incoming_secrets_enabled as false when disabled
+result = with_orgs_features(incoming_secrets_enabled: false) do
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  view_vars = { 'features' => config['full']['features'] }
+  Core::Views::ConfigSerializer.send(:build_feature_flags, view_vars)
+end
+result['organizations']['incoming_secrets_enabled']
+#=> false
+
+## build_feature_flags includes organizations.incoming_secrets_enabled as true when enabled
+result = with_orgs_features(incoming_secrets_enabled: true) do
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  view_vars = { 'features' => config['full']['features'] }
+  Core::Views::ConfigSerializer.send(:build_feature_flags, view_vars)
+end
+result['organizations']['incoming_secrets_enabled']
+#=> true
+
+## build_feature_flags organizations.custom_mail_enabled defaults to false when features is empty
+result = Core::Views::ConfigSerializer.send(:build_feature_flags, {})
+result['organizations']['custom_mail_enabled']
+#=> false
+
+## build_feature_flags organizations.incoming_secrets_enabled defaults to false when features is empty
+result = Core::Views::ConfigSerializer.send(:build_feature_flags, {})
+result['organizations']['incoming_secrets_enabled']
+#=> false
+
+## build_feature_flags organizations.custom_mail_enabled defaults to false when organizations key missing
+result = Core::Views::ConfigSerializer.send(:build_feature_flags, { 'features' => {} })
+result['organizations']['custom_mail_enabled']
+#=> false
+
+## build_feature_flags organizations.incoming_secrets_enabled defaults to false when organizations key missing
+result = Core::Views::ConfigSerializer.send(:build_feature_flags, { 'features' => {} })
+result['organizations']['incoming_secrets_enabled']
+#=> false
+
+## build_feature_flags custom_mail_enabled is independent of sso_enabled
+result = with_orgs_features(sso_enabled: false, custom_mail_enabled: true) do
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  view_vars = { 'features' => config['full']['features'] }
+  Core::Views::ConfigSerializer.send(:build_feature_flags, view_vars)
+end
+[result['organizations']['sso_enabled'], result['organizations']['custom_mail_enabled']]
+#=> [false, true]
+
+## build_feature_flags incoming_secrets_enabled is independent of sso_enabled
+result = with_orgs_features(sso_enabled: false, incoming_secrets_enabled: true) do
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  view_vars = { 'features' => config['full']['features'] }
+  Core::Views::ConfigSerializer.send(:build_feature_flags, view_vars)
+end
+[result['organizations']['sso_enabled'], result['organizations']['incoming_secrets_enabled']]
+#=> [false, true]
+
+## build_feature_flags all four organization flags enabled together
+result = with_orgs_features(orgs_enabled: true, sso_enabled: true, custom_mail_enabled: true, incoming_secrets_enabled: true) do
+  config = Onetime.auth_config.instance_variable_get(:@config)
+  view_vars = { 'features' => config['full']['features'] }
+  Core::Views::ConfigSerializer.send(:build_feature_flags, view_vars)
+end
+[result['organizations']['enabled'], result['organizations']['sso_enabled'], result['organizations']['custom_mail_enabled'], result['organizations']['incoming_secrets_enabled']]
+#=> [true, true, true, true]

@@ -18,7 +18,7 @@
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { useDomainsStore } from '@/shared/stores/domainsStore';
   import { ENTITLEMENTS } from '@/types/organization';
-  import { isOrgsSsoEnabled } from '@/utils/features';
+  import { isOrgsSsoEnabled, isOrgsCustomMailEnabled, isOrgsIncomingSecretsEnabled } from '@/utils/features';
 
   import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
   import { computed } from 'vue';
@@ -49,8 +49,8 @@ const { t } = useI18n();
   const { can } = useEntitlements(organization);
   const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
   const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
-  const canEmailConfig = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
-  const canIncomingSecrets = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
+  const canEmailConfig = computed(() => isOrgsCustomMailEnabled() && can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
+  const canIncomingSecrets = computed(() => isOrgsIncomingSecretsEnabled() && can(ENTITLEMENTS.INCOMING_SECRETS));
 
   /** Current user is owner or admin — can modify domain settings */
   const canAdmin = computed(() => {

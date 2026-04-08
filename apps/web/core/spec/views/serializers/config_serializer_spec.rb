@@ -366,6 +366,131 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
   end
 
+  describe '.build_feature_flags' do
+    describe 'organizations feature flags' do
+      context 'when no organizations config is present' do
+        it 'defaults all organization flags to false' do
+          result = described_class.build_feature_flags(base_view_vars)
+          orgs = result['organizations']
+
+          expect(orgs['enabled']).to be false
+          expect(orgs['sso_enabled']).to be false
+          expect(orgs['custom_mail_enabled']).to be false
+          expect(orgs['incoming_secrets_enabled']).to be false
+        end
+      end
+
+      context 'when features key is empty' do
+        it 'defaults all organization flags to false' do
+          result = described_class.build_feature_flags({ 'features' => {} })
+          orgs = result['organizations']
+
+          expect(orgs['custom_mail_enabled']).to be false
+          expect(orgs['incoming_secrets_enabled']).to be false
+        end
+      end
+
+      context 'when custom_mail_enabled is true' do
+        let(:view_vars_with_custom_mail) do
+          base_view_vars.merge(
+            'features' => base_view_vars['features'].merge(
+              'organizations' => { 'enabled' => false, 'custom_mail_enabled' => true }
+            )
+          )
+        end
+
+        it 'includes custom_mail_enabled as true' do
+          result = described_class.build_feature_flags(view_vars_with_custom_mail)
+
+          expect(result['organizations']['custom_mail_enabled']).to be true
+        end
+
+        it 'does not affect other organization flags' do
+          result = described_class.build_feature_flags(view_vars_with_custom_mail)
+          orgs = result['organizations']
+
+          expect(orgs['enabled']).to be false
+          expect(orgs['sso_enabled']).to be false
+          expect(orgs['incoming_secrets_enabled']).to be false
+        end
+      end
+
+      context 'when incoming_secrets_enabled is true' do
+        let(:view_vars_with_incoming) do
+          base_view_vars.merge(
+            'features' => base_view_vars['features'].merge(
+              'organizations' => { 'enabled' => false, 'incoming_secrets_enabled' => true }
+            )
+          )
+        end
+
+        it 'includes incoming_secrets_enabled as true' do
+          result = described_class.build_feature_flags(view_vars_with_incoming)
+
+          expect(result['organizations']['incoming_secrets_enabled']).to be true
+        end
+
+        it 'does not affect other organization flags' do
+          result = described_class.build_feature_flags(view_vars_with_incoming)
+          orgs = result['organizations']
+
+          expect(orgs['enabled']).to be false
+          expect(orgs['sso_enabled']).to be false
+          expect(orgs['custom_mail_enabled']).to be false
+        end
+      end
+
+      context 'when all organization flags are enabled' do
+        let(:view_vars_all_orgs) do
+          base_view_vars.merge(
+            'features' => base_view_vars['features'].merge(
+              'organizations' => {
+                'enabled' => true,
+                'sso_enabled' => true,
+                'custom_mail_enabled' => true,
+                'incoming_secrets_enabled' => true,
+              }
+            )
+          )
+        end
+
+        it 'includes all flags as true' do
+          result = described_class.build_feature_flags(view_vars_all_orgs)
+          orgs = result['organizations']
+
+          expect(orgs['enabled']).to be true
+          expect(orgs['sso_enabled']).to be true
+          expect(orgs['custom_mail_enabled']).to be true
+          expect(orgs['incoming_secrets_enabled']).to be true
+        end
+      end
+
+      context 'when custom_mail_enabled and incoming_secrets_enabled are independent of sso_enabled' do
+        let(:view_vars_mail_and_incoming_only) do
+          base_view_vars.merge(
+            'features' => base_view_vars['features'].merge(
+              'organizations' => {
+                'enabled' => true,
+                'sso_enabled' => false,
+                'custom_mail_enabled' => true,
+                'incoming_secrets_enabled' => true,
+              }
+            )
+          )
+        end
+
+        it 'allows custom_mail and incoming_secrets without sso' do
+          result = described_class.build_feature_flags(view_vars_mail_and_incoming_only)
+          orgs = result['organizations']
+
+          expect(orgs['sso_enabled']).to be false
+          expect(orgs['custom_mail_enabled']).to be true
+          expect(orgs['incoming_secrets_enabled']).to be true
+        end
+      end
+    end
+  end
+
   describe '.resolve_domain_id' do
     context 'with display_domain' do
       let(:custom_domain_obj) do

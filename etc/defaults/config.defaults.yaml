@@ -416,6 +416,7 @@ features:
     enabled: <%= ENV['ENABLE_ORGS'] == 'true' %>
     sso_enabled: <%= ENV['ORGS_SSO_ENABLED'] == 'true' %>
     custom_mail_enabled: <%= ENV['ORGS_CUSTOM_MAIL_ENABLED'] == 'true' %>
+    incoming_secrets_enabled: <%= ENV['ORGS_INCOMING_SECRETS_ENABLED'] == 'true' %>
 
 # Main Database Configuration
 redis:

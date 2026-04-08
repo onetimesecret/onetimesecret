@@ -200,7 +200,9 @@ export const featuresSchema = z.object({
   organizations: z.object({
     enabled: z.boolean().default(false),
     sso_enabled: z.boolean().default(false),
-  }).optional().default({ enabled: false, sso_enabled: false }),
+    custom_mail_enabled: z.boolean().default(false),
+    incoming_secrets_enabled: z.boolean().default(false),
+  }).optional().default({ enabled: false, sso_enabled: false, custom_mail_enabled: false, incoming_secrets_enabled: false }),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
