@@ -40,9 +40,9 @@ RSpec.describe Onetime::Mail::SenderStrategies::SMTPSenderStrategy do
     end
   end
 
-  describe '#check_verification_status' do
+  describe '#check_provider_verification_status' do
     it 'returns not_supported status' do
-      result = strategy.check_verification_status(mailer_config)
+      result = strategy.check_provider_verification_status(mailer_config)
 
       expect(result[:verified]).to be false
       expect(result[:status]).to eq('not_supported')

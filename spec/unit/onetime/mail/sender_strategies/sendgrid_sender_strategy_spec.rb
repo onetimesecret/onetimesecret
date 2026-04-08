@@ -157,7 +157,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
     end
   end
 
-  describe '#check_verification_status' do
+  describe '#check_provider_verification_status' do
     context 'when domain is verified' do
       before do
         allow(strategy).to receive(:find_domain_id)
@@ -180,7 +180,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
       end
 
       it 'returns verified status' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be true
         expect(result[:status]).to eq('verified')
@@ -205,14 +205,14 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
       end
 
       it 'returns pending status' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be false
         expect(result[:status]).to eq('pending')
       end
 
       it 'includes validation details' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:details]).to include('mail_cname', 'dkim1', 'dkim2')
       end
@@ -228,7 +228,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
       end
 
       it 'uses provided domain_id' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials_with_id)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials_with_id)
 
         expect(result[:verified]).to be true
         expect(strategy).not_to have_received(:find_domain_id) if strategy.respond_to?(:find_domain_id)
@@ -241,7 +241,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
       end
 
       it 'returns not_found status' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be false
         expect(result[:status]).to eq('not_found')
@@ -252,7 +252,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
       let(:mailer_config) { double('MailerConfig', from_address: 'invalid') }
 
       it 'returns invalid status' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be false
         expect(result[:status]).to eq('invalid')
@@ -263,7 +263,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
       let(:credentials) { {} }
 
       it 'returns error status' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be false
         expect(result[:status]).to eq('error')

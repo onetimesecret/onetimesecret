@@ -123,7 +123,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
     end
   end
 
-  describe '#check_verification_status' do
+  describe '#check_provider_verification_status' do
     context 'when DKIM is verified' do
       let(:dkim_attrs) do
         double('DkimAttributes',
@@ -144,7 +144,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
       end
 
       it 'returns verified status' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be true
         expect(result[:status]).to eq('success')
@@ -172,7 +172,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
       end
 
       it 'returns pending status' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be false
         expect(result[:status]).to eq('pending')
@@ -187,7 +187,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
       end
 
       it 'returns not_found status' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be false
         expect(result[:status]).to eq('not_found')
@@ -198,7 +198,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
       let(:mailer_config) { double('MailerConfig', from_address: 'invalid') }
 
       it 'returns invalid status' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be false
         expect(result[:status]).to eq('invalid')
