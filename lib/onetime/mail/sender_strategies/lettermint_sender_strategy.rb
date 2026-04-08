@@ -7,7 +7,18 @@ require_relative 'base_sender_strategy'
 module Onetime
   module Mail
     module SenderStrategies
-      # LettermintSenderStrategy - Lettermint sender domain provisioning.
+      # LettermintSenderStrategy - Lettermint sender domain provisioning and provider checks.
+      #
+      # This class handles PROVISIONING (create domain, get DNS records) and
+      # PROVIDER-LEVEL verification (ask Lettermint API if domain is verified).
+      #
+      # For DNS-LEVEL verification (lookup DNS records, compare expected vs actual),
+      # see DomainValidation::SenderStrategies::LettermintValidation instead.
+      #
+      # Used by:
+      #   - ProvisionSenderDomain operation (provisioning)
+      #   - DomainValidationWorker (provider check only, via check_provider_verification_status)
+      #   - DnsRecordCheckWorker (fact-finding, via inherited check_dns_records)
       #
       # Provisions sender authentication through Lettermint's Domain API.
       #

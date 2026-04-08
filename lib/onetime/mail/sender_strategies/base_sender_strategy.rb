@@ -102,6 +102,12 @@ module Onetime
         # records (provider-agnostic). Override in subclasses only if the
         # provider's DNS record format requires special lookup handling.
         #
+        # NOTE: This is FACT-FINDING only. Returns dns_exists/value_matches booleans
+        # but does NOT determine verification_status. For verification with status
+        # determination, see DomainValidation::SenderStrategies::BaseStrategy#verify_dns_records.
+        #
+        # Used by: DnsRecordCheckWorker (populates mailer_config.dns_check_results)
+        #
         # @param mailer_config [CustomDomain::MailerConfig] The mailer configuration
         # @param credentials [Hash] Unused (DNS lookups need no credentials)
         # @return [Hash] DNS check results:
