@@ -119,11 +119,30 @@ module Onetime
           @mailer_config.record_check_attempt(duration_ms, nil)
         end
 
+        # Log per-record results so failures are diagnosable without
+        # reproducing the DNS lookup manually.
+        dns_records.each do |record|
+          level = record[:verified] ? :debug : :info
+          logger.send(
+            level,
+            'DNS record verification result',
+            domain: domain_name,
+            purpose: record[:purpose],
+            type: record[:type],
+            host: record[:host],
+            expected: record[:expected],
+            actual: record[:actual],
+            verified: record[:verified],
+            error_type: record[:error_type],
+          )
+        end
+
         logger.info 'Sender domain validation complete',
           domain: domain_name,
           provider: effective_provider,
           status: verification_status,
           records_checked: dns_records.size,
+          records_verified: dns_records.count { |r| r[:verified] },
           duration_ms: duration_ms,
           persisted: persisted
 
