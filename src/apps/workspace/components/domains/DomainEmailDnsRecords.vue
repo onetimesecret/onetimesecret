@@ -10,7 +10,7 @@
  * and long hostnames are copyable. Includes a "Re-validate" button.
  */
 import { useI18n } from 'vue-i18n';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useClipboard } from '@/shared/composables/useClipboard';
 import type { EmailDnsRecord, EmailValidationStatus } from '@/schemas/contracts/email-config';
@@ -19,10 +19,12 @@ interface Props {
   dnsRecords: EmailDnsRecord[];
   validationStatus: EmailValidationStatus;
   lastValidatedAt: Date | null;
+  dnsCheckCompletedAt: Date | null;
+  providerCheckCompletedAt: Date | null;
   isValidating: boolean;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
   (e: 'validate'): void;
@@ -46,47 +48,16 @@ const handleCopy = async (value: string, index: number) => {
   }
 };
 
-/** Map record status to color classes. */
-const statusClasses = (status: string) => {
-  switch (status) {
-    case 'verified':
-      return 'text-emerald-600 dark:text-emerald-400';
-    case 'pending':
-      return 'text-amber-500 dark:text-amber-400';
-    case 'failed':
-      return 'text-rose-600 dark:text-rose-500';
-    default:
-      return 'text-gray-500 dark:text-gray-400';
-  }
-};
+/** Whether both DNS and provider checks have completed. */
+const bothChecksComplete = computed(() =>
+  props.dnsCheckCompletedAt !== null && props.providerCheckCompletedAt !== null
+);
 
-/** Map record status to icon name. */
-const statusIcon = (status: string) => {
-  switch (status) {
-    case 'verified':
-      return 'check-circle-solid';
-    case 'pending':
-      return 'clock';
-    case 'failed':
-      return 'x-circle-solid';
-    default:
-      return 'question-mark-circle';
-  }
-};
-
-/** Map record status to translated label. */
-const statusLabel = (status: string) => {
-  switch (status) {
-    case 'verified':
-      return t('web.domains.email.status_verified');
-    case 'pending':
-      return t('web.domains.email.status_pending');
-    case 'failed':
-      return t('web.domains.email.status_failed');
-    default:
-      return status;
-  }
-};
+/** Effective validation status accounting for check completion. */
+const effectiveStatus = computed(() => {
+  if (props.isValidating || !bothChecksComplete.value) return 'pending';
+  return props.validationStatus;
+});
 
 /** Format the last validated date for display. */
 const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
@@ -139,7 +110,7 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
 
     <!-- Validation status banner -->
     <div
-      v-if="validationStatus === 'verified'"
+      v-if="effectiveStatus === 'verified'"
       class="flex items-center gap-2 rounded-md bg-emerald-50 px-4 py-3 dark:bg-emerald-900/20"
       role="status">
       <OIcon
@@ -158,7 +129,7 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
     </div>
 
     <div
-      v-else-if="validationStatus === 'failed'"
+      v-else-if="effectiveStatus === 'failed'"
       class="flex items-center gap-2 rounded-md bg-rose-50 px-4 py-3 dark:bg-rose-900/20"
       role="alert">
       <OIcon
@@ -203,18 +174,29 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
           <span class="inline-flex rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300">
             {{ record.type }}
           </span>
-          <span
-            class="inline-flex items-center gap-1.5"
-            :class="statusClasses(record.status)">
-            <OIcon
-              collection="heroicons"
-              :name="statusIcon(record.status)"
-              class="size-4"
-              aria-hidden="true" />
-            <span class="text-xs font-medium">
-              {{ statusLabel(record.status) }}
+          <!-- DNS + Resolving dual indicators -->
+          <div class="inline-flex items-center gap-3">
+            <span
+              class="inline-flex items-center gap-1"
+              :class="record.dns_exists === true ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-300 dark:text-gray-600'">
+              <OIcon
+                collection="heroicons"
+                name="check-circle-solid"
+                class="size-4"
+                aria-hidden="true" />
+              <span class="text-xs font-medium">DNS</span>
             </span>
-          </span>
+            <span
+              class="inline-flex items-center gap-1"
+              :class="validationStatus === 'verified' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-300 dark:text-gray-600'">
+              <OIcon
+                collection="heroicons"
+                name="check-circle-solid"
+                class="size-4"
+                aria-hidden="true" />
+              <span class="text-xs font-medium">Resolving</span>
+            </span>
+          </div>
         </div>
 
         <!-- Name field -->

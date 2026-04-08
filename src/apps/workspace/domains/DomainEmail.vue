@@ -81,6 +81,8 @@ const {
   dnsRecords,
   validationStatus,
   lastValidatedAt,
+  dnsCheckCompletedAt,
+  providerCheckCompletedAt,
   hasUnsavedChanges,
   initialize: initializeEmailConfig,
   saveConfig,
@@ -325,6 +327,8 @@ watch(hasEntitlement, async (entitled) => {
                 :dns-records="dnsRecords"
                 :validation-status="validationStatus"
                 :last-validated-at="lastValidatedAt"
+                :dns-check-completed-at="dnsCheckCompletedAt"
+                :provider-check-completed-at="providerCheckCompletedAt"
                 :is-validating="isValidating"
                 @validate="validateDomain" />
             </template>
