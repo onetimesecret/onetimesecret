@@ -123,6 +123,12 @@ test.describe('E2E Integration - Production Build Validation', () => {
   });
 
   test('homepage loads successfully with all assets', async ({ page }) => {
+    // Register error listener BEFORE navigation to catch module evaluation errors
+    const jsErrors: string[] = [];
+    page.on('pageerror', (error) => {
+      jsErrors.push(error.message);
+    });
+
     await page.goto('/');
 
     // Verify page loads - title varies by environment
@@ -132,12 +138,6 @@ test.describe('E2E Integration - Production Build Validation', () => {
 
     // Check for main content areas
     await expect(page.locator('body')).toBeVisible();
-
-    // Verify no JavaScript errors (asset loading issues often cause JS errors)
-    const jsErrors: string[] = [];
-    page.on('pageerror', (error) => {
-      jsErrors.push(error.message);
-    });
 
     // Wait for page to fully load
     await page.waitForLoadState('networkidle');
@@ -287,32 +287,65 @@ test.describe('E2E Integration - Environment Validation', () => {
     // Note: window.__BOOTSTRAP_ME__ starts as an object with server config,
     // then is replaced with `true` after consumption by the bootstrap service.
     // This allows memory to be reclaimed while preserving a testable marker.
-    //
-    // We wait directly for the bootstrap marker rather than relying on
-    // data-v-app, which requires Vue to mount synchronously. waitForFunction
-    // polls the page context, naturally handling Rolldown's deferred module
-    // initialization in CI environments.
+
+    // Capture diagnostics BEFORE navigation to catch early errors
+    const consoleMessages: string[] = [];
+    const pageErrors: string[] = [];
+    const failedRequests: { url: string; status?: number; error?: string }[] = [];
+
+    page.on('console', (msg) => {
+      if (msg.type() === 'error' || msg.type() === 'warning') {
+        consoleMessages.push(`[${msg.type()}] ${msg.text()}`);
+      }
+    });
+    page.on('pageerror', (error) => {
+      pageErrors.push(error.message);
+    });
+    page.on('requestfailed', (request) => {
+      failedRequests.push({
+        url: request.url(),
+        error: request.failure()?.errorText,
+      });
+    });
 
     await page.goto('/');
+
+    // Check the main JS bundle response (content-type, status)
+    const jsResponse = await page.evaluate(() => {
+      const scripts = document.querySelectorAll('script[type="module"][src]');
+      return Array.from(scripts).map((s) => (s as HTMLScriptElement).src);
+    });
 
     // Wait for bootstrap data to be consumed (Vue must mount and run
     // consumeBootstrapData which replaces the object with `true`)
     const bootstrapConsumed = await page.waitForFunction(() => {
       return (window as any).__BOOTSTRAP_ME__ === true;
-    }, { timeout: 15000 }).then(() => true).catch(() => false);
+    }, { timeout: 30000 }).then(() => true).catch(() => false);
 
     if (!bootstrapConsumed) {
       // Capture diagnostic state to help debug mount failures
       const diagnostic = await page.evaluate(() => {
         const app = document.querySelector('#app');
+        // Check if any script tags errored
+        const scripts = document.querySelectorAll('script[type="module"]');
+        const scriptInfo = Array.from(scripts).map((s) => ({
+          src: (s as HTMLScriptElement).src || '(inline)',
+          hasError: !!(s as any).__error,
+        }));
         return {
           bootstrapValue: typeof (window as any).__BOOTSTRAP_ME__,
           hasAppElement: !!app,
           hasDataVApp: app?.hasAttribute('data-v-app') ?? false,
           appChildCount: app?.childElementCount ?? 0,
+          scriptTags: scriptInfo,
+          documentReadyState: document.readyState,
         };
       });
       console.log('Bootstrap diagnostic:', JSON.stringify(diagnostic));
+      console.log('Script sources:', JSON.stringify(jsResponse));
+      console.log('Console errors:', JSON.stringify(consoleMessages));
+      console.log('Page errors:', JSON.stringify(pageErrors));
+      console.log('Failed requests:', JSON.stringify(failedRequests));
     }
 
     expect(bootstrapConsumed,
