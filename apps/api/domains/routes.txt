@@ -40,6 +40,7 @@ PATCH  /:extid/email-config              DomainsAPI::Logic::SenderConfig::PatchS
 DELETE /:extid/email-config              DomainsAPI::Logic::SenderConfig::DeleteSenderConfig response=json auth=sessionauth
 POST   /:extid/email-config/validate    DomainsAPI::Logic::SenderConfig::ValidateSenderConfig response=json auth=sessionauth
 POST   /:extid/email-config/provision    DomainsAPI::Logic::SenderConfig::ProvisionSenderConfig response=json auth=sessionauth
+POST   /:extid/email-config/test         DomainsAPI::Logic::SenderConfig::SendTestEmail response=json auth=sessionauth
 
 # Domain Incoming Configuration (Recipients)
 GET    /:extid/incoming-config           DomainsAPI::Logic::IncomingConfig::GetIncomingConfig response=json auth=sessionauth
