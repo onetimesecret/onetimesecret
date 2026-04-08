@@ -20,7 +20,7 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { storeToRefs } from 'pinia';
 import { useMembersStore } from '@/shared/stores/membersStore';
 import type { Subscription } from '@/types/billing';
-import { getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/billing';
+import { getPlanDisplayName, getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/billing';
 import type { CreateInvitationPayload, Organization, OrganizationInvitation } from '@/types/organization';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in template
 import { formatDisplayDate } from '@/utils/format';
@@ -33,12 +33,13 @@ import { z } from 'zod';
 type TabType = 'general' | 'members' | 'domains' | 'subscription' | 'sso';
 
 // URL tab names map to internal tab names
-// URL: team -> internal: members
+// URL: members -> internal: members (team kept as backwards-compat alias)
 // URL: settings -> internal: general
-// URL: subscription -> internal: subscription (renamed from billing for clarity)
+// URL: subscription -> internal: subscription (billing kept as backwards-compat alias)
 // URL: sso -> internal: sso
 const URL_TO_TAB: Record<string, TabType> = {
-  team: 'members',
+  members: 'members',
+  team: 'members', // backwards compatibility for old URLs
   domains: 'domains',
   subscription: 'subscription',
   billing: 'subscription', // backwards compatibility for old URLs
@@ -47,7 +48,7 @@ const URL_TO_TAB: Record<string, TabType> = {
 };
 
 const TAB_TO_URL: Record<TabType, string> = {
-  members: 'team',
+  members: 'members',
   domains: 'domains',
   subscription: 'subscription',
   general: 'settings',
@@ -556,10 +557,11 @@ watch(orgId, async (newOrgId, oldOrgId) => {
 // Keyboard navigation for tabs (WCAG 2.1 AA)
 const handleTabKeydown = (e: KeyboardEvent) => {
   // Build visible tabs array dynamically based on entitlements
-  const tabs: TabType[] = ['domains', 'members', 'subscription', 'general'];
+  const tabs: TabType[] = ['domains', 'members'];
   if (canManageSso.value) {
     tabs.push('sso');
   }
+  tabs.push('general');
 
   const currentIndex = tabs.indexOf(activeTab.value);
   if (currentIndex === -1) return;
@@ -600,20 +602,32 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           <router-link
             to="/orgs"
             class="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            :title="t('web.organizations.title')">
+            :title="organization?.display_name || t('web.organizations.title')">
             <OIcon
               collection="heroicons"
               name="arrow-left"
-              class="size-5"
+              class="size-5 shrink-0"
               aria-hidden="true" />
-            <h1 class="m-0 text-xl font-medium text-gray-900 dark:text-white">
+            <h1 class="m-0 truncate text-base font-medium text-gray-900 sm:text-xl dark:text-white">
               {{ organization?.display_name || t('web.COMMON.loading') }}
             </h1>
           </router-link>
         </div>
+        <router-link
+          v-if="organization && billingEnabled"
+          :to="`/org/${organization.extid}/subscription`"
+          class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 hover:border-gray-300 hover:text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:border-gray-500 dark:hover:text-gray-200"
+          data-testid="org-subscription-chip">
+          <OIcon
+            collection="heroicons"
+            name="credit-card"
+            class="size-3.5"
+            aria-hidden="true" />
+          {{ organization.planid ? getPlanDisplayName(organization.planid) : t('web.billing.plans.free_plan') }}
+        </router-link>
       </div>
 
-      <!-- Tabs: Domains, Members, Subscription, Settings, SSO (conditional) -->
+      <!-- Tabs: Domains, Members, SSO (conditional), Settings -->
       <div v-if="!orgNotFound && organization" class="border-b border-gray-200 dark:border-gray-700">
         <nav
           role="tablist"
@@ -638,7 +652,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             ]">
             {{ t('web.organizations.tabs.domains') }}
           </button>
-          <!-- Team tab -->
+          <!-- Members tab -->
           <button
             id="org-tab-members"
             role="tab"
@@ -654,40 +668,6 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.members') }}
-          </button>
-          <!-- Subscription tab - shown for all organizations -->
-          <button
-            id="org-tab-subscription"
-            role="tab"
-            :aria-selected="activeTab === 'subscription'"
-            :tabindex="activeTab === 'subscription' ? 0 : -1"
-            aria-controls="org-panel-subscription"
-            data-testid="org-tab-subscription"
-            @click="setActiveTab('subscription')"
-            :class="[
-              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
-              activeTab === 'subscription'
-                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
-            ]">
-            {{ t('web.organizations.tabs.subscription') }}
-          </button>
-          <!-- Settings tab - infrequently changed fields -->
-          <button
-            id="org-tab-general"
-            role="tab"
-            :aria-selected="activeTab === 'general'"
-            :tabindex="activeTab === 'general' ? 0 : -1"
-            aria-controls="org-panel-general"
-            data-testid="org-tab-settings"
-            @click="setActiveTab('general')"
-            :class="[
-              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
-              activeTab === 'general'
-                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
-            ]">
-            {{ t('web.organizations.tabs.general')  }}
           </button>
           <!-- SSO tab - single sign-on configuration (entitlement-gated) -->
           <button
@@ -706,6 +686,23 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.sso') }}
+          </button>
+          <!-- Settings tab - always last -->
+          <button
+            id="org-tab-general"
+            role="tab"
+            :aria-selected="activeTab === 'general'"
+            :tabindex="activeTab === 'general' ? 0 : -1"
+            aria-controls="org-panel-general"
+            data-testid="org-tab-settings"
+            @click="setActiveTab('general')"
+            :class="[
+              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              activeTab === 'general'
+                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+            ]">
+            {{ t('web.organizations.tabs.general')  }}
           </button>
         </nav>
       </div>

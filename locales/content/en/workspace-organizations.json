@@ -211,9 +211,13 @@
     "text": "Company Branding",
     "content_hash": "7ecc5d35"
   },
-  "web.organizations.tabs.members": {
+  "web.organizations.tabs.team": {
     "text": "Team",
     "content_hash": "5985039f"
+  },
+  "web.organizations.tabs.members": {
+    "text": "Members",
+    "content_hash": "a1b2c3d4"
   },
   "web.organizations.tabs.billing": {
     "text": "Billing",
@@ -439,6 +443,16 @@
     "text": "Invited by",
     "content_hash": "c7a6f156"
   },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "by {email}",
+    "context": "Inline attribution shown below org name in invitation context box",
+    "content_hash": "d8b7e267"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "as a {role}",
+    "context": "Inline role shown below inviter in invitation context box, reads as part of a sentence",
+    "content_hash": "e9c8f378"
+  },
   "web.organizations.invitations.invited_at": {
     "text": "Invited",
     "content_hash": "63b17bec"
@@ -472,7 +486,7 @@
     "content_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Member",
+    "text": "Team Member",
     "content_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -522,6 +536,11 @@
   "web.organizations.invitations.invalid_token": {
     "text": "Invalid or expired invitation",
     "content_hash": "6c0fc3de"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Back to home",
+    "context": "Link text on invalid/expired invitation page",
+    "content_hash": "f1a2b3c4"
   },
   "web.organizations.invitations.must_sign_in": {
     "text": "Please sign in to accept this invitation",
@@ -785,7 +804,7 @@
     "content_hash": "3d4e5f6a"
   },
   "web.organizations.invitations.create_account_and_join": {
-    "text": "Create Account & Join {orgName}",
+    "text": "Continue",
     "context": "Button text for signup form in invitation flow",
     "content_hash": "7b8c9d0e"
   },

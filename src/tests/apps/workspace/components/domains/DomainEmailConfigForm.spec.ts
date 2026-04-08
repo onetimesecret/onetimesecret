@@ -61,6 +61,13 @@ const i18n = createI18n({
             discard_changes: 'Discard Changes',
             save_changes: 'Save Changes',
             disabled_notice: 'Email sending is currently disabled. Enable the feature to configure email settings.',
+            test_email_title: 'Test email delivery',
+            test_email_hint: 'Send a test email to yourself using the saved configuration.',
+            send_test: 'Send test',
+            test_email_sent: 'Test email sent successfully',
+            test_email_failed: 'Failed to send test email',
+            test_email_sent_to: 'Sent to {email}',
+            delivered_via: 'Delivered via {provider}',
           },
         },
         COMMON: {
@@ -120,7 +127,11 @@ describe('DomainEmailConfigForm', () => {
     isConfigured: boolean;
     isSaving: boolean;
     isDeleting: boolean;
+    isTesting: boolean;
     hasUnsavedChanges: boolean;
+    provider: string;
+    testResult: Record<string, unknown> | null;
+    testError: string;
     error: string;
   }> = {}) => {
     return mount(DomainEmailConfigForm, {
@@ -129,7 +140,11 @@ describe('DomainEmailConfigForm', () => {
         isConfigured: props.isConfigured ?? false,
         isSaving: props.isSaving ?? false,
         isDeleting: props.isDeleting ?? false,
+        isTesting: props.isTesting ?? false,
         hasUnsavedChanges: props.hasUnsavedChanges ?? false,
+        provider: props.provider,
+        testResult: props.testResult ?? null,
+        testError: props.testError,
         error: props.error,
       },
       global: {
@@ -556,47 +571,23 @@ describe('DomainEmailConfigForm', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Disabled state behavior (UI consistency)
+  // Fields always editable (enabled toggle does not disable inputs)
   // ─────────────────────────────────────────────────────────────────────────
 
-  describe('Disabled state behavior', () => {
-    it('shows disabled notice banner when enabled is false', () => {
+  describe('Fields always editable', () => {
+    it('does not show a disabled notice banner when enabled is false', () => {
       wrapper = mountComponent({
         formState: { ...emptyFormState, enabled: false },
       });
 
-      // Banner should be visible with info icon
-      const banner = wrapper.find('.bg-blue-50');
-      expect(banner.exists()).toBe(true);
-    });
-
-    it('hides disabled notice banner when enabled is true', () => {
-      wrapper = mountComponent({
-        formState: { ...configuredFormState, enabled: true },
-      });
-
-      // Banner should NOT be visible
+      // The disabled-state banner (.bg-blue-50) was removed; fields are always editable
       const banner = wrapper.find('.bg-blue-50');
       expect(banner.exists()).toBe(false);
     });
 
-    it('disables form inputs when enabled is false', () => {
+    it('form inputs are never disabled regardless of enabled toggle', () => {
       wrapper = mountComponent({
         formState: { ...emptyFormState, enabled: false },
-      });
-
-      const fromNameInput = wrapper.find('#email-from-name');
-      const fromAddressInput = wrapper.find('#email-from-address');
-      const replyToInput = wrapper.find('#email-reply-to');
-
-      expect(fromNameInput.attributes('disabled')).toBeDefined();
-      expect(fromAddressInput.attributes('disabled')).toBeDefined();
-      expect(replyToInput.attributes('disabled')).toBeDefined();
-    });
-
-    it('enables form inputs when enabled is true', () => {
-      wrapper = mountComponent({
-        formState: { ...configuredFormState, enabled: true },
       });
 
       const fromNameInput = wrapper.find('#email-from-name');
@@ -608,25 +599,16 @@ describe('DomainEmailConfigForm', () => {
       expect(replyToInput.attributes('disabled')).toBeUndefined();
     });
 
-    it('applies opacity styling to form container when disabled', () => {
+    it('does not apply opacity styling to form container', () => {
       wrapper = mountComponent({
         formState: { ...emptyFormState, enabled: false },
-      });
-
-      const formFieldsContainer = wrapper.find('.opacity-60');
-      expect(formFieldsContainer.exists()).toBe(true);
-    });
-
-    it('does not apply opacity styling when enabled', () => {
-      wrapper = mountComponent({
-        formState: { ...configuredFormState, enabled: true },
       });
 
       const formFieldsContainer = wrapper.find('.opacity-60');
       expect(formFieldsContainer.exists()).toBe(false);
     });
 
-    it('toggle remains interactive when form is disabled', async () => {
+    it('toggle remains interactive when enabled is false', async () => {
       wrapper = mountComponent({
         formState: { ...emptyFormState, enabled: false },
       });
@@ -637,7 +619,7 @@ describe('DomainEmailConfigForm', () => {
 
       const emitted = wrapper.emitted('update:formState');
       expect(emitted).toBeTruthy();
-      // Should enable the form
+      // Should flip enabled to true
       expect(emitted![0][0]).toMatchObject({ enabled: true });
     });
   });

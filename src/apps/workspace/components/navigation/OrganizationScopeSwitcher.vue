@@ -186,7 +186,7 @@ const navigateToManageOrganizations = (): void => {
           : 'hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white',
       ]"
       :disabled="props.locked"
-      :title="props.locked ? t('web.organizations.switcher_locked') : undefined"
+      :title="props.locked ? t('web.organizations.switcher_locked') : (currentOrganization ? getOrganizationDisplayName(currentOrganization) : undefined)"
       :aria-label="t('web.organizations.select_organization')"
       :aria-disabled="props.locked ? 'true' : undefined"
       data-testid="org-scope-switcher-trigger">
@@ -210,7 +210,7 @@ const navigateToManageOrganizations = (): void => {
 
       <!-- Current Organization Display (hidden on xs, truncated on sm+) -->
       <span
-        class="hidden max-w-[80px] truncate sm:inline md:max-w-[120px] lg:max-w-[160px]"
+        class="hidden max-w-[80px] truncate lg:inline lg:max-w-[120px]"
         :title="currentOrganization ? getOrganizationDisplayName(currentOrganization) : undefined">
         {{
           currentOrganization

@@ -120,8 +120,8 @@
           aria-hidden="true" ></div>
       </TransitionChild>
 
-      <!-- Panel container - fixed to bottom -->
-      <div class="fixed inset-x-0 bottom-0">
+      <!-- Panel container - full viewport so clicks above panel trigger close -->
+      <div class="fixed inset-0 flex items-end">
         <TransitionChild
           as="template"
           enter="motion-safe:ease-out motion-safe:duration-300"
@@ -131,7 +131,7 @@
           leave-from="translate-y-0"
           leave-to="translate-y-full">
           <DialogPanel
-            class="rounded-t-2xl bg-white p-6 pb-safe dark:bg-gray-800">
+            class="w-full rounded-t-2xl bg-white p-6 pb-safe dark:bg-gray-800">
             <!-- Drag handle indicator -->
             <div class="mb-4 flex justify-center">
               <div
@@ -185,7 +185,7 @@
             </div>
 
             <!-- Passphrase Section -->
-            <div class="mb-6">
+            <form class="mb-6" @submit.prevent="closeSheet">
               <label
                 for="sheet-passphrase-input"
                 class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -221,7 +221,7 @@
                       focus:outline-none focus:ring-2 focus:ring-brand-500
                       disabled:cursor-not-allowed disabled:opacity-50
                       dark:hover:text-gray-300"
-                    :aria-label="t('web.COMMON.clear')">
+                    :aria-label="t('web.LABELS.clear')">
                     <OIcon
                       collection="heroicons"
                       name="x-mark"
@@ -260,7 +260,7 @@
                 class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                 {{ t('web.secrets.passphraseMinimumLength', { length: minPassphraseLength }) }}
               </p>
-            </div>
+            </form>
 
             <!-- Done button -->
             <button

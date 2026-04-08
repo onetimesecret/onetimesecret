@@ -29,13 +29,13 @@ module Onetime
     #
     class InviteTokenRateLimiter
       # Maximum attempts allowed per IP within the window
-      MAX_ATTEMPTS = 10
+      MAX_ATTEMPTS = 100
 
       # Window in seconds for counting attempts (10 minutes)
       WINDOW_SECONDS = 600
 
-      # Lockout duration in seconds after max attempts exceeded (30 minutes)
-      LOCKOUT_SECONDS = 1800
+      # Lockout duration in seconds after max attempts exceeded (20 minutes)
+      LOCKOUT_SECONDS = 1200
 
       class << self
         # Force rate limiting even in test environment (for unit testing the limiter)

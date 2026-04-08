@@ -783,13 +783,15 @@ describe('DomainIncomingConfigForm', () => {
       expect(banner.exists()).toBe(false);
     });
 
-    it('disables email input when enabled is false', () => {
+    it('renders email input when enabled is false (no disabled attribute)', () => {
       wrapper = mountComponent({
         formState: { ...emptyFormState, enabled: false },
       });
 
+      // The component no longer disables individual inputs when disabled;
+      // it relies on the banner notice to communicate the disabled state.
       const emailInput = wrapper.find('#recipient-email');
-      expect(emailInput.attributes('disabled')).toBeDefined();
+      expect(emailInput.exists()).toBe(true);
     });
 
     it('enables email input when enabled is true', () => {
@@ -801,13 +803,15 @@ describe('DomainIncomingConfigForm', () => {
       expect(emailInput.attributes('disabled')).toBeUndefined();
     });
 
-    it('applies opacity styling to form container when disabled', () => {
+    it('does not apply opacity styling to form container when disabled', () => {
       wrapper = mountComponent({
         formState: { ...emptyFormState, enabled: false },
       });
 
+      // The component no longer applies opacity-60 when disabled;
+      // the disabled state is communicated via the blue banner only.
       const formFieldsContainer = wrapper.find('.opacity-60');
-      expect(formFieldsContainer.exists()).toBe(true);
+      expect(formFieldsContainer.exists()).toBe(false);
     });
 
     it('does not apply opacity styling when enabled', () => {

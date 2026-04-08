@@ -278,7 +278,7 @@
         <router-link
           to="/"
           class="text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-          {{ t('web.COMMON.back_to_home') }}
+          {{ t('web.organizations.invitations.back_to_home') }}
         </router-link>
       </div>
     </div>
@@ -338,7 +338,7 @@
           class="mx-auto size-12 text-brand-600 dark:text-brand-400"
           aria-hidden="true" />
         <h1 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
-          {{ t('web.organizations.invitations.join_organization', { orgName: invitation?.organization_name ?? '' }) }}
+          {{ t('web.organizations.invitations.accept_invitation') }}
         </h1>
       </div>
 
@@ -355,51 +355,20 @@
         data-testid="invitation-context"
         class="space-y-4">
         <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
-          <p class="mb-2 text-sm text-gray-600 dark:text-gray-400">
+          <p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
             {{ t('web.organizations.invitations.you_are_invited') }}
           </p>
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
+          <p v-if="invitation.invited_by_email" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by_email }}</span>
+          </p>
+          <p class="text-sm text-gray-400 dark:text-gray-500">
+            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+          </p>
         </div>
 
-        <div class="space-y-2 text-sm">
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.email_address') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ invitation.email }}
-            </span>
-          </div>
-
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.invited_as') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ t(`web.organizations.invitations.roles.${invitation.role}`) }}
-            </span>
-          </div>
-
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.invited_by') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ invitation.invited_by_email ?? '—' }}
-            </span>
-          </div>
-
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.expires_at') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ formatDate(invitation.expires_at) }}
-            </span>
-          </div>
-        </div>
       </div>
 
       <!-- Inline Signup Form -->
@@ -412,6 +381,11 @@
         @success="onAcceptSuccess"
         @error="onFormError"
         @decline="handleDecline" />
+
+      <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+        {{ t('web.organizations.invitations.expires_at') }}
+        <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+      </p>
     </div>
 
     <!-- Signin Required State (existing user, must authenticate) -->
@@ -428,7 +402,7 @@
           class="mx-auto size-12 text-brand-600 dark:text-brand-400"
           aria-hidden="true" />
         <h1 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
-          {{ t('web.organizations.invitations.sign_in_to_join', { orgName: invitation?.organization_name ?? '' }) }}
+          {{ t('web.organizations.invitations.accept_invitation') }}
         </h1>
       </div>
 
@@ -445,51 +419,20 @@
         data-testid="invitation-context"
         class="space-y-4">
         <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
-          <p class="mb-2 text-sm text-gray-600 dark:text-gray-400">
+          <p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
             {{ t('web.organizations.invitations.you_are_invited') }}
           </p>
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
+          <p v-if="invitation.invited_by_email" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by_email }}</span>
+          </p>
+          <p class="text-sm text-gray-400 dark:text-gray-500">
+            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+          </p>
         </div>
 
-        <div class="space-y-2 text-sm">
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.email_address') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ invitation.email }}
-            </span>
-          </div>
-
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.invited_as') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ t(`web.organizations.invitations.roles.${invitation.role}`) }}
-            </span>
-          </div>
-
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.invited_by') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ invitation.invited_by_email ?? '—' }}
-            </span>
-          </div>
-
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.expires_at') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ formatDate(invitation.expires_at) }}
-            </span>
-          </div>
-        </div>
       </div>
 
       <!-- Sign-in Notice -->
@@ -523,6 +466,11 @@
           @mfa-required="onMfaRequired"
           @decline="handleDecline" />
       </div>
+
+      <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+        {{ t('web.organizations.invitations.expires_at') }}
+        <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+      </p>
     </div>
 
     <!-- Direct Accept State (authenticated, correct email) -->
@@ -556,51 +504,20 @@
         data-testid="invitation-details"
         class="space-y-4">
         <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
-          <p class="mb-2 text-sm text-gray-600 dark:text-gray-400">
+          <p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
             {{ t('web.organizations.invitations.you_are_invited') }}
           </p>
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
+          <p v-if="invitation.invited_by_email" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by_email }}</span>
+          </p>
+          <p class="text-sm text-gray-400 dark:text-gray-500">
+            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+          </p>
         </div>
 
-        <div class="space-y-2 text-sm">
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.email_address') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ invitation.email }}
-            </span>
-          </div>
-
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.invited_as') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ t(`web.organizations.invitations.roles.${invitation.role}`) }}
-            </span>
-          </div>
-
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.invited_by') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ invitation.invited_by_email ?? '—' }}
-            </span>
-          </div>
-
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.expires_at') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ formatDate(invitation.expires_at) }}
-            </span>
-          </div>
-        </div>
 
         <!-- Action Buttons -->
         <div class="mt-6 flex flex-col gap-3 sm:flex-row-reverse">
@@ -624,6 +541,11 @@
             {{ t('web.organizations.invitations.decline_invitation') }}
           </button>
         </div>
+
+        <p class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.organizations.invitations.expires_at') }}
+          <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+        </p>
       </div>
     </div>
 
@@ -658,51 +580,20 @@
         data-testid="invitation-details"
         class="space-y-4">
         <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
-          <p class="mb-2 text-sm text-gray-600 dark:text-gray-400">
+          <p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
             {{ t('web.organizations.invitations.you_are_invited') }}
           </p>
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
+          <p v-if="invitation.invited_by_email" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by_email }}</span>
+          </p>
+          <p class="text-sm text-gray-400 dark:text-gray-500">
+            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+          </p>
         </div>
 
-        <div class="space-y-2 text-sm">
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.email_address') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ invitation.email }}
-            </span>
-          </div>
-
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.invited_as') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ t(`web.organizations.invitations.roles.${invitation.role}`) }}
-            </span>
-          </div>
-
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.invited_by') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ invitation.invited_by_email ?? '—' }}
-            </span>
-          </div>
-
-          <div class="flex justify-between">
-            <span class="text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.invitations.expires_at') }}
-            </span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ formatDate(invitation.expires_at) }}
-            </span>
-          </div>
-        </div>
 
         <!-- Email Mismatch Notice -->
         <div
@@ -746,6 +637,11 @@
             {{ t('web.organizations.invitations.decline_invitation') }}
           </button>
         </div>
+
+        <p class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.organizations.invitations.expires_at') }}
+          <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+        </p>
       </div>
     </div>
   </div>

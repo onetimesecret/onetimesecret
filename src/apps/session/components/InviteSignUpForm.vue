@@ -341,7 +341,7 @@ const handleSubmit = async () => {
                     class="block w-full appearance-none rounded-md
                            border border-gray-300
                            bg-gray-50 px-3
-                           py-2 pr-10 text-lg
+                           py-1.5 pr-10 text-sm
                            text-gray-600
                            dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300"
                     data-testid="invite-signup-email-input" />
@@ -378,7 +378,7 @@ const handleSubmit = async () => {
                     :aria-describedby="fieldErrors.password ? 'password-error' : 'password-requirements'"
                     class="block w-full appearance-none rounded-md
                            border border-gray-300
-                           px-3 py-2 pr-10 text-lg
+                           px-3 py-1.5 pr-10 text-sm
                            text-gray-900 placeholder:text-gray-500
                            focus:border-brand-500 focus:outline-none focus:ring-brand-500
                            disabled:cursor-not-allowed disabled:opacity-50
@@ -427,7 +427,7 @@ const handleSubmit = async () => {
                     :aria-describedby="passwordMismatch ? 'confirm-password-error' : undefined"
                     class="block w-full appearance-none rounded-md
                            border
-                           px-3 py-2 pr-10 text-lg
+                           px-3 py-1.5 pr-10 text-sm
                            text-gray-900 placeholder:text-gray-500
                            focus:border-brand-500 focus:outline-none focus:ring-brand-500
                            disabled:cursor-not-allowed disabled:opacity-50
@@ -527,12 +527,18 @@ const handleSubmit = async () => {
               <button
                 type="submit"
                 :disabled="isSubmitting || isLoading || passwordMismatch"
-                class="flex-[2] rounded-md bg-brand-600 px-4 py-2
+                class="inline-flex flex-[2] items-center justify-center gap-2 rounded-md bg-brand-600 px-4 py-2
                        text-sm font-medium text-white hover:bg-brand-700
                        disabled:cursor-not-allowed disabled:opacity-50"
                 data-testid="invite-signup-submit">
                 <span v-if="isSubmitting || isLoading">{{ t('web.COMMON.processing') }}</span>
-                <span v-else>{{ t('web.organizations.invitations.create_account_and_join', { orgName }) }}</span>
+                <template v-else>
+                  {{ t('web.organizations.invitations.create_account_and_join') }}
+                  <OIcon collection="heroicons"
+name="arrow-right"
+class="size-4"
+aria-hidden="true" />
+                </template>
               </button>
             </div>
             <!-- Loading state announcement (screen reader only) -->
@@ -763,7 +769,7 @@ const handleSubmit = async () => {
                 :aria-describedby="fieldErrors.password ? 'password-error' : 'password-requirements-single'"
                 class="block w-full appearance-none rounded-md
                        border border-gray-300
-                       px-3 py-2 pr-10 text-lg
+                       px-3 py-1.5 pr-10 text-sm
                        text-gray-900 placeholder:text-gray-500
                        focus:border-brand-500 focus:outline-none focus:ring-brand-500
                        disabled:cursor-not-allowed disabled:opacity-50
@@ -812,7 +818,7 @@ const handleSubmit = async () => {
                 :aria-describedby="passwordMismatch ? 'confirm-password-error-single' : undefined"
                 class="block w-full appearance-none rounded-md
                        border
-                       px-3 py-2 pr-10 text-lg
+                       px-3 py-1.5 pr-10 text-sm
                        text-gray-900 placeholder:text-gray-500
                        focus:border-brand-500 focus:outline-none focus:ring-brand-500
                        disabled:cursor-not-allowed disabled:opacity-50
@@ -912,12 +918,18 @@ const handleSubmit = async () => {
           <button
             type="submit"
             :disabled="isSubmitting || isLoading || passwordMismatch"
-            class="flex-[2] rounded-md bg-brand-600 px-4 py-2
+            class="inline-flex flex-[2] items-center justify-center gap-2 rounded-md bg-brand-600 px-4 py-2
                    text-sm font-medium text-white hover:bg-brand-700
                    disabled:cursor-not-allowed disabled:opacity-50"
             data-testid="invite-signup-submit">
             <span v-if="isSubmitting || isLoading">{{ t('web.COMMON.processing') }}</span>
-            <span v-else>{{ t('web.organizations.invitations.create_account_and_join', { orgName }) }}</span>
+            <template v-else>
+              {{ t('web.organizations.invitations.create_account_and_join') }}
+              <OIcon collection="heroicons"
+name="arrow-right"
+class="size-4"
+aria-hidden="true" />
+            </template>
           </button>
         </div>
         <!-- Loading state announcement (screen reader only) -->
@@ -956,7 +968,7 @@ const handleSubmit = async () => {
               class="block w-full appearance-none rounded-md
                      border border-gray-300
                      bg-gray-50 px-3
-                     py-2 pr-10 text-lg
+                     py-1.5 pr-10 text-sm
                      text-gray-600
                      dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300"
               data-testid="invite-signup-magic-link-email" />

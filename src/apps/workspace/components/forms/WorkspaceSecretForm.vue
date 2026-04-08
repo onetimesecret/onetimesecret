@@ -104,14 +104,21 @@
     useSecretConcealer({
       onSuccess: async (response) => {
         const timestamp = Date.now();
-        loggingService.debug('[DEBUG:WorkspaceSecretForm] onSuccess started', {
+        const action = selectedAction.value;
+        const domain = currentContext.value.domain;
+
+        loggingService.debug('[WorkspaceSecretForm] onSuccess', {
           timestamp,
+          action,
+          domain,
           receiptId: response?.record?.receipt?.identifier,
           receiptShortid: response?.record?.receipt?.shortid,
           workspaceMode: localReceiptStore.workspaceMode,
+          hasPassphrase: !!form.passphrase,
+          ttl: form.ttl,
         });
 
-        if (!response) throw 'Response is missing';
+        if (!response) throw new Error('Response is missing');
         const newMessage: LocalReceipt = {
           id: nanoid(),
           receiptExtid: response.record.receipt.identifier,
@@ -135,10 +142,12 @@
         // Restore TTL to previous value (sticky across submissions)
         operations.updateField('ttl', preservedTtl as number);
 
-        // Emit event for parent components
-        loggingService.debug('[DEBUG:WorkspaceSecretForm] Emitting created event', {
+        loggingService.debug('[WorkspaceSecretForm] receipt created', {
           timestamp,
+          action,
+          domain,
           receiptShortid: newMessage.receiptShortid,
+          secretShortid: newMessage.secretShortid,
         });
         emit('created', newMessage);
 
@@ -147,8 +156,11 @@
         if (!localReceiptStore.workspaceMode || selectedAction.value === 'generate-password') {
           router.push(`/receipt/${newMessage.receiptExtid}`);
         } else {
-          loggingService.debug('[DEBUG:WorkspaceSecretForm] Staying on page (workspace mode)', {
+          loggingService.debug('[WorkspaceSecretForm] staying on page', {
             timestamp,
+            action,
+            domain,
+            workspaceMode: true,
           });
         }
       },
@@ -396,10 +408,10 @@
             <!-- Main action row -->
             <div
               class="flex items-center justify-between gap-4">
-              <!-- Domain Context Indicator (hidden on mobile - redundant with header) -->
+              <!-- Domain Context Indicator (sm+ only; on mobile it appears in the CTA button) -->
               <div
                 v-if="isContextActive"
-                class="hidden items-center gap-2 text-base font-brand sm:flex">
+                class="hidden items-center text-base font-brand sm:flex">
                 <div
                   class="inline-flex items-center gap-1.5 rounded-full px-3
                     py-1.5 text-base font-medium transition-all duration-150"
@@ -429,9 +441,8 @@
                 </div>
               </div>
 
-              <!-- Submit Area (always right-aligned) -->
-              <div class="ml-auto flex items-center gap-2.5">
-                <!-- Submit Button -->
+              <!-- Submit Area (full-width on mobile, right-aligned on sm+) -->
+              <div class="flex w-full items-center gap-2.5 sm:ml-auto sm:w-auto">
                 <SplitButton
                   :with-generate="true"
                   :corner-class="cornerClass"
@@ -441,6 +452,7 @@
                   :disable-generate="selectedAction === 'create-link' && hasContent"
                   :keyboard-shortcut-enabled="true"
                   :show-keyboard-hint="false"
+                  :subtitle="isContextActive ? currentContext.displayName : ''"
                   @update:action="selectedAction = $event" />
               </div>
             </div>

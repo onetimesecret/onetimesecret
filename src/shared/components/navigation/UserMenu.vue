@@ -30,6 +30,7 @@ import FancyIcon from '@/shared/components/ctas/FancyIcon.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useTheme } from '@/shared/composables/useTheme';
+import { useDomainContext } from '@/shared/composables/useDomainContext';
 import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
 import { type Customer } from '@/schemas/shapes/v3';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -70,6 +71,12 @@ const userRole = computed(() =>
 // Only restrict members on custom domains — admins see the full menu like owners.
 // If org hasn't loaded yet (null role), show full menu to avoid blocking navigation.
 const isCustomDomainMember = computed(() => isCustom.value && !!userRole.value && userRole.value === 'member');
+
+// Domain context display in menu header (canonical site only)
+const { currentContext, isContextActive } = useDomainContext();
+const showDomainContext = computed(() =>
+  isContextActive.value && !isCustom.value && !props.awaitingMfa
+);
 
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
@@ -297,7 +304,7 @@ onUnmounted(() => {
       <!-- Email & Chevron -->
       <div class="hidden items-center gap-1 sm:flex">
         <span
-          class="max-w-[140px] truncate md:max-w-[180px] lg:max-w-[220px]"
+          class="max-w-[140px] truncate lg:max-w-[160px]"
           :title="userEmail">{{ displayEmail }}</span>
         <OIcon
           collection="heroicons"
@@ -361,6 +368,16 @@ onUnmounted(() => {
             v-if="!awaitingMfa && cust?.objid"
             class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
             {{ cust?.extid }}
+          </p>
+          <p
+            v-if="showDomainContext"
+            class="mt-0.5 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+            <OIcon
+              collection="heroicons"
+              name="globe-alt"
+              class="size-3 shrink-0"
+              aria-hidden="true" />
+            <span class="truncate">{{ currentContext.displayName }}</span>
           </p>
           <!-- MFA Required Notice -->
           <div
