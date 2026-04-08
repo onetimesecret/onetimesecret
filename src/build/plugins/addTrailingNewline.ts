@@ -16,7 +16,11 @@ import type { Plugin } from 'vite';
 export const addTrailingNewline = (): Plugin => ({
   name: 'add-trailing-newline',
   async writeBundle(options, bundle) {
-    const outputDir = options.dir!;
+    const outputDir = options.dir;
+    if (!outputDir) {
+      console.warn('[add-trailing-newline] No output directory specified, skipping.');
+      return;
+    }
 
     await Promise.all(
       Object.keys(bundle).map(async (fileName) => {

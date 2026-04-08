@@ -42,7 +42,9 @@ export default mergeConfig(
           entryFileNames: `assets/[name].js`,
           chunkFileNames: `assets/[name].js`,
           assetFileNames: `assets/[name].[ext]`,
-          // Ensure exports are named for easier integration
+          // WARNING: UMD format has not been validated with Rolldown (Vite 8).
+          // Rolldown's UMD output may differ from Rollup's. If build:local
+          // produces runtime errors, try switching to 'es' or 'iife'.
           format: 'umd',
         },
       },
