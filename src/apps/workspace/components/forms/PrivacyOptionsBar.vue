@@ -57,6 +57,9 @@
   );
 
   const hasPassphrase = computed(() => !!props.currentPassphrase);
+
+  const defaultTtl = computed(() => secret_options.value?.default_ttl ?? 604800);
+  const ttlChanged = computed(() => props.currentTtl !== defaultTtl.value);
 </script>
 
 <template>
@@ -112,6 +115,16 @@
           class="size-3.5"
           aria-hidden="true" />
         <span>{{ t('web.COMMON.secret_privacy_options') }}</span>
+        <span
+          v-if="ttlChanged"
+          class="flex items-center justify-center rounded bg-brand-200/60 p-0.5
+            dark:bg-brand-700/40">
+          <OIcon
+            collection="heroicons"
+            name="clock"
+            class="size-3"
+            aria-hidden="true" />
+        </span>
         <span
           v-if="hasPassphrase"
           class="flex items-center justify-center rounded bg-brand-200/60 p-0.5

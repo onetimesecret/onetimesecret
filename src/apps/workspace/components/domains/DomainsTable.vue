@@ -52,6 +52,12 @@ const { t } = useI18n();
   const canEmailConfig = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
   const canIncomingSecrets = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
 
+  /** Current user is owner or admin — can modify domain settings */
+  const canAdmin = computed(() => {
+    const role = organization.value?.current_user_role;
+    return role === 'owner' || role === 'admin';
+  });
+
   const emit = defineEmits<{
     (e: 'toggle-homepage', domain: CustomDomain): void;
   }>();
@@ -88,8 +94,8 @@ const { t } = useI18n();
       <!-- Header Section (hidden in compact mode) -->
       <div
         v-if="!compact"
-        class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div class="min-w-0 md:mr-4">
           <h1
             id="domains-heading"
             class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
@@ -101,7 +107,7 @@ const { t } = useI18n();
         </div>
         <router-link
           :to="addDomainRoute"
-          class="inline-flex min-w-max items-center justify-center rounded-lg bg-brand-600 px-4 py-2 font-brand text-base font-medium text-white transition-colors duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:hover:bg-brand-500 dark:focus:ring-offset-gray-900">
+          class="inline-flex shrink-0 whitespace-nowrap items-center justify-center rounded-lg bg-brand-600 px-4 py-2 font-brand text-base font-medium text-white transition-colors duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:hover:bg-brand-500 dark:focus:ring-offset-gray-900">
           <OIcon
             name="plus-20-solid"
             collection="heroicons"
@@ -154,7 +160,7 @@ const { t } = useI18n();
                   <!-- domain.brand?.allow_public_homepage -->
                   <ToggleWithIcon
                     :enabled="domain.brand?.allow_public_homepage ?? false"
-                    :disabled="isLoading"
+                    :disabled="isLoading || !canAdmin"
                     @update:enabled="handleHomepageToggle(domain)" />
                 </div>
               </td>
@@ -164,6 +170,7 @@ const { t } = useI18n();
                 <DomainsTableActionsCell
                   :domain="domain"
                   :orgid="props.orgid"
+                  :can-admin="canAdmin"
                   :can-brand="canBrand"
                   :can-manage-sso="canManageSso"
                   :can-email-config="canEmailConfig"

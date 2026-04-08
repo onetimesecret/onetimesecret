@@ -14,6 +14,8 @@ const { t } = useI18n();
   interface Props {
     domain: CustomDomain;
     orgid: string;
+    /** Current user is owner or admin — can modify domain config */
+    canAdmin?: boolean;
     canBrand?: boolean;
     canManageSso?: boolean;
     canEmailConfig?: boolean;
@@ -21,11 +23,14 @@ const { t } = useI18n();
   }
 
   const props = withDefaults(defineProps<Props>(), {
+    canAdmin: true,
     canBrand: false,
     canManageSso: false,
     canEmailConfig: false,
     canIncomingSecrets: false,
   });
+
+  const disabledItemClass = 'pointer-events-none opacity-50';
 
   // Domain verification status
   const { isActive } = useDomainStatus(toRef(() => props.domain));
@@ -110,52 +115,55 @@ const { t } = useI18n();
             {{ t('web.domains.verify_domain') }}
           </router-link>
         </MenuItem>
-        <MenuItem v-if="canManageSso" v-slot="{ active }">
+        <MenuItem v-if="canManageSso"
+:disabled="!canAdmin"
+v-slot="{ active }">
           <router-link
-            :to="{
-              name: 'DomainSso',
-              params: { orgid: props.orgid, extid: domain.extid },
-            }"
+            :to="canAdmin ? { name: 'DomainSso', params: { orgid: props.orgid, extid: domain.extid } } : ''"
             :class="[
-              active
+              active && canAdmin
                 ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
                 : 'text-gray-700 dark:text-gray-200',
               'block px-4 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500',
-            ]">
+              !canAdmin ? disabledItemClass : '',
+            ]"
+            @click.prevent="!canAdmin && $event.stopImmediatePropagation()">
             {{ t('web.domains.sso.configure_sso') }}
           </router-link>
         </MenuItem>
-        <MenuItem v-if="canEmailConfig" v-slot="{ active }">
+        <MenuItem v-if="canEmailConfig"
+:disabled="!canAdmin"
+v-slot="{ active }">
           <router-link
-            :to="{
-              name: 'DomainEmail',
-              params: { orgid: props.orgid, extid: domain.extid },
-            }"
+            :to="canAdmin ? { name: 'DomainEmail', params: { orgid: props.orgid, extid: domain.extid } } : ''"
             :class="[
-              active
+              active && canAdmin
                 ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
                 : 'text-gray-700 dark:text-gray-200',
               'block px-4 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500',
-            ]">
+              !canAdmin ? disabledItemClass : '',
+            ]"
+            @click.prevent="!canAdmin && $event.stopImmediatePropagation()">
             {{ t('web.domains.email.configure_email') }}
           </router-link>
         </MenuItem>
-        <MenuItem v-if="canIncomingSecrets" v-slot="{ active }">
+        <MenuItem v-if="canIncomingSecrets"
+:disabled="!canAdmin"
+v-slot="{ active }">
           <router-link
-            :to="{
-              name: 'DomainIncoming',
-              params: { orgid: props.orgid, extid: domain.extid },
-            }"
+            :to="canAdmin ? { name: 'DomainIncoming', params: { orgid: props.orgid, extid: domain.extid } } : ''"
             :class="[
-              active
+              active && canAdmin
                 ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
                 : 'text-gray-700 dark:text-gray-200',
               'block px-4 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500',
-            ]">
+              !canAdmin ? disabledItemClass : '',
+            ]"
+            @click.prevent="!canAdmin && $event.stopImmediatePropagation()">
             {{ t('web.domains.incoming.configure_incoming') }}
           </router-link>
         </MenuItem>
-        <MenuItem v-slot="{ active }">
+        <MenuItem v-if="canAdmin" v-slot="{ active }">
           <button
             @click="handleDelete(domain.extid)"
             :class="[

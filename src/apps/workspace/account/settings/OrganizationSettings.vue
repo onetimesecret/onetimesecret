@@ -600,13 +600,13 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           <router-link
             to="/orgs"
             class="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            :title="t('web.organizations.title')">
+            :title="organization?.display_name || t('web.organizations.title')">
             <OIcon
               collection="heroicons"
               name="arrow-left"
-              class="size-5"
+              class="size-5 shrink-0"
               aria-hidden="true" />
-            <h1 class="m-0 text-xl font-medium text-gray-900 dark:text-white">
+            <h1 class="m-0 truncate text-base font-medium text-gray-900 sm:text-xl dark:text-white">
               {{ organization?.display_name || t('web.COMMON.loading') }}
             </h1>
           </router-link>
