@@ -2,9 +2,6 @@
 
 import { test, expect } from '@playwright/test';
 
-/** Window with bootstrap state (object before consumption, true after) */
-type BootstrapWindow = Window & { __BOOTSTRAP_ME__?: unknown };
-
 /**
  * E2E Integration Tests
  *
@@ -291,20 +288,36 @@ test.describe('E2E Integration - Environment Validation', () => {
     // then is replaced with `true` after consumption by the bootstrap service.
     // This allows memory to be reclaimed while preserving a testable marker.
     //
-    // We wait for the Vue app to mount (#app[data-v-app]) to ensure the
-    // module script has fully executed — Rolldown's lazy module init may
-    // defer execution slightly beyond the `load` event in CI environments.
+    // We wait directly for the bootstrap marker rather than relying on
+    // data-v-app, which requires Vue to mount synchronously. waitForFunction
+    // polls the page context, naturally handling Rolldown's deferred module
+    // initialization in CI environments.
 
     await page.goto('/');
 
-    // Wait for Vue app to mount before checking bootstrap state
-    await page.waitForSelector('#app[data-v-app]', { timeout: 15000 });
+    // Wait for bootstrap data to be consumed (Vue must mount and run
+    // consumeBootstrapData which replaces the object with `true`)
+    const bootstrapConsumed = await page.waitForFunction(() => {
+      return (window as any).__BOOTSTRAP_ME__ === true;
+    }, { timeout: 15000 }).then(() => true).catch(() => false);
 
-    // Verify bootstrap data was successfully consumed (marker is set to true)
-    const bootstrapConsumed = await page.evaluate(() => {
-      return (window as BootstrapWindow).__BOOTSTRAP_ME__ === true;
-    });
+    if (!bootstrapConsumed) {
+      // Capture diagnostic state to help debug mount failures
+      const diagnostic = await page.evaluate(() => {
+        const app = document.querySelector('#app');
+        return {
+          bootstrapValue: typeof (window as any).__BOOTSTRAP_ME__,
+          hasAppElement: !!app,
+          hasDataVApp: app?.hasAttribute('data-v-app') ?? false,
+          appChildCount: app?.childElementCount ?? 0,
+        };
+      });
+      console.log('Bootstrap diagnostic:', JSON.stringify(diagnostic));
+    }
 
-    expect(bootstrapConsumed, 'Bootstrap state should be consumed (value === true)').toBe(true);
+    expect(bootstrapConsumed,
+      'Bootstrap state should be consumed (value === true). ' +
+      'If this fails, Vue may not be mounting in the production build.'
+    ).toBe(true);
   });
 });
