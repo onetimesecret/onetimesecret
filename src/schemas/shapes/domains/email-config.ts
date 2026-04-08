@@ -88,6 +88,14 @@ export const customDomainEmailConfigSchema = customDomainEmailConfigCanonical
     last_validated_at: z.number().nullable().transform((v) =>
       v !== null ? new Date(v * 1000) : null
     ),
+
+    dns_check_completed_at: z.number().nullable().transform((v) =>
+      v !== null ? new Date(v * 1000) : null
+    ),
+
+    provider_check_completed_at: z.number().nullable().transform((v) =>
+      v !== null ? new Date(v * 1000) : null
+    ),
   });
 
 export type CustomDomainEmailConfig = z.infer<typeof customDomainEmailConfigSchema>;
