@@ -84,6 +84,16 @@ module Onetime
       # General state
       field :enabled          # Boolean string ('true'/'false')
 
+      # Per-record DNS check results from DnsRecordCheckWorker.
+      # Array of hashes: [{type:, name:, value:, dns_exists:, value_matches:, error:}, ...]
+      # Pure fact-finding data — no pass/fail judgement.
+      jsonkey :dns_check_results
+
+      # Timestamps for dual verification completion tracking.
+      # Cleared when re-validate is triggered; set by respective workers.
+      field :dns_check_completed_at       # Unix timestamp, set by DnsRecordCheckWorker
+      field :provider_check_completed_at  # Unix timestamp, set by DomainValidationWorker
+
       # Verification tracking fields (for caching and metrics)
       field :last_check_at      # Unix timestamp of last verification attempt
       field :check_duration_ms  # Duration of last check in milliseconds
@@ -229,31 +239,50 @@ module Onetime
       # Build DNS records required for email authentication.
       #
       # Returns the DNS records that must be configured at the domain registrar.
-      # After provisioning, this returns the actual records from the provider.
-      # Before provisioning, returns an empty array.
+      # After provisioning, this returns the actual records from the provider,
+      # enriched with per-record DNS check results when available.
       #
       # Each record includes:
       #   - type: DNS record type (CNAME, TXT, etc.)
       #   - name: DNS hostname
       #   - value: DNS record value
-      #   - status: Verification status ('pending', 'verified', 'failed')
+      #   - status: Overall verification status ('pending', 'verified', 'failed')
+      #   - dns_exists: Whether the DNS record was found (from DnsRecordCheckWorker)
+      #   - value_matches: Whether the DNS value matches provisioned value
       #
       # @return [Array<Hash>] DNS records for user to configure
       def required_dns_records
         return [] unless provisioned?
 
         data           = dns_records.value
+        dns_checks     = dns_check_results&.value || []
         current_status = verification_status || 'pending'
 
         data.map do |record|
-          # Ensure consistent shape: type, name, value, status
-          {
-            type: record['type'] || record[:type],
-            name: record['name'] || record[:name],
-            value: record['value'] || record[:value],
-            status: current_status,
-          }.compact
+          name  = record['name']
+          check = dns_checks.find { |c| c['name'] == name }
+
+          result = {
+            'type' => record['type'],
+            'name' => name,
+            'value' => record['value'],
+            'status' => current_status,
+          }
+          if check
+            result['dns_exists']    = check['dns_exists']
+            result['value_matches'] = check['value_matches']
+          end
+          result.compact
         end
+      end
+
+      # Check if both DNS and provider verification have completed.
+      #
+      # Used by the frontend to determine when polling can stop.
+      #
+      # @return [Boolean] true if both checks have run since last re-validate
+      def both_checks_complete?
+        !dns_check_completed_at.to_s.empty? && !provider_check_completed_at.to_s.empty?
       end
 
       # Resolve effective provider for this mailer config.
