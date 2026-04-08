@@ -143,12 +143,13 @@ test.describe('E2E Integration - Production Build Validation', () => {
     await page.waitForLoadState('networkidle');
 
     // Verify no critical JavaScript errors occurred
-    expect(
-      jsErrors.filter(
-        (error) =>
-          !error.includes('Non-Error promise rejection') && // Filter minor errors
-          !error.includes('Script error')
-      )
+    const criticalErrors = jsErrors.filter(
+      (error) =>
+        !error.includes('Non-Error promise rejection') && // Filter minor errors
+        !error.includes('Script error')
+    );
+    expect(criticalErrors,
+      `Critical JS errors during page load:\n${criticalErrors.join('\n')}`
     ).toHaveLength(0);
   });
 
@@ -289,32 +290,17 @@ test.describe('E2E Integration - Environment Validation', () => {
     // This allows memory to be reclaimed while preserving a testable marker.
 
     // Capture diagnostics BEFORE navigation to catch early errors
-    const consoleMessages: string[] = [];
     const pageErrors: string[] = [];
-    const failedRequests: { url: string; status?: number; error?: string }[] = [];
+    const failedRequests: string[] = [];
 
-    page.on('console', (msg) => {
-      if (msg.type() === 'error' || msg.type() === 'warning') {
-        consoleMessages.push(`[${msg.type()}] ${msg.text()}`);
-      }
-    });
     page.on('pageerror', (error) => {
       pageErrors.push(error.message);
     });
     page.on('requestfailed', (request) => {
-      failedRequests.push({
-        url: request.url(),
-        error: request.failure()?.errorText,
-      });
+      failedRequests.push(`${request.url()} (${request.failure()?.errorText})`);
     });
 
     await page.goto('/');
-
-    // Check the main JS bundle response (content-type, status)
-    const jsResponse = await page.evaluate(() => {
-      const scripts = document.querySelectorAll('script[type="module"][src]');
-      return Array.from(scripts).map((s) => (s as HTMLScriptElement).src);
-    });
 
     // Wait for bootstrap data to be consumed (Vue must mount and run
     // consumeBootstrapData which replaces the object with `true`)
@@ -322,35 +308,30 @@ test.describe('E2E Integration - Environment Validation', () => {
       return (window as any).__BOOTSTRAP_ME__ === true;
     }, { timeout: 30000 }).then(() => true).catch(() => false);
 
+    // Build a diagnostic message that surfaces in the GitHub reporter
+    // (console.log only appears in raw stdout, not the failure summary)
+    let diagnosticMsg = 'Bootstrap state should be consumed (value === true). ' +
+      'If this fails, Vue may not be mounting in the production build.';
+
     if (!bootstrapConsumed) {
-      // Capture diagnostic state to help debug mount failures
       const diagnostic = await page.evaluate(() => {
         const app = document.querySelector('#app');
-        // Check if any script tags errored
-        const scripts = document.querySelectorAll('script[type="module"]');
-        const scriptInfo = Array.from(scripts).map((s) => ({
-          src: (s as HTMLScriptElement).src || '(inline)',
-          hasError: !!(s as any).__error,
-        }));
         return {
-          bootstrapValue: typeof (window as any).__BOOTSTRAP_ME__,
-          hasAppElement: !!app,
-          hasDataVApp: app?.hasAttribute('data-v-app') ?? false,
-          appChildCount: app?.childElementCount ?? 0,
-          scriptTags: scriptInfo,
-          documentReadyState: document.readyState,
+          bootstrapType: typeof (window as any).__BOOTSTRAP_ME__,
+          vueMounted: app?.hasAttribute('data-v-app') ?? false,
+          appChildren: app?.childElementCount ?? 0,
+          readyState: document.readyState,
         };
       });
-      console.log('Bootstrap diagnostic:', JSON.stringify(diagnostic));
-      console.log('Script sources:', JSON.stringify(jsResponse));
-      console.log('Console errors:', JSON.stringify(consoleMessages));
-      console.log('Page errors:', JSON.stringify(pageErrors));
-      console.log('Failed requests:', JSON.stringify(failedRequests));
+
+      const parts = [diagnosticMsg];
+      parts.push(`DOM: vueMounted=${diagnostic.vueMounted}, appChildren=${diagnostic.appChildren}, readyState=${diagnostic.readyState}`);
+      parts.push(`Bootstrap type: ${diagnostic.bootstrapType}`);
+      if (pageErrors.length) parts.push(`Page errors: ${pageErrors.join('; ')}`);
+      if (failedRequests.length) parts.push(`Failed requests: ${failedRequests.join('; ')}`);
+      diagnosticMsg = parts.join('\n');
     }
 
-    expect(bootstrapConsumed,
-      'Bootstrap state should be consumed (value === true). ' +
-      'If this fails, Vue may not be mounting in the production build.'
-    ).toBe(true);
+    expect(bootstrapConsumed, diagnosticMsg).toBe(true);
   });
 });
