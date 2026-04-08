@@ -84,12 +84,12 @@ module Onetime
           end
 
           # Persist the raw fact-finding results.
-          # Use save_fields for partial save — the DomainValidationWorker may
-          # be writing verification_status concurrently.
-          mailer_config.dns_check_results      = result[:records]
-          mailer_config.dns_check_completed_at = Familia.now.to_i
-          mailer_config.updated                = Familia.now.to_i
-          mailer_config.save_fields(:dns_check_results, :dns_check_completed_at, :updated)
+          # dns_check_results is a jsonkey (own Redis key), so use value= directly.
+          # dns_check_completed_at and updated are scalar fields — save_fields handles those.
+          mailer_config.dns_check_results.value = result[:records]
+          mailer_config.dns_check_completed_at  = Familia.now.to_i
+          mailer_config.updated                 = Familia.now.to_i
+          mailer_config.save_fields(:dns_check_completed_at, :updated)
 
           log_info "DNS record check complete: #{domain_id}",
             record_count: result[:records]&.size,

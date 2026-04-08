@@ -300,10 +300,10 @@ module Onetime
             strategy = Onetime::Mail::SenderStrategies.for_provider(mailer_config.effective_provider)
             result   = strategy.check_dns_records(mailer_config, credentials: {})
 
-            mailer_config.dns_check_results      = result[:records]
-            mailer_config.dns_check_completed_at = Familia.now.to_i
-            mailer_config.updated                = Familia.now.to_i
-            mailer_config.save_fields(:dns_check_results, :dns_check_completed_at, :updated)
+            mailer_config.dns_check_results.value = result[:records]
+            mailer_config.dns_check_completed_at  = Familia.now.to_i
+            mailer_config.updated                 = Familia.now.to_i
+            mailer_config.save_fields(:dns_check_completed_at, :updated)
           end
 
           return true

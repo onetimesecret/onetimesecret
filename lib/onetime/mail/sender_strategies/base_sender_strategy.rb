@@ -248,14 +248,14 @@ module Onetime
           end
 
           {
-            type: rec_type,
-            name: rec_name,
-            value: rec_value,
-            dns_exists: dns_exists,
-            value_matches: value_matches,
-            error: error,
-            expected_digest: expected_digest,
-            actual_digest: actual_digest,
+            'type' => rec_type,
+            'name' => rec_name,
+            'value' => rec_value,
+            'dns_exists' => dns_exists,
+            'value_matches' => value_matches,
+            'error' => error,
+            'expected_digest' => expected_digest,
+            'actual_digest' => actual_digest,
           }
         end
 
