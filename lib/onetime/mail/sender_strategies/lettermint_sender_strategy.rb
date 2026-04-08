@@ -163,7 +163,7 @@ module Onetime
         #   - :message [String]
         #   - :details [Hash, nil] Additional verification details
         #
-        def check_verification_status(mailer_config, credentials:)
+        def check_provider_verification_status(mailer_config, credentials:)
           domain = extract_domain(mailer_config.from_address)
 
           unless domain

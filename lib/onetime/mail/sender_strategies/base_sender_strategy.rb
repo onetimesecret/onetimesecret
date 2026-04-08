@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require 'resolv'
+require 'digest'
+
 module Onetime
   module Mail
     module SenderStrategies
@@ -65,7 +68,12 @@ module Onetime
           raise NotImplementedError, "#{self.class} must implement #provision_dns_records"
         end
 
-        # Checks the verification status of a sender identity.
+        # Checks the provider-level verification status of a sender identity.
+        #
+        # Queries the provider API (SES, SendGrid, Lettermint) to determine
+        # whether the provider considers the sender domain verified. This is
+        # distinct from check_dns_records which verifies DNS propagation
+        # independently of the provider.
         #
         # @param mailer_config [CustomDomain::MailerConfig] The mailer configuration
         # @param credentials [Hash] Provider credentials
@@ -75,8 +83,53 @@ module Onetime
         #   - :message [String] Human-readable status
         #   - :details [Hash, nil] Additional verification details
         #
-        def check_verification_status(mailer_config, credentials:)
-          raise NotImplementedError, "#{self.class} must implement #check_verification_status"
+        def check_provider_verification_status(mailer_config, credentials:)
+          raise NotImplementedError, "#{self.class} must implement #check_provider_verification_status"
+        end
+
+        # Checks DNS record propagation for provisioned sender records.
+        #
+        # Reads the provisioned DNS records from mailer_config.dns_records
+        # and performs live DNS lookups to determine whether each record
+        # exists and whether its value matches what was provisioned.
+        #
+        # This is a fact-finding operation — it reports what DNS returns
+        # without making pass/fail judgements. Consumers decide whether
+        # record existence alone is sufficient or if value matching is
+        # required.
+        #
+        # Implemented at the base class level because it uses provisioned
+        # records (provider-agnostic). Override in subclasses only if the
+        # provider's DNS record format requires special lookup handling.
+        #
+        # @param mailer_config [CustomDomain::MailerConfig] The mailer configuration
+        # @param credentials [Hash] Unused (DNS lookups need no credentials)
+        # @return [Hash] DNS check results:
+        #   - :records [Array<Hash>] Per-record results, each with:
+        #     - :type [String] Record type (TXT, CNAME, MX)
+        #     - :name [String] DNS hostname
+        #     - :value [String] Expected value from provisioning
+        #     - :dns_exists [Boolean] Whether any DNS records exist for this name+type
+        #     - :value_matches [Boolean] Whether provisioned value matches DNS
+        #     - :error [String, nil] Error message on lookup failure
+        #     - :expected_digest [String] SHA256 hex digest of normalized expected value
+        #     - :actual_digest [String, nil] SHA256 hex digest of best-matching actual value
+        #   - :checked_at [Time] When the check was performed
+        #
+        def check_dns_records(mailer_config, credentials: {}) # rubocop:disable Lint/UnusedMethodArgument
+          provisioned = mailer_config.dns_records&.value
+          return { records: [], checked_at: Time.now } if provisioned.nil? || provisioned.empty?
+
+          resolver          = Resolv::DNS.new
+          resolver.timeouts = 5
+
+          results = provisioned.map do |record|
+            check_single_dns_record(record, resolver)
+          end
+
+          { records: results, checked_at: Time.now }
+        ensure
+          resolver&.close
         end
 
         # Removes the sender identity from the provider.
@@ -156,6 +209,96 @@ module Onetime
           return nil unless result.result.valid?
 
           email.split('@', 2).last
+        end
+
+        private
+
+        # Check a single DNS record against live DNS.
+        #
+        # @param record [Hash] Provisioned record with string keys: 'type', 'name', 'value'
+        # @param resolver [Resolv::DNS] Shared resolver instance
+        # @return [Hash] Check result with :dns_exists, :value_matches, :error, digests
+        #
+        def check_single_dns_record(record, resolver)
+          rec_type  = record['type'].to_s.upcase
+          rec_name  = record['name'].to_s
+          rec_value = record['value'].to_s
+
+          expected_normalized = normalize_dns_value(rec_value)
+          expected_digest     = Digest::SHA256.hexdigest(expected_normalized)
+
+          actual_values, error = lookup_dns_record(rec_type, rec_name, resolver)
+
+          dns_exists    = !actual_values.empty?
+          value_matches = false
+          actual_digest = nil
+
+          if dns_exists
+            actual_values.each do |actual|
+              normalized_actual = normalize_dns_value(actual)
+              digest            = Digest::SHA256.hexdigest(normalized_actual)
+              if normalized_actual == expected_normalized || digest == expected_digest
+                value_matches = true
+                actual_digest = digest
+                break
+              end
+              # Track the first actual digest for debugging even if no match
+              actual_digest   ||= digest
+            end
+          end
+
+          {
+            type: rec_type,
+            name: rec_name,
+            value: rec_value,
+            dns_exists: dns_exists,
+            value_matches: value_matches,
+            error: error,
+            expected_digest: expected_digest,
+            actual_digest: actual_digest,
+          }
+        end
+
+        # Perform a DNS lookup by record type.
+        #
+        # @param type [String] Record type: TXT, CNAME, or MX
+        # @param hostname [String] Fully qualified hostname
+        # @param resolver [Resolv::DNS] DNS resolver instance
+        # @return [Array] Tuple of [Array<String>, String|nil] — [values, error]
+        #
+        def lookup_dns_record(type, hostname, resolver)
+          case type
+          when 'TXT'
+            resources = resolver.getresources(hostname, Resolv::DNS::Resource::IN::TXT)
+            [resources.map { |r| r.strings.join }, nil]
+          when 'CNAME'
+            resources = resolver.getresources(hostname, Resolv::DNS::Resource::IN::CNAME)
+            [resources.map { |r| r.name.to_s }, nil]
+          when 'MX'
+            resources = resolver.getresources(hostname, Resolv::DNS::Resource::IN::MX)
+            [resources.map { |r| r.exchange.to_s }, nil]
+          else
+            [[], nil]
+          end
+        rescue Resolv::ResolvError
+          # NXDOMAIN or similar authoritative "not found" — definitive answer, not an error
+          [[], nil]
+        rescue Resolv::ResolvTimeout
+          [[], 'timeout']
+        rescue StandardError => ex
+          [[], ex.message]
+        end
+
+        # Normalize a DNS value for comparison.
+        #
+        # Downcases and strips trailing dots to handle variations in DNS
+        # responses (e.g., "bounces.lmta.net." vs "bounces.lmta.net").
+        #
+        # @param value [String] Raw DNS value
+        # @return [String] Normalized value
+        #
+        def normalize_dns_value(value)
+          value.to_s.downcase.chomp('.')
         end
       end
     end

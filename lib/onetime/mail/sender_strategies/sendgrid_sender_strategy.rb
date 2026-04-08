@@ -130,7 +130,11 @@ module Onetime
         #   - :message [String]
         #   - :details [Hash, nil] Per-record validation results
         #
-        def check_verification_status(mailer_config, credentials:)
+        # Checks provider-level verification via SendGrid /whitelabel/domains/:id/validate.
+        # SendGrid validates all DNS records on its side and returns per-record results.
+        # DNS propagation is checked independently by check_dns_records (inherited
+        # from BaseSenderStrategy), which works with provisioned records.
+        def check_provider_verification_status(mailer_config, credentials:)
           domain = extract_domain(mailer_config.from_address)
 
           unless domain

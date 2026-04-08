@@ -66,7 +66,11 @@ module Onetime
           }
         end
 
-        def check_verification_status(mailer_config, credentials:)
+        # Checks provider-level verification via SES get_email_identity API.
+        # DKIM status is returned directly by SES (SUCCESS, PENDING, FAILED, etc.).
+        # DNS propagation is checked independently by check_dns_records (inherited
+        # from BaseSenderStrategy), which works with provisioned records.
+        def check_provider_verification_status(mailer_config, credentials:)
           domain = extract_domain(mailer_config.from_address)
 
           unless domain
