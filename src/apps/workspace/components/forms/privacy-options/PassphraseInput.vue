@@ -202,7 +202,7 @@
               v-if="modelValue"
               type="button"
               class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              :aria-label="t('web.COMMON.clear')"
+              :aria-label="t('web.LABELS.clear')"
               @click="clearPassphrase">
               <OIcon
                 collection="heroicons"

@@ -396,10 +396,10 @@
             <!-- Main action row -->
             <div
               class="flex items-center justify-between gap-4">
-              <!-- Domain Context Indicator (hidden on mobile - redundant with header) -->
+              <!-- Domain Context Indicator (sm+ only; on mobile it appears in the CTA button) -->
               <div
                 v-if="isContextActive"
-                class="hidden items-center gap-2 text-base font-brand sm:flex">
+                class="hidden items-center text-base font-brand sm:flex">
                 <div
                   class="inline-flex items-center gap-1.5 rounded-full px-3
                     py-1.5 text-base font-medium transition-all duration-150"
@@ -429,9 +429,8 @@
                 </div>
               </div>
 
-              <!-- Submit Area (always right-aligned) -->
-              <div class="ml-auto flex items-center gap-2.5">
-                <!-- Submit Button -->
+              <!-- Submit Area (full-width on mobile, right-aligned on sm+) -->
+              <div class="flex w-full items-center gap-2.5 sm:ml-auto sm:w-auto">
                 <SplitButton
                   :with-generate="true"
                   :corner-class="cornerClass"
@@ -441,6 +440,7 @@
                   :disable-generate="selectedAction === 'create-link' && hasContent"
                   :keyboard-shortcut-enabled="true"
                   :show-keyboard-hint="false"
+                  :subtitle="isContextActive ? currentContext.displayName : ''"
                   @update:action="selectedAction = $event" />
               </div>
             </div>

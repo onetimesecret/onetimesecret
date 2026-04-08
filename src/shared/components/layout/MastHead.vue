@@ -149,60 +149,57 @@
 
 <template>
   <div class="w-full">
-    <div class="flex flex-row items-center justify-between gap-4">
-      <!-- Left section: Logo + Context Switchers (for authenticated users) -->
-      <div class="flex min-w-0 flex-1 items-center gap-4">
-        <!-- Logo lockup -->
-        <div class="shrink-0">
-          <div v-if="isVueComponent">
-            <component
-              id="logo"
-              :is="logoComponent"
-              v-if="logoComponent"
-              v-bind="logoConfig"
-              :is-user-present="isUserPresent"
-              class="transition-transform" />
-          </div>
-          <div v-else>
-            <a
-              :href="logoConfig.href"
-              data-testid="header-logo-link"
-              class="flex items-center gap-3"
-              :aria-label="logoConfig.alt">
-              <img
-                id="logo"
-                :src="logoConfig.url"
-                class="w-auto transition-transform"
-                :class="[
-                  isCustomDomainLogo
-                    ? 'h-20'
-                    : isUserPresent
-                      ? 'h-10'
-                      : 'h-12'
-                ]"
-                :height="logoConfig.size"
-                :alt="logoConfig.alt" />
-              <span
-                v-if="logoConfig.showSiteName"
-                class="font-brand text-lg font-bold leading-tight">
-                {{ logoConfig.siteName }}
-              </span>
-            </a>
-          </div>
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <!-- Logo lockup -->
+      <div class="shrink-0">
+        <div v-if="isVueComponent">
+          <component
+            id="logo"
+            :is="logoComponent"
+            v-if="logoComponent"
+            v-bind="logoConfig"
+            :is-user-present="isUserPresent"
+            class="transition-transform" />
         </div>
-
-        <!-- Context Switchers slot (rendered inline for authenticated users, all screen sizes) -->
-        <div v-if="isUserPresent" class="flex min-w-0 items-center gap-2 sm:gap-3">
-          <slot name="context-switchers"></slot>
+        <div v-else>
+          <a
+            :href="logoConfig.href"
+            data-testid="header-logo-link"
+            class="flex items-center gap-3"
+            :aria-label="logoConfig.alt">
+            <img
+              id="logo"
+              :src="logoConfig.url"
+              class="w-auto transition-transform"
+              :class="[
+                isCustomDomainLogo
+                  ? 'h-20'
+                  : isUserPresent
+                    ? 'h-10'
+                    : 'h-12'
+              ]"
+              :height="logoConfig.size"
+              :alt="logoConfig.alt" />
+            <span
+              v-if="logoConfig.showSiteName"
+              class="font-brand text-lg font-bold leading-tight">
+              {{ logoConfig.siteName }}
+            </span>
+          </a>
         </div>
       </div>
 
-      <!-- Right section: Navigation / User Menu -->
+      <!-- Context Switchers slot (collapses progressively: org text at lg+, domain text at md+) -->
+      <div v-if="isUserPresent" class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+        <slot name="context-switchers"></slot>
+      </div>
+
+      <!-- Navigation / User Menu -->
       <nav
         v-if="displayNavigation && navigationEnabled"
         role="navigation"
         :aria-label="t('web.layout.main_navigation')"
-        class="flex shrink-0 flex-wrap items-center justify-end gap-4
+        class="ml-auto flex shrink-0 items-center justify-end gap-4
           font-brand text-sm sm:text-base">
         <template v-if="isUserPresent">
           <!-- User Menu Dropdown -->

@@ -192,7 +192,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
           : 'hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white',
       ]"
       :disabled="props.locked"
-      :title="props.locked ? t('web.domains.switcher_locked') : undefined"
+      :title="props.locked ? t('web.domains.switcher_locked') : currentContext.displayName"
       :aria-label="t('web.domains.scope_switch_label')"
       :aria-disabled="props.locked ? 'true' : undefined"
       data-testid="domain-context-switcher-trigger">
@@ -205,7 +205,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
 
       <!-- Current Domain Display (truncated at all sizes, tighter on mobile) -->
       <span
-        class="max-w-[100px] truncate sm:max-w-[120px] md:max-w-[160px] lg:max-w-[200px]"
+        class="hidden truncate md:inline md:max-w-[100px] lg:max-w-[140px]"
         :title="currentContext.domain">
         {{ currentContext.displayName }}
       </span>

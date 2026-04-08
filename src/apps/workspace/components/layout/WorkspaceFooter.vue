@@ -138,6 +138,8 @@
     if (route.path === path) return true;
     if (path === '/' && route.path === '/dashboard') return true;
     if (path === '/account' && route.path.startsWith('/account')) return true;
+    // /domains redirects to /org/:orgid/domains — match the resolved path
+    if (path === '/domains' && /^\/org\/[^/]+\/domains(\/|$)/.test(route.path)) return true;
     return route.path.startsWith(path + '/');
   };
 </script>

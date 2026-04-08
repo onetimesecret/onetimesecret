@@ -24,6 +24,8 @@
     keyboardShortcutEnabled: { type: Boolean, default: false },
     /** Whether to display the keyboard shortcut hint in the button */
     showKeyboardHint: { type: Boolean, default: false },
+    /** Optional subtitle shown below button label on small screens */
+    subtitle: { type: String, default: '' },
   });
 
   const emit = defineEmits(['update:action']);
@@ -146,7 +148,7 @@
         corners.leftCorner,
         textColorClass,
         leftButtonFocusClass,
-        'flex items-center justify-center gap-2.5 px-5 py-3.5 text-lg font-semibold',
+        'flex flex-1 items-center justify-center gap-2.5 px-5 py-3.5 text-lg font-semibold',
         'transition-all duration-300 relative overflow-hidden group',
         'focus:z-10 focus:outline-none focus:ring-4 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
         'hover:shadow-[0_8px_20px_-4px_var(--button-shadow-color)]',
@@ -201,7 +203,14 @@ ry="2" />
           <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
         </svg>
       </span>
-      <span class="relative z-10">{{ buttonLabel }}</span>
+      <span class="relative z-10 flex flex-col items-start leading-tight">
+        <span>{{ buttonLabel }}</span>
+        <span
+          v-if="subtitle"
+          class="text-xs font-normal opacity-75 sm:hidden">
+          {{ subtitle }}
+        </span>
+      </span>
       <kbd
         v-if="showKeyboardHint"
         class="ml-1.5 hidden rounded bg-white/20 px-1.5 py-0.5

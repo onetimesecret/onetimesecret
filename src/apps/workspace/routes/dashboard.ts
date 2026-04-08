@@ -3,8 +3,17 @@
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import DashboardMain from '@/apps/workspace/dashboard/DashboardMain.vue';
 import DashboardRecent from '@/apps/workspace/dashboard/DashboardRecent.vue';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { RouteRecordRaw } from 'vue-router';
 import { SCOPE_PRESETS } from '@/types/router';
+
+/** Resolve the active org's extid at navigation time, falling back to dashboard */
+function activeOrgPath(suffix: string) {
+  return () => {
+    const orgExtid = useOrganizationStore().currentOrganization?.extid;
+    return orgExtid ? `/org/${orgExtid}/${suffix}` : '/dashboard';
+  };
+}
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -163,22 +172,28 @@ const routes: Array<RouteRecordRaw> = [
     },
     props: true,
   },
-  // Legacy redirects for backward compatibility
+  // Legacy redirects — resolve to org-scoped equivalents using the active organization
   {
     path: '/domains',
-    redirect: '/dashboard',
+    redirect: activeOrgPath('domains'),
   },
   {
     path: '/domains/add',
-    redirect: '/dashboard',
+    redirect: activeOrgPath('domains/add'),
   },
   {
     path: '/domains/:extid/verify',
-    redirect: '/dashboard',
+    redirect: (to) => {
+      const orgExtid = useOrganizationStore().currentOrganization?.extid;
+      return orgExtid ? `/org/${orgExtid}/domains/${to.params.extid}/verify` : '/dashboard';
+    },
   },
   {
     path: '/domains/:extid/brand',
-    redirect: '/dashboard',
+    redirect: (to) => {
+      const orgExtid = useOrganizationStore().currentOrganization?.extid;
+      return orgExtid ? `/org/${orgExtid}/domains/${to.params.extid}/brand` : '/dashboard';
+    },
   },
 ];
 
