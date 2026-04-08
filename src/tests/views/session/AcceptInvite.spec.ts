@@ -141,7 +141,10 @@ describe('AcceptInvite', () => {
       const wrapper = await mountComponent();
 
       expect(wrapper.text()).toContain('Acme Corp');
-      expect(wrapper.text()).toContain('invitee@example.com');
+      // Invitee email is in a readonly input value, not text content
+      const emailInput = wrapper.find('[data-testid="invite-signup-email-input"]');
+      expect(emailInput.exists()).toBe(true);
+      expect(emailInput.attributes('value')).toBe('invitee@example.com');
       expect(wrapper.text()).toContain('admin@acme.com');
     });
 

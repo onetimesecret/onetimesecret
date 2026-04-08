@@ -7,8 +7,8 @@
 # endpoints by tracking request attempts per IP and locking out after MAX_ATTEMPTS.
 #
 # We're testing:
-# 1. First 10 requests succeed
-# 2. 11th request raises LimitExceeded
+# 1. First 100 requests succeed
+# 2. 101st request raises LimitExceeded
 # 3. Different IPs have independent limits
 # 4. Counter resets after window expires (simulated via reset!)
 # 5. reset! clears the counter and lockout
@@ -39,7 +39,7 @@ limiter.rate_limited?
 ## New limiter should have MAX_ATTEMPTS remaining
 limiter = Onetime::Security::InviteTokenRateLimiter.new(@test_ip)
 limiter.attempts_remaining
-#=> 10
+#=> 100
 
 ## check! should not raise on fresh IP
 limiter = Onetime::Security::InviteTokenRateLimiter.new(@test_ip)
@@ -57,17 +57,17 @@ result = limiter.record_attempt
 [result[:attempts], result[:locked]]
 #=> [1, false]
 
-## After 1 attempt, 9 attempts remaining
+## After 1 attempt, 99 attempts remaining
 limiter = Onetime::Security::InviteTokenRateLimiter.new(@test_ip)
 limiter.attempts_remaining
-#=> 9
+#=> 99
 
-## Recording attempts 2-9 should not lock
+## Recording attempts 2-100 should lock on the 100th
 limiter = Onetime::Security::InviteTokenRateLimiter.new(@test_ip)
-8.times { limiter.record_attempt }
-result = limiter.record_attempt  # 10th attempt
+98.times { limiter.record_attempt }
+result = limiter.record_attempt  # 100th attempt
 [result[:attempts], result[:locked], limiter.rate_limited?]
-#=> [10, true, true]
+#=> [100, true, true]
 
 ## After lockout, check! should raise LimitExceeded
 limiter = Onetime::Security::InviteTokenRateLimiter.new(@test_ip)
@@ -77,7 +77,7 @@ begin
 rescue Onetime::LimitExceeded => e
   [e.class.name, e.retry_after.positive?, e.max_attempts]
 end
-#=> ['Onetime::LimitExceeded', true, 10]
+#=> ['Onetime::LimitExceeded', true, 100]
 
 ## After lockout, attempts_remaining should be 0
 limiter = Onetime::Security::InviteTokenRateLimiter.new(@test_ip)
@@ -92,7 +92,7 @@ limiter2.rate_limited?
 ## Different IP should have full attempts remaining
 limiter2 = Onetime::Security::InviteTokenRateLimiter.new(@test_ip2)
 limiter2.attempts_remaining
-#=> 10
+#=> 100
 
 ## Different IP check! should not raise
 limiter2 = Onetime::Security::InviteTokenRateLimiter.new(@test_ip2)
@@ -123,7 +123,7 @@ end
 ## After reset!, attempts_remaining should be MAX_ATTEMPTS
 limiter = Onetime::Security::InviteTokenRateLimiter.new(@test_ip)
 limiter.attempts_remaining
-#=> 10
+#=> 100
 
 ## Empty IP should not cause errors
 limiter = Onetime::Security::InviteTokenRateLimiter.new('')
