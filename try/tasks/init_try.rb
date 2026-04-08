@@ -98,5 +98,21 @@ OTSInit.write_env(@env_path, lines, { 'A' => 'updated' })
 File.read(@env_path).count("\n")
 #=> 3
 
+## write_env round-trip: critical keys survive read after write
+File.write(@env_path, "SECRET=\n#SESSION_SECRET=\n#IDENTIFIER_SECRET=\n")
+lines = File.readlines(@env_path, chomp: true)
+updates = { 'SECRET' => 'abc123', 'SESSION_SECRET' => 'sess456', 'IDENTIFIER_SECRET' => 'id789' }
+OTSInit.write_env(@env_path, lines, updates)
+verify = OTSInit.read_env(@env_path)
+[verify['SECRET'], verify['SESSION_SECRET'], verify['IDENTIFIER_SECRET']].none?(&:empty?)
+#=> true
+
+## federation passphrase: generates 5 hyphen-separated lowercase words
+require 'passforge/wordlist'
+require 'passforge/passphrase'
+phrase = PassForge::Passphrase.generate(words: 5, separator: '-', capitalize: false)
+phrase.split('-').size
+#=> 5
+
 require 'fileutils'
 FileUtils.rm_rf(@tmpdir)

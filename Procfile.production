@@ -1,0 +1,24 @@
+# Procfile.production
+#
+# Production process definitions for bare-metal / self-hosted installs.
+# Compatible with Foreman, Hivemind, goreman, or any Procfile runner.
+#
+# Simple mode (AUTHENTICATION_MODE=simple):
+#   Only the web process is needed.
+#
+# Full mode (AUTHENTICATION_MODE=full):
+#   Uncomment worker and scheduler lines.
+#
+# Before starting:
+#   source .env.sh
+#
+# Examples:
+#   foreman start -f Procfile.production
+#   hivemind Procfile.production
+#   goreman -f Procfile.production start
+
+web: bundle exec puma -C etc/puma.rb
+
+# Full auth mode only (requires RabbitMQ):
+#worker: bin/ots worker
+#scheduler: bin/ots scheduler

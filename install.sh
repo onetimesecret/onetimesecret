@@ -131,6 +131,14 @@ cmd_reconcile() {
   install_gems
   install_node
 
+  # Verify .env and SECRET exist before attempting derive
+  if [[ ! -f .env ]]; then
+    die ".env not found — run './install.sh init' first"
+  fi
+  if ! grep -qE '^SECRET=.+' .env 2>/dev/null; then
+    die "SECRET is empty in .env — run './install.sh init' first to generate secrets"
+  fi
+
   info "Re-deriving child keys from existing SECRET..."
   DERIVE=1 bundle exec rake ots:secrets || die "Failed to generate secrets"
   chmod 600 "${ENV_FILE:-.env}" || die "Failed to secure ${ENV_FILE:-.env} file permissions"
@@ -172,8 +180,8 @@ cmd_init() {
     echo ""
   fi
 
-  info "Re-deriving child keys from SECRET..."
-  DERIVE=1 bundle exec rake ots:secrets || die "Failed to generate secrets"
+  info "Generating secrets..."
+  bundle exec rake ots:secrets || die "Failed to generate secrets"
   chmod 600 "${ENV_FILE:-.env}" || die "Failed to secure ${ENV_FILE:-.env} file permissions"
 
   if [[ "$mode" == "full" ]]; then
@@ -209,19 +217,23 @@ cmd_init() {
   echo ""
   info "Next steps:"
   if [[ "$mode" == "full" ]]; then
-    echo "  1. Start Valkey/Redis and RabbitMQ"
-    echo "  2. Source environment:  source .env.sh"
-    echo "  3. Start the app:      bundle exec puma -C etc/puma.rb"
-    echo "  4. Start workers:      bundle exec bin/ots worker"
-    echo "  5. Start scheduler:    bundle exec bin/ots scheduler"
+    info "  1. Start Valkey/Redis and RabbitMQ"
+    info "  2. Source environment:  source .env.sh"
+    info "  3. Start the app:      bundle exec puma -C etc/puma.rb"
+    info "  4. Start workers:      bundle exec bin/ots worker"
+    info "  5. Start scheduler:    bundle exec bin/ots scheduler"
   else
-    echo "  1. Start Valkey/Redis"
-    echo "  2. Source environment:  source .env.sh"
-    echo "  3. Start the app:      bundle exec puma -C etc/puma.rb"
+    info "  1. Start Valkey/Redis"
+    info "  2. Source environment:  source .env.sh"
+    info "  3. Start the app:      bundle exec puma -C etc/puma.rb"
   fi
   echo ""
-  echo "  For development with Overmind:  bin/dev"
-  echo "  Check environment health:       install.sh doctor"
+  warn "  With a Procfile runner:         foreman start -f Procfile.production"
+  warn "  For development with Overmind:  bin/dev"
+  warn "  Check environment health:       install.sh doctor"
+
+  echo ""
+  cmd_doctor || true
 }
 
 cmd_console() {
@@ -290,10 +302,10 @@ EOF
 case "${1:-auto}" in
   auto)
     if is_initialized; then
-      info "Existing environment detected (SECRET set) — running reconcile"
+      info "Existing environment detected — running reconcile"
       cmd_reconcile
     else
-      info "No existing environment detected — running init"
+      info "Environment not initialized — running init"
       cmd_init
     fi
     ;;

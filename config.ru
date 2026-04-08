@@ -24,6 +24,13 @@ ENV['ONETIME_HOME'] ||= File.expand_path(__dir__).freeze
 # Add lib to load path first
 $LOAD_PATH.unshift(File.join(__dir__, 'lib')) unless $LOAD_PATH.include?(File.join(__dir__, 'lib'))
 
+# Early validation: catch missing env vars before the full boot sequence,
+# which would otherwise fail deep in config loading with a less obvious error.
+if ENV['SECRET'].to_s.strip.empty?
+  warn "FATAL: SECRET is not set. Run 'source .env.sh' before starting the app."
+  exit 1
+end
+
 begin
   require 'onetime'
 

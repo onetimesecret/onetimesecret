@@ -6,11 +6,13 @@
 #
 # Provides methods to check if an email is in the configured colonels list.
 # Does NOT auto-assign roles - colonel promotion is managed exclusively
-# via CLI commands (bin/ots role promote).
+# via CLI commands:
 #
-# The colonels list is configured via:
-# - ENV['COLONEL'] environment variable
-# - Parsed into site.authentication.colonels in config
+#   bin/ots customers role promote user@example.com
+#   bin/ots customers role demote user@example.com
+#   bin/ots customers role list --role=colonel
+#
+# The colonels list is read from site.authentication.colonels in config.
 #
 # Security considerations:
 # - Email normalized with Unicode case folding for international addresses

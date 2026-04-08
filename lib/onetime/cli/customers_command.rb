@@ -14,7 +14,7 @@
 module Onetime
   module CLI
     class CustomersCommand < Command
-      desc 'Manage customer records (create, list, show, purge)'
+      desc 'Manage customer records'
 
       def call(**)
         boot_application!

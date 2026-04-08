@@ -13,7 +13,7 @@
 #
 # Enable via environment variable (recommended):
 #
-#   DEV_SESSION_AUTH=true bundle exec thin start
+#   DEV_SESSION_AUTH=true bundle exec puma -C etc/puma.rb
 #
 # Or in config YAML with ERB:
 #

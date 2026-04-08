@@ -67,7 +67,23 @@ See [.env.reference](./.env.reference)
 
 ## Installation
 
-For Docker, manual setup, and system requirements, see the [Self-Hosting Guide](https://docs.onetimesecret.com/en/self-hosting/) and [Installation Guide](https://docs.onetimesecret.com/en/self-hosting/installation/).
+### Bare-Metal / Manual
+
+Requires Ruby 3.4+, Redis/Valkey, and Node.js 25+ (for building the frontend).
+
+```bash
+git clone https://github.com/onetimesecret/onetimesecret.git && cd onetimesecret
+./install.sh init            # Generates .env, secrets, and puma config
+source .env.sh               # Export env vars into the shell
+bundle exec puma -C etc/puma.rb
+```
+
+For long-running deployments, use a Procfile runner or the systemd templates in `etc/examples/systemd/`:
+```bash
+foreman start -f Procfile.production
+```
+
+See the [Self-Hosting Guide](https://docs.onetimesecret.com/en/self-hosting/) for reverse proxy setup, full authentication mode (PostgreSQL + RabbitMQ), and production hardening.
 
 ## Development
 
