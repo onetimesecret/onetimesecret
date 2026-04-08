@@ -659,6 +659,34 @@
     "text": "Custom email sending is currently disabled. Emails will be sent from the global sender. Enable the feature below to use your custom sender identity.",
     "content_hash": "a1b2c3d4"
   },
+  "web.domains.email.test_email_title": {
+    "text": "Test email delivery",
+    "content_hash": "c1a2b3d4"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Send a test email to yourself using the saved configuration. Works even when the feature is not yet enabled.",
+    "content_hash": "d2b3c4e5"
+  },
+  "web.domains.email.send_test": {
+    "text": "Send test",
+    "content_hash": "e3c4d5f6"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Test email sent successfully",
+    "content_hash": "f4d5e6a7"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Failed to send test email",
+    "content_hash": "a5e6f7b8"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Sent to {email}",
+    "content_hash": "b6f7a8c9"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Delivered via {provider}",
+    "content_hash": "c7a8b9d0"
+  },
   "web.domains.email.badge_not_configured": {
     "text": "Not configured",
     "content_hash": "dd1841d2"

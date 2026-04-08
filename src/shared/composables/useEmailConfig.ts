@@ -15,6 +15,7 @@
  */
 
 import type { ApplicationError } from '@/schemas/errors';
+import type { TestEmailConfigResponse } from '@/schemas/api/domains/responses/test-email-config';
 import type {
   PutEmailConfigRequest,
   PatchEmailConfigRequest,
@@ -78,6 +79,12 @@ export function useEmailConfig(domainExtId: string) {
   const isValidating = ref(false);
   /** Whether a delete request is in flight. */
   const isDeleting = ref(false);
+  /** Whether a test email request is in flight. */
+  const isTesting = ref(false);
+  /** Result from the last test email attempt. */
+  const testResult = ref<TestEmailConfigResponse | null>(null);
+  /** Error message from the last failed test email attempt. */
+  const testError = ref<string>('');
   /** The most recent API error, or null. */
   const error = ref<ApplicationError | null>(null);
 
@@ -102,6 +109,14 @@ export function useEmailConfig(domainExtId: string) {
   };
 
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
+
+  // A second handler for save/delete actions that should NOT toggle
+  // isLoading (which controls the full-page loading state). These actions
+  // manage their own loading flags (isSaving, isDeleting).
+  const { wrap: wrapAction } = useAsyncHandler({
+    ...defaultAsyncHandlerOptions,
+    setLoading: undefined,
+  });
 
   // ---------------------------------------------------------------------------
   // Computed
@@ -180,7 +195,7 @@ export function useEmailConfig(domainExtId: string) {
     error.value = null;
 
     try {
-      const result = await wrap(async () => {
+      const result = await wrapAction(async () => {
         // Sender identity payload (no provider or api_key - uses installation defaults)
         const payload: PatchEmailConfigRequest = {
           from_name: formState.value.from_name.trim(),
@@ -215,7 +230,7 @@ export function useEmailConfig(domainExtId: string) {
     error.value = null;
 
     try {
-      await wrap(async () => {
+      await wrapAction(async () => {
         await domainsStore.deleteEmailConfig(domainExtId);
         emailConfig.value = null;
         formState.value = createDefaultFormState();
@@ -268,6 +283,32 @@ export function useEmailConfig(domainExtId: string) {
   };
 
   /**
+   * Send a test email using the currently saved configuration.
+   * Works even when enabled=false — lets users verify delivery before enabling.
+   */
+  const sendTestEmail = async () => {
+    isTesting.value = true;
+    testResult.value = null;
+    testError.value = '';
+
+    try {
+      const result = await wrapAction(async () => await domainsStore.testEmailConfig(domainExtId));
+
+      if (result) {
+        testResult.value = result;
+        if (result.success) {
+          notifications.show(t('web.domains.email.test_email_sent'), 'success', 'top');
+        } else {
+          testError.value = result.message || t('web.domains.email.test_email_failed');
+          notifications.show(testError.value, 'error', 'top');
+        }
+      }
+    } finally {
+      isTesting.value = false;
+    }
+  };
+
+  /**
    * Reset form to last-saved state.
    */
   const discardChanges = () => {
@@ -283,6 +324,9 @@ export function useEmailConfig(domainExtId: string) {
     isSaving,
     isValidating,
     isDeleting,
+    isTesting,
+    testResult,
+    testError,
     error,
     emailConfig,
     formState,
@@ -301,6 +345,7 @@ export function useEmailConfig(domainExtId: string) {
     saveConfig,
     deleteConfig,
     validateDomain,
+    sendTestEmail,
     discardChanges,
   };
 }

@@ -15,6 +15,10 @@ import {
   type DeleteEmailConfigResponse,
   type ValidateEmailConfigResponse,
 } from '@/schemas/api/domains/responses/email-config';
+import {
+  testEmailConfigResponseSchema,
+  type TestEmailConfigResponse,
+} from '@/schemas/api/domains/responses/test-email-config';
 import { responseSchemas, type CustomDomainDetails } from '@/schemas/api/v3/responses';
 import type { CustomDomainEmailConfig } from '@/schemas/shapes/domains/email-config';
 import type {
@@ -83,6 +87,7 @@ export type DomainsStore = {
   patchEmailConfig: (extid: string, payload: PatchEmailConfigRequest) => Promise<CustomDomainEmailConfig>;
   deleteEmailConfig: (extid: string) => Promise<DeleteEmailConfigResponse>;
   validateEmailConfig: (extid: string) => Promise<ValidateEmailConfigResponse>;
+  testEmailConfig: (extid: string) => Promise<TestEmailConfigResponse>;
 
   reset: () => void;
 } & PiniaCustomProperties;
@@ -384,6 +389,17 @@ export const useDomainsStore = defineStore('domains', () => {
   }
 
   /**
+   * Send a test email using the domain's saved email configuration.
+   *
+   * Works even when the email config is not yet enabled — useful for
+   * verifying delivery before flipping the switch.
+   */
+  async function testEmailConfig(extid: string): Promise<TestEmailConfigResponse> {
+    const response = await $api.post(`/api/domains/${extid}/email-config/test`);
+    return strictParse(testEmailConfigResponseSchema, response.data);
+  }
+
+  /**
    * Reset store state to initial values
    *
    * SECURITY: Also clears the org context to ensure fresh fetch on next access.
@@ -428,6 +444,7 @@ export const useDomainsStore = defineStore('domains', () => {
     patchEmailConfig,
     deleteEmailConfig,
     validateEmailConfig,
+    testEmailConfig,
 
     fetchList,
     refreshRecords,
