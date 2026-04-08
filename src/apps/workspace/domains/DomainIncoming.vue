@@ -249,20 +249,6 @@ watch(() => props.extid, async () => {
           </div>
 
           <template v-else>
-            <!-- Not configured notice -->
-            <div
-              v-if="serverState.recipients.length === 0 && formState.recipients.length === 0"
-              class="flex items-start gap-3 rounded-md bg-blue-50 px-4 py-3 dark:bg-blue-900/20">
-              <OIcon
-                collection="heroicons"
-                name="information-circle"
-                class="mt-0.5 size-5 flex-shrink-0 text-blue-500 dark:text-blue-400"
-                aria-hidden="true" />
-              <p class="flex-1 text-sm text-blue-700 dark:text-blue-300">
-                {{ t('web.domains.incoming.not_configured_notice') }}
-              </p>
-            </div>
-
             <DomainIncomingConfigForm
               :form-state="formState"
               :server-state="serverState"
