@@ -305,13 +305,8 @@ case "${1:-auto}" in
       info "Existing environment detected — running reconcile"
       cmd_reconcile
     else
-      if [[ -f .env ]] && grep -qE '^SECRET=.+' .env 2>/dev/null; then
-        warn "SECRET exists in .env but Redis/Valkey unreachable — running reconcile"
-        cmd_reconcile
-      else
-        info "Fresh environment — running init"
-        cmd_init
-      fi
+      info "Environment not initialized — running init"
+      cmd_init
     fi
     ;;
   init)             cmd_init ;;
