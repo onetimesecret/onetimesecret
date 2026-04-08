@@ -145,6 +145,14 @@ export function useSsoConfig(domainExtId: string) {
 
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
+  // A second handler for save/delete/test actions that should NOT toggle
+  // isLoading (which controls the full-page loading state). These actions
+  // manage their own loading flags (isSaving, isDeleting, isTesting).
+  const { wrap: wrapAction } = useAsyncHandler({
+    ...defaultAsyncHandlerOptions,
+    setLoading: undefined,
+  });
+
   // ---------------------------------------------------------------------------
   // Computed
   // ---------------------------------------------------------------------------
@@ -207,7 +215,7 @@ export function useSsoConfig(domainExtId: string) {
     error.value = null;
 
     try {
-      const result = await wrap(async () => {
+      const result = await wrapAction(async () => {
         const payload: PutSsoConfigRequest | PatchSsoConfigRequest = {
           provider_type: formState.value.provider_type,
           display_name: formState.value.display_name.trim(),
@@ -245,7 +253,7 @@ export function useSsoConfig(domainExtId: string) {
     error.value = null;
 
     try {
-      await wrap(async () => {
+      await wrapAction(async () => {
         await SsoService.deleteConfigForDomain(domainExtId);
         ssoConfig.value = null;
         formState.value = createDefaultFormState();
@@ -267,7 +275,7 @@ export function useSsoConfig(domainExtId: string) {
     testError.value = '';
 
     try {
-      const result = await wrap(async () => {
+      const result = await wrapAction(async () => {
         const payload: TestSsoConnectionRequest = {
           provider_type: formState.value.provider_type,
           client_id: formState.value.client_id.trim(),

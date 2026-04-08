@@ -76,7 +76,7 @@
     "content_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Enabled",
+    "text": "Enable",
     "content_hash": "92c1cdfd"
   },
   "web.domains.disabled": {
@@ -466,6 +466,14 @@
   "web.domains.sso.delete_success": {
     "text": "SSO configuration removed successfully",
     "content_hash": "a7b8c9d0"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Connection test successful — provider responded correctly",
+    "content_hash": "d1e2f3a4"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Connection test failed",
+    "content_hash": "e2f3a4b5"
   },
   "web.domains.sso.configure_sso": {
     "text": "Configure SSO",
