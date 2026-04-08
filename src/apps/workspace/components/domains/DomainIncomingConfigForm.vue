@@ -214,15 +214,15 @@ function handleToggleEnabled(): void {
       </p>
     </div>
 
-    <!-- Form Container - grayed out when disabled -->
-    <div :class="{ 'opacity-60 pointer-events-none': !isEnabled }">
+    <!-- Form Container -->
+    <div class="space-y-4">
       <!-- Recipients Section Header -->
       <div>
         <h3 class="text-base font-semibold text-gray-900 dark:text-white">
           {{ t('web.domains.incoming.recipients_title') }}
         </h3>
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.domains.incoming.recipients_description') }}
+          {{ t('web.domains.incoming.empty_state_description') }}
         </p>
       </div>
 
@@ -300,7 +300,7 @@ function handleToggleEnabled(): void {
           <button
             type="button"
             @click="handleRemovePending(index)"
-            :disabled="!isEnabled || isSaving"
+            :disabled="isSaving"
             class="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/20"
             :aria-label="t('web.domains.incoming.remove_recipient')">
             <OIcon
@@ -319,17 +319,14 @@ function handleToggleEnabled(): void {
     <!-- Empty State -->
     <div
       v-if="!hasAnyRecipients && !isLoading"
-      class="rounded-lg border-2 border-dashed border-gray-300 p-6 text-center dark:border-gray-600">
+      class="rounded-lg border border-gray-200 bg-gray-50 py-10 text-center dark:border-gray-700 dark:bg-gray-800/40">
       <OIcon
         collection="heroicons"
         name="inbox"
-        class="mx-auto size-12 text-gray-400 dark:text-gray-500"
+        class="mx-auto size-8 text-gray-300 dark:text-gray-600"
         aria-hidden="true" />
-      <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+      <p class="mt-2 text-sm text-gray-400 dark:text-gray-500">
         {{ t('web.domains.incoming.empty_state') }}
-      </h3>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        {{ t('web.domains.incoming.empty_state_description') }}
       </p>
     </div>
 
@@ -337,10 +334,6 @@ function handleToggleEnabled(): void {
     <div
       v-if="canAddMore"
       class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-      <h4 class="mb-4 text-sm font-medium text-gray-900 dark:text-white">
-        {{ t('web.domains.incoming.add_recipient') }}
-      </h4>
-
       <div class="grid gap-4 sm:grid-cols-2">
         <!-- Email Input -->
         <div>
@@ -356,7 +349,6 @@ function handleToggleEnabled(): void {
             type="email"
             required
             autocomplete="off"
-            :disabled="!isEnabled"
             :placeholder="t('web.domains.incoming.email_placeholder')"
             :aria-invalid="!!emailError"
             :aria-describedby="emailError ? 'email-error' : undefined"
@@ -385,7 +377,6 @@ function handleToggleEnabled(): void {
             type="text"
             maxlength="100"
             autocomplete="off"
-            :disabled="!isEnabled"
             :placeholder="t('web.domains.incoming.name_placeholder')"
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800 sm:text-sm"
             @keydown.enter.prevent="handleAddRecipient" />
@@ -397,7 +388,7 @@ function handleToggleEnabled(): void {
         <button
           type="button"
           @click="handleAddRecipient"
-          :disabled="!isEnabled || !isAddFormValid || isSaving"
+          :disabled="!isAddFormValid || isSaving"
           class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-white dark:ring-gray-500 dark:hover:bg-gray-500">
           <OIcon
             collection="heroicons"

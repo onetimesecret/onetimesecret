@@ -16,6 +16,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainSsoConfigForm from '@/apps/workspace/components/domains/DomainSsoConfigForm.vue';
 import { useDomain } from '@/shared/composables/useDomain';
+import { useClipboard } from '@/shared/composables/useClipboard';
 import { useSsoConfig } from '@/shared/composables/useSsoConfig';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -41,6 +42,8 @@ const {
 } = useDomain(props.extid);
 
 const displayDomain = computed(() => customDomainRecord.value?.display_domain ?? '');
+const signinUrl = computed(() => `https://${displayDomain.value}/signin`);
+const { isCopied, copyToClipboard } = useClipboard();
 
 // ---------------------------------------------------------------------------
 // Entitlement check
@@ -138,16 +141,46 @@ watch(canManageSso, async (entitled) => {
               aria-hidden="true" />
             <span class="sr-only">{{ t('web.COMMON.back') }}</span>
           </button>
-          <div>
+          <div class="flex-1 min-w-0">
             <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
               {{ t('web.domains.sso.title') }}
             </h1>
-            <p
+            <a
               v-if="!domainLoading && displayDomain"
-              class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {{ displayDomain }}
-            </p>
+              :href="signinUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="mt-1 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              {{ displayDomain }}/signin
+              <OIcon
+                collection="heroicons"
+                name="arrow-top-right-on-square"
+                class="size-3.5"
+                aria-hidden="true" />
+            </a>
           </div>
+          <button
+            v-if="!domainLoading && displayDomain"
+            type="button"
+            @click="copyToClipboard(signinUrl)"
+            class="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            :aria-label="t('web.LABELS.copy_to_clipboard')">
+            <OIcon
+              v-if="isCopied"
+              collection="heroicons"
+              name="check"
+              class="size-4 text-emerald-500"
+              aria-hidden="true" />
+            <span v-if="isCopied" class="text-emerald-500">{{ t('web.STATUS.copied') }}</span>
+            <template v-else>
+              <OIcon
+                collection="heroicons"
+                name="clipboard"
+                class="size-4"
+                aria-hidden="true" />
+              {{ t('web.LABELS.copy_to_clipboard') }}
+            </template>
+          </button>
         </div>
       </div>
     </div>
