@@ -7,6 +7,7 @@ require_relative '../queues/config'
 require_relative '../queues/declarator'
 require_relative '../../operations/validate_sender_domain'
 require_relative '../../models/custom_domain/mailer_config'
+require 'onetime/mail/mailer'
 
 #
 # Processes DNS validation requests from the domain.validation.check queue.
@@ -40,6 +41,29 @@ module Onetime
       class DomainValidationWorker
         include Sneakers::Worker
         include BaseWorker
+
+        # Validate that provider credentials are configured at boot time.
+        # This prevents the worker from starting if it can't perform
+        # provider-level verification checks.
+        def self.check_essentials!
+          provider = begin
+                       Onetime::Mail::Mailer.determine_provider
+          rescue StandardError
+                       nil
+          end
+          return if provider.to_s.empty? || provider.to_s == 'smtp'
+
+          creds = begin
+                    Onetime::Mail::Mailer.provider_credentials(provider)
+          rescue StandardError
+                    nil
+          end
+          return if creds && !creds.empty?
+
+          raise Onetime::Problem,
+            "#{worker_name}: Missing #{provider} provider credentials. " \
+            'Set the required environment variables or use --skip-checks to continue.'
+        end
 
         QUEUE_NAME = 'domain.validation.check'
 
@@ -109,6 +133,38 @@ module Onetime
             persisted: result.persisted,
             bypass_cache: bypass_cache,
             error: result.error
+
+          # Provider-level verification: ask the provider API if the domain is verified.
+          # This complements the DNS validation above.
+          begin
+            provider = mailer_config.effective_provider
+            if provider && provider != 'smtp'
+              require 'onetime/mail/sender_strategies'
+              sender_strategy = Onetime::Mail::SenderStrategies.for_provider(provider)
+              creds           = Onetime::Mail::Mailer.provider_credentials(provider)
+
+              if creds && !creds.empty?
+                provider_result = sender_strategy.check_provider_verification_status(mailer_config, credentials: creds)
+                log_info "Provider verification check: #{domain_id}",
+                  provider: provider,
+                  verified: provider_result[:verified],
+                  status: provider_result[:status]
+              else
+                log_debug "Skipping provider check: no credentials for #{provider}"
+              end
+            end
+
+            mailer_config.provider_check_completed_at = Familia.now.to_i
+            mailer_config.updated                     = Familia.now.to_i
+            mailer_config.save_fields(:provider_check_completed_at, :updated)
+          rescue StandardError => ex
+            # Provider check failure should not fail the overall worker
+            log_error "Provider verification check failed for #{domain_id}", ex
+            # Still mark as completed so polling doesn't hang
+            mailer_config.provider_check_completed_at = Familia.now.to_i
+            mailer_config.updated                     = Familia.now.to_i
+            mailer_config.save_fields(:provider_check_completed_at, :updated)
+          end
 
           ack!
         rescue Onetime::LimitExceeded => ex

@@ -64,6 +64,11 @@ module Onetime
           auto_delete: false,
           arguments: { 'x-dead-letter-exchange' => 'dlx.domain.validation' },
         },
+        'domain.dns.check' => {
+          durable: true,
+          auto_delete: false,
+          arguments: { 'x-dead-letter-exchange' => 'dlx.domain.validation' },
+        },
         'system.transient' => {
           durable: false,
           auto_delete: true,
