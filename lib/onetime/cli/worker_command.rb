@@ -64,9 +64,13 @@ module Onetime
           type: :boolean,
           default: false,
           desc: 'Validate config and connectivity, then exit'
+        option :skip_checks,
+          type: :boolean,
+          default: false,
+          desc: 'Skip worker essentials checks at boot'
 
         def call(queues: nil, concurrency: 10, daemonize: false, environment: 'development',
-                 log_level: nil, check: false, **)
+                 log_level: nil, check: false, skip_checks: false, **)
           # Skip RabbitMQ setup during boot - Sneakers creates its own connections.
           # This prevents ConnectionPool.after_fork from timing out when closing
           # inherited channels after Sneakers forks worker processes.
@@ -89,6 +93,17 @@ module Onetime
 
           # Determine which worker classes to run
           worker_classes = determine_workers(queues)
+
+          # Validate each worker's essentials (credentials, config) unless skipped
+          unless skip_checks
+            worker_classes.each do |klass|
+              klass.check_essentials!
+            rescue StandardError => ex
+              Onetime.workers_logger.fatal("[Worker] Essentials check failed for #{klass.name}: #{ex.message}")
+              warn "ERROR: #{ex.message}"
+              exit EXIT_CONFIG_ERROR
+            end
+          end
 
           # Declare exchanges and queues
           declare_infrastructure
