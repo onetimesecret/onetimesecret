@@ -188,14 +188,7 @@ export default defineConfig({
 
   // be simpler and more efficient.
   build: {
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-        passes: 2, // Number of compression passes
-      },
-    },
+    minify: true,
     outDir: '../public/web/dist',
 
     // It's important in staging to keep the previous files around during and
@@ -225,6 +218,16 @@ export default defineConfig({
         assetFileNames: 'assets/[name].[hash].[ext]',
         // Prevent dynamic imports
         preserveModules: false,
+        // Rolldown native minification options (replaces terserOptions).
+        // Terser is incompatible with Rolldown's output format and produces
+        // "undefined is not a function" at runtime.
+        minify: {
+          compress: {
+            dropConsole: true,
+            dropDebugger: true,
+          },
+          mangle: true,
+        },
       },
     },
 
