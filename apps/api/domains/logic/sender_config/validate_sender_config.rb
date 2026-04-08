@@ -4,6 +4,7 @@
 
 require 'onetime/models/custom_domain/mailer_config'
 require 'onetime/jobs/publisher'
+require 'onetime/jobs/workers/job_lifecycle'
 require_relative 'base'
 require_relative 'serializers'
 require_relative 'audit_logger'
@@ -80,21 +81,39 @@ module DomainsAPI
           raise_form_error('Validation already in progress. Please try again.', field: :domain_id, error_type: :conflict) unless lock_token
 
           begin
+            lifecycle = Onetime::Jobs::Workers::JobLifecycle
+
             # Capture previous values for rollback
             previous_status                      = @mailer_config.verification_status
+            previous_dns_check_status            = @mailer_config.dns_check_status
+            previous_provider_check_status       = @mailer_config.provider_check_status
+            previous_dns_verified                = @mailer_config.dns_verified
+            previous_provider_verified           = @mailer_config.provider_verified
             previous_dns_check_completed_at      = @mailer_config.dns_check_completed_at
             previous_provider_check_completed_at = @mailer_config.provider_check_completed_at
             previous_dns_check_results           = @mailer_config.dns_check_results&.value
 
-            # Set status to pending and clear completion timestamps so the UI reflects immediately.
+            # Set job lifecycle status to QUEUED (jobs are about to be enqueued)
+            # Clear outcome fields (nil = unknown/pending)
+            # Clear completion timestamps so the UI reflects immediately
             # Also clear dns_check_results so stale booleans (dns_exists, value_matches) don't
             # show as verified during pending state.
             @mailer_config.verification_status         = VERIFICATION_STATUS_PENDING
+            @mailer_config.dns_check_status            = lifecycle::QUEUED
+            @mailer_config.provider_check_status       = lifecycle::QUEUED
+            @mailer_config.dns_verified                = nil
+            @mailer_config.provider_verified           = nil
             @mailer_config.dns_check_completed_at      = ''
             @mailer_config.provider_check_completed_at = ''
             @mailer_config.dns_check_results.value     = nil
             @mailer_config.updated                     = Familia.now.to_i
-            @mailer_config.save_fields(:verification_status, :dns_check_completed_at, :provider_check_completed_at, :updated)
+            @mailer_config.save_fields(
+              :verification_status,
+              :dns_check_status, :provider_check_status,
+              :dns_verified, :provider_verified,
+              :dns_check_completed_at, :provider_check_completed_at,
+              :updated,
+            )
 
             # Enqueue both background validation jobs
             # (user explicitly requested fresh verification via "Verify Now")
@@ -104,14 +123,24 @@ module DomainsAPI
               bypass_cache: true,
             )
           rescue StandardError
-            # Rollback: restore previous status, timestamps, and dns_check_results
-            # so nothing stays stuck in 'pending' with cleared booleans
+            # Rollback: restore previous status, lifecycle fields, outcomes, timestamps,
+            # and dns_check_results so nothing stays stuck in 'pending'
             @mailer_config.verification_status         = previous_status
+            @mailer_config.dns_check_status            = previous_dns_check_status
+            @mailer_config.provider_check_status       = previous_provider_check_status
+            @mailer_config.dns_verified                = previous_dns_verified
+            @mailer_config.provider_verified           = previous_provider_verified
             @mailer_config.dns_check_completed_at      = previous_dns_check_completed_at
             @mailer_config.provider_check_completed_at = previous_provider_check_completed_at
             @mailer_config.dns_check_results.value     = previous_dns_check_results
             @mailer_config.updated                     = Familia.now.to_i
-            @mailer_config.save_fields(:verification_status, :dns_check_completed_at, :provider_check_completed_at, :updated)
+            @mailer_config.save_fields(
+              :verification_status,
+              :dns_check_status, :provider_check_status,
+              :dns_verified, :provider_verified,
+              :dns_check_completed_at, :provider_check_completed_at,
+              :updated,
+            )
             raise
           ensure
             lock&.release(lock_token) if lock_token

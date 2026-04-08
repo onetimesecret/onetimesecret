@@ -55,9 +55,23 @@ module Onetime
       field :from_address     # Sender email address
       field :reply_to         # Reply-to address
 
-      # DNS verification state
-      field :verification_status  # pending, verified, failed
+      # DNS verification state (stored, updated by workers when both jobs complete)
+      # Values: 'pending' | 'verified' | 'failed'
+      # Updated by: DomainValidationWorker (after both jobs finish)
+      field :verification_status
       field :verified_at          # Timestamp, cleared when from_address changes
+
+      # Job lifecycle status fields (track WHERE the job is, not the outcome)
+      # Values: queued, processing, completed, failed
+      # See: lib/onetime/jobs/workers/job_lifecycle.rb
+      field :dns_check_status       # DnsRecordCheckWorker lifecycle
+      field :provider_check_status  # DomainValidationWorker lifecycle
+
+      # Verification outcome fields (track WHAT the result was)
+      # nil = pending/unknown, true = passed, false = failed
+      # These are set by workers after check completes
+      field :dns_verified           # All DNS records have value_matches=true
+      field :provider_verified      # Provider API confirms domain is verified
 
       # Sending mode: 'platform' (OTS manages DNS via provider API) or
       # future modes like 'byodns' (customer manages DNS manually).
@@ -108,6 +122,8 @@ module Onetime
         self.enabled             ||= 'false'
         self.verification_status ||= 'pending'
         self.sending_mode        ||= 'platform'
+        # Job lifecycle fields default to nil (no job enqueued yet)
+        # Outcome fields default to nil (unknown/pending)
       end
 
       # Check if this mailer config is enabled.
@@ -123,6 +139,97 @@ module Onetime
       def verified?
         verification_status == 'verified'
       end
+
+      # Compute the effective verification status from outcome fields.
+      #
+      # This provides backward compatibility: code that reads verification_status
+      # will get a value derived from the more granular outcome fields.
+      #
+      # Logic:
+      #   - If either job is still active (queued/processing): 'pending'
+      #   - If both outcomes are true: 'verified'
+      #   - If either outcome is false: 'failed'
+      #   - If outcomes are nil but jobs completed: 'failed' (no data = failure)
+      #   - Default: 'pending'
+      #
+      # @return [String] 'pending', 'verified', or 'failed'
+      def computed_verification_status
+        require_relative '../../jobs/workers/job_lifecycle'
+        lifecycle = Onetime::Jobs::Workers::JobLifecycle
+
+        # If either job is still in progress, we're pending
+        return 'pending' if lifecycle.active?(dns_check_status)
+        return 'pending' if lifecycle.active?(provider_check_status)
+
+        # If we have outcome data, use it
+        dns_ok      = parse_boolean_field(dns_verified)
+        provider_ok = parse_boolean_field(provider_verified)
+
+        # Both must pass for verified status
+        if dns_ok == true && provider_ok == true
+          'verified'
+        elsif dns_ok == false || provider_ok == false
+          'failed'
+        elsif lifecycle.terminal?(dns_check_status) && lifecycle.terminal?(provider_check_status)
+          # Both completed but no outcome data - treat as failed
+          'failed'
+        else
+          'pending'
+        end
+      end
+
+      # Check if both verification jobs have completed (regardless of outcome).
+      #
+      # @return [Boolean] true if both dns_check_status and provider_check_status are terminal
+      def jobs_completed?
+        require_relative '../../jobs/workers/job_lifecycle'
+        lifecycle = Onetime::Jobs::Workers::JobLifecycle
+
+        lifecycle.terminal?(dns_check_status) && lifecycle.terminal?(provider_check_status)
+      end
+
+      # Check if any verification job is still in progress.
+      #
+      # @return [Boolean] true if either job is queued or processing
+      def jobs_in_progress?
+        require_relative '../../jobs/workers/job_lifecycle'
+        lifecycle = Onetime::Jobs::Workers::JobLifecycle
+
+        lifecycle.active?(dns_check_status) || lifecycle.active?(provider_check_status)
+      end
+
+      # Update verification_status from outcome fields and persist.
+      #
+      # Called by workers after both jobs complete. Derives the final status
+      # from dns_verified and provider_verified, then stores it.
+      #
+      # @return [String] the new verification_status value
+      def update_verification_status!
+        new_status = computed_verification_status
+        self.verification_status = new_status
+        self.updated = Familia.now.to_i
+        save_fields(:verification_status, :updated)
+        new_status
+      end
+
+      private
+
+      # Parse a boolean field that may be stored as string, boolean, or nil.
+      #
+      # @param value [String, Boolean, nil] The field value
+      # @return [Boolean, nil] true, false, or nil if unknown
+      def parse_boolean_field(value)
+        case value
+        when true, 'true'
+          true
+        when false, 'false'
+          false
+        else
+          nil
+        end
+      end
+
+      public
 
       # Update the from_address, resetting verification state.
       #

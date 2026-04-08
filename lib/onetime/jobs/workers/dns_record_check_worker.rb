@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'base_worker'
+require_relative 'job_lifecycle'
 require_relative '../queues/config'
 require_relative '../queues/declarator'
 require_relative '../../mail/sender_strategies'
@@ -112,6 +113,10 @@ module Onetime
             return ack! # Don't retry -- config won't appear on its own
           end
 
+          # Mark job as processing
+          mailer_config.dns_check_status = JobLifecycle::PROCESSING
+          mailer_config.save_fields(:dns_check_status)
+
           # Load the sender strategy for DNS lookups (no credentials needed)
           provider = mailer_config.effective_provider
           strategy = Onetime::Mail::SenderStrategies.for_provider(provider)
@@ -126,16 +131,43 @@ module Onetime
           # dns_check_results is a jsonkey (own Redis key), so use value= directly.
           # dns_check_completed_at and updated are scalar fields — save_fields handles those.
           mailer_config.dns_check_results.value = result[:records]
-          mailer_config.dns_check_completed_at  = Familia.now.to_i
-          mailer_config.updated                 = Familia.now.to_i
-          mailer_config.save_fields(:dns_check_completed_at, :updated)
 
-          log_info "DNS record check complete: #{domain_id}",
-            record_count: result[:records]&.size,
-            checked_at: result[:checked_at]
+          # Compute dns_verified outcome: true if all records have value_matches=true
+          records     = result[:records] || []
+          all_matched = records.all? { |r| r['value_matches'] == true || r[:value_matches] == true }
+          mailer_config.dns_verified = all_matched.to_s
+
+          # Mark job as completed
+          mailer_config.dns_check_status       = JobLifecycle::COMPLETED
+          mailer_config.dns_check_completed_at = Familia.now.to_i
+          mailer_config.updated                = Familia.now.to_i
+          mailer_config.save_fields(:dns_check_status, :dns_verified, :dns_check_completed_at, :updated)
+
+          # Update stored verification_status if both jobs are now complete
+          if mailer_config.jobs_completed?
+            final_status = mailer_config.update_verification_status!
+            log_info "DNS record check complete (final): #{domain_id}",
+              record_count: records.size,
+              dns_verified: all_matched,
+              verification_status: final_status
+          else
+            log_info "DNS record check complete: #{domain_id}",
+              record_count: records.size,
+              dns_verified: all_matched,
+              provider_check_status: mailer_config.provider_check_status
+          end
 
           ack!
         rescue StandardError => ex
+          # Mark job as failed before sending to DLQ
+          if mailer_config
+            mailer_config.dns_check_status       = JobLifecycle::FAILED
+            mailer_config.dns_check_completed_at = Familia.now.to_i
+            mailer_config.last_error             = ex.message
+            mailer_config.updated                = Familia.now.to_i
+            mailer_config.save_fields(:dns_check_status, :dns_check_completed_at, :last_error, :updated)
+          end
+
           log_error 'Unexpected error checking DNS records', ex
           reject! # Send to DLQ
         end

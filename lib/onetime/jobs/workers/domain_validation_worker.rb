@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'base_worker'
+require_relative 'job_lifecycle'
 require_relative '../queues/config'
 require_relative '../queues/declarator'
 require_relative '../../operations/validate_sender_domain'
@@ -141,6 +142,10 @@ module Onetime
             return ack! # Don't retry -- config won't appear on its own
           end
 
+          # Mark job as processing
+          mailer_config.provider_check_status = JobLifecycle::PROCESSING
+          mailer_config.save_fields(:provider_check_status)
+
           # Delegate to operation with retry logic (DNS can be transiently flaky)
           # Don't retry rate limits - they won't clear for ~60 minutes
           result = nil
@@ -187,27 +192,49 @@ module Onetime
               end
             end
 
+            # Set provider_verified outcome based on result
+            mailer_config.provider_verified           = result.all_verified.to_s
+            mailer_config.provider_check_status       = JobLifecycle::COMPLETED
             mailer_config.provider_check_completed_at = Familia.now.to_i
             mailer_config.updated                     = Familia.now.to_i
-            mailer_config.save_fields(:provider_check_completed_at, :updated)
+            mailer_config.save_fields(:provider_verified, :provider_check_status, :provider_check_completed_at, :updated)
           rescue StandardError => ex
             # Provider check failure should not fail the overall worker
             log_error "Provider verification check failed for #{domain_id}", ex
-            # Still mark as completed so polling doesn't hang
+            # Mark as completed (not failed - the worker itself didn't crash)
+            # but don't set provider_verified since we couldn't determine it
+            mailer_config.provider_check_status       = JobLifecycle::COMPLETED
             mailer_config.provider_check_completed_at = Familia.now.to_i
             mailer_config.updated                     = Familia.now.to_i
-            mailer_config.save_fields(:provider_check_completed_at, :updated)
+            mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :updated)
           end
 
-          # Final determination: log the verification status set by this worker
-          log_info "Domain validation final determination: #{domain_id}",
-            verification_status: result.verification_status,
-            all_verified: result.all_verified
+          # Update stored verification_status if both jobs are now complete
+          if mailer_config.jobs_completed?
+            final_status = mailer_config.update_verification_status!
+            log_info "Domain validation final determination: #{domain_id}",
+              verification_status: final_status,
+              dns_verified: mailer_config.dns_verified,
+              provider_verified: mailer_config.provider_verified
+          else
+            log_info "Domain validation awaiting DNS check: #{domain_id}",
+              provider_verified: mailer_config.provider_verified,
+              dns_check_status: mailer_config.dns_check_status
+          end
 
           ack!
         rescue Onetime::LimitExceeded => ex
           # Rate limited - ack the message (don't retry or DLQ)
           # User can manually re-trigger after the rate limit window
+          # Mark as completed (not failed) but without setting provider_verified
+          if mailer_config
+            mailer_config.provider_check_status       = JobLifecycle::COMPLETED
+            mailer_config.provider_check_completed_at = Familia.now.to_i
+            mailer_config.last_error                  = "Rate limited: retry after #{ex.retry_after}s"
+            mailer_config.updated                     = Familia.now.to_i
+            mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :last_error, :updated)
+          end
+
           log_info 'Sender domain validation rate limited',
             domain_id: domain_id,
             retry_after: ex.retry_after,
@@ -215,6 +242,15 @@ module Onetime
             max_attempts: ex.max_attempts
           ack!
         rescue StandardError => ex
+          # Mark job as failed before sending to DLQ
+          if mailer_config
+            mailer_config.provider_check_status       = JobLifecycle::FAILED
+            mailer_config.provider_check_completed_at = Familia.now.to_i
+            mailer_config.last_error                  = ex.message
+            mailer_config.updated                     = Familia.now.to_i
+            mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :last_error, :updated)
+          end
+
           log_error 'Unexpected error validating sender domain', ex
           reject! # Send to DLQ
         end
