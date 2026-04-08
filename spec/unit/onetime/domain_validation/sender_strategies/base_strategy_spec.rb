@@ -888,4 +888,74 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
       end
     end
   end
+
+  describe '#resolve_domain' do
+    let(:resolve_strategy_class) do
+      Class.new(described_class) do
+        public :resolve_domain
+
+        def required_dns_records(_mailer_config)
+          []
+        end
+
+        def verify_dns_records(_mailer_config)
+          []
+        end
+      end
+    end
+
+    let(:resolve_strategy) { resolve_strategy_class.new }
+
+    it 'extracts domain from from_address' do
+      config = double('mailer_config', from_address: 'user@example.com', domain_id: 'cd:1')
+      expect(resolve_strategy.resolve_domain(config)).to eq('example.com')
+    end
+
+    it 'extracts sender domain distinct from display_domain' do
+      config = double('mailer_config', from_address: 'roger@metalbaum.dev', domain_id: 'cd:2')
+      expect(resolve_strategy.resolve_domain(config)).to eq('metalbaum.dev')
+    end
+
+    it 'handles subdomain in from_address' do
+      config = double('mailer_config', from_address: 'noreply@mail.example.com', domain_id: 'cd:3')
+      expect(resolve_strategy.resolve_domain(config)).to eq('mail.example.com')
+    end
+
+    it 'raises ArgumentError when from_address is nil' do
+      config = double('mailer_config', from_address: nil, domain_id: 'cd:4')
+      expect { resolve_strategy.resolve_domain(config) }
+        .to raise_error(ArgumentError, /has no valid from_address/)
+    end
+
+    it 'raises ArgumentError when from_address is empty' do
+      config = double('mailer_config', from_address: '', domain_id: 'cd:5')
+      expect { resolve_strategy.resolve_domain(config) }
+        .to raise_error(ArgumentError, /has no valid from_address/)
+    end
+
+    it 'raises ArgumentError when from_address has no @ sign' do
+      config = double('mailer_config', from_address: 'no-at-sign', domain_id: 'cd:6')
+      expect { resolve_strategy.resolve_domain(config) }
+        .to raise_error(ArgumentError, /has no valid from_address/)
+    end
+
+    it 'raises ArgumentError when from_address is bare @' do
+      config = double('mailer_config', from_address: '@', domain_id: 'cd:7')
+      expect { resolve_strategy.resolve_domain(config) }
+        .to raise_error(ArgumentError, /has empty domain in from_address/)
+    end
+
+    it 'handles multi-level TLD correctly' do
+      config = double('mailer_config', from_address: 'info@company.co.uk', domain_id: 'cd:8')
+      expect(resolve_strategy.resolve_domain(config)).to eq('company.co.uk')
+    end
+
+    it 'mirrors real-world dev.metalbaum.dev vs metalbaum.dev scenario' do
+      # display_domain is dev.metalbaum.dev but sender is roger@metalbaum.dev
+      config = double('mailer_config', from_address: 'roger@metalbaum.dev', domain_id: 'cd:9')
+      domain = resolve_strategy.resolve_domain(config)
+      expect(domain).to eq('metalbaum.dev')
+      expect(domain).not_to eq('dev.metalbaum.dev')
+    end
+  end
 end

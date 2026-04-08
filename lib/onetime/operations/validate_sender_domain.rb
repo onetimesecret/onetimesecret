@@ -87,10 +87,8 @@ module Onetime
       #
       # @return [Result] Verification result
       def call
-        domain_name   = nil
         rate_limit    = nil
-        custom_domain = load_custom_domain
-        domain_name   = custom_domain&.display_domain || extract_domain_from_address
+        domain_name   = extract_domain_from_address
 
         # Check rate limit before performing DNS verification.
         # This prevents excessive DNS queries and potential abuse.
@@ -274,8 +272,8 @@ module Onetime
         nil
       end
 
-      # Extract the domain portion from the from_address as a fallback
-      # when the CustomDomain record cannot be loaded.
+      # Extract the domain portion from the from_address — the primary
+      # domain extraction path for sender validation.
       #
       # @return [String, nil] Domain from email address or nil
       def extract_domain_from_address

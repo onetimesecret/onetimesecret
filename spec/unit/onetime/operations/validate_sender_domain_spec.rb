@@ -9,7 +9,7 @@ RSpec.describe Onetime::Operations::ValidateSenderDomain do
   let(:mock_custom_domain) do
     double(
       'CustomDomain',
-      display_domain: 'example.com',
+      display_domain: 'secrets.example.com',
     )
   end
 

@@ -20,12 +20,12 @@ OT.boot! :test
 require 'onetime/domain_validation/sender_strategies/strategy'
 
 # Stub mailer_config and custom_domain for record generation.
-# Strategies only need mailer_config.custom_domain.display_domain.
+# Strategies resolve the sender domain from mailer_config.from_address.
 @mock_custom_domain = Struct.new(:display_domain, :identifier).new(
   'secrets.example.com', 'cd:test123'
 )
-@mock_mailer_config = Struct.new(:custom_domain, :domain_id, :provider).new(
-  @mock_custom_domain, 'cd:test123', 'ses'
+@mock_mailer_config = Struct.new(:custom_domain, :domain_id, :provider, :from_address).new(
+  @mock_custom_domain, 'cd:test123', 'ses', 'sender@example.com'
 )
 
 @factory = Onetime::DomainValidation::SenderStrategies::SenderStrategy
@@ -133,9 +133,9 @@ end
 @ses_mx[:value].include?('amazonaws.com')
 #=> true
 
-## SES records all use the domain from mailer_config
+## SES records all use the sender domain from from_address
 # DNS hostname suffix assertion, not URL sanitization (CodeQL rb/incomplete-url-substring-sanitization)
-@ses_records.all? { |r| r[:host].end_with?('secrets.example.com') }
+@ses_records.all? { |r| r[:host].end_with?('example.com') }
 #=> true
 
 # --- SendGrid record generation ---
@@ -256,15 +256,15 @@ end
 @base.send(:record_matches?, 'AAAA', 'value', ['value'])
 #=> false
 
-# --- Edge case: resolve_domain with missing custom_domain ---
+# --- Edge case: resolve_domain with missing from_address ---
 
-## resolve_domain raises ArgumentError when custom_domain is nil
-@broken_config = Struct.new(:custom_domain, :domain_id).new(nil, 'cd:missing')
+## resolve_domain raises ArgumentError when from_address is nil
+@broken_config = Struct.new(:from_address, :domain_id).new(nil, 'cd:missing')
 begin
   @base.send(:resolve_domain, @broken_config)
   'unexpected_success'
 rescue ArgumentError => e
-  e.message.include?('has no associated CustomDomain')
+  e.message.include?('has no valid from_address')
 end
 #=> true
 
@@ -341,15 +341,14 @@ end
 @factory.for_provider('lettermint', {}).class
 #=> Onetime::DomainValidation::SenderStrategies::LettermintValidation
 
-# --- Edge case: resolve_domain with missing custom_domain ---
+# --- Edge case: resolve_domain with invalid from_address ---
 
-## resolve_domain raises ArgumentError when display_domain is empty
-@empty_domain = Struct.new(:display_domain, :identifier).new('', 'cd:empty')
-@empty_config = Struct.new(:custom_domain, :domain_id).new(@empty_domain, 'cd:empty')
+## resolve_domain raises ArgumentError when from_address has no @ sign
+@invalid_config = Struct.new(:from_address, :domain_id).new('no-at-sign', 'cd:invalid')
 begin
-  @base.send(:resolve_domain, @empty_config)
+  @base.send(:resolve_domain, @invalid_config)
   'unexpected_success'
 rescue ArgumentError => e
-  e.message.include?('has no display_domain')
+  e.message.include?('has no valid from_address')
 end
 #=> true
