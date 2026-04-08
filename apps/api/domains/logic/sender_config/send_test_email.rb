@@ -101,15 +101,17 @@ module DomainsAPI
             from: from,
             reply_to: reply_to,
             subject: "Test email from #{domain_display}",
-            body: build_text_body(domain_display, from_name, from_address, reply_to),
+            text_body: build_text_body(domain_display, from_name, from_address, reply_to),
             html_body: build_html_body(domain_display, from_name, from_address, reply_to),
           }
 
           sent_at = Time.now.utc
 
-          # deliver_raw without sender_config uses global backend but
-          # our pre-set from/reply_to in the email hash are preserved.
-          Onetime::Mail::Mailer.deliver_raw(email)
+          # Use the domain's own API key to build a per-domain backend.
+          # The global backend's token is scoped to the platform domain and
+          # will be rejected (422) by providers when sending from a custom
+          # sender address. Falls back to the global backend if no key stored.
+          build_test_backend.deliver(email)
 
           {
             success: true,
@@ -124,6 +126,20 @@ module DomainsAPI
           }
         rescue Onetime::Mail::DeliveryError => ex
           OT.info "[SendTestEmail] Delivery error for domain #{@domain_id}: #{ex.message}"
+
+          # Check for domain-not-found errors (domain removed from provider)
+          if domain_not_provisioned_error?(ex)
+            return {
+              success: false,
+              message: 'Sender domain not found on provider',
+              details: {
+                error_code: 'domain_not_provisioned',
+                description: 'This domain is no longer registered with the email provider. ' \
+                             'Please re-provision the sender configuration to restore sending capability.',
+              },
+            }
+          end
+
           {
             success: false,
             message: 'Failed to send test email',
@@ -142,6 +158,39 @@ module DomainsAPI
               description: 'An unexpected error occurred while sending the test email. Please try again.',
             },
           }
+        end
+
+        # Build a delivery backend using the domain's own API key.
+        #
+        # Provider tokens are project-scoped — the platform's global token
+        # cannot send from a custom sender domain. We decrypt the stored
+        # api_key and construct a fresh backend instance for test delivery.
+        #
+        # Falls back to the global backend if no api_key is stored (e.g.
+        # BYOK/SMTP domains where credentials live outside MailerConfig).
+        #
+        # @return [Onetime::Mail::Delivery::Base]
+        def build_test_backend
+          provider = @mailer_config.effective_provider
+          api_key  = @mailer_config.api_key.to_s.strip
+
+          if api_key.empty?
+            OT.info "[SendTestEmail] No domain api_key for #{@domain_id}, using global backend"
+            return Onetime::Mail::Mailer.delivery_backend
+          end
+
+          case provider
+          when 'lettermint'
+            Onetime::Mail::Delivery::Lettermint.new(api_token: api_key)
+          when 'sendgrid'
+            Onetime::Mail::Delivery::SendGrid.new(api_key: api_key)
+          else
+            # SES requires IAM credentials (key + secret + region) which
+            # can't be reconstructed from a single api_key field — fall back
+            # to the global backend which has the full SES config.
+            OT.info "[SendTestEmail] No per-domain backend for provider=#{provider}, using global"
+            Onetime::Mail::Mailer.delivery_backend
+          end
         end
 
         def build_text_body(domain, from_name, from_address, reply_to)
@@ -209,6 +258,36 @@ module DomainsAPI
             .gsub('<', '&lt;')
             .gsub('>', '&gt;')
             .gsub('"', '&quot;')
+        end
+
+        # Detect errors indicating the sender domain is not registered with the provider.
+        #
+        # This happens when a domain was manually removed from the provider dashboard
+        # or never provisioned. The provider rejects the send because it doesn't
+        # recognize the sender domain.
+        #
+        # @param ex [Onetime::Mail::DeliveryError] The delivery error
+        # @return [Boolean] true if this is a domain-not-provisioned error
+        def domain_not_provisioned_error?(ex)
+          original = ex.original_error
+          return false unless original
+
+          # Lettermint: 422 with "domain" or "sender" in the error message
+          if defined?(::Lettermint::HttpRequestError) && original.is_a?(::Lettermint::HttpRequestError)
+            return true if original.status_code == 422
+
+            msg = original.message.to_s.downcase
+            return true if msg.include?('domain') && (msg.include?('not found') || msg.include?('not registered'))
+            return true if msg.include?('sender') && msg.include?('not')
+          end
+
+          # SendGrid: 403 with "not verified" in message
+          if original.respond_to?(:status_code) && original.status_code == 403
+            msg = original.message.to_s.downcase
+            return true if msg.include?('not verified') || msg.include?('sender')
+          end
+
+          false
         end
 
         # Remove potentially sensitive information from error messages.

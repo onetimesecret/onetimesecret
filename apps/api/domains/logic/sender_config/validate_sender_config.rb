@@ -15,13 +15,35 @@ module DomainsAPI
       #
       # Triggers DNS record verification for a custom domain's mail sender
       # configuration. Sets verification_status to 'pending' and enqueues
-      # a background job for the actual DNS lookups.
+      # background jobs for actual DNS lookups.
       #
       # The caller can poll GET /:extid/email-config to observe the status
       # transition from 'pending' to 'verified' or 'failed'.
       #
       # Requires the requesting user to be an organization owner with
       # custom_mail_sender entitlement.
+      #
+      # ## Enqueued Workers
+      #
+      # This endpoint enqueues TWO workers that update different fields:
+      #
+      # 1. DnsRecordCheckWorker (fact-finding, fast):
+      #    - Populates: dns_check_results.value (Array with dns_exists, value_matches)
+      #    - Populates: dns_check_completed_at (timestamp)
+      #    - Does NOT set verification_status
+      #
+      # 2. DomainValidationWorker (verification, may call provider API):
+      #    - Populates: verification_status ('verified' | 'failed')
+      #    - Populates: provider_check_completed_at (timestamp)
+      #    - Uses DomainValidation::SenderStrategies (different from #1)
+      #
+      # ## Expected State After Completion
+      #
+      # Poll for: both dns_check_completed_at AND provider_check_completed_at
+      # present. Then read verification_status for the final determination.
+      #
+      # The dns_check_results provide diagnostic detail (which records exist,
+      # which values match), while verification_status is the boolean outcome.
       #
       class ValidateSenderConfig < Base
         include Serializers
@@ -62,11 +84,15 @@ module DomainsAPI
             previous_status                      = @mailer_config.verification_status
             previous_dns_check_completed_at      = @mailer_config.dns_check_completed_at
             previous_provider_check_completed_at = @mailer_config.provider_check_completed_at
+            previous_dns_check_results           = @mailer_config.dns_check_results&.value
 
-            # Set status to pending and clear completion timestamps so the UI reflects immediately
+            # Set status to pending and clear completion timestamps so the UI reflects immediately.
+            # Also clear dns_check_results so stale booleans (dns_exists, value_matches) don't
+            # show as verified during pending state.
             @mailer_config.verification_status         = VERIFICATION_STATUS_PENDING
             @mailer_config.dns_check_completed_at      = ''
             @mailer_config.provider_check_completed_at = ''
+            @mailer_config.dns_check_results.value     = nil
             @mailer_config.updated                     = Familia.now.to_i
             @mailer_config.save_fields(:verification_status, :dns_check_completed_at, :provider_check_completed_at, :updated)
 
@@ -78,10 +104,12 @@ module DomainsAPI
               bypass_cache: true,
             )
           rescue StandardError
-            # Rollback: restore previous status and timestamps so nothing stays stuck in 'pending'
+            # Rollback: restore previous status, timestamps, and dns_check_results
+            # so nothing stays stuck in 'pending' with cleared booleans
             @mailer_config.verification_status         = previous_status
             @mailer_config.dns_check_completed_at      = previous_dns_check_completed_at
             @mailer_config.provider_check_completed_at = previous_provider_check_completed_at
+            @mailer_config.dns_check_results.value     = previous_dns_check_results
             @mailer_config.updated                     = Familia.now.to_i
             @mailer_config.save_fields(:verification_status, :dns_check_completed_at, :provider_check_completed_at, :updated)
             raise
