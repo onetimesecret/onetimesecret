@@ -95,6 +95,8 @@ const mockEmailConfigData: CustomDomainEmailConfig = {
     { type: 'CNAME', name: 'em._domainkey.example.com', value: 'dkim.example.com', status: 'pending' },
   ],
   last_validated_at: new Date('2025-01-15T10:00:00Z'),
+  dns_check_completed_at: new Date('2025-01-15T10:00:00Z'),
+  provider_check_completed_at: new Date('2025-01-15T10:00:00Z'),
   provider_domain_id: null,
   created_at: new Date('2025-01-01T00:00:00Z'),
   updated_at: new Date('2025-01-15T10:00:00Z'),
@@ -104,6 +106,8 @@ const mockPendingConfig: CustomDomainEmailConfig = {
   ...mockEmailConfigData,
   validation_status: 'pending',
   enabled: false,
+  dns_check_completed_at: null,
+  provider_check_completed_at: null,
 };
 
 const mockDisabledConfig: CustomDomainEmailConfig = {
@@ -881,6 +885,8 @@ describe('useEmailConfig', () => {
       const failedConfig: CustomDomainEmailConfig = {
         ...mockEmailConfigData,
         validation_status: 'failed',
+        dns_check_completed_at: new Date('2025-01-15T10:00:00Z'),
+        provider_check_completed_at: new Date('2025-01-15T10:00:00Z'),
       };
       mockValidateEmailConfig.mockResolvedValue({ record: mockPendingConfig });
       mockGetEmailConfig
@@ -906,10 +912,10 @@ describe('useEmailConfig', () => {
 
       const promise = composable.validateDomain();
 
-      // Drain all 10 polls
+      // Drain all 10 polls using advanceTimersByTimeAsync so that
+      // setTimeout + awaited promises interleave correctly.
       for (let i = 0; i < 10; i++) {
-        vi.advanceTimersByTime(3000);
-        await flushPromises();
+        await vi.advanceTimersByTimeAsync(3000);
       }
       await promise;
 

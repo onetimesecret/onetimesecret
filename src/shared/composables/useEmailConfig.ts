@@ -148,6 +148,12 @@ export function useEmailConfig(domainExtId: string) {
   /** Last validated timestamp. */
   const lastValidatedAt = computed(() => emailConfig.value?.last_validated_at ?? null);
 
+  /** Timestamp when DNS record check completed. */
+  const dnsCheckCompletedAt = computed(() => emailConfig.value?.dns_check_completed_at ?? null);
+
+  /** Timestamp when provider verification check completed. */
+  const providerCheckCompletedAt = computed(() => emailConfig.value?.provider_check_completed_at ?? null);
+
   /** Whether the form has been modified since last save/load. */
   const hasUnsavedChanges = computed(() => {
     if (!savedFormState.value) return false;
@@ -289,32 +295,43 @@ export function useEmailConfig(domainExtId: string) {
   };
 
   /**
+   * Check if validation has completed (not pending).
+   */
+  const isValidationComplete = (config: CustomDomainEmailConfig): boolean => config.validation_status !== 'pending'
+      && config.dns_check_completed_at != null
+      && config.provider_check_completed_at != null;
+
+  /**
+   * Fetch and update email config from the store.
+   */
+  const updateEmailConfig = async (): Promise<boolean> => {
+    try {
+      const config = await domainsStore.getEmailConfig(domainExtId);
+      if (!config) return false;
+      emailConfig.value = config;
+      formState.value = configToFormState(config);
+      savedFormState.value = { ...formState.value };
+      return isValidationComplete(config);
+    } catch (err: unknown) {
+      // Break on non-retriable auth errors; retry transient failures
+      const status = (err as { code?: number })?.code;
+      if (status === 401 || status === 403) return true; // Signal to stop polling
+      return false;
+    }
+  };
+
+  /**
    * Poll the GET email-config endpoint until verification_status leaves
    * 'pending' or the maximum number of attempts is reached. The background
    * worker typically completes within 1-3 seconds, so 3s intervals for
    * up to 30s covers even degraded-DNS scenarios.
    */
-  const pollOnce = async (): Promise<'done' | 'continue'> => {
-    try {
-      const config = await domainsStore.getEmailConfig(domainExtId);
-      if (!config) return 'continue';
-      emailConfig.value = config;
-      formState.value = configToFormState(config);
-      savedFormState.value = { ...formState.value };
-      if (config.validation_status !== 'pending') return 'done';
-    } catch (err: unknown) {
-      // Break on non-retriable auth errors; retry transient failures
-      const status = (err as { code?: number })?.code;
-      if (status === 401 || status === 403) return 'done';
-    }
-    return 'continue';
-  };
-
   const pollForValidationResult = async (intervalMs = 3000, maxAttempts = 10): Promise<void> => {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
       if (pollingCancelled.value) return;
-      if (await pollOnce() === 'done') return;
+      const shouldStop = await updateEmailConfig();
+      if (shouldStop) return;
     }
   };
 
@@ -374,6 +391,8 @@ export function useEmailConfig(domainExtId: string) {
     dnsRecords,
     validationStatus,
     lastValidatedAt,
+    dnsCheckCompletedAt,
+    providerCheckCompletedAt,
     hasUnsavedChanges,
 
     // Actions
