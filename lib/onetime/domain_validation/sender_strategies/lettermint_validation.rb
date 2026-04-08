@@ -9,64 +9,48 @@ module Onetime
     module SenderStrategies
       # LettermintValidation - Lettermint sender domain validation strategy.
       #
-      # Lettermint domain verification requires:
-      #   - 2 CNAME records for DKIM (lm1, lm2 selectors)
-      #   - 1 CNAME record for SPF/Return-Path (lm-bounces subdomain)
+      # Reads provisioned DNS records from mailer_config.dns_records rather
+      # than generating them from hardcoded selectors. The Lettermint API
+      # provisions the actual records at domain creation time.
       #
-      # SPF is handled via CNAME, not a direct TXT record. Lettermint maintains
-      # the SPF record at bounces.lmta.net, so users only need the CNAME.
+      # Known Lettermint failure states:
+      #   - API may return empty dns_records array if domain creation is
+      #     incomplete or still propagating internally.
+      #   - Individual records may have status: 'pending' vs status: 'active'
+      #     at the API level, though this is not reflected in the stored
+      #     dns_records array (only name/type/value are persisted).
       #
       # Reference: Lettermint documentation (provider-specific)
       #
       class LettermintValidation < BaseStrategy
-        # Legacy constants preserved for backward compatibility.
-        # New code should rely on ProviderConfig defaults.
-        DKIM_SELECTORS   = %w[lm1 lm2].freeze
-        SPF_CNAME_PREFIX = 'lm-bounces'
-        SPF_CNAME_TARGET = 'bounces.lmta.net'
-
-        def self.accepted_options
-          [:dkim_selectors, :spf_cname_prefix, :spf_cname_target].freeze
-        end
-
-        # @param dkim_selectors [Array<String>] DKIM selector names (default: ['lm1', 'lm2'])
-        # @param spf_cname_prefix [String] SPF CNAME subdomain prefix (default: 'lm-bounces')
-        # @param spf_cname_target [String] SPF CNAME target domain (default: 'bounces.lmta.net')
-        def initialize(dkim_selectors: DKIM_SELECTORS, spf_cname_prefix: SPF_CNAME_PREFIX, spf_cname_target: SPF_CNAME_TARGET)
-          @dkim_selectors   = dkim_selectors
-          @spf_cname_prefix = spf_cname_prefix
-          @spf_cname_target = spf_cname_target
-        end
-
         # Returns the DNS records required for Lettermint domain verification.
         #
+        # Reads provisioned records from mailer_config.dns_records.value
+        # (array of string-keyed hashes from the Lettermint API) and maps
+        # them to the validation format with symbol keys.
+        #
+        # Returns an empty array if no provisioned records exist — does
+        # NOT fall back to hardcoded selectors.
+        #
         # @param mailer_config [Onetime::CustomDomain::MailerConfig]
-        # @return [Array<Hash>]
+        # @return [Array<Hash>] Each hash: {type:, host:, value:, purpose:}
         #
         def required_dns_records(mailer_config)
-          domain = resolve_domain(mailer_config)
+          provisioned = mailer_config.dns_records&.value
 
-          records = []
-
-          # DKIM CNAME records (configurable selectors, default lm1, lm2)
-          @dkim_selectors.each_with_index do |selector, i|
-            records << {
-              type: 'CNAME',
-              host: "#{selector}._domainkey.#{domain}",
-              value: "#{selector}.dkim.lettermint.com",
-              purpose: "DKIM signature #{i + 1} of #{@dkim_selectors.size}",
-            }
+          if provisioned.nil? || provisioned.empty?
+            logger.error "[lettermint-validation] No provisioned DNS records for #{mailer_config.domain_id}; cannot validate"
+            return []
           end
 
-          # SPF/Return-Path CNAME record (Lettermint maintains SPF at the target)
-          records << {
-            type: 'CNAME',
-            host: "#{@spf_cname_prefix}.#{domain}",
-            value: @spf_cname_target,
-            purpose: 'SPF/Return-Path (bounce handling)',
-          }
-
-          records
+          provisioned.map do |record|
+            {
+              type: record['type'].to_s.upcase,
+              host: record['name'].to_s,
+              value: record['value'].to_s,
+              purpose: classify_record_purpose(record),
+            }
+          end
         end
 
         # Verifies Lettermint DNS records via live DNS lookup.
@@ -82,6 +66,32 @@ module Onetime
         # @return [String]
         def strategy_name
           'lettermint'
+        end
+
+        private
+
+        # Infers a human-readable purpose from the record's name and type.
+        #
+        # @param record [Hash] String-keyed hash from provisioned dns_records
+        # @return [String]
+        #
+        def classify_record_purpose(record)
+          name = record['name'].to_s.downcase
+          type = record['type'].to_s.upcase
+
+          if name.include?('_domainkey')
+            'DKIM'
+          elsif name.include?('_dmarc')
+            'DMARC'
+          elsif name.include?('bounce') || (type == 'CNAME' && name.start_with?('lm-bounce'))
+            'SPF/Return-Path'
+          elsif type == 'TXT' && record['value'].to_s.start_with?('v=spf1')
+            'SPF'
+          elsif type == 'MX'
+            'Inbound mail'
+          else
+            type
+          end
         end
       end
     end
