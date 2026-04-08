@@ -34,7 +34,7 @@ RSpec.describe 'Domains Command', type: :cli do
       resolving: 'false',
       status: 'active',
       txt_validation_host: '_onetimesecret.example.com',
-      txt_validation_value: 'v=ots1',
+      txt_validation_value: 'v=lettermint',
       validation_record: 'TXT',
       vhost: 'example.com',
       allow_public_homepage?: false,
