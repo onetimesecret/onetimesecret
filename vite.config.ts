@@ -312,5 +312,8 @@ export default defineConfig({
       viteAdditionalServerAllowedHosts
     ),
     __VUE_PROD_DEVTOOLS__: DEBUG,
+    // vue-i18n (intlify) feature flags — Rollup auto-replaced these but
+    // Rolldown requires explicit definition to avoid ReferenceError at runtime
+    __INTLIFY_PROD_DEVTOOLS__: false,
   },
 });
