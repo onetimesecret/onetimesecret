@@ -52,19 +52,6 @@ const routes: Array<RouteRecordRaw> = [
     },
     props: true,
   },
-  {
-    path: '/org/:extid/members',
-    name: 'OrganizationMembers',
-    component: () => import('@/apps/workspace/members/MembersList.vue'),
-    meta: {
-      title: 'web.organizations.members.title',
-      requiresAuth: true,
-      layout: WorkspaceLayout,
-      layoutProps: standardLayoutProps,
-      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
-    },
-    props: true,
-  },
   // Legacy redirects (no billing guard needed)
   {
     path: '/account/settings/organizations',

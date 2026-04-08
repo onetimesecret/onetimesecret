@@ -211,9 +211,13 @@
     "text": "Company Branding",
     "content_hash": "7ecc5d35"
   },
-  "web.organizations.tabs.members": {
+  "web.organizations.tabs.team": {
     "text": "Team",
     "content_hash": "5985039f"
+  },
+  "web.organizations.tabs.members": {
+    "text": "Members",
+    "content_hash": "a1b2c3d4"
   },
   "web.organizations.tabs.billing": {
     "text": "Billing",
