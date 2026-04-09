@@ -365,11 +365,19 @@ module Onetime
           name  = record['name']
           check = dns_checks.find { |c| c['name'] == name }
 
+          # Per-record status from DNS check facts when available;
+          # fall back to overall status only when no check data exists yet.
+          per_record_status = if check
+                                check['value_matches'] ? 'verified' : 'failed'
+                              else
+                                current_status
+                              end
+
           result = {
             'type' => record['type'],
             'name' => name,
             'value' => record['value'],
-            'status' => current_status,
+            'status' => per_record_status,
           }
           if check
             result['dns_exists']    = check['dns_exists']
