@@ -85,7 +85,7 @@ const {
 // ---------------------------------------------------------------------------
 
 const handleBack = () => {
-  router.push(`/org/${props.orgid}/domains/${props.extid}`);
+  router.push(`/org/${props.orgid}/domains`);
 };
 
 // Unsaved changes guard
@@ -135,7 +135,7 @@ watch(canManageSso, async (entitled) => {
             name="arrow-left"
             class="size-5"
             aria-hidden="true" />
-          {{ t('web.COMMON.back') }}
+          <span class="sr-only">{{ t('web.COMMON.back') }}</span>
         </button>
       </div>
     </div>
@@ -211,7 +211,7 @@ watch(canManageSso, async (entitled) => {
                 aria-hidden="true" />
             </div>
             <div>
-              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              <h2 data-testid="sso-config-title" class="text-lg font-semibold text-gray-900 dark:text-white">
                 {{ t('web.domains.sso.title') }}
               </h2>
               <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">

@@ -277,7 +277,7 @@ describe('DomainSso', () => {
       mockDomain.value = { display_domain: 'example.com' };
       wrapper = await mountComponent();
 
-      const title = wrapper.find('h1');
+      const title = wrapper.find('[data-testid="sso-config-title"]');
       expect(title.exists()).toBe(true);
       expect(title.text()).toContain('Domain SSO Configuration');
     });
@@ -297,9 +297,7 @@ describe('DomainSso', () => {
       // The domain name text should not be present in the header area
       // since domain is null during loading
       const headerArea = wrapper.find('.border-b');
-      const displayDomainText = headerArea.find('p.mt-1');
-      // When loading, v-if="!domainLoading && displayDomain" should hide the paragraph
-      expect(displayDomainText.exists()).toBe(false);
+      expect(headerArea.exists()).toBe(false);
     });
   });
 
