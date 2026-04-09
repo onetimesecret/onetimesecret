@@ -118,7 +118,13 @@ const selectDomain = (domain: string): void => {
     }
     const matchedRoute = route.matched[route.matched.length - 1];
     if (matchedRoute?.path) {
-      const newPath = matchedRoute.path.replace(':extid', extid);
+      // Replace :extid (domain param) with new domain's extid.
+      // Also replace :orgid (org param) with current org extid so the literal
+      // route pattern placeholder doesn't appear in the navigated URL.
+      let newPath = matchedRoute.path.replace(':extid', extid);
+      if (currentOrgExtid.value) {
+        newPath = newPath.replace(':orgid', currentOrgExtid.value);
+      }
       router.push(newPath);
     }
   } else if (switchTarget.includes(':extid')) {
