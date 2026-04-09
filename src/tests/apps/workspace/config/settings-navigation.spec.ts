@@ -225,6 +225,7 @@ describe('settings-navigation config', () => {
 
     it('caution section is visible when not SSO-only', () => {
       mockedIsSsoOnlyMode.mockReturnValue(false);
+      mockedHasPassword.mockReturnValue(true);
       const items = getSettingsNavigation(t);
       const cautionItem = items.find((i) => i.id === 'caution');
       expect(cautionItem).toBeDefined();
@@ -240,6 +241,7 @@ describe('settings-navigation config', () => {
 
     it('region section is visible when not SSO-only', () => {
       mockedIsSsoOnlyMode.mockReturnValue(false);
+      mockedHasPassword.mockReturnValue(true);
       const items = getSettingsNavigation(t);
       const regionItem = items.find((i) => i.id === 'region');
       expect(regionItem).toBeDefined();
