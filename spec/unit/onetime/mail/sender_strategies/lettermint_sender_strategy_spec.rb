@@ -184,7 +184,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
         result = strategy.provision_dns_records(mailer_config, credentials: credentials)
 
         expect(result[:success]).to be false
-        expect(result[:error]).to eq('http_500')
+        expect(result[:error]).to eq('http_500: Internal Server Error')
         expect(result[:message]).to include('Lettermint API error')
         expect(result[:dns_records]).to eq([])
       end

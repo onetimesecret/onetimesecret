@@ -59,6 +59,8 @@ const i18n = createI18n({
             status_failed: 'Failed',
             last_validated: 'Last validated',
             copy: 'Copy',
+            dns_check_label: 'DNS',
+            provider_check_label: 'Provider',
           },
         },
         COMMON: {
@@ -189,7 +191,7 @@ describe('DomainEmailDnsRecords', () => {
 
       const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       expect(cards[0].text()).toContain('DNS');
-      expect(cards[0].text()).toContain('Resolving');
+      expect(cards[0].text()).toContain('Provider');
     });
 
     it('applies emerald to DNS indicator when dns_exists is true', () => {
@@ -225,7 +227,7 @@ describe('DomainEmailDnsRecords', () => {
 
       const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
-      const resolvingIndicator = indicators.find((i) => i.text().includes('Resolving'));
+      const resolvingIndicator = indicators.find((i) => i.text().includes('Provider'));
       expect(resolvingIndicator!.classes()).toContain('text-emerald-600');
     });
 
@@ -234,7 +236,7 @@ describe('DomainEmailDnsRecords', () => {
 
       const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
-      const resolvingIndicator = indicators.find((i) => i.text().includes('Resolving'));
+      const resolvingIndicator = indicators.find((i) => i.text().includes('Provider'));
       expect(resolvingIndicator!.classes()).toContain('text-gray-300');
     });
 
