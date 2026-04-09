@@ -139,8 +139,9 @@ module Billing
     def self.tier_priority(tier)
       case tier.to_s
       when 'free' then 0
-      when 'single_team' then 1
-      when 'multi_team' then 2
+      when 'single_account' then 1
+      when 'single_team' then 2
+      when 'multi_team' then 3
       else 999 # Unknown tiers sort last
       end
     end

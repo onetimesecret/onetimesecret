@@ -926,5 +926,33 @@
   "web.domains.unsaved_changes_confirmation": {
     "text": "You have unsaved changes. Are you sure you want to leave?",
     "content_hash": "322380c1"
+  },
+  "web.domains.detail.manage": {
+    "text": "Manage",
+    "content_hash": "a1b2c3d4"
+  },
+  "web.domains.detail.configuration": {
+    "text": "Configuration",
+    "content_hash": "b2c3d4e5"
+  },
+  "web.domains.detail.verify_description": {
+    "text": "DNS verification and domain status",
+    "content_hash": "c3d4e5f6"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, colors, and custom branding",
+    "content_hash": "d4e5f6a7"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Single sign-on provider settings",
+    "content_hash": "e5f6a7b8"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Custom email sender configuration",
+    "content_hash": "f6a7b8c9"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Incoming secret recipient settings",
+    "content_hash": "a7b8c9d0"
   }
 }

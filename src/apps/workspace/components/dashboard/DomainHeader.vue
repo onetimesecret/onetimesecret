@@ -13,10 +13,11 @@ const { t } = useI18n();
     domain: CustomDomain;
     hasUnsavedChanges: boolean;
     orgid: string;
+    backRoute?: string;
   }>();
 
   // Build org-qualified routes
-  const domainsListRoute = computed(() => `/org/${props.orgid}`);
+  const domainsListRoute = computed(() => props.backRoute ?? `/org/${props.orgid}`);
   const verifyRoute = computed(() => `/org/${props.orgid}/domains/${props.domain?.extid}/verify`);
 
   const { statusIcon, isActive, isWarning, isError, displayStatus } = useDomainStatus(
