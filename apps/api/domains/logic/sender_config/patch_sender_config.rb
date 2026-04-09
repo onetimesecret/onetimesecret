@@ -67,11 +67,25 @@ module DomainsAPI
           # Validate required fields
           validate_required_fields
 
-          # Enforce domain restriction based on entitlement.
-          # Only when from_address was explicitly provided or this is a new config —
-          # PATCH semantics: omitted fields preserve existing values unmodified.
-          if @from_address_provided || @existing_config.nil?
-            @from_address = enforce_from_domain(@from_address, @custom_domain, @organization)
+          # Enforce domain restriction against the effective from_address.
+          #
+          # Always run enforcement so that an org losing the flexible_from_domain
+          # entitlement cannot preserve a non-compliant address via a PATCH that
+          # omits from_address. The effective address is the submitted value when
+          # provided, otherwise the stored value.
+          #
+          # If enforcement changes the address (i.e. the stored address was
+          # non-compliant) we mark it as provided so update_existing_config
+          # picks it up and resets the verification state.
+          effective_from_address = if @from_address_provided || @existing_config.nil?
+  @from_address
+else
+  @existing_config.from_address
+end
+          enforced_from_address  = enforce_from_domain(effective_from_address, @custom_domain, @organization)
+          if @from_address_provided || @existing_config.nil? || enforced_from_address != effective_from_address
+            @from_address          = enforced_from_address
+            @from_address_provided = true
           end
         end
 
