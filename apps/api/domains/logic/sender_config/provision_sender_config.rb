@@ -33,6 +33,7 @@ module DomainsAPI
       # - error: Error message describing what failed
       #
       class ProvisionSenderConfig < Base
+        include Onetime::LoggerMethods
         include Serializers
         include AuditLogger
 
@@ -61,13 +62,27 @@ module DomainsAPI
         end
 
         def process
-          OT.ld "[ProvisionSenderConfig] Provisioning sender domain for #{@domain_id} by user #{cust.extid}"
+          provider    = @mailer_config.effective_provider
+          from_domain = @mailer_config.from_address&.split('@')&.last
+
+          logger.info 'Starting sender domain provisioning',
+            domain_id: @domain_id,
+            from_domain: from_domain,
+            provider: provider,
+            org_id: @organization&.extid,
+            user_id: cust.extid
 
           result = Onetime::Operations::ProvisionSenderDomain.new(
             mailer_config: @mailer_config,
           ).call
 
           if result.success?
+            logger.info 'Sender domain provisioned successfully',
+              domain_id: @domain_id,
+              from_domain: from_domain,
+              provider: provider,
+              record_count: result.dns_records.size
+
             log_sender_audit_event(
               event: :domain_sender_provisioned,
               domain: @custom_domain,
@@ -79,6 +94,16 @@ module DomainsAPI
 
             success_data(result)
           else
+            logger.error 'Sender domain provisioning failed',
+              domain_id: @domain_id,
+              from_domain: from_domain,
+              provider: provider,
+              org_id: @organization&.extid,
+              user_id: cust.extid,
+              error: result.error
+
+            report_provisioning_failure(result.error, provider, from_domain)
+
             raise_form_error(result.error || 'Provisioning failed', field: :provider, error_type: :operation_failed)
           end
         end
@@ -89,6 +114,38 @@ module DomainsAPI
             dns_records: result.dns_records,
             record: serialize_sender_config(@mailer_config),
           }
+        end
+
+        private
+
+        # Report provisioning failures to Sentry for visibility.
+        #
+        # ProvisionSenderDomain returns Result objects rather than raising,
+        # so standard exception capture won't see these. We explicitly report
+        # provider failures (HTTP 500, auth errors, rate limits, etc.).
+        #
+        def report_provisioning_failure(error_message, provider, from_domain)
+          return unless defined?(Sentry) && Sentry.initialized?
+
+          Sentry.capture_message("Sender provisioning failed: #{error_message}", level: :error) do |scope|
+            scope.set_context(
+              'provisioning',
+              {
+                domain_id: @domain_id,
+                from_domain: from_domain,
+                provider: provider,
+                org_id: @organization&.extid,
+                user_id: cust&.extid,
+              },
+            )
+            scope.set_tags(
+              operation: 'provision_sender_config',
+              provider: provider,
+            )
+          end
+        rescue StandardError => ex
+          logger.warn 'Failed to report provisioning failure to Sentry',
+            error: ex.message
         end
       end
     end

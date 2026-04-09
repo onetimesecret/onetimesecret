@@ -144,12 +144,13 @@ module Onetime
             error: 'timeout',
           }
         rescue Lettermint::HttpRequestError => ex
-          log_error "[lettermint-sender] Provisioning failed for #{domain}: #{ex.message}"
+          error_detail = parse_error_response(ex.response_body) || ex.message
+          log_error "[lettermint-sender] Provisioning failed for #{domain}: HTTP #{ex.status_code} - #{error_detail}"
           {
             success: false,
-            message: "Lettermint API error: #{ex.message}",
+            message: "Lettermint API error: #{error_detail}",
             dns_records: [],
-            error: "http_#{ex.status_code}",
+            error: "http_#{ex.status_code}: #{error_detail}",
           }
         rescue StandardError => ex
           log_error "[lettermint-sender] Provisioning failed: #{ex.message}"
@@ -227,11 +228,12 @@ module Onetime
             },
           }
         rescue Lettermint::HttpRequestError => ex
-          log_error "[lettermint-sender] Verification check failed for #{domain}: #{ex.message}"
+          error_detail = parse_error_response(ex.response_body) || ex.message
+          log_error "[lettermint-sender] Verification check failed for #{domain}: HTTP #{ex.status_code} - #{error_detail}"
           {
             verified: false,
             status: 'error',
-            message: "Verification check failed: #{ex.message}",
+            message: "Verification check failed: #{error_detail}",
           }
         rescue StandardError => ex
           log_error "[lettermint-sender] Verification check failed: #{ex.message}"
@@ -297,10 +299,11 @@ module Onetime
               message: "Domain #{domain} was already deleted or never existed",
             }
           else
-            log_error "[lettermint-sender] Deletion failed for #{domain}: #{ex.message}"
+            error_detail = parse_error_response(ex.response_body) || ex.message
+            log_error "[lettermint-sender] Deletion failed for #{domain}: HTTP #{ex.status_code} - #{error_detail}"
             {
               deleted: false,
-              message: "Deletion failed: #{ex.message}",
+              message: "Deletion failed: #{error_detail}",
             }
           end
         rescue StandardError => ex
@@ -449,6 +452,36 @@ module Onetime
               value: rec_val,
             }
           end
+        end
+
+        # Parse error response body to extract meaningful error message.
+        #
+        # Lettermint API typically returns JSON errors like:
+        #   { "error": "message" } or { "message": "..." } or { "errors": [...] }
+        #
+        # @param response_body [String, Hash, nil] Raw response body
+        # @return [String, nil] Extracted error message or nil
+        #
+        def parse_error_response(response_body)
+          return nil if response_body.nil? || response_body.to_s.empty?
+
+          body = response_body.is_a?(String) ? JSON.parse(response_body) : response_body
+
+          # Lettermint returns { "code": "...", "message": "..." }
+          if body['code'] && body['message']
+            "#{body['code']}: #{body['message']}"
+          elsif body['error']
+            body['error']
+          elsif body['message']
+            body['message']
+          elsif body['errors']&.first
+            body['errors'].first
+          else
+            JSON.generate(body)
+          end
+        rescue JSON::ParserError
+          # Not JSON, return raw body (truncated for safety)
+          response_body.to_s[0, 200]
         end
 
         # Maps verification state to human-readable message.
