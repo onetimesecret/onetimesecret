@@ -12,6 +12,7 @@
 
 import { useEmailConfig } from '@/shared/composables/useEmailConfig';
 import { createPinia, setActivePinia } from 'pinia';
+import { flushPromises } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { CustomDomainEmailConfig } from '@/schemas/shapes/domains/email-config';
@@ -729,12 +730,30 @@ describe('useEmailConfig', () => {
   // ─────────────────────────────────────────────────────────────────────────
 
   describe('validateDomain', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    /** Advance fake timers through all polling iterations. */
+    const drainPolling = async () => {
+      for (let i = 0; i < 10; i++) {
+        vi.advanceTimersByTime(3000);
+        await flushPromises();
+      }
+    };
+
     it('calls domainsStore.validateEmailConfig with correct extid', async () => {
       mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
       const composable = useEmailConfig('dm-ext-789');
       await composable.initialize();
 
-      await composable.validateDomain();
+      const promise = composable.validateDomain();
+      await drainPolling();
+      await promise;
 
       expect(mockValidateEmailConfig).toHaveBeenCalledWith('dm-ext-789');
     });
@@ -745,12 +764,14 @@ describe('useEmailConfig', () => {
         validation_status: 'verified',
       };
       mockValidateEmailConfig.mockResolvedValue({ record: updatedConfig });
-      mockGetEmailConfig.mockResolvedValue(mockPendingConfig);
+      mockGetEmailConfig.mockResolvedValue(updatedConfig);
 
       const composable = useEmailConfig('dm-ext-123');
       await composable.initialize();
 
-      await composable.validateDomain();
+      const promise = composable.validateDomain();
+      await drainPolling();
+      await promise;
 
       expect(composable.emailConfig.value?.validation_status).toBe('verified');
     });
@@ -762,7 +783,9 @@ describe('useEmailConfig', () => {
       const composable = useEmailConfig('dm-ext-123');
       await composable.initialize();
 
-      await composable.validateDomain();
+      const promise = composable.validateDomain();
+      await drainPolling();
+      await promise;
 
       expect(mockNotificationsShow).toHaveBeenCalledWith(
         'Validation failed',
@@ -772,11 +795,8 @@ describe('useEmailConfig', () => {
     });
 
     it('sets isValidating during operation', async () => {
-      let resolveValidate: (value: unknown) => void;
-      mockValidateEmailConfig.mockImplementation(() => new Promise((resolve) => {
-        resolveValidate = resolve;
-      }));
       mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      mockValidateEmailConfig.mockResolvedValue({ record: mockEmailConfigData });
 
       const composable = useEmailConfig('dm-ext-123');
       await composable.initialize();
@@ -784,7 +804,7 @@ describe('useEmailConfig', () => {
       const validatePromise = composable.validateDomain();
       expect(composable.isValidating.value).toBe(true);
 
-      resolveValidate!({ record: mockEmailConfigData });
+      await drainPolling();
       await validatePromise;
 
       expect(composable.isValidating.value).toBe(false);
@@ -797,9 +817,146 @@ describe('useEmailConfig', () => {
       const composable = useEmailConfig('dm-ext-123');
       await composable.initialize();
 
-      await composable.validateDomain();
+      const promise = composable.validateDomain();
+      await drainPolling();
+      await promise;
 
       expect(composable.isValidating.value).toBe(false);
+    });
+
+    it('guards against concurrent calls', async () => {
+      mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
+      mockValidateEmailConfig.mockResolvedValue({ record: mockEmailConfigData });
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      const p1 = composable.validateDomain();
+      composable.validateDomain(); // should be a no-op
+
+      await drainPolling();
+      await p1;
+
+      expect(mockValidateEmailConfig).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // pollForValidationResult (via validateDomain)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('pollForValidationResult (via validateDomain)', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('stops polling when status transitions from pending to verified', async () => {
+      mockValidateEmailConfig.mockResolvedValue({ record: mockPendingConfig });
+      // initialize returns pending, first poll returns pending, second returns verified
+      mockGetEmailConfig
+        .mockResolvedValueOnce(mockPendingConfig)  // initialize
+        .mockResolvedValueOnce(mockPendingConfig)  // poll 1
+        .mockResolvedValueOnce(mockEmailConfigData); // poll 2 (verified)
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      const promise = composable.validateDomain();
+
+      // Advance through 2 polls
+      await vi.advanceTimersByTimeAsync(3000);
+      await vi.advanceTimersByTimeAsync(3000);
+      await promise;
+
+      expect(composable.emailConfig.value?.validation_status).toBe('verified');
+      // 1 (init) + 2 (polls)
+      expect(mockGetEmailConfig).toHaveBeenCalledTimes(3);
+    });
+
+    it('stops polling when status transitions from pending to failed', async () => {
+      const failedConfig: CustomDomainEmailConfig = {
+        ...mockEmailConfigData,
+        validation_status: 'failed',
+      };
+      mockValidateEmailConfig.mockResolvedValue({ record: mockPendingConfig });
+      mockGetEmailConfig
+        .mockResolvedValueOnce(mockPendingConfig)  // initialize
+        .mockResolvedValueOnce(failedConfig);       // poll 1
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      const promise = composable.validateDomain();
+      await vi.advanceTimersByTimeAsync(3000);
+      await promise;
+
+      expect(composable.emailConfig.value?.validation_status).toBe('failed');
+    });
+
+    it('stops after maxAttempts if status stays pending', async () => {
+      mockValidateEmailConfig.mockResolvedValue({ record: mockPendingConfig });
+      mockGetEmailConfig.mockResolvedValue(mockPendingConfig);
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      const promise = composable.validateDomain();
+
+      // Drain all 10 polls
+      for (let i = 0; i < 10; i++) {
+        vi.advanceTimersByTime(3000);
+        await flushPromises();
+      }
+      await promise;
+
+      // 1 (init) + 10 (polls)
+      expect(mockGetEmailConfig).toHaveBeenCalledTimes(11);
+      expect(composable.emailConfig.value?.validation_status).toBe('pending');
+    });
+
+    it('keeps isValidating true during polling and sets false after', async () => {
+      mockValidateEmailConfig.mockResolvedValue({ record: mockPendingConfig });
+      mockGetEmailConfig
+        .mockResolvedValueOnce(mockPendingConfig)    // initialize
+        .mockResolvedValueOnce(mockPendingConfig)    // poll 1
+        .mockResolvedValueOnce(mockEmailConfigData); // poll 2 (verified)
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      const promise = composable.validateDomain();
+
+      // After first poll, still validating
+      await vi.advanceTimersByTimeAsync(3000);
+      expect(composable.isValidating.value).toBe(true);
+
+      // After second poll (verified), done
+      await vi.advanceTimersByTimeAsync(3000);
+      await promise;
+      expect(composable.isValidating.value).toBe(false);
+    });
+
+    it('swallows network errors during polling', async () => {
+      mockValidateEmailConfig.mockResolvedValue({ record: mockPendingConfig });
+      mockGetEmailConfig
+        .mockResolvedValueOnce(mockPendingConfig)    // initialize
+        .mockRejectedValueOnce(new Error('Network'))  // poll 1 fails
+        .mockResolvedValueOnce(mockEmailConfigData); // poll 2 succeeds
+
+      const composable = useEmailConfig('dm-ext-123');
+      await composable.initialize();
+
+      const promise = composable.validateDomain();
+
+      await vi.advanceTimersByTimeAsync(3000);
+      await vi.advanceTimersByTimeAsync(3000);
+      await promise;
+
+      expect(composable.emailConfig.value?.validation_status).toBe('verified');
     });
   });
 

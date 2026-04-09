@@ -14,21 +14,21 @@
  * @param domainExtId - Domain external ID for API calls
  */
 
-import type { ApplicationError } from '@/schemas/errors';
-import type { TestEmailConfigResponse } from '@/schemas/api/domains/responses/test-email-config';
 import type {
-  PutEmailConfigRequest,
   PatchEmailConfigRequest,
+  PutEmailConfigRequest,
 } from '@/schemas/api/domains/requests/email-config';
+import type { TestEmailConfigResponse } from '@/schemas/api/domains/responses/test-email-config';
+import type { ApplicationError } from '@/schemas/errors';
 import type { CustomDomainEmailConfig } from '@/schemas/shapes/domains/email-config';
-import { useDomainsStore } from '@/shared/stores/domainsStore';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useNotificationsStore } from '@/shared/stores';
-import { computed, ref } from 'vue';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useDomainsStore } from '@/shared/stores/domainsStore';
 import { storeToRefs } from 'pinia';
+import { computed, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { type AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
+import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
 
 export interface EmailConfigFormState {
   from_name: string;
@@ -87,6 +87,12 @@ export function useEmailConfig(domainExtId: string) {
   const testError = ref<string>('');
   /** The most recent API error, or null. */
   const error = ref<ApplicationError | null>(null);
+  /** Set on unmount to cancel any in-flight polling loop. */
+  const pollingCancelled = ref(false);
+
+  onUnmounted(() => {
+    pollingCancelled.value = true;
+  });
 
   /** The full config object from the API. Null = unconfigured (404). */
   const emailConfig = ref<CustomDomainEmailConfig | null>(null);
@@ -126,30 +132,21 @@ export function useEmailConfig(domainExtId: string) {
   const isConfigured = computed(() => emailConfig.value !== null);
 
   /** Whether the config is verified (DNS records confirmed). */
-  const isVerified = computed(
-    () => emailConfig.value?.validation_status === 'verified'
-  );
+  const isVerified = computed(() => emailConfig.value?.validation_status === 'verified');
 
   /** Whether emails are using the fallback global sender. */
   const usesFallbackSender = computed(
-    () =>
-      !isConfigured.value ||
-      !isVerified.value ||
-      emailConfig.value?.enabled === false
+    () => !isConfigured.value || !isVerified.value || emailConfig.value?.enabled === false
   );
 
   /** DNS records from the current config. */
   const dnsRecords = computed(() => emailConfig.value?.dns_records ?? []);
 
   /** Validation status from the current config. */
-  const validationStatus = computed(
-    () => emailConfig.value?.validation_status ?? 'pending'
-  );
+  const validationStatus = computed(() => emailConfig.value?.validation_status ?? 'pending');
 
   /** Last validated timestamp. */
-  const lastValidatedAt = computed(
-    () => emailConfig.value?.last_validated_at ?? null
-  );
+  const lastValidatedAt = computed(() => emailConfig.value?.last_validated_at ?? null);
 
   /** Whether the form has been modified since last save/load. */
   const hasUnsavedChanges = computed(() => {
@@ -252,7 +249,9 @@ export function useEmailConfig(domainExtId: string) {
    * and a 404 here means "endpoint missing", not "domain not found".
    */
   const validateDomain = async () => {
+    if (isValidating.value) return;
     isValidating.value = true;
+    pollingCancelled.value = false;
     error.value = null;
 
     const applyResult = (response: { record?: CustomDomainEmailConfig | null }) => {
@@ -265,9 +264,15 @@ export function useEmailConfig(domainExtId: string) {
 
     if (isValidateEndpointStable.value) {
       try {
-        const response = await wrap(async () => await domainsStore.validateEmailConfig(domainExtId));
+        const response = await wrap(
+          async () => await domainsStore.validateEmailConfig(domainExtId)
+        );
         if (response) applyResult(response);
       } finally {
+        // Poll for result — the POST returns 'pending' immediately while
+        // a background worker performs DNS lookups. Without polling the UI
+        // stays stuck on 'pending' until the user manually refreshes.
+        await pollForValidationResult();
         isValidating.value = false;
       }
     } else {
@@ -277,8 +282,39 @@ export function useEmailConfig(domainExtId: string) {
       } catch {
         notifications.show(t('web.domains.email.validation_failed'), 'error', 'top');
       } finally {
+        await pollForValidationResult();
         isValidating.value = false;
       }
+    }
+  };
+
+  /**
+   * Poll the GET email-config endpoint until verification_status leaves
+   * 'pending' or the maximum number of attempts is reached. The background
+   * worker typically completes within 1-3 seconds, so 3s intervals for
+   * up to 30s covers even degraded-DNS scenarios.
+   */
+  const pollOnce = async (): Promise<'done' | 'continue'> => {
+    try {
+      const config = await domainsStore.getEmailConfig(domainExtId);
+      if (!config) return 'continue';
+      emailConfig.value = config;
+      formState.value = configToFormState(config);
+      savedFormState.value = { ...formState.value };
+      if (config.validation_status !== 'pending') return 'done';
+    } catch (err: unknown) {
+      // Break on non-retriable auth errors; retry transient failures
+      const status = (err as { code?: number })?.code;
+      if (status === 401 || status === 403) return 'done';
+    }
+    return 'continue';
+  };
+
+  const pollForValidationResult = async (intervalMs = 3000, maxAttempts = 10): Promise<void> => {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+      if (pollingCancelled.value) return;
+      if (await pollOnce() === 'done') return;
     }
   };
 

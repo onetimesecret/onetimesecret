@@ -17,8 +17,8 @@ module Onetime
       # verify those records via live DNS lookups.
       #
       # The mailer_config argument carries provider credentials and a domain_id
-      # foreign key. The associated CustomDomain's display_domain is the domain
-      # name used in record generation and verification.
+      # foreign key. The sender domain for DNS record generation and verification
+      # is extracted from mailer_config.from_address.
       #
       class BaseStrategy
         include Onetime::Utils::RetryHelper
@@ -85,24 +85,33 @@ module Onetime
           @logger ||= Onetime.get_logger('SenderStrategies')
         end
 
-        # Resolve the display_domain from a mailer_config's associated CustomDomain.
+        # Resolve the sender domain from mailer_config's from_address.
+        #
+        # The sender domain (where email originates) is distinct from
+        # display_domain (where OTS secrets are hosted). DNS records for
+        # email authentication must match the sender domain.
         #
         # @param mailer_config [Onetime::CustomDomain::MailerConfig]
-        # @return [String] The domain name (e.g. "secrets.example.com")
-        # @raise [ArgumentError] If the domain cannot be resolved
+        # @return [String] The sender domain (e.g. "example.com")
+        # @raise [ArgumentError] If from_address is missing or invalid
         #
         def resolve_domain(mailer_config)
-          custom_domain = mailer_config.custom_domain
-          unless custom_domain
+          from_address = mailer_config.from_address.to_s
+          unless from_address.include?('@')
             raise ArgumentError,
-              "MailerConfig #{mailer_config.domain_id} has no associated CustomDomain"
+              "MailerConfig #{mailer_config.domain_id} has no valid from_address"
           end
 
-          domain = custom_domain.display_domain.to_s
+          domain = from_address.split('@').last.to_s
           if domain.empty?
             raise ArgumentError,
-              "CustomDomain #{custom_domain.identifier} has no display_domain"
+              "MailerConfig #{mailer_config.domain_id} has empty domain in from_address"
           end
+
+          logger.debug 'Resolved sender domain from from_address',
+            sender_domain: domain,
+            from_address: from_address,
+            mailer_config_id: mailer_config.domain_id
 
           domain
         end

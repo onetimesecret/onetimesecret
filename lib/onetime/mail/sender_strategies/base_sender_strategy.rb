@@ -143,14 +143,19 @@ module Onetime
 
         # Extract the domain from an email address.
         #
+        # Uses Truemail regex validation to reject malformed addresses
+        # before extracting the domain portion.
+        #
         # @param email [String] Email address
-        # @return [String, nil] Domain portion
+        # @return [String, nil] Domain portion, or nil if invalid
         #
         def extract_domain(email)
           return nil if email.to_s.empty?
 
-          parts = email.split('@')
-          parts.length == 2 ? parts[1] : nil
+          result = Truemail.validate(email, with: :regex)
+          return nil unless result.result.valid?
+
+          email.split('@', 2).last
         end
       end
     end

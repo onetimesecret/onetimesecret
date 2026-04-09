@@ -4,9 +4,10 @@
 /**
  * DNS Records display for domain email configuration.
  *
- * Shows a table of DNS records required for email authentication (SPF, DKIM, DMARC)
- * with per-record status indicators and copy-to-clipboard functionality.
- * Includes a "Re-validate" button to trigger DNS verification.
+ * Shows DNS records required for email authentication (SPF, DKIM, DMARC) as
+ * vertical cards with per-record status indicators and copy-to-clipboard
+ * functionality. Values render fully visible (no truncation) so DKIM keys
+ * and long hostnames are copyable. Includes a "Re-validate" button.
  */
 import { useI18n } from 'vue-i18n';
 import { ref } from 'vue';
@@ -189,119 +190,93 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
       </span>
     </div>
 
-    <!-- DNS Records Table -->
+    <!-- DNS Records Cards -->
     <div
       v-if="dnsRecords.length > 0"
-      class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead class="bg-gray-50 dark:bg-gray-800">
-          <tr>
-            <th
-              scope="col"
-              class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              {{ t('web.domains.email.dns_column_type') }}
-            </th>
-            <th
-              scope="col"
-              class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+      class="space-y-3">
+      <div
+        v-for="(record, index) in dnsRecords"
+        :key="index"
+        class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
+        <!-- Card header: type badge + status -->
+        <div class="flex items-center justify-between">
+          <span class="inline-flex rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+            {{ record.type }}
+          </span>
+          <span
+            class="inline-flex items-center gap-1.5"
+            :class="statusClasses(record.status)">
+            <OIcon
+              collection="heroicons"
+              :name="statusIcon(record.status)"
+              class="size-4"
+              aria-hidden="true" />
+            <span class="text-xs font-medium">
+              {{ statusLabel(record.status) }}
+            </span>
+          </span>
+        </div>
+
+        <!-- Name field -->
+        <div class="mt-3">
+          <div class="flex items-start justify-between gap-2">
+            <span class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               {{ t('web.domains.email.dns_column_name') }}
-            </th>
-            <th
-              scope="col"
-              class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            </span>
+            <button
+              type="button"
+              @click="handleCopy(record.name, index * 2)"
+              class="flex-shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              :aria-label="`${t('web.domains.email.copy')} ${record.name}`">
+              <OIcon
+                v-if="copiedIndex === index * 2"
+                collection="heroicons"
+                name="check"
+                class="size-4 text-emerald-500"
+                aria-hidden="true" />
+              <OIcon
+                v-else
+                collection="heroicons"
+                name="clipboard-document"
+                class="size-4"
+                aria-hidden="true" />
+            </button>
+          </div>
+          <code class="mt-1 block break-all text-sm text-gray-900 dark:text-gray-100">
+            {{ record.name }}
+          </code>
+        </div>
+
+        <!-- Value field -->
+        <div class="mt-3">
+          <div class="flex items-start justify-between gap-2">
+            <span class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               {{ t('web.domains.email.dns_column_value') }}
-            </th>
-            <th
-              scope="col"
-              class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              <span class="sr-only">{{ t('web.COMMON.status') }}</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
-          <tr
-            v-for="(record, index) in dnsRecords"
-            :key="index"
-            class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-            <!-- Type -->
-            <td class="whitespace-nowrap px-4 py-3">
-              <span class="inline-flex rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                {{ record.type }}
-              </span>
-            </td>
-
-            <!-- Name -->
-            <td class="px-4 py-3">
-              <div class="flex items-center gap-2">
-                <code class="max-w-[200px] truncate text-sm text-gray-900 dark:text-gray-100">
-                  {{ record.name }}
-                </code>
-                <button
-                  type="button"
-                  @click="handleCopy(record.name, index * 2)"
-                  class="flex-shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                  :aria-label="`${t('web.domains.email.copy')} ${record.name}`">
-                  <OIcon
-                    v-if="copiedIndex === index * 2"
-                    collection="heroicons"
-                    name="check"
-                    class="size-4 text-emerald-500"
-                    aria-hidden="true" />
-                  <OIcon
-                    v-else
-                    collection="heroicons"
-                    name="clipboard-document"
-                    class="size-4"
-                    aria-hidden="true" />
-                </button>
-              </div>
-            </td>
-
-            <!-- Value -->
-            <td class="px-4 py-3">
-              <div class="flex items-center gap-2">
-                <code class="max-w-[300px] truncate text-sm text-gray-900 dark:text-gray-100">
-                  {{ record.value }}
-                </code>
-                <button
-                  type="button"
-                  @click="handleCopy(record.value, index * 2 + 1)"
-                  class="flex-shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                  :aria-label="`${t('web.domains.email.copy')} ${record.value}`">
-                  <OIcon
-                    v-if="copiedIndex === index * 2 + 1"
-                    collection="heroicons"
-                    name="check"
-                    class="size-4 text-emerald-500"
-                    aria-hidden="true" />
-                  <OIcon
-                    v-else
-                    collection="heroicons"
-                    name="clipboard-document"
-                    class="size-4"
-                    aria-hidden="true" />
-                </button>
-              </div>
-            </td>
-
-            <!-- Status -->
-            <td class="whitespace-nowrap px-4 py-3 text-right">
-              <span
-                class="inline-flex items-center gap-1.5"
-                :class="statusClasses(record.status)">
-                <OIcon
-                  collection="heroicons"
-                  :name="statusIcon(record.status)"
-                  class="size-4"
-                  aria-hidden="true" />
-                <span class="text-xs font-medium">
-                  {{ statusLabel(record.status) }}
-                </span>
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </span>
+            <button
+              type="button"
+              @click="handleCopy(record.value, index * 2 + 1)"
+              class="flex-shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              :aria-label="`${t('web.domains.email.copy')} ${record.value}`">
+              <OIcon
+                v-if="copiedIndex === index * 2 + 1"
+                collection="heroicons"
+                name="check"
+                class="size-4 text-emerald-500"
+                aria-hidden="true" />
+              <OIcon
+                v-else
+                collection="heroicons"
+                name="clipboard-document"
+                class="size-4"
+                aria-hidden="true" />
+            </button>
+          </div>
+          <code class="mt-1 block break-all text-sm text-gray-900 dark:text-gray-100">
+            {{ record.value }}
+          </code>
+        </div>
+      </div>
     </div>
 
     <!-- Empty state (no DNS records) -->

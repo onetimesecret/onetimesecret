@@ -179,6 +179,13 @@ module SpecHelpers
   # Add shared test helpers here
 end
 
+# Truemail requires a verifier_email before regex validation can be used.
+# Without this, Truemail.validate doesn't raise — it returns a result whose
+# error message ("use Truemail.configure before...") gets swallowed by the
+# strategy's own rescue blocks, causing every sender strategy spec to fail
+# with misleading wrong-error-message assertions.
+Truemail.configure { |config| config.verifier_email = 'test@example.com' }
+
 RSpec.configure do |config|
   # ==========================================================================
   # DIRECTORY-BASED AUTH MODE ISOLATION

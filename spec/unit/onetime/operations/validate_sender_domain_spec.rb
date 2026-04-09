@@ -9,7 +9,7 @@ RSpec.describe Onetime::Operations::ValidateSenderDomain do
   let(:mock_custom_domain) do
     double(
       'CustomDomain',
-      display_domain: 'example.com',
+      display_domain: 'secrets.example.com',
     )
   end
 
@@ -233,6 +233,106 @@ RSpec.describe Onetime::Operations::ValidateSenderDomain do
       operation.call
 
       expect(mock_strategy).not_to have_received(:verify_dns_records)
+    end
+  end
+
+  # ==========================================================================
+  # Per-record structured logging
+  # ==========================================================================
+
+  describe 'per-record structured logging' do
+    let(:mock_logger) { instance_double(SemanticLogger::Logger, info: nil, debug: nil, warn: nil, error: nil) }
+
+    before do
+      allow(Onetime).to receive(:get_logger).with('Operations').and_return(mock_logger)
+    end
+
+    context 'when all records pass verification' do
+      let(:passing_records) do
+        [
+          { type: 'CNAME', host: 'lm1._domainkey.example.com', expected: 'lm1.dkim.lettermint.com', actual: ['lm1.dkim.lettermint.com'], verified: true, purpose: 'DKIM signature 1 of 2' },
+          { type: 'CNAME', host: 'lm2._domainkey.example.com', expected: 'lm2.dkim.lettermint.com', actual: ['lm2.dkim.lettermint.com'], verified: true, purpose: 'DKIM signature 2 of 2' },
+        ]
+      end
+
+      let(:passing_strategy) { instance_double(Onetime::DomainValidation::SenderStrategies::BaseStrategy, verify_dns_records: passing_records) }
+
+      it 'logs each passing record at debug level' do
+        operation = described_class.new(mailer_config: mailer_config, strategy: passing_strategy, persist: false)
+        operation.call
+
+        expect(mock_logger).to have_received(:debug).with('DNS record verification result', hash_including(verified: true, host: 'lm1._domainkey.example.com')).once
+        expect(mock_logger).to have_received(:debug).with('DNS record verification result', hash_including(verified: true, host: 'lm2._domainkey.example.com')).once
+      end
+
+      it 'does not log any records at info level for verification results' do
+        operation = described_class.new(mailer_config: mailer_config, strategy: passing_strategy, persist: false)
+        operation.call
+
+        expect(mock_logger).not_to have_received(:info).with('DNS record verification result', anything)
+      end
+    end
+
+    context 'when some records fail verification' do
+      let(:mixed_records) do
+        [
+          { type: 'CNAME', host: 'lm1._domainkey.example.com', expected: 'lm1.dkim.lettermint.com', actual: ['lm1.dkim.lettermint.com'], verified: true, purpose: 'DKIM signature 1 of 2' },
+          { type: 'CNAME', host: 'lm2._domainkey.example.com', expected: 'lm2.dkim.lettermint.com', actual: [], verified: false, purpose: 'DKIM signature 2 of 2', error_type: 'not_found' },
+        ]
+      end
+
+      let(:mixed_strategy) { instance_double(Onetime::DomainValidation::SenderStrategies::BaseStrategy, verify_dns_records: mixed_records) }
+
+      it 'logs failing records at info level with expected/actual fields' do
+        operation = described_class.new(mailer_config: mailer_config, strategy: mixed_strategy, persist: false)
+        operation.call
+
+        expect(mock_logger).to have_received(:info).with(
+          'DNS record verification result',
+          hash_including(verified: false, host: 'lm2._domainkey.example.com', actual: [], error_type: 'not_found'),
+        )
+      end
+
+      it 'logs passing records at debug level even when siblings fail' do
+        operation = described_class.new(mailer_config: mailer_config, strategy: mixed_strategy, persist: false)
+        operation.call
+
+        expect(mock_logger).to have_received(:debug).with('DNS record verification result', hash_including(verified: true, host: 'lm1._domainkey.example.com'))
+      end
+    end
+
+    context 'summary log' do
+      let(:mixed_records) do
+        [
+          { type: 'CNAME', host: 'a.example.com', expected: 'a', actual: ['a'], verified: true, purpose: 'DKIM 1' },
+          { type: 'CNAME', host: 'b.example.com', expected: 'b', actual: [], verified: false, purpose: 'DKIM 2' },
+          { type: 'CNAME', host: 'c.example.com', expected: 'c', actual: ['c'], verified: true, purpose: 'SPF' },
+        ]
+      end
+
+      let(:mixed_strategy) { instance_double(Onetime::DomainValidation::SenderStrategies::BaseStrategy, verify_dns_records: mixed_records) }
+
+      it 'includes records_verified count in the summary log' do
+        operation = described_class.new(mailer_config: mailer_config, strategy: mixed_strategy, persist: false)
+        operation.call
+
+        expect(mock_logger).to have_received(:info).with(
+          'Sender domain validation complete',
+          hash_including(records_checked: 3, records_verified: 2),
+        )
+      end
+
+      it 'reports all records verified when all pass' do
+        all_pass = [{ type: 'CNAME', host: 'x.example.com', expected: 'x', actual: ['x'], verified: true, purpose: 'DKIM' }]
+        strategy = instance_double(Onetime::DomainValidation::SenderStrategies::BaseStrategy, verify_dns_records: all_pass)
+        operation = described_class.new(mailer_config: mailer_config, strategy: strategy, persist: false)
+        operation.call
+
+        expect(mock_logger).to have_received(:info).with(
+          'Sender domain validation complete',
+          hash_including(records_checked: 1, records_verified: 1),
+        )
+      end
     end
   end
 end

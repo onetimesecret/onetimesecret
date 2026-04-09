@@ -87,10 +87,8 @@ module Onetime
       #
       # @return [Result] Verification result
       def call
-        domain_name   = nil
         rate_limit    = nil
-        custom_domain = load_custom_domain
-        domain_name   = custom_domain&.display_domain || extract_domain_from_address
+        domain_name   = extract_domain_from_address
 
         # Check rate limit before performing DNS verification.
         # This prevents excessive DNS queries and potential abuse.
@@ -119,11 +117,30 @@ module Onetime
           @mailer_config.record_check_attempt(duration_ms, nil)
         end
 
+        # Log per-record results so failures are diagnosable without
+        # reproducing the DNS lookup manually.
+        dns_records.each do |record|
+          level = record[:verified] ? :debug : :info
+          logger.send(
+            level,
+            'DNS record verification result',
+            domain: domain_name,
+            purpose: record[:purpose],
+            type: record[:type],
+            host: record[:host],
+            expected: record[:expected],
+            actual: record[:actual],
+            verified: record[:verified],
+            error_type: record[:error_type],
+          )
+        end
+
         logger.info 'Sender domain validation complete',
           domain: domain_name,
           provider: effective_provider,
           status: verification_status,
           records_checked: dns_records.size,
+          records_verified: dns_records.count { |r| r[:verified] },
           duration_ms: duration_ms,
           persisted: persisted
 
@@ -255,8 +272,8 @@ module Onetime
         nil
       end
 
-      # Extract the domain portion from the from_address as a fallback
-      # when the CustomDomain record cannot be loaded.
+      # Extract the domain portion from the from_address — the primary
+      # domain extraction path for sender validation.
       #
       # @return [String, nil] Domain from email address or nil
       def extract_domain_from_address

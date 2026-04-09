@@ -81,7 +81,13 @@ module Onetime
           response = create_or_get_domain(client, domain)
 
           # Lettermint returns: { domain:, status:, dns_records: [...], created_at: }
-          dns_records = normalize_dns_records(response['dns_records'] || [])
+          raw_records = response['dns_records'] || []
+          dns_records = normalize_dns_records(raw_records)
+
+          if raw_records.any? && dns_records.empty?
+            log_warn '[lettermint-sender] DNS records returned but none normalized. ' \
+                     "Raw keys: #{raw_records.first&.keys&.inspect}"
+          end
 
           {
             success: true,
@@ -397,16 +403,16 @@ module Onetime
 
         # Normalize Lettermint DNS records to standard format.
         #
-        # Lettermint returns records as:
-        #   [{ "type": "CNAME", "name": "lm1._domainkey.example.com", "value": "lm1.dkim.lettermint.com" }, ...]
+        # Lettermint API returns records as:
+        #   [{ "type": "CNAME", "hostname": "lm1._domainkey", "fqdn": "lm1._domainkey.example.com",
+        #      "content": "lm1.dkim.lettermint.com", "status": "pending", "id": "..." }, ...]
         #
         # Normalized to consistent shape matching SES/SendGrid:
         #   [{ type: 'CNAME', name: '...', value: '...' }, ...]
         #
-        # Returns Array<Hash> with {type:, name:, value:} entries, matching
-        # the shape used by SES and SendGrid strategies.
+        # Maps Lettermint fields: fqdn/hostname → name, content → value.
         #
-        # @param records [Array<Hash>] Raw DNS records from Lettermint
+        # @param records [Array<Hash>] Raw DNS records from Lettermint API
         # @return [Array<Hash>] Normalized records with symbolized keys
         #
         def normalize_dns_records(records)
@@ -416,8 +422,13 @@ module Onetime
             next unless record.is_a?(Hash)
 
             rec_type = record['type'] || record[:type]
-            rec_name = record['name'] || record[:name]
-            rec_val  = record['value'] || record[:value]
+            # Lettermint API uses 'hostname'/'fqdn'/'content'; fall back to
+            # 'name'/'value' for forward compatibility if the API ever changes.
+            rec_name = record['fqdn'] || record[:fqdn] ||
+                       record['hostname'] || record[:hostname] ||
+                       record['name'] || record[:name]
+            rec_val  = record['content'] || record[:content] ||
+                       record['value'] || record[:value]
 
             next unless rec_type && rec_name && rec_val
 

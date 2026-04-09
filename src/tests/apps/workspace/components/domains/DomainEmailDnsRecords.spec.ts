@@ -1,7 +1,7 @@
 // src/tests/apps/workspace/components/domains/DomainEmailDnsRecords.spec.ts
 //
 // Tests for DomainEmailDnsRecords.vue covering:
-// 1. DNS records table rendering with correct columns
+// 1. DNS records card rendering with type, name, value
 // 2. Per-record status indicators with correct colors
 // 3. Validate event emission on re-validate button click
 // 4. Validation status banner (verified/pending/failed)
@@ -121,58 +121,55 @@ describe('DomainEmailDnsRecords', () => {
   };
 
   // ─────────────────────────────────────────────────────────────────────────
-  // DNS records table
+  // DNS records cards
   // ─────────────────────────────────────────────────────────────────────────
 
-  describe('DNS records table', () => {
-    it('renders a table when records are present', () => {
+  describe('DNS records cards', () => {
+    it('renders cards when records are present', () => {
       wrapper = mountComponent();
 
-      const table = wrapper.find('table');
-      expect(table.exists()).toBe(true);
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      expect(cards).toHaveLength(3);
     });
 
-    it('renders correct column headers', () => {
+    it('renders one card per DNS record', () => {
       wrapper = mountComponent();
 
-      const headers = wrapper.findAll('th');
-      expect(headers).toHaveLength(4); // Type, Name, Value, Status (sr-only)
-
-      expect(headers[0].text()).toBe('Type');
-      expect(headers[1].text()).toBe('Name');
-      expect(headers[2].text()).toBe('Value');
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      expect(cards).toHaveLength(3);
     });
 
-    it('renders one row per DNS record', () => {
+    it('displays record type in each card', () => {
       wrapper = mountComponent();
 
-      const rows = wrapper.findAll('tbody tr');
-      expect(rows).toHaveLength(3);
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      expect(cards[0].text()).toContain('TXT');
+      expect(cards[1].text()).toContain('CNAME');
+      expect(cards[2].text()).toContain('TXT');
     });
 
-    it('displays record type in each row', () => {
+    it('displays record name in each card', () => {
       wrapper = mountComponent();
 
-      const rows = wrapper.findAll('tbody tr');
-      expect(rows[0].text()).toContain('TXT');
-      expect(rows[1].text()).toContain('CNAME');
-      expect(rows[2].text()).toContain('TXT');
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      expect(cards[0].text()).toContain('_dmarc.example.com');
+      expect(cards[1].text()).toContain('em._domainkey.example.com');
     });
 
-    it('displays record name in each row', () => {
+    it('displays record value in each card', () => {
       wrapper = mountComponent();
 
-      const rows = wrapper.findAll('tbody tr');
-      expect(rows[0].text()).toContain('_dmarc.example.com');
-      expect(rows[1].text()).toContain('em._domainkey.example.com');
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      expect(cards[0].text()).toContain('v=DMARC1; p=none');
+      expect(cards[1].text()).toContain('dkim.sendgrid.net');
     });
 
-    it('displays record value in each row', () => {
+    it('shows Name and Value labels in each card', () => {
       wrapper = mountComponent();
 
-      const rows = wrapper.findAll('tbody tr');
-      expect(rows[0].text()).toContain('v=DMARC1; p=none');
-      expect(rows[1].text()).toContain('dkim.sendgrid.net');
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      expect(cards[0].text()).toContain('Name');
+      expect(cards[0].text()).toContain('Value');
     });
   });
 
@@ -184,78 +181,72 @@ describe('DomainEmailDnsRecords', () => {
     it('shows Verified label for verified records', () => {
       wrapper = mountComponent();
 
-      const rows = wrapper.findAll('tbody tr');
-      // First record has status 'verified'
-      expect(rows[0].text()).toContain('Verified');
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      expect(cards[0].text()).toContain('Verified');
     });
 
     it('shows Pending label for pending records', () => {
       wrapper = mountComponent();
 
-      const rows = wrapper.findAll('tbody tr');
-      // Second record has status 'pending'
-      expect(rows[1].text()).toContain('Pending');
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      expect(cards[1].text()).toContain('Pending');
     });
 
     it('shows Failed label for failed records', () => {
       wrapper = mountComponent();
 
-      const rows = wrapper.findAll('tbody tr');
-      // Third record has status 'failed'
-      expect(rows[2].text()).toContain('Failed');
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      expect(cards[2].text()).toContain('Failed');
     });
 
     it('applies emerald color classes for verified status', () => {
       wrapper = mountComponent();
 
-      const rows = wrapper.findAll('tbody tr');
-      const statusCell = rows[0].findAll('td').at(-1);
-      const statusSpan = statusCell!.find('.inline-flex');
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const statusSpan = cards[0].find('.inline-flex.items-center.gap-1\\.5');
       expect(statusSpan.classes()).toContain('text-emerald-600');
     });
 
     it('applies amber color classes for pending status', () => {
       wrapper = mountComponent();
 
-      const rows = wrapper.findAll('tbody tr');
-      const statusCell = rows[1].findAll('td').at(-1);
-      const statusSpan = statusCell!.find('.inline-flex');
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const statusSpan = cards[1].find('.inline-flex.items-center.gap-1\\.5');
       expect(statusSpan.classes()).toContain('text-amber-500');
     });
 
     it('applies rose color classes for failed status', () => {
       wrapper = mountComponent();
 
-      const rows = wrapper.findAll('tbody tr');
-      const statusCell = rows[2].findAll('td').at(-1);
-      const statusSpan = statusCell!.find('.inline-flex');
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const statusSpan = cards[2].find('.inline-flex.items-center.gap-1\\.5');
       expect(statusSpan.classes()).toContain('text-rose-600');
     });
 
     it('uses correct icon name for verified records', () => {
       wrapper = mountComponent();
 
-      const rows = wrapper.findAll('tbody tr');
-      const statusCell = rows[0].findAll('td').at(-1);
-      const icon = statusCell!.find('.o-icon');
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const statusSpan = cards[0].find('.inline-flex.items-center.gap-1\\.5');
+      const icon = statusSpan.find('.o-icon');
       expect(icon.attributes('data-icon-name')).toBe('check-circle-solid');
     });
 
     it('uses correct icon name for pending records', () => {
       wrapper = mountComponent();
 
-      const rows = wrapper.findAll('tbody tr');
-      const statusCell = rows[1].findAll('td').at(-1);
-      const icon = statusCell!.find('.o-icon');
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const statusSpan = cards[1].find('.inline-flex.items-center.gap-1\\.5');
+      const icon = statusSpan.find('.o-icon');
       expect(icon.attributes('data-icon-name')).toBe('clock');
     });
 
     it('uses correct icon name for failed records', () => {
       wrapper = mountComponent();
 
-      const rows = wrapper.findAll('tbody tr');
-      const statusCell = rows[2].findAll('td').at(-1);
-      const icon = statusCell!.find('.o-icon');
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const statusSpan = cards[2].find('.inline-flex.items-center.gap-1\\.5');
+      const icon = statusSpan.find('.o-icon');
       expect(icon.attributes('data-icon-name')).toBe('x-circle-solid');
     });
   });
@@ -397,8 +388,8 @@ describe('DomainEmailDnsRecords', () => {
     it('shows empty state when no DNS records', () => {
       wrapper = mountComponent({ dnsRecords: [] });
 
-      const table = wrapper.find('table');
-      expect(table.exists()).toBe(false);
+      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      expect(cards).toHaveLength(0);
 
       // Should show the dashed border empty state
       const emptyState = wrapper.find('.border-dashed');
@@ -412,11 +403,10 @@ describe('DomainEmailDnsRecords', () => {
       expect(emptyState.text()).toContain('Add the following DNS records');
     });
 
-    it('does not show table when records list is empty', () => {
+    it('does not show cards when records list is empty', () => {
       wrapper = mountComponent({ dnsRecords: [] });
 
-      expect(wrapper.find('table').exists()).toBe(false);
-      expect(wrapper.find('tbody').exists()).toBe(false);
+      expect(wrapper.findAll('.rounded-lg.border.bg-white')).toHaveLength(0);
     });
   });
 
