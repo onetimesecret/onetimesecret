@@ -218,7 +218,8 @@ describe('DomainEmailDnsRecords', () => {
       expect(dnsIndicator!.classes()).toContain('text-gray-300');
     });
 
-    it('applies emerald to Resolving indicator when validationStatus is verified', () => {
+    it('applies emerald to Provider indicator when validationStatus is verified and no per-record data', () => {
+      // Fallback: no provider_verified on records -> falls back to domain-level effectiveStatus
       wrapper = mountComponent({
         validationStatus: 'verified',
         dnsCheckCompletedAt: new Date(),
@@ -231,7 +232,36 @@ describe('DomainEmailDnsRecords', () => {
       expect(resolvingIndicator!.classes()).toContain('text-emerald-600');
     });
 
-    it('applies gray to Resolving indicator when validationStatus is not verified', () => {
+    it('applies emerald to Provider indicator when record.provider_verified is true', () => {
+      const records: EmailDnsRecord[] = [
+        { type: 'TXT', name: '_dmarc.example.com', value: 'v=DMARC1; p=none', status: 'verified', provider_verified: true },
+      ];
+      wrapper = mountComponent({ dnsRecords: records, validationStatus: 'failed' });
+
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
+      const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
+      const resolvingIndicator = indicators.find((i) => i.text().includes('Provider'));
+      expect(resolvingIndicator!.classes()).toContain('text-emerald-600');
+    });
+
+    it('applies gray to Provider indicator when record.provider_verified is false even if domain is verified', () => {
+      const records: EmailDnsRecord[] = [
+        { type: 'TXT', name: '_dmarc.example.com', value: 'v=DMARC1; p=none', status: 'failed', provider_verified: false },
+      ];
+      wrapper = mountComponent({
+        dnsRecords: records,
+        validationStatus: 'verified',
+        dnsCheckCompletedAt: new Date(),
+        providerCheckCompletedAt: new Date(),
+      });
+
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
+      const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
+      const resolvingIndicator = indicators.find((i) => i.text().includes('Provider'));
+      expect(resolvingIndicator!.classes()).toContain('text-gray-300');
+    });
+
+    it('applies gray to Provider indicator when validationStatus is not verified and no per-record data', () => {
       wrapper = mountComponent({ validationStatus: 'pending' });
 
       const cards = wrapper.findAll('[data-testid="dns-record-card"]');

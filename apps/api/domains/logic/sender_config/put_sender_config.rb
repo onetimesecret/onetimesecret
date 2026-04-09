@@ -60,6 +60,9 @@ module DomainsAPI
 
           # Validate required fields
           validate_required_fields
+
+          # Enforce domain restriction based on entitlement
+          @from_address = enforce_from_domain(@from_address, @custom_domain, @organization)
         end
 
         def process

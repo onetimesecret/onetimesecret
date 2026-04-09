@@ -357,9 +357,10 @@ module Onetime
       def required_dns_records
         return [] unless provisioned?
 
-        data           = dns_records.value
-        dns_checks     = dns_check_results&.value || []
-        current_status = verification_status || 'pending'
+        data             = dns_records.value
+        dns_checks       = dns_check_results&.value || []
+        provider_records = (provider_dns_data&.value || {})['dns_records'] || []
+        current_status   = verification_status || 'pending'
 
         data.map do |record|
           name  = record['name']
@@ -383,6 +384,15 @@ module Onetime
             result['dns_exists']    = check['dns_exists']
             result['value_matches'] = check['value_matches']
           end
+
+          # Per-record provider verification: match by hostname from provider's
+          # latest check. Only present when provider has returned per-record data.
+          if provider_records.any?
+            provider_rec                = provider_records.find { |p| (p['name'] || p[:name]).to_s == name }
+            provider_status             = provider_rec&.then { |p| p['status'] || p[:status] }
+            result['provider_verified'] = provider_status.to_s == 'verified' unless provider_status.nil?
+          end
+
           result.compact
         end
       end

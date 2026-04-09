@@ -457,11 +457,15 @@ module Onetime
 
             next unless rec_type && rec_name && rec_val
 
-            {
+            rec_status = record['status'] || record[:status]
+
+            result          = {
               type: rec_type.upcase,
               name: rec_name,
               value: rec_val,
             }
+            result[:status] = rec_status if rec_status
+            result
           end
         end
 
