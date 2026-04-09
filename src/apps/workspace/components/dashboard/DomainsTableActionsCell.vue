@@ -44,16 +44,12 @@ const { t } = useI18n();
     // Don't show button when domain has issues — status text is already clickable
     if (!isActive.value) return null;
 
-    // When verified, surface "Manage Brand" if entitled
-    if (props.canBrand) {
-      return {
-        label: t('web.domains.manage_brand'),
-        route: { name: 'DomainBrand', params: { orgid: props.orgid, extid: props.domain.extid } },
-        icon: 'paint-brush',
-        style: 'default',
-      };
-    }
-    return null;
+    return {
+      label: t('web.domains.detail.manage'),
+      route: { name: 'DomainDetail', params: { orgid: props.orgid, extid: props.domain.extid } },
+      icon: 'cog-6-tooth',
+      style: 'default',
+    };
   });
 
   const emit = defineEmits<{

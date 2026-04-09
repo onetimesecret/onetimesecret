@@ -176,7 +176,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
   event.stopPropagation(); // Prevent row selection when clicking gear
   const extid = getExtidByDomain(domain);
   if (extid && currentOrgExtid.value) {
-    router.push(`/org/${currentOrgExtid.value}/domains/${extid}/brand`);
+    router.push(`/org/${currentOrgExtid.value}/domains/${extid}`);
   }
   // Canonical domain has no extid and no settings page
 };

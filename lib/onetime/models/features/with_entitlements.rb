@@ -71,9 +71,9 @@ module Onetime
           manage_orgs manage_teams manage_members manage_sso audit_logs
         ].freeze
 
-        # Minimal FREE tier entitlements as fallback when billing is enabled
+        # MINIMAL free tier entitlements as fallback when billing is enabled
         # but plan cache is empty. This prevents showing "No features available"
-        # and provides a safe degraded experience.
+        # and provides a failsafe degraded experience.
         #
         # These match the free_v1 plan in billing.yaml.
         FREE_TIER_ENTITLEMENTS = %w[
