@@ -33,9 +33,9 @@ module Middleware
   #
   class LocaleFallback
     def initialize(app, fallback_chains: {}, available_locales: {}, default_locale: 'en')
-      @app = app
+      @app               = app
       @available_locales = available_locales
-      @default_locale = default_locale
+      @default_locale    = default_locale
 
       # Build a normalized lookup table from the fallback config.
       # Config keys use BCP 47 hyphens (fr-CA) and POSIX underscores (fr_CA)
@@ -49,7 +49,7 @@ module Middleware
       # Skip when a URL param or session explicitly set the locale (those are
       # intentional user choices that Otto already respected).
       unless explicit_locale?(env)
-        improved = resolve_from_header(env['HTTP_ACCEPT_LANGUAGE'])
+        improved           = resolve_from_header(env['HTTP_ACCEPT_LANGUAGE'])
         env['otto.locale'] = improved if improved
       end
 
@@ -88,8 +88,8 @@ module Middleware
       end
 
       nil
-    rescue StandardError => e
-      warn "[#{self.class.name}] Failed to resolve locale from header: #{e.message}"
+    rescue StandardError => ex
+      warn "[#{self.class.name}] Failed to resolve locale from header: #{ex.message}"
       nil
     end
 
@@ -98,12 +98,13 @@ module Middleware
     # @param header [String] Raw Accept-Language value
     # @return [Array<String>] Language tags sorted by q-value (descending)
     def parse_language_tags(header)
-      header.split(',').map { |entry|
+      tags = header.split(',').map do |entry|
         parts = entry.strip.split(/\s*;\s*q\s*=\s*/)
-        tag = parts[0]&.strip
-        q = parts[1] ? parts[1].to_f : 1.0
+        tag   = parts[0]&.strip
+        q     = parts[1] ? parts[1].to_f : 1.0
         [tag, q]
-      }.sort_by { |_, q| -q }.map(&:first).compact
+      end
+      tags.sort_by { |_, q| -q }.map(&:first).compact
     end
 
     # Try to resolve a single Accept-Language tag through fallback chains.
@@ -159,14 +160,14 @@ module Middleware
         next if key.to_s == 'default'
 
         key_str = key.to_s
-        values = chain.map(&:to_s)
+        values  = chain.map(&:to_s)
 
         # Store under the original key (lowercased)
-        lower = key_str.downcase
+        lower         = key_str.downcase
         lookup[lower] = values
 
         # Also store under the alternate separator form
-        alt = lower.include?('-') ? lower.tr('-', '_') : lower.tr('_', '-')
+        alt         = lower.include?('-') ? lower.tr('-', '_') : lower.tr('_', '-')
         lookup[alt] = values unless alt == lower
       end
 

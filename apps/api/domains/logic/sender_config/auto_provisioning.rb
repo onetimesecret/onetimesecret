@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/error_handler'
+
 module DomainsAPI
   module Logic
     module SenderConfig
@@ -19,6 +21,8 @@ module DomainsAPI
       # - log_sender_audit_event: Method from AuditLogger module
       #
       module AutoProvisioning
+        include Onetime::LoggerMethods
+
         # Auto-provision DNS records when in platform mode.
         #
         # Platform mode means OTS manages DNS provisioning via the provider API.
@@ -37,25 +41,73 @@ module DomainsAPI
 
           require 'onetime/operations/provision_sender_domain'
 
-          result = Onetime::Operations::ProvisionSenderDomain.new(
-            mailer_config: @mailer_config,
-          ).call
+          provider       = @mailer_config.effective_provider
+          from_domain    = @mailer_config.from_address&.split('@')&.last
+          operation_name = self.class.name.split('::').last
 
-          if result.success?
-            OT.ld "[#{self.class.name.split('::').last}] Auto-provisioned DNS records for #{@domain_id}"
-            log_sender_audit_event(
-              event: :domain_sender_provisioned,
-              domain: @custom_domain,
-              org: @organization,
-              actor: cust,
-              details: { record_count: result.dns_records.size, auto: true },
+          context = {
+            operation: operation_name,
+            domain_id: @domain_id,
+            from_domain: from_domain,
+            provider: provider,
+            org_id: @organization&.extid,
+            user_id: respond_to?(:cust) ? cust&.extid : nil,
+          }
+
+          Onetime::ErrorHandler.safe_execute('auto_provision_sender_domain', **context) do
+            result = Onetime::Operations::ProvisionSenderDomain.new(
+              mailer_config: @mailer_config,
+            ).call
+
+            if result.success?
+              logger.info 'Auto-provisioned sender domain',
+                domain_id: @domain_id,
+                from_domain: from_domain,
+                provider: provider,
+                record_count: result.dns_records.size
+
+              log_sender_audit_event(
+                event: :domain_sender_provisioned,
+                domain: @custom_domain,
+                org: @organization,
+                actor: cust,
+                details: { record_count: result.dns_records.size, auto: true },
+              )
+            else
+              # Structured failure (not exception) - log and report to Sentry
+              logger.error 'Auto-provisioning failed',
+                domain_id: @domain_id,
+                from_domain: from_domain,
+                provider: provider,
+                error: result.error
+
+              report_provisioning_failure(result.error, context)
+            end
+          end
+        end
+
+        private
+
+        # Report non-exception failures to Sentry for visibility.
+        #
+        # ProvisionSenderDomain returns Result objects rather than raising,
+        # so ErrorHandler.safe_execute won't capture these. We explicitly
+        # report provider failures (HTTP 500, auth errors, etc.) so they
+        # appear in Sentry alongside exception-based errors.
+        #
+        def report_provisioning_failure(error_message, context)
+          return unless defined?(Sentry) && Sentry.initialized?
+
+          Sentry.capture_message("Auto-provisioning failed: #{error_message}", level: :warning) do |scope|
+            scope.set_context('provisioning', context)
+            scope.set_tags(
+              operation: 'auto_provision_sender_domain',
+              provider: context[:provider],
             )
-          else
-            OT.lw "[#{self.class.name.split('::').last}] Auto-provisioning skipped/failed for #{@domain_id}: #{result.error}"
           end
         rescue StandardError => ex
-          # Don't fail the save if provisioning fails
-          OT.le "[#{self.class.name.split('::').last}] Auto-provisioning error for #{@domain_id}: #{ex.message}"
+          logger.warn 'Failed to report provisioning failure to Sentry',
+            error: ex.message
         end
       end
     end

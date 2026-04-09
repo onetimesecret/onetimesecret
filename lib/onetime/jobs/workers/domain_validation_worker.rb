@@ -3,10 +3,12 @@
 # frozen_string_literal: true
 
 require_relative 'base_worker'
+require_relative 'job_lifecycle'
 require_relative '../queues/config'
 require_relative '../queues/declarator'
 require_relative '../../operations/validate_sender_domain'
 require_relative '../../models/custom_domain/mailer_config'
+require 'onetime/mail/mailer'
 
 #
 # Processes DNS validation requests from the domain.validation.check queue.
@@ -33,6 +35,39 @@ require_relative '../../models/custom_domain/mailer_config'
 # pending/verified/failed status) already supports async execution --
 # the web request just needs to enqueue and return 'pending'.
 #
+# ## Data Flow
+#
+# This worker calls ValidateSenderDomain which uses the DomainValidation::
+# SenderStrategies (e.g., LettermintValidation) -- NOT Mail::SenderStrategies.
+#
+# Input (from mailer_config.dns_records.value, normalized by required_dns_records):
+#   [
+#     { type: 'TXT', host: 'lettermint._domainkey.example.com',
+#       value: 'v=DKIM1;k=rsa;p=...', purpose: 'DKIM' },
+#     { type: 'CNAME', host: 'lm-bounces.example.com',
+#       value: 'bounces.lmta.net', purpose: 'SPF/Return-Path' },
+#     { type: 'TXT', host: '_dmarc.example.com',
+#       value: 'v=DMARC1;p=none', purpose: 'DMARC' },
+#   ]
+#
+# Output (ValidateSenderDomain::Result):
+#   Result.new(
+#     domain: 'example.com',
+#     provider: 'lettermint',
+#     dns_records: [
+#       { type: 'TXT', host: '...', expected: '...', actual: ['...'],
+#         verified: true, purpose: 'DKIM', error_type: nil },
+#     ],
+#     all_verified: true,           # All records passed verification
+#     verification_status: 'verified',  # Persisted to mailer_config
+#     verified_at: Time.now,
+#     persisted: true,
+#     error: nil,
+#     rate_limit: { remaining: 99, ... },
+#   )
+#
+# Persists: mailer_config.verification_status ('verified' | 'failed' | 'pending')
+#
 
 module Onetime
   module Jobs
@@ -40,6 +75,29 @@ module Onetime
       class DomainValidationWorker
         include Sneakers::Worker
         include BaseWorker
+
+        # Validate that provider credentials are configured at boot time.
+        # This prevents the worker from starting if it can't perform
+        # provider-level verification checks.
+        def self.check_essentials!
+          provider = begin
+                       Onetime::Mail::Mailer.determine_provider
+          rescue StandardError
+                       nil
+          end
+          return if provider.to_s.empty? || provider.to_s == 'smtp'
+
+          creds = begin
+                    Onetime::Mail::Mailer.provider_credentials(provider)
+          rescue StandardError
+                    nil
+          end
+          return if creds && !creds.empty?
+
+          raise Onetime::Problem,
+            "#{worker_name}: Missing #{provider} provider credentials. " \
+            'Set the required environment variables or use --skip-checks to continue.'
+        end
 
         QUEUE_NAME = 'domain.validation.check'
 
@@ -55,6 +113,7 @@ module Onetime
         # @param msg [String] JSON-encoded message
         # @param delivery_info [Bunny::DeliveryInfo] AMQP delivery info
         # @param metadata [Bunny::MessageProperties] AMQP message properties
+        # rubocop:disable Metrics/PerceivedComplexity -- Worker handles validation, provider check, error states
         def work_with_params(msg, delivery_info, metadata)
           store_envelope(delivery_info, metadata)
 
@@ -84,6 +143,10 @@ module Onetime
             return ack! # Don't retry -- config won't appear on its own
           end
 
+          # Mark job as processing
+          mailer_config.provider_check_status = JobLifecycle::PROCESSING
+          mailer_config.save_fields(:provider_check_status)
+
           # Delegate to operation with retry logic (DNS can be transiently flaky)
           # Don't retry rate limits - they won't clear for ~60 minutes
           result = nil
@@ -92,9 +155,13 @@ module Onetime
             base_delay: 2.0,
             retriable: ->(ex) { !ex.is_a?(Onetime::LimitExceeded) },
           ) do
+            # persist: false because this worker controls verification_status
+            # through update_verification_status! after BOTH workers complete.
+            # The operation would otherwise set verification_status='verified'
+            # based on DNS alone, before the provider API check runs.
             result = Onetime::Operations::ValidateSenderDomain.new(
               mailer_config: mailer_config,
-              persist: true,
+              persist: false,
               bypass_cache: bypass_cache,
             ).call
             # Re-raise so with_retry can retry transient DNS failures.
@@ -110,10 +177,81 @@ module Onetime
             bypass_cache: bypass_cache,
             error: result.error
 
+          # Provider-level verification: ask the provider API if the domain is verified.
+          # This complements the DNS validation above.
+          provider_api_verified = nil
+          begin
+            provider = mailer_config.effective_provider
+            if provider && provider != 'smtp'
+              require 'onetime/mail/sender_strategies'
+              sender_strategy = Onetime::Mail::SenderStrategies.for_provider(provider)
+              creds           = Onetime::Mail::Mailer.provider_credentials(provider)
+
+              if creds && !creds.empty?
+                provider_result       = sender_strategy.check_provider_verification_status(mailer_config, credentials: creds)
+                provider_api_verified = provider_result[:verified]
+                log_info "Provider verification check: #{domain_id}",
+                  provider: provider,
+                  verified: provider_result[:verified],
+                  status: provider_result[:status]
+              else
+                log_debug "Skipping provider check: no credentials for #{provider}"
+              end
+            end
+
+            # Set provider_verified from provider API check when available.
+            # Fall back to DNS result only when no provider credentials exist
+            # (degraded mode - better than leaving nil).
+            mailer_config.provider_verified = if provider_api_verified.nil?
+                                                result.all_verified
+                                              else
+                                                provider_api_verified
+                                              end
+
+            # Record provider status when verification fails so UI can explain why
+            mailer_config.last_error = provider_api_verified == false && provider_result ? "Provider status: #{provider_result[:status]}" : nil
+
+            mailer_config.provider_check_status       = JobLifecycle::COMPLETED
+            mailer_config.provider_check_completed_at = Familia.now.to_i
+            mailer_config.updated                     = Familia.now.to_i
+            mailer_config.save_fields(:provider_verified, :provider_check_status, :provider_check_completed_at, :last_error, :updated)
+          rescue StandardError => ex
+            # Provider check failure should not fail the overall worker
+            log_error "Provider verification check failed for #{domain_id}", ex
+            # Mark as completed (not failed - the worker itself didn't crash)
+            # but don't set provider_verified since we couldn't determine it
+            mailer_config.provider_check_status       = JobLifecycle::COMPLETED
+            mailer_config.provider_check_completed_at = Familia.now.to_i
+            mailer_config.updated                     = Familia.now.to_i
+            mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :updated)
+          end
+
+          # Update stored verification_status if both jobs are now complete
+          if mailer_config.jobs_completed?
+            final_status = mailer_config.update_verification_status!
+            log_info "Domain validation final determination: #{domain_id}",
+              verification_status: final_status,
+              dns_verified: mailer_config.dns_verified,
+              provider_verified: mailer_config.provider_verified
+          else
+            log_info "Domain validation awaiting DNS check: #{domain_id}",
+              provider_verified: mailer_config.provider_verified,
+              dns_check_status: mailer_config.dns_check_status
+          end
+
           ack!
         rescue Onetime::LimitExceeded => ex
           # Rate limited - ack the message (don't retry or DLQ)
           # User can manually re-trigger after the rate limit window
+          # Mark as completed (not failed) but without setting provider_verified
+          if mailer_config
+            mailer_config.provider_check_status       = JobLifecycle::COMPLETED
+            mailer_config.provider_check_completed_at = Familia.now.to_i
+            mailer_config.last_error                  = "Rate limited: retry after #{ex.retry_after}s"
+            mailer_config.updated                     = Familia.now.to_i
+            mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :last_error, :updated)
+          end
+
           log_info 'Sender domain validation rate limited',
             domain_id: domain_id,
             retry_after: ex.retry_after,
@@ -121,9 +259,19 @@ module Onetime
             max_attempts: ex.max_attempts
           ack!
         rescue StandardError => ex
+          # Mark job as failed before sending to DLQ
+          if mailer_config
+            mailer_config.provider_check_status       = JobLifecycle::FAILED
+            mailer_config.provider_check_completed_at = Familia.now.to_i
+            mailer_config.last_error                  = ex.message
+            mailer_config.updated                     = Familia.now.to_i
+            mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :last_error, :updated)
+          end
+
           log_error 'Unexpected error validating sender domain', ex
           reject! # Send to DLQ
         end
+        # rubocop:enable Metrics/PerceivedComplexity
       end
     end
   end

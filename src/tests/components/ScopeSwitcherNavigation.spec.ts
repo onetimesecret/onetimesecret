@@ -76,6 +76,7 @@ describe('ScopeSwitcher Navigation', () => {
     mockRoute.path = '/org/abc123';
     mockRoute.matched = [{ path: '/org/:extid' }];
     mockRoute.meta = {};
+    mockOrganizationStore.currentOrganization = null;
   });
 
   describe('onOrgSwitch navigation behavior', () => {
@@ -189,6 +190,7 @@ describe('ScopeSwitcher Navigation', () => {
       }
 
       const extid = mockDomainContext.getExtidByDomain(domain);
+      const currentOrgExtid = mockOrganizationStore.currentOrganization?.extid;
 
       if (switchTarget === 'same') {
         if (!extid) {
@@ -197,7 +199,10 @@ describe('ScopeSwitcher Navigation', () => {
         }
         const matchedRoute = mockRoute.matched[mockRoute.matched.length - 1];
         if (matchedRoute?.path) {
-          const newPath = matchedRoute.path.replace(':extid', extid);
+          let newPath = matchedRoute.path.replace(':extid', extid);
+          if (currentOrgExtid) {
+            newPath = newPath.replace(':orgid', currentOrgExtid);
+          }
           mockPush(newPath);
         }
       } else if (switchTarget.includes(':extid')) {
@@ -225,6 +230,18 @@ describe('ScopeSwitcher Navigation', () => {
       simulateDomainSwitch('test.example.com', 'same');
 
       expect(mockPush).toHaveBeenCalledWith('/domains/domain123/brand');
+    });
+
+    it('replaces both :orgid and :extid in org-qualified domain routes', () => {
+      // Regression test: switching domains on /org/:orgid/domains/:extid/brand
+      // previously left :orgid as a literal string in the navigated URL,
+      // causing downstream API calls to request /api/organizations/:orgid (404).
+      mockOrganizationStore.currentOrganization = { extid: 'org-abc', objid: 'org-obj-1' } as any;
+      mockRoute.matched = [{ path: '/org/:orgid/domains/:extid/brand' }];
+
+      simulateDomainSwitch('test.example.com', 'same');
+
+      expect(mockPush).toHaveBeenCalledWith('/org/org-abc/domains/domain123/brand');
     });
 
     it('replaces :extid in custom path when onDomainSwitch contains :extid', () => {

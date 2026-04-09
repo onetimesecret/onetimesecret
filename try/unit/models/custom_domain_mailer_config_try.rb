@@ -524,26 +524,26 @@ Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS.include?('c
 @result.size
 #=> 2
 
-## required_dns_records includes type field
-@result.first[:type]
+## required_dns_records includes type field (string keys)
+@result.first['type']
 #=> 'CNAME'
 
-## required_dns_records includes name field
-@result.first[:name]
+## required_dns_records includes name field (string keys)
+@result.first['name']
 #=> 'abc123._domainkey'
 
-## required_dns_records includes value field
-@result.first[:value]
+## required_dns_records includes value field (string keys)
+@result.first['value']
 #=> 'abc123.dkim.amazonses.com'
 
 ## required_dns_records includes status from verification_status
-@result.first[:status]
+@result.first['status']
 #=> 'pending'
 
 ## required_dns_records reflects updated verification_status
 @cfg_prov.verification_status = 'verified'
 @cfg_prov.save
-@cfg_prov.required_dns_records.first[:status]
+@cfg_prov.required_dns_records.first['status']
 #=> 'verified'
 
 ## required_dns_records handles string keys in stored data
@@ -551,15 +551,15 @@ Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS.include?('c
   { 'type' => 'TXT', 'name' => 'spf.example.com', 'value' => 'v=spf1 include:amazonses.com ~all' },
 ]
 @cfg_prov.save
-@cfg_prov.required_dns_records.first[:type]
+@cfg_prov.required_dns_records.first['type']
 #=> 'TXT'
 
-## required_dns_records handles mixed string/symbol keys
+## required_dns_records uses string keys consistently
 @cfg_prov.dns_records = [
-  { 'type' => 'CNAME', :name => 'mixed._domainkey', 'value' => 'mixed.dkim.amazonses.com' },
+  { 'type' => 'CNAME', 'name' => 'mixed._domainkey', 'value' => 'mixed.dkim.amazonses.com' },
 ]
 @cfg_prov.save
-@cfg_prov.required_dns_records.first[:name]
+@cfg_prov.required_dns_records.first['name']
 #=> 'mixed._domainkey'
 
 ## provisioned? returns false for empty array

@@ -37,8 +37,8 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(queues).to have_key('system.transient')
     end
 
-    it 'has 7 queues total' do
-      expect(queues.size).to eq(7)
+    it 'has 8 queues total' do
+      expect(queues.size).to eq(8)
     end
   end
 

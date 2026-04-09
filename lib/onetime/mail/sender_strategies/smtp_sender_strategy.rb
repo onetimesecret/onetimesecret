@@ -39,7 +39,10 @@ module Onetime
           }
         end
 
-        def check_verification_status(mailer_config, credentials: nil) # rubocop:disable Lint/UnusedMethodArgument
+        # SMTP has no provider API for verification status.
+        # DNS propagation for any provisioned records can still be checked
+        # via check_dns_records (inherited from BaseSenderStrategy).
+        def check_provider_verification_status(mailer_config, credentials: nil) # rubocop:disable Lint/UnusedMethodArgument
           domain = extract_domain(mailer_config.from_address)
 
           log_info "[smtp-sender] Verification check not available for SMTP (#{domain})"

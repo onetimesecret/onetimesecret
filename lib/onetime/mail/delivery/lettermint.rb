@@ -35,6 +35,37 @@ module Onetime
           msg.deliver
         end
 
+        def log_error(email, error)
+          # Always log error details for Lettermint SDK errors
+          if error.is_a?(::Lettermint::HttpRequestError)
+            details = {
+              error_class: error.class.name,
+              status_code: error.respond_to?(:status_code) ? error.status_code : nil,
+              error_type: error.respond_to?(:error_type) ? error.error_type : nil,
+              response_body: error.respond_to?(:response_body) ? error.response_body : nil,
+            }
+            msg     = "[mail] Lettermint API error details: #{details.inspect}"
+            defined?(OT) && OT.respond_to?(:le) ? OT.le(msg) : warn(msg)
+
+            # Report to Sentry with full context
+            if defined?(Sentry) && Sentry.initialized?
+              Sentry.capture_exception(error) do |scope|
+                scope.set_tags(provider: 'lettermint', status_code: details[:status_code])
+                scope.set_context('lettermint_error', details)
+                scope.set_context(
+                  'email',
+                  {
+                    to: obscure_email(email[:to]),
+                    from: email[:from],
+                    subject: email[:subject],
+                  },
+                )
+              end
+            end
+          end
+          super
+        end
+
         # Classify Lettermint SDK errors by type and HTTP status code.
         # TimeoutError is always transient. HttpRequestError uses status
         # codes: 429/5xx are transient, 4xx are fatal. ValidationError

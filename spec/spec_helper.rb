@@ -184,7 +184,10 @@ end
 # error message ("use Truemail.configure before...") gets swallowed by the
 # strategy's own rescue blocks, causing every sender strategy spec to fail
 # with misleading wrong-error-message assertions.
-Truemail.configure { |config| config.verifier_email = 'test@example.com' }
+Truemail.configure do |config|
+  config.verifier_email = 'test@example.com'
+  config.default_validation_type = :regex
+end
 
 RSpec.configure do |config|
   # ==========================================================================

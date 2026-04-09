@@ -100,6 +100,18 @@ module Onetime
         def enqueue_domain_validation(domain_id, bypass_cache: false)
           new.enqueue_domain_validation(domain_id, bypass_cache: bypass_cache)
         end
+
+        # Enqueue a DNS record check for async processing
+        #
+        # Falls back to synchronous check if jobs are disabled, ensuring
+        # DNS checks work without RabbitMQ for dev/testing.
+        #
+        # @param domain_id [String] CustomDomain identifier (MailerConfig key)
+        # @return [Boolean] true if published to queue or processed synchronously
+        # @raise [Onetime::Problem] If RabbitMQ unavailable when jobs ARE enabled
+        def enqueue_dns_record_check(domain_id)
+          new.enqueue_dns_record_check(domain_id)
+        end
       end
 
       def initialize
@@ -263,6 +275,55 @@ module Onetime
           bypass_cache: bypass_cache,
           message_id: message_id,
           queue: 'domain.validation.check'
+        true
+      end
+
+      # Enqueue a DNS record check for async processing
+      #
+      # Falls back to synchronous check if jobs are disabled, enabling
+      # development/testing without RabbitMQ. If jobs ARE enabled but RabbitMQ
+      # is unavailable, raises so the controller can return an error.
+      #
+      # @param domain_id [String] CustomDomain identifier (MailerConfig key)
+      # @return [Boolean] true if published to queue or processed synchronously
+      # @raise [Onetime::Problem] If RabbitMQ unavailable when jobs ARE enabled
+      def enqueue_dns_record_check(domain_id)
+        unless jobs_enabled?
+          logger.info 'Jobs disabled, checking DNS records synchronously',
+            domain_id: domain_id
+
+          require 'onetime/mail/sender_strategies'
+          require 'onetime/models/custom_domain/mailer_config'
+
+          mailer_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(domain_id)
+          if mailer_config
+            strategy = Onetime::Mail::SenderStrategies.for_provider(mailer_config.effective_provider)
+            result   = strategy.check_dns_records(mailer_config, credentials: {})
+
+            mailer_config.dns_check_results.value = result[:records]
+
+            records                              = result[:records] || []
+            all_matched                          = records.all? { |r| r['value_matches'] == true || r[:value_matches] == true }
+            mailer_config.dns_verified           = all_matched
+            mailer_config.dns_check_status       = 'completed'
+            mailer_config.dns_check_completed_at = Familia.now.to_i
+            mailer_config.updated                = Familia.now.to_i
+            mailer_config.save_fields(:dns_check_status, :dns_verified, :dns_check_completed_at, :updated)
+          end
+
+          return true
+        end
+
+        message = {
+          domain_id: domain_id,
+          requested_at: Time.now.utc.iso8601,
+        }
+
+        message_id = publish('domain.dns.check', message)
+        logger.info 'Enqueued DNS record check',
+          domain_id: domain_id,
+          message_id: message_id,
+          queue: 'domain.dns.check'
         true
       end
 

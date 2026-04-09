@@ -43,6 +43,15 @@ module Onetime
           def worker_name
             name.split('::').last # can replace with familia refinement, config_name
           end
+
+          # Override in workers that need boot-time validation of required
+          # configuration (credentials, env vars, etc.). Called by WorkerCommand
+          # before starting Sneakers. Default is a no-op.
+          #
+          # @raise [StandardError] if essentials are missing
+          def check_essentials!
+            # No-op by default
+          end
         end
 
         module InstanceMethods

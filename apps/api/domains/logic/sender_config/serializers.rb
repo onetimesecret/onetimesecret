@@ -31,6 +31,9 @@ module DomainsAPI
             provider_domain_id: nil,
             api_key_masked: mask_secret(config.api_key),
             last_validated_at: config.verified_at.to_s.empty? ? nil : config.verified_at.to_i,
+            dns_check_completed_at: config.dns_check_completed_at.to_s.empty? ? nil : config.dns_check_completed_at.to_i,
+            provider_check_completed_at: config.provider_check_completed_at.to_s.empty? ? nil : config.provider_check_completed_at.to_i,
+            last_error: config.last_error.to_s.empty? ? nil : config.last_error,
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,
           }

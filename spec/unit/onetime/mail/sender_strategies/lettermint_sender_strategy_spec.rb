@@ -184,7 +184,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
         result = strategy.provision_dns_records(mailer_config, credentials: credentials)
 
         expect(result[:success]).to be false
-        expect(result[:error]).to eq('http_500')
+        expect(result[:error]).to eq('http_500: Internal Server Error')
         expect(result[:message]).to include('Lettermint API error')
         expect(result[:dns_records]).to eq([])
       end
@@ -309,7 +309,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
     end
   end
 
-  describe '#check_verification_status' do
+  describe '#check_provider_verification_status' do
     let(:list_response) do
       { 'data' => [{ 'id' => 'domain-uuid-123', 'domain' => 'example.com', 'status' => 'verified' }] }
     end
@@ -335,7 +335,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
 
       it 'returns verified status' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be true
         expect(result[:status]).to eq('verified')
@@ -365,7 +365,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
 
       it 'returns pending status' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be false
         expect(result[:status]).to eq('pending-verification')
@@ -380,7 +380,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
 
       it 'returns not_found status' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be false
         expect(result[:status]).to eq('not_found')
@@ -395,7 +395,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
 
       it 'returns error status' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be false
         expect(result[:status]).to eq('error')
@@ -407,7 +407,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       let(:mailer_config) { double('MailerConfig', from_address: 'invalid') }
 
       it 'returns invalid status' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be false
         expect(result[:status]).to eq('invalid')
@@ -418,7 +418,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       let(:credentials) { { team_token: nil } }
 
       it 'returns error status' do
-        result = strategy.check_verification_status(mailer_config, credentials: credentials)
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be false
         expect(result[:status]).to eq('error')

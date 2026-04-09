@@ -541,9 +541,6 @@ email_providers:
     # API base URL (for enterprise/on-premise deployments)
     # Override via LETTERMINT_BASE_URL env var
     api_base_url: <%= ENV['LETTERMINT_BASE_URL'] || 'https://api.lettermint.co/v1' %>
-    # DKIM selector names (comma-separated for env var)
-    # Override via EMAIL_PROVIDERS_LETTERMINT_DKIM_SELECTORS env var
-    dkim_selectors: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_DKIM_SELECTORS']&.split(',')&.map(&:strip) || ['lm1', 'lm2'] %>
     # SPF CNAME subdomain prefix (e.g., 'lm-bounces' creates lm-bounces.yourdomain.com)
     # Override via EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_PREFIX env var
     spf_cname_prefix: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_PREFIX'] || 'lm-bounces' %>

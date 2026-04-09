@@ -146,7 +146,7 @@
   },
   "web.COMMON.configure": {
     "text": "Configure",
-    "content_hash": "e2f3a4b5"
+    "content_hash": "6defafa2"
   },
   "web.COMMON.burn": {
     "text": "Burn",
@@ -446,7 +446,7 @@
   },
   "web.COMMON.about": {
     "text": "About",
-    "content_hash": "d833339d"
+    "content_hash": "4efca0d1"
   },
   "web.COMMON.status": {
     "text": "Status",
@@ -470,11 +470,11 @@
   },
   "web.COMMON.add": {
     "text": "Add",
-    "content_hash": "a1b2c3d4"
+    "content_hash": "9fd728c6"
   },
   "web.COMMON.yes_delete": {
     "text": "Yes, delete",
-    "content_hash": "b2c3d4e5"
+    "content_hash": "7b05a8e3"
   },
   "web.COMMON.press_esc_to_close": {
     "text": "Press ESC to close",
@@ -582,15 +582,15 @@
   },
   "web.COMMON.error_code": {
     "text": "Error Code",
-    "content_hash": "a1b2c3d4"
+    "content_hash": "46832415"
   },
   "web.COMMON.http_status": {
     "text": "HTTP Status",
-    "content_hash": "b2c3d4e5"
+    "content_hash": "b2a629f2"
   },
   "web.COMMON.details": {
     "text": "Details",
-    "content_hash": "c3d4e5f6"
+    "content_hash": "45989de4"
   },
   "web.COMMON.min_width_1024px": {
     "text": "(min-width: 1024px)",
@@ -705,10 +705,12 @@
     "content_hash": "0264d7b0"
   },
   "web.LABELS.show_passphrase": {
-    "text": "Show passphrase"
+    "text": "Show passphrase",
+    "content_hash": "76880d38"
   },
   "web.LABELS.hide_passphrase": {
-    "text": "Hide passphrase"
+    "text": "Hide passphrase",
+    "content_hash": "8ecdc98c"
   },
   "web.LABELS.enable": {
     "text": "Enable",
@@ -1310,7 +1312,7 @@
   },
   "web.TITLES.domain_sso": {
     "text": "Domain SSO",
-    "content_hash": "a1b2c3d5"
+    "content_hash": "13161464"
   },
   "web.TITLES.domain_email": {
     "text": "Email Configuration",
@@ -1318,7 +1320,7 @@
   },
   "web.TITLES.domain_incoming": {
     "text": "Incoming Secrets",
-    "content_hash": "b2c3d4e6"
+    "content_hash": "883dbca9"
   },
   "web.TITLES.pricing": {
     "text": "Pricing",
@@ -1433,21 +1435,21 @@
   "web.COMMON.field_confirm_password": {
     "text": "Confirm Password",
     "context": "Label for password confirmation field",
-    "content_hash": "7a8b9c0d"
+    "content_hash": "c292210c"
   },
   "web.COMMON.passwords_must_match": {
     "text": "Passwords must match",
     "context": "Error message when password confirmation doesn't match",
-    "content_hash": "1e2f3a4b"
+    "content_hash": "0c060bd4"
   },
   "web.COMMON.and": {
     "text": "and",
     "context": "Conjunction between terms (e.g., Terms and Privacy)",
-    "content_hash": "5c6d7e8f"
+    "content_hash": "6201111b"
   },
   "web.COMMON.or": {
     "text": "or",
     "context": "Alternative conjunction (e.g., Sign in or use SSO)",
-    "content_hash": "9a0b1c2d"
+    "content_hash": "7175517a"
   }
 }

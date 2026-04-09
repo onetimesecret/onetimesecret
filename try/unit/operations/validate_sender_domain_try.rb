@@ -282,49 +282,31 @@ Onetime::Operations::ValidateSenderDomain.required_records(
 ).size
 #=> 3
 
-# --- Options forwarding through operation (#2833) ---
+# --- Provisioned records through operation ---
 
-## required_records forwards options to auto-resolved SES strategy
-@ses_eu_records = Onetime::Operations::ValidateSenderDomain.required_records(
-  mailer_config: @config,
-  options: { region: 'eu-west-1' },
-)
-@ses_eu_mx = @ses_eu_records.find { |r| r[:type] == 'MX' }
-@ses_eu_mx[:value].include?('eu-west-1')
-#=> true
-
-## required_records uses default region when no options given
-@ses_default_records = Onetime::Operations::ValidateSenderDomain.required_records(
+## required_records returns records from provisioned dns_records
+@config.dns_records = [
+  { 'type' => 'CNAME', 'name' => 'dkim._domainkey.example.com', 'value' => 'dkim.ses.amazonses.com' },
+  { 'type' => 'MX', 'name' => 'feedback.example.com', 'value' => 'feedback-smtp.us-east-1.amazonses.com' },
+]
+@config.save
+@provisioned_records = Onetime::Operations::ValidateSenderDomain.required_records(
   mailer_config: @config,
 )
-@ses_default_mx = @ses_default_records.find { |r| r[:type] == 'MX' }
-@ses_default_mx[:value].include?('us-east-1')
-#=> true
+@provisioned_records.size
+#=> 2
 
-## required_records raises ArgumentError for wrong-provider options
-begin
-  Onetime::Operations::ValidateSenderDomain.required_records(
-    mailer_config: @config,
-    options: { subdomain: 'mail' },
-  )
-  'unexpected_success'
-rescue ArgumentError => e
-  e.message.include?("Unknown option(s)")
-end
-#=> true
+## required_records maps provisioned records to validation format
+@provisioned_records.first[:host]
+#=> 'dkim._domainkey.example.com'
 
-## ValidateSenderDomain.new re-raises ArgumentError from bad options
-begin
-  Onetime::Operations::ValidateSenderDomain.new(
-    mailer_config: @config,
-    options: { bogus: 'value' },
-    persist: false,
-  ).call
-  'unexpected_success'
-rescue ArgumentError => e
-  e.message.include?("Unknown option(s)")
-end
-#=> true
+## required_records returns empty when no provisioned records
+@config.dns_records = []
+@config.save
+Onetime::Operations::ValidateSenderDomain.required_records(
+  mailer_config: @config,
+).size
+#=> 0
 
 # --- Rate limit info in Result ---
 

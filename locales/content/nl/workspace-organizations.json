@@ -580,147 +580,195 @@
     "source_hash": "a5dcfef9"
   },
   "web.organizations.sso.title": {
-    "text": "Single Sign-On (SSO)"
+    "text": "Single Sign-On (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "Configureer SSO om leden te laten inloggen met de identiteitsprovider van je organisatie"
+    "text": "Configureer SSO om leden te laten inloggen met de identiteitsprovider van je organisatie",
+    "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
-    "text": "Providertype"
+    "text": "Providertype",
+    "source_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
-    "text": "Selecteer de identiteitsprovider van je organisatie"
+    "text": "Selecteer de identiteitsprovider van je organisatie",
+    "source_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
-    "text": "Weergavenaam"
+    "text": "Weergavenaam",
+    "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "Een vriendelijke naam die gebruikers zien bij het inloggen"
+    "text": "Een vriendelijke naam die gebruikers zien bij het inloggen",
+    "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
-    "text": "bijv. Acme Corp SSO"
+    "text": "bijv. Acme Corp SSO",
+    "source_hash": "43c655c5"
   },
   "web.organizations.sso.client_id": {
-    "text": "Client-ID"
+    "text": "Client-ID",
+    "source_hash": "8726db01"
   },
   "web.organizations.sso.client_id_placeholder": {
-    "text": "Je OAuth client-ID"
+    "text": "Je OAuth client-ID",
+    "source_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
-    "text": "Client Secret"
+    "text": "Client Secret",
+    "source_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
-    "text": "Je OAuth client secret"
+    "text": "Je OAuth client secret",
+    "source_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
-    "text": "Laat leeg om het bestaande secret te behouden"
+    "text": "Laat leeg om het bestaande secret te behouden",
+    "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
-    "text": "Tenant-ID"
+    "text": "Tenant-ID",
+    "source_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
-    "text": "Je Azure AD / Entra ID tenant-identificatie"
+    "text": "Je Azure AD / Entra ID tenant-identificatie",
+    "source_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
-    "text": "bijv. 12345678-1234-1234-1234-123456789abc"
+    "text": "bijv. 12345678-1234-1234-1234-123456789abc",
+    "source_hash": "1a166316"
   },
   "web.organizations.sso.issuer": {
-    "text": "Issuer-URL"
+    "text": "Issuer-URL",
+    "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "De OIDC discovery-URL voor je identiteitsprovider"
+    "text": "De OIDC discovery-URL voor je identiteitsprovider",
+    "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
-    "text": "bijv. https://login.example.com"
+    "text": "bijv. https://login.example.com",
+    "source_hash": "9a638e9c"
   },
   "web.organizations.sso.allowed_domains": {
-    "text": "Toegestane e-maildomeinen"
+    "text": "Toegestane e-maildomeinen",
+    "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "Alleen gebruikers met e-mailadressen van deze domeinen kunnen inloggen. Laat leeg om alle domeinen toe te staan."
+    "text": "Alleen gebruikers met e-mailadressen van deze domeinen kunnen inloggen. Laat leeg om alle domeinen toe te staan.",
+    "source_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
-    "text": "bijv. acme.com"
+    "text": "bijv. acme.com",
+    "source_hash": "e4420764"
   },
   "web.organizations.sso.invalid_domain": {
-    "text": "Voer een geldig domein in (bijv. example.com)"
+    "text": "Voer een geldig domein in (bijv. example.com)",
+    "source_hash": "16807983"
   },
   "web.organizations.sso.domain_exists": {
-    "text": "Dit domein staat al in de lijst"
+    "text": "Dit domein staat al in de lijst",
+    "source_hash": "3fccb721"
   },
   "web.organizations.sso.remove_domain": {
-    "text": "{domain} verwijderen"
+    "text": "{domain} verwijderen",
+    "source_hash": "ae708a1d"
   },
   "web.organizations.sso.enabled": {
-    "text": "SSO inschakelen"
+    "text": "SSO inschakelen",
+    "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
-    "text": "Wanneer ingeschakeld kunnen organisatieleden inloggen met deze SSO-provider"
+    "text": "Wanneer ingeschakeld kunnen organisatieleden inloggen met deze SSO-provider",
+    "source_hash": "d7da2fa2"
   },
   "web.organizations.sso.save_config": {
-    "text": "SSO-configuratie opslaan"
+    "text": "SSO-configuratie opslaan",
+    "source_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
-    "text": "Configuratie verwijderen"
+    "text": "Configuratie verwijderen",
+    "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "Weet je het zeker? Dit schakelt SSO uit voor je organisatie."
+    "text": "Weet je het zeker? Dit schakelt SSO uit voor je organisatie.",
+    "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
-    "text": "SSO-configuratie laden mislukt"
+    "text": "SSO-configuratie laden mislukt",
+    "source_hash": "75cb73f6"
   },
   "web.organizations.sso.save_error": {
-    "text": "SSO-configuratie opslaan mislukt"
+    "text": "SSO-configuratie opslaan mislukt",
+    "source_hash": "99ef145b"
   },
   "web.organizations.sso.create_success": {
-    "text": "SSO-configuratie succesvol aangemaakt"
+    "text": "SSO-configuratie succesvol aangemaakt",
+    "source_hash": "531c7d92"
   },
   "web.organizations.sso.update_success": {
-    "text": "SSO-configuratie succesvol bijgewerkt"
+    "text": "SSO-configuratie succesvol bijgewerkt",
+    "source_hash": "d98d8e83"
   },
   "web.organizations.sso.delete_success": {
-    "text": "SSO-configuratie succesvol verwijderd"
+    "text": "SSO-configuratie succesvol verwijderd",
+    "source_hash": "55f5d4f5"
   },
   "web.organizations.sso.delete_error": {
-    "text": "SSO-configuratie verwijderen mislukt"
+    "text": "SSO-configuratie verwijderen mislukt",
+    "source_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "Verbinding testen"
+    "text": "Verbinding testen",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Controleer of de identiteitsprovider bereikbaar is (valideert geen inloggegevens)"
+    "text": "Controleer of de identiteitsprovider bereikbaar is (valideert geen inloggegevens)",
+    "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "Verbinding testen"
+    "text": "Verbinding testen",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
-    "text": "Testen..."
+    "text": "Testen...",
+    "source_hash": "6c02a284"
   },
   "web.organizations.sso.test_error": {
-    "text": "Verbinding testen mislukt"
+    "text": "Verbinding testen mislukt",
+    "source_hash": "c1d1f310"
   },
   "web.organizations.sso.auth_endpoint": {
-    "text": "Autorisatie-endpoint"
+    "text": "Autorisatie-endpoint",
+    "source_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
-    "text": "Ontbrekende velden"
+    "text": "Ontbrekende velden",
+    "source_hash": "757df777"
   },
   "web.organizations.sso.status_enabled": {
-    "text": "Ingeschakeld"
+    "text": "Ingeschakeld",
+    "source_hash": "92c1cdfd"
   },
   "web.organizations.sso.status_configured": {
-    "text": "Geconfigureerd"
+    "text": "Geconfigureerd",
+    "source_hash": "84aebc69"
   },
   "web.organizations.sso.domain_sso_title": {
-    "text": "Domein-SSO"
+    "text": "Domein-SSO",
+    "source_hash": "13161464"
   },
   "web.organizations.sso.domain_sso_description": {
-    "text": "Configureer SSO voor elk geverifieerd domein"
+    "text": "Configureer SSO voor elk geverifieerd domein",
+    "source_hash": "af5b799e"
   },
   "web.organizations.sso.provider_type_locked_hint": {
-    "text": "Verwijder eerst deze configuratie om van provider te wisselen"
+    "text": "Verwijder eerst deze configuratie om van provider te wisselen",
+    "source_hash": "0a1027ff"
   },
   "web.organizations.sso.status_not_configured": {
-    "text": "Niet geconfigureerd"
+    "text": "Niet geconfigureerd",
+    "source_hash": "bbea960e"
   }
 }

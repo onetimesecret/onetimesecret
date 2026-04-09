@@ -55,9 +55,23 @@ module Onetime
       field :from_address     # Sender email address
       field :reply_to         # Reply-to address
 
-      # DNS verification state
-      field :verification_status  # pending, verified, failed
+      # DNS verification state (stored, updated by workers when both jobs complete)
+      # Values: 'pending' | 'verified' | 'failed'
+      # Updated by: DomainValidationWorker (after both jobs finish)
+      field :verification_status
       field :verified_at          # Timestamp, cleared when from_address changes
+
+      # Job lifecycle status fields (track WHERE the job is, not the outcome)
+      # Values: queued, processing, completed, failed
+      # See: lib/onetime/jobs/workers/job_lifecycle.rb
+      field :dns_check_status       # DnsRecordCheckWorker lifecycle
+      field :provider_check_status  # DomainValidationWorker lifecycle
+
+      # Verification outcome fields (track WHAT the result was)
+      # nil = pending/unknown, true = passed, false = failed
+      # These are set by workers after check completes
+      field :dns_verified           # All DNS records have value_matches=true
+      field :provider_verified      # Provider API confirms domain is verified
 
       # Sending mode: 'platform' (OTS manages DNS via provider API) or
       # future modes like 'byodns' (customer manages DNS manually).
@@ -84,6 +98,16 @@ module Onetime
       # General state
       field :enabled          # Boolean string ('true'/'false')
 
+      # Per-record DNS check results from DnsRecordCheckWorker.
+      # Array of hashes: [{type:, name:, value:, dns_exists:, value_matches:, error:}, ...]
+      # Pure fact-finding data — no pass/fail judgement.
+      jsonkey :dns_check_results
+
+      # Timestamps for dual verification completion tracking.
+      # Cleared when re-validate is triggered; set by respective workers.
+      field :dns_check_completed_at       # Unix timestamp, set by DnsRecordCheckWorker
+      field :provider_check_completed_at  # Unix timestamp, set by DomainValidationWorker
+
       # Verification tracking fields (for caching and metrics)
       field :last_check_at      # Unix timestamp of last verification attempt
       field :check_duration_ms  # Duration of last check in milliseconds
@@ -98,6 +122,8 @@ module Onetime
         self.enabled             ||= 'false'
         self.verification_status ||= 'pending'
         self.sending_mode        ||= 'platform'
+        # Job lifecycle fields default to nil (no job enqueued yet)
+        # Outcome fields default to nil (unknown/pending)
       end
 
       # Check if this mailer config is enabled.
@@ -113,6 +139,93 @@ module Onetime
       def verified?
         verification_status == 'verified'
       end
+
+      # Compute the effective verification status from outcome fields.
+      #
+      # This provides backward compatibility: code that reads verification_status
+      # will get a value derived from the more granular outcome fields.
+      #
+      # Logic:
+      #   - If either job is still active (queued/processing): 'pending'
+      #   - If both outcomes are true: 'verified'
+      #   - If either outcome is false: 'failed'
+      #   - If outcomes are nil but jobs completed: 'failed' (no data = failure)
+      #   - Default: 'pending'
+      #
+      # @return [String] 'pending', 'verified', or 'failed'
+      def computed_verification_status
+        require_relative '../../jobs/workers/job_lifecycle'
+        lifecycle = Onetime::Jobs::Workers::JobLifecycle
+
+        # If either job is still in progress, we're pending
+        return 'pending' if lifecycle.active?(dns_check_status)
+        return 'pending' if lifecycle.active?(provider_check_status)
+
+        # If we have outcome data, use it
+        dns_ok      = parse_boolean_field(dns_verified)
+        provider_ok = parse_boolean_field(provider_verified)
+
+        # Both must pass for verified status
+        if dns_ok == true && provider_ok == true
+          'verified'
+        elsif dns_ok == false || provider_ok == false ||
+              (lifecycle.terminal?(dns_check_status) && lifecycle.terminal?(provider_check_status))
+          'failed'
+        else
+          'pending'
+        end
+      end
+
+      # Check if both verification jobs have completed (regardless of outcome).
+      #
+      # @return [Boolean] true if both dns_check_status and provider_check_status are terminal
+      def jobs_completed?
+        require_relative '../../jobs/workers/job_lifecycle'
+        lifecycle = Onetime::Jobs::Workers::JobLifecycle
+
+        lifecycle.terminal?(dns_check_status) && lifecycle.terminal?(provider_check_status)
+      end
+
+      # Check if any verification job is still in progress.
+      #
+      # @return [Boolean] true if either job is queued or processing
+      def jobs_in_progress?
+        require_relative '../../jobs/workers/job_lifecycle'
+        lifecycle = Onetime::Jobs::Workers::JobLifecycle
+
+        lifecycle.active?(dns_check_status) || lifecycle.active?(provider_check_status)
+      end
+
+      # Update verification_status from outcome fields and persist.
+      #
+      # Called by workers after both jobs complete. Derives the final status
+      # from dns_verified and provider_verified, then stores it.
+      #
+      # @return [String] the new verification_status value
+      def update_verification_status!
+        new_status               = computed_verification_status
+        self.verification_status = new_status
+        self.updated             = Familia.now.to_i
+        save_fields(:verification_status, :updated)
+        new_status
+      end
+
+      private
+
+      # Parse a boolean field that may be stored as string, boolean, or nil.
+      #
+      # @param value [String, Boolean, nil] The field value
+      # @return [Boolean, nil] true, false, or nil if unknown
+      def parse_boolean_field(value)
+        case value
+        when true, 'true'
+          true
+        when false, 'false'
+          false
+        end
+      end
+
+      public
 
       # Update the from_address, resetting verification state.
       #
@@ -229,31 +342,50 @@ module Onetime
       # Build DNS records required for email authentication.
       #
       # Returns the DNS records that must be configured at the domain registrar.
-      # After provisioning, this returns the actual records from the provider.
-      # Before provisioning, returns an empty array.
+      # After provisioning, this returns the actual records from the provider,
+      # enriched with per-record DNS check results when available.
       #
       # Each record includes:
       #   - type: DNS record type (CNAME, TXT, etc.)
       #   - name: DNS hostname
       #   - value: DNS record value
-      #   - status: Verification status ('pending', 'verified', 'failed')
+      #   - status: Overall verification status ('pending', 'verified', 'failed')
+      #   - dns_exists: Whether the DNS record was found (from DnsRecordCheckWorker)
+      #   - value_matches: Whether the DNS value matches provisioned value
       #
       # @return [Array<Hash>] DNS records for user to configure
       def required_dns_records
         return [] unless provisioned?
 
         data           = dns_records.value
+        dns_checks     = dns_check_results&.value || []
         current_status = verification_status || 'pending'
 
         data.map do |record|
-          # Ensure consistent shape: type, name, value, status
-          {
-            type: record['type'] || record[:type],
-            name: record['name'] || record[:name],
-            value: record['value'] || record[:value],
-            status: current_status,
-          }.compact
+          name  = record['name']
+          check = dns_checks.find { |c| c['name'] == name }
+
+          result = {
+            'type' => record['type'],
+            'name' => name,
+            'value' => record['value'],
+            'status' => current_status,
+          }
+          if check
+            result['dns_exists']    = check['dns_exists']
+            result['value_matches'] = check['value_matches']
+          end
+          result.compact
         end
+      end
+
+      # Check if both DNS and provider verification have completed.
+      #
+      # Used by the frontend to determine when polling can stop.
+      #
+      # @return [Boolean] true if both checks have run since last re-validate
+      def both_checks_complete?
+        !dns_check_completed_at.to_s.empty? && !provider_check_completed_at.to_s.empty?
       end
 
       # Resolve effective provider for this mailer config.

@@ -102,6 +102,12 @@ export const emailDnsRecordSchema = z.object({
 
   /** Verification status of this specific record. */
   status: dnsRecordStatusSchema,
+
+  /** Whether the DNS record exists (from DnsRecordCheckWorker). Null if not yet checked. */
+  dns_exists: z.boolean().nullable().optional(),
+
+  /** Whether the DNS record value matches the provisioned value. Null if not yet checked. */
+  value_matches: z.boolean().nullable().optional(),
 });
 
 export type EmailDnsRecord = z.infer<typeof emailDnsRecordSchema>;
@@ -146,6 +152,15 @@ export const customDomainEmailConfigCanonical = z.object({
 
   /** Timestamp of last successful validation. Null if never validated. */
   last_validated_at: z.number().nullable(),
+
+  /** Timestamp when DNS record check completed. Null if not yet checked or re-validate in progress. */
+  dns_check_completed_at: z.number().nullable(),
+
+  /** Timestamp when provider verification check completed. Null if not yet checked or re-validate in progress. */
+  provider_check_completed_at: z.number().nullable(),
+
+  /** Last error message if verification failed (e.g., "Provider status: not_found"). */
+  last_error: z.string().nullable().optional(),
 
   /** Provider-specific domain identifier (e.g., SES domain identity ARN). */
   provider_domain_id: z.string().nullable(),

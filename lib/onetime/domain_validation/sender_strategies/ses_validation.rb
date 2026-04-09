@@ -7,79 +7,42 @@ module Onetime
     module SenderStrategies
       # SesValidation - AWS SES sender domain validation strategy.
       #
-      # AWS SES requires:
-      #   - 3 CNAME records for DKIM (Easy DKIM uses three selectors)
-      #   - 1 TXT record for SPF alignment
-      #   - 1 MX record for inbound bounce handling
-      #
-      # DKIM selectors in SES are UUID-based tokens generated when you verify
-      # a domain identity. Since the actual tokens are assigned by SES at
-      # verification time, we use placeholder selectors that should be
-      # replaced with the real values from the SES console or API response.
+      # Reads provisioned DNS records from mailer_config.dns_records rather
+      # than generating them from hardcoded placeholder selectors. SES assigns
+      # unique DKIM tokens per domain at verification time, so the real
+      # records must come from the SES API response stored during provisioning.
       #
       # Reference: https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html
       #
       class SesValidation < BaseStrategy
-        # Legacy constants preserved for backward compatibility.
-        # New code should rely on ProviderConfig defaults.
-        DKIM_SELECTOR_COUNT = 3
-        SPF_INCLUDE         = 'amazonses.com'
-        DEFAULT_REGION      = 'us-east-1'
-
-        def self.accepted_options
-          [:region, :dkim_selector_count, :spf_include].freeze
-        end
-
-        # @param region [String] AWS region for MX record (default from config or 'us-east-1')
-        # @param dkim_selector_count [Integer] Number of DKIM selectors (default: 3)
-        # @param spf_include [String] SPF include domain (default: 'amazonses.com')
-        def initialize(region: DEFAULT_REGION, dkim_selector_count: DKIM_SELECTOR_COUNT, spf_include: SPF_INCLUDE)
-          @region              = region
-          @dkim_selector_count = dkim_selector_count
-          @spf_include         = spf_include
-        end
-
         # Returns the DNS records required for SES domain verification.
         #
+        # Reads provisioned records from mailer_config.dns_records.value
+        # (array of string-keyed hashes from the SES API) and maps them
+        # to the validation format with symbol keys.
+        #
+        # Returns an empty array if no provisioned records exist — does
+        # NOT fall back to hardcoded placeholder selectors.
+        #
         # @param mailer_config [Onetime::CustomDomain::MailerConfig]
-        # @return [Array<Hash>]
+        # @return [Array<Hash>] Each hash: {type:, host:, value:, purpose:}
         #
         def required_dns_records(mailer_config)
-          domain = resolve_domain(mailer_config)
+          provisioned = mailer_config.dns_records&.value
 
-          records = []
-
-          # DKIM CNAME records (configurable count, default 3)
-          # SES generates unique tokens per domain; these placeholders indicate
-          # the record structure. Real selectors come from the SES API response
-          # when calling VerifyDomainDkim.
-          @dkim_selector_count.times do |i|
-            selector = "ses-dkim-token-#{i + 1}"
-            records << {
-              type: 'CNAME',
-              host: "#{selector}._domainkey.#{domain}",
-              value: "#{selector}.dkim.#{@spf_include}",
-              purpose: "DKIM signature #{i + 1} of #{@dkim_selector_count}",
-            }
+          if provisioned.nil? || provisioned.empty?
+            logger.error "[ses-validation] No provisioned DNS records for #{mailer_config.domain_id}; cannot validate"
+            return []
           end
 
-          # SPF TXT record
-          records << {
-            type: 'TXT',
-            host: domain,
-            value: "v=spf1 include:#{@spf_include} ~all",
-            purpose: 'SPF authentication',
-          }
-
-          # MX record for bounce/complaint handling
-          records << {
-            type: 'MX',
-            host: domain,
-            value: "inbound-smtp.#{@region}.amazonaws.com",
-            purpose: 'SES inbound mail (bounce handling)',
-          }
-
-          records
+          provisioned.map do |record|
+            {
+              type: record['type'].to_s.upcase,
+              host: record['name'].to_s,
+              value: record['value'].to_s,
+              purpose: classify_record_purpose(record),
+            }
+          end
         end
 
         # Verifies SES DNS records via live DNS lookup.
@@ -95,6 +58,30 @@ module Onetime
         # @return [String]
         def strategy_name
           'ses'
+        end
+
+        private
+
+        # Infers a human-readable purpose from the record's name and type.
+        #
+        # @param record [Hash] String-keyed hash from provisioned dns_records
+        # @return [String]
+        #
+        def classify_record_purpose(record)
+          name = record['name'].to_s.downcase
+          type = record['type'].to_s.upcase
+
+          if name.include?('_domainkey')
+            'DKIM'
+          elsif type == 'TXT' && record['value'].to_s.start_with?('v=spf1')
+            'SPF'
+          elsif type == 'MX'
+            'Inbound mail (bounce handling)'
+          elsif name.include?('_dmarc')
+            'DMARC'
+          else
+            type
+          end
         end
       end
     end

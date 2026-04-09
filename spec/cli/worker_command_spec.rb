@@ -344,6 +344,8 @@ RSpec.describe Onetime::CLI::WorkerCommand, type: :cli do
         def self.queue_name
           'email.message.send'
         end
+
+        def self.check_essentials!; end
       end
     end
 
@@ -649,6 +651,8 @@ RSpec.describe Onetime::CLI::WorkerCommand, type: :cli do
         def self.queue_name
           'email.message.send'
         end
+
+        def self.check_essentials!; end
       end
     end
 
@@ -661,6 +665,8 @@ RSpec.describe Onetime::CLI::WorkerCommand, type: :cli do
         def self.queue_name
           'scheduler.task.run'
         end
+
+        def self.check_essentials!; end
       end
     end
 

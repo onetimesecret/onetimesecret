@@ -10,7 +10,18 @@ require_relative '../../utils/retry_helper'
 module Onetime
   module DomainValidation
     module SenderStrategies
-      # BaseStrategy - Interface for sender domain validation strategies.
+      # BaseStrategy - Interface for sender domain VERIFICATION strategies.
+      #
+      # This is the VERIFICATION layer: verify_dns_records returns a :verified
+      # boolean per record and sets mailer_config.verification_status.
+      #
+      # For FACT-FINDING (dns_exists, value_matches without status determination),
+      # see Mail::SenderStrategies::BaseSenderStrategy#check_dns_records instead.
+      #
+      # For PROVISIONING (create domain at provider, get DNS records to configure),
+      # see Mail::SenderStrategies::*SenderStrategy#provision_dns_records instead.
+      #
+      # Used by: ValidateSenderDomain operation -> DomainValidationWorker
       #
       # Each provider strategy (SES, SendGrid, Lettermint) implements these
       # methods to generate the DNS records a customer must configure and to
