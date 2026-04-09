@@ -186,9 +186,14 @@ export const ssoConfigSchema = z.object({
 // FEATURES SCHEMA
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Workaround: Zod's .default({}) doesn't cascade into inner field defaults.
-// Extract inner schema and use .default(inner.parse({})) to trigger nested defaults.
-// If colinhacks/zod#5764 lands in v4, simplify to: organizations: z.object({...}).default({})
+// Workaround: Zod's .default({}) doesn't cascade into inner field defaults which
+// are needed for nested features objects. To ensure all nested defaults are
+// applied, we extract the inner schema and use .default(inner.parse({})) to
+// trigger default population at all levels. Extract inner schema and use
+// .default(inner.parse({})) to trigger nested defaults.
+//
+// Check colinhacks/zod#5764 for decision on v4 native solution, and
+// hopefully simplify to: organizations: z.object({...}).default({})
 const organizationFeaturesInner = z.object({
   enabled: z.boolean().default(false),
   sso_enabled: z.boolean().default(false),
