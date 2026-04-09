@@ -21,6 +21,7 @@ interface Props {
   lastValidatedAt: Date | null;
   dnsCheckCompletedAt: Date | null;
   providerCheckCompletedAt: Date | null;
+  lastError: string | null;
   isValidating: boolean;
 }
 
@@ -130,21 +131,28 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
 
     <div
       v-else-if="effectiveStatus === 'failed'"
-      class="flex items-center gap-2 rounded-md bg-rose-50 px-4 py-3 dark:bg-rose-900/20"
+      class="rounded-md bg-rose-50 px-4 py-3 dark:bg-rose-900/20"
       role="alert">
-      <OIcon
-        collection="heroicons"
-        name="x-circle-solid"
-        class="size-5 text-rose-500"
-        aria-hidden="true" />
-      <span class="text-sm font-medium text-rose-800 dark:text-rose-200">
-        {{ t('web.domains.email.validation_failed') }}
-      </span>
-      <span
-        v-if="lastValidatedAt"
-        class="ml-auto text-xs text-rose-600 dark:text-rose-400">
-        {{ t('web.domains.email.last_validated') }}: {{ formatDate(lastValidatedAt) }}
-      </span>
+      <div class="flex items-center gap-2">
+        <OIcon
+          collection="heroicons"
+          name="x-circle-solid"
+          class="size-5 text-rose-500"
+          aria-hidden="true" />
+        <span class="text-sm font-medium text-rose-800 dark:text-rose-200">
+          {{ t('web.domains.email.validation_failed') }}
+        </span>
+        <span
+          v-if="lastValidatedAt"
+          class="ml-auto text-xs text-rose-600 dark:text-rose-400">
+          {{ t('web.domains.email.last_validated') }}: {{ formatDate(lastValidatedAt) }}
+        </span>
+      </div>
+      <p
+        v-if="lastError"
+        class="mt-1 ml-7 text-sm text-rose-700 dark:text-rose-300">
+        {{ lastError }}
+      </p>
     </div>
 
     <div

@@ -107,6 +107,7 @@ describe('DomainEmailDnsRecords', () => {
     lastValidatedAt: Date | null;
     dnsCheckCompletedAt: Date | null;
     providerCheckCompletedAt: Date | null;
+    lastError: string | null;
     isValidating: boolean;
   }> = {}) => {
     return mount(DomainEmailDnsRecords, {
@@ -116,6 +117,7 @@ describe('DomainEmailDnsRecords', () => {
         lastValidatedAt: props.lastValidatedAt ?? null,
         dnsCheckCompletedAt: props.dnsCheckCompletedAt ?? null,
         providerCheckCompletedAt: props.providerCheckCompletedAt ?? null,
+        lastError: props.lastError ?? null,
         isValidating: props.isValidating ?? false,
       },
       global: {
@@ -316,6 +318,18 @@ describe('DomainEmailDnsRecords', () => {
       const banner = wrapper.find('[role="alert"]');
       expect(banner.exists()).toBe(true);
       expect(banner.text()).toContain('Validation failed');
+    });
+
+    it('shows error message in failed banner when lastError is present', () => {
+      wrapper = mountComponent({
+        validationStatus: 'failed',
+        lastError: 'Provider status: not_found',
+        ...completedTimestamps,
+      });
+
+      const banner = wrapper.find('[role="alert"]');
+      expect(banner.exists()).toBe(true);
+      expect(banner.text()).toContain('Provider status: not_found');
     });
 
     it('shows pending banner when status is pending', () => {

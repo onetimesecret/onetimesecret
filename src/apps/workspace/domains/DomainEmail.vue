@@ -83,6 +83,7 @@ const {
   lastValidatedAt,
   dnsCheckCompletedAt,
   providerCheckCompletedAt,
+  lastError,
   hasUnsavedChanges,
   initialize: initializeEmailConfig,
   saveConfig,
@@ -329,6 +330,7 @@ watch(hasEntitlement, async (entitled) => {
                 :last-validated-at="lastValidatedAt"
                 :dns-check-completed-at="dnsCheckCompletedAt"
                 :provider-check-completed-at="providerCheckCompletedAt"
+                :last-error="lastError"
                 :is-validating="isValidating"
                 @validate="validateDomain" />
             </template>

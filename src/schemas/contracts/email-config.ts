@@ -159,6 +159,9 @@ export const customDomainEmailConfigCanonical = z.object({
   /** Timestamp when provider verification check completed. Null if not yet checked or re-validate in progress. */
   provider_check_completed_at: z.number().nullable(),
 
+  /** Last error message if verification failed (e.g., "Provider status: not_found"). */
+  last_error: z.string().nullable().optional(),
+
   /** Provider-specific domain identifier (e.g., SES domain identity ARN). */
   provider_domain_id: z.string().nullable(),
 

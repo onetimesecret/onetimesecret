@@ -154,6 +154,9 @@ export function useEmailConfig(domainExtId: string) {
   /** Timestamp when provider verification check completed. */
   const providerCheckCompletedAt = computed(() => emailConfig.value?.provider_check_completed_at ?? null);
 
+  /** Last error from verification (e.g., "Provider status: not_found"). */
+  const lastError = computed(() => emailConfig.value?.last_error ?? null);
+
   /** Whether the form has been modified since last save/load. */
   const hasUnsavedChanges = computed(() => {
     if (!savedFormState.value) return false;
@@ -393,6 +396,7 @@ export function useEmailConfig(domainExtId: string) {
     lastValidatedAt,
     dnsCheckCompletedAt,
     providerCheckCompletedAt,
+    lastError,
     hasUnsavedChanges,
 
     // Actions
