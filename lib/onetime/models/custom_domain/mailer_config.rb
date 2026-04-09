@@ -225,6 +225,14 @@ module Onetime
         end
       end
 
+      # Build a name-keyed index of provider records for O(1) lookup.
+      def index_provider_records(provider_records)
+        provider_records.each_with_object({}) do |p, h|
+          key    = (p['name'] || p[:name]).to_s
+          h[key] = p unless key.empty?
+        end
+      end
+
       public
 
       # Update the from_address, resetting verification state.
@@ -362,6 +370,8 @@ module Onetime
         provider_records = (provider_dns_data&.value || {})['dns_records'] || []
         current_status   = verification_status || 'pending'
 
+        provider_records_by_name = index_provider_records(provider_records)
+
         data.map do |record|
           name  = record['name']
           check = dns_checks.find { |c| c['name'] == name }
@@ -388,7 +398,7 @@ module Onetime
           # Per-record provider verification: match by hostname from provider's
           # latest check. Only present when provider has returned per-record data.
           if provider_records.any?
-            provider_rec                = provider_records.find { |p| (p['name'] || p[:name]).to_s == name }
+            provider_rec                = provider_records_by_name[name]
             provider_status             = provider_rec&.then { |p| p['status'] || p[:status] }
             result['provider_verified'] = provider_status.to_s == 'verified' unless provider_status.nil?
           end
