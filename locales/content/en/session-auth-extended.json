@@ -156,7 +156,7 @@
   },
   "web.auth.magicLink.sessionExpired": {
     "text": "Your session has expired. Please refresh the page and try again.",
-    "content_hash": "a7c3e901"
+    "content_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
     "text": "Login failed. Please try again.",
@@ -421,11 +421,11 @@
   },
   "web.auth.sessions.session_singular": {
     "text": "session",
-    "content_hash": "00000000"
+    "content_hash": "3f3af1ec"
   },
   "web.auth.sessions.session_plural": {
     "text": "sessions",
-    "content_hash": "00000000"
+    "content_hash": "1225ae6c"
   },
   "web.auth.mfa.title": {
     "text": "Two-Factor Authentication",
@@ -637,7 +637,7 @@
   },
   "web.auth.mfa.alternative_auth_options": {
     "text": "Alternative authentication options",
-    "content_hash": "00000000"
+    "content_hash": "5ddea736"
   },
   "web.auth.mfa.digit_of_count": {
     "text": "Digit {current} of {total}",

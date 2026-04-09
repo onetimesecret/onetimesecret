@@ -400,333 +400,443 @@
     "source_hash": "91c1af2e"
   },
   "web.domains.email.title": {
-    "text": "Retpoŝta Sendado"
+    "text": "Retpoŝta Sendado",
+    "source_hash": "6c428e5f"
   },
   "web.domains.email.config_title": {
-    "text": "Retpoŝta Agordo"
+    "text": "Retpoŝta Agordo",
+    "source_hash": "6f38aa51"
   },
   "web.domains.email.config_description": {
-    "text": "Agordu retpoŝtan sendadon por ĉi tiu domajno"
+    "text": "Agordu retpoŝtan sendadon por ĉi tiu domajno",
+    "source_hash": "1c275ff0"
   },
   "web.domains.email.provider_label": {
-    "text": "Retpoŝta Provizanto"
+    "text": "Retpoŝta Provizanto",
+    "source_hash": "a7ed3f4e"
   },
   "web.domains.email.provider_placeholder": {
-    "text": "Elektu retpoŝtan provizanton"
+    "text": "Elektu retpoŝtan provizanton",
+    "source_hash": "63c8080c"
   },
   "web.domains.email.from_name_label": {
-    "text": "De-Nomo"
+    "text": "De-Nomo",
+    "source_hash": "2f13b589"
   },
   "web.domains.email.from_name_placeholder": {
-    "text": "ekz. Acme Security"
+    "text": "ekz. Acme Security",
+    "source_hash": "03c0f138"
   },
   "web.domains.email.from_address_label": {
-    "text": "De-Adreso"
+    "text": "De-Adreso",
+    "source_hash": "60643eae"
   },
   "web.domains.email.from_address_placeholder": {
-    "text": "ekz. secrets{'@'}example.com"
+    "text": "ekz. secrets{'@'}example.com",
+    "source_hash": "a09b3928"
   },
   "web.domains.email.reply_to_label": {
-    "text": "Respondo-Al Adreso"
+    "text": "Respondo-Al Adreso",
+    "source_hash": "4538ea9c"
   },
   "web.domains.email.reply_to_placeholder": {
-    "text": "ekz. support{'@'}example.com"
+    "text": "ekz. support{'@'}example.com",
+    "source_hash": "fa3e5f0b"
   },
   "web.domains.email.save_changes": {
-    "text": "Konservi Ŝanĝojn"
+    "text": "Konservi Ŝanĝojn",
+    "source_hash": "35322b5b"
   },
   "web.domains.email.discard_changes": {
-    "text": "Forĵeti Ŝanĝojn"
+    "text": "Forĵeti Ŝanĝojn",
+    "source_hash": "e07e053c"
   },
   "web.domains.email.provider_ses": {
-    "text": "Amazon SES"
+    "text": "Amazon SES",
+    "source_hash": "15de4969"
   },
   "web.domains.email.provider_sendgrid": {
-    "text": "SendGrid"
+    "text": "SendGrid",
+    "source_hash": "b889d002"
   },
   "web.domains.email.provider_lettermint": {
-    "text": "Lettermint"
+    "text": "Lettermint",
+    "source_hash": "ec994dad"
   },
   "web.domains.email.provider_inherit": {
-    "text": "Uzi kontajn defaŭltojn"
+    "text": "Uzi kontajn defaŭltojn",
+    "source_hash": "f6fa84e7"
   },
   "web.domains.email.provider_ses_description": {
-    "text": "Bezonas domajnan konfirmon per DKIM kaj SPF-registroj"
+    "text": "Bezonas domajnan konfirmon per DKIM kaj SPF-registroj",
+    "source_hash": "4df5aa60"
   },
   "web.domains.email.provider_sendgrid_description": {
-    "text": "Bezonas agordadon de domajn-aŭtentikigo"
+    "text": "Bezonas agordadon de domajn-aŭtentikigo",
+    "source_hash": "71b53242"
   },
   "web.domains.email.provider_lettermint_description": {
-    "text": "Bezonas domajnan konfirmon"
+    "text": "Bezonas domajnan konfirmon",
+    "source_hash": "87073c93"
   },
   "web.domains.email.provider_inherit_description": {
-    "text": "Uzas la defaŭltan retpoŝtan sendadagordon de via konto"
+    "text": "Uzas la defaŭltan retpoŝtan sendadagordon de via konto",
+    "source_hash": "3f798263"
   },
   "web.domains.email.dns_records_title": {
-    "text": "DNS-Registroj"
+    "text": "DNS-Registroj",
+    "source_hash": "34d2c307"
   },
   "web.domains.email.dns_records_description": {
-    "text": "Aldonu la sekvajn DNS-registrojn por kontroligi vian domajnon por retpoŝta sendado."
+    "text": "Aldonu la sekvajn DNS-registrojn por kontroligi vian domajnon por retpoŝta sendado.",
+    "source_hash": "9fa85863"
   },
   "web.domains.email.dns_column_type": {
-    "text": "Tipo"
+    "text": "Tipo",
+    "source_hash": "baaddf70"
   },
   "web.domains.email.dns_column_name": {
-    "text": "Nomo"
+    "text": "Nomo",
+    "source_hash": "dcd1d522"
   },
   "web.domains.email.dns_column_value": {
-    "text": "Valoro"
+    "text": "Valoro",
+    "source_hash": "8e37953d"
   },
   "web.domains.email.copy": {
-    "text": "Kopii"
+    "text": "Kopii",
+    "source_hash": "e21f935f"
   },
   "web.domains.email.copied": {
-    "text": "Kopiita"
+    "text": "Kopiita",
+    "source_hash": "8d525e5f"
   },
   "web.domains.email.status_verified": {
-    "text": "Kontrolita"
+    "text": "Kontrolita",
+    "source_hash": "4f783840"
   },
   "web.domains.email.status_pending": {
-    "text": "Atendanta"
+    "text": "Atendanta",
+    "source_hash": "331551b0"
   },
   "web.domains.email.status_failed": {
-    "text": "Malsukcesis"
+    "text": "Malsukcesis",
+    "source_hash": "031a8f0f"
   },
   "web.domains.email.revalidate": {
-    "text": "Rekontroligi"
+    "text": "Rekontroligi",
+    "source_hash": "4918da12"
   },
   "web.domains.email.validating": {
-    "text": "Kontrolante..."
+    "text": "Kontrolante...",
+    "source_hash": "b28b48d5"
   },
   "web.domains.email.domain_verified": {
-    "text": "Domajno kontrolita"
+    "text": "Domajno kontrolita",
+    "source_hash": "08e0df67"
   },
   "web.domains.email.validation_failed": {
-    "text": "Kontrolo malsukcesis"
+    "text": "Kontrolo malsukcesis",
+    "source_hash": "23a86f5a"
   },
   "web.domains.email.last_validated": {
-    "text": "Lastfoje kontrolita"
+    "text": "Lastfoje kontrolita",
+    "source_hash": "887dd486"
   },
   "web.domains.email.upgrade_to_configure": {
-    "text": "Altniveligu vian planon por agordi retpoŝtan sendadon por ĉi tiu domajno."
+    "text": "Altniveligu vian planon por agordi retpoŝtan sendadon por ĉi tiu domajno.",
+    "source_hash": "16a876f7"
   },
   "web.domains.email.configure_email": {
-    "text": "Agordi Retpoŝton"
+    "text": "Agordi Retpoŝton",
+    "source_hash": "a48c0d40"
   },
   "web.domains.email.access_denied": {
-    "text": "Aliro Rifuzita"
+    "text": "Aliro Rifuzita",
+    "source_hash": "d134ca02"
   },
   "web.domains.email.access_denied_description": {
-    "text": "Vi ne havas permeson administri retpoŝtajn agordojn por ĉi tiu domajno. Kontaktu vian organizan administranton."
+    "text": "Vi ne havas permeson administri retpoŝtajn agordojn por ĉi tiu domajno. Kontaktu vian organizan administranton.",
+    "source_hash": "32049ff0"
   },
   "web.domains.email.update_success": {
-    "text": "Retpoŝta agordo sukcese konservita"
+    "text": "Retpoŝta agordo sukcese konservita",
+    "source_hash": "dd3607fc"
   },
   "web.domains.email.delete_success": {
-    "text": "Retpoŝta agordo sukcese forigita"
+    "text": "Retpoŝta agordo sukcese forigita",
+    "source_hash": "2ba99a91"
   },
   "web.domains.email.default_sender_notice": {
-    "text": "Retpoŝtoj por ĉi tiu domajno estas nuntempe sendataj de la tutmonda sendanto. Kompletigu retpoŝtan agordadon por uzi vian propran sendantan identecon."
+    "text": "Retpoŝtoj por ĉi tiu domajno estas nuntempe sendataj de la tutmonda sendanto. Kompletigu retpoŝtan agordadon por uzi vian propran sendantan identecon.",
+    "source_hash": "ffcf39fb"
   },
   "web.domains.email.disabled_notice": {
-    "text": "Propra retpoŝta sendado estas nuntempe malŝaltita. Retpoŝtoj estos sendataj de la tutmonda sendanto. Ebligu la funkcion sube por uzi vian propran sendantan identecon."
+    "text": "Propra retpoŝta sendado estas nuntempe malŝaltita. Retpoŝtoj estos sendataj de la tutmonda sendanto. Ebligu la funkcion sube por uzi vian propran sendantan identecon.",
+    "source_hash": "60a26f5b"
   },
   "web.domains.email.badge_not_configured": {
-    "text": "Ne agordita"
+    "text": "Ne agordita",
+    "source_hash": "dd1841d2"
   },
   "web.domains.email.badge_default_sender": {
-    "text": "Uzanta defaŭltan sendanton"
+    "text": "Uzanta defaŭltan sendanton",
+    "source_hash": "e1afb18f"
   },
   "web.domains.email.badge_verified": {
-    "text": "Kontrolita"
+    "text": "Kontrolita",
+    "source_hash": "4f783840"
   },
   "web.domains.email.badge_pending": {
-    "text": "Atendanta konfirmon"
+    "text": "Atendanta konfirmon",
+    "source_hash": "417a6b7e"
   },
   "web.domains.email.badge_disabled": {
-    "text": "Malŝaltita"
+    "text": "Malŝaltita",
+    "source_hash": "75081b59"
   },
   "web.domains.email.tooltip_not_configured": {
-    "text": "Neniu retpoŝta sendanto agordita — retpoŝtoj uzas la platforman defaŭltan sendanton"
+    "text": "Neniu retpoŝta sendanto agordita — retpoŝtoj uzas la platforman defaŭltan sendanton",
+    "source_hash": "360083bb"
   },
   "web.domains.email.tooltip_pending": {
-    "text": "Retpoŝta sendanta agordo atendas konfirmon — retpoŝtoj uzas la platforman defaŭltan sendanton"
+    "text": "Retpoŝta sendanta agordo atendas konfirmon — retpoŝtoj uzas la platforman defaŭltan sendanton",
+    "source_hash": "c8c2449c"
   },
   "web.domains.email.tooltip_disabled": {
-    "text": "Retpoŝta sendanto estas malŝaltita — retpoŝtoj uzas la platforman defaŭltan sendanton"
+    "text": "Retpoŝta sendanto estas malŝaltita — retpoŝtoj uzas la platforman defaŭltan sendanton",
+    "source_hash": "64e84955"
   },
   "web.domains.email.tooltip_verified": {
-    "text": "Retpoŝta sendanto kontrolita — retpoŝtoj estas sendataj de ĉi tiu domajno"
+    "text": "Retpoŝta sendanto kontrolita — retpoŝtoj estas sendataj de ĉi tiu domajno",
+    "source_hash": "0e9a005c"
   },
   "web.domains.incoming.title": {
-    "text": "Envenantaj Sekretoj"
+    "text": "Envenantaj Sekretoj",
+    "source_hash": "883dbca9"
   },
   "web.domains.incoming.config_title": {
-    "text": "Agordo de Envenantaj Sekretoj"
+    "text": "Agordo de Envenantaj Sekretoj",
+    "source_hash": "b3fef15b"
   },
   "web.domains.incoming.config_description": {
-    "text": "Permesu al eksteraj uzantoj sendi sekretojn rekte al elektitaj ricevantoj sur ĉi tiu domajno"
+    "text": "Permesu al eksteraj uzantoj sendi sekretojn rekte al elektitaj ricevantoj sur ĉi tiu domajno",
+    "source_hash": "452ab4fe"
   },
   "web.domains.incoming.access_denied": {
-    "text": "Aliro Rifuzita"
+    "text": "Aliro Rifuzita",
+    "source_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
-    "text": "Vi ne havas permeson administri agordojn de envenantaj sekretoj por ĉi tiu domajno. Kontaktu vian organizan administranton."
+    "text": "Vi ne havas permeson administri agordojn de envenantaj sekretoj por ĉi tiu domajno. Kontaktu vian organizan administranton.",
+    "source_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
-    "text": "Altniveligu vian planon por agordi envenantajn sekretojn por ĉi tiu domajno."
+    "text": "Altniveligu vian planon por agordi envenantajn sekretojn por ĉi tiu domajno.",
+    "source_hash": "9dfdfeb5"
   },
   "web.domains.incoming.configure_incoming": {
-    "text": "Agordi Envenantajn Sekretojn"
+    "text": "Agordi Envenantajn Sekretojn",
+    "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
-    "text": "Envenantaj sekretoj ne estas agordita por ĉi tiu domajno. Aldonu ricevantojn por permesi al eksteraj uzantoj sendi sekretojn al via teamo."
+    "text": "Envenantaj sekretoj ne estas agordita por ĉi tiu domajno. Aldonu ricevantojn por permesi al eksteraj uzantoj sendi sekretojn al via teamo.",
+    "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
-    "text": "Envenantaj sekretoj estas nuntempe malŝaltitaj. Eksteraj uzantoj ne povas sendi sekretojn al ricevantoj sur ĉi tiu domajno. Ebligu la funkcion sube por permesi envenantajn sekretojn."
+    "text": "Envenantaj sekretoj estas nuntempe malŝaltitaj. Eksteraj uzantoj ne povas sendi sekretojn al ricevantoj sur ĉi tiu domajno. Ebligu la funkcion sube por permesi envenantajn sekretojn.",
+    "source_hash": "d1f8dafb"
   },
   "web.domains.incoming.recipients_title": {
-    "text": "Ricevantoj"
+    "text": "Ricevantoj",
+    "source_hash": "1e8568a8"
   },
   "web.domains.incoming.recipients_description": {
-    "text": "Difinu kiu povas ricevi envenantajn sekretojn sur ĉi tiu domajno. Ricevantoj ricevos retpoŝtajn sciigojn kiam sekreto estas sendita al ili."
+    "text": "Difinu kiu povas ricevi envenantajn sekretojn sur ĉi tiu domajno. Ricevantoj ricevos retpoŝtajn sciigojn kiam sekreto estas sendita al ili.",
+    "source_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
-    "text": "Aldoni Ricevanton"
+    "text": "Aldoni Ricevanton",
+    "source_hash": "25f93c13"
   },
   "web.domains.incoming.remove_recipient": {
-    "text": "Forigi"
+    "text": "Forigi",
+    "source_hash": "c3812fc4"
   },
   "web.domains.incoming.email_label": {
-    "text": "Retpoŝtadreso"
+    "text": "Retpoŝtadreso",
+    "source_hash": "09bf25ef"
   },
   "web.domains.incoming.email_placeholder": {
-    "text": "recipient{'@'}example.com"
+    "text": "recipient{'@'}example.com",
+    "source_hash": "55d1508e"
   },
   "web.domains.incoming.name_label": {
-    "text": "Montrnomo"
+    "text": "Montrnomo",
+    "source_hash": "18d67c99"
   },
   "web.domains.incoming.name_placeholder": {
-    "text": "ekz. Sekureca Teamo"
+    "text": "ekz. Sekureca Teamo",
+    "source_hash": "0c52400c"
   },
   "web.domains.incoming.empty_state": {
-    "text": "Neniuj ricevantoj agordita"
+    "text": "Neniuj ricevantoj agordita",
+    "source_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
-    "text": "Aldonu ricevantojn por permesi al eksteraj uzantoj sendi sekretojn al via teamo."
+    "text": "Aldonu ricevantojn por permesi al eksteraj uzantoj sendi sekretojn al via teamo.",
+    "source_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
-    "text": "Nevalida retpoŝtadreso"
+    "text": "Nevalida retpoŝtadreso",
+    "source_hash": "4eaf1d80"
   },
   "web.domains.incoming.validation_duplicate_email": {
-    "text": "Ĉi tiu retpoŝtadreso jam estas aldonita"
+    "text": "Ĉi tiu retpoŝtadreso jam estas aldonita",
+    "source_hash": "f89de141"
   },
   "web.domains.incoming.validation_max_recipients": {
-    "text": "Maksimume {max} ricevantoj permesitaj"
+    "text": "Maksimume {max} ricevantoj permesitaj",
+    "source_hash": "e2585847"
   },
   "web.domains.incoming.validation_name_required": {
-    "text": "Montrnomo estas bezonata"
+    "text": "Montrnomo estas bezonata",
+    "source_hash": "c6892c89"
   },
   "web.domains.incoming.validation_email_required": {
-    "text": "Retpoŝtadreso estas bezonata"
+    "text": "Retpoŝtadreso estas bezonata",
+    "source_hash": "41381ba2"
   },
   "web.domains.incoming.save_changes": {
-    "text": "Konservi Ŝanĝojn"
+    "text": "Konservi Ŝanĝojn",
+    "source_hash": "35322b5b"
   },
   "web.domains.incoming.discard_changes": {
-    "text": "Forĵeti Ŝanĝojn"
+    "text": "Forĵeti Ŝanĝojn",
+    "source_hash": "e07e053c"
   },
   "web.domains.incoming.update_success": {
-    "text": "Agordo de envenantaj sekretoj sukcese konservita"
+    "text": "Agordo de envenantaj sekretoj sukcese konservita",
+    "source_hash": "9317e02d"
   },
   "web.domains.incoming.delete_success": {
-    "text": "Agordo de envenantaj sekretoj sukcese forigita"
+    "text": "Agordo de envenantaj sekretoj sukcese forigita",
+    "source_hash": "4c4a33ae"
   },
   "web.domains.incoming.recipient_count": {
-    "text": "{count} ricevanto | {count} ricevantoj"
+    "text": "{count} ricevanto | {count} ricevantoj",
+    "source_hash": "0e4f5985"
   },
   "web.domains.incoming.badge_not_configured": {
-    "text": "Ne agordita"
+    "text": "Ne agordita",
+    "source_hash": "dd1841d2"
   },
   "web.domains.incoming.badge_configured": {
-    "text": "Agordita"
+    "text": "Agordita",
+    "source_hash": "84aebc69"
   },
   "web.domains.incoming.badge_disabled": {
-    "text": "Malŝaltita"
+    "text": "Malŝaltita",
+    "source_hash": "75081b59"
   },
   "web.domains.incoming.tooltip_not_configured": {
-    "text": "Envenantaj sekretoj ne agordita - eksteraj uzantoj ne povas sendi sekretojn al ĉi tiu domajno"
+    "text": "Envenantaj sekretoj ne agordita - eksteraj uzantoj ne povas sendi sekretojn al ĉi tiu domajno",
+    "source_hash": "79786d5c"
   },
   "web.domains.incoming.tooltip_configured": {
-    "text": "Envenantaj sekretoj ebligitaj kun {count} ricevanto(j)"
+    "text": "Envenantaj sekretoj ebligitaj kun {count} ricevanto(j)",
+    "source_hash": "c205cc54"
   },
   "web.domains.incoming.tooltip_disabled": {
-    "text": "Funkcio de envenantaj sekretoj estas malŝaltita por ĉi tiu domajno"
+    "text": "Funkcio de envenantaj sekretoj estas malŝaltita por ĉi tiu domajno",
+    "source_hash": "0413f96b"
   },
   "web.domains.incoming.enabled_label": {
-    "text": "Ebligi Envenantajn Sekretojn"
+    "text": "Ebligi Envenantajn Sekretojn",
+    "source_hash": "c0b25980"
   },
   "web.domains.incoming.enabled_hint": {
-    "text": "Permesu al eksteraj uzantoj sendi sekretojn al ricevantoj sur ĉi tiu domajno"
+    "text": "Permesu al eksteraj uzantoj sendi sekretojn al ricevantoj sur ĉi tiu domajno",
+    "source_hash": "24aadd31"
   },
   "web.domains.incoming.public_url_label": {
-    "text": "Publika URL"
+    "text": "Publika URL",
+    "source_hash": "f7b60b04"
   },
   "web.domains.incoming.public_url_description": {
-    "text": "Kunhavigu ĉi tiun URL kun eksteraj uzantoj por permesi al ili sendi sekretojn"
+    "text": "Kunhavigu ĉi tiun URL kun eksteraj uzantoj por permesi al ili sendi sekretojn",
+    "source_hash": "df47a894"
   },
   "web.domains.incoming.copy_url": {
-    "text": "Kopii URL"
+    "text": "Kopii URL",
+    "source_hash": "b26d1037"
   },
   "web.domains.incoming.url_copied": {
-    "text": "URL kopiita al tondujo"
+    "text": "URL kopiita al tondujo",
+    "source_hash": "2f396c3e"
   },
   "web.domains.incoming.remove_all_confirmation": {
-    "text": "Ĉu vi certas, ke vi volas forigi ĉiujn ricevantojn? Eksteraj uzantoj ne plu povos sendi sekretojn al ĉi tiu domajno."
+    "text": "Ĉu vi certas, ke vi volas forigi ĉiujn ricevantojn? Eksteraj uzantoj ne plu povos sendi sekretojn al ĉi tiu domajno.",
+    "source_hash": "06f9e551"
   },
   "web.domains.incoming.max_recipients_reached": {
-    "text": "Maksimuma nombro da ricevantoj atingita"
+    "text": "Maksimuma nombro da ricevantoj atingita",
+    "source_hash": "ba659e54"
   },
   "web.domains.incoming.duplicate_recipient": {
-    "text": "Ĉi tiu retpoŝtadreso jam estis aldonita"
+    "text": "Ĉi tiu retpoŝtadreso jam estis aldonita",
+    "source_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
-    "text": "Konservado anstataŭigos ĉiujn ekzistantajn ricevantojn per viaj atendantaj ŝanĝoj. Ĉu vi certas?"
+    "text": "Konservado anstataŭigos ĉiujn ekzistantajn ricevantojn per viaj atendantaj ŝanĝoj. Ĉu vi certas?",
+    "source_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
-    "text": "Forigi Ĉiujn Ricevantojn"
+    "text": "Forigi Ĉiujn Ricevantojn",
+    "source_hash": "207d0dbe"
   },
   "web.domains.sso.title": {
-    "text": "Unuopa Ensaluto"
+    "text": "Unuopa Ensaluto",
+    "source_hash": "cf7cd744"
   },
   "web.domains.sso.config_title": {
-    "text": "SSO-Agordo"
+    "text": "SSO-Agordo",
+    "source_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
-    "text": "Agordu unuopan ensalutan aŭtentikigon por ĉi tiu domajno"
+    "text": "Agordu unuopan ensalutan aŭtentikigon por ĉi tiu domajno",
+    "source_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
-    "text": "Aliro Rifuzita"
+    "text": "Aliro Rifuzita",
+    "source_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
-    "text": "Vi ne havas permeson administri SSO-agordojn por ĉi tiu domajno. Kontaktu vian organizan administranton."
+    "text": "Vi ne havas permeson administri SSO-agordojn por ĉi tiu domajno. Kontaktu vian organizan administranton.",
+    "source_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
-    "text": "Altniveligu vian planon por agordi unuopan ensaluton por ĉi tiu domajno."
+    "text": "Altniveligu vian planon por agordi unuopan ensaluton por ĉi tiu domajno.",
+    "source_hash": "71fc0069"
   },
   "web.domains.sso.create_success": {
-    "text": "SSO-agordo sukcese kreita"
+    "text": "SSO-agordo sukcese kreita",
+    "source_hash": "531c7d92"
   },
   "web.domains.sso.update_success": {
-    "text": "SSO-agordo sukcese ĝisdatigita"
+    "text": "SSO-agordo sukcese ĝisdatigita",
+    "source_hash": "d98d8e83"
   },
   "web.domains.sso.delete_success": {
-    "text": "SSO-agordo sukcese forigita"
+    "text": "SSO-agordo sukcese forigita",
+    "source_hash": "2e924798"
   },
   "web.domains.sso.configure_sso": {
-    "text": "Agordi SSO"
+    "text": "Agordi SSO",
+    "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "SSO ankoraŭ ne estas agordita por ĉi tiu domajno. Ebligu unuopan ensaluton por permesi al teamanoj aŭtentikiĝi uzante la identecan provizanton de via organizo."
+    "text": "SSO ankoraŭ ne estas agordita por ĉi tiu domajno. Ebligu unuopan ensaluton por permesi al teamanoj aŭtentikiĝi uzante la identecan provizanton de via organizo.",
+    "source_hash": "c439214b"
   }
 }

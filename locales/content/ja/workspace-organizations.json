@@ -580,147 +580,195 @@
     "source_hash": "a5dcfef9"
   },
   "web.organizations.sso.title": {
-    "text": "シングルサインオン（SSO）"
+    "text": "シングルサインオン（SSO）",
+    "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "組織のIDプロバイダーを使用してメンバーがサインインできるようにSSOを設定します"
+    "text": "組織のIDプロバイダーを使用してメンバーがサインインできるようにSSOを設定します",
+    "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
-    "text": "プロバイダータイプ"
+    "text": "プロバイダータイプ",
+    "source_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
-    "text": "組織のIDプロバイダーを選択してください"
+    "text": "組織のIDプロバイダーを選択してください",
+    "source_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
-    "text": "表示名"
+    "text": "表示名",
+    "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "サインイン時にユーザーに表示されるフレンドリー名"
+    "text": "サインイン時にユーザーに表示されるフレンドリー名",
+    "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
-    "text": "例: Acme Corp SSO"
+    "text": "例: Acme Corp SSO",
+    "source_hash": "43c655c5"
   },
   "web.organizations.sso.client_id": {
-    "text": "クライアントID"
+    "text": "クライアントID",
+    "source_hash": "8726db01"
   },
   "web.organizations.sso.client_id_placeholder": {
-    "text": "OAuthクライアントID"
+    "text": "OAuthクライアントID",
+    "source_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
-    "text": "クライアントシークレット"
+    "text": "クライアントシークレット",
+    "source_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
-    "text": "OAuthクライアントシークレット"
+    "text": "OAuthクライアントシークレット",
+    "source_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
-    "text": "既存のシークレットを維持する場合は空白のままにしてください"
+    "text": "既存のシークレットを維持する場合は空白のままにしてください",
+    "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
-    "text": "テナントID"
+    "text": "テナントID",
+    "source_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
-    "text": "Azure AD / Entra IDのテナント識別子"
+    "text": "Azure AD / Entra IDのテナント識別子",
+    "source_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
-    "text": "例: 12345678-1234-1234-1234-123456789abc"
+    "text": "例: 12345678-1234-1234-1234-123456789abc",
+    "source_hash": "1a166316"
   },
   "web.organizations.sso.issuer": {
-    "text": "発行者URL"
+    "text": "発行者URL",
+    "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "IDプロバイダーのOIDCディスカバリURL"
+    "text": "IDプロバイダーのOIDCディスカバリURL",
+    "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
-    "text": "例: https://login.example.com"
+    "text": "例: https://login.example.com",
+    "source_hash": "9a638e9c"
   },
   "web.organizations.sso.allowed_domains": {
-    "text": "許可するメールドメイン"
+    "text": "許可するメールドメイン",
+    "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "これらのドメインのメールアドレスを持つユーザーのみがサインインできます。すべてのドメインを許可する場合は空白のままにしてください。"
+    "text": "これらのドメインのメールアドレスを持つユーザーのみがサインインできます。すべてのドメインを許可する場合は空白のままにしてください。",
+    "source_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
-    "text": "例: acme.com"
+    "text": "例: acme.com",
+    "source_hash": "e4420764"
   },
   "web.organizations.sso.invalid_domain": {
-    "text": "有効なドメインを入力してください（例: example.com）"
+    "text": "有効なドメインを入力してください（例: example.com）",
+    "source_hash": "16807983"
   },
   "web.organizations.sso.domain_exists": {
-    "text": "このドメインは既にリストに含まれています"
+    "text": "このドメインは既にリストに含まれています",
+    "source_hash": "3fccb721"
   },
   "web.organizations.sso.remove_domain": {
-    "text": "{domain}を削除"
+    "text": "{domain}を削除",
+    "source_hash": "ae708a1d"
   },
   "web.organizations.sso.enabled": {
-    "text": "SSOを有効化"
+    "text": "SSOを有効化",
+    "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
-    "text": "有効にすると、組織のメンバーはこのSSOプロバイダーを使用してサインインできます"
+    "text": "有効にすると、組織のメンバーはこのSSOプロバイダーを使用してサインインできます",
+    "source_hash": "d7da2fa2"
   },
   "web.organizations.sso.save_config": {
-    "text": "SSO設定を保存"
+    "text": "SSO設定を保存",
+    "source_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
-    "text": "設定を削除"
+    "text": "設定を削除",
+    "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "本当に削除しますか?組織のSSOが無効になります。"
+    "text": "本当に削除しますか?組織のSSOが無効になります。",
+    "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
-    "text": "SSO設定の読み込みに失敗しました"
+    "text": "SSO設定の読み込みに失敗しました",
+    "source_hash": "75cb73f6"
   },
   "web.organizations.sso.save_error": {
-    "text": "SSO設定の保存に失敗しました"
+    "text": "SSO設定の保存に失敗しました",
+    "source_hash": "99ef145b"
   },
   "web.organizations.sso.create_success": {
-    "text": "SSO設定が正常に作成されました"
+    "text": "SSO設定が正常に作成されました",
+    "source_hash": "531c7d92"
   },
   "web.organizations.sso.update_success": {
-    "text": "SSO設定が正常に更新されました"
+    "text": "SSO設定が正常に更新されました",
+    "source_hash": "d98d8e83"
   },
   "web.organizations.sso.delete_success": {
-    "text": "SSO設定が正常に削除されました"
+    "text": "SSO設定が正常に削除されました",
+    "source_hash": "55f5d4f5"
   },
   "web.organizations.sso.delete_error": {
-    "text": "SSO設定の削除に失敗しました"
+    "text": "SSO設定の削除に失敗しました",
+    "source_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "接続をテスト"
+    "text": "接続をテスト",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "IDプロバイダーに到達可能かどうかを確認します（認証情報の検証は行いません）"
+    "text": "IDプロバイダーに到達可能かどうかを確認します（認証情報の検証は行いません）",
+    "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "接続をテスト"
+    "text": "接続をテスト",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
-    "text": "テスト中..."
+    "text": "テスト中...",
+    "source_hash": "6c02a284"
   },
   "web.organizations.sso.test_error": {
-    "text": "接続テストに失敗しました"
+    "text": "接続テストに失敗しました",
+    "source_hash": "c1d1f310"
   },
   "web.organizations.sso.auth_endpoint": {
-    "text": "認証エンドポイント"
+    "text": "認証エンドポイント",
+    "source_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
-    "text": "未入力の項目"
+    "text": "未入力の項目",
+    "source_hash": "757df777"
   },
   "web.organizations.sso.status_enabled": {
-    "text": "有効"
+    "text": "有効",
+    "source_hash": "92c1cdfd"
   },
   "web.organizations.sso.status_configured": {
-    "text": "設定済み"
+    "text": "設定済み",
+    "source_hash": "84aebc69"
   },
   "web.organizations.sso.domain_sso_title": {
-    "text": "ドメインSSO"
+    "text": "ドメインSSO",
+    "source_hash": "13161464"
   },
   "web.organizations.sso.domain_sso_description": {
-    "text": "検証済みの各ドメインにSSOを設定します"
+    "text": "検証済みの各ドメインにSSOを設定します",
+    "source_hash": "af5b799e"
   },
   "web.organizations.sso.provider_type_locked_hint": {
-    "text": "プロバイダーを変更するには、まずこの設定を削除してください"
+    "text": "プロバイダーを変更するには、まずこの設定を削除してください",
+    "source_hash": "0a1027ff"
   },
   "web.organizations.sso.status_not_configured": {
-    "text": "未設定"
+    "text": "未設定",
+    "source_hash": "bbea960e"
   }
 }

@@ -580,147 +580,195 @@
     "source_hash": "a5dcfef9"
   },
   "web.organizations.sso.title": {
-    "text": "Unuopa Ensaluto (SSO)"
+    "text": "Unuopa Ensaluto (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "Agordu SSO por permesi al membroj ensaluti per la identeca provizanto de via organizo"
+    "text": "Agordu SSO por permesi al membroj ensaluti per la identeca provizanto de via organizo",
+    "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
-    "text": "Provizanttipo"
+    "text": "Provizanttipo",
+    "source_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
-    "text": "Elektu la identecan provizanton de via organizo"
+    "text": "Elektu la identecan provizanton de via organizo",
+    "source_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
-    "text": "Montrnomo"
+    "text": "Montrnomo",
+    "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "Amika nomo montrata al uzantoj dum ensalutado"
+    "text": "Amika nomo montrata al uzantoj dum ensalutado",
+    "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
-    "text": "ekz. Acme Corp SSO"
+    "text": "ekz. Acme Corp SSO",
+    "source_hash": "43c655c5"
   },
   "web.organizations.sso.client_id": {
-    "text": "Klienta ID"
+    "text": "Klienta ID",
+    "source_hash": "8726db01"
   },
   "web.organizations.sso.client_id_placeholder": {
-    "text": "Via OAuth klienta ID"
+    "text": "Via OAuth klienta ID",
+    "source_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
-    "text": "Klienta Sekreto"
+    "text": "Klienta Sekreto",
+    "source_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
-    "text": "Via OAuth klienta sekreto"
+    "text": "Via OAuth klienta sekreto",
+    "source_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
-    "text": "Lasu malplena por konservi la ekzistantan sekreton"
+    "text": "Lasu malplena por konservi la ekzistantan sekreton",
+    "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
-    "text": "Luanta ID"
+    "text": "Luanta ID",
+    "source_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
-    "text": "Via Azure AD / Entra ID luanta identigilo"
+    "text": "Via Azure AD / Entra ID luanta identigilo",
+    "source_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
-    "text": "ekz. 12345678-1234-1234-1234-123456789abc"
+    "text": "ekz. 12345678-1234-1234-1234-123456789abc",
+    "source_hash": "1a166316"
   },
   "web.organizations.sso.issuer": {
-    "text": "Eldonanta URL"
+    "text": "Eldonanta URL",
+    "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "La OIDC-malkovra URL por via identeca provizanto"
+    "text": "La OIDC-malkovra URL por via identeca provizanto",
+    "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
-    "text": "ekz. https://login.example.com"
+    "text": "ekz. https://login.example.com",
+    "source_hash": "9a638e9c"
   },
   "web.organizations.sso.allowed_domains": {
-    "text": "Permesitaj Retpoŝtaj Domajnoj"
+    "text": "Permesitaj Retpoŝtaj Domajnoj",
+    "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "Nur uzantoj kun retpoŝtadresoj de ĉi tiuj domajnoj povas ensaluti. Lasu malplena por permesi ĉiujn domajnojn."
+    "text": "Nur uzantoj kun retpoŝtadresoj de ĉi tiuj domajnoj povas ensaluti. Lasu malplena por permesi ĉiujn domajnojn.",
+    "source_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
-    "text": "ekz. acme.com"
+    "text": "ekz. acme.com",
+    "source_hash": "e4420764"
   },
   "web.organizations.sso.invalid_domain": {
-    "text": "Bonvolu enigi validan domajnon (ekz. example.com)"
+    "text": "Bonvolu enigi validan domajnon (ekz. example.com)",
+    "source_hash": "16807983"
   },
   "web.organizations.sso.domain_exists": {
-    "text": "Ĉi tiu domajno jam estas en la listo"
+    "text": "Ĉi tiu domajno jam estas en la listo",
+    "source_hash": "3fccb721"
   },
   "web.organizations.sso.remove_domain": {
-    "text": "Forigi {domain}"
+    "text": "Forigi {domain}",
+    "source_hash": "ae708a1d"
   },
   "web.organizations.sso.enabled": {
-    "text": "Ebligi SSO"
+    "text": "Ebligi SSO",
+    "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
-    "text": "Kiam ebligita, organizaj membroj povas ensaluti uzante ĉi tiun SSO-provizanton"
+    "text": "Kiam ebligita, organizaj membroj povas ensaluti uzante ĉi tiun SSO-provizanton",
+    "source_hash": "d7da2fa2"
   },
   "web.organizations.sso.save_config": {
-    "text": "Konservi SSO-Agordon"
+    "text": "Konservi SSO-Agordon",
+    "source_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
-    "text": "Forigi Agordon"
+    "text": "Forigi Agordon",
+    "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "Ĉu vi certas? Ĉi tio malŝaltos SSO por via organizo."
+    "text": "Ĉu vi certas? Ĉi tio malŝaltos SSO por via organizo.",
+    "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
-    "text": "Malsukcesis ŝargi SSO-agordon"
+    "text": "Malsukcesis ŝargi SSO-agordon",
+    "source_hash": "75cb73f6"
   },
   "web.organizations.sso.save_error": {
-    "text": "Malsukcesis konservi SSO-agordon"
+    "text": "Malsukcesis konservi SSO-agordon",
+    "source_hash": "99ef145b"
   },
   "web.organizations.sso.create_success": {
-    "text": "SSO-agordo sukcese kreita"
+    "text": "SSO-agordo sukcese kreita",
+    "source_hash": "531c7d92"
   },
   "web.organizations.sso.update_success": {
-    "text": "SSO-agordo sukcese ĝisdatigita"
+    "text": "SSO-agordo sukcese ĝisdatigita",
+    "source_hash": "d98d8e83"
   },
   "web.organizations.sso.delete_success": {
-    "text": "SSO-agordo sukcese forigita"
+    "text": "SSO-agordo sukcese forigita",
+    "source_hash": "55f5d4f5"
   },
   "web.organizations.sso.delete_error": {
-    "text": "Malsukcesis forigi SSO-agordon"
+    "text": "Malsukcesis forigi SSO-agordon",
+    "source_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "Testi Konekton"
+    "text": "Testi Konekton",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Kontrolu, ke la identeca provizanto estas atingebla (ne kontrolas akreditaĵojn)"
+    "text": "Kontrolu, ke la identeca provizanto estas atingebla (ne kontrolas akreditaĵojn)",
+    "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "Testi Konekton"
+    "text": "Testi Konekton",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
-    "text": "Testante..."
+    "text": "Testante...",
+    "source_hash": "6c02a284"
   },
   "web.organizations.sso.test_error": {
-    "text": "Malsukcesis testi konekton"
+    "text": "Malsukcesis testi konekton",
+    "source_hash": "c1d1f310"
   },
   "web.organizations.sso.auth_endpoint": {
-    "text": "Rajtigiga Finpunkto"
+    "text": "Rajtigiga Finpunkto",
+    "source_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
-    "text": "Mankantaj Kampoj"
+    "text": "Mankantaj Kampoj",
+    "source_hash": "757df777"
   },
   "web.organizations.sso.status_enabled": {
-    "text": "Ebligita"
+    "text": "Ebligita",
+    "source_hash": "92c1cdfd"
   },
   "web.organizations.sso.status_configured": {
-    "text": "Agordita"
+    "text": "Agordita",
+    "source_hash": "84aebc69"
   },
   "web.organizations.sso.domain_sso_title": {
-    "text": "Domajn-SSO"
+    "text": "Domajn-SSO",
+    "source_hash": "13161464"
   },
   "web.organizations.sso.domain_sso_description": {
-    "text": "Agordu SSO por ĉiu kontrolita domajno"
+    "text": "Agordu SSO por ĉiu kontrolita domajno",
+    "source_hash": "af5b799e"
   },
   "web.organizations.sso.provider_type_locked_hint": {
-    "text": "Por ŝanĝi provizanton, unue forigu ĉi tiun agordon"
+    "text": "Por ŝanĝi provizanton, unue forigu ĉi tiun agordon",
+    "source_hash": "0a1027ff"
   },
   "web.organizations.sso.status_not_configured": {
-    "text": "Ne Agordita"
+    "text": "Ne Agordita",
+    "source_hash": "bbea960e"
   }
 }

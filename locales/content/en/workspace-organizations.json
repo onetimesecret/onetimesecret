@@ -201,7 +201,7 @@
   },
   "web.organizations.page_description_short": {
     "text": "View and configure your workspaces",
-    "content_hash": "a1b2c3d5"
+    "content_hash": "524fcb9a"
   },
   "web.organizations.tabs.general": {
     "text": "Settings",
@@ -217,7 +217,7 @@
   },
   "web.organizations.tabs.members": {
     "text": "Members",
-    "content_hash": "a1b2c3d4"
+    "content_hash": "1044a4c0"
   },
   "web.organizations.tabs.billing": {
     "text": "Billing",
@@ -446,12 +446,12 @@
   "web.organizations.invitations.invited_by_inline": {
     "text": "by {email}",
     "context": "Inline attribution shown below org name in invitation context box",
-    "content_hash": "d8b7e267"
+    "content_hash": "969a7050"
   },
   "web.organizations.invitations.invited_as_inline": {
     "text": "as a {role}",
     "context": "Inline role shown below inviter in invitation context box, reads as part of a sentence",
-    "content_hash": "e9c8f378"
+    "content_hash": "ff9e9b18"
   },
   "web.organizations.invitations.invited_at": {
     "text": "Invited",
@@ -487,7 +487,7 @@
   },
   "web.organizations.invitations.roles.member": {
     "text": "Team Member",
-    "content_hash": "7c968fb7"
+    "content_hash": "d4e55dfa"
   },
   "web.organizations.invitations.roles.admin": {
     "text": "Admin",
@@ -540,7 +540,7 @@
   "web.organizations.invitations.back_to_home": {
     "text": "Back to home",
     "context": "Link text on invalid/expired invitation page",
-    "content_hash": "f1a2b3c4"
+    "content_hash": "76c5505f"
   },
   "web.organizations.invitations.must_sign_in": {
     "text": "Please sign in to accept this invitation",
@@ -580,211 +580,211 @@
   },
   "web.organizations.tabs.sso": {
     "text": "SSO",
-    "content_hash": "a93b3a9a"
+    "content_hash": "5ba3ac9f"
   },
   "web.organizations.sso.title": {
     "text": "Single Sign-On (SSO)",
-    "content_hash": "b4c3d2e1"
+    "content_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
     "text": "Configure SSO to allow members to sign in with your organization's identity provider",
-    "content_hash": "c5d4e3f2"
+    "content_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
     "text": "Provider Type",
-    "content_hash": "d6e5f4a3"
+    "content_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
     "text": "Select your organization's identity provider",
-    "content_hash": "e7f6a5b4"
+    "content_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
     "text": "Display Name",
-    "content_hash": "f8a7b6c5"
+    "content_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
     "text": "A friendly name shown to users when signing in",
-    "content_hash": "a9b8c7d6"
+    "content_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
     "text": "e.g. Acme Corp SSO",
-    "content_hash": "b1c2d3e4"
+    "content_hash": "43c655c5"
   },
   "web.organizations.sso.client_id": {
     "text": "Client ID",
-    "content_hash": "c2d3e4f5"
+    "content_hash": "8726db01"
   },
   "web.organizations.sso.client_id_placeholder": {
     "text": "Your OAuth client ID",
-    "content_hash": "d3e4f5a6"
+    "content_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
     "text": "Client Secret",
-    "content_hash": "e4f5a6b7"
+    "content_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
     "text": "Your OAuth client secret",
-    "content_hash": "f5a6b7c8"
+    "content_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
     "text": "Leave blank to keep the existing secret",
-    "content_hash": "a6b7c8d9"
+    "content_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
     "text": "Tenant ID",
-    "content_hash": "b7c8d9e1"
+    "content_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
     "text": "Your Azure AD / Entra ID tenant identifier",
-    "content_hash": "c8d9e1f2"
+    "content_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
     "text": "e.g. 12345678-1234-1234-1234-123456789abc",
-    "content_hash": "d9e1f2a3"
+    "content_hash": "1a166316"
   },
   "web.organizations.sso.issuer": {
     "text": "Issuer URL",
-    "content_hash": "e1f2a3b4"
+    "content_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
     "text": "The OIDC discovery URL for your identity provider",
-    "content_hash": "f2a3b4c5"
+    "content_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
     "text": "e.g. https://login.example.com",
-    "content_hash": "a3b4c5d6"
+    "content_hash": "9a638e9c"
   },
   "web.organizations.sso.allowed_domains": {
     "text": "Allowed Email Domains",
-    "content_hash": "b4c5d6e7"
+    "content_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
     "text": "Only users with email addresses from these domains can sign in. Leave empty to allow all domains.",
-    "content_hash": "c5d6e7f8"
+    "content_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
     "text": "e.g. acme.com",
-    "content_hash": "d6e7f8a9"
+    "content_hash": "e4420764"
   },
   "web.organizations.sso.invalid_domain": {
     "text": "Please enter a valid domain (e.g. example.com)",
-    "content_hash": "e7f8a9b1"
+    "content_hash": "16807983"
   },
   "web.organizations.sso.domain_exists": {
     "text": "This domain is already in the list",
-    "content_hash": "f8a9b1c2"
+    "content_hash": "3fccb721"
   },
   "web.organizations.sso.remove_domain": {
     "text": "Remove {domain}",
-    "content_hash": "a9b1c2d3"
+    "content_hash": "ae708a1d"
   },
   "web.organizations.sso.enabled": {
     "text": "Enable SSO",
-    "content_hash": "b1c2d3e4"
+    "content_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
     "text": "When enabled, organization members can sign in using this SSO provider",
-    "content_hash": "c2d3e4f5"
+    "content_hash": "d7da2fa2"
   },
   "web.organizations.sso.save_config": {
     "text": "Save SSO Configuration",
-    "content_hash": "d3e4f5a6"
+    "content_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
     "text": "Delete Configuration",
-    "content_hash": "e4f5a6b7"
+    "content_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
     "text": "Are you sure? This will disable SSO for your organization.",
-    "content_hash": "f5a6b7c8"
+    "content_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
     "text": "Failed to load SSO configuration",
-    "content_hash": "a6b7c8d9"
+    "content_hash": "75cb73f6"
   },
   "web.organizations.sso.save_error": {
     "text": "Failed to save SSO configuration",
-    "content_hash": "b7c8d9e1"
+    "content_hash": "99ef145b"
   },
   "web.organizations.sso.create_success": {
     "text": "SSO configuration created successfully",
-    "content_hash": "c8d9e1f2"
+    "content_hash": "531c7d92"
   },
   "web.organizations.sso.update_success": {
     "text": "SSO configuration updated successfully",
-    "content_hash": "d9e1f2a3"
+    "content_hash": "d98d8e83"
   },
   "web.organizations.sso.delete_success": {
     "text": "SSO configuration deleted successfully",
-    "content_hash": "e1f2a3b4"
+    "content_hash": "55f5d4f5"
   },
   "web.organizations.sso.delete_error": {
     "text": "Failed to delete SSO configuration",
-    "content_hash": "f2a3b4c5"
+    "content_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
     "text": "Test Connection",
-    "content_hash": "a1b2c3d4"
+    "content_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
     "text": "Verify the identity provider is reachable (does not validate credentials)",
-    "content_hash": "b2c3d4e5"
+    "content_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
     "text": "Test Connection",
-    "content_hash": "c3d4e5f6"
+    "content_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
     "text": "Testing...",
-    "content_hash": "d4e5f6a7"
+    "content_hash": "6c02a284"
   },
   "web.organizations.sso.test_error": {
     "text": "Failed to test connection",
-    "content_hash": "e5f6a7b8"
+    "content_hash": "c1d1f310"
   },
   "web.organizations.sso.auth_endpoint": {
     "text": "Authorization Endpoint",
-    "content_hash": "f6a7b8c9"
+    "content_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
     "text": "Missing Fields",
-    "content_hash": "a7b8c9d1"
+    "content_hash": "757df777"
   },
   "web.organizations.sso.status_enabled": {
     "text": "Enabled",
-    "content_hash": "b8c9d1e2"
+    "content_hash": "92c1cdfd"
   },
   "web.organizations.sso.status_configured": {
     "text": "Configured",
-    "content_hash": "c9d1e2f3"
+    "content_hash": "84aebc69"
   },
   "web.organizations.sso.domain_sso_title": {
     "text": "Domain SSO",
-    "content_hash": "a1b2c3d5"
+    "content_hash": "13161464"
   },
   "web.organizations.sso.domain_sso_description": {
     "text": "Configure SSO for each verified domain",
-    "content_hash": "b2c3d4e6"
+    "content_hash": "af5b799e"
   },
   "web.organizations.sso.provider_type_locked_hint": {
     "text": "To change provider, delete this configuration first",
-    "content_hash": "e2f3a4b5"
+    "content_hash": "0a1027ff"
   },
   "web.organizations.sso.status_not_configured": {
     "text": "Not Configured",
-    "content_hash": "d1e2f3a4"
+    "content_hash": "bbea960e"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Different account signed in",
-    "content_hash": "4a2f91c3"
+    "content_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
     "text": "This invitation is for {invitedEmail}. You're currently signed in as {currentEmail}.",
-    "content_hash": "b8d3e5f7"
+    "content_hash": "78a6f301"
   },
   "web.organizations.invitations.continue_as_invited_email": {
     "text": "Continue as {email}",
-    "content_hash": "6c9a1d4e"
+    "content_hash": "ccf9745d"
   },
   "web.organizations.invitations.expires_in_days": {
     "text": "{days}d left",
@@ -801,41 +801,41 @@
   "web.organizations.invitations.email_locked_hint": {
     "text": "This invitation was sent to this email address",
     "context": "Hint text explaining why email field is readonly",
-    "content_hash": "3d4e5f6a"
+    "content_hash": "2cff7075"
   },
   "web.organizations.invitations.create_account_and_join": {
     "text": "Continue",
     "context": "Button text for signup form in invitation flow",
-    "content_hash": "7b8c9d0e"
+    "content_hash": "31fbef16"
   },
   "web.organizations.invitations.sign_in_and_accept": {
     "text": "Sign In & Accept Invitation",
     "context": "Button text for signin form in invitation flow",
-    "content_hash": "1f2a3b4c"
+    "content_hash": "a6a5417a"
   },
   "web.organizations.invitations.go_to_organizations": {
     "text": "Go to Organizations",
     "context": "Button text for navigating to organizations page",
-    "content_hash": "5d6e7f8a"
+    "content_hash": "2afa38a3"
   },
   "web.organizations.invitations.already_member": {
     "text": "You are already a member of this organization",
     "context": "Message shown when invitation was already accepted",
-    "content_hash": "9b0c1d2e"
+    "content_hash": "f56ad547"
   },
   "web.organizations.invitations.join_organization": {
     "text": "Join {orgName}",
     "context": "Dynamic page title for signup flow",
-    "content_hash": "a1c2d3e4"
+    "content_hash": "1aea9194"
   },
   "web.organizations.invitations.sign_in_to_join": {
     "text": "Sign in to join {orgName}",
     "context": "Dynamic page title for signin flow",
-    "content_hash": "b2d3e4f5"
+    "content_hash": "f94ed8b4"
   },
   "web.organizations.invitations.decline": {
     "text": "Decline",
     "context": "Button text for declining an invitation inline",
-    "content_hash": "c3e4f5a6"
+    "content_hash": "a2d285b3"
   }
 }

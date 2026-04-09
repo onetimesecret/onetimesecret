@@ -321,15 +321,15 @@
   },
   "email.email_changed.subject": {
     "text": "Your email address has been changed (%{display_domain})",
-    "content_hash": "d68d2f4c"
+    "content_hash": "4386fc57"
   },
   "email.email_changed.title": {
     "text": "Your Email Address Has Been Changed",
-    "content_hash": "62b07299"
+    "content_hash": "db70f965"
   },
   "email.email_changed.body": {
     "text": "The email address for your %{product_name} account has been changed to %{new_email_masked}.",
-    "content_hash": "6f3419d1"
+    "content_hash": "aadf015b"
   },
   "email.email_changed.security_notice": {
     "text": "If you did not make this change, please contact support immediately as your account may be compromised.",
@@ -337,7 +337,7 @@
   },
   "email.email_changed.change_notice": {
     "text": "The email address on your %{product_name} account has been changed.",
-    "content_hash": "bb467ebc"
+    "content_hash": "7fc0e27c"
   },
   "email.email_changed.new_email_label": {
     "text": "New email:",
