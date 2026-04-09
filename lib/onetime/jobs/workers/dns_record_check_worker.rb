@@ -143,6 +143,10 @@ module Onetime
           mailer_config.updated                = Familia.now.to_i
           mailer_config.save_fields(:dns_check_status, :dns_verified, :dns_check_completed_at, :updated)
 
+          # Refresh from Redis so we see the validation worker's latest status, not our
+          # in-memory copy which was loaded before that worker ran.
+          mailer_config.refresh!
+
           # Update stored verification_status if both jobs are now complete
           if mailer_config.jobs_completed?
             final_status = mailer_config.update_verification_status!
