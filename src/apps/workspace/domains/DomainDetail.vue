@@ -22,10 +22,16 @@ import {
 } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 
 const { t } = useI18n();
+const router = useRouter();
 
 const props = defineProps<{ extid: string; orgid: string }>();
+
+const handleBack = () => {
+  router.push(`/org/${props.orgid}/domains`);
+};
 
 const {
   domain: customDomainRecord,
@@ -112,6 +118,22 @@ onMounted(() => {
 
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <!-- Back button -->
+    <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+      <div class="mb-4">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          @click="handleBack">
+          <OIcon collection="heroicons"
+name="arrow-left"
+class="size-5"
+aria-hidden="true" />
+          {{ t('web.COMMON.back') }}
+        </button>
+      </div>
+    </div>
+
     <!-- Header Section -->
     <div class="sticky top-0 z-30">
       <DomainHeader

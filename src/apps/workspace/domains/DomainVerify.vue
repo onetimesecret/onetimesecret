@@ -12,12 +12,20 @@
   import { CustomDomainProxy, type CustomDomainResponse } from '@/schemas/api/v3/responses/domains';
   import { type CustomDomain } from '@/schemas/shapes/v3/custom-domain';
   import { storeToRefs } from 'pinia';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
   import { computed, onMounted, ref } from 'vue';
-  import { useRoute } from 'vue-router';
+  import { useRoute, useRouter } from 'vue-router';
 
   const { t } = useI18n(); // auto-import
   const route = useRoute();
+  const router = useRouter();
   const { getDomain, verifyDomain } = useDomainsManager();
+
+  const handleBack = () => {
+    const orgid = route.params.orgid as string;
+    const extid = route.params.extid as string;
+    router.push(`/org/${orgid}/domains/${extid}`);
+  };
   const bootstrapStore = useBootstrapStore();
   const { cust } = storeToRefs(bootstrapStore);
 
@@ -150,6 +158,20 @@
 
 <template>
   <div>
+    <div class="mb-4">
+      <button
+        type="button"
+        class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+        @click="handleBack">
+        <OIcon
+          collection="heroicons"
+          name="arrow-left"
+          class="size-5"
+          aria-hidden="true" />
+        {{ t('web.COMMON.back') }}
+      </button>
+    </div>
+
     <h1 class="mb-6 text-3xl font-bold text-gray-900 dark:text-white">
       {{ t('web.domains.verify_your_domain') }}
     </h1>

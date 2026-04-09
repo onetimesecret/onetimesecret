@@ -17,7 +17,8 @@ import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainEmailConfigForm from '@/apps/workspace/components/domains/DomainEmailConfigForm.vue';
 import DomainEmailDnsRecords from '@/apps/workspace/components/domains/DomainEmailDnsRecords.vue';
 import { useDomain } from '@/shared/composables/useDomain';
-import { useClipboard } from '@/shared/composables/useClipboard';
+import { useDomainStatus } from '@/shared/composables/useDomainStatus';
+
 import { useEmailConfig } from '@/shared/composables/useEmailConfig';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -45,7 +46,8 @@ const {
 
 const displayDomain = computed(() => customDomainRecord.value?.display_domain ?? '');
 const emailUrl = computed(() => `https://${displayDomain.value}`);
-const { isCopied, copyToClipboard } = useClipboard();
+const verifyRoute = computed(() => `/org/${props.orgid}/domains/${props.extid}/verify`);
+const { statusIcon, isActive, isWarning, isError, displayStatus } = useDomainStatus(customDomainRecord);
 
 // ---------------------------------------------------------------------------
 // Entitlement check
@@ -146,61 +148,67 @@ watch(hasEntitlement, async (entitled) => {
 
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <!-- Back button -->
+    <div class="mx-auto max-w-4xl px-4 pt-4 sm:px-6 lg:px-8">
+      <div class="mb-4">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          @click="handleBack">
+          <OIcon
+            collection="heroicons"
+            name="arrow-left"
+            class="size-5"
+            aria-hidden="true" />
+          {{ t('web.COMMON.back') }}
+        </button>
+      </div>
+    </div>
+
     <!-- Header Section -->
     <div class="border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-      <div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
-        <div class="flex items-center gap-4">
-          <button
-            type="button"
-            class="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            @click="handleBack">
-            <OIcon
-              collection="heroicons"
-              name="arrow-left"
-              class="size-5"
-              aria-hidden="true" />
-            <span class="sr-only">{{ t('web.COMMON.back') }}</span>
-          </button>
-          <div class="flex-1 min-w-0">
-            <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
-              {{ t('web.domains.email.title') }}
+      <div class="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">
+        <div
+          v-if="!domainLoading && displayDomain"
+          class="flex items-center justify-between gap-2">
+          <div class="flex min-w-0 items-center gap-2">
+            <h1
+              class="flex min-w-0 items-center truncate text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
+              <span class="truncate">{{ displayDomain }}</span>
+              <a
+                :href="emailUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="ml-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                :title="t('web.domains.open_domain_in_new_tab')">
+                <OIcon
+                  collection="mdi"
+                  name="open-in-new"
+                  class="size-5" />
+              </a>
             </h1>
-            <a
-              v-if="!domainLoading && displayDomain"
-              :href="emailUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="mt-1 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-              {{ displayDomain }}
-              <OIcon
-                collection="heroicons"
-                name="arrow-top-right-on-square"
-                class="size-3.5"
-                aria-hidden="true" />
-            </a>
           </div>
-          <button
-            v-if="!domainLoading && displayDomain"
-            type="button"
-            @click="copyToClipboard(emailUrl)"
-            class="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-            :aria-label="t('web.LABELS.copy_to_clipboard')">
-            <OIcon
-              v-if="isCopied"
-              collection="heroicons"
-              name="check"
-              class="size-4 text-emerald-500"
-              aria-hidden="true" />
-            <span v-if="isCopied" class="text-emerald-500">{{ t('web.STATUS.copied') }}</span>
-            <template v-else>
+          <div
+            class="flex shrink-0 items-center rounded-md bg-gray-100 px-3 py-1.5 dark:bg-gray-700">
+            <RouterLink
+              :to="verifyRoute"
+              class="inline-flex items-center gap-1.5"
+              :data-tooltip="t('web.domains.view_domain_verification_status')">
               <OIcon
-                collection="heroicons"
-                name="clipboard"
-                class="size-4"
-                aria-hidden="true" />
-              {{ t('web.LABELS.copy_to_clipboard') }}
-            </template>
-          </button>
+                collection="mdi"
+                :name="statusIcon"
+                class="size-4 shrink-0"
+                :class="{
+                  'text-emerald-600 dark:text-emerald-400': isActive,
+                  'text-amber-500 dark:text-amber-400': isWarning,
+                  'text-rose-600 dark:text-rose-500': isError,
+                }" />
+              <span class="font-brand text-sm leading-none">{{ displayStatus }}</span>
+            </RouterLink>
+          </div>
+        </div>
+        <div v-else class="flex flex-col gap-1">
+          <div class="h-8 w-64 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
         </div>
       </div>
     </div>
@@ -268,8 +276,8 @@ watch(hasEntitlement, async (entitled) => {
                   aria-hidden="true" />
               </div>
               <div>
-                <h2 class="text-base font-semibold text-gray-900 dark:text-white">
-                  {{ t('web.domains.email.config_title') }}
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                  {{ t('web.domains.email.title') }}
                 </h2>
                 <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                   {{ t('web.domains.email.config_description') }}
