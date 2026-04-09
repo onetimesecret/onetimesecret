@@ -400,333 +400,443 @@
     "source_hash": "91c1af2e"
   },
   "web.domains.email.title": {
-    "text": "Envio de E-mail"
+    "text": "Envio de E-mail",
+    "source_hash": "6c428e5f"
   },
   "web.domains.email.config_title": {
-    "text": "Configuração de E-mail"
+    "text": "Configuração de E-mail",
+    "source_hash": "6f38aa51"
   },
   "web.domains.email.config_description": {
-    "text": "Configure o envio de e-mail para este domínio"
+    "text": "Configure o envio de e-mail para este domínio",
+    "source_hash": "1c275ff0"
   },
   "web.domains.email.provider_label": {
-    "text": "Provedor de E-mail"
+    "text": "Provedor de E-mail",
+    "source_hash": "a7ed3f4e"
   },
   "web.domains.email.provider_placeholder": {
-    "text": "Selecione um provedor de e-mail"
+    "text": "Selecione um provedor de e-mail",
+    "source_hash": "63c8080c"
   },
   "web.domains.email.from_name_label": {
-    "text": "Nome do Remetente"
+    "text": "Nome do Remetente",
+    "source_hash": "2f13b589"
   },
   "web.domains.email.from_name_placeholder": {
-    "text": "ex. Acme Segurança"
+    "text": "ex. Acme Segurança",
+    "source_hash": "03c0f138"
   },
   "web.domains.email.from_address_label": {
-    "text": "Endereço do Remetente"
+    "text": "Endereço do Remetente",
+    "source_hash": "60643eae"
   },
   "web.domains.email.from_address_placeholder": {
-    "text": "ex. secrets{'@'}exemplo.com"
+    "text": "ex. secrets{'@'}exemplo.com",
+    "source_hash": "a09b3928"
   },
   "web.domains.email.reply_to_label": {
-    "text": "Endereço de Resposta"
+    "text": "Endereço de Resposta",
+    "source_hash": "4538ea9c"
   },
   "web.domains.email.reply_to_placeholder": {
-    "text": "ex. suporte{'@'}exemplo.com"
+    "text": "ex. suporte{'@'}exemplo.com",
+    "source_hash": "fa3e5f0b"
   },
   "web.domains.email.save_changes": {
-    "text": "Salvar Alterações"
+    "text": "Salvar Alterações",
+    "source_hash": "35322b5b"
   },
   "web.domains.email.discard_changes": {
-    "text": "Descartar Alterações"
+    "text": "Descartar Alterações",
+    "source_hash": "e07e053c"
   },
   "web.domains.email.provider_ses": {
-    "text": "Amazon SES"
+    "text": "Amazon SES",
+    "source_hash": "15de4969"
   },
   "web.domains.email.provider_sendgrid": {
-    "text": "SendGrid"
+    "text": "SendGrid",
+    "source_hash": "b889d002"
   },
   "web.domains.email.provider_lettermint": {
-    "text": "Lettermint"
+    "text": "Lettermint",
+    "source_hash": "ec994dad"
   },
   "web.domains.email.provider_inherit": {
-    "text": "Usar padrões da conta"
+    "text": "Usar padrões da conta",
+    "source_hash": "f6fa84e7"
   },
   "web.domains.email.provider_ses_description": {
-    "text": "Requer verificação de domínio via registros DKIM e SPF"
+    "text": "Requer verificação de domínio via registros DKIM e SPF",
+    "source_hash": "4df5aa60"
   },
   "web.domains.email.provider_sendgrid_description": {
-    "text": "Requer configuração de autenticação de domínio"
+    "text": "Requer configuração de autenticação de domínio",
+    "source_hash": "71b53242"
   },
   "web.domains.email.provider_lettermint_description": {
-    "text": "Requer verificação de domínio"
+    "text": "Requer verificação de domínio",
+    "source_hash": "87073c93"
   },
   "web.domains.email.provider_inherit_description": {
-    "text": "Usa a configuração padrão de envio de e-mail da sua conta"
+    "text": "Usa a configuração padrão de envio de e-mail da sua conta",
+    "source_hash": "3f798263"
   },
   "web.domains.email.dns_records_title": {
-    "text": "Registros DNS"
+    "text": "Registros DNS",
+    "source_hash": "34d2c307"
   },
   "web.domains.email.dns_records_description": {
-    "text": "Adicione os seguintes registros DNS para verificar seu domínio para envio de e-mail."
+    "text": "Adicione os seguintes registros DNS para verificar seu domínio para envio de e-mail.",
+    "source_hash": "9fa85863"
   },
   "web.domains.email.dns_column_type": {
-    "text": "Tipo"
+    "text": "Tipo",
+    "source_hash": "baaddf70"
   },
   "web.domains.email.dns_column_name": {
-    "text": "Nome"
+    "text": "Nome",
+    "source_hash": "dcd1d522"
   },
   "web.domains.email.dns_column_value": {
-    "text": "Valor"
+    "text": "Valor",
+    "source_hash": "8e37953d"
   },
   "web.domains.email.copy": {
-    "text": "Copiar"
+    "text": "Copiar",
+    "source_hash": "e21f935f"
   },
   "web.domains.email.copied": {
-    "text": "Copiado"
+    "text": "Copiado",
+    "source_hash": "8d525e5f"
   },
   "web.domains.email.status_verified": {
-    "text": "Verificado"
+    "text": "Verificado",
+    "source_hash": "4f783840"
   },
   "web.domains.email.status_pending": {
-    "text": "Pendente"
+    "text": "Pendente",
+    "source_hash": "331551b0"
   },
   "web.domains.email.status_failed": {
-    "text": "Falhou"
+    "text": "Falhou",
+    "source_hash": "031a8f0f"
   },
   "web.domains.email.revalidate": {
-    "text": "Revalidar"
+    "text": "Revalidar",
+    "source_hash": "4918da12"
   },
   "web.domains.email.validating": {
-    "text": "Validando..."
+    "text": "Validando...",
+    "source_hash": "b28b48d5"
   },
   "web.domains.email.domain_verified": {
-    "text": "Domínio verificado"
+    "text": "Domínio verificado",
+    "source_hash": "08e0df67"
   },
   "web.domains.email.validation_failed": {
-    "text": "Falha na validação"
+    "text": "Falha na validação",
+    "source_hash": "23a86f5a"
   },
   "web.domains.email.last_validated": {
-    "text": "Última validação"
+    "text": "Última validação",
+    "source_hash": "887dd486"
   },
   "web.domains.email.upgrade_to_configure": {
-    "text": "Faça upgrade do seu plano para configurar o envio de e-mail para este domínio."
+    "text": "Faça upgrade do seu plano para configurar o envio de e-mail para este domínio.",
+    "source_hash": "16a876f7"
   },
   "web.domains.email.configure_email": {
-    "text": "Configurar E-mail"
+    "text": "Configurar E-mail",
+    "source_hash": "a48c0d40"
   },
   "web.domains.email.access_denied": {
-    "text": "Acesso Negado"
+    "text": "Acesso Negado",
+    "source_hash": "d134ca02"
   },
   "web.domains.email.access_denied_description": {
-    "text": "Você não tem permissão para gerenciar as configurações de e-mail deste domínio. Entre em contato com o administrador da sua organização."
+    "text": "Você não tem permissão para gerenciar as configurações de e-mail deste domínio. Entre em contato com o administrador da sua organização.",
+    "source_hash": "32049ff0"
   },
   "web.domains.email.update_success": {
-    "text": "Configuração de e-mail salva com sucesso"
+    "text": "Configuração de e-mail salva com sucesso",
+    "source_hash": "dd3607fc"
   },
   "web.domains.email.delete_success": {
-    "text": "Configuração de e-mail removida com sucesso"
+    "text": "Configuração de e-mail removida com sucesso",
+    "source_hash": "2ba99a91"
   },
   "web.domains.email.default_sender_notice": {
-    "text": "E-mails para este domínio são atualmente enviados do remetente global. Complete a configuração de e-mail para usar sua própria identidade de remetente."
+    "text": "E-mails para este domínio são atualmente enviados do remetente global. Complete a configuração de e-mail para usar sua própria identidade de remetente.",
+    "source_hash": "ffcf39fb"
   },
   "web.domains.email.disabled_notice": {
-    "text": "O envio de e-mail personalizado está atualmente desativado. E-mails serão enviados do remetente global. Ative o recurso abaixo para usar sua identidade de remetente personalizada."
+    "text": "O envio de e-mail personalizado está atualmente desativado. E-mails serão enviados do remetente global. Ative o recurso abaixo para usar sua identidade de remetente personalizada.",
+    "source_hash": "60a26f5b"
   },
   "web.domains.email.badge_not_configured": {
-    "text": "Não configurado"
+    "text": "Não configurado",
+    "source_hash": "dd1841d2"
   },
   "web.domains.email.badge_default_sender": {
-    "text": "Usando remetente padrão"
+    "text": "Usando remetente padrão",
+    "source_hash": "e1afb18f"
   },
   "web.domains.email.badge_verified": {
-    "text": "Verificado"
+    "text": "Verificado",
+    "source_hash": "4f783840"
   },
   "web.domains.email.badge_pending": {
-    "text": "Verificação pendente"
+    "text": "Verificação pendente",
+    "source_hash": "417a6b7e"
   },
   "web.domains.email.badge_disabled": {
-    "text": "Desativado"
+    "text": "Desativado",
+    "source_hash": "75081b59"
   },
   "web.domains.email.tooltip_not_configured": {
-    "text": "Nenhum remetente de e-mail configurado — e-mails usam o remetente padrão da plataforma"
+    "text": "Nenhum remetente de e-mail configurado — e-mails usam o remetente padrão da plataforma",
+    "source_hash": "360083bb"
   },
   "web.domains.email.tooltip_pending": {
-    "text": "Configuração do remetente de e-mail aguardando verificação — e-mails usam o remetente padrão da plataforma"
+    "text": "Configuração do remetente de e-mail aguardando verificação — e-mails usam o remetente padrão da plataforma",
+    "source_hash": "c8c2449c"
   },
   "web.domains.email.tooltip_disabled": {
-    "text": "Remetente de e-mail desativado — e-mails usam o remetente padrão da plataforma"
+    "text": "Remetente de e-mail desativado — e-mails usam o remetente padrão da plataforma",
+    "source_hash": "64e84955"
   },
   "web.domains.email.tooltip_verified": {
-    "text": "Remetente de e-mail verificado — e-mails são enviados deste domínio"
+    "text": "Remetente de e-mail verificado — e-mails são enviados deste domínio",
+    "source_hash": "0e9a005c"
   },
   "web.domains.incoming.title": {
-    "text": "Mensagens Confidenciais Recebidas"
+    "text": "Mensagens Confidenciais Recebidas",
+    "source_hash": "883dbca9"
   },
   "web.domains.incoming.config_title": {
-    "text": "Configuração de Mensagens Confidenciais Recebidas"
+    "text": "Configuração de Mensagens Confidenciais Recebidas",
+    "source_hash": "b3fef15b"
   },
   "web.domains.incoming.config_description": {
-    "text": "Permitir que usuários externos enviem mensagens confidenciais diretamente para destinatários designados neste domínio"
+    "text": "Permitir que usuários externos enviem mensagens confidenciais diretamente para destinatários designados neste domínio",
+    "source_hash": "452ab4fe"
   },
   "web.domains.incoming.access_denied": {
-    "text": "Acesso Negado"
+    "text": "Acesso Negado",
+    "source_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
-    "text": "Você não tem permissão para gerenciar as configurações de mensagens confidenciais recebidas deste domínio. Entre em contato com o administrador da sua organização."
+    "text": "Você não tem permissão para gerenciar as configurações de mensagens confidenciais recebidas deste domínio. Entre em contato com o administrador da sua organização.",
+    "source_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
-    "text": "Faça upgrade do seu plano para configurar mensagens confidenciais recebidas para este domínio."
+    "text": "Faça upgrade do seu plano para configurar mensagens confidenciais recebidas para este domínio.",
+    "source_hash": "9dfdfeb5"
   },
   "web.domains.incoming.configure_incoming": {
-    "text": "Configurar Mensagens Confidenciais Recebidas"
+    "text": "Configurar Mensagens Confidenciais Recebidas",
+    "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
-    "text": "Mensagens confidenciais recebidas não estão configuradas para este domínio. Adicione destinatários para permitir que usuários externos enviem mensagens confidenciais para sua equipe."
+    "text": "Mensagens confidenciais recebidas não estão configuradas para este domínio. Adicione destinatários para permitir que usuários externos enviem mensagens confidenciais para sua equipe.",
+    "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
-    "text": "Mensagens confidenciais recebidas estão atualmente desativadas. Usuários externos não podem enviar mensagens confidenciais para destinatários neste domínio. Ative o recurso abaixo para permitir mensagens confidenciais recebidas."
+    "text": "Mensagens confidenciais recebidas estão atualmente desativadas. Usuários externos não podem enviar mensagens confidenciais para destinatários neste domínio. Ative o recurso abaixo para permitir mensagens confidenciais recebidas.",
+    "source_hash": "d1f8dafb"
   },
   "web.domains.incoming.recipients_title": {
-    "text": "Destinatários"
+    "text": "Destinatários",
+    "source_hash": "1e8568a8"
   },
   "web.domains.incoming.recipients_description": {
-    "text": "Defina quem pode receber mensagens confidenciais neste domínio. Os destinatários receberão notificações por e-mail quando uma mensagem confidencial for enviada para eles."
+    "text": "Defina quem pode receber mensagens confidenciais neste domínio. Os destinatários receberão notificações por e-mail quando uma mensagem confidencial for enviada para eles.",
+    "source_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
-    "text": "Adicionar Destinatário"
+    "text": "Adicionar Destinatário",
+    "source_hash": "25f93c13"
   },
   "web.domains.incoming.remove_recipient": {
-    "text": "Remover"
+    "text": "Remover",
+    "source_hash": "c3812fc4"
   },
   "web.domains.incoming.email_label": {
-    "text": "Endereço de E-mail"
+    "text": "Endereço de E-mail",
+    "source_hash": "09bf25ef"
   },
   "web.domains.incoming.email_placeholder": {
-    "text": "destinatario{'@'}exemplo.com"
+    "text": "destinatario{'@'}exemplo.com",
+    "source_hash": "55d1508e"
   },
   "web.domains.incoming.name_label": {
-    "text": "Nome de Exibição"
+    "text": "Nome de Exibição",
+    "source_hash": "18d67c99"
   },
   "web.domains.incoming.name_placeholder": {
-    "text": "ex. Equipe de Segurança"
+    "text": "ex. Equipe de Segurança",
+    "source_hash": "0c52400c"
   },
   "web.domains.incoming.empty_state": {
-    "text": "Nenhum destinatário configurado"
+    "text": "Nenhum destinatário configurado",
+    "source_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
-    "text": "Adicione destinatários para permitir que usuários externos enviem mensagens confidenciais para sua equipe."
+    "text": "Adicione destinatários para permitir que usuários externos enviem mensagens confidenciais para sua equipe.",
+    "source_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
-    "text": "Endereço de e-mail inválido"
+    "text": "Endereço de e-mail inválido",
+    "source_hash": "4eaf1d80"
   },
   "web.domains.incoming.validation_duplicate_email": {
-    "text": "Este endereço de e-mail já foi adicionado"
+    "text": "Este endereço de e-mail já foi adicionado",
+    "source_hash": "f89de141"
   },
   "web.domains.incoming.validation_max_recipients": {
-    "text": "Máximo de {max} destinatários permitidos"
+    "text": "Máximo de {max} destinatários permitidos",
+    "source_hash": "e2585847"
   },
   "web.domains.incoming.validation_name_required": {
-    "text": "Nome de exibição é obrigatório"
+    "text": "Nome de exibição é obrigatório",
+    "source_hash": "c6892c89"
   },
   "web.domains.incoming.validation_email_required": {
-    "text": "Endereço de e-mail é obrigatório"
+    "text": "Endereço de e-mail é obrigatório",
+    "source_hash": "41381ba2"
   },
   "web.domains.incoming.save_changes": {
-    "text": "Salvar Alterações"
+    "text": "Salvar Alterações",
+    "source_hash": "35322b5b"
   },
   "web.domains.incoming.discard_changes": {
-    "text": "Descartar Alterações"
+    "text": "Descartar Alterações",
+    "source_hash": "e07e053c"
   },
   "web.domains.incoming.update_success": {
-    "text": "Configuração de mensagens confidenciais recebidas salva com sucesso"
+    "text": "Configuração de mensagens confidenciais recebidas salva com sucesso",
+    "source_hash": "9317e02d"
   },
   "web.domains.incoming.delete_success": {
-    "text": "Configuração de mensagens confidenciais recebidas removida com sucesso"
+    "text": "Configuração de mensagens confidenciais recebidas removida com sucesso",
+    "source_hash": "4c4a33ae"
   },
   "web.domains.incoming.recipient_count": {
-    "text": "{count} destinatário | {count} destinatários"
+    "text": "{count} destinatário | {count} destinatários",
+    "source_hash": "0e4f5985"
   },
   "web.domains.incoming.badge_not_configured": {
-    "text": "Não configurado"
+    "text": "Não configurado",
+    "source_hash": "dd1841d2"
   },
   "web.domains.incoming.badge_configured": {
-    "text": "Configurado"
+    "text": "Configurado",
+    "source_hash": "84aebc69"
   },
   "web.domains.incoming.badge_disabled": {
-    "text": "Desativado"
+    "text": "Desativado",
+    "source_hash": "75081b59"
   },
   "web.domains.incoming.tooltip_not_configured": {
-    "text": "Mensagens confidenciais recebidas não configuradas - usuários externos não podem enviar mensagens confidenciais para este domínio"
+    "text": "Mensagens confidenciais recebidas não configuradas - usuários externos não podem enviar mensagens confidenciais para este domínio",
+    "source_hash": "79786d5c"
   },
   "web.domains.incoming.tooltip_configured": {
-    "text": "Mensagens confidenciais recebidas ativadas com {count} destinatário(s)"
+    "text": "Mensagens confidenciais recebidas ativadas com {count} destinatário(s)",
+    "source_hash": "c205cc54"
   },
   "web.domains.incoming.tooltip_disabled": {
-    "text": "O recurso de mensagens confidenciais recebidas está desativado para este domínio"
+    "text": "O recurso de mensagens confidenciais recebidas está desativado para este domínio",
+    "source_hash": "0413f96b"
   },
   "web.domains.incoming.enabled_label": {
-    "text": "Ativar Mensagens Confidenciais Recebidas"
+    "text": "Ativar Mensagens Confidenciais Recebidas",
+    "source_hash": "c0b25980"
   },
   "web.domains.incoming.enabled_hint": {
-    "text": "Permitir que usuários externos enviem mensagens confidenciais para destinatários neste domínio"
+    "text": "Permitir que usuários externos enviem mensagens confidenciais para destinatários neste domínio",
+    "source_hash": "24aadd31"
   },
   "web.domains.incoming.public_url_label": {
-    "text": "URL Pública"
+    "text": "URL Pública",
+    "source_hash": "f7b60b04"
   },
   "web.domains.incoming.public_url_description": {
-    "text": "Compartilhe esta URL com usuários externos para permitir que enviem mensagens confidenciais"
+    "text": "Compartilhe esta URL com usuários externos para permitir que enviem mensagens confidenciais",
+    "source_hash": "df47a894"
   },
   "web.domains.incoming.copy_url": {
-    "text": "Copiar URL"
+    "text": "Copiar URL",
+    "source_hash": "b26d1037"
   },
   "web.domains.incoming.url_copied": {
-    "text": "URL copiada para a área de transferência"
+    "text": "URL copiada para a área de transferência",
+    "source_hash": "2f396c3e"
   },
   "web.domains.incoming.remove_all_confirmation": {
-    "text": "Tem certeza de que deseja remover todos os destinatários? Usuários externos não poderão mais enviar mensagens confidenciais para este domínio."
+    "text": "Tem certeza de que deseja remover todos os destinatários? Usuários externos não poderão mais enviar mensagens confidenciais para este domínio.",
+    "source_hash": "06f9e551"
   },
   "web.domains.incoming.max_recipients_reached": {
-    "text": "Número máximo de destinatários atingido"
+    "text": "Número máximo de destinatários atingido",
+    "source_hash": "ba659e54"
   },
   "web.domains.incoming.duplicate_recipient": {
-    "text": "Este endereço de e-mail já foi adicionado"
+    "text": "Este endereço de e-mail já foi adicionado",
+    "source_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
-    "text": "Salvar substituirá todos os destinatários existentes pelas suas alterações pendentes. Tem certeza?"
+    "text": "Salvar substituirá todos os destinatários existentes pelas suas alterações pendentes. Tem certeza?",
+    "source_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
-    "text": "Excluir Todos os Destinatários"
+    "text": "Excluir Todos os Destinatários",
+    "source_hash": "207d0dbe"
   },
   "web.domains.sso.title": {
-    "text": "Login Único"
+    "text": "Login Único",
+    "source_hash": "cf7cd744"
   },
   "web.domains.sso.config_title": {
-    "text": "Configuração de SSO"
+    "text": "Configuração de SSO",
+    "source_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
-    "text": "Configure a autenticação de login único para este domínio"
+    "text": "Configure a autenticação de login único para este domínio",
+    "source_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
-    "text": "Acesso Negado"
+    "text": "Acesso Negado",
+    "source_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
-    "text": "Você não tem permissão para gerenciar as configurações de SSO deste domínio. Entre em contato com o administrador da sua organização."
+    "text": "Você não tem permissão para gerenciar as configurações de SSO deste domínio. Entre em contato com o administrador da sua organização.",
+    "source_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
-    "text": "Faça upgrade do seu plano para configurar login único para este domínio."
+    "text": "Faça upgrade do seu plano para configurar login único para este domínio.",
+    "source_hash": "71fc0069"
   },
   "web.domains.sso.create_success": {
-    "text": "Configuração de SSO criada com sucesso"
+    "text": "Configuração de SSO criada com sucesso",
+    "source_hash": "531c7d92"
   },
   "web.domains.sso.update_success": {
-    "text": "Configuração de SSO atualizada com sucesso"
+    "text": "Configuração de SSO atualizada com sucesso",
+    "source_hash": "d98d8e83"
   },
   "web.domains.sso.delete_success": {
-    "text": "Configuração de SSO removida com sucesso"
+    "text": "Configuração de SSO removida com sucesso",
+    "source_hash": "2e924798"
   },
   "web.domains.sso.configure_sso": {
-    "text": "Configurar SSO"
+    "text": "Configurar SSO",
+    "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "SSO ainda não está configurado para este domínio. Ative o login único para permitir que membros da equipe se autentiquem usando o provedor de identidade da sua organização."
+    "text": "SSO ainda não está configurado para este domínio. Ative o login único para permitir que membros da equipe se autentiquem usando o provedor de identidade da sua organização.",
+    "source_hash": "c439214b"
   }
 }

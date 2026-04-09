@@ -221,7 +221,7 @@
   },
   "web.billing.overview.entitlements.manage_sso": {
     "text": "Single Sign-On (SSO)",
-    "content_hash": "d9e2f3a4"
+    "content_hash": "5db5c812"
   },
   "web.billing.overview.entitlements.audit_logs": {
     "text": "Audit Logs",
@@ -334,7 +334,7 @@
   "web.billing.plans.reactivate": {
     "text": "Reactivate",
     "context": "Plan card button label when subscription is scheduled for cancellation",
-    "content_hash": "3a4b5c6d"
+    "content_hash": "2dc7478f"
   },
   "web.billing.plans.current_badge": {
     "text": "Current",
@@ -842,17 +842,17 @@
   "web.billing.cancel.reactivate_button": {
     "text": "Reactivate Subscription",
     "context": "Button in cancellation banner to undo scheduled cancellation",
-    "content_hash": "a1b2c3d4"
+    "content_hash": "aa036442"
   },
   "web.billing.cancel.reactivate_success": {
     "text": "Your subscription has been reactivated. You will continue to be billed as normal.",
     "context": "Success message after undoing a scheduled cancellation",
-    "content_hash": "e5f6a7b8"
+    "content_hash": "523bf7bf"
   },
   "web.billing.cancel.reactivate_error": {
     "text": "Failed to reactivate subscription. Please try again or contact support.",
     "context": "Error message when subscription reactivation fails",
-    "content_hash": "c9d0e1f2"
+    "content_hash": "d0c79bd4"
   },
   "web.billing.overview.entitlements.notifications": {
     "text": "Email Notifications",

@@ -77,7 +77,7 @@
   },
   "web.domains.enabled": {
     "text": "Enable",
-    "content_hash": "92c1cdfd"
+    "content_hash": "5342e09f"
   },
   "web.domains.disabled": {
     "text": "Disabled",
@@ -149,23 +149,23 @@
   },
   "web.domains.public_homepage": {
     "text": "Public Homepage",
-    "content_hash": "b1c2d3e4"
+    "content_hash": "2ae3ccba"
   },
   "web.domains.status_tooltip_active": {
     "text": "Domain verified and active",
-    "content_hash": "c2d3e4f5"
+    "content_hash": "e4b6a6e1"
   },
   "web.domains.status_tooltip_dns_incorrect": {
     "text": "DNS not configured — click to fix",
-    "content_hash": "d3e4f5g6"
+    "content_hash": "892cb2cb"
   },
   "web.domains.status_tooltip_not_verified": {
     "text": "Domain not verified — click to verify",
-    "content_hash": "e4f5g6h7"
+    "content_hash": "a9806710"
   },
   "web.domains.click_to_verify": {
     "text": "click to verify",
-    "content_hash": "f5g6h7i8"
+    "content_hash": "6eae7d9c"
   },
   "web.domains.and_status": {
     "text": "& Status",
@@ -421,67 +421,67 @@
   },
   "web.domains.dns_widget_load_failed": {
     "text": "Failed to load DNS widget",
-    "content_hash": "a2b3c4d5"
+    "content_hash": "5a1d8ab5"
   },
   "web.domains.dns_widget_not_available": {
     "text": "DNS widget not available",
-    "content_hash": "b3c4d5e6"
+    "content_hash": "4eed448b"
   },
   "web.domains.dns_widget_init_failed": {
     "text": "Failed to initialize DNS widget",
-    "content_hash": "c4d5e6f7"
+    "content_hash": "de477585"
   },
   "web.domains.sso.title": {
     "text": "Single Sign-On",
-    "content_hash": "a1b2c3d4"
+    "content_hash": "cf7cd744"
   },
   "web.domains.sso.config_title": {
     "text": "SSO Configuration",
-    "content_hash": "b2c3d4e5"
+    "content_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
     "text": "Configure single sign-on authentication for this domain",
-    "content_hash": "c3d4e5f6"
+    "content_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
     "text": "Access Denied",
-    "content_hash": "d4e5f6a7"
+    "content_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
     "text": "You don't have permission to manage SSO settings for this domain. Contact your organization administrator.",
-    "content_hash": "e5f6a7b8"
+    "content_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
     "text": "Upgrade your plan to configure single sign-on for this domain.",
-    "content_hash": "f5a6b7c8"
+    "content_hash": "71fc0069"
   },
   "web.domains.sso.create_success": {
     "text": "SSO configuration created successfully",
-    "content_hash": "e6f7a8b9"
+    "content_hash": "531c7d92"
   },
   "web.domains.sso.update_success": {
     "text": "SSO configuration updated successfully",
-    "content_hash": "f6a7b8c9"
+    "content_hash": "d98d8e83"
   },
   "web.domains.sso.delete_success": {
     "text": "SSO configuration removed successfully",
-    "content_hash": "a7b8c9d0"
+    "content_hash": "2e924798"
   },
   "web.domains.sso.test_success": {
     "text": "Connection test successful — provider responded correctly",
-    "content_hash": "d1e2f3a4"
+    "content_hash": "1570ddb0"
   },
   "web.domains.sso.test_failed": {
     "text": "Connection test failed",
-    "content_hash": "e2f3a4b5"
+    "content_hash": "a45a37dd"
   },
   "web.domains.sso.configure_sso": {
     "text": "Configure SSO",
-    "content_hash": "b8c9d0e1"
+    "content_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
     "text": "SSO is not yet configured for this domain. Enable single sign-on to allow team members to authenticate using your organization's identity provider.",
-    "content_hash": "c9d0e1f2"
+    "content_hash": "c439214b"
   },
   "web.domains.email.title": {
     "text": "Email Sending",
@@ -517,7 +517,7 @@
   },
   "web.domains.email.from_address_placeholder": {
     "text": "e.g. secrets{'@'}example.com",
-    "content_hash": "aefb949a"
+    "content_hash": "a09b3928"
   },
   "web.domains.email.reply_to_label": {
     "text": "Reply-To Address",
@@ -525,7 +525,7 @@
   },
   "web.domains.email.reply_to_placeholder": {
     "text": "e.g. support{'@'}example.com",
-    "content_hash": "04de85e5"
+    "content_hash": "fa3e5f0b"
   },
   "web.domains.email.save_changes": {
     "text": "Save Changes",
@@ -589,11 +589,11 @@
   },
   "web.domains.email.dns_check_label": {
     "text": "DNS",
-    "content_hash": "5d6f7a8b"
+    "content_hash": "020965a2"
   },
   "web.domains.email.provider_check_label": {
     "text": "Provider",
-    "content_hash": "6e7f8a9b"
+    "content_hash": "472590ae"
   },
   "web.domains.email.copy": {
     "text": "Copy",
@@ -665,35 +665,35 @@
   },
   "web.domains.email.disabled_notice": {
     "text": "Custom email sending is currently disabled. Emails will be sent from the global sender. Enable the feature below to use your custom sender identity.",
-    "content_hash": "a1b2c3d4"
+    "content_hash": "60a26f5b"
   },
   "web.domains.email.test_email_title": {
     "text": "Test email delivery",
-    "content_hash": "c1a2b3d4"
+    "content_hash": "c1b3dee2"
   },
   "web.domains.email.test_email_hint": {
     "text": "Send a test email to yourself using the saved configuration. Works even when the feature is not yet enabled.",
-    "content_hash": "d2b3c4e5"
+    "content_hash": "33e876ad"
   },
   "web.domains.email.send_test": {
     "text": "Send test",
-    "content_hash": "e3c4d5f6"
+    "content_hash": "22d7b11d"
   },
   "web.domains.email.test_email_sent": {
     "text": "Test email sent successfully",
-    "content_hash": "f4d5e6a7"
+    "content_hash": "561617fd"
   },
   "web.domains.email.test_email_failed": {
     "text": "Failed to send test email",
-    "content_hash": "a5e6f7b8"
+    "content_hash": "95ce63bc"
   },
   "web.domains.email.test_email_sent_to": {
     "text": "Sent to {email}",
-    "content_hash": "b6f7a8c9"
+    "content_hash": "8ceb9588"
   },
   "web.domains.email.delivered_via": {
     "text": "Delivered via {provider}",
-    "content_hash": "c7a8b9d0"
+    "content_hash": "f741959b"
   },
   "web.domains.email.badge_not_configured": {
     "text": "Not configured",
@@ -733,198 +733,198 @@
   },
   "web.domains.verified": {
     "text": "Verified",
-    "content_hash": "c9d0e1f2"
+    "content_hash": "4f783840"
   },
   "web.domains.pending_verification": {
     "text": "Pending Verification",
-    "content_hash": "d0e1f2a3"
+    "content_hash": "77e07795"
   },
   "web.domains.incoming.title": {
     "text": "Incoming Secrets",
-    "content_hash": "a1b2c3d5"
+    "content_hash": "883dbca9"
   },
   "web.domains.incoming.config_title": {
     "text": "Incoming Secrets Configuration",
-    "content_hash": "b2c3d4e6"
+    "content_hash": "b3fef15b"
   },
   "web.domains.incoming.config_description": {
     "text": "Allow external users to send secrets directly to designated recipients on this domain",
-    "content_hash": "c3d4e5f7"
+    "content_hash": "452ab4fe"
   },
   "web.domains.incoming.access_denied": {
     "text": "Access Denied",
-    "content_hash": "d4e5f6a8"
+    "content_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
     "text": "You don't have permission to manage incoming secrets settings for this domain. Contact your organization administrator.",
-    "content_hash": "e5f6a7b9"
+    "content_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
     "text": "Upgrade your plan to configure incoming secrets for this domain.",
-    "content_hash": "f6a7b8c9"
+    "content_hash": "9dfdfeb5"
   },
   "web.domains.incoming.configure_incoming": {
     "text": "Configure Incoming Secrets",
-    "content_hash": "a7b8c9d1"
+    "content_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
     "text": "Incoming secrets is not configured for this domain. Add recipients to allow external users to send secrets to your team.",
-    "content_hash": "b8c9d0e2"
+    "content_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
     "text": "Incoming secrets are currently disabled. External users cannot send secrets to recipients on this domain. Enable the feature below to allow incoming secrets.",
-    "content_hash": "c9d0e1f4"
+    "content_hash": "d1f8dafb"
   },
   "web.domains.incoming.recipients_title": {
     "text": "Recipients",
-    "content_hash": "c9d0e1f3"
+    "content_hash": "1e8568a8"
   },
   "web.domains.incoming.recipients_description": {
     "text": "Define who can receive incoming secrets on this domain. Recipients will receive email notifications when a secret is sent to them.",
-    "content_hash": "d0e1f2a4"
+    "content_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
     "text": "Add Recipient",
-    "content_hash": "e1f2a3b5"
+    "content_hash": "25f93c13"
   },
   "web.domains.incoming.remove_recipient": {
     "text": "Remove",
-    "content_hash": "f2a3b4c6"
+    "content_hash": "c3812fc4"
   },
   "web.domains.incoming.email_label": {
     "text": "Email Address",
-    "content_hash": "a3b4c5d7"
+    "content_hash": "09bf25ef"
   },
   "web.domains.incoming.email_placeholder": {
     "text": "recipient{'@'}example.com",
-    "content_hash": "b4c5d6e8"
+    "content_hash": "55d1508e"
   },
   "web.domains.incoming.name_label": {
     "text": "Display Name",
-    "content_hash": "c5d6e7f9"
+    "content_hash": "18d67c99"
   },
   "web.domains.incoming.name_placeholder": {
     "text": "e.g. Security Team",
-    "content_hash": "d6e7f8a0"
+    "content_hash": "0c52400c"
   },
   "web.domains.incoming.empty_state": {
     "text": "No recipients configured",
-    "content_hash": "e7f8a9b1"
+    "content_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
     "text": "Add recipients to allow external users to send secrets to your team.",
-    "content_hash": "f8a9b0c2"
+    "content_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
     "text": "Invalid email address",
-    "content_hash": "a9b0c1d3"
+    "content_hash": "4eaf1d80"
   },
   "web.domains.incoming.validation_duplicate_email": {
     "text": "This email address is already added",
-    "content_hash": "b0c1d2e4"
+    "content_hash": "f89de141"
   },
   "web.domains.incoming.validation_max_recipients": {
     "text": "Maximum {max} recipients allowed",
-    "content_hash": "c1d2e3f5"
+    "content_hash": "e2585847"
   },
   "web.domains.incoming.validation_name_required": {
     "text": "Display name is required",
-    "content_hash": "d2e3f4a6"
+    "content_hash": "c6892c89"
   },
   "web.domains.incoming.validation_email_required": {
     "text": "Email address is required",
-    "content_hash": "e3f4a5b7"
+    "content_hash": "41381ba2"
   },
   "web.domains.incoming.save_changes": {
     "text": "Save Changes",
-    "content_hash": "f4a5b6c8"
+    "content_hash": "35322b5b"
   },
   "web.domains.incoming.discard_changes": {
     "text": "Discard Changes",
-    "content_hash": "a5b6c7d9"
+    "content_hash": "e07e053c"
   },
   "web.domains.incoming.update_success": {
     "text": "Incoming secrets configuration saved successfully",
-    "content_hash": "b6c7d8e0"
+    "content_hash": "9317e02d"
   },
   "web.domains.incoming.delete_success": {
     "text": "Incoming secrets configuration removed successfully",
-    "content_hash": "c7d8e9f1"
+    "content_hash": "4c4a33ae"
   },
   "web.domains.incoming.recipient_count": {
     "text": "{count} recipient | {count} recipients",
-    "content_hash": "d8e9f0a2"
+    "content_hash": "0e4f5985"
   },
   "web.domains.incoming.badge_not_configured": {
     "text": "Not configured",
-    "content_hash": "e9f0a1b3"
+    "content_hash": "dd1841d2"
   },
   "web.domains.incoming.badge_configured": {
     "text": "Configured",
-    "content_hash": "f0a1b2c4"
+    "content_hash": "84aebc69"
   },
   "web.domains.incoming.badge_disabled": {
     "text": "Disabled",
-    "content_hash": "a1b2c3d6"
+    "content_hash": "75081b59"
   },
   "web.domains.incoming.tooltip_not_configured": {
     "text": "Incoming secrets not configured - external users cannot send secrets to this domain",
-    "content_hash": "b2c3d4e7"
+    "content_hash": "79786d5c"
   },
   "web.domains.incoming.tooltip_configured": {
     "text": "Incoming secrets enabled with {count} recipient(s)",
-    "content_hash": "c3d4e5f8"
+    "content_hash": "c205cc54"
   },
   "web.domains.incoming.tooltip_disabled": {
     "text": "Incoming secrets feature is disabled for this domain",
-    "content_hash": "d4e5f6a9"
+    "content_hash": "0413f96b"
   },
   "web.domains.incoming.enabled_label": {
     "text": "Enable Incoming Secrets",
-    "content_hash": "e5f6a7b0"
+    "content_hash": "c0b25980"
   },
   "web.domains.incoming.enabled_hint": {
     "text": "Allow external users to send secrets to recipients on this domain",
-    "content_hash": "f6a7b8c0"
+    "content_hash": "24aadd31"
   },
   "web.domains.incoming.public_url_label": {
     "text": "Public URL",
-    "content_hash": "a7b8c9d2"
+    "content_hash": "f7b60b04"
   },
   "web.domains.incoming.public_url_description": {
     "text": "Share this URL with external users to allow them to send secrets",
-    "content_hash": "b8c9d0e3"
+    "content_hash": "df47a894"
   },
   "web.domains.incoming.copy_url": {
     "text": "Copy URL",
-    "content_hash": "c9d0e1f4"
+    "content_hash": "b26d1037"
   },
   "web.domains.incoming.url_copied": {
     "text": "URL copied to clipboard",
-    "content_hash": "d0e1f2a5"
+    "content_hash": "2f396c3e"
   },
   "web.domains.incoming.remove_all_confirmation": {
     "text": "Are you sure you want to remove all recipients? External users will no longer be able to send secrets to this domain.",
-    "content_hash": "a1b2c3d5"
+    "content_hash": "06f9e551"
   },
   "web.domains.incoming.max_recipients_reached": {
     "text": "Maximum number of recipients reached",
-    "content_hash": "b2c3d4e6"
+    "content_hash": "ba659e54"
   },
   "web.domains.incoming.duplicate_recipient": {
     "text": "This email address has already been added",
-    "content_hash": "c3d4e5f7"
+    "content_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
     "text": "Saving will replace all existing recipients with your pending changes. Are you sure?",
-    "content_hash": "d4e5f6a8"
+    "content_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
     "text": "Delete All Recipients",
-    "content_hash": "e5f6a7b9"
+    "content_hash": "207d0dbe"
   },
   "web.domains.unsaved_changes_confirmation": {
     "text": "You have unsaved changes. Are you sure you want to leave?",
-    "content_hash": "f6a7b8c0"
+    "content_hash": "322380c1"
   }
 }

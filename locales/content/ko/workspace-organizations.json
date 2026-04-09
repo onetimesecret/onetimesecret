@@ -580,147 +580,195 @@
     "source_hash": "a5dcfef9"
   },
   "web.organizations.sso.title": {
-    "text": "Single Sign-On (SSO)"
+    "text": "Single Sign-On (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "조직 구성원이 조직의 ID 공급자로 로그인할 수 있도록 SSO를 설정합니다"
+    "text": "조직 구성원이 조직의 ID 공급자로 로그인할 수 있도록 SSO를 설정합니다",
+    "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
-    "text": "공급자 유형"
+    "text": "공급자 유형",
+    "source_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
-    "text": "조직의 ID 공급자를 선택하세요"
+    "text": "조직의 ID 공급자를 선택하세요",
+    "source_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
-    "text": "표시 이름"
+    "text": "표시 이름",
+    "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "로그인 시 사용자에게 표시되는 친숙한 이름"
+    "text": "로그인 시 사용자에게 표시되는 친숙한 이름",
+    "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
-    "text": "예: Acme Corp SSO"
+    "text": "예: Acme Corp SSO",
+    "source_hash": "43c655c5"
   },
   "web.organizations.sso.client_id": {
-    "text": "클라이언트 ID"
+    "text": "클라이언트 ID",
+    "source_hash": "8726db01"
   },
   "web.organizations.sso.client_id_placeholder": {
-    "text": "OAuth 클라이언트 ID"
+    "text": "OAuth 클라이언트 ID",
+    "source_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
-    "text": "클라이언트 시크릿"
+    "text": "클라이언트 시크릿",
+    "source_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
-    "text": "OAuth 클라이언트 시크릿"
+    "text": "OAuth 클라이언트 시크릿",
+    "source_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
-    "text": "기존 시크릿을 유지하려면 비워 두세요"
+    "text": "기존 시크릿을 유지하려면 비워 두세요",
+    "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
-    "text": "테넌트 ID"
+    "text": "테넌트 ID",
+    "source_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
-    "text": "Azure AD / Entra ID 테넌트 식별자"
+    "text": "Azure AD / Entra ID 테넌트 식별자",
+    "source_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
-    "text": "예: 12345678-1234-1234-1234-123456789abc"
+    "text": "예: 12345678-1234-1234-1234-123456789abc",
+    "source_hash": "1a166316"
   },
   "web.organizations.sso.issuer": {
-    "text": "발급자 URL"
+    "text": "발급자 URL",
+    "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "ID 공급자의 OIDC 검색 URL"
+    "text": "ID 공급자의 OIDC 검색 URL",
+    "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
-    "text": "예: https://login.example.com"
+    "text": "예: https://login.example.com",
+    "source_hash": "9a638e9c"
   },
   "web.organizations.sso.allowed_domains": {
-    "text": "허용된 이메일 도메인"
+    "text": "허용된 이메일 도메인",
+    "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "이 도메인의 이메일 주소를 가진 사용자만 로그인할 수 있습니다. 모든 도메인을 허용하려면 비워 두세요."
+    "text": "이 도메인의 이메일 주소를 가진 사용자만 로그인할 수 있습니다. 모든 도메인을 허용하려면 비워 두세요.",
+    "source_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
-    "text": "예: acme.com"
+    "text": "예: acme.com",
+    "source_hash": "e4420764"
   },
   "web.organizations.sso.invalid_domain": {
-    "text": "유효한 도메인을 입력하세요 (예: example.com)"
+    "text": "유효한 도메인을 입력하세요 (예: example.com)",
+    "source_hash": "16807983"
   },
   "web.organizations.sso.domain_exists": {
-    "text": "이 도메인은 이미 목록에 있습니다"
+    "text": "이 도메인은 이미 목록에 있습니다",
+    "source_hash": "3fccb721"
   },
   "web.organizations.sso.remove_domain": {
-    "text": "{domain} 제거"
+    "text": "{domain} 제거",
+    "source_hash": "ae708a1d"
   },
   "web.organizations.sso.enabled": {
-    "text": "SSO 활성화"
+    "text": "SSO 활성화",
+    "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
-    "text": "활성화하면 조직 구성원이 이 SSO 공급자를 사용하여 로그인할 수 있습니다"
+    "text": "활성화하면 조직 구성원이 이 SSO 공급자를 사용하여 로그인할 수 있습니다",
+    "source_hash": "d7da2fa2"
   },
   "web.organizations.sso.save_config": {
-    "text": "SSO 설정 저장"
+    "text": "SSO 설정 저장",
+    "source_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
-    "text": "설정 삭제"
+    "text": "설정 삭제",
+    "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "정말 삭제하시겠습니까? 조직의 SSO가 비활성화됩니다."
+    "text": "정말 삭제하시겠습니까? 조직의 SSO가 비활성화됩니다.",
+    "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
-    "text": "SSO 설정을 불러오는 데 실패했습니다"
+    "text": "SSO 설정을 불러오는 데 실패했습니다",
+    "source_hash": "75cb73f6"
   },
   "web.organizations.sso.save_error": {
-    "text": "SSO 설정을 저장하는 데 실패했습니다"
+    "text": "SSO 설정을 저장하는 데 실패했습니다",
+    "source_hash": "99ef145b"
   },
   "web.organizations.sso.create_success": {
-    "text": "SSO 설정이 성공적으로 생성되었습니다"
+    "text": "SSO 설정이 성공적으로 생성되었습니다",
+    "source_hash": "531c7d92"
   },
   "web.organizations.sso.update_success": {
-    "text": "SSO 설정이 성공적으로 업데이트되었습니다"
+    "text": "SSO 설정이 성공적으로 업데이트되었습니다",
+    "source_hash": "d98d8e83"
   },
   "web.organizations.sso.delete_success": {
-    "text": "SSO 설정이 성공적으로 삭제되었습니다"
+    "text": "SSO 설정이 성공적으로 삭제되었습니다",
+    "source_hash": "55f5d4f5"
   },
   "web.organizations.sso.delete_error": {
-    "text": "SSO 설정을 삭제하는 데 실패했습니다"
+    "text": "SSO 설정을 삭제하는 데 실패했습니다",
+    "source_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "연결 테스트"
+    "text": "연결 테스트",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "ID 공급자에 연결 가능한지 확인합니다 (자격 증명은 검증하지 않음)"
+    "text": "ID 공급자에 연결 가능한지 확인합니다 (자격 증명은 검증하지 않음)",
+    "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "연결 테스트"
+    "text": "연결 테스트",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
-    "text": "테스트 중..."
+    "text": "테스트 중...",
+    "source_hash": "6c02a284"
   },
   "web.organizations.sso.test_error": {
-    "text": "연결 테스트에 실패했습니다"
+    "text": "연결 테스트에 실패했습니다",
+    "source_hash": "c1d1f310"
   },
   "web.organizations.sso.auth_endpoint": {
-    "text": "인증 엔드포인트"
+    "text": "인증 엔드포인트",
+    "source_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
-    "text": "누락된 필드"
+    "text": "누락된 필드",
+    "source_hash": "757df777"
   },
   "web.organizations.sso.status_enabled": {
-    "text": "활성화됨"
+    "text": "활성화됨",
+    "source_hash": "92c1cdfd"
   },
   "web.organizations.sso.status_configured": {
-    "text": "설정됨"
+    "text": "설정됨",
+    "source_hash": "84aebc69"
   },
   "web.organizations.sso.domain_sso_title": {
-    "text": "도메인 SSO"
+    "text": "도메인 SSO",
+    "source_hash": "13161464"
   },
   "web.organizations.sso.domain_sso_description": {
-    "text": "확인된 각 도메인에 대해 SSO를 설정합니다"
+    "text": "확인된 각 도메인에 대해 SSO를 설정합니다",
+    "source_hash": "af5b799e"
   },
   "web.organizations.sso.provider_type_locked_hint": {
-    "text": "공급자를 변경하려면 먼저 이 설정을 삭제하세요"
+    "text": "공급자를 변경하려면 먼저 이 설정을 삭제하세요",
+    "source_hash": "0a1027ff"
   },
   "web.organizations.sso.status_not_configured": {
-    "text": "설정되지 않음"
+    "text": "설정되지 않음",
+    "source_hash": "bbea960e"
   }
 }

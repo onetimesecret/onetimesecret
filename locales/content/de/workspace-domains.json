@@ -400,333 +400,443 @@
     "source_hash": "91c1af2e"
   },
   "web.domains.email.title": {
-    "text": "E-Mail-Versand"
+    "text": "E-Mail-Versand",
+    "source_hash": "6c428e5f"
   },
   "web.domains.email.config_title": {
-    "text": "E-Mail-Konfiguration"
+    "text": "E-Mail-Konfiguration",
+    "source_hash": "6f38aa51"
   },
   "web.domains.email.config_description": {
-    "text": "E-Mail-Versand für diese Domain konfigurieren"
+    "text": "E-Mail-Versand für diese Domain konfigurieren",
+    "source_hash": "1c275ff0"
   },
   "web.domains.email.provider_label": {
-    "text": "E-Mail-Anbieter"
+    "text": "E-Mail-Anbieter",
+    "source_hash": "a7ed3f4e"
   },
   "web.domains.email.provider_placeholder": {
-    "text": "E-Mail-Anbieter auswählen"
+    "text": "E-Mail-Anbieter auswählen",
+    "source_hash": "63c8080c"
   },
   "web.domains.email.from_name_label": {
-    "text": "Absendername"
+    "text": "Absendername",
+    "source_hash": "2f13b589"
   },
   "web.domains.email.from_name_placeholder": {
-    "text": "z.B. Acme Sicherheit"
+    "text": "z.B. Acme Sicherheit",
+    "source_hash": "03c0f138"
   },
   "web.domains.email.from_address_label": {
-    "text": "Absenderadresse"
+    "text": "Absenderadresse",
+    "source_hash": "60643eae"
   },
   "web.domains.email.from_address_placeholder": {
-    "text": "z.B. secrets{'@'}example.com"
+    "text": "z.B. secrets{'@'}example.com",
+    "source_hash": "a09b3928"
   },
   "web.domains.email.reply_to_label": {
-    "text": "Antwortadresse"
+    "text": "Antwortadresse",
+    "source_hash": "4538ea9c"
   },
   "web.domains.email.reply_to_placeholder": {
-    "text": "z.B. support{'@'}example.com"
+    "text": "z.B. support{'@'}example.com",
+    "source_hash": "fa3e5f0b"
   },
   "web.domains.email.save_changes": {
-    "text": "Änderungen speichern"
+    "text": "Änderungen speichern",
+    "source_hash": "35322b5b"
   },
   "web.domains.email.discard_changes": {
-    "text": "Änderungen verwerfen"
+    "text": "Änderungen verwerfen",
+    "source_hash": "e07e053c"
   },
   "web.domains.email.provider_ses": {
-    "text": "Amazon SES"
+    "text": "Amazon SES",
+    "source_hash": "15de4969"
   },
   "web.domains.email.provider_sendgrid": {
-    "text": "SendGrid"
+    "text": "SendGrid",
+    "source_hash": "b889d002"
   },
   "web.domains.email.provider_lettermint": {
-    "text": "Lettermint"
+    "text": "Lettermint",
+    "source_hash": "ec994dad"
   },
   "web.domains.email.provider_inherit": {
-    "text": "Kontostandards verwenden"
+    "text": "Kontostandards verwenden",
+    "source_hash": "f6fa84e7"
   },
   "web.domains.email.provider_ses_description": {
-    "text": "Erfordert Domain-Verifizierung über DKIM- und SPF-Einträge"
+    "text": "Erfordert Domain-Verifizierung über DKIM- und SPF-Einträge",
+    "source_hash": "4df5aa60"
   },
   "web.domains.email.provider_sendgrid_description": {
-    "text": "Erfordert Domain-Authentifizierung"
+    "text": "Erfordert Domain-Authentifizierung",
+    "source_hash": "71b53242"
   },
   "web.domains.email.provider_lettermint_description": {
-    "text": "Erfordert Domain-Verifizierung"
+    "text": "Erfordert Domain-Verifizierung",
+    "source_hash": "87073c93"
   },
   "web.domains.email.provider_inherit_description": {
-    "text": "Verwendet die Standard-E-Mail-Versandkonfiguration deines Kontos"
+    "text": "Verwendet die Standard-E-Mail-Versandkonfiguration deines Kontos",
+    "source_hash": "3f798263"
   },
   "web.domains.email.dns_records_title": {
-    "text": "DNS-Einträge"
+    "text": "DNS-Einträge",
+    "source_hash": "34d2c307"
   },
   "web.domains.email.dns_records_description": {
-    "text": "Füge die folgenden DNS-Einträge hinzu, um deine Domain für den E-Mail-Versand zu verifizieren."
+    "text": "Füge die folgenden DNS-Einträge hinzu, um deine Domain für den E-Mail-Versand zu verifizieren.",
+    "source_hash": "9fa85863"
   },
   "web.domains.email.dns_column_type": {
-    "text": "Typ"
+    "text": "Typ",
+    "source_hash": "baaddf70"
   },
   "web.domains.email.dns_column_name": {
-    "text": "Name"
+    "text": "Name",
+    "source_hash": "dcd1d522"
   },
   "web.domains.email.dns_column_value": {
-    "text": "Wert"
+    "text": "Wert",
+    "source_hash": "8e37953d"
   },
   "web.domains.email.copy": {
-    "text": "Kopieren"
+    "text": "Kopieren",
+    "source_hash": "e21f935f"
   },
   "web.domains.email.copied": {
-    "text": "Kopiert"
+    "text": "Kopiert",
+    "source_hash": "8d525e5f"
   },
   "web.domains.email.status_verified": {
-    "text": "Verifiziert"
+    "text": "Verifiziert",
+    "source_hash": "4f783840"
   },
   "web.domains.email.status_pending": {
-    "text": "Ausstehend"
+    "text": "Ausstehend",
+    "source_hash": "331551b0"
   },
   "web.domains.email.status_failed": {
-    "text": "Fehlgeschlagen"
+    "text": "Fehlgeschlagen",
+    "source_hash": "031a8f0f"
   },
   "web.domains.email.revalidate": {
-    "text": "Erneut validieren"
+    "text": "Erneut validieren",
+    "source_hash": "4918da12"
   },
   "web.domains.email.validating": {
-    "text": "Validiere..."
+    "text": "Validiere...",
+    "source_hash": "b28b48d5"
   },
   "web.domains.email.domain_verified": {
-    "text": "Domain verifiziert"
+    "text": "Domain verifiziert",
+    "source_hash": "08e0df67"
   },
   "web.domains.email.validation_failed": {
-    "text": "Validierung fehlgeschlagen"
+    "text": "Validierung fehlgeschlagen",
+    "source_hash": "23a86f5a"
   },
   "web.domains.email.last_validated": {
-    "text": "Zuletzt validiert"
+    "text": "Zuletzt validiert",
+    "source_hash": "887dd486"
   },
   "web.domains.email.upgrade_to_configure": {
-    "text": "Upgrade deinen Plan, um den E-Mail-Versand für diese Domain zu konfigurieren."
+    "text": "Upgrade deinen Plan, um den E-Mail-Versand für diese Domain zu konfigurieren.",
+    "source_hash": "16a876f7"
   },
   "web.domains.email.configure_email": {
-    "text": "E-Mail konfigurieren"
+    "text": "E-Mail konfigurieren",
+    "source_hash": "a48c0d40"
   },
   "web.domains.email.access_denied": {
-    "text": "Zugriff verweigert"
+    "text": "Zugriff verweigert",
+    "source_hash": "d134ca02"
   },
   "web.domains.email.access_denied_description": {
-    "text": "Du hast keine Berechtigung, die E-Mail-Einstellungen für diese Domain zu verwalten. Kontaktiere deinen Organisationsadministrator."
+    "text": "Du hast keine Berechtigung, die E-Mail-Einstellungen für diese Domain zu verwalten. Kontaktiere deinen Organisationsadministrator.",
+    "source_hash": "32049ff0"
   },
   "web.domains.email.update_success": {
-    "text": "E-Mail-Konfiguration erfolgreich gespeichert"
+    "text": "E-Mail-Konfiguration erfolgreich gespeichert",
+    "source_hash": "dd3607fc"
   },
   "web.domains.email.delete_success": {
-    "text": "E-Mail-Konfiguration erfolgreich entfernt"
+    "text": "E-Mail-Konfiguration erfolgreich entfernt",
+    "source_hash": "2ba99a91"
   },
   "web.domains.email.default_sender_notice": {
-    "text": "E-Mails für diese Domain werden derzeit vom globalen Absender gesendet. Schließe die E-Mail-Konfiguration ab, um deine eigene Absenderidentität zu verwenden."
+    "text": "E-Mails für diese Domain werden derzeit vom globalen Absender gesendet. Schließe die E-Mail-Konfiguration ab, um deine eigene Absenderidentität zu verwenden.",
+    "source_hash": "ffcf39fb"
   },
   "web.domains.email.disabled_notice": {
-    "text": "Der benutzerdefinierte E-Mail-Versand ist derzeit deaktiviert. E-Mails werden vom globalen Absender gesendet. Aktiviere die Funktion unten, um deine benutzerdefinierte Absenderidentität zu verwenden."
+    "text": "Der benutzerdefinierte E-Mail-Versand ist derzeit deaktiviert. E-Mails werden vom globalen Absender gesendet. Aktiviere die Funktion unten, um deine benutzerdefinierte Absenderidentität zu verwenden.",
+    "source_hash": "60a26f5b"
   },
   "web.domains.email.badge_not_configured": {
-    "text": "Nicht konfiguriert"
+    "text": "Nicht konfiguriert",
+    "source_hash": "dd1841d2"
   },
   "web.domains.email.badge_default_sender": {
-    "text": "Verwendet Standardabsender"
+    "text": "Verwendet Standardabsender",
+    "source_hash": "e1afb18f"
   },
   "web.domains.email.badge_verified": {
-    "text": "Verifiziert"
+    "text": "Verifiziert",
+    "source_hash": "4f783840"
   },
   "web.domains.email.badge_pending": {
-    "text": "Verifizierung ausstehend"
+    "text": "Verifizierung ausstehend",
+    "source_hash": "417a6b7e"
   },
   "web.domains.email.badge_disabled": {
-    "text": "Deaktiviert"
+    "text": "Deaktiviert",
+    "source_hash": "75081b59"
   },
   "web.domains.email.tooltip_not_configured": {
-    "text": "Kein E-Mail-Absender konfiguriert — E-Mails verwenden den Plattform-Standardabsender"
+    "text": "Kein E-Mail-Absender konfiguriert — E-Mails verwenden den Plattform-Standardabsender",
+    "source_hash": "360083bb"
   },
   "web.domains.email.tooltip_pending": {
-    "text": "E-Mail-Absenderkonfiguration wartet auf Verifizierung — E-Mails verwenden den Plattform-Standardabsender"
+    "text": "E-Mail-Absenderkonfiguration wartet auf Verifizierung — E-Mails verwenden den Plattform-Standardabsender",
+    "source_hash": "c8c2449c"
   },
   "web.domains.email.tooltip_disabled": {
-    "text": "E-Mail-Absender ist deaktiviert — E-Mails verwenden den Plattform-Standardabsender"
+    "text": "E-Mail-Absender ist deaktiviert — E-Mails verwenden den Plattform-Standardabsender",
+    "source_hash": "64e84955"
   },
   "web.domains.email.tooltip_verified": {
-    "text": "E-Mail-Absender verifiziert — E-Mails werden von dieser Domain gesendet"
+    "text": "E-Mail-Absender verifiziert — E-Mails werden von dieser Domain gesendet",
+    "source_hash": "0e9a005c"
   },
   "web.domains.incoming.title": {
-    "text": "Eingehende Nachrichten"
+    "text": "Eingehende Nachrichten",
+    "source_hash": "883dbca9"
   },
   "web.domains.incoming.config_title": {
-    "text": "Konfiguration eingehender Nachrichten"
+    "text": "Konfiguration eingehender Nachrichten",
+    "source_hash": "b3fef15b"
   },
   "web.domains.incoming.config_description": {
-    "text": "Erlaube externen Benutzern, Nachrichten direkt an bestimmte Empfänger dieser Domain zu senden"
+    "text": "Erlaube externen Benutzern, Nachrichten direkt an bestimmte Empfänger dieser Domain zu senden",
+    "source_hash": "452ab4fe"
   },
   "web.domains.incoming.access_denied": {
-    "text": "Zugriff verweigert"
+    "text": "Zugriff verweigert",
+    "source_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
-    "text": "Du hast keine Berechtigung, die Einstellungen für eingehende Nachrichten dieser Domain zu verwalten. Kontaktiere deinen Organisationsadministrator."
+    "text": "Du hast keine Berechtigung, die Einstellungen für eingehende Nachrichten dieser Domain zu verwalten. Kontaktiere deinen Organisationsadministrator.",
+    "source_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
-    "text": "Upgrade deinen Plan, um eingehende Nachrichten für diese Domain zu konfigurieren."
+    "text": "Upgrade deinen Plan, um eingehende Nachrichten für diese Domain zu konfigurieren.",
+    "source_hash": "9dfdfeb5"
   },
   "web.domains.incoming.configure_incoming": {
-    "text": "Eingehende Nachrichten konfigurieren"
+    "text": "Eingehende Nachrichten konfigurieren",
+    "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
-    "text": "Eingehende Nachrichten sind für diese Domain nicht konfiguriert. Füge Empfänger hinzu, um externen Benutzern das Senden von Nachrichten an dein Team zu ermöglichen."
+    "text": "Eingehende Nachrichten sind für diese Domain nicht konfiguriert. Füge Empfänger hinzu, um externen Benutzern das Senden von Nachrichten an dein Team zu ermöglichen.",
+    "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
-    "text": "Eingehende Nachrichten sind derzeit deaktiviert. Externe Benutzer können keine Nachrichten an Empfänger dieser Domain senden. Aktiviere die Funktion unten, um eingehende Nachrichten zu erlauben."
+    "text": "Eingehende Nachrichten sind derzeit deaktiviert. Externe Benutzer können keine Nachrichten an Empfänger dieser Domain senden. Aktiviere die Funktion unten, um eingehende Nachrichten zu erlauben.",
+    "source_hash": "d1f8dafb"
   },
   "web.domains.incoming.recipients_title": {
-    "text": "Empfänger"
+    "text": "Empfänger",
+    "source_hash": "1e8568a8"
   },
   "web.domains.incoming.recipients_description": {
-    "text": "Lege fest, wer eingehende Nachrichten auf dieser Domain empfangen kann. Empfänger erhalten E-Mail-Benachrichtigungen, wenn eine Nachricht an sie gesendet wird."
+    "text": "Lege fest, wer eingehende Nachrichten auf dieser Domain empfangen kann. Empfänger erhalten E-Mail-Benachrichtigungen, wenn eine Nachricht an sie gesendet wird.",
+    "source_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
-    "text": "Empfänger hinzufügen"
+    "text": "Empfänger hinzufügen",
+    "source_hash": "25f93c13"
   },
   "web.domains.incoming.remove_recipient": {
-    "text": "Entfernen"
+    "text": "Entfernen",
+    "source_hash": "c3812fc4"
   },
   "web.domains.incoming.email_label": {
-    "text": "E-Mail-Adresse"
+    "text": "E-Mail-Adresse",
+    "source_hash": "09bf25ef"
   },
   "web.domains.incoming.email_placeholder": {
-    "text": "empfaenger{'@'}beispiel.de"
+    "text": "empfaenger{'@'}beispiel.de",
+    "source_hash": "55d1508e"
   },
   "web.domains.incoming.name_label": {
-    "text": "Anzeigename"
+    "text": "Anzeigename",
+    "source_hash": "18d67c99"
   },
   "web.domains.incoming.name_placeholder": {
-    "text": "z.B. Sicherheitsteam"
+    "text": "z.B. Sicherheitsteam",
+    "source_hash": "0c52400c"
   },
   "web.domains.incoming.empty_state": {
-    "text": "Keine Empfänger konfiguriert"
+    "text": "Keine Empfänger konfiguriert",
+    "source_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
-    "text": "Füge Empfänger hinzu, um externen Benutzern das Senden von Nachrichten an dein Team zu ermöglichen."
+    "text": "Füge Empfänger hinzu, um externen Benutzern das Senden von Nachrichten an dein Team zu ermöglichen.",
+    "source_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
-    "text": "Ungültige E-Mail-Adresse"
+    "text": "Ungültige E-Mail-Adresse",
+    "source_hash": "4eaf1d80"
   },
   "web.domains.incoming.validation_duplicate_email": {
-    "text": "Diese E-Mail-Adresse wurde bereits hinzugefügt"
+    "text": "Diese E-Mail-Adresse wurde bereits hinzugefügt",
+    "source_hash": "f89de141"
   },
   "web.domains.incoming.validation_max_recipients": {
-    "text": "Maximal {max} Empfänger erlaubt"
+    "text": "Maximal {max} Empfänger erlaubt",
+    "source_hash": "e2585847"
   },
   "web.domains.incoming.validation_name_required": {
-    "text": "Anzeigename ist erforderlich"
+    "text": "Anzeigename ist erforderlich",
+    "source_hash": "c6892c89"
   },
   "web.domains.incoming.validation_email_required": {
-    "text": "E-Mail-Adresse ist erforderlich"
+    "text": "E-Mail-Adresse ist erforderlich",
+    "source_hash": "41381ba2"
   },
   "web.domains.incoming.save_changes": {
-    "text": "Änderungen speichern"
+    "text": "Änderungen speichern",
+    "source_hash": "35322b5b"
   },
   "web.domains.incoming.discard_changes": {
-    "text": "Änderungen verwerfen"
+    "text": "Änderungen verwerfen",
+    "source_hash": "e07e053c"
   },
   "web.domains.incoming.update_success": {
-    "text": "Konfiguration für eingehende Nachrichten erfolgreich gespeichert"
+    "text": "Konfiguration für eingehende Nachrichten erfolgreich gespeichert",
+    "source_hash": "9317e02d"
   },
   "web.domains.incoming.delete_success": {
-    "text": "Konfiguration für eingehende Nachrichten erfolgreich entfernt"
+    "text": "Konfiguration für eingehende Nachrichten erfolgreich entfernt",
+    "source_hash": "4c4a33ae"
   },
   "web.domains.incoming.recipient_count": {
-    "text": "{count} Empfänger | {count} Empfänger"
+    "text": "{count} Empfänger | {count} Empfänger",
+    "source_hash": "0e4f5985"
   },
   "web.domains.incoming.badge_not_configured": {
-    "text": "Nicht konfiguriert"
+    "text": "Nicht konfiguriert",
+    "source_hash": "dd1841d2"
   },
   "web.domains.incoming.badge_configured": {
-    "text": "Konfiguriert"
+    "text": "Konfiguriert",
+    "source_hash": "84aebc69"
   },
   "web.domains.incoming.badge_disabled": {
-    "text": "Deaktiviert"
+    "text": "Deaktiviert",
+    "source_hash": "75081b59"
   },
   "web.domains.incoming.tooltip_not_configured": {
-    "text": "Eingehende Nachrichten nicht konfiguriert - externe Benutzer können keine Nachrichten an diese Domain senden"
+    "text": "Eingehende Nachrichten nicht konfiguriert - externe Benutzer können keine Nachrichten an diese Domain senden",
+    "source_hash": "79786d5c"
   },
   "web.domains.incoming.tooltip_configured": {
-    "text": "Eingehende Nachrichten aktiviert mit {count} Empfänger(n)"
+    "text": "Eingehende Nachrichten aktiviert mit {count} Empfänger(n)",
+    "source_hash": "c205cc54"
   },
   "web.domains.incoming.tooltip_disabled": {
-    "text": "Funktion für eingehende Nachrichten ist für diese Domain deaktiviert"
+    "text": "Funktion für eingehende Nachrichten ist für diese Domain deaktiviert",
+    "source_hash": "0413f96b"
   },
   "web.domains.incoming.enabled_label": {
-    "text": "Eingehende Nachrichten aktivieren"
+    "text": "Eingehende Nachrichten aktivieren",
+    "source_hash": "c0b25980"
   },
   "web.domains.incoming.enabled_hint": {
-    "text": "Erlaube externen Benutzern, Nachrichten an Empfänger dieser Domain zu senden"
+    "text": "Erlaube externen Benutzern, Nachrichten an Empfänger dieser Domain zu senden",
+    "source_hash": "24aadd31"
   },
   "web.domains.incoming.public_url_label": {
-    "text": "Öffentliche URL"
+    "text": "Öffentliche URL",
+    "source_hash": "f7b60b04"
   },
   "web.domains.incoming.public_url_description": {
-    "text": "Teile diese URL mit externen Benutzern, um ihnen das Senden von Nachrichten zu ermöglichen"
+    "text": "Teile diese URL mit externen Benutzern, um ihnen das Senden von Nachrichten zu ermöglichen",
+    "source_hash": "df47a894"
   },
   "web.domains.incoming.copy_url": {
-    "text": "URL kopieren"
+    "text": "URL kopieren",
+    "source_hash": "b26d1037"
   },
   "web.domains.incoming.url_copied": {
-    "text": "URL in die Zwischenablage kopiert"
+    "text": "URL in die Zwischenablage kopiert",
+    "source_hash": "2f396c3e"
   },
   "web.domains.incoming.remove_all_confirmation": {
-    "text": "Bist du sicher, dass du alle Empfänger entfernen möchtest? Externe Benutzer können dann keine Nachrichten mehr an diese Domain senden."
+    "text": "Bist du sicher, dass du alle Empfänger entfernen möchtest? Externe Benutzer können dann keine Nachrichten mehr an diese Domain senden.",
+    "source_hash": "06f9e551"
   },
   "web.domains.incoming.max_recipients_reached": {
-    "text": "Maximale Anzahl an Empfängern erreicht"
+    "text": "Maximale Anzahl an Empfängern erreicht",
+    "source_hash": "ba659e54"
   },
   "web.domains.incoming.duplicate_recipient": {
-    "text": "Diese E-Mail-Adresse wurde bereits hinzugefügt"
+    "text": "Diese E-Mail-Adresse wurde bereits hinzugefügt",
+    "source_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
-    "text": "Beim Speichern werden alle bestehenden Empfänger durch deine ausstehenden Änderungen ersetzt. Bist du sicher?"
+    "text": "Beim Speichern werden alle bestehenden Empfänger durch deine ausstehenden Änderungen ersetzt. Bist du sicher?",
+    "source_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
-    "text": "Alle Empfänger löschen"
+    "text": "Alle Empfänger löschen",
+    "source_hash": "207d0dbe"
   },
   "web.domains.sso.title": {
-    "text": "Single Sign-On"
+    "text": "Single Sign-On",
+    "source_hash": "cf7cd744"
   },
   "web.domains.sso.config_title": {
-    "text": "SSO-Konfiguration"
+    "text": "SSO-Konfiguration",
+    "source_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
-    "text": "Single Sign-On-Authentifizierung für diese Domain konfigurieren"
+    "text": "Single Sign-On-Authentifizierung für diese Domain konfigurieren",
+    "source_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
-    "text": "Zugriff verweigert"
+    "text": "Zugriff verweigert",
+    "source_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
-    "text": "Du hast keine Berechtigung, die SSO-Einstellungen für diese Domain zu verwalten. Kontaktiere deinen Organisationsadministrator."
+    "text": "Du hast keine Berechtigung, die SSO-Einstellungen für diese Domain zu verwalten. Kontaktiere deinen Organisationsadministrator.",
+    "source_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
-    "text": "Upgrade deinen Plan, um Single Sign-On für diese Domain zu konfigurieren."
+    "text": "Upgrade deinen Plan, um Single Sign-On für diese Domain zu konfigurieren.",
+    "source_hash": "71fc0069"
   },
   "web.domains.sso.create_success": {
-    "text": "SSO-Konfiguration erfolgreich erstellt"
+    "text": "SSO-Konfiguration erfolgreich erstellt",
+    "source_hash": "531c7d92"
   },
   "web.domains.sso.update_success": {
-    "text": "SSO-Konfiguration erfolgreich aktualisiert"
+    "text": "SSO-Konfiguration erfolgreich aktualisiert",
+    "source_hash": "d98d8e83"
   },
   "web.domains.sso.delete_success": {
-    "text": "SSO-Konfiguration erfolgreich entfernt"
+    "text": "SSO-Konfiguration erfolgreich entfernt",
+    "source_hash": "2e924798"
   },
   "web.domains.sso.configure_sso": {
-    "text": "SSO konfigurieren"
+    "text": "SSO konfigurieren",
+    "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "SSO ist für diese Domain noch nicht konfiguriert. Aktiviere Single Sign-On, um Teammitgliedern die Authentifizierung über den Identitätsanbieter deiner Organisation zu ermöglichen."
+    "text": "SSO ist für diese Domain noch nicht konfiguriert. Aktiviere Single Sign-On, um Teammitgliedern die Authentifizierung über den Identitätsanbieter deiner Organisation zu ermöglichen.",
+    "source_hash": "c439214b"
   }
 }

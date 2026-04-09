@@ -81,11 +81,13 @@
   },
   "web.login.custom_domain_sso_title": {
     "text": "Single sign-on is available for this domain",
-    "context": "Shown on custom domain signin page when SSO is not yet configured"
+    "context": "Shown on custom domain signin page when SSO is not yet configured",
+    "content_hash": "af87d51e"
   },
   "web.login.custom_domain_sso_description": {
     "text": "The organization administrator can enable SSO to allow team members to sign in here. Contact the admin for access.",
-    "context": "Explains next steps when SSO is not configured on a custom domain"
+    "context": "Explains next steps when SSO is not configured on a custom domain",
+    "content_hash": "f3726509"
   },
   "web.auth.sso.signing_in": {
     "text": "Redirecting to identity provider...",
@@ -298,7 +300,8 @@
   },
   "web.auth.account.sso_linked": {
     "text": "SSO Account",
-    "context": "Status text shown for accounts authenticated via SSO (no password)"
+    "context": "Status text shown for accounts authenticated via SSO (no password)",
+    "content_hash": "b8f4c728"
   },
   "web.auth.account.region": {
     "text": "Region",

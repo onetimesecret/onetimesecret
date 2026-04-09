@@ -580,147 +580,195 @@
     "source_hash": "a5dcfef9"
   },
   "web.organizations.sso.title": {
-    "text": "Inicio de sesión único (SSO)"
+    "text": "Inicio de sesión único (SSO)",
+    "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "Configura SSO para permitir que los miembros inicien sesión con el proveedor de identidad de tu organización"
+    "text": "Configura SSO para permitir que los miembros inicien sesión con el proveedor de identidad de tu organización",
+    "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
-    "text": "Tipo de proveedor"
+    "text": "Tipo de proveedor",
+    "source_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
-    "text": "Selecciona el proveedor de identidad de tu organización"
+    "text": "Selecciona el proveedor de identidad de tu organización",
+    "source_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
-    "text": "Nombre para mostrar"
+    "text": "Nombre para mostrar",
+    "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "Un nombre amigable que se muestra a los usuarios al iniciar sesión"
+    "text": "Un nombre amigable que se muestra a los usuarios al iniciar sesión",
+    "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
-    "text": "ej. Acme Corp SSO"
+    "text": "ej. Acme Corp SSO",
+    "source_hash": "43c655c5"
   },
   "web.organizations.sso.client_id": {
-    "text": "ID de cliente"
+    "text": "ID de cliente",
+    "source_hash": "8726db01"
   },
   "web.organizations.sso.client_id_placeholder": {
-    "text": "Tu ID de cliente OAuth"
+    "text": "Tu ID de cliente OAuth",
+    "source_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
-    "text": "Secreto de cliente"
+    "text": "Secreto de cliente",
+    "source_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
-    "text": "Tu secreto de cliente OAuth"
+    "text": "Tu secreto de cliente OAuth",
+    "source_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
-    "text": "Déjalo en blanco para mantener el secreto existente"
+    "text": "Déjalo en blanco para mantener el secreto existente",
+    "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
-    "text": "ID de inquilino"
+    "text": "ID de inquilino",
+    "source_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
-    "text": "El identificador de inquilino de tu Azure AD / Entra ID"
+    "text": "El identificador de inquilino de tu Azure AD / Entra ID",
+    "source_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
-    "text": "ej. 12345678-1234-1234-1234-123456789abc"
+    "text": "ej. 12345678-1234-1234-1234-123456789abc",
+    "source_hash": "1a166316"
   },
   "web.organizations.sso.issuer": {
-    "text": "URL del emisor"
+    "text": "URL del emisor",
+    "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "La URL de descubrimiento OIDC de tu proveedor de identidad"
+    "text": "La URL de descubrimiento OIDC de tu proveedor de identidad",
+    "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
-    "text": "ej. https://login.example.com"
+    "text": "ej. https://login.example.com",
+    "source_hash": "9a638e9c"
   },
   "web.organizations.sso.allowed_domains": {
-    "text": "Dominios de correo permitidos"
+    "text": "Dominios de correo permitidos",
+    "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "Solo los usuarios con direcciones de correo electrónico de estos dominios pueden iniciar sesión. Déjalo vacío para permitir todos los dominios."
+    "text": "Solo los usuarios con direcciones de correo electrónico de estos dominios pueden iniciar sesión. Déjalo vacío para permitir todos los dominios.",
+    "source_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
-    "text": "ej. acme.com"
+    "text": "ej. acme.com",
+    "source_hash": "e4420764"
   },
   "web.organizations.sso.invalid_domain": {
-    "text": "Por favor, introduce un dominio válido (ej. example.com)"
+    "text": "Por favor, introduce un dominio válido (ej. example.com)",
+    "source_hash": "16807983"
   },
   "web.organizations.sso.domain_exists": {
-    "text": "Este dominio ya está en la lista"
+    "text": "Este dominio ya está en la lista",
+    "source_hash": "3fccb721"
   },
   "web.organizations.sso.remove_domain": {
-    "text": "Eliminar {domain}"
+    "text": "Eliminar {domain}",
+    "source_hash": "ae708a1d"
   },
   "web.organizations.sso.enabled": {
-    "text": "Habilitar SSO"
+    "text": "Habilitar SSO",
+    "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
-    "text": "Cuando está habilitado, los miembros de la organización pueden iniciar sesión usando este proveedor de SSO"
+    "text": "Cuando está habilitado, los miembros de la organización pueden iniciar sesión usando este proveedor de SSO",
+    "source_hash": "d7da2fa2"
   },
   "web.organizations.sso.save_config": {
-    "text": "Guardar configuración de SSO"
+    "text": "Guardar configuración de SSO",
+    "source_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
-    "text": "Eliminar configuración"
+    "text": "Eliminar configuración",
+    "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "¿Estás seguro? Esto deshabilitará el SSO para tu organización."
+    "text": "¿Estás seguro? Esto deshabilitará el SSO para tu organización.",
+    "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
-    "text": "Error al cargar la configuración de SSO"
+    "text": "Error al cargar la configuración de SSO",
+    "source_hash": "75cb73f6"
   },
   "web.organizations.sso.save_error": {
-    "text": "Error al guardar la configuración de SSO"
+    "text": "Error al guardar la configuración de SSO",
+    "source_hash": "99ef145b"
   },
   "web.organizations.sso.create_success": {
-    "text": "Configuración de SSO creada con éxito"
+    "text": "Configuración de SSO creada con éxito",
+    "source_hash": "531c7d92"
   },
   "web.organizations.sso.update_success": {
-    "text": "Configuración de SSO actualizada con éxito"
+    "text": "Configuración de SSO actualizada con éxito",
+    "source_hash": "d98d8e83"
   },
   "web.organizations.sso.delete_success": {
-    "text": "Configuración de SSO eliminada con éxito"
+    "text": "Configuración de SSO eliminada con éxito",
+    "source_hash": "55f5d4f5"
   },
   "web.organizations.sso.delete_error": {
-    "text": "Error al eliminar la configuración de SSO"
+    "text": "Error al eliminar la configuración de SSO",
+    "source_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "Probar conexión"
+    "text": "Probar conexión",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Verifica que el proveedor de identidad es accesible (no valida las credenciales)"
+    "text": "Verifica que el proveedor de identidad es accesible (no valida las credenciales)",
+    "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "Probar conexión"
+    "text": "Probar conexión",
+    "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
-    "text": "Probando..."
+    "text": "Probando...",
+    "source_hash": "6c02a284"
   },
   "web.organizations.sso.test_error": {
-    "text": "Error al probar la conexión"
+    "text": "Error al probar la conexión",
+    "source_hash": "c1d1f310"
   },
   "web.organizations.sso.auth_endpoint": {
-    "text": "Punto de autorización"
+    "text": "Punto de autorización",
+    "source_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
-    "text": "Campos faltantes"
+    "text": "Campos faltantes",
+    "source_hash": "757df777"
   },
   "web.organizations.sso.status_enabled": {
-    "text": "Habilitado"
+    "text": "Habilitado",
+    "source_hash": "92c1cdfd"
   },
   "web.organizations.sso.status_configured": {
-    "text": "Configurado"
+    "text": "Configurado",
+    "source_hash": "84aebc69"
   },
   "web.organizations.sso.domain_sso_title": {
-    "text": "SSO de dominio"
+    "text": "SSO de dominio",
+    "source_hash": "13161464"
   },
   "web.organizations.sso.domain_sso_description": {
-    "text": "Configura SSO para cada dominio verificado"
+    "text": "Configura SSO para cada dominio verificado",
+    "source_hash": "af5b799e"
   },
   "web.organizations.sso.provider_type_locked_hint": {
-    "text": "Para cambiar de proveedor, elimina primero esta configuración"
+    "text": "Para cambiar de proveedor, elimina primero esta configuración",
+    "source_hash": "0a1027ff"
   },
   "web.organizations.sso.status_not_configured": {
-    "text": "No configurado"
+    "text": "No configurado",
+    "source_hash": "bbea960e"
   }
 }
