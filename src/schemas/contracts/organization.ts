@@ -134,6 +134,7 @@ export const entitlementSchema = z.enum([
   'view_receipt',
   // Paid plan entitlements (from billing.yaml)
   'homepage_secrets',
+  'flexible_from_domain',
 ]);
 
 export type Entitlement = z.infer<typeof entitlementSchema>;
