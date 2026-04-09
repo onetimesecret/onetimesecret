@@ -99,16 +99,15 @@ module Onetime
             log_warn '[lettermint-sender] DNS records returned but none normalized. ' \
                      "Raw keys: #{raw_records.first&.keys&.inspect}"
           end
-
           {
             success: true,
             message: "Domain #{domain} provisioned with Lettermint",
             dns_records: dns_records,
             identity_id: response['domain'],
             provider_data: {
-              status: response['status'],
-              created_at: response['created_at'],
-              domain: response['domain'],
+              'status' => response['status'],
+              'created_at' => response['created_at'],
+              'domain' => response['domain'],
             },
           }
         rescue Lettermint::ValidationError => ex
@@ -186,7 +185,7 @@ module Onetime
             }
           end
 
-          team_token = credentials[:team_token] || credentials['team_token']
+          team_token = credentials['team_token']
           unless team_token && !team_token.empty?
             return {
               verified: false,
@@ -215,10 +214,10 @@ module Onetime
           domain_id = domain_entry['id']
           begin
             client.domains.verify_dns(domain_id)
-            log_info "[lettermint-sender] Triggered DNS verification for #{domain} (#{domain_id})"
+            log_info "[lettermint-sender] Triggered provider verification for #{domain} (#{domain_id})"
           rescue StandardError => ex
             # Non-fatal: continue and read whatever status Lettermint has
-            log_warn "[lettermint-sender] DNS verify trigger failed for #{domain}: #{ex.message}"
+            log_warn "[lettermint-sender] Provider trigger failed for #{domain}: #{ex.message}"
           end
 
           # Fetch full details with DNS records
@@ -459,12 +458,12 @@ module Onetime
 
             rec_status = record['status'] || record[:status]
 
-            result          = {
-              type: rec_type.upcase,
-              name: rec_name,
-              value: rec_val,
+            result           = {
+              'type' => rec_type.upcase,
+              'name' => rec_name,
+              'value' => rec_val,
             }
-            result[:status] = rec_status if rec_status
+            result['status'] = rec_status if rec_status
             result
           end
         end

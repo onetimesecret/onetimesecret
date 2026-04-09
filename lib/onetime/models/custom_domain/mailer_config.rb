@@ -225,14 +225,6 @@ module Onetime
         end
       end
 
-      # Build a name-keyed index of provider records for O(1) lookup.
-      def index_provider_records(provider_records)
-        provider_records.each_with_object({}) do |p, h|
-          key    = (p['name'] || p[:name]).to_s
-          h[key] = p unless key.empty?
-        end
-      end
-
       public
 
       # Update the from_address, resetting verification state.
@@ -365,12 +357,12 @@ module Onetime
       def required_dns_records
         return [] unless provisioned?
 
-        data             = dns_records.value
-        dns_checks       = dns_check_results&.value || []
-        provider_records = (provider_dns_data&.value || {})['dns_records'] || []
-        current_status   = verification_status || 'pending'
-
-        provider_records_by_name = index_provider_records(provider_records)
+        data                   = dns_records.value
+        dns_checks             = dns_check_results&.value || []
+        provider_data          = provider_dns_data&.value || {}
+        provider_records       = provider_data['dns_records'] || []
+        domain_provider_status = provider_data['status']
+        current_status         = verification_status || 'pending'
 
         data.map do |record|
           name  = record['name']
@@ -395,16 +387,42 @@ module Onetime
             result['value_matches'] = check['value_matches']
           end
 
-          # Per-record provider verification: match by hostname from provider's
-          # latest check. Only present when provider has returned per-record data.
-          if provider_records.any?
-            provider_rec                = provider_records_by_name[name]
-            provider_status             = provider_rec&.then { |p| p['status'] || p[:status] }
-            result['provider_verified'] = provider_status.to_s == 'verified' unless provider_status.nil?
-          end
+          apply_provider_verification(result, name, provider_records, domain_provider_status)
 
           result.compact
         end
+      end
+
+      # Set provider_verified on a record hash by matching against provider
+      # DNS records, falling back to domain-level status.
+      #
+      # Lettermint uses 'active' for verified DNS records and 'verified'
+      # at the domain level. provider_status_verified? accepts both.
+      #
+      # @param result [Hash] Record hash to annotate (mutated in place)
+      # @param name [String] DNS record hostname to match
+      # @param provider_records [Array<Hash>] Per-record provider data
+      # @param domain_provider_status [String, nil] Domain-level provider status
+      def apply_provider_verification(result, name, provider_records, domain_provider_status)
+        if provider_records.any?
+          provider_rec                = provider_records.find { |p| p['name'].to_s == name }
+          record_status               = provider_rec&.dig('status')
+          effective_status            = record_status || domain_provider_status
+          result['provider_verified'] = provider_status_verified?(effective_status) unless effective_status.nil?
+        elsif domain_provider_status
+          result['provider_verified'] = provider_status_verified?(domain_provider_status)
+        end
+      end
+
+      # Whether a provider status string indicates verified.
+      #
+      # Lettermint uses 'active' for verified DNS records and 'verified'
+      # at the domain level. Other providers may use 'verified' directly.
+      #
+      # @param status [String] Provider status value
+      # @return [Boolean]
+      def provider_status_verified?(status)
+        %w[verified active].include?(status.to_s.downcase)
       end
 
       # Check if both DNS and provider verification have completed.
