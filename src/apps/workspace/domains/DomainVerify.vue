@@ -265,6 +265,7 @@
       <div class="mt-6 flex items-center gap-4">
         <button
           type="button"
+          data-testid="verify-domain-button"
           :disabled="verificationInProgress"
           :aria-busy="verificationInProgress"
           class="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
