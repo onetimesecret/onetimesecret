@@ -55,7 +55,7 @@ module DomainsAPI::Logic
       end
 
       def success_data
-        config = @custom_domain.incoming_secrets_config
+        config      = @custom_domain.incoming_secrets_config
         site_secret = OT.conf.dig('site', 'secret')
         {
           user_id: @cust.objid,
@@ -66,7 +66,6 @@ module DomainsAPI::Logic
           },
         }
       end
-
     end
   end
 end

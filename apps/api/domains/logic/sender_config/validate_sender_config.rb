@@ -109,9 +109,12 @@ module DomainsAPI
             @mailer_config.updated                     = Familia.now.to_i
             @mailer_config.save_fields(
               :verification_status,
-              :dns_check_status, :provider_check_status,
-              :dns_verified, :provider_verified,
-              :dns_check_completed_at, :provider_check_completed_at,
+              :dns_check_status,
+              :provider_check_status,
+              :dns_verified,
+              :provider_verified,
+              :dns_check_completed_at,
+              :provider_check_completed_at,
               :updated,
             )
 
@@ -136,9 +139,12 @@ module DomainsAPI
             @mailer_config.updated                     = Familia.now.to_i
             @mailer_config.save_fields(
               :verification_status,
-              :dns_check_status, :provider_check_status,
-              :dns_verified, :provider_verified,
-              :dns_check_completed_at, :provider_check_completed_at,
+              :dns_check_status,
+              :provider_check_status,
+              :dns_verified,
+              :provider_verified,
+              :dns_check_completed_at,
+              :provider_check_completed_at,
               :updated,
             )
             raise

@@ -587,6 +587,14 @@
     "text": "Value",
     "content_hash": "8e37953d"
   },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS",
+    "content_hash": "5d6f7a8b"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Provider",
+    "content_hash": "6e7f8a9b"
+  },
   "web.domains.email.copy": {
     "text": "Copy",
     "content_hash": "e21f935f"

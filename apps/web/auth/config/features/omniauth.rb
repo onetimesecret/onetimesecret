@@ -49,7 +49,10 @@ module Auth::Config::Features
 
     # Returns names of env vars that are nil or empty.
     def self.missing_env_vars(required)
-      required.select { |name| val = ENV.fetch(name, nil); val.nil? || val.empty? }
+      required.select do |name|
+        val = ENV.fetch(name, nil)
+        val.nil? || val.empty?
+      end
     end
 
     def self.configure_oidc_provider(auth)

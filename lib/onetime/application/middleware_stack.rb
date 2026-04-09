@@ -107,7 +107,7 @@ module Onetime
 
             # Add primary language code fallback (e.g. "it" for "it_IT")
             # only if no locale with that primary code is already present
-            primary = locale.split('_').first
+            primary            = locale.split('_').first
             locales[primary] ||= locales[locale] unless locales.key?(primary)
           end
           locales
@@ -184,7 +184,7 @@ module Onetime
           # chains natively via the fallback_locale option.
           logger.debug 'Setting up Locale detection middleware'
           available_locales = build_available_locales
-          fallback_locale = normalize_fallback_keys(OT.fallback_locale)
+          fallback_locale   = normalize_fallback_keys(OT.fallback_locale)
           builder.use Otto::Locale::Middleware,
             available_locales: available_locales,
             default_locale: OT.default_locale,

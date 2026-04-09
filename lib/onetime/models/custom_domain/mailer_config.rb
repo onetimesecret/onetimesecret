@@ -168,10 +168,8 @@ module Onetime
         # Both must pass for verified status
         if dns_ok == true && provider_ok == true
           'verified'
-        elsif dns_ok == false || provider_ok == false
-          'failed'
-        elsif lifecycle.terminal?(dns_check_status) && lifecycle.terminal?(provider_check_status)
-          # Both completed but no outcome data - treat as failed
+        elsif dns_ok == false || provider_ok == false ||
+              (lifecycle.terminal?(dns_check_status) && lifecycle.terminal?(provider_check_status))
           'failed'
         else
           'pending'
@@ -205,9 +203,9 @@ module Onetime
       #
       # @return [String] the new verification_status value
       def update_verification_status!
-        new_status = computed_verification_status
+        new_status               = computed_verification_status
         self.verification_status = new_status
-        self.updated = Familia.now.to_i
+        self.updated             = Familia.now.to_i
         save_fields(:verification_status, :updated)
         new_status
       end
@@ -224,8 +222,6 @@ module Onetime
           true
         when false, 'false'
           false
-        else
-          nil
         end
       end
 

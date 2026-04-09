@@ -193,7 +193,7 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
                 name="check-circle-solid"
                 class="size-4"
                 aria-hidden="true" />
-              <span class="text-xs font-medium">DNS</span>
+              <span class="text-xs font-medium">{{ t('web.domains.email.dns_check_label') }}</span>
             </span>
             <span
               class="inline-flex items-center gap-1"
@@ -203,7 +203,7 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
                 name="check-circle-solid"
                 class="size-4"
                 aria-hidden="true" />
-              <span class="text-xs font-medium">Provider</span>
+              <span class="text-xs font-medium">{{ t('web.domains.email.provider_check_label') }}</span>
             </span>
           </div>
         </div>

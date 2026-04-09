@@ -41,7 +41,7 @@ module Auth
           .count
 
         has_password = rodauth.db[:account_password_hashes]
-          .where(id: account[:id]).count > 0
+          .where(id: account[:id]).any?
 
         {
           id: account[:id],
