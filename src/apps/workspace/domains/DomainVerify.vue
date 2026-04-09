@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import DnsWidget from '@/apps/workspace/components/domains/DnsWidget.vue';
+  import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
   import DomainVerificationInfo from '@/apps/workspace/components/domains/DomainVerificationInfo.vue';
   import MoreInfoText from '@/shared/components/ui/MoreInfoText.vue';
   import VerifyDomainDetails from '@/apps/workspace/components/domains/VerifyDomainDetails.vue';
@@ -157,24 +158,37 @@
 </script>
 
 <template>
-  <div>
-    <div class="mb-4">
-      <button
-        type="button"
-        class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        @click="handleBack">
-        <OIcon
-          collection="heroicons"
-          name="arrow-left"
-          class="size-5"
-          aria-hidden="true" />
-        {{ t('web.COMMON.back') }}
-      </button>
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <!-- Back button -->
+    <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+      <div class="mb-4">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          @click="handleBack">
+          <OIcon
+            collection="heroicons"
+            name="arrow-left"
+            class="size-5"
+            aria-hidden="true" />
+          {{ t('web.COMMON.back') }}
+        </button>
+      </div>
     </div>
 
-    <h1 class="mb-6 text-3xl font-bold text-gray-900 dark:text-white">
+    <!-- Header Section -->
+    <div class="sticky top-0 z-30">
+      <DomainHeader
+        v-if="domain"
+        :domain="domain"
+        :has-unsaved-changes="false"
+        :orgid="(route.params.orgid as string)" />
+    </div>
+
+    <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+    <h2 class="mb-6 text-xl font-bold text-gray-900 dark:text-white">
       {{ t('web.domains.verify_your_domain') }}
-    </h1>
+    </h2>
 
     <DomainVerificationInfo
       v-if="domain && domain.vhost?.last_monitored_unix"
@@ -295,5 +309,6 @@
       class="text-gray-600 dark:text-gray-400">
       {{ t('web.domains.loading_domain_information') }}
     </p>
+    </div>
   </div>
 </template>
