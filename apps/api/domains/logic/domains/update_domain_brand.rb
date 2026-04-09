@@ -23,8 +23,8 @@ module DomainsAPI::Logic
         @extid = sanitize_identifier(params['extid'])
 
         # Use BrandSettings.members as the single source of truth for valid keys.
-        # Exclude allow_public_homepage — managed via /homepage-config endpoint.
-        valid_keys = Onetime::CustomDomain::BrandSettings.members.map(&:to_s) - %w[allow_public_homepage]
+        # Exclude feature toggles — managed via dedicated config endpoints.
+        valid_keys = Onetime::CustomDomain::BrandSettings.members.map(&:to_s) - %w[allow_public_homepage allow_public_api]
 
         # Filter to valid keys and normalize to strings (HTTP params have string keys)
         @brand_settings = params['brand']&.transform_keys(&:to_s)&.slice(*valid_keys) || {}

@@ -47,6 +47,11 @@ GET    /:extid/homepage-config           DomainsAPI::Logic::HomepageConfig::GetH
 PUT    /:extid/homepage-config           DomainsAPI::Logic::HomepageConfig::PutHomepageConfig response=json auth=sessionauth,basicauth
 DELETE /:extid/homepage-config           DomainsAPI::Logic::HomepageConfig::DeleteHomepageConfig response=json auth=sessionauth,basicauth
 
+# Domain API Configuration
+GET    /:extid/api-config                DomainsAPI::Logic::ApiConfig::GetApiConfig response=json auth=sessionauth,basicauth
+PUT    /:extid/api-config                DomainsAPI::Logic::ApiConfig::PutApiConfig response=json auth=sessionauth,basicauth
+DELETE /:extid/api-config                DomainsAPI::Logic::ApiConfig::DeleteApiConfig response=json auth=sessionauth,basicauth
+
 # Domain Incoming Configuration (Recipients)
 GET    /:extid/incoming-config           DomainsAPI::Logic::IncomingConfig::GetIncomingConfig response=json auth=sessionauth
 PUT    /:extid/incoming-config           DomainsAPI::Logic::IncomingConfig::PutIncomingConfig response=json auth=sessionauth

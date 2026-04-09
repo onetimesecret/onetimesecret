@@ -56,12 +56,23 @@ RSpec.describe 'UpdateDomainBrand homepage field handling', type: :integration d
       expect(logic.brand_settings).to be_empty
     end
 
+    it 'also removes allow_public_api from brand_settings' do
+      logic = create_brand_logic(
+        params: { 'extid' => 'abc123', 'brand' => { 'allow_public_api' => 'true', 'primary_color' => '#FF0000' } },
+      )
+      logic.process_params
+
+      expect(logic.brand_settings).not_to have_key('allow_public_api')
+      expect(logic.brand_settings).to have_key('primary_color')
+    end
+
     it 'still accepts other brand fields normally' do
       logic = create_brand_logic(
         params: {
           'extid' => 'abc123',
           'brand' => {
             'allow_public_homepage' => 'true',
+            'allow_public_api' => 'true',
             'font_family' => 'serif',
             'corner_style' => 'pill',
             'primary_color' => '#AABBCC',

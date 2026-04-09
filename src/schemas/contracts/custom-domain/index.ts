@@ -2,7 +2,7 @@
 //
 // Custom domain contracts barrel file.
 //
-// Re-exports brand config, homepage config, and domain-level schemas.
+// Re-exports brand config, homepage config, api config, and domain-level schemas.
 // Consumers import from '@/schemas/contracts/custom-domain' as before.
 //
 // Architecture: contract -> shape -> API
@@ -27,9 +27,13 @@ export type {
 export { homepageConfigCanonical } from './homepage-config';
 export type { HomepageConfigCanonical } from './homepage-config';
 
+export { apiConfigCanonical } from './api-config';
+export type { ApiConfigCanonical } from './api-config';
+
 // Import for use in customDomainCanonical
 import { brandSettingsCanonical } from './brand-config';
 import { homepageConfigCanonical } from './homepage-config';
+import { apiConfigCanonical } from './api-config';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Domain status enum
@@ -246,6 +250,13 @@ export const customDomainCanonical = z.object({
 
   /** Homepage secrets configuration for this domain, if any. Null when unconfigured. */
   homepage_config: homepageConfigCanonical.nullable().optional(),
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // API config (computed from CustomDomain::ApiConfig lookup)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /** API access configuration for this domain, if any. Null when unconfigured. */
+  api_config: apiConfigCanonical.nullable().optional(),
 
   // ─────────────────────────────────────────────────────────────────────────
   // Timestamps

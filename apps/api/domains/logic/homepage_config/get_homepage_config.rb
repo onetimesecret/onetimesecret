@@ -37,28 +37,17 @@ module DomainsAPI
         end
 
         def success_data
-          if @homepage_config
-            {
-              user_id: cust.extid,
-              record: {
-                domain_id: @homepage_config.domain_id,
-                enabled: @homepage_config.enabled?,
-                created_at: @homepage_config.created.to_i,
-                updated_at: @homepage_config.updated.to_i,
-              },
-            }
-          else
-            # Return unconfigured state — falls back to brand_settings legacy value
-            {
-              user_id: cust.extid,
-              record: {
-                domain_id: @custom_domain.identifier,
-                enabled: @custom_domain.allow_public_homepage?,
-                created_at: nil,
-                updated_at: nil,
-              },
-            }
-          end
+          {
+            user_id: cust.extid,
+            record: if @homepage_config
+                      {
+                        domain_id: @homepage_config.domain_id,
+                        enabled: @homepage_config.enabled?,
+                        created_at: @homepage_config.created.to_i,
+                        updated_at: @homepage_config.updated.to_i,
+                      }
+                    end,
+          }
         end
       end
     end
