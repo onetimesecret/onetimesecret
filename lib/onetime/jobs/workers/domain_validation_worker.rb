@@ -113,6 +113,7 @@ module Onetime
         # @param msg [String] JSON-encoded message
         # @param delivery_info [Bunny::DeliveryInfo] AMQP delivery info
         # @param metadata [Bunny::MessageProperties] AMQP message properties
+        # rubocop:disable Metrics/PerceivedComplexity -- Worker handles validation, provider check, error states
         def work_with_params(msg, delivery_info, metadata)
           store_envelope(delivery_info, metadata)
 
@@ -187,7 +188,7 @@ module Onetime
               creds           = Onetime::Mail::Mailer.provider_credentials(provider)
 
               if creds && !creds.empty?
-                provider_result = sender_strategy.check_provider_verification_status(mailer_config, credentials: creds)
+                provider_result       = sender_strategy.check_provider_verification_status(mailer_config, credentials: creds)
                 provider_api_verified = provider_result[:verified]
                 log_info "Provider verification check: #{domain_id}",
                   provider: provider,
@@ -206,10 +207,14 @@ module Onetime
                                               else
                                                 provider_api_verified
                                               end
+
+            # Record provider status when verification fails so UI can explain why
+            mailer_config.last_error = provider_api_verified == false && provider_result ? "Provider status: #{provider_result[:status]}" : nil
+
             mailer_config.provider_check_status       = JobLifecycle::COMPLETED
             mailer_config.provider_check_completed_at = Familia.now.to_i
             mailer_config.updated                     = Familia.now.to_i
-            mailer_config.save_fields(:provider_verified, :provider_check_status, :provider_check_completed_at, :updated)
+            mailer_config.save_fields(:provider_verified, :provider_check_status, :provider_check_completed_at, :last_error, :updated)
           rescue StandardError => ex
             # Provider check failure should not fail the overall worker
             log_error "Provider verification check failed for #{domain_id}", ex
@@ -266,6 +271,7 @@ module Onetime
           log_error 'Unexpected error validating sender domain', ex
           reject! # Send to DLQ
         end
+        # rubocop:enable Metrics/PerceivedComplexity
       end
     end
   end
