@@ -325,6 +325,18 @@ module Onetime
 
         stale_domains.each do |entry|
           organization.domains.remove(entry[:objid])
+
+          # Clear the domain's own org_id if it pointed to this org,
+          # so loading the domain independently won't yield stale data.
+          if entry[:reason] =~ /org_id mismatch/
+            domain = Onetime::CustomDomain.load(entry[:objid])
+            if domain && domain.org_id == organization.objid
+              domain.org_id = nil
+              domain.save
+              OT.info "[domains doctor] Cleared org_id on domain #{entry[:objid]}"
+            end
+          end
+
           OT.info "[domains doctor] Removed stale org.domains entry #{entry[:objid]} from #{organization.extid}"
         end
 
