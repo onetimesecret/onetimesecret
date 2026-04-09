@@ -1217,6 +1217,10 @@
     "text": "Brand Domain",
     "content_hash": "35e4dfbe"
   },
+  "web.TITLES.domain_detail": {
+    "text": "Domain Settings",
+    "content_hash": "b8c9d0e1"
+  },
   "web.TITLES.account": {
     "text": "Account",
     "content_hash": "7e1b0d56"

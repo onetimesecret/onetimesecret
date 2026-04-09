@@ -73,6 +73,26 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
+    path: '/org/:orgid/domains/:extid',
+    name: 'DomainDetail',
+    component: () => import('@/apps/workspace/domains/DomainDetail.vue'),
+    meta: {
+      title: 'web.TITLES.domain_detail',
+      requiresAuth: true,
+      layout: WorkspaceLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'show',
+        onOrgSwitch: '/dashboard',
+        onDomainSwitch: 'same',
+      },
+    },
+    props: true,
+  },
+  {
     path: '/org/:orgid/domains/:extid/verify',
     name: 'DomainVerify',
     component: () => import('@/apps/workspace/domains/DomainVerify.vue'),

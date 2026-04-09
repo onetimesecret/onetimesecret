@@ -129,7 +129,8 @@
           v-if="!domainLoading"
           :domain="customDomainRecord"
           :has-unsaved-changes="hasUnsavedChanges"
-          :orgid="props.orgid" />
+          :orgid="props.orgid"
+          :back-route="`/org/${props.orgid}/domains/${props.extid}`" />
 
         <BrandSettingsBar
           v-if="canBrand"
