@@ -13,6 +13,7 @@ vi.mock('vue-i18n', () => ({
         'web.domains.verify_domain': 'Verify Domain',
         'web.domains.sso.configure_sso': 'Configure SSO',
         'web.domains.email.configure_email': 'Configure Email',
+        'web.domains.incoming.configure_incoming': 'Configure Incoming Secrets',
         'web.COMMON.remove': 'Remove',
       };
       return translations[key] ?? key;
@@ -66,7 +67,7 @@ const mockDomain = {
   updated: new Date('2024-01-01'),
 };
 
-function mountComponent({ canBrand = false, canManageSso = false, canEmailConfig = false } = {}) {
+function mountComponent({ canBrand = false, canManageSso = false, canEmailConfig = false, canIncomingSecrets = false } = {}) {
   return mount(DomainsTableActionsCell, {
     props: {
       domain: mockDomain,
@@ -74,6 +75,7 @@ function mountComponent({ canBrand = false, canManageSso = false, canEmailConfig
       canBrand,
       canManageSso,
       canEmailConfig,
+      canIncomingSecrets,
     },
     global: {
       stubs: {
@@ -132,9 +134,13 @@ describe('DomainsTableActionsCell', () => {
       const withEmail = mountComponent({ canEmailConfig: true });
       expect(withEmail.findAll('[role="menuitem"]')).toHaveLength(3);
 
-      // With all: Manage Brand, Verify Domain, Configure SSO, Configure Email, Remove (5 items)
-      const withAll = mountComponent({ canBrand: true, canManageSso: true, canEmailConfig: true });
-      expect(withAll.findAll('[role="menuitem"]')).toHaveLength(5);
+      // With incoming secrets only: Verify Domain, Configure Incoming Secrets, Remove (3 items)
+      const withIncoming = mountComponent({ canIncomingSecrets: true });
+      expect(withIncoming.findAll('[role="menuitem"]')).toHaveLength(3);
+
+      // With all: Manage Brand, Verify Domain, Configure SSO, Configure Email, Configure Incoming Secrets, Remove (6 items)
+      const withAll = mountComponent({ canBrand: true, canManageSso: true, canEmailConfig: true, canIncomingSecrets: true });
+      expect(withAll.findAll('[role="menuitem"]')).toHaveLength(6);
     });
 
     it('links "Manage Brand" to DomainBrand route with correct params', () => {
@@ -219,6 +225,42 @@ describe('DomainsTableActionsCell', () => {
       const to = JSON.parse(emailLink!.attributes('data-to')!);
       expect(to).toEqual({
         name: 'DomainEmail',
+        params: { orgid: 'org_ext_123', extid: 'dm-test-extid' },
+      });
+    });
+  });
+
+  describe('canIncomingSecrets entitlement gating', () => {
+    it('hides "Configure Incoming Secrets" menu item when canIncomingSecrets is false', () => {
+      const wrapper = mountComponent({ canIncomingSecrets: false });
+
+      const menuItems = wrapper.findAll('[role="menuitem"]');
+      const texts = menuItems.map((item) => item.text());
+
+      expect(texts).not.toContain('Configure Incoming Secrets');
+      expect(texts).toContain('Verify Domain');
+      expect(texts).toContain('Remove');
+    });
+
+    it('shows "Configure Incoming Secrets" menu item when canIncomingSecrets is true', () => {
+      const wrapper = mountComponent({ canIncomingSecrets: true });
+
+      const menuItems = wrapper.findAll('[role="menuitem"]');
+      const texts = menuItems.map((item) => item.text());
+
+      expect(texts).toContain('Configure Incoming Secrets');
+    });
+
+    it('links "Configure Incoming Secrets" to DomainIncoming route with correct params', () => {
+      const wrapper = mountComponent({ canIncomingSecrets: true });
+
+      const links = wrapper.findAll('a[data-to]');
+      const incomingLink = links.find((link) => link.text() === 'Configure Incoming Secrets');
+
+      expect(incomingLink).toBeDefined();
+      const to = JSON.parse(incomingLink!.attributes('data-to')!);
+      expect(to).toEqual({
+        name: 'DomainIncoming',
         params: { orgid: 'org_ext_123', extid: 'dm-test-extid' },
       });
     });

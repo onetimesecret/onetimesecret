@@ -72,7 +72,16 @@ function getProfileSection(t: ComposerTranslation): SettingsNavigationItem {
   };
 }
 
-/** Security section navigation */
+/**
+ * Security section navigation
+ *
+ * Visibility uses two layers:
+ * - Platform config: isSsoOnlyMode() — the deployment restricts all login to SSO
+ * - Account state: hasPassword() — this user authenticated via SSO (no password hash)
+ * Both are needed because a mixed-auth platform (isSsoOnlyMode=false) can still
+ * have SSO-provisioned accounts that shouldn't see password-centric settings.
+ * Same two-layer pattern applies to Region and Caution sections below.
+ */
 function getSecuritySection(t: ComposerTranslation): SettingsNavigationItem {
   return {
     id: 'security',
@@ -80,7 +89,7 @@ function getSecuritySection(t: ComposerTranslation): SettingsNavigationItem {
     icon: { collection: 'heroicons', name: 'shield-check-solid' },
     label: t('web.COMMON.security'),
     description: t('web.settings.security_settings_description'),
-    visible: () => isFullAuthMode() && !isSsoOnlyMode(),
+    visible: () => isFullAuthMode() && !isSsoOnlyMode() && hasPassword(),
     children: [
       {
         id: 'password',
@@ -128,7 +137,7 @@ function getRegionSection(t: ComposerTranslation): SettingsNavigationItem {
     icon: { collection: 'heroicons', name: 'globe-alt-solid' },
     label: t('web.account.region'),
     description: t('web.regions.data_sovereignty_title'),
-    visible: () => !isSsoOnlyMode(),
+    visible: () => !isSsoOnlyMode() && hasPassword(),
     children: [
       {
         id: 'current',
@@ -197,7 +206,7 @@ export function getSettingsNavigationSections(t: ComposerTranslation): SettingsN
           icon: { collection: 'heroicons', name: 'no-symbol-solid' },
           label: t('web.settings.caution.title'),
           description: t('web.settings.caution.description'),
-          visible: () => !isSsoOnlyMode(),
+          visible: () => !isSsoOnlyMode() && hasPassword(),
         },
       ],
     },

@@ -16,6 +16,8 @@ import {
   getAuthFeatures,
   isOrganizationSwitcherEnabled,
   isOrgsSsoEnabled,
+  isOrgsCustomMailEnabled,
+  isOrgsIncomingSecretsEnabled,
 } from '@/utils/features';
 import { _resetForTesting } from '@/services/bootstrap.service';
 
@@ -793,6 +795,180 @@ describe('features utility', () => {
     });
   });
 
+  describe('isOrgsCustomMailEnabled', () => {
+    it('returns true when organizations.custom_mail_enabled is true', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { custom_mail_enabled: true } });
+
+      const result = isOrgsCustomMailEnabled();
+
+      expect(result).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when organizations.custom_mail_enabled is false', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { custom_mail_enabled: false } });
+
+      const result = isOrgsCustomMailEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations object is empty', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: {} });
+
+      const result = isOrgsCustomMailEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations is undefined', () => {
+      getBootstrapValueMock.mockReturnValue({});
+
+      const result = isOrgsCustomMailEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when features object is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      const result = isOrgsCustomMailEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations.custom_mail_enabled is truthy but not exactly true', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { custom_mail_enabled: 'yes' } });
+
+      const result = isOrgsCustomMailEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations.custom_mail_enabled is null', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { custom_mail_enabled: null } });
+
+      const result = isOrgsCustomMailEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations.custom_mail_enabled is 1 (number)', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { custom_mail_enabled: 1 } });
+
+      const result = isOrgsCustomMailEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when both enabled and custom_mail_enabled are true', () => {
+      getBootstrapValueMock.mockReturnValue({
+        organizations: { enabled: true, custom_mail_enabled: true },
+      });
+
+      const result = isOrgsCustomMailEnabled();
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when enabled is true but custom_mail_enabled is false', () => {
+      getBootstrapValueMock.mockReturnValue({
+        organizations: { enabled: true, custom_mail_enabled: false },
+      });
+
+      const result = isOrgsCustomMailEnabled();
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isOrgsIncomingSecretsEnabled', () => {
+    it('returns true when organizations.incoming_secrets_enabled is true', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { incoming_secrets_enabled: true } });
+
+      const result = isOrgsIncomingSecretsEnabled();
+
+      expect(result).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when organizations.incoming_secrets_enabled is false', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { incoming_secrets_enabled: false } });
+
+      const result = isOrgsIncomingSecretsEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations object is empty', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: {} });
+
+      const result = isOrgsIncomingSecretsEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations is undefined', () => {
+      getBootstrapValueMock.mockReturnValue({});
+
+      const result = isOrgsIncomingSecretsEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when features object is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      const result = isOrgsIncomingSecretsEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations.incoming_secrets_enabled is truthy but not exactly true', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { incoming_secrets_enabled: 'yes' } });
+
+      const result = isOrgsIncomingSecretsEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations.incoming_secrets_enabled is null', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { incoming_secrets_enabled: null } });
+
+      const result = isOrgsIncomingSecretsEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when organizations.incoming_secrets_enabled is 1 (number)', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { incoming_secrets_enabled: 1 } });
+
+      const result = isOrgsIncomingSecretsEnabled();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when both enabled and incoming_secrets_enabled are true', () => {
+      getBootstrapValueMock.mockReturnValue({
+        organizations: { enabled: true, incoming_secrets_enabled: true },
+      });
+
+      const result = isOrgsIncomingSecretsEnabled();
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when enabled is true but incoming_secrets_enabled is false', () => {
+      getBootstrapValueMock.mockReturnValue({
+        organizations: { enabled: true, incoming_secrets_enabled: false },
+      });
+
+      const result = isOrgsIncomingSecretsEnabled();
+
+      expect(result).toBe(false);
+    });
+  });
+
   // ── SSR safety (window undefined) ─────────────────────────────────
 
   describe('SSR safety (window undefined)', () => {
@@ -882,6 +1058,16 @@ describe('features utility', () => {
 
     it('isOrgsSsoEnabled returns false when window is undefined', () => {
       const result = isOrgsSsoEnabled();
+      expect(result).toBe(false);
+    });
+
+    it('isOrgsCustomMailEnabled returns false when window is undefined', () => {
+      const result = isOrgsCustomMailEnabled();
+      expect(result).toBe(false);
+    });
+
+    it('isOrgsIncomingSecretsEnabled returns false when window is undefined', () => {
+      const result = isOrgsIncomingSecretsEnabled();
       expect(result).toBe(false);
     });
   });

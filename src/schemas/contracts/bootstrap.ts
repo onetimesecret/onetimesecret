@@ -186,6 +186,21 @@ export const ssoConfigSchema = z.object({
 // FEATURES SCHEMA
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// Workaround: Zod's .default({}) doesn't cascade into inner field defaults which
+// are needed for nested features objects. To ensure all nested defaults are
+// applied, we extract the inner schema and use .default(inner.parse({})) to
+// trigger default population at all levels. Extract inner schema and use
+// .default(inner.parse({})) to trigger nested defaults.
+//
+// Check colinhacks/zod#5764 for decision on v4 native solution, and hopefully
+// can simplify to something like: organizations: z.object({...}).default({}).
+const organizationFeaturesInner = z.object({
+  enabled: z.boolean().default(false),
+  sso_enabled: z.boolean().default(false),
+  custom_mail_enabled: z.boolean().default(false),
+  incoming_secrets_enabled: z.boolean().default(false),
+});
+
 export const featuresSchema = z.object({
   markdown: z.boolean().default(false),
   mfa: z.boolean().optional(),
@@ -197,10 +212,7 @@ export const featuresSchema = z.object({
   // Single-auth-method restriction: 'password', 'email_auth', 'webauthn', 'sso', or null
   restrict_to: z.enum(['password', 'email_auth', 'webauthn', 'sso']).nullable().optional(),
   magic_links: z.boolean().optional(),
-  organizations: z.object({
-    enabled: z.boolean().default(false),
-    sso_enabled: z.boolean().default(false),
-  }).optional().default({ enabled: false, sso_enabled: false }),
+  organizations: organizationFeaturesInner.default(organizationFeaturesInner.parse({})),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
