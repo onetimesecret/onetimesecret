@@ -57,6 +57,7 @@ const { can } = useEntitlements(organization);
 const hasEntitlement = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
 const hasFlexibleFromDomain = computed(() => can(ENTITLEMENTS.FLEXIBLE_FROM_DOMAIN));
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
+const displayDomain = computed(() => customDomainRecord.value?.display_domain ?? '');
 
 // ---------------------------------------------------------------------------
 // Email config composable
