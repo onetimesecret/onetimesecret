@@ -210,8 +210,19 @@ module Onetime
             }
           end
 
+          # Trigger Lettermint to re-check DNS records before reading status.
+          # Without this, Lettermint's cached status won't reflect recent DNS changes.
+          domain_id = domain_entry['id']
+          begin
+            client.domains.verify_dns(domain_id)
+            log_info "[lettermint-sender] Triggered DNS verification for #{domain} (#{domain_id})"
+          rescue StandardError => ex
+            # Non-fatal: continue and read whatever status Lettermint has
+            log_warn "[lettermint-sender] DNS verify trigger failed for #{domain}: #{ex.message}"
+          end
+
           # Fetch full details with DNS records
-          response = client.domains.find(domain_entry['id'], include: 'dnsRecords')
+          response = client.domains.find(domain_id, include: 'dnsRecords')
 
           # Status enum: verified, partially_verified, pending_verification, failed_verification
           status   = response['status'] || domain_entry['status'] || 'unknown'
@@ -446,11 +457,15 @@ module Onetime
 
             next unless rec_type && rec_name && rec_val
 
-            {
+            rec_status = record['status'] || record[:status]
+
+            result          = {
               type: rec_type.upcase,
               name: rec_name,
               value: rec_val,
             }
+            result[:status] = rec_status if rec_status
+            result
           end
         end
 

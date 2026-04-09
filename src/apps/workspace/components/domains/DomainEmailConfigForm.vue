@@ -29,6 +29,8 @@ interface Props {
   testResult?: TestEmailConfigResponse | null;
   testError?: string;
   error?: string;
+  displayDomain?: string;
+  flexibleFromDomain?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -72,13 +74,39 @@ const replyTo = computed({
   set: (value: string) => updateField('reply_to', value),
 });
 
+// Split input mode: local part editable, domain fixed to custom domain
+const showSplitInput = computed(() =>
+  !props.flexibleFromDomain && !!props.displayDomain
+);
+
+const fromAddressLocalPart = computed({
+  get: () => {
+    if (!showSplitInput.value) return '';
+    const full = props.formState.from_address;
+    return full.split('@')[0] || '';
+  },
+  set: (localPart: string) => {
+    const domain = props.displayDomain || '';
+    const fullEmail = localPart ? `${localPart}@${domain}` : '';
+    emit('update:formState', { ...props.formState, from_address: fullEmail });
+  },
+});
+
 // Form validation
 const isFormValid = computed(() => {
   if (!localForm.value.from_name.trim()) return false;
-  if (!localForm.value.from_address.trim()) return false;
 
-  // Email format validation via Zod for consistency with schema layer
-  if (!emailSchema.safeParse(localForm.value.from_address.trim()).success) return false;
+  if (showSplitInput.value) {
+    // Split mode: validate the composed address so invalid local parts are caught client-side
+    const localPart = fromAddressLocalPart.value.trim();
+    if (!localPart) return false;
+    const composed = `${localPart}@${props.displayDomain}`;
+    if (!emailSchema.safeParse(composed).success) return false;
+  } else {
+    // Full email mode
+    if (!localForm.value.from_address.trim()) return false;
+    if (!emailSchema.safeParse(localForm.value.from_address.trim()).success) return false;
+  }
 
   // reply_to is optional but must be valid if provided
   if (localForm.value.reply_to.trim() && !emailSchema.safeParse(localForm.value.reply_to.trim()).success) {
@@ -159,7 +187,27 @@ const providerDisplayName = computed(() => {
           {{ t('web.domains.email.from_address_label') }}
           <span class="text-red-500" aria-hidden="true">*</span>
         </label>
+
+        <!-- Split input: local part + fixed domain -->
+        <div v-if="showSplitInput" class="mt-1 flex">
+          <input
+            id="email-from-address"
+            :value="fromAddressLocalPart"
+            type="text"
+            required
+            autocomplete="off"
+            placeholder="noreply"
+            class="block w-full min-w-0 flex-1 rounded-l-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
+            @input="fromAddressLocalPart = ($event.target as HTMLInputElement).value" />
+          <span
+            class="inline-flex items-center rounded-r-md border border-l-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300">
+            @{{ displayDomain }}
+          </span>
+        </div>
+
+        <!-- Full email input (flexible mode) -->
         <input
+          v-else
           id="email-from-address"
           :value="fromAddress"
           type="email"

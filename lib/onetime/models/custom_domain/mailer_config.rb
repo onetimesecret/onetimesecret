@@ -225,6 +225,14 @@ module Onetime
         end
       end
 
+      # Build a name-keyed index of provider records for O(1) lookup.
+      def index_provider_records(provider_records)
+        provider_records.each_with_object({}) do |p, h|
+          key    = (p['name'] || p[:name]).to_s
+          h[key] = p unless key.empty?
+        end
+      end
+
       public
 
       # Update the from_address, resetting verification state.
@@ -357,24 +365,44 @@ module Onetime
       def required_dns_records
         return [] unless provisioned?
 
-        data           = dns_records.value
-        dns_checks     = dns_check_results&.value || []
-        current_status = verification_status || 'pending'
+        data             = dns_records.value
+        dns_checks       = dns_check_results&.value || []
+        provider_records = (provider_dns_data&.value || {})['dns_records'] || []
+        current_status   = verification_status || 'pending'
+
+        provider_records_by_name = index_provider_records(provider_records)
 
         data.map do |record|
           name  = record['name']
           check = dns_checks.find { |c| c['name'] == name }
 
+          # Per-record status from DNS check facts when available;
+          # fall back to overall status only when no check data exists yet.
+          per_record_status = if check
+                                check['value_matches'] ? 'verified' : 'failed'
+                              else
+                                current_status
+                              end
+
           result = {
             'type' => record['type'],
             'name' => name,
             'value' => record['value'],
-            'status' => current_status,
+            'status' => per_record_status,
           }
           if check
             result['dns_exists']    = check['dns_exists']
             result['value_matches'] = check['value_matches']
           end
+
+          # Per-record provider verification: match by hostname from provider's
+          # latest check. Only present when provider has returned per-record data.
+          if provider_records.any?
+            provider_rec                = provider_records_by_name[name]
+            provider_status             = provider_rec&.then { |p| p['status'] || p[:status] }
+            result['provider_verified'] = provider_status.to_s == 'verified' unless provider_status.nil?
+          end
+
           result.compact
         end
       end

@@ -133,6 +133,8 @@ describe('DomainEmailConfigForm', () => {
     testResult: Record<string, unknown> | null;
     testError: string;
     error: string;
+    displayDomain: string;
+    flexibleFromDomain: boolean;
   }> = {}) => {
     return mount(DomainEmailConfigForm, {
       props: {
@@ -146,6 +148,8 @@ describe('DomainEmailConfigForm', () => {
         testResult: props.testResult ?? null,
         testError: props.testError,
         error: props.error,
+        displayDomain: props.displayDomain,
+        flexibleFromDomain: props.flexibleFromDomain,
       },
       global: {
         plugins: [i18n, pinia],
@@ -690,6 +694,237 @@ describe('DomainEmailConfigForm', () => {
 
       const liveRegion = wrapper.find('[aria-live="polite"]');
       expect(liveRegion.exists()).toBe(true);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Split input / flexible_from_domain entitlement
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('Split input / flexible_from_domain', () => {
+    it('shows split input when flexibleFromDomain=false and displayDomain is set', () => {
+      wrapper = mountComponent({
+        formState: configuredFormState,
+        displayDomain: 'example.com',
+        flexibleFromDomain: false,
+      });
+
+      // The split container should render with the @domain suffix
+      const domainSuffix = wrapper.findAll('span').find((s) => s.text().includes('@example.com'));
+      expect(domainSuffix).toBeDefined();
+
+      // No type="email" input should exist for from_address
+      const emailInput = wrapper.find('#email-from-address');
+      expect(emailInput.exists()).toBe(true);
+      expect(emailInput.attributes('type')).toBe('text');
+    });
+
+    it('shows full email input when flexibleFromDomain=true', () => {
+      wrapper = mountComponent({
+        formState: configuredFormState,
+        displayDomain: 'example.com',
+        flexibleFromDomain: true,
+      });
+
+      const fromAddressInput = wrapper.find('#email-from-address');
+      expect(fromAddressInput.exists()).toBe(true);
+      expect(fromAddressInput.attributes('type')).toBe('email');
+
+      // No @example.com suffix span should exist
+      const domainSuffix = wrapper.findAll('span').find((s) => s.text().includes('@example.com'));
+      expect(domainSuffix).toBeUndefined();
+    });
+
+    it('shows full email input when displayDomain is empty', () => {
+      wrapper = mountComponent({
+        formState: configuredFormState,
+        displayDomain: '',
+        flexibleFromDomain: false,
+      });
+
+      const fromAddressInput = wrapper.find('#email-from-address');
+      expect(fromAddressInput.exists()).toBe(true);
+      expect(fromAddressInput.attributes('type')).toBe('email');
+    });
+
+    it('extracts local part from existing from_address in split mode', () => {
+      wrapper = mountComponent({
+        formState: {
+          from_name: 'Test',
+          from_address: 'hello@other.com',
+          reply_to: '',
+          enabled: true,
+        },
+        displayDomain: 'example.com',
+        flexibleFromDomain: false,
+      });
+
+      const fromAddressInput = wrapper.find('#email-from-address');
+      expect((fromAddressInput.element as HTMLInputElement).value).toBe('hello');
+    });
+
+    it('emits correct full email on split input change', async () => {
+      wrapper = mountComponent({
+        formState: {
+          from_name: 'Test',
+          from_address: '',
+          reply_to: '',
+          enabled: true,
+        },
+        displayDomain: 'example.com',
+        flexibleFromDomain: false,
+      });
+
+      const fromAddressInput = wrapper.find('#email-from-address');
+      // Simulate typing 'support' into the local part input
+      const inputEl = fromAddressInput.element as HTMLInputElement;
+      inputEl.value = 'support';
+      await fromAddressInput.trigger('input');
+      await flushPromises();
+
+      const emitted = wrapper.emitted('update:formState');
+      expect(emitted).toBeTruthy();
+      // Find the emission that contains from_address (may not be the first if other fields emit too)
+      const lastEmission = emitted![emitted!.length - 1][0] as EmailConfigFormState;
+      expect(lastEmission.from_address).toBe('support@example.com');
+    });
+
+    it('save button is disabled when split mode local part is empty', () => {
+      wrapper = mountComponent({
+        formState: {
+          from_name: 'Test',
+          from_address: '',
+          reply_to: '',
+          enabled: true,
+        },
+        displayDomain: 'example.com',
+        flexibleFromDomain: false,
+        hasUnsavedChanges: true,
+      });
+
+      const saveButton = wrapper.find('button[type="submit"]');
+      expect(saveButton.attributes('disabled')).toBeDefined();
+    });
+
+    it('split mode getter normalizes from_address with multiple @ signs', () => {
+      // When from_address contains multiple @ (e.g. from external data), the
+      // getter extracts only the portion before the first @, which the
+      // validation considers valid. This confirms the getter's normalization
+      // behavior rather than rejection.
+      wrapper = mountComponent({
+        formState: {
+          from_name: 'Test',
+          from_address: 'bad@part@example.com',
+          reply_to: '',
+          enabled: true,
+        },
+        displayDomain: 'example.com',
+        flexibleFromDomain: false,
+        hasUnsavedChanges: true,
+      });
+
+      // The getter returns split('@')[0] = 'bad', which is a valid local part
+      const fromAddressInput = wrapper.find('#email-from-address');
+      expect((fromAddressInput.element as HTMLInputElement).value).toBe('bad');
+
+      // Form is valid because the extracted local part is non-empty and has no @
+      const saveButton = wrapper.find('button[type="submit"]');
+      expect(saveButton.attributes('disabled')).toBeUndefined();
+    });
+
+    it('save button is enabled when split mode local part is valid', () => {
+      wrapper = mountComponent({
+        formState: {
+          from_name: 'Test',
+          from_address: 'noreply@example.com',
+          reply_to: '',
+          enabled: true,
+        },
+        displayDomain: 'example.com',
+        flexibleFromDomain: false,
+        hasUnsavedChanges: true,
+      });
+
+      const saveButton = wrapper.find('button[type="submit"]');
+      expect(saveButton.attributes('disabled')).toBeUndefined();
+    });
+
+    // The following four cases exercise the emailSchema.safeParse path introduced
+    // in the isFormValid refactor. The old guard only rejected empty or @-containing
+    // local parts; the new guard rejects any local part that makes the composed
+    // address fail z.string().email().
+
+    it('save button is disabled when split mode local part contains a space', () => {
+      wrapper = mountComponent({
+        formState: {
+          from_name: 'Test',
+          from_address: 'hello world@example.com',
+          reply_to: '',
+          enabled: true,
+        },
+        displayDomain: 'example.com',
+        flexibleFromDomain: false,
+        hasUnsavedChanges: true,
+      });
+
+      // getter splits on first @, yielding 'hello world'; composed address
+      // 'hello world@example.com' fails z.string().email()
+      const saveButton = wrapper.find('button[type="submit"]');
+      expect(saveButton.attributes('disabled')).toBeDefined();
+    });
+
+    it('save button is disabled when split mode local part has a leading dot', () => {
+      wrapper = mountComponent({
+        formState: {
+          from_name: 'Test',
+          from_address: '.hello@example.com',
+          reply_to: '',
+          enabled: true,
+        },
+        displayDomain: 'example.com',
+        flexibleFromDomain: false,
+        hasUnsavedChanges: true,
+      });
+
+      // composed address '.hello@example.com' fails z.string().email()
+      const saveButton = wrapper.find('button[type="submit"]');
+      expect(saveButton.attributes('disabled')).toBeDefined();
+    });
+
+    it('save button is disabled when split mode local part has consecutive dots', () => {
+      wrapper = mountComponent({
+        formState: {
+          from_name: 'Test',
+          from_address: 'he..llo@example.com',
+          reply_to: '',
+          enabled: true,
+        },
+        displayDomain: 'example.com',
+        flexibleFromDomain: false,
+        hasUnsavedChanges: true,
+      });
+
+      // composed address 'he..llo@example.com' fails z.string().email()
+      const saveButton = wrapper.find('button[type="submit"]');
+      expect(saveButton.attributes('disabled')).toBeDefined();
+    });
+
+    it('save button is disabled when split mode local part has a trailing dot', () => {
+      wrapper = mountComponent({
+        formState: {
+          from_name: 'Test',
+          from_address: 'hello.@example.com',
+          reply_to: '',
+          enabled: true,
+        },
+        displayDomain: 'example.com',
+        flexibleFromDomain: false,
+        hasUnsavedChanges: true,
+      });
+
+      // composed address 'hello.@example.com' fails z.string().email()
+      const saveButton = wrapper.find('button[type="submit"]');
+      expect(saveButton.attributes('disabled')).toBeDefined();
     });
   });
 });

@@ -134,6 +134,10 @@ entitlements:
     category: branding
     description: Custom email sender address for domain-specific notifications
 
+  flexible_from_domain:
+    category: branding
+    description: Allows setting any domain in email sender From Address (not restricted to custom domain)
+
   manage_sso:
     category: advanced
     description: Single sign-on configuration and management
@@ -242,6 +246,7 @@ plans:
       - homepage_secrets
       - incoming_secrets
       - custom_mail_sender
+      - flexible_from_domain
 
     features:
       - web.billing.features.custom_domains
@@ -290,6 +295,7 @@ plans:
   #     - homepage_secrets
   #     - incoming_secrets
   #     - custom_mail_sender
+  #     - flexible_from_domain
   #     - manage_teams
   #     - manage_members
   #

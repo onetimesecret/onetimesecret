@@ -93,6 +93,30 @@ module DomainsAPI
           verify_custom_mail_sender_entitlement(@organization)
         end
 
+        # Enforce from_address domain restriction based on entitlement.
+        #
+        # Normalize from_address to use the custom domain's display_domain.
+        #
+        # Without the flexible_from_domain entitlement, the from_address is
+        # always normalized to localpart@display_domain, preserving the local
+        # part of the submitted address and defaulting to 'noreply' when blank.
+        #
+        # @param from_address [String] The submitted from_address
+        # @param custom_domain [Onetime::CustomDomain] The custom domain record
+        # @param organization [Onetime::Organization] The owning organization
+        # @return [String] The normalized from_address
+        def enforce_from_domain(from_address, custom_domain, organization)
+          return from_address if organization.can?('flexible_from_domain')
+
+          domain_part = custom_domain.display_domain.to_s
+          return from_address if domain_part.empty?
+
+          local_part = from_address.to_s.split('@', 2).first.to_s
+          local_part = 'noreply' if local_part.empty?
+
+          "#{local_part}@#{domain_part}"
+        end
+
         # Parse boolean from various input formats.
         #
         # Note: nil is treated as false. For PATCH semantics where an omitted

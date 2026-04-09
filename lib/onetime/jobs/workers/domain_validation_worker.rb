@@ -211,6 +211,17 @@ module Onetime
             # Record provider status when verification fails so UI can explain why
             mailer_config.last_error = provider_api_verified == false && provider_result ? "Provider status: #{provider_result[:status]}" : nil
 
+            # Persist the provider's current domain status back into provider_dns_data
+            # so the UI can surface it (e.g. 'verified', 'pending_verification').
+            if provider_result
+              current_provider_data                 = mailer_config.provider_dns_data.value || {}
+              provider_records                      = provider_result.dig(:details, :dns_records) || []
+              mailer_config.provider_dns_data.value = current_provider_data.merge(
+                'status' => provider_result[:status],
+                'dns_records' => provider_records,
+              )
+            end
+
             mailer_config.provider_check_status       = JobLifecycle::COMPLETED
             mailer_config.provider_check_completed_at = Familia.now.to_i
             mailer_config.updated                     = Familia.now.to_i
@@ -225,6 +236,10 @@ module Onetime
             mailer_config.updated                     = Familia.now.to_i
             mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :updated)
           end
+
+          # Refresh from Redis so we see the DNS worker's latest status, not our
+          # in-memory copy which was loaded before that worker ran.
+          mailer_config.refresh!
 
           # Update stored verification_status if both jobs are now complete
           if mailer_config.jobs_completed?

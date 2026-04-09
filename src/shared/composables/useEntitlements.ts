@@ -18,6 +18,7 @@ const FALLBACK_DISPLAY_KEYS: Record<string, string> = {
   [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'web.billing.overview.entitlements.custom_privacy_defaults',
   [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'web.billing.overview.entitlements.extended_default_expiration',
   [ENTITLEMENTS.CUSTOM_MAIL_SENDER]: 'web.billing.overview.entitlements.custom_mail_sender',
+  [ENTITLEMENTS.FLEXIBLE_FROM_DOMAIN]: 'web.billing.overview.entitlements.flexible_from_domain',
   [ENTITLEMENTS.CUSTOM_BRANDING]: 'web.billing.overview.entitlements.custom_branding',
   [ENTITLEMENTS.HOMEPAGE_SECRETS]: 'web.billing.overview.entitlements.homepage_secrets',
   [ENTITLEMENTS.INCOMING_SECRETS]: 'web.billing.overview.entitlements.incoming_secrets',
@@ -49,6 +50,7 @@ const FALLBACK_ENTITLEMENT_TO_PLAN: Record<string, string> = {
   [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'identity_v1',
   [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'identity_v1',
   [ENTITLEMENTS.CUSTOM_MAIL_SENDER]: 'identity_v1',
+  [ENTITLEMENTS.FLEXIBLE_FROM_DOMAIN]: 'identity_plus_v1',
   [ENTITLEMENTS.INCOMING_SECRETS]: 'identity_v1',
   [ENTITLEMENTS.AUDIT_LOGS]: 'multi_team_v1',
 };

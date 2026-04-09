@@ -188,6 +188,18 @@ module Onetime
           end
         end
 
+        # Log warning message with OT logger fallback.
+        #
+        # @param message [String] Message to log
+        #
+        def log_warn(message)
+          if defined?(OT) && OT.respond_to?(:lw)
+            OT.lw message
+          else
+            warn message
+          end
+        end
+
         # Log error message with OT logger fallback.
         #
         # @param message [String] Message to log

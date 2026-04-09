@@ -329,6 +329,8 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       before do
         allow(mock_domains).to receive(:list)
           .and_return(list_response)
+        allow(mock_domains).to receive(:verify_dns)
+          .with('domain-uuid-123')
         allow(mock_domains).to receive(:find)
           .with('domain-uuid-123', include: 'dnsRecords')
           .and_return(get_response)
@@ -359,6 +361,8 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       before do
         allow(mock_domains).to receive(:list)
           .and_return(list_response)
+        allow(mock_domains).to receive(:verify_dns)
+          .with('domain-uuid-123')
         allow(mock_domains).to receive(:find)
           .with('domain-uuid-123', include: 'dnsRecords')
           .and_return(get_response)
