@@ -1,36 +1,35 @@
-// src/schemas/contracts/custom-domain.ts
-// @see src/tests/composables/useDomainsManager.spec.ts - Test fixtures for domain schema
+// src/schemas/contracts/custom-domain/index.ts
 //
-// Canonical custom domain record schema - field names and output types only.
-// Version-specific schemas (V2, V3) extend this with wire-format transforms.
+// Custom domain contracts barrel file.
 //
-// This schema owns the field contract. V2/V3 own the encoding.
-
-/**
- * Custom domain record contracts defining field names and output types.
- *
- * Custom domains allow organizations to serve secrets from their own domains
- * (e.g., secrets.example.com). These canonical schemas define the "what"
- * (field names and final types) without the "how" (wire-format transforms).
- *
- * Domain terminology (from PublicSuffix parsing):
- * - tld: Top level domain (e.g., .org in mozilla.org)
- * - sld: Second level domain (e.g., mozilla in mozilla.org)
- * - trd: Transit routing domain/subdomain (e.g., www in www.mozilla.org)
- * - base_domain: sld + tld (e.g., mozilla.org)
- * - subdomain: Full subdomain including trd (e.g., www.mozilla.org)
- *
- * Version-specific shapes in `shapes/v2/custom-domain/` and `shapes/v3/custom-domain.ts`
- * extend these with appropriate transforms for each API version.
- *
- * @module contracts/custom-domain
- * @category Contracts
- * @see {@link "shapes/v2/custom-domain"} - V2 wire format with string transforms
- * @see {@link "shapes/v3/custom-domain"} - V3 wire format with native types
- */
+// Re-exports brand config, homepage config, and domain-level schemas.
+// Consumers import from '@/schemas/contracts/custom-domain' as before.
+//
+// Architecture: contract -> shape -> API
 
 import { z } from 'zod';
-import { customDomainEmailConfigCanonical } from './email-config';
+import { customDomainEmailConfigCanonical } from '../email-config';
+
+// Re-export sub-contracts
+export {
+  brandSettingsCanonical,
+  fontFamilyValues,
+  cornerStyleValues,
+  imagePropsCanonical,
+} from './brand-config';
+export type {
+  BrandSettingsCanonical,
+  FontFamily,
+  CornerStyle,
+  ImagePropsCanonical,
+} from './brand-config';
+
+export { homepageConfigCanonical } from './homepage-config';
+export type { HomepageConfigCanonical } from './homepage-config';
+
+// Import for use in customDomainCanonical
+import { brandSettingsCanonical } from './brand-config';
+import { homepageConfigCanonical } from './homepage-config';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Domain status enum
@@ -63,118 +62,6 @@ export const DomainStatus = {
  * @category Contracts
  */
 export const domainStatusSchema = z.enum(domainStatusValues);
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Brand settings canonical schema
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Font family values for brand settings.
- *
- * @category Contracts
- */
-export const fontFamilyValues = ['sans', 'serif', 'mono'] as const;
-export type FontFamily = (typeof fontFamilyValues)[number];
-
-/**
- * Corner style values for brand settings.
- *
- * @category Contracts
- */
-export const cornerStyleValues = ['rounded', 'pill', 'square'] as const;
-export type CornerStyle = (typeof cornerStyleValues)[number];
-
-/**
- * Canonical brand settings contract.
- *
- * Brand settings control the visual appearance and behavior of the
- * custom domain's secret sharing interface.
- *
- * @category Contracts
- */
-export const brandSettingsCanonical = z
-  .object({
-    /** Primary brand color (hex format, e.g., #dc4a22). */
-    primary_color: z
-      .string()
-      .regex(/^#[0-9A-Fa-f]{6}$/i)
-      .default('#dc4a22'),
-
-    /** Legacy color field (deprecated). */
-    colour: z.string().optional(),
-
-    /** Instructions shown before secret reveal. */
-    instructions_pre_reveal: z.string().nullish(),
-
-    /** Instructions shown during secret reveal. */
-    instructions_reveal: z.string().nullish(),
-
-    /** Instructions shown after secret reveal. */
-    instructions_post_reveal: z.string().nullish(),
-
-    /** Brand description. */
-    description: z.string().optional(),
-
-    /** Whether button text should be light colored. */
-    button_text_light: z.boolean().default(false),
-
-    /** Whether public homepage is allowed. */
-    allow_public_homepage: z.boolean().default(false),
-
-    /** Whether public API access is allowed. */
-    allow_public_api: z.boolean().default(false),
-
-    /** Font family for the interface. */
-    font_family: z.enum(fontFamilyValues).default('sans'),
-
-    /** Corner style for UI elements. */
-    corner_style: z.enum(cornerStyleValues).default('rounded'),
-
-    /** Locale/language code. */
-    locale: z.string().default('en'),
-
-    /** Default TTL for secrets (seconds). */
-    default_ttl: z.number().nullish(),
-
-    /** Whether passphrase is required by default. */
-    passphrase_required: z.boolean().default(false),
-
-    /** Whether email notifications are enabled by default. */
-    notify_enabled: z.boolean().default(false),
-  })
-  .partial();
-
-/**
- * Canonical image properties contract.
- *
- * Used for logo and icon image metadata.
- *
- * @category Contracts
- */
-export const imagePropsCanonical = z
-  .object({
-    /** Base64 encoded image data. */
-    encoded: z.string().optional(),
-
-    /** MIME content type (e.g., image/png). */
-    content_type: z.string().optional(),
-
-    /** Original filename. */
-    filename: z.string().optional(),
-
-    /** File size in bytes. */
-    bytes: z.number().optional(),
-
-    /** Image width in pixels. */
-    width: z.number().optional(),
-
-    /** Image height in pixels. */
-    height: z.number().optional(),
-
-    /** Width/height aspect ratio. */
-    ratio: z.number().optional(),
-  })
-  .partial();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // VHost canonical schema
@@ -253,33 +140,9 @@ export const vhostCanonical = z
  * Defines field names and output types (post-parse).
  * No transforms - those are version-specific in shapes.
  *
- * Custom domain records track:
- * - Identity: identifier, domainid (UUID), extid (user-facing ID)
- * - Domain structure: display_domain, base_domain, subdomain, tld, sld, trd
- * - Ownership: org_id (Organization objid), custid (legacy)
- * - DNS validation: txt_validation_host, txt_validation_value
- * - Status: status, verified, resolving
- * - Nested objects: vhost (monitoring), brand (appearance)
- * - Timestamps: created, updated
- *
- * Note: The is_apex field indicates whether this is an apex/root domain
- * (no subdomain) vs a subdomain configuration.
- *
  * @category Contracts
- * @see {@link "shapes/v2/custom-domain".customDomainSchema} - V2 wire format
- * @see {@link "shapes/v3/custom-domain".customDomainSchema} - V3 wire format
- *
- * @example
- * ```typescript
- * // Extend in version-specific shapes
- * const customDomainV3 = customDomainCanonical.extend({
- *   created: transforms.fromNumber.toDate,
- *   updated: transforms.fromNumber.toDate,
- * });
- *
- * // Derive TypeScript type
- * type CustomDomain = z.infer<typeof customDomainCanonical>;
- * ```
+ * @see {@link "shapes/v2/custom-domain"} - V2 wire format
+ * @see {@link "shapes/v3/custom-domain"} - V3 wire format
  */
 export const customDomainCanonical = z.object({
   // ─────────────────────────────────────────────────────────────────────────
@@ -378,6 +241,13 @@ export const customDomainCanonical = z.object({
   email_config: customDomainEmailConfigCanonical.nullable().optional(),
 
   // ─────────────────────────────────────────────────────────────────────────
+  // Homepage config (computed from CustomDomain::HomepageConfig lookup)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /** Homepage secrets configuration for this domain, if any. Null when unconfigured. */
+  homepage_config: homepageConfigCanonical.nullable().optional(),
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Timestamps
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -391,12 +261,6 @@ export const customDomainCanonical = z.object({
 // ─────────────────────────────────────────────────────────────────────────────
 // Type exports
 // ─────────────────────────────────────────────────────────────────────────────
-
-/** TypeScript type for brand settings. */
-export type BrandSettingsCanonical = z.infer<typeof brandSettingsCanonical>;
-
-/** TypeScript type for image properties. */
-export type ImagePropsCanonical = z.infer<typeof imagePropsCanonical>;
 
 /** TypeScript type for vhost record. */
 export type VHostCanonical = z.infer<typeof vhostCanonical>;
