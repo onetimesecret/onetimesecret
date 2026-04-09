@@ -134,8 +134,8 @@ end
 #=> true
 
 ## SES records all use the sender domain from from_address
-# DNS hostname suffix assertion, not URL sanitization (CodeQL rb/incomplete-url-substring-sanitization)
-@ses_records.all? { |r| r[:host].end_with?('example.com') }
+# DNS hostname suffix assertion with label boundary (exact domain or subdomain only)
+@ses_records.all? { |r| r[:host] == 'example.com' || r[:host].end_with?('.example.com') }
 #=> true
 
 # --- SendGrid record generation ---
