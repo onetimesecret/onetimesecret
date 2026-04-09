@@ -312,8 +312,10 @@ export function useEmailConfig(domainExtId: string) {
       const config = await domainsStore.getEmailConfig(domainExtId);
       if (!config) return false;
       emailConfig.value = config;
-      formState.value = configToFormState(config);
-      savedFormState.value = { ...formState.value };
+      if (!hasUnsavedChanges.value) {
+        formState.value = configToFormState(config);
+        savedFormState.value = { ...formState.value };
+      }
       return isValidationComplete(config);
     } catch (err: unknown) {
       // Break on non-retriable auth errors; retry transient failures

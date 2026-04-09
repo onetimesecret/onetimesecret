@@ -197,13 +197,13 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
             </span>
             <span
               class="inline-flex items-center gap-1"
-              :class="validationStatus === 'verified' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-300 dark:text-gray-600'">
+              :class="effectiveStatus === 'verified' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-300 dark:text-gray-600'">
               <OIcon
                 collection="heroicons"
                 name="check-circle-solid"
                 class="size-4"
                 aria-hidden="true" />
-              <span class="text-xs font-medium">Resolving</span>
+              <span class="text-xs font-medium">Provider</span>
             </span>
           </div>
         </div>

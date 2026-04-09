@@ -105,7 +105,7 @@ module Onetime
         start_time   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         dns_records  = strategy.verify_dns_records(@mailer_config, bypass_cache: @bypass_cache)
         duration_ms  = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000).round
-        all_verified = dns_records.all? { |record| record[:verified] }
+        all_verified = dns_records.any? && dns_records.all? { |record| record[:verified] }
 
         verification_status = all_verified ? 'verified' : 'failed'
         verified_at         = all_verified ? Time.now : nil

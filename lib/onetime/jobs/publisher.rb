@@ -301,9 +301,14 @@ module Onetime
             result   = strategy.check_dns_records(mailer_config, credentials: {})
 
             mailer_config.dns_check_results.value = result[:records]
-            mailer_config.dns_check_completed_at  = Familia.now.to_i
-            mailer_config.updated                 = Familia.now.to_i
-            mailer_config.save_fields(:dns_check_completed_at, :updated)
+
+            records                              = result[:records] || []
+            all_matched                          = records.all? { |r| r['value_matches'] == true || r[:value_matches] == true }
+            mailer_config.dns_verified           = all_matched
+            mailer_config.dns_check_status       = 'completed'
+            mailer_config.dns_check_completed_at = Familia.now.to_i
+            mailer_config.updated                = Familia.now.to_i
+            mailer_config.save_fields(:dns_check_status, :dns_verified, :dns_check_completed_at, :updated)
           end
 
           return true
