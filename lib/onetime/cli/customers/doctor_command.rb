@@ -170,8 +170,9 @@ module Onetime
 
       # Index-level check for orphan email_index entries
       def check_email_index_integrity(report, repair:)
-        issues      = []
-        stale_count = 0
+        issues          = []
+        stale_count     = 0
+        mismatch_count  = 0
 
         Onetime::Customer.email_index.hgetall.each do |email, objid|
           customer = Onetime::Customer.load(objid)
@@ -194,9 +195,11 @@ module Onetime
             }
 
             if repair
-              # Remove wrong entry, correct entry will be added when checking the customer
+              # Set correct entry before removing wrong one so there's no window with a missing key
+              Onetime::Customer.email_index[customer.email] = objid
               Onetime::Customer.email_index.remove_field(email)
-              OT.info "[customers doctor] Removed mismatched email_index[#{email}]"
+              OT.info "[customers doctor] Fixed email_index: #{email} -> #{customer.email} -> #{objid}"
+              mismatch_count                               += 1
             end
           end
         end
@@ -216,6 +219,13 @@ module Onetime
               repairable: true,
             }
           end
+        end
+
+        if mismatch_count.positive?
+          report[:repaired] << {
+            action: :email_index_mismatches_fixed,
+            count: mismatch_count,
+          }
         end
 
         return if issues.empty?
@@ -477,6 +487,8 @@ module Onetime
             case r[:action]
             when :email_index_orphans_cleaned
               puts "  Cleaned #{r[:count]} orphan email_index entries"
+            when :email_index_mismatches_fixed
+              puts "  Fixed #{r[:count]} mismatched email_index entries"
             when :email_index_added
               puts "  #{r[:customer]}: added email_index entry"
             when :email_index_fixed
