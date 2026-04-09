@@ -16,7 +16,8 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::LettermintValidation
       'Onetime::CustomDomain::MailerConfig',
       from_address: 'sender@example.com',
       provider: 'lettermint',
-      custom_domain: custom_domain
+      custom_domain: custom_domain,
+      domain_id: 'domain-test-123'
     )
   end
 
@@ -159,7 +160,8 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::LettermintValidation
           'Onetime::CustomDomain::MailerConfig',
           from_address: 'noreply@mycompany.co.uk',
           provider: 'lettermint',
-          custom_domain: custom_domain
+          custom_domain: custom_domain,
+          domain_id: 'domain-test-456'
         )
       end
 
@@ -183,7 +185,8 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::LettermintValidation
           'Onetime::CustomDomain::MailerConfig',
           from_address: 'noreply@mail.example.com',
           provider: 'lettermint',
-          custom_domain: custom_domain
+          custom_domain: custom_domain,
+          domain_id: 'domain-test-789'
         )
       end
 
