@@ -931,13 +931,17 @@
     "text": "Manage",
     "content_hash": "a1b2c3d4"
   },
-  "web.domains.detail.configuration": {
-    "text": "Configuration",
-    "content_hash": "b2c3d4e5"
+  "web.domains.detail.features": {
+    "text": "Features",
+    "content_hash": "f1e2d3c4"
   },
-  "web.domains.detail.verify_description": {
-    "text": "DNS verification and domain status",
-    "content_hash": "c3d4e5f6"
+  "web.domains.detail.homepage_title": {
+    "text": "Homepage Secrets",
+    "content_hash": "h1o2m3e4"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Allow public access to create secrets on your domain homepage",
+    "content_hash": "h5o6m7e8"
   },
   "web.domains.detail.brand_description": {
     "text": "Logo, colors, and custom branding",

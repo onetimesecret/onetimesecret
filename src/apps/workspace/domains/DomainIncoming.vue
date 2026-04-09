@@ -18,9 +18,9 @@ import { useRouter, onBeforeRouteLeave, RouterLink } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import DomainIncomingConfigForm from '@/apps/workspace/components/domains/DomainIncomingConfigForm.vue';
 import { useDomain } from '@/shared/composables/useDomain';
-import { useDomainStatus } from '@/shared/composables/useDomainStatus';
 
 import { useIncomingConfig } from '@/shared/composables/useIncomingConfig';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
@@ -45,11 +45,6 @@ const {
   error: domainError,
   initialize: initializeDomain,
 } = useDomain(props.extid);
-
-const displayDomain = computed(() => customDomainRecord.value?.display_domain ?? '');
-const incomingUrl = computed(() => `https://${displayDomain.value}/incoming`);
-const verifyRoute = computed(() => `/org/${props.orgid}/domains/${props.extid}/verify`);
-const { statusIcon, isActive, isWarning, isError, displayStatus } = useDomainStatus(customDomainRecord);
 
 // ---------------------------------------------------------------------------
 // Entitlement check
@@ -159,51 +154,12 @@ watch(() => props.extid, async () => {
     </div>
 
     <!-- Header Section -->
-    <div class="border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-      <div class="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">
-        <div
-          v-if="!domainLoading && displayDomain"
-          class="flex items-center justify-between gap-2">
-          <div class="flex min-w-0 items-center gap-2">
-            <h1
-              class="flex min-w-0 items-center truncate text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
-              <span class="truncate">{{ displayDomain }}</span>
-              <a
-                :href="incomingUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="ml-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-                :title="t('web.domains.open_domain_in_new_tab')">
-                <OIcon
-                  collection="mdi"
-                  name="open-in-new"
-                  class="size-5" />
-              </a>
-            </h1>
-          </div>
-          <div
-            class="flex shrink-0 items-center rounded-md bg-gray-100 px-3 py-1.5 dark:bg-gray-700">
-            <RouterLink
-              :to="verifyRoute"
-              class="inline-flex items-center gap-1.5"
-              :data-tooltip="t('web.domains.view_domain_verification_status')">
-              <OIcon
-                collection="mdi"
-                :name="statusIcon"
-                class="size-4 shrink-0"
-                :class="{
-                  'text-emerald-600 dark:text-emerald-400': isActive,
-                  'text-amber-500 dark:text-amber-400': isWarning,
-                  'text-rose-600 dark:text-rose-500': isError,
-                }" />
-              <span class="font-brand text-sm leading-none">{{ displayStatus }}</span>
-            </RouterLink>
-          </div>
-        </div>
-        <div v-else class="flex flex-col gap-1">
-          <div class="h-8 w-64 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-        </div>
-      </div>
+    <div class="sticky top-0 z-30">
+      <DomainHeader
+        v-if="!domainLoading"
+        :domain="customDomainRecord"
+        :has-unsaved-changes="hasUnsavedChanges"
+        :orgid="props.orgid" />
     </div>
 
     <!-- Content -->
