@@ -13,11 +13,8 @@ const { t } = useI18n();
     domain: CustomDomain;
     hasUnsavedChanges: boolean;
     orgid: string;
-    backRoute?: string;
   }>();
 
-  // Build org-qualified routes
-  const domainsListRoute = computed(() => props.backRoute ?? `/org/${props.orgid}`);
   const verifyRoute = computed(() => `/org/${props.orgid}/domains/${props.domain?.extid}/verify`);
 
   const { statusIcon, isActive, isWarning, isError, displayStatus } = useDomainStatus(
@@ -28,31 +25,6 @@ const { t } = useI18n();
 <template>
   <div class="border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
     <div class="mx-auto max-w-7xl p-4 sm:px-6 lg:px-8">
-      <!-- Back button section -->
-      <div class="flex items-center space-x-4">
-        <!-- prettier-ignore-attribute class -->
-        <RouterLink
-          :to="domainsListRoute"
-          class="inline-flex items-center text-sm
-            text-gray-600 transition-colors hover:text-gray-900
-            dark:text-gray-400 dark:hover:text-gray-100"
-          :aria-label="t('web.domains.return_to_domains_list')">
-          <svg
-            class="mr-2 size-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          {{ t('web.domains.back_to_domains') }}
-        </RouterLink>
-      </div>
-
       <!-- Title section - make text smaller on mobile -->
       <div
         v-if="domain"
