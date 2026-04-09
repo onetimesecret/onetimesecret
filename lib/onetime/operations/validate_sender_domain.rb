@@ -128,8 +128,8 @@ module Onetime
             purpose: record[:purpose],
             type: record[:type],
             host: record[:host],
-            expected: record[:expected],
-            actual: record[:actual],
+            expected: truncate_dns_value(record[:expected]),
+            actual: truncate_dns_value(record[:actual]),
             verified: record[:verified],
             error_type: record[:error_type],
           )
@@ -241,6 +241,13 @@ module Onetime
       # @return [Object] A strategy responding to #verify_dns_records and #required_dns_records
       def strategy
         @strategy ||= self.class.send(:resolve_strategy, effective_provider, @options)
+      end
+
+      # Truncate long DNS values (e.g. DKIM keys) for log output.
+      def truncate_dns_value(value, max_length = 80)
+        return value if value.nil? || value.length <= max_length
+
+        "#{value[0, max_length]}...(#{value.length} chars)"
       end
 
       # Delegate to mailer_config's effective_provider method.

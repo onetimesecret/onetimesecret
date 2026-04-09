@@ -134,21 +134,21 @@ describe('DomainEmailDnsRecords', () => {
     it('renders cards when records are present', () => {
       wrapper = mountComponent();
 
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       expect(cards).toHaveLength(3);
     });
 
     it('renders one card per DNS record', () => {
       wrapper = mountComponent();
 
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       expect(cards).toHaveLength(3);
     });
 
     it('displays record type in each card', () => {
       wrapper = mountComponent();
 
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       expect(cards[0].text()).toContain('TXT');
       expect(cards[1].text()).toContain('CNAME');
       expect(cards[2].text()).toContain('TXT');
@@ -157,7 +157,7 @@ describe('DomainEmailDnsRecords', () => {
     it('displays record name in each card', () => {
       wrapper = mountComponent();
 
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       expect(cards[0].text()).toContain('_dmarc.example.com');
       expect(cards[1].text()).toContain('em._domainkey.example.com');
     });
@@ -165,7 +165,7 @@ describe('DomainEmailDnsRecords', () => {
     it('displays record value in each card', () => {
       wrapper = mountComponent();
 
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       expect(cards[0].text()).toContain('v=DMARC1; p=none');
       expect(cards[1].text()).toContain('dkim.sendgrid.net');
     });
@@ -173,7 +173,7 @@ describe('DomainEmailDnsRecords', () => {
     it('shows Name and Value labels in each card', () => {
       wrapper = mountComponent();
 
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       expect(cards[0].text()).toContain('Name');
       expect(cards[0].text()).toContain('Value');
     });
@@ -187,7 +187,7 @@ describe('DomainEmailDnsRecords', () => {
     it('shows DNS and Resolving labels in each card', () => {
       wrapper = mountComponent();
 
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       expect(cards[0].text()).toContain('DNS');
       expect(cards[0].text()).toContain('Resolving');
     });
@@ -198,7 +198,7 @@ describe('DomainEmailDnsRecords', () => {
       ];
       wrapper = mountComponent({ dnsRecords: records });
 
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
       const dnsIndicator = indicators.find((i) => i.text().includes('DNS'));
       expect(dnsIndicator!.classes()).toContain('text-emerald-600');
@@ -210,7 +210,7 @@ describe('DomainEmailDnsRecords', () => {
       ];
       wrapper = mountComponent({ dnsRecords: records });
 
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
       const dnsIndicator = indicators.find((i) => i.text().includes('DNS'));
       expect(dnsIndicator!.classes()).toContain('text-gray-300');
@@ -223,7 +223,7 @@ describe('DomainEmailDnsRecords', () => {
         providerCheckCompletedAt: new Date(),
       });
 
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
       const resolvingIndicator = indicators.find((i) => i.text().includes('Resolving'));
       expect(resolvingIndicator!.classes()).toContain('text-emerald-600');
@@ -232,7 +232,7 @@ describe('DomainEmailDnsRecords', () => {
     it('applies gray to Resolving indicator when validationStatus is not verified', () => {
       wrapper = mountComponent({ validationStatus: 'pending' });
 
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       const indicators = cards[0].findAll('.inline-flex.items-center.gap-1');
       const resolvingIndicator = indicators.find((i) => i.text().includes('Resolving'));
       expect(resolvingIndicator!.classes()).toContain('text-gray-300');
@@ -241,7 +241,7 @@ describe('DomainEmailDnsRecords', () => {
     it('uses check-circle-solid icon for both indicators', () => {
       wrapper = mountComponent();
 
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       const dualContainer = cards[0].find('.inline-flex.items-center.gap-3');
       const icons = dualContainer.findAll('.o-icon');
       icons.forEach((icon) => {
@@ -430,7 +430,7 @@ describe('DomainEmailDnsRecords', () => {
     it('shows empty state when no DNS records', () => {
       wrapper = mountComponent({ dnsRecords: [] });
 
-      const cards = wrapper.findAll('.rounded-lg.border.bg-white');
+      const cards = wrapper.findAll('[data-testid="dns-record-card"]');
       expect(cards).toHaveLength(0);
 
       // Should show the dashed border empty state
@@ -448,7 +448,7 @@ describe('DomainEmailDnsRecords', () => {
     it('does not show cards when records list is empty', () => {
       wrapper = mountComponent({ dnsRecords: [] });
 
-      expect(wrapper.findAll('.rounded-lg.border.bg-white')).toHaveLength(0);
+      expect(wrapper.findAll('[data-testid="dns-record-card"]')).toHaveLength(0);
     });
   });
 

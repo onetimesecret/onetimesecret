@@ -317,7 +317,7 @@ export function useEmailConfig(domainExtId: string) {
       return isValidationComplete(config);
     } catch (err: unknown) {
       // Break on non-retriable auth errors; retry transient failures
-      const status = (err as { code?: number })?.code;
+      const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 401 || status === 403) return true; // Signal to stop polling
       return false;
     }

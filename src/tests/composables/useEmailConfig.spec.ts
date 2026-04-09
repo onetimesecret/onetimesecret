@@ -13,7 +13,7 @@
 import { useEmailConfig } from '@/shared/composables/useEmailConfig';
 import { createPinia, setActivePinia } from 'pinia';
 import { flushPromises } from '@vue/test-utils';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { CustomDomainEmailConfig } from '@/schemas/shapes/domains/email-config';
 
