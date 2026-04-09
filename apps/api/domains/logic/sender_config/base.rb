@@ -95,14 +95,16 @@ module DomainsAPI
 
         # Enforce from_address domain restriction based on entitlement.
         #
-        # Without the flexible_from_domain entitlement, the from_address
-        # domain must match the custom domain's display_domain.
-        # If it doesn't match, silently rewrite to localpart@display_domain.
+        # Normalize from_address to use the custom domain's display_domain.
+        #
+        # Without the flexible_from_domain entitlement, the from_address is
+        # always normalized to localpart@display_domain, preserving the local
+        # part of the submitted address and defaulting to 'noreply' when blank.
         #
         # @param from_address [String] The submitted from_address
         # @param custom_domain [Onetime::CustomDomain] The custom domain record
         # @param organization [Onetime::Organization] The owning organization
-        # @return [String] The (possibly rewritten) from_address
+        # @return [String] The normalized from_address
         def enforce_from_domain(from_address, custom_domain, organization)
           return from_address if organization.can?('flexible_from_domain')
 

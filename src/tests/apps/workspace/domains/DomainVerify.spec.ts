@@ -14,6 +14,11 @@ vi.mock('vue-router', () => ({
   useRoute: () => ({
     params: mockRouteParams,
   }),
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+  }),
 }));
 
 // Mock child components
@@ -262,7 +267,7 @@ describe('DomainVerify', () => {
     it('renders verify button when DNS widget is shown', async () => {
       const wrapper = await mountComponent();
 
-      const button = wrapper.find('button[type="button"]');
+      const button = wrapper.find('[data-testid="verify-domain-button"]');
       expect(button.exists()).toBe(true);
       expect(button.text()).toContain('Verify Domain');
     });
@@ -274,7 +279,7 @@ describe('DomainVerify', () => {
       // Advance time past cooldown
       vi.advanceTimersByTime(11000);
 
-      const button = wrapper.find('button[type="button"]');
+      const button = wrapper.find('[data-testid="verify-domain-button"]');
       await button.trigger('click');
       await flushPromises();
 
@@ -287,7 +292,7 @@ describe('DomainVerify', () => {
 
       const wrapper = await mountComponent();
 
-      const button = wrapper.find('button[type="button"]');
+      const button = wrapper.find('[data-testid="verify-domain-button"]');
       expect(button.attributes('disabled')).toBeDefined();
     });
 
@@ -296,7 +301,7 @@ describe('DomainVerify', () => {
 
       const wrapper = await mountComponent();
 
-      const button = wrapper.find('button[type="button"]');
+      const button = wrapper.find('[data-testid="verify-domain-button"]');
       expect(button.text()).toContain('Processing...');
     });
 
@@ -309,7 +314,7 @@ describe('DomainVerify', () => {
       // Advance time past cooldown
       vi.advanceTimersByTime(11000);
 
-      const button = wrapper.find('button[type="button"]');
+      const button = wrapper.find('[data-testid="verify-domain-button"]');
       expect(button.attributes('disabled')).toBeUndefined();
     });
   });
@@ -320,7 +325,7 @@ describe('DomainVerify', () => {
       vi.clearAllMocks();
 
       // First click (should be rate-limited since auto-verification just happened)
-      const button = wrapper.find('button[type="button"]');
+      const button = wrapper.find('[data-testid="verify-domain-button"]');
       await button.trigger('click');
       await flushPromises();
 
@@ -334,7 +339,7 @@ describe('DomainVerify', () => {
       // Advance time past the 10-second cooldown
       vi.advanceTimersByTime(11000);
 
-      const button = wrapper.find('button[type="button"]');
+      const button = wrapper.find('[data-testid="verify-domain-button"]');
       await button.trigger('click');
       await flushPromises();
 
@@ -368,7 +373,7 @@ describe('DomainVerify', () => {
 
       // Advance time and retry
       vi.advanceTimersByTime(11000);
-      const button = wrapper.find('button[type="button"]');
+      const button = wrapper.find('[data-testid="verify-domain-button"]');
       await button.trigger('click');
       await flushPromises();
 
@@ -512,7 +517,7 @@ describe('DomainVerify', () => {
 
       const wrapper = await mountComponent();
 
-      const button = wrapper.find('button[type="button"]');
+      const button = wrapper.find('[data-testid="verify-domain-button"]');
       expect(button.attributes('aria-busy')).toBe('true');
     });
 

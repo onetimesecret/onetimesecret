@@ -79,6 +79,12 @@ const showSplitInput = computed(() =>
   !props.flexibleFromDomain && !!props.displayDomain
 );
 
+/**
+ * Split-input local part: editable prefix with a fixed @displayDomain suffix.
+ * Getter takes the first segment before '@', so malformed values like
+ * "bad@part@example.com" normalize to "bad" rather than being rejected.
+ * Setter reconstructs the full address as `${localPart}@${displayDomain}`.
+ */
 const fromAddressLocalPart = computed({
   get: () => {
     if (!showSplitInput.value) return '';
@@ -97,9 +103,11 @@ const isFormValid = computed(() => {
   if (!localForm.value.from_name.trim()) return false;
 
   if (showSplitInput.value) {
-    // Split mode: need a non-empty local part without @ characters
+    // Split mode: validate the composed address so invalid local parts are caught client-side
     const localPart = fromAddressLocalPart.value.trim();
-    if (!localPart || localPart.includes('@')) return false;
+    if (!localPart) return false;
+    const composed = `${localPart}@${props.displayDomain}`;
+    if (!emailSchema.safeParse(composed).success) return false;
   } else {
     // Full email mode
     if (!localForm.value.from_address.trim()) return false;

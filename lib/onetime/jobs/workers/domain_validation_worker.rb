@@ -219,6 +219,7 @@ module Onetime
               mailer_config.provider_dns_data.value = current_provider_data.merge(
                 'status' => provider_result[:status],
                 'dns_records' => provider_records,
+                'raw_provider_response' => provider_result[:details],
               )
             end
 

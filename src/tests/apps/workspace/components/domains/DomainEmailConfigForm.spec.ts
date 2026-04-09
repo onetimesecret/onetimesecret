@@ -848,5 +848,83 @@ describe('DomainEmailConfigForm', () => {
       const saveButton = wrapper.find('button[type="submit"]');
       expect(saveButton.attributes('disabled')).toBeUndefined();
     });
+
+    // The following four cases exercise the emailSchema.safeParse path introduced
+    // in the isFormValid refactor. The old guard only rejected empty or @-containing
+    // local parts; the new guard rejects any local part that makes the composed
+    // address fail z.string().email().
+
+    it('save button is disabled when split mode local part contains a space', () => {
+      wrapper = mountComponent({
+        formState: {
+          from_name: 'Test',
+          from_address: 'hello world@example.com',
+          reply_to: '',
+          enabled: true,
+        },
+        displayDomain: 'example.com',
+        flexibleFromDomain: false,
+        hasUnsavedChanges: true,
+      });
+
+      // getter splits on first @, yielding 'hello world'; composed address
+      // 'hello world@example.com' fails z.string().email()
+      const saveButton = wrapper.find('button[type="submit"]');
+      expect(saveButton.attributes('disabled')).toBeDefined();
+    });
+
+    it('save button is disabled when split mode local part has a leading dot', () => {
+      wrapper = mountComponent({
+        formState: {
+          from_name: 'Test',
+          from_address: '.hello@example.com',
+          reply_to: '',
+          enabled: true,
+        },
+        displayDomain: 'example.com',
+        flexibleFromDomain: false,
+        hasUnsavedChanges: true,
+      });
+
+      // composed address '.hello@example.com' fails z.string().email()
+      const saveButton = wrapper.find('button[type="submit"]');
+      expect(saveButton.attributes('disabled')).toBeDefined();
+    });
+
+    it('save button is disabled when split mode local part has consecutive dots', () => {
+      wrapper = mountComponent({
+        formState: {
+          from_name: 'Test',
+          from_address: 'he..llo@example.com',
+          reply_to: '',
+          enabled: true,
+        },
+        displayDomain: 'example.com',
+        flexibleFromDomain: false,
+        hasUnsavedChanges: true,
+      });
+
+      // composed address 'he..llo@example.com' fails z.string().email()
+      const saveButton = wrapper.find('button[type="submit"]');
+      expect(saveButton.attributes('disabled')).toBeDefined();
+    });
+
+    it('save button is disabled when split mode local part has a trailing dot', () => {
+      wrapper = mountComponent({
+        formState: {
+          from_name: 'Test',
+          from_address: 'hello.@example.com',
+          reply_to: '',
+          enabled: true,
+        },
+        displayDomain: 'example.com',
+        flexibleFromDomain: false,
+        hasUnsavedChanges: true,
+      });
+
+      // composed address 'hello.@example.com' fails z.string().email()
+      const saveButton = wrapper.find('button[type="submit"]');
+      expect(saveButton.attributes('disabled')).toBeDefined();
+    });
   });
 });
