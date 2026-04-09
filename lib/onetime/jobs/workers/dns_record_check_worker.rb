@@ -135,7 +135,7 @@ module Onetime
           # Compute dns_verified outcome: true if all records have value_matches=true
           records     = result[:records] || []
           all_matched = records.all? { |r| r['value_matches'] == true || r[:value_matches] == true }
-          mailer_config.dns_verified = all_matched.to_s
+          mailer_config.dns_verified = all_matched
 
           # Mark job as completed
           mailer_config.dns_check_status       = JobLifecycle::COMPLETED

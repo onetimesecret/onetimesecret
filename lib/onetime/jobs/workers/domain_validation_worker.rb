@@ -154,9 +154,13 @@ module Onetime
             base_delay: 2.0,
             retriable: ->(ex) { !ex.is_a?(Onetime::LimitExceeded) },
           ) do
+            # persist: false because this worker controls verification_status
+            # through update_verification_status! after BOTH workers complete.
+            # The operation would otherwise set verification_status='verified'
+            # based on DNS alone, before the provider API check runs.
             result = Onetime::Operations::ValidateSenderDomain.new(
               mailer_config: mailer_config,
-              persist: true,
+              persist: false,
               bypass_cache: bypass_cache,
             ).call
             # Re-raise so with_retry can retry transient DNS failures.
@@ -174,6 +178,7 @@ module Onetime
 
           # Provider-level verification: ask the provider API if the domain is verified.
           # This complements the DNS validation above.
+          provider_api_verified = nil
           begin
             provider = mailer_config.effective_provider
             if provider && provider != 'smtp'
@@ -183,6 +188,7 @@ module Onetime
 
               if creds && !creds.empty?
                 provider_result = sender_strategy.check_provider_verification_status(mailer_config, credentials: creds)
+                provider_api_verified = provider_result[:verified]
                 log_info "Provider verification check: #{domain_id}",
                   provider: provider,
                   verified: provider_result[:verified],
@@ -192,8 +198,14 @@ module Onetime
               end
             end
 
-            # Set provider_verified outcome based on result
-            mailer_config.provider_verified           = result.all_verified.to_s
+            # Set provider_verified from provider API check when available.
+            # Fall back to DNS result only when no provider credentials exist
+            # (degraded mode - better than leaving nil).
+            mailer_config.provider_verified = if provider_api_verified.nil?
+                                                result.all_verified
+                                              else
+                                                provider_api_verified
+                                              end
             mailer_config.provider_check_status       = JobLifecycle::COMPLETED
             mailer_config.provider_check_completed_at = Familia.now.to_i
             mailer_config.updated                     = Familia.now.to_i
