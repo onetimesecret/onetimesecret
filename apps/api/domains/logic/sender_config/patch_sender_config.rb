@@ -66,6 +66,13 @@ module DomainsAPI
 
           # Validate required fields
           validate_required_fields
+
+          # Enforce domain restriction based on entitlement.
+          # Only when from_address was explicitly provided or this is a new config —
+          # PATCH semantics: omitted fields preserve existing values unmodified.
+          if @from_address_provided || @existing_config.nil?
+            @from_address = enforce_from_domain(@from_address, @custom_domain, @organization)
+          end
         end
 
         def process

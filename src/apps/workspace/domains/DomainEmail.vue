@@ -55,6 +55,7 @@ const organization = computed(() =>
 );
 const { can } = useEntitlements(organization);
 const hasEntitlement = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
+const hasFlexibleFromDomain = computed(() => can(ENTITLEMENTS.FLEXIBLE_FROM_DOMAIN));
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 
 // ---------------------------------------------------------------------------
@@ -280,6 +281,8 @@ watch(hasEntitlement, async (entitled) => {
                 :test-result="testResult"
                 :test-error="testError"
                 :error="emailError?.message"
+                :display-domain="displayDomain"
+                :flexible-from-domain="hasFlexibleFromDomain"
                 @update:form-state="handleFormStateUpdate"
                 @save="saveConfig"
                 @discard="discardChanges"

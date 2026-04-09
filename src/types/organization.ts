@@ -52,6 +52,7 @@ export const ENTITLEMENTS = {
   CUSTOM_PRIVACY_DEFAULTS: 'custom_privacy_defaults',
   EXTENDED_DEFAULT_EXPIRATION: 'extended_default_expiration',
   CUSTOM_MAIL_SENDER: 'custom_mail_sender',
+  FLEXIBLE_FROM_DOMAIN: 'flexible_from_domain',
 
   // Branding
   CUSTOM_BRANDING: 'custom_branding',

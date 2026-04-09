@@ -122,6 +122,7 @@ export const entitlementSchema = z.enum([
   'custom_privacy_defaults',
   'extended_default_expiration',
   'custom_mail_sender',
+  'flexible_from_domain',
   'custom_branding',
   'incoming_secrets',
   'manage_orgs',

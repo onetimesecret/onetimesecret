@@ -195,6 +195,10 @@
     "text": "Custom Mail Defaults",
     "content_hash": "95aebfb9"
   },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Flexible Email Sender Domain",
+    "content_hash": "be10b493"
+  },
   "web.billing.overview.entitlements.custom_branding": {
     "text": "Custom Branding",
     "content_hash": "237dabec"
