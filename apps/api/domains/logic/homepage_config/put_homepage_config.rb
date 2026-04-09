@@ -33,20 +33,14 @@ module DomainsAPI
         end
 
         def process
-          OT.ld "[PutHomepageConfig] Setting homepage config for domain #{@domain_id} enabled=#{@enabled} by user #{cust.extid}"
+          OT.ld "[PutHomepageConfig] domain=#{@custom_domain.identifier} extid=#{@domain_id} enabled=#{@enabled} org=#{@organization.identifier} user=#{cust.extid}"
 
-          @homepage_config = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@custom_domain.identifier)
+          @homepage_config = Onetime::CustomDomain::HomepageConfig.upsert(
+            domain_id: @custom_domain.identifier,
+            enabled: @enabled,
+          )
 
-          if @homepage_config
-            @homepage_config.enabled = @enabled.to_s
-            @homepage_config.updated = Familia.now.to_i
-            @homepage_config.save
-          else
-            @homepage_config = Onetime::CustomDomain::HomepageConfig.create!(
-              domain_id: @custom_domain.identifier,
-              enabled: @enabled,
-            )
-          end
+          OT.ld "[PutHomepageConfig] saved domain=#{@custom_domain.identifier} enabled=#{@homepage_config.enabled?} updated=#{@homepage_config.updated}"
 
           success_data
         end

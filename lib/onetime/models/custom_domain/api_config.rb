@@ -122,6 +122,35 @@ module Onetime
           exists?(domain_id)
         end
 
+        # Create or update API config for a domain.
+        #
+        # Prefer this over create! for PUT endpoints: reduces the chance of a
+        # duplicate-create error under concurrent requests. Last write wins for
+        # the same domain_id key; created timestamp may reflect the second writer
+        # on a first-write race. Not fully atomic — use a Lua script if strict
+        # once-only create semantics are needed.
+        #
+        # @param domain_id [String] CustomDomain identifier
+        # @param enabled [Boolean, String] Whether to enable API access
+        # @return [CustomDomain::ApiConfig] The config (created or updated)
+        def upsert(domain_id:, enabled:)
+          raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
+
+          config = find_by_domain_id(domain_id)
+          now    = Familia.now.to_i
+
+          if config
+            config.created ||= now  # repair missing created from legacy records
+            config.enabled   = enabled.to_s
+            config.updated   = now
+          else
+            config = new(domain_id: domain_id, enabled: enabled.to_s, created: now, updated: now)
+          end
+
+          config.save
+          config
+        end
+
         # Create a new API config for a domain.
         #
         # @param domain_id [String] CustomDomain identifier

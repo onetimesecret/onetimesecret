@@ -33,20 +33,14 @@ module DomainsAPI
         end
 
         def process
-          OT.ld "[PutApiConfig] Setting API config for domain #{@domain_id} enabled=#{@enabled} by user #{cust.extid}"
+          OT.ld "[PutApiConfig] domain=#{@custom_domain.identifier} extid=#{@domain_id} enabled=#{@enabled} org=#{@organization.identifier} user=#{cust.extid}"
 
-          @api_config = Onetime::CustomDomain::ApiConfig.find_by_domain_id(@custom_domain.identifier)
+          @api_config = Onetime::CustomDomain::ApiConfig.upsert(
+            domain_id: @custom_domain.identifier,
+            enabled: @enabled,
+          )
 
-          if @api_config
-            @api_config.enabled = @enabled.to_s
-            @api_config.updated = Familia.now.to_i
-            @api_config.save
-          else
-            @api_config = Onetime::CustomDomain::ApiConfig.create!(
-              domain_id: @custom_domain.identifier,
-              enabled: @enabled,
-            )
-          end
+          OT.ld "[PutApiConfig] saved domain=#{@custom_domain.identifier} enabled=#{@api_config.enabled?} updated=#{@api_config.updated}"
 
           success_data
         end

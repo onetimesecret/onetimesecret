@@ -528,7 +528,7 @@ module Onetime
 
     def allow_public_homepage?
       homepage_config = HomepageConfig.find_by_domain_id(identifier)
-      return homepage_config.enabled? if homepage_config&.exists?
+      return homepage_config.enabled? if homepage_config
 
       # Legacy fallback: read from brand_settings (remove in future release)
       brand_settings.allow_public_homepage?
@@ -536,7 +536,7 @@ module Onetime
 
     def allow_public_api?
       api_config = ApiConfig.find_by_domain_id(identifier)
-      return api_config.enabled? if api_config&.exists?
+      return api_config.enabled? if api_config
 
       # Legacy fallback: read from brand_settings (remove in future release)
       brand_settings.allow_public_api?
