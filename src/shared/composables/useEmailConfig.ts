@@ -294,19 +294,17 @@ export function useEmailConfig(domainExtId: string) {
    * worker typically completes within 1-3 seconds, so 3s intervals for
    * up to 30s covers even degraded-DNS scenarios.
    */
-  // eslint-disable-max-depth: off
   const pollForValidationResult = async (intervalMs = 3000, maxAttempts = 10): Promise<void> => {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
       if (pollingCancelled.value) return;
       try {
         const config = await domainsStore.getEmailConfig(domainExtId);
-        if (config) {
-          emailConfig.value = config;
-          formState.value = configToFormState(config);
-          savedFormState.value = { ...formState.value };
-          if (config.validation_status !== 'pending') return;
-        }
+        if (!config) continue;
+        emailConfig.value = config;
+        formState.value = configToFormState(config);
+        savedFormState.value = { ...formState.value };
+        if (config.validation_status !== 'pending') return;
       } catch (err: unknown) {
         // Break on non-retriable auth errors; retry transient failures
         const status = (err as { code?: number })?.code;
@@ -314,7 +312,6 @@ export function useEmailConfig(domainExtId: string) {
       }
     }
   };
-  // eslint-enable-max-depth
 
   /**
    * Send a test email using the currently saved configuration.
