@@ -37,11 +37,11 @@ gem 'omniauth_openid_connect', '~> 0.8'
 
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'
-gem 'rack', '>= 3.2', '< 4.0'
+gem 'rack', '>= 3.2.6', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
 gem 'rack-protection', '~> 4.1'
 gem 'rack-proxy', '~> 0.7'
-gem 'rack-session', '~> 2.1.1'
+gem 'rack-session', '~> 2.1.2'
 gem 'rack-utf8_sanitizer'
 
 # ====================================
