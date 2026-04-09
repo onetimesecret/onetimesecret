@@ -215,8 +215,10 @@ module Onetime
             # so the UI can surface it (e.g. 'verified', 'pending_verification').
             if provider_result
               current_provider_data                 = mailer_config.provider_dns_data.value || {}
+              provider_records                      = provider_result.dig(:details, :dns_records) || []
               mailer_config.provider_dns_data.value = current_provider_data.merge(
                 'status' => provider_result[:status],
+                'dns_records' => provider_records,
               )
             end
 

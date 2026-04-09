@@ -197,7 +197,7 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
             </span>
             <span
               class="inline-flex items-center gap-1"
-              :class="effectiveStatus === 'verified' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-300 dark:text-gray-600'">
+              :class="(record.provider_verified === true || (record.provider_verified == null && effectiveStatus === 'verified')) ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-300 dark:text-gray-600'">
               <OIcon
                 collection="heroicons"
                 name="check-circle-solid"

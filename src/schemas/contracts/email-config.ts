@@ -108,6 +108,9 @@ export const emailDnsRecordSchema = z.object({
 
   /** Whether the DNS record value matches the provisioned value. Null if not yet checked. */
   value_matches: z.boolean().nullable().optional(),
+
+  /** Whether the provider (e.g. Lettermint) has verified this specific record. Absent if no provider data yet. */
+  provider_verified: z.boolean().nullable().optional(),
 });
 
 export type EmailDnsRecord = z.infer<typeof emailDnsRecordSchema>;
