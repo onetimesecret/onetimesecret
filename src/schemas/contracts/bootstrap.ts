@@ -192,8 +192,8 @@ export const ssoConfigSchema = z.object({
 // trigger default population at all levels. Extract inner schema and use
 // .default(inner.parse({})) to trigger nested defaults.
 //
-// Check colinhacks/zod#5764 for decision on v4 native solution, and
-// hopefully simplify to: organizations: z.object({...}).default({})
+// Check colinhacks/zod#5764 for decision on v4 native solution, and hopefully
+// can simplify to something like: organizations: z.object({...}).default({}).
 const organizationFeaturesInner = z.object({
   enabled: z.boolean().default(false),
   sso_enabled: z.boolean().default(false),
