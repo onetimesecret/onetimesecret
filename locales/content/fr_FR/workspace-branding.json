@@ -12,7 +12,7 @@
     "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Famille de polices",
+    "text": "Famille de police",
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
@@ -60,7 +60,7 @@
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Contactez integration{'@'}exemple.com pour toute question",
+    "text": "Contactez onboarding{'@'}example.com pour toute question",
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -92,7 +92,7 @@
     "source_hash": "a35452bf"
   },
   "web.branding.upload_logo": {
-    "text": "Télécharger un logo",
+    "text": "Télécharger le logo",
     "source_hash": "c3330082"
   },
   "web.branding.loading_preview": {
@@ -104,7 +104,7 @@
     "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
-    "text": "Icône d'œil",
+    "text": "Icône en forme d'oeil",
     "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
@@ -132,7 +132,7 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Ceci est un aperçu interactif de la façon dont les destinataires verront vos messages sécurisés. Vous pouvez : - Personnaliser les couleurs et les polices à l'aide des contrôles ci-dessus - Télécharger un logo (minimum 128x128 pixels recommandé, 1 Mo max) - Tester l'aperçu en utilisant le bouton « Voir le secret »",
+    "text": "Ceci est un aperçu interactif de la façon dont les destinataires verront vos messages sécurisés. Vous pouvez : - Personnaliser les couleurs et les polices avec les contrôles ci-dessus - Télécharger un logo (minimum 128x128 pixels recommandé, 1 Mo max) - Tester l'aperçu avec le bouton « Consulter le secret »",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -168,7 +168,10 @@
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Mettez votre forfait à niveau pour personnaliser l'image de marque de ce domaine.",
+    "text": "Passez à un forfait supérieur pour personnaliser l'image de marque de ce domaine.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Paramètres de marque enregistrés avec succès"
   }
 }

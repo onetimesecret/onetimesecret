@@ -5,7 +5,7 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "Des liens sécurisés à usage unique",
+    "text": "Liens sécurisés à usage unique",
     "source_hash": "9da7aece"
   },
   "web.COMMON.powered_by": {
@@ -21,15 +21,15 @@
     "source_hash": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Générer un mot de passe est désactivé lorsque le formulaire est valide",
+    "text": "La génération de mot de passe est désactivée lorsque le formulaire est valide",
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
-    "text": "ex. tom{'@'}myspace.com",
+    "text": "p. ex. tom{'@'}myspace.com",
     "source_hash": "f2350739"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Saisissez votre mot de passe",
+    "text": "Entrez votre mot de passe",
     "source_hash": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
@@ -37,7 +37,7 @@
     "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Renforcez les liens et établissez la confiance avec vos propres liens secrets personnalisés.",
+    "text": "Renforcez vos connexions et instaurez la confiance avec vos propres liens secrets personnalisés.",
     "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
@@ -53,7 +53,7 @@
     "source_hash": "74a883a0"
   },
   "web.COMMON.submit_with": {
-    "text": "Envoyer",
+    "text": "Soumettre",
     "source_hash": "155f816c"
   },
   "web.COMMON.submitting": {
@@ -61,11 +61,11 @@
     "source_hash": "64115d5b"
   },
   "web.COMMON.processing": {
-    "text": "Traitement...",
+    "text": "Traitement en cours...",
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Gardez les informations sensibles hors de vos historiques de conversation et e-mails. Partagez un lien secret qui n'est disponible qu'une seule fois.",
+    "text": "Gardez les informations sensibles hors de vos journaux de chat et de vos e-mails. Partagez un lien secret disponible une seule fois.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
@@ -101,7 +101,7 @@
     "source_hash": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Saisissez votre contenu secret ici...",
+    "text": "Le contenu secret va ici...",
     "source_hash": "54630bab"
   },
   "web.COMMON.header_create_account": {
@@ -113,7 +113,7 @@
     "source_hash": "4efca0d1"
   },
   "web.COMMON.header_sign_in": {
-    "text": "Connexion",
+    "text": "Se connecter",
     "source_hash": "bcc0bcc9"
   },
   "web.COMMON.header_dashboard": {
@@ -161,15 +161,15 @@
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Brûler un secret le supprimera avant qu'il n'ait été lu (cliquer pour confirmer)",
+    "text": "La destruction d'un secret le supprimera avant qu'il n'ait été lu (cliquez pour confirmer)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Brûler un secret est définitif et irréversible",
+    "text": "La destruction d'un secret est définitive et irréversible",
     "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Vérifiez vos e-mails",
+    "text": "Vérifiez votre e-mail",
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
@@ -177,7 +177,7 @@
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Continuer pour vérifier votre compte :",
+    "text": "Continuez pour vérifier votre compte :",
     "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
@@ -185,19 +185,19 @@
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Vérifiez cette phrase secrète",
+    "text": "Vérifiez à nouveau cette phrase secrète",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Saisissez la phrase secrète ici",
+    "text": "Entrez la phrase secrète ici",
     "source_hash": "ee855dad"
   },
   "web.COMMON.view_secret": {
-    "text": "Voir le secret",
+    "text": "Consulter le secret",
     "source_hash": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Attention : nous ne l'afficherons qu'une seule fois.",
+    "text": "Attention : nous ne l'afficherons qu'une seule fois.",
     "source_hash": "d29e2820"
   },
   "web.COMMON.warning": {
@@ -205,7 +205,7 @@
     "source_hash": "e981ddae"
   },
   "web.COMMON.oops": {
-    "text": "Oups !",
+    "text": "Oups !",
     "source_hash": "8344947a"
   },
   "web.COMMON.error": {
@@ -213,7 +213,7 @@
     "source_hash": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Une erreur inattendue est survenue. Veuillez réessayer.",
+    "text": "Une erreur inattendue s'est produite. Veuillez réessayer.",
     "source_hash": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
@@ -221,7 +221,7 @@
     "source_hash": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Inscrivez-vous pour plus",
+    "text": "Inscription pour en savoir plus",
     "source_hash": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
@@ -229,7 +229,7 @@
     "source_hash": "62f1fe13"
   },
   "web.COMMON.sent_to": {
-    "text": "Envoyé à :",
+    "text": "Envoyé à :",
     "source_hash": "e79c8bcb"
   },
   "web.COMMON.field_email": {
@@ -293,7 +293,7 @@
     "source_hash": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Envoyer un commentaire",
+    "text": "Envoyer un retour",
     "source_hash": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
@@ -305,11 +305,11 @@
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Si un compte existe avec cet e-mail, vous recevrez un e-mail de vérification.",
+    "text": "Si un compte avec cette adresse e-mail existe, vous recevrez un e-mail de vérification.",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Brûler ce secret définitivement",
+    "text": "Brûler définitivement ce secret",
     "source_hash": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
@@ -317,7 +317,7 @@
     "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Êtes-vous sûr de vouloir brûler ce secret ? Cette action est irréversible.",
+    "text": "Êtes-vous sûr de vouloir brûler ce secret ? Cette action est irréversible.",
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
@@ -325,11 +325,11 @@
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Brûler un secret le supprimera avant qu'il n'ait été reçu.",
+    "text": "La destruction d'un secret le supprimera avant qu'il n'ait été reçu.",
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Pour la sécurité, partagez ce lien séparément des autres informations.",
+    "text": "Par sécurité, partagez ce lien séparément des autres informations.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -361,11 +361,11 @@
     "source_hash": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "Le mot de passe doit contenir au moins 8 caractères",
+    "text": "Le mot de passe doit comporter au moins 8 caractères",
     "source_hash": "e3b8d09d"
   },
   "web.COMMON.password_requirements": {
-    "text": "Le mot de passe doit contenir au moins 8 caractères",
+    "text": "Le mot de passe doit comporter au moins 8 caractères",
     "source_hash": "e5054833"
   },
   "web.COMMON.passwords_do_not_match": {
@@ -385,7 +385,7 @@
     "source_hash": "6e069c11"
   },
   "web.COMMON.redirecting": {
-    "text": "Redirection...",
+    "text": "Redirection en cours...",
     "source_hash": "cd23991b"
   },
   "web.COMMON.continue": {
@@ -393,7 +393,7 @@
     "source_hash": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Êtes-vous sûr ?",
+    "text": "Êtes-vous sûr ?",
     "source_hash": "f0762c4f"
   },
   "web.COMMON.danger_zone": {
@@ -433,11 +433,11 @@
     "source_hash": "0a6691ef"
   },
   "web.COMMON.e_g_example": {
-    "text": "ex.",
+    "text": "p. ex.",
     "source_hash": "a79b4bf9"
   },
   "web.COMMON.example_placeholder": {
-    "text": "ex. {example}",
+    "text": "p. ex. {example}",
     "source_hash": "cc921aaa"
   },
   "web.COMMON.about": {
@@ -465,7 +465,7 @@
     "source_hash": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Appuyez sur Échap pour fermer",
+    "text": "Appuyez sur ÉCHAP pour fermer",
     "source_hash": "5aa83883"
   },
   "web.COMMON.enter": {
@@ -501,7 +501,7 @@
     "source_hash": "c910d474"
   },
   "web.COMMON.note": {
-    "text": "Note",
+    "text": "Remarque",
     "source_hash": "d8da2c49"
   },
   "web.COMMON.monthly": {
@@ -513,7 +513,7 @@
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Allez-y.",
+    "text": "Allons-y.",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
@@ -545,7 +545,7 @@
     "source_hash": "5697d03d"
   },
   "web.COMMON.not_found": {
-    "text": "Introuvable",
+    "text": "Non trouvé",
     "source_hash": "0019dfc4"
   },
   "web.COMMON.emoji_x": {
@@ -585,7 +585,7 @@
     "source_hash": "8b3795aa"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "Adresse e-mail copiée dans le presse-papiers !",
+    "text": "Adresse e-mail copiée dans le presse-papiers !",
     "source_hash": "23238b4e"
   },
   "web.COMMON.value": {
@@ -609,11 +609,11 @@
     "source_hash": "1ff57a29"
   },
   "web.COMMON.password_strength": {
-    "text": "Robustesse du mot de passe :",
+    "text": "Force du mot de passe :",
     "source_hash": "663d6499"
   },
   "web.COMMON.great": {
-    "text": "Très bien",
+    "text": "Excellent",
     "source_hash": "c8cc1c7b"
   },
   "web.COMMON.pretty_good": {
@@ -641,7 +641,7 @@
     "source_hash": "ac7c949f"
   },
   "web.COMMON.an_error_occurred": {
-    "text": "Une erreur est survenue",
+    "text": "Une erreur s'est produite",
     "source_hash": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
@@ -653,7 +653,7 @@
     "source_hash": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Vérifiez cette phrase secrète",
+    "text": "Vérifiez à nouveau cette phrase secrète",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
@@ -749,7 +749,7 @@
     "source_hash": "57330d93"
   },
   "web.LABELS.need_help": {
-    "text": "Besoin d'aide ?",
+    "text": "Besoin d'aide ?",
     "source_hash": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
@@ -797,11 +797,11 @@
     "source_hash": "48187543"
   },
   "web.LABELS.view": {
-    "text": "Voir",
+    "text": "Consulter",
     "source_hash": "dcc839a4"
   },
   "web.LABELS.views": {
-    "text": "Vues",
+    "text": "Consultations",
     "source_hash": "69c40459"
   },
   "web.LABELS.times_viewed": {
@@ -817,15 +817,15 @@
     "source_hash": "614e14f0"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Protégé par phrase secrète",
+    "text": "Protégé par une phrase secrète",
     "source_hash": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
-    "text": "Commentaire reçu.",
+    "text": "Retour reçu.",
     "source_hash": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
-    "text": "Envoi...",
+    "text": "Envoi en cours...",
     "source_hash": "286a3af7"
   },
   "web.LABELS.title_recent_secrets": {
@@ -853,7 +853,7 @@
     "source_hash": "83b12c22"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Liens secrets créés lors de cette session",
+    "text": "Liens secrets créés au cours de cette session",
     "source_hash": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
@@ -962,7 +962,7 @@
     "source_hash": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "Le lien secret a été créé et n'a pas été consulté",
+    "text": "Le lien secret a été créé et n'a pas encore été consulté",
     "source_hash": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
@@ -982,7 +982,7 @@
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
-    "text": "Le secret a été brûlé manuellement avant d'être consulté",
+    "text": "Le secret a été brûlé manuellement avant d'avoir été consulté",
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
@@ -990,15 +990,15 @@
     "source_hash": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "Le secret expirera bientôt",
+    "text": "Le secret va bientôt expirer",
     "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Le secret a été orphelin et sera bientôt détruit",
+    "text": "Le secret est devenu orphelin et sera bientôt détruit",
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "Le secret a expiré avant d'être consulté",
+    "text": "Le secret a expiré avant d'avoir été consulté",
     "source_hash": "f527de55"
   },
   "web.STATUS.success": {
@@ -1006,7 +1006,7 @@
     "source_hash": "c88a0b90"
   },
   "web.STATUS.delivered": {
-    "text": "Livré",
+    "text": "Remis",
     "source_hash": "90611565"
   },
   "web.STATUS.dns_incorrect": {
@@ -1022,7 +1022,7 @@
     "source_hash": "ac7c949f"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Vues illimitées",
+    "text": "Consultations illimitées",
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
@@ -1058,7 +1058,7 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} restantes",
+    "text": "{count} {unit} restant(s)",
     "source_hash": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
@@ -1082,7 +1082,7 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "Limite de {count} consultations",
+    "text": "Limite de {count} consultation(s)",
     "source_hash": "8db0e228"
   },
   "web.UNITS.days_remaining": {
@@ -1102,7 +1102,7 @@
     "source_hash": "883dbca9"
   },
   "web.TITLES.feedback": {
-    "text": "Commentaires",
+    "text": "Retour d'information",
     "source_hash": "aac77df3"
   },
   "web.TITLES.help": {
@@ -1126,7 +1126,7 @@
     "source_hash": "4e70f1fd"
   },
   "web.TITLES.logout": {
-    "text": "Déconnexion en cours",
+    "text": "Déconnexion",
     "source_hash": "afbce8a6"
   },
   "web.TITLES.verify_account": {
@@ -1267,7 +1267,7 @@
     "source_hash": "1f87f883"
   },
   "web.TITLES.not_found": {
-    "text": "Page introuvable",
+    "text": "Page non trouvée",
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
@@ -1303,7 +1303,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vérifiez toujours que vous êtes sur le site officiel de Onetime Secret. Des fraudeurs créent parfois de faux sites qui ressemblent exactement à Onetime Secret pour voler vos secrets. Pour éviter les attaques de phishing, vérifiez le domaine régional avant de créer de nouveaux liens.",
+    "text": "Vérifiez toujours que vous êtes sur le site officiel de Onetime Secret. Les fraudeurs créent parfois de faux sites qui ressemblent exactement à Onetime Secret pour voler vos secrets. Pour éviter les attaques de hameçonnage, vérifiez le domaine dans la barre d'adresse avant de créer de nouveaux liens.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1311,7 +1311,7 @@
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "Choisissez le forfait qui correspond à vos besoins. Tous les forfaits incluent le partage illimité de secrets et une conception axée sur la confidentialité.",
+    "text": "Choisissez le forfait adapté à vos besoins. Tous les forfaits incluent le partage illimité de secrets et une conception axée sur la confidentialité.",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
@@ -1323,7 +1323,7 @@
     "source_hash": "983f3110"
   },
   "web.pricing.already_have_account": {
-    "text": "Vous avez déjà un compte ?",
+    "text": "Vous avez déjà un compte ?",
     "source_hash": "e77fea93"
   },
   "web.pricing.sign_in": {
@@ -1355,7 +1355,7 @@
     "source_hash": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
-    "text": "Créez et partagez des secrets avec les fonctionnalités de base. Aucune carte bancaire requise.",
+    "text": "Créez et partagez des secrets avec les fonctionnalités de base. Aucune carte de crédit requise.",
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
@@ -1364,7 +1364,7 @@
     "source_hash": "09055357"
   },
   "web.COMMON.password_required_for_action": {
-    "text": "Votre mot de passe est requis pour effectuer cette action",
+    "text": "Votre mot de passe est nécessaire pour effectuer cette action",
     "context": "Description for password confirmation modal",
     "source_hash": "cc078766"
   },
@@ -1374,7 +1374,7 @@
     "source_hash": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "Service temporairement indisponible. Veuillez réessayer sous peu.",
+    "text": "Service temporairement indisponible. Veuillez réessayer dans quelques instants.",
     "context": "Error message when database connection fails",
     "source_hash": "343ccdcb"
   },
@@ -1384,8 +1384,56 @@
     "source_hash": "fb961f3f"
   },
   "web.COMMON.upgrade_description": {
-    "text": "Mettre à niveau pour débloquer plus de fonctionnalités",
+    "text": "Passer à un forfait supérieur pour débloquer plus de fonctionnalités",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "Configurer"
+  },
+  "web.COMMON.add": {
+    "text": "Ajouter"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Oui, supprimer"
+  },
+  "web.COMMON.error_code": {
+    "text": "Code d'erreur"
+  },
+  "web.COMMON.http_status": {
+    "text": "Statut HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "Détails"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Confirmer le mot de passe"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Les mots de passe doivent correspondre"
+  },
+  "web.COMMON.and": {
+    "text": "et"
+  },
+  "web.COMMON.or": {
+    "text": "ou"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Afficher la phrase secrète"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Masquer la phrase secrète"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Paramètres du domaine"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO du domaine"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Configuration des e-mails"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Secrets entrants"
   }
 }

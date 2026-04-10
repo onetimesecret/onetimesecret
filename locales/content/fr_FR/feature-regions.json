@@ -4,19 +4,19 @@
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Vos données résident exclusivement dans la région que vous avez choisie et ne sont jamais transférées entre régions",
+    "text": "Vos données résident exclusivement dans la région choisie et ne sont jamais transférées entre les régions",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Chaque région fonctionne comme un environnement complètement indépendant avec sa propre infrastructure, ses propres clés de chiffrement et son propre stockage de données",
+    "text": "Chaque région fonctionne comme un environnement entièrement indépendant avec sa propre infrastructure, ses propres clés de chiffrement et son propre stockage de données",
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Nous maintenons une politique stricte : les données des clients ne sont jamais transférées entre régions en aucune circonstance",
+    "text": "Nous appliquons une politique stricte : les données des clients ne sont jamais transférées entre les régions en aucune circonstance",
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Important : Changer de région crée un nouveau compte. Vos données restent dans votre région d'origine.",
+    "text": "Important : Le passage à une autre région crée un nouveau compte. Vos données restent dans votre région d'origine.",
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
@@ -52,7 +52,7 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Assurez-vous que vos informations personnelles sont traitées conformément aux lois et réglementations de votre pays en matière de vie privée, empêchant tout accès ou utilisation non autorisés.",
+    "text": "Assurez-vous que vos informations personnelles sont traitées conformément aux lois et réglementations de votre pays en matière de protection de la vie privée, empêchant tout accès non autorisé ou toute utilisation abusive.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -60,7 +60,7 @@
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Respectez les exigences du RGPD, HIPAA, CCPA et autres réglementations régionales de protection des données",
+    "text": "Répondez aux exigences du RGPD, HIPAA, CCPA et autres réglementations régionales de protection des données",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -68,7 +68,7 @@
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "Des données stockées plus près de vous signifient une latence réduite et de meilleures performances.",
+    "text": "Des données stockées plus près de vous signifient une latence plus faible et de meilleures performances.",
     "source_hash": "e133ef1d"
   },
   "web.regions.regions": {
@@ -128,7 +128,7 @@
     "source_hash": "eae2e122"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Vous êtes servi depuis",
+    "text": "Serveur situé dans",
     "source_hash": "25db17aa"
   },
   "web.regions.continue_to_jurisdiction_domain": {
@@ -136,7 +136,7 @@
     "source_hash": "dd1a44e4"
   },
   "web.regions.current_jurisdiction": {
-    "text": "Juridiction actuelle :",
+    "text": "Juridiction actuelle :",
     "source_hash": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
@@ -144,19 +144,22 @@
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "Notre politique est de ne jamais transférer de données entre les régions. Chaque région fonctionne comme un environnement totalement indépendant.",
+    "text": "Notre politique est de ne jamais transférer de données entre les régions. Chaque région fonctionne comme un environnement entièrement indépendant.",
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "Pour utiliser une autre région, créez un nouveau compte en utilisant la même adresse e-mail associée à votre e-mail de contact de facturation.",
+    "text": "Pour utiliser une autre région, créez-y un nouveau compte en utilisant la même adresse e-mail associée à votre contact de facturation.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Si votre e-mail de contact de facturation diffère de votre e-mail de compte Onetime Secret, utilisez l'e-mail de contact de facturation pour le nouveau compte régional afin de conserver vos avantages d'abonnement.",
+    "text": "Si votre adresse e-mail de facturation diffère de celle de votre compte Onetime Secret, utilisez l'adresse e-mail de facturation pour le nouveau compte de région afin de conserver les avantages de votre abonnement.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Vos avantages d'abonnement s'appliqueront automatiquement à tout compte créé avec votre adresse e-mail de facturation.",
+    "text": "Les avantages de votre abonnement s'appliqueront automatiquement à tout compte créé avec votre adresse e-mail de facturation.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Aucune information de région n'est actuellement disponible pour votre compte."
   }
 }

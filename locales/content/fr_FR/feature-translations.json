@@ -36,11 +36,11 @@
     "source_hash": "fee7dd79"
   },
   "web.translations.have_questions": {
-    "text": "Vous avez des questions ?",
+    "text": "Des questions ?",
     "source_hash": "75e4b61a"
   },
   "web.translations.send_translations_by_email_to": {
-    "text": "Envoyez les traductions par e-mail à",
+    "text": "Envoyez vos traductions par e-mail à",
     "source_hash": "f96a59a1"
   },
   "web.translations.english_template": {
@@ -48,7 +48,7 @@
     "source_hash": "1a843644"
   },
   "web.translations.start_a_new_translation_from_our": {
-    "text": "Commencez une nouvelle traduction à partir de notre",
+    "text": "Démarrez une nouvelle traduction à partir de notre",
     "source_hash": "b963b7e9"
   },
   "web.translations.update_a_language_directly_through_our_github_pr": {

@@ -28,19 +28,19 @@
     "source_hash": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Les journaux d'audit nécessitent le forfait Multi-équipes ou supérieur",
+    "text": "Les journaux d'audit nécessitent le forfait Multi-équipe ou supérieur",
     "source_hash": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Gérez votre abonnement, vos organisations et vos paramètres de facturation",
+    "text": "Gérer votre abonnement, vos organisations et vos paramètres de facturation",
     "source_hash": "3995095c"
   },
   "web.billing.overview.title": {
-    "text": "Aperçu de la facturation",
+    "text": "Vue d'ensemble de la facturation",
     "source_hash": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "Consultez et gérez votre abonnement et vos détails de paiement",
+    "text": "Consultez et gérez votre abonnement et vos informations de paiement",
     "source_hash": "60e5a00e"
   },
   "web.billing.overview.billing_for_organization": {
@@ -88,15 +88,15 @@
     "source_hash": "cbc4ef92"
   },
   "web.billing.plans.legacy_plan_info": {
-    "text": "Vous bénéficiez d'un forfait avec tarification spéciale maintenue.",
+    "text": "Vous bénéficiez d'un forfait historique avec un tarif spécial.",
     "source_hash": "e9aa8bf0"
   },
   "web.billing.plans.early_supporter_plan": {
-    "text": "Identity Plus (Soutien de la première heure)",
+    "text": "Identity Plus (Soutien précoce)",
     "source_hash": "f37cd0d9"
   },
   "web.billing.plans.legacy_plan_warning": {
-    "text": "Changer de forfait entraînera la perte de votre tarif préférentiel. Cette action est irréversible.",
+    "text": "Changer de forfait entraînera la perte de votre tarif historique. Cette action est irréversible.",
     "source_hash": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
@@ -180,15 +180,15 @@
     "source_hash": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Paramètres de confidentialité personnalisés par défaut",
+    "text": "Paramètres de confidentialité par défaut personnalisés",
     "source_hash": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Expiration par défaut prolongée",
+    "text": "Expiration par défaut étendue",
     "source_hash": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_sender": {
-    "text": "Paramètres de messagerie personnalisés par défaut",
+    "text": "Paramètres d'e-mail personnalisés",
     "source_hash": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
@@ -228,7 +228,7 @@
     "source_hash": "ed8a65c8"
   },
   "web.billing.overview.entitlements.sla": {
-    "text": "Accord de niveau de service",
+    "text": "Contrat de niveau de service",
     "source_hash": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
@@ -288,7 +288,7 @@
     "source_hash": "ed8a65c8"
   },
   "web.billing.features.sla": {
-    "text": "Accord de niveau de service",
+    "text": "Contrat de niveau de service",
     "source_hash": "436f2550"
   },
   "web.billing.features.centralized_billing": {
@@ -300,11 +300,11 @@
     "source_hash": "d52b4039"
   },
   "web.billing.features.activity_stream": {
-    "text": "Flux d'activité",
+    "text": "Fil d'activité",
     "source_hash": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
-    "text": "Flux de travail de transfert",
+    "text": "Flux de transmission",
     "source_hash": "07202af3"
   },
   "web.billing.plans.title": {
@@ -312,11 +312,11 @@
     "source_hash": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Choisissez le forfait qui correspond à vos besoins",
+    "text": "Choisissez le forfait adapté à vos besoins",
     "source_hash": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "Choisissez le forfait parfait pour votre organisation",
+    "text": "Choisissez le forfait idéal pour votre organisation",
     "source_hash": "308076f2"
   },
   "web.billing.plans.current": {
@@ -364,7 +364,7 @@
     "source_hash": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Multi-équipes",
+    "text": "Multi-équipe",
     "source_hash": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
@@ -396,7 +396,7 @@
     "source_hash": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "Sélectionner un forfait",
+    "text": "Sélectionner le forfait",
     "source_hash": "8709f894"
   },
   "web.billing.plans.contact_sales": {
@@ -404,11 +404,11 @@
     "source_hash": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Vous avez des questions ou besoin de quelque chose de personnalisé ?",
+    "text": "Des questions ou un besoin personnalisé ?",
     "source_hash": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Nous serions ravis de vous entendre. Faites-nous savoir ce que vous recherchez.",
+    "text": "Nous serions ravis d'échanger avec vous. Dites-nous ce que vous recherchez.",
     "source_hash": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
@@ -436,11 +436,11 @@
     "source_hash": "93b63bab"
   },
   "web.billing.plans.everything_in": {
-    "text": "Inclut tout ce qui est dans {plan}",
+    "text": "Inclut tout dans {plan}",
     "source_hash": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Aucun forfait {interval} disponible actuellement.",
+    "text": "Aucun forfait {interval} disponible pour le moment.",
     "source_hash": "d8454436"
   },
   "web.billing.plans.load_error": {
@@ -452,23 +452,23 @@
     "source_hash": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
-    "text": "Forfait actuel :",
+    "text": "Forfait actuel :",
     "source_hash": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "Nouveau forfait :",
+    "text": "Nouveau forfait :",
     "source_hash": "edb868c4"
   },
   "web.billing.plans.credit_label": {
-    "text": "Crédit pour le temps non utilisé :",
+    "text": "Crédit pour le temps non utilisé :",
     "source_hash": "001e4901"
   },
   "web.billing.plans.due_today": {
-    "text": "Dû aujourd'hui :",
+    "text": "À payer aujourd'hui :",
     "source_hash": "e370e3aa"
   },
   "web.billing.plans.next_billing": {
-    "text": "Prochaine facturation ({date}) :",
+    "text": "Prochaine facturation ({date}) :",
     "source_hash": "a6846a85"
   },
   "web.billing.plans.next_invoice": {
@@ -492,31 +492,31 @@
     "source_hash": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Passer à {plan} ?",
+    "text": "Passer au forfait {plan} ?",
     "source_hash": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Rétrograder vers {plan} ?",
+    "text": "Rétrograder vers le forfait {plan} ?",
     "source_hash": "8eb8ea81"
   },
   "web.billing.plans.credit_applies_heading": {
-    "text": "Comment votre crédit s'applique :",
+    "text": "Comment votre crédit s'applique :",
     "source_hash": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
-    "text": "Montant de la prochaine facture :",
+    "text": "Montant de la prochaine facture :",
     "source_hash": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
-    "text": "Crédit appliqué :",
+    "text": "Crédit appliqué :",
     "source_hash": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
-    "text": "Montant dû à la prochaine facturation :",
+    "text": "Montant dû à la prochaine facturation :",
     "source_hash": "22ee868a"
   },
   "web.billing.plans.remaining_account_credit": {
-    "text": "Crédit de compte restant :",
+    "text": "Crédit restant sur le compte :",
     "source_hash": "eedd0c0a"
   },
   "web.billing.plans.credit_future_note": {
@@ -528,7 +528,7 @@
     "source_hash": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "Consultez votre historique de facturation et téléchargez vos factures",
+    "text": "Consultez votre historique de facturation et téléchargez les factures",
     "source_hash": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
@@ -564,7 +564,7 @@
     "source_hash": "a865d424"
   },
   "web.billing.invoices.paid": {
-    "text": "Payé",
+    "text": "Payée",
     "source_hash": "fb81b961"
   },
   "web.billing.invoices.pending": {
@@ -572,7 +572,7 @@
     "source_hash": "331551b0"
   },
   "web.billing.invoices.failed": {
-    "text": "Échoué",
+    "text": "Échouée",
     "source_hash": "031a8f0f"
   },
   "web.billing.invoices.draft": {
@@ -580,11 +580,11 @@
     "source_hash": "d2e16e61"
   },
   "web.billing.invoices.open": {
-    "text": "Ouverte",
+    "text": "En cours",
     "source_hash": "ed077f3d"
   },
   "web.billing.invoices.uncollectible": {
-    "text": "Irrécouvrable",
+    "text": "Irrécupérable",
     "source_hash": "c8d3b241"
   },
   "web.billing.invoices.void": {
@@ -608,7 +608,7 @@
     "source_hash": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Mettez à niveau pour ajouter plus de membres",
+    "text": "Passez à un forfait supérieur pour ajouter plus de membres",
     "source_hash": "602bdef4"
   },
   "web.billing.subscription.title": {
@@ -628,7 +628,7 @@
     "source_hash": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
-    "text": "En retard",
+    "text": "En retard de paiement",
     "source_hash": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
@@ -640,11 +640,11 @@
     "source_hash": "fa8ed0bd"
   },
   "web.billing.subscription.team_usage": {
-    "text": "Utilisation des équipes",
+    "text": "Utilisation d'équipe",
     "source_hash": "f9989642"
   },
   "web.billing.subscription.teams_used": {
-    "text": "{used} équipes sur {limit}",
+    "text": "{used} sur {limit} équipes",
     "source_hash": "1db6b53c"
   },
   "web.billing.portal.title": {
@@ -712,7 +712,7 @@
     "source_hash": "75403743"
   },
   "web.billing.t_benefits_of_identity_plus": {
-    "text": "{0} : Identity Plus",
+    "text": "{0} : Identity Plus",
     "source_hash": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
@@ -728,7 +728,7 @@
     "source_hash": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Tous les forfaits incluent le choix de localisation des données : {0} régions",
+    "text": "Tous les forfaits incluent le choix de la localité des données : {0} régions",
     "source_hash": "22a60b49"
   },
   "web.billing.get_started": {
@@ -770,11 +770,11 @@
     "source_hash": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
-    "text": "Êtes-vous sûr de vouloir annuler votre abonnement {plan} ?",
+    "text": "Êtes-vous sûr de vouloir annuler votre abonnement {plan} ?",
     "source_hash": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
-    "text": "Ce qui se passe lorsque vous annulez :",
+    "text": "Ce qui se passe lorsque vous annulez :",
     "source_hash": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
@@ -790,7 +790,7 @@
     "source_hash": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
-    "text": "Votre compte reviendra au forfait gratuit",
+    "text": "Votre compte passera au forfait gratuit",
     "source_hash": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
@@ -812,7 +812,7 @@
     "source_hash": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
-    "text": "Annulation d'abonnement programmée",
+    "text": "Annulation de l'abonnement programmée",
     "context": "Alert banner heading shown when cancellation is pending",
     "source_hash": "1427d139"
   },
@@ -822,7 +822,7 @@
     "source_hash": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "Vous avez changé d'avis ? Vous pouvez réactiver votre abonnement à tout moment avant la date d'annulation.",
+    "text": "Vous avez changé d'avis ? Vous pouvez réactiver votre abonnement à tout moment avant la date d'annulation.",
     "context": "Alert banner note encouraging reactivation",
     "source_hash": "c94d5527"
   },
@@ -839,7 +839,7 @@
     "source_hash": "e7acbf6f"
   },
   "web.billing.features.extended_retention": {
-    "text": "Rétention des secrets de 30 jours",
+    "text": "Conservation des secrets pendant 30 jours",
     "source_hash": "21d6d514"
   },
   "web.billing.features.incoming_secrets": {
@@ -892,27 +892,27 @@
     "source_hash": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
-    "text": "Votre abonnement actuel utilise {from}. Le forfait sélectionné est facturé en {to}. Cela nécessite de migrer votre abonnement vers la nouvelle devise.",
+    "text": "Votre abonnement actuel utilise {from}. Le forfait sélectionné est facturé en {to}. Cela nécessite une migration de votre abonnement vers la nouvelle devise.",
     "source_hash": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
-    "text": "Forfait actuel :",
+    "text": "Forfait actuel :",
     "source_hash": "648a0ab2"
   },
   "web.billing.currency_migration.new_plan": {
-    "text": "Nouveau forfait :",
+    "text": "Nouveau forfait :",
     "source_hash": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
-    "text": "Fin de la période actuelle :",
+    "text": "Fin de la période actuelle :",
     "source_hash": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
-    "text": "Quand le changement doit-il avoir lieu ?",
+    "text": "Quand le changement doit-il avoir lieu ?",
     "source_hash": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
-    "text": "Changer à la fin de la période de facturation",
+    "text": "Basculer à la fin de la période de facturation",
     "source_hash": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
@@ -920,11 +920,11 @@
     "source_hash": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
-    "text": "Changer immédiatement",
+    "text": "Basculer immédiatement",
     "source_hash": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Votre forfait actuel est annulé maintenant. Vous recevrez un remboursement pour le temps non utilisé et finaliserez le paiement du nouveau forfait.",
+    "text": "Votre forfait actuel est annulé immédiatement. Vous recevrez un remboursement pour le temps non utilisé et finaliserez le paiement du nouveau forfait.",
     "source_hash": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
@@ -952,7 +952,7 @@
     "source_hash": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
-    "text": "Les coupons actifs sur votre compte peuvent ne pas être compatibles avec la nouvelle devise.",
+    "text": "Les coupons actifs sur votre compte pourraient ne pas être compatibles avec la nouvelle devise.",
     "source_hash": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
@@ -961,7 +961,7 @@
     "source_hash": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "Votre forfait actuel se termine le {date}. Complétez votre passage à {plan} ({currency}).",
+    "text": "Votre forfait actuel se termine le {date}. Finalisez votre passage au forfait {plan} ({currency}).",
     "source_hash": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
@@ -975,7 +975,7 @@
     "source_hash": "a53f6fa3"
   },
   "web.billing.checkout_initiate_failed": {
-    "text": "Échec du lancement du paiement",
+    "text": "Échec de l'initialisation du paiement",
     "context": "Fallback error for checkout failures",
     "source_hash": "3ff06e41"
   },
@@ -988,5 +988,26 @@
     "text": "Disponible uniquement dans votre région d'abonnement d'origine",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Vous êtes déjà abonné à ce forfait."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Réactiver l'abonnement"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Votre abonnement a été réactivé. La facturation normale reprendra."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Échec de la réactivation de l'abonnement. Veuillez réessayer ou contacter le support."
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Domaine d'expéditeur d'e-mail flexible"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Authentification unique (SSO)"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Réactiver"
   }
 }

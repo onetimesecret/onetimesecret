@@ -32,7 +32,7 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Modifiez les paramètres de configuration du système. Les modifications s'appliquent immédiatement après l'enregistrement.",
+    "text": "Modifier les paramètres de configuration du système. Les modifications s'appliquent immédiatement après l'enregistrement.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
@@ -60,15 +60,15 @@
     "source_hash": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Plusieurs sections contiennent des erreurs de validation : {sections}",
+    "text": "Plusieurs sections contiennent des erreurs de validation : {sections}",
     "source_hash": "71fdaea1"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section} contient des erreurs de validation : {error}",
+    "text": "{section} contient des erreurs de validation : {error}",
     "source_hash": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
-    "text": "{section} enregistrée avec succès",
+    "text": "{section} enregistré avec succès",
     "source_hash": "7be1d5d2"
   },
   "web.colonel.saveSection": {
@@ -84,15 +84,15 @@
     "source_hash": "a710c2b9"
   },
   "web.colonel.schemaValidationError": {
-    "text": "Erreur de validation du schéma : {message} ({path})",
+    "text": "Erreur de validation du schéma : {message} ({path})",
     "source_hash": "5f838cb2"
   },
   "web.colonel.unknownValidationError": {
-    "text": "Erreur de validation inconnue : {error}",
+    "text": "Erreur de validation inconnue : {error}",
     "source_hash": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "La section {section} n'a pas de valeurs configurées",
+    "text": "La section {section} n'a aucune valeur configurée",
     "source_hash": "efb63b77"
   },
   "web.colonel.dashboard": {
@@ -132,11 +132,11 @@
     "source_hash": "6725e7bb"
   },
   "web.colonel.welcome": {
-    "text": "Bienvenue sur Colonel",
+    "text": "Bienvenue dans Colonel",
     "source_hash": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Panneau de contrôle d'administration pour OneTimeSecret",
+    "text": "Panneau de contrôle administratif pour OneTimeSecret",
     "source_hash": "57c1e752"
   },
   "web.colonel.quickActions": {
@@ -148,7 +148,7 @@
     "source_hash": "9ef7d438"
   },
   "web.colonel.viewAll": {
-    "text": "Tout voir",
+    "text": "Tout afficher",
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
@@ -156,7 +156,7 @@
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Total des secrets",
+    "text": "Secrets totaux",
     "source_hash": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
@@ -176,7 +176,7 @@
     "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Total d'utilisateurs",
+    "text": "Utilisateurs totaux",
     "source_hash": "0ca3aa44"
   },
   "web.colonel.stats.emailsSent": {
@@ -184,11 +184,11 @@
     "source_hash": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "Santé du système",
+    "text": "État du système",
     "source_hash": "c3d66242"
   },
   "web.colonel.stats.healthy": {
-    "text": "En bonne santé",
+    "text": "Opérationnel",
     "source_hash": "7f1e323b"
   },
   "web.colonel.actions.viewActivity": {
@@ -244,7 +244,7 @@
     "source_hash": "212b350d"
   },
   "web.colonel.processingRate": {
-    "text": "Taux/sec",
+    "text": "Débit/sec",
     "source_hash": "cfde439c"
   },
   "web.colonel.connectionStatus": {
@@ -252,7 +252,7 @@
     "source_hash": "3693e288"
   },
   "web.colonel.workerHealth": {
-    "text": "Santé des workers",
+    "text": "État des workers",
     "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
@@ -264,7 +264,7 @@
     "source_hash": "331ffa6b"
   },
   "web.colonel.loadingQueueData": {
-    "text": "Chargement des données de file d'attente...",
+    "text": "Chargement des données de la file d'attente...",
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
@@ -284,7 +284,7 @@
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "Réinitialiser au forfait actuel",
+    "text": "Réinitialiser au forfait réel",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
@@ -308,7 +308,7 @@
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "Vous testez avec les droits {planName} (remplacement temporaire de session).",
+    "text": "Vous testez avec les droits du forfait {planName} (remplacement temporaire de session).",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
@@ -316,11 +316,11 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Surveiller la santé de synchronisation de facturation des organisations",
+    "text": "Surveiller la synchronisation de la facturation des organisations",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Moniteur de santé de facturation",
+    "text": "Suivi de la facturation",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
@@ -332,7 +332,7 @@
     "source_hash": "1c8e5840"
   },
   "web.colonel.organizations.unknownCount": {
-    "text": "{count} inconnus",
+    "text": "{count} inconnu(s)",
     "source_hash": "b7bf2cf1"
   },
   "web.colonel.organizations.noOrganizations": {
@@ -372,7 +372,7 @@
     "source_hash": "3792573d"
   },
   "web.colonel.organizations.filters.pastDue": {
-    "text": "En retard",
+    "text": "En retard de paiement",
     "source_hash": "2bda1c7b"
   },
   "web.colonel.organizations.filters.canceled": {
@@ -428,15 +428,15 @@
     "source_hash": "53aa279e"
   },
   "web.colonel.organizations.columns.has_billing": {
-    "text": "A une facturation",
+    "text": "Facturation active",
     "source_hash": "db0628ed"
   },
   "web.colonel.organizations.legacy.title": {
-    "text": "Administration de facturation des organisations",
+    "text": "Administration de la facturation des organisations",
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Gérer les organisations et surveiller la santé de synchronisation de facturation ({total} au total)",
+    "text": "Gérer les organisations et surveiller la synchronisation de la facturation ({total} au total)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -464,7 +464,7 @@
     "source_hash": "e2641093"
   },
   "web.colonel.organizations.actions.checking": {
-    "text": "Vérification...",
+    "text": "Vérification en cours...",
     "source_hash": "2e5f79bb"
   },
   "web.colonel.organizations.expanded.customer": {
@@ -476,11 +476,11 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.expanded.orgId": {
-    "text": "ID d'organisation",
+    "text": "ID de l'organisation",
     "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.investigation.failed": {
-    "text": "Échec de l'examen",
+    "text": "L'examen a échoué",
     "source_hash": "193aa900"
   },
   "web.colonel.organizations.investigation.result": {
@@ -516,7 +516,7 @@
     "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {
-    "text": "ID de prix",
+    "text": "ID du prix",
     "source_hash": "b39a8f3e"
   },
   "web.colonel.organizations.investigation.local": {
@@ -540,7 +540,7 @@
     "source_hash": "d8707d41"
   },
   "web.colonel.secrets.description": {
-    "text": "Voir et gérer tous les secrets",
+    "text": "Consulter et gérer tous les secrets",
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
@@ -576,11 +576,11 @@
     "source_hash": "808ee2cb"
   },
   "web.colonel.feedback.send_feedback": {
-    "text": "Envoyer un commentaire",
+    "text": "Envoyer un retour",
     "source_hash": "8235980b"
   },
   "web.colonel.feedback.sending_ellipses": {
-    "text": "Envoi...",
+    "text": "Envoi en cours...",
     "source_hash": "286a3af7"
   },
   "web.colonel.titles.index": {
@@ -632,7 +632,7 @@
     "source_hash": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Lorsque vous envoyez un commentaire, nous verrons :",
+    "text": "Lorsque vous envoyez un retour, nous verrons :",
     "source_hash": "fe77172e"
   }
 }

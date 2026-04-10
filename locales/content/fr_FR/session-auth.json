@@ -1,6 +1,6 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Besoin d'un compte ?",
+    "text": "Besoin d'un compte ?",
     "source_hash": "8b827e19"
   },
   "web.login.need_an_account": {
@@ -8,7 +8,7 @@
     "source_hash": "10647723"
   },
   "web.login.forgot_your_password": {
-    "text": "Mot de passe oublié ?",
+    "text": "Mot de passe oublié ?",
     "source_hash": "afd25fdf"
   },
   "web.login.button_sign_in": {
@@ -16,7 +16,7 @@
     "source_hash": "bcc0bcc9"
   },
   "web.login.enter_your_credentials": {
-    "text": "Saisissez vos identifiants",
+    "text": "Entrez vos identifiants",
     "source_hash": "07e1c44e"
   },
   "web.login.remember_me": {
@@ -28,7 +28,7 @@
     "source_hash": "b1402b67"
   },
   "web.login.secure_link_helper": {
-    "text": "Un lien sécurisé sera envoyé à votre boîte de réception.",
+    "text": "Un lien sécurisé sera envoyé à votre adresse e-mail.",
     "source_hash": "d31d20cf"
   },
   "web.login.or_divider": {
@@ -48,7 +48,7 @@
     "source_hash": "798ca2ce"
   },
   "web.login.return_home": {
-    "text": "Retour à l'accueil",
+    "text": "Retourner à l'accueil",
     "source_hash": "bbcc935e"
   },
   "web.login.tab_password": {
@@ -64,7 +64,7 @@
     "source_hash": "904c9aa9"
   },
   "web.login.need_help": {
-    "text": "Besoin d'aide ?",
+    "text": "Besoin d'aide ?",
     "source_hash": "c225cdfb"
   },
   "web.login.or_continue_with": {
@@ -88,7 +88,7 @@
     "source_hash": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "L'authentification SSO a échoué. Veuillez réessayer ou utiliser la connexion par mot de passe.",
+    "text": "Échec de l'authentification SSO. Veuillez réessayer ou utiliser la connexion par mot de passe.",
     "source_hash": "13a2210a"
   },
   "web.login.errors.token_missing": {
@@ -108,11 +108,11 @@
     "source_hash": "5f4c33d7"
   },
   "web.signup.alternate_prefix": {
-    "text": "Vous avez déjà un compte ?",
+    "text": "Vous avez déjà un compte ?",
     "source_hash": "f5dcb5d5"
   },
   "web.signup.have_an_account": {
-    "text": "Connectez-vous.",
+    "text": "Se connecter.",
     "source_hash": "6c52846f"
   },
   "web.signup.error_title": {
@@ -155,7 +155,7 @@
     "source_hash": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "Veuillez vérifier vos e-mails pour trouver un lien de vérification",
+    "text": "Veuillez vérifier votre e-mail pour un lien de vérification",
     "source_hash": "79ffefd8"
   },
   "web.auth.verify.error": {
@@ -167,19 +167,19 @@
     "source_hash": "cb3a722b"
   },
   "web.auth.verify.what_to_do": {
-    "text": "Que dois-je faire ?",
+    "text": "Que dois-je faire ?",
     "source_hash": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Vérifiez vos e-mails pour trouver le lien de vérification le plus récent",
+    "text": "Vérifiez votre e-mail pour le lien de vérification le plus récent",
     "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "Vérifiez votre dossier spam/indésirables si vous ne trouvez pas l'e-mail",
+    "text": "Vérifiez votre dossier spam/courrier indésirable si vous ne trouvez pas l'e-mail",
     "source_hash": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
-    "text": "Contactez le support si vous continuez à rencontrer des problèmes",
+    "text": "Contactez le support si les problèmes persistent",
     "source_hash": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
@@ -227,11 +227,11 @@
     "source_hash": "f12de64e"
   },
   "web.auth.close_account.confirm": {
-    "text": "Je comprends que cette action est définitive",
+    "text": "Je comprends que cette action est permanente",
     "source_hash": "b44b1366"
   },
   "web.auth.close_account.password": {
-    "text": "Saisissez votre mot de passe pour confirmer",
+    "text": "Entrez votre mot de passe pour confirmer",
     "source_hash": "0aec03a6"
   },
   "web.auth.close_account.button": {
@@ -243,11 +243,11 @@
     "source_hash": "19766ed6"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Demander une réinitialisation de mot de passe",
+    "text": "Demande de réinitialisation du mot de passe",
     "source_hash": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Saisissez votre adresse e-mail ci-dessous et nous vous enverrons un lien pour réinitialiser votre mot de passe",
+    "text": "Entrez votre adresse e-mail ci-dessous et nous vous enverrons un lien pour réinitialiser votre mot de passe",
     "source_hash": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
@@ -260,7 +260,7 @@
     "source_hash": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Veuillez saisir votre nouveau mot de passe ci-dessous. Assurez-vous qu'il est robuste et unique pour protéger votre compte.",
+    "text": "Veuillez entrer votre nouveau mot de passe ci-dessous. Assurez-vous qu'il est robuste et unique pour protéger votre compte.",
     "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
@@ -345,23 +345,23 @@
     "source_hash": "1f8ecc24"
   },
   "web.help.signin_troubleshooting": {
-    "text": "Dépannage de connexion",
+    "text": "Résolution des problèmes de connexion",
     "source_hash": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
-    "text": "Le lien magique n'arrive pas ?",
+    "text": "Le lien magique n'arrive pas ?",
     "source_hash": "6919ce70"
   },
   "web.help.check_spam_folder": {
-    "text": "Vérifiez votre dossier spam ou indésirables",
+    "text": "Vérifiez votre dossier spam ou courrier indésirable",
     "source_hash": "813fe2d8"
   },
   "web.help.check_email_spelling": {
-    "text": "Vérifiez que vous avez saisi correctement votre adresse e-mail",
+    "text": "Vérifiez que vous avez correctement saisi votre adresse e-mail",
     "source_hash": "5f319557"
   },
   "web.help.wait_few_minutes": {
-    "text": "Attendez quelques minutes - les e-mails peuvent parfois être retardés",
+    "text": "Patientez quelques minutes — les e-mails peuvent parfois être retardés",
     "source_hash": "884fc272"
   },
   "web.help.try_again": {
@@ -369,23 +369,23 @@
     "source_hash": "68109f96"
   },
   "web.help.forgot_password": {
-    "text": "Mot de passe oublié ?",
+    "text": "Mot de passe oublié ?",
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Utilisez l'option Lien magique pour vous connecter sans mot de passe. Une fois connecté, vous pouvez modifier votre mot de passe dans les paramètres du compte.",
+    "text": "Utilisez l'option Lien magique pour vous connecter sans mot de passe. Une fois connecté, vous pouvez modifier votre mot de passe dans les Paramètres du compte.",
     "source_hash": "2a058600"
   },
   "web.help.account_locked": {
-    "text": "Compte temporairement verrouillé ?",
+    "text": "Compte temporairement verrouillé ?",
     "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "Après plusieurs tentatives de connexion échouées, les comptes sont temporairement verrouillés pour des raisons de sécurité. Attendez 15 minutes et réessayez, ou utilisez le Lien magique pour vous connecter.",
+    "text": "Après plusieurs tentatives de connexion échouées, les comptes sont temporairement verrouillés par sécurité. Patientez 15 minutes et réessayez, ou utilisez le Lien magique pour vous connecter.",
     "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
-    "text": "Vous avez encore besoin d'aide ?",
+    "text": "Besoin d'aide supplémentaire ?",
     "source_hash": "5ff7d19e"
   },
   "web.help.contact_us_description": {
@@ -397,6 +397,15 @@
     "source_hash": "f8d47b82"
   },
   "web.auth.verify._guidance.context": {
-    "text": "Flux de vérification d'e-mail après inscription"
+    "text": "Flux de vérification d'e-mail après l'inscription"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Compte SSO"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "L'authentification unique est disponible pour ce domaine"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "L'administrateur de l'organisation peut activer le SSO pour permettre aux membres de l'équipe de se connecter ici. Contactez l'administrateur pour obtenir l'accès."
   }
 }
