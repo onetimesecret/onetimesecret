@@ -4,15 +4,15 @@
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "データは選択したリージョンにのみ保存され、リージョン間で転送されることはありません",
+    "text": "データは選択されたリージョンにのみ保存され、リージョン間で転送されることはありません",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "各リージョンは、独自のインフラストラクチャ、暗号化キー、データストレージを持つ完全に独立した環境として運用されます",
+    "text": "各リージョンは、独自のインフラ、暗号化キー、データストレージを持つ完全に独立した環境として運用されます",
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "私たちは厳格な方針を維持しています: 顧客データは いかなる状況でもリージョン間で転送されません",
+    "text": "当社は厳格なポリシーを維持しています: いかなる状況においても顧客データをリージョン間で転送することはありません",
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
@@ -20,7 +20,7 @@
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
-    "text": "あなたのリージョン",
+    "text": "お使いのリージョン",
     "source_hash": "cafa720f"
   },
   "web.regions.your_current_region": {
@@ -32,7 +32,7 @@
     "source_hash": "92340695"
   },
   "web.regions.explore_other_regions": {
-    "text": "他の利用可能なリージョンを見る",
+    "text": "他の利用可能なリージョンを探索",
     "source_hash": "953d0057"
   },
   "web.regions.why_it_matters": {
@@ -40,19 +40,19 @@
     "source_hash": "67de6cf7"
   },
   "web.regions.trust_title": {
-    "text": "透明性とコントロール",
+    "text": "透明性と管理",
     "source_hash": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "データの保存場所と、その保護を規定する法律を正確に把握できます。",
+    "text": "データがどこに保存され、どの法律で保護されているかを正確に把握できます。",
     "source_hash": "97fd57ab"
   },
   "web.regions.privacy_title": {
-    "text": "プライバシー権",
+    "text": "プライバシーの権利",
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "個人情報があなたの国のプライバシー法と規制に従って取り扱われ、不正アクセスや悪用を防ぎます。",
+    "text": "個人情報がお住まいの国のプライバシー法規制に従って取り扱われ、不正なアクセスや悪用を防止します。",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -60,7 +60,7 @@
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "GDPR、HIPAA、CCPAなどの地域データ保護要件に対応",
+    "text": "GDPR、HIPAA、CCPAなどの地域のデータ保護要件に準拠",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -68,7 +68,7 @@
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "データが近くに保存されることで、低遅延と高パフォーマンスを実現します。",
+    "text": "データがお近くに保存されることで、低遅延と高パフォーマンスを実現します。",
     "source_hash": "e133ef1d"
   },
   "web.regions.regions": {
@@ -76,11 +76,11 @@
     "source_hash": "610c65d8"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "コンプライアンスチームに連絡",
+    "text": "コンプライアンスチームにお問い合わせ",
     "source_hash": "87e6746e"
   },
   "web.regions.review_our_documentation": {
-    "text": "ドキュメントを確認",
+    "text": "ドキュメントを確認する",
     "source_hash": "9cbd03df"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
@@ -112,7 +112,7 @@
     "source_hash": "ee788590"
   },
   "web.regions.jurisdiction": {
-    "text": "管轄",
+    "text": "管轄区域",
     "source_hash": "d69b9ac7"
   },
   "web.regions.data_center_location_currentjurisdiction_identif": {
@@ -124,11 +124,11 @@
     "source_hash": "a1c6039f"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "不明な管轄",
+    "text": "不明な管轄区域",
     "source_hash": "eae2e122"
   },
   "web.regions.serving_you_from_the": {
-    "text": "サービス提供元:",
+    "text": "提供元:",
     "source_hash": "25db17aa"
   },
   "web.regions.continue_to_jurisdiction_domain": {
@@ -136,7 +136,7 @@
     "source_hash": "dd1a44e4"
   },
   "web.regions.current_jurisdiction": {
-    "text": "現在の管轄:",
+    "text": "現在の管轄区域:",
     "source_hash": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
@@ -144,19 +144,22 @@
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "リージョン間でデータを転送しないことが当社のポリシーです。各リージョンは完全に独立した環境として運用されています。",
+    "text": "当社のポリシーではリージョン間でのデータ転送は行いません。各リージョンは完全に独立した環境として運用されます。",
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "別のリージョンを利用するには、請求先メールアドレスに紐づいた同じメールアドレスでそのリージョンに新しいアカウントを作成してください。",
+    "text": "別のリージョンを使用するには、請求先メールアドレスに紐づく同じメールアドレスで新しいアカウントを作成してください。",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "請求先メールアドレスがOnetime Secretアカウントのメールアドレスと異なる場合、サブスクリプション特典を維持するために、新しいリージョンのアカウントには請求先メールアドレスを使用してください。",
+    "text": "請求先のメールアドレスがOnetime Secretアカウントのメールアドレスと異なる場合は、サブスクリプションの特典を維持するために、新しいリージョンのアカウントには請求先メールアドレスを使用してください。",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "サブスクリプション特典は、請求先メールアドレスで作成されたすべてのアカウントに自動的に適用されます。",
+    "text": "サブスクリプションの特典は、請求用メールアドレスで作成されたアカウントに自動的に適用されます。",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "現在、お客様のアカウントのリージョン情報は利用できません。"
   }
 }

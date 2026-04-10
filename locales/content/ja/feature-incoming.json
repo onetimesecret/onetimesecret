@@ -28,11 +28,11 @@
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "簡単な説明(例: パスワードリセットのリクエスト)",
+    "text": "簡単な説明(例: パスワードリセットリクエスト)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "メッセージを適切な担当者に届けるためにご記入ください",
+    "text": "メッセージを適切な担当者に転送するためにご記入ください",
     "source_hash": "185a207e"
   },
   "incoming.recipient_label": {
@@ -48,11 +48,11 @@
     "source_hash": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "この安全なメッセージを受け取る人を選択",
+    "text": "このセキュアメッセージの受信者を選択してください",
     "source_hash": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "受信者がいません",
+    "text": "利用可能な受信者がいません",
     "source_hash": "62834334"
   },
   "incoming.secret_content_label": {
@@ -60,11 +60,11 @@
     "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "機密情報をここに貼り付け(パスワード、キーなど)",
+    "text": "機密情報をここに貼り付けてください(パスワード、キーなど)",
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "この情報は暗号化され、1回のみ閲覧可能です",
+    "text": "この情報は暗号化され、一度しか閲覧できません",
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
@@ -92,11 +92,11 @@
     "source_hash": "f6c2bb83"
   },
   "incoming.success_title": {
-    "text": "送信完了",
+    "text": "正常に送信されました",
     "source_hash": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "安全なメッセージが配信されました。",
+    "text": "セキュアなメッセージが配信されました。",
     "source_hash": "e1538e3e"
   },
   "incoming.reference_id": {
@@ -104,11 +104,11 @@
     "source_hash": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "次に何が起こりますか?",
+    "text": "次に何が起きますか?",
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "受信者はこのシークレットを1回のみ閲覧できます。閲覧後、シークレットは完全に削除されます。",
+    "text": "受信者はこのシークレットを一度だけ閲覧できます。閲覧後、シークレットは完全に削除されます。",
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
@@ -120,15 +120,36 @@
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "パスワードや個人データをメールやチャットログから守ります",
+    "text": "パスワードや個人データをメールやチャットログに残さないようにしましょう",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "記録のために{receipt}を保存してください。",
+    "text": "記録用に{receipt}を保存してください。",
     "source_hash": "db3d9c98"
   },
   "incoming.receipt_link_text": {
     "text": "受信確認",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "アップグレードが必要です"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "この機能にはプランのアップグレードが必要です。受信シークレットを有効にするには、アカウントオーナーにお問い合わせください。"
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "メモは{max}文字以下にしてください"
+  },
+  "incoming.validation_secret_required": {
+    "text": "シークレットの内容は必須です"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "受信者を選択してください"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "受信シークレット機能が有効になっていません"
+  },
+  "incoming.validation_form_errors": {
+    "text": "フォームにエラーがないか確認してください"
   }
 }

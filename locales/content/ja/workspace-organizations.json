@@ -28,11 +28,11 @@
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "組織がまだありません",
+    "text": "まだ組織がありません",
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "組織は統合された請求と管理を提供します。最初の組織を作成して始めましょう。",
+    "text": "組織は統一された請求と管理を提供します。最初の組織を作成して始めましょう。",
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
@@ -68,7 +68,7 @@
     "source_hash": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "例: 株式会社サンプル",
+    "text": "例: Acme Corporation",
     "source_hash": "ac1c804b"
   },
   "web.organizations.display_name": {
@@ -80,15 +80,15 @@
     "source_hash": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "この組織の目的は?",
+    "text": "この組織の目的は何ですか?",
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "請求メール",
+    "text": "請求先メール",
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "請求と管理通知の主要連絡先",
+    "text": "請求と管理通知の主要な連絡先",
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
@@ -96,7 +96,7 @@
     "source_hash": "48326f52"
   },
   "web.organizations.switcher_locked": {
-    "text": "このページでは組織の切り替えは利用できません",
+    "text": "このページでは組織の切り替えはできません",
     "source_hash": "da0cf810"
   },
   "web.organizations.not_found": {
@@ -156,19 +156,19 @@
     "source_hash": "bc2b59b8"
   },
   "web.organizations.billing_email_updated": {
-    "text": "請求メールが正常に更新されました",
+    "text": "請求先メールが正常に更新されました",
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "請求メールは請求概要ページで変更できます",
+    "text": "請求先メールは請求概要ページで変更できます",
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "請求統合は近日公開",
+    "text": "請求統合は近日公開予定",
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "統合された請求とサブスクリプション管理は、将来のリリースで利用可能になります。",
+    "text": "統一された請求とサブスクリプション管理は将来のリリースで利用可能になります。",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -176,7 +176,7 @@
     "source_hash": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "組織は、一元管理のための統合された請求と管理を提供します。",
+    "text": "組織は一元管理のための統一された請求と管理を提供します。",
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
@@ -184,7 +184,7 @@
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "ここで会社名と組織の詳細を更新します。この情報はアカウントをパーソナライズし、将来のブランディング機能に使用できます。",
+    "text": "会社名と組織の詳細をここで更新してください。この情報はアカウントのパーソナライズに役立ち、将来のブランディング機能に使用できます。",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
@@ -204,11 +204,11 @@
     "source_hash": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "会社ブランディング",
+    "text": "企業ブランディング",
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "チーム",
+    "text": "メンバー",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -228,7 +228,7 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "これにより組織が完全に削除されます。この操作は取り消せません。",
+    "text": "これにより組織が完全に削除されます。この操作は取り消すことができません。",
     "source_hash": "ab2d2c05"
   },
   "web.organizations.delete": {
@@ -240,7 +240,7 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "{name}を削除してもよろしいですか? この操作は取り消せません。",
+    "text": "{name}を削除してもよろしいですか?この操作は取り消すことができません。",
     "source_hash": "db7e1f9d"
   },
   "web.organizations.delete_error": {
@@ -252,7 +252,7 @@
     "source_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "組織のメンバーと役割を管理",
+    "text": "組織のメンバーと役割を管理します",
     "source_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
@@ -288,11 +288,11 @@
     "source_hash": "69318b0c"
   },
   "web.organizations.members.actions": {
-    "text": "操作",
+    "text": "アクション",
     "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "メンバーがまだいません。チームメンバーを招待して始めましょう。",
+    "text": "まだメンバーがいません。チームメンバーを招待して始めましょう。",
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
@@ -300,7 +300,7 @@
     "source_hash": "61dd2085"
   },
   "web.organizations.members.role_updated": {
-    "text": "メンバーの役割を更新しました",
+    "text": "メンバーの役割が正常に更新されました",
     "source_hash": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
@@ -308,7 +308,7 @@
     "source_hash": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
-    "text": "メンバーを組織から削除しました",
+    "text": "組織からメンバーを削除しました",
     "source_hash": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
@@ -320,11 +320,11 @@
     "source_hash": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "{name}をこの組織から削除してもよろしいですか?",
+    "text": "この組織から{name}を削除してもよろしいですか？",
     "source_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "自分の役割は変更できません",
+    "text": "自分の役割を変更することはできません",
     "source_hash": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
@@ -332,7 +332,7 @@
     "source_hash": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "組織のオーナーは削除できません",
+    "text": "組織のオーナーを削除することはできません",
     "source_hash": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
@@ -352,11 +352,11 @@
     "source_hash": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "すべての組織設定とメンバーへのフルアクセス",
+    "text": "すべての組織設定とメンバーへの完全なアクセス",
     "source_hash": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "メンバーとほとんどの組織設定を管理可能",
+    "text": "メンバーとほとんどの組織設定を管理できます",
     "source_hash": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
@@ -456,7 +456,7 @@
     "source_hash": "331551b0"
   },
   "web.organizations.invitations.status.accepted": {
-    "text": "承諾済み",
+    "text": "承認済み",
     "source_hash": "a00fb0c5"
   },
   "web.organizations.invitations.status.declined": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "メンバー",
+    "text": "チームメンバー",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -540,7 +540,7 @@
     "source_hash": "957b0b87"
   },
   "web.organizations.early_supporter_badge": {
-    "text": "アーリーサポーター",
+    "text": "早期サポーター",
     "source_hash": "e67d2ef8"
   },
   "web.organizations.member_count": {
@@ -584,7 +584,7 @@
     "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "組織のIDプロバイダーを使用してメンバーがサインインできるようにSSOを設定します",
+    "text": "SSOを設定して、メンバーが組織のIDプロバイダーでサインインできるようにします",
     "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
@@ -600,7 +600,7 @@
     "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "サインイン時にユーザーに表示されるフレンドリー名",
+    "text": "サインイン時にユーザーに表示されるわかりやすい名前",
     "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
@@ -624,7 +624,7 @@
     "source_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
-    "text": "既存のシークレットを維持する場合は空白のままにしてください",
+    "text": "既存のシークレットを保持する場合は空欄のままにしてください",
     "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
@@ -644,7 +644,7 @@
     "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "IDプロバイダーのOIDCディスカバリURL",
+    "text": "IDプロバイダーのOIDCディスカバリーURL",
     "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
@@ -656,7 +656,7 @@
     "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "これらのドメインのメールアドレスを持つユーザーのみがサインインできます。すべてのドメインを許可する場合は空白のままにしてください。",
+    "text": "これらのドメインのメールアドレスを持つユーザーのみがサインインできます。すべてのドメインを許可する場合は空欄のままにしてください。",
     "source_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
@@ -668,7 +668,7 @@
     "source_hash": "16807983"
   },
   "web.organizations.sso.domain_exists": {
-    "text": "このドメインは既にリストに含まれています",
+    "text": "このドメインはすでにリストに追加されています",
     "source_hash": "3fccb721"
   },
   "web.organizations.sso.remove_domain": {
@@ -676,7 +676,7 @@
     "source_hash": "ae708a1d"
   },
   "web.organizations.sso.enabled": {
-    "text": "SSOを有効化",
+    "text": "SSOを有効にする",
     "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
@@ -692,7 +692,7 @@
     "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "本当に削除しますか?組織のSSOが無効になります。",
+    "text": "よろしいですか？これにより組織のSSOが無効になります。",
     "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
@@ -720,15 +720,15 @@
     "source_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "接続をテスト",
+    "text": "接続テスト",
     "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "IDプロバイダーに到達可能かどうかを確認します（認証情報の検証は行いません）",
+    "text": "IDプロバイダーに到達可能か確認します（資格情報の検証は行いません）",
     "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "接続をテスト",
+    "text": "接続テスト",
     "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
@@ -744,7 +744,7 @@
     "source_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
-    "text": "未入力の項目",
+    "text": "未入力のフィールド",
     "source_hash": "757df777"
   },
   "web.organizations.sso.status_enabled": {
@@ -760,7 +760,7 @@
     "source_hash": "13161464"
   },
   "web.organizations.sso.domain_sso_description": {
-    "text": "検証済みの各ドメインにSSOを設定します",
+    "text": "検証済みドメインごとにSSOを設定します",
     "source_hash": "af5b799e"
   },
   "web.organizations.sso.provider_type_locked_hint": {
@@ -770,5 +770,14 @@
   "web.organizations.sso.status_not_configured": {
     "text": "未設定",
     "source_hash": "bbea960e"
+  },
+  "web.organizations.page_description_short": {
+    "text": "ワークスペースの表示と設定"
+  },
+  "web.organizations.tabs.team": {
+    "text": "チーム"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

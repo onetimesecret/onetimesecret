@@ -72,19 +72,19 @@
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "公開前の説明",
+    "text": "表示前の手順",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "公開後の説明",
+    "text": "表示後の手順",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
-    "text": "説明",
+    "text": "手順",
     "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "ロゴコントロール",
+    "text": "ロゴ操作",
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
@@ -132,7 +132,7 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "これは、受信者があなたの安全なメッセージをどのように見るかのインタラクティブなプレビューです。次のことができます： - 上部のコントロールを使用して色とフォントをカスタマイズ - ロゴをアップロード（最小128x128ピクセル推奨、最大1MB） - 「秘密を表示」ボタンを使用してプレビューをテスト",
+    "text": "受信者にセキュアメッセージがどのように表示されるかのインタラクティブプレビューです。上のコントロールでカラーとフォントをカスタマイズ、ロゴのアップロード(推奨最小128x128ピクセル、最大1MB)、「シークレットを表示」ボタンでプレビューのテストが可能です。",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -140,7 +140,7 @@
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "日本語の漢字「秘」(ひみつ) - 「秘密」または「機密」を意味する",
+    "text": "日本の漢字「秘」(ひみつ) - 「秘密」や「機密」を意味する",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
@@ -170,5 +170,8 @@
   "web.branding.upgrade_to_customize": {
     "text": "このドメインのブランディングをカスタマイズするにはプランをアップグレードしてください。",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "ブランド設定が正常に保存されました"
   }
 }

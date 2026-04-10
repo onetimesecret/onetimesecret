@@ -745,11 +745,11 @@
     "source_hash": "f45aef6e"
   },
   "web.LABELS.secret_status": {
-    "text": "シークレットのステータス",
+    "text": "シークレットステータス",
     "source_hash": "57330d93"
   },
   "web.LABELS.need_help": {
-    "text": "ヘルプが必要ですか?",
+    "text": "お困りですか?",
     "source_hash": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
@@ -757,7 +757,7 @@
     "source_hash": "311d266c"
   },
   "web.LABELS.actions": {
-    "text": "操作",
+    "text": "アクション",
     "source_hash": "ff8059dc"
   },
   "web.LABELS.no_passphrase": {
@@ -785,7 +785,7 @@
     "source_hash": "48845bff"
   },
   "web.LABELS.security_details": {
-    "text": "セキュリティの詳細",
+    "text": "セキュリティ詳細",
     "source_hash": "96d2098c"
   },
   "web.LABELS.items_count": {
@@ -877,7 +877,7 @@
     "source_hash": "68574b20"
   },
   "web.LABELS.benefits": {
-    "text": "メリット",
+    "text": "特典",
     "context": "Section header for listing benefits",
     "source_hash": "d5b67bc9"
   },
@@ -898,7 +898,7 @@
     "source_hash": "1b9f384c"
   },
   "web.STATUS.viewed": {
-    "text": "リンクが開かれました",
+    "text": "リンク開封済み",
     "source_hash": "66844573"
   },
   "web.STATUS.received": {
@@ -918,7 +918,7 @@
     "source_hash": "6d747b33"
   },
   "web.STATUS.destroyed": {
-    "text": "削除済み",
+    "text": "破棄済み",
     "source_hash": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
@@ -974,7 +974,7 @@
     "source_hash": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
-    "text": "シークレットリンクが開かれ、閲覧可能な状態です",
+    "text": "シークレットリンクが開かれ、内容を表示する準備ができています",
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
@@ -986,15 +986,15 @@
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "シークレットは完全に削除されました",
+    "text": "シークレットは完全に破棄されました",
     "source_hash": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "シークレットがまもなく期限切れになります",
+    "text": "シークレットはまもなく期限切れになります",
     "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "シークレットは孤立状態となり、まもなく削除されます",
+    "text": "シークレットは孤立状態となり、まもなく破棄されます",
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
@@ -1026,7 +1026,7 @@
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "信頼できるドメインブランディング",
+    "text": "信頼性のあるドメインブランディング",
     "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
@@ -1034,7 +1034,7 @@
     "source_hash": "314c7974"
   },
   "web.UNITS.ttl.duration": {
-    "text": "{count} {unit}",
+    "text": "{count}{unit}",
     "source_hash": "e6c9e0e6"
   },
   "web.UNITS.ttl.time.day": {
@@ -1082,7 +1082,7 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "閲覧制限: {count}回",
+    "text": "{count}回閲覧制限",
     "source_hash": "8db0e228"
   },
   "web.UNITS.days_remaining": {
@@ -1118,7 +1118,7 @@
     "source_hash": "0dffe234"
   },
   "web.TITLES.forgot_password": {
-    "text": "パスワードを忘れた場合",
+    "text": "パスワードをお忘れですか",
     "source_hash": "fdfd41de"
   },
   "web.TITLES.reset_password": {
@@ -1130,7 +1130,7 @@
     "source_hash": "afbce8a6"
   },
   "web.TITLES.verify_account": {
-    "text": "アカウントの検証",
+    "text": "アカウントの認証",
     "source_hash": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
@@ -1142,7 +1142,7 @@
     "source_hash": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
-    "text": "招待を承諾",
+    "text": "招待を承認",
     "source_hash": "ce7cfeaf"
   },
   "web.TITLES.secret": {
@@ -1287,15 +1287,15 @@
     "source_hash": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "共有方法",
+    "text": "共有手順",
     "source_hash": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "意図した受信者にリンクを共有してください",
+    "text": "意図された受信者にリンクを共有してください",
     "source_hash": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "パスフレーズは安全なチャネルで別途共有してください",
+    "text": "パスフレーズは安全な別のチャネルで共有してください",
     "source_hash": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
@@ -1303,15 +1303,15 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "常にOnetime Secret公式サイトにアクセスしていることを確認してください。詐欺師がOnetime Secretと同じように見せかけた偽サイトを作成し、シークレットを盗もうとすることがあります。フィッシング攻撃を防ぐため、新しいリンクを作成する前にドメインを確認してください。",
+    "text": "常に公式のOnetime Secretウェブサイトにアクセスしていることを確認してください。詐欺者がOnetime Secretとそっくりの偽サイトを作成し、シークレットを盗もうとすることがあります。フィッシング攻撃を避けるため、新しいリンクを作成する前にドメインを確認してください。",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
-    "text": "シンプルで透明な料金",
+    "text": "シンプルで透明性のある料金体系",
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "ニーズに合ったプランをお選びください。すべてのプランで無制限のシークレット共有とプライバシー第一の設計が含まれています。",
+    "text": "ニーズに合ったプランをお選びください。すべてのプランに無制限のシークレット共有とプライバシー第一の設計が含まれています。",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
@@ -1323,7 +1323,7 @@
     "source_hash": "983f3110"
   },
   "web.pricing.already_have_account": {
-    "text": "既にアカウントをお持ちですか?",
+    "text": "すでにアカウントをお持ちですか?",
     "source_hash": "e77fea93"
   },
   "web.pricing.sign_in": {
@@ -1355,11 +1355,11 @@
     "source_hash": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
-    "text": "基本機能でシークレットを作成・共有。クレジットカード不要。",
+    "text": "基本機能でシークレットを作成・共有できます。クレジットカードは不要です。",
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
-    "text": "続行するにはパスワードを入力してください",
+    "text": "続けるにはパスワードを入力してください",
     "context": "Prompt for password confirmation modal",
     "source_hash": "09055357"
   },
@@ -1379,13 +1379,61 @@
     "source_hash": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "現在、リクエストを処理できません",
+    "text": "現在リクエストを処理できません",
     "context": "Error message for recoverable server errors",
     "source_hash": "fb961f3f"
   },
   "web.COMMON.upgrade_description": {
-    "text": "アップグレードしてより多くの機能を利用する",
+    "text": "アップグレードしてより多くの機能を利用",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "設定"
+  },
+  "web.COMMON.add": {
+    "text": "追加"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "はい、削除します"
+  },
+  "web.COMMON.error_code": {
+    "text": "エラーコード"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTPステータス"
+  },
+  "web.COMMON.details": {
+    "text": "詳細"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "パスワードの確認"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "パスワードが一致する必要があります"
+  },
+  "web.COMMON.and": {
+    "text": "および"
+  },
+  "web.COMMON.or": {
+    "text": "または"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "パスフレーズを表示"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "パスフレーズを非表示"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "ドメイン設定"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "ドメインSSO"
+  },
+  "web.TITLES.domain_email": {
+    "text": "メール設定"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "受信シークレット"
   }
 }

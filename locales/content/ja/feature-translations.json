@@ -4,11 +4,11 @@
     "source_hash": "87abcdeb"
   },
   "web.translations.our_github_project": {
-    "text": "GitHubプロジェクト",
+    "text": "当社のGitHubプロジェクト",
     "source_hash": "dabd28e2"
   },
   "web.translations.if_youre_interested_in_translation": {
-    "text": "翻訳に興味がある場合は、",
+    "text": "翻訳にご興味がある場合は、",
     "source_hash": "10056bff"
   },
   "web.translations.whove_helped_with_translations_as_we_continue_to": {
@@ -20,7 +20,7 @@
     "source_hash": "080aa720"
   },
   "web.translations.were_grateful_to_the": {
-    "text": "感謝しています:",
+    "text": "以下の方々に感謝します",
     "source_hash": "cf446287"
   },
   "web.translations.as_we_add_new_features_our_translations_graduall": {
@@ -32,11 +32,11 @@
     "source_hash": "1a8ccc7d"
   },
   "web.translations.reach_out_to_us": {
-    "text": "お問い合わせください",
+    "text": "お問い合わせ",
     "source_hash": "fee7dd79"
   },
   "web.translations.have_questions": {
-    "text": "質問がありますか?",
+    "text": "ご質問はありますか?",
     "source_hash": "75e4b61a"
   },
   "web.translations.send_translations_by_email_to": {
@@ -88,7 +88,7 @@
     "source_hash": "87a6e9af"
   },
   "web.translations.help_secure_communication_go_global": {
-    "text": "安全なコミュニケーションをグローバルに",
+    "text": "安全なコミュニケーションを世界に広げましょう",
     "source_hash": "e94bdc8e"
   }
 }

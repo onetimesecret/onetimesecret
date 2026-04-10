@@ -1,6 +1,6 @@
 {
   "web.feedback.your_feedback": {
-    "text": "フィードバック",
+    "text": "あなたのフィードバック",
     "source_hash": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
@@ -28,15 +28,15 @@
     "source_hash": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "ヘルプコンテンツはこちら。",
+    "text": "ヘルプコンテンツがここに表示されます。",
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "ここに届くすべてのフィードバックを読んでいます。これが何に時間を費やすべきかを判断する方法です。",
+    "text": "ここに届くフィードバックはすべて目を通しています。何に時間をかけるべきかを判断するための大切な情報です。",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "何か問題がある場合や、どう機能すべきかについてアイデアがあれば、ここが適切な場所です。",
+    "text": "何か問題がある場合や、こうあるべきだというアイデアがあれば、ここでお聞かせください。",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
@@ -56,7 +56,7 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "アカウントでの不正なメールアドレス変更を報告されているようです。何が起きたかをご説明ください。すぐに調査いたします。",
+    "text": "アカウントのメールアドレスが無断で変更されたようです。何が起きたかを記述していただければ、直ちに調査いたします。",
     "source_hash": "00e56551"
   }
 }

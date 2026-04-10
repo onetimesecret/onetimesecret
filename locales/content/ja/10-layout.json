@@ -4,7 +4,7 @@
     "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "ブランディングガイド",
+    "text": "ブランドガイド",
     "source_hash": "53f994c5"
   },
   "web.footer.customize": {
@@ -20,11 +20,11 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "セキュリティ対策について詳しく見る",
+    "text": "セキュリティ対策について知る",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "利用規約を見る",
+    "text": "利用規約を確認する",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -48,7 +48,7 @@
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "フィードバックを送信すると、以下の情報が送信されます:",
+    "text": "フィードバックを送信すると、以下の内容が確認できます:",
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
@@ -56,7 +56,7 @@
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "サービスステータスを確認",
+    "text": "サービスステータスを確認する",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
@@ -68,7 +68,7 @@
     "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "ドキュメントにアクセス",
+    "text": "ドキュメントにアクセスする",
     "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
@@ -88,15 +88,15 @@
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "サブスクリプション料金を見る",
+    "text": "サブスクリプション料金を確認する",
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "会社について詳しく見る",
+    "text": "会社について知る",
     "source_hash": "780e18cd"
   },
   "web.footer.company": {
-    "text": "会社概要",
+    "text": "会社情報",
     "source_hash": "de4743c8"
   },
   "web.footer.product": {
@@ -140,7 +140,7 @@
     "source_hash": "1b8bb38f"
   },
   "web.help.learn_more": {
-    "text": "詳細を見る",
+    "text": "詳しく見る",
     "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
@@ -148,23 +148,23 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Onetime Secretを通じて共有された安全なメッセージを閲覧しています。この内容は1回のみ表示され、その後サーバーから完全に削除されます。",
+    "text": "Onetime Secretを通じて共有されたセキュアなメッセージを閲覧しています。この内容は一度だけ表示され、その後サーバーから完全に削除されます。",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "このシークレットを後で再度表示できますか?",
+    "text": "このシークレットを後でもう一度見ることはできますか?",
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "いいえ。セキュリティ上の理由から、このシークレットは1回のみ閲覧可能です。このページを閉じると、内容は完全に削除され、私たちを含め誰も復元できません。",
+    "text": "いいえ。セキュリティ上の理由から、このシークレットは一度しか閲覧できません。このページを閉じると、内容は完全に削除され、私たちを含め誰も復元することはできません。",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "この情報を保存するにはどうすればいいですか?",
+    "text": "この情報を保存するにはどうすればよいですか?",
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "「クリップボードにコピー」ボタンを使用して、シークレット全体をコピーしてください。長いシークレットの場合は、このページを離れる前に内容が完全にコピーされたことを確認してください。",
+    "text": "「クリップボードにコピー」ボタンを使用してシークレット全体をコピーしてください。長いシークレットの場合は、このページを離れる前に内容がすべてコピーされていることを確認してください。",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
@@ -172,11 +172,11 @@
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "送信者にはシークレットが閲覧されたことが通知されますが、誰がどこから閲覧したかは追跡されません。あなたのプライバシーは保護されています。",
+    "text": "送信者にはシークレットが閲覧されたことが通知されますが、誰が閲覧したか、どこから閲覧したかは追跡されません。あなたのプライバシーは保護されています。",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "このページを離れるか更新すると、このシークレットは完全に削除され、誰も復元できなくなります。",
+    "text": "このページを離れるか更新すると、このシークレットは完全に削除され、誰も復元することはできません。",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
@@ -192,7 +192,7 @@
     "source_hash": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "フィードバックを送信",
+    "text": "フィードバックを送る",
     "source_hash": "a70766ae"
   },
   "web.layout.company_logo": {
@@ -216,7 +216,7 @@
     "source_hash": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
-    "text": "{count}項目",
+    "text": "{count}件",
     "source_hash": "f65216b3"
   },
   "web.layout.release_notes": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Onetime Secretホームページへ",
+    "text": "Onetime Secretのホームページにアクセス",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
@@ -304,7 +304,7 @@
     "source_hash": "d4eedb15"
   },
   "web.layout.view_source_on_github": {
-    "text": "GitHubでソースを見る",
+    "text": "GitHubでソースコードを見る",
     "source_hash": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
@@ -312,11 +312,11 @@
     "source_hash": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "言語を変更。現在の言語: {0}",
+    "text": "言語を変更。現在の言語は{0}です",
     "source_hash": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "言語を{0}に変更しました",
+    "text": "言語が{0}に変更されました",
     "source_hash": "1680f4fe"
   },
   "web.layout.reset_to_default_language": {
@@ -328,7 +328,7 @@
     "source_hash": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
-    "text": "{0}モードが有効",
+    "text": "{0}モードが有効になりました",
     "source_hash": "e1d200cb"
   },
   "web.layout.workspace": {
@@ -338,5 +338,8 @@
   "web.layout.workspace_context": {
     "text": "ワークスペースコンテキスト",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "ワークスペース"
   }
 }

@@ -52,7 +52,7 @@
     "source_hash": "48df54c7"
   },
   "web.colonel.configSaved": {
-    "text": "設定を正常に保存しました",
+    "text": "設定が正常に保存されました",
     "source_hash": "93b3d3e4"
   },
   "web.colonel.mustBeObject": {
@@ -68,7 +68,7 @@
     "source_hash": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
-    "text": "{section}を保存しました",
+    "text": "{section}が正常に保存されました",
     "source_hash": "7be1d5d2"
   },
   "web.colonel.saveSection": {
@@ -100,7 +100,7 @@
     "source_hash": "67b69646"
   },
   "web.colonel.admin": {
-    "text": "管理者",
+    "text": "管理",
     "source_hash": "c1c224b0"
   },
   "web.colonel.activity": {
@@ -156,7 +156,7 @@
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "シークレット総数",
+    "text": "総シークレット数",
     "source_hash": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
@@ -168,11 +168,11 @@
     "source_hash": "aefbd2db"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "作成されたシークレット",
+    "text": "作成シークレット",
     "source_hash": "a97ee479"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "共有されたシークレット",
+    "text": "共有シークレット",
     "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
@@ -296,7 +296,7 @@
     "source_hash": "20efa44d"
   },
   "web.colonel.activateTestMode": {
-    "text": "テストモードを有効化",
+    "text": "テストモードを有効にする",
     "source_hash": "0f469baa"
   },
   "web.colonel.testModeActive": {
@@ -304,7 +304,7 @@
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "異なるプランのエンタイトルメントでアプリケーションをテストします。変更は一時的で、あなたのセッションのみに影響します。",
+    "text": "異なるプランのエンタイトルメントでアプリケーションをテストします。変更は一時的で、あなたのセッションにのみ影響します。",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
@@ -328,7 +328,7 @@
     "source_hash": "bc2feb56"
   },
   "web.colonel.organizations.needAttention": {
-    "text": "{count}件要対応",
+    "text": "{count}件の対応が必要",
     "source_hash": "1c8e5840"
   },
   "web.colonel.organizations.unknownCount": {
@@ -392,7 +392,7 @@
     "source_hash": "920e413c"
   },
   "web.colonel.organizations.columns.usage": {
-    "text": "使用量",
+    "text": "使用状況",
     "source_hash": "8d59829c"
   },
   "web.colonel.organizations.columns.created": {
@@ -436,7 +436,7 @@
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "組織の管理と請求同期状態の監視 (合計{total}件)",
+    "text": "組織を管理し請求同期の状態を監視します ({total}件)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -488,19 +488,19 @@
     "source_hash": "2dbc5cc3"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
-    "text": "同期を確認",
+    "text": "同期を確認済み",
     "source_hash": "d92625c2"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
-    "text": "不一致を検出",
+    "text": "不一致が見つかりました",
     "source_hash": "361d22f3"
   },
   "web.colonel.organizations.investigation.unableToCompare": {
-    "text": "比較不可",
+    "text": "比較できません",
     "source_hash": "64c822ee"
   },
   "web.colonel.organizations.investigation.stripeDetails": {
-    "text": "Stripeサブスクリプション詳細",
+    "text": "Stripeサブスクリプションの詳細",
     "source_hash": "53a7b0ea"
   },
   "web.colonel.organizations.investigation.statusLabel": {
@@ -508,7 +508,7 @@
     "source_hash": "920e413c"
   },
   "web.colonel.organizations.investigation.product": {
-    "text": "製品",
+    "text": "プロダクト",
     "source_hash": "fb9ef894"
   },
   "web.colonel.organizations.investigation.resolvedPlan": {
@@ -544,7 +544,7 @@
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
-    "text": "禁止IP",
+    "text": "禁止IPアドレス",
     "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
@@ -552,11 +552,11 @@
     "source_hash": "dd0d2614"
   },
   "web.colonel.usageExport.title": {
-    "text": "使用量エクスポート",
+    "text": "使用状況エクスポート",
     "source_hash": "10a0cb94"
   },
   "web.colonel.usageExport.description": {
-    "text": "使用量データと統計をエクスポート",
+    "text": "使用状況データと統計をエクスポート",
     "source_hash": "2fd0a2e2"
   },
   "web.colonel.systemSettings.title": {
@@ -612,11 +612,11 @@
     "source_hash": "c683c9a6"
   },
   "web.colonel.titles.bannedIps": {
-    "text": "禁止IP",
+    "text": "禁止IPアドレス",
     "source_hash": "0ece5643"
   },
   "web.colonel.titles.usage": {
-    "text": "使用量エクスポート",
+    "text": "使用状況エクスポート",
     "source_hash": "10a0cb94"
   },
   "web.colonel.titles.info": {
@@ -632,7 +632,7 @@
     "source_hash": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "フィードバックを送信すると、以下の情報が送信されます:",
+    "text": "フィードバックを送信すると、以下の内容が確認できます:",
     "source_hash": "fe77172e"
   }
 }

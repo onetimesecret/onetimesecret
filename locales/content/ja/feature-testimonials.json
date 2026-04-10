@@ -4,7 +4,7 @@
     "source_hash": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "デモンストレーション用のAI生成コンテンツです。実際の人物や企業のものではありません。",
+    "text": "AI生成のデモンストレーション用コンテンツです。実在の人物や企業によるものではありません。",
     "source_hash": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
@@ -24,7 +24,7 @@
     "source_hash": "14159dd9"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "主要なAIが私たちについて語ること",
+    "text": "主要なAIが当社について語ること",
     "source_hash": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
@@ -32,7 +32,7 @@
     "source_hash": "947cd6b4"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "この引用は以下によって生成されました:",
+    "text": "この引用は以下によって生成されました",
     "source_hash": "7879a747"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
@@ -40,7 +40,7 @@
     "source_hash": "8b290e9a"
   },
   "web.testimonials.artificial_feedback": {
-    "text": "人工的なフィードバック",
+    "text": "AIフィードバック",
     "source_hash": "4c8d20ba"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
