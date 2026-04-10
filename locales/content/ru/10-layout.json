@@ -4,7 +4,7 @@
     "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Руководство по брендингу",
+    "text": "Руководство по бренду",
     "source_hash": "53f994c5"
   },
   "web.footer.customize": {
@@ -20,11 +20,11 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Узнать о наших мерах безопасности",
+    "text": "Узнайте о наших мерах безопасности",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Просмотреть условия использования",
+    "text": "Ознакомьтесь с нашими Условиями использования",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -44,7 +44,7 @@
     "source_hash": "be91940b"
   },
   "web.footer.legals": {
-    "text": "Юридическая информация",
+    "text": "Правовая информация",
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
@@ -52,15 +52,15 @@
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Прочитать нашу политику конфиденциальности",
+    "text": "Ознакомьтесь с нашей Политикой конфиденциальности",
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Проверить статус сервиса",
+    "text": "Проверьте статус нашего сервиса",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Изучить документацию API",
+    "text": "Изучите документацию нашего API",
     "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
@@ -68,11 +68,11 @@
     "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "Доступ к документации",
+    "text": "Откройте нашу документацию",
     "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Просмотреть исходный код на GitHub",
+    "text": "Посмотрите наш исходный код на GitHub",
     "source_hash": "d5def0ab"
   },
   "web.footer.resources": {
@@ -84,15 +84,15 @@
     "source_hash": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Читать последние записи блога",
+    "text": "Читайте наши последние записи в блоге",
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Просмотреть цены на подписку",
+    "text": "Ознакомьтесь с тарифами подписки",
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Узнать о нашей компании",
+    "text": "Узнайте о нашей компании",
     "source_hash": "780e18cd"
   },
   "web.footer.company": {
@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Вы просматриваете защищённое сообщение, которое было отправлено Вам через Onetime Secret. Это содержимое отображается только один раз, а затем безвозвратно удаляется с наших серверов.",
+    "text": "Вы просматриваете защищённое сообщение, которое было передано Вам через Onetime Secret. Это содержимое отображается только один раз, после чего безвозвратно удаляется с наших серверов.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -156,7 +156,7 @@
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Нет. В целях безопасности этот секрет можно просмотреть только один раз. После закрытия этой страницы содержимое будет безвозвратно удалено, и никто, включая нас, не сможет его восстановить.",
+    "text": "Нет. В целях безопасности этот секрет доступен для просмотра только один раз. После закрытия этой страницы содержимое будет безвозвратно удалено и не сможет быть восстановлено никем, включая нас.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
@@ -164,7 +164,7 @@
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Используйте кнопку «Копировать в буфер обмена», чтобы скопировать весь секрет. Для длинных секретов убедитесь, что Вы скопировали всё содержимое, прежде чем покинуть эту страницу.",
+    "text": "Используйте кнопку «Копировать в буфер обмена», чтобы скопировать весь секрет. Для длинных секретов убедитесь, что Вы скопировали полное содержимое, прежде чем покинуть эту страницу.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
@@ -172,11 +172,11 @@
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Отправитель получит уведомление о том, что секрет был просмотрен, но мы не отслеживаем, кто его просмотрел и откуда. Ваша конфиденциальность защищена.",
+    "text": "Отправитель получит уведомление о том, что его секрет был просмотрен, но мы не отслеживаем, кто его просмотрел и откуда. Ваша конфиденциальность защищена.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Как только Вы покинете или обновите эту страницу, этот секрет будет безвозвратно удалён и никто не сможет его восстановить.",
+    "text": "Как только Вы покинете или обновите эту страницу, этот секрет будет безвозвратно удалён и не сможет быть восстановлен.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
@@ -188,7 +188,7 @@
     "source_hash": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "Переключить тёмный режим",
+    "text": "Переключить тёмную тему",
     "source_hash": "ffe32a00"
   },
   "web.layout.provide_feedback": {
@@ -256,11 +256,11 @@
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Просмотреть политику конфиденциальности",
+    "text": "Просмотреть Политику конфиденциальности",
     "source_hash": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Просмотреть условия использования",
+    "text": "Просмотреть Условия использования",
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
@@ -304,7 +304,7 @@
     "source_hash": "d4eedb15"
   },
   "web.layout.view_source_on_github": {
-    "text": "Просмотреть исходный код на GitHub",
+    "text": "Посмотреть исходный код на GitHub",
     "source_hash": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
@@ -312,7 +312,7 @@
     "source_hash": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Изменить язык. Текущий язык: {0}",
+    "text": "Изменить язык. Текущий язык — {0}",
     "source_hash": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
@@ -338,5 +338,8 @@
   "web.layout.workspace_context": {
     "text": "Контекст рабочего пространства",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Рабочее пространство"
   }
 }

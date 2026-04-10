@@ -4,7 +4,7 @@
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Безопасная передача конфиденциальной информации нашей службе поддержки",
+    "text": "Безопасно делитесь конфиденциальной информацией с нашей командой поддержки",
     "source_hash": "08beca74"
   },
   "incoming.loading_config": {
@@ -20,11 +20,11 @@
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Эта функция в настоящее время отключена. Пожалуйста, свяжитесь со службой поддержки.",
+    "text": "Эта функция в настоящее время отключена. Пожалуйста, обратитесь в службу поддержки за помощью.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "Примечание",
+    "text": "Заметка",
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
@@ -96,15 +96,15 @@
     "source_hash": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "Ваше защищённое сообщение доставлено.",
+    "text": "Ваше защищённое сообщение было доставлено.",
     "source_hash": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "Идентификатор ссылки",
+    "text": "Идентификатор",
     "source_hash": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "Что будет дальше?",
+    "text": "Что произойдёт дальше?",
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
@@ -112,15 +112,15 @@
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "Отправить ещё секрет",
+    "text": "Отправить ещё один секрет",
     "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Безопасная передача конфиденциальной информации",
+    "text": "Безопасно делитесь конфиденциальной информацией",
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Держите пароли и личные данные вне электронной почты и логов чатов",
+    "text": "Не оставляйте пароли и личные данные в логах электронной почты и чатов",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "квитанция",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Требуется обновление плана"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Для этой функции требуется обновление плана. Пожалуйста, обратитесь к владельцу аккаунта для включения входящих секретов."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Заметка должна содержать не более {max} символов"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Секретное содержимое обязательно"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Пожалуйста, выберите получателя"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Функция входящих секретов не включена"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Пожалуйста, проверьте форму на наличие ошибок"
   }
 }

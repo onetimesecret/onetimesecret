@@ -8,7 +8,7 @@
     "source_hash": "44c54ed2"
   },
   "web.errors.what_should_i_do_now": {
-    "text": "Что мне теперь делать?",
+    "text": "Что мне делать теперь?",
     "source_hash": "fbf3e67f"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
@@ -16,11 +16,11 @@
     "source_hash": "d9f4f41a"
   },
   "web.errors.warning_dismissed": {
-    "text": "Предупреждение скрыто",
+    "text": "Предупреждение закрыто",
     "source_hash": "e6d67409"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Скрыть предупреждение об обрезке",
+    "text": "Закрыть предупреждение об усечении",
     "source_hash": "79e02fe6"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
@@ -36,11 +36,11 @@
     "source_hash": "27595daa"
   },
   "web.errors.dismiss_warning": {
-    "text": "Скрыть предупреждение",
+    "text": "Закрыть предупреждение",
     "source_hash": "9f6e4da3"
   },
   "web.errors.dismiss_notification": {
-    "text": "Скрыть уведомление",
+    "text": "Закрыть уведомление",
     "source_hash": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
@@ -60,7 +60,7 @@
     "source_hash": "93529f24"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Создайте секрет!",
+    "text": "Поделитесь секретом!",
     "source_hash": "04c04b1a"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {

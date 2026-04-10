@@ -12,31 +12,31 @@
     "source_hash": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Этот домен уже зарегистрирован в другой организации. Свяжитесь со службой поддержки, если считаете это ошибкой.",
+    "text": "Этот домен уже зарегистрирован в другой организации. Пожалуйста, свяжитесь с поддержкой, если считаете, что это ошибка.",
     "source_hash": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Домен успешно подтверждён и добавлен в Вашу организацию",
+    "text": "Домен успешно заявлен и добавлен в Вашу организацию",
     "source_hash": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "Настройки конфиденциальности",
+    "text": "Настройки конфиденциальности по умолчанию",
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Установите параметры конфиденциальности по умолчанию для секретов, создаваемых под этим доменом. Эти настройки будут предзаполнены при создании новых секретов.",
+    "text": "Установите настройки конфиденциальности по умолчанию для секретов, создаваемых в этом домене. Эти настройки будут предварительно заполнены при создании новых секретов.",
     "source_hash": "1d98959c"
   },
   "web.domains.privacy_defaults": {
-    "text": "Настройки конфиденциальности",
+    "text": "Настройки конфиденциальности по умолчанию",
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "Иконка настроек конфиденциальности",
+    "text": "Значок настроек конфиденциальности по умолчанию",
     "source_hash": "c6bef509"
   },
   "web.domains.default_ttl_label": {
-    "text": "Срок действия по умолчанию",
+    "text": "Время жизни по умолчанию",
     "source_hash": "ce3c65fe"
   },
   "web.domains.default_ttl_hint": {
@@ -48,7 +48,7 @@
     "source_hash": "3a448e69"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Сделать кодовую фразу обязательной для всех секретов этого домена",
+    "text": "Сделать кодовую фразу обязательной для всех секретов в этом домене",
     "source_hash": "6ac05bce"
   },
   "web.domains.notify_enabled_label": {
@@ -56,11 +56,11 @@
     "source_hash": "682be64a"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "Включить уведомления по почте по умолчанию при просмотре секретов",
+    "text": "Включить уведомления по электронной почте по умолчанию при просмотре секретов",
     "source_hash": "3e16dd5f"
   },
   "web.domains.use_global_default": {
-    "text": "Использовать глобальные настройки",
+    "text": "Использовать глобальное значение по умолчанию",
     "source_hash": "a83c91e4"
   },
   "web.domains.global_default": {
@@ -76,7 +76,7 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Включено",
+    "text": "Включить",
     "source_hash": "92c1cdfd"
   },
   "web.domains.disabled": {
@@ -88,7 +88,7 @@
     "source_hash": "494ca78f"
   },
   "web.domains.edit_defaults": {
-    "text": "Изменить настройки",
+    "text": "Редактировать значения по умолчанию",
     "source_hash": "50f49b87"
   },
   "web.domains.ttl_short": {
@@ -128,11 +128,11 @@
     "source_hash": "3dedc533"
   },
   "web.domains.canonical_no_settings": {
-    "text": "Основной домен не имеет страницы настроек",
+    "text": "У домена по умолчанию нет страницы настроек",
     "source_hash": "59b8806e"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Введите имя домена {0}",
+    "text": "Пожалуйста, введите имя домена {0}",
     "source_hash": "167f2d19"
   },
   "web.domains.domain_name": {
@@ -144,7 +144,7 @@
     "source_hash": "a25d6fca"
   },
   "web.domains.homepage_access": {
-    "text": "Доступ к главной",
+    "text": "Доступ к главной странице",
     "source_hash": "00c89609"
   },
   "web.domains.and_status": {
@@ -172,7 +172,7 @@
     "source_hash": "bec72630"
   },
   "web.domains.ssl_renews": {
-    "text": "Обновление SSL",
+    "text": "Продление SSL",
     "source_hash": "c49a8cff"
   },
   "web.domains.dns_record": {
@@ -220,7 +220,7 @@
     "source_hash": "dc9ff9ec"
   },
   "web.domains.add_your_domain": {
-    "text": "Добавьте свой домен",
+    "text": "Добавьте Ваш домен",
     "source_hash": "6b95c91c"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
@@ -252,7 +252,7 @@
     "source_hash": "8978f5e7"
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", Вам нужно выполнить эти шаги.",
+    "text": ", Вам необходимо выполнить следующие шаги.",
     "source_hash": "1d81c53e"
   },
   "web.domains.before_we_can_activate_links_for": {
@@ -272,7 +272,7 @@
     "source_hash": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Настройте брендинг Вашего домена",
+    "text": "Настройте брендирование Вашего домена",
     "source_hash": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
@@ -368,7 +368,7 @@
     "source_hash": "dd8180cf"
   },
   "web.domains.passphrase_set": {
-    "text": "Защищено",
+    "text": "Защищён",
     "source_hash": "b0ed2633"
   },
   "web.domains.manage_domains": {
@@ -376,11 +376,11 @@
     "source_hash": "36dd9781"
   },
   "web.domains.global_defaults": {
-    "text": "Глобальные настройки",
+    "text": "Глобальные значения по умолчанию",
     "source_hash": "4526107f"
   },
   "web.domains.edit_ttl": {
-    "text": "Изменить настройку срока действия",
+    "text": "Изменить настройку времени жизни",
     "source_hash": "ea8afd62"
   },
   "web.domains.edit_passphrase": {
@@ -392,7 +392,7 @@
     "source_hash": "2e9e1ea0"
   },
   "web.domains.configure_dns_records": {
-    "text": "Настройка DNS-записей",
+    "text": "Настроить DNS-записи",
     "source_hash": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
@@ -400,23 +400,23 @@
     "source_hash": "91c1af2e"
   },
   "web.domains.email.title": {
-    "text": "Отправка email",
+    "text": "Отправка электронной почты",
     "source_hash": "6c428e5f"
   },
   "web.domains.email.config_title": {
-    "text": "Настройка email",
+    "text": "Настройка электронной почты",
     "source_hash": "6f38aa51"
   },
   "web.domains.email.config_description": {
-    "text": "Настройте отправку email для этого домена",
+    "text": "Настройка отправки электронной почты для этого домена",
     "source_hash": "1c275ff0"
   },
   "web.domains.email.provider_label": {
-    "text": "Email-провайдер",
+    "text": "Почтовый провайдер",
     "source_hash": "a7ed3f4e"
   },
   "web.domains.email.provider_placeholder": {
-    "text": "Выберите email-провайдера",
+    "text": "Выберите почтового провайдера",
     "source_hash": "63c8080c"
   },
   "web.domains.email.from_name_label": {
@@ -464,11 +464,11 @@
     "source_hash": "ec994dad"
   },
   "web.domains.email.provider_inherit": {
-    "text": "Использовать настройки аккаунта",
+    "text": "Использовать настройки аккаунта по умолчанию",
     "source_hash": "f6fa84e7"
   },
   "web.domains.email.provider_ses_description": {
-    "text": "Требуется подтверждение домена через DKIM и SPF записи",
+    "text": "Требуется подтверждение домена через записи DKIM и SPF",
     "source_hash": "4df5aa60"
   },
   "web.domains.email.provider_sendgrid_description": {
@@ -480,7 +480,7 @@
     "source_hash": "87073c93"
   },
   "web.domains.email.provider_inherit_description": {
-    "text": "Используются настройки отправки email по умолчанию для вашего аккаунта",
+    "text": "Используется конфигурация отправки почты Вашего аккаунта по умолчанию",
     "source_hash": "3f798263"
   },
   "web.domains.email.dns_records_title": {
@@ -488,7 +488,7 @@
     "source_hash": "34d2c307"
   },
   "web.domains.email.dns_records_description": {
-    "text": "Добавьте следующие DNS-записи для подтверждения вашего домена для отправки email.",
+    "text": "Добавьте следующие DNS-записи для подтверждения Вашего домена для отправки почты.",
     "source_hash": "9fa85863"
   },
   "web.domains.email.dns_column_type": {
@@ -512,11 +512,11 @@
     "source_hash": "8d525e5f"
   },
   "web.domains.email.status_verified": {
-    "text": "Подтверждён",
+    "text": "Подтверждено",
     "source_hash": "4f783840"
   },
   "web.domains.email.status_pending": {
-    "text": "Ожидание",
+    "text": "В ожидании",
     "source_hash": "331551b0"
   },
   "web.domains.email.status_failed": {
@@ -524,7 +524,7 @@
     "source_hash": "031a8f0f"
   },
   "web.domains.email.revalidate": {
-    "text": "Проверить повторно",
+    "text": "Повторная проверка",
     "source_hash": "4918da12"
   },
   "web.domains.email.validating": {
@@ -536,7 +536,7 @@
     "source_hash": "08e0df67"
   },
   "web.domains.email.validation_failed": {
-    "text": "Ошибка проверки",
+    "text": "Проверка не пройдена",
     "source_hash": "23a86f5a"
   },
   "web.domains.email.last_validated": {
@@ -544,11 +544,11 @@
     "source_hash": "887dd486"
   },
   "web.domains.email.upgrade_to_configure": {
-    "text": "Обновите тарифный план для настройки отправки email с этого домена.",
+    "text": "Обновите план для настройки отправки почты с этого домена.",
     "source_hash": "16a876f7"
   },
   "web.domains.email.configure_email": {
-    "text": "Настроить email",
+    "text": "Настроить электронную почту",
     "source_hash": "a48c0d40"
   },
   "web.domains.email.access_denied": {
@@ -556,23 +556,23 @@
     "source_hash": "d134ca02"
   },
   "web.domains.email.access_denied_description": {
-    "text": "У вас нет прав для управления настройками email этого домена. Обратитесь к администратору вашей организации.",
+    "text": "У Вас нет прав для управления настройками почты этого домена. Свяжитесь с администратором Вашей организации.",
     "source_hash": "32049ff0"
   },
   "web.domains.email.update_success": {
-    "text": "Настройки email успешно сохранены",
+    "text": "Настройки электронной почты успешно сохранены",
     "source_hash": "dd3607fc"
   },
   "web.domains.email.delete_success": {
-    "text": "Настройки email успешно удалены",
+    "text": "Настройки электронной почты успешно удалены",
     "source_hash": "2ba99a91"
   },
   "web.domains.email.default_sender_notice": {
-    "text": "Письма для этого домена сейчас отправляются от глобального отправителя. Завершите настройку email, чтобы использовать собственный адрес отправителя.",
+    "text": "Письма для этого домена в настоящее время отправляются от глобального отправителя. Завершите настройку почты, чтобы использовать собственного отправителя.",
     "source_hash": "ffcf39fb"
   },
   "web.domains.email.disabled_notice": {
-    "text": "Пользовательская отправка email сейчас отключена. Письма будут отправляться от глобального отправителя. Включите функцию ниже, чтобы использовать собственный адрес отправителя.",
+    "text": "Пользовательская отправка почты в настоящее время отключена. Письма будут отправляться от глобального отправителя. Включите функцию ниже, чтобы использовать собственного отправителя.",
     "source_hash": "60a26f5b"
   },
   "web.domains.email.badge_not_configured": {
@@ -584,7 +584,7 @@
     "source_hash": "e1afb18f"
   },
   "web.domains.email.badge_verified": {
-    "text": "Подтверждён",
+    "text": "Подтверждено",
     "source_hash": "4f783840"
   },
   "web.domains.email.badge_pending": {
@@ -592,23 +592,23 @@
     "source_hash": "417a6b7e"
   },
   "web.domains.email.badge_disabled": {
-    "text": "Отключён",
+    "text": "Отключено",
     "source_hash": "75081b59"
   },
   "web.domains.email.tooltip_not_configured": {
-    "text": "Отправитель email не настроен — письма отправляются от имени платформы по умолчанию",
+    "text": "Отправитель почты не настроен — письма используют отправителя платформы по умолчанию",
     "source_hash": "360083bb"
   },
   "web.domains.email.tooltip_pending": {
-    "text": "Настройки отправителя email ожидают подтверждения — письма отправляются от имени платформы по умолчанию",
+    "text": "Настройка отправителя почты ожидает подтверждения — письма используют отправителя платформы по умолчанию",
     "source_hash": "c8c2449c"
   },
   "web.domains.email.tooltip_disabled": {
-    "text": "Отправитель email отключён — письма отправляются от имени платформы по умолчанию",
+    "text": "Отправитель почты отключён — письма используют отправителя платформы по умолчанию",
     "source_hash": "64e84955"
   },
   "web.domains.email.tooltip_verified": {
-    "text": "Отправитель email подтверждён — письма отправляются с этого домена",
+    "text": "Отправитель почты подтверждён — письма отправляются с этого домена",
     "source_hash": "0e9a005c"
   },
   "web.domains.incoming.title": {
@@ -620,7 +620,7 @@
     "source_hash": "b3fef15b"
   },
   "web.domains.incoming.config_description": {
-    "text": "Разрешить внешним пользователям отправлять секреты напрямую назначенным получателям на этом домене",
+    "text": "Разрешить внешним пользователям отправлять секреты непосредственно назначенным получателям в этом домене",
     "source_hash": "452ab4fe"
   },
   "web.domains.incoming.access_denied": {
@@ -628,11 +628,11 @@
     "source_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
-    "text": "У вас нет прав для управления настройками входящих секретов этого домена. Обратитесь к администратору вашей организации.",
+    "text": "У Вас нет прав для управления настройками входящих секретов этого домена. Свяжитесь с администратором Вашей организации.",
     "source_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
-    "text": "Обновите тарифный план для настройки входящих секретов для этого домена.",
+    "text": "Обновите план для настройки входящих секретов для этого домена.",
     "source_hash": "9dfdfeb5"
   },
   "web.domains.incoming.configure_incoming": {
@@ -640,11 +640,11 @@
     "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
-    "text": "Входящие секреты не настроены для этого домена. Добавьте получателей, чтобы внешние пользователи могли отправлять секреты вашей команде.",
+    "text": "Входящие секреты не настроены для этого домена. Добавьте получателей, чтобы внешние пользователи могли отправлять секреты Вашей команде.",
     "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
-    "text": "Входящие секреты сейчас отключены. Внешние пользователи не могут отправлять секреты получателям на этом домене. Включите функцию ниже, чтобы разрешить входящие секреты.",
+    "text": "Входящие секреты в настоящее время отключены. Внешние пользователи не могут отправлять секреты получателям в этом домене. Включите функцию ниже, чтобы разрешить входящие секреты.",
     "source_hash": "d1f8dafb"
   },
   "web.domains.incoming.recipients_title": {
@@ -652,7 +652,7 @@
     "source_hash": "1e8568a8"
   },
   "web.domains.incoming.recipients_description": {
-    "text": "Определите, кто может получать входящие секреты на этом домене. Получатели будут получать email уведомления при отправке им секрета.",
+    "text": "Определите, кто может получать входящие секреты в этом домене. Получатели будут уведомлены по электронной почте, когда им отправят секрет.",
     "source_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
@@ -664,7 +664,7 @@
     "source_hash": "c3812fc4"
   },
   "web.domains.incoming.email_label": {
-    "text": "Email адрес",
+    "text": "Адрес электронной почты",
     "source_hash": "09bf25ef"
   },
   "web.domains.incoming.email_placeholder": {
@@ -676,7 +676,7 @@
     "source_hash": "18d67c99"
   },
   "web.domains.incoming.name_placeholder": {
-    "text": "напр. Служба безопасности",
+    "text": "напр. Команда безопасности",
     "source_hash": "0c52400c"
   },
   "web.domains.incoming.empty_state": {
@@ -684,15 +684,15 @@
     "source_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
-    "text": "Добавьте получателей, чтобы внешние пользователи могли отправлять секреты вашей команде.",
+    "text": "Добавьте получателей, чтобы внешние пользователи могли отправлять секреты Вашей команде.",
     "source_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
-    "text": "Неверный email адрес",
+    "text": "Недействительный адрес электронной почты",
     "source_hash": "4eaf1d80"
   },
   "web.domains.incoming.validation_duplicate_email": {
-    "text": "Этот email адрес уже добавлен",
+    "text": "Этот адрес электронной почты уже добавлен",
     "source_hash": "f89de141"
   },
   "web.domains.incoming.validation_max_recipients": {
@@ -700,11 +700,11 @@
     "source_hash": "e2585847"
   },
   "web.domains.incoming.validation_name_required": {
-    "text": "Требуется отображаемое имя",
+    "text": "Отображаемое имя обязательно",
     "source_hash": "c6892c89"
   },
   "web.domains.incoming.validation_email_required": {
-    "text": "Требуется email адрес",
+    "text": "Адрес электронной почты обязателен",
     "source_hash": "41381ba2"
   },
   "web.domains.incoming.save_changes": {
@@ -724,7 +724,7 @@
     "source_hash": "4c4a33ae"
   },
   "web.domains.incoming.recipient_count": {
-    "text": "{count} получатель | {count} получателя | {count} получателей",
+    "text": "{count} получатель | {count} получателей",
     "source_hash": "0e4f5985"
   },
   "web.domains.incoming.badge_not_configured": {
@@ -736,15 +736,15 @@
     "source_hash": "84aebc69"
   },
   "web.domains.incoming.badge_disabled": {
-    "text": "Отключён",
+    "text": "Отключено",
     "source_hash": "75081b59"
   },
   "web.domains.incoming.tooltip_not_configured": {
-    "text": "Входящие секреты не настроены — внешние пользователи не могут отправлять секреты на этот домен",
+    "text": "Входящие секреты не настроены — внешние пользователи не могут отправлять секреты в этот домен",
     "source_hash": "79786d5c"
   },
   "web.domains.incoming.tooltip_configured": {
-    "text": "Входящие секреты включены с {count} получателем | Входящие секреты включены с {count} получателями | Входящие секреты включены с {count} получателями",
+    "text": "Входящие секреты включены с {count} получателями",
     "source_hash": "c205cc54"
   },
   "web.domains.incoming.tooltip_disabled": {
@@ -756,7 +756,7 @@
     "source_hash": "c0b25980"
   },
   "web.domains.incoming.enabled_hint": {
-    "text": "Разрешить внешним пользователям отправлять секреты получателям на этом домене",
+    "text": "Разрешить внешним пользователям отправлять секреты получателям в этом домене",
     "source_hash": "24aadd31"
   },
   "web.domains.incoming.public_url_label": {
@@ -776,19 +776,19 @@
     "source_hash": "2f396c3e"
   },
   "web.domains.incoming.remove_all_confirmation": {
-    "text": "Вы уверены, что хотите удалить всех получателей? Внешние пользователи больше не смогут отправлять секреты на этот домен.",
+    "text": "Вы уверены, что хотите удалить всех получателей? Внешние пользователи больше не смогут отправлять секреты в этот домен.",
     "source_hash": "06f9e551"
   },
   "web.domains.incoming.max_recipients_reached": {
-    "text": "Достигнуто максимальное количество получателей",
+    "text": "Достигнуто максимальное число получателей",
     "source_hash": "ba659e54"
   },
   "web.domains.incoming.duplicate_recipient": {
-    "text": "Этот email адрес уже добавлен",
+    "text": "Этот адрес электронной почты уже был добавлен",
     "source_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
-    "text": "Сохранение заменит всех существующих получателей на ваши текущие изменения. Вы уверены?",
+    "text": "Сохранение заменит всех существующих получателей Вашими текущими изменениями. Вы уверены?",
     "source_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
@@ -804,7 +804,7 @@
     "source_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
-    "text": "Настройте аутентификацию единого входа для этого домена",
+    "text": "Настройте аутентификацию через единый вход для этого домена",
     "source_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
@@ -812,23 +812,23 @@
     "source_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
-    "text": "У вас нет прав для управления настройками SSO этого домена. Обратитесь к администратору вашей организации.",
+    "text": "У Вас нет прав для управления настройками SSO этого домена. Свяжитесь с администратором Вашей организации.",
     "source_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
-    "text": "Обновите тарифный план для настройки единого входа для этого домена.",
+    "text": "Обновите план для настройки единого входа для этого домена.",
     "source_hash": "71fc0069"
   },
   "web.domains.sso.create_success": {
-    "text": "Настройки SSO успешно созданы",
+    "text": "Настройка SSO успешно создана",
     "source_hash": "531c7d92"
   },
   "web.domains.sso.update_success": {
-    "text": "Настройки SSO успешно обновлены",
+    "text": "Настройка SSO успешно обновлена",
     "source_hash": "d98d8e83"
   },
   "web.domains.sso.delete_success": {
-    "text": "Настройки SSO успешно удалены",
+    "text": "Настройка SSO успешно удалена",
     "source_hash": "2e924798"
   },
   "web.domains.sso.configure_sso": {
@@ -836,7 +836,97 @@
     "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "SSO ещё не настроен для этого домена. Включите единый вход, чтобы участники команды могли проходить аутентификацию через провайдера идентификации вашей организации.",
+    "text": "SSO ещё не настроен для этого домена. Включите единый вход, чтобы позволить членам команды аутентифицироваться через провайдера идентификации Вашей организации.",
     "source_hash": "c439214b"
+  },
+  "web.domains.public_homepage": {
+    "text": "Публичная главная страница"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Домен подтверждён и активен"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS не настроен — нажмите для исправления"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Домен не подтверждён — нажмите для подтверждения"
+  },
+  "web.domains.click_to_verify": {
+    "text": "нажмите для подтверждения"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Не удалось загрузить виджет DNS"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "Виджет DNS недоступен"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Не удалось инициализировать виджет DNS"
+  },
+  "web.domains.verified": {
+    "text": "Подтверждён"
+  },
+  "web.domains.pending_verification": {
+    "text": "Ожидает подтверждения"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "У Вас есть несохранённые изменения. Вы уверены, что хотите уйти?"
+  },
+  "web.domains.detail.manage": {
+    "text": "Управление"
+  },
+  "web.domains.detail.features": {
+    "text": "Возможности"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Секреты на главной странице"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Разрешить публичный доступ к созданию секретов на главной странице Вашего домена"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Логотип, цвета и персонализированный брендинг"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Настройки провайдера единого входа"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Настройка пользовательского отправителя почты"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Настройки получателей входящих секретов"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Провайдер"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Тестовая отправка письма"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Отправьте тестовое письмо себе, используя сохранённую конфигурацию. Работает, даже если функция ещё не включена."
+  },
+  "web.domains.email.send_test": {
+    "text": "Отправить тест"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Тестовое письмо успешно отправлено"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Не удалось отправить тестовое письмо"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Отправлено на {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Доставлено через {provider}"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Тест подключения успешен — провайдер ответил корректно"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Тест подключения не пройден"
   }
 }

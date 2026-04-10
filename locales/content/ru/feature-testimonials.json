@@ -4,7 +4,7 @@
     "source_hash": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "Контент, сгенерированный ИИ для демонстрации. Не от реального человека или компании.",
+    "text": "Содержимое сгенерировано ИИ для демонстрации. Не является отзывом реального человека или компании.",
     "source_hash": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
@@ -40,7 +40,7 @@
     "source_hash": "8b290e9a"
   },
   "web.testimonials.artificial_feedback": {
-    "text": "Искусственный отзыв",
+    "text": "Искусственные отзывы",
     "source_hash": "4c8d20ba"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {

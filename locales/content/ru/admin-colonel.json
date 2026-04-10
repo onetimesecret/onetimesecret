@@ -32,7 +32,7 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Редактирование системных настроек. Изменения применяются сразу после сохранения.",
+    "text": "Редактирование настроек системной конфигурации. Изменения вступают в силу сразу после сохранения.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
@@ -100,7 +100,7 @@
     "source_hash": "67b69646"
   },
   "web.colonel.admin": {
-    "text": "Администратор",
+    "text": "Администрирование",
     "source_hash": "c1c224b0"
   },
   "web.colonel.activity": {
@@ -116,7 +116,7 @@
     "source_hash": "6b0cc904"
   },
   "web.colonel.usersDescription": {
-    "text": "Управление аккаунтами пользователей и правами доступа",
+    "text": "Управление учётными записями и правами пользователей",
     "source_hash": "6cfc012c"
   },
   "web.colonel.domains": {
@@ -136,7 +136,7 @@
     "source_hash": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Административная панель управления OneTimeSecret",
+    "text": "Панель администрирования OneTimeSecret",
     "source_hash": "57c1e752"
   },
   "web.colonel.quickActions": {
@@ -148,11 +148,11 @@
     "source_hash": "9ef7d438"
   },
   "web.colonel.viewAll": {
-    "text": "Просмотреть всё",
+    "text": "Показать все",
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Здесь будут отображаться данные об активности",
+    "text": "Данные об активности будут отображены здесь",
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
@@ -180,7 +180,7 @@
     "source_hash": "0ca3aa44"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "Писем отправлено",
+    "text": "Отправлено писем",
     "source_hash": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
@@ -188,7 +188,7 @@
     "source_hash": "c3d66242"
   },
   "web.colonel.stats.healthy": {
-    "text": "Исправно",
+    "text": "Исправна",
     "source_hash": "7f1e323b"
   },
   "web.colonel.actions.viewActivity": {
@@ -196,7 +196,7 @@
     "source_hash": "9c28f55c"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Мониторинг активности системы и использования",
+    "text": "Мониторинг системной активности и использования",
     "source_hash": "f88e9eda"
   },
   "web.colonel.actions.manageAccounts": {
@@ -204,7 +204,7 @@
     "source_hash": "9d114268"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "Администрирование аккаунтов пользователей",
+    "text": "Администрирование учётных записей пользователей",
     "source_hash": "d73af927"
   },
   "web.colonel.actions.configureDomains": {
@@ -260,7 +260,7 @@
     "source_hash": "ea68cfee"
   },
   "web.colonel.noQueueData": {
-    "text": "Данные очереди недоступны",
+    "text": "Нет данных очереди",
     "source_hash": "331ffa6b"
   },
   "web.colonel.loadingQueueData": {
@@ -268,7 +268,7 @@
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
-    "text": "Режим тестового плана",
+    "text": "Тестовый режим плана",
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
@@ -284,7 +284,7 @@
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "Сбросить к фактическому плану",
+    "text": "Сбросить к текущему плану",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
@@ -304,11 +304,11 @@
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "Тестируйте приложение с разными правами планов. Изменения временные и влияют только на Вашу сессию.",
+    "text": "Протестируйте приложение с правами различных планов. Изменения временные и затрагивают только Вашу сессию.",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "Вы тестируете с правами плана {planName} (временное переопределение сессии).",
+    "text": "Вы тестируете с правами плана {planName} (временная сессионная подмена).",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
@@ -316,11 +316,11 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Мониторинг синхронизации оплаты организаций",
+    "text": "Мониторинг синхронизации биллинга организаций",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Мониторинг состояния оплаты",
+    "text": "Мониторинг состояния биллинга",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
@@ -332,7 +332,7 @@
     "source_hash": "1c8e5840"
   },
   "web.colonel.organizations.unknownCount": {
-    "text": "{count} неизвестно",
+    "text": "{count} неизвестных",
     "source_hash": "b7bf2cf1"
   },
   "web.colonel.organizations.noOrganizations": {
@@ -352,7 +352,7 @@
     "source_hash": "a52ace42"
   },
   "web.colonel.organizations.filters.potentiallyStale": {
-    "text": "Возможно устарело",
+    "text": "Возможно устаревшие",
     "source_hash": "40137b37"
   },
   "web.colonel.organizations.filters.unknown": {
@@ -364,7 +364,7 @@
     "source_hash": "5da22fe4"
   },
   "web.colonel.organizations.filters.active": {
-    "text": "Активно",
+    "text": "Активна",
     "source_hash": "92340695"
   },
   "web.colonel.organizations.filters.trialing": {
@@ -372,11 +372,11 @@
     "source_hash": "3792573d"
   },
   "web.colonel.organizations.filters.pastDue": {
-    "text": "Просрочено",
+    "text": "Просрочена",
     "source_hash": "2bda1c7b"
   },
   "web.colonel.organizations.filters.canceled": {
-    "text": "Отменено",
+    "text": "Отменена",
     "source_hash": "13ca2ee2"
   },
   "web.colonel.organizations.columns.account": {
@@ -384,7 +384,7 @@
     "source_hash": "7e1b0d56"
   },
   "web.colonel.organizations.columns.billing": {
-    "text": "Оплата",
+    "text": "Биллинг",
     "source_hash": "3ac8bbca"
   },
   "web.colonel.organizations.columns.status": {
@@ -396,7 +396,7 @@
     "source_hash": "8d59829c"
   },
   "web.colonel.organizations.columns.created": {
-    "text": "Создано",
+    "text": "Создан",
     "source_hash": "d70b9e24"
   },
   "web.colonel.organizations.columns.details": {
@@ -428,15 +428,15 @@
     "source_hash": "53aa279e"
   },
   "web.colonel.organizations.columns.has_billing": {
-    "text": "Есть оплата",
+    "text": "Есть биллинг",
     "source_hash": "db0628ed"
   },
   "web.colonel.organizations.legacy.title": {
-    "text": "Администрирование оплаты организаций",
+    "text": "Администрирование биллинга организаций",
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Управление организациями и мониторинг синхронизации оплаты ({total} всего)",
+    "text": "Управление организациями и мониторинг синхронизации биллинга ({total} всего)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -444,11 +444,11 @@
     "source_hash": "538995db"
   },
   "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "возможно устарело",
+    "text": "возможно устаревшие",
     "source_hash": "3ddfec45"
   },
   "web.colonel.organizations.status.stale": {
-    "text": "Устарело",
+    "text": "Устаревшее",
     "source_hash": "40c9e59c"
   },
   "web.colonel.organizations.status.unknown": {
@@ -460,7 +460,7 @@
     "source_hash": "96879611"
   },
   "web.colonel.organizations.actions.investigate": {
-    "text": "Исследовать",
+    "text": "Расследовать",
     "source_hash": "e2641093"
   },
   "web.colonel.organizations.actions.checking": {
@@ -480,15 +480,15 @@
     "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.investigation.failed": {
-    "text": "Исследование не удалось",
+    "text": "Расследование не удалось",
     "source_hash": "193aa900"
   },
   "web.colonel.organizations.investigation.result": {
-    "text": "Результат исследования",
+    "text": "Результат расследования",
     "source_hash": "2dbc5cc3"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
-    "text": "Проверено и синхронизировано",
+    "text": "Синхронизация подтверждена",
     "source_hash": "d92625c2"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
@@ -500,7 +500,7 @@
     "source_hash": "64c822ee"
   },
   "web.colonel.organizations.investigation.stripeDetails": {
-    "text": "Детали подписки Stripe",
+    "text": "Данные подписки Stripe",
     "source_hash": "53a7b0ea"
   },
   "web.colonel.organizations.investigation.statusLabel": {
@@ -572,7 +572,7 @@
     "source_hash": "6170ab94"
   },
   "web.colonel.customDomains.description": {
-    "text": "Управление пользовательскими доменами и брендингом",
+    "text": "Управление пользовательскими доменами и брендированием",
     "source_hash": "808ee2cb"
   },
   "web.colonel.feedback.send_feedback": {
@@ -608,7 +608,7 @@
     "source_hash": "c4545e98"
   },
   "web.colonel.titles.authdb": {
-    "text": "База данных аутентификации",
+    "text": "База данных авторизации",
     "source_hash": "c683c9a6"
   },
   "web.colonel.titles.bannedIps": {
@@ -620,7 +620,7 @@
     "source_hash": "10a0cb94"
   },
   "web.colonel.titles.info": {
-    "text": "Системная информация",
+    "text": "Информация о системе",
     "source_hash": "8ad54ec1"
   },
   "web.colonel.titles.organizations": {

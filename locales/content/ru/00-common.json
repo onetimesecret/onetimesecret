@@ -9,7 +9,7 @@
     "source_hash": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "На основе",
+    "text": "Работает на",
     "source_hash": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
@@ -21,7 +21,7 @@
     "source_hash": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Генерация пароля отключена, когда форма заполнена",
+    "text": "Генерация пароля отключена, когда форма заполнена корректно",
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
@@ -37,7 +37,7 @@
     "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Укрепляйте связи и доверие с помощью собственных брендированных секретных ссылок.",
+    "text": "Укрепляйте связи и повышайте доверие с помощью собственных брендированных секретных ссылок.",
     "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
@@ -65,7 +65,7 @@
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Держите конфиденциальную информацию вне логов чатов и электронной почты. Создайте секретную ссылку, доступную только один раз.",
+    "text": "Не оставляйте конфиденциальную информацию в логах чатов и электронной почте. Поделитесь секретной ссылкой, доступной только один раз.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
@@ -93,7 +93,7 @@
     "source_hash": "e7611f05"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Слово или фраза, которую сложно угадать",
+    "text": "Слово или фраза, которые трудно угадать",
     "source_hash": "29d0cf13"
   },
   "web.COMMON.secret_recipient_address": {
@@ -101,7 +101,7 @@
     "source_hash": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Секретное содержимое...",
+    "text": "Секретное содержимое размещайте здесь...",
     "source_hash": "54630bab"
   },
   "web.COMMON.header_create_account": {
@@ -125,7 +125,7 @@
     "source_hash": "d0527e4b"
   },
   "web.COMMON.secret": {
-    "text": "Секрет | Секрета | Секретов",
+    "text": "Секрет | Секреты",
     "source_hash": "c7ebd045"
   },
   "web.COMMON.recent": {
@@ -157,19 +157,19 @@
     "source_hash": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Уничтожить секрет",
+    "text": "Уничтожить этот секрет",
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Уничтожение секрета удалит его до прочтения (нажмите для подтверждения)",
+    "text": "Уничтожение секрета удалит его до того, как он будет прочитан (нажмите для подтверждения)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Уничтожение секрета необратимо",
+    "text": "Уничтожение секрета необратимо и не может быть отменено",
     "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Проверьте почту",
+    "text": "Проверьте Вашу почту",
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
@@ -177,19 +177,19 @@
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Продолжите, чтобы подтвердить аккаунт:",
+    "text": "Продолжите, чтобы подтвердить Ваш аккаунт:",
     "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "Вы не предоставили данные для отправки",
+    "text": "Вы не указали ничего для отправки",
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Проверьте кодовую фразу ещё раз",
+    "text": "Перепроверьте кодовую фразу",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Введите кодовую фразу",
+    "text": "Введите кодовую фразу здесь",
     "source_hash": "ee855dad"
   },
   "web.COMMON.view_secret": {
@@ -197,7 +197,7 @@
     "source_hash": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Внимание: секрет будет показан только один раз.",
+    "text": "Внимание: мы покажем это только один раз.",
     "source_hash": "d29e2820"
   },
   "web.COMMON.warning": {
@@ -213,7 +213,7 @@
     "source_hash": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Произошла непредвиденная ошибка. Попробуйте ещё раз.",
+    "text": "Произошла непредвиденная ошибка. Пожалуйста, попробуйте снова.",
     "source_hash": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
@@ -225,7 +225,7 @@
     "source_hash": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Войдите в аккаунт",
+    "text": "Войдите в свой аккаунт",
     "source_hash": "62f1fe13"
   },
   "web.COMMON.sent_to": {
@@ -273,7 +273,7 @@
     "source_hash": "eebdd24a"
   },
   "web.COMMON.word_cancel": {
-    "text": "Отмена",
+    "text": "Отменить",
     "source_hash": "19766ed6"
   },
   "web.COMMON.word_continue": {
@@ -305,11 +305,11 @@
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Если аккаунт с этим адресом существует, Вы получите письмо для подтверждения.",
+    "text": "Если аккаунт с этим адресом электронной почты существует, Вы получите письмо для подтверждения.",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Уничтожить секрет навсегда",
+    "text": "Безвозвратно уничтожить этот секрет",
     "source_hash": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
@@ -321,7 +321,7 @@
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Да, уничтожить секрет",
+    "text": "Да, уничтожить этот секрет",
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
@@ -329,7 +329,7 @@
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "В целях безопасности передавайте эту ссылку отдельно от других данных.",
+    "text": "В целях безопасности передайте эту ссылку отдельно от других данных.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -341,7 +341,7 @@
     "source_hash": "5bb95106"
   },
   "web.COMMON.faq_title": {
-    "text": "Вопросы и ответы",
+    "text": "Частые вопросы",
     "source_hash": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
@@ -377,7 +377,7 @@
     "source_hash": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "Обработка запроса",
+    "text": "Обработка Вашего запроса",
     "source_hash": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
@@ -401,7 +401,7 @@
     "source_hash": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
-    "text": "Зона осторожных решений",
+    "text": "Зона осторожности",
     "source_hash": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
@@ -441,7 +441,7 @@
     "source_hash": "cc921aaa"
   },
   "web.COMMON.about": {
-    "text": "О проекте",
+    "text": "О сервисе",
     "source_hash": "d833339d"
   },
   "web.COMMON.status": {
@@ -469,7 +469,7 @@
     "source_hash": "5aa83883"
   },
   "web.COMMON.enter": {
-    "text": "Ввод",
+    "text": "Enter",
     "source_hash": "dc8659db"
   },
   "web.COMMON.important": {
@@ -485,7 +485,7 @@
     "source_hash": "efb52e71"
   },
   "web.COMMON.appearance": {
-    "text": "Внешний вид",
+    "text": "Оформление",
     "source_hash": "3907fa7f"
   },
   "web.COMMON.done": {
@@ -513,7 +513,7 @@
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Продолжим.",
+    "text": "Ну что ж, давайте.",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
@@ -617,11 +617,11 @@
     "source_hash": "c8cc1c7b"
   },
   "web.COMMON.pretty_good": {
-    "text": "Неплохо",
+    "text": "Довольно хорошо",
     "source_hash": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "Приемлемо",
+    "text": "Нормально",
     "source_hash": "f7b19afc"
   },
   "web.COMMON.meh": {
@@ -629,7 +629,7 @@
     "source_hash": "8b0d6190"
   },
   "web.COMMON.not_great": {
-    "text": "Неважно",
+    "text": "Не очень",
     "source_hash": "00561207"
   },
   "web.COMMON.open_options": {
@@ -645,7 +645,7 @@
     "source_hash": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Копировать секрет в буфер обмена",
+    "text": "Скопировать секрет в буфер обмена",
     "source_hash": "a2ceff6d"
   },
   "web.COMMON.secret_copied_to_clipboard": {
@@ -653,7 +653,7 @@
     "source_hash": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Проверьте кодовую фразу ещё раз",
+    "text": "Перепроверьте кодовую фразу",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
@@ -697,7 +697,7 @@
     "source_hash": "9dcff98e"
   },
   "web.LABELS.lifespan": {
-    "text": "Срок действия",
+    "text": "Срок жизни",
     "source_hash": "58994285"
   },
   "web.LABELS.expiration_time": {
@@ -717,7 +717,7 @@
     "source_hash": "47d2a515"
   },
   "web.LABELS.cancel": {
-    "text": "Отмена",
+    "text": "Отменить",
     "source_hash": "19766ed6"
   },
   "web.LABELS.saving": {
@@ -781,11 +781,11 @@
     "source_hash": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
-    "text": "Скрыть",
+    "text": "Закрыть",
     "source_hash": "48845bff"
   },
   "web.LABELS.security_details": {
-    "text": "Детали безопасности",
+    "text": "Сведения о безопасности",
     "source_hash": "96d2098c"
   },
   "web.LABELS.items_count": {
@@ -869,7 +869,7 @@
     "source_hash": "71a0bd40"
   },
   "web.LABELS.create_request": {
-    "text": "Создать ссылку-запрос",
+    "text": "Создать ссылку запроса",
     "source_hash": "190463dc"
   },
   "web.LABELS.related_settings": {
@@ -894,7 +894,7 @@
     "source_hash": "18fdd549"
   },
   "web.STATUS.unread": {
-    "text": "Не прочитан",
+    "text": "Непрочитан",
     "source_hash": "1b9f384c"
   },
   "web.STATUS.viewed": {
@@ -918,11 +918,11 @@
     "source_hash": "6d747b33"
   },
   "web.STATUS.destroyed": {
-    "text": "Удалён",
+    "text": "Уничтожен",
     "source_hash": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Скоро истечёт",
+    "text": "Скоро истекает",
     "source_hash": "0259442c"
   },
   "web.STATUS.created": {
@@ -954,7 +954,7 @@
     "source_hash": "8d525e5f"
   },
   "web.STATUS.time_remaining": {
-    "text": "Осталось времени",
+    "text": "Оставшееся время",
     "source_hash": "9e65f559"
   },
   "web.STATUS.new_description": {
@@ -962,11 +962,11 @@
     "source_hash": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "Секретная ссылка создана и не была просмотрена",
+    "text": "Секретная ссылка создана и ещё не просмотрена",
     "source_hash": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "Секретная ссылка открыта и готова к просмотру",
+    "text": "Секретная ссылка была открыта и готова к просмотру",
     "source_hash": "f392af12"
   },
   "web.STATUS.received_description": {
@@ -974,7 +974,7 @@
     "source_hash": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
-    "text": "Секретная ссылка открыта и готова к раскрытию",
+    "text": "Секретная ссылка была открыта и готова к раскрытию",
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
@@ -986,7 +986,7 @@
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Секрет был безвозвратно удалён",
+    "text": "Секрет был безвозвратно уничтожен",
     "source_hash": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
@@ -994,11 +994,11 @@
     "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Секрет стал осиротевшим и скоро будет удалён",
+    "text": "Секрет осиротел и скоро будет уничтожен",
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "Срок действия секрета истёк до просмотра",
+    "text": "Срок действия секрета истёк до того, как он был просмотрен",
     "source_hash": "f527de55"
   },
   "web.STATUS.success": {
@@ -1010,7 +1010,7 @@
     "source_hash": "90611565"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS неверен",
+    "text": "DNS некорректен",
     "source_hash": "7848d601"
   },
   "web.STATUS.active": {
@@ -1026,7 +1026,7 @@
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Брендирование на доверенном домене",
+    "text": "Брендирование через доверенный домен",
     "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
@@ -1058,23 +1058,23 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "Осталось {count} {unit}",
+    "text": "осталось {count} {unit}",
     "source_hash": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "день | дня | дней",
+    "text": "день остался | дня осталось | дней осталось",
     "source_hash": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "час | часа | часов",
+    "text": "час остался | часа осталось | часов осталось",
     "source_hash": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "минута | минуты | минут",
+    "text": "минута осталась | минуты осталось | минут осталось",
     "source_hash": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "секунда | секунды | секунд",
+    "text": "секунда осталась | секунды осталось | секунд осталось",
     "source_hash": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
@@ -1082,19 +1082,19 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "Лимит {count} просмотров",
+    "text": "Лимит: {count} просм.",
     "source_hash": "8db0e228"
   },
   "web.UNITS.days_remaining": {
-    "text": "Осталось {count} дней",
+    "text": "Осталось {count} дн.",
     "source_hash": "398e4024"
   },
   "web.UNITS.hours_remaining": {
-    "text": "Осталось {count} часов",
+    "text": "Осталось {count} ч.",
     "source_hash": "717b6d58"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "Осталось {count} минут",
+    "text": "Осталось {count} мин.",
     "source_hash": "d322f4c5"
   },
   "web.TITLES.incoming": {
@@ -1150,7 +1150,7 @@
     "source_hash": "7e32a729"
   },
   "web.TITLES.metadata": {
-    "text": "Детали секрета",
+    "text": "Сведения о секрете",
     "source_hash": "c11bd410"
   },
   "web.TITLES.receipt": {
@@ -1202,7 +1202,7 @@
     "source_hash": "ee788590"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Почему суверенитет данных важен",
+    "text": "Почему важен суверенитет данных",
     "source_hash": "67de6cf7"
   },
   "web.TITLES.profile_settings": {
@@ -1222,11 +1222,11 @@
     "source_hash": "78801183"
   },
   "web.TITLES.change_email": {
-    "text": "Изменить почту",
+    "text": "Изменить электронную почту",
     "source_hash": "18c3f2d5"
   },
   "web.TITLES.confirm_email_change": {
-    "text": "Подтверждение смены электронной почты",
+    "text": "Подтвердить смену почты",
     "source_hash": "c2736949"
   },
   "web.TITLES.security_overview": {
@@ -1283,7 +1283,7 @@
     "source_hash": "dfe95783"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Фокус теперь в основной текстовой области",
+    "text": "Фокус теперь в основном текстовом поле",
     "source_hash": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
@@ -1291,19 +1291,19 @@
     "source_hash": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Отправьте ссылку предполагаемому получателю",
+    "text": "Поделитесь ссылкой с предполагаемым получателем",
     "source_hash": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Передайте кодовую фразу отдельно через защищённый канал",
+    "text": "Передайте кодовую фразу отдельно через безопасный канал",
     "source_hash": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Используйте другой защищённый канал для передачи конфиденциальной информации",
+    "text": "Используйте другой безопасный канал для передачи конфиденциальной информации",
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Всегда проверяйте, что находитесь на официальном сайте Onetime Secret. Мошенники иногда создают поддельные сайты, которые выглядят точно как Onetime Secret, чтобы похитить Ваши секреты. Чтобы избежать фишинговых атак, проверяйте домен перед созданием новых ссылок.",
+    "text": "Всегда проверяйте, что Вы находитесь на официальном сайте Onetime Secret. Мошенники иногда создают поддельные сайты, которые выглядят точно как Onetime Secret, чтобы украсть Ваши секреты. Чтобы избежать фишинговых атак, проверяйте домен в адресной строке перед созданием новых ссылок.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1311,7 +1311,7 @@
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "Выберите план, который подходит Вам. Все планы включают неограниченный обмен секретами и дизайн, ориентированный на конфиденциальность.",
+    "text": "Выберите план, который соответствует Вашим потребностям. Все планы включают неограниченный обмен секретами и дизайн, ориентированный на конфиденциальность.",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
@@ -1331,7 +1331,7 @@
     "source_hash": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
-    "text": "Рекомендуется для Вас",
+    "text": "Рекомендовано для Вас",
     "source_hash": "00093fbd"
   },
   "web.COMMON.received": {
@@ -1347,19 +1347,19 @@
     "source_hash": "299e604c"
   },
   "web.LABELS.add_memo": {
-    "text": "Добавить примечание...",
+    "text": "Добавить заметку...",
     "source_hash": "02384c53"
   },
   "web.LABELS.edit_memo": {
-    "text": "Редактировать примечание",
+    "text": "Редактировать заметку",
     "source_hash": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
-    "text": "Создавайте и делитесь секретами с базовыми функциями. Кредитная карта не требуется.",
+    "text": "Создавайте и делитесь секретами с базовыми возможностями. Кредитная карта не требуется.",
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
-    "text": "Введите Ваш пароль для продолжения",
+    "text": "Введите пароль для продолжения",
     "context": "Prompt for password confirmation modal",
     "source_hash": "09055357"
   },
@@ -1379,13 +1379,61 @@
     "source_hash": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "Не удалось обработать ваш запрос в данный момент",
+    "text": "Не удалось обработать Ваш запрос в данный момент",
     "context": "Error message for recoverable server errors",
     "source_hash": "fb961f3f"
   },
   "web.COMMON.upgrade_description": {
-    "text": "Обновите план, чтобы разблокировать больше функций",
+    "text": "Обновите план, чтобы разблокировать больше возможностей",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "Настроить"
+  },
+  "web.COMMON.add": {
+    "text": "Добавить"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Да, удалить"
+  },
+  "web.COMMON.error_code": {
+    "text": "Код ошибки"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-статус"
+  },
+  "web.COMMON.details": {
+    "text": "Подробности"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Подтвердите пароль"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Пароли должны совпадать"
+  },
+  "web.COMMON.and": {
+    "text": "и"
+  },
+  "web.COMMON.or": {
+    "text": "или"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Показать кодовую фразу"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Скрыть кодовую фразу"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Настройки домена"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO домена"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Настройка электронной почты"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Входящие секреты"
   }
 }

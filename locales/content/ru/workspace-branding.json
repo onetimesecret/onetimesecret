@@ -56,7 +56,7 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Используйте телефон для сканирования QR-кода",
+    "text": "Отсканируйте QR-код с помощью телефона",
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
@@ -104,7 +104,7 @@
     "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
-    "text": "Иконка глаза",
+    "text": "Значок глаза",
     "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
@@ -112,7 +112,7 @@
     "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
-    "text": "Иконка изображения",
+    "text": "Значок изображения",
     "source_hash": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
@@ -120,7 +120,7 @@
     "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
-    "text": "Иконка настройки",
+    "text": "Значок настройки",
     "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
@@ -132,7 +132,7 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Это интерактивный предпросмотр того, как получатели увидят Ваши защищённые сообщения. Вы можете: - Настроить цвета и шрифты с помощью элементов управления выше - Загрузить логотип (рекомендуется минимум 128x128 пикселей, максимум 1 МБ) - Протестировать предпросмотр с помощью кнопки «Просмотреть секрет»",
+    "text": "Это интерактивный предпросмотр того, как получатели увидят Ваши защищённые сообщения. Вы можете: - Настроить цвета и шрифты с помощью элементов управления выше - Загрузить логотип (рекомендуемый размер: не менее 128x128 пикселей, максимум 1 МБ) - Протестировать предпросмотр с помощью кнопки «Просмотреть секрет»",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -140,11 +140,11 @@
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Японский иероглиф '秘' (himitsu) означающий 'секрет' или 'конфиденциальный'",
+    "text": "Японский иероглиф '秘' (химицу), означающий 'секрет' или 'конфиденциально'",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "На основе Onetime Secret",
+    "text": "Работает на Onetime Secret",
     "source_hash": "935442d0"
   },
   "web.branding.heading_logo": {
@@ -156,7 +156,7 @@
     "source_hash": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Переключить на предпросмотр Edge",
+    "text": "Переключить на предпросмотр в Edge",
     "source_hash": "83883d84"
   },
   "web.branding.safari": {
@@ -164,11 +164,14 @@
     "source_hash": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Переключить на предпросмотр Safari",
+    "text": "Переключить на предпросмотр в Safari",
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Обновите Ваш план, чтобы настроить брендинг для этого домена.",
+    "text": "Обновите план для настройки брендирования этого домена.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Настройки бренда успешно сохранены"
   }
 }

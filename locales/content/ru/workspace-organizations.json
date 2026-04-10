@@ -12,7 +12,7 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Управление организациями",
+    "text": "Управление Вашими организациями",
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
@@ -32,7 +32,7 @@
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Организации обеспечивают единую оплату и администрирование. Начните с создания первой организации.",
+    "text": "Организации обеспечивают единую оплату и администрирование. Начните с создания Вашей первой организации.",
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
@@ -68,7 +68,7 @@
     "source_hash": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "напр. ООО «Компания»",
+    "text": "напр. Acme Corporation",
     "source_hash": "ac1c804b"
   },
   "web.organizations.display_name": {
@@ -84,7 +84,7 @@
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "Почта для оплаты",
+    "text": "Платёжная почта",
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
@@ -120,7 +120,7 @@
     "source_hash": "85274cee"
   },
   "web.organizations.created": {
-    "text": "Создано",
+    "text": "Создана",
     "source_hash": "d70b9e24"
   },
   "web.organizations.last_updated": {
@@ -132,7 +132,7 @@
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Обновите название и описание организации",
+    "text": "Обновите название и описание Вашей организации",
     "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
@@ -156,11 +156,11 @@
     "source_hash": "bc2b59b8"
   },
   "web.organizations.billing_email_updated": {
-    "text": "Почта для оплаты успешно обновлена",
+    "text": "Платёжная почта успешно обновлена",
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "Почту для оплаты можно изменить на странице обзора оплаты",
+    "text": "Платёжную почту можно изменить на странице обзора оплаты",
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
@@ -168,7 +168,7 @@
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Единое управление оплатой и подписками будет доступно в будущем выпуске.",
+    "text": "Единое управление оплатой и подписками будет доступно в будущем обновлении.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -180,11 +180,11 @@
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Управление организацией",
+    "text": "Управление Вашей организацией",
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Обновите название компании и детали организации здесь. Эта информация помогает персонализировать Ваш аккаунт и может использоваться для функций брендинга в будущем.",
+    "text": "Обновите название компании и данные организации здесь. Эта информация помогает персонализировать Ваш аккаунт и может быть использована для функций брендирования в будущем.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
@@ -192,11 +192,11 @@
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Создайте первую организацию для управления информацией о компании и подготовки к будущим функциям брендинга.",
+    "text": "Создайте Вашу первую организацию для управления информацией о компании и подготовки к будущим функциям брендирования.",
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Управление организациями и участниками команды",
+    "text": "Управление Вашими организациями и участниками команд",
     "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -204,11 +204,11 @@
     "source_hash": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Брендинг компании",
+    "text": "Брендирование компании",
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Команда",
+    "text": "Участники",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -236,7 +236,7 @@
     "source_hash": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "Удаление организации",
+    "text": "Удалить организацию",
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
@@ -276,7 +276,7 @@
     "source_hash": "dcd1d522"
   },
   "web.organizations.members.email": {
-    "text": "Почта",
+    "text": "Электронная почта",
     "source_hash": "969ccbd3"
   },
   "web.organizations.members.role": {
@@ -292,7 +292,7 @@
     "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Пока нет участников. Пригласите участников команды для начала.",
+    "text": "Участников ещё нет. Пригласите членов команды для начала работы.",
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
@@ -452,7 +452,7 @@
     "source_hash": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "Ожидает",
+    "text": "В ожидании",
     "source_hash": "331551b0"
   },
   "web.organizations.invitations.status.accepted": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Участник",
+    "text": "Участник команды",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -484,7 +484,7 @@
     "source_hash": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "Детали приглашения",
+    "text": "Данные приглашения",
     "source_hash": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
@@ -516,23 +516,23 @@
     "source_hash": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "Недействительное или истёкшее приглашение",
+    "text": "Недействительное или просроченное приглашение",
     "source_hash": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Войдите, чтобы принять это приглашение",
+    "text": "Пожалуйста, войдите, чтобы принять это приглашение",
     "source_hash": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "Загрузка деталей приглашения",
+    "text": "Загрузка данных приглашения",
     "source_hash": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Обновите план, чтобы приглашать участников команды",
+    "text": "Обновите план для приглашения участников команды",
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Приглашения участников команды требуют плана с управлением командой. Обновите план, чтобы добавить сотрудников в организацию.",
+    "text": "Приглашение участников команды требует плана с управлением командами. Обновите план, чтобы добавить соратников в Вашу организацию.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -540,15 +540,15 @@
     "source_hash": "957b0b87"
   },
   "web.organizations.early_supporter_badge": {
-    "text": "Ранний пользователь",
+    "text": "Ранний сторонник",
     "source_hash": "e67d2ef8"
   },
   "web.organizations.member_count": {
-    "text": "{count} участник | {count} участника | {count} участников",
+    "text": "{count} участник | {count} участников",
     "source_hash": "f652af0c"
   },
   "web.organizations.domain_count": {
-    "text": "{count} домен | {count} домена | {count} доменов",
+    "text": "{count} домен | {count} доменов",
     "source_hash": "09f52efa"
   },
   "web.organizations.tabs.domains": {
@@ -556,11 +556,11 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Выполнен вход в другой аккаунт",
+    "text": "Выполнен вход с другим аккаунтом",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Это приглашение для {invitedEmail}. Сейчас Вы вошли как {currentEmail}.",
+    "text": "Это приглашение для {invitedEmail}. Вы вошли как {currentEmail}.",
     "source_hash": "b8d3e5f7"
   },
   "web.organizations.invitations.continue_as_invited_email": {
@@ -568,15 +568,15 @@
     "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
-    "text": "Осталось {days} дн.",
+    "text": "осталось {days} дн.",
     "source_hash": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
-    "text": "Осталось {hours} ч.",
+    "text": "осталось {hours} ч.",
     "source_hash": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
-    "text": "Скоро истечёт",
+    "text": "Скоро истекает",
     "source_hash": "a5dcfef9"
   },
   "web.organizations.sso.title": {
@@ -584,7 +584,7 @@
     "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "Настройте SSO, чтобы участники могли входить через провайдера идентификации вашей организации",
+    "text": "Настройте SSO, чтобы участники могли входить через провайдера идентификации Вашей организации",
     "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
@@ -592,7 +592,7 @@
     "source_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
-    "text": "Выберите провайдера идентификации вашей организации",
+    "text": "Выберите провайдера идентификации Вашей организации",
     "source_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
@@ -600,7 +600,7 @@
     "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "Понятное имя, показываемое пользователям при входе",
+    "text": "Понятное имя, отображаемое пользователям при входе",
     "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
@@ -612,7 +612,7 @@
     "source_hash": "8726db01"
   },
   "web.organizations.sso.client_id_placeholder": {
-    "text": "Ваш OAuth client ID",
+    "text": "Ваш OAuth ID клиента",
     "source_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
@@ -620,11 +620,11 @@
     "source_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
-    "text": "Ваш OAuth client secret",
+    "text": "Ваш OAuth секрет клиента",
     "source_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
-    "text": "Оставьте пустым, чтобы сохранить существующий секрет",
+    "text": "Оставьте пустым, чтобы сохранить текущий секрет",
     "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
@@ -632,7 +632,7 @@
     "source_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
-    "text": "Идентификатор вашего тенанта Azure AD / Entra ID",
+    "text": "Идентификатор Вашего тенанта Azure AD / Entra ID",
     "source_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
@@ -644,7 +644,7 @@
     "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "URL обнаружения OIDC для вашего провайдера идентификации",
+    "text": "URL обнаружения OIDC для Вашего провайдера идентификации",
     "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
@@ -652,11 +652,11 @@
     "source_hash": "9a638e9c"
   },
   "web.organizations.sso.allowed_domains": {
-    "text": "Разрешённые email домены",
+    "text": "Разрешённые домены электронной почты",
     "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "Только пользователи с email адресами этих доменов смогут входить. Оставьте пустым, чтобы разрешить все домены.",
+    "text": "Только пользователи с адресами электронной почты из этих доменов смогут входить. Оставьте пустым для разрешения всех доменов.",
     "source_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
@@ -680,7 +680,7 @@
     "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
-    "text": "Когда включено, участники организации могут входить через этого SSO провайдера",
+    "text": "Когда включено, участники организации могут входить через этого провайдера SSO",
     "source_hash": "d7da2fa2"
   },
   "web.organizations.sso.save_config": {
@@ -692,7 +692,7 @@
     "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "Вы уверены? Это отключит SSO для вашей организации.",
+    "text": "Вы уверены? Это отключит SSO для Вашей организации.",
     "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
@@ -720,15 +720,15 @@
     "source_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "Проверить подключение",
+    "text": "Тест подключения",
     "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Проверить доступность провайдера идентификации (не проверяет учётные данные)",
+    "text": "Проверка доступности провайдера идентификации (не проверяет учётные данные)",
     "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "Проверить подключение",
+    "text": "Тест подключения",
     "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
@@ -736,11 +736,11 @@
     "source_hash": "6c02a284"
   },
   "web.organizations.sso.test_error": {
-    "text": "Не удалось проверить подключение",
+    "text": "Не удалось протестировать подключение",
     "source_hash": "c1d1f310"
   },
   "web.organizations.sso.auth_endpoint": {
-    "text": "Endpoint авторизации",
+    "text": "Конечная точка авторизации",
     "source_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
@@ -752,7 +752,7 @@
     "source_hash": "92c1cdfd"
   },
   "web.organizations.sso.status_configured": {
-    "text": "Настроено",
+    "text": "Настроен",
     "source_hash": "84aebc69"
   },
   "web.organizations.sso.domain_sso_title": {
@@ -768,7 +768,49 @@
     "source_hash": "0a1027ff"
   },
   "web.organizations.sso.status_not_configured": {
-    "text": "Не настроено",
+    "text": "Не настроен",
     "source_hash": "bbea960e"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Просмотр и настройка Ваших рабочих пространств"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "от {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "в роли {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Вернуться на главную"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Это приглашение было отправлено на этот адрес электронной почты"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Продолжить"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Войти и принять приглашение"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Перейти к организациям"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Вы уже являетесь участником этой организации"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Присоединиться к {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Войдите, чтобы присоединиться к {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Отклонить"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Команда"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }
