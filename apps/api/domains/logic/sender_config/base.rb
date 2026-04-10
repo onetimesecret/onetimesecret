@@ -72,6 +72,8 @@ module DomainsAPI
         def verify_custom_mail_sender_entitlement(organization)
           return if organization.can?('custom_mail_sender')
 
+          OT.info '[SenderConfig] Authorization denied: missing custom_mail_sender entitlement',
+            { org_id: organization.extid, actor: cust&.custid }.to_json
           raise Onetime::Forbidden,
             'Custom mail sender requires the custom_mail_sender entitlement. Please upgrade your plan.'
         end
@@ -83,6 +85,8 @@ module DomainsAPI
         # @return [void]
         def authorize_sender_config!(domain_id)
           unless OT.conf.dig('features', 'organizations', 'custom_mail_enabled')
+            OT.info '[SenderConfig] Authorization denied: custom_mail_enabled feature flag disabled',
+              { domain_id: domain_id, actor: cust&.custid }.to_json
             raise Onetime::Forbidden, 'Custom mail sender is not enabled on this instance'
           end
 
@@ -91,6 +95,8 @@ module DomainsAPI
 
           verify_organization_owner(@organization)
           verify_custom_mail_sender_entitlement(@organization)
+
+          OT.ld format('[SenderConfig] Authorization granted: domain=%s org=%s actor=%s', @custom_domain.display_domain, @organization.extid, cust&.custid)
         end
 
         # Enforce from_address domain restriction based on entitlement.

@@ -48,6 +48,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
     instance_double(
       Onetime::Organization,
       objid: 'org123',
+      extid: 'ext-org123',
       display_name: 'Test Org',
     )
   end

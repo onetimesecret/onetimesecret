@@ -70,6 +70,8 @@ module DomainsAPI
         def verify_manage_sso_entitlement(organization)
           return if organization.can?('manage_sso')
 
+          OT.info '[SsoConfig] Authorization denied: missing manage_sso entitlement',
+            { org_id: organization.extid, actor: cust&.custid }.to_json
           raise_form_error(
             'SSO management requires the manage_sso entitlement. Please upgrade your plan.',
             error_type: :forbidden,
@@ -83,6 +85,8 @@ module DomainsAPI
         # @return [void]
         def authorize_domain_sso!(domain_id)
           unless OT.conf.dig('features', 'organizations', 'sso_enabled')
+            OT.info '[SsoConfig] Authorization denied: SSO feature flag disabled',
+              { domain_id: domain_id, actor: cust&.custid }.to_json
             raise_form_error('Organization SSO is not enabled on this instance', error_type: :forbidden)
           end
 
@@ -91,6 +95,8 @@ module DomainsAPI
 
           verify_organization_owner(@organization)
           verify_manage_sso_entitlement(@organization)
+
+          OT.ld format('[SsoConfig] Authorization granted: domain=%s org=%s actor=%s', @custom_domain.display_domain, @organization.extid, cust&.custid)
         end
 
         # Parse allowed domains from string or array input.

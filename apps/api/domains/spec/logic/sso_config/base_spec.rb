@@ -35,6 +35,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
     instance_double(
       Onetime::Organization,
       objid: 'org123',
+      extid: 'ext-org123',
       display_name: 'Test Org',
     )
   end
