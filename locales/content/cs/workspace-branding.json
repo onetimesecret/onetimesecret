@@ -56,7 +56,7 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Použij telefon k naskenování QR kódu",
+    "text": "Použij telefon pro naskenování QR kódu",
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
@@ -132,7 +132,7 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Toto je interaktivní náhled toho, jak příjemci uvidí tvoje zabezpečené zprávy. Můžeš: - Přizpůsobit barvy a písma pomocí ovládacích prvků výše - Nahrát logo (doporučeno minimálně 128x128 pixelů, max. 1 MB) - Otestovat náhled pomocí tlačítka \"Zobrazit tajemství\"",
+    "text": "Toto je interaktivní náhled toho, jak příjemci uvidí tvé zabezpečené zprávy. Můžeš: - Přizpůsobit barvy a písma pomocí ovládacích prvků výše - Nahrát logo (doporučeno minimálně 128x128 pixelů, max. 1 MB) - Otestovat náhled pomocí tlačítka \"Zobrazit tajemství\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -140,11 +140,11 @@
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Japonské kandži '秘' (himitsu) znamenající 'tajemství' nebo 'důvěrné'",
+    "text": "Japonský znak kanji '秘' (himitsu) znamenající 'tajný' nebo 'důvěrný'",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Provozováno službou Onetime Secret",
+    "text": "Využívá Onetime Secret",
     "source_hash": "935442d0"
   },
   "web.branding.heading_logo": {
@@ -168,7 +168,10 @@
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Upgraduj svůj plán pro přizpůsobení značky této domény.",
+    "text": "Upgraduj svůj plán pro přizpůsobení brandingu této domény.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Nastavení značky úspěšně uloženo"
   }
 }

@@ -1,10 +1,10 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "Referencí vygenerovaná AI",
+    "text": "Referenční text vytvořený AI",
     "source_hash": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "Obsah vygenerovaný AI pro demonstraci. Nepochází od skutečné osoby nebo společnosti.",
+    "text": "Obsah vytvořený AI pro demonstrační účely. Nepochází od skutečné osoby ani společnosti.",
     "source_hash": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
@@ -28,11 +28,11 @@
     "source_hash": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "Reference vygenerované AI",
+    "text": "Referenční texty vytvořené AI",
     "source_hash": "947cd6b4"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "Tento citát byl vygenerován",
+    "text": "Tento citát byl vytvořen pomocí",
     "source_hash": "7879a747"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {

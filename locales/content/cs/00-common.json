@@ -37,7 +37,7 @@
     "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Posilte vztahy a budujte důvěru pomocí vlastních značkových tajných odkazů.",
+    "text": "Posilni vztahy a buduj důvěru pomocí vlastních značkových tajných odkazů.",
     "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
@@ -65,7 +65,7 @@
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Udržuj citlivé informace mimo protokoly chatu a e-maily. Sdílej tajný odkaz, který je dostupný pouze jednou.",
+    "text": "Uchovej citlivé informace mimo své chatovací záznamy a e-maily. Sdílej tajný odkaz, který je dostupný pouze jednou.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
@@ -73,7 +73,7 @@
     "source_hash": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "tajemství,generátor hesel,sdílet tajemství,jednorázový",
+    "text": "tajemství,generátor hesel,sdílet tajemství,jednorázové",
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
@@ -93,7 +93,7 @@
     "source_hash": "e7611f05"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Slovo nebo fráze, která se obtížně uhodne",
+    "text": "Slovo nebo fráze, které je těžké uhodnout",
     "source_hash": "29d0cf13"
   },
   "web.COMMON.secret_recipient_address": {
@@ -101,7 +101,7 @@
     "source_hash": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Obsah tajemství vlož sem...",
+    "text": "Sem vlož tajný obsah...",
     "source_hash": "54630bab"
   },
   "web.COMMON.header_create_account": {
@@ -121,7 +121,7 @@
     "source_hash": "7e1b0d56"
   },
   "web.COMMON.header_logout": {
-    "text": "Odhlásit",
+    "text": "Odhlásit se",
     "source_hash": "d0527e4b"
   },
   "web.COMMON.secret": {
@@ -145,11 +145,11 @@
     "source_hash": "1509f561"
   },
   "web.COMMON.burn": {
-    "text": "Trvale smazat",
+    "text": "Zničit",
     "source_hash": "926c5b43"
   },
   "web.COMMON.burned": {
-    "text": "Trvale smazáno",
+    "text": "Zničeno",
     "source_hash": "6d747b33"
   },
   "web.COMMON.expires_in": {
@@ -157,15 +157,15 @@
     "source_hash": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Trvale smazat toto tajemství",
+    "text": "Zničit toto tajemství",
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Trvalé smazání tajemství ho odstraní ještě před jeho přečtením (klikni pro potvrzení)",
+    "text": "Zničení tajemství ho smaže ještě předtím, než bylo přečteno (klikni pro potvrzení)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Trvalé smazání tajemství nelze vrátit zpět",
+    "text": "Zničení tajemství je trvalé a nelze jej vrátit zpět",
     "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
@@ -177,11 +177,11 @@
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Pokračuj pro ověření tvého účtu:",
+    "text": "Pokračuj pro ověření svého účtu:",
     "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "Nezadal jsi nic ke sdílení",
+    "text": "Nezadal/a jsi nic ke sdílení",
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
@@ -189,7 +189,7 @@
     "source_hash": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Zde zadej přístupovou frázi",
+    "text": "Zadej přístupovou frázi zde",
     "source_hash": "ee855dad"
   },
   "web.COMMON.view_secret": {
@@ -197,7 +197,7 @@
     "source_hash": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Pozor: zobrazíme ho pouze jednou.",
+    "text": "Pozor: zobrazíme to jen jednou.",
     "source_hash": "d29e2820"
   },
   "web.COMMON.warning": {
@@ -221,7 +221,7 @@
     "source_hash": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Zaregistruj se pro více",
+    "text": "Pro více se zaregistruj",
     "source_hash": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
@@ -229,7 +229,7 @@
     "source_hash": "62f1fe13"
   },
   "web.COMMON.sent_to": {
-    "text": "Odesláno na:",
+    "text": "Odesláno:",
     "source_hash": "e79c8bcb"
   },
   "web.COMMON.field_email": {
@@ -261,7 +261,7 @@
     "source_hash": "dc937b59"
   },
   "web.COMMON.word_burned": {
-    "text": "trvale smazáno",
+    "text": "zničeno",
     "source_hash": "2f79ea62"
   },
   "web.COMMON.word_received": {
@@ -289,7 +289,7 @@
     "source_hash": "76900f1b"
   },
   "web.COMMON.feedback_text": {
-    "text": "Poděl se o své myšlenky, nápady nebo zkušenosti...",
+    "text": "Sdílej své myšlenky, nápady nebo zkušenosti...",
     "source_hash": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
@@ -301,7 +301,7 @@
     "source_hash": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Účet byl vytvořen. Prosím přihlas se.",
+    "text": "Účet vytvořen. Prosím přihlas se.",
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
@@ -309,7 +309,7 @@
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Trvale smazat toto tajemství",
+    "text": "Trvale zničit toto tajemství",
     "source_hash": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
@@ -317,15 +317,15 @@
     "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Opravdu chceš trvale smazat toto tajemství? Tuto akci nelze vrátit zpět.",
+    "text": "Opravdu chceš zničit toto tajemství? Tuto akci nelze vrátit zpět.",
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Ano, trvale smazat toto tajemství",
+    "text": "Ano, zničit toto tajemství",
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Trvalé smazání tajemství ho odstraní ještě před jeho přečtením.",
+    "text": "Zničení tajemství ho smaže ještě předtím, než bylo přijato.",
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
@@ -349,7 +349,7 @@
     "source_hash": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Nelze ověřit účet, když jsi již přihlášen/a",
+    "text": "Nelze ověřit účet, když jsi již přihlášený/á",
     "source_hash": "f0a17c5f"
   },
   "web.COMMON.show_password": {
@@ -381,7 +381,7 @@
     "source_hash": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Zůstat přihlášen po dobu 30 dnů",
+    "text": "Zůstat přihlášený/á po dobu 30 dnů",
     "source_hash": "6e069c11"
   },
   "web.COMMON.redirecting": {
@@ -393,7 +393,7 @@
     "source_hash": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Opravdu?",
+    "text": "Jsi si jistý/á?",
     "source_hash": "f0762c4f"
   },
   "web.COMMON.danger_zone": {
@@ -401,7 +401,7 @@
     "source_hash": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
-    "text": "Zóna pečlivého zvážení",
+    "text": "Zóna obezřetnosti",
     "source_hash": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
@@ -481,7 +481,7 @@
     "source_hash": "a4fe6526"
   },
   "web.COMMON.theme": {
-    "text": "Téma",
+    "text": "Vzhled",
     "source_hash": "efb52e71"
   },
   "web.COMMON.appearance": {
@@ -513,7 +513,7 @@
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Tak jdi na to.",
+    "text": "Tak do toho.",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
@@ -525,7 +525,7 @@
     "source_hash": "d84ee92c"
   },
   "web.COMMON.confirm_password": {
-    "text": "Potvrď heslo",
+    "text": "Potvrdit heslo",
     "source_hash": "5ac265f3"
   },
   "web.COMMON.new_password": {
@@ -565,7 +565,7 @@
     "source_hash": "dd167905"
   },
   "web.COMMON.other": {
-    "text": "Jiné",
+    "text": "Ostatní",
     "source_hash": "f97e9da0"
   },
   "web.COMMON.min_width_1024px": {
@@ -621,15 +621,15 @@
     "source_hash": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "Přijatelné",
+    "text": "Slušné",
     "source_hash": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Ujde",
+    "text": "Ujde to",
     "source_hash": "8b0d6190"
   },
   "web.COMMON.not_great": {
-    "text": "Není skvělé",
+    "text": "Nic moc",
     "source_hash": "00561207"
   },
   "web.COMMON.open_options": {
@@ -657,7 +657,7 @@
     "source_hash": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Stiskni tlačítko kopírovat níže.",
+    "text": "Stiskni tlačítko kopírování níže.",
     "source_hash": "77fcf6fb"
   },
   "web.COMMON.external_link": {
@@ -701,7 +701,7 @@
     "source_hash": "58994285"
   },
   "web.LABELS.expiration_time": {
-    "text": "Čas vypršení",
+    "text": "Doba expirace",
     "source_hash": "c5db84a8"
   },
   "web.LABELS.secret_ttl": {
@@ -781,11 +781,11 @@
     "source_hash": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
-    "text": "Odmítnout",
+    "text": "Zavřít",
     "source_hash": "48845bff"
   },
   "web.LABELS.security_details": {
-    "text": "Bezpečnostní podrobnosti",
+    "text": "Detaily zabezpečení",
     "source_hash": "96d2098c"
   },
   "web.LABELS.items_count": {
@@ -841,11 +841,11 @@
     "source_hash": "0e916101"
   },
   "web.LABELS.reload": {
-    "text": "Obnovit",
+    "text": "Znovu načíst",
     "source_hash": "bdc090ec"
   },
   "web.LABELS.filter": {
-    "text": "Filtrovat",
+    "text": "Filtr",
     "source_hash": "638e249f"
   },
   "web.LABELS.clear": {
@@ -865,11 +865,11 @@
     "source_hash": "a30a47b9"
   },
   "web.LABELS.create_request_short": {
-    "text": "Vytvořit žádost",
+    "text": "Vytvořit požadavek",
     "source_hash": "71a0bd40"
   },
   "web.LABELS.create_request": {
-    "text": "Vytvořit odkaz žádosti",
+    "text": "Vytvořit odkaz na požadavek",
     "source_hash": "190463dc"
   },
   "web.LABELS.related_settings": {
@@ -886,7 +886,7 @@
     "source_hash": "57db069e"
   },
   "web.LABELS.scope_indicator": {
-    "text": "Vytváření tajemství v {domain}",
+    "text": "Vytváření tajemství na {domain}",
     "source_hash": "3bbed96b"
   },
   "web.STATUS.new": {
@@ -914,7 +914,7 @@
     "source_hash": "17376ee4"
   },
   "web.STATUS.burned": {
-    "text": "Trvale smazáno",
+    "text": "Zničeno",
     "source_hash": "6d747b33"
   },
   "web.STATUS.destroyed": {
@@ -938,7 +938,7 @@
     "source_hash": "424a2551"
   },
   "web.STATUS.orphaned": {
-    "text": "Opuštěno",
+    "text": "Osiřelé",
     "source_hash": "8d827807"
   },
   "web.STATUS.secured": {
@@ -958,11 +958,11 @@
     "source_hash": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "Tajný odkaz byl vytvořen a dosud nebyl zobrazen",
+    "text": "Tajný odkaz byl vytvořen a zatím nebyl zobrazen",
     "source_hash": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "Tajný odkaz byl vytvořen a nebyl zobrazen",
+    "text": "Tajný odkaz byl vytvořen a nebyl zatím zobrazen",
     "source_hash": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
@@ -982,7 +982,7 @@
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
-    "text": "Tajemství bylo ručně trvale smazáno před zobrazením",
+    "text": "Tajemství bylo ručně zničeno před zobrazením",
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
@@ -994,11 +994,11 @@
     "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Tajemství bylo opuštěno a bude brzy zničeno",
+    "text": "Tajemství bylo osiřeno a bude brzy zničeno",
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "Tajemství vypršelo před zobrazením",
+    "text": "Tajemství vypršelo dříve, než bylo zobrazeno",
     "source_hash": "f527de55"
   },
   "web.STATUS.success": {
@@ -1026,7 +1026,7 @@
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Značka důvěryhodné domény",
+    "text": "Branding na důvěryhodné doméně",
     "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
@@ -1058,7 +1058,7 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "Zbývá {count} {unit}",
+    "text": "zbývá {count} {unit}",
     "source_hash": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
@@ -1122,7 +1122,7 @@
     "source_hash": "fdfd41de"
   },
   "web.TITLES.reset_password": {
-    "text": "Obnovit heslo",
+    "text": "Obnovení hesla",
     "source_hash": "4e70f1fd"
   },
   "web.TITLES.logout": {
@@ -1130,7 +1130,7 @@
     "source_hash": "afbce8a6"
   },
   "web.TITLES.verify_account": {
-    "text": "Ověřit účet",
+    "text": "Ověření účtu",
     "source_hash": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
@@ -1142,7 +1142,7 @@
     "source_hash": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
-    "text": "Přijmout pozvánku",
+    "text": "Přijetí pozvánky",
     "source_hash": "ce7cfeaf"
   },
   "web.TITLES.secret": {
@@ -1158,7 +1158,7 @@
     "source_hash": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
-    "text": "Trvale smazat tajemství",
+    "text": "Zničit tajemství",
     "source_hash": "28785b83"
   },
   "web.TITLES.dashboard": {
@@ -1178,11 +1178,11 @@
     "source_hash": "0f09df73"
   },
   "web.TITLES.domain_verify": {
-    "text": "Ověřit doménu",
+    "text": "Ověření domény",
     "source_hash": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "Značka domény",
+    "text": "Značková doména",
     "source_hash": "35e4dfbe"
   },
   "web.TITLES.account": {
@@ -1222,11 +1222,11 @@
     "source_hash": "78801183"
   },
   "web.TITLES.change_email": {
-    "text": "Změnit e-mail",
+    "text": "Změna e-mailu",
     "source_hash": "18c3f2d5"
   },
   "web.TITLES.confirm_email_change": {
-    "text": "Potvrdit změnu e-mailu",
+    "text": "Potvrzení změny e-mailu",
     "source_hash": "c2736949"
   },
   "web.TITLES.security_overview": {
@@ -1234,7 +1234,7 @@
     "source_hash": "8f6fb4eb"
   },
   "web.TITLES.change_password": {
-    "text": "Změnit heslo",
+    "text": "Změna hesla",
     "source_hash": "a949f462"
   },
   "web.TITLES.mfa_settings": {
@@ -1259,7 +1259,7 @@
     "source_hash": "6c2a9675"
   },
   "web.TITLES.advanced_settings": {
-    "text": "Pokročilá nastavení",
+    "text": "Pokročilé nastavení",
     "source_hash": "22d4f608"
   },
   "web.TITLES.system_settings": {
@@ -1287,15 +1287,15 @@
     "source_hash": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Pokyny pro sdílení",
+    "text": "Pokyny ke sdílení",
     "source_hash": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Sdílej odkaz zamýšlenému příjemci",
+    "text": "Sdílej odkaz se zamýšleným příjemcem",
     "source_hash": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Sdílej přístupovou frázi odděleně prostřednictvím bezpečného kanálu",
+    "text": "Přístupovou frázi sdílej odděleně přes bezpečný kanál",
     "source_hash": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
@@ -1303,7 +1303,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vždy si ověř, že jsi na oficiálních stránkách Onetime Secret. Podvodníci někdy vytvářejí falešné weby, které vypadají přesně jako Onetime Secret, aby ukradli tvoje tajemství. Abys předešel/a phishingovým útokům, zkontroluj doménu před vytvořením nových odkazů.",
+    "text": "Vždy ověř, že jsi na oficiálních stránkách Onetime Secret. Podvodníci někdy vytvářejí falešné webové stránky, které vypadají přesně jako Onetime Secret, aby ukradli tvá tajemství. Abys předešel/a phishingovým útokům, zkontroluj doménu před vytvářením nových odkazů.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1323,7 +1323,7 @@
     "source_hash": "983f3110"
   },
   "web.pricing.already_have_account": {
-    "text": "Již máš účet?",
+    "text": "Už máš účet?",
     "source_hash": "e77fea93"
   },
   "web.pricing.sign_in": {
@@ -1331,7 +1331,7 @@
     "source_hash": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
-    "text": "Doporučeno pro tě",
+    "text": "Doporučeno pro tebe",
     "source_hash": "00093fbd"
   },
   "web.COMMON.received": {
@@ -1355,16 +1355,16 @@
     "source_hash": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
-    "text": "Vytvářej a sdílej tajemství se základními funkcemi. Není vyžadována platební karta.",
+    "text": "Vytváření a sdílení tajemství se základními funkcemi. Není vyžadována kreditní karta.",
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
-    "text": "Zadej heslo pro pokračování",
+    "text": "Pro pokračování zadej své heslo",
     "context": "Prompt for password confirmation modal",
     "source_hash": "09055357"
   },
   "web.COMMON.password_required_for_action": {
-    "text": "K dokončení této akce je potřeba tvé heslo",
+    "text": "Pro dokončení této akce je vyžadováno tvé heslo",
     "context": "Description for password confirmation modal",
     "source_hash": "cc078766"
   },
@@ -1387,5 +1387,53 @@
     "text": "Upgraduj pro odemknutí dalších funkcí",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "Konfigurovat"
+  },
+  "web.COMMON.add": {
+    "text": "Přidat"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Ano, smazat"
+  },
+  "web.COMMON.error_code": {
+    "text": "Kód chyby"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP stav"
+  },
+  "web.COMMON.details": {
+    "text": "Podrobnosti"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Potvrzení hesla"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Hesla se musí shodovat"
+  },
+  "web.COMMON.and": {
+    "text": "a"
+  },
+  "web.COMMON.or": {
+    "text": "nebo"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Zobrazit přístupovou frázi"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Skrýt přístupovou frázi"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Nastavení domény"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO domény"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Konfigurace e-mailu"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Příchozí tajemství"
   }
 }

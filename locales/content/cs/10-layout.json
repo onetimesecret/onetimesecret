@@ -4,7 +4,7 @@
     "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Průvodce značkou",
+    "text": "Průvodce brandem",
     "source_hash": "53f994c5"
   },
   "web.footer.customize": {
@@ -20,7 +20,7 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Zjistěte více o našich bezpečnostních opatřeních",
+    "text": "Zjistit více o našich bezpečnostních opatřeních",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
@@ -48,19 +48,19 @@
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Když odešli zpětnou vazbu, uvidíme:",
+    "text": "Když odešleš zpětnou vazbu, uvidíme:",
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Přečti si naše zásady ochrany osobních údajů",
+    "text": "Přečíst si naše zásady ochrany soukromí",
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Zkontroluj stav naší služby",
+    "text": "Zkontrolovat stav naší služby",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Prozkoumejte naši API dokumentaci",
+    "text": "Prozkoumat naši API dokumentaci",
     "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
@@ -84,7 +84,7 @@
     "source_hash": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Přečti si naše nejnovější blogové příspěvky",
+    "text": "Přečíst si naše nejnovější příspěvky na blogu",
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
@@ -92,7 +92,7 @@
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Zjistěte více o naší společnosti",
+    "text": "Zjistit více o naší společnosti",
     "source_hash": "780e18cd"
   },
   "web.footer.company": {
@@ -132,7 +132,7 @@
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Nedávno jsme přidali překlady. Našel jsi chybu? {send-feedback}",
+    "text": "Nedávno jsme přidali překlady. Našel/a jsi chybu? {send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
@@ -148,15 +148,15 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Zobrazujete zabezpečenou zprávu, která s vámi byla sdílena prostřednictvím Onetime Secret. Tento obsah se zobrazí pouze jednou a poté je trvale smazán z našich serverů.",
+    "text": "Prohlížíš si zabezpečenou zprávu, která s tebou byla sdílena přes Onetime Secret. Tento obsah se zobrazí pouze jednou a poté je trvale smazán z našich serverů.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Mohu toto tajemství zobrazit znovu později?",
+    "text": "Mohu si toto tajemství zobrazit znovu později?",
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Ne. Z bezpečnostních důvodů lze toto tajemství zobrazit pouze jednou. Po zavření této stránky bude obsah trvale smazán a nikdo, včetně nás, ho nebude moci obnovit.",
+    "text": "Ne. Z bezpečnostních důvodů je toto tajemství zobrazitelné pouze jednou. Po zavření této stránky bude obsah trvale smazán a nikdo ho nebude moci obnovit, ani my.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
@@ -164,27 +164,27 @@
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Použij tlačítko 'Zkopírovat do schránky' pro zkopírování celého tajemství. U delších tajemství se ujistěte, že jsi zkopírovali celý obsah, než tuto stránku opustíte.",
+    "text": "Použij tlačítko 'Zkopírovat do schránky' pro zkopírování celého tajemství. U delších tajemství se před opuštěním stránky ujisti, že jsi zkopíroval/a celý obsah.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Je moje zobrazení tohoto tajemství sledováno?",
+    "text": "Je sledováno, když si toto tajemství prohlížím?",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Odesílatel bude upozorněn, že jeho tajemství bylo zobrazeno, ale nesledujeme, kdo ho zobrazil ani z jakého místa. Tvoje soukromí je chráněno.",
+    "text": "Odesílatel bude upozorněn, že jeho tajemství bylo zobrazeno, ale nesledujeme, kdo ho zobrazil ani odkud. Tvé soukromí je chráněno.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Jakmile opustíte nebo obnovíte tuto stránku, toto tajemství bude trvale smazáno a nikdo ho nebude moci obnovit.",
+    "text": "Jakmile opustíš nebo obnovíš tuto stránku, toto tajemství bude trvale smazáno a nikdo ho nebude moci obnovit.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Přejít zpět na předchozí stránku",
+    "text": "Vrátit se na předchozí stránku",
     "source_hash": "1778f2e7"
   },
   "web.layout.site_footer": {
-    "text": "Zápatí stránky",
+    "text": "Patička webu",
     "source_hash": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
@@ -244,19 +244,19 @@
     "source_hash": "00d74c98"
   },
   "web.layout.return_home": {
-    "text": "Zpět domů",
+    "text": "Zpět na úvodní stránku",
     "source_hash": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "Zpět na domovskou stránku",
+    "text": "Zpět na úvodní stránku",
     "source_hash": "8d27b81d"
   },
   "web.layout.return_to_home": {
-    "text": "Zpět domů",
+    "text": "Zpět na úvodní stránku",
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Zobrazit zásady ochrany osobních údajů",
+    "text": "Zobrazit zásady ochrany soukromí",
     "source_hash": "377733b6"
   },
   "web.layout.view_terms_of_service": {
@@ -264,11 +264,11 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Navštívit domovskou stránku Onetime Secret",
+    "text": "Navštívit úvodní stránku Onetime Secret",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
-    "text": "Navigace zápatí",
+    "text": "Navigace v patičce",
     "source_hash": "76363a64"
   },
   "web.layout.terms_of_service": {
@@ -276,7 +276,7 @@
     "source_hash": "4afa55bf"
   },
   "web.layout.privacy_policy": {
-    "text": "Zásady ochrany osobních údajů",
+    "text": "Zásady ochrany soukromí",
     "source_hash": "506ff394"
   },
   "web.layout.icon_library": {
@@ -324,7 +324,7 @@
     "source_hash": "c0cfa9b2"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Přepnout do režimu {0}",
+    "text": "Přepnout na režim {0}",
     "source_hash": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
@@ -338,5 +338,8 @@
   "web.layout.workspace_context": {
     "text": "Kontext pracovního prostoru",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Pracovní prostor"
   }
 }

@@ -1,6 +1,6 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "Zjistěte více o konfiguraci DNS",
+    "text": "Zjistit více o konfiguraci DNS",
     "source_hash": "c592a5c6"
   },
   "web.domains.view_domain_verification_status": {
@@ -8,15 +8,15 @@
     "source_hash": "23635e2d"
   },
   "web.domains.domain_already_in_organization": {
-    "text": "Tato doména je již registrována ve tvojí organizaci",
+    "text": "Tato doména je již registrována ve tvé organizaci",
     "source_hash": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Tato doména je již registrována v jiné organizaci. Pokud si myslíte, že jde o chybu, kontaktuj prosím podporu.",
+    "text": "Tato doména je již registrována v jiné organizaci. Kontaktuj prosím podporu, pokud se domníváš, že jde o chybu.",
     "source_hash": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Doména úspěšně nárokována a přidána do tvojí organizace",
+    "text": "Doména úspěšně přiřazena a přidána do tvé organizace",
     "source_hash": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
@@ -36,11 +36,11 @@
     "source_hash": "c6bef509"
   },
   "web.domains.default_ttl_label": {
-    "text": "Výchozí doba životnosti",
+    "text": "Výchozí doba platnosti",
     "source_hash": "ce3c65fe"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Jak dlouho by tajemství měla být standardně přístupná",
+    "text": "Jak dlouho by měla být tajemství ve výchozím nastavení přístupná",
     "source_hash": "777b978d"
   },
   "web.domains.passphrase_required_label": {
@@ -56,7 +56,7 @@
     "source_hash": "682be64a"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "Povolit e-mailová oznámení jako výchozí při zobrazení tajemství",
+    "text": "Povolit e-mailová oznámení ve výchozím nastavení, když jsou tajemství zobrazena",
     "source_hash": "3e16dd5f"
   },
   "web.domains.use_global_default": {
@@ -108,7 +108,7 @@
     "source_hash": "c776f846"
   },
   "web.domains.switcher_locked": {
-    "text": "Přepínání domén není na této stránce k dispozici",
+    "text": "Přepínání domén není na této stránce dostupné",
     "source_hash": "ccd202fe"
   },
   "web.domains.scope_list_label": {
@@ -132,7 +132,7 @@
     "source_hash": "59b8806e"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Zadej prosím název domény {0}",
+    "text": "Prosím zadej název domény {0}",
     "source_hash": "167f2d19"
   },
   "web.domains.domain_name": {
@@ -144,7 +144,7 @@
     "source_hash": "a25d6fca"
   },
   "web.domains.homepage_access": {
-    "text": "Přístup k domovské stránce",
+    "text": "Přístup k úvodní stránce",
     "source_hash": "00c89609"
   },
   "web.domains.and_status": {
@@ -196,7 +196,7 @@
     "source_hash": "c1683eeb"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "Otevřít doménu v nové záložce",
+    "text": "Otevřít doménu v novém panelu",
     "source_hash": "01571f31"
   },
   "web.domains.back_to_domains": {
@@ -220,7 +220,7 @@
     "source_hash": "dc9ff9ec"
   },
   "web.domains.add_your_domain": {
-    "text": "Přidat vaši doménu",
+    "text": "Přidej svou doménu",
     "source_hash": "6b95c91c"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
@@ -228,7 +228,7 @@
     "source_hash": "abdbe9ab"
   },
   "web.domains.no_domains_found": {
-    "text": "Žádné domény nenalezeny.",
+    "text": "Nebyly nalezeny žádné domény.",
     "source_hash": "574264df"
   },
   "web.domains.loading_domain_information": {
@@ -264,7 +264,7 @@
     "source_hash": "09a4b0ca"
   },
   "web.domains.verify_your_domain": {
-    "text": "Ověřit vaši doménu",
+    "text": "Ověř svou doménu",
     "source_hash": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {
@@ -272,7 +272,7 @@
     "source_hash": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Přizpůsob značku tvojí domény",
+    "text": "Přizpůsob branding své domény",
     "source_hash": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
@@ -376,11 +376,11 @@
     "source_hash": "36dd9781"
   },
   "web.domains.global_defaults": {
-    "text": "Globální výchozí hodnoty",
+    "text": "Globální výchozí nastavení",
     "source_hash": "4526107f"
   },
   "web.domains.edit_ttl": {
-    "text": "Upravit nastavení doby životnosti",
+    "text": "Upravit nastavení doby platnosti",
     "source_hash": "ea8afd62"
   },
   "web.domains.edit_passphrase": {
@@ -392,11 +392,431 @@
     "source_hash": "2e9e1ea0"
   },
   "web.domains.configure_dns_records": {
-    "text": "Konfigurovat DNS záznamy",
+    "text": "Konfigurace DNS záznamů",
     "source_hash": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
-    "text": "Použij nástroj níže k automatické detekci tvého poskytovatele DNS a získání podrobných pokynů pro konfiguraci tvojí domény.",
+    "text": "Použij nástroj níže pro automatickou detekci tvého DNS poskytovatele a získání podrobných pokynů pro konfiguraci tvé domény.",
     "source_hash": "91c1af2e"
+  },
+  "web.domains.public_homepage": {
+    "text": "Veřejná úvodní stránka"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Doména ověřena a aktivní"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS není nakonfigurováno — klikni pro opravu"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Doména neověřena — klikni pro ověření"
+  },
+  "web.domains.click_to_verify": {
+    "text": "klikni pro ověření"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Nepodařilo se načíst DNS widget"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS widget není dostupný"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Nepodařilo se inicializovat DNS widget"
+  },
+  "web.domains.verified": {
+    "text": "Ověřeno"
+  },
+  "web.domains.pending_verification": {
+    "text": "Čeká na ověření"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Máš neuložené změny. Opravdu chceš odejít?"
+  },
+  "web.domains.detail.manage": {
+    "text": "Spravovat"
+  },
+  "web.domains.detail.features": {
+    "text": "Funkce"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Tajemství na úvodní stránce"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Povolit veřejný přístup k vytváření tajemství na úvodní stránce tvé domény"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, barvy a vlastní branding"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Nastavení poskytovatele jednotného přihlášení"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Konfigurace vlastního odesílatele e-mailu"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Nastavení příjemců příchozích tajemství"
+  },
+  "web.domains.email.title": {
+    "text": "Odesílání e-mailů"
+  },
+  "web.domains.email.config_title": {
+    "text": "Konfigurace e-mailu"
+  },
+  "web.domains.email.config_description": {
+    "text": "Konfigurovat odesílání e-mailů pro tuto doménu"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Poskytovatel e-mailu"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Vyber poskytovatele e-mailu"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Jméno odesílatele"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "např. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Adresa odesílatele"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "např. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Adresa pro odpověď"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "např. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Uložit změny"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Zahodit změny"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Použít výchozí nastavení účtu"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Vyžaduje ověření domény přes DKIM a SPF záznamy"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Vyžaduje nastavení autentizace domény"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Vyžaduje ověření domény"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Použije výchozí konfiguraci odesílání e-mailů tvého účtu"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS záznamy"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Pro ověření tvé domény pro odesílání e-mailů přidej následující DNS záznamy."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Typ"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Název"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Hodnota"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Poskytovatel"
+  },
+  "web.domains.email.copy": {
+    "text": "Kopírovat"
+  },
+  "web.domains.email.copied": {
+    "text": "Zkopírováno"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Ověřeno"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Čeká"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Selhalo"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Znovu ověřit"
+  },
+  "web.domains.email.validating": {
+    "text": "Ověřování..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Doména ověřena"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Ověření selhalo"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Naposledy ověřeno"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Upgraduj svůj plán pro konfiguraci odesílání e-mailů pro tuto doménu."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Konfigurovat e-mail"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Přístup zamítnut"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Nemáš oprávnění spravovat nastavení e-mailu pro tuto doménu. Kontaktuj administrátora organizace."
+  },
+  "web.domains.email.update_success": {
+    "text": "Konfigurace e-mailu úspěšně uložena"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Konfigurace e-mailu úspěšně odebrána"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "E-maily pro tuto doménu jsou aktuálně odesílány z globálního odesílatele. Dokonči konfiguraci e-mailu pro použití vlastní identity odesílatele."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Vlastní odesílání e-mailů je momentálně zakázáno. E-maily budou odesílány z globálního odesílatele. Povol funkci níže pro použití vlastní identity odesílatele."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Test doručení e-mailu"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Odešli si testovací e-mail pomocí uložené konfigurace. Funguje i když funkce ještě není povolena."
+  },
+  "web.domains.email.send_test": {
+    "text": "Odeslat test"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Testovací e-mail úspěšně odeslán"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Nepodařilo se odeslat testovací e-mail"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Odesláno na {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Doručeno přes {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Nenakonfigurováno"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Použití výchozího odesílatele"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Ověřeno"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Čeká na ověření"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Zakázáno"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Odesílatel e-mailu není nakonfigurován — e-maily používají výchozího odesílatele platformy"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Konfigurace odesílatele e-mailu čeká na ověření — e-maily používají výchozího odesílatele platformy"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Odesílatel e-mailu je zakázán — e-maily používají výchozího odesílatele platformy"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Odesílatel e-mailu ověřen — e-maily jsou odesílány z této domény"
+  },
+  "web.domains.incoming.title": {
+    "text": "Příchozí tajemství"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Konfigurace příchozích tajemství"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Povolit externím uživatelům odesílat tajemství přímo určeným příjemcům na této doméně"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Přístup zamítnut"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Nemáš oprávnění spravovat nastavení příchozích tajemství pro tuto doménu. Kontaktuj administrátora organizace."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Upgraduj svůj plán pro konfiguraci příchozích tajemství pro tuto doménu."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Konfigurovat příchozí tajemství"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Příchozí tajemství nejsou pro tuto doménu nakonfigurována. Přidej příjemce, aby externí uživatelé mohli odesílat tajemství tvému týmu."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Příchozí tajemství jsou momentálně zakázána. Externí uživatelé nemohou odesílat tajemství příjemcům na této doméně. Povol funkci níže pro povolení příchozích tajemství."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Příjemci"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Urči, kdo může přijímat příchozí tajemství na této doméně. Příjemci obdrží e-mailová oznámení, když jim je tajemství odesláno."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Přidat příjemce"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Odebrat"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "E-mailová adresa"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Zobrazované jméno"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "např. Bezpečnostní tým"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Žádní nakonfigurovaní příjemci"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Přidej příjemce, aby externí uživatelé mohli odesílat tajemství tvému týmu."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Neplatná e-mailová adresa"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Tato e-mailová adresa je již přidána"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Maximum {max} povolených příjemců"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Zobrazované jméno je povinné"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "E-mailová adresa je povinná"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Uložit změny"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Zahodit změny"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Konfigurace příchozích tajemství úspěšně uložena"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Konfigurace příchozích tajemství úspěšně odebrána"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} příjemce | {count} příjemců"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Nenakonfigurováno"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Nakonfigurováno"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Zakázáno"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Příchozí tajemství nejsou nakonfigurována — externí uživatelé nemohou odesílat tajemství na tuto doménu"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Příchozí tajemství povolena s {count} příjemci"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Funkce příchozích tajemství je pro tuto doménu zakázána"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Povolit příchozí tajemství"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Povolit externím uživatelům odesílat tajemství příjemcům na této doméně"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Veřejná URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Sdílej tuto URL s externími uživateli, aby mohli odesílat tajemství"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Kopírovat URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL zkopírováno do schránky"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Opravdu chceš odebrat všechny příjemce? Externí uživatelé již nebudou moci odesílat tajemství na tuto doménu."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Dosažen maximální počet příjemců"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Tato e-mailová adresa již byla přidána"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Uložení nahradí všechny stávající příjemce tvými čekajícími změnami. Jsi si jistý/á?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Smazat všechny příjemce"
+  },
+  "web.domains.sso.title": {
+    "text": "Jednotné přihlášení"
+  },
+  "web.domains.sso.config_title": {
+    "text": "Konfigurace SSO"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Konfigurace jednotného přihlášení pro tuto doménu"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Přístup zamítnut"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Nemáš oprávnění spravovat nastavení SSO pro tuto doménu. Kontaktuj administrátora organizace."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Upgraduj svůj plán pro konfiguraci jednotného přihlášení pro tuto doménu."
+  },
+  "web.domains.sso.create_success": {
+    "text": "Konfigurace SSO úspěšně vytvořena"
+  },
+  "web.domains.sso.update_success": {
+    "text": "Konfigurace SSO úspěšně aktualizována"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "Konfigurace SSO úspěšně odebrána"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Test připojení úspěšný — poskytovatel odpověděl správně"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Test připojení selhal"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Konfigurovat SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO zatím není pro tuto doménu nakonfigurováno. Povol jednotné přihlášení, aby se členové týmu mohli ověřovat pomocí poskytovatele identity tvé organizace."
   }
 }

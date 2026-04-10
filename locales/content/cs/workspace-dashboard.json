@@ -20,7 +20,7 @@
     "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Při načítání tvých dat došlo k problému. Zkus to prosím znovu.",
+    "text": "Nastal problém při načítání tvých dat. Zkus to prosím znovu.",
     "source_hash": "ff0d904e"
   }
 }

@@ -16,15 +16,15 @@
     "source_hash": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Správa týmů vyžaduje Identity Plus nebo vyšší plán",
+    "text": "Správa týmů vyžaduje Identity Plus nebo vyšší",
     "source_hash": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Vlastní domény vyžadují Identity Plus nebo vyšší plán",
+    "text": "Vlastní domény vyžadují Identity Plus nebo vyšší",
     "source_hash": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "Přístup k API vyžaduje Identity Plus nebo vyšší plán",
+    "text": "Přístup k API vyžaduje Identity Plus nebo vyšší",
     "source_hash": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
@@ -32,7 +32,7 @@
     "source_hash": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Spravuj své předplatné, organizace a nastavení fakturace",
+    "text": "Správa tvého předplatného, organizací a nastavení fakturace",
     "source_hash": "3995095c"
   },
   "web.billing.overview.title": {
@@ -40,7 +40,7 @@
     "source_hash": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "Zobrazit a spravovat své předplatné a platební údaje",
+    "text": "Zobrazení a správa předplatného a platebních údajů",
     "source_hash": "60e5a00e"
   },
   "web.billing.overview.billing_for_organization": {
@@ -88,7 +88,7 @@
     "source_hash": "cbc4ef92"
   },
   "web.billing.plans.legacy_plan_info": {
-    "text": "Máš starší plán se zvýhodněnou cenou.",
+    "text": "Máš zvýhodněný plán se speciální cenou.",
     "source_hash": "e9aa8bf0"
   },
   "web.billing.plans.early_supporter_plan": {
@@ -96,11 +96,11 @@
     "source_hash": "f37cd0d9"
   },
   "web.billing.plans.legacy_plan_warning": {
-    "text": "Změna plánu znamená ztrátu tvé zvýhodněné sazby. Tuto akci nelze vrátit zpět.",
+    "text": "Přepnutí plánu znamená ztrátu tvé zvýhodněné sazby. Toto nelze vrátit zpět.",
     "source_hash": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "Žádná platební metoda není uložena",
+    "text": "Žádná platební metoda v záznamu",
     "source_hash": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
@@ -148,7 +148,7 @@
     "source_hash": "41e922d2"
   },
   "web.billing.overview.load_error": {
-    "text": "Nepodařilo se načíst fakturační údaje",
+    "text": "Nepodařilo se načíst informace o fakturaci",
     "source_hash": "3bc44882"
   },
   "web.billing.overview.upgrade_success": {
@@ -156,7 +156,7 @@
     "source_hash": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
-    "text": "Tvůj nový plán je nyní aktivní. Děkujeme za tvůj nákup.",
+    "text": "Tvůj nový plán je nyní aktivní. Děkujeme za nákup.",
     "source_hash": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
@@ -164,7 +164,7 @@
     "source_hash": "8f782ad8"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "Vytvářet tajemství",
+    "text": "Vytváření tajemství",
     "source_hash": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
@@ -188,7 +188,7 @@
     "source_hash": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_sender": {
-    "text": "Vlastní výchozí nastavení e-mailu",
+    "text": "Vlastní nastavení e-mailu",
     "source_hash": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
@@ -196,7 +196,7 @@
     "source_hash": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Tajemství na domovské stránce",
+    "text": "Tajemství na úvodní stránce",
     "source_hash": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
@@ -236,7 +236,7 @@
     "source_hash": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "Žádné funkce nejsou k dispozici",
+    "text": "Žádné dostupné funkce",
     "source_hash": "03d195e8"
   },
   "web.billing.features.create_secrets": {
@@ -264,7 +264,7 @@
     "source_hash": "237dabec"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "Tajemství na domovské stránce",
+    "text": "Tajemství na úvodní stránce",
     "source_hash": "6360f7ec"
   },
   "web.billing.features.manage_teams": {
@@ -300,11 +300,11 @@
     "source_hash": "d52b4039"
   },
   "web.billing.features.activity_stream": {
-    "text": "Přehled aktivit",
+    "text": "Přehled aktivity",
     "source_hash": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
-    "text": "Předávací pracovní postupy",
+    "text": "Pracovní postupy předávání",
     "source_hash": "07202af3"
   },
   "web.billing.plans.title": {
@@ -316,7 +316,7 @@
     "source_hash": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "Vyber si dokonalý plán pro vaši organizaci",
+    "text": "Vyber ideální plán pro svou organizaci",
     "source_hash": "308076f2"
   },
   "web.billing.plans.current": {
@@ -332,11 +332,11 @@
     "source_hash": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "Downgradovat",
+    "text": "Snížit",
     "source_hash": "d955b7e8"
   },
   "web.billing.plans.cancel_to_downgrade": {
-    "text": "Zrušit pro přechod",
+    "text": "Zrušit pro přepnutí",
     "source_hash": "1c4cda89"
   },
   "web.billing.plans.monthly": {
@@ -352,7 +352,7 @@
     "source_hash": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Ušetřete {percent}% s ročním předplatným",
+    "text": "Ušetři {percent}% s roční fakturací",
     "source_hash": "88c451f2"
   },
   "web.billing.plans.free_plan": {
@@ -376,7 +376,7 @@
     "source_hash": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "Organizační účet",
+    "text": "Účet organizace",
     "source_hash": "86e3a165"
   },
   "web.billing.plans.features": {
@@ -404,23 +404,23 @@
     "source_hash": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Máš otázky nebo potřebuješ něco vlastního?",
+    "text": "Máš dotazy nebo potřebuješ něco na míru?",
     "source_hash": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Rádi od tě uslyšíme. Dejte nám vědět, co hledáte.",
+    "text": "Rádi se s tebou spojíme. Dej nám vědět, co hledáš.",
     "source_hash": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} tým | {count} týmů",
+    "text": "{count} tým | {count} týmy | {count} týmů",
     "source_hash": "a83641bc"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} člen na tým | {count} členů na tým",
+    "text": "{count} člen na tým | {count} členové na tým | {count} členů na tým",
     "source_hash": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
-    "text": "Neomezený počet týmů",
+    "text": "Neomezené týmy",
     "source_hash": "6d9fde65"
   },
   "web.billing.plans.unlimited_members": {
@@ -440,7 +440,7 @@
     "source_hash": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "V současné době nejsou k dispozici žádné plány s intervalem {interval}.",
+    "text": "Momentálně nejsou dostupné žádné plány s intervalem {interval}.",
     "source_hash": "d8454436"
   },
   "web.billing.plans.load_error": {
@@ -448,7 +448,7 @@
     "source_hash": "a37d4d9a"
   },
   "web.billing.plans.change_immediate": {
-    "text": "Tvůj plán se změní okamžitě.",
+    "text": "Tvůj plán bude změněn okamžitě.",
     "source_hash": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
@@ -476,7 +476,7 @@
     "source_hash": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Tvoje limity funkcí se aktualizují ihned po změně plánu.",
+    "text": "Limity tvých funkcí se aktualizují ihned po změně plánu.",
     "source_hash": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
@@ -488,7 +488,7 @@
     "source_hash": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Potvrdit downgrade",
+    "text": "Potvrdit snížení",
     "source_hash": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
@@ -496,11 +496,11 @@
     "source_hash": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Downgradovat na {plan}?",
+    "text": "Snížit na {plan}?",
     "source_hash": "8eb8ea81"
   },
   "web.billing.plans.credit_applies_heading": {
-    "text": "Jak se tvůj kredit použije:",
+    "text": "Jak se tvůj kredit uplatní:",
     "source_hash": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
@@ -508,7 +508,7 @@
     "source_hash": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
-    "text": "Použitý kredit:",
+    "text": "Uplatněný kredit:",
     "source_hash": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
@@ -520,7 +520,7 @@
     "source_hash": "eedd0c0a"
   },
   "web.billing.plans.credit_future_note": {
-    "text": "Použito na budoucí faktury",
+    "text": "Uplatněno na budoucí faktury",
     "source_hash": "5007add6"
   },
   "web.billing.invoices.title": {
@@ -556,7 +556,7 @@
     "source_hash": "92d2d0ce"
   },
   "web.billing.invoices.no_invoices_description": {
-    "text": "Tvé faktury se zde zobrazí po upgradu na placený plán",
+    "text": "Tvé faktury se zde zobrazí, jakmile upgraduješ na placený plán",
     "source_hash": "7f16be70"
   },
   "web.billing.invoices.view_plans": {
@@ -576,19 +576,19 @@
     "source_hash": "031a8f0f"
   },
   "web.billing.invoices.draft": {
-    "text": "Koncept",
+    "text": "Návrh",
     "source_hash": "d2e16e61"
   },
   "web.billing.invoices.open": {
-    "text": "Otevřená",
+    "text": "Otevřeno",
     "source_hash": "ed077f3d"
   },
   "web.billing.invoices.uncollectible": {
-    "text": "Nevymahatelná",
+    "text": "Nevymahatelné",
     "source_hash": "c8d3b241"
   },
   "web.billing.invoices.void": {
-    "text": "Stornovaná",
+    "text": "Stornováno",
     "source_hash": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
@@ -596,7 +596,7 @@
     "source_hash": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
-    "text": "Fakturaci spravuje {orgName}",
+    "text": "Fakturace je spravována organizací {orgName}",
     "source_hash": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
@@ -604,11 +604,11 @@
     "source_hash": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "Dosáhl jsi limitu členů pro tento tým",
+    "text": "Dosáhl/a jsi limitu členů pro tento tým",
     "source_hash": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Upgraduj pro přidání více členů",
+    "text": "Upgraduj pro přidání dalších členů",
     "source_hash": "602bdef4"
   },
   "web.billing.subscription.title": {
@@ -652,7 +652,7 @@
     "source_hash": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "Spravuj své předplatné, platební metody a historii fakturace",
+    "text": "Správa předplatného, platebních metod a historie fakturace",
     "source_hash": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
@@ -664,15 +664,15 @@
     "source_hash": "b6f47df3"
   },
   "web.billing.start_today": {
-    "text": "Začít dnes",
+    "text": "Začni dnes",
     "source_hash": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Začněte dnes s Identity Plus",
+    "text": "Začni dnes s Identity Plus",
     "source_hash": "cce4c7d7"
   },
   "web.billing.per_month": {
-    "text": "za měsíc",
+    "text": "měsíčně",
     "source_hash": "88b1d1a6"
   },
   "web.billing.full_api_access": {
@@ -720,7 +720,7 @@
     "source_hash": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Upgrade pro secrets.vasedomena.cz",
+    "text": "Upgrade pro secrets.yourdomain.com",
     "source_hash": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
@@ -728,7 +728,7 @@
     "source_hash": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Všechny plány zahrnují volbu lokality dat: {0} regionů",
+    "text": "Všechny plány zahrnují výběr lokality dat: {0} regionů",
     "source_hash": "22a60b49"
   },
   "web.billing.get_started": {
@@ -752,7 +752,7 @@
     "source_hash": "c07cd25c"
   },
   "web.billing.secure_links_stronger_connections": {
-    "text": "Bezpečné odkazy, silnější spojení",
+    "text": "Bezpečné odkazy, silnější vztahy",
     "source_hash": "dd8dae5d"
   },
   "web.billing.identity_tier_not_found_in_product_tiers": {
@@ -765,7 +765,7 @@
     "source_hash": "3f85967f"
   },
   "web.billing.cancel.title": {
-    "text": "Zrušit předplatné",
+    "text": "Zrušení předplatného",
     "context": "Modal dialog heading/title",
     "source_hash": "882e0c83"
   },
@@ -774,23 +774,23 @@
     "source_hash": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
-    "text": "Co se stane, když zrušíte:",
+    "text": "Co se stane po zrušení:",
     "source_hash": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
-    "text": "Budeš mít přístup ke všem funkcím do {date}",
+    "text": "Přístup ke všem funkcím si zachováš do {date}",
     "source_hash": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "Budeš mít přístup do konce aktuálního fakturačního období",
+    "text": "Přístup si zachováš do konce aktuálního fakturačního období",
     "source_hash": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
-    "text": "Již ti nebude účtováno",
+    "text": "Nebudeš znovu účtován/a",
     "source_hash": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
-    "text": "Tvůj účet bude převeden na bezplatný plán",
+    "text": "Tvůj účet se vrátí na bezplatný plán",
     "source_hash": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
@@ -804,7 +804,7 @@
     "source_hash": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "Tvoje předplatné bylo zrušeno. Budeš mít přístup do konce fakturačního období.",
+    "text": "Tvé předplatné bylo zrušeno. Přístup si zachováš do konce fakturačního období.",
     "source_hash": "e18fd9d5"
   },
   "web.billing.cancel.error": {
@@ -817,12 +817,12 @@
     "source_hash": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "Tvoje předplatné zůstane aktivní do {date}. Do té doby budeš mít plný přístup ke všem funkcím.",
+    "text": "Tvé předplatné zůstane aktivní do {date}. Do té doby budeš mít plný přístup ke všem funkcím.",
     "context": "Alert banner description explaining continued access",
     "source_hash": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "Změnil jsi názor? Své předplatné můžeš kdykoli před datem zrušení znovu aktivovat.",
+    "text": "Změnil/a jsi názor? Své předplatné můžeš znovu aktivovat kdykoli před datem zrušení.",
     "context": "Alert banner note encouraging reactivation",
     "source_hash": "c94d5527"
   },
@@ -887,12 +887,12 @@
     "source_hash": "158f558e"
   },
   "web.billing.currency_migration.title": {
-    "text": "Je vyžadována změna měny",
+    "text": "Vyžadována změna měny",
     "context": "Modal title when plan requires different currency than current subscription",
     "source_hash": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
-    "text": "Tvé současné předplatné používá {from}. Vybraný plán je účtován v {to}. To vyžaduje migraci tvého předplatného na novou měnu.",
+    "text": "Tvé aktuální předplatné používá {from}. Vybraný plán je fakturován v {to}. To vyžaduje migraci tvého předplatného na novou měnu.",
     "source_hash": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
@@ -908,23 +908,23 @@
     "source_hash": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
-    "text": "Kdy má ke změně dojít?",
+    "text": "Kdy má k přepnutí dojít?",
     "source_hash": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
-    "text": "Přejít na konci fakturačního období",
+    "text": "Přepnout na konci fakturačního období",
     "source_hash": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "Tvůj současný plán zůstane aktivní do {date}. Poté dokončíš platbu za nový plán.",
+    "text": "Tvůj aktuální plán zůstane aktivní do {date}. Poté dokončíš pokladnu pro svůj nový plán.",
     "source_hash": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
-    "text": "Přejít okamžitě",
+    "text": "Přepnout okamžitě",
     "source_hash": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Tvůj současný plán se nyní zruší. Obdržíš vrácení peněz za nevyužitý čas a dokončíš platbu za nový plán.",
+    "text": "Tvůj aktuální plán je nyní zrušen. Obdržíš refundaci za nevyužitý čas a dokončíš pokladnu pro nový plán.",
     "source_hash": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
@@ -940,7 +940,7 @@
     "source_hash": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "Tvůj současný plán zůstane aktivní do konce fakturačního období. Poté budeš vyzván/a k dokončení platby za nový plán.",
+    "text": "Tvůj aktuální plán zůstane aktivní do konce fakturačního období. Poté budeš vyzván/a k dokončení pokladny pro svůj nový plán.",
     "source_hash": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
@@ -961,7 +961,7 @@
     "source_hash": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "Tvůj současný plán končí {date}. Dokonči přechod na {plan} ({currency}).",
+    "text": "Tvůj aktuální plán končí dne {date}. Dokonči přepnutí na {plan} ({currency}).",
     "source_hash": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
@@ -970,12 +970,12 @@
     "source_hash": "fa794e0c"
   },
   "web.billing.checkout_session_failed": {
-    "text": "Nepodařilo se vytvořit platební relaci",
+    "text": "Nepodařilo se vytvořit relaci pokladny",
     "context": "Error when Stripe checkout session creation returns no URL",
     "source_hash": "a53f6fa3"
   },
   "web.billing.checkout_initiate_failed": {
-    "text": "Nepodařilo se zahájit platbu",
+    "text": "Nepodařilo se zahájit pokladnu",
     "context": "Fallback error for checkout failures",
     "source_hash": "3ff06e41"
   },
@@ -985,8 +985,29 @@
     "source_hash": "ab7c715c"
   },
   "web.billing.plan_unavailable_region_mismatch": {
-    "text": "Dostupné pouze v tvém původním regionu předplatného",
+    "text": "Dostupné pouze v regionu tvého původního předplatného",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Tento plán již máš předplacený."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Znovu aktivovat předplatné"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Tvé předplatné bylo znovu aktivováno. Fakturace bude pokračovat jako obvykle."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Nepodařilo se znovu aktivovat předplatné. Zkus to prosím znovu nebo kontaktuj podporu."
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Flexibilní doména odesílatele e-mailu"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Jednotné přihlášení (SSO)"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Znovu aktivovat"
   }
 }

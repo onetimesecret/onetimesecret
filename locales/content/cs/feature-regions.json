@@ -4,7 +4,7 @@
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Tvoje data se nacházejí výhradně ve vámi zvoleném regionu a nikdy nejsou přenášena mezi regiony",
+    "text": "Tvá data se nacházejí výhradně ve zvoleném regionu a nikdy nejsou přenesena mezi regiony",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
@@ -12,11 +12,11 @@
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Dodržujeme přísnou politiku: zákaznická data nejsou za žádných okolností přenášena mezi regiony",
+    "text": "Dodržujeme přísnou politiku: zákaznická data nejsou nikdy přenášena mezi regiony za žádných okolností",
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Důležité: Přepnutí do jiného regionu vytvoří nový účet. Tvoje data zůstávají v původním regionu.",
+    "text": "Důležité: Přepnutí do jiného regionu vytvoří nový účet. Tvá data zůstanou v původním regionu.",
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
@@ -32,7 +32,7 @@
     "source_hash": "92340695"
   },
   "web.regions.explore_other_regions": {
-    "text": "Prozkoumejte další dostupné regiony",
+    "text": "Prozkoumej další dostupné regiony",
     "source_hash": "953d0057"
   },
   "web.regions.why_it_matters": {
@@ -44,7 +44,7 @@
     "source_hash": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "Vědět přesně, kde se tvoje data nacházejí a které zákony řídí jejich ochranu.",
+    "text": "Vždy přesně víš, kde se tvá data nacházejí a které zákony řídí jejich ochranu.",
     "source_hash": "97fd57ab"
   },
   "web.regions.privacy_title": {
@@ -52,7 +52,7 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Zajistěte, aby se s vašimi osobními údaji zacházelo podle zákonů a předpisů o soukromí tvojí země, čímž se zabrání neoprávněnému přístupu nebo zneužití.",
+    "text": "Zajisti, aby tvé osobní údaje byly zpracovávány v souladu se zákony a předpisy o ochraně soukromí tvé země, čímž se zabrání neoprávněnému přístupu nebo zneužití.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -60,7 +60,7 @@
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Splňte požadavky GDPR, HIPAA, CCPA a dalších regionálních předpisů o ochraně dat",
+    "text": "Splnění požadavků GDPR, HIPAA, CCPA a dalších regionálních předpisů o ochraně dat",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -68,7 +68,7 @@
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "Data uložená blíže k ti znamenají nižší latenci a lepší výkon.",
+    "text": "Data uložená blíže k tobě znamenají nižší latenci a lepší výkon.",
     "source_hash": "e133ef1d"
   },
   "web.regions.regions": {
@@ -76,11 +76,11 @@
     "source_hash": "610c65d8"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "kontaktuj náš tým pro compliance",
+    "text": "kontaktuj náš tým pro dodržování předpisů",
     "source_hash": "87e6746e"
   },
   "web.regions.review_our_documentation": {
-    "text": "prostudujte naši dokumentaci",
+    "text": "prohlédni si naši dokumentaci",
     "source_hash": "9cbd03df"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
@@ -148,15 +148,18 @@
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "Pro použití jiného regionu si tam vytvoř nový účet se stejnou e-mailovou adresou, která je spojena s tvým fakturačním kontaktním e-mailem.",
+    "text": "Pro použití jiného regionu si tam vytvoř nový účet s použitím stejné e-mailové adresy přidružené k tvému fakturačnímu kontaktu.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Pokud se tvůj fakturační kontaktní e-mail liší od e-mailu tvého účtu Onetime Secret, použij fakturační kontaktní e-mail pro účet v novém regionu, aby se zachovaly výhody tvého předplatného.",
+    "text": "Pokud se tvůj fakturační kontaktní e-mail liší od tvého e-mailu účtu Onetime Secret, použij fakturační kontaktní e-mail pro nový regionální účet k zachování výhod předplatného.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Výhody tvého předplatného se automaticky uplatní na jakýkoli účet vytvořený s tvou fakturační e-mailovou adresou.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Pro tvůj účet momentálně nejsou dostupné žádné informace o regionu."
   }
 }

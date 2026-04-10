@@ -48,17 +48,17 @@
     }
   },
   "web.auth.mfa_required": {
-    "text": "Vyžadováno MFA ověření",
+    "text": "Vyžadováno ověření MFA",
     "context": "Page heading shown when user must complete MFA to proceed",
     "source_hash": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
-    "text": "Pro přístup k tvému účtu je vyžadováno MFA ověření",
+    "text": "Pro přístup k tvému účtu je vyžadováno ověření MFA",
     "context": "Explanatory text below the heading",
     "source_hash": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "Dokončit MFA ověření",
+    "text": "Dokončit ověření MFA",
     "source_hash": "0e681134"
   },
   "web.auth.security._guidance": {
@@ -66,7 +66,7 @@
     "context": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.security.authentication_failed": {
-    "text": "Ověření selhalo. Ověř prosím své přihlašovací údaje a zkus to znovu.",
+    "text": "Ověření selhalo. Prosím zkontroluj své přihlašovací údaje a zkus to znovu.",
     "source_hash": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
@@ -74,11 +74,11 @@
     "source_hash": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "Relace vypršela. Přihlas se prosím znovu.",
+    "text": "Relace vypršela. Prosím přihlas se znovu.",
     "source_hash": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Obnovovací kód nenalezen. Ověř prosím, že jsi ho zadali správně.",
+    "text": "Obnovovací kód nebyl nalezen. Prosím ověř, že jsi ho zadal/a správně.",
     "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
@@ -86,7 +86,7 @@
     "source_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
-    "text": "Chyba sítě. Zkontroluj prosím své připojení a zkus to znovu.",
+    "text": "Chyba sítě. Prosím zkontroluj své připojení a zkus to znovu.",
     "source_hash": "31f2678d"
   },
   "web.auth.security.internal_error": {
@@ -139,7 +139,7 @@
     "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Žádné heslo není potřeba — stačí kliknout na odkaz ve vašem e-mailu",
+    "text": "Heslo není potřeba — stačí kliknout na odkaz v e-mailu",
     "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
@@ -155,7 +155,7 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Tvá relace vypršela. Obnov prosím stránku a zkus to znovu.",
+    "text": "Tvá relace vypršela. Prosím obnov stránku a zkus to znovu.",
     "source_hash": "a7c3e901"
   },
   "web.auth.magicLink.loginFailed": {
@@ -167,7 +167,7 @@
     "source_hash": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Počkej prosím, ověřujeme tvůj odkaz",
+    "text": "Prosím počkej, než ověříme tvůj odkaz",
     "source_hash": "81e4efed"
   },
   "web.auth.magicLink.error": {
@@ -191,7 +191,7 @@
     "source_hash": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "Použij prosím moderní prohlížeč, který podporuje WebAuthn (Chrome, Safari, Firefox nebo Edge)",
+    "text": "Prosím použij moderní prohlížeč s podporou WebAuthn (Chrome, Safari, Firefox nebo Edge)",
     "source_hash": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
@@ -203,7 +203,7 @@
     "source_hash": "290cca44"
   },
   "web.auth.webauthn.passwordRequired": {
-    "text": "Pro nastavení přístupového klíče je potřeba heslo",
+    "text": "Pro nastavení přístupového klíče je vyžadováno heslo",
     "source_hash": "085bb238"
   },
   "web.auth.webauthn.authFailed": {
@@ -219,7 +219,7 @@
     "source_hash": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "Použij svůj otisk prstu, obličej nebo bezpečnostní klíč k přihlášení",
+    "text": "Přihlas se pomocí otisku prstu, obličeje nebo bezpečnostního klíče",
     "source_hash": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
@@ -237,7 +237,7 @@
     "source_hash": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "Přístupové klíče ti umožní bezpečné přihlášení bez hesla",
+    "text": "Přístupové klíče ti umožňují bezpečné přihlášení bez hesla",
     "context": "Setup page description",
     "source_hash": "85630bef"
   },
@@ -247,7 +247,7 @@
     "source_hash": "dd1841d2"
   },
   "web.auth.passkeys.count": {
-    "text": "{count} přístupový klíč registrován | {count} přístupové klíče registrovány",
+    "text": "{count} přístupový klíč zaregistrován | {count} přístupové klíče zaregistrovány | {count} přístupových klíčů zaregistrováno",
     "context": "Number of registered passkeys",
     "source_hash": "82e6681f"
   },
@@ -257,7 +257,7 @@
     "source_hash": "93713ad7"
   },
   "web.auth.passkeys.register_passkey": {
-    "text": "Registrovat přístupový klíč",
+    "text": "Zaregistrovat přístupový klíč",
     "context": "Button to register a new passkey",
     "source_hash": "26db6968"
   },
@@ -277,12 +277,12 @@
     "source_hash": "436c1050"
   },
   "web.auth.passkeys.registered_success": {
-    "text": "Přístupový klíč úspěšně registrován",
+    "text": "Přístupový klíč úspěšně zaregistrován",
     "context": "Success message after registering passkey",
     "source_hash": "fbfb0713"
   },
   "web.auth.passkeys.no_passkeys": {
-    "text": "Žádné přístupové klíče registrovány",
+    "text": "Žádné zaregistrované přístupové klíče",
     "context": "Empty state when no passkeys exist",
     "source_hash": "1d97fde4"
   },
@@ -297,32 +297,32 @@
     "source_hash": "22eefa67"
   },
   "web.auth.passkeys.created": {
-    "text": "Vytvořen",
+    "text": "Vytvořeno",
     "context": "Label for creation date",
     "source_hash": "d70b9e24"
   },
   "web.auth.passkeys.last_used": {
-    "text": "Naposledy použit: {time}",
+    "text": "Naposledy použito: {time}",
     "context": "Last used timestamp",
     "source_hash": "e1af94fe"
   },
   "web.auth.passkeys.never_used": {
-    "text": "Dosud nepoužit",
+    "text": "Nikdy nepoužito",
     "context": "Status when passkey has not been used",
     "source_hash": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "Bezpečnější než hesla – odolný vůči phishingovým útokům",
+    "text": "Bezpečnější než hesla – odolné vůči phishingovým útokům",
     "context": "Passkey benefit",
     "source_hash": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Rychlý a snadný – stačí použít otisk prstu, obličej nebo bezpečnostní klíč",
+    "text": "Rychlé a snadné – stačí použít otisk prstu, obličej nebo bezpečnostní klíč",
     "context": "Passkey benefit",
     "source_hash": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Synchronizovaný napříč tvými zařízeními při použití platformových autentizátorů",
+    "text": "Synchronizované napříč tvými zařízeními při použití platformových autentikátorů",
     "context": "Passkey benefit",
     "source_hash": "7480c7ae"
   },
@@ -348,7 +348,7 @@
     "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "Místo toho si můžeš obnovit heslo",
+    "text": "Můžeš si místo toho obnovit heslo",
     "source_hash": "a98a3f9d"
   },
   "web.auth.sessions._guidance": {
@@ -400,7 +400,7 @@
     "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Tím budeš odhlášeni ze všech ostatních zařízení. Opravdu?",
+    "text": "Tím se odhlásíš ze všech ostatních zařízení. Jsi si jistý/á?",
     "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
@@ -448,15 +448,15 @@
     "source_hash": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. Naskenujte QR kód",
+    "text": "1. Naskenovat QR kód",
     "source_hash": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. Ověř nastavení",
+    "text": "2. Ověřit nastavení",
     "source_hash": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "Naskenujte tento QR kód tvojí autentizační aplikací",
+    "text": "Naskenuj tento QR kód svou autentizační aplikací",
     "source_hash": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
@@ -464,7 +464,7 @@
     "source_hash": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
-    "text": "Zadej 6místný kód z tvojí aplikace",
+    "text": "Zadej 6místný kód z tvé aplikace",
     "source_hash": "38f61733"
   },
   "web.auth.mfa.enter_code": {
@@ -480,11 +480,11 @@
     "source_hash": "eea2745e"
   },
   "web.auth.mfa.code_required": {
-    "text": "Ověřovací kód je vyžadován",
+    "text": "Ověřovací kód je povinný",
     "source_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Neplatný kód. Kódy vyprší každých 30 sekund. Zkus nejnovější kód z tvojí autentizační aplikace.",
+    "text": "Neplatný kód. Kódy vyprší každých 30 sekund. Zkus nejnovější kód z tvé autentizační aplikace.",
     "source_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
@@ -504,7 +504,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "Potvrď svou identitu pro úpravu nastavení dvoufaktorového ověření",
+    "text": "Potvrď svou identitu pro změnu nastavení dvoufaktorového ověření",
     "source_hash": "09a96c07"
   },
   "web.auth.mfa.last_used": {
@@ -548,7 +548,7 @@
     "source_hash": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Zabraňte neoprávněnému přístupu i v případě kompromitace tvého hesla",
+    "text": "Zabraň neoprávněnému přístupu, i když je tvé heslo kompromitováno",
     "source_hash": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
@@ -584,7 +584,7 @@
     "source_hash": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "Zadej 6místný kód z tvojí autentizační aplikace",
+    "text": "Zadej 6místný kód z tvé autentizační aplikace",
     "source_hash": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
@@ -596,7 +596,7 @@
     "source_hash": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "Zadej jeden z tvých obnovovacích kódů",
+    "text": "Zadej jeden ze svých obnovovacích kódů",
     "source_hash": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
@@ -624,7 +624,7 @@
     "source_hash": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "Pro pokračování zadej prosím všech 6 číslic",
+    "text": "Pro pokračování prosím zadej všech 6 číslic",
     "source_hash": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
@@ -636,7 +636,7 @@
     "source_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Ulož si tyto kódy na bezpečné místo. Každý lze použít jednou, pokud ztratíte přístup k tvojí autentizační aplikaci.",
+    "text": "Ulož si tyto kódy na bezpečné místo. Každý lze použít jednou, pokud ztratíš přístup ke své autentizační aplikaci.",
     "source_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
@@ -652,11 +652,11 @@
     "source_hash": "4025779e"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "Znovu vygenerovat kódy",
+    "text": "Přegenerovat kódy",
     "source_hash": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "Tím se zneplatní všechny existující obnovovací kódy",
+    "text": "Tím se zneplatní všechny stávající obnovovací kódy",
     "source_hash": "9795a175"
   },
   "web.auth.recovery_codes.download": {
@@ -692,23 +692,38 @@
     "source_hash": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "Zbývá {count} z {limit} obnovovacích kódů",
+    "text": "{count} z {limit} obnovovacích kódů zbývá",
     "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Každý kód lze použít pouze jednou. Pokud ti dochází kódy, vygenerujte nové.",
+    "text": "Každý kód lze použít pouze jednou. Přegeneruj kódy, pokud ti dochází.",
     "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "Nezůstaly žádné obnovovací kódy",
+    "text": "Žádné zbývající obnovovací kódy",
     "source_hash": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
-    "text": "Byly vygenerovány nové obnovovací kódy",
+    "text": "Nové obnovovací kódy byly vygenerovány",
     "source_hash": "831cb1aa"
   },
   "web.auth.recovery_codes.link_title": {
     "text": "Obnovovací kódy",
     "source_hash": "579c7f4e"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Alternativní možnosti ověření"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ BEZPEČNOSTNĚ KRITICKÉ: Zprávy zabraňují vyzrazení informací. Viz src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "relace"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "relací"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Stránka správy přihlášených zařízení/prohlížečů uživatele"
   }
 }

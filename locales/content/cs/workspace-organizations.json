@@ -12,7 +12,7 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Spravuj své organizace",
+    "text": "Správa tvých organizací",
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
@@ -32,11 +32,11 @@
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organizace poskytují jednotnou fakturaci a administraci. Začněte vytvořením první organizace.",
+    "text": "Organizace poskytují sjednocenou fakturaci a administraci. Začni vytvořením své první organizace.",
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
-    "text": "Popis nebyl poskytnut",
+    "text": "Nebyl poskytnut žádný popis",
     "source_hash": "41183d01"
   },
   "web.organizations.default": {
@@ -80,7 +80,7 @@
     "source_hash": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "K čemu tato organizace slouží?",
+    "text": "K čemu slouží tato organizace?",
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
@@ -92,11 +92,11 @@
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Vybrat organizaci",
+    "text": "Vyber organizaci",
     "source_hash": "48326f52"
   },
   "web.organizations.switcher_locked": {
-    "text": "Přepínání organizací není na této stránce k dispozici",
+    "text": "Přepínání organizací není na této stránce dostupné",
     "source_hash": "da0cf810"
   },
   "web.organizations.not_found": {
@@ -132,11 +132,11 @@
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Aktualizuj název a popis organizace",
+    "text": "Aktualizuj název a popis své organizace",
     "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
-    "text": "Obecná nastavení",
+    "text": "Obecné nastavení",
     "source_hash": "de322f87"
   },
   "web.organizations.billing_settings": {
@@ -168,7 +168,7 @@
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Jednotná správa fakturace a předplatného bude k dispozici v budoucí verzi.",
+    "text": "Sjednocená správa fakturace a předplatného bude dostupná v budoucí verzi.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -176,15 +176,15 @@
     "source_hash": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "Organizace poskytují jednotnou fakturaci a administraci pro centralizovanou správu.",
+    "text": "Organizace poskytují sjednocenou fakturaci a administraci pro centralizovanou správu.",
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Spravovat vaši organizaci",
+    "text": "Spravuj svou organizaci",
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Zde aktualizuj název tvojí společnosti a podrobnosti o organizaci. Tyto informace pomáhají personalizovat tvůj účet a mohou být v budoucnu použity pro funkce brandingu.",
+    "text": "Zde aktualizuj název své společnosti a podrobnosti organizace. Tyto informace pomáhají personalizovat tvůj účet a mohou být v budoucnu použity pro funkce brandingu.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
@@ -192,11 +192,11 @@
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Vytvoř svou první organizaci pro správu informací o tvojí společnosti a přípravu na budoucí funkce brandingu.",
+    "text": "Vytvoř svou první organizaci pro správu firemních informací a přípravu na budoucí funkce brandingu.",
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Spravuj své organizace a členy týmu",
+    "text": "Správa tvých organizací a členů týmu",
     "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -204,11 +204,11 @@
     "source_hash": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Značka společnosti",
+    "text": "Firemní branding",
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Tým",
+    "text": "Členové",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -228,7 +228,7 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Tím trvale smažete organizaci. Tuto akci nelze vrátit zpět.",
+    "text": "Tím se trvale smaže organizace. Tuto akci nelze vrátit zpět.",
     "source_hash": "ab2d2c05"
   },
   "web.organizations.delete": {
@@ -252,7 +252,7 @@
     "source_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Spravuj členy organizace a jejich role",
+    "text": "Správa členů organizace a jejich rolí",
     "source_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
@@ -284,7 +284,7 @@
     "source_hash": "14736a2e"
   },
   "web.organizations.members.joined": {
-    "text": "Připojeno",
+    "text": "Připojil/a se",
     "source_hash": "69318b0c"
   },
   "web.organizations.members.actions": {
@@ -292,7 +292,7 @@
     "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Zatím žádní členové. Pozvěte členy týmu pro začátek.",
+    "text": "Zatím žádní členové. Pro začátek pozvi členy týmu.",
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
@@ -328,7 +328,7 @@
     "source_hash": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Nemůžeš odebrat sami sebe z organizace",
+    "text": "Nemůžeš se sám/a odebrat z organizace",
     "source_hash": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
@@ -336,7 +336,7 @@
     "source_hash": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "Nemáš oprávnění ke správě členů",
+    "text": "Nemáš oprávnění spravovat členy",
     "source_hash": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
@@ -360,7 +360,7 @@
     "source_hash": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Základní přístup k prostředkům organizace",
+    "text": "Základní přístup ke zdrojům organizace",
     "source_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
@@ -388,7 +388,7 @@
     "source_hash": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "clen{'@'}example.com",
+    "text": "member{'@'}example.com",
     "source_hash": "7fd425f7"
   },
   "web.organizations.invitations.role": {
@@ -412,7 +412,7 @@
     "source_hash": "1f948437"
   },
   "web.organizations.invitations.revoke": {
-    "text": "Zrušit",
+    "text": "Odvolat",
     "source_hash": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
@@ -424,15 +424,15 @@
     "source_hash": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "Pozvánka úspěšně zrušena",
+    "text": "Pozvánka úspěšně odvolána",
     "source_hash": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
-    "text": "Nepodařilo se zrušit pozvánku",
+    "text": "Nepodařilo se odvolat pozvánku",
     "source_hash": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "Pozval/a",
+    "text": "Pozván/a od",
     "source_hash": "c7a6f156"
   },
   "web.organizations.invitations.invited_at": {
@@ -444,11 +444,11 @@
     "source_hash": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Znovu odesláno {count}x",
+    "text": "Znovu odesláno {count}krát",
     "source_hash": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Znovu odesláno {count}x",
+    "text": "Znovu odesláno {count}krát",
     "source_hash": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Člen",
+    "text": "Člen týmu",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -488,11 +488,11 @@
     "source_hash": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Byl jsi pozván k připojení",
+    "text": "Byl/a jsi pozván/a do",
     "source_hash": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Byl jsi pozván jako",
+    "text": "Byl/a jsi pozván/a jako",
     "source_hash": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
@@ -516,7 +516,7 @@
     "source_hash": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "Neplatná nebo vypršelá pozvánka",
+    "text": "Neplatná nebo expirovaná pozvánka",
     "source_hash": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
@@ -532,7 +532,7 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Pozvánky členů týmu vyžadují plán se správou týmů. Upgraduj pro přidání spolupracovníků do tvojí organizace.",
+    "text": "Pozvánky pro členy týmu vyžadují plán se správou týmů. Upgraduj pro přidání spolupracovníků do tvé organizace.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -556,11 +556,11 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Přihlášen jiným účtem",
+    "text": "Přihlášen jiný účet",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Tato pozvánka je pro {invitedEmail}. Momentálně jste přihlášeni jako {currentEmail}.",
+    "text": "Tato pozvánka je pro {invitedEmail}. Aktuálně jsi přihlášen/a jako {currentEmail}.",
     "source_hash": "b8d3e5f7"
   },
   "web.organizations.invitations.continue_as_invited_email": {
@@ -568,15 +568,201 @@
     "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
-    "text": "Zbývá {days} d",
+    "text": "zbývá {days}d",
     "source_hash": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
-    "text": "Zbývá {hours} h",
+    "text": "zbývá {hours}h",
     "source_hash": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
     "text": "Brzy vyprší",
     "source_hash": "a5dcfef9"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Zobrazení a konfigurace tvých pracovních prostorů"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "od {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "jako {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Zpět na úvodní stránku"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Tato pozvánka byla odeslána na tuto e-mailovou adresu"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Pokračovat"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Přihlásit se a přijmout pozvánku"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Přejít na organizace"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Už jsi členem této organizace"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Připojit se k {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Přihlas se pro připojení k {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Odmítnout"
+  },
+  "web.organizations.sso.title": {
+    "text": "Jednotné přihlášení (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Konfiguruj SSO, aby se členové mohli přihlásit pomocí poskytovatele identity tvé organizace"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Typ poskytovatele"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Vyber poskytovatele identity tvé organizace"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Zobrazovaný název"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Přátelský název zobrazený uživatelům při přihlašování"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "např. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "ID klienta"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Tvé OAuth ID klienta"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Tajný klíč klienta"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Tvůj tajný klíč OAuth klienta"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Ponech prázdné pro zachování stávajícího tajného klíče"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "ID tenanta"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Identifikátor tvého tenanta Azure AD / Entra ID"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "např. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL vydavatele"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "URL pro OIDC discovery tvého poskytovatele identity"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "např. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Povolené e-mailové domény"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Přihlásit se mohou pouze uživatelé s e-mailovými adresami z těchto domén. Ponech prázdné pro povolení všech domén."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "např. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Prosím zadej platnou doménu (např. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Tato doména je již v seznamu"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Odebrat {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Povolit SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Když je povoleno, členové organizace se mohou přihlásit pomocí tohoto poskytovatele SSO"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Uložit konfiguraci SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Smazat konfiguraci"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Jsi si jistý/á? Tím se zakáže SSO pro tvou organizaci."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Nepodařilo se načíst konfiguraci SSO"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Nepodařilo se uložit konfiguraci SSO"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Konfigurace SSO úspěšně vytvořena"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Konfigurace SSO úspěšně aktualizována"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Konfigurace SSO úspěšně smazána"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Nepodařilo se smazat konfiguraci SSO"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Test připojení"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Ověřit, že poskytovatel identity je dostupný (neověřuje přihlašovací údaje)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Test připojení"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Testování..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Nepodařilo se otestovat připojení"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Autorizační koncový bod"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Chybějící pole"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Povoleno"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Nakonfigurováno"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO domény"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Konfigurovat SSO pro každou ověřenou doménu"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Pro změnu poskytovatele nejprve smaž tuto konfiguraci"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Nenakonfigurováno"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Tým"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

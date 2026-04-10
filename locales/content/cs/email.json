@@ -1,10 +1,10 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Tiket: %s]",
+    "text": "[Ticket: %s]",
     "source_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
-    "text": "Zákazník odeslal následující informace",
+    "text": "Zákazník zaslal následující informace",
     "source_hash": "9c965ab8"
   },
   "email.secret_link.subject": {
@@ -20,19 +20,19 @@
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Tento odkaz funguje pouze jednou. Po zobrazení bude tajemství trvale smazáno.",
+    "text": "Tento odkaz bude fungovat pouze jednou. Po zobrazení bude tajemství trvale smazáno.",
     "source_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
-    "text": "Odesláno prostřednictvím",
+    "text": "Odesláno přes",
     "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Vítejte v %{product_name} - Prosím ověř svůj e-mail",
+    "text": "Vítej na %{product_name} – Prosím ověř svůj e-mail",
     "source_hash": "96008c17"
   },
   "email.welcome.title": {
-    "text": "Vítejte v %{product_name}!",
+    "text": "Vítej na %{product_name}!",
     "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
@@ -52,11 +52,11 @@
     "source_hash": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Tento e-mail byl odeslán na %{email_address}. Pokud sis účet nevytvořil/a, můžeš tuto zprávu klidně ignorovat.",
+    "text": "P.S. Tento e-mail byl odeslán na %{email_address}. Pokud jsi si účet nezakládal/a, můžeš tuto zprávu klidně ignorovat.",
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Obnovení hesla (%{display_domain})",
+    "text": "Obnov své heslo (%{display_domain})",
     "source_hash": "a9882af1"
   },
   "email.password_request.title": {
@@ -64,7 +64,7 @@
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "Obdrželi jsme žádost o obnovení hesla pro %{product_name}.",
+    "text": "Obdrželi jsme požadavek na obnovení tvého hesla pro %{product_name}.",
     "source_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
@@ -76,7 +76,7 @@
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Pokud jsi o obnovení hesla nepožádali, můžeš tento e-mail klidně ignorovat.",
+    "text": "Pokud jsi o obnovení hesla nepožádal/a, můžeš tento e-mail klidně ignorovat.",
     "source_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
@@ -96,7 +96,7 @@
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "Požádal jsi o přihlašovací odkaz pro tvůj účet %{product_name}.",
+    "text": "Požádal/a jsi o přihlašovací odkaz pro svůj účet %{product_name}.",
     "source_hash": "3a34aa1f"
   },
   "email.magic_link.login_button": {
@@ -112,7 +112,7 @@
     "source_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Pokud jsi o tento odkaz nepožádali, můžeš tento e-mail klidně ignorovat.",
+    "text": "Pokud jsi o tento odkaz nepožádal/a, můžeš tento e-mail klidně ignorovat.",
     "source_hash": "1863f5be"
   },
   "email.magic_link.signature": {
@@ -124,11 +124,11 @@
     "source_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "Obdržel jsi tajnou zprávu",
+    "text": "Obdržel/a jsi tajnou zprávu",
     "source_hash": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "Obdržel jsi zabezpečenou zprávu:",
+    "text": "Obdržel/a jsi zabezpečenou zprávu:",
     "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
@@ -136,11 +136,11 @@
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Někdo ti poslal zabezpečenou zprávu prostřednictvím %{display_domain}.",
+    "text": "Někdo ti poslal zabezpečenou zprávu přes %{display_domain}.",
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Pro zobrazení tajemství klikni na odkaz níže:",
+    "text": "Pro zobrazení tohoto tajemství klikni na odkaz níže:",
     "source_hash": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
@@ -148,11 +148,11 @@
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Tento odkaz funguje pouze jednou. Po zobrazení bude tajemství trvale smazáno.",
+    "text": "Tento odkaz bude fungovat pouze jednou. Po zobrazení bude tajemství trvale smazáno.",
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "Toto tajemství je chráněno přístupovou frází. Odesílatel by ti ji měl poskytnout samostatně.",
+    "text": "Toto tajemství je chráněno přístupovou frází. Odesílatel by ti ji měl poskytnout odděleně.",
     "source_hash": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
@@ -160,19 +160,19 @@
     "source_hash": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
-    "text": "Odesláno prostřednictvím",
+    "text": "Odesláno přes",
     "source_hash": "d01479b3"
   },
   "email.secret_revealed.subject": {
-    "text": "Tvoje tajemství bylo zobrazeno",
+    "text": "Tvé tajemství bylo zobrazeno",
     "source_hash": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "Tvoje tajemství bylo zobrazeno",
+    "text": "Tvé tajemství bylo zobrazeno",
     "source_hash": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Tvoje tajemství bylo zobrazeno dne %{date}.",
+    "text": "Tvé tajemství bylo zobrazeno dne %{date}.",
     "source_hash": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
@@ -212,15 +212,15 @@
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Po vypršení bude tajemství trvale smazáno a nelze ho obnovit.",
+    "text": "Po vypršení bude tajemství trvale smazáno a nebude možné ho obnovit.",
     "source_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
-    "text": "Odesláno prostřednictvím",
+    "text": "Odesláno přes",
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Zobrazit před vypršením:",
+    "text": "Zobraz si ho, než zmizí:",
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
@@ -228,11 +228,11 @@
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Zpětná vazba z %{date} prostřednictvím %{display_domain} (%{strategy})",
+    "text": "Zpětná vazba z %{date} přes %{display_domain} (%{strategy})",
     "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "Zpětná vazba uživatele",
+    "text": "Zpětná vazba od uživatele",
     "source_hash": "47296999"
   },
   "email.feedback_email.from_label": {
@@ -256,15 +256,15 @@
     "source_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "Byl jsi pozván do %{organization_name}",
+    "text": "Byl/a jsi pozván/a do %{organization_name}",
     "source_hash": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Byl jsi pozván do %{organization_name}!",
+    "text": "Byl/a jsi pozván/a do %{organization_name}!",
     "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} tě pozval/a do \"%{organization_name}\" jako %{role_description}.",
+    "text": "%{inviter_email} tě pozval/a, abys se připojil/a k \"%{organization_name}\" jako %{role_description}.",
     "source_hash": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
@@ -276,7 +276,7 @@
     "source_hash": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
-    "text": "Platnost této pozvánky vyprší za %{days} dní.",
+    "text": "Platnost této pozvánky vyprší za %{days} dnů.",
     "source_hash": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
@@ -288,7 +288,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Tento e-mail byl odeslán na %{invited_email}. Pokud jsi tuto pozvánku neočekávali, můžeš tuto zprávu klidně ignorovat.",
+    "text": "P.S. Tento e-mail byl odeslán na %{invited_email}. Pokud jsi tuto pozvánku neočekával/a, můžeš tuto zprávu klidně ignorovat.",
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
@@ -300,19 +300,19 @@
     "source_hash": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "Tvoje heslo bylo změněno (%{display_domain})",
+    "text": "Tvé heslo bylo změněno (%{display_domain})",
     "source_hash": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "Tvoje heslo bylo změněno",
+    "text": "Tvé heslo bylo změněno",
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "Tvoje heslo pro %{product_name} bylo změněno dne %{date} v %{time}.",
+    "text": "Tvé heslo pro %{product_name} bylo změněno dne %{date} v %{time}.",
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Pokud jsi tuto změnu neprovedli, zabezpečte svůj účet okamžitě obnovením hesla a kontaktováním podpory.",
+    "text": "Pokud jsi tuto změnu neprovedl/a, prosím okamžitě zabezpeč svůj účet resetováním hesla a kontaktováním podpory.",
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -320,11 +320,11 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "Tvoje e-mailová adresa byla změněna (%{display_domain})",
+    "text": "Tvá e-mailová adresa byla změněna (%{display_domain})",
     "source_hash": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "Tvoje e-mailová adresa byla změněna",
+    "text": "Tvá e-mailová adresa byla změněna",
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
@@ -332,7 +332,7 @@
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Pokud jsi tuto změnu neprovedli, kontaktuj okamžitě podporu, protože tvůj účet může být kompromitován.",
+    "text": "Pokud jsi tuto změnu neprovedl/a, prosím okamžitě kontaktuj podporu, protože tvůj účet může být ohrožen.",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
@@ -348,11 +348,11 @@
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Pokud jsi tuto změnu provedl/a ty, není potřeba nic dalšího.",
+    "text": "Pokud jsi tuto změnu provedl/a ty, žádná další akce není nutná.",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "Pokud jsi tuto změnu neprovedl/a, tvůj účet mohl být kompromitován.",
+    "text": "Pokud jsi tuto změnu neprovedl/a, tvůj účet může být ohrožen.",
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
@@ -388,7 +388,7 @@
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Pokud jsi tento požadavek podal/a ty, zkontroluj svůj nový e-mail, kde najdeš potvrzovací odkaz. Zatím nebyly provedeny žádné změny.",
+    "text": "Pokud jsi tento požadavek podal/a ty, zkontroluj svůj nový e-mail pro potvrzovací odkaz. Zatím nebyly provedeny žádné změny.",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
@@ -404,7 +404,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. Tento e-mail byl odeslán na %{email_address}, protože byl podán požadavek na změnu e-mailu tvého účtu.",
+    "text": "P.S. Tento e-mail byl odeslán na %{email_address}, protože byla požadována změna e-mailu pro tvůj účet.",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
@@ -440,7 +440,7 @@
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "Pokud jsi o tuto změnu nepožádal/a, můžeš tento e-mail klidně ignorovat. Tvá e-mailová adresa nebude změněna.",
+    "text": "Pokud jsi tuto změnu nepožadoval/a, můžeš tento e-mail klidně ignorovat. Tvá e-mailová adresa nebude změněna.",
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,7 +448,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. Tento e-mail byl odeslán na %{email_address} k potvrzení změny e-mailové adresy.",
+    "text": "P.S. Tento e-mail byl odeslán na %{email_address} pro potvrzení změny e-mailové adresy.",
     "source_hash": "b72f557c"
   },
   "email.mfa_enabled.subject": {
@@ -464,7 +464,7 @@
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Tvůj účet je nyní bezpečnější. Při přihlášení budeš muset zadat ověřovací kód z tvojí autentizační aplikace.",
+    "text": "Tvůj účet je nyní bezpečnější. Při přihlašování budeš muset zadat ověřovací kód z tvé autentizační aplikace.",
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
@@ -484,7 +484,7 @@
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Tvůj účet je nyní méně zabezpečený. Pokud jsi tuto změnu neprovedli, zabezpečte svůj účet okamžitě.",
+    "text": "Tvůj účet je nyní méně bezpečný. Pokud jsi tuto změnu neprovedl/a, prosím okamžitě zabezpeč svůj účet.",
     "source_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
@@ -500,7 +500,7 @@
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Bylo zjištěno nové přihlášení k tvému účtu %{product_name} dne %{date} v %{time}.",
+    "text": "Nové přihlášení k tvému účtu %{product_name} bylo zjištěno dne %{date} v %{time}.",
     "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
@@ -516,7 +516,7 @@
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Pokud to nebyli ty, tvůj účet může být kompromitován.",
+    "text": "Pokud to nebyl/a ty, tvůj účet může být ohrožen.",
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
@@ -528,15 +528,15 @@
     "source_hash": "f58154f7"
   },
   "email.member_removed.subject": {
-    "text": "Byl jsi odebrán z %{organization_name}",
+    "text": "Byl/a jsi odebrán/a z %{organization_name}",
     "source_hash": "9e35b86b"
   },
   "email.member_removed.title": {
-    "text": "Byl jsi odebrán z %{organization_name}",
+    "text": "Byl/a jsi odebrán/a z %{organization_name}",
     "source_hash": "6cf4ee6a"
   },
   "email.member_removed.body": {
-    "text": "Byl jsi odebrán z organizace \"%{organization_name}\" na %{product_name}.",
+    "text": "Byl/a jsi odebrán/a z organizace \"%{organization_name}\" na %{product_name}.",
     "source_hash": "d442beed"
   },
   "email.member_removed.signature": {
@@ -544,15 +544,15 @@
     "source_hash": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Tvoje role byla změněna v %{organization_name}",
+    "text": "Tvá role byla změněna v %{organization_name}",
     "source_hash": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "Tvoje role byla změněna",
+    "text": "Tvá role byla změněna",
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Tvoje role v \"%{organization_name}\" byla změněna z %{old_role} na %{new_role}.",
+    "text": "Tvá role v \"%{organization_name}\" byla změněna z %{old_role} na %{new_role}.",
     "source_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
@@ -564,11 +564,11 @@
     "source_hash": "056a9921"
   },
   "email.organization_deleted.title": {
-    "text": "Organizace byla smazána",
+    "text": "Organizace smazána",
     "source_hash": "41cff705"
   },
   "email.organization_deleted.body": {
-    "text": "Organizace \"%{organization_name}\" byla smazána z %{product_name}. Všechna související data byla odstraněna.",
+    "text": "Organizace \"%{organization_name}\" byla smazána z %{product_name}. Všechna přidružená data byla odstraněna.",
     "source_hash": "7095fc69"
   },
   "email.organization_deleted.signature": {
@@ -576,15 +576,15 @@
     "source_hash": "f58154f7"
   },
   "email.payment_receipt.subject": {
-    "text": "Potvrzení platby za %{product_name}",
+    "text": "Potvrzení o platbě za %{product_name}",
     "source_hash": "a1b5cc04"
   },
   "email.payment_receipt.title": {
-    "text": "Potvrzení platby",
+    "text": "Potvrzení o platbě",
     "source_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "Děkujeme za vaši platbu. Zde jsou podrobnosti o platbě:",
+    "text": "Děkujeme za tvou platbu. Zde jsou údaje o tvé platbě:",
     "source_hash": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
@@ -616,7 +616,7 @@
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Nepodařilo se nám zpracovat tvou platbu za %{product_name}. Prosím aktualizuj svou platební metodu, abys předešel/a přerušení služby.",
+    "text": "Nepodařilo se nám zpracovat tvou platbu za %{product_name}. Prosím aktualizuj svou platební metodu, aby nedošlo k přerušení služby.",
     "source_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
@@ -628,15 +628,15 @@
     "source_hash": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "Tvoje zkušební verze %{product_name} vyprší za %{days_remaining} dní",
+    "text": "Tvé zkušební období %{product_name} vyprší za %{days_remaining} dnů",
     "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Tvoje zkušební verze brzy končí",
+    "text": "Tvé zkušební období brzy končí",
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Tvoje bezplatná zkušební verze %{product_name} vyprší za %{days_remaining} dní. Upgraduj nyní, abyste si zachovali přístup ke všem funkcím.",
+    "text": "Tvé bezplatné zkušební období %{product_name} vyprší za %{days_remaining} dnů. Upgraduj nyní, abys neztratil/a přístup ke všem funkcím.",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
@@ -648,19 +648,19 @@
     "source_hash": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "Tvoje předplatné %{product_name} bylo změněno",
+    "text": "Tvé předplatné %{product_name} bylo změněno",
     "source_hash": "c9b61a4d"
   },
   "email.subscription_changed.title": {
-    "text": "Předplatné bylo změněno",
+    "text": "Předplatné změněno",
     "source_hash": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "Tvoje předplatné %{product_name} bylo změněno z %{old_plan} na %{new_plan}.",
+    "text": "Tvé předplatné %{product_name} bylo změněno z %{old_plan} na %{new_plan}.",
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Tato změna nabývá účinnosti dne %{date}.",
+    "text": "Tato změna je platná od %{date}.",
     "source_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {
@@ -668,11 +668,11 @@
     "source_hash": "f58154f7"
   },
   "email.common.greeting": {
-    "text": "Dobrý den,",
+    "text": "Ahoj,",
     "source_hash": "dafe7694"
   },
   "email.common.thanks": {
-    "text": "Děkujeme,",
+    "text": "Díky,",
     "source_hash": "11dfba8f"
   },
   "email.common.unsubscribe": {

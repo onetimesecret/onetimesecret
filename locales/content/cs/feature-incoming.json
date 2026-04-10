@@ -4,7 +4,7 @@
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Bezpečně sdílej citlivé informace s naším týmem podpory",
+    "text": "Sdílej citlivé informace bezpečně s naším týmem podpory",
     "source_hash": "08beca74"
   },
   "incoming.loading_config": {
@@ -20,7 +20,7 @@
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Tato funkce je momentálně zakázána. Pro pomoc kontaktuj podporu.",
+    "text": "Tato funkce je momentálně zakázána. Prosím kontaktuj podporu pro pomoc.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
@@ -28,11 +28,11 @@
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Stručný popis (např. žádost o obnovení hesla)",
+    "text": "Stručný popis (např. Žádost o reset hesla)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "Pomozte nám směrovat vaši zprávu správné osobě",
+    "text": "Pomoz nám směrovat tvou zprávu ke správné osobě",
     "source_hash": "185a207e"
   },
   "incoming.recipient_label": {
@@ -52,7 +52,7 @@
     "source_hash": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "Nejsou k dispozici žádní příjemci",
+    "text": "Nejsou dostupní žádní příjemci",
     "source_hash": "62834334"
   },
   "incoming.secret_content_label": {
@@ -64,7 +64,7 @@
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Tyto informace budou šifrovány a lze je zobrazit pouze jednou",
+    "text": "Tyto informace budou zašifrovány a zobrazitelné pouze jednou",
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
@@ -96,7 +96,7 @@
     "source_hash": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "Tvoje zabezpečená zpráva byla doručena.",
+    "text": "Tvá zabezpečená zpráva byla doručena.",
     "source_hash": "e1538e3e"
   },
   "incoming.reference_id": {
@@ -116,11 +116,11 @@
     "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Bezpečně sdílej citlivé informace",
+    "text": "Sdílej citlivé informace bezpečně",
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Udržuj hesla a soukromá data mimo e-maily a protokoly chatů",
+    "text": "Uchovej hesla a soukromá data mimo e-maily a chatové záznamy",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "potvrzení",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Vyžadován upgrade"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Tato funkce vyžaduje upgrade plánu. Prosím kontaktuj vlastníka účtu pro povolení příchozích tajemství."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Poznámka musí mít maximálně {max} znaků"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Obsah tajemství je povinný"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Prosím vyber příjemce"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Funkce příchozích tajemství není povolena"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Prosím zkontroluj formulář, zda neobsahuje chyby"
   }
 }
