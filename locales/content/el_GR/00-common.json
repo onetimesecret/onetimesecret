@@ -9,7 +9,7 @@
     "source_hash": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "Τροφοδοτείται από",
+    "text": "Με την υποστήριξη",
     "source_hash": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
@@ -21,7 +21,7 @@
     "source_hash": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Η δημιουργία κωδικού είναι απενεργοποιημένη όταν η φόρμα είναι έγκυρη",
+    "text": "Η δημιουργία κωδικού πρόσβασης είναι απενεργοποιημένη όταν η φόρμα είναι έγκυρη",
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
@@ -29,7 +29,7 @@
     "source_hash": "f2350739"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Εισάγετε τον κωδικό σας",
+    "text": "Εισήγαγε τον κωδικό πρόσβασής σου",
     "source_hash": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
@@ -37,15 +37,15 @@
     "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Ενισχύστε τις σχέσεις και χτίστε εμπιστοσύνη με τους δικούς σας επώνυμους μυστικούς συνδέσμους.",
+    "text": "Ενίσχυσε τις σχέσεις και χτίσε εμπιστοσύνη με τους δικούς σου επώνυμους μυστικούς συνδέσμους.",
     "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
-    "text": "Ξεκινήστε",
+    "text": "Ξεκίνα",
     "source_hash": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Επιβεβαιώστε τον κωδικό σας",
+    "text": "Επιβεβαίωσε τον κωδικό πρόσβασής σου",
     "source_hash": "bfd8c343"
   },
   "web.COMMON.header_settings": {
@@ -65,7 +65,7 @@
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Κρατήστε τις ευαίσθητες πληροφορίες μακριά από τα αρχεία συνομιλιών και τα email σας. Μοιραστείτε έναν μυστικό σύνδεσμο που είναι διαθέσιμος μόνο μία φορά.",
+    "text": "Κράτα τις ευαίσθητες πληροφορίες μακριά από τα αρχεία συνομιλίας και τα email σου. Κοινοποίησε έναν μυστικό σύνδεσμο που είναι διαθέσιμος μόνο μία φορά.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
@@ -73,7 +73,7 @@
     "source_hash": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "μυστικό,γεννήτρια κωδικών,κοινοποίηση μυστικού,onetime",
+    "text": "μυστικό,δημιουργία κωδικού,κοινοποίηση μυστικού,onetime",
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
@@ -81,7 +81,7 @@
     "source_hash": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Ή δημιουργήστε έναν τυχαίο κωδικό",
+    "text": "Ή δημιούργησε τυχαίο κωδικό πρόσβασης",
     "source_hash": "8c1c764b"
   },
   "web.COMMON.secret_privacy_options": {
@@ -101,7 +101,7 @@
     "source_hash": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Το μυστικό περιεχόμενο τοποθετείται εδώ...",
+    "text": "Το μυστικό περιεχόμενο πάει εδώ...",
     "source_hash": "54630bab"
   },
   "web.COMMON.header_create_account": {
@@ -133,7 +133,7 @@
     "source_hash": "690dbe9d"
   },
   "web.COMMON.not_set": {
-    "text": "Δεν έχει οριστεί",
+    "text": "Δεν ορίστηκε",
     "source_hash": "4895f731"
   },
   "web.COMMON.word_edit": {
@@ -145,11 +145,11 @@
     "source_hash": "1509f561"
   },
   "web.COMMON.burn": {
-    "text": "Οριστική διαγραφή",
+    "text": "Διαγραφή",
     "source_hash": "926c5b43"
   },
   "web.COMMON.burned": {
-    "text": "Διαγράφηκε οριστικά",
+    "text": "Διαγράφηκε",
     "source_hash": "6d747b33"
   },
   "web.COMMON.expires_in": {
@@ -161,35 +161,35 @@
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Η οριστική διαγραφή θα διαγράψει το μυστικό πριν διαβαστεί (κλικ για επιβεβαίωση)",
+    "text": "Η οριστική διαγραφή ενός μυστικού θα το διαγράψει πριν διαβαστεί (κάνε κλικ για επιβεβαίωση)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Η οριστική διαγραφή είναι μόνιμη και δεν μπορεί να αναιρεθεί",
+    "text": "Η οριστική διαγραφή μυστικού είναι μόνιμη και δεν μπορεί να αναιρεθεί",
     "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Ελέγξτε το email σας",
+    "text": "Έλεγξε το email σου",
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Κάντε κλικ για αποκάλυψη →",
+    "text": "Κάνε κλικ για αποκάλυψη →",
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Συνεχίστε για επαλήθευση του λογαριασμού σας:",
+    "text": "Συνέχισε για να επαληθεύσεις τον λογαριασμό σου:",
     "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "Δεν παρείχατε κάτι για κοινοποίηση",
+    "text": "Δεν παρείχες κάτι για κοινοποίηση",
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Ελέγξτε ξανά τη φράση πρόσβασης",
+    "text": "Έλεγξε ξανά τη φράση πρόσβασης",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Εισάγετε τη φράση πρόσβασης εδώ",
+    "text": "Εισήγαγε τη φράση πρόσβασης εδώ",
     "source_hash": "ee855dad"
   },
   "web.COMMON.view_secret": {
@@ -197,7 +197,7 @@
     "source_hash": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Προσοχή: θα το δείτε μόνο μία φορά.",
+    "text": "Προσοχή: θα το εμφανίσουμε μόνο μία φορά.",
     "source_hash": "d29e2820"
   },
   "web.COMMON.warning": {
@@ -213,7 +213,7 @@
     "source_hash": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Παρουσιάστηκε απρόσμενο σφάλμα. Προσπαθήστε ξανά.",
+    "text": "Παρουσιάστηκε απροσδόκητο σφάλμα. Δοκίμασε ξανά.",
     "source_hash": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
@@ -221,11 +221,11 @@
     "source_hash": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Εγγραφείτε για περισσότερα",
+    "text": "Εγγραφή για περισσότερα",
     "source_hash": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Σύνδεση στον λογαριασμό σας",
+    "text": "Σύνδεση στον λογαριασμό σου",
     "source_hash": "62f1fe13"
   },
   "web.COMMON.sent_to": {
@@ -241,7 +241,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.COMMON.field_password2": {
-    "text": "Επιβεβαίωση κωδικού",
+    "text": "Επιβεβαίωση κωδικού πρόσβασης",
     "source_hash": "c292210c"
   },
   "web.COMMON.button_create_account": {
@@ -261,7 +261,7 @@
     "source_hash": "dc937b59"
   },
   "web.COMMON.word_burned": {
-    "text": "διαγράφηκε οριστικά",
+    "text": "διαγράφηκε",
     "source_hash": "2f79ea62"
   },
   "web.COMMON.word_received": {
@@ -281,7 +281,7 @@
     "source_hash": "31fbef16"
   },
   "web.COMMON.word_done": {
-    "text": "Ολοκληρώθηκε",
+    "text": "Έγινε",
     "source_hash": "11a6767d"
   },
   "web.COMMON.back": {
@@ -289,7 +289,7 @@
     "source_hash": "76900f1b"
   },
   "web.COMMON.feedback_text": {
-    "text": "Μοιραστείτε τις σκέψεις, ιδέες ή εμπειρίες σας...",
+    "text": "Μοιράσου τις σκέψεις, ιδέες ή εμπειρίες σου...",
     "source_hash": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
@@ -301,11 +301,11 @@
     "source_hash": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Ο λογαριασμός δημιουργήθηκε. Συνδεθείτε.",
+    "text": "Ο λογαριασμός δημιουργήθηκε. Συνδέσου.",
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Εάν υπάρχει λογαριασμός με αυτό το email, θα λάβετε ένα email επαλήθευσης.",
+    "text": "Αν υπάρχει λογαριασμός με αυτό το email, θα λάβεις ένα email επαλήθευσης.",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
@@ -317,19 +317,19 @@
     "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Είστε σίγουροι ότι θέλετε να διαγράψετε οριστικά αυτό το μυστικό; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+    "text": "Είσαι σίγουρος ότι θέλεις να διαγράψεις οριστικά αυτό το μυστικό; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Ναι, διαγραφή οριστικά",
+    "text": "Ναι, οριστική διαγραφή μυστικού",
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Η οριστική διαγραφή θα διαγράψει το μυστικό πριν παραληφθεί.",
+    "text": "Η οριστική διαγραφή ενός μυστικού θα το διαγράψει πριν παραληφθεί.",
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Για ασφάλεια, μοιραστείτε αυτόν τον σύνδεσμο ξεχωριστά από άλλες πληροφορίες.",
+    "text": "Για ασφάλεια, κοινοποίησε αυτόν τον σύνδεσμο ξεχωριστά από άλλες πληροφορίες.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -341,7 +341,7 @@
     "source_hash": "5bb95106"
   },
   "web.COMMON.faq_title": {
-    "text": "Συχνές ερωτήσεις",
+    "text": "Σ.Ε.",
     "source_hash": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
@@ -349,27 +349,27 @@
     "source_hash": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Δεν είναι δυνατή η επαλήθευση λογαριασμού όταν είστε ήδη συνδεδεμένοι",
+    "text": "Δεν είναι δυνατή η επαλήθευση λογαριασμού όταν είσαι ήδη συνδεδεμένος",
     "source_hash": "f0a17c5f"
   },
   "web.COMMON.show_password": {
-    "text": "Εμφάνιση κωδικού",
+    "text": "Εμφάνιση κωδικού πρόσβασης",
     "source_hash": "6aeaa6a5"
   },
   "web.COMMON.hide_password": {
-    "text": "Απόκρυψη κωδικού",
+    "text": "Απόκρυψη κωδικού πρόσβασης",
     "source_hash": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες",
+    "text": "Ο κωδικός πρόσβασης πρέπει να έχει τουλάχιστον 8 χαρακτήρες",
     "source_hash": "e3b8d09d"
   },
   "web.COMMON.password_requirements": {
-    "text": "Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες",
+    "text": "Ο κωδικός πρόσβασης πρέπει να έχει τουλάχιστον 8 χαρακτήρες",
     "source_hash": "e5054833"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "Οι κωδικοί δεν ταιριάζουν",
+    "text": "Οι κωδικοί πρόσβασης δεν ταιριάζουν",
     "source_hash": "b6eb82cd"
   },
   "web.COMMON.form_field_required": {
@@ -377,7 +377,7 @@
     "source_hash": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "Επεξεργασία του αιτήματός σας",
+    "text": "Επεξεργασία του αιτήματός σου",
     "source_hash": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
@@ -393,7 +393,7 @@
     "source_hash": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Είστε σίγουροι;",
+    "text": "Είσαι σίγουρος;",
     "source_hash": "f0762c4f"
   },
   "web.COMMON.danger_zone": {
@@ -465,7 +465,7 @@
     "source_hash": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Πατήστε ESC για κλείσιμο",
+    "text": "Πάτα ESC για κλείσιμο",
     "source_hash": "5aa83883"
   },
   "web.COMMON.enter": {
@@ -489,7 +489,7 @@
     "source_hash": "3907fa7f"
   },
   "web.COMMON.done": {
-    "text": "Ολοκληρώθηκε",
+    "text": "Έγινε",
     "source_hash": "11a6767d"
   },
   "web.COMMON.end": {
@@ -513,7 +513,7 @@
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Εντάξει, προχωρήστε.",
+    "text": "Εντάξει, προχώρα.",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
@@ -609,27 +609,27 @@
     "source_hash": "1ff57a29"
   },
   "web.COMMON.password_strength": {
-    "text": "Ισχύς κωδικού:",
+    "text": "Ισχύς κωδικού πρόσβασης:",
     "source_hash": "663d6499"
   },
   "web.COMMON.great": {
-    "text": "Εξαιρετικός",
+    "text": "Πολύ καλό",
     "source_hash": "c8cc1c7b"
   },
   "web.COMMON.pretty_good": {
-    "text": "Αρκετά καλός",
+    "text": "Αρκετά καλό",
     "source_hash": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "Μέτριος",
+    "text": "Μέτρια",
     "source_hash": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Έτσι κι έτσι",
+    "text": "Μέτρια",
     "source_hash": "8b0d6190"
   },
   "web.COMMON.not_great": {
-    "text": "Όχι καλός",
+    "text": "Όχι τόσο καλό",
     "source_hash": "00561207"
   },
   "web.COMMON.open_options": {
@@ -653,11 +653,11 @@
     "source_hash": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Ελέγξτε ξανά τη φράση πρόσβασης",
+    "text": "Έλεγξε ξανά τη φράση πρόσβασης",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Πατήστε το κουμπί αντιγραφής παρακάτω.",
+    "text": "Πάτα το κουμπί αντιγραφής παρακάτω.",
     "source_hash": "77fcf6fb"
   },
   "web.COMMON.external_link": {
@@ -1026,7 +1026,7 @@
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Επωνυμία αξιόπιστου τομέα",
+    "text": "Επώνυμος τομέας εμπιστοσύνης",
     "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
@@ -1291,19 +1291,19 @@
     "source_hash": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Μοιραστείτε τον σύνδεσμο με τον επιθυμητό παραλήπτη",
+    "text": "Κοινοποίησε τον σύνδεσμο στον προορισμένο παραλήπτη",
     "source_hash": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Μοιραστείτε τη φράση πρόσβασης ξεχωριστά μέσω ασφαλούς καναλιού",
+    "text": "Κοινοποίησε τη φράση πρόσβασης ξεχωριστά μέσω ασφαλούς καναλιού",
     "source_hash": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Χρησιμοποιήστε διαφορετικό ασφαλές κανάλι για να μοιραστείτε ευαίσθητες πληροφορίες",
+    "text": "Χρησιμοποίησε διαφορετικό ασφαλές κανάλι για να κοινοποιήσεις ευαίσθητες πληροφορίες",
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Επαληθεύετε πάντα ότι βρίσκεστε στον επίσημο ιστότοπο του Onetime Secret. Οι απατεώνες μερικές φορές δημιουργούν ψεύτικους ιστότοπους που μοιάζουν ακριβώς με το Onetime Secret για να κλέψουν τα μυστικά σας. Για να αποφύγετε επιθέσεις phishing, ελέγξτε τον τομέα πριν δημιουργήσετε νέους συνδέσμους.",
+    "text": "Βεβαιώσου πάντα ότι βρίσκεσαι στην επίσημη ιστοσελίδα του Onetime Secret. Οι απατεώνες μερικές φορές δημιουργούν ψεύτικες ιστοσελίδες που μοιάζουν ακριβώς με το Onetime Secret για να κλέψουν τα μυστικά σου. Για να αποφύγεις επιθέσεις phishing, έλεγξε τον τομέα πριν δημιουργήσεις νέους συνδέσμους.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1359,33 +1359,63 @@
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
-    "text": "Εισάγετε τον κωδικό πρόσβασής σας για να συνεχίσετε",
+    "text": "Εισήγαγε τον κωδικό πρόσβασής σου για συνέχεια",
     "context": "Prompt for password confirmation modal",
     "source_hash": "09055357"
   },
   "web.COMMON.password_required_for_action": {
-    "text": "Απαιτείται ο κωδικός πρόσβασής σας για να ολοκληρωθεί αυτή η ενέργεια",
+    "text": "Ο κωδικός πρόσβασής σου απαιτείται για να ολοκληρωθεί αυτή η ενέργεια",
     "context": "Description for password confirmation modal",
     "source_hash": "cc078766"
   },
   "api.errors.unexpected_error": {
-    "text": "Παρουσιάστηκε απρόσμενο σφάλμα",
+    "text": "Παρουσιάστηκε ένα απροσδόκητο σφάλμα",
     "context": "Generic error message for unhandled exceptions in API",
     "source_hash": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "Η υπηρεσία είναι προσωρινά μη διαθέσιμη. Παρακαλώ δοκιμάστε ξανά σε λίγο.",
+    "text": "Η υπηρεσία είναι προσωρινά μη διαθέσιμη. Δοκίμασε ξανά σύντομα.",
     "context": "Error message when database connection fails",
     "source_hash": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "Δεν είναι δυνατή η επεξεργασία του αιτήματός σας αυτή τη στιγμή",
+    "text": "Δεν είναι δυνατή η επεξεργασία του αιτήματός σου αυτή τη στιγμή",
     "context": "Error message for recoverable server errors",
     "source_hash": "fb961f3f"
   },
   "web.COMMON.upgrade_description": {
-    "text": "Αναβαθμίστε για να ξεκλειδώσετε περισσότερες δυνατότητες",
+    "text": "Αναβάθμισε για να ξεκλειδώσεις περισσότερα χαρακτηριστικά",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "Ρύθμιση"
+  },
+  "web.COMMON.add": {
+    "text": "Προσθήκη"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Ναι, διαγραφή"
+  },
+  "web.COMMON.error_code": {
+    "text": "Κωδικός σφάλματος"
+  },
+  "web.COMMON.http_status": {
+    "text": "Κατάσταση HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "Λεπτομέρειες"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Επιβεβαίωση κωδικού πρόσβασης"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Οι κωδικοί πρόσβασης πρέπει να ταιριάζουν"
+  },
+  "web.COMMON.and": {
+    "text": "και"
+  },
+  "web.COMMON.or": {
+    "text": "ή"
   }
 }
