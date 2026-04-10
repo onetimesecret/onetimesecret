@@ -1,18 +1,18 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Yêu cầu: %s]",
+    "text": "[Phiếu hỗ trợ: %s]",
     "source_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
-    "text": "Khách hàng đã gửi thông tin sau",
+    "text": "Một khách hàng đã gửi thông tin sau",
     "source_hash": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} đã gửi cho bạn bí mật",
+    "text": "%{sender_email} đã gửi cho bạn một bí mật",
     "source_hash": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "đã gửi cho bạn bí mật:",
+    "text": "đã gửi cho bạn một bí mật:",
     "source_hash": "c0571266"
   },
   "email.secret_link.important_label": {
@@ -52,7 +52,7 @@
     "source_hash": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Email này được gửi đến %{email_address}. Nếu bạn không tạo tài khoản, bạn có thể bỏ qua tin nhắn này một cách an toàn.",
+    "text": "P.S. Email này đã được gửi đến %{email_address}. Nếu bạn không tạo tài khoản, bạn có thể bỏ qua tin nhắn này một cách an toàn.",
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
@@ -64,7 +64,7 @@
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho %{product_name} của bạn.",
+    "text": "Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu của bạn cho %{product_name}.",
     "source_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
@@ -84,7 +84,7 @@
     "source_hash": "f58154f7"
   },
   "email.password_request.postscript": {
-    "text": "P.S. Email này được gửi đến %{email_address}.",
+    "text": "P.S. Email này đã được gửi đến %{email_address}.",
     "source_hash": "8ab1dbea"
   },
   "email.magic_link.subject": {
@@ -120,15 +120,15 @@
     "source_hash": "f58154f7"
   },
   "email.magic_link.postscript": {
-    "text": "P.S. Email này được gửi đến %{email_address}.",
+    "text": "P.S. Email này đã được gửi đến %{email_address}.",
     "source_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "Bạn đã nhận được tin nhắn bí mật",
+    "text": "Bạn đã nhận được một tin nhắn bí mật",
     "source_hash": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "Bạn đã nhận được tin nhắn an toàn:",
+    "text": "Bạn đã nhận được một tin nhắn an toàn:",
     "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
@@ -136,11 +136,11 @@
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Ai đó đã gửi cho bạn tin nhắn an toàn qua %{display_domain}.",
+    "text": "Ai đó đã gửi cho bạn một tin nhắn an toàn qua %{display_domain}.",
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Để xem bí mật này, nhấp vào liên kết bên dưới:",
+    "text": "Để xem bí mật này, hãy nhấp vào liên kết bên dưới:",
     "source_hash": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
@@ -152,7 +152,7 @@
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "Bí mật này được bảo vệ bằng cụm mật khẩu. Người gửi sẽ cung cấp cụm mật khẩu cho bạn riêng.",
+    "text": "Bí mật này được bảo vệ bằng cụm mật khẩu. Người gửi sẽ cung cấp cho bạn riêng biệt.",
     "source_hash": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
@@ -196,7 +196,7 @@
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Liên kết bí mật của bạn sẽ sớm hết hạn",
+    "text": "Liên kết bí mật của bạn sắp hết hạn",
     "source_hash": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
@@ -204,7 +204,7 @@
     "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Xem bí mật trước khi hết hạn",
+    "text": "Xem bí mật của bạn trước khi hết hạn",
     "source_hash": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
@@ -220,7 +220,7 @@
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Xem trước khi nó biến mất:",
+    "text": "Xem trước khi mất:",
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
@@ -264,7 +264,7 @@
     "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} đã mời bạn tham gia \"%{organization_name}\" với vai trò %{role_description}.",
+    "text": "%{inviter_email} đã mời bạn tham gia \"%{organization_name}\" với tư cách %{role_description}.",
     "source_hash": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
@@ -280,7 +280,7 @@
     "source_hash": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Nếu bạn không muốn tham gia, bạn có thể bỏ qua email này hoặc từ chối lời mời.",
+    "text": "Nếu bạn không muốn tham gia, bạn có thể đơn giản là bỏ qua email này hoặc từ chối lời mời.",
     "source_hash": "734882d2"
   },
   "email.organization_invitation.signature": {
@@ -288,7 +288,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Email này được gửi đến %{invited_email}. Nếu bạn không mong đợi lời mời này, bạn có thể bỏ qua tin nhắn này một cách an toàn.",
+    "text": "P.S. Email này đã được gửi đến %{invited_email}. Nếu bạn không mong đợi lời mời này, bạn có thể bỏ qua tin nhắn này một cách an toàn.",
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
@@ -308,11 +308,11 @@
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "Mật khẩu %{product_name} của bạn đã được thay đổi vào ngày %{date} lúc %{time}.",
+    "text": "Mật khẩu của bạn cho %{product_name} đã được thay đổi vào ngày %{date} lúc %{time}.",
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản ngay lập tức bằng cách đặt lại mật khẩu và liên hệ hỗ trợ.",
+    "text": "Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản của bạn ngay lập tức bằng cách đặt lại mật khẩu và liên hệ hỗ trợ.",
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -344,11 +344,11 @@
     "source_hash": "0161371a"
   },
   "email.email_changed.changed_at_label": {
-    "text": "Thay đổi lúc:",
+    "text": "Đã thay đổi lúc:",
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Nếu bạn đã thực hiện thay đổi này, không cần thao tác thêm.",
+    "text": "Nếu bạn đã thực hiện thay đổi này, không cần thực hiện thêm hành động nào.",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
@@ -364,7 +364,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "P.S. Email này được gửi đến %{email_address} để thông báo cho bạn về việc thay đổi địa chỉ email.",
+    "text": "P.S. Email này đã được gửi đến %{email_address} để thông báo về việc thay đổi địa chỉ email.",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
@@ -380,7 +380,7 @@
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
-    "text": "Email mới yêu cầu:",
+    "text": "Email mới được yêu cầu:",
     "source_hash": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
@@ -388,11 +388,11 @@
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Nếu bạn đã thực hiện yêu cầu này, hãy kiểm tra email mới để tìm liên kết xác nhận. Chưa có thay đổi nào được thực hiện.",
+    "text": "Nếu bạn đã thực hiện yêu cầu này, hãy kiểm tra email mới của bạn để tìm liên kết xác nhận. Chưa có thay đổi nào được thực hiện.",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "Nếu bạn không thực hiện yêu cầu này, bạn có thể bỏ qua email này. Tài khoản của bạn chưa bị thay đổi.",
+    "text": "Nếu bạn không thực hiện yêu cầu này, bạn có thể bỏ qua email này một cách an toàn. Tài khoản của bạn chưa bị thay đổi.",
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
@@ -404,7 +404,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. Email này được gửi đến %{email_address} vì đã có yêu cầu thay đổi email cho tài khoản của bạn.",
+    "text": "P.S. Email này đã được gửi đến %{email_address} vì đã có yêu cầu thay đổi email cho tài khoản của bạn.",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
@@ -416,7 +416,7 @@
     "source_hash": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Vui lòng xác minh địa chỉ email này để hoàn tất thay đổi cho tài khoản %{product_name} của bạn.",
+    "text": "Vui lòng xác minh địa chỉ email này để hoàn tất việc thay đổi cho tài khoản %{product_name} của bạn.",
     "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
@@ -440,7 +440,7 @@
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "Nếu bạn không yêu cầu thay đổi này, bạn có thể bỏ qua email này. Địa chỉ email của bạn sẽ không bị thay đổi.",
+    "text": "Nếu bạn không yêu cầu thay đổi này, bạn có thể bỏ qua email này một cách an toàn. Địa chỉ email của bạn sẽ không bị thay đổi.",
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,7 +448,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. Email này được gửi đến %{email_address} để xác nhận thay đổi địa chỉ email.",
+    "text": "P.S. Email này đã được gửi đến %{email_address} để xác nhận việc thay đổi địa chỉ email.",
     "source_hash": "b72f557c"
   },
   "email.mfa_enabled.subject": {
@@ -456,7 +456,7 @@
     "source_hash": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "Xác thực hai yếu tố đã được bật",
+    "text": "Đã bật xác thực hai yếu tố",
     "source_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
@@ -472,15 +472,15 @@
     "source_hash": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "Xác thực hai yếu tố đã bị vô hiệu hóa (%{display_domain})",
+    "text": "Xác thực hai yếu tố đã bị tắt (%{display_domain})",
     "source_hash": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "Xác thực hai yếu tố đã bị vô hiệu hóa",
+    "text": "Đã tắt xác thực hai yếu tố",
     "source_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "Xác thực hai yếu tố đã bị vô hiệu hóa cho tài khoản %{product_name} của bạn vào ngày %{date}.",
+    "text": "Xác thực hai yếu tố đã bị tắt cho tài khoản %{product_name} của bạn vào ngày %{date}.",
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
@@ -520,7 +520,7 @@
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Bảo mật tài khoản",
+    "text": "Bảo mật tài khoản của bạn",
     "source_hash": "450c54c5"
   },
   "email.new_login_alert.signature": {
@@ -568,7 +568,7 @@
     "source_hash": "41cff705"
   },
   "email.organization_deleted.body": {
-    "text": "Tổ chức \"%{organization_name}\" đã bị xóa khỏi %{product_name}. Tất cả dữ liệu liên quan đã bị xóa.",
+    "text": "Tổ chức \"%{organization_name}\" đã bị xóa khỏi %{product_name}. Tất cả dữ liệu liên quan đã được xóa.",
     "source_hash": "7095fc69"
   },
   "email.organization_deleted.signature": {
@@ -616,7 +616,7 @@
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Chúng tôi không thể xử lý thanh toán cho %{product_name} của bạn. Vui lòng cập nhật phương thức thanh toán để tránh gián đoạn dịch vụ.",
+    "text": "Chúng tôi không thể xử lý thanh toán của bạn cho %{product_name}. Vui lòng cập nhật phương thức thanh toán của bạn để tránh gián đoạn dịch vụ.",
     "source_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
@@ -636,7 +636,7 @@
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Thời gian dùng thử miễn phí %{product_name} của bạn sẽ hết hạn sau %{days_remaining} ngày. Nâng cấp ngay để tiếp tục truy cập tất cả tính năng.",
+    "text": "Thời gian dùng thử miễn phí %{product_name} của bạn sẽ hết hạn sau %{days_remaining} ngày. Hãy nâng cấp ngay để tiếp tục truy cập tất cả các tính năng.",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
@@ -652,7 +652,7 @@
     "source_hash": "c9b61a4d"
   },
   "email.subscription_changed.title": {
-    "text": "Đăng ký đã thay đổi",
+    "text": "Đăng ký đã được thay đổi",
     "source_hash": "7523a022"
   },
   "email.subscription_changed.body": {
@@ -660,7 +660,7 @@
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Thay đổi này có hiệu lực từ %{date}.",
+    "text": "Thay đổi này có hiệu lực từ ngày %{date}.",
     "source_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {

@@ -20,7 +20,7 @@
     "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại.",
+    "text": "Đã có vấn đề khi tải dữ liệu của bạn. Vui lòng thử lại.",
     "source_hash": "ff0d904e"
   }
 }

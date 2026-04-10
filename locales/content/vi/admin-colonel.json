@@ -32,7 +32,7 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Chỉnh sửa cài đặt cấu hình hệ thống. Thay đổi có hiệu lực ngay sau khi lưu.",
+    "text": "Chỉnh sửa cài đặt cấu hình hệ thống. Các thay đổi được áp dụng ngay sau khi lưu.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
@@ -52,11 +52,11 @@
     "source_hash": "48df54c7"
   },
   "web.colonel.configSaved": {
-    "text": "Đã lưu cấu hình thành công",
+    "text": "Cấu hình đã được lưu thành công",
     "source_hash": "93b3d3e4"
   },
   "web.colonel.mustBeObject": {
-    "text": "Cấu hình phải là đối tượng JSON",
+    "text": "Cấu hình phải là một đối tượng JSON",
     "source_hash": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
@@ -68,7 +68,7 @@
     "source_hash": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
-    "text": "Đã lưu {section} thành công",
+    "text": "{section} đã được lưu thành công",
     "source_hash": "7be1d5d2"
   },
   "web.colonel.saveSection": {
@@ -80,7 +80,7 @@
     "source_hash": "d3c54e39"
   },
   "web.colonel.unsavedChanges": {
-    "text": "Thay đổi chưa lưu",
+    "text": "Thay đổi chưa được lưu",
     "source_hash": "a710c2b9"
   },
   "web.colonel.schemaValidationError": {
@@ -100,7 +100,7 @@
     "source_hash": "67b69646"
   },
   "web.colonel.admin": {
-    "text": "Quản trị",
+    "text": "Quản trị viên",
     "source_hash": "c1c224b0"
   },
   "web.colonel.activity": {
@@ -116,7 +116,7 @@
     "source_hash": "6b0cc904"
   },
   "web.colonel.usersDescription": {
-    "text": "Quản lý tài khoản và quyền người dùng",
+    "text": "Quản lý tài khoản người dùng và quyền truy cập",
     "source_hash": "6cfc012c"
   },
   "web.colonel.domains": {
@@ -132,7 +132,7 @@
     "source_hash": "6725e7bb"
   },
   "web.colonel.welcome": {
-    "text": "Chào mừng đến Colonel",
+    "text": "Chào mừng đến với Colonel",
     "source_hash": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
@@ -152,7 +152,7 @@
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Dữ liệu hoạt động sẽ hiển thị ở đây",
+    "text": "Dữ liệu hoạt động sẽ được hiển thị ở đây",
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
@@ -160,7 +160,7 @@
     "source_hash": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
-    "text": "Người dùng hoạt động",
+    "text": "Người dùng đang hoạt động",
     "source_hash": "5639b9f1"
   },
   "web.colonel.stats.secretsToday": {
@@ -184,11 +184,11 @@
     "source_hash": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "Sức khỏe hệ thống",
+    "text": "Tình trạng hệ thống",
     "source_hash": "c3d66242"
   },
   "web.colonel.stats.healthy": {
-    "text": "Khỏe mạnh",
+    "text": "Hoạt động tốt",
     "source_hash": "7f1e323b"
   },
   "web.colonel.actions.viewActivity": {
@@ -252,7 +252,7 @@
     "source_hash": "3693e288"
   },
   "web.colonel.workerHealth": {
-    "text": "Trạng thái worker",
+    "text": "Tình trạng worker",
     "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
@@ -268,19 +268,19 @@
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
-    "text": "Chế độ gói thử nghiệm",
+    "text": "Chế độ kiểm thử gói",
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
-    "text": "Đang thử nghiệm như {planName}",
+    "text": "Đang kiểm thử với {planName}",
     "source_hash": "b3032f1a"
   },
   "web.colonel.clickToReset": {
-    "text": "Nhấn để đặt lại",
+    "text": "Nhấp để đặt lại",
     "source_hash": "4b25034d"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Chọn gói để thử nghiệm",
+    "text": "Chọn một gói để kiểm thử",
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
@@ -292,23 +292,23 @@
     "source_hash": "37ca715f"
   },
   "web.colonel.availablePlans": {
-    "text": "Gói khả dụng",
+    "text": "Các gói khả dụng",
     "source_hash": "20efa44d"
   },
   "web.colonel.activateTestMode": {
-    "text": "Bật chế độ thử nghiệm",
+    "text": "Kích hoạt chế độ kiểm thử",
     "source_hash": "0f469baa"
   },
   "web.colonel.testModeActive": {
-    "text": "Chế độ thử nghiệm đang bật",
+    "text": "Chế độ kiểm thử đang hoạt động",
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "Thử nghiệm ứng dụng với các quyền gói khác nhau. Thay đổi là tạm thời và chỉ ảnh hưởng đến phiên của bạn.",
+    "text": "Kiểm thử ứng dụng của bạn với các quyền gói khác nhau. Các thay đổi là tạm thời và chỉ ảnh hưởng đến phiên của bạn.",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "Bạn đang thử nghiệm với quyền {planName} (ghi đè phiên tạm thời).",
+    "text": "Bạn đang kiểm thử với quyền {planName} (ghi đè phiên tạm thời).",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
@@ -316,11 +316,11 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Giám sát sức khỏe đồng bộ thanh toán tổ chức",
+    "text": "Giám sát tình trạng đồng bộ thanh toán của tổ chức",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Giám sát sức khỏe thanh toán",
+    "text": "Màn hình giám sát tình trạng thanh toán",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
@@ -352,7 +352,7 @@
     "source_hash": "a52ace42"
   },
   "web.colonel.organizations.filters.potentiallyStale": {
-    "text": "Có thể đã cũ",
+    "text": "Có thể đã lỗi thời",
     "source_hash": "40137b37"
   },
   "web.colonel.organizations.filters.unknown": {
@@ -364,11 +364,11 @@
     "source_hash": "5da22fe4"
   },
   "web.colonel.organizations.filters.active": {
-    "text": "Hoạt động",
+    "text": "Đang hoạt động",
     "source_hash": "92340695"
   },
   "web.colonel.organizations.filters.trialing": {
-    "text": "Dùng thử",
+    "text": "Đang dùng thử",
     "source_hash": "3792573d"
   },
   "web.colonel.organizations.filters.pastDue": {
@@ -392,7 +392,7 @@
     "source_hash": "920e413c"
   },
   "web.colonel.organizations.columns.usage": {
-    "text": "Sử dụng",
+    "text": "Mức sử dụng",
     "source_hash": "8d59829c"
   },
   "web.colonel.organizations.columns.created": {
@@ -436,7 +436,7 @@
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Quản lý tổ chức và giám sát sức khỏe đồng bộ thanh toán ({total} tổng)",
+    "text": "Quản lý tổ chức và giám sát tình trạng đồng bộ thanh toán ({total} tổng)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -444,11 +444,11 @@
     "source_hash": "538995db"
   },
   "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "có thể đã cũ",
+    "text": "có thể đã lỗi thời",
     "source_hash": "3ddfec45"
   },
   "web.colonel.organizations.status.stale": {
-    "text": "Đã cũ",
+    "text": "Lỗi thời",
     "source_hash": "40c9e59c"
   },
   "web.colonel.organizations.status.unknown": {
@@ -456,7 +456,7 @@
     "source_hash": "b764cdc0"
   },
   "web.colonel.organizations.status.active": {
-    "text": "hoạt động",
+    "text": "đang hoạt động",
     "source_hash": "96879611"
   },
   "web.colonel.organizations.actions.investigate": {
@@ -512,7 +512,7 @@
     "source_hash": "fb9ef894"
   },
   "web.colonel.organizations.investigation.resolvedPlan": {
-    "text": "Gói đã xác định",
+    "text": "Gói đã giải quyết",
     "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {
@@ -540,19 +540,19 @@
     "source_hash": "d8707d41"
   },
   "web.colonel.secrets.description": {
-    "text": "Xem và quản lý tất cả bí mật",
+    "text": "Xem và quản lý tất cả các bí mật",
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
-    "text": "IP bị cấm",
+    "text": "Địa chỉ IP bị chặn",
     "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
-    "text": "Quản lý danh sách cấm IP",
+    "text": "Quản lý danh sách chặn IP",
     "source_hash": "dd0d2614"
   },
   "web.colonel.usageExport.title": {
-    "text": "Xuất sử dụng",
+    "text": "Xuất dữ liệu sử dụng",
     "source_hash": "10a0cb94"
   },
   "web.colonel.usageExport.description": {
@@ -612,11 +612,11 @@
     "source_hash": "c683c9a6"
   },
   "web.colonel.titles.bannedIps": {
-    "text": "IP bị cấm",
+    "text": "Địa chỉ IP bị chặn",
     "source_hash": "0ece5643"
   },
   "web.colonel.titles.usage": {
-    "text": "Xuất sử dụng",
+    "text": "Xuất dữ liệu sử dụng",
     "source_hash": "10a0cb94"
   },
   "web.colonel.titles.info": {

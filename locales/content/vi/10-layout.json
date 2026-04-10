@@ -20,11 +20,11 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Tìm hiểu về các biện pháp bảo mật",
+    "text": "Tìm hiểu về các biện pháp bảo mật của chúng tôi",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Xem điều khoản và điều kiện",
+    "text": "Xem Điều khoản và Điều kiện của chúng tôi",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -52,15 +52,15 @@
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Đọc chính sách quyền riêng tư",
+    "text": "Đọc Chính sách quyền riêng tư của chúng tôi",
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Kiểm tra trạng thái dịch vụ",
+    "text": "Kiểm tra trạng thái dịch vụ của chúng tôi",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Khám phá tài liệu API",
+    "text": "Khám phá tài liệu API của chúng tôi",
     "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
@@ -72,7 +72,7 @@
     "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Xem mã nguồn trên GitHub",
+    "text": "Xem mã nguồn của chúng tôi trên GitHub",
     "source_hash": "d5def0ab"
   },
   "web.footer.resources": {
@@ -84,11 +84,11 @@
     "source_hash": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Đọc bài viết blog mới nhất",
+    "text": "Đọc các bài đăng blog mới nhất của chúng tôi",
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Xem bảng giá đăng ký",
+    "text": "Xem giá đăng ký của chúng tôi",
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
@@ -120,7 +120,7 @@
     "source_hash": "2730183d"
   },
   "web.site.website_version": {
-    "text": "Phiên bản website",
+    "text": "Phiên bản trang web",
     "source_hash": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
@@ -144,19 +144,19 @@
     "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "Tôi đang xem gì?",
+    "text": "Tôi đang xem gì vậy?",
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Bạn đang xem một tin nhắn an toàn được chia sẻ với bạn thông qua Onetime Secret. Nội dung này chỉ được hiển thị một lần và sau đó sẽ bị xóa vĩnh viễn khỏi máy chủ của chúng tôi.",
+    "text": "Bạn đang xem một tin nhắn an toàn được chia sẻ với bạn qua Onetime Secret. Nội dung này chỉ được hiển thị một lần và sau đó bị xóa vĩnh viễn khỏi máy chủ của chúng tôi.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Tôi có thể xem lại bí mật này sau không?",
+    "text": "Tôi có thể xem bí mật này lại sau không?",
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Không. Vì lý do bảo mật, bí mật này chỉ có thể xem một lần. Sau khi đóng trang này, nội dung sẽ bị xóa vĩnh viễn và không ai có thể khôi phục, kể cả chúng tôi.",
+    "text": "Không. Vì lý do bảo mật, bí mật này chỉ có thể xem một lần. Sau khi đóng trang này, nội dung sẽ bị xóa vĩnh viễn và không thể được khôi phục bởi bất kỳ ai, kể cả chúng tôi.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
@@ -164,7 +164,7 @@
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Sử dụng nút 'Sao chép vào clipboard' để sao chép toàn bộ bí mật. Với bí mật dài hơn, hãy đảm bảo bạn đã sao chép đầy đủ nội dung trước khi rời khỏi trang này.",
+    "text": "Sử dụng nút 'Sao chép vào clipboard' để sao chép toàn bộ bí mật. Đối với các bí mật dài hơn, hãy đảm bảo bạn đã sao chép đầy đủ nội dung trước khi rời khỏi trang này.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
@@ -176,7 +176,7 @@
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Khi bạn rời khỏi hoặc làm mới trang này, bí mật này sẽ bị xóa vĩnh viễn và không ai có thể khôi phục được.",
+    "text": "Sau khi bạn rời khỏi hoặc làm mới trang này, bí mật sẽ bị xóa vĩnh viễn và không thể được khôi phục bởi bất kỳ ai.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
@@ -188,11 +188,11 @@
     "source_hash": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "Chuyển chế độ tối",
+    "text": "Chuyển đổi chế độ tối",
     "source_hash": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "Gửi phản hồi",
+    "text": "Cung cấp phản hồi",
     "source_hash": "a70766ae"
   },
   "web.layout.company_logo": {
@@ -248,7 +248,7 @@
     "source_hash": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "Về trang chủ",
+    "text": "Trở về trang chủ",
     "source_hash": "8d27b81d"
   },
   "web.layout.return_to_home": {
@@ -256,11 +256,11 @@
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Xem chính sách quyền riêng tư",
+    "text": "Xem Chính sách quyền riêng tư",
     "source_hash": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Xem điều khoản dịch vụ",
+    "text": "Xem Điều khoản dịch vụ",
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
@@ -288,7 +288,7 @@
     "source_hash": "7c7afa99"
   },
   "web.layout.material_design_icons": {
-    "text": "Material Design Icons",
+    "text": "Biểu tượng Material Design",
     "source_hash": "0fb27437"
   },
   "web.layout.heroicons": {
@@ -308,15 +308,15 @@
     "source_hash": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
-    "text": "Phiên bản website: v{0}",
+    "text": "Phiên bản trang web: v{0}",
     "source_hash": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Đổi ngôn ngữ. Ngôn ngữ hiện tại là {0}",
+    "text": "Thay đổi ngôn ngữ. Ngôn ngữ hiện tại là {0}",
     "source_hash": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "Đã đổi ngôn ngữ sang {0}",
+    "text": "Đã thay đổi ngôn ngữ sang {0}",
     "source_hash": "1680f4fe"
   },
   "web.layout.reset_to_default_language": {
@@ -338,5 +338,8 @@
   "web.layout.workspace_context": {
     "text": "Ngữ cảnh không gian làm việc",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Không gian làm việc"
   }
 }

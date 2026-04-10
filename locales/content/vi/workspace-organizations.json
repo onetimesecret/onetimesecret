@@ -8,11 +8,11 @@
     "source_hash": "d764d425"
   },
   "web.organizations.organization_plural": {
-    "text": "Tổ chức",
+    "text": "Các tổ chức",
     "source_hash": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Quản lý các tổ chức của bạn",
+    "text": "Quản lý tổ chức của bạn",
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
@@ -28,11 +28,11 @@
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Chưa có tổ chức",
+    "text": "Chưa có tổ chức nào",
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Tổ chức cung cấp thanh toán và quản trị tập trung. Bắt đầu bằng cách tạo tổ chức đầu tiên.",
+    "text": "Tổ chức cung cấp thanh toán và quản trị thống nhất. Bắt đầu bằng cách tạo tổ chức đầu tiên.",
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
@@ -68,7 +68,7 @@
     "source_hash": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "ví dụ Công ty Acme",
+    "text": "ví dụ: Acme Corporation",
     "source_hash": "ac1c804b"
   },
   "web.organizations.display_name": {
@@ -132,7 +132,7 @@
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Cập nhật tên và mô tả tổ chức",
+    "text": "Cập nhật tên và mô tả tổ chức của bạn",
     "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
@@ -140,7 +140,7 @@
     "source_hash": "de322f87"
   },
   "web.organizations.billing_settings": {
-    "text": "Thanh toán & Đăng ký",
+    "text": "Thanh toán và đăng ký",
     "source_hash": "896913f0"
   },
   "web.organizations.save_changes": {
@@ -148,7 +148,7 @@
     "source_hash": "35322b5b"
   },
   "web.organizations.update_success": {
-    "text": "Đã cập nhật tổ chức thành công",
+    "text": "Tổ chức đã được cập nhật thành công",
     "source_hash": "af39d0f3"
   },
   "web.organizations.update_error": {
@@ -156,7 +156,7 @@
     "source_hash": "bc2b59b8"
   },
   "web.organizations.billing_email_updated": {
-    "text": "Đã cập nhật email thanh toán thành công",
+    "text": "Email thanh toán đã được cập nhật thành công",
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
@@ -168,15 +168,15 @@
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Quản lý thanh toán và đăng ký tập trung sẽ có trong phiên bản tương lai.",
+    "text": "Quản lý thanh toán và đăng ký thống nhất sẽ có trong phiên bản tương lai.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
-    "text": "Về tổ chức",
+    "text": "Giới thiệu về tổ chức",
     "source_hash": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "Tổ chức cung cấp thanh toán và quản trị tập trung để quản lý trung tâm.",
+    "text": "Tổ chức cung cấp thanh toán và quản trị thống nhất để quản lý tập trung.",
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
@@ -184,7 +184,7 @@
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Cập nhật tên công ty và chi tiết tổ chức tại đây. Thông tin này giúp cá nhân hóa tài khoản và có thể được sử dụng cho các tính năng thương hiệu trong tương lai.",
+    "text": "Cập nhật tên công ty và chi tiết tổ chức tại đây. Thông tin này giúp cá nhân hóa tài khoản của bạn và có thể được sử dụng cho các tính năng thương hiệu trong tương lai.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
@@ -192,11 +192,11 @@
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Tạo tổ chức đầu tiên để quản lý thông tin công ty và chuẩn bị cho các tính năng thương hiệu trong tương lai.",
+    "text": "Tạo tổ chức đầu tiên của bạn để quản lý thông tin công ty và chuẩn bị cho các tính năng thương hiệu trong tương lai.",
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Quản lý các tổ chức và thành viên nhóm",
+    "text": "Quản lý tổ chức và thành viên nhóm của bạn",
     "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -208,7 +208,7 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Nhóm",
+    "text": "Thành viên",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -228,7 +228,7 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Điều này sẽ xóa tổ chức vĩnh viễn. Hành động này không thể hoàn tác.",
+    "text": "Điều này sẽ xóa vĩnh viễn tổ chức. Hành động này không thể hoàn tác.",
     "source_hash": "ab2d2c05"
   },
   "web.organizations.delete": {
@@ -240,7 +240,7 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Bạn có chắc muốn xóa {name}? Hành động này không thể hoàn tác.",
+    "text": "Bạn có chắc muốn xóa {name} không? Hành động này không thể hoàn tác.",
     "source_hash": "db7e1f9d"
   },
   "web.organizations.delete_error": {
@@ -284,7 +284,7 @@
     "source_hash": "14736a2e"
   },
   "web.organizations.members.joined": {
-    "text": "Tham gia",
+    "text": "Đã tham gia",
     "source_hash": "69318b0c"
   },
   "web.organizations.members.actions": {
@@ -292,11 +292,11 @@
     "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Chưa có thành viên. Mời thành viên nhóm để bắt đầu.",
+    "text": "Chưa có thành viên nào. Mời thành viên nhóm để bắt đầu.",
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
-    "text": "Tổ chức này chưa có thành viên.",
+    "text": "Tổ chức này chưa có thành viên nào.",
     "source_hash": "61dd2085"
   },
   "web.organizations.members.role_updated": {
@@ -320,7 +320,7 @@
     "source_hash": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Bạn có chắc muốn xóa {name} khỏi tổ chức này?",
+    "text": "Bạn có chắc chắn muốn xóa {name} khỏi tổ chức này không?",
     "source_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
@@ -352,7 +352,7 @@
     "source_hash": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Truy cập đầy đủ tất cả cài đặt tổ chức và thành viên",
+    "text": "Toàn quyền truy cập vào tất cả cài đặt và thành viên tổ chức",
     "source_hash": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
@@ -360,11 +360,11 @@
     "source_hash": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Truy cập cơ bản vào tài nguyên tổ chức",
+    "text": "Quyền truy cập cơ bản vào tài nguyên tổ chức",
     "source_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
-    "text": "Lời mời tổ chức",
+    "text": "Lời mời Tổ chức",
     "source_hash": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
@@ -388,7 +388,7 @@
     "source_hash": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "member{'@'}example.com",
+    "text": "thanh.vien{'@'}example.com",
     "source_hash": "7fd425f7"
   },
   "web.organizations.invitations.role": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Thành viên",
+    "text": "Thành viên nhóm",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -488,11 +488,11 @@
     "source_hash": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Bạn đã được mời tham gia",
+    "text": "Bạn được mời tham gia",
     "source_hash": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Bạn đã được mời với vai trò",
+    "text": "Bạn được mời với tư cách",
     "source_hash": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
@@ -528,11 +528,11 @@
     "source_hash": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Nâng cấp gói để mời thành viên nhóm",
+    "text": "Nâng cấp gói của bạn để mời thành viên nhóm",
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Mời thành viên nhóm yêu cầu gói có quản lý nhóm. Nâng cấp để thêm cộng tác viên vào tổ chức.",
+    "text": "Lời mời thành viên nhóm yêu cầu gói có tính năng quản lý nhóm. Nâng cấp để thêm cộng tác viên vào tổ chức của bạn.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -556,11 +556,11 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Đã đăng nhập bằng tài khoản khác",
+    "text": "Đang đăng nhập bằng tài khoản khác",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Lời mời này dành cho {invitedEmail}. Bạn hiện đang đăng nhập với {currentEmail}.",
+    "text": "Lời mời này dành cho {invitedEmail}. Bạn hiện đang đăng nhập với tư cách {currentEmail}.",
     "source_hash": "b8d3e5f7"
   },
   "web.organizations.invitations.continue_as_invited_email": {
@@ -578,5 +578,191 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Sắp hết hạn",
     "source_hash": "a5dcfef9"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Xem và cấu hình không gian làm việc của bạn"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "bởi {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "với tư cách {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Về trang chủ"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Lời mời này được gửi đến địa chỉ email này"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Tiếp tục"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Đăng nhập & Chấp nhận lời mời"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Đến trang Tổ chức"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Bạn đã là thành viên của tổ chức này"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Tham gia {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Đăng nhập để tham gia {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Từ chối"
+  },
+  "web.organizations.sso.title": {
+    "text": "Đăng nhập một lần (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Cấu hình SSO để cho phép thành viên đăng nhập bằng nhà cung cấp danh tính của tổ chức bạn"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Loại nhà cung cấp"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Chọn nhà cung cấp danh tính của tổ chức bạn"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Tên hiển thị"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Tên thân thiện hiển thị cho người dùng khi đăng nhập"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "vd: Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Client ID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "OAuth client ID của bạn"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Client Secret"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "OAuth client secret của bạn"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Để trống để giữ nguyên secret hiện tại"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Tenant ID"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Định danh tenant Azure AD / Entra ID của bạn"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "vd: 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL nhà phát hành"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "URL khám phá OIDC cho nhà cung cấp danh tính của bạn"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "vd: https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Tên miền email được phép"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Chỉ người dùng có địa chỉ email từ các tên miền này mới có thể đăng nhập. Để trống để cho phép tất cả tên miền."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "vd: acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Vui lòng nhập tên miền hợp lệ (vd: example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Tên miền này đã có trong danh sách"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Xóa {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Bật SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Khi bật, thành viên tổ chức có thể đăng nhập bằng nhà cung cấp SSO này"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Lưu cấu hình SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Xóa cấu hình"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Bạn có chắc không? Thao tác này sẽ tắt SSO cho tổ chức của bạn."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Không thể tải cấu hình SSO"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Không thể lưu cấu hình SSO"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Đã tạo cấu hình SSO thành công"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Đã cập nhật cấu hình SSO thành công"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Đã xóa cấu hình SSO thành công"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Không thể xóa cấu hình SSO"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Kiểm tra kết nối"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Xác minh nhà cung cấp danh tính có thể truy cập được (không xác thực thông tin đăng nhập)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Kiểm tra kết nối"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Đang kiểm tra..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Không thể kiểm tra kết nối"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Điểm cuối ủy quyền"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Thiếu trường thông tin"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Đã bật"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Đã cấu hình"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO theo tên miền"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Cấu hình SSO cho từng tên miền đã xác minh"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Để thay đổi nhà cung cấp, hãy xóa cấu hình này trước"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Chưa cấu hình"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Nhóm"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

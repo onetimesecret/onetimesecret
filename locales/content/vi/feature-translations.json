@@ -8,7 +8,7 @@
     "source_hash": "dabd28e2"
   },
   "web.translations.if_youre_interested_in_translation": {
-    "text": "Nếu bạn quan tâm đến dịch thuật,",
+    "text": "Nếu bạn quan tâm đến việc dịch thuật,",
     "source_hash": "10056bff"
   },
   "web.translations.whove_helped_with_translations_as_we_continue_to": {
@@ -16,11 +16,11 @@
     "source_hash": "d629cc71"
   },
   "web.translations.25_contributors": {
-    "text": "25+ người đóng góp",
+    "text": "25+ cộng tác viên",
     "source_hash": "080aa720"
   },
   "web.translations.were_grateful_to_the": {
-    "text": "Chúng tôi biết ơn",
+    "text": "Chúng tôi biết ơn những",
     "source_hash": "cf446287"
   },
   "web.translations.as_we_add_new_features_our_translations_graduall": {
@@ -88,7 +88,7 @@
     "source_hash": "87a6e9af"
   },
   "web.translations.help_secure_communication_go_global": {
-    "text": "Giúp giao tiếp an toàn lan tỏa toàn cầu",
+    "text": "Giúp giao tiếp an toàn vươn ra toàn cầu",
     "source_hash": "e94bdc8e"
   }
 }

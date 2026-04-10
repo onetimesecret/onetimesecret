@@ -1,6 +1,6 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Cần tài khoản?",
+    "text": "Chưa có tài khoản?",
     "source_hash": "8b827e19"
   },
   "web.login.need_an_account": {
@@ -16,7 +16,7 @@
     "source_hash": "bcc0bcc9"
   },
   "web.login.enter_your_credentials": {
-    "text": "Nhập thông tin đăng nhập",
+    "text": "Nhập thông tin đăng nhập của bạn",
     "source_hash": "07e1c44e"
   },
   "web.login.remember_me": {
@@ -40,7 +40,7 @@
     "source_hash": "bedac809"
   },
   "web.login.use_passwordless": {
-    "text": "Sử dụng đăng nhập không cần mật khẩu",
+    "text": "Sử dụng đăng nhập không mật khẩu",
     "source_hash": "dddc0097"
   },
   "web.login.create_account": {
@@ -88,7 +88,7 @@
     "source_hash": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "Xác thực SSO thất bại. Vui lòng thử lại hoặc đăng nhập bằng mật khẩu.",
+    "text": "Xác thực SSO thất bại. Vui lòng thử lại hoặc sử dụng đăng nhập bằng mật khẩu.",
     "source_hash": "13a2210a"
   },
   "web.login.errors.token_missing": {
@@ -104,7 +104,7 @@
     "source_hash": "270c6401"
   },
   "web.signup.create_your_account": {
-    "text": "Tạo tài khoản",
+    "text": "Tạo tài khoản của bạn",
     "source_hash": "5f4c33d7"
   },
   "web.signup.alternate_prefix": {
@@ -131,7 +131,7 @@
     "context": "Email verification flow after signup"
   },
   "web.auth.verify.title": {
-    "text": "Xác minh tài khoản",
+    "text": "Xác minh tài khoản của bạn",
     "source_hash": "3e2303ab"
   },
   "web.auth.verify.success": {
@@ -143,11 +143,11 @@
     "source_hash": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
-    "text": "Liên kết xác minh này đã hết hạn. Vui lòng yêu cầu liên kết mới.",
+    "text": "Liên kết xác minh này đã hết hạn. Vui lòng yêu cầu một liên kết mới.",
     "source_hash": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
-    "text": "Tài khoản này đã được xác minh. Bạn có thể đăng nhập ngay.",
+    "text": "Tài khoản này đã được xác minh. Bạn có thể đăng nhập ngay bây giờ.",
     "source_hash": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
@@ -155,11 +155,11 @@
     "source_hash": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "Vui lòng kiểm tra email để nhận liên kết xác minh",
+    "text": "Vui lòng kiểm tra email của bạn để tìm liên kết xác minh",
     "source_hash": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "Xác minh tài khoản thất bại. Vui lòng kiểm tra liên kết xác minh hoặc yêu cầu liên kết mới.",
+    "text": "Xác minh tài khoản thất bại. Vui lòng kiểm tra liên kết xác minh của bạn hoặc yêu cầu liên kết mới.",
     "source_hash": "7aac4a45"
   },
   "web.auth.verify.error_title": {
@@ -171,7 +171,7 @@
     "source_hash": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Kiểm tra email để nhận liên kết xác minh mới nhất",
+    "text": "Kiểm tra email của bạn để tìm liên kết xác minh gần nhất",
     "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
@@ -187,7 +187,7 @@
     "source_hash": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Vui lòng sử dụng liên kết xác minh đã gửi đến địa chỉ email của bạn để xác minh tài khoản.",
+    "text": "Vui lòng sử dụng liên kết xác minh được gửi đến địa chỉ email của bạn để xác minh tài khoản.",
     "source_hash": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
@@ -215,7 +215,7 @@
     "source_hash": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "Đổi mật khẩu thất bại. Vui lòng xác minh mật khẩu hiện tại và thử lại.",
+    "text": "Thay đổi mật khẩu thất bại. Vui lòng xác minh mật khẩu hiện tại của bạn và thử lại.",
     "source_hash": "1aa11b3f"
   },
   "web.auth.close_account.title": {
@@ -231,7 +231,7 @@
     "source_hash": "b44b1366"
   },
   "web.auth.close_account.password": {
-    "text": "Nhập mật khẩu để xác nhận",
+    "text": "Nhập mật khẩu của bạn để xác nhận",
     "source_hash": "0aec03a6"
   },
   "web.auth.close_account.button": {
@@ -247,7 +247,7 @@
     "source_hash": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Nhập địa chỉ email bên dưới và chúng tôi sẽ gửi cho bạn liên kết để đặt lại mật khẩu",
+    "text": "Nhập địa chỉ email của bạn bên dưới và chúng tôi sẽ gửi cho bạn liên kết để đặt lại mật khẩu",
     "source_hash": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
@@ -260,11 +260,11 @@
     "source_hash": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Vui lòng nhập mật khẩu mới bên dưới. Đảm bảo nó mạnh và độc nhất để bảo vệ tài khoản.",
+    "text": "Vui lòng nhập mật khẩu mới của bạn bên dưới. Đảm bảo mật khẩu mạnh và duy nhất để bảo vệ tài khoản của bạn.",
     "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Một email đã được gửi đến bạn với liên kết để đặt lại mật khẩu cho tài khoản",
+    "text": "Một email đã được gửi cho bạn với liên kết để đặt lại mật khẩu tài khoản của bạn",
     "source_hash": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
@@ -313,11 +313,11 @@
     "source_hash": "75081b59"
   },
   "web.auth.account.active_sessions": {
-    "text": "Phiên hoạt động",
+    "text": "Phiên đang hoạt động",
     "source_hash": "b58fa4e0"
   },
   "web.auth.account.session_count": {
-    "text": "{count} phiên hoạt động",
+    "text": "{count} phiên đang hoạt động",
     "source_hash": "7de8d92a"
   },
   "web.auth.account.quick_actions": {
@@ -329,7 +329,7 @@
     "source_hash": "06fc8f72"
   },
   "web.auth.account.manage_sessions": {
-    "text": "Quản lý phiên hoạt động",
+    "text": "Quản lý phiên đang hoạt động",
     "source_hash": "c5d54d87"
   },
   "web.auth.account.change_password": {
@@ -341,7 +341,7 @@
     "source_hash": "e1513814"
   },
   "web.help.title": {
-    "text": "Trợ giúp & Hỗ trợ",
+    "text": "Trợ giúp và hỗ trợ",
     "source_hash": "1f8ecc24"
   },
   "web.help.signin_troubleshooting": {
@@ -361,11 +361,11 @@
     "source_hash": "5f319557"
   },
   "web.help.wait_few_minutes": {
-    "text": "Đợi vài phút - email đôi khi có thể bị chậm",
+    "text": "Chờ vài phút - email đôi khi có thể bị trễ",
     "source_hash": "884fc272"
   },
   "web.help.try_again": {
-    "text": "Thử yêu cầu liên kết mới nếu đã quá 10 phút",
+    "text": "Thử yêu cầu liên kết mới nếu đã hơn 10 phút",
     "source_hash": "68109f96"
   },
   "web.help.forgot_password": {
@@ -373,15 +373,15 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Sử dụng tùy chọn Liên kết ma thuật để đăng nhập mà không cần mật khẩu. Sau khi đăng nhập, bạn có thể đổi mật khẩu trong Cài đặt tài khoản.",
+    "text": "Sử dụng tùy chọn Liên kết ma thuật để đăng nhập mà không cần mật khẩu. Sau khi đăng nhập, bạn có thể thay đổi mật khẩu trong Cài đặt tài khoản.",
     "source_hash": "2a058600"
   },
   "web.help.account_locked": {
-    "text": "Tài khoản bị khóa tạm thời?",
+    "text": "Tài khoản tạm thời bị khóa?",
     "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "Sau nhiều lần đăng nhập thất bại, tài khoản bị khóa tạm thời vì lý do bảo mật. Đợi 15 phút và thử lại, hoặc sử dụng Liên kết ma thuật để đăng nhập.",
+    "text": "Sau nhiều lần đăng nhập thất bại, tài khoản tạm thời bị khóa vì lý do bảo mật. Hãy đợi 15 phút và thử lại, hoặc sử dụng Liên kết ma thuật để đăng nhập.",
     "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
@@ -389,11 +389,23 @@
     "source_hash": "5ff7d19e"
   },
   "web.help.contact_us_description": {
-    "text": "Nếu bạn vẫn gặp khó khăn, chúng tôi sẵn sàng giúp đỡ. Gửi tin nhắn cho chúng tôi và chúng tôi sẽ phản hồi sớm nhất có thể.",
+    "text": "Nếu bạn vẫn gặp khó khăn, chúng tôi sẵn sàng giúp đỡ. Gửi cho chúng tôi tin nhắn và chúng tôi sẽ trả lời sớm nhất có thể.",
     "source_hash": "d97c90fe"
   },
   "web.help.contact_support": {
     "text": "Liên hệ hỗ trợ",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Tài khoản SSO"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Luồng xác minh email sau khi đăng ký"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Đăng nhập một lần khả dụng cho tên miền này"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Quản trị viên tổ chức có thể bật SSO để cho phép thành viên nhóm đăng nhập ở đây. Liên hệ quản trị viên để có quyền truy cập."
   }
 }

@@ -9,11 +9,11 @@
     "source_hash": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "Cung cấp bởi",
+    "text": "Được cung cấp bởi",
     "source_hash": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
-    "text": "https://onetimesecret.com/vi",
+    "text": "https://onetimesecret.com/en",
     "source_hash": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
@@ -21,11 +21,11 @@
     "source_hash": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Tạo mật khẩu bị vô hiệu hóa khi biểu mẫu hợp lệ",
+    "text": "Tạo mật khẩu bị tắt khi biểu mẫu hợp lệ",
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
-    "text": "ví dụ tom{'@'}myspace.com",
+    "text": "ví dụ: tom{'@'}myspace.com",
     "source_hash": "f2350739"
   },
   "web.COMMON.password_placeholder": {
@@ -37,7 +37,7 @@
     "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Tăng cường kết nối và xây dựng lòng tin với liên kết bí mật mang thương hiệu riêng của bạn.",
+    "text": "Tăng cường kết nối và xây dựng niềm tin với các liên kết bí mật mang thương hiệu của riêng bạn.",
     "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
@@ -65,7 +65,7 @@
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Giữ thông tin nhạy cảm khỏi nhật ký chat và email. Chia sẻ liên kết bí mật chỉ khả dụng một lần.",
+    "text": "Giữ thông tin nhạy cảm khỏi nhật ký trò chuyện và email của bạn. Chia sẻ một liên kết bí mật chỉ hoạt động một lần.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
@@ -125,7 +125,7 @@
     "source_hash": "d0527e4b"
   },
   "web.COMMON.secret": {
-    "text": "Bí mật | Bí mật",
+    "text": "Bí mật | Các bí mật",
     "source_hash": "c7ebd045"
   },
   "web.COMMON.recent": {
@@ -157,15 +157,15 @@
     "source_hash": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Xóa vĩnh viễn bí mật này",
+    "text": "Xóa bí mật này",
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Xóa vĩnh viễn bí mật sẽ xóa nó trước khi được đọc (nhấn để xác nhận)",
+    "text": "Việc xóa bí mật sẽ xóa nó trước khi được đọc (nhấp để xác nhận)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Xóa vĩnh viễn bí mật là hành động không thể hoàn tác",
+    "text": "Việc xóa bí mật là vĩnh viễn và không thể hoàn tác",
     "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
@@ -173,15 +173,15 @@
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Nhấn để hiển thị →",
+    "text": "Nhấp để hiển thị →",
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Tiếp tục để xác minh tài khoản:",
+    "text": "Tiếp tục để xác minh tài khoản của bạn:",
     "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "Bạn chưa cung cấp nội dung để chia sẻ",
+    "text": "Bạn chưa cung cấp nội dung gì để chia sẻ",
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
@@ -197,7 +197,7 @@
     "source_hash": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Cẩn thận: chúng tôi chỉ hiển thị một lần.",
+    "text": "Lưu ý: chúng tôi chỉ hiển thị một lần.",
     "source_hash": "d29e2820"
   },
   "web.COMMON.warning": {
@@ -225,7 +225,7 @@
     "source_hash": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Đăng nhập vào tài khoản",
+    "text": "Đăng nhập vào tài khoản của bạn",
     "source_hash": "62f1fe13"
   },
   "web.COMMON.sent_to": {
@@ -281,7 +281,7 @@
     "source_hash": "31fbef16"
   },
   "web.COMMON.word_done": {
-    "text": "Xong",
+    "text": "Hoàn thành",
     "source_hash": "11a6767d"
   },
   "web.COMMON.back": {
@@ -289,7 +289,7 @@
     "source_hash": "76900f1b"
   },
   "web.COMMON.feedback_text": {
-    "text": "Chia sẻ suy nghĩ, ý tưởng hoặc trải nghiệm của bạn...",
+    "text": "Chia sẻ suy nghĩ, ý kiến hoặc trải nghiệm của bạn...",
     "source_hash": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
@@ -305,7 +305,7 @@
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Nếu tồn tại tài khoản với email này, bạn sẽ nhận được email xác minh.",
+    "text": "Nếu tài khoản với email này tồn tại, bạn sẽ nhận được email xác minh.",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
@@ -317,19 +317,19 @@
     "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Bạn có chắc muốn xóa vĩnh viễn bí mật này không? Hành động này không thể hoàn tác.",
+    "text": "Bạn có chắc muốn xóa bí mật này không? Hành động này không thể hoàn tác.",
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Có, xóa vĩnh viễn bí mật này",
+    "text": "Có, xóa bí mật này",
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Xóa vĩnh viễn bí mật sẽ xóa nó trước khi được nhận.",
+    "text": "Việc xóa bí mật sẽ xóa nó trước khi được nhận.",
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Để bảo mật, hãy chia sẻ liên kết này riêng biệt với các thông tin khác.",
+    "text": "Để đảm bảo bảo mật, hãy chia sẻ liên kết này riêng biệt với các thông tin khác.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -353,7 +353,7 @@
     "source_hash": "f0a17c5f"
   },
   "web.COMMON.show_password": {
-    "text": "Hiển thị mật khẩu",
+    "text": "Hiện mật khẩu",
     "source_hash": "6aeaa6a5"
   },
   "web.COMMON.hide_password": {
@@ -429,7 +429,7 @@
     "source_hash": "dc85af8f"
   },
   "web.COMMON.adding_ellipses": {
-    "text": "Đang thêm",
+    "text": "Đang thêm...",
     "source_hash": "0a6691ef"
   },
   "web.COMMON.e_g_example": {
@@ -437,7 +437,7 @@
     "source_hash": "a79b4bf9"
   },
   "web.COMMON.example_placeholder": {
-    "text": "ví dụ {example}",
+    "text": "ví dụ: {example}",
     "source_hash": "cc921aaa"
   },
   "web.COMMON.about": {
@@ -449,11 +449,11 @@
     "source_hash": "920e413c"
   },
   "web.COMMON.escape": {
-    "text": "Escape",
+    "text": "Thoát",
     "source_hash": "037c9684"
   },
   "web.COMMON.active": {
-    "text": "Hoạt động",
+    "text": "Đang hoạt động",
     "source_hash": "92340695"
   },
   "web.COMMON.preview": {
@@ -469,7 +469,7 @@
     "source_hash": "5aa83883"
   },
   "web.COMMON.enter": {
-    "text": "Enter",
+    "text": "Nhập",
     "source_hash": "dc8659db"
   },
   "web.COMMON.important": {
@@ -489,7 +489,7 @@
     "source_hash": "3907fa7f"
   },
   "web.COMMON.done": {
-    "text": "Xong",
+    "text": "Hoàn thành",
     "source_hash": "11a6767d"
   },
   "web.COMMON.end": {
@@ -513,7 +513,7 @@
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Tiếp tục đi.",
+    "text": "Tiếp tục thôi.",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
@@ -585,7 +585,7 @@
     "source_hash": "8b3795aa"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "Đã sao chép địa chỉ email vào clipboard!",
+    "text": "Địa chỉ email đã được sao chép vào clipboard!",
     "source_hash": "23238b4e"
   },
   "web.COMMON.value": {
@@ -601,11 +601,11 @@
     "source_hash": "baaddf70"
   },
   "web.COMMON.previous": {
-    "text": "Trước",
+    "text": "Trước đó",
     "source_hash": "a57b08a4"
   },
   "web.COMMON.next": {
-    "text": "Tiếp",
+    "text": "Tiếp theo",
     "source_hash": "1ff57a29"
   },
   "web.COMMON.password_strength": {
@@ -613,7 +613,7 @@
     "source_hash": "663d6499"
   },
   "web.COMMON.great": {
-    "text": "Tuyệt vời",
+    "text": "Tốt",
     "source_hash": "c8cc1c7b"
   },
   "web.COMMON.pretty_good": {
@@ -621,15 +621,15 @@
     "source_hash": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "Tạm được",
+    "text": "Trung bình",
     "source_hash": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Tàm tạm",
+    "text": "Tạm được",
     "source_hash": "8b0d6190"
   },
   "web.COMMON.not_great": {
-    "text": "Không tốt lắm",
+    "text": "Chưa tốt",
     "source_hash": "00561207"
   },
   "web.COMMON.open_options": {
@@ -677,7 +677,7 @@
     "source_hash": "ba8a80fd"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Thu gọn",
+    "text": "Hiển thị ít hơn",
     "source_hash": "0264d7b0"
   },
   "web.LABELS.enable": {
@@ -697,7 +697,7 @@
     "source_hash": "9dcff98e"
   },
   "web.LABELS.lifespan": {
-    "text": "Thời hạn",
+    "text": "Thời hạn sống",
     "source_hash": "58994285"
   },
   "web.LABELS.expiration_time": {
@@ -769,7 +769,7 @@
     "source_hash": "b749e205"
   },
   "web.LABELS.receipts": {
-    "text": "Biên lai",
+    "text": "Biên nhận",
     "source_hash": "60a627df"
   },
   "web.LABELS.share": {
@@ -853,7 +853,7 @@
     "source_hash": "83b12c22"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Liên kết bí mật đã tạo trong phiên này",
+    "text": "Các liên kết bí mật được tạo trong phiên này",
     "source_hash": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
@@ -982,19 +982,19 @@
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
-    "text": "Bí mật đã được xóa vĩnh viễn thủ công trước khi được xem",
+    "text": "Bí mật đã bị xóa thủ công trước khi được xem",
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Bí mật đã bị hủy vĩnh viễn",
+    "text": "Bí mật đã bị xóa vĩnh viễn",
     "source_hash": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "Bí mật sẽ sớm hết hạn",
+    "text": "Bí mật sắp hết hạn",
     "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Bí mật đã bị bỏ rơi và sẽ sớm bị hủy",
+    "text": "Bí mật đã bị bỏ rơi và sẽ sớm bị xóa",
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
@@ -1006,7 +1006,7 @@
     "source_hash": "c88a0b90"
   },
   "web.STATUS.delivered": {
-    "text": "Đã gửi",
+    "text": "Đã giao",
     "source_hash": "90611565"
   },
   "web.STATUS.dns_incorrect": {
@@ -1014,7 +1014,7 @@
     "source_hash": "7848d601"
   },
   "web.STATUS.active": {
-    "text": "Hoạt động",
+    "text": "Đang hoạt động",
     "source_hash": "92340695"
   },
   "web.STATUS.inactive": {
@@ -1022,7 +1022,7 @@
     "source_hash": "ac7c949f"
   },
   "web.FEATURES.unlimited_views": {
-    "text": "Xem không giới hạn",
+    "text": "Lượt xem không giới hạn",
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
@@ -1058,23 +1058,23 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "Còn {count} {unit}",
+    "text": "{count} {unit} còn lại",
     "source_hash": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "ngày | ngày",
+    "text": "ngày còn lại | ngày còn lại",
     "source_hash": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "giờ | giờ",
+    "text": "giờ còn lại | giờ còn lại",
     "source_hash": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "phút | phút",
+    "text": "phút còn lại | phút còn lại",
     "source_hash": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "giây | giây",
+    "text": "giây còn lại | giây còn lại",
     "source_hash": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
@@ -1082,19 +1082,19 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "Giới hạn {count} lượt xem",
+    "text": "Giới hạn {count} lần xem",
     "source_hash": "8db0e228"
   },
   "web.UNITS.days_remaining": {
-    "text": "Còn {count} ngày",
+    "text": "{count} ngày còn lại",
     "source_hash": "398e4024"
   },
   "web.UNITS.hours_remaining": {
-    "text": "Còn {count} giờ",
+    "text": "{count} giờ còn lại",
     "source_hash": "717b6d58"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "Còn {count} phút",
+    "text": "{count} phút còn lại",
     "source_hash": "d322f4c5"
   },
   "web.TITLES.incoming": {
@@ -1154,11 +1154,11 @@
     "source_hash": "c11bd410"
   },
   "web.TITLES.receipt": {
-    "text": "Biên lai bí mật",
+    "text": "Biên nhận bí mật",
     "source_hash": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
-    "text": "Xóa vĩnh viễn bí mật",
+    "text": "Xóa bí mật",
     "source_hash": "28785b83"
   },
   "web.TITLES.dashboard": {
@@ -1222,7 +1222,7 @@
     "source_hash": "78801183"
   },
   "web.TITLES.change_email": {
-    "text": "Đổi email",
+    "text": "Thay đổi email",
     "source_hash": "18c3f2d5"
   },
   "web.TITLES.confirm_email_change": {
@@ -1242,7 +1242,7 @@
     "source_hash": "bc074b60"
   },
   "web.TITLES.active_sessions": {
-    "text": "Phiên hoạt động",
+    "text": "Phiên đang hoạt động",
     "source_hash": "b58fa4e0"
   },
   "web.TITLES.recovery_codes": {
@@ -1283,7 +1283,7 @@
     "source_hash": "dfe95783"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Tiêu điểm hiện đang ở vùng văn bản chính",
+    "text": "Con trỏ hiện đang ở vùng văn bản chính",
     "source_hash": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
@@ -1291,11 +1291,11 @@
     "source_hash": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Chia sẻ liên kết với người nhận dự định",
+    "text": "Chia sẻ liên kết với người nhận dự kiến",
     "source_hash": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Chia sẻ cụm mật khẩu riêng biệt qua kênh an toàn",
+    "text": "Chia sẻ cụm mật khẩu riêng biệt qua kênh an toàn khác",
     "source_hash": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
@@ -1303,11 +1303,11 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Luôn xác minh bạn đang ở trên trang web chính thức của Onetime Secret. Kẻ lừa đảo đôi khi tạo các trang web giả trông giống hệt Onetime Secret để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo, hãy kiểm tra tên miền trước khi tạo liên kết mới.",
+    "text": "Luôn xác minh bạn đang truy cập trang web chính thức của Onetime Secret. Kẻ gian đôi khi tạo ra các trang web giả mạo trông giống hệt Onetime Secret để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo, hãy kiểm tra tên miền khu vực trước khi tạo liên kết mới.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
-    "text": "Bảng giá đơn giản, minh bạch",
+    "text": "Giá cả đơn giản và minh bạch",
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
@@ -1323,7 +1323,7 @@
     "source_hash": "983f3110"
   },
   "web.pricing.already_have_account": {
-    "text": "Đã có tài khoản?",
+    "text": "Bạn đã có tài khoản?",
     "source_hash": "e77fea93"
   },
   "web.pricing.sign_in": {
@@ -1331,7 +1331,7 @@
     "source_hash": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
-    "text": "Đề xuất cho bạn",
+    "text": "Được đề xuất cho bạn",
     "source_hash": "00093fbd"
   },
   "web.COMMON.received": {
@@ -1343,7 +1343,7 @@
     "source_hash": "32738894"
   },
   "web.LABELS.edit_note": {
-    "text": "Sửa ghi chú",
+    "text": "Chỉnh sửa ghi chú",
     "source_hash": "299e604c"
   },
   "web.LABELS.add_memo": {
@@ -1351,7 +1351,7 @@
     "source_hash": "02384c53"
   },
   "web.LABELS.edit_memo": {
-    "text": "Sửa ghi nhớ",
+    "text": "Chỉnh sửa ghi nhớ",
     "source_hash": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
@@ -1359,12 +1359,12 @@
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
-    "text": "Nhập mật khẩu để tiếp tục",
+    "text": "Nhập mật khẩu của bạn để tiếp tục",
     "context": "Prompt for password confirmation modal",
     "source_hash": "09055357"
   },
   "web.COMMON.password_required_for_action": {
-    "text": "Cần nhập mật khẩu để hoàn tất thao tác này",
+    "text": "Cần nhập mật khẩu để hoàn thành hành động này",
     "context": "Description for password confirmation modal",
     "source_hash": "cc078766"
   },
@@ -1379,7 +1379,7 @@
     "source_hash": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "Không thể xử lý yêu cầu của bạn vào lúc này",
+    "text": "Không thể xử lý yêu cầu của bạn lúc này",
     "context": "Error message for recoverable server errors",
     "source_hash": "fb961f3f"
   },
@@ -1387,5 +1387,53 @@
     "text": "Nâng cấp để mở khóa thêm tính năng",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "Cấu hình"
+  },
+  "web.COMMON.add": {
+    "text": "Thêm"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Có, xóa"
+  },
+  "web.COMMON.error_code": {
+    "text": "Mã lỗi"
+  },
+  "web.COMMON.http_status": {
+    "text": "Trạng thái HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "Chi tiết"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Xác nhận mật khẩu"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Mật khẩu phải khớp nhau"
+  },
+  "web.COMMON.and": {
+    "text": "và"
+  },
+  "web.COMMON.or": {
+    "text": "hoặc"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Hiển thị cụm mật khẩu"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Ẩn cụm mật khẩu"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Cài đặt tên miền"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO tên miền"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Cấu hình email"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Bí mật đến"
   }
 }

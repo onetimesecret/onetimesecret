@@ -1,10 +1,10 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "Chủ quyền dữ liệu & Cách ly vùng",
+    "text": "Chủ quyền dữ liệu và cách ly vùng",
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Dữ liệu của bạn chỉ nằm trong vùng bạn chọn và không bao giờ được chuyển qua các vùng",
+    "text": "Dữ liệu của bạn chỉ lưu trú trong vùng đã chọn và không bao giờ được chuyển giữa các vùng",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
@@ -16,7 +16,7 @@
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Quan trọng: Chuyển sang vùng khác sẽ tạo tài khoản mới. Dữ liệu của bạn vẫn ở vùng gốc.",
+    "text": "Quan trọng: Chuyển sang vùng khác sẽ tạo tài khoản mới. Dữ liệu của bạn vẫn ở vùng ban đầu.",
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
@@ -28,7 +28,7 @@
     "source_hash": "45e2a9d6"
   },
   "web.regions.active": {
-    "text": "Hoạt động",
+    "text": "Đang hoạt động",
     "source_hash": "92340695"
   },
   "web.regions.explore_other_regions": {
@@ -40,11 +40,11 @@
     "source_hash": "67de6cf7"
   },
   "web.regions.trust_title": {
-    "text": "Minh bạch & Kiểm soát",
+    "text": "Minh bạch và kiểm soát",
     "source_hash": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "Biết chính xác dữ liệu của bạn nằm ở đâu và luật nào điều chỉnh việc bảo vệ nó.",
+    "text": "Biết chính xác dữ liệu của bạn ở đâu và luật nào điều chỉnh việc bảo vệ nó.",
     "source_hash": "97fd57ab"
   },
   "web.regions.privacy_title": {
@@ -52,7 +52,7 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Đảm bảo thông tin cá nhân của bạn được xử lý theo luật và quy định về quyền riêng tư của quốc gia bạn, ngăn chặn truy cập hoặc sử dụng trái phép.",
+    "text": "Đảm bảo thông tin cá nhân của bạn được xử lý theo luật và quy định bảo mật của quốc gia bạn, ngăn chặn truy cập trái phép hoặc lạm dụng.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -60,7 +60,7 @@
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Đáp ứng GDPR, HIPAA, CCPA và các yêu cầu bảo vệ dữ liệu vùng khác",
+    "text": "Đáp ứng GDPR, HIPAA, CCPA và các yêu cầu bảo vệ dữ liệu khu vực khác",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -76,7 +76,7 @@
     "source_hash": "610c65d8"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "liên hệ đội ngũ tuân thủ của chúng tôi",
+    "text": "liên hệ nhóm tuân thủ của chúng tôi",
     "source_hash": "87e6746e"
   },
   "web.regions.review_our_documentation": {
@@ -108,7 +108,7 @@
     "source_hash": "10866a9d"
   },
   "web.regions.available_regions": {
-    "text": "Vùng khả dụng",
+    "text": "Các vùng khả dụng",
     "source_hash": "ee788590"
   },
   "web.regions.jurisdiction": {
@@ -140,23 +140,26 @@
     "source_hash": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
-    "text": "Thay đổi khu vực",
+    "text": "Thay đổi vùng",
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "Chính sách của chúng tôi là không bao giờ chuyển dữ liệu giữa các khu vực. Mỗi khu vực hoạt động như một môi trường hoàn toàn độc lập.",
+    "text": "Chính sách của chúng tôi là không bao giờ chuyển dữ liệu giữa các vùng. Mỗi vùng hoạt động như một môi trường hoàn toàn độc lập.",
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "Để sử dụng khu vực khác, hãy tạo tài khoản mới ở đó bằng cùng địa chỉ email liên kết với email liên hệ thanh toán của bạn.",
+    "text": "Để sử dụng vùng khác, hãy tạo tài khoản mới ở đó bằng cùng địa chỉ email liên kết với liên hệ thanh toán của bạn.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Nếu email liên hệ thanh toán khác với email tài khoản Onetime Secret, hãy sử dụng email liên hệ thanh toán cho tài khoản khu vực mới để duy trì quyền lợi đăng ký.",
+    "text": "Nếu email liên hệ thanh toán của bạn khác với email tài khoản Onetime Secret, hãy sử dụng email liên hệ thanh toán cho tài khoản vùng mới để duy trì lợi ích đăng ký.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Quyền lợi đăng ký của bạn sẽ tự động áp dụng cho bất kỳ tài khoản nào được tạo bằng địa chỉ email thanh toán.",
+    "text": "Lợi ích đăng ký của bạn sẽ tự động áp dụng cho bất kỳ tài khoản nào được tạo bằng địa chỉ email thanh toán của bạn.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Hiện không có thông tin vùng nào khả dụng cho tài khoản của bạn."
   }
 }

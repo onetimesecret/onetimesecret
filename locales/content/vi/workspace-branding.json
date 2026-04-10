@@ -12,7 +12,7 @@
     "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Họ phông chữ",
+    "text": "Kiểu chữ",
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
@@ -28,7 +28,7 @@
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Xem trước & Tùy chỉnh",
+    "text": "Xem trước và tùy chỉnh",
     "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
@@ -96,7 +96,7 @@
     "source_hash": "c3330082"
   },
   "web.branding.loading_preview": {
-    "text": "Đang tải xem trước...",
+    "text": "Đang tải bản xem trước...",
     "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
@@ -132,7 +132,7 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Đây là bản xem trước tương tác cách người nhận sẽ thấy tin nhắn an toàn của bạn. Bạn có thể: - Tùy chỉnh màu sắc và phông chữ bằng các điều khiển ở trên - Tải lên logo (khuyến nghị tối thiểu 128x128 pixel, tối đa 1MB) - Thử xem trước bằng nút \"Xem bí mật\"",
+    "text": "Đây là bản xem trước tương tác về cách người nhận sẽ thấy tin nhắn an toàn của bạn. Bạn có thể: - Tùy chỉnh màu sắc và phông chữ bằng các điều khiển ở trên - Tải lên logo (khuyến nghị tối thiểu 128x128 pixel, tối đa 1MB) - Kiểm thử bản xem trước bằng nút \"Xem bí mật\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -140,11 +140,11 @@
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Chữ Hán '秘' (himitsu) có nghĩa là 'bí mật' hoặc 'bảo mật'",
+    "text": "Chữ Hán Nhật '秘' (himitsu) có nghĩa là 'bí mật' hoặc 'bảo mật'",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Cung cấp bởi Onetime Secret",
+    "text": "Được cung cấp bởi Onetime Secret",
     "source_hash": "935442d0"
   },
   "web.branding.heading_logo": {
@@ -170,5 +170,8 @@
   "web.branding.upgrade_to_customize": {
     "text": "Nâng cấp gói để tùy chỉnh thương hiệu cho tên miền này.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Cài đặt thương hiệu đã được lưu thành công"
   }
 }

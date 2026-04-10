@@ -1,10 +1,10 @@
 {
   "incoming.page_title": {
-    "text": "Gửi bí mật",
+    "text": "Gửi một bí mật",
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Chia sẻ thông tin nhạy cảm một cách an toàn với đội ngũ hỗ trợ của chúng tôi",
+    "text": "Chia sẻ thông tin nhạy cảm một cách an toàn với nhóm hỗ trợ của chúng tôi",
     "source_hash": "08beca74"
   },
   "incoming.loading_config": {
@@ -20,7 +20,7 @@
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Tính năng này hiện đang bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ để được trợ giúp.",
+    "text": "Tính năng này hiện đang bị tắt. Vui lòng liên hệ hỗ trợ để được trợ giúp.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
@@ -32,7 +32,7 @@
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "Giúp chúng tôi chuyển tin nhắn đến đúng người",
+    "text": "Giúp chúng tôi chuyển tin nhắn của bạn đến đúng người",
     "source_hash": "185a207e"
   },
   "incoming.recipient_label": {
@@ -48,11 +48,11 @@
     "source_hash": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "Chọn ai sẽ nhận tin nhắn an toàn này",
+    "text": "Chọn người sẽ nhận tin nhắn an toàn này",
     "source_hash": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "Không có người nhận khả dụng",
+    "text": "Không có người nhận nào khả dụng",
     "source_hash": "62834334"
   },
   "incoming.secret_content_label": {
@@ -60,7 +60,7 @@
     "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Dán thông tin nhạy cảm tại đây (mật khẩu, khóa, v.v.)",
+    "text": "Dán thông tin nhạy cảm ở đây (mật khẩu, khóa, v.v.)",
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
@@ -96,7 +96,7 @@
     "source_hash": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "Tin nhắn an toàn của bạn đã được gửi.",
+    "text": "Tin nhắn an toàn của bạn đã được giao.",
     "source_hash": "e1538e3e"
   },
   "incoming.reference_id": {
@@ -120,15 +120,36 @@
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Giữ mật khẩu và dữ liệu riêng tư khỏi email và nhật ký chat",
+    "text": "Giữ mật khẩu và dữ liệu riêng tư khỏi nhật ký email và trò chuyện",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Lưu {receipt} của bạn để lưu trữ.",
+    "text": "Lưu {receipt} của bạn để tham khảo.",
     "source_hash": "db3d9c98"
   },
   "incoming.receipt_link_text": {
-    "text": "biên lai",
+    "text": "biên nhận",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Cần nâng cấp"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Tính năng này yêu cầu nâng cấp gói. Vui lòng liên hệ chủ tài khoản để bật bí mật đến."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Ghi nhớ phải có {max} ký tự hoặc ít hơn"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Nội dung bí mật là bắt buộc"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Vui lòng chọn người nhận"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Tính năng bí mật đến không được bật"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Vui lòng kiểm tra biểu mẫu để tìm lỗi"
   }
 }

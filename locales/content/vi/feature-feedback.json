@@ -4,7 +4,7 @@
     "source_hash": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Mọi phản hồi đều được hoan nghênh!",
+    "text": "Mọi phản hồi đều được chào đón!",
     "source_hash": "c57d3006"
   },
   "web.feedback.help_us_improve": {
@@ -32,11 +32,11 @@
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Tôi đọc mọi phản hồi gửi đến đây. Đó là cách tôi xác định nên dành thời gian cho điều gì.",
+    "text": "Tôi đọc từng phần phản hồi đến đây. Đó là cách tôi tìm ra nên dành thời gian cho việc gì.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Nếu có điều gì không ổn, hoặc bạn có ý tưởng về cách nó nên hoạt động, đây là nơi phù hợp.",
+    "text": "Nếu có điều gì không đúng, hoặc bạn có ý tưởng về cách nó nên hoạt động, đây là nơi phù hợp.",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
@@ -56,7 +56,7 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Có vẻ như bạn đang báo cáo một thay đổi email trái phép trên tài khoản của bạn. Vui lòng mô tả những gì đã xảy ra và chúng tôi sẽ điều tra ngay.",
+    "text": "Có vẻ như bạn đang báo cáo việc thay đổi email trái phép trên tài khoản của bạn. Vui lòng mô tả những gì đã xảy ra và chúng tôi sẽ điều tra ngay.",
     "source_hash": "00e56551"
   }
 }

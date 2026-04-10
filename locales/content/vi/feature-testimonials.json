@@ -4,7 +4,7 @@
     "source_hash": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "Nội dung do AI tạo để minh họa. Không phải từ người thật hoặc công ty thật.",
+    "text": "Nội dung do AI tạo cho mục đích minh họa. Không phải từ người thật hay công ty thật.",
     "source_hash": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
@@ -24,15 +24,15 @@
     "source_hash": "14159dd9"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "AI hàng đầu nói gì về chúng tôi",
+    "text": "Những gì AI hàng đầu nói về chúng tôi",
     "source_hash": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "Lời chứng thực do AI tạo",
+    "text": "Các lời chứng thực do AI tạo",
     "source_hash": "947cd6b4"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "Trích dẫn này được tạo bởi",
+    "text": "Câu trích dẫn này được tạo bởi",
     "source_hash": "7879a747"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {

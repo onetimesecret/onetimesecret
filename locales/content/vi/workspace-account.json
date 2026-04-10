@@ -52,7 +52,7 @@
     "source_hash": "0195bccf"
   },
   "web.account.subscriptions_title": {
-    "text": "Đăng ký",
+    "text": "Các đăng ký",
     "source_hash": "a151f2e9"
   },
   "web.account.quantity": {
@@ -64,7 +64,7 @@
     "source_hash": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
-    "text": "Tên đăng nhập",
+    "text": "Tên người dùng",
     "source_hash": "e3b89e9d"
   },
   "web.account.changePassword.currentPassword": {
@@ -132,7 +132,7 @@
     "source_hash": "7e2d4201"
   },
   "web.account.token_generated": {
-    "text": "Đã tạo token.",
+    "text": "Token đã được tạo.",
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
@@ -140,7 +140,7 @@
     "source_hash": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
-    "text": "Xác nhận bằng mật khẩu",
+    "text": "Xác nhận bằng mật khẩu của bạn",
     "source_hash": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
@@ -160,7 +160,7 @@
     "source_hash": "685ecb98"
   },
   "web.account.permanently_delete_account": {
-    "text": "Xóa tài khoản vĩnh viễn",
+    "text": "Xóa vĩnh viễn tài khoản",
     "source_hash": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
@@ -168,7 +168,7 @@
     "source_hash": "6121225e"
   },
   "web.account.deleting_your_account_is": {
-    "text": "Xóa tài khoản của bạn là",
+    "text": "Việc xóa tài khoản của bạn là",
     "source_hash": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
@@ -188,7 +188,7 @@
     "source_hash": "086020fd"
   },
   "web.account.account_deleted_successfully": {
-    "text": "Đã xóa tài khoản thành công.",
+    "text": "Tài khoản đã được xóa thành công.",
     "source_hash": "afcfdd58"
   },
   "web.account.deactivate": {
@@ -208,7 +208,7 @@
     "source_hash": "74a883a0"
   },
   "web.settings.description": {
-    "text": "Quản lý cài đặt và tùy chọn tài khoản",
+    "text": "Quản lý cài đặt và tùy chọn tài khoản của bạn",
     "source_hash": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
@@ -260,11 +260,11 @@
     "source_hash": "a4fe6526"
   },
   "web.settings.language.description": {
-    "text": "Chọn ngôn ngữ ưa thích",
+    "text": "Chọn ngôn ngữ ưa thích của bạn",
     "source_hash": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Chọn ngôn ngữ ưa thích",
+    "text": "Chọn ngôn ngữ ưa thích của bạn",
     "source_hash": "475bba7a"
   },
   "web.settings.security_settings_description": {
@@ -272,7 +272,7 @@
     "source_hash": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "Quản lý thông tin tài khoản",
+    "text": "Quản lý thông tin tài khoản của bạn",
     "source_hash": "4a23a29f"
   },
   "web.settings.profile.title": {
@@ -280,7 +280,7 @@
     "source_hash": "d696a35b"
   },
   "web.settings.profile.change_email": {
-    "text": "Đổi email",
+    "text": "Thay đổi email",
     "source_hash": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
@@ -296,15 +296,15 @@
     "source_hash": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Nhập mật khẩu hiện tại",
+    "text": "Nhập mật khẩu hiện tại của bạn",
     "source_hash": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Mật khẩu của bạn được yêu cầu vì lý do bảo mật",
+    "text": "Cần mật khẩu của bạn vì lý do bảo mật",
     "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Email xác minh sẽ được gửi đến địa chỉ mới",
+    "text": "Một email xác minh sẽ được gửi đến địa chỉ mới",
     "source_hash": "575082a1"
   },
   "web.settings.profile.update_email": {
@@ -312,7 +312,7 @@
     "source_hash": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Cập nhật địa chỉ email liên kết với tài khoản",
+    "text": "Cập nhật địa chỉ email liên kết với tài khoản của bạn",
     "source_hash": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
@@ -324,27 +324,27 @@
     "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Email mới phải khác với email hiện tại",
+    "text": "Email mới phải khác email hiện tại",
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Đã cập nhật email thành công. Vui lòng kiểm tra hộp thư để xác minh địa chỉ email mới.",
+    "text": "Email xác minh đã được gửi. Vui lòng kiểm tra hộp thư mới và nhấp vào liên kết xác nhận để hoàn tất thay đổi.",
     "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
-    "text": "Không thể cập nhật email. Vui lòng thử lại.",
+    "text": "Cập nhật email thất bại. Vui lòng thử lại.",
     "source_hash": "aeba6591"
   },
   "web.settings.sessions.title": {
-    "text": "Phiên hoạt động",
+    "text": "Phiên đang hoạt động",
     "source_hash": "b58fa4e0"
   },
   "web.settings.sessions.description": {
-    "text": "Quản lý các phiên hoạt động",
+    "text": "Quản lý các phiên đang hoạt động của bạn",
     "source_hash": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Quản lý các phiên hoạt động",
+    "text": "Quản lý các phiên đang hoạt động của bạn",
     "source_hash": "e5646da4"
   },
   "web.settings.password.title": {
@@ -352,11 +352,11 @@
     "source_hash": "e7cf3ef4"
   },
   "web.settings.password.description": {
-    "text": "Cập nhật mật khẩu tài khoản",
+    "text": "Cập nhật mật khẩu tài khoản của bạn",
     "source_hash": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
-    "text": "Cập nhật mật khẩu tài khoản",
+    "text": "Cập nhật mật khẩu tài khoản của bạn",
     "source_hash": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
@@ -364,11 +364,11 @@
     "source_hash": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "Xóa vĩnh viễn tài khoản và tất cả dữ liệu",
+    "text": "Xóa vĩnh viễn tài khoản và tất cả dữ liệu của bạn",
     "source_hash": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Xóa vĩnh viễn tài khoản và tất cả dữ liệu",
+    "text": "Xóa vĩnh viễn tài khoản và tất cả dữ liệu của bạn",
     "source_hash": "7a3a6da2"
   },
   "web.settings.security.security_score": {
@@ -376,7 +376,7 @@
     "source_hash": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "Sức khỏe bảo mật tổng thể của tài khoản",
+    "text": "Tình trạng bảo mật tổng thể của tài khoản bạn",
     "source_hash": "cf20935e"
   },
   "web.settings.security.excellent": {
@@ -388,7 +388,7 @@
     "source_hash": "c939327c"
   },
   "web.settings.security.fair": {
-    "text": "Tạm được",
+    "text": "Trung bình",
     "source_hash": "f7b19afc"
   },
   "web.settings.security.weak": {
@@ -396,7 +396,7 @@
     "source_hash": "8d6cea25"
   },
   "web.settings.security.improve_security": {
-    "text": "Cải thiện bảo mật",
+    "text": "Cải thiện bảo mật của bạn",
     "source_hash": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
@@ -412,7 +412,7 @@
     "source_hash": "84aebc69"
   },
   "web.settings.security.change": {
-    "text": "Đổi",
+    "text": "Thay đổi",
     "source_hash": "c0bf75bd"
   },
   "web.settings.security.manage": {
@@ -428,27 +428,27 @@
     "source_hash": "76d6236d"
   },
   "web.settings.security.no_codes": {
-    "text": "Chưa tạo mã",
+    "text": "Không có mã nào được tạo",
     "source_hash": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0} phiên hoạt động | {0} phiên hoạt động",
+    "text": "{0} phiên đang hoạt động | {0} phiên đang hoạt động",
     "source_hash": "30737484"
   },
   "web.settings.security.best_practices": {
-    "text": "Thực hành bảo mật tốt nhất",
+    "text": "Các thực hành bảo mật tốt nhất",
     "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Sử dụng mật khẩu mạnh, độc nhất cho tài khoản",
+    "text": "Sử dụng mật khẩu mạnh và duy nhất cho tài khoản của bạn",
     "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Bật xác thực hai yếu tố để bảo vệ thêm",
+    "text": "Bật xác thực hai yếu tố để bảo vệ bổ sung",
     "source_hash": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Lưu mã khôi phục ở vị trí an toàn",
+    "text": "Lưu mã khôi phục của bạn ở nơi an toàn",
     "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
@@ -460,7 +460,7 @@
     "source_hash": "d1bf045b"
   },
   "web.settings.api.title": {
-    "text": "API & Tích hợp",
+    "text": "API và tích hợp",
     "source_hash": "21fc84f3"
   },
   "web.settings.api.description": {
@@ -480,7 +480,7 @@
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
-    "text": "Tham khảo REST API",
+    "text": "Tài liệu tham khảo REST API",
     "source_hash": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
@@ -496,35 +496,35 @@
     "source_hash": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Thực hành bảo mật tốt nhất",
+    "text": "Các thực hành bảo mật tốt nhất",
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Không bao giờ commit khóa API vào version control",
+    "text": "Không bao giờ đưa khóa API vào quản lý phiên bản",
     "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Sử dụng biến môi trường để lưu khóa API",
+    "text": "Sử dụng biến môi trường để lưu trữ khóa API",
     "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Xoay khóa API thường xuyên để bảo mật",
+    "text": "Xoay khóa API thường xuyên vì lý do bảo mật",
     "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "Luôn sử dụng HTTPS khi gọi API",
+    "text": "Luôn sử dụng HTTPS khi thực hiện các yêu cầu API",
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Giám sát mức sử dụng API và thiết lập cảnh báo",
+    "text": "Giám sát mức sử dụng API của bạn và thiết lập cảnh báo",
     "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
-    "text": "Thông báo quan trọng",
+    "text": "Lưu ý quan trọng",
     "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Tạo lại khóa API sẽ vô hiệu hóa khóa hiện tại. Cập nhật tất cả ứng dụng đang sử dụng khóa cũ.",
+    "text": "Tạo lại khóa API sẽ làm mất hiệu lực khóa hiện tại. Cập nhật tất cả ứng dụng đang sử dụng khóa cũ.",
     "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
@@ -532,7 +532,7 @@
     "source_hash": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Quản lý tùy chọn quyền riêng tư",
+    "text": "Quản lý tùy chọn quyền riêng tư của bạn",
     "source_hash": "add087da"
   },
   "web.settings.privacy.your_privacy": {
@@ -548,11 +548,11 @@
     "source_hash": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Không phân tích. Không theo dõi. Chấm hết.",
+    "text": "Không phân tích. Không theo dõi. Dứt khoát.",
     "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "Đây không phải cài đặt vì không có gì để bật hoặc tắt. Quyền riêng tư của bạn được tích hợp vào cách chúng tôi hoạt động.",
+    "text": "Đây không phải là cài đặt vì không có gì để bật hoặc tắt. Quyền riêng tư của bạn được tích hợp vào cách chúng tôi hoạt động.",
     "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
@@ -564,11 +564,11 @@
     "source_hash": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Không thể cập nhật tùy chọn thông báo. Vui lòng thử lại.",
+    "text": "Cập nhật tùy chọn thông báo thất bại. Vui lòng thử lại.",
     "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Thông báo hiển thị bí mật",
+    "text": "Thông báo khi bí mật được xem",
     "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
@@ -576,11 +576,11 @@
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Bạn sẽ được thông báo mỗi khi người nhận hiển thị một trong các bí mật của bạn",
+    "text": "Bạn sẽ được thông báo mỗi khi người nhận xem một trong các bí mật của bạn",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Email thông báo chỉ bao gồm thời gian và ID bí mật. Thông tin người xem không bao giờ được bao gồm.",
+    "text": "Email thông báo chỉ bao gồm dấu thời gian và ID bí mật. Thông tin người xem không bao giờ được bao gồm.",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
@@ -596,11 +596,11 @@
     "source_hash": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Xuất dữ liệu tài khoản",
+    "text": "Xuất dữ liệu tài khoản của bạn",
     "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Yêu cầu bản sao đầy đủ dữ liệu tài khoản ở định dạng máy đọc được",
+    "text": "Yêu cầu bản sao đầy đủ dữ liệu tài khoản của bạn ở định dạng có thể đọc được bởi máy",
     "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
@@ -612,11 +612,11 @@
     "source_hash": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
-    "text": "Xuất được xử lý trong vòng 24 giờ và gửi đến địa chỉ email của bạn",
+    "text": "Dữ liệu xuất được xử lý trong vòng 24 giờ và gửi đến địa chỉ email của bạn",
     "source_hash": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Xóa tài khoản sẽ:",
+    "text": "Xóa tài khoản của bạn sẽ:",
     "source_hash": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
@@ -628,7 +628,7 @@
     "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "Vô hiệu hóa tất cả khóa API",
+    "text": "Làm mất hiệu lực tất cả khóa API",
     "source_hash": "7581333b"
   },
   "web.settings.caution.deletion_warning_irreversible": {
@@ -636,7 +636,7 @@
     "source_hash": "02ccc074"
   },
   "web.settings.profile.confirm_email_change_title": {
-    "text": "Đã cập nhật địa chỉ email",
+    "text": "Địa chỉ email đã được cập nhật",
     "source_hash": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
@@ -644,7 +644,7 @@
     "source_hash": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
-    "text": "Đang xác minh địa chỉ email mới...",
+    "text": "Đang xác minh địa chỉ email mới của bạn...",
     "source_hash": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
@@ -660,7 +660,7 @@
     "source_hash": "fd49b66b"
   },
   "web.settings.profile.redirecting_to_signin": {
-    "text": "Đang chuyển hướng đến trang đăng nhập...",
+    "text": "Đang chuyển hướng đến đăng nhập...",
     "source_hash": "c65f7dcc"
   },
   "web.settings.profile.resend_confirmation": {
@@ -668,7 +668,7 @@
     "source_hash": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
-    "text": "Đã gửi lại email xác nhận thành công.",
+    "text": "Email xác nhận đã được gửi lại thành công.",
     "source_hash": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {
@@ -676,7 +676,7 @@
     "source_hash": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
-    "text": "Đã gửi email xác minh. Kiểm tra hộp thư đến và nhấp vào liên kết xác nhận.",
+    "text": "Một email xác minh đã được gửi. Kiểm tra hộp thư và nhấp vào liên kết xác nhận.",
     "source_hash": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {
