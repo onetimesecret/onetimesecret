@@ -71,7 +71,7 @@ module Onetime
           manage_orgs manage_teams manage_members manage_sso audit_logs
         ].freeze
 
-        # MINIMAL free tier entitlements as fallback when billing is enabled
+        # Free tier entitlements as fallback when billing is enabled
         # but plan cache is empty. This prevents showing "No features available"
         # and provides a failsafe degraded experience.
         #
@@ -80,6 +80,9 @@ module Onetime
           create_secrets
           view_receipt
           api_access
+          custom_domains
+          incoming_secrets
+          homepage_secrets
         ].freeze
 
         # Parse TTL value from environment variable with strict validation

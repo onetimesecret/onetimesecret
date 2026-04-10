@@ -61,7 +61,7 @@ OT.boot! :test
 #=> true
 
 ## SaaS empty planid: can? returns false for premium entitlements
-@org.can?('custom_domains')
+@org.can?('custom_branding')
 #=> false
 
 ## SaaS empty planid: limit_for returns FREE tier limit (0 for teams)
@@ -82,7 +82,7 @@ OT.boot! :test
 #=> 0
 
 ## SaaS plan cache miss: can? returns false for premium entitlements not in FREE tier
-[@org.can?('custom_domains'), @org.can?('api_access'), @org.can?('audit_logs')]
+[@org.can?('custom_branding'), @org.can?('api_access'), @org.can?('audit_logs')]
 #=> [false, true, false]
 
 # Teardown
