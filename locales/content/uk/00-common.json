@@ -5,11 +5,11 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "Захищені посилання, які працюють лише один раз",
+    "text": "Безпечні посилання, що працюють лише раз",
     "source_hash": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "На базі",
+    "text": "Працює на",
     "source_hash": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
@@ -21,7 +21,7 @@
     "source_hash": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Генерація пароля вимкнена, коли форма заповнена правильно",
+    "text": "Генерація пароля вимкнена, коли форма заповнена",
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
@@ -29,15 +29,15 @@
     "source_hash": "f2350739"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Введіть свій пароль",
+    "text": "Введи свій пароль",
     "source_hash": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "Власні домени",
+    "text": "Користувацькі домени",
     "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Зміцніть зв'язки та побудуйте довіру за допомогою власних брендованих таємних посилань.",
+    "text": "Зміцни зв'язки та побудуй довіру за допомогою власних брендованих таємних посилань.",
     "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
@@ -45,7 +45,7 @@
     "source_hash": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Підтвердіть свій пароль",
+    "text": "Підтверди свій пароль",
     "source_hash": "bfd8c343"
   },
   "web.COMMON.header_settings": {
@@ -65,7 +65,7 @@
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Тримайте конфіденційну інформацію подалі від журналів чатів та електронної пошти. Поділіться таємним посиланням, яке доступне лише один раз.",
+    "text": "Тримай конфіденційну інформацію подалі від чатів та електронної пошти. Поділися таємним посиланням, яке доступне лише один раз.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
@@ -73,7 +73,7 @@
     "source_hash": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "таємниця,генератор паролів,поділитися таємницею,одноразовий",
+    "text": "таємниця,генератор паролів,поділитися таємницею,onetime",
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
@@ -97,11 +97,11 @@
     "source_hash": "29d0cf13"
   },
   "web.COMMON.secret_recipient_address": {
-    "text": "Адреса одержувача",
+    "text": "Адреса отримувача",
     "source_hash": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Введіть таємний вміст тут...",
+    "text": "Таємний вміст розміщуй тут...",
     "source_hash": "54630bab"
   },
   "web.COMMON.header_create_account": {
@@ -129,7 +129,7 @@
     "source_hash": "c7ebd045"
   },
   "web.COMMON.recent": {
-    "text": "Нещодавні",
+    "text": "Останні",
     "source_hash": "690dbe9d"
   },
   "web.COMMON.not_set": {
@@ -153,7 +153,7 @@
     "source_hash": "6d747b33"
   },
   "web.COMMON.expires_in": {
-    "text": "Термін дії закінчується через",
+    "text": "Закінчується через",
     "source_hash": "de996752"
   },
   "web.COMMON.burn_this_secret": {
@@ -161,7 +161,7 @@
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Знищення таємниці видалить її до того, як вона буде прочитана (натисніть для підтвердження)",
+    "text": "Знищення таємниці видалить її до того, як вона буде прочитана (натисни для підтвердження)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
@@ -169,27 +169,27 @@
     "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Перевірте свою електронну пошту",
+    "text": "Перевір свою пошту",
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Натисніть, щоб показати →",
+    "text": "Натисни, щоб показати →",
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Продовжіть для підтвердження облікового запису:",
+    "text": "Продовж для підтвердження облікового запису:",
     "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "Ви не надали нічого для передачі",
+    "text": "Ти не надав нічого для поширення",
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Перевірте ще раз парольну фразу",
+    "text": "Перевір парольну фразу ще раз",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Введіть парольну фразу тут",
+    "text": "Введи парольну фразу тут",
     "source_hash": "ee855dad"
   },
   "web.COMMON.view_secret": {
@@ -197,7 +197,7 @@
     "source_hash": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Увага: ми покажемо це лише один раз.",
+    "text": "Обережно: ми покажемо це лише один раз.",
     "source_hash": "d29e2820"
   },
   "web.COMMON.warning": {
@@ -205,7 +205,7 @@
     "source_hash": "e981ddae"
   },
   "web.COMMON.oops": {
-    "text": "Отакої!",
+    "text": "Ой!",
     "source_hash": "8344947a"
   },
   "web.COMMON.error": {
@@ -213,7 +213,7 @@
     "source_hash": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Сталася неочікувана помилка. Будь ласка, спробуйте ще раз.",
+    "text": "Сталася несподівана помилка. Будь ласка, спробуй ще раз.",
     "source_hash": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
@@ -221,11 +221,11 @@
     "source_hash": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Зареєструйтесь для більшого",
+    "text": "Зареєструйся для більшого",
     "source_hash": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Увійдіть до свого облікового запису",
+    "text": "Увійди у свій обліковий запис",
     "source_hash": "62f1fe13"
   },
   "web.COMMON.sent_to": {
@@ -233,7 +233,7 @@
     "source_hash": "e79c8bcb"
   },
   "web.COMMON.field_email": {
-    "text": "Ел. пошта",
+    "text": "Електронна пошта",
     "source_hash": "969ccbd3"
   },
   "web.COMMON.field_password": {
@@ -241,7 +241,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.COMMON.field_password2": {
-    "text": "Підтвердіть пароль",
+    "text": "Підтвердити пароль",
     "source_hash": "c292210c"
   },
   "web.COMMON.button_create_account": {
@@ -289,7 +289,7 @@
     "source_hash": "76900f1b"
   },
   "web.COMMON.feedback_text": {
-    "text": "Поділіться своїми думками, ідеями або враженнями...",
+    "text": "Поділися своїми думками, ідеями або враженнями...",
     "source_hash": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
@@ -301,11 +301,11 @@
     "source_hash": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Обліковий запис створено. Будь ласка, увійдіть.",
+    "text": "Обліковий запис створено. Будь ласка, увійди.",
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Якщо обліковий запис з цією електронною адресою існує, Ви отримаєте лист для підтвердження.",
+    "text": "Якщо обліковий запис з цією електронною адресою існує, ти отримаєш лист для підтвердження.",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
@@ -313,11 +313,11 @@
     "source_hash": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Підтвердіть, будь ласка",
+    "text": "Підтвердь, будь ласка",
     "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Ви впевнені, що хочете знищити цю таємницю? Цю дію неможливо скасувати.",
+    "text": "Ти впевнений, що хочеш знищити цю таємницю? Цю дію неможливо скасувати.",
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
@@ -329,11 +329,11 @@
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "З міркувань безпеки, надсилайте це посилання окремо від інших даних.",
+    "text": "Для безпеки, поділися цим посиланням окремо від інших деталей.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
-    "text": "Скопійовано до буфера обміну",
+    "text": "Скопійовано в буфер обміну",
     "source_hash": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
@@ -341,7 +341,7 @@
     "source_hash": "5bb95106"
   },
   "web.COMMON.faq_title": {
-    "text": "Запитання",
+    "text": "Питання та відповіді",
     "source_hash": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
@@ -349,7 +349,7 @@
     "source_hash": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Неможливо підтвердити обліковий запис, коли Ви вже увійшли в систему",
+    "text": "Неможливо підтвердити обліковий запис, коли ти вже увійшов",
     "source_hash": "f0a17c5f"
   },
   "web.COMMON.show_password": {
@@ -361,11 +361,11 @@
     "source_hash": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "Пароль має містити щонайменше 8 символів",
+    "text": "Пароль повинен містити щонайменше 8 символів",
     "source_hash": "e3b8d09d"
   },
   "web.COMMON.password_requirements": {
-    "text": "Пароль має містити щонайменше 8 символів",
+    "text": "Пароль повинен містити щонайменше 8 символів",
     "source_hash": "e5054833"
   },
   "web.COMMON.passwords_do_not_match": {
@@ -377,7 +377,7 @@
     "source_hash": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "Обробка Вашого запиту",
+    "text": "Обробка твого запиту",
     "source_hash": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
@@ -393,7 +393,7 @@
     "source_hash": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Ви впевнені?",
+    "text": "Ти впевнений?",
     "source_hash": "f0762c4f"
   },
   "web.COMMON.danger_zone": {
@@ -453,7 +453,7 @@
     "source_hash": "037c9684"
   },
   "web.COMMON.active": {
-    "text": "Активний",
+    "text": "Активна",
     "source_hash": "92340695"
   },
   "web.COMMON.preview": {
@@ -465,7 +465,7 @@
     "source_hash": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Натисніть ESC, щоб закрити",
+    "text": "Натисни ESC, щоб закрити",
     "source_hash": "5aa83883"
   },
   "web.COMMON.enter": {
@@ -493,7 +493,7 @@
     "source_hash": "11a6767d"
   },
   "web.COMMON.end": {
-    "text": "Кінець",
+    "text": "Завершити",
     "source_hash": "f4db1e48"
   },
   "web.COMMON.general": {
@@ -505,7 +505,7 @@
     "source_hash": "d8da2c49"
   },
   "web.COMMON.monthly": {
-    "text": "Щомісяця",
+    "text": "Щомісячно",
     "source_hash": "9b11f6b7"
   },
   "web.COMMON.yearly": {
@@ -513,7 +513,7 @@
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Гаразд, продовжуйте.",
+    "text": "Добре, давай.",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
@@ -525,7 +525,7 @@
     "source_hash": "d84ee92c"
   },
   "web.COMMON.confirm_password": {
-    "text": "Підтвердіть пароль",
+    "text": "Підтвердити пароль",
     "source_hash": "5ac265f3"
   },
   "web.COMMON.new_password": {
@@ -585,7 +585,7 @@
     "source_hash": "8b3795aa"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "Електронну адресу скопійовано до буфера обміну!",
+    "text": "Електронну адресу скопійовано в буфер обміну!",
     "source_hash": "23238b4e"
   },
   "web.COMMON.value": {
@@ -637,7 +637,7 @@
     "source_hash": "3dc08503"
   },
   "web.COMMON.inactive": {
-    "text": "Неактивний",
+    "text": "Неактивна",
     "source_hash": "ac7c949f"
   },
   "web.COMMON.an_error_occurred": {
@@ -645,19 +645,19 @@
     "source_hash": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Копіювати таємницю до буфера обміну",
+    "text": "Скопіювати таємницю в буфер обміну",
     "source_hash": "a2ceff6d"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "Таємницю скопійовано до буфера обміну",
+    "text": "Таємницю скопійовано в буфер обміну",
     "source_hash": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Перевірте ще раз парольну фразу",
+    "text": "Перевір парольну фразу ще раз",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Натисніть кнопку копіювання нижче.",
+    "text": "Натисни кнопку копіювання нижче.",
     "source_hash": "77fcf6fb"
   },
   "web.COMMON.external_link": {
@@ -701,11 +701,11 @@
     "source_hash": "58994285"
   },
   "web.LABELS.expiration_time": {
-    "text": "Час закінчення терміну дії",
+    "text": "Час закінчення",
     "source_hash": "c5db84a8"
   },
   "web.LABELS.secret_ttl": {
-    "text": "Термін дії закінчується через",
+    "text": "Закінчується через",
     "source_hash": "de996752"
   },
   "web.LABELS.close": {
@@ -765,7 +765,7 @@
     "source_hash": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "Копіювати до буфера обміну",
+    "text": "Скопіювати в буфер обміну",
     "source_hash": "b749e205"
   },
   "web.LABELS.receipts": {
@@ -781,7 +781,7 @@
     "source_hash": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
-    "text": "Відхилити",
+    "text": "Закрити",
     "source_hash": "48845bff"
   },
   "web.LABELS.security_details": {
@@ -793,7 +793,7 @@
     "source_hash": "63e0dea7"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count} одержувачів",
+    "text": "{count} отримувачів",
     "source_hash": "48187543"
   },
   "web.LABELS.view": {
@@ -829,7 +829,7 @@
     "source_hash": "286a3af7"
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "Нещодавні таємниці",
+    "text": "Останні таємниці",
     "source_hash": "0b907f8b"
   },
   "web.LABELS.pricing": {
@@ -853,7 +853,7 @@
     "source_hash": "83b12c22"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Посилання на таємниці, створені в цій сесії",
+    "text": "Таємні посилання, створені в цій сесії",
     "source_hash": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
@@ -894,7 +894,7 @@
     "source_hash": "18fdd549"
   },
   "web.STATUS.unread": {
-    "text": "Непрочитана",
+    "text": "Непрочитано",
     "source_hash": "1b9f384c"
   },
   "web.STATUS.viewed": {
@@ -906,7 +906,7 @@
     "source_hash": "49f19bee"
   },
   "web.STATUS.previewed": {
-    "text": "Попередній перегляд",
+    "text": "Попередньо переглянуто",
     "source_hash": "3d391a9b"
   },
   "web.STATUS.revealed": {
@@ -914,7 +914,7 @@
     "source_hash": "17376ee4"
   },
   "web.STATUS.burned": {
-    "text": "Знищена",
+    "text": "Знищено",
     "source_hash": "6d747b33"
   },
   "web.STATUS.destroyed": {
@@ -922,7 +922,7 @@
     "source_hash": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Незабаром закінчується",
+    "text": "Скоро закінчується",
     "source_hash": "0259442c"
   },
   "web.STATUS.created": {
@@ -934,11 +934,11 @@
     "source_hash": "f6725f3a"
   },
   "web.STATUS.expired": {
-    "text": "Термін дії закінчився",
+    "text": "Термін минув",
     "source_hash": "424a2551"
   },
   "web.STATUS.orphaned": {
-    "text": "Осиротіла",
+    "text": "Осиротіло",
     "source_hash": "8d827807"
   },
   "web.STATUS.secured": {
@@ -970,7 +970,7 @@
     "source_hash": "f392af12"
   },
   "web.STATUS.received_description": {
-    "text": "Таємницю було розкрито одержувачу",
+    "text": "Таємницю було розкрито отримувачу",
     "source_hash": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
@@ -978,7 +978,7 @@
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
-    "text": "Вміст таємниці було розкрито одержувачу",
+    "text": "Таємний вміст було розкрито отримувачу",
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
@@ -998,11 +998,11 @@
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "Термін дії таємниці закінчився до перегляду",
+    "text": "Термін дії таємниці минув до перегляду",
     "source_hash": "f527de55"
   },
   "web.STATUS.success": {
-    "text": "Успіх",
+    "text": "Успішно",
     "source_hash": "c88a0b90"
   },
   "web.STATUS.delivered": {
@@ -1010,7 +1010,7 @@
     "source_hash": "90611565"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS неправильний",
+    "text": "DNS некоректний",
     "source_hash": "7848d601"
   },
   "web.STATUS.active": {
@@ -1030,7 +1030,7 @@
     "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Шифрування під час передачі та зберігання",
+    "text": "Зашифровано під час передачі та при зберіганні",
     "source_hash": "314c7974"
   },
   "web.UNITS.ttl.duration": {
@@ -1038,19 +1038,19 @@
     "source_hash": "e6c9e0e6"
   },
   "web.UNITS.ttl.time.day": {
-    "text": "день | дні | днів",
+    "text": "день | дні",
     "source_hash": "6ac0d345"
   },
   "web.UNITS.ttl.time.hour": {
-    "text": "година | години | годин",
+    "text": "година | години",
     "source_hash": "f4fef91b"
   },
   "web.UNITS.ttl.time.minute": {
-    "text": "хвилина | хвилини | хвилин",
+    "text": "хвилина | хвилини",
     "source_hash": "08d71a9f"
   },
   "web.UNITS.ttl.time.second": {
-    "text": "секунда | секунди | секунд",
+    "text": "секунда | секунди",
     "source_hash": "e655e068"
   },
   "web.UNITS.ttl.noOptionsAvailable": {
@@ -1058,23 +1058,23 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "Залишилось {count} {unit}",
+    "text": "залишилося {count} {unit}",
     "source_hash": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "день | дні | днів",
+    "text": "день залишився | днів залишилося",
     "source_hash": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "година | години | годин",
+    "text": "година залишилася | годин залишилося",
     "source_hash": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "хвилина | хвилини | хвилин",
+    "text": "хвилина залишилася | хвилин залишилося",
     "source_hash": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "секунда | секунди | секунд",
+    "text": "секунда залишилася | секунд залишилося",
     "source_hash": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
@@ -1082,19 +1082,19 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "Обмеження: {count} переглядів",
+    "text": "Ліміт {count} переглядів",
     "source_hash": "8db0e228"
   },
   "web.UNITS.days_remaining": {
-    "text": "Залишилось {count} днів",
+    "text": "Залишилося {count} днів",
     "source_hash": "398e4024"
   },
   "web.UNITS.hours_remaining": {
-    "text": "Залишилось {count} годин",
+    "text": "Залишилося {count} годин",
     "source_hash": "717b6d58"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "Залишилось {count} хвилин",
+    "text": "Залишилося {count} хвилин",
     "source_hash": "d322f4c5"
   },
   "web.TITLES.incoming": {
@@ -1102,15 +1102,15 @@
     "source_hash": "883dbca9"
   },
   "web.TITLES.feedback": {
-    "text": "Відгуки",
+    "text": "Зворотний зв'язок",
     "source_hash": "aac77df3"
   },
   "web.TITLES.help": {
-    "text": "Допомога",
+    "text": "Довідка",
     "source_hash": "b79cac92"
   },
   "web.TITLES.signin": {
-    "text": "Вхід",
+    "text": "Увійти",
     "source_hash": "bcc0bcc9"
   },
   "web.TITLES.signup": {
@@ -1118,7 +1118,7 @@
     "source_hash": "0dffe234"
   },
   "web.TITLES.forgot_password": {
-    "text": "Забули пароль",
+    "text": "Забутий пароль",
     "source_hash": "fdfd41de"
   },
   "web.TITLES.reset_password": {
@@ -1126,7 +1126,7 @@
     "source_hash": "4e70f1fd"
   },
   "web.TITLES.logout": {
-    "text": "Вихід із системи",
+    "text": "Вихід з системи",
     "source_hash": "afbce8a6"
   },
   "web.TITLES.verify_account": {
@@ -1166,11 +1166,11 @@
     "source_hash": "67b69646"
   },
   "web.TITLES.recent": {
-    "text": "Нещодавні таємниці",
+    "text": "Останні таємниці",
     "source_hash": "0b907f8b"
   },
   "web.TITLES.domains": {
-    "text": "Власні домени",
+    "text": "Користувацькі домени",
     "source_hash": "6170ab94"
   },
   "web.TITLES.domain_add": {
@@ -1178,11 +1178,11 @@
     "source_hash": "0f09df73"
   },
   "web.TITLES.domain_verify": {
-    "text": "Підтвердити домен",
+    "text": "Перевірити домен",
     "source_hash": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "Брендування домену",
+    "text": "Брендовий домен",
     "source_hash": "35e4dfbe"
   },
   "web.TITLES.account": {
@@ -1202,7 +1202,7 @@
     "source_hash": "ee788590"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Чому важливий суверенітет даних",
+    "text": "Чому суверенітет даних має значення",
     "source_hash": "67de6cf7"
   },
   "web.TITLES.profile_settings": {
@@ -1210,7 +1210,7 @@
     "source_hash": "4f1063c9"
   },
   "web.TITLES.preferences_settings": {
-    "text": "Налаштування",
+    "text": "Уподобання",
     "source_hash": "66962f72"
   },
   "web.TITLES.privacy_settings": {
@@ -1226,7 +1226,7 @@
     "source_hash": "18c3f2d5"
   },
   "web.TITLES.confirm_email_change": {
-    "text": "Підтвердження зміни електронної пошти",
+    "text": "Підтвердити зміну електронної пошти",
     "source_hash": "c2736949"
   },
   "web.TITLES.security_overview": {
@@ -1291,19 +1291,19 @@
     "source_hash": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Поділіться посиланням із призначеним одержувачем",
+    "text": "Поділися посиланням з потрібним отримувачем",
     "source_hash": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Поділіться парольною фразою окремо через захищений канал",
+    "text": "Поділися парольною фразою окремо через безпечний канал",
     "source_hash": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Використовуйте інший захищений канал для передачі конфіденційної інформації",
+    "text": "Використовуй інший безпечний канал для передачі конфіденційної інформації",
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Завжди перевіряйте, що Ви перебуваєте на офіційному вебсайті Onetime Secret. Шахраї іноді створюють підроблені вебсайти, які виглядають точно так само, як Onetime Secret, щоб викрасти Ваші таємниці. Щоб уникнути фішингових атак, перевірте домен регіону перед створенням нових посилань.",
+    "text": "Завжди перевіряй, що ти на офіційному сайті Onetime Secret. Шахраї інколи створюють підроблені сайти, що виглядають точно як Onetime Secret, щоб викрасти твої таємниці. Щоб уникнути фішингових атак, перевіряй домен перед створенням нових посилань.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1311,7 +1311,7 @@
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "Виберіть план, який відповідає Вашим потребам. Усі плани включають необмежений обмін таємницями та дизайн із пріоритетом конфіденційності.",
+    "text": "Обери план, що відповідає твоїм потребам. Усі плани включають необмежене поширення таємниць та дизайн з пріоритетом конфіденційності.",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
@@ -1323,7 +1323,7 @@
     "source_hash": "983f3110"
   },
   "web.pricing.already_have_account": {
-    "text": "Вже маєте обліковий запис?",
+    "text": "Вже маєш обліковий запис?",
     "source_hash": "e77fea93"
   },
   "web.pricing.sign_in": {
@@ -1331,7 +1331,7 @@
     "source_hash": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
-    "text": "Рекомендовано для Вас",
+    "text": "Рекомендовано для тебе",
     "source_hash": "00093fbd"
   },
   "web.COMMON.received": {
@@ -1339,53 +1339,101 @@
     "source_hash": "49f19bee"
   },
   "web.LABELS.add_note": {
-    "text": "Додати нотатку...",
+    "text": "Додати примітку...",
     "source_hash": "32738894"
   },
   "web.LABELS.edit_note": {
-    "text": "Редагувати нотатку",
+    "text": "Редагувати примітку",
     "source_hash": "299e604c"
   },
   "web.LABELS.add_memo": {
-    "text": "Додати нагадування...",
+    "text": "Додати нотатку...",
     "source_hash": "02384c53"
   },
   "web.LABELS.edit_memo": {
-    "text": "Редагувати нагадування",
+    "text": "Редагувати нотатку",
     "source_hash": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
-    "text": "Створюйте та діліться таємницями з базовими функціями. Кредитна картка не потрібна.",
+    "text": "Створюй та поширюй таємниці з базовими можливостями. Кредитна картка не потрібна.",
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
-    "text": "Введіть ваш пароль, щоб продовжити",
+    "text": "Введи свій пароль, щоб продовжити",
     "context": "Prompt for password confirmation modal",
     "source_hash": "09055357"
   },
   "web.COMMON.password_required_for_action": {
-    "text": "Для виконання цієї дії потрібен ваш пароль",
+    "text": "Твій пароль потрібен для виконання цієї дії",
     "context": "Description for password confirmation modal",
     "source_hash": "cc078766"
   },
   "api.errors.unexpected_error": {
-    "text": "Сталася непередбачена помилка",
+    "text": "Сталася несподівана помилка",
     "context": "Generic error message for unhandled exceptions in API",
     "source_hash": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "Сервіс тимчасово недоступний. Спробуйте знову через деякий час.",
+    "text": "Сервіс тимчасово недоступний. Будь ласка, спробуй пізніше.",
     "context": "Error message when database connection fails",
     "source_hash": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "Неможливо обробити ваш запит у цей час",
+    "text": "Не вдалося обробити твій запит наразі",
     "context": "Error message for recoverable server errors",
     "source_hash": "fb961f3f"
   },
   "web.COMMON.upgrade_description": {
-    "text": "Оновіть план, щоб отримати більше можливостей",
+    "text": "Оновись, щоб отримати більше можливостей",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "Налаштувати"
+  },
+  "web.COMMON.add": {
+    "text": "Додати"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Так, видалити"
+  },
+  "web.COMMON.error_code": {
+    "text": "Код помилки"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-статус"
+  },
+  "web.COMMON.details": {
+    "text": "Деталі"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Підтвердити пароль"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Паролі повинні збігатися"
+  },
+  "web.COMMON.and": {
+    "text": "та"
+  },
+  "web.COMMON.or": {
+    "text": "або"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Показати парольну фразу"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Сховати парольну фразу"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Налаштування домену"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO домену"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Налаштування електронної пошти"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Вхідні таємниці"
   }
 }

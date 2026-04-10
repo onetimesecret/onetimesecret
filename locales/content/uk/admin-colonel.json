@@ -32,11 +32,11 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Редагуйте налаштування конфігурації системи. Зміни застосовуються одразу після збереження.",
+    "text": "Редагуй системні налаштування конфігурації. Зміни набувають чинності одразу після збереження.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
-    "text": "Недійсний JSON у розділі {section}",
+    "text": "Невалідний JSON у розділі {section}",
     "source_hash": "a75ac7a3"
   },
   "web.colonel.validationError": {
@@ -56,7 +56,7 @@
     "source_hash": "93b3d3e4"
   },
   "web.colonel.mustBeObject": {
-    "text": "Конфігурація повинна бути об'єктом JSON",
+    "text": "Конфігурація повинна бути JSON-об'єктом",
     "source_hash": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
@@ -116,7 +116,7 @@
     "source_hash": "6b0cc904"
   },
   "web.colonel.usersDescription": {
-    "text": "Керування обліковими записами користувачів та дозволами",
+    "text": "Керуй обліковими записами користувачів та дозволами",
     "source_hash": "6cfc012c"
   },
   "web.colonel.domains": {
@@ -132,11 +132,11 @@
     "source_hash": "6725e7bb"
   },
   "web.colonel.welcome": {
-    "text": "Ласкаво просимо до Адміністратора",
+    "text": "Ласкаво просимо до панелі адміністратора",
     "source_hash": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Панель адміністративного управління для OneTimeSecret",
+    "text": "Адміністративна панель керування OneTimeSecret",
     "source_hash": "57c1e752"
   },
   "web.colonel.quickActions": {
@@ -144,7 +144,7 @@
     "source_hash": "2cc2b6f7"
   },
   "web.colonel.recentActivity": {
-    "text": "Нещодавня активність",
+    "text": "Остання активність",
     "source_hash": "9ef7d438"
   },
   "web.colonel.viewAll": {
@@ -152,7 +152,7 @@
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Тут будуть відображатися дані активності",
+    "text": "Дані активності будуть відображені тут",
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
@@ -160,7 +160,7 @@
     "source_hash": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
-    "text": "Активних користувачів",
+    "text": "Активні користувачі",
     "source_hash": "5639b9f1"
   },
   "web.colonel.stats.secretsToday": {
@@ -168,11 +168,11 @@
     "source_hash": "aefbd2db"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "Створено таємниць",
+    "text": "Створених таємниць",
     "source_hash": "a97ee479"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "Поділено таємницями",
+    "text": "Поширених таємниць",
     "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
@@ -188,7 +188,7 @@
     "source_hash": "c3d66242"
   },
   "web.colonel.stats.healthy": {
-    "text": "Справна",
+    "text": "Справний",
     "source_hash": "7f1e323b"
   },
   "web.colonel.actions.viewActivity": {
@@ -196,7 +196,7 @@
     "source_hash": "9c28f55c"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Моніторинг системної активності та використання",
+    "text": "Моніторинг активності та використання системи",
     "source_hash": "f88e9eda"
   },
   "web.colonel.actions.manageAccounts": {
@@ -212,7 +212,7 @@
     "source_hash": "74402af9"
   },
   "web.colonel.actions.configureDomainsDesc": {
-    "text": "Налаштування домену та DNS",
+    "text": "Налаштування доменів та DNS",
     "source_hash": "1f712094"
   },
   "web.colonel.actions.systemSettings": {
@@ -220,7 +220,7 @@
     "source_hash": "1f87f883"
   },
   "web.colonel.actions.systemSettingsDesc": {
-    "text": "Конфігурація додатку",
+    "text": "Конфігурація застосунку",
     "source_hash": "923dc672"
   },
   "web.colonel.backgroundJobs": {
@@ -256,7 +256,7 @@
     "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
-    "text": "активних воркерів",
+    "text": "активні воркери",
     "source_hash": "ea68cfee"
   },
   "web.colonel.noQueueData": {
@@ -268,7 +268,7 @@
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
-    "text": "Режим тестування плану",
+    "text": "Тестовий режим плану",
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
@@ -276,11 +276,11 @@
     "source_hash": "b3032f1a"
   },
   "web.colonel.clickToReset": {
-    "text": "Натисніть для скидання",
+    "text": "Натисни для скидання",
     "source_hash": "4b25034d"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Виберіть план для тестування",
+    "text": "Обери план для тестування",
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
@@ -304,11 +304,11 @@
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "Тестуйте свій додаток з різними правами плану. Зміни тимчасові та впливають лише на Вашу сесію.",
+    "text": "Тестуй свій застосунок з різними правами планів. Зміни тимчасові та впливають лише на твою сесію.",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "Ви тестуєте з правами {planName} (тимчасове перевизначення сесії).",
+    "text": "Ти тестуєш з правами {planName} (тимчасове перевизначення сесії).",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
@@ -316,11 +316,11 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Моніторинг стану синхронізації платежів організацій",
+    "text": "Моніторинг стану синхронізації оплати організацій",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Монітор стану платежів",
+    "text": "Моніторинг стану оплати",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
@@ -424,7 +424,7 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.columns.default_workspace": {
-    "text": "Робоча область за замовчуванням",
+    "text": "Робоче середовище за замовчуванням",
     "source_hash": "53aa279e"
   },
   "web.colonel.organizations.columns.has_billing": {
@@ -436,7 +436,7 @@
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Керування організаціями та моніторинг стану синхронізації оплати ({total} всього)",
+    "text": "Керуй організаціями та контролюй стан синхронізації оплати ({total} всього)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -520,7 +520,7 @@
     "source_hash": "b39a8f3e"
   },
   "web.colonel.organizations.investigation.local": {
-    "text": "Локально",
+    "text": "Локальний",
     "source_hash": "8c31e6e7"
   },
   "web.colonel.organizations.investigation.stripe": {
@@ -540,7 +540,7 @@
     "source_hash": "d8707d41"
   },
   "web.colonel.secrets.description": {
-    "text": "Перегляд та керування всіма таємницями",
+    "text": "Переглядай та керуй усіма таємницями",
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
@@ -548,7 +548,7 @@
     "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
-    "text": "Керування списком заблокованих IP",
+    "text": "Керувати списком заблокованих IP",
     "source_hash": "dd0d2614"
   },
   "web.colonel.usageExport.title": {
@@ -556,7 +556,7 @@
     "source_hash": "10a0cb94"
   },
   "web.colonel.usageExport.description": {
-    "text": "Експорт даних використання та статистики",
+    "text": "Експортувати дані використання та статистику",
     "source_hash": "2fd0a2e2"
   },
   "web.colonel.systemSettings.title": {
@@ -568,11 +568,11 @@
     "source_hash": "7690b296"
   },
   "web.colonel.customDomains.title": {
-    "text": "Власні домени",
+    "text": "Користувацькі домени",
     "source_hash": "6170ab94"
   },
   "web.colonel.customDomains.description": {
-    "text": "Керування власними доменами та брендуванням",
+    "text": "Керувати користувацькими доменами та брендингом",
     "source_hash": "808ee2cb"
   },
   "web.colonel.feedback.send_feedback": {
@@ -596,7 +596,7 @@
     "source_hash": "af69773b"
   },
   "web.colonel.titles.domains": {
-    "text": "Власні домени",
+    "text": "Користувацькі домени",
     "source_hash": "6170ab94"
   },
   "web.colonel.titles.system": {
@@ -620,7 +620,7 @@
     "source_hash": "10a0cb94"
   },
   "web.colonel.titles.info": {
-    "text": "Інформація про систему",
+    "text": "Системна інформація",
     "source_hash": "8ad54ec1"
   },
   "web.colonel.titles.organizations": {
@@ -632,7 +632,7 @@
     "source_hash": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Коли Ви надішлете відгук, ми побачимо:",
+    "text": "Коли ти надішлеш відгук, ми побачимо:",
     "source_hash": "fe77172e"
   }
 }

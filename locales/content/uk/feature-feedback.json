@@ -1,6 +1,6 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Ваш відгук",
+    "text": "Твій відгук",
     "source_hash": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
@@ -8,7 +8,7 @@
     "source_hash": "c57d3006"
   },
   "web.feedback.help_us_improve": {
-    "text": "Допоможіть нам покращитися",
+    "text": "Допоможи нам покращитись",
     "source_hash": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
@@ -16,7 +16,7 @@
     "source_hash": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Поділіться своїм відгуком",
+    "text": "Поділися своїм відгуком",
     "source_hash": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
@@ -28,15 +28,15 @@
     "source_hash": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Тут буде вміст довідки.",
+    "text": "Вміст довідки тут.",
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Я читаю кожен відгук, який надходить сюди. Це те, як я визначаю, на що витрачати час.",
+    "text": "Я читаю кожен відгук, що надходить сюди. Це допомагає мені визначити, на що витрачати час.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Якщо щось не так, або у Вас є ідеї про те, як це має працювати, це правильне місце.",
+    "text": "Якщо щось не так, або у тебе є ідеї, як це має працювати, це правильне місце.",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
@@ -44,7 +44,7 @@
     "source_hash": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Введіть свій відгук",
+    "text": "Введи свій відгук",
     "source_hash": "1bb310f4"
   },
   "web.feedback.send_feedback": {
@@ -56,7 +56,7 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Схоже, ви повідомляєте про несанкціоновану зміну електронної пошти вашого облікового запису. Опишіть, що сталося, і ми негайно розберемося.",
+    "text": "Схоже, ти повідомляєш про несанкціоновану зміну електронної пошти в твоєму обліковому записі. Будь ласка, опиши, що сталося, і ми негайно розберемося.",
     "source_hash": "00e56551"
   }
 }

@@ -4,7 +4,7 @@
     "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Посібник з брендування",
+    "text": "Посібник з брендингу",
     "source_hash": "53f994c5"
   },
   "web.footer.customize": {
@@ -20,11 +20,11 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Дізнайтеся про наші заходи безпеки",
+    "text": "Дізнайся про наші заходи безпеки",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Перегляньте наші умови та положення",
+    "text": "Переглянь наші Умови та положення",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -48,19 +48,19 @@
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Коли Ви надішлете відгук, ми побачимо:",
+    "text": "Коли ти надішлеш відгук, ми побачимо:",
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Ознайомтеся з нашою політикою конфіденційності",
+    "text": "Ознайомся з нашою Політикою конфіденційності",
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Перевірте статус нашого сервісу",
+    "text": "Перевір статус наших сервісів",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Ознайомтеся з нашою документацією API",
+    "text": "Переглянь нашу документацію API",
     "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
@@ -68,11 +68,11 @@
     "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "Отримайте доступ до нашої документації",
+    "text": "Перейди до нашої документації",
     "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Перегляньте наш вихідний код на GitHub",
+    "text": "Переглянь наш вихідний код на GitHub",
     "source_hash": "d5def0ab"
   },
   "web.footer.resources": {
@@ -84,15 +84,15 @@
     "source_hash": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Читайте наші останні публікації в блозі",
+    "text": "Прочитай наші останні публікації в блозі",
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Перегляньте ціни на підписку",
+    "text": "Переглянь ціни на підписку",
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Дізнайтеся про нашу компанію",
+    "text": "Дізнайся про нашу компанію",
     "source_hash": "780e18cd"
   },
   "web.footer.company": {
@@ -120,7 +120,7 @@
     "source_hash": "2730183d"
   },
   "web.site.website_version": {
-    "text": "Версія вебсайту",
+    "text": "Версія сайту",
     "source_hash": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
@@ -132,7 +132,7 @@
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Нещодавно ми додали переклади. Помітили помилку? {send-feedback}",
+    "text": "Ми нещодавно додали переклади. Помітив помилку? {send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
@@ -148,15 +148,15 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Ви переглядаєте захищене повідомлення, яким з Вами поділилися через Onetime Secret. Цей вміст відображається лише один раз, а потім остаточно видаляється з наших серверів.",
+    "text": "Ти переглядаєш безпечне повідомлення, яке було передано тобі через Onetime Secret. Цей вміст показується лише один раз і потім остаточно видаляється з наших серверів.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Чи можу я переглянути цю таємницю пізніше?",
+    "text": "Чи можу я переглянути цю таємницю знову пізніше?",
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Ні. З міркувань безпеки цю таємницю можна переглянути лише один раз. Після закриття цієї сторінки вміст буде остаточно видалено, і його не зможе відновити ніхто, включаючи нас.",
+    "text": "Ні. З міркувань безпеки, цю таємницю можна переглянути лише один раз. Після закриття цієї сторінки вміст буде остаточно видалено і ніхто не зможе його відновити, включно з нами.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
@@ -164,7 +164,7 @@
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Використовуйте кнопку «Копіювати до буфера обміну», щоб скопіювати всю таємницю. Для довших таємниць переконайтеся, що Ви скопіювали весь вміст, перш ніж покинути цю сторінку.",
+    "text": "Використай кнопку «Скопіювати в буфер обміну», щоб скопіювати всю таємницю. Для довших таємниць переконайся, що ти скопіював весь вміст перед тим, як залишити цю сторінку.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
@@ -172,11 +172,11 @@
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Відправник буде повідомлений, що його таємницю було переглянуто, але ми не відстежуємо, хто її переглянув і з якого місця. Ваша конфіденційність захищена.",
+    "text": "Відправника буде повідомлено, що його таємницю переглянуто, але ми не відстежуємо, хто її переглянув або звідки. Твоя конфіденційність захищена.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Як тільки Ви покинете або оновите цю сторінку, ця таємниця буде остаточно видалена і не може бути відновлена ніким.",
+    "text": "Як тільки ти залишиш або оновиш цю сторінку, ця таємниця буде остаточно видалена і ніхто не зможе її відновити.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
@@ -184,7 +184,7 @@
     "source_hash": "1778f2e7"
   },
   "web.layout.site_footer": {
-    "text": "Підвал сайту",
+    "text": "Нижній колонтитул сайту",
     "source_hash": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
@@ -192,7 +192,7 @@
     "source_hash": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "Надати відгук",
+    "text": "Залишити відгук",
     "source_hash": "a70766ae"
   },
   "web.layout.company_logo": {
@@ -220,7 +220,7 @@
     "source_hash": "f65216b3"
   },
   "web.layout.release_notes": {
-    "text": "Примітки до випуску",
+    "text": "Нотатки до випуску",
     "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
@@ -256,23 +256,23 @@
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Переглянути політику конфіденційності",
+    "text": "Переглянути Політику конфіденційності",
     "source_hash": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Переглянути умови використання",
+    "text": "Переглянути Умови надання послуг",
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Відвідати домашню сторінку Onetime Secret",
+    "text": "Перейти на головну сторінку Onetime Secret",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
-    "text": "Навігація у підвалі",
+    "text": "Навігація нижнього колонтитула",
     "source_hash": "76363a64"
   },
   "web.layout.terms_of_service": {
-    "text": "Умови використання",
+    "text": "Умови надання послуг",
     "source_hash": "4afa55bf"
   },
   "web.layout.privacy_policy": {
@@ -308,7 +308,7 @@
     "source_hash": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
-    "text": "Версія вебсайту: v{0}",
+    "text": "Версія сайту: v{0}",
     "source_hash": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
@@ -320,7 +320,7 @@
     "source_hash": "1680f4fe"
   },
   "web.layout.reset_to_default_language": {
-    "text": "Скинути до {0}",
+    "text": "Скинути на {0}",
     "source_hash": "c0cfa9b2"
   },
   "web.layout.switch_to_blank_mode": {
@@ -332,11 +332,14 @@
     "source_hash": "e1d200cb"
   },
   "web.layout.workspace": {
-    "text": "Робоча область",
+    "text": "Робоче середовище",
     "source_hash": "87bb59ba"
   },
   "web.layout.workspace_context": {
-    "text": "Контекст робочої області",
+    "text": "Контекст робочого середовища",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Робоче середовище"
   }
 }

@@ -12,7 +12,7 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Керуйте своїми організаціями",
+    "text": "Керуй своїми організаціями",
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
@@ -32,7 +32,7 @@
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Організації забезпечують уніфіковану оплату та адміністрування. Почніть зі створення Вашої першої організації.",
+    "text": "Організації забезпечують уніфіковану оплату та адміністрування. Почни зі створення своєї першої організації.",
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
@@ -84,19 +84,19 @@
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "Електронна адреса для оплати",
+    "text": "Електронна пошта для оплати",
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Основний контакт для сповіщень про оплату та адміністративних сповіщень",
+    "text": "Основний контакт для оплати та адміністративних сповіщень",
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Виберіть організацію",
+    "text": "Обери організацію",
     "source_hash": "48326f52"
   },
   "web.organizations.switcher_locked": {
-    "text": "Перемикання організації недоступне на цій сторінці",
+    "text": "Переключення організацій недоступне на цій сторінці",
     "source_hash": "da0cf810"
   },
   "web.organizations.not_found": {
@@ -132,7 +132,7 @@
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Оновіть назву та опис Вашої організації",
+    "text": "Оновити назву та опис організації",
     "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
@@ -156,15 +156,15 @@
     "source_hash": "bc2b59b8"
   },
   "web.organizations.billing_email_updated": {
-    "text": "Електронну адресу для оплати успішно оновлено",
+    "text": "Електронну пошту для оплати успішно оновлено",
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "Електронну адресу для оплати можна змінити на сторінці «Огляд оплати»",
+    "text": "Електронну пошту для оплати можна змінити на сторінці огляду оплати",
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Інтеграція оплати незабаром",
+    "text": "Інтеграція оплати скоро буде",
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
@@ -180,11 +180,11 @@
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Керуйте Вашою організацією",
+    "text": "Керуй своєю організацією",
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Оновіть назву Вашої компанії та деталі організації тут. Ця інформація допомагає персоналізувати Ваш обліковий запис і може використовуватися для функцій брендування в майбутньому.",
+    "text": "Оновити назву компанії та деталі організації тут. Ця інформація допомагає персоналізувати обліковий запис і може використовуватися для функцій брендингу в майбутньому.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
@@ -192,11 +192,11 @@
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Створіть свою першу організацію, щоб керувати інформацією про компанію та підготуватися до майбутніх функцій брендування.",
+    "text": "Створи свою першу організацію для керування інформацією про компанію та підготовки до майбутніх функцій брендингу.",
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Керуйте своїми організаціями та учасниками команди",
+    "text": "Керуй своїми організаціями та учасниками команди",
     "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -204,11 +204,11 @@
     "source_hash": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Брендування компанії",
+    "text": "Брендинг компанії",
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Команда",
+    "text": "Учасники",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -228,7 +228,7 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Це назавжди видалить організацію. Цю дію неможливо скасувати.",
+    "text": "Це остаточно видалить організацію. Цю дію неможливо скасувати.",
     "source_hash": "ab2d2c05"
   },
   "web.organizations.delete": {
@@ -240,7 +240,7 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Ви впевнені, що хочете видалити {name}? Цю дію неможливо скасувати.",
+    "text": "Ти впевнений, що хочеш видалити {name}? Цю дію неможливо скасувати.",
     "source_hash": "db7e1f9d"
   },
   "web.organizations.delete_error": {
@@ -252,7 +252,7 @@
     "source_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Керуйте учасниками організації та їхніми ролями",
+    "text": "Керуй учасниками організації та їхніми ролями",
     "source_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
@@ -276,7 +276,7 @@
     "source_hash": "dcd1d522"
   },
   "web.organizations.members.email": {
-    "text": "Електронна адреса",
+    "text": "Електронна пошта",
     "source_hash": "969ccbd3"
   },
   "web.organizations.members.role": {
@@ -292,11 +292,11 @@
     "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Учасників ще немає. Запросіть членів команди, щоб почати.",
+    "text": "Учасників ще немає. Запроси учасників команди для початку.",
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
-    "text": "У цій організації ще немає учасників.",
+    "text": "В цій організації ще немає учасників.",
     "source_hash": "61dd2085"
   },
   "web.organizations.members.role_updated": {
@@ -320,23 +320,23 @@
     "source_hash": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Ви впевнені, що хочете видалити {name} з цієї організації?",
+    "text": "Ти впевнений, що хочеш видалити {name} з цієї організації?",
     "source_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Ви не можете змінити власну роль",
+    "text": "Ти не можеш змінити свою власну роль",
     "source_hash": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Ви не можете видалити себе з організації",
+    "text": "Ти не можеш видалити себе з організації",
     "source_hash": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Ви не можете видалити власника організації",
+    "text": "Ти не можеш видалити власника організації",
     "source_hash": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "У Вас немає дозволу керувати учасниками",
+    "text": "У тебе немає дозволу керувати учасниками",
     "source_hash": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
@@ -376,11 +376,11 @@
     "source_hash": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "Очікуючі запрошення",
+    "text": "Запрошення в очікуванні",
     "source_hash": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "Немає очікуючих запрошень",
+    "text": "Немає запрошень в очікуванні",
     "source_hash": "275814da"
   },
   "web.organizations.invitations.email_address": {
@@ -408,7 +408,7 @@
     "source_hash": "cedbf507"
   },
   "web.organizations.invitations.resend": {
-    "text": "Надіслати повторно",
+    "text": "Повторити",
     "source_hash": "1f948437"
   },
   "web.organizations.invitations.revoke": {
@@ -416,7 +416,7 @@
     "source_hash": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Запрошення успішно надіслано повторно",
+    "text": "Запрошення успішно повторно надіслано",
     "source_hash": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
@@ -432,7 +432,7 @@
     "source_hash": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "Запросив",
+    "text": "Запрошено",
     "source_hash": "c7a6f156"
   },
   "web.organizations.invitations.invited_at": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Учасник",
+    "text": "Учасник команди",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -488,11 +488,11 @@
     "source_hash": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Вас запрошено приєднатися до",
+    "text": "Тебе запрошено приєднатися до",
     "source_hash": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Вас запрошено як",
+    "text": "Тебе запрошено як",
     "source_hash": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
@@ -512,7 +512,7 @@
     "source_hash": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "Термін дії цього запрошення закінчився",
+    "text": "Це запрошення прострочене",
     "source_hash": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
@@ -520,7 +520,7 @@
     "source_hash": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Будь ласка, увійдіть, щоб прийняти це запрошення",
+    "text": "Увійди, щоб прийняти це запрошення",
     "source_hash": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
@@ -528,11 +528,11 @@
     "source_hash": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Оновіть свій план, щоб запрошувати учасників команди",
+    "text": "Оновити план, щоб запрошувати учасників команди",
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Запрошення учасників команди потребує плану з керуванням командою. Оновіть, щоб додати співробітників до Вашої організації.",
+    "text": "Запрошення учасників команди вимагає плану з керуванням командами. Оновись, щоб додати співпрацівників до своєї організації.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -556,11 +556,11 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Увійшли з іншим обліковим записом",
+    "text": "Увійшов інший обліковий запис",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Це запрошення для {invitedEmail}. Зараз Ви увійшли як {currentEmail}.",
+    "text": "Це запрошення для {invitedEmail}. Ти наразі увійшов як {currentEmail}.",
     "source_hash": "b8d3e5f7"
   },
   "web.organizations.invitations.continue_as_invited_email": {
@@ -568,15 +568,201 @@
     "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
-    "text": "{days} дн. залишилось",
+    "text": "залишилося {days}д",
     "source_hash": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
-    "text": "{hours} год. залишилось",
+    "text": "залишилося {hours}г",
     "source_hash": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
     "text": "Скоро закінчується",
     "source_hash": "a5dcfef9"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Переглядай та налаштовуй свої робочі середовища"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "від {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "як {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Повернутися на головну"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Це запрошення надіслано на цю електронну адресу"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Продовжити"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Увійти та прийняти запрошення"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Перейти до організацій"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Ти вже є учасником цієї організації"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Приєднатися до {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Увійди, щоб приєднатися до {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Відхилити"
+  },
+  "web.organizations.sso.title": {
+    "text": "Єдиний вхід (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Налаштуй SSO, щоб дозволити учасникам входити через провайдера ідентифікації твоєї організації"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Тип провайдера"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Обери провайдера ідентифікації своєї організації"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Відображуване ім'я"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Дружнє ім'я, що показується користувачам при вході"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "напр. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "ID клієнта"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Твій OAuth ID клієнта"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Секрет клієнта"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Твій OAuth секрет клієнта"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Залиш порожнім, щоб зберегти існуючий секрет"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "ID тенанта"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Ідентифікатор тенанта Azure AD / Entra ID"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "напр. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL видавця"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "URL для виявлення OIDC твого провайдера ідентифікації"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "напр. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Дозволені домени електронної пошти"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Лише користувачі з електронними адресами з цих доменів можуть входити. Залиш порожнім, щоб дозволити всі домени."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "напр. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Введи дійсний домен (напр. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Цей домен вже є у списку"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Видалити {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Увімкнути SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Коли увімкнено, учасники організації можуть входити через цього провайдера SSO"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Зберегти конфігурацію SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Видалити конфігурацію"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Ти впевнений? Це вимкне SSO для твоєї організації."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Не вдалося завантажити конфігурацію SSO"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Не вдалося зберегти конфігурацію SSO"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Конфігурацію SSO успішно створено"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Конфігурацію SSO успішно оновлено"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Конфігурацію SSO успішно видалено"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Не вдалося видалити конфігурацію SSO"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Тест з'єднання"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Перевір, чи провайдер ідентифікації доступний (не перевіряє облікові дані)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Тест з'єднання"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Тестування..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Тест з'єднання не вдався"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Ендпоінт авторизації"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Відсутні поля"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Увімкнено"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Налаштовано"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO домену"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Налаштуй SSO для кожного підтвердженого домену"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Щоб змінити провайдера, спочатку видали цю конфігурацію"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Не налаштовано"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Команда"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

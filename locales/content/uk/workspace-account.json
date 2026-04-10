@@ -32,7 +32,7 @@
     "source_hash": "0b37cff3"
   },
   "web.account.email": {
-    "text": "Ел. пошта:",
+    "text": "Електронна пошта:",
     "source_hash": "17507dcf"
   },
   "web.account.region": {
@@ -76,7 +76,7 @@
     "source_hash": "7c451e0f"
   },
   "web.account.changePassword.confirmPassword": {
-    "text": "Підтвердіть",
+    "text": "Підтвердити",
     "source_hash": "eebdd24a"
   },
   "web.account.changePassword.updatePassword": {
@@ -116,7 +116,7 @@
     "source_hash": "617bfe67"
   },
   "web.account.your_account": {
-    "text": "Ваш обліковий запис",
+    "text": "Твій обліковий запис",
     "source_hash": "89e60bfb"
   },
   "web.account.support_details": {
@@ -140,7 +140,7 @@
     "source_hash": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
-    "text": "Підтвердіть своїм паролем",
+    "text": "Підтверди своїм паролем",
     "source_hash": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
@@ -148,7 +148,7 @@
     "source_hash": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
-    "text": "Підтвердження видалення облікового запису",
+    "text": "Підтверди видалення облікового запису",
     "source_hash": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
@@ -160,23 +160,23 @@
     "source_hash": "685ecb98"
   },
   "web.account.permanently_delete_account": {
-    "text": "Назавжди видалити обліковий запис",
+    "text": "Остаточно видалити обліковий запис",
     "source_hash": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "остаточним і незворотним.",
+    "text": "остаточним та незворотним.",
     "source_hash": "6121225e"
   },
   "web.account.deleting_your_account_is": {
-    "text": "Видалення Вашого облікового запису є",
+    "text": "Видалення твого облікового запису є",
     "source_hash": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "знищіть їх перед продовженням",
+    "text": "знищ їх перед продовженням",
     "source_hash": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Будь-які таємниці, які Ви бажаєте видалити,",
+    "text": "Будь-які таємниці, які ти хочеш видалити,",
     "source_hash": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
@@ -184,7 +184,7 @@
     "source_hash": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
-    "text": "Зверніть увагу:",
+    "text": "Зверни увагу:",
     "source_hash": "086020fd"
   },
   "web.account.account_deleted_successfully": {
@@ -208,7 +208,7 @@
     "source_hash": "74a883a0"
   },
   "web.settings.description": {
-    "text": "Керуйте налаштуваннями та уподобаннями свого облікового запису",
+    "text": "Керуй налаштуваннями та уподобаннями облікового запису",
     "source_hash": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
@@ -216,7 +216,7 @@
     "source_hash": "2ff0853c"
   },
   "web.settings.back_to_dashboard": {
-    "text": "Повернутися до панелі керування",
+    "text": "Назад до панелі керування",
     "source_hash": "97ba1d39"
   },
   "web.settings.sections.account": {
@@ -228,7 +228,7 @@
     "source_hash": "3ac8bbca"
   },
   "web.settings.sections.advanced": {
-    "text": "Розширені",
+    "text": "Розширене",
     "source_hash": "9f088dbe"
   },
   "web.settings.general": {
@@ -248,11 +248,11 @@
     "source_hash": "efb52e71"
   },
   "web.settings.theme.description": {
-    "text": "Виберіть світлу або темну тему",
+    "text": "Обери світлу чи темну тему",
     "source_hash": "ff0ae84f"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "Виберіть світлу або темну тему",
+    "text": "Обери світлу чи темну тему",
     "source_hash": "ff0ae84f"
   },
   "web.settings.language.title": {
@@ -260,19 +260,19 @@
     "source_hash": "a4fe6526"
   },
   "web.settings.language.description": {
-    "text": "Виберіть бажану мову",
+    "text": "Обери бажану мову",
     "source_hash": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Виберіть бажану мову",
+    "text": "Обери бажану мову",
     "source_hash": "475bba7a"
   },
   "web.settings.security_settings_description": {
-    "text": "Керуйте автентифікацією та безпекою облікового запису",
+    "text": "Керуй автентифікацією та безпекою облікового запису",
     "source_hash": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "Керуйте інформацією про свій обліковий запис",
+    "text": "Керуй інформацією облікового запису",
     "source_hash": "4a23a29f"
   },
   "web.settings.profile.title": {
@@ -280,11 +280,11 @@
     "source_hash": "d696a35b"
   },
   "web.settings.profile.change_email": {
-    "text": "Змінити електронну адресу",
+    "text": "Змінити електронну пошту",
     "source_hash": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
-    "text": "Поточна електронна адреса",
+    "text": "Поточна електронна пошта",
     "source_hash": "5f1cab64"
   },
   "web.settings.profile.current_password": {
@@ -292,47 +292,47 @@
     "source_hash": "8ac76099"
   },
   "web.settings.profile.new_email": {
-    "text": "Нова електронна адреса",
+    "text": "Нова електронна пошта",
     "source_hash": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Введіть Ваш поточний пароль",
+    "text": "Введи свій поточний пароль",
     "source_hash": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Ваш пароль потрібен з міркувань безпеки",
+    "text": "Твій пароль потрібен з міркувань безпеки",
     "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "На нову адресу буде надіслано лист для підтвердження",
+    "text": "Лист для підтвердження буде надіслано на нову адресу",
     "source_hash": "575082a1"
   },
   "web.settings.profile.update_email": {
-    "text": "Оновити електронну адресу",
+    "text": "Оновити електронну пошту",
     "source_hash": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Оновіть електронну адресу, пов'язану з Вашим обліковим записом",
+    "text": "Оновити електронну адресу, пов'язану з твоїм обліковим записом",
     "source_hash": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "Всі поля обов'язкові",
+    "text": "Усі поля є обов'язковими",
     "source_hash": "04814271"
   },
   "web.settings.profile.invalid_email": {
-    "text": "Будь ласка, введіть дійсну електронну адресу",
+    "text": "Введи дійсну електронну адресу",
     "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Нова електронна адреса повинна відрізнятися від поточної",
+    "text": "Нова електронна пошта повинна відрізнятися від поточної",
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Електронну адресу успішно оновлено. Будь ласка, перевірте свою поштову скриньку, щоб підтвердити нову електронну адресу.",
+    "text": "Лист для підтвердження надіслано. Перевір нову поштову скриньку та натисни на посилання для підтвердження, щоб завершити зміну.",
     "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
-    "text": "Не вдалося оновити електронну адресу. Будь ласка, спробуйте ще раз.",
+    "text": "Не вдалося оновити електронну пошту. Спробуй ще раз.",
     "source_hash": "aeba6591"
   },
   "web.settings.sessions.title": {
@@ -340,11 +340,11 @@
     "source_hash": "b58fa4e0"
   },
   "web.settings.sessions.description": {
-    "text": "Керуйте своїми активними сесіями",
+    "text": "Керуй своїми активними сесіями",
     "source_hash": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Керуйте своїми активними сесіями",
+    "text": "Керуй своїми активними сесіями",
     "source_hash": "e5646da4"
   },
   "web.settings.password.title": {
@@ -352,11 +352,11 @@
     "source_hash": "e7cf3ef4"
   },
   "web.settings.password.description": {
-    "text": "Оновіть пароль Вашого облікового запису",
+    "text": "Оновити пароль облікового запису",
     "source_hash": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
-    "text": "Оновіть пароль Вашого облікового запису",
+    "text": "Оновити пароль облікового запису",
     "source_hash": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
@@ -364,11 +364,11 @@
     "source_hash": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "Назавжди видалити Ваш обліковий запис та всі дані",
+    "text": "Остаточно видалити обліковий запис та всі дані",
     "source_hash": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Назавжди видалити Ваш обліковий запис та всі дані",
+    "text": "Остаточно видалити обліковий запис та всі дані",
     "source_hash": "7a3a6da2"
   },
   "web.settings.security.security_score": {
@@ -376,7 +376,7 @@
     "source_hash": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "Загальний стан безпеки Вашого облікового запису",
+    "text": "Загальний стан безпеки твого облікового запису",
     "source_hash": "cf20935e"
   },
   "web.settings.security.excellent": {
@@ -396,11 +396,11 @@
     "source_hash": "8d6cea25"
   },
   "web.settings.security.improve_security": {
-    "text": "Покращте свою безпеку",
+    "text": "Покращ свою безпеку",
     "source_hash": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Увімкніть двофакторну автентифікацію для надійнішого захисту",
+    "text": "Увімкни двофакторну автентифікацію для надійнішого захисту",
     "source_hash": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
@@ -440,19 +440,19 @@
     "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Використовуйте надійний унікальний пароль для свого облікового запису",
+    "text": "Використовуй надійний унікальний пароль для облікового запису",
     "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Увімкніть двофакторну автентифікацію для додаткового захисту",
+    "text": "Увімкни двофакторну автентифікацію для додаткового захисту",
     "source_hash": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Збережіть коди відновлення в безпечному місці",
+    "text": "Збережи коди відновлення в безпечному місці",
     "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Регулярно переглядайте та відкликайте невикористані сесії",
+    "text": "Регулярно переглядай та відкликай невикористані сесії",
     "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
@@ -464,11 +464,11 @@
     "source_hash": "21fc84f3"
   },
   "web.settings.api.description": {
-    "text": "Керуйте API-ключами та інтеграціями",
+    "text": "Керуй API-ключами та інтеграціями",
     "source_hash": "70976099"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "Керуйте API-ключами та інтеграціями",
+    "text": "Керуй API-ключами та інтеграціями",
     "source_hash": "70976099"
   },
   "web.settings.api.documentation": {
@@ -476,15 +476,15 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Дізнайтеся, як інтегрувати Onetime Secret у Ваші додатки",
+    "text": "Дізнайся, як інтегрувати Onetime Secret у свої застосунки",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
-    "text": "Довідник REST API",
+    "text": "Довідка REST API",
     "source_hash": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Повна документація API та кінцеві точки",
+    "text": "Повна документація API та ендпоінти",
     "source_hash": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
@@ -500,31 +500,31 @@
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Ніколи не фіксуйте API-ключі у системі контролю версій",
+    "text": "Ніколи не додавай API-ключі в систему контролю версій",
     "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Використовуйте змінні середовища для зберігання API-ключів",
+    "text": "Використовуй змінні середовища для зберігання API-ключів",
     "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Регулярно змінюйте API-ключі для безпеки",
+    "text": "Регулярно змінюй API-ключі для безпеки",
     "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "Завжди використовуйте HTTPS для API-запитів",
+    "text": "Завжди використовуй HTTPS при здійсненні API-запитів",
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Відстежуйте використання API та налаштуйте сповіщення",
+    "text": "Відстежуй використання API та налаштуй сповіщення",
     "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
-    "text": "Важливе повідомлення",
+    "text": "Важливе зауваження",
     "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Перегенерація API-ключа зробить поточний ключ недійсним. Оновіть усі додатки, які використовують старий ключ.",
+    "text": "Перегенерація API-ключа зробить поточний ключ недійсним. Онови всі застосунки, що використовують старий ключ.",
     "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
@@ -532,15 +532,15 @@
     "source_hash": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Керуйте налаштуваннями конфіденційності",
+    "text": "Керуй своїми налаштуваннями конфіденційності",
     "source_hash": "add087da"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "Ваша конфіденційність",
+    "text": "Твоя конфіденційність",
     "source_hash": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "Не підлягає обговоренню",
+    "text": "Без компромісів",
     "source_hash": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
@@ -548,11 +548,11 @@
     "source_hash": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Без аналітики. Без відстеження. Крапка.",
+    "text": "Жодної аналітики. Жодного відстеження. Крапка.",
     "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "Це не налаштування, тому що немає нічого, що можна увімкнути чи вимкнути. Ваша конфіденційність закладена в те, як ми працюємо.",
+    "text": "Це не налаштування, тому що немає нічого, що можна увімкнути чи вимкнути. Твоя конфіденційність вбудована в наш спосіб роботи.",
     "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
@@ -560,27 +560,27 @@
     "source_hash": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "Керуйте способом отримання сповіщень",
+    "text": "Керуй способом отримання сповіщень",
     "source_hash": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Не вдалося оновити налаштування сповіщень. Будь ласка, спробуйте ще раз.",
+    "text": "Не вдалося оновити налаштування сповіщень. Спробуй ще раз.",
     "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Сповіщення про перегляд таємниці",
+    "text": "Сповіщення про перегляд таємниць",
     "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Отримуйте лист, коли хтось переглядає Вашу таємницю",
+    "text": "Отримуй лист, коли хтось переглядає твою таємницю",
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Ви отримаєте сповіщення щоразу, коли одержувач переглядає одну з Ваших таємниць",
+    "text": "Тебе буде повідомлено кожного разу, коли отримувач розкриває одну з твоїх таємниць",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Електронні листи зі сповіщеннями містять лише мітку часу та ID таємниці. Інформація про того, хто переглядав, ніколи не включається.",
+    "text": "Листи сповіщень містять лише мітку часу та ID таємниці. Інформація про того, хто переглянув, ніколи не включається.",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
@@ -596,15 +596,15 @@
     "source_hash": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Експортувати дані Вашого облікового запису",
+    "text": "Експортувати дані облікового запису",
     "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Запросіть повну копію даних Вашого облікового запису у машиночитабельному форматі",
+    "text": "Запроси повну копію даних облікового запису у машиночитаному форматі",
     "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
-    "text": "Запросити експорт даних",
+    "text": "Запитати експорт даних",
     "source_hash": "902394be"
   },
   "web.settings.caution.export_info": {
@@ -612,19 +612,19 @@
     "source_hash": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
-    "text": "Експорти обробляються протягом 24 годин і надсилаються на Вашу електронну адресу",
+    "text": "Експорт обробляється протягом 24 годин і надсилається на твою електронну адресу",
     "source_hash": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Видалення Вашого облікового запису:",
+    "text": "Видалення твого облікового запису призведе до:",
     "source_hash": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Назавжди видалить усі Ваші таємниці",
+    "text": "Остаточного видалення всіх твоїх таємниць",
     "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Видалить усі метадані та історію таємниць",
+    "text": "Видалення всіх метаданих та історії таємниць",
     "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
@@ -636,35 +636,35 @@
     "source_hash": "02ccc074"
   },
   "web.settings.profile.confirm_email_change_title": {
-    "text": "Адресу електронної пошти оновлено",
+    "text": "Електронну адресу оновлено",
     "source_hash": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "Вашу електронну пошту успішно оновлено. Увійдіть за допомогою нової адреси електронної пошти.",
+    "text": "Твою електронну адресу успішно оновлено. Увійди з новою електронною адресою.",
     "source_hash": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
-    "text": "Перевірка вашої нової адреси електронної пошти...",
+    "text": "Перевірка твоєї нової електронної адреси...",
     "source_hash": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
-    "text": "Зміну електронної пошти не вдалося виконати",
+    "text": "Зміна електронної пошти не вдалася",
     "source_hash": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
-    "text": "Це посилання для підтвердження недійсне або термін його дії закінчився.",
+    "text": "Це посилання для підтвердження недійсне або прострочене.",
     "source_hash": "f54594c2"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
-    "text": "Повернутися до налаштувань облікового запису",
+    "text": "Назад до налаштувань облікового запису",
     "source_hash": "fd49b66b"
   },
   "web.settings.profile.redirecting_to_signin": {
-    "text": "Перенаправлення на сторінку входу...",
+    "text": "Перенаправлення на вхід...",
     "source_hash": "c65f7dcc"
   },
   "web.settings.profile.resend_confirmation": {
-    "text": "Надіслати лист підтвердження повторно",
+    "text": "Повторно надіслати лист підтвердження",
     "source_hash": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
@@ -676,11 +676,11 @@
     "source_hash": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
-    "text": "Лист для підтвердження надіслано. Перевірте вашу поштову скриньку та натисніть на посилання для підтвердження.",
+    "text": "Лист для підтвердження надіслано. Перевір свою пошту та натисни на посилання для підтвердження.",
     "source_hash": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {
-    "text": "Не отримали лист?",
+    "text": "Не отримав лист?",
     "source_hash": "fe3ac3ad"
   }
 }

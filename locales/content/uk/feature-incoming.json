@@ -4,7 +4,7 @@
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Безпечно діліться конфіденційною інформацією з нашою командою підтримки",
+    "text": "Безпечно поділися конфіденційною інформацією з нашою командою підтримки",
     "source_hash": "08beca74"
   },
   "incoming.loading_config": {
@@ -20,39 +20,39 @@
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Ця функція наразі вимкнена. Будь ласка, зверніться до служби підтримки за допомогою.",
+    "text": "Ця функція наразі вимкнена. Зверніся до підтримки за допомогою.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "Нагадування",
+    "text": "Нотатка",
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Короткий опис (напр., Запит на скидання пароля)",
+    "text": "Короткий опис (напр., запит на скидання пароля)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "Допоможіть нам направити Ваше повідомлення потрібній особі",
+    "text": "Допоможи нам направити твоє повідомлення потрібній людині",
     "source_hash": "185a207e"
   },
   "incoming.recipient_label": {
-    "text": "Надіслати до",
+    "text": "Надіслати",
     "source_hash": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "Виберіть одержувача",
+    "text": "Обери отримувача",
     "source_hash": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "Виберіть одержувача для цієї таємниці",
+    "text": "Обери отримувача для цієї таємниці",
     "source_hash": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "Виберіть, хто отримає це захищене повідомлення",
+    "text": "Обери, хто отримає це безпечне повідомлення",
     "source_hash": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "Одержувачі недоступні",
+    "text": "Немає доступних отримувачів",
     "source_hash": "62834334"
   },
   "incoming.secret_content_label": {
@@ -60,7 +60,7 @@
     "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Вставте конфіденційну інформацію тут (паролі, ключі тощо)",
+    "text": "Встав конфіденційну інформацію тут (паролі, ключі тощо)",
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
@@ -96,7 +96,7 @@
     "source_hash": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "Ваше захищене повідомлення доставлено.",
+    "text": "Твоє безпечне повідомлення було доставлено.",
     "source_hash": "e1538e3e"
   },
   "incoming.reference_id": {
@@ -108,27 +108,48 @@
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "Одержувач зможе переглянути цю таємницю лише один раз. Після перегляду таємницю буде остаточно видалено.",
+    "text": "Отримувач зможе переглянути цю таємницю лише один раз. Після перегляду таємницю буде остаточно видалено.",
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "Надіслати ще одну таємницю",
+    "text": "Надіслати іншу таємницю",
     "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Безпечно діліться конфіденційною інформацією",
+    "text": "Безпечно поділися конфіденційною інформацією",
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Тримайте паролі та приватні дані подалі від електронної пошти та журналів чатів",
+    "text": "Тримай паролі та приватні дані подалі від електронної пошти та чатів",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Збережіть {receipt} для своїх записів.",
+    "text": "Збережи свою {receipt} для своїх записів.",
     "source_hash": "db3d9c98"
   },
   "incoming.receipt_link_text": {
     "text": "квитанція",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Потрібне оновлення"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Ця функція вимагає оновлення плану. Зверніся до власника облікового запису, щоб увімкнути вхідні таємниці."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Нотатка повинна містити не більше {max} символів"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Таємний вміст є обов'язковим"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Будь ласка, обери отримувача"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Функцію вхідних таємниць не увімкнено"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Будь ласка, перевір форму на наявність помилок"
   }
 }

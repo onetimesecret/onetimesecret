@@ -4,7 +4,7 @@
     "source_hash": "3086ef43"
   },
   "web.billing.subscription_synced_description": {
-    "text": "Переваги вашої підписки синхронізовано з іншого регіону.",
+    "text": "Переваги твоєї підписки синхронізовано з іншого регіону.",
     "source_hash": "a99b7a98"
   },
   "web.billing.upgrade.required": {
@@ -16,11 +16,11 @@
     "source_hash": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Керування командою потребує Identity Plus або вище",
+    "text": "Керування командами потребує Identity Plus або вище",
     "source_hash": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Власні домени потребують Identity Plus або вище",
+    "text": "Користувацькі домени потребують Identity Plus або вище",
     "source_hash": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
@@ -32,7 +32,7 @@
     "source_hash": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Керуйте своєю підпискою, організаціями та налаштуваннями оплати",
+    "text": "Керуй своєю підпискою, організаціями та налаштуваннями оплати",
     "source_hash": "3995095c"
   },
   "web.billing.overview.title": {
@@ -40,7 +40,7 @@
     "source_hash": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "Перегляньте та керуйте підпискою та платіжними даними",
+    "text": "Переглядай та керуй підпискою та платіжними деталями",
     "source_hash": "60e5a00e"
   },
   "web.billing.overview.billing_for_organization": {
@@ -52,7 +52,7 @@
     "source_hash": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "Функції плану",
+    "text": "Можливості плану",
     "source_hash": "fbab9086"
   },
   "web.billing.overview.payment_method": {
@@ -88,7 +88,7 @@
     "source_hash": "cbc4ef92"
   },
   "web.billing.plans.legacy_plan_info": {
-    "text": "Ви на плані зі збереженою спеціальною ціною.",
+    "text": "Ти на успадкованому плані зі спеціальною ціною.",
     "source_hash": "e9aa8bf0"
   },
   "web.billing.plans.early_supporter_plan": {
@@ -96,7 +96,7 @@
     "source_hash": "f37cd0d9"
   },
   "web.billing.plans.legacy_plan_warning": {
-    "text": "Зміна плану призведе до втрати вашої збереженої ціни. Цю дію неможливо скасувати.",
+    "text": "Переключення плану скасує твою успадковану ціну. Цю дію неможливо скасувати.",
     "source_hash": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
@@ -108,7 +108,7 @@
     "source_hash": "746314de"
   },
   "web.billing.overview.days_remaining": {
-    "text": "днів залишилось",
+    "text": "днів залишилося",
     "source_hash": "385438a3"
   },
   "web.billing.overview.billing_on": {
@@ -136,7 +136,7 @@
     "source_hash": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "Оновити платіжну інформацію",
+    "text": "Оновити платіжні дані",
     "source_hash": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
@@ -144,7 +144,7 @@
     "source_hash": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Створіть організацію для керування оплатою та підпискою",
+    "text": "Створи організацію для керування оплатою та підпискою",
     "source_hash": "41e922d2"
   },
   "web.billing.overview.load_error": {
@@ -152,11 +152,11 @@
     "source_hash": "3bc44882"
   },
   "web.billing.overview.upgrade_success": {
-    "text": "Ваш план успішно оновлено",
+    "text": "Твій план успішно оновлено",
     "source_hash": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
-    "text": "Ваш новий план тепер активний. Дякуємо за покупку.",
+    "text": "Твій новий план тепер активний. Дякуємо за покупку.",
     "source_hash": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
@@ -176,27 +176,27 @@
     "source_hash": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "Власні домени",
+    "text": "Користувацькі домени",
     "source_hash": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Власні налаштування конфіденційності",
+    "text": "Користувацькі налаштування конфіденційності",
     "source_hash": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Подовжений термін дії за замовчуванням",
+    "text": "Розширений термін дії за замовчуванням",
     "source_hash": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_sender": {
-    "text": "Власні налаштування пошти",
+    "text": "Користувацькі налаштування пошти",
     "source_hash": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "Власне брендування",
+    "text": "Користувацький брендинг",
     "source_hash": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Таємниці домашньої сторінки",
+    "text": "Таємниці на головній сторінці",
     "source_hash": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
@@ -232,15 +232,15 @@
     "source_hash": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "Не вдалося завантажити деталі функцій",
+    "text": "Не вдалося завантажити деталі можливостей",
     "source_hash": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "Функції недоступні",
+    "text": "Немає доступних можливостей",
     "source_hash": "03d195e8"
   },
   "web.billing.features.create_secrets": {
-    "text": "Створення та передача таємниць",
+    "text": "Створення та поширення таємниць",
     "source_hash": "303f9386"
   },
   "web.billing.features.api_access": {
@@ -248,27 +248,27 @@
     "source_hash": "5f31cc2f"
   },
   "web.billing.features.custom_domains": {
-    "text": "Власні домени",
+    "text": "Користувацькі домени",
     "source_hash": "6170ab94"
   },
   "web.billing.features.custom_domain": {
-    "text": "1 власний домен",
+    "text": "1 користувацький домен",
     "source_hash": "6a6be744"
   },
   "web.billing.features.unlimited_custom_domains": {
-    "text": "Необмежена кількість власних доменів",
+    "text": "Необмежена кількість користувацьких доменів",
     "source_hash": "53eb7521"
   },
   "web.billing.features.custom_branding": {
-    "text": "Власне брендування",
+    "text": "Користувацький брендинг",
     "source_hash": "237dabec"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "Таємниці домашньої сторінки",
+    "text": "Таємниці на головній сторінці",
     "source_hash": "6360f7ec"
   },
   "web.billing.features.manage_teams": {
-    "text": "Керування командою",
+    "text": "Керування командами",
     "source_hash": "6bcbac8f"
   },
   "web.billing.features.manage_members": {
@@ -300,7 +300,7 @@
     "source_hash": "d52b4039"
   },
   "web.billing.features.activity_stream": {
-    "text": "Потік активності",
+    "text": "Стрічка активності",
     "source_hash": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
@@ -308,15 +308,15 @@
     "source_hash": "07202af3"
   },
   "web.billing.plans.title": {
-    "text": "Виберіть план",
+    "text": "Обери план",
     "source_hash": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Виберіть план, який відповідає Вашим потребам",
+    "text": "Обери план, що відповідає твоїм потребам",
     "source_hash": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "Виберіть ідеальний план для Вашої організації",
+    "text": "Обери ідеальний план для своєї організації",
     "source_hash": "308076f2"
   },
   "web.billing.plans.current": {
@@ -336,11 +336,11 @@
     "source_hash": "d955b7e8"
   },
   "web.billing.plans.cancel_to_downgrade": {
-    "text": "Скасувати для переходу",
+    "text": "Скасувати для переключення",
     "source_hash": "1c4cda89"
   },
   "web.billing.plans.monthly": {
-    "text": "Щомісяця",
+    "text": "Щомісячно",
     "source_hash": "9b11f6b7"
   },
   "web.billing.plans.yearly": {
@@ -352,7 +352,7 @@
     "source_hash": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Заощаджуйте {percent}% при річній оплаті",
+    "text": "Заощадь {percent}% з річною оплатою",
     "source_hash": "88c451f2"
   },
   "web.billing.plans.free_plan": {
@@ -364,7 +364,7 @@
     "source_hash": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Декілька команд",
+    "text": "Мультикоманда",
     "source_hash": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
@@ -380,7 +380,7 @@
     "source_hash": "86e3a165"
   },
   "web.billing.plans.features": {
-    "text": "Функції",
+    "text": "Можливості",
     "source_hash": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
@@ -396,7 +396,7 @@
     "source_hash": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "Вибрати план",
+    "text": "Обрати план",
     "source_hash": "8709f894"
   },
   "web.billing.plans.contact_sales": {
@@ -404,19 +404,19 @@
     "source_hash": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Маєте запитання або потрібно щось особливе?",
+    "text": "Маєш запитання або потрібно щось особливе?",
     "source_hash": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
-    "text": "Ми будемо раді почути від Вас. Повідомте нам, що Ви шукаєте.",
+    "text": "Ми будемо раді почути від тебе. Розкажи, що ти шукаєш.",
     "source_hash": "a6b7f407"
   },
   "web.billing.plans.teams_limit": {
-    "text": "{count} команда | {count} команди | {count} команд",
+    "text": "{count} команда | {count} команд",
     "source_hash": "a83641bc"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} учасник на команду | {count} учасники на команду | {count} учасників на команду",
+    "text": "{count} учасник на команду | {count} учасників на команду",
     "source_hash": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
@@ -440,7 +440,7 @@
     "source_hash": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Наразі плани {interval} недоступні.",
+    "text": "Плани {interval} наразі недоступні.",
     "source_hash": "d8454436"
   },
   "web.billing.plans.load_error": {
@@ -448,7 +448,7 @@
     "source_hash": "a37d4d9a"
   },
   "web.billing.plans.change_immediate": {
-    "text": "Ваш план зміниться негайно.",
+    "text": "Твій план зміниться негайно.",
     "source_hash": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
@@ -476,11 +476,11 @@
     "source_hash": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Ваші ліміти функцій оновляться негайно після зміни плану.",
+    "text": "Ліміти можливостей оновляться одразу після зміни плану.",
     "source_hash": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "Не вдалося змінити план. Будь ласка, спробуйте ще раз.",
+    "text": "Зміна плану не вдалася. Спробуй ще раз.",
     "source_hash": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
@@ -500,7 +500,7 @@
     "source_hash": "8eb8ea81"
   },
   "web.billing.plans.credit_applies_heading": {
-    "text": "Як застосовується Ваш кредит:",
+    "text": "Як застосовується кредит:",
     "source_hash": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
@@ -508,7 +508,7 @@
     "source_hash": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
-    "text": "Застосований кредит:",
+    "text": "Застосовано кредит:",
     "source_hash": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
@@ -516,7 +516,7 @@
     "source_hash": "22ee868a"
   },
   "web.billing.plans.remaining_account_credit": {
-    "text": "Залишок кредиту облікового запису:",
+    "text": "Залишок кредиту на рахунку:",
     "source_hash": "eedd0c0a"
   },
   "web.billing.plans.credit_future_note": {
@@ -524,11 +524,11 @@
     "source_hash": "5007add6"
   },
   "web.billing.invoices.title": {
-    "text": "Історія оплат",
+    "text": "Історія оплати",
     "source_hash": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "Перегляньте історію оплат і завантажте рахунки",
+    "text": "Переглянь історію оплати та завантаж рахунки",
     "source_hash": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
@@ -556,7 +556,7 @@
     "source_hash": "92d2d0ce"
   },
   "web.billing.invoices.no_invoices_description": {
-    "text": "Ваші рахунки з'являться тут після переходу на платний план",
+    "text": "Твої рахунки з'являться тут, коли ти оновишся до платного плану",
     "source_hash": "7f16be70"
   },
   "web.billing.invoices.view_plans": {
@@ -580,11 +580,11 @@
     "source_hash": "d2e16e61"
   },
   "web.billing.invoices.open": {
-    "text": "Відкритий",
+    "text": "Відкрито",
     "source_hash": "ed077f3d"
   },
   "web.billing.invoices.uncollectible": {
-    "text": "Не стягнутий",
+    "text": "Неможливо стягнути",
     "source_hash": "c8d3b241"
   },
   "web.billing.invoices.void": {
@@ -596,7 +596,7 @@
     "source_hash": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
-    "text": "Оплату керує {orgName}",
+    "text": "Оплатою керує {orgName}",
     "source_hash": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
@@ -604,11 +604,11 @@
     "source_hash": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "Ви досягли ліміту учасників для цієї команди",
+    "text": "Ти досягнув ліміту учасників для цієї команди",
     "source_hash": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Оновіть, щоб додати більше учасників",
+    "text": "Оновись, щоб додати більше учасників",
     "source_hash": "602bdef4"
   },
   "web.billing.subscription.title": {
@@ -640,7 +640,7 @@
     "source_hash": "fa8ed0bd"
   },
   "web.billing.subscription.team_usage": {
-    "text": "Використання команди",
+    "text": "Використання команд",
     "source_hash": "f9989642"
   },
   "web.billing.subscription.teams_used": {
@@ -652,7 +652,7 @@
     "source_hash": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "Керуйте підпискою, способами оплати та історією платежів",
+    "text": "Керуй підпискою, способами оплати та історією оплат",
     "source_hash": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
@@ -664,11 +664,11 @@
     "source_hash": "b6f47df3"
   },
   "web.billing.start_today": {
-    "text": "Почати сьогодні",
+    "text": "Почни сьогодні",
     "source_hash": "80e73fc7"
   },
   "web.billing.start_today_with_identity_plus": {
-    "text": "Почніть сьогодні з Identity Plus",
+    "text": "Почни сьогодні з Identity Plus",
     "source_hash": "cce4c7d7"
   },
   "web.billing.per_month": {
@@ -680,7 +680,7 @@
     "source_hash": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "Дизайн із пріоритетом конфіденційності",
+    "text": "Дизайн з пріоритетом конфіденційності",
     "source_hash": "587d738c"
   },
   "web.billing.identity_plus": {
@@ -704,7 +704,7 @@
     "source_hash": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Оновлення для команд",
+    "text": "Оновити для команд",
     "source_hash": "90dfb533"
   },
   "web.billing.benefits_of": {
@@ -728,7 +728,7 @@
     "source_hash": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Усі плани включають вибір локалізації даних: {0} регіонів",
+    "text": "Усі плани включають вибір розташування даних: {0} регіонів",
     "source_hash": "22a60b49"
   },
   "web.billing.get_started": {
@@ -765,36 +765,36 @@
     "source_hash": "3f85967f"
   },
   "web.billing.cancel.title": {
-    "text": "Скасувати підписку",
+    "text": "Скасування підписки",
     "context": "Modal dialog heading/title",
     "source_hash": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
-    "text": "Ви впевнені, що хочете скасувати підписку {plan}?",
+    "text": "Ти впевнений, що хочеш скасувати підписку {plan}?",
     "source_hash": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
-    "text": "Що відбувається при скасуванні:",
+    "text": "Що станеться при скасуванні:",
     "source_hash": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
-    "text": "Ви збережете доступ до всіх функцій до {date}",
+    "text": "Ти збережеш доступ до всіх можливостей до {date}",
     "source_hash": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "Ви збережете доступ до закінчення поточного розрахункового періоду",
+    "text": "Ти збережеш доступ до кінця поточного розрахункового періоду",
     "source_hash": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
-    "text": "З Вас більше не стягуватимуться кошти",
+    "text": "З тебе більше не буде стягнуто оплату",
     "source_hash": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
-    "text": "Ваш обліковий запис повернеться до безкоштовного плану",
+    "text": "Твій обліковий запис повернеться до безкоштовного плану",
     "source_hash": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
-    "text": "Зберегти підписку",
+    "text": "Залишити підписку",
     "context": "Secondary button in modal - keeps subscription active",
     "source_hash": "31e80c41"
   },
@@ -804,25 +804,25 @@
     "source_hash": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "Вашу підписку скасовано. Ви збережете доступ до кінця розрахункового періоду.",
+    "text": "Твою підписку скасовано. Ти збережеш доступ до кінця розрахункового періоду.",
     "source_hash": "e18fd9d5"
   },
   "web.billing.cancel.error": {
-    "text": "Не вдалося скасувати підписку. Будь ласка, спробуйте ще раз.",
+    "text": "Не вдалося скасувати підписку. Спробуй ще раз.",
     "source_hash": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
-    "text": "Заплановано скасування підписки",
+    "text": "Скасування підписки заплановано",
     "context": "Alert banner heading shown when cancellation is pending",
     "source_hash": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "Ваша підписка залишатиметься активною до {date}. Ви продовжуватимете мати повний доступ до всіх функцій до цього часу.",
+    "text": "Твоя підписка залишатиметься активною до {date}. Ти матимеш повний доступ до всіх можливостей до цього часу.",
     "context": "Alert banner description explaining continued access",
     "source_hash": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "Передумали? Ви можете повторно активувати підписку в будь-який час до дати скасування.",
+    "text": "Передумав? Ти можеш поновити підписку будь-коли до дати скасування.",
     "context": "Alert banner note encouraging reactivation",
     "source_hash": "c94d5527"
   },
@@ -835,11 +835,11 @@
     "source_hash": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Брендування робочої області",
+    "text": "Брендинг робочого середовища",
     "source_hash": "e7acbf6f"
   },
   "web.billing.features.extended_retention": {
-    "text": "Зберігання таємниць 30 днів",
+    "text": "30-денне зберігання таємниць",
     "source_hash": "21d6d514"
   },
   "web.billing.features.incoming_secrets": {
@@ -875,7 +875,7 @@
     "source_hash": "db966d47"
   },
   "web.billing.features.workspace_branding": {
-    "text": "Брендування робочої області",
+    "text": "Брендинг робочого середовища",
     "source_hash": "e7acbf6f"
   },
   "web.billing.features.dedicated_infrastructure": {
@@ -892,7 +892,7 @@
     "source_hash": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
-    "text": "Ваша поточна підписка використовує {from}. Обраний план оплачується у {to}. Для цього потрібно перевести вашу підписку на нову валюту.",
+    "text": "Твоя поточна підписка використовує {from}. Обраний план оплачується в {to}. Це вимагає міграції твоєї підписки на нову валюту.",
     "source_hash": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
@@ -908,23 +908,23 @@
     "source_hash": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
-    "text": "Коли має відбутися перехід?",
+    "text": "Коли відбудеться переключення?",
     "source_hash": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
-    "text": "Перейти наприкінці розрахункового періоду",
+    "text": "Переключити наприкінці розрахункового періоду",
     "source_hash": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "Ваш поточний план залишається активним до {date}. Після цього ви завершите оформлення нового плану.",
+    "text": "Твій поточний план залишається активним до {date}. Після цього ти завершиш оформлення нового плану.",
     "source_hash": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
-    "text": "Перейти негайно",
+    "text": "Переключити негайно",
     "source_hash": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Ваш поточний план скасовується зараз. Ви отримаєте повернення за невикористаний час і завершите оформлення нового плану.",
+    "text": "Твій поточний план скасовується зараз. Ти отримаєш відшкодування за невикористаний час та завершиш оформлення нового плану.",
     "source_hash": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
@@ -932,45 +932,45 @@
     "source_hash": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
-    "text": "Зміну валюти не вдалося виконати. Спробуйте знову.",
+    "text": "Міграція валюти не вдалася. Спробуй ще раз.",
     "source_hash": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
-    "text": "Валюту вашої підписки успішно оновлено.",
+    "text": "Валюту твоєї підписки успішно оновлено.",
     "source_hash": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "Ваш поточний план залишатиметься активним до кінця розрахункового періоду. Після цього вам буде запропоновано завершити оформлення нового плану.",
+    "text": "Твій поточний план залишатиметься активним до кінця розрахункового періоду. Тебе буде запрошено завершити оформлення нового плану після цього.",
     "source_hash": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
-    "text": "У вас є кредитний баланс у {currency}, який не може бути переведений на нову валюту.",
+    "text": "У тебе є кредитний баланс у {currency}, який неможливо перенести до нової валюти.",
     "source_hash": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "У вас є незавершені позиції в рахунках, які потрібно вирішити перед переходом.",
+    "text": "У тебе є незавершені позиції рахунку, які потрібно вирішити перед міграцією.",
     "source_hash": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
-    "text": "Активні купони у вашому обліковому записі можуть бути несумісні з новою валютою.",
+    "text": "Активні купони в твоєму обліковому записі можуть бути несумісні з новою валютою.",
     "source_hash": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
-    "text": "Зміна валюти очікується",
+    "text": "Міграція валюти в очікуванні",
     "context": "Banner heading when graceful migration is scheduled",
     "source_hash": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "Ваш поточний план закінчується {date}. Завершіть перехід на {plan} ({currency}).",
+    "text": "Твій поточний план закінчується {date}. Заверши переключення на {plan} ({currency}).",
     "source_hash": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
-    "text": "Завершити перехід",
+    "text": "Завершити міграцію",
     "context": "Button to start checkout for the new currency plan",
     "source_hash": "fa794e0c"
   },
   "web.billing.checkout_session_failed": {
-    "text": "Не вдалося створити сеанс оформлення",
+    "text": "Не вдалося створити сесію оформлення",
     "context": "Error when Stripe checkout session creation returns no URL",
     "source_hash": "a53f6fa3"
   },
@@ -980,13 +980,34 @@
     "source_hash": "3ff06e41"
   },
   "web.billing.plan_switch_success": {
-    "text": "Успішно переведено на {plan}",
+    "text": "Успішно переключено на {plan}",
     "context": "Success message after plan change",
     "source_hash": "ab7c715c"
   },
   "web.billing.plan_unavailable_region_mismatch": {
-    "text": "Доступно лише у вашому початковому регіоні підписки",
+    "text": "Доступно лише в регіоні твоєї початкової підписки",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Ти вже підписаний на цей план."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Поновити підписку"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Твою підписку поновлено. Оплата продовжуватиметься як зазвичай."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Не вдалося поновити підписку. Спробуй ще раз або зв'яжися з підтримкою."
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Гнучкий домен відправника пошти"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Єдиний вхід (SSO)"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Поновити"
   }
 }

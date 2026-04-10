@@ -4,11 +4,11 @@
     "source_hash": "8b827e19"
   },
   "web.login.need_an_account": {
-    "text": "Зареєструватися.",
+    "text": "Зареєструйся.",
     "source_hash": "10647723"
   },
   "web.login.forgot_your_password": {
-    "text": "Забули пароль?",
+    "text": "Забув пароль?",
     "source_hash": "afd25fdf"
   },
   "web.login.button_sign_in": {
@@ -16,11 +16,11 @@
     "source_hash": "bcc0bcc9"
   },
   "web.login.enter_your_credentials": {
-    "text": "Введіть свої облікові дані",
+    "text": "Введи свої дані",
     "source_hash": "07e1c44e"
   },
   "web.login.remember_me": {
-    "text": "Запам'ятати мене",
+    "text": "Запам'ятай мене",
     "source_hash": "f93267aa"
   },
   "web.login.send_sign_in_link": {
@@ -28,7 +28,7 @@
     "source_hash": "b1402b67"
   },
   "web.login.secure_link_helper": {
-    "text": "Безпечне посилання буде надіслано на Вашу електронну пошту.",
+    "text": "Безпечне посилання буде надіслано на твою електронну пошту.",
     "source_hash": "d31d20cf"
   },
   "web.login.or_divider": {
@@ -36,11 +36,11 @@
     "source_hash": "7175517a"
   },
   "web.login.sign_in_with_password": {
-    "text": "Увійти за допомогою пароля",
+    "text": "Увійти з паролем",
     "source_hash": "bedac809"
   },
   "web.login.use_passwordless": {
-    "text": "Використовувати вхід без пароля",
+    "text": "Використати вхід без пароля",
     "source_hash": "dddc0097"
   },
   "web.login.create_account": {
@@ -68,7 +68,7 @@
     "source_hash": "c225cdfb"
   },
   "web.login.or_continue_with": {
-    "text": "Або продовжити через",
+    "text": "Або продовж через",
     "source_hash": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
@@ -84,31 +84,31 @@
     "source_hash": "4d1213f9"
   },
   "web.auth.sso.error": {
-    "text": "Помилка входу через SSO. Будь ласка, спробуйте ще раз.",
+    "text": "Вхід через SSO не вдався. Будь ласка, спробуй ще раз.",
     "source_hash": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "Автентифікація SSO не вдалася. Спробуйте знову або використайте вхід за паролем.",
+    "text": "Автентифікація SSO не вдалася. Спробуй ще раз або використай вхід з паролем.",
     "source_hash": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "Посилання для автентифікації неповне. Запросіть нове посилання для входу.",
+    "text": "Посилання для автентифікації неповне. Запроси нове посилання для входу.",
     "source_hash": "f4a10652"
   },
   "web.login.errors.token_expired": {
-    "text": "Термін дії цього посилання для входу закінчився. Запросіть нове.",
+    "text": "Це посилання для входу прострочене. Запроси нове.",
     "source_hash": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "Це посилання для входу недійсне. Запросіть нове.",
+    "text": "Це посилання для входу недійсне. Запроси нове.",
     "source_hash": "270c6401"
   },
   "web.signup.create_your_account": {
-    "text": "Створіть Ваш обліковий запис",
+    "text": "Створи свій обліковий запис",
     "source_hash": "5f4c33d7"
   },
   "web.signup.alternate_prefix": {
-    "text": "Вже маєте обліковий запис?",
+    "text": "Вже маєш обліковий запис?",
     "source_hash": "f5dcb5d5"
   },
   "web.signup.have_an_account": {
@@ -124,46 +124,46 @@
     "source_hash": "e7cf3ef4"
   },
   "web.signup.email_error": {
-    "text": "Електронна адреса",
+    "text": "Електронна пошта",
     "source_hash": "969ccbd3"
   },
   "web.auth.verify._guidance": {
     "context": "Email verification flow after signup"
   },
   "web.auth.verify.title": {
-    "text": "Підтвердіть Ваш обліковий запис",
+    "text": "Підтверди свій обліковий запис",
     "source_hash": "3e2303ab"
   },
   "web.auth.verify.success": {
-    "text": "Ваш обліковий запис успішно підтверджено",
+    "text": "Твій обліковий запис успішно підтверджено",
     "source_hash": "902d0f47"
   },
   "web.auth.verify.invalid_key": {
-    "text": "Недійсний або закінчився термін дії ключа підтвердження",
+    "text": "Невірний або прострочений ключ підтвердження",
     "source_hash": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
-    "text": "Термін дії цього посилання для підтвердження закінчився. Будь ласка, запросіть нове.",
+    "text": "Це посилання для підтвердження прострочене. Запроси нове.",
     "source_hash": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
-    "text": "Цей обліковий запис вже підтверджено. Тепер Ви можете увійти.",
+    "text": "Цей обліковий запис вже підтверджено. Ти можеш увійти зараз.",
     "source_hash": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Не вдалося підтвердити обліковий запис. Будь ласка, спробуйте ще раз або зверніться до служби підтримки.",
+    "text": "Не вдалося підтвердити обліковий запис. Спробуй ще раз або зв'яжися з підтримкою.",
     "source_hash": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "Будь ласка, перевірте Вашу електронну пошту на наявність посилання для підтвердження",
+    "text": "Перевір свою пошту на наявність посилання для підтвердження",
     "source_hash": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "Помилка підтвердження облікового запису. Будь ласка, перевірте Ваше посилання для підтвердження або запросіть нове.",
+    "text": "Підтвердження облікового запису не вдалося. Перевір посилання для підтвердження або запроси нове.",
     "source_hash": "7aac4a45"
   },
   "web.auth.verify.error_title": {
-    "text": "Помилка підтвердження",
+    "text": "Підтвердження не вдалося",
     "source_hash": "cb3a722b"
   },
   "web.auth.verify.what_to_do": {
@@ -171,15 +171,15 @@
     "source_hash": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Перевірте Вашу електронну пошту на наявність останнього посилання для підтвердження",
+    "text": "Перевір пошту на наявність найновішого посилання для підтвердження",
     "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "Перевірте папку «Спам», якщо Ви не можете знайти лист",
+    "text": "Перевір папку спам/небажана пошта, якщо не знаходиш листа",
     "source_hash": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
-    "text": "Зв'яжіться зі службою підтримки, якщо у Вас продовжують виникати проблеми",
+    "text": "Зв'яжися з підтримкою, якщо проблеми тривають",
     "source_hash": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
@@ -187,7 +187,7 @@
     "source_hash": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Будь ласка, скористайтеся посиланням для підтвердження, надісланим на Вашу електронну адресу, щоб підтвердити Ваш обліковий запис.",
+    "text": "Використай посилання для підтвердження, надіслане на твою електронну адресу, щоб підтвердити обліковий запис.",
     "source_hash": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
@@ -207,15 +207,15 @@
     "source_hash": "7c451e0f"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "Підтвердіть новий пароль",
+    "text": "Підтвердити новий пароль",
     "source_hash": "642776c0"
   },
   "web.auth.change_password.success": {
-    "text": "Ваш пароль успішно змінено",
+    "text": "Твій пароль успішно змінено",
     "source_hash": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "Не вдалося змінити пароль. Будь ласка, перевірте свій поточний пароль і спробуйте ще раз.",
+    "text": "Не вдалося змінити пароль. Перевір поточний пароль та спробуй ще раз.",
     "source_hash": "1aa11b3f"
   },
   "web.auth.close_account.title": {
@@ -223,7 +223,7 @@
     "source_hash": "e1513814"
   },
   "web.auth.close_account.warning": {
-    "text": "Цю дію неможливо скасувати. Усі Ваші таємниці буде остаточно видалено.",
+    "text": "Цю дію неможливо скасувати. Усі твої таємниці буде остаточно видалено.",
     "source_hash": "f12de64e"
   },
   "web.auth.close_account.confirm": {
@@ -231,11 +231,11 @@
     "source_hash": "b44b1366"
   },
   "web.auth.close_account.password": {
-    "text": "Введіть свій пароль для підтвердження",
+    "text": "Введи пароль для підтвердження",
     "source_hash": "0aec03a6"
   },
   "web.auth.close_account.button": {
-    "text": "Назавжди закрити обліковий запис",
+    "text": "Остаточно закрити обліковий запис",
     "source_hash": "0713c012"
   },
   "web.auth.close_account.cancel": {
@@ -247,7 +247,7 @@
     "source_hash": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Введіть Вашу електронну адресу нижче, і ми надішлемо Вам посилання для скидання пароля",
+    "text": "Введи свою електронну адресу нижче, і ми надішлемо тобі посилання для скидання пароля",
     "source_hash": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
@@ -255,16 +255,16 @@
     "source_hash": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
-    "text": "Оберіть новий пароль",
+    "text": "Обери новий пароль",
     "context": "Password reset request flow - user requests a reset link",
     "source_hash": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Будь ласка, введіть Ваш новий пароль нижче. Переконайтеся, що він надійний та унікальний для захисту Вашого облікового запису.",
+    "text": "Введи новий пароль нижче. Переконайся, що він надійний та унікальний для захисту твого облікового запису.",
     "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "На Вашу електронну адресу надіслано лист із посиланням для скидання пароля Вашого облікового запису",
+    "text": "Тобі надіслано лист із посиланням для скидання пароля твого облікового запису",
     "source_hash": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
@@ -285,7 +285,7 @@
     "source_hash": "9966be40"
   },
   "web.auth.account.verified": {
-    "text": "Електронну адресу підтверджено",
+    "text": "Електронну пошту підтверджено",
     "source_hash": "bc512ab0"
   },
   "web.auth.account.region": {
@@ -293,7 +293,7 @@
     "source_hash": "d3a008ef"
   },
   "web.auth.account.not_verified": {
-    "text": "Електронну адресу не підтверджено",
+    "text": "Електронну пошту не підтверджено",
     "source_hash": "53955e0e"
   },
   "web.auth.account.verify_email": {
@@ -341,39 +341,39 @@
     "source_hash": "e1513814"
   },
   "web.help.title": {
-    "text": "Допомога та підтримка",
+    "text": "Довідка та підтримка",
     "source_hash": "1f8ecc24"
   },
   "web.help.signin_troubleshooting": {
-    "text": "Усунення проблем із входом",
+    "text": "Вирішення проблем із входом",
     "source_hash": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
-    "text": "Магічне посилання не надходить?",
+    "text": "Магічне посилання не приходить?",
     "source_hash": "6919ce70"
   },
   "web.help.check_spam_folder": {
-    "text": "Перевірте папку «Спам»",
+    "text": "Перевір папку спам або небажана пошта",
     "source_hash": "813fe2d8"
   },
   "web.help.check_email_spelling": {
-    "text": "Переконайтеся, що Ви правильно ввели електронну адресу",
+    "text": "Переконайся, що ти правильно ввів електронну адресу",
     "source_hash": "5f319557"
   },
   "web.help.wait_few_minutes": {
-    "text": "Зачекайте кілька хвилин — листи іноді затримуються",
+    "text": "Зачекай кілька хвилин — листи іноді затримуються",
     "source_hash": "884fc272"
   },
   "web.help.try_again": {
-    "text": "Спробуйте запросити нове посилання, якщо минуло більше 10 хвилин",
+    "text": "Спробуй запитати нове посилання, якщо минуло більше 10 хвилин",
     "source_hash": "68109f96"
   },
   "web.help.forgot_password": {
-    "text": "Забули пароль?",
+    "text": "Забув пароль?",
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Скористайтеся опцією «Магічне посилання», щоб увійти без пароля. Після входу Ви можете змінити пароль у налаштуваннях облікового запису.",
+    "text": "Використай опцію «Магічне посилання», щоб увійти без пароля. Після входу ти можеш змінити пароль у Налаштуваннях облікового запису.",
     "source_hash": "2a058600"
   },
   "web.help.account_locked": {
@@ -381,7 +381,7 @@
     "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "Після кількох невдалих спроб входу обліковий запис тимчасово блокується з міркувань безпеки. Зачекайте 15 хвилин і спробуйте ще раз, або скористайтеся «Магічним посиланням» для входу.",
+    "text": "Після кількох невдалих спроб входу облікові записи тимчасово блокуються для безпеки. Зачекай 15 хвилин і спробуй знову, або використай «Магічне посилання» для входу.",
     "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
@@ -389,11 +389,23 @@
     "source_hash": "5ff7d19e"
   },
   "web.help.contact_us_description": {
-    "text": "Якщо у Вас все ще виникають проблеми, ми тут, щоб допомогти. Надішліть нам повідомлення, і ми відповімо якнайшвидше.",
+    "text": "Якщо у тебе все ще виникають труднощі, ми тут, щоб допомогти. Надішли нам повідомлення, і ми відповімо якнайшвидше.",
     "source_hash": "d97c90fe"
   },
   "web.help.contact_support": {
     "text": "Зв'язатися з підтримкою",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Обліковий запис SSO"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Email verification flow after signup"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Єдиний вхід доступний для цього домену"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Адміністратор організації може увімкнути SSO, щоб дозволити членам команди входити тут. Зверніся до адміністратора для отримання доступу."
   }
 }
